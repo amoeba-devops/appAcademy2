@@ -1,0 +1,1416 @@
+-- ============================================================
+-- Trinity Academy — Management System MySQL Schema (DDL)
+-- Document: ACADEMY-ERD-1.3.0
+-- Version: 1.3.0
+-- Target: MySQL 8.0+
+-- Naming Convention: CLAUDE.md §5.1
+--   · Table prefix:       tac_
+--   · Sub-domain prefix:  tac_{sub}_ (tac_map_, tac_pay_)
+--   · PK:                 id (BIGINT AUTO_INCREMENT)
+--   · FK:                 {referenced_table}_id
+--   · Timestamp:          created_at, updated_at
+--   · Soft delete:        deleted_at
+--   · Boolean:            is_{name}
+--   · Status:             status (VARCHAR, UPPER_SNAKE values)
+--   · Index:              idx_{table}_{columns}
+--   · Unique:             uq_{table}_{columns}
+-- Changelog:
+--   1.0.0 — Initial core entities
+--   1.2.0 — Rebranded to Trinity Academy; added MAP question bank,
+--           timetable session extensions, student extensions,
+--           Trinity Pay (payment_orders/ledger/receipts), Main Portal
+--           (consultation_intake_form, posts).
+--   1.3.0 — Trinity Pay decisions closed:
+--           · Q-014 Toss Payments — pg_provider fixed to 'TOSS',
+--             pg_payment_key widened to VARCHAR(200), status enum
+--             mirrors Toss (READY/IN_PROGRESS/DONE/CANCELED/
+--             PARTIAL_CANCELED/ABORTED/EXPIRED).
+--           · Q-015 Session-based refund — new tac_pay_refund_policies +
+--             tac_pay_refund_policy_tiers (default = 학원법 시행령 제18조 3-tier).
+--             tac_pay_orders.refund_policy_version_id links snapshot.
+--             tac_pay_ledger gains refund_tier_id + elapsed_ratio.
+--           · Q-018 Self-issued tax invoice — new tac_pay_tax_invoices table
+--             (NTS eTax API fields: nts_issue_no/status/xml/pdf).
+--             tac_pay_receipts repurposed to CASH_RECEIPT/SIMPLE only.
+--   1.3.1 — Naming convention alignment: all tables prefixed tac_,
+--           MAP domain tac_map_, Pay domain tac_pay_.
+--           Index/Unique/FK names updated accordingly.
+-- ============================================================
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Tenant
+-- ----------------------------
+CREATE TABLE tac_academies (
+    id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name                     VARCHAR(200)    NOT NULL,
+    business_registration_no VARCHAR(30)              DEFAULT NULL,
+    status                   VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    created_at               DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at               DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_academies_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Program & Settings
+-- ----------------------------
+CREATE TABLE tac_programs (
+    id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id       BIGINT UNSIGNED NOT NULL,
+    name             VARCHAR(100)    NOT NULL,
+    category         VARCHAR(30)     NOT NULL,
+    description      TEXT                     DEFAULT NULL,
+    duration_weeks   INT                      DEFAULT NULL,
+    target_age_min   INT                      DEFAULT NULL,
+    target_age_max   INT                      DEFAULT NULL,
+    level            VARCHAR(20)              DEFAULT NULL,
+    status           VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_programs_academy_name (academy_id, name),
+    KEY idx_tac_programs_academy_status (academy_id, status),
+    CONSTRAINT fk_tac_programs_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_program_settings (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    program_id     BIGINT UNSIGNED NOT NULL,
+    fee_amount     DECIMAL(12,2)            DEFAULT NULL,
+    fee_currency   CHAR(3)         NOT NULL DEFAULT 'KRW',
+    capacity_max   INT                      DEFAULT NULL,
+    session_count  INT                      DEFAULT NULL,
+    material_info  JSON                     DEFAULT NULL,
+    refund_policy  JSON                     DEFAULT NULL,
+    updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_program_settings_program (program_id),
+    CONSTRAINT fk_tac_program_settings_program FOREIGN KEY (program_id) REFERENCES tac_programs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Classrooms
+-- ----------------------------
+CREATE TABLE tac_classrooms (
+    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id BIGINT UNSIGNED NOT NULL,
+    name       VARCHAR(50)     NOT NULL,
+    capacity   INT                      DEFAULT NULL,
+    status     VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_classrooms_academy_name (academy_id, name),
+    CONSTRAINT fk_tac_classrooms_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Teachers (AMA Client 참조)
+-- ----------------------------
+CREATE TABLE tac_teachers (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    ama_client_id      VARCHAR(64)     NOT NULL COMMENT 'AMA 거래처 ID — 단일 진실 원천',
+    teaching_subjects  JSON                     DEFAULT NULL,
+    employment_type    VARCHAR(20)     NOT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    last_synced_at     DATETIME                 DEFAULT NULL,
+    cached_profile     JSON                     DEFAULT NULL COMMENT '표시용 캐시 (name, phone)',
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_teachers_academy_ama (academy_id, ama_client_id),
+    KEY idx_tac_teachers_status (academy_id, status),
+    CONSTRAINT fk_tac_teachers_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Parents & Students
+-- ----------------------------
+CREATE TABLE tac_parents (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    name              VARCHAR(100)    NOT NULL,
+    phone_encrypted   VARBINARY(255)           DEFAULT NULL,
+    email_encrypted   VARBINARY(255)           DEFAULT NULL,
+    preferred_channel VARCHAR(20)              DEFAULT 'SMS',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_parents_academy (academy_id),
+    CONSTRAINT fk_tac_parents_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_students (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    primary_parent_id  BIGINT UNSIGNED NOT NULL COMMENT '주 보호자 — 필수',
+    name               VARCHAR(100)    NOT NULL,
+    birth_date         DATE                     DEFAULT NULL,
+    gender             CHAR(1)                  DEFAULT NULL,
+    school             VARCHAR(100)             DEFAULT NULL,
+    grade              VARCHAR(20)              DEFAULT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                 ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_students_parent (primary_parent_id),
+    KEY idx_tac_students_academy_name (academy_id, name),
+    CONSTRAINT fk_tac_students_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_students_parent  FOREIGN KEY (primary_parent_id) REFERENCES tac_parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_student_guardians (
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id   BIGINT UNSIGNED NOT NULL,
+    parent_id    BIGINT UNSIGNED NOT NULL,
+    relationship VARCHAR(20)              DEFAULT NULL,
+    is_primary   BOOLEAN         NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_student_guardians (student_id, parent_id),
+    CONSTRAINT fk_tac_sg_student FOREIGN KEY (student_id) REFERENCES tac_students(id),
+    CONSTRAINT fk_tac_sg_parent  FOREIGN KEY (parent_id)  REFERENCES tac_parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Classes & Sessions
+-- ----------------------------
+CREATE TABLE tac_classes (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    program_id        BIGINT UNSIGNED NOT NULL,
+    teacher_id        BIGINT UNSIGNED NOT NULL,
+    classroom_id      BIGINT UNSIGNED          DEFAULT NULL,
+    start_date        DATE            NOT NULL,
+    end_date          DATE                     DEFAULT NULL,
+    capacity          INT             NOT NULL,
+    enrolled_count    INT             NOT NULL DEFAULT 0,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    schedule_pattern  JSON            NOT NULL COMMENT '[{weekday,start_time,end_time}]',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_classes_teacher_date (teacher_id, start_date),
+    KEY idx_tac_classes_classroom_date (classroom_id, start_date),
+    KEY idx_tac_classes_academy_status (academy_id, status),
+    CONSTRAINT fk_tac_classes_academy   FOREIGN KEY (academy_id)   REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_classes_program   FOREIGN KEY (program_id)   REFERENCES tac_programs(id),
+    CONSTRAINT fk_tac_classes_teacher   FOREIGN KEY (teacher_id)   REFERENCES tac_teachers(id),
+    CONSTRAINT fk_tac_classes_classroom FOREIGN KEY (classroom_id) REFERENCES tac_classrooms(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_class_sessions (
+    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    class_id   BIGINT UNSIGNED NOT NULL,
+    session_no INT             NOT NULL,
+    start_at   DATETIME        NOT NULL,
+    end_at     DATETIME        NOT NULL,
+    status     VARCHAR(20)     NOT NULL DEFAULT 'SCHEDULED',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_class_sessions_class_no (class_id, session_no),
+    KEY idx_tac_class_sessions_start (start_at),
+    CONSTRAINT fk_tac_class_sessions_class FOREIGN KEY (class_id) REFERENCES tac_classes(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Consultation & Visit
+-- ----------------------------
+CREATE TABLE tac_consultations (
+    id                      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id              BIGINT UNSIGNED NOT NULL,
+    parent_id               BIGINT UNSIGNED          DEFAULT NULL,
+    interested_program_id   BIGINT UNSIGNED          DEFAULT NULL,
+    channel                 VARCHAR(20)     NOT NULL,
+    status                  VARCHAR(20)     NOT NULL DEFAULT 'OPEN',
+    assignee_user_id        BIGINT UNSIGNED          DEFAULT NULL,
+    note                    TEXT                     DEFAULT NULL,
+    converted_enrollment_id BIGINT UNSIGNED          DEFAULT NULL,
+    created_at              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_consultations_academy_status (academy_id, status),
+    KEY idx_tac_consultations_parent (parent_id),
+    CONSTRAINT fk_tac_consultations_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_consultations_parent  FOREIGN KEY (parent_id)  REFERENCES tac_parents(id),
+    CONSTRAINT fk_tac_consultations_program FOREIGN KEY (interested_program_id) REFERENCES tac_programs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_visit_records (
+    id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    consultation_id  BIGINT UNSIGNED NOT NULL,
+    scheduled_at     DATETIME                 DEFAULT NULL,
+    visited_at       DATETIME                 DEFAULT NULL,
+    outcome          VARCHAR(20)              DEFAULT NULL,
+    handler_user_id  BIGINT UNSIGNED          DEFAULT NULL,
+    memo             TEXT                     DEFAULT NULL,
+    created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_visit_records_consultation (consultation_id),
+    CONSTRAINT fk_tac_visit_records_consultation FOREIGN KEY (consultation_id) REFERENCES tac_consultations(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Enrollment & Attendance
+-- ----------------------------
+CREATE TABLE tac_enrollments (
+    id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id            BIGINT UNSIGNED NOT NULL,
+    class_id              BIGINT UNSIGNED NOT NULL,
+    student_id            BIGINT UNSIGNED NOT NULL,
+    applied_by_parent_id  BIGINT UNSIGNED NOT NULL,
+    status                VARCHAR(20)     NOT NULL DEFAULT 'PENDING',
+    applied_at            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at          DATETIME                 DEFAULT NULL,
+    canceled_at           DATETIME                 DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_enrollments_class_student (class_id, student_id),
+    KEY idx_tac_enrollments_academy_status (academy_id, status),
+    KEY idx_tac_enrollments_student_status (student_id, status),
+    CONSTRAINT fk_tac_enrollments_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_enrollments_class   FOREIGN KEY (class_id)   REFERENCES tac_classes(id),
+    CONSTRAINT fk_tac_enrollments_student FOREIGN KEY (student_id) REFERENCES tac_students(id),
+    CONSTRAINT fk_tac_enrollments_parent  FOREIGN KEY (applied_by_parent_id) REFERENCES tac_parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Post-FK alter: tac_consultations.converted_enrollment_id → tac_enrollments.id
+ALTER TABLE tac_consultations
+    ADD CONSTRAINT fk_tac_consultations_enrollment
+    FOREIGN KEY (converted_enrollment_id) REFERENCES tac_enrollments(id);
+
+CREATE TABLE tac_attendances (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    class_session_id  BIGINT UNSIGNED NOT NULL,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    status            VARCHAR(20)     NOT NULL,
+    memo              TEXT                     DEFAULT NULL,
+    recorded_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_attendances_session_student (class_session_id, student_id),
+    CONSTRAINT fk_tac_attendances_session FOREIGN KEY (class_session_id) REFERENCES tac_class_sessions(id),
+    CONSTRAINT fk_tac_attendances_student FOREIGN KEY (student_id) REFERENCES tac_students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- v1.2 Extensions (Trinity Academy)
+-- ============================================================
+
+-- ----------------------------
+-- tac_class_sessions — Session status & duration extension (FR-032, A-007)
+-- ----------------------------
+ALTER TABLE tac_class_sessions
+    ADD COLUMN planned_duration_hours DECIMAL(3,1) DEFAULT NULL AFTER end_at,
+    ADD COLUMN actual_duration_hours  DECIMAL(3,1) DEFAULT NULL AFTER planned_duration_hours,
+    ADD COLUMN session_status         VARCHAR(20)  NOT NULL DEFAULT 'SCHEDULED'
+        COMMENT 'SCHEDULED/HELD/CANCELLED/MAKEUP' AFTER actual_duration_hours,
+    ADD COLUMN cancel_reason          VARCHAR(100) DEFAULT NULL AFTER session_status,
+    ADD COLUMN makeup_of_session_id   BIGINT UNSIGNED DEFAULT NULL AFTER cancel_reason,
+    ADD COLUMN memo                   TEXT DEFAULT NULL AFTER makeup_of_session_id,
+    ADD CONSTRAINT fk_tac_class_sessions_makeup
+        FOREIGN KEY (makeup_of_session_id) REFERENCES tac_class_sessions(id);
+
+-- Application must enforce: actual_duration_hours % 0.5 == 0 (A-007)
+
+-- ----------------------------
+-- MAP Question Bank (tac_map_ domain)
+-- ----------------------------
+CREATE TABLE tac_map_passages (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id     BIGINT UNSIGNED          DEFAULT NULL COMMENT 'NULL = shared pool (Q-006)',
+    title          VARCHAR(200)    NOT NULL,
+    body           MEDIUMTEXT      NOT NULL,
+    grade_level    VARCHAR(10)     NOT NULL COMMENT 'G2/G3/G4/G5',
+    domain         VARCHAR(20)     NOT NULL DEFAULT 'RC',
+    pair_group_id  BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Passage 1/2 pairing',
+    source         VARCHAR(200)             DEFAULT NULL,
+    version        INT             NOT NULL DEFAULT 1,
+    status         VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_passages_academy_grade (academy_id, grade_level, status),
+    KEY idx_tac_map_passages_pair (pair_group_id),
+    CONSTRAINT fk_tac_map_passages_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_passage_assets (
+    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    passage_id  BIGINT UNSIGNED NOT NULL,
+    asset_url   VARCHAR(500)    NOT NULL,
+    alt_text    VARCHAR(200)             DEFAULT NULL,
+    ordinal     INT             NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_passage_assets_passage (passage_id),
+    CONSTRAINT fk_tac_map_passage_assets_passage FOREIGN KEY (passage_id) REFERENCES tac_map_passages(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_items (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id      BIGINT UNSIGNED          DEFAULT NULL,
+    passage_id      BIGINT UNSIGNED          DEFAULT NULL,
+    parent_item_id  BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Part A-B Part B parent',
+    domain          VARCHAR(20)     NOT NULL COMMENT 'RC/MATH/LANGUAGE',
+    grade_level     VARCHAR(10)     NOT NULL,
+    difficulty      VARCHAR(20)     NOT NULL COMMENT 'BASIC/INTERMEDIATE/ADVANCED',
+    item_type       VARCHAR(20)     NOT NULL COMMENT 'SINGLE/MULTI/PART_AB',
+    stem            TEXT            NOT NULL,
+    options         JSON            NOT NULL,
+    answer_keys     JSON            NOT NULL COMMENT 'Multi-correct supported (A-006)',
+    explanation     TEXT                     DEFAULT NULL,
+    points          INT             NOT NULL DEFAULT 1,
+    version         INT             NOT NULL DEFAULT 1,
+    status          VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_items_taxonomy (domain, grade_level, difficulty, status),
+    KEY idx_tac_map_items_passage  (passage_id),
+    KEY idx_tac_map_items_parent   (parent_item_id),
+    CONSTRAINT fk_tac_map_items_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_map_items_passage FOREIGN KEY (passage_id) REFERENCES tac_map_passages(id),
+    CONSTRAINT fk_tac_map_items_parent  FOREIGN KEY (parent_item_id) REFERENCES tac_map_items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_item_tags (
+    item_id  BIGINT UNSIGNED NOT NULL,
+    tag      VARCHAR(50)     NOT NULL,
+    PRIMARY KEY (item_id, tag),
+    KEY idx_tac_map_item_tags_tag (tag),
+    CONSTRAINT fk_tac_map_item_tags_item FOREIGN KEY (item_id) REFERENCES tac_map_items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_test_sets (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    name              VARCHAR(100)    NOT NULL,
+    composition_mode  VARCHAR(20)     NOT NULL DEFAULT 'FIXED' COMMENT 'FIXED/AUTO',
+    filter_criteria   JSON                     DEFAULT NULL,
+    total_points      INT             NOT NULL DEFAULT 0,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_by        BIGINT UNSIGNED          DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_test_sets_academy (academy_id, status),
+    CONSTRAINT fk_tac_map_test_sets_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_test_set_items (
+    id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    test_set_id              BIGINT UNSIGNED NOT NULL,
+    item_id                  BIGINT UNSIGNED NOT NULL,
+    ordinal                  INT             NOT NULL,
+    item_version_snapshot    JSON            NOT NULL COMMENT 'Item snapshot at assignment time (FR-028)',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_map_test_set_items_ordinal (test_set_id, ordinal),
+    KEY idx_tac_map_test_set_items_item (item_id),
+    CONSTRAINT fk_tac_map_test_set_items_set  FOREIGN KEY (test_set_id) REFERENCES tac_map_test_sets(id),
+    CONSTRAINT fk_tac_map_test_set_items_item FOREIGN KEY (item_id)     REFERENCES tac_map_items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_assignments (
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    test_set_id  BIGINT UNSIGNED NOT NULL,
+    target_type  VARCHAR(20)     NOT NULL COMMENT 'CLASS/STUDENT',
+    target_id    BIGINT UNSIGNED NOT NULL,
+    due_at       DATETIME        NOT NULL,
+    status       VARCHAR(20)     NOT NULL DEFAULT 'ASSIGNED',
+    created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_assignments_target (target_type, target_id, status),
+    KEY idx_tac_map_assignments_due    (due_at),
+    CONSTRAINT fk_tac_map_assignments_set FOREIGN KEY (test_set_id) REFERENCES tac_map_test_sets(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_responses (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    assignment_id  BIGINT UNSIGNED NOT NULL,
+    student_id     BIGINT UNSIGNED NOT NULL,
+    item_id        BIGINT UNSIGNED NOT NULL,
+    answer         JSON            NOT NULL,
+    is_correct     BOOLEAN         NOT NULL,
+    points_earned  INT             NOT NULL DEFAULT 0,
+    submitted_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_map_responses_assign_student_item (assignment_id, student_id, item_id),
+    KEY idx_tac_map_responses_student (student_id),
+    CONSTRAINT fk_tac_map_responses_assignment FOREIGN KEY (assignment_id) REFERENCES tac_map_assignments(id),
+    CONSTRAINT fk_tac_map_responses_student    FOREIGN KEY (student_id)    REFERENCES tac_students(id),
+    CONSTRAINT fk_tac_map_responses_item       FOREIGN KEY (item_id)       REFERENCES tac_map_items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_map_scores (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id      BIGINT UNSIGNED NOT NULL,
+    assessed_at     DATE            NOT NULL,
+    reading_score   INT                      DEFAULT NULL,
+    math_score      INT                      DEFAULT NULL,
+    language_score  INT                      DEFAULT NULL,
+    source          VARCHAR(20)     NOT NULL DEFAULT 'SYSTEM' COMMENT 'SYSTEM/IMPORT/MANUAL',
+    assignment_id   BIGINT UNSIGNED          DEFAULT NULL,
+    note            TEXT                     DEFAULT NULL,
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_map_scores_student_date (student_id, assessed_at),
+    CONSTRAINT fk_tac_map_scores_student    FOREIGN KEY (student_id)    REFERENCES tac_students(id),
+    CONSTRAINT fk_tac_map_scores_assignment FOREIGN KEY (assignment_id) REFERENCES tac_map_assignments(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Student Extensions
+-- ----------------------------
+CREATE TABLE tac_external_test_scores (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    test_type         VARCHAR(20)     NOT NULL COMMENT 'SSAT/ISEE/GPA/...',
+    test_date         DATE            NOT NULL,
+    score_raw         VARCHAR(50)     NOT NULL,
+    score_percentile  INT                      DEFAULT NULL,
+    note              TEXT                     DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_external_test_scores_student (student_id, test_type, test_date),
+    CONSTRAINT fk_tac_external_test_scores_student FOREIGN KEY (student_id) REFERENCES tac_students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_counseling_records (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    counseled_at      DATETIME        NOT NULL,
+    counselor_user_id BIGINT UNSIGNED          DEFAULT NULL,
+    topics            JSON                     DEFAULT NULL,
+    goals             JSON                     DEFAULT NULL,
+    satisfaction_note TEXT                     DEFAULT NULL,
+    next_action       TEXT                     DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_counseling_records_student_date (student_id, counseled_at),
+    CONSTRAINT fk_tac_counseling_records_student FOREIGN KEY (student_id) REFERENCES tac_students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Add lifecycle status column to tac_students (FR-037)
+ALTER TABLE tac_students
+    ADD COLUMN lifecycle_status VARCHAR(20) NOT NULL DEFAULT 'CONSULTING'
+        COMMENT 'CONSULTING/ENROLLED/ACTIVE/TERMINATED (FR-037)' AFTER status,
+    ADD COLUMN terminated_at    DATETIME DEFAULT NULL AFTER lifecycle_status,
+    ADD COLUMN termination_reason VARCHAR(100) DEFAULT NULL AFTER terminated_at;
+
+-- ----------------------------
+-- Trinity Pay (tac_pay_ domain)
+-- ----------------------------
+-- Refund policies (FR-041, FR-047) — v1.3 new
+-- Basis = SESSION (수업일·회차) by default. Tiers define
+-- step function: elapsed_ratio_min < x <= elapsed_ratio_max => refund_rate.
+CREATE TABLE tac_pay_refund_policies (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id           BIGINT UNSIGNED NOT NULL,
+    version              INT             NOT NULL,
+    basis                VARCHAR(20)     NOT NULL DEFAULT 'SESSION'
+        COMMENT 'SESSION(수업일/회차 기준) | CALENDAR(달력일)',
+    label                VARCHAR(100)    NOT NULL,
+    effective_from       DATE            NOT NULL,
+    effective_to         DATE                     DEFAULT NULL,
+    is_default_template  TINYINT(1)      NOT NULL DEFAULT 0
+        COMMENT '1 = 학원법 시행령 제18조 시드 템플릿',
+    created_by           BIGINT UNSIGNED          DEFAULT NULL,
+    created_at           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_pay_refund_policies_academy_version (academy_id, version),
+    KEY idx_tac_pay_refund_policies_active (academy_id, effective_from, effective_to),
+    CONSTRAINT fk_tac_pay_refund_policies_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_pay_refund_policy_tiers (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    policy_id            BIGINT UNSIGNED NOT NULL,
+    tier_order           TINYINT         NOT NULL,
+    elapsed_ratio_min    DECIMAL(5,4)    NOT NULL COMMENT '> (exclusive), 0.0000 = 교습 시작',
+    elapsed_ratio_max    DECIMAL(5,4)    NOT NULL COMMENT '<= (inclusive), 1.0000 = 교습 종료',
+    refund_rate          DECIMAL(5,4)    NOT NULL COMMENT '0.0000 ~ 1.0000',
+    note                 VARCHAR(200)             DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_pay_refund_policy_tiers_order (policy_id, tier_order),
+    CONSTRAINT fk_tac_pay_refund_policy_tiers_policy FOREIGN KEY (policy_id) REFERENCES tac_pay_refund_policies(id) ON DELETE CASCADE,
+    CONSTRAINT chk_tac_pay_refund_policy_tiers_range CHECK (elapsed_ratio_min < elapsed_ratio_max),
+    CONSTRAINT chk_tac_pay_refund_policy_tiers_rate  CHECK (refund_rate >= 0 AND refund_rate <= 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed: 학원법 시행령 제18조 기본 3단계 (per academy, run post-install)
+-- INSERT INTO tac_pay_refund_policies (academy_id, version, basis, label, effective_from, is_default_template)
+--   VALUES (?, 1, 'SESSION', '학원법 시행령 제18조 기본', CURRENT_DATE, 1);
+-- INSERT INTO tac_pay_refund_policy_tiers (policy_id, tier_order, elapsed_ratio_min, elapsed_ratio_max, refund_rate, note) VALUES
+--   (?, 0, -0.0001, 0.0000, 1.0000, '교습 개시 전'),
+--   (?, 1,  0.0000, 0.3333, 0.6667, '1/3 경과 전 (2/3 환불)'),
+--   (?, 2,  0.3333, 0.5000, 0.5000, '1/2 경과 전 (1/2 환불)'),
+--   (?, 3,  0.5000, 1.0001, 0.0000, '1/2 경과 후 (환불 불가)');
+
+CREATE TABLE tac_pay_orders (
+    id                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id                BIGINT UNSIGNED NOT NULL,
+    enrollment_id             BIGINT UNSIGNED NOT NULL,
+    order_no                  VARCHAR(40)     NOT NULL,
+    idempotency_key           VARCHAR(64)     NOT NULL,
+    amount                    DECIMAL(12,2)   NOT NULL,
+    currency                  CHAR(3)         NOT NULL DEFAULT 'KRW',
+    method                    VARCHAR(20)              DEFAULT NULL COMMENT 'CARD/TRANSFER/VACCOUNT/EASY_PAY',
+    pg_provider               VARCHAR(20)     NOT NULL DEFAULT 'TOSS' COMMENT 'Fixed TOSS @ v1.3 (A-011)',
+    pg_order_id               VARCHAR(64)              DEFAULT NULL COMMENT 'Toss orderId = order_no',
+    pg_payment_key            VARCHAR(200)             DEFAULT NULL COMMENT 'Toss paymentKey; no raw PAN (NFR-011)',
+    status                    VARCHAR(30)     NOT NULL DEFAULT 'READY'
+        COMMENT 'READY/IN_PROGRESS/DONE/CANCELED/PARTIAL_CANCELED/ABORTED/EXPIRED (Toss)',
+    refund_policy_version_id  BIGINT UNSIGNED NOT NULL
+        COMMENT 'Snapshot of tac_pay_refund_policies at order creation (A-012)',
+    expires_at                DATETIME                 DEFAULT NULL,
+    approved_at               DATETIME                 DEFAULT NULL,
+    canceled_at               DATETIME                 DEFAULT NULL,
+    created_at                DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_pay_orders_order_no (order_no),
+    UNIQUE KEY uq_tac_pay_orders_idempotency (idempotency_key),
+    KEY idx_tac_pay_orders_enrollment (enrollment_id),
+    KEY idx_tac_pay_orders_status (academy_id, status),
+    CONSTRAINT fk_tac_pay_orders_academy        FOREIGN KEY (academy_id)               REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_pay_orders_enrollment     FOREIGN KEY (enrollment_id)            REFERENCES tac_enrollments(id),
+    CONSTRAINT fk_tac_pay_orders_refund_policy  FOREIGN KEY (refund_policy_version_id) REFERENCES tac_pay_refund_policies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_pay_ledger (
+    id                      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id        BIGINT UNSIGNED NOT NULL,
+    entry_type              VARCHAR(20)     NOT NULL COMMENT 'CHARGE/REFUND/ADJUSTMENT',
+    amount                  DECIMAL(12,2)   NOT NULL COMMENT 'negative for refund',
+    balance_after           DECIMAL(12,2)   NOT NULL,
+    refund_tier_id          BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Tier applied (audit)',
+    elapsed_ratio_at_refund DECIMAL(5,4)             DEFAULT NULL COMMENT 'Snapshot (audit)',
+    memo                    VARCHAR(200)             DEFAULT NULL,
+    recorded_by             BIGINT UNSIGNED          DEFAULT NULL,
+    recorded_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_pay_ledger_order (payment_order_id, recorded_at),
+    CONSTRAINT fk_tac_pay_ledger_order       FOREIGN KEY (payment_order_id) REFERENCES tac_pay_orders(id),
+    CONSTRAINT fk_tac_pay_ledger_refund_tier FOREIGN KEY (refund_tier_id)   REFERENCES tac_pay_refund_policy_tiers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Receipts — repurposed v1.3 to 간이/현금영수증만. 세금계산서는 tac_pay_tax_invoices 로 분리.
+CREATE TABLE tac_pay_receipts (
+    id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id    BIGINT UNSIGNED NOT NULL,
+    receipt_type        VARCHAR(20)     NOT NULL COMMENT 'CASH_RECEIPT(현금영수증) / SIMPLE(간이)',
+    issued_at           DATETIME        NOT NULL,
+    pdf_url             VARCHAR(500)             DEFAULT NULL,
+    cash_receipt_no     VARCHAR(64)              DEFAULT NULL COMMENT 'NTS 현금영수증 승인번호',
+    buyer_identifier    VARBINARY(128)           DEFAULT NULL COMMENT '암호화 저장(휴대폰/주민번호)',
+    canceled_at         DATETIME                 DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_tac_pay_receipts_order (payment_order_id),
+    CONSTRAINT fk_tac_pay_receipts_order FOREIGN KEY (payment_order_id) REFERENCES tac_pay_orders(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tax invoices (FR-048) — self-issued via NTS eTax API, v1.3 new
+CREATE TABLE tac_pay_tax_invoices (
+    id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id    BIGINT UNSIGNED NOT NULL,
+    academy_id          BIGINT UNSIGNED NOT NULL,
+    invoice_no          VARCHAR(40)     NOT NULL COMMENT 'Internal (academy-YYYY-seq)',
+    nts_issue_no        VARCHAR(24)              DEFAULT NULL COMMENT '국세청 발급승인번호',
+    supplier_biz_no     VARCHAR(13)     NOT NULL COMMENT '공급자(학원) 사업자번호',
+    buyer_biz_no        VARCHAR(13)              DEFAULT NULL COMMENT '공급받는자 사업자번호',
+    buyer_type          VARCHAR(20)     NOT NULL COMMENT 'CORP(사업자) | INDIVIDUAL(개인)',
+    supply_amount       DECIMAL(12,2)   NOT NULL,
+    tax_amount          DECIMAL(12,2)   NOT NULL,
+    total_amount        DECIMAL(12,2)   NOT NULL,
+    issue_date          DATE            NOT NULL,
+    status              VARCHAR(20)     NOT NULL DEFAULT 'DRAFT'
+        COMMENT 'DRAFT/SUBMITTED/APPROVED/REJECTED/CANCELED',
+    nts_submitted_at    DATETIME                 DEFAULT NULL,
+    nts_approved_at     DATETIME                 DEFAULT NULL,
+    nts_error_code      VARCHAR(30)              DEFAULT NULL,
+    nts_error_message   VARCHAR(500)             DEFAULT NULL,
+    xml_payload_url     VARCHAR(500)             DEFAULT NULL COMMENT 'S3: signed eTax XML',
+    pdf_url             VARCHAR(500)             DEFAULT NULL COMMENT 'S3: buyer-facing PDF',
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                          ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_pay_tax_invoices_academy_no (academy_id, invoice_no),
+    KEY idx_tac_pay_tax_invoices_order (payment_order_id),
+    KEY idx_tac_pay_tax_invoices_status_date (status, nts_submitted_at),
+    CONSTRAINT fk_tac_pay_tax_invoices_order   FOREIGN KEY (payment_order_id) REFERENCES tac_pay_orders(id),
+    CONSTRAINT fk_tac_pay_tax_invoices_academy FOREIGN KEY (academy_id)       REFERENCES tac_academies(id),
+    CONSTRAINT chk_tac_pay_tax_invoices_totals CHECK (total_amount = supply_amount + tax_amount)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Main Portal
+-- ----------------------------
+CREATE TABLE tac_consultation_intake_form (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    parent_name        VARCHAR(100)    NOT NULL,
+    phone              VARCHAR(30)     NOT NULL,
+    email              VARCHAR(200)             DEFAULT NULL,
+    child_grade        VARCHAR(20)              DEFAULT NULL,
+    program_interest   VARCHAR(100)             DEFAULT NULL,
+    preferred_date     DATE                     DEFAULT NULL,
+    message            TEXT                     DEFAULT NULL,
+    consent_pi         BOOLEAN         NOT NULL DEFAULT FALSE,
+    captcha_score      DECIMAL(3,2)             DEFAULT NULL,
+    ip                 VARCHAR(45)              DEFAULT NULL,
+    user_agent         VARCHAR(500)             DEFAULT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'NEW'
+        COMMENT 'NEW/PROMOTED/SPAM/DUPLICATE',
+    promoted_consultation_id BIGINT UNSIGNED    DEFAULT NULL,
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_tac_consultation_intake_form_academy_status (academy_id, status, created_at),
+    CONSTRAINT fk_tac_consultation_intake_form_academy      FOREIGN KEY (academy_id) REFERENCES tac_academies(id),
+    CONSTRAINT fk_tac_consultation_intake_form_consultation FOREIGN KEY (promoted_consultation_id) REFERENCES tac_consultations(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tac_posts (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    slug              VARCHAR(200)    NOT NULL,
+    title             VARCHAR(200)    NOT NULL,
+    body_md           MEDIUMTEXT      NOT NULL,
+    cover_image_url   VARCHAR(500)             DEFAULT NULL,
+    author_user_id    BIGINT UNSIGNED          DEFAULT NULL,
+    published_at      DATETIME                 DEFAULT NULL,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT'
+        COMMENT 'DRAFT/PUBLISHED/ARCHIVED',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tac_posts_academy_slug (academy_id, slug),
+    KEY idx_tac_posts_published (academy_id, status, published_at),
+    CONSTRAINT fk_tac_posts_academy FOREIGN KEY (academy_id) REFERENCES tac_academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Add enrollment → payment linkage convenience view
+CREATE OR REPLACE VIEW v_tac_enrollment_payments AS
+SELECT
+    e.id              AS enrollment_id,
+    e.academy_id,
+    e.class_id,
+    e.student_id,
+    e.status          AS enrollment_status,
+    po.id             AS payment_order_id,
+    po.order_no,
+    po.amount,
+    po.status         AS payment_status,
+    po.approved_at
+FROM tac_enrollments e
+LEFT JOIN tac_pay_orders po ON po.enrollment_id = e.id;
+-- ============================================================
+-- Trinity Academy — Management System MySQL Schema (DDL)
+-- Document: ACADEMY-ERD-1.3.0
+-- Version: 1.3.0
+-- Target: MySQL 8.0+
+-- Changelog:
+--   1.0.0 — Initial core entities
+--   1.2.0 — Rebranded to Trinity Academy; added MAP question bank,
+--           timetable session extensions, student extensions,
+--           Trinity Pay (payment_orders/ledger/receipts), Main Portal
+--           (consultation_intake_form, posts).
+--   1.3.0 — Trinity Pay decisions closed:
+--           · Q-014 Toss Payments — pg_provider fixed to 'TOSS',
+--             pg_payment_key widened to VARCHAR(200), status enum
+--             mirrors Toss (READY/IN_PROGRESS/DONE/CANCELED/
+--             PARTIAL_CANCELED/ABORTED/EXPIRED).
+--           · Q-015 Session-based refund — new refund_policies +
+--             refund_policy_tiers (default = 학원법 시행령 제18조 3-tier).
+--             payment_orders.refund_policy_version_id links snapshot.
+--             payment_ledger gains refund_tier_id + elapsed_ratio.
+--           · Q-018 Self-issued tax invoice — new tax_invoices table
+--             (NTS eTax API fields: nts_issue_no/status/xml/pdf).
+--             receipts repurposed to CASH_RECEIPT/SIMPLE only.
+-- ============================================================
+
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Tenant
+-- ----------------------------
+CREATE TABLE academies (
+    id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name                     VARCHAR(200)    NOT NULL,
+    business_registration_no VARCHAR(30)              DEFAULT NULL,
+    status                   VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    created_at               DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at               DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_academies_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Program & Settings
+-- ----------------------------
+CREATE TABLE programs (
+    id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id       BIGINT UNSIGNED NOT NULL,
+    name             VARCHAR(100)    NOT NULL,
+    category         VARCHAR(30)     NOT NULL,
+    description      TEXT                     DEFAULT NULL,
+    duration_weeks   INT                      DEFAULT NULL,
+    target_age_min   INT                      DEFAULT NULL,
+    target_age_max   INT                      DEFAULT NULL,
+    level            VARCHAR(20)              DEFAULT NULL,
+    status           VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_programs_academy_name (academy_id, name),
+    KEY idx_programs_academy_status (academy_id, status),
+    CONSTRAINT fk_programs_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE program_settings (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    program_id     BIGINT UNSIGNED NOT NULL,
+    fee_amount     DECIMAL(12,2)            DEFAULT NULL,
+    fee_currency   CHAR(3)         NOT NULL DEFAULT 'KRW',
+    capacity_max   INT                      DEFAULT NULL,
+    session_count  INT                      DEFAULT NULL,
+    material_info  JSON                     DEFAULT NULL,
+    refund_policy  JSON                     DEFAULT NULL,
+    updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_program_settings_program (program_id),
+    CONSTRAINT fk_program_settings_program FOREIGN KEY (program_id) REFERENCES programs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Classrooms
+-- ----------------------------
+CREATE TABLE classrooms (
+    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id BIGINT UNSIGNED NOT NULL,
+    name       VARCHAR(50)     NOT NULL,
+    capacity   INT                      DEFAULT NULL,
+    status     VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_classrooms_academy_name (academy_id, name),
+    CONSTRAINT fk_classrooms_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Teachers (AMA Client 참조)
+-- ----------------------------
+CREATE TABLE teachers (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    ama_client_id      VARCHAR(64)     NOT NULL COMMENT 'AMA 거래처 ID — 단일 진실 원천',
+    teaching_subjects  JSON                     DEFAULT NULL,
+    employment_type    VARCHAR(20)     NOT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    last_synced_at     DATETIME                 DEFAULT NULL,
+    cached_profile     JSON                     DEFAULT NULL COMMENT '표시용 캐시 (name, phone)',
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_teachers_academy_ama (academy_id, ama_client_id),
+    KEY idx_teachers_status (academy_id, status),
+    CONSTRAINT fk_teachers_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Parents & Students
+-- ----------------------------
+CREATE TABLE parents (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    name              VARCHAR(100)    NOT NULL,
+    phone_encrypted   VARBINARY(255)           DEFAULT NULL,
+    email_encrypted   VARBINARY(255)           DEFAULT NULL,
+    preferred_channel VARCHAR(20)              DEFAULT 'SMS',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_parents_academy (academy_id),
+    CONSTRAINT fk_parents_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE students (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    primary_parent_id  BIGINT UNSIGNED NOT NULL COMMENT '주 보호자 — 필수',
+    name               VARCHAR(100)    NOT NULL,
+    birth_date         DATE                     DEFAULT NULL,
+    gender             CHAR(1)                  DEFAULT NULL,
+    school             VARCHAR(100)             DEFAULT NULL,
+    grade              VARCHAR(20)              DEFAULT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                 ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_students_parent (primary_parent_id),
+    KEY idx_students_academy_name (academy_id, name),
+    CONSTRAINT fk_students_academy FOREIGN KEY (academy_id) REFERENCES academies(id),
+    CONSTRAINT fk_students_parent  FOREIGN KEY (primary_parent_id) REFERENCES parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE student_guardians (
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id   BIGINT UNSIGNED NOT NULL,
+    parent_id    BIGINT UNSIGNED NOT NULL,
+    relationship VARCHAR(20)              DEFAULT NULL,
+    is_primary   BOOLEAN         NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_student_guardians (student_id, parent_id),
+    CONSTRAINT fk_sg_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_sg_parent  FOREIGN KEY (parent_id)  REFERENCES parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Classes & Sessions
+-- ----------------------------
+CREATE TABLE classes (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    program_id        BIGINT UNSIGNED NOT NULL,
+    teacher_id        BIGINT UNSIGNED NOT NULL,
+    classroom_id      BIGINT UNSIGNED          DEFAULT NULL,
+    start_date        DATE            NOT NULL,
+    end_date          DATE                     DEFAULT NULL,
+    capacity          INT             NOT NULL,
+    enrolled_count    INT             NOT NULL DEFAULT 0,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    schedule_pattern  JSON            NOT NULL COMMENT '[{weekday,start_time,end_time}]',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_classes_teacher_date (teacher_id, start_date),
+    KEY idx_classes_classroom_date (classroom_id, start_date),
+    KEY idx_classes_academy_status (academy_id, status),
+    CONSTRAINT fk_classes_academy   FOREIGN KEY (academy_id)   REFERENCES academies(id),
+    CONSTRAINT fk_classes_program   FOREIGN KEY (program_id)   REFERENCES programs(id),
+    CONSTRAINT fk_classes_teacher   FOREIGN KEY (teacher_id)   REFERENCES teachers(id),
+    CONSTRAINT fk_classes_classroom FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE class_sessions (
+    id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    class_id   BIGINT UNSIGNED NOT NULL,
+    session_no INT             NOT NULL,
+    start_at   DATETIME        NOT NULL,
+    end_at     DATETIME        NOT NULL,
+    status     VARCHAR(20)     NOT NULL DEFAULT 'SCHEDULED',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_class_sessions_class_no (class_id, session_no),
+    KEY idx_class_sessions_start (start_at),
+    CONSTRAINT fk_class_sessions_class FOREIGN KEY (class_id) REFERENCES classes(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Consultation & Visit
+-- ----------------------------
+CREATE TABLE consultations (
+    id                      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id              BIGINT UNSIGNED NOT NULL,
+    parent_id               BIGINT UNSIGNED          DEFAULT NULL,
+    interested_program_id   BIGINT UNSIGNED          DEFAULT NULL,
+    channel                 VARCHAR(20)     NOT NULL,
+    status                  VARCHAR(20)     NOT NULL DEFAULT 'OPEN',
+    assignee_user_id        BIGINT UNSIGNED          DEFAULT NULL,
+    note                    TEXT                     DEFAULT NULL,
+    converted_enrollment_id BIGINT UNSIGNED          DEFAULT NULL,
+    created_at              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_consultations_academy_status (academy_id, status),
+    KEY idx_consultations_parent (parent_id),
+    CONSTRAINT fk_consultations_academy FOREIGN KEY (academy_id) REFERENCES academies(id),
+    CONSTRAINT fk_consultations_parent  FOREIGN KEY (parent_id)  REFERENCES parents(id),
+    CONSTRAINT fk_consultations_program FOREIGN KEY (interested_program_id) REFERENCES programs(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE visit_records (
+    id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    consultation_id  BIGINT UNSIGNED NOT NULL,
+    scheduled_at     DATETIME                 DEFAULT NULL,
+    visited_at       DATETIME                 DEFAULT NULL,
+    outcome          VARCHAR(20)              DEFAULT NULL,
+    handler_user_id  BIGINT UNSIGNED          DEFAULT NULL,
+    memo             TEXT                     DEFAULT NULL,
+    created_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_visit_records_consultation (consultation_id),
+    CONSTRAINT fk_visit_records_consultation FOREIGN KEY (consultation_id) REFERENCES consultations(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Enrollment & Attendance
+-- ----------------------------
+CREATE TABLE enrollments (
+    id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id            BIGINT UNSIGNED NOT NULL,
+    class_id              BIGINT UNSIGNED NOT NULL,
+    student_id            BIGINT UNSIGNED NOT NULL,
+    applied_by_parent_id  BIGINT UNSIGNED NOT NULL,
+    status                VARCHAR(20)     NOT NULL DEFAULT 'PENDING',
+    applied_at            DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    confirmed_at          DATETIME                 DEFAULT NULL,
+    canceled_at           DATETIME                 DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_enrollments_class_student (class_id, student_id),
+    KEY idx_enrollments_academy_status (academy_id, status),
+    KEY idx_enrollments_student_status (student_id, status),
+    CONSTRAINT fk_enrollments_academy FOREIGN KEY (academy_id) REFERENCES academies(id),
+    CONSTRAINT fk_enrollments_class   FOREIGN KEY (class_id)   REFERENCES classes(id),
+    CONSTRAINT fk_enrollments_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_enrollments_parent  FOREIGN KEY (applied_by_parent_id) REFERENCES parents(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Post-FK alter: consultation.converted_enrollment_id → enrollments.id
+ALTER TABLE consultations
+    ADD CONSTRAINT fk_consultations_enrollment
+    FOREIGN KEY (converted_enrollment_id) REFERENCES enrollments(id);
+
+CREATE TABLE attendances (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    class_session_id  BIGINT UNSIGNED NOT NULL,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    status            VARCHAR(20)     NOT NULL,
+    memo              TEXT                     DEFAULT NULL,
+    recorded_at       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_attendances_session_student (class_session_id, student_id),
+    CONSTRAINT fk_attendances_session FOREIGN KEY (class_session_id) REFERENCES class_sessions(id),
+    CONSTRAINT fk_attendances_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- v1.2 Extensions (Trinity Academy)
+-- ============================================================
+
+-- ----------------------------
+-- class_sessions — Session status & duration extension (FR-032, A-007)
+-- ----------------------------
+ALTER TABLE class_sessions
+    ADD COLUMN planned_duration_hours DECIMAL(3,1) DEFAULT NULL AFTER end_at,
+    ADD COLUMN actual_duration_hours  DECIMAL(3,1) DEFAULT NULL AFTER planned_duration_hours,
+    ADD COLUMN session_status         VARCHAR(20)  NOT NULL DEFAULT 'SCHEDULED'
+        COMMENT 'SCHEDULED/HELD/CANCELLED/MAKEUP' AFTER actual_duration_hours,
+    ADD COLUMN cancel_reason          VARCHAR(100) DEFAULT NULL AFTER session_status,
+    ADD COLUMN makeup_of_session_id   BIGINT UNSIGNED DEFAULT NULL AFTER cancel_reason,
+    ADD COLUMN memo                   TEXT DEFAULT NULL AFTER makeup_of_session_id,
+    ADD CONSTRAINT fk_class_sessions_makeup
+        FOREIGN KEY (makeup_of_session_id) REFERENCES class_sessions(id);
+
+-- Application must enforce: actual_duration_hours % 0.5 == 0 (A-007)
+
+-- ----------------------------
+-- MAP Question Bank
+-- ----------------------------
+CREATE TABLE passages (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id     BIGINT UNSIGNED          DEFAULT NULL COMMENT 'NULL = shared pool (Q-006)',
+    title          VARCHAR(200)    NOT NULL,
+    body           MEDIUMTEXT      NOT NULL,
+    grade_level    VARCHAR(10)     NOT NULL COMMENT 'G2/G3/G4/G5',
+    domain         VARCHAR(20)     NOT NULL DEFAULT 'RC',
+    pair_group_id  BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Passage 1/2 pairing',
+    source         VARCHAR(200)             DEFAULT NULL,
+    version        INT             NOT NULL DEFAULT 1,
+    status         VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_passages_academy_grade (academy_id, grade_level, status),
+    KEY idx_passages_pair (pair_group_id),
+    CONSTRAINT fk_passages_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE passage_assets (
+    id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    passage_id  BIGINT UNSIGNED NOT NULL,
+    asset_url   VARCHAR(500)    NOT NULL,
+    alt_text    VARCHAR(200)             DEFAULT NULL,
+    ordinal     INT             NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    KEY idx_passage_assets_passage (passage_id),
+    CONSTRAINT fk_passage_assets_passage FOREIGN KEY (passage_id) REFERENCES passages(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE items (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id      BIGINT UNSIGNED          DEFAULT NULL,
+    passage_id      BIGINT UNSIGNED          DEFAULT NULL,
+    parent_item_id  BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Part A-B Part B parent',
+    domain          VARCHAR(20)     NOT NULL COMMENT 'RC/MATH/LANGUAGE',
+    grade_level     VARCHAR(10)     NOT NULL,
+    difficulty      VARCHAR(20)     NOT NULL COMMENT 'BASIC/INTERMEDIATE/ADVANCED',
+    item_type       VARCHAR(20)     NOT NULL COMMENT 'SINGLE/MULTI/PART_AB',
+    stem            TEXT            NOT NULL,
+    options         JSON            NOT NULL,
+    answer_keys     JSON            NOT NULL COMMENT 'Multi-correct supported (A-006)',
+    explanation     TEXT                     DEFAULT NULL,
+    points          INT             NOT NULL DEFAULT 1,
+    version         INT             NOT NULL DEFAULT 1,
+    status          VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                  ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_items_taxonomy (domain, grade_level, difficulty, status),
+    KEY idx_items_passage  (passage_id),
+    KEY idx_items_parent   (parent_item_id),
+    CONSTRAINT fk_items_academy FOREIGN KEY (academy_id) REFERENCES academies(id),
+    CONSTRAINT fk_items_passage FOREIGN KEY (passage_id) REFERENCES passages(id),
+    CONSTRAINT fk_items_parent  FOREIGN KEY (parent_item_id) REFERENCES items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE item_tags (
+    item_id  BIGINT UNSIGNED NOT NULL,
+    tag      VARCHAR(50)     NOT NULL,
+    PRIMARY KEY (item_id, tag),
+    KEY idx_item_tags_tag (tag),
+    CONSTRAINT fk_item_tags_item FOREIGN KEY (item_id) REFERENCES items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE test_sets (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    name              VARCHAR(100)    NOT NULL,
+    composition_mode  VARCHAR(20)     NOT NULL DEFAULT 'FIXED' COMMENT 'FIXED/AUTO',
+    filter_criteria   JSON                     DEFAULT NULL,
+    total_points      INT             NOT NULL DEFAULT 0,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT',
+    created_by        BIGINT UNSIGNED          DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_test_sets_academy (academy_id, status),
+    CONSTRAINT fk_test_sets_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE test_set_items (
+    id                       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    test_set_id              BIGINT UNSIGNED NOT NULL,
+    item_id                  BIGINT UNSIGNED NOT NULL,
+    ordinal                  INT             NOT NULL,
+    item_version_snapshot    JSON            NOT NULL COMMENT 'Item snapshot at assignment time (FR-028)',
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_test_set_items_ordinal (test_set_id, ordinal),
+    KEY idx_test_set_items_item (item_id),
+    CONSTRAINT fk_test_set_items_set  FOREIGN KEY (test_set_id) REFERENCES test_sets(id),
+    CONSTRAINT fk_test_set_items_item FOREIGN KEY (item_id)     REFERENCES items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE assignments (
+    id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    test_set_id  BIGINT UNSIGNED NOT NULL,
+    target_type  VARCHAR(20)     NOT NULL COMMENT 'CLASS/STUDENT',
+    target_id    BIGINT UNSIGNED NOT NULL,
+    due_at       DATETIME        NOT NULL,
+    status       VARCHAR(20)     NOT NULL DEFAULT 'ASSIGNED',
+    created_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_assignments_target (target_type, target_id, status),
+    KEY idx_assignments_due    (due_at),
+    CONSTRAINT fk_assignments_set FOREIGN KEY (test_set_id) REFERENCES test_sets(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE responses (
+    id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    assignment_id  BIGINT UNSIGNED NOT NULL,
+    student_id     BIGINT UNSIGNED NOT NULL,
+    item_id        BIGINT UNSIGNED NOT NULL,
+    answer         JSON            NOT NULL,
+    is_correct     BOOLEAN         NOT NULL,
+    points_earned  INT             NOT NULL DEFAULT 0,
+    submitted_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_responses_assign_student_item (assignment_id, student_id, item_id),
+    KEY idx_responses_student (student_id),
+    CONSTRAINT fk_responses_assignment FOREIGN KEY (assignment_id) REFERENCES assignments(id),
+    CONSTRAINT fk_responses_student    FOREIGN KEY (student_id)    REFERENCES students(id),
+    CONSTRAINT fk_responses_item       FOREIGN KEY (item_id)       REFERENCES items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE student_map_scores (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id      BIGINT UNSIGNED NOT NULL,
+    assessed_at     DATE            NOT NULL,
+    reading_score   INT                      DEFAULT NULL,
+    math_score      INT                      DEFAULT NULL,
+    language_score  INT                      DEFAULT NULL,
+    source          VARCHAR(20)     NOT NULL DEFAULT 'SYSTEM' COMMENT 'SYSTEM/IMPORT/MANUAL',
+    assignment_id   BIGINT UNSIGNED          DEFAULT NULL,
+    note            TEXT                     DEFAULT NULL,
+    created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_map_scores_student_date (student_id, assessed_at),
+    CONSTRAINT fk_map_scores_student    FOREIGN KEY (student_id)    REFERENCES students(id),
+    CONSTRAINT fk_map_scores_assignment FOREIGN KEY (assignment_id) REFERENCES assignments(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Student Extensions
+-- ----------------------------
+CREATE TABLE external_test_scores (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    test_type         VARCHAR(20)     NOT NULL COMMENT 'SSAT/ISEE/GPA/...',
+    test_date         DATE            NOT NULL,
+    score_raw         VARCHAR(50)     NOT NULL,
+    score_percentile  INT                      DEFAULT NULL,
+    note              TEXT                     DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_ext_scores_student (student_id, test_type, test_date),
+    CONSTRAINT fk_ext_scores_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE counseling_records (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    student_id        BIGINT UNSIGNED NOT NULL,
+    counseled_at      DATETIME        NOT NULL,
+    counselor_user_id BIGINT UNSIGNED          DEFAULT NULL,
+    topics            JSON                     DEFAULT NULL,
+    goals             JSON                     DEFAULT NULL,
+    satisfaction_note TEXT                     DEFAULT NULL,
+    next_action       TEXT                     DEFAULT NULL,
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_counseling_student_date (student_id, counseled_at),
+    CONSTRAINT fk_counseling_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Add lifecycle status column to students (FR-037)
+ALTER TABLE students
+    ADD COLUMN lifecycle_status VARCHAR(20) NOT NULL DEFAULT 'CONSULTING'
+        COMMENT 'CONSULTING/ENROLLED/ACTIVE/TERMINATED (FR-037)' AFTER status,
+    ADD COLUMN terminated_at    DATETIME DEFAULT NULL AFTER lifecycle_status,
+    ADD COLUMN termination_reason VARCHAR(100) DEFAULT NULL AFTER terminated_at;
+
+-- ----------------------------
+-- Trinity Pay
+-- ----------------------------
+-- Refund policies (FR-041, FR-047) — v1.3 new
+-- Basis = SESSION (수업일·회차) by default. Tiers define
+-- step function: elapsed_ratio_min < x <= elapsed_ratio_max => refund_rate.
+CREATE TABLE refund_policies (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id           BIGINT UNSIGNED NOT NULL,
+    version              INT             NOT NULL,
+    basis                VARCHAR(20)     NOT NULL DEFAULT 'SESSION'
+        COMMENT 'SESSION(수업일/회차 기준) | CALENDAR(달력일)',
+    label                VARCHAR(100)    NOT NULL,
+    effective_from       DATE            NOT NULL,
+    effective_to         DATE                     DEFAULT NULL,
+    is_default_template  TINYINT(1)      NOT NULL DEFAULT 0
+        COMMENT '1 = 학원법 시행령 제18조 시드 템플릿',
+    created_by           BIGINT UNSIGNED          DEFAULT NULL,
+    created_at           DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_refund_policies_academy_version (academy_id, version),
+    KEY idx_refund_policies_active (academy_id, effective_from, effective_to),
+    CONSTRAINT fk_refund_policies_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE refund_policy_tiers (
+    id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    policy_id            BIGINT UNSIGNED NOT NULL,
+    tier_order           TINYINT         NOT NULL,
+    elapsed_ratio_min    DECIMAL(5,4)    NOT NULL COMMENT '> (exclusive), 0.0000 = 교습 시작',
+    elapsed_ratio_max    DECIMAL(5,4)    NOT NULL COMMENT '<= (inclusive), 1.0000 = 교습 종료',
+    refund_rate          DECIMAL(5,4)    NOT NULL COMMENT '0.0000 ~ 1.0000',
+    note                 VARCHAR(200)             DEFAULT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_refund_policy_tiers_order (policy_id, tier_order),
+    CONSTRAINT fk_refund_policy_tiers_policy FOREIGN KEY (policy_id) REFERENCES refund_policies(id) ON DELETE CASCADE,
+    CONSTRAINT chk_refund_policy_tiers_range CHECK (elapsed_ratio_min < elapsed_ratio_max),
+    CONSTRAINT chk_refund_policy_tiers_rate  CHECK (refund_rate >= 0 AND refund_rate <= 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed: 학원법 시행령 제18조 기본 3단계 (per academy, run post-install)
+-- INSERT INTO refund_policies (academy_id, version, basis, label, effective_from, is_default_template)
+--   VALUES (?, 1, 'SESSION', '학원법 시행령 제18조 기본', CURRENT_DATE, 1);
+-- INSERT INTO refund_policy_tiers (policy_id, tier_order, elapsed_ratio_min, elapsed_ratio_max, refund_rate, note) VALUES
+--   (?, 0, -0.0001, 0.0000, 1.0000, '교습 개시 전'),
+--   (?, 1,  0.0000, 0.3333, 0.6667, '1/3 경과 전 (2/3 환불)'),
+--   (?, 2,  0.3333, 0.5000, 0.5000, '1/2 경과 전 (1/2 환불)'),
+--   (?, 3,  0.5000, 1.0001, 0.0000, '1/2 경과 후 (환불 불가)');
+
+CREATE TABLE payment_orders (
+    id                        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id                BIGINT UNSIGNED NOT NULL,
+    enrollment_id             BIGINT UNSIGNED NOT NULL,
+    order_no                  VARCHAR(40)     NOT NULL,
+    idempotency_key           VARCHAR(64)     NOT NULL,
+    amount                    DECIMAL(12,2)   NOT NULL,
+    currency                  CHAR(3)         NOT NULL DEFAULT 'KRW',
+    method                    VARCHAR(20)              DEFAULT NULL COMMENT 'CARD/TRANSFER/VACCOUNT/EASY_PAY',
+    pg_provider               VARCHAR(20)     NOT NULL DEFAULT 'TOSS' COMMENT 'Fixed TOSS @ v1.3 (A-011)',
+    pg_order_id               VARCHAR(64)              DEFAULT NULL COMMENT 'Toss orderId = order_no',
+    pg_payment_key            VARCHAR(200)             DEFAULT NULL COMMENT 'Toss paymentKey; no raw PAN (NFR-011)',
+    status                    VARCHAR(30)     NOT NULL DEFAULT 'READY'
+        COMMENT 'READY/IN_PROGRESS/DONE/CANCELED/PARTIAL_CANCELED/ABORTED/EXPIRED (Toss)',
+    refund_policy_version_id  BIGINT UNSIGNED NOT NULL
+        COMMENT 'Snapshot of refund_policies at order creation (A-012)',
+    expires_at                DATETIME                 DEFAULT NULL,
+    approved_at               DATETIME                 DEFAULT NULL,
+    canceled_at               DATETIME                 DEFAULT NULL,
+    created_at                DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                              ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_payment_orders_order_no (order_no),
+    UNIQUE KEY uq_payment_orders_idempotency (idempotency_key),
+    KEY idx_payment_orders_enrollment (enrollment_id),
+    KEY idx_payment_orders_status (academy_id, status),
+    CONSTRAINT fk_payment_orders_academy      FOREIGN KEY (academy_id)               REFERENCES academies(id),
+    CONSTRAINT fk_payment_orders_enrollment   FOREIGN KEY (enrollment_id)            REFERENCES enrollments(id),
+    CONSTRAINT fk_payment_orders_refund_policy FOREIGN KEY (refund_policy_version_id) REFERENCES refund_policies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE payment_ledger (
+    id                      BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id        BIGINT UNSIGNED NOT NULL,
+    entry_type              VARCHAR(20)     NOT NULL COMMENT 'CHARGE/REFUND/ADJUSTMENT',
+    amount                  DECIMAL(12,2)   NOT NULL COMMENT 'negative for refund',
+    balance_after           DECIMAL(12,2)   NOT NULL,
+    refund_tier_id          BIGINT UNSIGNED          DEFAULT NULL COMMENT 'Tier applied (audit)',
+    elapsed_ratio_at_refund DECIMAL(5,4)             DEFAULT NULL COMMENT 'Snapshot (audit)',
+    memo                    VARCHAR(200)             DEFAULT NULL,
+    recorded_by             BIGINT UNSIGNED          DEFAULT NULL,
+    recorded_at             DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_ledger_order (payment_order_id, recorded_at),
+    CONSTRAINT fk_ledger_order       FOREIGN KEY (payment_order_id) REFERENCES payment_orders(id),
+    CONSTRAINT fk_ledger_refund_tier FOREIGN KEY (refund_tier_id)   REFERENCES refund_policy_tiers(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Receipts — repurposed v1.3 to 간이/현금영수증만. 세금계산서는 tax_invoices 로 분리.
+CREATE TABLE receipts (
+    id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id    BIGINT UNSIGNED NOT NULL,
+    receipt_type        VARCHAR(20)     NOT NULL COMMENT 'CASH_RECEIPT(현금영수증) / SIMPLE(간이)',
+    issued_at           DATETIME        NOT NULL,
+    pdf_url             VARCHAR(500)             DEFAULT NULL,
+    cash_receipt_no     VARCHAR(64)              DEFAULT NULL COMMENT 'NTS 현금영수증 승인번호',
+    buyer_identifier    VARBINARY(128)           DEFAULT NULL COMMENT '암호화 저장(휴대폰/주민번호)',
+    canceled_at         DATETIME                 DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY idx_receipts_order (payment_order_id),
+    CONSTRAINT fk_receipts_order FOREIGN KEY (payment_order_id) REFERENCES payment_orders(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tax invoices (FR-048) — self-issued via NTS eTax API, v1.3 new
+CREATE TABLE tax_invoices (
+    id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    payment_order_id    BIGINT UNSIGNED NOT NULL,
+    academy_id          BIGINT UNSIGNED NOT NULL,
+    invoice_no          VARCHAR(40)     NOT NULL COMMENT 'Internal (academy-YYYY-seq)',
+    nts_issue_no        VARCHAR(24)              DEFAULT NULL COMMENT '국세청 발급승인번호',
+    supplier_biz_no     VARCHAR(13)     NOT NULL COMMENT '공급자(학원) 사업자번호',
+    buyer_biz_no        VARCHAR(13)              DEFAULT NULL COMMENT '공급받는자 사업자번호',
+    buyer_type          VARCHAR(20)     NOT NULL COMMENT 'CORP(사업자) | INDIVIDUAL(개인)',
+    supply_amount       DECIMAL(12,2)   NOT NULL,
+    tax_amount          DECIMAL(12,2)   NOT NULL,
+    total_amount        DECIMAL(12,2)   NOT NULL,
+    issue_date          DATE            NOT NULL,
+    status              VARCHAR(20)     NOT NULL DEFAULT 'DRAFT'
+        COMMENT 'DRAFT/SUBMITTED/APPROVED/REJECTED/CANCELED',
+    nts_submitted_at    DATETIME                 DEFAULT NULL,
+    nts_approved_at     DATETIME                 DEFAULT NULL,
+    nts_error_code      VARCHAR(30)              DEFAULT NULL,
+    nts_error_message   VARCHAR(500)             DEFAULT NULL,
+    xml_payload_url     VARCHAR(500)             DEFAULT NULL COMMENT 'S3: signed eTax XML',
+    pdf_url             VARCHAR(500)             DEFAULT NULL COMMENT 'S3: buyer-facing PDF',
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                          ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tax_invoices_academy_no (academy_id, invoice_no),
+    KEY idx_tax_invoices_order (payment_order_id),
+    KEY idx_tax_invoices_status_date (status, nts_submitted_at),
+    CONSTRAINT fk_tax_invoices_order   FOREIGN KEY (payment_order_id) REFERENCES payment_orders(id),
+    CONSTRAINT fk_tax_invoices_academy FOREIGN KEY (academy_id)       REFERENCES academies(id),
+    CONSTRAINT chk_tax_invoices_totals CHECK (total_amount = supply_amount + tax_amount)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ----------------------------
+-- Main Portal
+-- ----------------------------
+CREATE TABLE consultation_intake_form (
+    id                 BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id         BIGINT UNSIGNED NOT NULL,
+    parent_name        VARCHAR(100)    NOT NULL,
+    phone              VARCHAR(30)     NOT NULL,
+    email              VARCHAR(200)             DEFAULT NULL,
+    child_grade        VARCHAR(20)              DEFAULT NULL,
+    program_interest   VARCHAR(100)             DEFAULT NULL,
+    preferred_date     DATE                     DEFAULT NULL,
+    message            TEXT                     DEFAULT NULL,
+    consent_pi         BOOLEAN         NOT NULL DEFAULT FALSE,
+    captcha_score      DECIMAL(3,2)             DEFAULT NULL,
+    ip                 VARCHAR(45)              DEFAULT NULL,
+    user_agent         VARCHAR(500)             DEFAULT NULL,
+    status             VARCHAR(20)     NOT NULL DEFAULT 'NEW'
+        COMMENT 'NEW/PROMOTED/SPAM/DUPLICATE',
+    promoted_consultation_id BIGINT UNSIGNED    DEFAULT NULL,
+    created_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_intake_academy_status (academy_id, status, created_at),
+    CONSTRAINT fk_intake_academy      FOREIGN KEY (academy_id) REFERENCES academies(id),
+    CONSTRAINT fk_intake_consultation FOREIGN KEY (promoted_consultation_id) REFERENCES consultations(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE posts (
+    id                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    academy_id        BIGINT UNSIGNED NOT NULL,
+    slug              VARCHAR(200)    NOT NULL,
+    title             VARCHAR(200)    NOT NULL,
+    body_md           MEDIUMTEXT      NOT NULL,
+    cover_image_url   VARCHAR(500)             DEFAULT NULL,
+    author_user_id    BIGINT UNSIGNED          DEFAULT NULL,
+    published_at      DATETIME                 DEFAULT NULL,
+    status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT'
+        COMMENT 'DRAFT/PUBLISHED/ARCHIVED',
+    created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                                      ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_posts_academy_slug (academy_id, slug),
+    KEY idx_posts_published (academy_id, status, published_at),
+    CONSTRAINT fk_posts_academy FOREIGN KEY (academy_id) REFERENCES academies(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Add enrollment → payment linkage convenience view
+CREATE OR REPLACE VIEW v_enrollment_payments AS
+SELECT
+    e.id              AS enrollment_id,
+    e.academy_id,
+    e.class_id,
+    e.student_id,
+    e.status          AS enrollment_status,
+    po.id             AS payment_order_id,
+    po.order_no,
+    po.amount,
+    po.status         AS payment_status,
+    po.approved_at
+FROM enrollments e
+LEFT JOIN payment_orders po ON po.enrollment_id = e.id;

@@ -1,0 +1,1475 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trinity Academy — Trinity Pay Mockups (v1.3)</title>
+<link rel="stylesheet" href="heraldic-tokens.css" />
+<style>
+  body {
+    background: var(--ta-slate);
+    color: var(--ta-ink);
+    padding: 48px 0;
+  }
+  .page-eyebrow { text-align: center; margin-bottom: 8px; }
+  .page-title {
+    text-align: center;
+    font-family: var(--ta-font-display);
+    font-size: 40px;
+    letter-spacing: .02em;
+    color: var(--ta-navy);
+    margin: 0 0 8px;
+  }
+  .page-sub {
+    text-align: center;
+    color: var(--ta-ink-muted);
+    max-width: 760px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  /* v1.3 decision badges */
+  .decision-strip {
+    display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+  .decision-pill {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.12);
+    border-left: 4px solid var(--ta-gold);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ta-navy);
+    box-shadow: 0 2px 8px rgba(14,30,58,.04);
+  }
+  .decision-pill strong { color: var(--ta-gold); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+
+  /* Refund calculator */
+  .tier-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(14,30,58,.06);
+  }
+  .tier-table th {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .tier-table td {
+    padding: 14px 16px;
+    border-top: 1px solid rgba(14,30,58,.08);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  .tier-table tr.tier-active {
+    background: rgba(201,166,86,.08);
+  }
+  .tier-table tr.tier-active td {
+    font-weight: 600;
+    color: var(--ta-navy);
+  }
+  .tier-table .tier-no {
+    font-family: var(--ta-font-mono);
+    color: var(--ta-gold);
+    font-weight: 700;
+  }
+  .tier-table .formula {
+    font-family: var(--ta-font-mono);
+    font-size: 13px;
+    color: var(--ta-ink-muted);
+  }
+
+  /* Refund simulator card */
+  .simulator-card {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(14,30,58,.08);
+  }
+  .sim-inputs {
+    background: var(--ta-cream);
+    padding: 28px;
+  }
+  .sim-output {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    padding: 28px;
+    position: relative;
+  }
+  .sim-output .output-label { color: var(--ta-gold); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .sim-output .output-amount {
+    font-family: var(--ta-font-display);
+    font-size: 48px;
+    color: var(--ta-gold);
+    margin: 6px 0 8px;
+  }
+  .sim-input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .sim-input-row label {
+    font-size: 12px;
+    color: var(--ta-ink-muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .sim-input-row input, .sim-input-row .input-fake {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(14,30,58,.15);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .sim-input-row .input-fake {
+    font-family: var(--ta-font-mono);
+    color: var(--ta-navy);
+  }
+  .sim-formula-line {
+    font-family: var(--ta-font-mono);
+    font-size: 12px;
+    color: rgba(250,247,238,.65);
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(201,166,86,.25);
+  }
+  .sim-formula-line.highlight {
+    color: var(--ta-gold);
+    font-weight: 600;
+  }
+
+  /* XML viewer */
+  .xml-viewer {
+    background: #0B0D14;
+    color: #cfe8ff;
+    font-family: var(--ta-font-mono);
+    font-size: 12px;
+    padding: 18px;
+    border-radius: 8px;
+    line-height: 1.6;
+    max-height: 420px;
+    overflow: auto;
+  }
+  .xml-viewer .tag { color: #82aaff; }
+  .xml-viewer .attr { color: #c792ea; }
+  .xml-viewer .val { color: #ecc48d; }
+  .xml-viewer .comment { color: #637777; font-style: italic; }
+
+  /* Webhook timeline */
+  .webhook-timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+  .webhook-timeline::before {
+    content: "";
+    position: absolute; left: 8px; top: 10px; bottom: 10px;
+    width: 2px; background: rgba(14,30,58,.15);
+  }
+  .webhook-event {
+    position: relative;
+    padding: 10px 0 14px;
+  }
+  .webhook-event::before {
+    content: "";
+    position: absolute; left: -24px; top: 14px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--ta-gold);
+    border: 2px solid #fff;
+  }
+  .webhook-event.done::before { background: #28a745; }
+  .webhook-event.canceled::before { background: #dc3545; }
+  .webhook-event-head {
+    font-family: var(--ta-font-mono);
+    font-size: 11px;
+    color: var(--ta-ink-muted);
+  }
+  .webhook-event-body {
+    font-size: 13px;
+    color: var(--ta-navy);
+    margin-top: 2px;
+  }
+  .webhook-event .payload {
+    background: #f7f6f1;
+    border: 1px solid rgba(14,30,58,.08);
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-family: var(--ta-font-mono);
+    font-size: 11px;
+    color: var(--ta-ink-muted);
+    margin-top: 6px;
+    white-space: pre-wrap;
+  }
+
+  /* NTS pills */
+  .nts-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+  }
+  .nts-pill::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+  }
+  .nts-pill.draft     { background: rgba(108,117,125,.15); color: #495057; }
+  .nts-pill.draft::before { background: #6c757d; }
+  .nts-pill.submitted { background: rgba(201,166,86,.18); color: #73520f; }
+  .nts-pill.submitted::before { background: var(--ta-gold); }
+  .nts-pill.approved  { background: rgba(40,167,69,.15); color: #1e7a33; }
+  .nts-pill.approved::before { background: #28a745; }
+  .nts-pill.rejected  { background: rgba(220,53,69,.15); color: #b2283c; }
+  .nts-pill.rejected::before { background: #dc3545; }
+
+  /* KPI mini */
+  .pay-kpi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .pay-kpi .stat-card { margin: 0; }
+
+  /* Receipt card */
+  .receipt {
+    background: #fff;
+    border: 1px dashed rgba(14,30,58,.25);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 420px;
+    margin: 0 auto;
+    font-family: 'Iowan Old Style','Georgia',serif;
+  }
+  .receipt h3 {
+    text-align: center;
+    font-family: var(--ta-font-display);
+    color: var(--ta-navy);
+    margin: 0 0 6px;
+  }
+  .receipt .receipt-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ta-ink-muted);
+    margin-bottom: 14px;
+  }
+  .receipt-row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(14,30,58,.1);
+    font-size: 13px;
+  }
+  .receipt-row.total {
+    font-family: var(--ta-font-display);
+    font-size: 20px;
+    color: var(--ta-gold);
+    padding-top: 10px;
+    border-top: 2px solid var(--ta-navy);
+    border-bottom: none;
+    margin-top: 8px;
+  }
+
+  /* Alert banner */
+  .alert-banner {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-banner.warn   { background: rgba(255,193,7,.14); border-left: 4px solid #ffc107; color: #6e5309; }
+  .alert-banner.danger { background: rgba(220,53,69,.1);  border-left: 4px solid #dc3545; color: #8a1a29; }
+  .alert-banner.info   { background: rgba(14,30,58,.06);  border-left: 4px solid var(--ta-navy); color: var(--ta-navy); }
+
+  /* Util */
+  .rowflex { display: flex; align-items: center; gap: 10px; }
+  .col-stack { display: flex; flex-direction: column; gap: 12px; }
+
+  .section-heading {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 28px 0 12px;
+  }
+  .section-heading h3 {
+    font-family: var(--ta-font-display);
+    color: var(--ta-navy);
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: .02em;
+  }
+  .section-heading .section-sub {
+    font-size: 13px; color: var(--ta-ink-muted);
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-eyebrow eyebrow">Screen Set · 04 · v1.3 Core</div>
+    <h1 class="page-title">Trinity Pay</h1>
+    <p class="page-sub">
+      결제 · 환불 · 세금계산서를 일원화한 Trinity의 자체 정산 모듈. v1.3에서 확정된
+      <strong>Toss Payments · 수업일 기준 환불 · NTS eTax 자체 발급</strong> 세 결정이
+      모든 화면에 녹아 있습니다. AMA와 무관한 독립 영역입니다.
+    </p>
+
+    <div class="decision-strip">
+      <div class="decision-pill"><strong>PG사</strong>Toss Payments (Widget SDK v2)</div>
+      <div class="decision-pill"><strong>환불 규정</strong>수업일 기준 (학원법 §18)</div>
+      <div class="decision-pill"><strong>세금계산서</strong>NTS eTax 자체 발급</div>
+    </div>
+
+    <!-- ==============================================================
+      A-PAY-00 · Trinity Pay Hub
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-00</span>
+        <strong>Trinity Pay Hub</strong>
+        — 결제·환불·세금계산서 통합 대시보드
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">Overview</div>
+            <a href="#">대시보드</a>
+            <div class="nav-group">운영</div>
+            <a href="#">상담</a>
+            <a href="#">학생 · 학부모</a>
+            <a href="#">교사 <span class="ama-dot" title="AMA 연동"></span></a>
+            <div class="nav-group">교육</div>
+            <a href="#">프로그램 · 반</a>
+            <a href="#">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#" class="active">허브</a>
+            <a href="#">결제 주문</a>
+            <a href="#">환불</a>
+            <a href="#">세금계산서</a>
+            <a href="#">정책 & 정산</a>
+            <div class="nav-group">System</div>
+            <a href="#">설정</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">Trinity Pay / 허브</div>
+            <div class="head-right">
+              <span class="toss-status done">Toss 연동 정상</span>
+              <span class="nts-pill approved">NTS eTax 정상</span>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="alert-banner danger">
+              <strong>⚠ NFR-013 경고</strong>
+              <div>
+                이번달 발급 예정 <strong>세금계산서 18건</strong> · 발급 시한 2026-05-10 (D-5).
+                모두 완료해야 가산세를 피할 수 있습니다.
+                <a href="#" style="margin-left: 8px; color: inherit; text-decoration: underline;">세금계산서로 이동 →</a>
+              </div>
+            </div>
+            <div class="alert-banner warn">
+              <strong>⏰ 공동인증서 만료 예정</strong>
+              <div>국세청 전자세금계산서 발급용 공동인증서가 <strong>2026-05-17 (D-28)</strong> 만료됩니다.
+                HSM/KMS 자동 교체가 필요합니다.
+              </div>
+            </div>
+
+            <div class="hero-navy" style="padding: 28px; margin-top: 10px;">
+              <div class="eyebrow" style="color: var(--ta-gold);">APRIL 2026 · MTD</div>
+              <div class="rowflex" style="align-items: baseline; gap: 24px; margin: 8px 0;">
+                <div>
+                  <div style="color: rgba(250,247,238,.7); font-size: 12px;">매출</div>
+                  <div style="font-family: var(--ta-font-display); font-size: 40px; color: var(--ta-cream);">₩ 34,820,000</div>
+                </div>
+                <div>
+                  <div style="color: rgba(250,247,238,.7); font-size: 12px;">환불</div>
+                  <div style="font-family: var(--ta-font-display); font-size: 28px; color: var(--ta-gold);">− ₩ 1,420,000</div>
+                </div>
+                <div>
+                  <div style="color: rgba(250,247,238,.7); font-size: 12px;">정산 가능</div>
+                  <div style="font-family: var(--ta-font-display); font-size: 28px; color: var(--ta-cream);">₩ 33,400,000</div>
+                </div>
+              </div>
+              <p style="color: rgba(250,247,238,.65); font-size: 13px; max-width: 640px;">
+                Toss Payments 승인 금액에서 환불 금액을 차감한 순매출. 세금계산서는 익월 10일까지 자체 NTS eTax로 발행됩니다.
+              </p>
+            </div>
+
+            <div class="pay-kpi" style="margin-top: 20px;">
+              <div class="stat-card">
+                <div class="stat-label">이번달 결제 (건)</div>
+                <div class="stat-value">142</div>
+                <div class="stat-hint">DONE 138 · CANCELED 4</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">환불 처리 (건)</div>
+                <div class="stat-value">6</div>
+                <div class="stat-hint">완료 4 · 대기 2</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">세금계산서</div>
+                <div class="stat-value">124 / 142</div>
+                <div class="stat-hint">APPROVED 106 · 미발행 18</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Webhook 수신</div>
+                <div class="stat-value">312</div>
+                <div class="stat-hint">성공 312 · 실패 0</div>
+              </div>
+            </div>
+
+            <div class="grid-2col" style="margin-top: 20px;">
+              <div class="card">
+                <div class="flex-between">
+                  <h3 class="serif-title">Toss 상태 분포 (이번달)</h3>
+                  <a href="#" class="btn btn-ghost btn-sm">전체 보기</a>
+                </div>
+                <div class="col-stack" style="margin-top: 12px;">
+                  <div class="rowflex"><span class="toss-status done" style="width: 110px;">DONE</span><div style="flex:1; background: rgba(40,167,69,.1); border-radius: 4px; height: 10px; position: relative;"><div style="width: 97%; height:100%; background: #28a745; border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">138</strong></div>
+                  <div class="rowflex"><span class="toss-status canceled" style="width: 110px;">CANCELED</span><div style="flex:1; background: rgba(220,53,69,.1); border-radius: 4px; height: 10px; position: relative;"><div style="width: 3%; height:100%; background: #dc3545; border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">3</strong></div>
+                  <div class="rowflex"><span class="toss-status partial-canceled" style="width: 110px;">PARTIAL</span><div style="flex:1; background: rgba(255,193,7,.14); border-radius: 4px; height: 10px; position: relative;"><div style="width: 1%; height:100%; background: #ffc107; border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">1</strong></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="flex-between">
+                  <h3 class="serif-title">NTS eTax 상태 (이번달)</h3>
+                  <a href="#" class="btn btn-ghost btn-sm">전체 보기</a>
+                </div>
+                <div class="col-stack" style="margin-top: 12px;">
+                  <div class="rowflex"><span class="nts-pill approved" style="width: 110px; justify-content: center;">APPROVED</span><div style="flex:1; background: rgba(40,167,69,.08); border-radius: 4px; height: 10px;"><div style="width: 86%; height:100%; background: #28a745; border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">106</strong></div>
+                  <div class="rowflex"><span class="nts-pill submitted" style="width: 110px; justify-content: center;">SUBMITTED</span><div style="flex:1; background: rgba(201,166,86,.14); border-radius: 4px; height: 10px;"><div style="width: 10%; height:100%; background: var(--ta-gold); border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">12</strong></div>
+                  <div class="rowflex"><span class="nts-pill draft" style="width: 110px; justify-content: center;">DRAFT</span><div style="flex:1; background: rgba(108,117,125,.1); border-radius: 4px; height: 10px;"><div style="width: 4%; height:100%; background: #6c757d; border-radius: 4px;"></div></div><strong style="width: 50px; text-align:right;">6</strong></div>
+                  <div class="rowflex"><span class="nts-pill rejected" style="width: 110px; justify-content: center;">REJECTED</span><div style="flex:1; background: rgba(220,53,69,.08); border-radius: 4px; height: 10px;"><div style="width: 0%; height:100%;"></div></div><strong style="width: 50px; text-align:right;">0</strong></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-00</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-01 · Payment Orders List
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-01</span>
+        <strong>Payment Orders List</strong>
+        — Toss 승인 내역 전수 (FN-PAY-001)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">허브</a>
+            <a href="#" class="active">결제 주문</a>
+            <a href="#">환불</a>
+            <a href="#">세금계산서</a>
+            <a href="#">정책 & 정산</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">Trinity Pay / 결제 주문</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">Excel 내보내기</button>
+              <button class="btn btn-primary btn-sm">+ 수동 결제</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="toolbar">
+              <input class="search" placeholder="주문번호 / paymentKey / 학생·학부모명" />
+              <div class="filter-chips">
+                <button class="chip active">전체 · 142</button>
+                <button class="chip"><span class="toss-status done" style="padding:0; background:none;">● DONE</span> 138</button>
+                <button class="chip"><span class="toss-status canceled" style="padding:0; background:none;">● CANCELED</span> 3</button>
+                <button class="chip"><span class="toss-status partial-canceled" style="padding:0; background:none;">● PARTIAL</span> 1</button>
+                <button class="chip">이번달</button>
+                <button class="chip">지난달</button>
+              </div>
+            </div>
+
+            <div class="table-wrap" style="margin-top: 14px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>주문번호</th>
+                    <th>학부모 / 학생</th>
+                    <th>프로그램</th>
+                    <th>금액</th>
+                    <th>결제수단</th>
+                    <th>Toss 상태</th>
+                    <th>세금계산서</th>
+                    <th>결제일</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">TRPY-20260418-00142</td>
+                    <td>김영수 / 김민준</td>
+                    <td>RC G3-Int · 2개월</td>
+                    <td class="mono">₩ 840,000</td>
+                    <td>카드 (신한)</td>
+                    <td><span class="toss-status done">DONE</span></td>
+                    <td><span class="nts-pill approved">APPROVED</span></td>
+                    <td>2026-04-18</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">TRPY-20260417-00141</td>
+                    <td>박지현 / 박지우</td>
+                    <td>MAP RC · 1개월</td>
+                    <td class="mono">₩ 320,000</td>
+                    <td>계좌이체</td>
+                    <td><span class="toss-status done">DONE</span></td>
+                    <td><span class="nts-pill submitted">SUBMITTED</span></td>
+                    <td>2026-04-17</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">TRPY-20260416-00140</td>
+                    <td>이민호 / 이서아</td>
+                    <td>RC G3-Int · 1개월</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td>카드 (KB)</td>
+                    <td><span class="toss-status done">DONE</span></td>
+                    <td><span class="nts-pill approved">APPROVED</span></td>
+                    <td>2026-04-16</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr class="row-highlight">
+                    <td class="mono">TRPY-20260415-00139</td>
+                    <td>최수진 / 최하늘</td>
+                    <td>Math G3-Basic · 1개월</td>
+                    <td class="mono">₩ 380,000 <span class="muted" style="font-size: 11px;">(−160,000)</span></td>
+                    <td>카드 (하나)</td>
+                    <td><span class="toss-status partial-canceled">PARTIAL</span></td>
+                    <td><span class="nts-pill submitted">수정발행</span></td>
+                    <td>2026-04-15</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">TRPY-20260414-00138</td>
+                    <td>정혜림 / 정윤재</td>
+                    <td>RC G3-Int · 1개월</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td>카드 (삼성)</td>
+                    <td><span class="toss-status done">DONE</span></td>
+                    <td><span class="nts-pill approved">APPROVED</span></td>
+                    <td>2026-04-14</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr style="opacity: .6;">
+                    <td class="mono">TRPY-20260413-00137</td>
+                    <td>강민정 / 강소율</td>
+                    <td>RC G3-Int · 1개월</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td>카드 (신한)</td>
+                    <td><span class="toss-status canceled">CANCELED</span></td>
+                    <td><span class="nts-pill rejected">REJECTED</span></td>
+                    <td>2026-04-13</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">TRPY-20260412-00136</td>
+                    <td>윤상우 / 윤도현</td>
+                    <td>Math G5-Adv · 1개월</td>
+                    <td class="mono">₩ 480,000</td>
+                    <td>무통장입금</td>
+                    <td><span class="toss-status in-progress">IN_PROGRESS</span></td>
+                    <td><span class="nts-pill draft">대기</span></td>
+                    <td>2026-04-12</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout" style="margin-top: 14px;">
+              <strong>Toss Payments 상태 7가지 ·</strong>
+              READY / IN_PROGRESS / DONE / CANCELED / PARTIAL_CANCELED / ABORTED / EXPIRED.
+              Webhook v2로 실시간 수신, Confirm API로 이중 검증.
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-01</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-02 · Payment Order Detail
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-02</span>
+        <strong>Payment Order Detail</strong>
+        — Toss paymentKey + Webhook 이벤트 로그 (FN-PAY-002)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">허브</a>
+            <a href="#" class="active">결제 주문</a>
+            <a href="#">환불</a>
+            <a href="#">세금계산서</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">결제 주문 / TRPY-20260416-00140</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">영수증 보기</button>
+              <button class="btn btn-outline btn-sm">세금계산서 발행</button>
+              <button class="btn btn-danger btn-sm">환불 요청</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grid-2col">
+              <div class="card">
+                <div class="eyebrow">ORDER</div>
+                <h2 class="serif-title">TRPY-20260416-00140</h2>
+                <div class="rowflex" style="margin: 6px 0 16px;">
+                  <span class="toss-status done">DONE</span>
+                  <span class="nts-pill approved">NTS APPROVED</span>
+                  <span class="muted" style="font-size: 12px;">2026-04-16 17:42:10 KST</span>
+                </div>
+                <table class="kv-table">
+                  <tr><th>Toss paymentKey</th><td class="mono">tviva202604161742109u8d2c6x1wq0</td></tr>
+                  <tr><th>orderId (Trinity)</th><td class="mono">TRPY-20260416-00140</td></tr>
+                  <tr><th>학부모</th><td>이민호 <span class="muted">(fremdung.lee@gmail.com)</span></td></tr>
+                  <tr><th>학생</th><td>이서아 (초3)</td></tr>
+                  <tr><th>프로그램</th><td>RC G3 Intermediate · 2026-Spring B반</td></tr>
+                  <tr><th>기간</th><td>2026-04-01 ~ 2026-04-30 (1개월)</td></tr>
+                  <tr><th>결제수단</th><td>카드 · KB국민 (4828-**-**-1042) · 일시불</td></tr>
+                  <tr><th>금액</th><td class="mono">₩ 420,000 <span class="muted">(공급가 381,818 / 부가세 38,182)</span></td></tr>
+                  <tr><th>환불정책 스냅샷</th><td><span class="mono">v2026-03-01</span> <a href="#" style="margin-left:6px; font-size: 12px;">보기</a></td></tr>
+                </table>
+              </div>
+
+              <aside class="card">
+                <div class="eyebrow" style="color: var(--ta-gold);">TOSS WEBHOOK TIMELINE</div>
+                <p class="muted" style="font-size: 12px; margin: 6px 0 14px;">
+                  Confirm API + Webhook v2 이중 엔트리. 서버시간 기준.
+                </p>
+                <div class="webhook-timeline">
+                  <div class="webhook-event">
+                    <div class="webhook-event-head">2026-04-16 17:41:52 · PAYMENT_READY</div>
+                    <div class="webhook-event-body">결제창 생성 · status = READY</div>
+                  </div>
+                  <div class="webhook-event">
+                    <div class="webhook-event-head">2026-04-16 17:42:03 · PAYMENT_IN_PROGRESS</div>
+                    <div class="webhook-event-body">카드사 승인 요청 · status = IN_PROGRESS</div>
+                  </div>
+                  <div class="webhook-event done">
+                    <div class="webhook-event-head">2026-04-16 17:42:10 · PAYMENT_DONE</div>
+                    <div class="webhook-event-body">승인 완료 · status = DONE</div>
+                    <div class="payload">{ "eventType": "PAYMENT_DONE", "paymentKey": "tviva...wq0", "approvedAt": "2026-04-16T17:42:10+09:00", "totalAmount": 420000, "method": "카드" }</div>
+                  </div>
+                  <div class="webhook-event">
+                    <div class="webhook-event-head">2026-04-16 17:42:11 · internal</div>
+                    <div class="webhook-event-body">`payment_orders.status = DONE` 동기화</div>
+                  </div>
+                  <div class="webhook-event done">
+                    <div class="webhook-event-head">2026-04-16 17:45:00 · NTS_DRAFT_CREATED</div>
+                    <div class="webhook-event-body">세금계산서 초안 생성 · 공급가/세액 자동 산출</div>
+                  </div>
+                  <div class="webhook-event done">
+                    <div class="webhook-event-head">2026-04-17 09:10:22 · NTS_SUBMITTED</div>
+                    <div class="webhook-event-body">NTS eTax 제출 · XML 서명 · 공동인증서 <span class="mono">HSM/KMS</span></div>
+                  </div>
+                  <div class="webhook-event done">
+                    <div class="webhook-event-head">2026-04-17 09:11:05 · NTS_APPROVED</div>
+                    <div class="webhook-event-body">국세청 승인 · 승인번호 <span class="mono">20260417-41298301-73ab</span></div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-02</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-03 · Refund Calculator (수업일 기준)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-03</span>
+        <strong>Refund Calculator · 수업일 기준</strong>
+        — 학원법 시행령 §18 · 3-tier formula (v1.3 핵심)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">결제 주문</a>
+            <a href="#" class="active">환불</a>
+            <a href="#">세금계산서</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">환불 / 계산기 / TRPY-20260415-00139</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">취소</button>
+              <button class="btn btn-gold btn-sm">환불 확정 & Toss 취소 요청</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="alert-banner info">
+              <strong>📘 학원법 시행령 §18</strong>
+              <div>환불 금액은 <strong>수업일 경과 비율(elapsed_ratio)</strong>에 따라 3구간으로 계산됩니다. 수강 시작 전은 100% 환불. 정책 스냅샷은 주문 시점에 고정됩니다.</div>
+            </div>
+
+            <div class="section-heading">
+              <h3>대상 주문</h3>
+              <span class="section-sub">TRPY-20260415-00139 · 최수진(최하늘 학부모)</span>
+            </div>
+
+            <div class="card" style="margin-bottom: 16px;">
+              <table class="kv-table">
+                <tr><th>프로그램</th><td>Math G3-Basic · 2026-Spring C반</td></tr>
+                <tr><th>수업 기간</th><td>2026-04-15 ~ 2026-05-14 · 1개월</td></tr>
+                <tr><th>총 회차</th><td class="mono">8회 (total_session_count)</td></tr>
+                <tr><th>진행 회차</th><td class="mono">3회 (held_session_count)</td></tr>
+                <tr><th>결제 금액</th><td class="mono">₩ 380,000</td></tr>
+                <tr><th>환불 요청일</th><td>2026-04-23 14:10</td></tr>
+                <tr><th>경과 비율</th><td><span class="mono" style="color: var(--ta-gold); font-weight: 600;">elapsed_ratio = 3 / 8 = 37.5%</span></td></tr>
+                <tr><th>정책 스냅샷</th><td><span class="mono">v2026-03-01</span></td></tr>
+              </table>
+            </div>
+
+            <div class="section-heading">
+              <h3>3-Tier 환불 구간</h3>
+              <span class="section-sub">현재 구간 하이라이트 · v1.3 정책</span>
+            </div>
+
+            <table class="tier-table">
+              <thead>
+                <tr>
+                  <th>Tier</th>
+                  <th>조건</th>
+                  <th>공식</th>
+                  <th>비고</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="tier-no">T0</td>
+                  <td>수강 시작 전 (held = 0)</td>
+                  <td class="formula">refund = paid × 100%</td>
+                  <td>100% 환불 (sentinel)</td>
+                </tr>
+                <tr>
+                  <td class="tier-no">T1</td>
+                  <td>0% &lt; elapsed ≤ 33.3%</td>
+                  <td class="formula">refund = paid × (2/3) = paid − (paid × 1/3)</td>
+                  <td>1/3 이하 경과 · 2/3 환불</td>
+                </tr>
+                <tr class="tier-active">
+                  <td class="tier-no">T2 ◀ 현재</td>
+                  <td>33.3% &lt; elapsed ≤ 50%</td>
+                  <td class="formula">refund = paid × (1/2) = paid − (paid × 1/2)</td>
+                  <td>1/2 이하 경과 · 1/2 환불</td>
+                </tr>
+                <tr>
+                  <td class="tier-no">T3</td>
+                  <td>50% &lt; elapsed</td>
+                  <td class="formula">refund = 0</td>
+                  <td>반액 초과 경과 · 환불 불가</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="section-heading">
+              <h3>계산 결과</h3>
+              <span class="section-sub">시뮬레이션 후 "환불 확정" 시 Toss 취소 API 호출</span>
+            </div>
+
+            <div class="simulator-card">
+              <div class="sim-inputs">
+                <div class="sim-input-row">
+                  <div>
+                    <label>결제 금액</label>
+                    <div class="input-fake">₩ 380,000</div>
+                  </div>
+                  <div>
+                    <label>총 회차</label>
+                    <div class="input-fake">8</div>
+                  </div>
+                </div>
+                <div class="sim-input-row">
+                  <div>
+                    <label>진행 회차</label>
+                    <div class="input-fake">3</div>
+                  </div>
+                  <div>
+                    <label>Tier</label>
+                    <div class="input-fake" style="color: var(--ta-gold); font-weight: 600;">T2</div>
+                  </div>
+                </div>
+                <div class="sim-input-row" style="grid-template-columns: 1fr;">
+                  <div>
+                    <label>환불 사유 (선택)</label>
+                    <input placeholder="예: 이사, 일정 변경" value="이사로 인한 중도 해지" />
+                  </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                  <div class="eyebrow" style="color: var(--ta-navy);">정책 검증 체크리스트</div>
+                  <ul style="padding-left: 18px; line-height: 1.9; font-size: 13px; color: var(--ta-ink);">
+                    <li>✓ 수강 시작 후 요청 확인</li>
+                    <li>✓ elapsed_ratio 계산 유효 (37.5%)</li>
+                    <li>✓ Tier 판정: T2</li>
+                    <li>✓ 정책 스냅샷 일치 (v2026-03-01)</li>
+                    <li>✓ Toss 주문 상태 DONE</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="sim-output">
+                <div class="output-label">최종 환불 금액</div>
+                <div class="output-amount">₩ 190,000</div>
+                <div style="color: rgba(250,247,238,.7); font-size: 13px; margin-bottom: 14px;">
+                  결제 금액의 50% · 학원법 T2 구간
+                </div>
+
+                <div class="sim-formula-line">paid = 380,000</div>
+                <div class="sim-formula-line">held = 3, total = 8</div>
+                <div class="sim-formula-line">elapsed_ratio = 3 / 8 = 0.375 (37.5%)</div>
+                <div class="sim-formula-line">→ Tier = T2 (33.3% &lt; 37.5% ≤ 50%)</div>
+                <div class="sim-formula-line highlight">refund = 380,000 × (1/2) = 190,000</div>
+                <div class="sim-formula-line">retained = 380,000 − 190,000 = 190,000</div>
+
+                <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(201,166,86,.25); font-size: 12px; color: rgba(250,247,238,.7);">
+                  <strong style="color: var(--ta-gold);">Toss 취소 호출</strong><br/>
+                  POST /v1/payments/{paymentKey}/cancel<br/>
+                  <span class="mono">cancelReason: "이사로 인한 중도 해지"</span><br/>
+                  <span class="mono">cancelAmount: 190000</span> · PARTIAL_CANCELED 전이 예정
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-03</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-04 · Refund History
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-04</span>
+        <strong>Refund History</strong>
+        — 환불 이력 · FN-PAY-004
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">결제 주문</a>
+            <a href="#" class="active">환불</a>
+            <a href="#">세금계산서</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">환불 / 이력</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">Excel 내보내기</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="pay-kpi">
+              <div class="stat-card">
+                <div class="stat-label">이번달 환불</div>
+                <div class="stat-value">6</div>
+                <div class="stat-hint">4 완료 · 2 대기</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">환불 금액</div>
+                <div class="stat-value">₩ 1,420,000</div>
+                <div class="stat-hint">평균 ₩ 236,000</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">환불 비율</div>
+                <div class="stat-value">4.2%</div>
+                <div class="stat-hint">vs 매출</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Tier 분포</div>
+                <div class="stat-value">T0:1 · T1:2 · T2:3</div>
+                <div class="stat-hint">T3 거절: 0</div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th>환불번호</th><th>원주문</th><th>학생</th><th>사유</th><th>Tier</th><th>계산</th><th>환불금액</th><th>상태</th><th>요청일</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">RF-20260423-0006</td>
+                    <td class="mono">TRPY-20260415-00139</td>
+                    <td>최하늘</td>
+                    <td>이사</td>
+                    <td><strong style="color: var(--ta-gold);">T2</strong></td>
+                    <td class="mono" style="font-size: 12px;">380k × 1/2</td>
+                    <td class="mono">₩ 190,000</td>
+                    <td><span class="toss-status in-progress">처리중</span></td>
+                    <td>2026-04-23</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">RF-20260420-0005</td>
+                    <td class="mono">TRPY-20260410-00128</td>
+                    <td>이준호</td>
+                    <td>학교 일정</td>
+                    <td><strong>T1</strong></td>
+                    <td class="mono" style="font-size: 12px;">420k × 2/3</td>
+                    <td class="mono">₩ 280,000</td>
+                    <td><span class="toss-status done">완료</span></td>
+                    <td>2026-04-20</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">RF-20260413-0004</td>
+                    <td class="mono">TRPY-20260413-00137</td>
+                    <td>강소율</td>
+                    <td>수강 취소 (시작 전)</td>
+                    <td><strong style="color: #28a745;">T0</strong></td>
+                    <td class="mono" style="font-size: 12px;">420k × 100%</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td><span class="toss-status canceled">CANCELED</span></td>
+                    <td>2026-04-13</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">RF-20260409-0003</td>
+                    <td class="mono">TRPY-20260405-00122</td>
+                    <td>김주원</td>
+                    <td>건강 사유</td>
+                    <td><strong>T2</strong></td>
+                    <td class="mono" style="font-size: 12px;">480k × 1/2</td>
+                    <td class="mono">₩ 240,000</td>
+                    <td><span class="toss-status done">완료</span></td>
+                    <td>2026-04-09</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">RF-20260405-0002</td>
+                    <td class="mono">TRPY-20260401-00114</td>
+                    <td>박지안</td>
+                    <td>프로그램 변경</td>
+                    <td><strong>T1</strong></td>
+                    <td class="mono" style="font-size: 12px;">360k × 2/3</td>
+                    <td class="mono">₩ 240,000</td>
+                    <td><span class="toss-status done">완료</span></td>
+                    <td>2026-04-05</td>
+                  </tr>
+                  <tr>
+                    <td class="mono">RF-20260402-0001</td>
+                    <td class="mono">TRPY-20260401-00112</td>
+                    <td>윤하린</td>
+                    <td>이사</td>
+                    <td><strong>T2</strong></td>
+                    <td class="mono" style="font-size: 12px;">100k × 1/2</td>
+                    <td class="mono">₩ 50,000</td>
+                    <td><span class="toss-status in-progress">승인 대기</span></td>
+                    <td>2026-04-02</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-04</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-05 · Tax Invoice List
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-05</span>
+        <strong>Tax Invoice List · NTS eTax 자체 발급</strong>
+        — DRAFT → SUBMITTED → APPROVED/REJECTED (FN-PAY-005)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">결제 주문</a>
+            <a href="#">환불</a>
+            <a href="#" class="active">세금계산서</a>
+            <a href="#">정책 & 정산</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">세금계산서 / 목록 (2026년 4월분)</div>
+            <div class="head-right">
+              <span class="sync-stamp" style="background: rgba(108,117,125,.1); color: #495057; border-color: rgba(108,117,125,.3);">NTS eTax · 자체 발행</span>
+              <button class="btn btn-outline btn-sm">일괄 제출</button>
+              <button class="btn btn-primary btn-sm">+ 수동 발행</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="alert-banner danger">
+              <strong>⏰ NFR-013 · 익월 10일 시한</strong>
+              <div>
+                4월분 세금계산서 <strong>18건 미제출</strong>. 시한은 2026-05-10 (D-5).
+                미제출 시 건당 1% 가산세(공급가 기준).
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <input class="search" placeholder="승인번호 / 주문번호 / 학부모명" />
+              <div class="filter-chips">
+                <button class="chip active">전체 · 142</button>
+                <button class="chip"><span class="nts-pill approved">APPROVED</span> 106</button>
+                <button class="chip"><span class="nts-pill submitted">SUBMITTED</span> 12</button>
+                <button class="chip"><span class="nts-pill draft">DRAFT</span> 18</button>
+                <button class="chip"><span class="nts-pill rejected">REJECTED</span> 0</button>
+                <button class="chip">수정발행 6</button>
+              </div>
+            </div>
+
+            <div class="table-wrap" style="margin-top: 14px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>승인번호</th>
+                    <th>주문</th>
+                    <th>공급받는자</th>
+                    <th>공급가액</th>
+                    <th>세액</th>
+                    <th>합계</th>
+                    <th>NTS 상태</th>
+                    <th>발행일</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono" style="font-size: 11px;">20260417-41298301-73ab</td>
+                    <td class="mono">TRPY-...-00140</td>
+                    <td>이민호 <span class="muted">820120-******</span></td>
+                    <td class="mono">₩ 381,818</td>
+                    <td class="mono">₩ 38,182</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td><span class="nts-pill approved">APPROVED</span></td>
+                    <td>2026-04-17</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">XML</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono" style="font-size: 11px;">20260417-41298285-9c2f</td>
+                    <td class="mono">TRPY-...-00141</td>
+                    <td>박지현 <span class="muted">820520-******</span></td>
+                    <td class="mono">₩ 290,909</td>
+                    <td class="mono">₩ 29,091</td>
+                    <td class="mono">₩ 320,000</td>
+                    <td><span class="nts-pill submitted">SUBMITTED</span></td>
+                    <td>2026-04-17</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">XML</a></td>
+                  </tr>
+                  <tr class="row-highlight">
+                    <td class="mono" style="font-size: 11px;">—</td>
+                    <td class="mono">TRPY-...-00142</td>
+                    <td>김영수 <span class="muted">780818-******</span></td>
+                    <td class="mono">₩ 763,636</td>
+                    <td class="mono">₩ 76,364</td>
+                    <td class="mono">₩ 840,000</td>
+                    <td><span class="nts-pill draft">DRAFT</span></td>
+                    <td class="muted">—</td>
+                    <td><a href="#" class="btn btn-gold btn-sm">제출</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono" style="font-size: 11px;">20260416-41296108-b4e7</td>
+                    <td class="mono">TRPY-...-00138</td>
+                    <td>정혜림 <span class="muted">850630-******</span></td>
+                    <td class="mono">₩ 381,818</td>
+                    <td class="mono">₩ 38,182</td>
+                    <td class="mono">₩ 420,000</td>
+                    <td><span class="nts-pill approved">APPROVED</span></td>
+                    <td>2026-04-16</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">XML</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono" style="font-size: 11px;">20260415-41293947-1f8d</td>
+                    <td class="mono">TRPY-...-00139</td>
+                    <td>최수진 <span class="muted">870215-******</span></td>
+                    <td class="mono">₩ 200,000</td>
+                    <td class="mono">₩ 20,000</td>
+                    <td class="mono">₩ 220,000 <span class="muted" style="font-size: 11px;">(수정)</span></td>
+                    <td><span class="nts-pill submitted">수정발행</span></td>
+                    <td>2026-04-24</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">XML</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-05</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-06 · Tax Invoice Detail (XML viewer)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-06</span>
+        <strong>Tax Invoice Detail · XML Viewer</strong>
+        — 국세청 제출 원본 · HSM 서명 (FN-PAY-006)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#" class="active">세금계산서</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">세금계산서 / 20260417-41298301-73ab</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">PDF 다운</button>
+              <button class="btn btn-outline btn-sm">수정 발행</button>
+              <button class="btn btn-danger btn-sm">취소 발행</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grid-2col">
+              <div class="card">
+                <div class="flex-between">
+                  <div>
+                    <div class="eyebrow">NTS eTAX</div>
+                    <h2 class="serif-title">세금계산서</h2>
+                    <div class="muted" style="font-size: 13px;">승인번호 <span class="mono">20260417-41298301-73ab</span></div>
+                  </div>
+                  <span class="nts-pill approved">APPROVED</span>
+                </div>
+
+                <table class="kv-table" style="margin-top: 14px;">
+                  <tr><th colspan="2" style="background: var(--ta-cream); text-align: center; color: var(--ta-navy); font-family: var(--ta-font-display); font-size: 14px;">공급자</th></tr>
+                  <tr><th>사업자번호</th><td class="mono">124-87-41829</td></tr>
+                  <tr><th>상호</th><td>(주)트리니티아카데미</td></tr>
+                  <tr><th>대표자</th><td>김원장</td></tr>
+                  <tr><th>주소</th><td class="muted" style="font-size: 12px;">서울특별시 강남구 테헤란로 501 트리니티빌딩 3-5층</td></tr>
+                  <tr><th>업태/종목</th><td>서비스 / 교육</td></tr>
+
+                  <tr><th colspan="2" style="background: var(--ta-cream); text-align: center; color: var(--ta-navy); font-family: var(--ta-font-display); font-size: 14px;">공급받는자</th></tr>
+                  <tr><th>주민번호</th><td class="mono">820120-1******</td></tr>
+                  <tr><th>성명</th><td>이민호</td></tr>
+                  <tr><th>주소</th><td class="muted" style="font-size: 12px;">서울특별시 강남구 ○○로 123</td></tr>
+
+                  <tr><th colspan="2" style="background: var(--ta-cream); text-align: center; color: var(--ta-navy); font-family: var(--ta-font-display); font-size: 14px;">거래내역</th></tr>
+                  <tr><th>작성일자</th><td>2026-04-16</td></tr>
+                  <tr><th>품목</th><td>Reading Comprehension G3 Intermediate · 2026-04</td></tr>
+                  <tr><th>공급가액</th><td class="mono">₩ 381,818</td></tr>
+                  <tr><th>부가세</th><td class="mono">₩ 38,182</td></tr>
+                  <tr><th>합계</th><td class="mono" style="color: var(--ta-gold); font-weight: 600;">₩ 420,000</td></tr>
+                  <tr><th>비고</th><td class="muted" style="font-size: 12px;">면세 구분: 과세 · 결제수단 연동: Toss 카드결제</td></tr>
+                </table>
+              </div>
+
+              <aside class="card" style="background: #0B0D14; color: #cfe8ff;">
+                <div class="eyebrow" style="color: var(--ta-gold);">RAW XML · NTS SUBMISSION</div>
+                <div class="muted" style="color: rgba(207,232,255,.5); font-size: 12px; margin: 6px 0 14px;">
+                  국세청에 실제 제출된 원본 · 공동인증서 서명 포함
+                </div>
+                <div class="xml-viewer">
+<span class="comment">&lt;!-- NTS eTax 표준 XML · 생성시각 2026-04-17 09:10:22 --&gt;</span>
+<span class="tag">&lt;TaxInvoice</span> <span class="attr">xmlns=</span><span class="val">"http://www.nts.go.kr/standard"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;ExchangedDocument&gt;</span>
+    <span class="tag">&lt;ID&gt;</span>20260417-41298301-73ab<span class="tag">&lt;/ID&gt;</span>
+    <span class="tag">&lt;IssueDateTime&gt;</span>2026-04-17T09:10:22+09:00<span class="tag">&lt;/IssueDateTime&gt;</span>
+    <span class="tag">&lt;TypeCode&gt;</span>01<span class="tag">&lt;/TypeCode&gt;</span>
+  <span class="tag">&lt;/ExchangedDocument&gt;</span>
+
+  <span class="tag">&lt;Supplier&gt;</span>
+    <span class="tag">&lt;BusinessID&gt;</span>124-87-41829<span class="tag">&lt;/BusinessID&gt;</span>
+    <span class="tag">&lt;Name&gt;</span>(주)트리니티아카데미<span class="tag">&lt;/Name&gt;</span>
+    <span class="tag">&lt;CEOName&gt;</span>김원장<span class="tag">&lt;/CEOName&gt;</span>
+    <span class="tag">&lt;Address&gt;</span>서울특별시 강남구 테헤란로 501<span class="tag">&lt;/Address&gt;</span>
+    <span class="tag">&lt;BusinessType&gt;</span>서비스<span class="tag">&lt;/BusinessType&gt;</span>
+    <span class="tag">&lt;BusinessItem&gt;</span>교육<span class="tag">&lt;/BusinessItem&gt;</span>
+  <span class="tag">&lt;/Supplier&gt;</span>
+
+  <span class="tag">&lt;Buyer&gt;</span>
+    <span class="tag">&lt;PersonalID&gt;</span>820120-1******<span class="tag">&lt;/PersonalID&gt;</span>
+    <span class="tag">&lt;Name&gt;</span>이민호<span class="tag">&lt;/Name&gt;</span>
+  <span class="tag">&lt;/Buyer&gt;</span>
+
+  <span class="tag">&lt;InvoiceLines&gt;</span>
+    <span class="tag">&lt;Line&gt;</span>
+      <span class="tag">&lt;ItemName&gt;</span>RC G3 Intermediate 2026-04<span class="tag">&lt;/ItemName&gt;</span>
+      <span class="tag">&lt;SupplyAmount&gt;</span>381818<span class="tag">&lt;/SupplyAmount&gt;</span>
+      <span class="tag">&lt;TaxAmount&gt;</span>38182<span class="tag">&lt;/TaxAmount&gt;</span>
+      <span class="tag">&lt;TotalAmount&gt;</span>420000<span class="tag">&lt;/TotalAmount&gt;</span>
+    <span class="tag">&lt;/Line&gt;</span>
+  <span class="tag">&lt;/InvoiceLines&gt;</span>
+
+  <span class="tag">&lt;Settlement&gt;</span>
+    <span class="tag">&lt;SupplyTotal&gt;</span>381818<span class="tag">&lt;/SupplyTotal&gt;</span>
+    <span class="tag">&lt;TaxTotal&gt;</span>38182<span class="tag">&lt;/TaxTotal&gt;</span>
+    <span class="tag">&lt;GrandTotal&gt;</span>420000<span class="tag">&lt;/GrandTotal&gt;</span>
+  <span class="tag">&lt;/Settlement&gt;</span>
+
+  <span class="comment">&lt;!-- 공동인증서 서명 · HSM/KMS --&gt;</span>
+  <span class="tag">&lt;Signature</span> <span class="attr">alg=</span><span class="val">"RSA-SHA256"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;SignerCertID&gt;</span>CN=TRINITY-HSM-01<span class="tag">&lt;/SignerCertID&gt;</span>
+    <span class="tag">&lt;SignatureValue&gt;</span>MIIEv+3B9xL...<span class="tag">&lt;/SignatureValue&gt;</span>
+  <span class="tag">&lt;/Signature&gt;</span>
+<span class="tag">&lt;/TaxInvoice&gt;</span>
+                </div>
+
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(207,232,255,.15); font-size: 12px; color: rgba(207,232,255,.7);">
+                  <strong style="color: var(--ta-gold);">서명 검증:</strong> HSM key-id <span class="mono">TRINITY-HSM-01</span> · RSA-SHA256 OK<br/>
+                  <strong style="color: var(--ta-gold);">NTS 응답:</strong> HTTP 200 · APPROVED · 2026-04-17 09:11:05
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-06</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-07 · Receipts
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-07</span>
+        <strong>Receipts · 현금영수증 / 카드매출전표</strong>
+        — 학부모 제공 (FN-PAY-007)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#" class="active">영수증</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">영수증 / TRPY-20260416-00140</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">PDF 다운</button>
+              <button class="btn btn-gold btn-sm">AmoebaTalk로 전송</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grid-2col">
+              <div>
+                <div class="eyebrow" style="margin-bottom: 10px;">카드매출전표 미리보기</div>
+                <div class="receipt">
+                  <h3>Trinity Academy</h3>
+                  <div class="receipt-sub">OMNIBUS OMNIA — 수강료 영수증</div>
+                  <div class="receipt-row"><span>영수번호</span><span class="mono">TRPY-20260416-00140</span></div>
+                  <div class="receipt-row"><span>일시</span><span>2026-04-16 17:42</span></div>
+                  <div class="receipt-row"><span>학생</span><span>이서아 (초3)</span></div>
+                  <div class="receipt-row"><span>프로그램</span><span>RC G3-Int · 2026-04</span></div>
+                  <div class="receipt-row"><span>공급가액</span><span class="mono">₩ 381,818</span></div>
+                  <div class="receipt-row"><span>부가세</span><span class="mono">₩ 38,182</span></div>
+                  <div class="receipt-row total"><span>합계</span><span>₩ 420,000</span></div>
+                  <div class="receipt-row" style="border: none; margin-top: 10px;">
+                    <span class="muted">결제수단</span>
+                    <span>KB카드 · 4828-**-**-1042 · 일시불</span>
+                  </div>
+                  <div class="receipt-row" style="border: none;">
+                    <span class="muted">Toss paymentKey</span>
+                    <span class="mono" style="font-size: 10px;">tviva...wq0</span>
+                  </div>
+                  <div style="text-align: center; color: var(--ta-ink-muted); font-size: 11px; margin-top: 16px;">
+                    사업자: (주)트리니티아카데미 · 124-87-41829<br/>
+                    세금계산서 승인번호: 20260417-41298301-73ab
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="eyebrow" style="margin-bottom: 10px;">현금영수증 (자진발급 예시)</div>
+                <div class="receipt">
+                  <h3>Trinity Academy</h3>
+                  <div class="receipt-sub">현금영수증 · 소득공제용</div>
+                  <div class="receipt-row"><span>승인번호</span><span class="mono">9120-8471-2208</span></div>
+                  <div class="receipt-row"><span>일시</span><span>2026-04-17 10:15</span></div>
+                  <div class="receipt-row"><span>학부모</span><span>박지현</span></div>
+                  <div class="receipt-row"><span>휴대폰</span><span class="mono">010-****-8291</span></div>
+                  <div class="receipt-row"><span>프로그램</span><span>MAP RC · 2026-04</span></div>
+                  <div class="receipt-row"><span>공급가액</span><span class="mono">₩ 290,909</span></div>
+                  <div class="receipt-row"><span>부가세</span><span class="mono">₩ 29,091</span></div>
+                  <div class="receipt-row total"><span>합계</span><span>₩ 320,000</span></div>
+                  <div class="receipt-row" style="border: none; margin-top: 10px;">
+                    <span class="muted">용도</span><span>소득공제</span>
+                  </div>
+                  <div style="text-align: center; color: var(--ta-ink-muted); font-size: 11px; margin-top: 16px;">
+                    국세청 홈택스에서 조회 가능<br/>
+                    발급일: 2026-04-17
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout" style="margin-top: 20px;">
+              <strong>AmoebaTalk 전송 ·</strong>
+              학부모에게 영수증을 PDF로 전송합니다. 템플릿 <span class="mono">receipt_card_v2</span> / <span class="mono">receipt_cash_v2</span>.
+              학부모는 포털에서도 다운로드 가능합니다.
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-07</div>
+    </section>
+
+    <!-- ==============================================================
+      A-PAY-08 · Refund Policy Admin
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-PAY-08</span>
+        <strong>Refund Policy Admin</strong>
+        — 환불 정책 버전 관리 · 스냅샷 보존 (FN-PAY-008)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini"><div class="shield"></div><div><div class="name">Trinity</div><div class="sub">ACADEMY OPS</div></div></div>
+          <nav class="side-nav">
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#" class="active">정책 & 정산</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">정책 / 환불 정책 버전</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">과거 버전</button>
+              <button class="btn btn-gold btn-sm">+ 신규 버전</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="alert-banner info">
+              <strong>🔒 스냅샷 정책 ·</strong>
+              <div>한 번 결제 주문에 붙은 정책 버전은 변경되지 않습니다(<span class="mono">payment_orders.refund_policy_version_id</span>).
+                신규 버전은 효력 시작일 이후 결제에만 적용됩니다.</div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>버전</th>
+                    <th>근거법령</th>
+                    <th>T0 (시작 전)</th>
+                    <th>T1</th>
+                    <th>T2</th>
+                    <th>T3</th>
+                    <th>효력기간</th>
+                    <th>상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="row-highlight">
+                    <td class="mono" style="color: var(--ta-gold); font-weight: 600;">v2026-03-01</td>
+                    <td>학원법 §18</td>
+                    <td>100%</td>
+                    <td class="mono">≤33.3% · 2/3</td>
+                    <td class="mono">≤50% · 1/2</td>
+                    <td class="mono">&gt;50% · 0</td>
+                    <td>2026-03-01 ~ 현재</td>
+                    <td><span class="toss-status done">적용중</span></td>
+                  </tr>
+                  <tr style="opacity: .7;">
+                    <td class="mono">v2025-01-01</td>
+                    <td>학원법 §18</td>
+                    <td>100%</td>
+                    <td class="mono">≤33.3% · 2/3</td>
+                    <td class="mono">≤50% · 1/2</td>
+                    <td class="mono">&gt;50% · 0</td>
+                    <td>2025-01-01 ~ 2026-02-28</td>
+                    <td><span class="badge badge-outline">이전</span></td>
+                  </tr>
+                  <tr style="opacity: .5;">
+                    <td class="mono">v2023-03-01</td>
+                    <td>학원법(구) §18</td>
+                    <td>100%</td>
+                    <td class="mono">≤33% · 2/3</td>
+                    <td class="mono">≤50% · 1/2</td>
+                    <td class="mono">&gt;50% · 0</td>
+                    <td>2023-03-01 ~ 2024-12-31</td>
+                    <td><span class="badge badge-outline">아카이브</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="grid-2col" style="margin-top: 20px;">
+              <div class="card">
+                <div class="eyebrow">현재 버전 v2026-03-01 요약</div>
+                <ul style="padding-left: 18px; line-height: 1.9; font-size: 14px;">
+                  <li>수강 시작 전 (T0): <strong>전액 환불</strong></li>
+                  <li>진행 비율 1/3 이하 (T1): <strong>결제액의 2/3 환불</strong></li>
+                  <li>진행 비율 1/2 이하 (T2): <strong>결제액의 1/2 환불</strong></li>
+                  <li>진행 비율 1/2 초과 (T3): <strong>환불 불가</strong></li>
+                </ul>
+                <p class="muted" style="font-size: 12px; margin-top: 10px;">
+                  기준: class_sessions 기준 held_session_count / total_session_count.
+                  class 단위 합산. 학원법 시행령 제18조에 부합하며 법 개정 시 신규 버전 발행.
+                </p>
+              </div>
+
+              <div class="card">
+                <div class="eyebrow">정책 변경 로그</div>
+                <ul style="padding-left: 18px; line-height: 1.9; font-size: 13px;">
+                  <li><strong>2026-03-01</strong> · v2026-03-01 시행 · 변수명 표준화 (paid, held, total)</li>
+                  <li><strong>2025-01-01</strong> · v2025-01-01 · elapsed_ratio 계산식 명시</li>
+                  <li><strong>2023-03-01</strong> · 최초 버전 · 3-tier 구조 도입</li>
+                </ul>
+                <p class="muted" style="font-size: 12px; margin-top: 10px;">
+                  법 개정 또는 원장 결정 시 새 버전을 생성. 기존 주문은 원 스냅샷으로 계산.
+                </p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/trinity-pay.html#a-pay-08</div>
+    </section>
+
+    <footer style="text-align: center; padding: 40px 0; color: var(--ta-ink-muted); font-size: 13px;">
+      Trinity Academy — OMNIBUS OMNIA · Heraldic Brand System v1.3<br/>
+      Screen Set 04: Trinity Pay — <span class="mono">docs/design/screens/trinity-pay.html</span>
+    </footer>
+  </div>
+</body>
+</html>

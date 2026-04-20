@@ -1,0 +1,445 @@
+{
+  "nav": {
+    "home": "首页",
+    "about": "关于",
+    "programs": "课程",
+    "map-test": "MAP Test",
+    "contact": "咨询",
+    "news": "新闻",
+    "my": "我的",
+    "login": "登录"
+  },
+  "home": {
+    "hero-title": "OMNIBUS OMNIA",
+    "hero-subtitle": "向众人成为众人的样式",
+    "cta-consult": "申请咨询",
+    "cta-map-test": "了解 MAP Test",
+    "hero": {
+      "eyebrow": "NWEA MAP TEST 官方授权机构",
+      "title": "TRINITY ACADEMY",
+      "subtitle": "精准诊断 · 稳定录取",
+      "lead": "自 2020 年成立以来,Trinity 已助力 230 多名学生进入国际学校。通过 MAP TEST 系统诊断,我们从初始评估到目标校录取提供完整的路线图。"
+    },
+    "results": {
+      "eyebrow": "TRUSTED RESULTS",
+      "title": "Trinity Academy 的底气\n来自确凿的结果。",
+      "lead": "自 2020 年起,Trinity 已为目标 7 所授权国际学校及多所未授权国际学校的学生交付确定的录取。以经过验证的数据与经验驱动结果。",
+      "stat-value": "144",
+      "stat-unit": "",
+      "stat-label": "国际学校录取 · Chadwick · DIS · 含未授权"
+    },
+    "results-stats": {
+      "eyebrow": "PROVEN TRACK RECORD",
+      "title": "用数据见证 Trinity",
+      "item-graduates": "累计毕业生",
+      "item-admitted": "国际学校录取",
+      "item-pass-rate": "录取率",
+      "item-founded": "创立年份"
+    },
+    "campus-band": {
+      "eyebrow": "DUAL CAMPUS",
+      "title": "济州英语教育城本院 · 狎鸥亭岛山公园中心的线下备考课程\n以及精选师资的在线 1:1 课程",
+      "lead": "Trinity Academy 本院位于济州英语教育城内,第一时间掌握最关键的入学信息。Trinity 的经验通过线下与线上课程传递给每一位备考国际学校的学生。"
+    },
+    "pillars-section": {
+      "eyebrow": "OUR DIFFERENTIATORS",
+      "title": "四大支柱成就录取"
+    },
+    "pillars": {
+      "p1": {
+        "title": "基于 230+ 录取经验的 '按校定制策略'",
+        "problem": "国际学校入学不仅是英语测试 — 各校的评估标准差别显著。",
+        "label": "实战分析数据:",
+        "solution": "多年间培养出 230+ 录取生的积累,让我们系统掌握了各校(NLCS、SJA、KIS、Chadwick 等)的入学试题类型与偏好人才形象。我们根据目标校的出题趋势提供最接近录取的学习路径。"
+      },
+      "p2": {
+        "title": "支撑 99% 录取率的 '完美申请策略'",
+        "problem": "仅靠高分难以充分展现学生潜力,申请人的特质必须鲜明。",
+        "label": "个性化申请指导:",
+        "solution": "Trinity 为维持 99% 录取率,把学生的经历与活动以符合学校教育理念的叙事呈现。面试与文书都经过精细打磨,突出学生优势。"
+      },
+      "p3": {
+        "title": "通向录取的 '详尽诊断与学习路线图'",
+        "problem": "避免笼统备考 — 以客观指标决定学习方向。",
+        "label": "基于数据的分析:",
+        "solution": "依托 230+ 录取案例对比学生当前水平。MAP Test、ISEE 等领域数据量化优势与差距,按优先级高效弥补。"
+      },
+      "p4": {
+        "title": "从申请到入学后的 'All in One' 全程管理",
+        "problem": "避免申请过程中的失误,并为录取后的适应做好准备。",
+        "label": "系统化指导:",
+        "solution": "从推荐信到活动证明材料,确保零失误的申请包装。入学前夯实学术基础,顺利适应 IB、AP 等课程。"
+      }
+    },
+    "process-section": {
+      "eyebrow": "ENROLLMENT PROCESS",
+      "title": "Trinity Academy\n入学准备流程"
+    },
+    "process": {
+      "s1": {
+        "title": "个性化初步咨询",
+        "label": "基本信息登记与学习风格了解:",
+        "body": "基于学生已有的学习履历与基本信息开展 1:1 初步咨询,确认当前出发点。"
+      },
+      "s2": {
+        "title": "客观能力诊断",
+        "label": "基于权威指标的水平测试:",
+        "body": "包含 NWEA 官方 MAP Test,并通过体验课评估 Writing 与 Speaking。量化呈现学生当前学业成就。"
+      },
+      "s3": {
+        "title": "战略目标设定",
+        "label": "深度咨询与学校匹配:",
+        "body": "基于诊断结果,确定学生最能发挥实力的目标学校,制定具体的申请策略。"
+      },
+      "s4": {
+        "title": "定制学习形式与时间表",
+        "label": "按水平最优分班:",
+        "body": "根据学生水平与目标时间安排小组课、1:1 或寒暑期特训班等最有效的学习环境。"
+      },
+      "s5": {
+        "title": "紧密管理与成果分享",
+        "label": "常规课程与反馈系统:",
+        "body": "系统化教学结合定期模拟考试(NWEA MAP TEST),分析成果数据通过家长反馈报告透明共享,确保稳定进步。"
+      }
+    },
+    "closing": {
+      "eyebrow": "CONTACT US",
+      "title": "Trinity Academy 将为您交付明确成果。",
+      "lead": "Trinity 的精准学业诊断、热情辅导与已验证的经验,保障国际学校录取。"
+    }
+  },
+  "floating": {
+    "aria-label": "快速联系按钮",
+    "map-test": "MAP 测试",
+    "consult": "咨询",
+    "kakao": "KakaoTalk",
+    "phone": "电话"
+  },
+  "closing-cta": {
+    "map-test-title": "报名 MAP TEST",
+    "map-test-sub": "报名 NWEA 官方 MAP Test",
+    "consult-title": "1:1 免费咨询",
+    "consult-sub": "国际学校入学准备咨询",
+    "phone-title": "电话咨询"
+  },
+  "about": {
+    "title": "关于 Trinity Academy",
+    "hero": {
+      "eyebrow": "PHILOSOPHY",
+      "title": "OMNIBUS\nOMNIA",
+      "verse": "向什么样的人，我就作什么样的人，无论如何总要救些人。",
+      "verse-ref": "— 哥林多前书 9:22"
+    },
+    "story": {
+      "eyebrow": "OUR STORY",
+      "title": "沿革"
+    },
+    "timeline": {
+      "y2014": {
+        "year": "2014",
+        "heading": "Trinity Academy 成立",
+        "body": "在江南区大峙洞开设单科英语 RC 课程。"
+      },
+      "y2017": {
+        "year": "2017",
+        "heading": "引入 MAP 诊断体系",
+        "body": "建立 G2–G5 的 RC/数学/语言三条路径。"
+      },
+      "y2020": {
+        "year": "2020",
+        "heading": "推出数学课程",
+        "body": "完成英语-数学一体化课程。"
+      },
+      "y2026": {
+        "year": "2026",
+        "heading": "Trinity 管理解决方案 v1.3",
+        "body": "接入 AMA、自主支付及按上课日计算的退款政策。"
+      }
+    },
+    "principle": {
+      "eyebrow": "OUR PRINCIPLE",
+      "title": "为每一位学生的成长",
+      "p1": "Trinity 尊重每位学生的学习节奏、倾向与目标。即使同年级也不提供相同课程。通过 MAP 诊断明确起点，以 TPI (Trinity Profile Index) 读取倾向，为每个人提供适合的路径。",
+      "p2": "盾徽中央是 T 字与十字、三颗星、王冠与旌旗。学术·信仰·品格·共同体——这四个价值构成 Trinity 教育的基础。"
+    },
+    "seo-title": "About — TRINITY ACADEMY",
+    "seo-description": "OMNIBUS OMNIA — Trinity Academy 的教育理念与沿革。"
+  },
+  "programs": {
+    "title": "课程",
+    "detail-title": "课程详情",
+    "find-title": "查找课程",
+    "category-all": "科目: 全部",
+    "category": {
+      "ENGLISH": "英语 RC",
+      "MATH": "数学",
+      "SCIENCE": "科学",
+      "OTHER": "其他"
+    },
+    "fee-inquiry": "咨询",
+    "weekly-per-duration": "每周 {{perWeek}} 次 · {{weeks}} 周",
+    "detail-link": "详情 →",
+    "empty-title": "暂无课程。",
+    "empty-hint": "请联系我们获取课程介绍。",
+    "not-found-title": "未找到该课程",
+    "back-to-list": "← 返回课程列表",
+    "back-to-list-full": "← 全部课程",
+    "overview": "课程简介",
+    "overview-placeholder": "详细介绍即将更新。",
+    "weekly-prefix": "每周",
+    "weekly-suffix": "次",
+    "weeks-suffix": "周",
+    "capacity": "名额 {{count}}",
+    "vat-note": "{{weeks}} 周 · 含增值税",
+    "refund-policy-title": "按课时退款 (学院法实施令第18条)",
+    "refund-tier-1": "· 开课前取消 — 100%",
+    "refund-tier-2": "· 1/3 内 — 66.67%",
+    "refund-tier-3": "· 1/2 内 — 50%",
+    "refund-tier-4": "· 超过 1/2 — 0%",
+    "cta-book-consult": "预约咨询 →",
+    "cta-map-diagnosis": "先进行 MAP 诊断"
+  },
+  "map-test": {
+    "title": "NWEA MAP Test 介绍",
+    "apply": "报名 MAP Test",
+    "page-title": "在线 MAP TEST 报名",
+    "page-description": "报名 NWEA 官方 MAP TEST。填写学生基本信息后,专业顾问将在 24 小时内与您联系。",
+    "hero-title-line1": "请填写参加 MAP Test 的",
+    "hero-title-line2": "学生基本信息。",
+    "form": {
+      "student-name-ko": "学生姓名(韩文)",
+      "student-name-ko-placeholder": "홍길동",
+      "student-name-en": "学生姓名(英文)",
+      "student-name-en-placeholder": "Hong Gildong",
+      "birth-date": "出生日期",
+      "grade": "年级",
+      "grade-placeholder": "请选择",
+      "gender": "性别",
+      "gender-male": "男",
+      "gender-female": "女",
+      "phone": "联系电话",
+      "phone-placeholder": "010-0000-0000",
+      "parent-email": "家长邮箱",
+      "parent-email-placeholder": "parent@example.com",
+      "test-location": "考试国家 · 城市",
+      "test-location-placeholder": "例如: 韩国 首尔",
+      "privacy-title": "隐私政策",
+      "privacy-consent": "我同意收集和使用个人信息。",
+      "privacy-required": "(必填)",
+      "submit": "提交咨询",
+      "submitting": "提交中...",
+      "error-default": "提交时发生错误。",
+      "success-title": "已成功接收",
+      "reset": "重新填写"
+    }
+  },
+  "contact": {
+    "title": "咨询申请",
+    "hero-eyebrow": "1:1 免费咨询",
+    "hero-title-line1": "精准学业诊断 · 独家入学考试课程",
+    "hero-title-line2": "Trinity 为您带来可靠的国际学校录取成果。",
+    "consultation-form": {
+      "types-label": "咨询类型",
+      "types-hint": "可多选",
+      "student-name": "学生姓名",
+      "grade": "年级",
+      "grade-placeholder": "例如: G7",
+      "phone": "联系电话",
+      "phone-placeholder": "010-0000-0000",
+      "privacy-label": "个人信息收集与使用同意",
+      "privacy-consent": "我同意收集和使用个人信息。",
+      "privacy-required": "(必填)",
+      "submit": "提交咨询",
+      "submitting": "提交中...",
+      "error-default": "提交时发生错误。",
+      "success-title": "已成功接收",
+      "reset": "重新填写"
+    },
+    "form": {
+      "parent-name": "家长姓名",
+      "parent-phone": "联系电话",
+      "student-name": "学生姓名",
+      "student-grade": "年级",
+      "preferred-time": "期望咨询时间",
+      "message": "咨询内容",
+      "privacy-consent": "我同意收集和使用个人信息",
+      "submit": "提交咨询"
+    },
+    "success": "咨询申请已提交，我们将尽快联系您。",
+    "consultation-types": {
+      "accredited-label": "认证国际学校入学准备",
+      "unaccredited-label": "非认证国际学校入学准备",
+      "foreign-school-label": "外国人学校入学准备",
+      "boarding-label": "海外少年/高中寄宿学校入学准备",
+      "all-in-one-label": "一站式入学咨询",
+      "all-in-one-sub": "(课程 + 作品集 + 申请支持 + GPA 管理)"
+    },
+    "form-success-note": "※ 提交后 24 个工作小时内由专属顾问依次联系您。"
+  },
+  "news": {
+    "title": "新闻",
+    "empty": "暂无新闻",
+    "empty-section": "暂无新闻。",
+    "not-found-title": "未找到该内容",
+    "back-to-list": "← 返回新闻列表",
+    "back-link": "← 新闻",
+    "filter": {
+      "all": "全部",
+      "result": "录取结果",
+      "event": "活动",
+      "notice": "通知"
+    }
+  },
+  "my": {
+    "title": "我的",
+    "tabs": {
+      "overview": "概览",
+      "timetable": "课表",
+      "scores": "成绩",
+      "payments": "支付记录"
+    },
+    "loading": "加载中...",
+    "no-children-title": "暂未登记任何子女。",
+    "no-children-hint": "请联系学院处理。",
+    "welcome": "您好, <1>{{name}}</1>",
+    "welcome-subtitle": "查看子女的学习情况。",
+    "kpi": {
+      "week-classes": "本周课程",
+      "latest-map": "最近 MAP 成绩",
+      "latest-map-empty": "暂无记录",
+      "latest-map-top": "前 {{percentile}}%",
+      "unpaid": "未支付订单",
+      "count-suffix": "笔"
+    },
+    "quick-links": {
+      "timetable": "📅 查看课表",
+      "scores": "📊 查看 MAP 成绩",
+      "payments": "💳 支付记录"
+    },
+    "timetable": {
+      "title": "本周课表",
+      "empty": "本周暂无课程。",
+      "page-title": "📅 我的课表",
+      "select-child": "请选择子女。",
+      "back-to-my": "← 返回我的页面",
+      "my-link": "← 我的",
+      "prev-week": "← 上一周",
+      "next-week": "下一周 →",
+      "legend-scheduled": "预定",
+      "legend-held": "已进行",
+      "legend-canceled": "已取消"
+    },
+    "payments-section": {
+      "title": "最近支付",
+      "empty": "暂无支付记录。",
+      "table": {
+        "order-no": "订单号",
+        "program": "课程",
+        "amount": "金额",
+        "status": "状态",
+        "date": "时间"
+      }
+    },
+    "payment-status": {
+      "DONE": "已完成",
+      "PENDING": "待处理",
+      "READY": "待支付",
+      "CANCELED": "已取消",
+      "PARTIAL_CANCELED": "部分取消"
+    },
+    "scores-page": {
+      "title": "子女 MAP 成绩",
+      "unauthenticated-title": "MAP 成绩查询",
+      "unauthenticated-lead": "使用家长账号登录以查看子女的 MAP 成绩历史与最近变化。",
+      "login-cta": "登录",
+      "lead": "在同一界面查看以 Reading 为主的近期结果与累计变化趋势。",
+      "parent-unbound-note": " 当前账户未关联任何学生。",
+      "unbound-empty": "当前会话未连接学生信息。设置家长账号映射后即可在此查看成绩历史。",
+      "no-students-option": "没有可查询的学生",
+      "fetch-error": "加载成绩数据失败。",
+      "card-latest-reading": "最近 Reading",
+      "card-average-reading": "平均 Reading",
+      "card-best-reading": "最高 Reading",
+      "card-reading-delta": "相比首次",
+      "card-assessments-count": "{{count}} 次测试",
+      "card-best-caption": "累计最高分",
+      "card-delta-caption": "Reading 变化",
+      "trend-title": "Reading 走势",
+      "trend-lead": "按最近测试顺序整理的累计成绩走势。",
+      "trend-empty": "暂无已公开的 MAP 成绩。",
+      "student-info-title": "学生信息",
+      "student-grade": "年级",
+      "student-school": "学校",
+      "access-mode-parent": "基于家长账户关联的子女显示成绩。",
+      "access-mode-preview": "当前为管理员预览模式。家长 OTP 登录上线后将使用同一 API。",
+      "access-mode-unbound": "尚未配置家长账户映射。"
+    },
+    "payments-page": {
+      "title": "💳 支付记录",
+      "empty": "暂无支付记录。",
+      "summary-total": "全部",
+      "summary-paid": "已支付",
+      "summary-unpaid": "未支付",
+      "status-label": {
+        "DONE": "已支付",
+        "PENDING": "待处理",
+        "READY": "待支付",
+        "CANCELED": "已取消",
+        "PARTIAL_CANCELED": "部分取消"
+      },
+      "table": {
+        "order-no": "订单号",
+        "program": "课程",
+        "student": "学生",
+        "amount": "金额",
+        "status": "状态",
+        "date": "时间"
+      }
+    }
+  },
+  "login": {
+    "title": "家长登录",
+    "phone": "联系电话",
+    "password": "密码",
+    "submit": "登录",
+    "phone-placeholder": "手机号码 (010-0000-0000)",
+    "phone-label": "手机号码",
+    "phone-required": "请输入手机号码。",
+    "send-otp": "发送验证码",
+    "sending-otp": "发送中...",
+    "otp-placeholder": "6 位验证码",
+    "otp-label": "验证码",
+    "otp-length-required": "请输入 6 位验证码。",
+    "verifying": "验证中...",
+    "otp-mismatch": "验证码不一致。",
+    "otp-send-failed": "发送验证码失败。",
+    "server-error": "无法连接服务器。",
+    "try-another-phone": "使用其他号码",
+    "admin-login-link": "管理员登录 →"
+  },
+  "footer": {
+    "address": "地址",
+    "phone": "电话",
+    "email": "邮箱",
+    "consultation-hours": "咨询时间",
+    "class-hours": "上课时间",
+    "kakao-channel": "💛 KakaoTalk 频道",
+    "business-info": "营业执照 · 代表人 · 通讯销售业申报 · 个人信息负责人 (TBD)",
+    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+  },
+  "site": {
+    "hours-consultation": "14:00 – 22:00（需预约）",
+    "hours-class": "14:30 – 21:30",
+    "campus-jeju": {
+      "name": "济州本院",
+      "line1": "济州特别自治道西归浦市大静邑",
+      "line2": "Global Edu-ro 145街 40号 2层",
+      "note": "(英语教育城内)"
+    },
+    "campus-seoul": {
+      "name": "狎鸥亭岛山公园中心",
+      "line1": "首尔特别市江南区新沙洞 631-31, 2层",
+      "note": "(岛山公园, 爱马仕之家后方)"
+    }
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "app": {
+    "name": "Trinity Academy",
+    "admin-name": "Trinity Admin",
+    "motto": "OMNIBUS OMNIA"
+  },
+  "buttons": {
+    "save": "저장",
+    "cancel": "취소",
+    "confirm": "확인",
+    "delete": "삭제",
+    "edit": "수정",
+    "create": "등록",
+    "submit": "제출",
+    "search": "검색",
+    "filter": "필터",
+    "reset": "초기화",
+    "close": "닫기",
+    "back": "뒤로",
+    "next": "다음",
+    "prev": "이전",
+    "more": "더보기",
+    "view-detail": "상세 보기",
+    "download": "다운로드",
+    "upload": "업로드",
+    "refresh": "새로고침",
+    "logout": "로그아웃",
+    "login": "로그인"
+  },
+  "status": {
+    "loading": "불러오는 중...",
+    "saving": "저장 중...",
+    "processing": "처리 중...",
+    "success": "성공",
+    "error": "오류",
+    "empty": "데이터가 없습니다",
+    "no-results": "검색 결과가 없습니다"
+  },
+  "actions": {
+    "open-menu": "메뉴 열기",
+    "close-menu": "메뉴 닫기",
+    "open-notifications": "알림 열기",
+    "open-user-menu": "사용자 메뉴",
+    "switch-language": "언어 선택",
+    "sidebar-expand": "사이드바 확장",
+    "sidebar-collapse": "사이드바 접기",
+    "dismiss-toast": "알림 닫기",
+    "toast-region": "알림"
+  },
+  "labels": {
+    "name": "이름",
+    "phone": "연락처",
+    "email": "이메일",
+    "address": "주소",
+    "date": "날짜",
+    "status": "상태",
+    "type": "유형",
+    "category": "카테고리",
+    "description": "설명",
+    "note": "메모",
+    "amount": "금액",
+    "count": "건수",
+    "total": "합계",
+    "period": "기간",
+    "created-at": "등록일",
+    "updated-at": "수정일"
+  },
+  "auth": {
+    "my-info": "내 정보",
+    "admin-user": "관리자"
+  },
+  "search": {
+    "global-placeholder": "학생, 상담, 결제 검색..."
+  },
+  "locale": {
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh-CN": "中文(简体)"
+  },
+  "currency": {
+    "krw-suffix": "원",
+    "krw-format": "{{amount}}원"
+  },
+  "days-short": {
+    "mon": "월",
+    "tue": "화",
+    "wed": "수",
+    "thu": "목",
+    "fri": "금",
+    "sat": "토",
+    "sun": "일"
+  }
+}

@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trinity Academy — Screen Mockups Index (v1.3)</title>
+<link rel="stylesheet" href="heraldic-tokens.css" />
+<style>
+  body {
+    background: var(--ta-cream);
+    color: var(--ta-ink);
+    padding: 0;
+  }
+  .hero-wrap {
+    background: linear-gradient(135deg, var(--ta-navy) 0%, #182c55 60%, #0a1530 100%);
+    color: var(--ta-cream);
+    padding: 72px 24px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-wrap::before {
+    content: "";
+    position: absolute;
+    top: -100px; right: -120px;
+    width: 420px; height: 420px;
+    background: radial-gradient(closest-side, rgba(201,166,86,.25), transparent 70%);
+  }
+  .hero-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .crest-small {
+    width: 48px; height: 56px;
+    background: var(--ta-gold);
+    clip-path: polygon(50% 0, 100% 20%, 100% 72%, 50% 100%, 0 72%, 0 20%);
+    margin-bottom: 18px;
+    position: relative;
+  }
+  .crest-small::after {
+    content: "T";
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--ta-font-display);
+    color: var(--ta-navy);
+    font-weight: 700;
+    font-size: 24px;
+  }
+  .hero-eyebrow { color: var(--ta-gold); letter-spacing: .14em; text-transform: uppercase; font-size: 13px; font-weight: 600; }
+  .hero-title {
+    font-family: var(--ta-font-display);
+    font-size: 56px;
+    line-height: 1.1;
+    margin: 10px 0 14px;
+  }
+  .hero-subtitle {
+    color: rgba(250,247,238,.75);
+    max-width: 680px;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 44px;
+    max-width: 780px;
+  }
+  .hero-stats .h-stat {
+    border-left: 2px solid var(--ta-gold);
+    padding-left: 14px;
+  }
+  .hero-stats .h-stat .num {
+    font-family: var(--ta-font-display);
+    font-size: 36px;
+    color: var(--ta-gold);
+  }
+  .hero-stats .h-stat .lbl {
+    font-size: 12px;
+    color: rgba(250,247,238,.65);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  .container-wide {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-title {
+    font-family: var(--ta-font-display);
+    color: var(--ta-navy);
+    font-size: 28px;
+    margin: 60px 0 6px;
+  }
+  .section-eyebrow {
+    color: var(--ta-gold);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .section-sub {
+    color: var(--ta-ink-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .decision-strip {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .decision-item {
+    background: rgba(250,247,238,.08);
+    border: 1px solid rgba(201,166,86,.35);
+    border-radius: 8px;
+    padding: 14px 20px;
+    color: var(--ta-cream);
+    min-width: 220px;
+  }
+  .decision-item .dec-label { font-size: 11px; color: var(--ta-gold); text-transform: uppercase; letter-spacing: .1em; }
+  .decision-item .dec-value { font-family: var(--ta-font-display); font-size: 20px; margin-top: 4px; }
+
+  /* Mockup cards */
+  .mockup-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .m-card {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.1);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 2px 10px rgba(14,30,58,.04);
+  }
+  .m-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(14,30,58,.10);
+    border-color: var(--ta-gold);
+  }
+  .m-card-preview {
+    aspect-ratio: 16 / 9;
+    position: relative;
+    overflow: hidden;
+    background: var(--ta-slate);
+  }
+  .m-card-preview .chrome-bar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 20px;
+    background: #ece8df;
+    border-bottom: 1px solid rgba(14,30,58,.08);
+    display: flex; align-items: center; padding: 0 10px;
+    gap: 4px;
+  }
+  .m-card-preview .chrome-bar .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(14,30,58,.15);
+  }
+  .m-card-preview .preview-canvas {
+    position: absolute; top: 20px; left: 0; right: 0; bottom: 0;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Per-card preview themes */
+  .preview-portal     { background: var(--ta-cream); }
+  .preview-admin      { background: var(--ta-slate); }
+  .preview-operations { background: var(--ta-slate); }
+  .preview-education  { background: var(--ta-slate); }
+  .preview-pay        { background: linear-gradient(135deg, #f7f2e4, var(--ta-cream)); }
+
+  .p-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(14,30,58,.06);
+  }
+  .p-bar.tall  { height: 14px; }
+  .p-bar.navy  { background: var(--ta-navy); }
+  .p-bar.gold  { background: var(--ta-gold); }
+  .p-bar.green { background: #28a745; }
+  .p-bar.red   { background: #dc3545; }
+  .p-bar.ama   { background: #6F4DB8; }
+  .p-bar.slate { background: rgba(14,30,58,.12); }
+  .p-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .p-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+  .p-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+  .p-row { display: flex; align-items: center; gap: 6px; }
+  .p-badge {
+    display: inline-block; font-size: 7px; padding: 1px 4px; border-radius: 2px;
+    background: var(--ta-navy); color: var(--ta-cream); font-weight: 600; letter-spacing: .05em;
+  }
+  .p-badge.gold { background: var(--ta-gold); color: var(--ta-navy); }
+  .p-block {
+    background: #fff; border: 1px solid rgba(14,30,58,.08); border-radius: 4px; padding: 6px; flex: 1;
+  }
+  .p-sidebar {
+    background: var(--ta-navy);
+    width: 26%;
+    border-radius: 4px;
+  }
+  .p-shell { display: flex; gap: 6px; flex: 1; min-height: 0; }
+  .p-main { flex: 1; background: #fff; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+  .m-card-body { padding: 18px 20px 20px; }
+  .m-card-body .m-label { font-size: 10px; color: var(--ta-gold); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .m-card-body .m-title {
+    font-family: var(--ta-font-display);
+    font-size: 22px;
+    color: var(--ta-navy);
+    margin: 4px 0 6px;
+  }
+  .m-card-body .m-sub {
+    color: var(--ta-ink-muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .m-card-body .m-screens {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 12px;
+  }
+  .m-card-body .m-screens span {
+    font-size: 11px;
+    background: var(--ta-cream);
+    color: var(--ta-navy);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: var(--ta-font-mono);
+  }
+  .m-card-body .m-open {
+    margin-top: 14px;
+    display: inline-block;
+    color: var(--ta-navy);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .m-card-body .m-open::after { content: " →"; color: var(--ta-gold); }
+
+  /* Doc links panel */
+  .docs-panel {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.1);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .doc-link {
+    text-decoration: none;
+    color: inherit;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--ta-cream);
+    border: 1px solid rgba(14,30,58,.08);
+    display: block;
+  }
+  .doc-link:hover {
+    border-color: var(--ta-gold);
+    background: #fff;
+  }
+  .doc-link .doc-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .doc-link .doc-title {
+    font-weight: 600;
+    color: var(--ta-navy);
+    font-size: 14px;
+  }
+  .doc-link .doc-sub {
+    color: var(--ta-ink-muted);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  /* Legend */
+  .legend-row {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.1);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 16px;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px;
+    color: var(--ta-ink);
+  }
+  .legend-swatch {
+    width: 20px; height: 20px; border-radius: 4px;
+    border: 1px solid rgba(14,30,58,.05);
+  }
+
+  /* Footer */
+  footer {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    padding: 40px 24px;
+    margin-top: 80px;
+    text-align: center;
+  }
+  footer .motto {
+    font-family: var(--ta-font-display);
+    font-style: italic;
+    color: var(--ta-gold);
+    letter-spacing: .1em;
+    margin-bottom: 8px;
+  }
+  footer small {
+    color: rgba(250,247,238,.55);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+  <section class="hero-wrap">
+    <div class="hero-inner">
+      <div class="crest-small"></div>
+      <div class="hero-eyebrow">Trinity Academy · v1.3 Mockup Set</div>
+      <h1 class="hero-title">Academy Management Screens</h1>
+      <p class="hero-subtitle">
+        Trinity Academy 관리 솔루션의 Hi-Fi HTML 목업 모음.
+        Portal(학부모) + Admin(운영/교육/정산) 8개 모듈을 Heraldic Brand System으로 구현한 설계 원본.
+        각 카드를 클릭하면 실제 화면이 열립니다.
+      </p>
+
+      <div class="hero-stats">
+        <div class="h-stat"><div class="num">5</div><div class="lbl">Mockup Files</div></div>
+        <div class="h-stat"><div class="num">42</div><div class="lbl">Screens</div></div>
+        <div class="h-stat"><div class="num">8</div><div class="lbl">Modules</div></div>
+        <div class="h-stat"><div class="num">v1.3</div><div class="lbl">Doc Version</div></div>
+      </div>
+
+      <div class="decision-strip">
+        <div class="decision-item">
+          <div class="dec-label">PG사</div>
+          <div class="dec-value">Toss Payments</div>
+        </div>
+        <div class="decision-item">
+          <div class="dec-label">환불 규정</div>
+          <div class="dec-value">수업일 기준 (§18)</div>
+        </div>
+        <div class="decision-item">
+          <div class="dec-label">세금계산서</div>
+          <div class="dec-value">NTS eTax 자체</div>
+        </div>
+        <div class="decision-item">
+          <div class="dec-label">AMA 경계</div>
+          <div class="dec-value">Teacher 1:1 참조</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container-wide">
+
+    <!-- ========================================
+      Mockup cards
+    ======================================== -->
+    <div class="section-eyebrow" style="margin-top: 60px;">MOCKUPS · 5 FILES</div>
+    <h2 class="section-title">Hi-Fi Screen Mockups</h2>
+    <p class="section-sub">각 파일은 여러 화면을 하나의 스크롤 페이지에 담았습니다. 브라우저에서 바로 열 수 있습니다.</p>
+
+    <div class="mockup-grid">
+      <!-- Card 1: Portal -->
+      <a class="m-card" href="portal.html">
+        <div class="m-card-preview preview-portal">
+          <div class="chrome-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="preview-canvas">
+            <div class="p-row">
+              <div class="p-bar navy" style="width: 50px; height: 10px;"></div>
+              <div style="flex:1;"></div>
+              <div class="p-bar gold" style="width: 40px; height: 8px;"></div>
+            </div>
+            <div style="background: var(--ta-navy); border-radius: 4px; padding: 10px; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--ta-cream);">
+              <div style="width: 18px; height: 22px; background: var(--ta-gold); clip-path: polygon(50% 0, 100% 20%, 100% 72%, 50% 100%, 0 72%, 0 20%); margin-bottom: 6px;"></div>
+              <div class="p-bar gold" style="width: 60%; height: 4px; margin-bottom: 4px;"></div>
+              <div class="p-bar slate" style="width: 40%; height: 3px; background: rgba(250,247,238,.3);"></div>
+            </div>
+            <div class="p-grid-3">
+              <div class="p-block">
+                <div class="p-bar gold" style="width: 30%; margin-bottom: 4px; height: 3px;"></div>
+                <div class="p-bar slate" style="width: 70%; height: 3px;"></div>
+              </div>
+              <div class="p-block">
+                <div class="p-bar gold" style="width: 30%; margin-bottom: 4px; height: 3px;"></div>
+                <div class="p-bar slate" style="width: 80%; height: 3px;"></div>
+              </div>
+              <div class="p-block">
+                <div class="p-bar gold" style="width: 30%; margin-bottom: 4px; height: 3px;"></div>
+                <div class="p-bar slate" style="width: 60%; height: 3px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-card-body">
+          <div class="m-label">SCREEN SET · 01</div>
+          <div class="m-title">Portal — 학부모 대면</div>
+          <div class="m-sub">홈/소개/프로그램/상담 신청/학부모 대시보드까지. Cream + Navy + Gold의 고급 톤.</div>
+          <div class="m-screens">
+            <span>P-01</span><span>P-02</span><span>P-03</span><span>P-04</span><span>P-05</span><span>P-06</span><span>P-07</span><span>P-10</span>
+          </div>
+          <span class="m-open">portal.html 열기</span>
+        </div>
+      </a>
+
+      <!-- Card 2: Admin Dashboard -->
+      <a class="m-card" href="admin-dashboard.html">
+        <div class="m-card-preview preview-admin">
+          <div class="chrome-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="preview-canvas">
+            <div class="p-shell">
+              <div class="p-sidebar">
+                <div style="padding: 8px;">
+                  <div class="p-bar gold" style="width: 60%; height: 4px; margin-bottom: 8px;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.2); margin-bottom: 4px; height: 3px;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.3); margin-bottom: 4px; height: 3px; width: 80%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.2); margin-bottom: 4px; height: 3px; width: 70%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.2); margin-bottom: 12px; height: 3px; width: 60%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.15); height: 3px; margin-bottom: 4px; width: 70%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.2); height: 3px; width: 50%;"></div>
+                </div>
+              </div>
+              <div class="p-main">
+                <div class="p-row">
+                  <div class="p-bar navy" style="width: 35%; height: 4px;"></div>
+                  <div style="flex:1;"></div>
+                  <div class="p-badge gold">AMA</div>
+                </div>
+                <div class="p-grid-4" style="gap: 4px;">
+                  <div style="background: var(--ta-cream); border-radius: 3px; padding: 4px;"><div class="p-bar gold" style="width: 60%; height: 3px; margin-bottom: 3px;"></div><div class="p-bar navy" style="height: 6px;"></div></div>
+                  <div style="background: var(--ta-cream); border-radius: 3px; padding: 4px;"><div class="p-bar gold" style="width: 60%; height: 3px; margin-bottom: 3px;"></div><div class="p-bar navy" style="height: 6px;"></div></div>
+                  <div style="background: var(--ta-cream); border-radius: 3px; padding: 4px;"><div class="p-bar gold" style="width: 60%; height: 3px; margin-bottom: 3px;"></div><div class="p-bar navy" style="height: 6px;"></div></div>
+                  <div style="background: var(--ta-cream); border-radius: 3px; padding: 4px;"><div class="p-bar gold" style="width: 60%; height: 3px; margin-bottom: 3px;"></div><div class="p-bar navy" style="height: 6px;"></div></div>
+                </div>
+                <div style="background: var(--ta-cream); border-radius: 3px; padding: 8px; flex: 1; display: flex; align-items: end; gap: 3px;">
+                  <div style="background: var(--ta-gold); width: 8px; height: 40%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 60%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 50%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 80%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 70%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 90%;"></div>
+                  <div style="background: var(--ta-gold); width: 8px; height: 55%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-card-body">
+          <div class="m-label">SCREEN SET · 02</div>
+          <div class="m-title">Admin Dashboard</div>
+          <div class="m-sub">원장 대시보드 · 240px Navy 사이드바, NFR-013 경고 배너, KPI, 오늘 일정.</div>
+          <div class="m-screens">
+            <span>A-00</span>
+          </div>
+          <span class="m-open">admin-dashboard.html 열기</span>
+        </div>
+      </a>
+
+      <!-- Card 3: Consultation + Student + Teacher -->
+      <a class="m-card" href="consultation-student-teacher.html">
+        <div class="m-card-preview preview-operations">
+          <div class="chrome-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="preview-canvas">
+            <div class="p-shell">
+              <div class="p-sidebar">
+                <div style="padding: 8px;">
+                  <div class="p-bar gold" style="width: 60%; height: 4px; margin-bottom: 8px;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.3); height: 3px; margin-bottom: 4px; width: 80%;"></div>
+                  <div class="p-bar ama" style="height: 3px; margin-bottom: 4px; width: 70%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.2); height: 3px; width: 60%;"></div>
+                </div>
+              </div>
+              <div class="p-main" style="padding: 6px;">
+                <div class="p-grid-5" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1;">
+                  <div style="background: rgba(14,30,58,.06); border-radius: 3px; padding: 4px;">
+                    <div class="p-bar navy" style="width: 80%; height: 3px; margin-bottom: 4px;"></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px; margin-bottom: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 60%;"></div></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 70%;"></div></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.06); border-radius: 3px; padding: 4px;">
+                    <div class="p-bar gold" style="width: 80%; height: 3px; margin-bottom: 4px;"></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px; margin-bottom: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 60%;"></div></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 70%;"></div></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.06); border-radius: 3px; padding: 4px;">
+                    <div class="p-bar gold" style="width: 80%; height: 3px; margin-bottom: 4px;"></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 60%;"></div></div>
+                  </div>
+                  <div style="background: rgba(40,167,69,.1); border-radius: 3px; padding: 4px;">
+                    <div class="p-bar green" style="width: 80%; height: 3px; margin-bottom: 4px;"></div>
+                    <div style="background: #fff; border-radius: 2px; padding: 3px;"><div class="p-bar slate" style="height: 3px; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 60%;"></div></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.06); border-radius: 3px; padding: 4px;">
+                    <div class="p-bar slate" style="width: 80%; height: 3px; margin-bottom: 4px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-card-body">
+          <div class="m-label">SCREEN SET · 03</div>
+          <div class="m-title">Consultation · Student · Teacher</div>
+          <div class="m-sub">상담 Kanban, 학생·학부모 관리(TPI), 교사(AMA 1:1 참조). 운영 모듈 집합.</div>
+          <div class="m-screens">
+            <span>A-C-01</span><span>A-C-02</span><span>A-S-01</span><span>A-S-02</span><span>A-S-04</span><span>A-T-01</span><span>A-T-02</span>
+          </div>
+          <span class="m-open">consultation-student-teacher.html 열기</span>
+        </div>
+      </a>
+
+      <!-- Card 4: Program + MAP + Timetable -->
+      <a class="m-card" href="program-map-timetable.html">
+        <div class="m-card-preview preview-education">
+          <div class="chrome-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="preview-canvas">
+            <div class="p-shell">
+              <div class="p-sidebar">
+                <div style="padding: 8px;">
+                  <div class="p-bar gold" style="width: 60%; height: 4px; margin-bottom: 8px;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.25); height: 3px; margin-bottom: 4px; width: 80%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.3); height: 3px; margin-bottom: 4px; width: 70%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.25); height: 3px; width: 60%;"></div>
+                </div>
+              </div>
+              <div class="p-main" style="padding: 6px;">
+                <!-- week grid mini -->
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; flex: 1;">
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;"></div>
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;">
+                    <div style="background: #28a745; margin: 1px; height: 30%; border-radius: 1px;"></div>
+                    <div style="background: #28a745; margin: 1px; height: 40%; border-radius: 1px;"></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;">
+                    <div style="background: #28a745; margin: 1px; height: 40%; border-radius: 1px;"></div>
+                  </div>
+                  <div style="background: rgba(201,166,86,.12); border-radius: 2px;">
+                    <div style="background: var(--ta-gold); margin: 1px; height: 30%; border-radius: 1px;"></div>
+                    <div style="background: #dc3545; margin: 1px; height: 30%; border-radius: 1px;"></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;">
+                    <div style="background: var(--ta-gold); margin: 1px; height: 30%; border-radius: 1px;"></div>
+                    <div style="background: #28a745; margin: 1px; height: 40%; border-radius: 1px;"></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;">
+                    <div style="background: #6F4DB8; margin: 1px; height: 40%; border-radius: 1px;"></div>
+                  </div>
+                  <div style="background: rgba(14,30,58,.08); border-radius: 2px;"></div>
+                </div>
+                <div class="p-row" style="margin-top: 4px;">
+                  <div class="p-badge" style="background: #28a745;">진행</div>
+                  <div class="p-badge" style="background: #dc3545;">결강</div>
+                  <div class="p-badge gold">예정</div>
+                  <div class="p-badge" style="background: #6F4DB8;">보강</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-card-body">
+          <div class="m-label">SCREEN SET · 04</div>
+          <div class="m-title">Program · MAP · Timetable</div>
+          <div class="m-sub">프로그램·반·회차, MAP 문제은행(Part A/B), 주간 시간표(초록/빨강/금색). 교육 모듈.</div>
+          <div class="m-screens">
+            <span>A-P-01</span><span>A-P-02</span><span>A-P-03</span>
+            <span>A-M-00</span><span>A-M-01</span><span>A-M-02</span><span>A-M-03</span><span>A-M-04</span><span>A-M-05</span>
+            <span>A-TT-01</span><span>A-TT-02</span>
+          </div>
+          <span class="m-open">program-map-timetable.html 열기</span>
+        </div>
+      </a>
+
+      <!-- Card 5: Trinity Pay -->
+      <a class="m-card" href="trinity-pay.html">
+        <div class="m-card-preview preview-pay">
+          <div class="chrome-bar">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="preview-canvas">
+            <div class="p-shell">
+              <div class="p-sidebar">
+                <div style="padding: 8px;">
+                  <div class="p-bar gold" style="width: 60%; height: 4px; margin-bottom: 8px;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.25); height: 3px; margin-bottom: 4px; width: 80%;"></div>
+                  <div class="p-bar gold" style="height: 3px; margin-bottom: 4px; width: 70%;"></div>
+                  <div class="p-bar slate" style="background: rgba(250,247,238,.25); height: 3px; width: 60%;"></div>
+                </div>
+              </div>
+              <div class="p-main" style="padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                <div style="background: rgba(220,53,69,.12); border-left: 2px solid #dc3545; padding: 4px 6px; border-radius: 3px;">
+                  <div class="p-bar red" style="width: 40%; height: 3px;"></div>
+                </div>
+                <div style="background: var(--ta-navy); border-radius: 3px; padding: 8px; color: var(--ta-cream);">
+                  <div class="p-bar gold" style="width: 40%; height: 3px; margin-bottom: 4px;"></div>
+                  <div style="font-family: var(--ta-font-display); color: var(--ta-gold); font-size: 14px;">₩ 34.8M</div>
+                </div>
+                <div class="p-grid-3" style="gap: 3px; flex: 1;">
+                  <div style="background: #fff; border-radius: 3px; padding: 4px;"><div class="p-bar green" style="height: 3px; width: 90%; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 60%;"></div></div>
+                  <div style="background: #fff; border-radius: 3px; padding: 4px;"><div class="p-bar gold" style="height: 3px; width: 70%; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 50%;"></div></div>
+                  <div style="background: #fff; border-radius: 3px; padding: 4px;"><div class="p-bar navy" style="height: 3px; width: 80%; margin-bottom: 2px;"></div><div class="p-bar slate" style="height: 2px; width: 70%;"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-card-body">
+          <div class="m-label">SCREEN SET · 05 · v1.3 CORE</div>
+          <div class="m-title">Trinity Pay</div>
+          <div class="m-sub">Toss 결제 주문, 수업일 기준 환불 계산기, NTS eTax 자체 발행, 영수증, 정책 버전 관리.</div>
+          <div class="m-screens">
+            <span>A-PAY-00</span><span>A-PAY-01</span><span>A-PAY-02</span>
+            <span>A-PAY-03</span><span>A-PAY-04</span>
+            <span>A-PAY-05</span><span>A-PAY-06</span>
+            <span>A-PAY-07</span><span>A-PAY-08</span>
+          </div>
+          <span class="m-open">trinity-pay.html 열기</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- ========================================
+      Legend
+    ======================================== -->
+    <div class="section-eyebrow" style="margin-top: 60px;">COLOR CONVENTION</div>
+    <h2 class="section-title">색상 규약</h2>
+    <p class="section-sub">
+      일관된 해석을 위해 상태별 색상은 전 화면에서 동일합니다. Toss 7상태와 NTS 4상태는 각각 고정 색상을 따릅니다.
+    </p>
+
+    <div class="legend-row">
+      <div class="legend-item"><span class="legend-swatch" style="background: #28a745;"></span>진행 완료 / DONE / APPROVED · 초록</div>
+      <div class="legend-item"><span class="legend-swatch" style="background: #dc3545;"></span>결강 / CANCELED / REJECTED · 빨강</div>
+      <div class="legend-item"><span class="legend-swatch" style="background: var(--ta-gold);"></span>예정 / IN_PROGRESS / 오늘 · 금색</div>
+      <div class="legend-item"><span class="legend-swatch" style="background: #6F4DB8;"></span>AMA · 교사/보강 · 보라</div>
+      <div class="legend-item"><span class="legend-swatch" style="background: #0E1E3A;"></span>Navy · 권위/브랜드 · 네이비</div>
+      <div class="legend-item"><span class="legend-swatch" style="background: #FAF7EE; border: 1px solid rgba(14,30,58,.12);"></span>Cream · 포털/학부모 배경</div>
+    </div>
+
+    <!-- ========================================
+      Supporting docs
+    ======================================== -->
+    <div class="section-eyebrow" style="margin-top: 60px;">SUPPORTING DOCS</div>
+    <h2 class="section-title">설계 문서 참조</h2>
+    <p class="section-sub">
+      화면 뒤의 결정 근거는 아래 문서들에 정리되어 있습니다. 목업과 함께 읽을 때 의도가 명확해집니다.
+    </p>
+
+    <div class="docs-panel">
+      <a class="doc-link" href="../academy-management-screens.md">
+        <div class="doc-icon">🗺️</div>
+        <div class="doc-title">화면 구성안 (IA + Flows)</div>
+        <div class="doc-sub">academy-management-screens.md — 42개 화면의 사이트맵, 상태 전이, RBAC, 사용자 플로우</div>
+      </a>
+      <a class="doc-link" href="../../trinity-academy-v1.3-summary.md">
+        <div class="doc-icon">📘</div>
+        <div class="doc-title">v1.3 종합 요약</div>
+        <div class="doc-sub">trinity-academy-v1.3-summary.md — 요구사항·설계·정산 모듈의 v1.3 스냅샷</div>
+      </a>
+      <a class="doc-link" href="heraldic-tokens.css">
+        <div class="doc-icon">🎨</div>
+        <div class="doc-title">Heraldic Design Tokens</div>
+        <div class="doc-sub">heraldic-tokens.css — 색상·타이포·컴포넌트 토큰 · 5개 목업 공용</div>
+      </a>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="motto">OMNIBUS OMNIA</div>
+    <div>Trinity Academy · Heraldic Brand System v1.3</div>
+    <small>모든 이에게 모든 것이 되어 · 고린도전서 9:22<br/>
+    Built for Academy Ops — Last updated 2026-04-19</small>
+  </footer>
+</body>
+</html>

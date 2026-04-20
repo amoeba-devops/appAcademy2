@@ -1,0 +1,2020 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trinity Academy — Program · MAP · Timetable Mockups</title>
+<link rel="stylesheet" href="heraldic-tokens.css" />
+<style>
+  /* ---------------------------------------------
+   * Page-scoped tokens and layout
+   * ------------------------------------------- */
+  body {
+    background: var(--ta-slate);
+    color: var(--ta-ink);
+    padding: 48px 0;
+  }
+  .page-eyebrow {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .page-title {
+    text-align: center;
+    font-family: var(--ta-font-display);
+    font-size: 40px;
+    letter-spacing: .02em;
+    color: var(--ta-navy);
+    margin: 0 0 8px;
+  }
+  .page-sub {
+    text-align: center;
+    color: var(--ta-ink-muted);
+    max-width: 760px;
+    margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  /* Curriculum tree */
+  .curriculum-tree { list-style: none; padding: 0; margin: 0; }
+  .curriculum-tree li {
+    position: relative;
+    padding: 10px 0 10px 26px;
+    border-left: 1px dashed rgba(14,30,58,.2);
+    margin-left: 12px;
+  }
+  .curriculum-tree > li { border-left: none; margin-left: 0; padding-left: 0; }
+  .curriculum-tree li::before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 18px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--ta-gold);
+    border: 2px solid var(--ta-cream);
+  }
+  .curriculum-tree .unit {
+    font-weight: 600;
+    color: var(--ta-navy);
+  }
+  .curriculum-tree .week-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    color: var(--ta-ink-muted);
+    font-size: 14px;
+  }
+  .curriculum-tree .week-row .dot {
+    width: 4px; height: 4px; background: var(--ta-gold); border-radius: 50%;
+  }
+
+  /* MAP passage/item layout */
+  .passage-card {
+    background: var(--ta-cream);
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .passage-card .passage-meta {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;
+    font-size: 12px; color: var(--ta-ink-muted);
+  }
+  .passage-card .passage-title {
+    font-family: var(--ta-font-display);
+    font-size: 20px;
+    color: var(--ta-navy);
+    margin: 0 0 6px;
+  }
+  .passage-card .passage-excerpt {
+    font-family: 'Iowan Old Style','Charter','Georgia',serif;
+    font-size: 14px;
+    color: #2a2d35;
+    line-height: 1.7;
+    border-left: 3px solid var(--ta-gold);
+    padding-left: 12px;
+    margin: 12px 0;
+    max-height: 72px;
+    overflow: hidden;
+    position: relative;
+  }
+  .passage-card .passage-excerpt::after {
+    content: "";
+    position: absolute; bottom: 0; left: 0; right: 0; height: 20px;
+    background: linear-gradient(180deg, transparent, var(--ta-cream));
+  }
+  .item-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .item-pane {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .item-pane h4 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ta-ink-muted);
+  }
+  .part-section {
+    border: 1px dashed rgba(14,30,58,.18);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .part-label {
+    display: inline-block;
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    letter-spacing: .1em;
+    margin-bottom: 10px;
+  }
+  .choice-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(14,30,58,.1);
+    margin-bottom: 6px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .choice-row.correct {
+    border-color: rgba(40,167,69,.45);
+    background: rgba(40,167,69,.08);
+  }
+  .choice-row .choice-letter {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--ta-cream); color: var(--ta-navy); font-weight: 600; font-size: 12px;
+    flex: none;
+  }
+  .choice-row.correct .choice-letter {
+    background: #28a745; color: #fff;
+  }
+
+  /* TestSet builder board */
+  .testset-board {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+  }
+  .testset-list {
+    max-height: 460px; overflow: auto;
+    padding-right: 4px;
+  }
+  .testset-list .bank-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(14,30,58,.1);
+    border-radius: 6px;
+    background: #fff;
+    margin-bottom: 6px;
+  }
+  .testset-list .bank-row input { accent-color: var(--ta-gold); }
+  .testset-list .bank-row .q-no {
+    font-family: var(--ta-font-mono); font-size: 12px; color: var(--ta-ink-muted);
+    min-width: 48px;
+  }
+  .testset-list .bank-row .q-text { flex: 1; font-size: 13px; color: var(--ta-ink); }
+  .testset-list .bank-row .q-tag {
+    font-size: 11px; padding: 2px 6px; border-radius: 3px;
+    background: var(--ta-cream); color: var(--ta-navy);
+  }
+  .testset-summary {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    border-radius: 10px;
+    padding: 20px;
+    position: sticky;
+    top: 20px;
+  }
+  .testset-summary h3 {
+    font-family: var(--ta-font-display);
+    color: var(--ta-gold);
+    margin: 0 0 12px;
+  }
+  .testset-summary .summary-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(201,166,86,.2);
+    font-size: 13px;
+  }
+  .testset-summary .summary-row:last-child { border: none; }
+
+  /* Grading center */
+  .grading-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 16px;
+  }
+  .student-list-panel {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .student-list-panel .panel-head {
+    padding: 12px 14px;
+    background: var(--ta-cream);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--ta-navy);
+    border-bottom: 1px solid rgba(14,30,58,.1);
+  }
+  .student-row {
+    padding: 10px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(14,30,58,.08);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .student-row.active { background: var(--ta-cream); }
+  .student-row .score-pill {
+    font-family: var(--ta-font-mono);
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: #f0f0f0;
+  }
+  .student-row .score-pill.high { background: rgba(40,167,69,.12); color: #28a745; }
+  .student-row .score-pill.mid { background: rgba(255,193,7,.15); color: #b58300; }
+  .student-row .score-pill.low { background: rgba(220,53,69,.12); color: #dc3545; }
+
+  .grade-canvas {
+    background: #fff;
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .grade-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .grade-bubble {
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 13px;
+    text-align: center;
+    background: #fff;
+  }
+  .grade-bubble .q { font-family: var(--ta-font-mono); color: var(--ta-ink-muted); font-size: 11px; }
+  .grade-bubble.correct { border-color: rgba(40,167,69,.5); background: rgba(40,167,69,.06); }
+  .grade-bubble.wrong { border-color: rgba(220,53,69,.5); background: rgba(220,53,69,.06); }
+  .grade-bubble .ans { font-weight: 600; margin-top: 4px; }
+  .grade-bubble .mark { font-size: 14px; margin-top: 2px; }
+
+  .grade-insight {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .grade-insight h3 {
+    color: var(--ta-gold);
+    font-family: var(--ta-font-display);
+    margin: 0 0 10px;
+  }
+  .grade-insight .bar-wrap {
+    margin: 12px 0;
+  }
+  .grade-insight .bar-label {
+    display: flex; justify-content: space-between;
+    font-size: 12px; margin-bottom: 4px;
+  }
+  .grade-insight .bar-track {
+    height: 6px; background: rgba(201,166,86,.2); border-radius: 3px; overflow: hidden;
+  }
+  .grade-insight .bar-fill { height: 100%; background: var(--ta-gold); }
+
+  /* Timetable — week grid (legend: green=held, red=canceled, gold=upcoming/today) */
+  .tt-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .tt-toolbar .tt-legend {
+    display: flex; gap: 14px; font-size: 12px; color: var(--ta-ink-muted);
+  }
+  .tt-toolbar .tt-legend .swatch {
+    display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle;
+  }
+
+  .week-grid-wrap {
+    border: 1px solid rgba(14,30,58,.12);
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .week-grid {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
+    grid-auto-rows: 56px;
+  }
+  .week-grid .wg-head {
+    background: var(--ta-navy);
+    color: var(--ta-cream);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    display: flex; align-items: center; justify-content: center;
+    height: 40px;
+  }
+  .week-grid .wg-time {
+    font-family: var(--ta-font-mono);
+    font-size: 11px;
+    color: var(--ta-ink-muted);
+    border-right: 1px solid rgba(14,30,58,.08);
+    border-top: 1px solid rgba(14,30,58,.08);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 2px;
+  }
+  .week-grid .wg-cell {
+    border-top: 1px solid rgba(14,30,58,.06);
+    border-right: 1px solid rgba(14,30,58,.06);
+    position: relative;
+  }
+  .wg-event {
+    position: absolute;
+    left: 3px; right: 3px;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 11px;
+    line-height: 1.25;
+    color: var(--ta-cream);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .wg-event.held     { background: #28a745; }          /* 초록: 진행 완료 */
+  .wg-event.canceled { background: #dc3545; }          /* 빨강: 결강 */
+  .wg-event.upcoming { background: var(--ta-gold); color: var(--ta-navy); font-weight: 600; }
+  .wg-event.makeup   { background: #6F4DB8; }          /* AMA 보강 */
+  .wg-event strong { display: block; font-size: 11px; }
+
+  /* Session detail */
+  .session-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+  }
+  .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .attendance-table th {
+    text-align: left; font-size: 12px; color: var(--ta-ink-muted);
+    padding: 8px 10px; border-bottom: 1px solid rgba(14,30,58,.1);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .attendance-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(14,30,58,.06);
+    font-size: 14px;
+  }
+  .att-status {
+    display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600;
+  }
+  .att-status.present { background: rgba(40,167,69,.14); color: #1e7a33; }
+  .att-status.absent  { background: rgba(220,53,69,.14); color: #b2283c; }
+  .att-status.late    { background: rgba(255,193,7,.18); color: #93720a; }
+
+  /* MAP hub KPI row */
+  .hub-kpi {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .hub-kpi .stat-card { margin: 0; }
+
+  /* Section header inside mockup-screen */
+  .section-heading {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 28px 0 12px;
+  }
+  .section-heading h3 {
+    font-family: var(--ta-font-display);
+    color: var(--ta-navy);
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: .02em;
+  }
+  .section-heading .section-sub {
+    font-size: 13px; color: var(--ta-ink-muted);
+  }
+
+  /* Utility */
+  .rowflex { display: flex; align-items: center; gap: 10px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-eyebrow eyebrow">Screen Set · 03</div>
+    <h1 class="page-title">Program · MAP · Timetable</h1>
+    <p class="page-sub">
+      Trinity의 교육 본체(Program/Class), 자체 문제은행(MAP), 수업 시간표 세 모듈의 Hi-Fi 목업입니다.
+      MAP 문항은 Part A(Vocabulary) + Part B(Reading Comprehension) 구조이며, 시간표는
+      <strong>초록=진행 · 빨강=결강 · 금색=예정</strong> 색상 규약을 따릅니다 (수업 확인표.xlsx 근거).
+    </p>
+
+    <!-- ==============================================================
+      A-P-01 · Program List
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-P-01</span>
+        <strong>Program List</strong>
+        — 정규 프로그램 카탈로그 · FR-P-001 / 원장·교무 편집 가능
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">Overview</div>
+            <a href="#">대시보드</a>
+            <div class="nav-group">운영</div>
+            <a href="#">상담</a>
+            <a href="#">학생 · 학부모</a>
+            <a href="#">교사 <span class="ama-dot" title="AMA 연동"></span></a>
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">프로그램 · 반</a>
+            <a href="#">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+            <div class="nav-group">Trinity Pay</div>
+            <a href="#">결제 주문</a>
+            <a href="#">환불</a>
+            <a href="#">세금계산서</a>
+            <div class="nav-group">System</div>
+            <a href="#">설정</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">프로그램 · 반 / 프로그램 목록</div>
+            <div class="head-right">
+              <span class="sync-stamp">자체 관리 · AMA 비연동</span>
+              <button class="btn btn-primary">+ 신규 프로그램</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="toolbar">
+              <input class="search" placeholder="프로그램명 / 레벨 / 대상 학년 검색" />
+              <div class="filter-chips">
+                <button class="chip active">전체 · 12</button>
+                <button class="chip">RC · 5</button>
+                <button class="chip">Math · 4</button>
+                <button class="chip">MAP · 3</button>
+                <button class="chip">일시중단 · 1</button>
+              </div>
+            </div>
+
+            <div class="grid-3col" style="margin-top: 18px;">
+              <!-- Card 1 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge badge-gold">RC</span>
+                  <span class="badge badge-outline">Basic</span>
+                </div>
+                <h3>Reading Comprehension G2 · Basic</h3>
+                <div class="muted">대상: 초2 · 레벨: Basic · 주 2회 · 60분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>3</strong></li>
+                  <li>재원 <strong>28명</strong></li>
+                  <li>커리큘럼 <strong>16주</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">커리큘럼 보기</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+              <!-- Card 2 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge badge-gold">RC</span>
+                  <span class="badge badge-outline">Intermediate</span>
+                </div>
+                <h3>Reading Comprehension G3 · Intermediate</h3>
+                <div class="muted">대상: 초3 · 레벨: Intermediate · 주 2회 · 75분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>4</strong></li>
+                  <li>재원 <strong>41명</strong></li>
+                  <li>커리큘럼 <strong>20주</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">커리큘럼 보기</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+              <!-- Card 3 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge badge-gold">RC</span>
+                  <span class="badge badge-outline">Advanced</span>
+                </div>
+                <h3>Reading Comprehension G5 · Advanced</h3>
+                <div class="muted">대상: 초5 · 레벨: Advanced · 주 2회 · 90분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>2</strong></li>
+                  <li>재원 <strong>17명</strong></li>
+                  <li>커리큘럼 <strong>24주</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">커리큘럼 보기</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+              <!-- Card 4 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge badge-ink">Math</span>
+                  <span class="badge badge-outline">Basic</span>
+                </div>
+                <h3>Mathematics G3 · Basic</h3>
+                <div class="muted">대상: 초3 · 레벨: Basic · 주 2회 · 60분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>3</strong></li>
+                  <li>재원 <strong>32명</strong></li>
+                  <li>커리큘럼 <strong>18주</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">커리큘럼 보기</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+              <!-- Card 5 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge badge-ink">Math</span>
+                  <span class="badge badge-outline">Advanced</span>
+                </div>
+                <h3>Mathematics G5 · Advanced</h3>
+                <div class="muted">대상: 초5 · 레벨: Advanced · 주 2회 · 90분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>2</strong></li>
+                  <li>재원 <strong>19명</strong></li>
+                  <li>커리큘럼 <strong>22주</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">커리큘럼 보기</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+              <!-- Card 6 -->
+              <article class="card program-card">
+                <div class="card-header">
+                  <span class="badge" style="background: var(--ta-gold); color: var(--ta-navy);">MAP</span>
+                  <span class="badge badge-outline">Intensive</span>
+                </div>
+                <h3>MAP RC G2-5 · Intensive</h3>
+                <div class="muted">MAP 시험 대비 · 주 1회 · 120분</div>
+                <ul class="mini-meta">
+                  <li>활성 반 <strong>3</strong></li>
+                  <li>재원 <strong>24명</strong></li>
+                  <li>TestSet <strong>12종</strong></li>
+                </ul>
+                <div class="card-actions">
+                  <a href="#" class="btn btn-outline btn-sm">TestSet 관리</a>
+                  <a href="#" class="btn btn-ghost btn-sm">반 편성</a>
+                </div>
+              </article>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-p-01</div>
+    </section>
+
+    <!-- ==============================================================
+      A-P-02 · Program Detail (Curriculum tree)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-P-02</span>
+        <strong>Program Detail · Curriculum Tree</strong>
+        — 주차별 커리큘럼 · FN-P-002 / Class 파생의 기준
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">프로그램 · 반</a>
+            <a href="#">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">프로그램 · 반 / Reading Comprehension G3 · Intermediate</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">복제</button>
+              <button class="btn btn-gold btn-sm">저장</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="program-hero card">
+              <div class="flex-between">
+                <div>
+                  <div class="eyebrow">PROGRAM #RC-G3-INT</div>
+                  <h2 class="serif-title">Reading Comprehension G3 · Intermediate</h2>
+                  <p class="muted" style="max-width: 640px;">
+                    Trinity RC 시리즈의 초3 중급 과정. Part A 어휘 · Part B 독해 구조를
+                    그대로 반영하여 MAP 문제은행과 호환됩니다.
+                  </p>
+                </div>
+                <div class="program-meta">
+                  <div><span class="muted">레벨</span> <strong>Intermediate</strong></div>
+                  <div><span class="muted">대상</span> <strong>초3</strong></div>
+                  <div><span class="muted">기간</span> <strong>20주 · 주 2회</strong></div>
+                  <div><span class="muted">정가</span> <strong>₩420,000 / 월</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabs" style="margin-top: 20px;">
+              <a href="#" class="active">커리큘럼</a>
+              <a href="#">연결된 반 (4)</a>
+              <a href="#">재원 학생 (41)</a>
+              <a href="#">요금제</a>
+              <a href="#">히스토리</a>
+            </div>
+
+            <div class="section-heading">
+              <h3>주차별 커리큘럼 · 20주</h3>
+              <span class="section-sub">단원 클릭 → 주차 확장. 각 주차는 Part A / Part B 구조.</span>
+            </div>
+
+            <ul class="curriculum-tree">
+              <li>
+                <div class="unit">Unit 1 · Animals & Nature <span class="badge badge-outline" style="margin-left:8px;">Week 1–4</span></div>
+                <ul class="curriculum-tree">
+                  <li>
+                    <div class="week-row"><strong>Week 1</strong> <span class="dot"></span> My Pet Rabbit · 어휘 18 / 독해 문항 6 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div>
+                  </li>
+                  <li>
+                    <div class="week-row"><strong>Week 2</strong> <span class="dot"></span> Birds in the City · 어휘 20 / 독해 문항 6 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div>
+                  </li>
+                  <li>
+                    <div class="week-row"><strong>Week 3</strong> <span class="dot"></span> The Four Seasons · 어휘 22 / 독해 문항 7 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div>
+                  </li>
+                  <li>
+                    <div class="week-row"><strong>Week 4</strong> <span class="dot"></span> Unit Review + Formative Test <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <div class="unit">Unit 2 · Community & Jobs <span class="badge badge-outline" style="margin-left:8px;">Week 5–8</span></div>
+                <ul class="curriculum-tree">
+                  <li><div class="week-row"><strong>Week 5</strong> <span class="dot"></span> At the Market · 어휘 20 / 독해 문항 6 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div></li>
+                  <li><div class="week-row"><strong>Week 6</strong> <span class="dot"></span> Doctors & Nurses · 어휘 24 / 독해 문항 7 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div></li>
+                  <li><div class="week-row"><strong>Week 7</strong> <span class="dot"></span> Fire Station Visit · 어휘 22 / 독해 문항 6 <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div></li>
+                  <li><div class="week-row"><strong>Week 8</strong> <span class="dot"></span> Unit Review + Summative Test <a href="#" class="btn btn-ghost btn-sm" style="margin-left:auto;">편집</a></div></li>
+                </ul>
+              </li>
+              <li>
+                <div class="unit">Unit 3 · Stories & Tales <span class="badge badge-outline" style="margin-left:8px;">Week 9–12</span></div>
+              </li>
+              <li>
+                <div class="unit">Unit 4 · Science Basics <span class="badge badge-outline" style="margin-left:8px;">Week 13–16</span></div>
+              </li>
+              <li>
+                <div class="unit">Unit 5 · MAP Prep <span class="badge badge-outline" style="margin-left:8px;">Week 17–20</span> <span class="badge" style="background: var(--ta-gold); color: var(--ta-navy); margin-left:6px;">MAP 연동</span></div>
+              </li>
+            </ul>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-p-02</div>
+    </section>
+
+    <!-- ==============================================================
+      A-P-03 · Class Detail (class_sessions 회차 list)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-P-03</span>
+        <strong>Class Detail · 회차 관리</strong>
+        — `class_sessions` · FN-P-003 / 환불 계산의 기준(held/total)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">프로그램 · 반</a>
+            <a href="#">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">프로그램 · 반 / RC G3 Intermediate / 2026-Spring B반</div>
+            <div class="head-right">
+              <span class="toss-status done">정상 운영</span>
+              <button class="btn btn-outline btn-sm">명단 출력</button>
+              <button class="btn btn-primary btn-sm">+ 회차 추가</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grid-2col">
+              <div class="card">
+                <div class="eyebrow">CLASS</div>
+                <h2 class="serif-title">2026-Spring B반</h2>
+                <p class="muted">담임 <strong>이수현 교사</strong> · 화/목 17:00-18:15 · 305호 · 정원 12 / 현재 10명</p>
+                <div class="stat-row">
+                  <div class="stat-card">
+                    <div class="stat-label">총 회차</div>
+                    <div class="stat-value">40</div>
+                    <div class="stat-hint">주 2회 × 20주</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-label">진행 완료</div>
+                    <div class="stat-value" style="color: #28a745;">13</div>
+                    <div class="stat-hint">held_session_count</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-label">결강</div>
+                    <div class="stat-value" style="color: #dc3545;">1</div>
+                    <div class="stat-hint">교사 결강(1회) · 보강 대기</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-label">진행률</div>
+                    <div class="stat-value">32.5%</div>
+                    <div class="stat-hint">elapsed_ratio (환불 계산 기준)</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="eyebrow" style="color: var(--ta-gold);">ENROLLED STUDENTS · 10</div>
+                <table class="mini-table">
+                  <tr><td>김민준</td><td class="muted">초3</td><td><span class="toss-status done">활성</span></td></tr>
+                  <tr><td>이서아</td><td class="muted">초3</td><td><span class="toss-status done">활성</span></td></tr>
+                  <tr><td>박지우</td><td class="muted">초3</td><td><span class="toss-status done">활성</span></td></tr>
+                  <tr><td>최하늘</td><td class="muted">초3</td><td><span class="toss-status done">활성</span></td></tr>
+                  <tr><td>정윤재</td><td class="muted">초3</td><td><span class="toss-status done">활성</span></td></tr>
+                  <tr><td>강소율</td><td class="muted">초3</td><td><span class="toss-status ready">대기</span></td></tr>
+                  <tr><td colspan="3" class="muted" style="text-align:right;"><a href="#">전체 보기 →</a></td></tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="section-heading">
+              <h3>회차 목록 · 환불·출결의 원장</h3>
+              <span class="section-sub">상태 변경은 원장/교무만 가능. class_sessions 테이블 1:1 대응.</span>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>예정일</th>
+                    <th>시간</th>
+                    <th>회차 주제</th>
+                    <th>상태</th>
+                    <th>출결</th>
+                    <th>비고</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="mono">001</td><td>2026-03-03 (화)</td><td>17:00-18:15</td>
+                    <td>Week 1 · My Pet Rabbit</td>
+                    <td><span class="toss-status done">진행</span></td>
+                    <td>출 10 / 결 0</td>
+                    <td class="muted">정상</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">002</td><td>2026-03-05 (목)</td><td>17:00-18:15</td>
+                    <td>Week 1 · My Pet Rabbit (R)</td>
+                    <td><span class="toss-status done">진행</span></td>
+                    <td>출 9 / 결 1</td>
+                    <td class="muted">이서아 결석</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr class="row-highlight">
+                    <td class="mono">007</td><td>2026-03-19 (목)</td><td>17:00-18:15</td>
+                    <td>Week 4 · Unit Review</td>
+                    <td><span class="toss-status canceled">결강</span></td>
+                    <td>—</td>
+                    <td style="color: #dc3545;">교사 병가 · 보강 미확정</td>
+                    <td><a href="#" class="btn btn-danger btn-sm">보강 등록</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">013</td><td>2026-04-09 (목)</td><td>17:00-18:15</td>
+                    <td>Week 7 · Fire Station Visit</td>
+                    <td><span class="toss-status done">진행</span></td>
+                    <td>출 10 / 결 0</td>
+                    <td class="muted">정상</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr class="row-today">
+                    <td class="mono">014</td><td>2026-04-14 (화)</td><td>17:00-18:15</td>
+                    <td>Week 8 · Unit Review + Summative</td>
+                    <td><span class="toss-status in-progress">오늘</span></td>
+                    <td>—</td>
+                    <td>Summative Test 포함</td>
+                    <td><a href="#" class="btn btn-gold btn-sm">출결 시작</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">015</td><td>2026-04-16 (목)</td><td>17:00-18:15</td>
+                    <td>Week 9 · Stories & Tales</td>
+                    <td><span class="toss-status ready">예정</span></td>
+                    <td>—</td>
+                    <td class="muted">—</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">016</td><td>2026-04-21 (화)</td><td>17:00-18:15</td>
+                    <td>Week 10 · Ghost Stories</td>
+                    <td><span class="toss-status ready">예정</span></td>
+                    <td>—</td>
+                    <td class="muted">—</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                  <tr>
+                    <td class="mono">040</td><td>2026-07-28 (화)</td><td>17:00-18:15</td>
+                    <td>Week 20 · MAP Prep Final</td>
+                    <td><span class="toss-status ready">예정</span></td>
+                    <td>—</td>
+                    <td class="muted">최종 회차</td>
+                    <td><a href="#" class="btn btn-ghost btn-sm">상세</a></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout" style="margin-top: 16px;">
+              <strong>환불 계산 기준 ·</strong>
+              이 반의 `held_session_count`(13) ÷ `total_session_count`(40) = 32.5% 가
+              환불 구간 판정의 `elapsed_ratio`로 사용됩니다. (학원법 시행령 §18)
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-p-03</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-00 · MAP Hub
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-00</span>
+        <strong>MAP Hub</strong>
+        — 문제은행 전체 허브 · Passage / Item / TestSet / Assignment / Grading
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#">프로그램 · 반</a>
+            <a href="#" class="active">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP 문제은행 / 허브</div>
+            <div class="head-right">
+              <span class="sync-stamp">Trinity 자체 은행 · 외부 라이센스 없음</span>
+              <button class="btn btn-primary btn-sm">+ 신규 자료</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="hero-navy" style="padding: 28px;">
+              <div class="eyebrow" style="color: var(--ta-gold);">MAP · READING COMPREHENSION</div>
+              <h2 style="font-family: var(--ta-font-display); font-size: 28px; color: var(--ta-cream); margin: 8px 0;">
+                Part A · Vocabulary  +  Part B · Reading
+              </h2>
+              <p style="color: rgba(250,247,238,.75); max-width: 680px; line-height: 1.6;">
+                Trinity의 독자 문제은행. 기출 MAP RC G2-5 Basic 구조를 근거로 Passage · Item · TestSet
+                세 계층으로 운영합니다. Assignment 발행 → Grading 집계까지 end-to-end 자동화.
+              </p>
+              <div class="rowflex" style="margin-top: 18px;">
+                <a class="btn btn-gold" href="#">+ Passage 추가</a>
+                <a class="btn btn-outline" href="#" style="border-color: var(--ta-gold); color: var(--ta-gold);">+ TestSet 생성</a>
+              </div>
+            </div>
+
+            <div class="hub-kpi" style="margin-top: 20px;">
+              <div class="stat-card">
+                <div class="stat-label">Passages</div>
+                <div class="stat-value">128</div>
+                <div class="stat-hint">G2 42 · G3 38 · G4 30 · G5 18</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Items</div>
+                <div class="stat-value">1,240</div>
+                <div class="stat-hint">Part A 640 · Part B 600</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">TestSets</div>
+                <div class="stat-value">24</div>
+                <div class="stat-hint">게시 18 · 초안 6</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">이번달 응시</div>
+                <div class="stat-value">312</div>
+                <div class="stat-hint">평균 점수 <strong>72.4</strong></div>
+              </div>
+            </div>
+
+            <div class="grid-3col" style="margin-top: 20px;">
+              <article class="card hub-card">
+                <h3>📚 Passage Library</h3>
+                <p class="muted">지문·단어 세트 관리. 학년·주제·Lexile 태그.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+              <article class="card hub-card">
+                <h3>✍️ Item Editor</h3>
+                <p class="muted">Part A/B 구조 문항 작성. 정답·해설·난이도 지정.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+              <article class="card hub-card">
+                <h3>🧩 TestSet Builder</h3>
+                <p class="muted">Passage + Item 조합으로 시험 구성. 미리보기·버전 관리.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+              <article class="card hub-card">
+                <h3>📤 Assignment</h3>
+                <p class="muted">반/학생에 시험 배포. AmoebaTalk 알림 자동 발송.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+              <article class="card hub-card">
+                <h3>📝 Grading Center</h3>
+                <p class="muted">객관식 자동채점 + 서술형 수동채점. 결과 리포트.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+              <article class="card hub-card">
+                <h3>📊 Analytics</h3>
+                <p class="muted">문항 변별도, 학생 성장 추이, 반별 분포.</p>
+                <a href="#" class="btn btn-outline btn-sm">열기 →</a>
+              </article>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-00</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-01 · Passage Library
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-01</span>
+        <strong>Passage Library</strong>
+        — 지문+어휘 세트 관리 (FN-M-001)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#">프로그램 · 반</a>
+            <a href="#" class="active">MAP 문제은행</a>
+            <a href="#">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP 문제은행 / Passage Library</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">가져오기 (.docx)</button>
+              <button class="btn btn-primary btn-sm">+ 새 Passage</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="toolbar">
+              <input class="search" placeholder="제목·단어·주제 검색" />
+              <div class="filter-chips">
+                <button class="chip active">전체 · 128</button>
+                <button class="chip">G2 · 42</button>
+                <button class="chip">G3 · 38</button>
+                <button class="chip">G4 · 30</button>
+                <button class="chip">G5 · 18</button>
+              </div>
+            </div>
+
+            <div class="grid-2col" style="margin-top: 18px;">
+              <div class="passage-card">
+                <div class="passage-meta">
+                  <span class="badge badge-outline">G2 · Basic</span>
+                  <span class="badge badge-outline">Animals</span>
+                  <span class="badge badge-outline">Lexile 410L</span>
+                  <span class="badge" style="background: rgba(40,167,69,.14); color: #1e7a33;">게시됨</span>
+                </div>
+                <h3 class="passage-title">My Pet Rabbit</h3>
+                <div class="muted" style="font-size: 12px;">단어 18 · 문항 6 · 최근 사용 2026-04-14</div>
+                <p class="passage-excerpt">
+                  I have a pet rabbit. Her name is Snowy. Snowy is white and soft.
+                  She has long ears and a short tail. Every morning, I give her fresh carrots.
+                  Snowy jumps around the garden and looks very happy. I love my pet rabbit very much...
+                </p>
+                <div class="rowflex">
+                  <a href="#" class="btn btn-ghost btn-sm">미리보기</a>
+                  <a href="#" class="btn btn-outline btn-sm">문항 보기 (6)</a>
+                  <span class="muted" style="margin-left:auto; font-size: 12px;">TestSet 3종에 사용 중</span>
+                </div>
+              </div>
+
+              <div class="passage-card">
+                <div class="passage-meta">
+                  <span class="badge badge-outline">G3 · Intermediate</span>
+                  <span class="badge badge-outline">Community</span>
+                  <span class="badge badge-outline">Lexile 560L</span>
+                  <span class="badge" style="background: rgba(40,167,69,.14); color: #1e7a33;">게시됨</span>
+                </div>
+                <h3 class="passage-title">At the Farmer's Market</h3>
+                <div class="muted" style="font-size: 12px;">단어 20 · 문항 7 · 최근 사용 2026-04-12</div>
+                <p class="passage-excerpt">
+                  On Saturday morning, my grandmother and I walked to the farmer's market.
+                  The market was full of colorful fruits and fresh vegetables. A friendly woman
+                  held up a basket of strawberries and smiled at us. We bought apples, tomatoes,
+                  and a loaf of warm bread. The air smelled sweet and everyone seemed happy...
+                </p>
+                <div class="rowflex">
+                  <a href="#" class="btn btn-ghost btn-sm">미리보기</a>
+                  <a href="#" class="btn btn-outline btn-sm">문항 보기 (7)</a>
+                  <span class="muted" style="margin-left:auto; font-size: 12px;">TestSet 2종에 사용 중</span>
+                </div>
+              </div>
+
+              <div class="passage-card">
+                <div class="passage-meta">
+                  <span class="badge badge-outline">G4 · Intermediate</span>
+                  <span class="badge badge-outline">Science</span>
+                  <span class="badge badge-outline">Lexile 680L</span>
+                  <span class="badge" style="background: rgba(255,193,7,.2); color: #93720a;">초안</span>
+                </div>
+                <h3 class="passage-title">How Bees Make Honey</h3>
+                <div class="muted" style="font-size: 12px;">단어 24 · 문항 6 · 미게시</div>
+                <p class="passage-excerpt">
+                  Bees are small insects that play a big role in nature. They fly from flower to flower,
+                  collecting a sweet liquid called nectar. Inside the hive, worker bees turn the nectar
+                  into honey through a special process. Bees also help plants grow by spreading pollen...
+                </p>
+                <div class="rowflex">
+                  <a href="#" class="btn btn-ghost btn-sm">미리보기</a>
+                  <a href="#" class="btn btn-outline btn-sm">문항 보기 (6)</a>
+                  <button class="btn btn-gold btn-sm" style="margin-left:auto;">게시</button>
+                </div>
+              </div>
+
+              <div class="passage-card">
+                <div class="passage-meta">
+                  <span class="badge badge-outline">G5 · Advanced</span>
+                  <span class="badge badge-outline">History</span>
+                  <span class="badge badge-outline">Lexile 820L</span>
+                  <span class="badge" style="background: rgba(40,167,69,.14); color: #1e7a33;">게시됨</span>
+                </div>
+                <h3 class="passage-title">The Invention of the Printing Press</h3>
+                <div class="muted" style="font-size: 12px;">단어 28 · 문항 8 · 최근 사용 2026-04-02</div>
+                <p class="passage-excerpt">
+                  In the 1440s, a German inventor named Johannes Gutenberg changed the world forever.
+                  Before his printing press, books were copied by hand, which took months or even years.
+                  Gutenberg's machine used movable metal type that could be rearranged to print any page...
+                </p>
+                <div class="rowflex">
+                  <a href="#" class="btn btn-ghost btn-sm">미리보기</a>
+                  <a href="#" class="btn btn-outline btn-sm">문항 보기 (8)</a>
+                  <span class="muted" style="margin-left:auto; font-size: 12px;">TestSet 4종에 사용 중</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-01</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-02 · Item Editor (Part A / B)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-02</span>
+        <strong>Item Editor · Part A Vocabulary + Part B Reading</strong>
+        — MAP 기출 구조 반영 (FN-M-002)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">MAP 문제은행</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP / Passage: My Pet Rabbit / Item Editor</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">미리보기</button>
+              <button class="btn btn-outline btn-sm">임시저장</button>
+              <button class="btn btn-gold btn-sm">게시</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="card" style="padding: 18px; margin-bottom: 16px;">
+              <div class="flex-between">
+                <div>
+                  <div class="eyebrow">ATTACHED PASSAGE</div>
+                  <h3 class="serif-title" style="margin: 4px 0 0;">My Pet Rabbit</h3>
+                  <div class="muted" style="font-size: 13px;">G2 · Basic · Animals · 18 words · Lexile 410L</div>
+                </div>
+                <div class="rowflex">
+                  <span class="badge badge-outline">Part A · 12 items</span>
+                  <span class="badge badge-outline">Part B · 6 items</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="item-editor">
+              <!-- Part A -->
+              <div class="item-pane">
+                <h4>PART A · VOCABULARY (12)</h4>
+                <div class="part-section">
+                  <span class="part-label">PART A · Q3</span>
+                  <div style="font-size: 14px; line-height: 1.7; margin-bottom: 8px;">
+                    What does the word <strong>"soft"</strong> mean in this passage?
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">A</span>
+                    <span>Hard to touch</span>
+                  </div>
+                  <div class="choice-row correct">
+                    <span class="choice-letter">B</span>
+                    <span>Pleasant and smooth to touch</span>
+                    <span class="badge" style="background: #28a745; color: #fff; margin-left:auto;">정답</span>
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">C</span>
+                    <span>Very loud</span>
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">D</span>
+                    <span>Very fast</span>
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 8px;">
+                    난이도 <strong>쉬움</strong> · 해설: 본문 "Snowy is white and soft" 문맥 근거
+                  </div>
+                </div>
+                <div class="part-section" style="opacity: .7;">
+                  <span class="part-label">PART A · Q4</span>
+                  <div style="font-size: 14px; color: var(--ta-ink-muted);">
+                    Choose the word that means the opposite of <em>"happy"</em>.
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 6px;">편집 중</div>
+                </div>
+                <button class="btn btn-ghost btn-sm">+ Part A 문항 추가</button>
+              </div>
+
+              <!-- Part B -->
+              <div class="item-pane">
+                <h4>PART B · READING COMPREHENSION (6)</h4>
+                <div class="part-section">
+                  <span class="part-label" style="background: var(--ta-gold); color: var(--ta-navy);">PART B · Q2</span>
+                  <div style="font-size: 14px; line-height: 1.7; margin-bottom: 8px;">
+                    Why does the narrator feed Snowy every morning?
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">A</span>
+                    <span>Because Snowy asks for food loudly</span>
+                  </div>
+                  <div class="choice-row correct">
+                    <span class="choice-letter">B</span>
+                    <span>Because the narrator loves and cares for Snowy</span>
+                    <span class="badge" style="background: #28a745; color: #fff; margin-left:auto;">정답</span>
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">C</span>
+                    <span>Because the garden is full of carrots</span>
+                  </div>
+                  <div class="choice-row">
+                    <span class="choice-letter">D</span>
+                    <span>Because the narrator's mother asked</span>
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 8px;">
+                    난이도 <strong>보통</strong> · 유형 <strong>Inference</strong> · 해설: 본문 마지막 문장 "I love my pet rabbit very much" 근거 추론
+                  </div>
+                </div>
+
+                <div class="part-section" style="opacity: .7;">
+                  <span class="part-label" style="background: var(--ta-gold); color: var(--ta-navy);">PART B · Q3</span>
+                  <div style="font-size: 14px; color: var(--ta-ink-muted);">
+                    Which sentence best describes Snowy's daily routine?
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 6px;">편집 중</div>
+                </div>
+                <button class="btn btn-ghost btn-sm">+ Part B 문항 추가</button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-02</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-03 · TestSet Builder
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-03</span>
+        <strong>TestSet Builder</strong>
+        — Passage+Item 조합 · 시험지 구성 (FN-M-003)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">MAP 문제은행</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP / TestSet Builder / 2026-Spring Formative #3</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">PDF 미리보기</button>
+              <button class="btn btn-outline btn-sm">버전 저장</button>
+              <button class="btn btn-gold btn-sm">배포 (Assignment)</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="testset-board">
+              <div>
+                <div class="toolbar" style="margin-bottom: 12px;">
+                  <input class="search" placeholder="Passage / Item 제목 검색" />
+                  <div class="filter-chips">
+                    <button class="chip active">G3 Intermediate</button>
+                    <button class="chip">Part A</button>
+                    <button class="chip">Part B</button>
+                    <button class="chip">게시됨</button>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 16px;">
+                  <h4 style="margin: 0 0 8px; font-size: 13px; color: var(--ta-ink-muted); text-transform: uppercase; letter-spacing: .08em;">문항은행 · 선택해서 시험에 추가</h4>
+                  <div class="testset-list">
+                    <div class="bank-row">
+                      <input type="checkbox" checked />
+                      <span class="q-no">P#01-Q1</span>
+                      <span class="q-text">What is Snowy?</span>
+                      <span class="q-tag">Part A · 쉬움</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" checked />
+                      <span class="q-no">P#01-Q3</span>
+                      <span class="q-text">What does the word "soft" mean in this passage?</span>
+                      <span class="q-tag">Part A · 쉬움</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" checked />
+                      <span class="q-no">P#01-B2</span>
+                      <span class="q-text">Why does the narrator feed Snowy every morning?</span>
+                      <span class="q-tag" style="background: var(--ta-gold); color: var(--ta-navy);">Part B · 보통</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" />
+                      <span class="q-no">P#04-Q2</span>
+                      <span class="q-text">Where did grandmother and the narrator go on Saturday?</span>
+                      <span class="q-tag">Part A · 쉬움</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" checked />
+                      <span class="q-no">P#04-B1</span>
+                      <span class="q-text">What mood is described in the market scene?</span>
+                      <span class="q-tag" style="background: var(--ta-gold); color: var(--ta-navy);">Part B · 보통</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" />
+                      <span class="q-no">P#07-Q5</span>
+                      <span class="q-text">Choose the best synonym for "invention".</span>
+                      <span class="q-tag">Part A · 어려움</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" checked />
+                      <span class="q-no">P#07-B3</span>
+                      <span class="q-text">What is the main idea of the third paragraph?</span>
+                      <span class="q-tag" style="background: var(--ta-gold); color: var(--ta-navy);">Part B · 보통</span>
+                    </div>
+                    <div class="bank-row">
+                      <input type="checkbox" />
+                      <span class="q-no">P#07-B5</span>
+                      <span class="q-text">Which statement best summarizes Gutenberg's impact?</span>
+                      <span class="q-tag" style="background: var(--ta-gold); color: var(--ta-navy);">Part B · 어려움</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <aside class="testset-summary">
+                <h3>2026-Spring Formative #3</h3>
+                <div class="muted" style="color: rgba(250,247,238,.65); font-size: 13px; margin-bottom: 14px;">
+                  대상: RC G3-Int · 예상 시간 40분
+                </div>
+                <div class="summary-row"><span>Passage</span><strong>3</strong></div>
+                <div class="summary-row"><span>Part A · 어휘</span><strong>8</strong></div>
+                <div class="summary-row"><span>Part B · 독해</span><strong>7</strong></div>
+                <div class="summary-row"><span>총 문항</span><strong style="color: var(--ta-gold);">15</strong></div>
+                <div class="summary-row"><span>총 배점</span><strong>100</strong></div>
+                <div class="summary-row"><span>난이도 분포</span><strong>쉬움 5 / 보통 8 / 어려움 2</strong></div>
+                <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(201,166,86,.2);">
+                  <div class="muted" style="color: rgba(250,247,238,.65); font-size: 12px; margin-bottom: 6px;">VERSION</div>
+                  <div style="font-family: var(--ta-font-mono); font-size: 13px;">v0.3 · 편집 중</div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-03</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-04 · Assignment
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-04</span>
+        <strong>Assignment · 시험 배포</strong>
+        — 반/학생 지정 + AmoebaTalk 알림 (FN-M-004)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">MAP 문제은행</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP / Assignment / 신규 배포</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">취소</button>
+              <button class="btn btn-gold btn-sm">배포 & 알림</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grid-2col">
+              <div class="card">
+                <h3 class="serif-title">배포 설정</h3>
+                <div class="form-row">
+                  <label>TestSet</label>
+                  <div class="select-fake">2026-Spring Formative #3 ▾</div>
+                </div>
+                <div class="form-row">
+                  <label>대상 유형</label>
+                  <div class="rowflex">
+                    <label class="radio-pill selected">반 단위</label>
+                    <label class="radio-pill">개별 학생</label>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label>대상 반</label>
+                  <div class="chip-row">
+                    <span class="chip-solid">RC G3-Int A반 (12)</span>
+                    <span class="chip-solid">RC G3-Int B반 (10)</span>
+                    <span class="chip-solid">RC G3-Int C반 (11)</span>
+                    <span class="chip">+ 반 추가</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label>응시 기간</label>
+                  <div class="rowflex">
+                    <input class="search" style="max-width: 200px;" value="2026-04-21 16:00" />
+                    <span class="muted">→</span>
+                    <input class="search" style="max-width: 200px;" value="2026-04-23 23:59" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label>응시 방식</label>
+                  <div class="rowflex">
+                    <label class="radio-pill selected">교실 내 종이</label>
+                    <label class="radio-pill">온라인</label>
+                    <label class="radio-pill">혼합</label>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <label>채점 방식</label>
+                  <div class="rowflex">
+                    <label class="radio-pill selected">자동 + 수동</label>
+                    <label class="radio-pill">자동만</label>
+                    <label class="radio-pill">수동만</label>
+                  </div>
+                </div>
+              </div>
+
+              <aside>
+                <div class="card" style="background: var(--ta-cream);">
+                  <div class="eyebrow">대상 학생 · 33명</div>
+                  <div class="stat-row" style="margin: 12px 0;">
+                    <div class="stat-card" style="background: #fff;">
+                      <div class="stat-label">대상 반</div>
+                      <div class="stat-value">3</div>
+                    </div>
+                    <div class="stat-card" style="background: #fff;">
+                      <div class="stat-label">학생 수</div>
+                      <div class="stat-value">33</div>
+                    </div>
+                    <div class="stat-card" style="background: #fff;">
+                      <div class="stat-label">알림 대상</div>
+                      <div class="stat-value">33</div>
+                      <div class="stat-hint">주보호자 우선</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top: 16px;">
+                  <div class="eyebrow" style="color: #6F4DB8;">AMABOT NOTIFICATION · PREVIEW</div>
+                  <div class="ama-message-preview">
+                    <div class="ama-header">
+                      <span class="ama-avatar" style="background:#6F4DB8; color:#fff;">A</span>
+                      <strong>Trinity Academy</strong>
+                      <span class="muted" style="margin-left:auto; font-size: 12px;">via AmoebaTalk</span>
+                    </div>
+                    <div class="ama-body">
+                      <strong>[시험 안내] 2026-Spring Formative #3</strong><br/>
+                      안녕하세요, {{학생명}} 학부모님.<br/><br/>
+                      RC G3 Intermediate 형성평가가 다음과 같이 진행됩니다.<br/>
+                      · 일시: 4/21(화) ~ 4/23(목)<br/>
+                      · 시간: 40분 · 문항 15<br/>
+                      · 방식: 교실 내 종이 시험<br/><br/>
+                      결과는 채점 완료 후 포털에서 확인하실 수 있습니다.
+                    </div>
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 10px;">
+                    전송 예정: 2026-04-20 09:00 · AmoebaTalk Template <code>map_assignment_v3</code>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-04</div>
+    </section>
+
+    <!-- ==============================================================
+      A-M-05 · Grading Center
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-M-05</span>
+        <strong>Grading Center</strong>
+        — 자동채점 + 서술형 수동채점 · 결과 분석 (FN-M-005)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">MAP 문제은행</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">MAP / Grading / 2026-Spring Formative #3 · RC G3-Int B반</div>
+            <div class="head-right">
+              <span class="badge" style="background: rgba(40,167,69,.14); color: #1e7a33;">채점 8 / 10</span>
+              <button class="btn btn-outline btn-sm">결과 공개</button>
+              <button class="btn btn-gold btn-sm">리포트 발송</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="grading-grid">
+              <div class="student-list-panel">
+                <div class="panel-head">응시자 · 10</div>
+                <div class="student-row"><span>김민준</span><span class="score-pill high">92</span></div>
+                <div class="student-row active"><span>이서아</span><span class="score-pill high">87</span></div>
+                <div class="student-row"><span>박지우</span><span class="score-pill mid">74</span></div>
+                <div class="student-row"><span>최하늘</span><span class="score-pill mid">71</span></div>
+                <div class="student-row"><span>정윤재</span><span class="score-pill high">83</span></div>
+                <div class="student-row"><span>강소율</span><span class="score-pill low">58</span></div>
+                <div class="student-row"><span>한주원</span><span class="score-pill mid">68</span></div>
+                <div class="student-row"><span>이채린</span><span class="score-pill high">90</span></div>
+                <div class="student-row" style="background: rgba(255,193,7,.08);"><span>윤도현</span><span class="muted">채점중</span></div>
+                <div class="student-row" style="background: rgba(255,193,7,.08);"><span>송지안</span><span class="muted">채점중</span></div>
+              </div>
+
+              <div class="grade-canvas">
+                <div class="flex-between">
+                  <div>
+                    <div class="eyebrow">STUDENT</div>
+                    <h3 class="serif-title" style="margin: 4px 0 0;">이서아 · 초3</h3>
+                    <div class="muted" style="font-size: 13px;">응시일 2026-04-22 17:12 · 소요 36분</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="eyebrow">TOTAL</div>
+                    <div style="font-family: var(--ta-font-display); font-size: 36px; color: var(--ta-gold);">87<span class="muted" style="font-size: 16px;">/100</span></div>
+                  </div>
+                </div>
+
+                <div class="muted" style="margin-top: 10px; font-size: 12px;">15문항 · Part A 8 / Part B 7</div>
+                <div class="grade-answer-grid">
+                  <div class="grade-bubble correct"><div class="q">Q1 Part A</div><div class="ans">B</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q2 Part A</div><div class="ans">A</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble wrong"><div class="q">Q3 Part A</div><div class="ans">D <span class="muted">(정답: B)</span></div><div class="mark">✗</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q4 Part A</div><div class="ans">C</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q5 Part A</div><div class="ans">A</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q6 Part A</div><div class="ans">B</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q7 Part A</div><div class="ans">D</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">Q8 Part A</div><div class="ans">C</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">B1</div><div class="ans">A</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">B2</div><div class="ans">B</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble wrong"><div class="q">B3</div><div class="ans">D <span class="muted">(정답: A)</span></div><div class="mark">✗</div></div>
+                  <div class="grade-bubble correct"><div class="q">B4</div><div class="ans">C</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">B5</div><div class="ans">B</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">B6</div><div class="ans">A</div><div class="mark">✓</div></div>
+                  <div class="grade-bubble correct"><div class="q">B7</div><div class="ans">D</div><div class="mark">✓</div></div>
+                </div>
+              </div>
+
+              <aside class="grade-insight">
+                <h3>반 평균 & 변별도</h3>
+                <div class="bar-wrap">
+                  <div class="bar-label"><span>반 평균</span><strong style="color: var(--ta-gold);">76.6</strong></div>
+                  <div class="bar-track"><div class="bar-fill" style="width: 76%;"></div></div>
+                </div>
+                <div class="bar-wrap">
+                  <div class="bar-label"><span>Part A 평균</span><strong>82</strong></div>
+                  <div class="bar-track"><div class="bar-fill" style="width: 82%;"></div></div>
+                </div>
+                <div class="bar-wrap">
+                  <div class="bar-label"><span>Part B 평균</span><strong>70</strong></div>
+                  <div class="bar-track"><div class="bar-fill" style="width: 70%;"></div></div>
+                </div>
+
+                <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(201,166,86,.2); font-size: 12px;">
+                  <div class="eyebrow" style="color: var(--ta-gold);">집중 오답 문항</div>
+                  <ul style="padding-left: 18px; line-height: 1.8; color: rgba(250,247,238,.85);">
+                    <li><strong>Q3 Part A</strong> — 오답률 60% · "soft" 의미 파악</li>
+                    <li><strong>B3</strong> — 오답률 50% · 추론 유형</li>
+                    <li><strong>B7</strong> — 오답률 30% · 주제문 파악</li>
+                  </ul>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-m-05</div>
+    </section>
+
+    <!-- ==============================================================
+      A-TT-01 · Weekly Calendar
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-TT-01</span>
+        <strong>Weekly Timetable</strong>
+        — 주간 수업 일정 · 초록/빨강/금색 규약 (수업 확인표.xlsx 근거)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#">프로그램 · 반</a>
+            <a href="#">MAP 문제은행</a>
+            <a href="#" class="active">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">수업 시간표 / 주간 (4월 3주차)</div>
+            <div class="head-right">
+              <button class="btn btn-ghost btn-sm">◀ 이전주</button>
+              <button class="btn btn-outline btn-sm">오늘</button>
+              <button class="btn btn-ghost btn-sm">다음주 ▶</button>
+              <button class="btn btn-primary btn-sm">+ 일정 추가</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="tt-toolbar">
+              <div class="rowflex">
+                <span class="eyebrow">2026년 4월 13일(월) — 4월 19일(일)</span>
+                <span class="badge badge-outline">진행 18</span>
+                <span class="badge" style="background: rgba(220,53,69,.12); color: #b2283c;">결강 1</span>
+                <span class="badge" style="background: rgba(201,166,86,.18); color: #73520f;">예정 9</span>
+              </div>
+              <div class="tt-legend">
+                <span><span class="swatch" style="background:#28a745;"></span>진행 완료</span>
+                <span><span class="swatch" style="background:#dc3545;"></span>결강</span>
+                <span><span class="swatch" style="background:var(--ta-gold);"></span>예정 · 오늘</span>
+                <span><span class="swatch" style="background:#6F4DB8;"></span>보강</span>
+              </div>
+            </div>
+
+            <div class="week-grid-wrap">
+              <div class="week-grid">
+                <!-- header row -->
+                <div class="wg-head">Time</div>
+                <div class="wg-head">월 4/13</div>
+                <div class="wg-head">화 4/14</div>
+                <div class="wg-head">수 4/15</div>
+                <div class="wg-head" style="background: var(--ta-gold); color: var(--ta-navy);">목 4/16 · 오늘</div>
+                <div class="wg-head">금 4/17</div>
+                <div class="wg-head">토 4/18</div>
+                <div class="wg-head">일 4/19</div>
+
+                <!-- 15:00 row -->
+                <div class="wg-time">15:00</div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:52px;">
+                    <strong>RC G2-A</strong>이수현 · 201호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:80px;">
+                    <strong>Math G3-A</strong>박성호 · 304호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event upcoming" style="top:4px; height:52px;">
+                    <strong>RC G2-A</strong>이수현 · 201호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:52px;">
+                    <strong>Math G5-A</strong>박성호 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+
+                <!-- 16:00 row -->
+                <div class="wg-time">16:00</div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:52px;">
+                    <strong>MAP G4</strong>김영희 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell">
+                  <div class="wg-event upcoming" style="top:4px; height:52px;">
+                    <strong>MAP G4</strong>김영희 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event upcoming" style="top:4px; height:80px;">
+                    <strong>MAP G5 특강</strong>김영희 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+
+                <!-- 17:00 row -->
+                <div class="wg-time">17:00</div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:72px;">
+                    <strong>RC G3-B</strong>이수현 · 305호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:72px;">
+                    <strong>RC G3-B</strong>이수현 · 305호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:72px;">
+                    <strong>RC G3-C</strong>정지현 · 306호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event canceled" style="top:4px; height:72px;">
+                    <strong>RC G3-B · 결강</strong>교사 병가 · 보강 미정
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:72px;">
+                    <strong>RC G3-C</strong>정지현 · 306호
+                  </div>
+                </div>
+                <div class="wg-cell">
+                  <div class="wg-event makeup" style="top:4px; height:72px;">
+                    <strong>보강 · RC G3-B</strong>이수현 · 305호 (4/16 대체)
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+
+                <!-- 18:00 row -->
+                <div class="wg-time">18:00</div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:16px; height:60px;">
+                    <strong>Math G5-A</strong>박성호 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:16px; height:60px;">
+                    <strong>RC G5-Adv</strong>정지현 · 502호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell">
+                  <div class="wg-event upcoming" style="top:16px; height:60px;">
+                    <strong>RC G5-Adv</strong>정지현 · 502호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+
+                <!-- 19:00 row -->
+                <div class="wg-time">19:00</div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell">
+                  <div class="wg-event held" style="top:4px; height:60px;">
+                    <strong>Math G5-A</strong>박성호 · 401호
+                  </div>
+                </div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+                <div class="wg-cell"></div>
+              </div>
+            </div>
+
+            <div class="callout" style="margin-top: 16px;">
+              <strong>결강 1건 ·</strong> 4/16(목) 17:00 RC G3-B반 교사 병가로 결강.
+              <a href="#">보강 대체 등록</a> → 4/18(토) 17:00로 자동 제안됨.
+              보강은 class_sessions 원래 회차의 status를 CANCELED → MAKEUP으로 전이합니다.
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-tt-01</div>
+    </section>
+
+    <!-- ==============================================================
+      A-TT-02 · Session Detail (출결 체크)
+    =============================================================== -->
+    <section class="mockup-screen">
+      <div class="mockup-label">
+        <span class="eyebrow" style="color: var(--ta-gold);">A-TT-02</span>
+        <strong>Session Detail · 출결 체크</strong>
+        — 회차 단일 · attendance 입력 (FN-TT-002)
+      </div>
+      <div class="admin-shell">
+        <aside class="admin-side">
+          <div class="brand-mini">
+            <div class="shield"></div>
+            <div>
+              <div class="name">Trinity</div>
+              <div class="sub">ACADEMY OPS</div>
+            </div>
+          </div>
+          <nav class="side-nav">
+            <div class="nav-group">교육</div>
+            <a href="#" class="active">수업 시간표</a>
+          </nav>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-head">
+            <div class="crumb">수업 시간표 / 2026-04-16 RC G3-B · Week 9 · Stories</div>
+            <div class="head-right">
+              <span class="toss-status in-progress">진행 중</span>
+              <button class="btn btn-outline btn-sm">결강 전환</button>
+              <button class="btn btn-gold btn-sm">저장 & 종료</button>
+            </div>
+          </header>
+          <section class="admin-body">
+            <div class="session-grid">
+              <div>
+                <div class="card">
+                  <div class="eyebrow">SESSION #015</div>
+                  <h2 class="serif-title">RC G3-B · Week 9</h2>
+                  <p class="muted">2026-04-16 (목) 17:00-18:15 · 305호 · 담임 이수현</p>
+                  <div class="stat-row" style="margin-top: 12px;">
+                    <div class="stat-card">
+                      <div class="stat-label">총 학생</div>
+                      <div class="stat-value">10</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-label">출석</div>
+                      <div class="stat-value" style="color: #28a745;">8</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-label">지각</div>
+                      <div class="stat-value" style="color: #b58300;">1</div>
+                    </div>
+                    <div class="stat-card">
+                      <div class="stat-label">결석</div>
+                      <div class="stat-value" style="color: #dc3545;">1</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top: 16px;">
+                  <div class="eyebrow">출결 체크리스트</div>
+                  <table class="attendance-table">
+                    <thead>
+                      <tr><th>학생</th><th>출결</th><th>지각</th><th>메모</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>김민준</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>이서아</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>박지우</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status late">지각</span></td>
+                        <td>10분</td>
+                        <td class="muted">차량 지연</td>
+                      </tr>
+                      <tr>
+                        <td><strong>최하늘</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>정윤재</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>강소율</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status absent">결석</span></td>
+                        <td>—</td>
+                        <td style="color:#b2283c;">병결 · 학부모 AmoebaTalk 통보</td>
+                      </tr>
+                      <tr>
+                        <td><strong>한주원</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>이채린</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>윤도현</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                      <tr>
+                        <td><strong>송지안</strong> <span class="muted">초3</span></td>
+                        <td><span class="att-status present">출석</span></td>
+                        <td>—</td>
+                        <td class="muted">—</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <aside>
+                <div class="card">
+                  <div class="eyebrow">수업 내용</div>
+                  <strong style="display:block; margin:6px 0;">Week 9 · Stories & Tales</strong>
+                  <p class="muted" style="font-size: 13px; line-height: 1.6;">
+                    오늘은 짧은 우화를 읽고 교훈을 찾는 활동을 진행합니다.
+                    Part A 어휘 6개 · Part B 지문 1편 · 그룹 토의 15분.
+                  </p>
+                  <ul style="padding-left: 18px; line-height: 1.8; font-size: 13px;">
+                    <li>Warm-up (10분)</li>
+                    <li>Vocabulary Drill (15분)</li>
+                    <li>Passage Reading (25분)</li>
+                    <li>Group Discussion (15분)</li>
+                    <li>Exit Ticket (10분)</li>
+                  </ul>
+                </div>
+
+                <div class="card" style="margin-top: 14px; background: var(--ta-cream);">
+                  <div class="eyebrow" style="color: #6F4DB8;">AMABOT · 결석 자동 안내</div>
+                  <div class="ama-message-preview" style="margin-top: 8px;">
+                    <div class="ama-header">
+                      <span class="ama-avatar" style="background:#6F4DB8; color:#fff;">A</span>
+                      <strong>Trinity Academy</strong>
+                    </div>
+                    <div class="ama-body" style="font-size: 13px;">
+                      [결석 안내] 강소율 학생이 4/16(목) RC G3-B 수업에 결석하였습니다.
+                      다음 보강 회차는 4/23(목) 동일 시간입니다.
+                    </div>
+                  </div>
+                  <div class="muted" style="font-size: 12px; margin-top: 8px;">
+                    수업 종료 시 학부모에게 자동 발송 · Template <code>absence_notice_v2</code>
+                  </div>
+                </div>
+
+                <div class="card" style="margin-top: 14px;">
+                  <div class="eyebrow">다음 회차</div>
+                  <div style="font-size: 13px; margin-top: 6px;">
+                    <strong>회차 #016</strong> · 2026-04-21 (화) 17:00<br/>
+                    Week 10 · Ghost Stories
+                  </div>
+                  <a href="#" class="btn btn-ghost btn-sm" style="margin-top: 8px;">보기 →</a>
+                </div>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <div class="mockup-path">docs/design/screens/program-map-timetable.html#a-tt-02</div>
+    </section>
+
+    <footer style="text-align: center; padding: 40px 0; color: var(--ta-ink-muted); font-size: 13px;">
+      Trinity Academy — OMNIBUS OMNIA · Heraldic Brand System v1.3<br/>
+      Screen Set 03: Program · MAP · Timetable — <span class="mono">docs/design/screens/program-map-timetable.html</span>
+    </footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,445 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "about": "Giới thiệu",
+    "programs": "Chương trình",
+    "map-test": "MAP Test",
+    "contact": "Tư vấn",
+    "news": "Tin tức",
+    "my": "Trang của tôi",
+    "login": "Đăng nhập"
+  },
+  "home": {
+    "hero-title": "OMNIBUS OMNIA",
+    "hero-subtitle": "Trở nên mọi sự cho mọi người",
+    "cta-consult": "Đăng ký tư vấn",
+    "cta-map-test": "Tìm hiểu MAP Test",
+    "hero": {
+      "eyebrow": "Đơn vị chính thức của NWEA MAP TEST",
+      "title": "TRINITY ACADEMY",
+      "subtitle": "Chẩn đoán chính xác · Trúng tuyển chắc chắn",
+      "lead": "Kể từ năm 2020, Trinity đã dẫn dắt hơn 230 học sinh vào các trường quốc tế. Qua bài chẩn đoán MAP TEST, chúng tôi cung cấp lộ trình hoàn chỉnh — từ đánh giá ban đầu đến trúng tuyển trường mục tiêu."
+    },
+    "results": {
+      "eyebrow": "TRUSTED RESULTS",
+      "title": "Niềm tin của Trinity Academy\nđến từ kết quả đã chứng minh.",
+      "lead": "Từ năm 2020, Trinity đã đồng hành đưa học sinh vào 7 trường quốc tế được công nhận và nhiều trường quốc tế chưa được công nhận trên toàn quốc. Dữ liệu và bí quyết đã kiểm chứng dẫn dắt kết quả.",
+      "stat-value": "144",
+      "stat-unit": "",
+      "stat-label": "Đậu trường quốc tế · Chadwick · DIS · bao gồm chưa công nhận"
+    },
+    "results-stats": {
+      "eyebrow": "PROVEN TRACK RECORD",
+      "title": "Trinity chứng minh bằng dữ liệu",
+      "item-graduates": "Tổng cựu học sinh",
+      "item-admitted": "Đậu trường quốc tế",
+      "item-pass-rate": "Tỷ lệ đậu",
+      "item-founded": "Năm thành lập"
+    },
+    "campus-band": {
+      "eyebrow": "DUAL CAMPUS",
+      "title": "Lớp luyện thi tại cơ sở chính Jeju và trung tâm Apgujeong Dosan Park,\ncùng lớp 1:1 trực tuyến với giáo viên tuyển chọn.",
+      "lead": "Cơ sở chính của Trinity nằm trong khu English Education City của Jeju, cho phép chúng tôi nắm bắt thông tin tuyển sinh quan trọng nhất. Bí quyết của Trinity lan tỏa tới mọi thí sinh qua các lớp offline và online."
+    },
+    "pillars-section": {
+      "eyebrow": "OUR DIFFERENTIATORS",
+      "title": "Bốn trụ cột cho thành công tuyển sinh"
+    },
+    "pillars": {
+      "p1": {
+        "title": "'Chiến lược theo từng trường' tích lũy từ 230+ ca đậu",
+        "problem": "Tuyển sinh trường quốc tế không đơn thuần là bài kiểm tra tiếng Anh — mỗi trường có tiêu chí đánh giá riêng.",
+        "label": "Dữ liệu phân tích thực chiến:",
+        "solution": "Qua nhiều năm đào tạo hơn 230 học sinh đậu, chúng tôi hệ thống hóa đề thi và hình mẫu ứng viên từng trường (NLCS, SJA, KIS, Chadwick, v.v.). Chúng tôi vạch lộ trình phù hợp với ưu tiên của trường mục tiêu."
+      },
+      "p2": {
+        "title": "Tỷ lệ đậu 99% nhờ 'chiến lược hồ sơ hoàn hảo'",
+        "problem": "Điểm thi cao chưa đủ để thể hiện tiềm năng. Ứng viên phải nổi bật bằng bản sắc riêng.",
+        "label": "Hướng dẫn hồ sơ cá nhân hóa:",
+        "solution": "Trinity duy trì 99% tỷ lệ đậu bằng cách chuyển hoạt động và câu chuyện của học sinh thành tường thuật hợp với triết lý trường. Phỏng vấn và bài luận được tinh chỉnh để điểm mạnh nổi bật."
+      },
+      "p3": {
+        "title": "'Chẩn đoán chi tiết và lộ trình học' dẫn đến đậu",
+        "problem": "Chúng tôi tránh chuẩn bị mơ hồ — hướng học dựa trên chỉ số khách quan.",
+        "label": "Phân tích dữ liệu:",
+        "solution": "Đối chiếu với 230+ ca đậu, chúng tôi định vị trình độ hiện tại. MAP Test, ISEE và các dữ liệu kỹ năng lượng hóa điểm mạnh và khoảng trống, ưu tiên tối ưu cho lộ trình hiệu quả."
+      },
+      "p4": {
+        "title": "Hỗ trợ 'All-in-One' từ hồ sơ tới sau khi nhập học",
+        "problem": "Chúng tôi tránh lỗi hồ sơ và chuẩn bị cho quá trình hòa nhập trường sau khi đậu.",
+        "label": "Hướng dẫn bài bản:",
+        "solution": "Từ thư giới thiệu tới giấy tờ chứng minh hoạt động, chúng tôi chuẩn bị hồ sơ chính xác. Đồng thời củng cố nền tảng học thuật trước khi nhập học để thích nghi tốt với IB, AP."
+      }
+    },
+    "process-section": {
+      "eyebrow": "ENROLLMENT PROCESS",
+      "title": "Quy trình luyện thi\nTrinity Academy"
+    },
+    "process": {
+      "s1": {
+        "title": "Tư vấn cơ bản cá nhân hóa",
+        "label": "Hồ sơ ban đầu và phong cách học:",
+        "body": "Tư vấn 1:1 dựa trên hồ sơ học tập hiện có để xác định điểm xuất phát hôm nay."
+      },
+      "s2": {
+        "title": "Chẩn đoán kỹ năng khách quan",
+        "label": "Bài kiểm tra trình độ chuẩn:",
+        "body": "Triển khai NWEA MAP Test chính thức cộng với lớp thử để đánh giá Viết và Nói. Kết quả lượng hóa năng lực hiện tại của học sinh."
+      },
+      "s3": {
+        "title": "Thiết lập mục tiêu chiến lược",
+        "label": "Tư vấn chuyên sâu và chọn trường:",
+        "body": "Dựa trên chẩn đoán, chúng tôi thống nhất trường mục tiêu phù hợp và xây dựng kế hoạch tuyển sinh cụ thể."
+      },
+      "s4": {
+        "title": "Chương trình và lịch học theo thiết kế riêng",
+        "label": "Phân lớp tối ưu:",
+        "body": "Chúng tôi chọn hình thức phù hợp — lớp nhóm, 1:1, hay lớp hè/đông — theo trình độ và mốc thời gian."
+      },
+      "s5": {
+        "title": "Theo dõi sát và chia sẻ tiến độ",
+        "label": "Giáo trình và hệ thống phản hồi:",
+        "body": "Bài giảng bài bản kết hợp với kỳ thi thử NWEA MAP TEST định kỳ. Dữ liệu tiến bộ được chia sẻ minh bạch qua báo cáo cho phụ huynh."
+      }
+    },
+    "closing": {
+      "eyebrow": "CONTACT US",
+      "title": "Trinity Academy sẽ mang lại kết quả chắc chắn.",
+      "lead": "Chẩn đoán chính xác, giảng dạy tận tâm và kinh nghiệm đã được kiểm chứng của Trinity bảo đảm đậu trường quốc tế."
+    }
+  },
+  "floating": {
+    "aria-label": "Nút liên hệ nhanh",
+    "map-test": "MAP Test",
+    "consult": "Tư vấn",
+    "kakao": "KakaoTalk",
+    "phone": "Gọi"
+  },
+  "closing-cta": {
+    "map-test-title": "Đăng ký MAP TEST",
+    "map-test-sub": "Đăng ký dự kỳ thi MAP chính thức của NWEA",
+    "consult-title": "Tư vấn 1:1 miễn phí",
+    "consult-sub": "Tư vấn chuẩn bị nhập học trường quốc tế",
+    "phone-title": "Tư vấn qua điện thoại"
+  },
+  "about": {
+    "title": "Về Trinity Academy",
+    "hero": {
+      "eyebrow": "PHILOSOPHY",
+      "title": "OMNIBUS\nOMNIA",
+      "verse": "Tôi đã trở nên mọi sự cho mọi người, để bằng mọi cách tôi cứu được một vài người.",
+      "verse-ref": "— 1 Cô-rinh-tô 9:22"
+    },
+    "story": {
+      "eyebrow": "OUR STORY",
+      "title": "Lịch sử"
+    },
+    "timeline": {
+      "y2014": {
+        "year": "2014",
+        "heading": "Khai giảng Trinity Academy",
+        "body": "Khởi đầu tại Daechi-dong, Gangnam với một môn RC tiếng Anh."
+      },
+      "y2017": {
+        "year": "2017",
+        "heading": "Giới thiệu hệ chẩn đoán MAP",
+        "body": "Ba hệ RC/Toán/Ngôn ngữ cho G2–G5."
+      },
+      "y2020": {
+        "year": "2020",
+        "heading": "Ra mắt chương trình Toán",
+        "body": "Hoàn thiện chương trình tích hợp Anh–Toán."
+      },
+      "y2026": {
+        "year": "2026",
+        "heading": "Giải pháp quản lý Trinity v1.3",
+        "body": "Tích hợp AMA, thanh toán nội bộ và chính sách hoàn trả theo ngày học."
+      }
+    },
+    "principle": {
+      "eyebrow": "OUR PRINCIPLE",
+      "title": "Vì sự phát triển của từng học sinh",
+      "p1": "Trinity tôn trọng tốc độ học, khuynh hướng và mục tiêu riêng của mỗi học sinh. Cùng khối nhưng không cùng giáo trình. Chúng tôi xác định điểm xuất phát qua chẩn đoán MAP và đọc khuynh hướng qua TPI (Chỉ số Hồ sơ Trinity) để đề xuất lộ trình phù hợp cho mỗi em.",
+      "p2": "Trung tâm huy hiệu là chữ T và thánh giá, ba ngôi sao, vương miện và lá cờ. Học thuật · Đức tin · Phẩm giá · Cộng đồng — bốn giá trị là nền tảng giáo dục của Trinity."
+    },
+    "seo-title": "About — TRINITY ACADEMY",
+    "seo-description": "OMNIBUS OMNIA — Triết lý giáo dục và lịch sử của Trinity Academy."
+  },
+  "programs": {
+    "title": "Chương trình",
+    "detail-title": "Chi tiết chương trình",
+    "find-title": "Tìm chương trình",
+    "category-all": "Môn học: Tất cả",
+    "category": {
+      "ENGLISH": "Đọc hiểu tiếng Anh",
+      "MATH": "Toán",
+      "SCIENCE": "Khoa học",
+      "OTHER": "Khác"
+    },
+    "fee-inquiry": "Liên hệ",
+    "weekly-per-duration": "{{perWeek}} buổi/tuần · {{weeks}} tuần",
+    "detail-link": "Chi tiết →",
+    "empty-title": "Chưa có chương trình nào.",
+    "empty-hint": "Vui lòng liên hệ để được tư vấn chương trình.",
+    "not-found-title": "Không tìm thấy chương trình",
+    "back-to-list": "← Quay lại danh sách chương trình",
+    "back-to-list-full": "← Tất cả chương trình",
+    "overview": "Giới thiệu chương trình",
+    "overview-placeholder": "Mô tả chi tiết sẽ được cập nhật sớm.",
+    "weekly-prefix": "Mỗi tuần",
+    "weekly-suffix": "buổi",
+    "weeks-suffix": " tuần",
+    "capacity": "Sức chứa {{count}}",
+    "vat-note": "{{weeks}} tuần · đã bao gồm VAT",
+    "refund-policy-title": "Hoàn tiền theo buổi học (Luật học viện tư, điều 18)",
+    "refund-tier-1": "· Hủy trước khi bắt đầu — 100%",
+    "refund-tier-2": "· Trong 1/3 đầu — 66.67%",
+    "refund-tier-3": "· Trong 1/2 đầu — 50%",
+    "refund-tier-4": "· Sau 1/2 — 0%",
+    "cta-book-consult": "Đặt lịch tư vấn →",
+    "cta-map-diagnosis": "Làm bài MAP chẩn đoán trước"
+  },
+  "map-test": {
+    "title": "Giới thiệu NWEA MAP Test",
+    "apply": "Đăng ký dự thi MAP Test",
+    "page-title": "Đăng ký MAP TEST online",
+    "page-description": "Đăng ký dự thi NWEA MAP TEST chính thức. Vui lòng nhập thông tin học sinh, tư vấn viên sẽ liên hệ trong 24 giờ làm việc.",
+    "hero-title-line1": "Vui lòng nhập thông tin cơ bản",
+    "hero-title-line2": "của học sinh tham dự MAP Test.",
+    "form": {
+      "student-name-ko": "Họ tên học sinh (tiếng Hàn)",
+      "student-name-ko-placeholder": "홍길동",
+      "student-name-en": "Họ tên học sinh (tiếng Anh)",
+      "student-name-en-placeholder": "Hong Gildong",
+      "birth-date": "Ngày sinh",
+      "grade": "Lớp",
+      "grade-placeholder": "Vui lòng chọn",
+      "gender": "Giới tính",
+      "gender-male": "Nam",
+      "gender-female": "Nữ",
+      "phone": "Số điện thoại liên hệ",
+      "phone-placeholder": "010-0000-0000",
+      "parent-email": "Email phụ huynh",
+      "parent-email-placeholder": "parent@example.com",
+      "test-location": "Quốc gia · thành phố dự thi",
+      "test-location-placeholder": "VD: Seoul, Hàn Quốc",
+      "privacy-title": "Chính sách quyền riêng tư",
+      "privacy-consent": "Tôi đồng ý cho thu thập và sử dụng thông tin cá nhân.",
+      "privacy-required": "(bắt buộc)",
+      "submit": "Gửi đăng ký",
+      "submitting": "Đang gửi...",
+      "error-default": "Đã xảy ra lỗi khi gửi.",
+      "success-title": "Đã tiếp nhận yêu cầu",
+      "reset": "Gửi yêu cầu khác"
+    }
+  },
+  "contact": {
+    "title": "Đăng ký tư vấn",
+    "hero-eyebrow": "Tư vấn 1:1 miễn phí",
+    "hero-title-line1": "Đánh giá học lực chính xác · lớp luyện thi ưu việt",
+    "hero-title-line2": "Trinity đồng hành cho kết quả đậu trường quốc tế chắc chắn.",
+    "consultation-form": {
+      "types-label": "Loại tư vấn",
+      "types-hint": "Có thể chọn nhiều",
+      "student-name": "Tên học sinh",
+      "grade": "Lớp",
+      "grade-placeholder": "VD: G7",
+      "phone": "Số điện thoại",
+      "phone-placeholder": "010-0000-0000",
+      "privacy-label": "Đồng ý thu thập thông tin cá nhân",
+      "privacy-consent": "Tôi đồng ý cho thu thập và sử dụng thông tin cá nhân.",
+      "privacy-required": "(bắt buộc)",
+      "submit": "Gửi yêu cầu tư vấn",
+      "submitting": "Đang gửi...",
+      "error-default": "Đã xảy ra lỗi khi gửi.",
+      "success-title": "Đã tiếp nhận yêu cầu",
+      "reset": "Gửi yêu cầu khác"
+    },
+    "form": {
+      "parent-name": "Họ tên phụ huynh",
+      "parent-phone": "Số điện thoại",
+      "student-name": "Họ tên học sinh",
+      "student-grade": "Lớp",
+      "preferred-time": "Thời gian mong muốn",
+      "message": "Nội dung",
+      "privacy-consent": "Tôi đồng ý cho thu thập và sử dụng thông tin cá nhân",
+      "submit": "Gửi yêu cầu tư vấn"
+    },
+    "success": "Yêu cầu tư vấn đã được ghi nhận. Chúng tôi sẽ liên hệ sớm.",
+    "consultation-types": {
+      "accredited-label": "Chuẩn bị nhập học trường quốc tế được công nhận",
+      "unaccredited-label": "Chuẩn bị nhập học trường quốc tế chưa được công nhận",
+      "foreign-school-label": "Chuẩn bị nhập học trường dành cho người nước ngoài",
+      "boarding-label": "Chuẩn bị nhập học trường nội trú junior/high ở nước ngoài",
+      "all-in-one-label": "Tư vấn nhập học All-in-One",
+      "all-in-one-sub": "(lớp học + hồ sơ + hỗ trợ đơn + quản lý GPA)"
+    },
+    "form-success-note": "※ Chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ làm việc kể từ khi nhận được yêu cầu."
+  },
+  "news": {
+    "title": "Tin tức",
+    "empty": "Chưa có tin tức",
+    "empty-section": "Chưa có tin tức.",
+    "not-found-title": "Không tìm thấy bài viết",
+    "back-to-list": "← Quay lại danh sách tin",
+    "back-link": "← Tin tức",
+    "filter": {
+      "all": "Tất cả",
+      "result": "Kết quả",
+      "event": "Sự kiện",
+      "notice": "Thông báo"
+    }
+  },
+  "my": {
+    "title": "Trang của tôi",
+    "tabs": {
+      "overview": "Tổng quan",
+      "timetable": "Thời khóa biểu",
+      "scores": "Điểm",
+      "payments": "Thanh toán"
+    },
+    "loading": "Đang tải...",
+    "no-children-title": "Chưa có con em nào được đăng ký.",
+    "no-children-hint": "Vui lòng liên hệ trung tâm.",
+    "welcome": "Xin chào, <1>{{name}}</1>",
+    "welcome-subtitle": "Xem tình hình học tập của con em bạn.",
+    "kpi": {
+      "week-classes": "Buổi học tuần này",
+      "latest-map": "Điểm MAP gần nhất",
+      "latest-map-empty": "Chưa có điểm",
+      "latest-map-top": "Top {{percentile}}%",
+      "unpaid": "Đơn chưa thanh toán",
+      "count-suffix": " đơn"
+    },
+    "quick-links": {
+      "timetable": "📅 Xem thời khóa biểu",
+      "scores": "📊 Xem điểm MAP",
+      "payments": "💳 Lịch sử thanh toán"
+    },
+    "timetable": {
+      "title": "Thời khóa biểu tuần này",
+      "empty": "Không có buổi học nào trong tuần này.",
+      "page-title": "📅 Thời khóa biểu",
+      "select-child": "Vui lòng chọn con em.",
+      "back-to-my": "← Quay lại trang của tôi",
+      "my-link": "← Trang của tôi",
+      "prev-week": "← Tuần trước",
+      "next-week": "Tuần sau →",
+      "legend-scheduled": "Dự kiến",
+      "legend-held": "Đã dạy",
+      "legend-canceled": "Đã hủy"
+    },
+    "payments-section": {
+      "title": "Thanh toán gần đây",
+      "empty": "Chưa có thanh toán.",
+      "table": {
+        "order-no": "Mã đơn",
+        "program": "Chương trình",
+        "amount": "Số tiền",
+        "status": "Trạng thái",
+        "date": "Thời gian"
+      }
+    },
+    "payment-status": {
+      "DONE": "Hoàn tất",
+      "PENDING": "Chờ xử lý",
+      "READY": "Sẵn sàng",
+      "CANCELED": "Đã hủy",
+      "PARTIAL_CANCELED": "Hủy một phần"
+    },
+    "scores-page": {
+      "title": "Điểm MAP của con em",
+      "unauthenticated-title": "Tra cứu điểm MAP",
+      "unauthenticated-lead": "Đăng nhập tài khoản phụ huynh để xem lịch sử điểm MAP của con em.",
+      "login-cta": "Đăng nhập",
+      "lead": "Xem kết quả Reading gần đây và xu hướng tích lũy trong một màn hình.",
+      "parent-unbound-note": " Hiện chưa có học sinh liên kết với tài khoản.",
+      "unbound-empty": "Hiện không có học sinh nào được liên kết với phiên đăng nhập. Sau khi thiết lập liên kết phụ huynh, lịch sử điểm sẽ hiển thị tại đây.",
+      "no-students-option": "Không có học sinh để tra cứu",
+      "fetch-error": "Không tải được dữ liệu điểm.",
+      "card-latest-reading": "Reading gần nhất",
+      "card-average-reading": "Reading trung bình",
+      "card-best-reading": "Reading cao nhất",
+      "card-reading-delta": "So với lần đầu",
+      "card-assessments-count": "{{count}} lần thi",
+      "card-best-caption": "Điểm cao nhất lũy kế",
+      "card-delta-caption": "Thay đổi Reading",
+      "trend-title": "Xu hướng Reading",
+      "trend-lead": "Luồng điểm tích lũy theo thứ tự thi gần đây.",
+      "trend-empty": "Chưa có điểm MAP được công bố.",
+      "student-info-title": "Thông tin học sinh",
+      "student-grade": "Lớp",
+      "student-school": "Trường",
+      "access-mode-parent": "Đang hiển thị điểm dựa trên con em liên kết với tài khoản phụ huynh.",
+      "access-mode-preview": "Đang ở chế độ preview quản trị. Khi OTP phụ huynh ra mắt sẽ dùng cùng API.",
+      "access-mode-unbound": "Chưa thiết lập liên kết tài khoản phụ huynh."
+    },
+    "payments-page": {
+      "title": "💳 Lịch sử thanh toán",
+      "empty": "Chưa có thanh toán.",
+      "summary-total": "Tổng",
+      "summary-paid": "Đã thanh toán",
+      "summary-unpaid": "Chưa thanh toán",
+      "status-label": {
+        "DONE": "Đã thanh toán",
+        "PENDING": "Chờ xử lý",
+        "READY": "Sẵn sàng",
+        "CANCELED": "Đã hủy",
+        "PARTIAL_CANCELED": "Hủy một phần"
+      },
+      "table": {
+        "order-no": "Mã đơn",
+        "program": "Chương trình",
+        "student": "Học sinh",
+        "amount": "Số tiền",
+        "status": "Trạng thái",
+        "date": "Thời gian"
+      }
+    }
+  },
+  "login": {
+    "title": "Phụ huynh đăng nhập",
+    "phone": "Số điện thoại",
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "phone-placeholder": "Số điện thoại (010-0000-0000)",
+    "phone-label": "Số điện thoại",
+    "phone-required": "Vui lòng nhập số điện thoại.",
+    "send-otp": "Gửi mã xác thực",
+    "sending-otp": "Đang gửi...",
+    "otp-placeholder": "Mã xác thực 6 chữ số",
+    "otp-label": "Mã xác thực",
+    "otp-length-required": "Vui lòng nhập mã 6 chữ số.",
+    "verifying": "Đang xác thực...",
+    "otp-mismatch": "Mã xác thực không khớp.",
+    "otp-send-failed": "Gửi mã xác thực thất bại.",
+    "server-error": "Không thể kết nối máy chủ.",
+    "try-another-phone": "Thử với số khác",
+    "admin-login-link": "Đăng nhập quản trị →"
+  },
+  "footer": {
+    "address": "Địa chỉ",
+    "phone": "Điện thoại",
+    "email": "Email",
+    "consultation-hours": "Giờ tư vấn",
+    "class-hours": "Giờ học",
+    "kakao-channel": "💛 Kênh KakaoTalk",
+    "business-info": "Giấy phép kinh doanh · người đại diện · đăng ký bán hàng · phụ trách thông tin cá nhân (TBD)",
+    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+  },
+  "site": {
+    "hours-consultation": "14:00 – 22:00 (theo hẹn trước)",
+    "hours-class": "14:30 – 21:30",
+    "campus-jeju": {
+      "name": "Cơ sở chính Jeju",
+      "line1": "Daejeong-eup, Seogwipo, Jeju",
+      "line2": "Số 145 Global Edu-ro, 40, tầng 2",
+      "note": "(trong Thành phố Giáo dục Toàn cầu)"
+    },
+    "campus-seoul": {
+      "name": "Trung tâm Apgujeong Dosan Park",
+      "line1": "Sinsa-dong 631-31, tầng 2, Gangnam-gu, Seoul",
+      "note": "(sau Maison Hermès, công viên Dosan)"
+    }
+  }
+}

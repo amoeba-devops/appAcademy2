@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trinity Academy × AMA — 컨셉 구성안 v0.2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Trinity Academy brand */
+    --navy:#0E1E3A;
+    --navy-2:#1C3060;
+    --navy-3:#3A558E;
+    --gold:#C9A656;
+    --gold-2:#E0C079;
+    --gold-3:#F5EBCD;
+    --ivory:#FAF7EE;
+    --ivory-2:#F2EDDE;
+    --cream:#FFFDF7;
+    --ink:#0B0D14;
+    --ink-2:#2A2E3D;
+    --muted:#6B6F7E;
+    --line:#D8D1BF;
+    --line-2:#E8E2D2;
+
+    /* Semantic */
+    --ama:#6F4DB8;
+    --ama-bg:#EEE7FA;
+    --ok:#2F8A66;
+    --warn:#C98B2D;
+    --danger:#B04558;
+
+    --serif:"Cormorant Garamond","Noto Serif KR",Georgia,"Apple SD Gothic Neo",serif;
+    --sans:"Inter","Pretendard","Noto Sans KR",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--ivory);color:var(--ink);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.88em;color:var(--navy-2)}
+  .page{max-width:1280px;margin:0 auto;padding:48px 32px 80px}
+
+  /* ═══════════════════════════════════════════════
+     BRAND HEADER
+     ═══════════════════════════════════════════════ */
+  header.hero{
+    background:var(--navy);
+    color:var(--cream);
+    border-radius:4px;
+    padding:44px 52px;
+    margin-bottom:40px;
+    position:relative;
+    overflow:hidden;
+    border:1px solid var(--navy);
+    box-shadow:0 20px 60px rgba(14,30,58,.22);
+  }
+  header.hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(600px 200px at 85% -10%, rgba(201,166,86,.18), transparent 60%),
+      radial-gradient(400px 150px at -5% 110%, rgba(201,166,86,.12), transparent 60%);
+    pointer-events:none;
+  }
+  header.hero::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:4px;
+    background:linear-gradient(90deg, var(--gold) 0%, var(--gold-2) 50%, var(--gold) 100%);
+  }
+  .hero-top{display:flex;align-items:center;gap:20px;position:relative;margin-bottom:18px}
+  .crest{width:72px;height:84px;flex:none}
+  .brand-mark h1{margin:0;font-family:var(--serif);font-weight:500;font-size:38px;letter-spacing:.16em;color:var(--cream)}
+  .brand-mark .motto{font-family:var(--serif);font-style:italic;font-size:13px;letter-spacing:.28em;color:var(--gold-2);margin-top:2px}
+  .brand-mark .kr{font-size:11px;letter-spacing:.3em;color:#A7B3CC;margin-top:4px}
+  .hero-body{position:relative;max-width:880px}
+  .hero-eyebrow{font-family:var(--serif);font-style:italic;color:var(--gold-2);font-size:14px;letter-spacing:.2em;margin-bottom:10px;text-transform:uppercase}
+  .hero-title{font-family:var(--serif);font-size:44px;line-height:1.1;margin:0 0 12px;color:var(--cream);letter-spacing:-.01em}
+  .hero-title em{font-style:italic;color:var(--gold-2);font-weight:500}
+  .hero-sub{color:#C8D4EE;font-size:15px;max-width:760px;margin:0}
+  .hero-meta{margin-top:22px;display:flex;gap:24px;flex-wrap:wrap;font-size:12.5px;color:#A7B3CC;border-top:1px solid rgba(255,255,255,.15);padding-top:16px;position:relative}
+  .hero-meta span strong{color:var(--gold-2);font-weight:600;letter-spacing:.02em}
+  .pill{display:inline-block;padding:3px 12px;border:1px solid var(--gold-2);border-radius:2px;color:var(--gold-2);font-size:11px;letter-spacing:.15em;font-family:var(--serif);font-style:italic;margin-right:8px;text-transform:uppercase}
+
+  /* ═══════════════════════════════════════════════
+     SECTION HEADINGS
+     ═══════════════════════════════════════════════ */
+  h2.section-title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:30px;
+    margin:52px 0 8px;
+    letter-spacing:-.005em;
+    color:var(--navy);
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+  }
+  h2.section-title .n{
+    font-family:var(--serif);
+    font-size:15px;
+    font-style:italic;
+    color:var(--gold);
+    letter-spacing:.1em;
+  }
+  h2.section-title .en{
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:17px;
+    color:var(--muted);
+    font-weight:400;
+    margin-left:auto;
+  }
+  .divider{height:1px;background:linear-gradient(90deg,var(--gold),transparent 70%);margin-bottom:22px}
+  .lead{color:var(--muted);margin:0 0 24px;font-size:14.5px;max-width:960px}
+
+  /* ═══════════════════════════════════════════════
+     BRAND IDENTITY PANEL
+     ═══════════════════════════════════════════════ */
+  .brand-panel{
+    background:var(--cream);
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:32px;
+    display:grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    gap:32px;
+    box-shadow:0 2px 8px rgba(14,30,58,.04);
+  }
+  .bp-card h3{font-family:var(--serif);font-size:13px;letter-spacing:.2em;color:var(--muted);font-weight:600;text-transform:uppercase;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line-2)}
+  .color-stack{display:flex;flex-direction:column;gap:10px}
+  .color{display:flex;align-items:center;gap:12px;font-size:13px}
+  .swatch{width:38px;height:38px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.06)}
+  .color .name{font-family:var(--serif);font-size:15px;color:var(--navy);font-weight:600}
+  .color .hex{font-family:"SF Mono",Menlo,monospace;font-size:12px;color:var(--muted);letter-spacing:.05em}
+  .color .role{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .type-sample{font-family:var(--serif);font-size:34px;letter-spacing:.04em;color:var(--navy);line-height:1}
+  .type-sample .it{font-style:italic;color:var(--gold);font-size:22px}
+  .type-row{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+  .type-row .r{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--line-2)}
+  .type-row .r .l{font-family:var(--serif);color:var(--navy);font-weight:600}
+  .type-row .r .v{color:var(--muted);font-size:12px}
+
+  .motto-box{text-align:center;padding:20px 14px;border:1px solid var(--gold);background:linear-gradient(180deg,var(--cream),var(--ivory));border-radius:3px;position:relative}
+  .motto-box .lat{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--navy);letter-spacing:.1em;margin-bottom:4px}
+  .motto-box .en{font-family:var(--serif);font-size:13px;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px}
+  .motto-box .kr{font-size:12.5px;color:var(--muted)}
+  .motto-box::before,.motto-box::after{content:"";position:absolute;width:18px;height:18px;border:1px solid var(--gold)}
+  .motto-box::before{top:6px;left:6px;border-right:none;border-bottom:none}
+  .motto-box::after{bottom:6px;right:6px;border-left:none;border-top:none}
+
+  /* ═══════════════════════════════════════════════
+     PORTAL SITEMAP
+     ═══════════════════════════════════════════════ */
+  .portal{
+    background:var(--cream);
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:0;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(14,30,58,.04);
+  }
+  .portal-nav{
+    background:var(--navy);
+    color:var(--cream);
+    padding:18px 32px;
+    display:flex;
+    align-items:center;
+    gap:32px;
+    border-bottom:3px solid var(--gold);
+  }
+  .portal-nav .logo-sm{display:flex;align-items:center;gap:10px}
+  .portal-nav .logo-sm .t{font-family:var(--serif);font-size:20px;letter-spacing:.16em;font-weight:500}
+  .portal-nav .menu{display:flex;gap:26px;font-family:var(--serif);font-size:15px;letter-spacing:.08em}
+  .portal-nav .menu a{color:var(--cream);opacity:.9;text-decoration:none;padding:4px 0;border-bottom:1px solid transparent}
+  .portal-nav .menu a.active{color:var(--gold-2);border-bottom-color:var(--gold)}
+  .portal-nav .cta{margin-left:auto;display:flex;gap:10px}
+  .portal-nav .cta .btn{font-family:var(--serif);font-size:13px;letter-spacing:.12em;padding:8px 16px;border-radius:2px;text-transform:uppercase}
+  .portal-nav .cta .btn.g{background:var(--gold);color:var(--navy);font-weight:600}
+  .portal-nav .cta .btn.o{border:1px solid var(--gold-2);color:var(--gold-2)}
+
+  .portal-hero{
+    padding:48px 32px;
+    background:linear-gradient(180deg,var(--cream),var(--ivory));
+    display:grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap:40px;
+    align-items:center;
+    border-bottom:1px solid var(--line-2);
+  }
+  .ph-left .eyebrow{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);letter-spacing:.25em;text-transform:uppercase;margin-bottom:8px}
+  .ph-left h3{font-family:var(--serif);font-weight:500;font-size:44px;line-height:1.1;margin:0 0 14px;color:var(--navy);letter-spacing:-.01em}
+  .ph-left h3 em{font-style:italic;color:var(--gold)}
+  .ph-left p{color:var(--muted);font-size:14px;max-width:440px}
+  .ph-left .ctas{margin-top:20px;display:flex;gap:12px}
+  .ph-left .btn{font-family:var(--serif);font-size:13px;letter-spacing:.12em;padding:10px 20px;border-radius:2px;text-transform:uppercase;display:inline-block}
+  .ph-left .btn.primary{background:var(--navy);color:var(--gold-2);border:1px solid var(--navy)}
+  .ph-left .btn.ghost{background:transparent;color:var(--navy);border:1px solid var(--navy)}
+  .ph-visual{
+    aspect-ratio:4/3;
+    border:1px solid var(--line);
+    background:
+      radial-gradient(ellipse at 30% 20%, var(--gold-3), transparent 50%),
+      linear-gradient(135deg,var(--ivory-2),var(--cream));
+    border-radius:3px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ph-visual::before{content:"";position:absolute;inset:14px;border:1px solid var(--gold);pointer-events:none}
+  .ph-visual svg{width:58%;height:58%;opacity:.9}
+
+  .portal-sections{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--line-2);
+  }
+  .psec{background:var(--cream);padding:26px 22px;min-height:180px;position:relative}
+  .psec .num{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--gold);letter-spacing:.2em;margin-bottom:6px}
+  .psec h4{font-family:var(--serif);font-size:22px;font-weight:600;margin:0 0 8px;color:var(--navy);letter-spacing:-.005em}
+  .psec p{color:var(--muted);font-size:13px;margin:0 0 14px;line-height:1.55}
+  .psec .meta{font-size:11.5px;color:var(--navy-3);font-family:var(--serif);font-style:italic;letter-spacing:.1em;position:absolute;bottom:20px;left:22px;right:22px;padding-top:10px;border-top:1px solid var(--line-2)}
+  .psec.hl{background:linear-gradient(180deg,var(--cream),var(--ivory-2))}
+
+  .portal-footer{
+    padding:18px 32px;
+    background:var(--navy);
+    color:#A7B3CC;
+    font-size:12px;
+    letter-spacing:.05em;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-top:4px solid var(--gold);
+  }
+  .portal-footer .lat{font-family:var(--serif);font-style:italic;color:var(--gold-2);letter-spacing:.3em}
+
+  /* ═══════════════════════════════════════════════
+     SYSTEM COMPOSITION
+     ═══════════════════════════════════════════════ */
+  .composition{
+    background:var(--cream);
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:36px;
+    box-shadow:0 2px 8px rgba(14,30,58,.04);
+  }
+  .composition .wrap{display:grid;grid-template-columns:260px 1fr 260px;gap:24px;align-items:stretch}
+  .col-head{font-family:var(--serif);font-size:12px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;font-weight:600;margin-bottom:12px}
+  .stack{display:flex;flex-direction:column;gap:12px}
+  .card{
+    background:var(--cream);
+    border:1px solid var(--line-2);
+    border-left:3px solid var(--navy-3);
+    border-radius:2px;
+    padding:14px 16px;
+  }
+  .card .t{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--navy);margin-bottom:3px;letter-spacing:-.005em}
+  .card .d{color:var(--muted);font-size:12.5px;line-height:1.5}
+  .card.user{border-left-color:var(--navy-3)}
+  .card.ama{border-left-color:var(--ama);background:var(--ama-bg)}
+  .card.ext{border-left-color:var(--gold);background:var(--ivory-2)}
+
+  .core{
+    background:var(--navy);
+    color:var(--cream);
+    border-radius:4px;
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    min-height:620px;
+  }
+  .core::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+  .core::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 200px at 20% -10%,rgba(201,166,86,.12),transparent 60%);pointer-events:none}
+  .core .brand-row{display:flex;align-items:center;gap:14px;position:relative}
+  .core .brand-row .n{font-family:var(--serif);font-size:22px;letter-spacing:.1em;font-weight:500;color:var(--cream)}
+  .core .brand-row .u{font-family:var(--serif);font-style:italic;font-size:11px;letter-spacing:.25em;color:var(--gold-2);text-transform:uppercase;margin-top:2px}
+  .core .label{font-family:var(--serif);font-size:11px;letter-spacing:.25em;color:var(--gold);text-transform:uppercase;font-weight:600;margin-top:8px;position:relative;padding-bottom:4px;border-bottom:1px solid rgba(201,166,86,.3)}
+
+  .mods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative}
+  .mod{background:rgba(255,253,247,.06);border:1px solid rgba(201,166,86,.25);border-radius:2px;padding:12px 12px}
+  .mod .h{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--cream);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+  .mod .s{font-size:11.5px;color:#B8C3DA;line-height:1.4}
+  .mod.hl{border-color:var(--gold-2);background:rgba(201,166,86,.12)}
+
+  .core .foot{margin-top:auto;display:flex;gap:8px;flex-wrap:wrap;position:relative;padding-top:12px;border-top:1px solid rgba(201,166,86,.2)}
+  .core .foot .tg{font-family:var(--serif);font-size:11px;letter-spacing:.08em;padding:3px 10px;color:var(--gold-2);border:1px solid rgba(201,166,86,.4);border-radius:2px}
+
+  /* ═══════════════════════════════════════════════
+     DATA FLOW
+     ═══════════════════════════════════════════════ */
+  .flow{background:var(--cream);border:1px solid var(--line-2);border-radius:4px;padding:32px;box-shadow:0 2px 8px rgba(14,30,58,.04)}
+  .flow-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .col{border-radius:3px;padding:22px;border:1px solid var(--line-2);background:var(--cream)}
+  .col.tr{border-top:4px solid var(--navy)}
+  .col.br{border-top:4px solid var(--gold);background:var(--ivory-2)}
+  .col.am{border-top:4px solid var(--ama);background:var(--ama-bg)}
+  .col h4{font-family:var(--serif);font-size:11.5px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;font-weight:600;margin:0 0 8px}
+  .col .title{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:14px;letter-spacing:-.005em}
+  .col.tr .title{color:var(--navy)}
+  .col.br .title{color:#9A7A2E}
+  .col.am .title{color:var(--ama)}
+  .col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .col li{background:var(--cream);border:1px solid var(--line-2);border-radius:2px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+  .col li .k{font-family:"SF Mono",Menlo,monospace;font-size:10.5px;color:var(--muted);letter-spacing:.1em;min-width:54px;padding-top:2px;font-weight:600}
+  .col li .v{color:var(--ink-2)}
+  .arrows{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 0 2px;color:var(--muted);font-size:12px;font-family:var(--serif);font-style:italic}
+
+  /* ═══════════════════════════════════════════════
+     USER JOURNEY
+     ═══════════════════════════════════════════════ */
+  .journey{background:var(--cream);border:1px solid var(--line-2);border-radius:4px;padding:32px;box-shadow:0 2px 8px rgba(14,30,58,.04)}
+  .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .step{border:1px solid var(--line-2);border-radius:2px;padding:18px 14px;background:var(--cream);position:relative;min-height:170px}
+  .step::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--navy)}
+  .step.ama-step::before{background:var(--ama)}
+  .step .n{font-family:var(--serif);font-size:11px;color:var(--gold);letter-spacing:.2em;font-weight:600;font-style:italic}
+  .step .t{font-family:var(--serif);font-weight:600;font-size:17px;margin-top:4px;margin-bottom:6px;color:var(--navy);letter-spacing:-.005em}
+  .step .d{font-size:12px;color:var(--muted);line-height:1.5}
+  .step .who{margin-top:10px;font-size:11px;display:flex;flex-wrap:wrap;gap:4px}
+  .step .b{display:inline-block;padding:2px 8px;border-radius:2px;font-weight:600;font-size:10.5px;letter-spacing:.05em}
+  .step .b.parent{background:#FFE9DC;color:#8C3D13}
+  .step .b.staff{background:#DFE6F6;color:var(--navy)}
+  .step .b.teacher{background:#D8EEE5;color:#206649}
+  .step .b.system{background:#E8E4D6;color:#6F5F2E}
+  .step .tag{position:absolute;top:12px;right:12px;font-family:var(--serif);font-size:10px;background:var(--ama-bg);color:var(--ama);padding:2px 8px;border-radius:2px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+
+  /* ═══════════════════════════════════════════════
+     TECH LAYERS
+     ═══════════════════════════════════════════════ */
+  .layer{background:var(--cream);border:1px solid var(--line-2);border-radius:4px;padding:32px;box-shadow:0 2px 8px rgba(14,30,58,.04)}
+  .layers{display:flex;flex-direction:column;gap:10px}
+  .layer-row{display:grid;grid-template-columns:180px 1fr;gap:14px;align-items:stretch}
+  .layer-name{display:flex;flex-direction:column;justify-content:center;background:var(--navy);color:var(--cream);border-radius:2px;padding:16px 18px;position:relative;overflow:hidden}
+  .layer-name::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+  .layer-name .lv{font-family:var(--serif);font-size:11px;letter-spacing:.22em;color:var(--gold-2);font-weight:600;font-style:italic}
+  .layer-name .nm{font-family:var(--serif);font-size:17px;font-weight:600;margin-top:2px;letter-spacing:.02em}
+  .layer-cells{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cell{background:var(--cream);border:1px solid var(--line-2);border-radius:2px;padding:13px 14px;display:flex;flex-direction:column;gap:3px;border-left:3px solid var(--navy-3)}
+  .cell .t{font-family:var(--serif);font-weight:600;font-size:14px;color:var(--navy)}
+  .cell .s{font-size:11.5px;color:var(--muted);line-height:1.45}
+  .cell.tr{border-left-color:var(--navy)}
+  .cell.am{border-left-color:var(--ama);background:var(--ama-bg)}
+  .cell.sh{border-left-color:var(--gold)}
+  .cell.ext{border-left-color:var(--warn)}
+
+  /* ═══════════════════════════════════════════════
+     MATRIX
+     ═══════════════════════════════════════════════ */
+  .matrix{background:var(--cream);border:1px solid var(--line-2);border-radius:4px;padding:32px;box-shadow:0 2px 8px rgba(14,30,58,.04)}
+  table.m{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  table.m th,table.m td{border-bottom:1px solid var(--line-2);padding:11px 12px;text-align:left;vertical-align:top}
+  table.m thead th{background:var(--ivory-2);color:var(--navy);font-family:var(--serif);font-size:11.5px;letter-spacing:.15em;font-weight:600;text-transform:uppercase}
+  table.m td.tr{color:var(--navy);font-weight:700}
+  table.m td.am{color:var(--ama);font-weight:700}
+  table.m .b{display:inline-block;padding:2px 10px;border-radius:2px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--serif)}
+  table.m .b.p0{background:var(--navy);color:var(--gold-2)}
+  table.m .b.p1{background:var(--gold);color:var(--navy)}
+  table.m .b.p2{background:var(--ivory-2);color:var(--muted);border:1px solid var(--line)}
+
+  /* ═══════════════════════════════════════════════
+     PRINCIPLES
+     ═══════════════════════════════════════════════ */
+  .prins{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .prin{background:var(--cream);border:1px solid var(--line-2);border-radius:3px;padding:26px 24px;position:relative;border-top:3px solid var(--gold)}
+  .prin .n{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);letter-spacing:.22em;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+  .prin h5{font-family:var(--serif);font-size:22px;color:var(--navy);font-weight:600;margin:0 0 10px;letter-spacing:-.005em}
+  .prin p{font-size:13px;color:var(--muted);margin:0;line-height:1.6}
+  .prin p strong{color:var(--navy);font-weight:600}
+  .prin p code{color:var(--navy-2)}
+
+  /* ═══════════════════════════════════════════════
+     LEGEND & FOOTER
+     ═══════════════════════════════════════════════ */
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font-size:12px;color:var(--muted);font-family:var(--serif);font-style:italic}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .legend .dot.tr{background:var(--navy)}
+  .legend .dot.am{background:var(--ama)}
+  .legend .dot.sh{background:var(--gold)}
+  .legend .dot.ex{background:var(--warn)}
+
+  footer.doc{margin-top:44px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;border-top:1px solid var(--gold);padding-top:18px;font-family:var(--serif);font-style:italic;letter-spacing:.08em}
+  footer.doc .lat{color:var(--gold);letter-spacing:.3em}
+
+  @media (max-width:1080px){
+    .composition .wrap{grid-template-columns:1fr}
+    .flow-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:repeat(2,1fr)}
+    .layer-row{grid-template-columns:1fr}
+    .layer-cells{grid-template-columns:repeat(2,1fr)}
+    .brand-panel{grid-template-columns:1fr}
+    .portal-sections{grid-template-columns:repeat(2,1fr)}
+    .portal-hero{grid-template-columns:1fr}
+    .prins{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- Reusable shield logo SVG (inline, scalable) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="crest" viewBox="0 0 100 118">
+      <!-- Pennant on top -->
+      <rect x="52" y="2" width="1.6" height="16" fill="currentColor"/>
+      <path d="M53.6 3 L73 8 L53.6 13 Z" fill="currentColor"/>
+      <!-- Shield top with 3 castellations -->
+      <path d="M22 18 L22 26 L30 26 L30 20 L40 20 L40 26 L48 26 L48 20 L58 20 L58 26 L66 26 L66 20 L76 20 L76 26 L78 26 L78 36 L78 78 Q78 98 50 114 Q22 98 22 78 L22 36 Z" fill="currentColor"/>
+      <!-- Inner cream quadrants -->
+      <rect x="28" y="32" width="21" height="26" fill="#FAF7EE"/>
+      <rect x="51" y="32" width="21" height="26" fill="#FAF7EE"/>
+      <rect x="28" y="60" width="21" height="26" fill="#FAF7EE"/>
+      <rect x="51" y="60" width="21" height="26" fill="#FAF7EE"/>
+      <!-- T letter top-left -->
+      <path d="M32 38 L45 38 L45 41 L40.3 41 L40.3 55 L36.7 55 L36.7 41 L32 41 Z" fill="currentColor"/>
+      <!-- Cross top-right -->
+      <rect x="60" y="36" width="3" height="18" fill="currentColor"/>
+      <rect x="55" y="43" width="13" height="3" fill="currentColor"/>
+      <circle cx="61.5" cy="37" r="2.3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <!-- Crown bottom-left -->
+      <path d="M32 72 L34 67 L37 71 L40 66 L42.5 71 L45 67 L46.5 72 L46.5 78 L32 78 Z" fill="currentColor"/>
+      <!-- 3 stars bottom-right -->
+      <g transform="translate(55,66)" fill="currentColor">
+        <path d="M4 0 L5 2.8 L8 2.8 L5.5 4.6 L6.5 7.4 L4 5.6 L1.5 7.4 L2.5 4.6 L0 2.8 L3 2.8 Z"/>
+        <path d="M13 0 L14 2.8 L17 2.8 L14.5 4.6 L15.5 7.4 L13 5.6 L10.5 7.4 L11.5 4.6 L9 2.8 L12 2.8 Z"/>
+        <path d="M8.5 9 L9.5 11.8 L12.5 11.8 L10 13.6 L11 16.4 L8.5 14.6 L6 16.4 L7 13.6 L4.5 11.8 L7.5 11.8 Z"/>
+      </g>
+      <!-- Thin shield outline accent -->
+      <path d="M22 18 L22 26 L30 26 L30 20 L40 20 L40 26 L48 26 L48 20 L58 20 L58 26 L66 26 L66 20 L76 20 L76 26 L78 26 L78 36 L78 78 Q78 98 50 114 Q22 98 22 78 L22 36 Z" fill="none" stroke="#FAF7EE" stroke-width="0.8"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <header class="hero">
+    <div class="hero-top">
+      <svg class="crest" style="color:var(--gold)"><use href="#crest"/></svg>
+      <div class="brand-mark">
+        <h1>TRINITY ACADEMY</h1>
+        <div class="motto">· OMNIBUS OMNIA ·</div>
+        <div class="kr">트리니티 아카데미 · 통합 운영 플랫폼</div>
+      </div>
+    </div>
+    <div class="hero-body">
+      <div class="hero-eyebrow">Concept Composition · v0.2</div>
+      <h1 class="hero-title">Trinity Academy Main <em>×</em> AMA Integrated</h1>
+      <p class="hero-sub">트리니티아카데미 포털(trinityacademy.kr)을 메인 플랫폼으로 두고, 아메바에이아이(AMA)는 교사 마스터 데이터와 메시지 채널을 제공하는 <strong style="color:var(--gold-2)">연동 서비스</strong>로 배치한다. 수강료 결제·학원 운영·MAP 평가·시간표·상담의 모든 쓰기 주체는 Trinity이며, React 기반 단일 프론트엔드로 관리자·교사·학부모·학생 뷰를 제공한다.</p>
+      <div class="hero-meta">
+        <span><strong>MAIN</strong> Trinity Academy (React + Next.js)</span>
+        <span><strong>INTEGRATION</strong> AMA Client · AmoebaTalk</span>
+        <span><strong>PAYMENT</strong> Trinity 자체 PG 연동</span>
+        <span><strong>DOMAIN</strong> trinityacademy.kr</span>
+      </div>
+      <div style="margin-top:18px;position:relative">
+        <span class="pill">Main = Trinity</span>
+        <span class="pill">AMA 1:1 참조</span>
+        <span class="pill">React SPA</span>
+        <span class="pill">Trinity Pay</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════ 1. BRAND IDENTITY ═══════════ -->
+  <h2 class="section-title"><span class="n">I.</span>Brand Identity<span class="en">— 브랜드 시스템</span></h2>
+  <div class="divider"></div>
+
+  <div class="brand-panel">
+    <div class="bp-card">
+      <h3>Mark &amp; Motto</h3>
+      <div style="display:flex;align-items:center;gap:20px;padding:20px 0;border:1px solid var(--line-2);border-radius:2px;background:var(--ivory);justify-content:center">
+        <svg width="100" height="118" style="color:var(--navy)"><use href="#crest"/></svg>
+        <div>
+          <div style="font-family:var(--serif);font-size:26px;letter-spacing:.16em;color:var(--navy);font-weight:500">TRINITY</div>
+          <div style="font-family:var(--serif);font-size:26px;letter-spacing:.16em;color:var(--navy);font-weight:500;margin-top:-4px">ACADEMY</div>
+          <div style="font-family:var(--serif);font-style:italic;font-size:11px;letter-spacing:.28em;color:var(--gold);margin-top:6px">OMNIBUS OMNIA</div>
+        </div>
+      </div>
+      <div class="motto-box" style="margin-top:14px">
+        <div class="lat">Omnibus Omnia</div>
+        <div class="en">All things to all</div>
+        <div class="kr">모든 이에게 모든 것이 되어 · 1 Cor 9:22</div>
+      </div>
+    </div>
+
+    <div class="bp-card">
+      <h3>Color Palette</h3>
+      <div class="color-stack">
+        <div class="color">
+          <div class="swatch" style="background:var(--navy)"></div>
+          <div><div class="name">Trinity Navy</div><div class="hex">#0E1E3A</div><div class="role">Primary · 배경·헤더·브랜드</div></div>
+        </div>
+        <div class="color">
+          <div class="swatch" style="background:var(--gold);border:1px solid var(--gold-2)"></div>
+          <div><div class="name">Heraldic Gold</div><div class="hex">#C9A656</div><div class="role">Accent · CTA·강조·구분선</div></div>
+        </div>
+        <div class="color">
+          <div class="swatch" style="background:var(--ivory);border:1px solid var(--line)"></div>
+          <div><div class="name">Cream Ivory</div><div class="hex">#FAF7EE</div><div class="role">Background · 본문 배경</div></div>
+        </div>
+        <div class="color">
+          <div class="swatch" style="background:var(--ink)"></div>
+          <div><div class="name">Deep Ink</div><div class="hex">#0B0D14</div><div class="role">Body · 본문 텍스트</div></div>
+        </div>
+        <div class="color">
+          <div class="swatch" style="background:var(--ama);border:1px solid #5A3F98"></div>
+          <div><div class="name">AMA Accent</div><div class="hex">#6F4DB8</div><div class="role">Integration · AMA 연동 표시</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bp-card">
+      <h3>Typography</h3>
+      <div class="type-sample">Trinity Academy<br><span class="it">omnibus omnia</span></div>
+      <div class="type-row">
+        <div class="r"><span class="l">Display Serif</span><span class="v">Cormorant Garamond</span></div>
+        <div class="r"><span class="l">Korean Serif</span><span class="v">Noto Serif KR</span></div>
+        <div class="r"><span class="l">Body Sans</span><span class="v">Inter · Pretendard</span></div>
+        <div class="r"><span class="l">Mono</span><span class="v">SF Mono</span></div>
+      </div>
+      <p style="margin:14px 0 0;font-size:12px;color:var(--muted);font-style:italic;font-family:var(--serif)">영문은 고전적 세리프, 본문은 모던 산세리프. 라틴 모토는 italic + letter-spacing 0.2em 이상.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ 2. PORTAL SITE CONCEPT ═══════════ -->
+  <h2 class="section-title"><span class="n">II.</span>Portal Site Concept<span class="en">— trinityacademy.kr 기반</span></h2>
+  <div class="divider"></div>
+  <p class="lead">현재 포털(<code>trinityacademy.kr</code>)·상담 페이지(<code>/contact</code>)·MAP 테스트 페이지(<code>/test</code>)의 섹션 구성을 유지하되, React 기반으로 재구현하여 관리 시스템과 데이터를 공유한다. imweb 기반 정적 페이지를 점진적 교체 — Stale Path 방식(Phase 1 공존).</p>
+
+  <div class="portal">
+    <!-- Portal top nav -->
+    <nav class="portal-nav">
+      <div class="logo-sm">
+        <svg width="28" height="33" style="color:var(--gold)"><use href="#crest"/></svg>
+        <div class="t">TRINITY ACADEMY</div>
+      </div>
+      <div class="menu">
+        <a class="active">Home</a>
+        <a>About</a>
+        <a>Programs</a>
+        <a>MAP Test</a>
+        <a>Contact</a>
+        <a>News</a>
+      </div>
+      <div class="cta">
+        <span class="btn o">Login</span>
+        <span class="btn g">Apply</span>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="portal-hero">
+      <div class="ph-left">
+        <div class="eyebrow">Since 2018 · Since Trinity</div>
+        <h3>Educating the Whole Child,<br><em>Omnibus Omnia.</em></h3>
+        <p>모든 학생에게 최고의 교육을. 트리니티아카데미는 MAP 평가와 맞춤 커리큘럼으로 RC·Math·Language 전영역에서 학생의 성장을 이끕니다.</p>
+        <div class="ctas">
+          <span class="btn primary">무료 상담 신청</span>
+          <span class="btn ghost">MAP 테스트 안내</span>
+        </div>
+      </div>
+      <div class="ph-visual">
+        <svg style="color:var(--navy)"><use href="#crest"/></svg>
+      </div>
+    </div>
+
+    <!-- Section cards -->
+    <div class="portal-sections">
+      <div class="psec hl">
+        <div class="num">§ 01</div>
+        <h4>Home</h4>
+        <p>Hero · 브랜드 스토리 · 대표 프로그램 · 소식/성과 · 문의 CTA</p>
+        <div class="meta">/ — trinityacademy.kr</div>
+      </div>
+      <div class="psec">
+        <div class="num">§ 02</div>
+        <h4>About</h4>
+        <p>학원 소개, 교육 철학(Omnibus Omnia), 교사진(AMA Client 풀 노출), 시설</p>
+        <div class="meta">/about</div>
+      </div>
+      <div class="psec">
+        <div class="num">§ 03</div>
+        <h4>Programs</h4>
+        <p>프로그램 카탈로그(FR-003). 수강료·정원·시작일 공개, <strong>수강 신청 → Trinity Pay 결제</strong></p>
+        <div class="meta">/programs · /programs/:id</div>
+      </div>
+      <div class="psec hl">
+        <div class="num">§ 04</div>
+        <h4>MAP Test</h4>
+        <p>학년별 샘플 문제, 응시 예약·결과 확인. Auth 후 응시 UI 또는 오프라인 안내</p>
+        <div class="meta">/test · /test/result</div>
+      </div>
+      <div class="psec hl">
+        <div class="num">§ 05</div>
+        <h4>Contact / Consultation</h4>
+        <p>학부모 상담 Intake Form(FN-010) — 이름·연락처·자녀 정보·관심 프로그램·메모</p>
+        <div class="meta">/contact → consultations 테이블</div>
+      </div>
+      <div class="psec">
+        <div class="num">§ 06</div>
+        <h4>News &amp; Notice</h4>
+        <p>공지·합격 성과·뉴스레터 구독</p>
+        <div class="meta">/news</div>
+      </div>
+      <div class="psec">
+        <div class="num">§ 07</div>
+        <h4>Parent Portal (v1.2)</h4>
+        <p>자녀 시간표·MAP 점수 이력·수강료 결제 내역</p>
+        <div class="meta">/my (Auth)</div>
+      </div>
+      <div class="psec">
+        <div class="num">§ 08</div>
+        <h4>Admin Console</h4>
+        <p>Staff/Admin 전용 SPA — 상담/등록/시간표/MAP/대시보드</p>
+        <div class="meta">/admin (Auth + Role)</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="portal-footer">
+      <span>© 2026 Trinity Academy</span>
+      <span class="lat">OMNIBUS OMNIA</span>
+      <span>trinityacademy.kr</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ 3. SYSTEM COMPOSITION ═══════════ -->
+  <h2 class="section-title"><span class="n">III.</span>System Composition<span class="en">— 전체 구성도</span></h2>
+  <div class="divider"></div>
+  <p class="lead">Trinity가 중심에서 사용자 요청을 받고, AMA는 마스터 데이터·메시지만 담당. <strong>결제(Payment)는 Trinity 자체 모듈 + 외부 PG 직접 연동</strong>으로 구성한다 (AMA Pay 경유 없음).</p>
+
+  <div class="composition">
+    <div class="wrap">
+
+      <!-- Left: Users -->
+      <aside class="stack">
+        <div class="col-head">Users · 사용자</div>
+        <div class="card user"><div class="t">학원장 · Admin</div><div class="d">프로그램 기획, 커리큘럼·교재, KPI 대시보드</div></div>
+        <div class="card user"><div class="t">행정 직원 · Staff</div><div class="d">상담·방문·등록, 시간표 편성, TPI 관리</div></div>
+        <div class="card user"><div class="t">교사 · Teacher</div><div class="d">내 스케줄, 출결·수업시간, MAP 채점</div></div>
+        <div class="card user"><div class="t">학부모 · Parent</div><div class="d">상담 요청, 수강 신청, 결제, 시간표/성적 열람</div></div>
+        <div class="card user"><div class="t">콘텐츠 담당 · Editor</div><div class="d">MAP 지문·문항 업로드·태깅·검수</div></div>
+      </aside>
+
+      <!-- Center: Core -->
+      <div class="core">
+        <div class="brand-row">
+          <svg width="44" height="52" style="color:var(--gold)"><use href="#crest"/></svg>
+          <div>
+            <div class="n">TRINITY ACADEMY</div>
+            <div class="u">MAIN · React + Next.js · trinityacademy.kr</div>
+          </div>
+        </div>
+
+        <div class="label">▍ Public Portal — React SPA</div>
+        <div class="mods" style="grid-template-columns:repeat(4,1fr)">
+          <div class="mod"><div class="h">Home</div><div class="s">브랜드·성과</div></div>
+          <div class="mod"><div class="h">Programs</div><div class="s">카탈로그·신청</div></div>
+          <div class="mod"><div class="h">MAP Test</div><div class="s">/test 응시</div></div>
+          <div class="mod"><div class="h">Contact</div><div class="s">상담 Intake</div></div>
+        </div>
+
+        <div class="label">▍ Core Modules — Admin Console</div>
+        <div class="mods">
+          <div class="mod"><div class="h">Program</div><div class="s">커리큘럼·설정·Class</div></div>
+          <div class="mod"><div class="h">Consultation</div><div class="s">상담·방문·전환</div></div>
+          <div class="mod"><div class="h">Parent & Student</div><div class="s">TPI · 보호자</div></div>
+          <div class="mod hl"><div class="h">Enrollment</div><div class="s">수강·상태·수료</div></div>
+          <div class="mod hl"><div class="h">MAP 문제은행</div><div class="s">지문·문항·채점</div></div>
+          <div class="mod hl"><div class="h">Timetable</div><div class="s">시간표·출결</div></div>
+          <div class="mod"><div class="h">Trinity Pay</div><div class="s">수강료·환불</div></div>
+          <div class="mod"><div class="h">Dashboard</div><div class="s">KPI·리포트</div></div>
+          <div class="mod"><div class="h">Audit Log</div><div class="s">변경 이력</div></div>
+        </div>
+
+        <div class="label">▍ AMA Integration Layer (교사·메시지)</div>
+        <div class="mods" style="grid-template-columns:repeat(2,1fr)">
+          <div class="mod"><div class="h">Teacher Ref</div><div class="s">ama_client_id FK, 캐시 동기화</div></div>
+          <div class="mod"><div class="h">Notify</div><div class="s">AmoebaTalk 발송 채널</div></div>
+        </div>
+
+        <div class="foot">
+          <span class="tg">React 18</span>
+          <span class="tg">Next.js App Router</span>
+          <span class="tg">Tailwind</span>
+          <span class="tg">shadcn/ui</span>
+          <span class="tg">MySQL 8</span>
+          <span class="tg">RabbitMQ</span>
+          <span class="tg">Redis</span>
+          <span class="tg">S3 호환</span>
+        </div>
+      </div>
+
+      <!-- Right: External services -->
+      <aside class="stack">
+        <div class="col-head">External · 외부 서비스</div>
+        <div class="card ama"><div class="t">AMA Client <span style="color:var(--ama);font-size:10px;letter-spacing:.1em">· MASTER</span></div><div class="d">교사 마스터 단일 원천. Trinity는 <code>ama_client_id</code>로 참조, 로컬은 캐시만.</div></div>
+        <div class="card ama"><div class="t">AMA Webhook</div><div class="d"><code>client.updated / deactivated</code> → RabbitMQ → Teacher 캐시 갱신</div></div>
+        <div class="card ama"><div class="t">AmoebaTalk</div><div class="d">학부모 알림 · MAP 성적 통보 · 보강 안내</div></div>
+        <div class="card ext"><div class="t">PG (결제) <span style="color:var(--warn);font-size:10px;letter-spacing:.1em">· TRINITY 직결</span></div><div class="d">Trinity Pay 모듈 → Toss/KG이니시스 등 외부 PG 직접 연동</div></div>
+        <div class="card ext"><div class="t">Email / SMS</div><div class="d">Auth OTP, 기본 알림 · 이중 채널</div></div>
+        <div class="card ext"><div class="t">Object Storage</div><div class="d">MAP 지문 이미지, 시험지 PDF 저장 (S3 호환)</div></div>
+      </aside>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot tr"></i>Trinity 소유 · 학원 운영·결제 도메인</span>
+      <span><i class="dot am"></i>AMA 연동 · 교사 마스터·메시지</span>
+      <span><i class="dot sh"></i>공유 / 이벤트 버스</span>
+      <span><i class="dot ex"></i>외부 서비스 (PG · Storage · Email)</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ 4. DATA FLOW ═══════════ -->
+  <h2 class="section-title"><span class="n">IV.</span>Integration Flow<span class="en">— 데이터·이벤트 흐름</span></h2>
+  <div class="divider"></div>
+
+  <div class="flow">
+    <div class="flow-grid">
+      <div class="col tr">
+        <h4>TRINITY ACADEMY</h4>
+        <div class="title">학원 운영·결제 레이어</div>
+        <ul>
+          <li><span class="k">OWN</span><span class="v">Program, Class, Session, Enrollment, Attendance</span></li>
+          <li><span class="k">OWN</span><span class="v">Parent, Student (TPI), Consultation, Visit</span></li>
+          <li><span class="k">OWN</span><span class="v">MAP Passage / Item / TestSet / Score 이력</span></li>
+          <li><span class="k">OWN</span><span class="v">Timetable = Class × Session 파생 뷰</span></li>
+          <li><span class="k">OWN</span><span class="v"><strong>Payment · Refund · Invoice</strong> (Trinity Pay)</span></li>
+          <li><span class="k">CACHE</span><span class="v">teachers.cached_profile ← AMA</span></li>
+        </ul>
+      </div>
+
+      <div class="col br">
+        <h4>BRIDGE · 연동 레이어</h4>
+        <div class="title">Event · Webhook · API</div>
+        <ul>
+          <li><span class="k">IN</span><span class="v">POST /webhooks/ama (HMAC) → RabbitMQ</span></li>
+          <li><span class="k">OUT</span><span class="v">Trinity → AMA REST (Client search / fetch)</span></li>
+          <li><span class="k">OUT</span><span class="v">enrollment.created / map.graded → AmoebaTalk</span></li>
+          <li><span class="k">IN</span><span class="v">PG Webhook (payment.succeeded / .failed)</span></li>
+          <li><span class="k">BATCH</span><span class="v">02:00 KST drift-guard polling (7-day)</span></li>
+          <li><span class="k">AUTH</span><span class="v">Service Token + mTLS (내부망)</span></li>
+        </ul>
+      </div>
+
+      <div class="col am">
+        <h4>AMA &amp; PG</h4>
+        <div class="title">마스터 · 메시지 · 결제</div>
+        <ul>
+          <li><span class="k">MASTER</span><span class="v">AMA Client(거래처) = 교사 원본</span></li>
+          <li><span class="k">EVENT</span><span class="v">AMA: client.updated / .deactivated</span></li>
+          <li><span class="k">API</span><span class="v">AMA: GET /clients, /clients/{id}</span></li>
+          <li><span class="k">MSG</span><span class="v">AmoebaTalk Send API</span></li>
+          <li><span class="k">PAY</span><span class="v"><strong>Trinity → PG 직결</strong> (AMA 경유 X)</span></li>
+          <li><span class="k">LIMIT</span><span class="v">AMA는 결제·정산에 관여하지 않음</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrows">
+      ◀ Trinity가 AMA·PG를 호출 (참조/결제)　　|　　AMA·PG가 Trinity로 이벤트 푸시 ▶
+    </div>
+  </div>
+
+  <!-- ═══════════ 5. USER JOURNEY ═══════════ -->
+  <h2 class="section-title"><span class="n">V.</span>User Journey<span class="en">— 상담부터 수료까지</span></h2>
+  <div class="divider"></div>
+  <p class="lead">포털 사이트 진입 → 상담 → 방문·전환 → 수강 신청·결제 → 시간표 운영 → MAP 평가 → 성과 통보까지. 각 단계에서 AMA가 기여하는 지점을 별도 태그로 표시.</p>
+
+  <div class="journey">
+    <div class="steps">
+      <div class="step">
+        <div class="n">Step 01</div>
+        <div class="t">Contact Intake</div>
+        <div class="d">포털 <code>/contact</code>에서 학부모 문의 접수, 담당자 자동 배정</div>
+        <div class="who"><span class="b parent">Parent</span><span class="b staff">Staff</span></div>
+      </div>
+      <div class="step">
+        <div class="n">Step 02</div>
+        <div class="t">Visit · Convert</div>
+        <div class="d">방문 이력 기록 → Student 생성 → Enrollment 전환</div>
+        <div class="who"><span class="b staff">Staff</span></div>
+      </div>
+      <div class="step ama-step">
+        <div class="n">Step 03</div>
+        <div class="t">Teacher Assign</div>
+        <div class="d">AMA Client 검색 → 강의에 교사 지정, 스케줄 확정</div>
+        <div class="who"><span class="b staff">Staff</span></div>
+        <div class="tag">AMA</div>
+      </div>
+      <div class="step">
+        <div class="n">Step 04</div>
+        <div class="t">Pay &amp; Enroll</div>
+        <div class="d"><strong>Trinity Pay</strong>로 수강료 결제 → Enrollment CONFIRMED</div>
+        <div class="who"><span class="b parent">Parent</span><span class="b system">System</span></div>
+      </div>
+      <div class="step">
+        <div class="n">Step 05</div>
+        <div class="t">Timetable &amp; MAP</div>
+        <div class="d">요일×시간 그리드 운영 · MAP Test Set 배정·채점</div>
+        <div class="who"><span class="b teacher">Teacher</span><span class="b staff">Staff</span></div>
+      </div>
+      <div class="step ama-step">
+        <div class="n">Step 06</div>
+        <div class="t">Notify Results</div>
+        <div class="d">학부모 알림(AmoebaTalk) + 포털 /my 성적 조회</div>
+        <div class="who"><span class="b system">System</span><span class="b parent">Parent</span></div>
+        <div class="tag">AMA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 6. TECH STACK ═══════════ -->
+  <h2 class="section-title"><span class="n">VI.</span>Technical Stack<span class="en">— 기술 레이어</span></h2>
+  <div class="divider"></div>
+
+  <div class="layer">
+    <div class="layers">
+      <div class="layer-row">
+        <div class="layer-name"><span class="lv">LAYER V</span><span class="nm">Presentation</span></div>
+        <div class="layer-cells">
+          <div class="cell tr"><span class="t">Public Portal</span><span class="s">React + Next.js, trinityacademy.kr</span></div>
+          <div class="cell tr"><span class="t">Admin Console</span><span class="s">React SPA /admin, shadcn/ui</span></div>
+          <div class="cell tr"><span class="t">Teacher / Parent PWA</span><span class="s">내 스케줄, 자녀 성적</span></div>
+          <div class="cell am"><span class="t">AMA 콘솔 Link-out</span><span class="s">교사 상세 SSO (옵션)</span></div>
+        </div>
+      </div>
+
+      <div class="layer-row">
+        <div class="layer-name"><span class="lv">LAYER IV</span><span class="nm">Application API</span></div>
+        <div class="layer-cells">
+          <div class="cell tr"><span class="t">Next.js BFF</span><span class="s">/api/programs, /api/enrollments</span></div>
+          <div class="cell tr"><span class="t">MAP Service</span><span class="s">지문·문항·배정·채점</span></div>
+          <div class="cell tr"><span class="t">Trinity Pay Service</span><span class="s">결제·환불·인보이스</span></div>
+          <div class="cell am"><span class="t">AMA API Client</span><span class="s">GET /clients, Webhook receiver</span></div>
+        </div>
+      </div>
+
+      <div class="layer-row">
+        <div class="layer-name"><span class="lv">LAYER III</span><span class="nm">Domain · Data</span></div>
+        <div class="layer-cells">
+          <div class="cell tr"><span class="t">MySQL 8</span><span class="s">academies, classes, enrollments, ...</span></div>
+          <div class="cell tr"><span class="t">MAP Content Store</span><span class="s">passages, question_items, test_sets</span></div>
+          <div class="cell tr"><span class="t">Payment Ledger</span><span class="s">payments, refunds, invoices</span></div>
+          <div class="cell sh"><span class="t">Redis · Cache</span><span class="s">timetable, schedule TTL 60s</span></div>
+        </div>
+      </div>
+
+      <div class="layer-row">
+        <div class="layer-name"><span class="lv">LAYER II</span><span class="nm">Integration</span></div>
+        <div class="layer-cells">
+          <div class="cell sh"><span class="t">RabbitMQ</span><span class="s">ama.* / enrollment.* / payment.*</span></div>
+          <div class="cell sh"><span class="t">Webhook Gateway</span><span class="s">HMAC 검증 · AMA · PG 수신</span></div>
+          <div class="cell sh"><span class="t">Sync Worker</span><span class="s">teachers.cached_profile 갱신</span></div>
+          <div class="cell sh"><span class="t">Notifier</span><span class="s">AmoebaTalk · Email · SMS</span></div>
+        </div>
+      </div>
+
+      <div class="layer-row">
+        <div class="layer-name"><span class="lv">LAYER I</span><span class="nm">External</span></div>
+        <div class="layer-cells">
+          <div class="cell am"><span class="t">AMA Client Service</span><span class="s">거래처 마스터</span></div>
+          <div class="cell am"><span class="t">AmoebaTalk</span><span class="s">메시지 발송</span></div>
+          <div class="cell ext"><span class="t">PG (Toss / KG / NHN)</span><span class="s">Trinity Pay 직결</span></div>
+          <div class="cell ext"><span class="t">S3 호환 Storage</span><span class="s">MAP 자산, 인보이스 PDF</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot tr"></i>Trinity 소유</span>
+      <span><i class="dot am"></i>AMA 연동</span>
+      <span><i class="dot sh"></i>공유·비동기 미들웨어</span>
+      <span><i class="dot ex"></i>외부 서비스</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ 7. OWNERSHIP MATRIX ═══════════ -->
+  <h2 class="section-title"><span class="n">VII.</span>Ownership Matrix<span class="en">— 기능별 소유·연동</span></h2>
+  <div class="divider"></div>
+
+  <div class="matrix">
+    <table class="m">
+      <thead>
+        <tr>
+          <th style="width:24%">기능 · Feature</th>
+          <th style="width:14%">Owner</th>
+          <th style="width:22%">AMA / 외부 역할</th>
+          <th style="width:25%">동기화 방식</th>
+          <th style="width:15%">우선순위</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>프로그램 · 강의 · 수강 등록</td><td class="tr">Trinity</td><td>—</td><td>—</td><td><span class="b p0">P0</span></td></tr>
+        <tr><td>학부모 · 학생 · 상담 / 방문</td><td class="tr">Trinity</td><td>—</td><td>—</td><td><span class="b p0">P0</span></td></tr>
+        <tr><td>교사 마스터 프로필</td><td class="am">AMA</td><td>Single Source of Truth</td><td>Webhook + Daily Polling</td><td><span class="b p0">P0</span></td></tr>
+        <tr><td>교사 스케줄</td><td class="tr">Trinity</td><td>교사 식별자만 제공</td><td><code>ama_client_id</code> FK</td><td><span class="b p0">P0</span></td></tr>
+        <tr><td>출결 · 수업시간 기록</td><td class="tr">Trinity</td><td>—</td><td>—</td><td><span class="b p1">P1</span></td></tr>
+        <tr><td>MAP 문제은행 · 채점</td><td class="tr">Trinity</td><td>—</td><td>—</td><td><span class="b p0">P0</span></td></tr>
+        <tr><td><strong>수강료 결제 · 환불</strong></td><td class="tr">Trinity</td><td>외부 PG 직결 (AMA 경유 X)</td><td>REST + Webhook</td><td><span class="b p1">P1</span></td></tr>
+        <tr><td>학부모 알림 발송</td><td class="tr">Trinity</td><td>AmoebaTalk 송신 채널</td><td>REST API (동기)</td><td><span class="b p1">P1</span></td></tr>
+        <tr><td>SSO · 직원 계정</td><td class="am">AMA</td><td>OAuth2 / OIDC (옵션)</td><td>로그인 Redirect</td><td><span class="b p2">P2</span></td></tr>
+        <tr><td>대시보드 · KPI</td><td class="tr">Trinity</td><td>—</td><td>—</td><td><span class="b p2">P2</span></td></tr>
+      </tbody>
+    </table>
+    <div class="legend">
+      <span><span class="b p0" style="display:inline-block;font-family:var(--serif)">P0</span> MVP 필수</span>
+      <span><span class="b p1" style="display:inline-block;font-family:var(--serif)">P1</span> v1.1 범위</span>
+      <span><span class="b p2" style="display:inline-block;font-family:var(--serif)">P2</span> v1.2+ 확장</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ 8. PRINCIPLES ═══════════ -->
+  <h2 class="section-title"><span class="n">VIII.</span>Guiding Principles<span class="en">— 핵심 원칙</span></h2>
+  <div class="divider"></div>
+
+  <div class="prins">
+    <div class="prin">
+      <div class="n">Principle I</div>
+      <h5>Trinity Owns Operations &amp; Payment</h5>
+      <p>학원 업무·<strong>결제</strong>·MAP·시간표의 쓰기 주체는 <strong>Trinity</strong>. AMA 및 외부 서비스는 이 도메인에 쓰기 권한을 갖지 않는다. 결제는 Trinity Pay 모듈 → 외부 PG 직결.</p>
+    </div>
+    <div class="prin">
+      <div class="n">Principle II</div>
+      <h5>AMA as Master for Teachers</h5>
+      <p>교사(거래처) 마스터는 <strong>AMA가 유일한 원본</strong>. Trinity는 <code>ama_client_id</code>로 참조·<code>cached_profile</code>로 캐시만 유지. AMA Client 원본 수정은 금지.</p>
+    </div>
+    <div class="prin">
+      <div class="n">Principle III</div>
+      <h5>Event-driven · Resilient Bridge</h5>
+      <p>상태 변경은 <strong>RabbitMQ 이벤트</strong>로 분리하여 장애를 격리. Webhook 실패에 대비해 <strong>일일 02:00 KST Polling</strong>으로 drift 보정. 결제 Webhook은 멱등성 키로 중복 방지.</p>
+    </div>
+  </div>
+
+  <footer class="doc">
+    <span>Trinity × AMA · Concept Composition v0.2 · 2026-04-19</span>
+    <span class="lat">OMNIBUS OMNIA</span>
+    <span>김익용 · app-academy</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# ── Dependencies ──────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# ── Build output ──────────────────────────────────────────
+.next/
+out/
+dist/
+build/
+
+# ── TypeScript ────────────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Testing ───────────────────────────────────────────────
+coverage/
+
+# ── Environment variables (keep .env.example) ─────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── OS / IDE ──────────────────────────────────────────────
+.DS_Store
+*.pem
+.vscode/
+.idea/
+
+# ── Vercel ────────────────────────────────────────────────
+.vercel
+
+# ── Claude / local tooling ────────────────────────────────
+.claude/
+
+# ── Docker data volumes (if mounted locally) ──────────────
+docker-data/

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trinity Academy — Portal Mockup (v1.3)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="heraldic-tokens.css">
+<style>
+  /* Portal-specific overrides */
+  .portal-nav {
+    background: rgba(14, 30, 58, 0.95);
+    backdrop-filter: blur(8px);
+    color: var(--trinity-cream);
+    padding: var(--space-3) var(--space-6);
+    display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 20;
+    border-bottom: 1px solid rgba(201, 166, 86, 0.2);
+  }
+  .portal-nav a { color: var(--trinity-cream); font-size: var(--fs-sm); padding: var(--space-2) var(--space-3); }
+  .portal-nav a:hover { color: var(--trinity-gold); }
+  .portal-nav .brand { display: flex; align-items: center; gap: var(--space-3); font-family: var(--font-serif); font-weight: 600; font-size: var(--fs-lg); }
+  .portal-nav .shield-mini { width: 28px; height: 36px; }
+
+  .program-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--trinity-slate-300);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .program-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .program-card .thumbnail {
+    height: 160px;
+    background: linear-gradient(135deg, var(--trinity-navy) 0%, var(--trinity-navy-500) 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--trinity-gold);
+    font-family: var(--font-serif);
+    font-size: var(--fs-2xl);
+    letter-spacing: 0.05em;
+    position: relative;
+  }
+  .program-card .thumbnail.math {
+    background: linear-gradient(135deg, #1E3A5F 0%, #2A4D76 100%);
+  }
+  .program-card .thumbnail.map {
+    background: linear-gradient(135deg, #422A6B 0%, #5A3D8C 100%);
+  }
+  .program-card .body { padding: var(--space-5); }
+
+  .news-card {
+    background: white;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    border: 1px solid var(--trinity-slate-300);
+  }
+  .faculty-chip {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3);
+    background: var(--trinity-cream-deep);
+    border-radius: var(--radius-md);
+  }
+  .faculty-chip .avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--trinity-navy); color: var(--trinity-gold);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-weight: 600;
+  }
+
+  .portal-footer {
+    background: var(--trinity-navy);
+    color: var(--trinity-cream);
+    padding: var(--space-7) 0 var(--space-5);
+  }
+  .portal-footer h5 { color: var(--trinity-gold); font-family: var(--font-sans); font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: var(--space-3); }
+  .portal-footer a { color: var(--trinity-cream); opacity: 0.8; font-size: var(--fs-sm); display: block; margin-bottom: var(--space-2); }
+
+  /* Timeline */
+  .timeline-item { display: grid; grid-template-columns: 100px 1fr; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px solid var(--trinity-slate-300); }
+  .timeline-item .year { font-family: var(--font-serif); color: var(--trinity-gold-deep); font-size: var(--fs-xl); font-weight: 600; }
+
+  /* Form */
+  .form-row { display: grid; gap: var(--space-2); margin-bottom: var(--space-4); }
+  .form-row label { font-size: var(--fs-sm); color: var(--trinity-slate-700); font-weight: 500; }
+  .form-row input, .form-row select, .form-row textarea {
+    padding: var(--space-3); border: 1px solid var(--trinity-slate-300);
+    border-radius: var(--radius-md); font-family: var(--font-sans); font-size: var(--fs-sm);
+    background: white;
+  }
+  .checkbox-row { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); }
+
+  /* Score trend */
+  .sparkline {
+    height: 80px;
+    background: linear-gradient(180deg, rgba(201, 166, 86, 0.1) 0%, transparent 100%);
+    position: relative;
+    border-radius: var(--radius-md);
+  }
+  .sparkline svg { width: 100%; height: 100%; }
+
+  /* Child switcher */
+  .child-switcher { display: flex; gap: var(--space-2); }
+  .child-chip {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--trinity-slate-300);
+    background: white; cursor: pointer;
+    font-size: var(--fs-sm);
+  }
+  .child-chip.active { background: var(--trinity-navy); color: var(--trinity-cream); border-color: var(--trinity-navy); }
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Screen Index Header
+     ========================================================= -->
+<div style="background: var(--trinity-ink); color: var(--trinity-cream); padding: var(--space-4) var(--space-6); font-size: var(--fs-sm); display: flex; justify-content: space-between; align-items: center;">
+  <span class="font-mono">Trinity Portal Mockup · v1.3.0</span>
+  <span class="text-xs" style="color: var(--trinity-slate-500)">
+    <a href="#P-01" style="color: var(--trinity-gold);">P-01</a> ·
+    <a href="#P-02" style="color: var(--trinity-gold);">P-02</a> ·
+    <a href="#P-03" style="color: var(--trinity-gold);">P-03</a> ·
+    <a href="#P-04" style="color: var(--trinity-gold);">P-04</a> ·
+    <a href="#P-05" style="color: var(--trinity-gold);">P-05</a> ·
+    <a href="#P-06" style="color: var(--trinity-gold);">P-06</a> ·
+    <a href="#P-07" style="color: var(--trinity-gold);">P-07</a> ·
+    <a href="#P-10" style="color: var(--trinity-gold);">P-10</a>
+  </span>
+</div>
+
+<!-- =========================================================
+     P-01 · Home
+     ========================================================= -->
+<section id="P-01" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-01 · Home <span class="mockup-path">/ </span></div>
+    <div class="mockup-frame">
+
+      <!-- Top Nav -->
+      <nav class="portal-nav">
+        <div class="brand">
+          <div class="herald-shield shield-mini"><span>T</span></div>
+          <div>
+            <div>TRINITY ACADEMY</div>
+            <div class="motto" style="font-size: 10px;">OMNIBUS OMNIA</div>
+          </div>
+        </div>
+        <div>
+          <a href="#">About</a>
+          <a href="#">Programs</a>
+          <a href="#">MAP Test</a>
+          <a href="#">News</a>
+          <a href="#">Contact</a>
+          <a href="#" class="btn btn-gold btn-sm" style="margin-left: var(--space-2);">학부모 로그인</a>
+        </div>
+      </nav>
+
+      <!-- Hero -->
+      <div class="hero-navy" style="padding: var(--space-8) var(--space-6); text-align: center; min-height: 480px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div class="herald-shield" style="width: 80px; height: 100px; margin-bottom: var(--space-5);"><span style="font-size: 2rem;">T</span></div>
+        <div class="motto" style="font-size: var(--fs-base); color: var(--trinity-gold);">OMNIBUS OMNIA · 고린도전서 9:22</div>
+        <h1 style="font-size: 4rem; margin-top: var(--space-4);">모든 이에게 모든 것이 되어,<br/>한 사람의 성장을 이끕니다.</h1>
+        <p style="max-width: 640px; margin-top: var(--space-4); opacity: 0.85; font-size: var(--fs-lg);">Trinity Academy는 영어·수학·MAP 진단으로 G2–G12 학생의 학습 여정을 설계합니다.</p>
+        <div class="flex gap-3" style="margin-top: var(--space-6);">
+          <a href="#P-06" class="btn btn-gold">상담 예약 →</a>
+          <a href="#P-05" class="btn btn-outline" style="background: rgba(255,255,255,0.08); color: var(--trinity-cream); border-color: var(--trinity-gold);">MAP 진단 응시</a>
+        </div>
+      </div>
+
+      <!-- Programs Preview -->
+      <div class="container" style="padding: var(--space-8) var(--space-5);">
+        <div class="text-center mb-4" style="text-align: center;">
+          <div class="eyebrow">OUR PROGRAMS</div>
+          <h2 style="margin-top: var(--space-2);">세 개의 기둥</h2>
+        </div>
+        <div class="grid grid-3 gap-5 mt-4">
+          <div class="program-card">
+            <div class="thumbnail"><span>English · RC</span></div>
+            <div class="body">
+              <div class="eyebrow" style="color: var(--trinity-navy);">G2 – G12</div>
+              <h3 style="margin-top: var(--space-2);">Reading Comprehension</h3>
+              <p class="text-sm text-muted mt-2">MAP 지문 기반 정독·추론·서술형 훈련. Basic/Intermediate/Advanced 3 트랙.</p>
+              <a href="#P-04" class="btn btn-outline btn-sm mt-3">프로그램 보기</a>
+            </div>
+          </div>
+          <div class="program-card">
+            <div class="thumbnail math"><span>Math</span></div>
+            <div class="body">
+              <div class="eyebrow" style="color: var(--trinity-navy);">G2 – G12</div>
+              <h3 style="margin-top: var(--space-2);">Math Foundations</h3>
+              <p class="text-sm text-muted mt-2">개념 · 연산 · 서술형까지 단계별 설계. 학년별 심화 트랙 운영.</p>
+              <a href="#P-04" class="btn btn-outline btn-sm mt-3">프로그램 보기</a>
+            </div>
+          </div>
+          <div class="program-card">
+            <div class="thumbnail map"><span>MAP Test</span></div>
+            <div class="body">
+              <div class="eyebrow" style="color: var(--trinity-navy);">DIAGNOSTIC</div>
+              <h3 style="margin-top: var(--space-2);">MAP 진단 & 성적 리포트</h3>
+              <p class="text-sm text-muted mt-2">RC · Math · Language 3 영역 × G2–G5 × 3 난이도. 리포트 즉시 발급.</p>
+              <a href="#P-05" class="btn btn-outline btn-sm mt-3">응시하기</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="heraldic-divider" style="margin-top: var(--space-8);">
+          <span style="font-size: var(--fs-xl);">❖</span>
+        </div>
+
+        <!-- Faculty -->
+        <div class="text-center" style="text-align: center;">
+          <div class="eyebrow">OUR FACULTY</div>
+          <h2 style="margin-top: var(--space-2);">가르치는 이들</h2>
+        </div>
+        <div class="grid grid-4 gap-3 mt-4">
+          <div class="faculty-chip"><div class="avatar">김</div><div><div style="font-weight: 600;">김진우 선생님</div><div class="text-xs text-muted">영어 · G9-G12</div></div></div>
+          <div class="faculty-chip"><div class="avatar">이</div><div><div style="font-weight: 600;">이유나 선생님</div><div class="text-xs text-muted">영어 · G2-G8</div></div></div>
+          <div class="faculty-chip"><div class="avatar">박</div><div><div style="font-weight: 600;">박준호 선생님</div><div class="text-xs text-muted">수학 · G7-G12</div></div></div>
+          <div class="faculty-chip"><div class="avatar">최</div><div><div style="font-weight: 600;">최서영 선생님</div><div class="text-xs text-muted">수학 · G2-G6</div></div></div>
+        </div>
+
+        <!-- Results banner -->
+        <div style="margin-top: var(--space-7); padding: var(--space-6); background: var(--trinity-navy); border-radius: var(--radius-lg); color: var(--trinity-cream); text-align: center;">
+          <div class="motto" style="color: var(--trinity-gold);">TRUSTED BY PARENTS</div>
+          <h3 style="color: var(--trinity-cream); margin-top: var(--space-2);">2025년 합격 실적</h3>
+          <div class="grid grid-4 gap-5 mt-4">
+            <div><div class="stat-value font-serif" style="color: var(--trinity-gold); font-size: var(--fs-3xl);">127</div><div class="text-xs" style="opacity: 0.8;">특목고 합격</div></div>
+            <div><div class="stat-value font-serif" style="color: var(--trinity-gold); font-size: var(--fs-3xl);">43</div><div class="text-xs" style="opacity: 0.8;">국제학교 합격</div></div>
+            <div><div class="stat-value font-serif" style="color: var(--trinity-gold); font-size: var(--fs-3xl);">98%</div><div class="text-xs" style="opacity: 0.8;">MAP 평균 상승</div></div>
+            <div><div class="stat-value font-serif" style="color: var(--trinity-gold); font-size: var(--fs-3xl);">12년</div><div class="text-xs" style="opacity: 0.8;">Trinity 운영</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="portal-footer">
+        <div class="container grid grid-4 gap-5">
+          <div>
+            <div class="brand" style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3);">
+              <div class="herald-shield shield-mini"><span>T</span></div>
+              <div style="font-family: var(--font-serif); font-weight: 600;">TRINITY ACADEMY</div>
+            </div>
+            <div class="motto" style="color: var(--trinity-gold);">OMNIBUS OMNIA</div>
+            <p class="text-sm mt-3" style="opacity: 0.7;">고린도전서 9:22<br>"모든 이에게 모든 것이 되다"</p>
+          </div>
+          <div>
+            <h5>Programs</h5>
+            <a href="#">English · RC</a><a href="#">Math</a><a href="#">MAP Test</a>
+          </div>
+          <div>
+            <h5>Academy</h5>
+            <a href="#">About</a><a href="#">News</a><a href="#">Faculty</a>
+          </div>
+          <div>
+            <h5>Contact</h5>
+            <p class="text-sm" style="opacity: 0.7;">서울특별시 강남구<br>02-XXX-XXXX<br>hello@trinityacademy.kr</p>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-02 · About
+     ========================================================= -->
+<section id="P-02" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-02 · About & OMNIBUS OMNIA <span class="mockup-path">/about</span></div>
+    <div class="mockup-frame">
+      <div class="hero-navy" style="padding: var(--space-7) var(--space-6); text-align: center;">
+        <div class="motto" style="color: var(--trinity-gold);">PHILOSOPHY</div>
+        <h1 style="font-size: var(--fs-5xl); margin-top: var(--space-3);">OMNIBUS<br>OMNIA</h1>
+        <p style="max-width: 720px; margin: var(--space-5) auto; opacity: 0.9; font-size: var(--fs-lg); font-family: var(--font-serif); font-style: italic;">"내가 모든 사람에게 모든 것이 된 것은, 아무쪼록 몇 사람이라도 구원하고자 함이니."</p>
+        <p class="text-sm" style="opacity: 0.7;">— 고린도전서 9:22</p>
+      </div>
+
+      <div class="container" style="padding: var(--space-7) var(--space-5);">
+        <div class="grid grid-2 gap-5">
+          <div>
+            <div class="eyebrow">OUR STORY</div>
+            <h2 style="margin-top: var(--space-2);">연혁</h2>
+            <div class="mt-4">
+              <div class="timeline-item"><span class="year">2014</span><div><strong>Trinity Academy 개원</strong><p class="text-sm text-muted mt-2">강남구 대치동, 영어 RC 단일 과목 시작.</p></div></div>
+              <div class="timeline-item"><span class="year">2017</span><div><strong>MAP 진단 체계 도입</strong><p class="text-sm text-muted mt-2">G2-G5 RC/Math/Language 3 트랙 구축.</p></div></div>
+              <div class="timeline-item"><span class="year">2020</span><div><strong>수학 프로그램 런칭</strong><p class="text-sm text-muted mt-2">영어-수학 통합 커리큘럼 완성.</p></div></div>
+              <div class="timeline-item"><span class="year">2026</span><div><strong>Trinity 관리 솔루션 v1.3</strong><p class="text-sm text-muted mt-2">AMA 연동, 자체 결제, 수업일 기준 환불 정책 도입.</p></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="eyebrow">OUR PRINCIPLE</div>
+            <h2 style="margin-top: var(--space-2);">한 사람의 성장을 위해</h2>
+            <p class="mt-4 text-sm" style="line-height: 1.8;">Trinity 는 학생 개개인이 가진 학습 속도·성향·목표를 존중합니다. 같은 학년이라도 같은 커리큘럼을 주지 않습니다. MAP 진단으로 출발점을 명확히 하고, TPI (Trinity Profile Index) 로 성향을 읽어, 각자에게 맞는 경로를 제안합니다.</p>
+            <p class="mt-3 text-sm" style="line-height: 1.8;">방패 문양의 중심에는 T자와 십자가, 세 개의 별, 왕관, 페넌트가 놓여 있습니다. 학문·신앙·품격·연대 — 이 네 가치가 Trinity 의 교육 기반입니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-03 · Programs 목록
+     ========================================================= -->
+<section id="P-03" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-03 · Programs <span class="mockup-path">/programs</span></div>
+    <div class="mockup-frame" style="padding: var(--space-6);">
+
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <div class="eyebrow">CURRICULUM</div>
+          <h1 style="margin-top: var(--space-2);">프로그램 찾기</h1>
+        </div>
+        <div class="flex gap-2">
+          <select style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--trinity-slate-300);">
+            <option>과목: 전체</option><option>영어 RC</option><option>수학</option><option>MAP</option>
+          </select>
+          <select style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--trinity-slate-300);">
+            <option>학년: 전체</option><option>G2-G5</option><option>G6-G8</option><option>G9-G12</option>
+          </select>
+          <select style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--trinity-slate-300);">
+            <option>레벨: 전체</option><option>Basic</option><option>Intermediate</option><option>Advanced</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-3 gap-5">
+        <div class="program-card">
+          <div class="thumbnail"><span>RC · G2-G5</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-gold">Basic</span>
+              <span class="text-xs text-muted">매주 2회 · 12주</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">RC Foundation G2-G5</h3>
+            <p class="text-sm text-muted mt-2">MAP Basic 지문 기반 정독 훈련. 파닉스-문장-문단 3단계.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩480,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+        <div class="program-card">
+          <div class="thumbnail"><span>RC · G6-G8</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-navy">Intermediate</span>
+              <span class="text-xs text-muted">매주 3회 · 12주</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">RC Accelerate G6-G8</h3>
+            <p class="text-sm text-muted mt-2">추론·요약·어휘 심화. 수능형 서술 답안 훈련.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩640,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+        <div class="program-card">
+          <div class="thumbnail math"><span>Math · G2-G5</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-gold">Basic</span>
+              <span class="text-xs text-muted">매주 2회 · 12주</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">Math Core G2-G5</h3>
+            <p class="text-sm text-muted mt-2">연산·개념·문장제 3 파트 교차 훈련. 주 1회 소그룹 토론.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩520,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+        <div class="program-card">
+          <div class="thumbnail math"><span>Math · G9-G12</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-info">Advanced</span>
+              <span class="text-xs text-muted">매주 3회 · 12주</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">Math Summit G9-G12</h3>
+            <p class="text-sm text-muted mt-2">특목/국제고 대비, 경시·AMC 심화 선택 가능.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩780,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+        <div class="program-card">
+          <div class="thumbnail map"><span>MAP · Diagnostic</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-gold">진단</span>
+              <span class="text-xs text-muted">1회 · 90분</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">MAP 진단 + 리포트</h3>
+            <p class="text-sm text-muted mt-2">RC · Math · Language 3 영역, 즉시 리포트 발급.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩50,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+        <div class="program-card">
+          <div class="thumbnail"><span>RC · G9-G12</span></div>
+          <div class="body">
+            <div class="flex justify-between items-center">
+              <span class="badge badge-info">Advanced</span>
+              <span class="text-xs text-muted">매주 4회 · 16주</span>
+            </div>
+            <h3 style="margin-top: var(--space-2); font-size: var(--fs-lg);">RC Summit G9-G12</h3>
+            <p class="text-sm text-muted mt-2">SAT · TOEFL 병행, 비평적 읽기·서술형 에세이.</p>
+            <div class="flex justify-between items-center mt-4">
+              <span class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-xl);">₩920,000</span>
+              <a href="#P-04" class="btn btn-primary btn-sm">상세</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-04 · Program 상세
+     ========================================================= -->
+<section id="P-04" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-04 · Program Detail <span class="mockup-path">/programs/rc-accelerate-g6-g8</span></div>
+    <div class="mockup-frame">
+
+      <div class="hero-navy" style="padding: var(--space-7) var(--space-6);">
+        <div class="container">
+          <div class="flex gap-2 mb-3">
+            <span class="badge badge-gold">Intermediate</span>
+            <span class="badge" style="background: rgba(255,255,255,0.12); color: var(--trinity-cream);">English · RC</span>
+            <span class="badge" style="background: rgba(255,255,255,0.12); color: var(--trinity-cream);">G6 – G8</span>
+          </div>
+          <h1 style="font-size: var(--fs-4xl);">RC Accelerate G6-G8</h1>
+          <p class="mt-3" style="opacity: 0.85; max-width: 640px;">MAP Intermediate 지문과 추론 서술형 훈련으로 학교 내신·수능 독해력 동시 향상.</p>
+          <div class="flex gap-4 mt-4" style="color: var(--trinity-gold); font-family: var(--font-serif); font-size: var(--fs-xl);">
+            <span>매주 3회</span> · <span>12주</span> · <span>정원 8명</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="container" style="padding: var(--space-6) var(--space-5); display: grid; grid-template-columns: 2fr 1fr; gap: var(--space-5);">
+
+        <div>
+          <div class="eyebrow">CURRICULUM</div>
+          <h3 style="margin-top: var(--space-2);">주차별 학습 계획</h3>
+          <div class="card mt-4">
+            <div class="grid grid-2 gap-3 text-sm">
+              <div><strong>Week 1-3</strong> · 정독 기초 — 단락 중심 읽기, 키워드 추출</div>
+              <div><strong>Week 4-6</strong> · 추론 훈련 — 문맥·어휘 추론, 주제 찾기</div>
+              <div><strong>Week 7-9</strong> · 서술형 답안 — 요약·분석·비교</div>
+              <div><strong>Week 10-12</strong> · MAP 진단 대비 + 수능형 문제</div>
+            </div>
+          </div>
+
+          <h3 style="margin-top: var(--space-6);">운영 클래스</h3>
+          <div class="mt-3">
+            <table class="table">
+              <thead><tr><th>클래스</th><th>요일/시간</th><th>담당</th><th>정원</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><strong>A반</strong> · 화목토</td><td>18:30 – 20:30</td><td>이유나 선생님</td><td><span class="badge badge-success">5/8</span></td><td><a href="#P-06" class="btn btn-gold btn-sm">예약</a></td></tr>
+                <tr><td><strong>B반</strong> · 월수금</td><td>17:00 – 19:00</td><td>김진우 선생님</td><td><span class="badge badge-warning">7/8</span></td><td><a href="#P-06" class="btn btn-gold btn-sm">예약</a></td></tr>
+                <tr><td><strong>C반</strong> · 주말</td><td>토 10:00 – 13:00</td><td>이유나 선생님</td><td><span class="badge badge-danger">8/8</span></td><td><a href="#" class="btn btn-outline btn-sm" style="opacity:0.4;">대기</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card" style="position: sticky; top: 80px;">
+            <div class="eyebrow">ENROLLMENT</div>
+            <div class="font-serif" style="color: var(--trinity-gold-deep); font-size: var(--fs-3xl); margin-top: var(--space-2);">₩640,000</div>
+            <div class="text-xs text-muted">12주 · VAT 포함</div>
+
+            <div style="margin-top: var(--space-4); padding: var(--space-3); background: var(--trinity-cream-deep); border-radius: var(--radius-md);">
+              <div class="eyebrow" style="font-size: 10px;">REFUND POLICY</div>
+              <div class="text-xs mt-2" style="line-height: 1.6;">
+                <strong>수업일 기준 환불 (학원법 시행령 제18조)</strong><br>
+                · 시작 전 취소 — 100%<br>
+                · 1/3 경과 이내 — 66.67%<br>
+                · 1/2 경과 이내 — 50%<br>
+                · 1/2 초과 — 0%
+              </div>
+            </div>
+
+            <a href="#P-06" class="btn btn-gold w-full mt-4" style="width: 100%; justify-content: center;">상담 예약 →</a>
+            <a href="#P-05" class="btn btn-outline w-full mt-2" style="width: 100%; justify-content: center;">MAP 진단 먼저 받기</a>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-05 · MAP Test 안내
+     ========================================================= -->
+<section id="P-05" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-05 · MAP Test <span class="mockup-path">/map</span></div>
+    <div class="mockup-frame">
+
+      <div style="background: linear-gradient(135deg, #422A6B 0%, #5A3D8C 100%); color: var(--trinity-cream); padding: var(--space-7) var(--space-6); text-align: center;">
+        <div class="motto" style="color: var(--trinity-gold);">DIAGNOSTIC</div>
+        <h1 style="color: var(--trinity-cream); font-size: var(--fs-4xl); margin-top: var(--space-3);">MAP 진단 테스트</h1>
+        <p style="opacity: 0.85; margin-top: var(--space-3);">Reading Comprehension · Math · Language<br>G2-G5 × Basic / Intermediate / Advanced</p>
+      </div>
+
+      <div class="container" style="padding: var(--space-6) var(--space-5);">
+        <div class="grid grid-3 gap-4">
+          <div class="card">
+            <div class="eyebrow">RC</div>
+            <h4 style="margin-top: var(--space-2);">Reading Comprehension</h4>
+            <p class="text-sm text-muted mt-2">Passage 2편 × 복수정답 · Part A-B 구조. 문맥 이해·추론·요약 측정.</p>
+          </div>
+          <div class="card">
+            <div class="eyebrow">Math</div>
+            <h4 style="margin-top: var(--space-2);">Math</h4>
+            <p class="text-sm text-muted mt-2">연산·개념·문장제 영역별 점수 분리. 학년별 성취 기준 매핑.</p>
+          </div>
+          <div class="card">
+            <div class="eyebrow">Language</div>
+            <h4 style="margin-top: var(--space-2);">Language</h4>
+            <p class="text-sm text-muted mt-2">문법·어휘·철자 영역. 저학년 Basic 부터 G8 Advanced 까지.</p>
+          </div>
+        </div>
+
+        <div class="card mt-5">
+          <h4>리포트 구성</h4>
+          <p class="text-sm text-muted mt-2">응시 후 즉시 PDF 리포트 발급 — 영역별 점수 + 학년 대비 백분위 + 3개월 후 예측 + 추천 커리큘럼.</p>
+          <div style="margin-top: var(--space-4); background: var(--trinity-cream-deep); padding: var(--space-5); border-radius: var(--radius-md);">
+            <div class="grid grid-3 gap-4 text-sm">
+              <div><strong style="color: var(--trinity-gold-deep); font-family: var(--font-serif); font-size: var(--fs-2xl);">42</strong><br><span class="text-muted">RC 영역 / 50점</span></div>
+              <div><strong style="color: var(--trinity-gold-deep); font-family: var(--font-serif); font-size: var(--fs-2xl);">38</strong><br><span class="text-muted">Math / 50점</span></div>
+              <div><strong style="color: var(--trinity-gold-deep); font-family: var(--font-serif); font-size: var(--fs-2xl);">Lv.3</strong><br><span class="text-muted">G4 대비 상위 20%</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: var(--space-6);">
+          <a href="#P-06" class="btn btn-gold">MAP 진단 예약 →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-06 · 상담 접수
+     ========================================================= -->
+<section id="P-06" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-06 · Consultation Intake <span class="mockup-path">/contact</span></div>
+    <div class="mockup-frame" style="padding: var(--space-7) var(--space-5);">
+      <div style="max-width: 720px; margin: 0 auto;">
+        <div style="text-align: center;">
+          <div class="eyebrow">CONTACT</div>
+          <h1 style="margin-top: var(--space-2);">상담 예약</h1>
+          <p class="text-sm text-muted mt-3">접수하신 정보는 담당 상담사가 <strong>24시간 이내</strong>에 확인하여 연락드립니다.</p>
+        </div>
+
+        <div class="card mt-5">
+          <div class="grid grid-2 gap-4">
+            <div class="form-row"><label>자녀 이름 *</label><input type="text" placeholder="홍길동"></div>
+            <div class="form-row"><label>자녀 학년 *</label><select><option>선택</option><option>G2</option><option>G3</option><option>G4</option><option>G5</option><option>G6</option><option>G7</option><option>G8</option><option>G9</option><option>G10</option><option>G11</option><option>G12</option></select></div>
+          </div>
+          <div class="form-row">
+            <label>관심 과목 * (복수 선택)</label>
+            <div class="flex gap-2">
+              <label class="checkbox-row"><input type="checkbox"> 영어 RC</label>
+              <label class="checkbox-row"><input type="checkbox"> 수학</label>
+              <label class="checkbox-row"><input type="checkbox"> MAP 진단</label>
+            </div>
+          </div>
+          <div class="grid grid-2 gap-4">
+            <div class="form-row"><label>보호자 이름 *</label><input type="text"></div>
+            <div class="form-row"><label>휴대폰 *</label><input type="tel" placeholder="010-0000-0000"></div>
+          </div>
+          <div class="form-row"><label>희망 상담 시간대</label><input type="text" placeholder="예: 평일 18시 이후, 주말 오전"></div>
+          <div class="form-row"><label>남기실 메모</label><textarea rows="4" placeholder="자녀의 현재 학습 상황이나 고민을 자유롭게 적어주세요."></textarea></div>
+
+          <div style="padding: var(--space-3); background: var(--trinity-slate); border-radius: var(--radius-md); margin-top: var(--space-4);">
+            <label class="checkbox-row"><input type="checkbox"> <span>개인정보 수집·이용에 동의합니다 <a href="#" class="text-gold">[필수]</a></span></label>
+            <label class="checkbox-row mt-2"><input type="checkbox"> <span>마케팅 정보 수신에 동의합니다 <a href="#" class="text-muted">[선택]</a></span></label>
+          </div>
+
+          <button class="btn btn-gold w-full mt-4" style="width: 100%; justify-content: center;">상담 예약 제출</button>
+          <p class="text-xs text-muted mt-3" style="text-align: center;">제출 시 담당자에게 AmoebaTalk 알림이 즉시 발송됩니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-07 · News 목록
+     ========================================================= -->
+<section id="P-07" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-07 · News <span class="mockup-path">/news</span></div>
+    <div class="mockup-frame" style="padding: var(--space-6);">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <div class="eyebrow">NEWS & EVENTS</div>
+          <h1 style="margin-top: var(--space-2);">소식</h1>
+        </div>
+        <div class="flex gap-2">
+          <button class="badge badge-navy">전체</button>
+          <button class="badge badge-outline">합격 실적</button>
+          <button class="badge badge-outline">행사</button>
+          <button class="badge badge-outline">공지</button>
+        </div>
+      </div>
+
+      <div class="grid grid-3 gap-4">
+        <article class="news-card">
+          <div style="height: 160px; background: linear-gradient(135deg, var(--trinity-navy), var(--trinity-navy-500)); border-radius: var(--radius-md); margin-bottom: var(--space-3);"></div>
+          <span class="badge badge-gold">합격 실적</span>
+          <h4 style="margin-top: var(--space-2); font-size: var(--fs-lg);">2026 특목고 합격 127명 축하합니다</h4>
+          <p class="text-sm text-muted mt-2">올해 Trinity Academy 학생 127명이 특목고에 합격했습니다. 합격생들의 이야기를 공유합니다.</p>
+          <div class="text-xs text-muted mt-3">2026-04-12</div>
+        </article>
+        <article class="news-card">
+          <div style="height: 160px; background: linear-gradient(135deg, var(--trinity-gold-deep), var(--trinity-gold)); border-radius: var(--radius-md); margin-bottom: var(--space-3);"></div>
+          <span class="badge badge-info">행사</span>
+          <h4 style="margin-top: var(--space-2); font-size: var(--fs-lg);">5월 MAP 진단 특별 할인</h4>
+          <p class="text-sm text-muted mt-2">5월 한 달간 MAP 진단 30% 할인. 신규 상담 시 리포트 무료 제공.</p>
+          <div class="text-xs text-muted mt-3">2026-04-08</div>
+        </article>
+        <article class="news-card">
+          <div style="height: 160px; background: linear-gradient(135deg, #422A6B, #5A3D8C); border-radius: var(--radius-md); margin-bottom: var(--space-3);"></div>
+          <span class="badge badge-outline">공지</span>
+          <h4 style="margin-top: var(--space-2); font-size: var(--fs-lg);">결제 시스템 Toss Payments 전환 안내</h4>
+          <p class="text-sm text-muted mt-2">2026년 4월부터 Trinity Pay 자체 모듈로 결제·환불 시스템이 개선됩니다.</p>
+          <div class="text-xs text-muted mt-3">2026-04-01</div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     P-10 · Parent Dashboard
+     ========================================================= -->
+<section id="P-10" class="mockup-screen mockup-page">
+  <div class="container">
+    <div class="mockup-label">P-10 · Parent Dashboard <span class="mockup-path">/my</span></div>
+    <div class="mockup-frame" style="padding: var(--space-5);">
+
+      <nav class="portal-nav" style="border-radius: var(--radius-md); margin-bottom: var(--space-5);">
+        <div class="brand">
+          <div class="herald-shield shield-mini"><span>T</span></div>
+          <div style="font-family: var(--font-serif); font-weight: 600;">내 계정 · 박지은 학부모님</div>
+        </div>
+        <div class="flex gap-3 items-center">
+          <a href="#">시간표</a>
+          <a href="#">MAP 성적</a>
+          <a href="#">결제 이력</a>
+          <a href="#" class="btn btn-ghost btn-sm" style="color: var(--trinity-gold);">로그아웃</a>
+        </div>
+      </nav>
+
+      <div class="flex justify-between items-center mb-4">
+        <div>
+          <div class="eyebrow">WELCOME BACK</div>
+          <h1 style="margin-top: var(--space-2);">안녕하세요, 박지은 학부모님</h1>
+        </div>
+        <div class="child-switcher">
+          <span class="child-chip active">박서연 · G5</span>
+          <span class="child-chip">박지훈 · G2</span>
+        </div>
+      </div>
+
+      <!-- KPI -->
+      <div class="grid grid-4 gap-4 mb-4">
+        <div class="stat-card">
+          <div class="stat-label">이번 주 수업</div>
+          <div class="stat-value">6회</div>
+          <div class="stat-delta up">출석 100%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">최근 MAP 점수</div>
+          <div class="stat-value">42<span class="text-sm text-muted">/50</span></div>
+          <div class="stat-delta up">전 회차 대비 +4</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">미납 결제</div>
+          <div class="stat-value" style="color: var(--trinity-warning);">1건</div>
+          <div class="stat-delta"><span class="badge badge-warning">D-3 납부 기한</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">세금계산서 발급</div>
+          <div class="stat-value">3건</div>
+          <div class="stat-delta">2026-04월 정상 완료</div>
+        </div>
+      </div>
+
+      <div class="grid gap-4" style="grid-template-columns: 2fr 1fr;">
+        <!-- Timetable preview -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="eyebrow">이번 주 시간표</div>
+              <h3 class="card-title mt-2">박서연 · 2026-04-20 ~ 04-26</h3>
+            </div>
+            <a href="#" class="btn btn-outline btn-sm">전체 시간표</a>
+          </div>
+          <div class="week-grid">
+            <div class="hour">시간</div>
+            <div class="hour" style="text-align: center;">월</div>
+            <div class="hour" style="text-align: center;">화</div>
+            <div class="hour" style="text-align: center;">수</div>
+            <div class="hour" style="text-align: center;">목</div>
+            <div class="hour" style="text-align: center;">금</div>
+            <div class="hour" style="text-align: center;">토</div>
+            <div class="hour" style="text-align: center;">일</div>
+
+            <div class="hour">17:00</div>
+            <div class="cell"></div>
+            <div class="cell"><div class="event upcoming">RC A반<br>이유나 T</div></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="event held">RC A반 ✓<br>이유나 T</div></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+
+            <div class="hour">18:00</div>
+            <div class="cell"><div class="event held">Math A반 ✓<br>박준호 T</div></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="event upcoming">Math A반<br>박준호 T</div></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="event upcoming">Math A반<br>박준호 T</div></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+
+            <div class="hour">19:00</div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="event upcoming">MAP 진단<br>90분</div></div>
+            <div class="cell"></div>
+          </div>
+        </div>
+
+        <!-- Score trend -->
+        <div class="card">
+          <div class="eyebrow">MAP 점수 추이</div>
+          <h3 class="card-title mt-2">최근 4회차</h3>
+          <div class="sparkline mt-3">
+            <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#C9A656" stroke-width="2" points="0,60 75,50 150,35 225,25 300,20"/>
+              <circle cx="300" cy="20" r="4" fill="#C9A656"/>
+            </svg>
+          </div>
+          <div class="flex justify-between text-xs text-muted mt-2">
+            <span>2025-10</span><span>2026-01</span><span>2026-03</span><span>2026-04</span>
+          </div>
+          <div class="mt-4 text-sm">
+            <div class="flex justify-between"><span>RC</span><strong>42 / 50 <span class="text-gold">↑4</span></strong></div>
+            <div class="flex justify-between mt-2"><span>Math</span><strong>38 / 50 <span class="text-gold">↑2</span></strong></div>
+            <div class="flex justify-between mt-2"><span>Language</span><strong>40 / 50 <span style="color: var(--trinity-danger);">↓1</span></strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent payments -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <div>
+            <div class="eyebrow">결제 이력</div>
+            <h3 class="card-title mt-2">최근 결제·영수증·세금계산서</h3>
+          </div>
+          <a href="#" class="btn btn-outline btn-sm">전체 보기</a>
+        </div>
+        <table class="table">
+          <thead><tr><th>주문번호</th><th>프로그램</th><th>금액</th><th>결제 상태</th><th>영수증/계산서</th><th>일자</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="font-mono text-xs">TA-20260401-0231</td>
+              <td>RC Accelerate G6-G8</td>
+              <td class="text-right">₩640,000</td>
+              <td><span class="toss-status done">DONE</span></td>
+              <td class="flex gap-2"><span class="badge badge-outline">현금영수증</span><span class="badge badge-success">세금계산서 승인</span></td>
+              <td class="text-xs text-muted">2026-04-01</td>
+            </tr>
+            <tr>
+              <td class="font-mono text-xs">TA-20260301-0187</td>
+              <td>Math Core G2-G5</td>
+              <td class="text-right">₩520,000</td>
+              <td><span class="toss-status done">DONE</span></td>
+              <td class="flex gap-2"><span class="badge badge-outline">현금영수증</span><span class="badge badge-success">세금계산서 승인</span></td>
+              <td class="text-xs text-muted">2026-03-01</td>
+            </tr>
+            <tr>
+              <td class="font-mono text-xs">TA-20260215-0142</td>
+              <td>MAP 진단</td>
+              <td class="text-right">₩50,000</td>
+              <td><span class="toss-status partial">PARTIAL_CANCELED</span></td>
+              <td class="flex gap-2"><span class="badge badge-outline">현금영수증</span></td>
+              <td class="text-xs text-muted">2026-02-15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

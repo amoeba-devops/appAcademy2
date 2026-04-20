@@ -1,0 +1,94 @@
+{
+  "app": {
+    "name": "Trinity Academy",
+    "admin-name": "Trinity Admin",
+    "motto": "OMNIBUS OMNIA"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "prev": "Previous",
+    "more": "More",
+    "view-detail": "View details",
+    "download": "Download",
+    "upload": "Upload",
+    "refresh": "Refresh",
+    "logout": "Log out",
+    "login": "Log in"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "processing": "Processing...",
+    "success": "Success",
+    "error": "Error",
+    "empty": "No data",
+    "no-results": "No results found"
+  },
+  "actions": {
+    "open-menu": "Open menu",
+    "close-menu": "Close menu",
+    "open-notifications": "Open notifications",
+    "open-user-menu": "User menu",
+    "switch-language": "Change language",
+    "sidebar-expand": "Expand sidebar",
+    "sidebar-collapse": "Collapse sidebar",
+    "dismiss-toast": "Dismiss notification",
+    "toast-region": "Notifications"
+  },
+  "labels": {
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "date": "Date",
+    "status": "Status",
+    "type": "Type",
+    "category": "Category",
+    "description": "Description",
+    "note": "Note",
+    "amount": "Amount",
+    "count": "Count",
+    "total": "Total",
+    "period": "Period",
+    "created-at": "Created at",
+    "updated-at": "Updated at"
+  },
+  "auth": {
+    "my-info": "My profile",
+    "admin-user": "Administrator"
+  },
+  "search": {
+    "global-placeholder": "Search students, consultations, payments..."
+  },
+  "locale": {
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "zh-CN": "中文(简体)"
+  },
+  "currency": {
+    "krw-suffix": " KRW",
+    "krw-format": "₩{{amount}}"
+  },
+  "days-short": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  }
+}

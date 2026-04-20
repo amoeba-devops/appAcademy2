@@ -1,0 +1,20 @@
+{
+  "name": "trinity-academy",
+  "version": "1.3.0",
+  "private": true,
+  "description": "Trinity Academy — Clean Architecture (React + NestJS + MySQL)",
+  "scripts": {
+    "dev": "concurrently -n fe,be -c blue,green \"npm run dev:fe\" \"npm run dev:be\"",
+    "dev:fe": "cd frontend && npm run dev",
+    "dev:be": "cd backend && npm run start:dev",
+    "build:fe": "cd frontend && npm run build",
+    "build:be": "cd backend && npm run build",
+    "build": "npm run build:fe && npm run build:be",
+    "install:all": "cd frontend && npm install && cd ../backend && npm install",
+    "db:schema": "docker exec -i tac-mysql mysql -uroot -ppassword db_tac < sql/academy-management-schema.sql",
+    "db:seed": "docker exec -i tac-mysql mysql -uroot -ppassword db_tac < sql/seed-dev.sql"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

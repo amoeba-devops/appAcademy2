@@ -1,0 +1,11 @@
+{
+  "unknown": "An unexpected error occurred",
+  "network": "Network error. Please try again shortly.",
+  "unauthorized": "Please sign in to continue",
+  "forbidden": "You do not have permission to access this resource",
+  "not-found": "The requested resource was not found",
+  "conflict": "A duplicate entry already exists",
+  "server": "Server error. Please contact the administrator.",
+  "validation": "Please check the submitted values",
+  "external-service": "An external service is temporarily unavailable"
+}

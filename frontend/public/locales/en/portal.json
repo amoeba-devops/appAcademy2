@@ -1,0 +1,445 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "programs": "Programs",
+    "map-test": "MAP Test",
+    "contact": "Contact",
+    "news": "News",
+    "my": "My page",
+    "login": "Sign in"
+  },
+  "home": {
+    "hero-title": "OMNIBUS OMNIA",
+    "hero-subtitle": "Becoming all things to all people",
+    "cta-consult": "Request consultation",
+    "cta-map-test": "About MAP Test",
+    "hero": {
+      "eyebrow": "Official NWEA MAP TEST partner",
+      "title": "TRINITY ACADEMY",
+      "subtitle": "Precise diagnosis · Certain admission",
+      "lead": "Since 2020, Trinity has guided more than 230 students into international schools. Through the MAP TEST diagnostic we provide a complete roadmap — from baseline assessment to target-school admission."
+    },
+    "results": {
+      "eyebrow": "TRUSTED RESULTS",
+      "title": "Trinity Academy's confidence\ncomes from proven results.",
+      "lead": "Since 2020, Trinity has delivered admissions to students targeting seven accredited international schools plus unaccredited international schools nationwide. Verified data and expertise power the outcomes.",
+      "stat-value": "144",
+      "stat-unit": "",
+      "stat-label": "International school admissions · Chadwick · DIS · incl. unaccredited"
+    },
+    "results-stats": {
+      "eyebrow": "PROVEN TRACK RECORD",
+      "title": "Trinity proven by data",
+      "item-graduates": "Alumni total",
+      "item-admitted": "Intl. school admissions",
+      "item-pass-rate": "Admission rate",
+      "item-founded": "Founded"
+    },
+    "campus-band": {
+      "eyebrow": "DUAL CAMPUS",
+      "title": "On-site admissions prep at our Jeju main campus and Apgujeong Dosan Park center,\nplus online 1:1 lessons from hand-picked instructors.",
+      "lead": "Trinity Academy's main campus sits inside Jeju's English Education City, putting us at the heart of the admissions ecosystem. Our know-how reaches every aspiring international-school applicant via on-site and online classes."
+    },
+    "pillars-section": {
+      "eyebrow": "OUR DIFFERENTIATORS",
+      "title": "Four pillars built for admissions success"
+    },
+    "pillars": {
+      "p1": {
+        "title": "'School-specific strategy' informed by 230+ admissions",
+        "problem": "International school admissions are more than an English test — each school has its own evaluation rubric.",
+        "label": "Real admissions analytics:",
+        "solution": "Over years of coaching 230+ admitted students, we've systematically catalogued school-specific exam patterns and admission profiles (NLCS, SJA, KIS, Chadwick, and more). We chart a learning path tuned to your target school's priorities."
+      },
+      "p2": {
+        "title": "A 99% admission rate backed by 'complete application strategy'",
+        "problem": "High test scores alone rarely reveal a student's full potential. Candidates must stand out on their own terms.",
+        "label": "Tailored application support:",
+        "solution": "Trinity preserves its 99% admission rate by translating each student's activities and story into the target school's educational philosophy. Interview prep and essays are fine-tuned so the student's strengths lead."
+      },
+      "p3": {
+        "title": "'Detailed diagnosis and learning roadmap' that converts to admission",
+        "problem": "We avoid vague preparation — learning direction is decided on objective metrics.",
+        "label": "Data-driven analysis:",
+        "solution": "Against 230+ admission cases, we benchmark each student's academic level. MAP Test, ISEE, and other skill-area data quantify strengths and gaps, driving a prioritized, efficient roadmap."
+      },
+      "p4": {
+        "title": "'All-in-One' support from application through post-admission",
+        "problem": "We prevent errors in the application package and plan for a smooth transition into school life.",
+        "label": "Structured guidance:",
+        "solution": "From recommendation letters to supporting documents, we deliver precision packaging. We also reinforce academic fundamentals before enrollment so students adjust smoothly to IB, AP and other curricula."
+      }
+    },
+    "process-section": {
+      "eyebrow": "ENROLLMENT PROCESS",
+      "title": "Trinity Academy\nadmissions prep process"
+    },
+    "process": {
+      "s1": {
+        "title": "Tailored initial consultation",
+        "label": "Baseline profile and learning style:",
+        "body": "We run a 1:1 baseline consultation based on the student's existing academic record to establish today's starting line."
+      },
+      "s2": {
+        "title": "Objective skill diagnostic",
+        "label": "Standardized level test:",
+        "body": "We administer the official NWEA MAP Test plus a trial class to evaluate Writing and Speaking. The diagnostic output quantifies the student's current performance."
+      },
+      "s3": {
+        "title": "Strategic goal setting",
+        "label": "In-depth consulting and school matching:",
+        "body": "Using the diagnostic, we align on target schools where the student can shine and build a concrete admissions plan."
+      },
+      "s4": {
+        "title": "Tailored curriculum and schedule",
+        "label": "Best-fit class grouping:",
+        "body": "We assign the most effective setting — group classes, 1:1, or summer/winter intensives — based on the student's level and timeline."
+      },
+      "s5": {
+        "title": "Close monitoring and performance sharing",
+        "label": "Regular curriculum and feedback system:",
+        "body": "Structured lessons combine with periodic NWEA MAP TEST mock exams. Progress data is shared transparently via parent feedback reports."
+      }
+    },
+    "closing": {
+      "eyebrow": "CONTACT US",
+      "title": "Trinity Academy will deliver your certain outcome.",
+      "lead": "Trinity's precise diagnostics, passionate tutoring, and proven track record secure confident international school admissions."
+    }
+  },
+  "floating": {
+    "aria-label": "Quick contact buttons",
+    "map-test": "MAP Test",
+    "consult": "Consultation",
+    "kakao": "KakaoTalk",
+    "phone": "Call"
+  },
+  "closing-cta": {
+    "map-test-title": "Apply for MAP TEST",
+    "map-test-sub": "Register for the official NWEA MAP Test",
+    "consult-title": "Free 1:1 consultation",
+    "consult-sub": "Consult about international school admissions",
+    "phone-title": "Phone consultation"
+  },
+  "about": {
+    "title": "About Trinity Academy",
+    "hero": {
+      "eyebrow": "PHILOSOPHY",
+      "title": "OMNIBUS\nOMNIA",
+      "verse": "I have become all things to all people so that by all possible means I might save some.",
+      "verse-ref": "— 1 Corinthians 9:22"
+    },
+    "story": {
+      "eyebrow": "OUR STORY",
+      "title": "Our history"
+    },
+    "timeline": {
+      "y2014": {
+        "year": "2014",
+        "heading": "Trinity Academy founded",
+        "body": "Started in Daechi-dong, Gangnam with a single-subject English RC class."
+      },
+      "y2017": {
+        "year": "2017",
+        "heading": "MAP diagnostic framework introduced",
+        "body": "Three tracks — RC/Math/Language — built for G2–G5."
+      },
+      "y2020": {
+        "year": "2020",
+        "heading": "Math program launched",
+        "body": "Integrated English–Math curriculum completed."
+      },
+      "y2026": {
+        "year": "2026",
+        "heading": "Trinity management solution v1.3",
+        "body": "AMA integration, in-house payments, and class-day-based refund policy."
+      }
+    },
+    "principle": {
+      "eyebrow": "OUR PRINCIPLE",
+      "title": "For the growth of each student",
+      "p1": "Trinity respects each student's learning pace, disposition, and goals. Even within the same grade, no two students receive the same curriculum. We clarify the starting point through MAP diagnostics and read disposition via TPI (Trinity Profile Index) to propose a path that fits each learner.",
+      "p2": "At the center of our shield crest sit the T and cross, three stars, a crown, and a pennant. Scholarship, faith, integrity, and community — these four values form the foundation of Trinity's education."
+    },
+    "seo-title": "About — TRINITY ACADEMY",
+    "seo-description": "OMNIBUS OMNIA — Trinity Academy's educational philosophy and history."
+  },
+  "programs": {
+    "title": "Programs",
+    "detail-title": "Program details",
+    "find-title": "Find a program",
+    "category-all": "Subject: All",
+    "category": {
+      "ENGLISH": "English RC",
+      "MATH": "Math",
+      "SCIENCE": "Science",
+      "OTHER": "Other"
+    },
+    "fee-inquiry": "Inquire",
+    "weekly-per-duration": "{{perWeek}}/week · {{weeks}} weeks",
+    "detail-link": "Details →",
+    "empty-title": "No programs available yet.",
+    "empty-hint": "Please contact us for curriculum guidance.",
+    "not-found-title": "Program not found",
+    "back-to-list": "← Back to programs",
+    "back-to-list-full": "← All programs",
+    "overview": "Overview",
+    "overview-placeholder": "Detailed description coming soon.",
+    "weekly-prefix": "Every week",
+    "weekly-suffix": "sessions",
+    "weeks-suffix": " weeks",
+    "capacity": "Cap. {{count}}",
+    "vat-note": "{{weeks}} weeks · VAT included",
+    "refund-policy-title": "Class-based refund (Private Academies Act, Art. 18)",
+    "refund-tier-1": "· Cancel before start — 100%",
+    "refund-tier-2": "· Within 1/3 elapsed — 66.67%",
+    "refund-tier-3": "· Within 1/2 elapsed — 50%",
+    "refund-tier-4": "· After 1/2 elapsed — 0%",
+    "cta-book-consult": "Book consultation →",
+    "cta-map-diagnosis": "Take MAP diagnosis first"
+  },
+  "map-test": {
+    "title": "NWEA MAP Test",
+    "apply": "Apply for MAP Test",
+    "page-title": "Online MAP TEST Application",
+    "page-description": "Apply for the official NWEA MAP TEST. Submit the student's basic info and our consultants will contact you within 24 business hours.",
+    "hero-title-line1": "Please enter the student's",
+    "hero-title-line2": "basic information for the MAP Test.",
+    "form": {
+      "student-name-ko": "Student name (Korean)",
+      "student-name-ko-placeholder": "홍길동",
+      "student-name-en": "Student name (English)",
+      "student-name-en-placeholder": "Hong Gildong",
+      "birth-date": "Date of birth",
+      "grade": "Grade",
+      "grade-placeholder": "Please select",
+      "gender": "Gender",
+      "gender-male": "Male",
+      "gender-female": "Female",
+      "phone": "Contact phone",
+      "phone-placeholder": "010-0000-0000",
+      "parent-email": "Parent email",
+      "parent-email-placeholder": "parent@example.com",
+      "test-location": "Testing country · city",
+      "test-location-placeholder": "e.g. Seoul, South Korea",
+      "privacy-title": "Privacy policy",
+      "privacy-consent": "I agree to the collection and use of personal information.",
+      "privacy-required": "(required)",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "error-default": "An error occurred while submitting.",
+      "success-title": "Your request was received",
+      "reset": "Submit another request"
+    }
+  },
+  "contact": {
+    "title": "Contact us",
+    "hero-eyebrow": "Free 1:1 consultation",
+    "hero-title-line1": "Precise academic diagnosis · premier admissions classes",
+    "hero-title-line2": "Trinity delivers confident international school admission.",
+    "consultation-form": {
+      "types-label": "Consultation type",
+      "types-hint": "Select multiple if needed",
+      "student-name": "Student name",
+      "grade": "Grade",
+      "grade-placeholder": "e.g. G7",
+      "phone": "Phone",
+      "phone-placeholder": "010-0000-0000",
+      "privacy-label": "Privacy consent",
+      "privacy-consent": "I agree to the collection and use of personal information.",
+      "privacy-required": "(required)",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "error-default": "An error occurred while submitting.",
+      "success-title": "Your request was received",
+      "reset": "Submit another request"
+    },
+    "form": {
+      "parent-name": "Parent's name",
+      "parent-phone": "Phone",
+      "student-name": "Student's name",
+      "student-grade": "Grade",
+      "preferred-time": "Preferred time",
+      "message": "Message",
+      "privacy-consent": "I agree to the collection and use of personal information",
+      "submit": "Submit consultation"
+    },
+    "success": "Your consultation request has been received. We will contact you soon.",
+    "consultation-types": {
+      "accredited-label": "Accredited international school admissions",
+      "unaccredited-label": "Unaccredited international school admissions",
+      "foreign-school-label": "Foreign school admissions",
+      "boarding-label": "Overseas junior / high boarding school admissions",
+      "all-in-one-label": "All-in-One admissions consulting",
+      "all-in-one-sub": "(classes + portfolio + application support + GPA management)"
+    },
+    "form-success-note": "※ A dedicated consultant will contact you within 24 business hours of submission."
+  },
+  "news": {
+    "title": "News",
+    "empty": "No news yet",
+    "empty-section": "No news yet.",
+    "not-found-title": "Post not found",
+    "back-to-list": "← Back to news",
+    "back-link": "← News",
+    "filter": {
+      "all": "All",
+      "result": "Results",
+      "event": "Events",
+      "notice": "Notices"
+    }
+  },
+  "my": {
+    "title": "My page",
+    "tabs": {
+      "overview": "Overview",
+      "timetable": "Timetable",
+      "scores": "Scores",
+      "payments": "Payments"
+    },
+    "loading": "Loading...",
+    "no-children-title": "No children registered yet.",
+    "no-children-hint": "Please contact the academy.",
+    "welcome": "Welcome, <1>{{name}}</1>",
+    "welcome-subtitle": "Review your child's learning status.",
+    "kpi": {
+      "week-classes": "This week's classes",
+      "latest-map": "Latest MAP score",
+      "latest-map-empty": "No record",
+      "latest-map-top": "Top {{percentile}}%",
+      "unpaid": "Unpaid orders",
+      "count-suffix": ""
+    },
+    "quick-links": {
+      "timetable": "📅 View timetable",
+      "scores": "📊 View MAP scores",
+      "payments": "💳 Payment history"
+    },
+    "timetable": {
+      "title": "This week's timetable",
+      "empty": "No classes scheduled this week.",
+      "page-title": "📅 My timetable",
+      "select-child": "Please select a child.",
+      "back-to-my": "← Back to my page",
+      "my-link": "← My page",
+      "prev-week": "← Previous week",
+      "next-week": "Next week →",
+      "legend-scheduled": "Scheduled",
+      "legend-held": "Held",
+      "legend-canceled": "Canceled"
+    },
+    "payments-section": {
+      "title": "Recent payments",
+      "empty": "No payments yet.",
+      "table": {
+        "order-no": "Order No.",
+        "program": "Program",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date"
+      }
+    },
+    "payment-status": {
+      "DONE": "Completed",
+      "PENDING": "Pending",
+      "READY": "Ready",
+      "CANCELED": "Canceled",
+      "PARTIAL_CANCELED": "Partial canceled"
+    },
+    "scores-page": {
+      "title": "My child's MAP scores",
+      "unauthenticated-title": "MAP score portal",
+      "unauthenticated-lead": "Sign in as a parent to view your child's MAP score history and recent changes.",
+      "login-cta": "Sign in",
+      "lead": "Review recent Reading-centered results and cumulative trends in one view.",
+      "parent-unbound-note": " No students are linked to your current account.",
+      "unbound-empty": "No student is linked to the current session. Once parent mapping is configured, score history will appear here.",
+      "no-students-option": "No students available",
+      "fetch-error": "Failed to load score data.",
+      "card-latest-reading": "Latest Reading",
+      "card-average-reading": "Average Reading",
+      "card-best-reading": "Best Reading",
+      "card-reading-delta": "Since first attempt",
+      "card-assessments-count": "{{count}} assessments",
+      "card-best-caption": "Cumulative best",
+      "card-delta-caption": "Reading delta",
+      "trend-title": "Reading trend",
+      "trend-lead": "Cumulative score flow in assessment order.",
+      "trend-empty": "No MAP scores published yet.",
+      "student-info-title": "Student info",
+      "student-grade": "Grade",
+      "student-school": "School",
+      "access-mode-parent": "Showing scores based on children linked to your parent account.",
+      "access-mode-preview": "Currently running in admin preview mode. The same API will connect once parent OTP login ships.",
+      "access-mode-unbound": "Parent account mapping is not configured yet."
+    },
+    "payments-page": {
+      "title": "💳 Payment history",
+      "empty": "No payments yet.",
+      "summary-total": "Total",
+      "summary-paid": "Paid",
+      "summary-unpaid": "Unpaid",
+      "status-label": {
+        "DONE": "Paid",
+        "PENDING": "Pending",
+        "READY": "Ready",
+        "CANCELED": "Canceled",
+        "PARTIAL_CANCELED": "Partial canceled"
+      },
+      "table": {
+        "order-no": "Order No.",
+        "program": "Program",
+        "student": "Student",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date"
+      }
+    }
+  },
+  "login": {
+    "title": "Parent sign in",
+    "phone": "Phone",
+    "password": "Password",
+    "submit": "Sign in",
+    "phone-placeholder": "Phone number (010-0000-0000)",
+    "phone-label": "Phone number",
+    "phone-required": "Please enter your phone number.",
+    "send-otp": "Send verification code",
+    "sending-otp": "Sending...",
+    "otp-placeholder": "6-digit verification code",
+    "otp-label": "Verification code",
+    "otp-length-required": "Please enter the 6-digit code.",
+    "verifying": "Verifying...",
+    "otp-mismatch": "Verification code does not match.",
+    "otp-send-failed": "Failed to send verification code.",
+    "server-error": "Failed to connect to the server.",
+    "try-another-phone": "Try a different number",
+    "admin-login-link": "Admin sign in →"
+  },
+  "footer": {
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "consultation-hours": "Consultation hours",
+    "class-hours": "Class hours",
+    "kakao-channel": "💛 KakaoTalk channel",
+    "business-info": "Business registration · representative · mail-order registration · privacy officer (TBD)",
+    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+  },
+  "site": {
+    "hours-consultation": "14:00 – 22:00 (by appointment)",
+    "hours-class": "14:30 – 21:30",
+    "campus-jeju": {
+      "name": "Jeju Main Campus",
+      "line1": "Daejeong-eup, Seogwipo, Jeju",
+      "line2": "145 Global Edu-ro, 40, 2F",
+      "note": "(within Global Education City)"
+    },
+    "campus-seoul": {
+      "name": "Apgujeong Dosan Park Center",
+      "line1": "Sinsa-dong 631-31, 2F, Gangnam-gu, Seoul",
+      "note": "(behind Maison Hermès, Dosan Park)"
+    }
+  }
+}
