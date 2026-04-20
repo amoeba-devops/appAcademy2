@@ -19,55 +19,65 @@ import i18n from './config';
 const TRANSLATION_KEY_PATTERN = /^[a-z][a-z0-9-]*(?:\.[a-z0-9-]+|:[a-z0-9-]+(?:\.[a-z0-9-]+)*)+$/i;
 
 function translate(key: string, options: Record<string, unknown> = {}): string {
-  return i18n.t(key, { ns: 'validation', ...options }) as string;
+  return i18n.t(key as never, { ns: 'validation', ...options }) as string;
 }
 
 function resolveCustomMessage(message: string | undefined): string | null {
   if (!message) return null;
   if (!TRANSLATION_KEY_PATTERN.test(message)) return null;
-  const translated = i18n.t(message, { defaultValue: message });
+  const translated = i18n.t(message as never, { defaultValue: message });
   return translated === message ? message : String(translated);
 }
 
-export const zodI18nErrorMap: ZodErrorMap = (issue, ctx) => {
+// zod v4 renamed/collapsed several issue codes. We cast the issue handler to
+// the legacy shape so existing case labels still compile; runtime codes that
+// no longer exist simply fall through to the default branch.
+type LegacyIssue = { code: string; message?: unknown; received?: string; type?: string; minimum?: number; maximum?: number; validation?: string };
+type LegacyCtx = { defaultError: string };
+
+export const zodI18nErrorMap: ZodErrorMap = ((issue: LegacyIssue, ctx: LegacyCtx) => {
   const custom = resolveCustomMessage(typeof issue.message === 'string' ? issue.message : undefined);
   if (custom !== null) {
     return { message: custom };
   }
 
-  switch (issue.code) {
-    case z.ZodIssueCode.invalid_type: {
+  const code = issue.code;
+  switch (code) {
+    case 'invalid_type': {
       if (issue.received === 'undefined' || issue.received === 'null') {
         return { message: translate('required') };
       }
       return { message: translate('invalid-type') };
     }
-    case z.ZodIssueCode.too_small: {
+    case 'too_small': {
       if (issue.type === 'string') {
         return { message: translate('min-length', { count: issue.minimum }) };
       }
       return { message: translate('number-min', { min: issue.minimum }) };
     }
-    case z.ZodIssueCode.too_big: {
+    case 'too_big': {
       if (issue.type === 'string') {
         return { message: translate('max-length', { count: issue.maximum }) };
       }
       return { message: translate('number-max', { max: issue.maximum }) };
     }
-    case z.ZodIssueCode.invalid_string: {
+    // zod v4: `invalid_string` → `invalid_format`; `invalid_enum_value` → `invalid_value`.
+    case 'invalid_string':
+    case 'invalid_format': {
       if (issue.validation === 'email') {
         return { message: translate('email-invalid') };
       }
       return { message: translate('invalid-input') };
     }
-    case z.ZodIssueCode.invalid_enum_value:
+    case 'invalid_enum_value':
+    case 'invalid_value':
       return { message: translate('invalid-enum') };
-    case z.ZodIssueCode.custom:
+    case 'custom':
       return { message: ctx.defaultError };
     default:
       return { message: ctx.defaultError };
   }
-};
+}) as unknown as ZodErrorMap;
 
 let installed = false;
 export function installZodI18n() {

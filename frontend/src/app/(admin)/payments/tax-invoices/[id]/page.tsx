@@ -123,7 +123,7 @@ export default function TaxInvoiceDetailPage() {
                         TAX_INVOICE_STATUS_COLORS[invoice.status] || ''
                       }`}
                     >
-                      {statusKey ? t(statusKey) : invoice.status}
+                      {statusKey ? t(statusKey as never) : invoice.status}
                     </span>
                   ) : (
                     row.value

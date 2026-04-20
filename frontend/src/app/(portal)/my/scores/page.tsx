@@ -1,7 +1,9 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
-import { useEffect, useMemo, useState, startTransition } from 'react';
+import { Suspense, useEffect, useMemo, useState, startTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +23,14 @@ function formatDelta(value: number | null) {
 }
 
 export default function PortalScoresPage() {
+  return (
+    <Suspense fallback={null}>
+      <PortalScoresContent />
+    </Suspense>
+  );
+}
+
+function PortalScoresContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

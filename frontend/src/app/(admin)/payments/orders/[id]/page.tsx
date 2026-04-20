@@ -73,7 +73,7 @@ export default function PaymentOrderDetailPage({
           variant="secondary"
           className={`text-sm px-3 py-1 ${PAYMENT_STATUS_COLORS[order.status as PaymentOrderStatus] ?? ''}`}
         >
-          {statusKey ? t(statusKey) : order.status}
+          {statusKey ? t(statusKey as never) : order.status}
         </Badge>
         {['DONE', 'PARTIAL_CANCELED'].includes(order.status) && (
           <Link href={`/payments/refund/${id}`}>

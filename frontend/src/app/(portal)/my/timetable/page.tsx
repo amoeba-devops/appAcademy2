@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -44,6 +46,14 @@ function shiftWeek(dateStr: string, weeks: number) {
 }
 
 export default function MyTimetablePage() {
+  return (
+    <Suspense fallback={null}>
+      <MyTimetableContent />
+    </Suspense>
+  );
+}
+
+function MyTimetableContent() {
   const { data: session, status: authStatus } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

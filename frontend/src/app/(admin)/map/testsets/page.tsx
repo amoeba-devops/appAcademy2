@@ -140,26 +140,26 @@ export default function MapTestSetsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('testsets.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('testsets.lead')}</p>
+          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('map.testsets.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('map.testsets.lead')}</p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => {
               setSelectedTestSetId(null);
-              setBuilderName(t('testsets.untitled'));
+              setBuilderName(t('map.testsets.untitled'));
               setCompositionMode('FIXED');
               setBuilderItems([]);
             }}
           >
-            {t('testsets.new-testset')}
+            {t('map.testsets.new-testset')}
           </Button>
           <Button variant="outline" disabled={saveDisabled} onClick={() => saveTestSet('DRAFT')}>
-            {t('testsets.save-draft')}
+            {t('map.testsets.save-draft')}
           </Button>
           <Button disabled={saveDisabled} onClick={() => saveTestSet('PUBLISHED')}>
-            {t('testsets.save-publish')}
+            {t('map.testsets.save-publish')}
           </Button>
         </div>
       </div>
@@ -167,18 +167,18 @@ export default function MapTestSetsPage() {
       <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)_320px]">
         <Card className="border-[#C9A656]/15 xl:sticky xl:top-6 xl:h-fit">
           <CardHeader>
-            <CardTitle className="text-[#0E1E3A]">{t('testsets.saved-list-title')}</CardTitle>
+            <CardTitle className="text-[#0E1E3A]">{t('map.testsets.saved-list-title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Input
-              placeholder={t('testsets.saved-list-search')}
+              placeholder={t('map.testsets.saved-list-search')}
               value={testSetSearch}
               onChange={(event) => setTestSetSearch(event.target.value)}
             />
             <div className="space-y-2">
               {testSets.length === 0 ? (
                 <div className="rounded-md border border-dashed px-3 py-8 text-center text-sm text-muted-foreground">
-                  {t('testsets.saved-list-empty')}
+                  {t('map.testsets.saved-list-empty')}
                 </div>
               ) : (
                 testSets.map((testSet) => (
@@ -194,7 +194,7 @@ export default function MapTestSetsPage() {
                     <div className="font-medium text-[#0E1E3A]">{testSet.name}</div>
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <Badge variant="outline">{testSet.status}</Badge>
-                      <span>{t('testsets.testset-item-count', { count: testSet.itemCount })}</span>
+                      <span>{t('map.testsets.testset-item-count', { count: testSet.itemCount })}</span>
                     </div>
                   </button>
                 ))
@@ -206,11 +206,11 @@ export default function MapTestSetsPage() {
         <div className="space-y-6">
           <Card className="border-[#C9A656]/15">
             <CardHeader>
-              <CardTitle className="text-[#0E1E3A]">{t('testsets.builder-settings')}</CardTitle>
+              <CardTitle className="text-[#0E1E3A]">{t('map.testsets.builder-settings')}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
               <div>
-                <Label htmlFor="builder-name">{t('testsets.builder-name-label')}</Label>
+                <Label htmlFor="builder-name">{t('map.testsets.builder-name-label')}</Label>
                 <Input
                   id="builder-name"
                   value={builderName}
@@ -219,7 +219,7 @@ export default function MapTestSetsPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="composition-mode">{t('testsets.composition-mode')}</Label>
+                <Label htmlFor="composition-mode">{t('map.testsets.composition-mode')}</Label>
                 <Select value={compositionMode} onValueChange={(value) => value && setCompositionMode(value)}>
                   <SelectTrigger id="composition-mode">
                     <SelectValue />
@@ -236,7 +236,7 @@ export default function MapTestSetsPage() {
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             <Card className="border-[#C9A656]/15">
               <CardHeader>
-                <CardTitle className="text-[#0E1E3A]">{t('testsets.bank-title')}</CardTitle>
+                <CardTitle className="text-[#0E1E3A]">{t('map.testsets.bank-title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-3">
@@ -245,9 +245,9 @@ export default function MapTestSetsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ALL">{t('common.filter-status-all')}</SelectItem>
-                      <SelectItem value="PUBLISHED">{t('testsets.filter-status-published')}</SelectItem>
-                      <SelectItem value="DRAFT">{t('testsets.filter-status-draft')}</SelectItem>
+                      <SelectItem value="ALL">{t('map.common.filter-status-all')}</SelectItem>
+                      <SelectItem value="PUBLISHED">{t('map.testsets.filter-status-published')}</SelectItem>
+                      <SelectItem value="DRAFT">{t('map.testsets.filter-status-draft')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={gradeFilter} onValueChange={(value) => value && setGradeFilter(value)}>
@@ -255,7 +255,7 @@ export default function MapTestSetsPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ALL">{t('common.filter-grade-all')}</SelectItem>
+                      <SelectItem value="ALL">{t('map.common.filter-grade-all')}</SelectItem>
                       <SelectItem value="G4">G4</SelectItem>
                       <SelectItem value="G5">G5</SelectItem>
                       <SelectItem value="G6">G6</SelectItem>
@@ -266,7 +266,7 @@ export default function MapTestSetsPage() {
                   <div className="ml-auto flex gap-2">
                     <Input
                       className="w-[220px]"
-                      placeholder={t('testsets.bank-search')}
+                      placeholder={t('map.testsets.bank-search')}
                       value={searchInput}
                       onChange={(event) => setSearchInput(event.target.value)}
                       onKeyDown={(event) => event.key === 'Enter' && setSearch(searchInput)}
@@ -279,10 +279,10 @@ export default function MapTestSetsPage() {
 
                 <div className="space-y-3">
                   {isItemsLoading ? (
-                    <div className="py-8 text-center text-muted-foreground">{t('common.loading')}</div>
+                    <div className="py-8 text-center text-muted-foreground">{t('map.common.loading')}</div>
                   ) : availableItems.length === 0 ? (
                     <div className="rounded-md border border-dashed px-3 py-10 text-center text-sm text-muted-foreground">
-                      {t('testsets.bank-empty')}
+                      {t('map.testsets.bank-empty')}
                     </div>
                   ) : (
                     availableItems.map((item) => (
@@ -293,12 +293,12 @@ export default function MapTestSetsPage() {
                               <Badge variant="outline">{item.itemType}</Badge>
                               <Badge variant="outline">{item.gradeLevel}</Badge>
                               <Badge variant="outline">{item.difficulty}</Badge>
-                              <Badge variant="secondary">{t('testsets.points-suffix', { points: item.points })}</Badge>
+                              <Badge variant="secondary">{t('map.testsets.points-suffix', { points: item.points })}</Badge>
                             </div>
                             <div className="text-sm text-[#0E1E3A]">{item.stem}</div>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <BookOpenText className="h-3.5 w-3.5" />
-                              <span>{item.passageTitle ?? t('testsets.independent-item')}</span>
+                              <span>{item.passageTitle ?? t('map.testsets.independent-item')}</span>
                             </div>
                           </div>
                           <Button
@@ -306,7 +306,7 @@ export default function MapTestSetsPage() {
                             size="sm"
                             onClick={() => addBuilderItem(item, setBuilderItems)}
                           >
-                            {t('testsets.bank-add')}
+                            {t('map.testsets.bank-add')}
                           </Button>
                         </div>
                       </div>
@@ -318,12 +318,12 @@ export default function MapTestSetsPage() {
 
             <Card className="border-[#C9A656]/15">
               <CardHeader>
-                <CardTitle className="text-[#0E1E3A]">{t('testsets.board-title')}</CardTitle>
+                <CardTitle className="text-[#0E1E3A]">{t('map.testsets.board-title')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {builderItems.length === 0 ? (
                   <div className="rounded-xl border border-dashed px-4 py-12 text-center text-sm text-muted-foreground">
-                    {t('testsets.board-empty')}
+                    {t('map.testsets.board-empty')}
                   </div>
                 ) : (
                   builderItems.map((item, index) => (
@@ -348,8 +348,8 @@ export default function MapTestSetsPage() {
                           <div className="flex flex-wrap gap-2 text-xs">
                             <Badge variant="outline">#{index + 1}</Badge>
                             <Badge variant="outline">{item.source.itemType}</Badge>
-                            <Badge variant="secondary">{t('testsets.points-suffix', { points: item.source.points })}</Badge>
-                            <span className="text-muted-foreground">{item.source.passageTitle ?? t('testsets.independent-item')}</span>
+                            <Badge variant="secondary">{t('map.testsets.points-suffix', { points: item.source.points })}</Badge>
+                            <span className="text-muted-foreground">{item.source.passageTitle ?? t('map.testsets.independent-item')}</span>
                           </div>
                           <div className="text-sm text-[#0E1E3A]">{item.source.stem}</div>
                         </div>
@@ -376,7 +376,7 @@ export default function MapTestSetsPage() {
                     onClick={() => shuffleItems(builderItems, setBuilderItems)}
                   >
                     <Shuffle className="mr-2 h-4 w-4" />
-                    {t('testsets.shuffle')}
+                    {t('map.testsets.shuffle')}
                   </Button>
                 )}
               </CardContent>
@@ -386,29 +386,29 @@ export default function MapTestSetsPage() {
 
         <Card className="border-[#C9A656]/15 xl:sticky xl:top-6 xl:h-fit">
           <CardHeader>
-            <CardTitle className="text-[#0E1E3A]">{t('testsets.summary-title')}</CardTitle>
+            <CardTitle className="text-[#0E1E3A]">{t('map.testsets.summary-title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <SummaryStat label={t('testsets.summary-total-items')} value={String(builderItems.length)} />
-              <SummaryStat label={t('testsets.summary-total-points')} value={`${totalPoints}`} />
-              <SummaryStat label={t('testsets.summary-part-a')} value={String(partACount)} />
-              <SummaryStat label={t('testsets.summary-part-b')} value={String(partBCount)} />
+              <SummaryStat label={t('map.testsets.summary-total-items')} value={String(builderItems.length)} />
+              <SummaryStat label={t('map.testsets.summary-total-points')} value={`${totalPoints}`} />
+              <SummaryStat label={t('map.testsets.summary-part-a')} value={String(partACount)} />
+              <SummaryStat label={t('map.testsets.summary-part-b')} value={String(partBCount)} />
             </div>
 
             <Separator />
 
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex justify-between">
-                <span>{t('testsets.passage-count')}</span>
+                <span>{t('map.testsets.passage-count')}</span>
                 <span className="font-medium text-[#0E1E3A]">{passageCount}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('testsets.estimated-time')}</span>
-                <span className="font-medium text-[#0E1E3A]">{t('testsets.estimated-minutes', { min: Math.max(10, builderItems.length * 2) })}</span>
+                <span>{t('map.testsets.estimated-time')}</span>
+                <span className="font-medium text-[#0E1E3A]">{t('map.testsets.estimated-minutes', { min: Math.max(10, builderItems.length * 2) })}</span>
               </div>
               <div className="flex justify-between">
-                <span>{t('testsets.composition-mode')}</span>
+                <span>{t('map.testsets.composition-mode')}</span>
                 <span className="font-medium text-[#0E1E3A]">{compositionMode}</span>
               </div>
             </div>
@@ -416,10 +416,10 @@ export default function MapTestSetsPage() {
             <Separator />
 
             <div>
-              <div className="mb-2 text-sm font-medium text-[#0E1E3A]">{t('testsets.difficulty-title')}</div>
+              <div className="mb-2 text-sm font-medium text-[#0E1E3A]">{t('map.testsets.difficulty-title')}</div>
               <div className="space-y-2">
                 {Object.keys(difficultyBreakdown).length === 0 ? (
-                  <div className="text-sm text-muted-foreground">{t('testsets.difficulty-empty')}</div>
+                  <div className="text-sm text-muted-foreground">{t('map.testsets.difficulty-empty')}</div>
                 ) : (
                   Object.entries(difficultyBreakdown).map(([difficulty, count]) => (
                     <div key={difficulty} className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2 text-sm">
@@ -437,24 +437,24 @@ export default function MapTestSetsPage() {
                 <div>
                   <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[#0E1E3A]">
                     <PenSquare className="h-4 w-4" />
-                    {t('testsets.preview-title')}
+                    {t('map.testsets.preview-title')}
                   </div>
                   <div className="space-y-2 rounded-lg bg-[#FAF7EE] p-4 text-sm text-muted-foreground">
                     <div className="flex justify-between">
-                      <span>{t('testsets.summary-total-items')}</span>
+                      <span>{t('map.testsets.summary-total-items')}</span>
                       <span className="font-medium text-[#0E1E3A]">{preview.totalItems}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>{t('testsets.summary-total-points')}</span>
+                      <span>{t('map.testsets.summary-total-points')}</span>
                       <span className="font-medium text-[#0E1E3A]">{preview.totalPoints}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>{t('testsets.passage-count')}</span>
+                      <span>{t('map.testsets.passage-count')}</span>
                       <span className="font-medium text-[#0E1E3A]">{preview.passageCount}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>{t('testsets.estimated-time')}</span>
-                      <span className="font-medium text-[#0E1E3A]">{t('testsets.estimated-minutes', { min: preview.estimatedMinutes })}</span>
+                      <span>{t('map.testsets.estimated-time')}</span>
+                      <span className="font-medium text-[#0E1E3A]">{t('map.testsets.estimated-minutes', { min: preview.estimatedMinutes })}</span>
                     </div>
                   </div>
                 </div>

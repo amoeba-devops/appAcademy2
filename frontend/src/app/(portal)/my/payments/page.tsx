@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -26,6 +28,14 @@ const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
 };
 
 export default function MyPaymentsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyPaymentsContent />
+    </Suspense>
+  );
+}
+
+function MyPaymentsContent() {
   const { status: authStatus } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();

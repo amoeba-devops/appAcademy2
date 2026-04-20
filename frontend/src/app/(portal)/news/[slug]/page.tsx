@@ -71,7 +71,7 @@ export default function NewsDetailPage() {
             NEWS_CATEGORY_COLORS[post.category] ?? "bg-navy/5 text-navy"
           }`}
         >
-          {NEWS_CATEGORY_LABEL_KEYS[post.category] ? t(NEWS_CATEGORY_LABEL_KEYS[post.category]) : post.category}
+          {NEWS_CATEGORY_LABEL_KEYS[post.category] ? t(NEWS_CATEGORY_LABEL_KEYS[post.category] as never) : post.category}
         </span>
         <p className="mt-2 text-sm text-deep-ink/50">
           {formatDate(post.publishedAt ?? post.createdAt)}

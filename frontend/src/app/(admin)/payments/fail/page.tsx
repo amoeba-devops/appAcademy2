@@ -1,5 +1,8 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { XCircle } from 'lucide-react';
@@ -7,6 +10,14 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function PaymentFailPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentFailContent />
+    </Suspense>
+  );
+}
+
+function PaymentFailContent() {
   const searchParams = useSearchParams();
   const { t } = useTranslation('admin');
   const code = searchParams.get('code') ?? 'UNKNOWN';

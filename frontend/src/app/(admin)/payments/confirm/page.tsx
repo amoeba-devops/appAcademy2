@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useConfirmPayment } from '@/hooks/use-payments';
@@ -9,6 +11,14 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function PaymentConfirmPage() {
+  return (
+    <Suspense fallback={null}>
+      <PaymentConfirmContent />
+    </Suspense>
+  );
+}
+
+function PaymentConfirmContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation('admin');

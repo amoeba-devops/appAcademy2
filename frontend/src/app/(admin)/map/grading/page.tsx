@@ -66,47 +66,47 @@ export default function MapGradingPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('grading.title')}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t('grading.lead')}</p>
+          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('map.grading.title')}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t('map.grading.lead')}</p>
         </div>
         <Button
           disabled={!selectedAssignmentId || gradeAssignment.isPending}
           onClick={() => selectedAssignmentId && gradeAssignment.mutate(selectedAssignmentId)}
         >
-          {gradeAssignment.isPending ? t('grading.grading-now') : t('grading.auto-grade')}
+          {gradeAssignment.isPending ? t('map.grading.grading-now') : t('map.grading.auto-grade')}
         </Button>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
         <Card className="border-[#C9A656]/15 xl:sticky xl:top-6 xl:h-fit">
           <CardHeader>
-            <CardTitle className="text-[#0E1E3A]">{t('grading.queue-title')}</CardTitle>
+            <CardTitle className="text-[#0E1E3A]">{t('map.grading.queue-title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-3">
               <Select value={statusFilter || 'ALL'} onValueChange={(value) => setStatusFilter(!value || value === 'ALL' ? '' : value)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">{t('grading.filter-status-all')}</SelectItem>
-                  <SelectItem value="ASSIGNED">{t('grading.status.ASSIGNED')}</SelectItem>
-                  <SelectItem value="IN_PROGRESS">{t('grading.status.IN_PROGRESS')}</SelectItem>
-                  <SelectItem value="COMPLETED">{t('grading.status.COMPLETED')}</SelectItem>
-                  <SelectItem value="OVERDUE">{t('grading.status.OVERDUE')}</SelectItem>
-                  <SelectItem value="CANCELED">{t('grading.status.CANCELED')}</SelectItem>
+                  <SelectItem value="ALL">{t('map.grading.filter-status-all')}</SelectItem>
+                  <SelectItem value="ASSIGNED">{t('map.grading.status.ASSIGNED')}</SelectItem>
+                  <SelectItem value="IN_PROGRESS">{t('map.grading.status.IN_PROGRESS')}</SelectItem>
+                  <SelectItem value="COMPLETED">{t('map.grading.status.COMPLETED')}</SelectItem>
+                  <SelectItem value="OVERDUE">{t('map.grading.status.OVERDUE')}</SelectItem>
+                  <SelectItem value="CANCELED">{t('map.grading.status.CANCELED')}</SelectItem>
                 </SelectContent>
               </Select>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input className="pl-9" placeholder={t('grading.queue-search-placeholder')} value={search} onChange={(event) => setSearch(event.target.value)} />
+                <Input className="pl-9" placeholder={t('map.grading.queue-search-placeholder')} value={search} onChange={(event) => setSearch(event.target.value)} />
               </div>
             </div>
 
             <div className="space-y-2">
               {isLoading ? (
-                <div className="py-8 text-center text-sm text-muted-foreground">{t('grading.queue-loading')}</div>
+                <div className="py-8 text-center text-sm text-muted-foreground">{t('map.grading.queue-loading')}</div>
               ) : queue.length === 0 ? (
                 <div className="rounded-md border border-dashed px-3 py-10 text-center text-sm text-muted-foreground">
-                  {t('grading.queue-empty')}
+                  {t('map.grading.queue-empty')}
                 </div>
               ) : (
                 queue.map((item) => <QueueCard key={item.assignmentId} item={item} selectedAssignmentId={selectedAssignmentId} onSelect={setSelectedAssignmentId} />)
@@ -118,29 +118,29 @@ export default function MapGradingPage() {
         <Card className="border-[#C9A656]/15">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
-              <CardTitle className="text-[#0E1E3A]">{t('grading.results-title')}</CardTitle>
+              <CardTitle className="text-[#0E1E3A]">{t('map.grading.results-title')}</CardTitle>
               {detail ? (
-                <Badge variant="outline">{t('grading.total-points-badge', { points: detail.totalPoints })}</Badge>
+                <Badge variant="outline">{t('map.grading.total-points-badge', { points: detail.totalPoints })}</Badge>
               ) : null}
             </div>
           </CardHeader>
           <CardContent>
             {!detail ? (
-              <div className="py-14 text-center text-sm text-muted-foreground">{t('grading.select-prompt')}</div>
+              <div className="py-14 text-center text-sm text-muted-foreground">{t('map.grading.select-prompt')}</div>
             ) : isDetailLoading ? (
-              <div className="py-14 text-center text-sm text-muted-foreground">{t('grading.detail-loading')}</div>
+              <div className="py-14 text-center text-sm text-muted-foreground">{t('map.grading.detail-loading')}</div>
             ) : detail.studentResults.length === 0 ? (
-              <div className="py-14 text-center text-sm text-muted-foreground">{t('grading.no-students')}</div>
+              <div className="py-14 text-center text-sm text-muted-foreground">{t('map.grading.no-students')}</div>
             ) : (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('grading.table.student')}</TableHead>
-                      <TableHead>{t('grading.table.responses')}</TableHead>
-                      <TableHead>{t('grading.table.correct')}</TableHead>
-                      <TableHead>{t('grading.table.score')}</TableHead>
-                      <TableHead>{t('grading.table.status')}</TableHead>
+                      <TableHead>{t('map.grading.table.student')}</TableHead>
+                      <TableHead>{t('map.grading.table.responses')}</TableHead>
+                      <TableHead>{t('map.grading.table.correct')}</TableHead>
+                      <TableHead>{t('map.grading.table.score')}</TableHead>
+                      <TableHead>{t('map.grading.table.status')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -156,34 +156,34 @@ export default function MapGradingPage() {
 
         <Card className="border-[#C9A656]/15 xl:sticky xl:top-6 xl:h-fit">
           <CardHeader>
-            <CardTitle className="text-[#0E1E3A]">{t('grading.insights-title')}</CardTitle>
+            <CardTitle className="text-[#0E1E3A]">{t('map.grading.insights-title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {!detail ? (
-              <div className="text-sm text-muted-foreground">{t('grading.insights-prompt')}</div>
+              <div className="text-sm text-muted-foreground">{t('map.grading.insights-prompt')}</div>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-3">
-                  <InsightStat title={t('grading.stat-submitted')} value={`${detail.assignment.submittedTargets}/${detail.assignment.totalTargets}`} icon={ClipboardCheck} />
-                  <InsightStat title={t('grading.stat-avg-score')} value={detail.averageReadingScore !== null ? String(detail.averageReadingScore) : '-'} icon={BarChart3} />
+                  <InsightStat title={t('map.grading.stat-submitted')} value={`${detail.assignment.submittedTargets}/${detail.assignment.totalTargets}`} icon={ClipboardCheck} />
+                  <InsightStat title={t('map.grading.stat-avg-score')} value={detail.averageReadingScore !== null ? String(detail.averageReadingScore) : '-'} icon={BarChart3} />
                   <InsightStat title="Part A" value={`${detail.partACorrectRate}%`} icon={CheckCheck} />
                   <InsightStat title="Part B" value={`${detail.partBCorrectRate}%`} icon={CheckCheck} />
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-sm font-medium text-[#0E1E3A]">{t('grading.item-insights-title')}</div>
+                  <div className="text-sm font-medium text-[#0E1E3A]">{t('map.grading.item-insights-title')}</div>
                   {detail.itemInsights.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">{t('grading.no-responses')}</div>
+                    <div className="text-sm text-muted-foreground">{t('map.grading.no-responses')}</div>
                   ) : (
                     detail.itemInsights.map((insight) => (
                       <div key={insight.itemId} className="rounded-lg bg-[#FAF7EE] p-3">
                         <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                           <span>{insight.itemType}</span>
-                          <span>{t('grading.correct-rate', { rate: insight.correctRate })}</span>
+                          <span>{t('map.grading.correct-rate', { rate: insight.correctRate })}</span>
                         </div>
                         <div className="mt-1 text-sm text-[#0E1E3A] line-clamp-2">{insight.stem}</div>
                         <div className="mt-2 text-xs text-muted-foreground">
-                          {t('grading.correct-incorrect', { correct: insight.correctCount, incorrect: insight.incorrectCount })}
+                          {t('map.grading.correct-incorrect', { correct: insight.correctCount, incorrect: insight.incorrectCount })}
                         </div>
                       </div>
                     ))
@@ -205,7 +205,7 @@ function StudentResultRow({ result }: { result: { studentId: number; studentName
       <TableCell>
         <div className="font-medium text-[#0E1E3A]">{result.studentName}</div>
         <div className="text-xs text-muted-foreground">
-          {result.submittedAt ? new Date(result.submittedAt).toLocaleString(i18n.resolvedLanguage ?? 'ko') : t('grading.not-submitted')}
+          {result.submittedAt ? new Date(result.submittedAt).toLocaleString(i18n.resolvedLanguage ?? 'ko') : t('map.grading.not-submitted')}
         </div>
       </TableCell>
       <TableCell>{result.totalResponses}</TableCell>
@@ -225,21 +225,21 @@ function QueueCard({ item, selectedAssignmentId, onSelect }: { item: MapGradingQ
   const { t } = useTranslation('admin');
   const selected = item.assignmentId === selectedAssignmentId;
   const variant = STATUS_VARIANT[item.status] ?? ('secondary' as const);
-  const statusLabel = t(`grading.status.${item.status}`, { defaultValue: item.status });
+  const statusLabel = t(`map.grading.status.${item.status}`, { defaultValue: item.status });
 
   return (
     <button
       className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${selected ? 'border-[#C9A656] bg-[#FAF7EE]' : 'border-border hover:border-[#C9A656]/40'}`}
       onClick={() => onSelect(item.assignmentId)}
     >
-      <div className="font-medium text-[#0E1E3A]">{item.testSetName ?? t('grading.assignment-fallback', { id: item.assignmentId })}</div>
-      <div className="mt-1 text-xs text-muted-foreground">{item.targetName ?? t('grading.target-fallback', { id: item.targetId })}</div>
+      <div className="font-medium text-[#0E1E3A]">{item.testSetName ?? t('map.grading.assignment-fallback', { id: item.assignmentId })}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{item.targetName ?? t('map.grading.target-fallback', { id: item.targetId })}</div>
       <div className="mt-2 flex items-center gap-2">
         <Badge variant={variant}>{statusLabel}</Badge>
-        <span className="text-xs text-muted-foreground">{t('grading.queue-submitted', { submitted: item.submittedTargets, total: item.totalTargets })}</span>
+        <span className="text-xs text-muted-foreground">{t('map.grading.queue-submitted', { submitted: item.submittedTargets, total: item.totalTargets })}</span>
       </div>
       <div className="mt-2 text-xs text-muted-foreground">
-        {t('grading.queue-avg', { score: item.averageReadingScore !== null ? item.averageReadingScore : '-' })}
+        {t('map.grading.queue-avg', { score: item.averageReadingScore !== null ? item.averageReadingScore : '-' })}
       </div>
     </button>
   );
@@ -260,10 +260,10 @@ function InsightStat({ title, value, icon: Icon }: { title: string; value: strin
 function StatusBadge({ status }: { status: string }) {
   const { t } = useTranslation('admin');
   if (status === 'GRADED') {
-    return <Badge>{t('grading.grading-status.GRADED')}</Badge>;
+    return <Badge>{t('map.grading.grading-status.GRADED')}</Badge>;
   }
   if (status === 'SUBMITTED') {
-    return <Badge variant="secondary">{t('grading.grading-status.SUBMITTED')}</Badge>;
+    return <Badge variant="secondary">{t('map.grading.grading-status.SUBMITTED')}</Badge>;
   }
-  return <Badge variant="outline">{t('grading.grading-status.PENDING')}</Badge>;
+  return <Badge variant="outline">{t('map.grading.grading-status.PENDING')}</Badge>;
 }

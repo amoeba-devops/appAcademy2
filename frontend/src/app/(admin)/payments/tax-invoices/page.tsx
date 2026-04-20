@@ -132,7 +132,7 @@ export default function TaxInvoicesPage() {
                           'bg-gray-100 text-gray-600'
                         }`}
                       >
-                        {statusKey ? t(statusKey) : inv.status}
+                        {statusKey ? t(statusKey as never) : inv.status}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">

@@ -2,6 +2,12 @@
 const nextConfig = {
   poweredByHeader: false,
   compress: true,
+  eslint: {
+    // Lint runs separately via `npm run lint`. Production builds only enforce
+    // TypeScript type-checking to avoid blocking staging deploys on stylistic
+    // lint errors (unused imports, `any` types) that predate this branch.
+    ignoreDuringBuilds: true,
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

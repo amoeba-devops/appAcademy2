@@ -61,8 +61,8 @@ export default function MapItemsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('items.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('items.lead')}</p>
+          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('map.items.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('map.items.lead')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger
@@ -70,11 +70,11 @@ export default function MapItemsPage() {
             onClick={() => setEditingItem(null)}
           >
             <FileQuestion className="h-4 w-4" />
-            {t('items.add')}
+            {t('map.items.add')}
           </DialogTrigger>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>{editingItem ? t('items.dialog-edit-title') : t('items.dialog-add-title')}</DialogTitle>
+              <DialogTitle>{editingItem ? t('map.items.dialog-edit-title') : t('map.items.dialog-add-title')}</DialogTitle>
             </DialogHeader>
             <ItemForm
               initialValue={editingItem}
@@ -92,11 +92,11 @@ export default function MapItemsPage() {
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <Card className="h-fit border-[#C9A656]/15">
           <CardHeader>
-            <CardTitle className="text-[#0E1E3A]">{t('items.passage-card-title')}</CardTitle>
+            <CardTitle className="text-[#0E1E3A]">{t('map.items.passage-card-title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="passage">{t('items.passage-select')}</Label>
+              <Label htmlFor="passage">{t('map.items.passage-select')}</Label>
               <Select
                 value={selectedPassageId ? String(selectedPassageId) : undefined}
                 onValueChange={(value) => {
@@ -106,7 +106,7 @@ export default function MapItemsPage() {
                 }}
               >
                 <SelectTrigger id="passage">
-                  <SelectValue placeholder={t('items.passage-select-placeholder')} />
+                  <SelectValue placeholder={t('map.items.passage-select-placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   {passages.map((passage) => (
@@ -123,7 +123,7 @@ export default function MapItemsPage() {
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">{selectedPassage.domain}</Badge>
                   <Badge variant="outline">{selectedPassage.gradeLevel}</Badge>
-                  <Badge variant="secondary">{t('items.passage-item-count', { count: selectedPassage.itemCount })}</Badge>
+                  <Badge variant="secondary">{t('map.items.passage-item-count', { count: selectedPassage.itemCount })}</Badge>
                 </div>
                 <Separator />
                 <div className="space-y-2">
@@ -135,7 +135,7 @@ export default function MapItemsPage() {
               </>
             ) : (
               <div className="rounded-md border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-                {t('items.no-passages')}
+                {t('map.items.no-passages')}
               </div>
             )}
           </CardContent>
@@ -144,11 +144,11 @@ export default function MapItemsPage() {
         <Card className="border-[#C9A656]/15">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="text-[#0E1E3A]">{t('items.list-title')}</CardTitle>
+              <CardTitle className="text-[#0E1E3A]">{t('map.items.list-title')}</CardTitle>
               <div className="flex items-center gap-2">
                 <Input
                   className="w-[220px]"
-                  placeholder={t('items.search-placeholder')}
+                  placeholder={t('map.items.search-placeholder')}
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && setSearch(searchInput)}
@@ -204,13 +204,13 @@ function ItemList({
 }) {
   const { t } = useTranslation('admin');
   if (isLoading) {
-    return <div className="py-8 text-center text-muted-foreground">{t('common.loading')}</div>;
+    return <div className="py-8 text-center text-muted-foreground">{t('map.common.loading')}</div>;
   }
 
   if (items.length === 0) {
     return (
       <div className="rounded-md border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-        {t('items.empty')}
+        {t('map.items.empty')}
       </div>
     );
   }
@@ -224,11 +224,11 @@ function ItemList({
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 <Badge variant="outline">{item.gradeLevel}</Badge>
                 <Badge variant="outline">{item.difficulty}</Badge>
-                <Badge variant="secondary">{t('items.points-suffix', { points: item.points })}</Badge>
+                <Badge variant="secondary">{t('map.items.points-suffix', { points: item.points })}</Badge>
               </div>
               <p className="text-sm text-[#0E1E3A]">{item.stem}</p>
               <p className="text-xs text-muted-foreground">
-                {t('items.answer-label')}: {item.answerKeys.join(', ')}
+                {t('map.items.answer-label')}: {item.answerKeys.join(', ')}
               </p>
             </div>
             <Button variant="outline" size="sm" onClick={() => onEdit(item)}>
@@ -326,11 +326,11 @@ function ItemForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="rounded-md bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-        {t('items.linked-passage', { title: selectedPassage?.title ?? t('items.no-passage') })}
+        {t('map.items.linked-passage', { title: selectedPassage?.title ?? t('map.items.no-passage') })}
       </div>
       <div className="grid gap-4 md:grid-cols-4">
         <div>
-          <Label htmlFor="gradeLevel">{t('items.form.grade')}</Label>
+          <Label htmlFor="gradeLevel">{t('map.items.form.grade')}</Label>
           <Input
             id="gradeLevel"
             value={form.gradeLevel}
@@ -339,7 +339,7 @@ function ItemForm({
           />
         </div>
         <div>
-          <Label htmlFor="domain">{t('items.form.domain')}</Label>
+          <Label htmlFor="domain">{t('map.items.form.domain')}</Label>
           <Input
             id="domain"
             value={form.domain}
@@ -348,7 +348,7 @@ function ItemForm({
           />
         </div>
         <div>
-          <Label htmlFor="difficulty">{t('items.form.difficulty')}</Label>
+          <Label htmlFor="difficulty">{t('map.items.form.difficulty')}</Label>
           <Select
             value={form.difficulty}
             onValueChange={(value) => value && setForm({ ...form, difficulty: value })}
@@ -364,7 +364,7 @@ function ItemForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="status">{t('items.form.status')}</Label>
+          <Label htmlFor="status">{t('map.items.form.status')}</Label>
           <Select
             value={form.status}
             onValueChange={(value) => value && setForm({ ...form, status: value })}
@@ -373,17 +373,17 @@ function ItemForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DRAFT">{t('common.status.DRAFT')}</SelectItem>
-              <SelectItem value="REVIEW">{t('common.status.REVIEW')}</SelectItem>
-              <SelectItem value="PUBLISHED">{t('common.status.PUBLISHED')}</SelectItem>
-              <SelectItem value="ARCHIVED">{t('common.status.ARCHIVED')}</SelectItem>
+              <SelectItem value="DRAFT">{t('map.common.status.DRAFT')}</SelectItem>
+              <SelectItem value="REVIEW">{t('map.common.status.REVIEW')}</SelectItem>
+              <SelectItem value="PUBLISHED">{t('map.common.status.PUBLISHED')}</SelectItem>
+              <SelectItem value="ARCHIVED">{t('map.common.status.ARCHIVED')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="stem">{t('items.form.stem')}</Label>
+        <Label htmlFor="stem">{t('map.items.form.stem')}</Label>
         <Textarea
           id="stem"
           className="min-h-[120px]"
@@ -395,29 +395,29 @@ function ItemForm({
 
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <Label htmlFor="options">{t('items.form.options')}</Label>
+          <Label htmlFor="options">{t('map.items.form.options')}</Label>
           <Textarea
             id="options"
             className="min-h-[140px]"
             value={form.options}
             onChange={(e) => setForm({ ...form, options: e.target.value })}
-            placeholder={t('items.form.options-placeholder')}
+            placeholder={t('map.items.form.options-placeholder')}
             required
           />
         </div>
         <div className="space-y-4">
           <div>
-            <Label htmlFor="answerKeys">{t('items.form.answer-keys')}</Label>
+            <Label htmlFor="answerKeys">{t('map.items.form.answer-keys')}</Label>
             <Input
               id="answerKeys"
               value={form.answerKeys}
               onChange={(e) => setForm({ ...form, answerKeys: e.target.value })}
-              placeholder={t('items.form.answer-keys-placeholder')}
+              placeholder={t('map.items.form.answer-keys-placeholder')}
               required
             />
           </div>
           <div>
-            <Label htmlFor="points">{t('items.form.points')}</Label>
+            <Label htmlFor="points">{t('map.items.form.points')}</Label>
             <Input
               id="points"
               type="number"
@@ -428,19 +428,19 @@ function ItemForm({
             />
           </div>
           <div>
-            <Label htmlFor="tags">{t('items.form.tags')}</Label>
+            <Label htmlFor="tags">{t('map.items.form.tags')}</Label>
             <Input
               id="tags"
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              placeholder={t('items.form.tags-placeholder')}
+              placeholder={t('map.items.form.tags-placeholder')}
             />
           </div>
         </div>
       </div>
 
       <div>
-        <Label htmlFor="explanation">{t('items.form.explanation')}</Label>
+        <Label htmlFor="explanation">{t('map.items.form.explanation')}</Label>
         <Textarea
           id="explanation"
           className="min-h-[120px]"
@@ -451,7 +451,7 @@ function ItemForm({
 
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={createItem.isPending || updateItem.isPending || !selectedPassage}>
-          {initialValue ? t('items.form.submit-edit') : t('items.form.submit-create')}
+          {initialValue ? t('map.items.form.submit-edit') : t('map.items.form.submit-create')}
         </Button>
       </div>
     </form>

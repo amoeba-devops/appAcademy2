@@ -52,8 +52,8 @@ export default function MapPassagesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('passages.title')}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t('passages.lead')}</p>
+          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('map.passages.title')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('map.passages.lead')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger
@@ -61,11 +61,11 @@ export default function MapPassagesPage() {
             onClick={() => setEditingPassage(null)}
           >
             <BookPlus className="h-4 w-4" />
-            {t('passages.add')}
+            {t('map.passages.add')}
           </DialogTrigger>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>{editingPassage ? t('passages.dialog-edit-title') : t('passages.dialog-add-title')}</DialogTitle>
+              <DialogTitle>{editingPassage ? t('map.passages.dialog-edit-title') : t('map.passages.dialog-add-title')}</DialogTitle>
             </DialogHeader>
             <PassageForm
               initialValue={editingPassage}
@@ -81,23 +81,23 @@ export default function MapPassagesPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Select value={statusFilter} onValueChange={(value) => value && setStatusFilter(value)}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder={t('passages.filter.status-placeholder')} />
+            <SelectValue placeholder={t('map.passages.filter.status-placeholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">{t('common.filter-status-all')}</SelectItem>
-            <SelectItem value="DRAFT">{t('common.status.DRAFT')}</SelectItem>
-            <SelectItem value="REVIEW">{t('common.status.REVIEW')}</SelectItem>
-            <SelectItem value="PUBLISHED">{t('common.status.PUBLISHED')}</SelectItem>
-            <SelectItem value="ARCHIVED">{t('common.status.ARCHIVED')}</SelectItem>
+            <SelectItem value="ALL">{t('map.common.filter-status-all')}</SelectItem>
+            <SelectItem value="DRAFT">{t('map.common.status.DRAFT')}</SelectItem>
+            <SelectItem value="REVIEW">{t('map.common.status.REVIEW')}</SelectItem>
+            <SelectItem value="PUBLISHED">{t('map.common.status.PUBLISHED')}</SelectItem>
+            <SelectItem value="ARCHIVED">{t('map.common.status.ARCHIVED')}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={domainFilter} onValueChange={(value) => value && setDomainFilter(value)}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder={t('passages.filter.domain-placeholder')} />
+            <SelectValue placeholder={t('map.passages.filter.domain-placeholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">{t('common.filter-domain-all')}</SelectItem>
+            <SelectItem value="ALL">{t('map.common.filter-domain-all')}</SelectItem>
             <SelectItem value="RC">RC</SelectItem>
             <SelectItem value="MATH">Math</SelectItem>
             <SelectItem value="LANGUAGE">Language</SelectItem>
@@ -106,10 +106,10 @@ export default function MapPassagesPage() {
 
         <Select value={gradeFilter} onValueChange={(value) => value && setGradeFilter(value)}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder={t('passages.filter.grade-placeholder')} />
+            <SelectValue placeholder={t('map.passages.filter.grade-placeholder')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">{t('common.filter-grade-all')}</SelectItem>
+            <SelectItem value="ALL">{t('map.common.filter-grade-all')}</SelectItem>
             <SelectItem value="G4">G4</SelectItem>
             <SelectItem value="G5">G5</SelectItem>
             <SelectItem value="G6">G6</SelectItem>
@@ -121,7 +121,7 @@ export default function MapPassagesPage() {
         <div className="ml-auto flex items-center gap-2">
           <Input
             className="w-[240px]"
-            placeholder={t('passages.search-placeholder')}
+            placeholder={t('map.passages.search-placeholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && setSearch(searchInput)}
@@ -133,10 +133,10 @@ export default function MapPassagesPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-12 text-center text-muted-foreground">{t('common.loading')}</div>
+        <div className="py-12 text-center text-muted-foreground">{t('map.common.loading')}</div>
       ) : passages.length === 0 ? (
         <div className="rounded-lg border border-dashed py-16 text-center text-muted-foreground">
-          {t('passages.empty')}
+          {t('map.passages.empty')}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -145,7 +145,7 @@ export default function MapPassagesPage() {
               <CardHeader>
                 <div className="flex items-start justify-between gap-3">
                   <CardTitle className="text-[#0E1E3A]">{passage.title}</CardTitle>
-                  <Badge variant="outline">{t(`common.status.${passage.status}`, { defaultValue: passage.status })}</Badge>
+                  <Badge variant="outline">{t(`map.common.status.${passage.status}`, { defaultValue: passage.status })}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -154,13 +154,13 @@ export default function MapPassagesPage() {
                   <span>·</span>
                   <span>{passage.gradeLevel}</span>
                   <span>·</span>
-                  <span>{t('passages.item-count', { count: passage.itemCount })}</span>
+                  <span>{t('map.passages.item-count', { count: passage.itemCount })}</span>
                 </div>
                 <p className="line-clamp-4 min-h-[84px] text-sm text-muted-foreground">
                   {passage.body}
                 </p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{passage.source || t('passages.no-source')}</span>
+                  <span>{passage.source || t('map.passages.no-source')}</span>
                   <span className="inline-flex items-center gap-1">
                     <ImageIcon className="h-3.5 w-3.5" />
                     {passage.assetUrls.length}
@@ -174,7 +174,7 @@ export default function MapPassagesPage() {
                     setDialogOpen(true);
                   }}
                 >
-                  {t('passages.edit')}
+                  {t('map.passages.edit')}
                 </Button>
               </CardContent>
             </Card>
@@ -242,7 +242,7 @@ function PassageForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <Label htmlFor="title">{t('passages.form.title')}</Label>
+        <Label htmlFor="title">{t('map.passages.form.title')}</Label>
         <Input
           id="title"
           value={form.title}
@@ -252,7 +252,7 @@ function PassageForm({
       </div>
       <div className="grid gap-4 md:grid-cols-4">
         <div>
-          <Label htmlFor="gradeLevel">{t('passages.form.grade')}</Label>
+          <Label htmlFor="gradeLevel">{t('map.passages.form.grade')}</Label>
           <Select
             value={form.gradeLevel}
             onValueChange={(value) => value && setForm({ ...form, gradeLevel: value })}
@@ -270,7 +270,7 @@ function PassageForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="domain">{t('passages.form.domain')}</Label>
+          <Label htmlFor="domain">{t('map.passages.form.domain')}</Label>
           <Select
             value={form.domain}
             onValueChange={(value) => value && setForm({ ...form, domain: value })}
@@ -286,7 +286,7 @@ function PassageForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="status">{t('passages.form.status')}</Label>
+          <Label htmlFor="status">{t('map.passages.form.status')}</Label>
           <Select
             value={form.status}
             onValueChange={(value) => value && setForm({ ...form, status: value })}
@@ -295,25 +295,25 @@ function PassageForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DRAFT">{t('common.status.DRAFT')}</SelectItem>
-              <SelectItem value="REVIEW">{t('common.status.REVIEW')}</SelectItem>
-              <SelectItem value="PUBLISHED">{t('common.status.PUBLISHED')}</SelectItem>
-              <SelectItem value="ARCHIVED">{t('common.status.ARCHIVED')}</SelectItem>
+              <SelectItem value="DRAFT">{t('map.common.status.DRAFT')}</SelectItem>
+              <SelectItem value="REVIEW">{t('map.common.status.REVIEW')}</SelectItem>
+              <SelectItem value="PUBLISHED">{t('map.common.status.PUBLISHED')}</SelectItem>
+              <SelectItem value="ARCHIVED">{t('map.common.status.ARCHIVED')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor="source">{t('passages.form.source')}</Label>
+          <Label htmlFor="source">{t('map.passages.form.source')}</Label>
           <Input
             id="source"
             value={form.source}
             onChange={(e) => setForm({ ...form, source: e.target.value })}
-            placeholder={t('passages.form.source-placeholder')}
+            placeholder={t('map.passages.form.source-placeholder')}
           />
         </div>
       </div>
       <div>
-        <Label htmlFor="body">{t('passages.form.body')}</Label>
+        <Label htmlFor="body">{t('map.passages.form.body')}</Label>
         <Textarea
           id="body"
           className="min-h-[220px]"
@@ -323,18 +323,18 @@ function PassageForm({
         />
       </div>
       <div>
-        <Label htmlFor="assets">{t('passages.form.assets')}</Label>
+        <Label htmlFor="assets">{t('map.passages.form.assets')}</Label>
         <Textarea
           id="assets"
           className="min-h-[100px]"
           value={form.assetUrls}
           onChange={(e) => setForm({ ...form, assetUrls: e.target.value })}
-          placeholder={t('passages.form.assets-placeholder')}
+          placeholder={t('map.passages.form.assets-placeholder')}
         />
       </div>
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={createPassage.isPending || updatePassage.isPending}>
-          {initialValue ? t('passages.form.submit-edit') : t('passages.form.submit-create')}
+          {initialValue ? t('map.passages.form.submit-edit') : t('map.passages.form.submit-create')}
         </Button>
       </div>
     </form>

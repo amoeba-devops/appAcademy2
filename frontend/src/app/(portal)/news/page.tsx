@@ -114,7 +114,7 @@ export default function NewsPage() {
                       NEWS_CATEGORY_COLORS[post.category] ?? "bg-navy/5 text-navy"
                     }`}
                   >
-                    {NEWS_CATEGORY_LABEL_KEYS[post.category] ? t(NEWS_CATEGORY_LABEL_KEYS[post.category]) : post.category}
+                    {NEWS_CATEGORY_LABEL_KEYS[post.category] ? t(NEWS_CATEGORY_LABEL_KEYS[post.category] as never) : post.category}
                   </span>
                   <h3 className="mt-2 text-lg font-semibold text-navy group-hover:text-gold transition-colors line-clamp-2">
                     {post.title}

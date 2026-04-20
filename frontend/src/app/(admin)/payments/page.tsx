@@ -182,7 +182,7 @@ export default function PaymentOrdersPage() {
             <SelectContent>
               {STATUS_VALUES.map((opt) => (
                 <SelectItem key={opt.value || 'all'} value={opt.value}>
-                  {t(opt.labelKey)}
+                  {t(opt.labelKey as never)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -252,7 +252,7 @@ export default function PaymentOrdersPage() {
                         variant="secondary"
                         className={PAYMENT_STATUS_COLORS[order.status as PaymentOrderStatus] ?? ''}
                       >
-                        {statusKey ? t(statusKey) : order.status}
+                        {statusKey ? t(statusKey as never) : order.status}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">

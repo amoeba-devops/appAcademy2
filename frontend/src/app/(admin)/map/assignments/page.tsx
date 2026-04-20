@@ -70,17 +70,17 @@ export default function MapAssignmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('assignments.title')}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t('assignments.lead')}</p>
+          <h1 className="text-2xl font-bold text-[#0E1E3A]">{t('map.assignments.title')}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t('map.assignments.lead')}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90">
             <Plus className="h-4 w-4" />
-            {t('assignments.new')}
+            {t('map.assignments.new')}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('assignments.dialog-title')}</DialogTitle>
+              <DialogTitle>{t('map.assignments.dialog-title')}</DialogTitle>
             </DialogHeader>
             <CreateAssignmentForm onSuccess={() => setDialogOpen(false)} />
           </DialogContent>
@@ -88,40 +88,40 @@ export default function MapAssignmentsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <SummaryCard title={t('assignments.summary.total')} value={String(totalAssignments)} />
-        <SummaryCard title={t('assignments.summary.in-progress')} value={String(inProgressCount)} />
-        <SummaryCard title={t('assignments.summary.completed')} value={String(completedCount)} />
-        <SummaryCard title={t('assignments.summary.overdue')} value={String(overdueCount)} />
+        <SummaryCard title={t('map.assignments.summary.total')} value={String(totalAssignments)} />
+        <SummaryCard title={t('map.assignments.summary.in-progress')} value={String(inProgressCount)} />
+        <SummaryCard title={t('map.assignments.summary.completed')} value={String(completedCount)} />
+        <SummaryCard title={t('map.assignments.summary.overdue')} value={String(overdueCount)} />
       </div>
 
       <Card className="border-[#C9A656]/15">
         <CardHeader>
-          <CardTitle className="text-[#0E1E3A]">{t('assignments.list-title')}</CardTitle>
+          <CardTitle className="text-[#0E1E3A]">{t('map.assignments.list-title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-3">
             <Select value={statusFilter || 'ALL'} onValueChange={(value) => setStatusFilter(!value || value === 'ALL' ? '' : value)}>
               <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">{t('assignments.filter-status-all')}</SelectItem>
-                <SelectItem value="ASSIGNED">{t('assignments.status.ASSIGNED')}</SelectItem>
-                <SelectItem value="IN_PROGRESS">{t('assignments.status.IN_PROGRESS')}</SelectItem>
-                <SelectItem value="COMPLETED">{t('assignments.status.COMPLETED')}</SelectItem>
-                <SelectItem value="OVERDUE">{t('assignments.status.OVERDUE')}</SelectItem>
-                <SelectItem value="CANCELED">{t('assignments.status.CANCELED')}</SelectItem>
+                <SelectItem value="ALL">{t('map.assignments.filter-status-all')}</SelectItem>
+                <SelectItem value="ASSIGNED">{t('map.assignments.status.ASSIGNED')}</SelectItem>
+                <SelectItem value="IN_PROGRESS">{t('map.assignments.status.IN_PROGRESS')}</SelectItem>
+                <SelectItem value="COMPLETED">{t('map.assignments.status.COMPLETED')}</SelectItem>
+                <SelectItem value="OVERDUE">{t('map.assignments.status.OVERDUE')}</SelectItem>
+                <SelectItem value="CANCELED">{t('map.assignments.status.CANCELED')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={targetTypeFilter || 'ALL'} onValueChange={(value) => setTargetTypeFilter(!value || value === 'ALL' ? '' : value)}>
               <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">{t('assignments.filter-target-all')}</SelectItem>
-                <SelectItem value="STUDENT">{t('assignments.target-type.STUDENT')}</SelectItem>
-                <SelectItem value="CLASS">{t('assignments.target-type.CLASS')}</SelectItem>
+                <SelectItem value="ALL">{t('map.assignments.filter-target-all')}</SelectItem>
+                <SelectItem value="STUDENT">{t('map.assignments.target-type.STUDENT')}</SelectItem>
+                <SelectItem value="CLASS">{t('map.assignments.target-type.CLASS')}</SelectItem>
               </SelectContent>
             </Select>
             <Input
               className="ml-auto max-w-[260px]"
-              placeholder={t('assignments.search-placeholder')}
+              placeholder={t('map.assignments.search-placeholder')}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
@@ -131,22 +131,22 @@ export default function MapAssignmentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('assignments.table.testset')}</TableHead>
-                  <TableHead>{t('assignments.table.target')}</TableHead>
-                  <TableHead>{t('assignments.table.progress')}</TableHead>
-                  <TableHead>{t('assignments.table.due-at')}</TableHead>
-                  <TableHead>{t('assignments.table.status')}</TableHead>
-                  <TableHead className="w-[140px]">{t('assignments.table.actions')}</TableHead>
+                  <TableHead>{t('map.assignments.table.testset')}</TableHead>
+                  <TableHead>{t('map.assignments.table.target')}</TableHead>
+                  <TableHead>{t('map.assignments.table.progress')}</TableHead>
+                  <TableHead>{t('map.assignments.table.due-at')}</TableHead>
+                  <TableHead>{t('map.assignments.table.status')}</TableHead>
+                  <TableHead className="w-[140px]">{t('map.assignments.table.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">{t('assignments.loading')}</TableCell>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">{t('map.assignments.loading')}</TableCell>
                   </TableRow>
                 ) : assignments.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">{t('assignments.empty')}</TableCell>
+                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">{t('map.assignments.empty')}</TableCell>
                   </TableRow>
                 ) : (
                   assignments.map((assignment) => (
@@ -177,22 +177,22 @@ function AssignmentRow({ assignment }: { assignment: MapAssignment }) {
   const { t, i18n } = useTranslation('admin');
   const updateAssignment = useUpdateAssignment();
   const variant = STATUS_VARIANT[assignment.status] ?? ('secondary' as const);
-  const statusLabel = t(`assignments.status.${assignment.status}`, { defaultValue: assignment.status });
+  const statusLabel = t(`map.assignments.status.${assignment.status}`, { defaultValue: assignment.status });
 
   const progressWidth = `${Math.min(Math.max(assignment.completionRate, 0), 100)}%`;
 
   return (
     <TableRow>
       <TableCell>
-        <div className="font-medium text-[#0E1E3A]">{assignment.testSetName ?? t('assignments.testset-fallback', { id: assignment.testSetId })}</div>
-        <div className="text-xs text-muted-foreground">{t('assignments.assign-ref', { id: assignment.id })}</div>
+        <div className="font-medium text-[#0E1E3A]">{assignment.testSetName ?? t('map.assignments.testset-fallback', { id: assignment.testSetId })}</div>
+        <div className="text-xs text-muted-foreground">{t('map.assignments.assign-ref', { id: assignment.id })}</div>
       </TableCell>
       <TableCell>
-        <div className="font-medium">{assignment.targetName ?? t('assignments.target-fallback', { id: assignment.targetId })}</div>
+        <div className="font-medium">{assignment.targetName ?? t('map.assignments.target-fallback', { id: assignment.targetId })}</div>
         <div className="text-xs text-muted-foreground">
           {assignment.targetType === 'CLASS'
-            ? t('assignments.target-type.CLASS')
-            : t('assignments.target-type.STUDENT')}
+            ? t('map.assignments.target-type.CLASS')
+            : t('map.assignments.target-type.STUDENT')}
         </div>
       </TableCell>
       <TableCell>
@@ -201,7 +201,7 @@ function AssignmentRow({ assignment }: { assignment: MapAssignment }) {
             <div className="h-full rounded-full bg-[#C9A656]" style={{ width: progressWidth }} />
           </div>
           <div className="text-xs text-muted-foreground">
-            {t('assignments.progress-summary', { completed: assignment.completedTargets, total: assignment.totalTargets })}
+            {t('map.assignments.progress-summary', { completed: assignment.completedTargets, total: assignment.totalTargets })}
           </div>
         </div>
       </TableCell>
@@ -218,7 +218,7 @@ function AssignmentRow({ assignment }: { assignment: MapAssignment }) {
               className="h-8"
               onClick={() => updateAssignment.mutate({ id: assignment.id, data: { status: 'CANCELED' } })}
             >
-              {t('assignments.action-cancel')}
+              {t('map.assignments.action-cancel')}
             </Button>
           ) : null}
           {assignment.status === 'CANCELED' ? (
@@ -228,7 +228,7 @@ function AssignmentRow({ assignment }: { assignment: MapAssignment }) {
               className="h-8"
               onClick={() => updateAssignment.mutate({ id: assignment.id, data: { status: 'ASSIGNED' } })}
             >
-              {t('assignments.action-restore')}
+              {t('map.assignments.action-restore')}
             </Button>
           ) : null}
         </div>
@@ -267,9 +267,9 @@ function CreateAssignmentForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="test-set-id">{t('assignments.form.testset')}</Label>
+        <Label htmlFor="test-set-id">{t('map.assignments.form.testset')}</Label>
         <Select value={testSetId} onValueChange={(value) => value && setTestSetId(value)}>
-          <SelectTrigger id="test-set-id"><SelectValue placeholder={t('assignments.form.testset-placeholder')} /></SelectTrigger>
+          <SelectTrigger id="test-set-id"><SelectValue placeholder={t('map.assignments.form.testset-placeholder')} /></SelectTrigger>
           <SelectContent>
             {testSets.map((testSet) => (
               <SelectItem key={testSet.id} value={String(testSet.id)}>
@@ -282,7 +282,7 @@ function CreateAssignmentForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="target-type">{t('assignments.form.target-type')}</Label>
+          <Label htmlFor="target-type">{t('map.assignments.form.target-type')}</Label>
           <Select
             value={targetType}
             onValueChange={(value) => {
@@ -293,16 +293,16 @@ function CreateAssignmentForm({ onSuccess }: { onSuccess: () => void }) {
           >
             <SelectTrigger id="target-type"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="CLASS">{t('assignments.target-type.CLASS')}</SelectItem>
-              <SelectItem value="STUDENT">{t('assignments.target-type.STUDENT_FULL')}</SelectItem>
+              <SelectItem value="CLASS">{t('map.assignments.target-type.CLASS')}</SelectItem>
+              <SelectItem value="STUDENT">{t('map.assignments.target-type.STUDENT_FULL')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="target-id">{t('assignments.form.target-select')}</Label>
+          <Label htmlFor="target-id">{t('map.assignments.form.target-select')}</Label>
           <Select value={targetId} onValueChange={(value) => value && setTargetId(value)}>
-            <SelectTrigger id="target-id"><SelectValue placeholder={t('assignments.form.target-select-placeholder')} /></SelectTrigger>
+            <SelectTrigger id="target-id"><SelectValue placeholder={t('map.assignments.form.target-select-placeholder')} /></SelectTrigger>
             <SelectContent>
               {targets.map((target) => (
                 <SelectItem key={target.id} value={String(target.id)}>
@@ -315,21 +315,21 @@ function CreateAssignmentForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="due-at">{t('assignments.form.due-at')}</Label>
+        <Label htmlFor="due-at">{t('map.assignments.form.due-at')}</Label>
         <Input id="due-at" type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} />
       </div>
 
       <div className="rounded-lg bg-[#FAF7EE] p-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-2 font-medium text-[#0E1E3A]">
           <SendHorizonal className="h-4 w-4" />
-          {t('assignments.form.memo-title')}
+          {t('map.assignments.form.memo-title')}
         </div>
-        <p className="mt-2">{t('assignments.form.memo-body')}</p>
+        <p className="mt-2">{t('map.assignments.form.memo-body')}</p>
       </div>
 
       <div className="flex justify-end">
         <Button type="submit" disabled={createAssignment.isPending || !testSetId || !targetId || !dueAt}>
-          {createAssignment.isPending ? t('assignments.form.submitting') : t('assignments.form.submit')}
+          {createAssignment.isPending ? t('map.assignments.form.submitting') : t('map.assignments.form.submit')}
         </Button>
       </div>
     </form>
