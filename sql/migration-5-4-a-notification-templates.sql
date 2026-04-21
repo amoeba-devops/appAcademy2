@@ -2,8 +2,8 @@
 -- Migration: 5-4-A
 
 CREATE TABLE IF NOT EXISTS tac_notification_templates (
-    ntf_id          BIGINT          AUTO_INCREMENT PRIMARY KEY,
-    acd_id          BIGINT          NOT NULL DEFAULT 1,
+    ntf_id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    acd_id          BIGINT UNSIGNED NOT NULL DEFAULT 1,
     ntf_event       VARCHAR(50)     NOT NULL COMMENT 'Event trigger: ENROLLMENT_CONFIRMED, PAYMENT_DONE, MAP_SCORE, CLASS_ABSENT, CONSULTATION_RECEIVED',
     ntf_channel     VARCHAR(20)     NOT NULL DEFAULT 'TALK' COMMENT 'Channel: TALK, SMS, EMAIL',
     ntf_title       VARCHAR(200)    NOT NULL,
