@@ -8,6 +8,8 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 
 FROM node:20-alpine AS build
 WORKDIR /app
+ARG API_PROXY_URL=http://backend:4000
+ENV API_PROXY_URL=${API_PROXY_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

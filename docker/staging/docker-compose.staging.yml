@@ -75,6 +75,8 @@ services:
     build:
       context: ../../frontend
       dockerfile: Dockerfile
+      args:
+        API_PROXY_URL: http://backend:4000
     image: tac-frontend:staging
     container_name: tac-frontend
     restart: unless-stopped
