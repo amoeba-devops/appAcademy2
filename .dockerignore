@@ -1,0 +1,13 @@
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/*.log
+**/.DS_Store
+.git
+.github
+data
+docker/staging/.env.staging
+docs/reference/*.xlsx
+docs/reference/*.pdf
+/tmp

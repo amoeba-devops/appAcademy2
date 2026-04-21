@@ -1,5 +1,8 @@
+const API_PROXY_URL = process.env.API_PROXY_URL || 'http://localhost:4000';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   poweredByHeader: false,
   compress: true,
   eslint: {
@@ -24,7 +27,7 @@ const nextConfig = {
       },
       {
         source: '/api/:path*',
-        destination: 'http://localhost:4000/api/:path*',
+        destination: `${API_PROXY_URL}/api/:path*`,
       },
     ];
   },
