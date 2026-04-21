@@ -42,22 +42,27 @@ $COMPOSE build backend frontend
 say "3. Start mysql + redis (idempotent)"
 $COMPOSE up -d mysql redis
 
-# Wait for MySQL healthcheck to pass.
-say "   waiting for mysql healthy..."
-for i in $(seq 1 30); do
-    status=$(docker inspect -f '{{.State.Health.Status}}' tac-mysql 2>/dev/null || echo "starting")
-    [[ "$status" == "healthy" ]] && break
+# Wait until a real SQL query succeeds — mysqladmin ping can return healthy
+# during the MySQL entrypoint's temporary startup phase before the TCP
+# listener is actually ready, so ping alone is not enough.
+# shellcheck disable=SC1091
+set -a; source "$REPO_DIR/docker/staging/.env.staging"; set +a
+say "   waiting for mysql responsive..."
+mysql_ready=0
+for i in $(seq 1 90); do
+    if docker exec tac-mysql mysql --default-character-set=utf8mb4 \
+            -uroot -p"$MYSQL_ROOT_PASSWORD" -e 'SELECT 1' > /dev/null 2>&1; then
+        mysql_ready=1
+        echo "   ready after ${i}x2s"
+        break
+    fi
     sleep 2
 done
-[[ "$status" == "healthy" ]] || die "mysql did not become healthy in 60s."
+[[ "$mysql_ready" == "1" ]] || die "mysql did not become responsive in 180s."
 
 # --- 4. Apply pending SQL migrations ------------------------------------
 say "4. Apply SQL migrations (idempotent via sql/_applied/)"
 mkdir -p "$REPO_DIR/sql/_applied"
-
-# Load env for password.
-# shellcheck disable=SC1091
-set -a; source "$REPO_DIR/docker/staging/.env.staging"; set +a
 
 for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort); do
     fname="$(basename "$sql_file")"
@@ -69,12 +74,18 @@ for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort)
         continue
     fi
 
-    echo "   [apply] $fname"
-    docker exec -i tac-mysql mysql \
-        --default-character-set=utf8mb4 \
-        -uroot -p"$MYSQL_ROOT_PASSWORD" "${MYSQL_DATABASE:-db_tac}" \
-        < "$sql_file"
-    echo "$current_hash" > "$marker"
+    printf '   [apply] %-58s ' "$fname"
+    if docker exec -i tac-mysql mysql \
+            --default-character-set=utf8mb4 \
+            -uroot -p"$MYSQL_ROOT_PASSWORD" "${MYSQL_DATABASE:-db_tac}" \
+            < "$sql_file" > /tmp/sql-out.log 2>&1; then
+        echo "OK"
+        echo "$current_hash" > "$marker"
+    else
+        echo "FAIL"
+        grep -v 'Using a password' /tmp/sql-out.log | tail -5
+        die "SQL apply failed on $fname"
+    fi
 done
 
 # --- 5. Restart app containers ------------------------------------------
