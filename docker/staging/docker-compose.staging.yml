@@ -86,6 +86,14 @@ services:
       NODE_ENV: production
       PORT: 3000
       API_PROXY_URL: http://backend:4000
+      # NextAuth authorize() runs server-side inside this container and
+      # fetches the backend directly. Must be reachable from the frontend
+      # container's network namespace — not 'localhost'.
+      BACKEND_URL: http://backend:4000
+      # nginx terminates TLS with the *.amoeba.site wildcard cert and
+      # forwards X-Forwarded-Proto=https. NEXTAUTH_URL must match the
+      # scheme the browser sees so the session cookie's Secure flag and
+      # NextAuth's CSRF origin check line up.
       NEXTAUTH_URL: https://tpi.amoeba.site
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     ports:

@@ -10,7 +10,8 @@ status: ACTIVE
 
 Target: `tpi.amoeba.site` (IP `125.133.49.165`, host user `appacademy`).
 
-Architecture: host nginx (port 80) reverse-proxies to a Docker Compose
+Architecture: host nginx (port 80 → 301 → 443) terminates TLS with the
+`*.amoeba.site` wildcard cert, then reverse-proxies to a Docker Compose
 stack running MySQL 8, Redis 7, NestJS backend, and Next.js frontend.
 
 ## 2. Branch Policy (브랜치 정책)
@@ -114,7 +115,38 @@ If a deploy breaks staging:
    pm2 resurrect
    ```
 
-## 8. Troubleshooting (문제 해결)
+## 8. TLS / HTTPS (TLS·HTTPS)
+
+`tpi.amoeba.site` is served over HTTPS using the **`*.amoeba.site`
+wildcard** certificate installed on the host.
+
+| Item | Location / Value |
+|------|------------------|
+| Cert chain | `/etc/letsencrypt/live/amoeba.site/fullchain.pem` |
+| Private key | `/etc/letsencrypt/live/amoeba.site/privkey.pem` |
+| nginx site | `/etc/nginx/sites-available/tpi.amoeba.site` (managed by `docker/staging/nginx-tpi.conf`) |
+| Port 80 | 301-redirects everything to `https://`, keeps `/.well-known/acme-challenge/` open for HTTP-01 fallback |
+| Port 443 | TLS 1.2/1.3, Mozilla "intermediate" cipher suite, HSTS `max-age=300` (staging-safe; raise before prod cutover) |
+| Renewal | Driven by whatever issued the wildcard (DNS-01 via certbot or copied from upstream) — verify `certbot renew --dry-run` or the source-of-truth host |
+
+If the cert is installed under a different path (e.g. the domain directory
+is versioned `amoeba.site-0001/`), update the `ssl_certificate` and
+`ssl_certificate_key` lines in `docker/staging/nginx-tpi.conf` and re-copy
+to `/etc/nginx/sites-available/`.
+
+### Rolling a cert update
+
+```bash
+# After renewal (if nginx didn't auto-reload)
+sudo nginx -t && sudo systemctl reload nginx
+
+# If the cert paths changed, pull updated nginx-tpi.conf and reinstall
+cd ~/app-academy && git pull origin main
+sudo cp docker/staging/nginx-tpi.conf /etc/nginx/sites-available/tpi.amoeba.site
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+## 9. Troubleshooting (문제 해결)
 
 | Symptom | Check |
 |---------|-------|
@@ -123,10 +155,11 @@ If a deploy breaks staging:
 | MySQL won't start | `docker logs tac-mysql` — likely `data/mysql` volume permissions |
 | `frontend build` OOM | Add swap: `sudo fallocate -l 2G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` |
 | Deploy key not accepted | `ssh -T git@github.com-deploy` — re-verify key registered and read-only |
+| HTTPS cert error (`NET::ERR_CERT_*`) | `sudo openssl x509 -in /etc/letsencrypt/live/amoeba.site/fullchain.pem -noout -dates -subject` — expiry? right SAN? |
+| Login succeeds then immediately signs out | `NEXTAUTH_URL` scheme must match browser scheme (`https://`). Verify with `docker exec tac-frontend env \| grep NEXTAUTH_URL` |
 
-## 9. Out of Scope (본 문서 범위 외)
+## 10. Out of Scope (본 문서 범위 외)
 
-- HTTPS (Let's Encrypt via certbot) — follow-up task
 - GitHub Actions auto-deploy on push
 - Blue/green or zero-downtime rolling update
 - Production (`production` branch) deployment workflow
