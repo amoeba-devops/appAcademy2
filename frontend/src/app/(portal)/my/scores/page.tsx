@@ -175,7 +175,7 @@ function PortalScoresContent() {
           </p>
         </div>
         <Link
-          href="/login"
+          href="/login/parent"
           className="rounded-full bg-navy px-6 py-3 text-sm font-semibold text-cream transition hover:bg-navy/90"
         >
           {t('my.scores-page.login-cta')}

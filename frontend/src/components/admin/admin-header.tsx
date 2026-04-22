@@ -80,7 +80,7 @@ export function AdminHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={() => signOut({ callbackUrl: '/admin/login' })}
               className="text-amb-error"
             >
               <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />

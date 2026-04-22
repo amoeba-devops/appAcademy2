@@ -36,13 +36,13 @@ test.describe('Portal Navigation', () => {
 
 test.describe('Admin Login', () => {
   test('should show admin login form', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/admin/login');
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
   });
 
   test('should show error for invalid credentials', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/admin/login');
     await page.fill('input[type="email"]', 'wrong@test.com');
     await page.fill('input[type="password"]', 'wrongpass');
     await page.click('button[type="submit"]');

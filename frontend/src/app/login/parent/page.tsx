@@ -192,7 +192,7 @@ export default function ParentLoginPage() {
 
         {/* Link to admin login */}
         <div className="mt-8 text-center">
-          <Link href="/login" className="text-cream/40 text-xs hover:text-cream/60 transition-colors">
+          <Link href="/admin/login" className="text-cream/40 text-xs hover:text-cream/60 transition-colors">
             {t('login.admin-login-link')}
           </Link>
         </div>

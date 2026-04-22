@@ -23,17 +23,17 @@ import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const sidebarItems = [
-  { key: 'dashboard', href: '/dashboard', icon: BarChart3 },
-  { key: 'consultations', href: '/consultations', icon: MessageSquare },
-  { key: 'students', href: '/students', icon: GraduationCap },
-  { key: 'teachers', href: '/teachers', icon: Users },
-  { key: 'programs', href: '/program-mgmt', icon: BookOpen },
-  { key: 'classes', href: '/classes', icon: Layers },
-  { key: 'timetable', href: '/timetable', icon: Calendar },
-  { key: 'enrollments', href: '/enrollments', icon: ClipboardList },
-  { key: 'map', href: '/map', icon: FlaskConical },
-  { key: 'payments', href: '/payments', icon: CreditCard },
-  { key: 'settings', href: '/settings', icon: Settings },
+  { key: 'dashboard', href: '/admin/dashboard', icon: BarChart3 },
+  { key: 'consultations', href: '/admin/consultations', icon: MessageSquare },
+  { key: 'students', href: '/admin/students', icon: GraduationCap },
+  { key: 'teachers', href: '/admin/teachers', icon: Users },
+  { key: 'programs', href: '/admin/program-mgmt', icon: BookOpen },
+  { key: 'classes', href: '/admin/classes', icon: Layers },
+  { key: 'timetable', href: '/admin/timetable', icon: Calendar },
+  { key: 'enrollments', href: '/admin/enrollments', icon: ClipboardList },
+  { key: 'map', href: '/admin/map', icon: FlaskConical },
+  { key: 'payments', href: '/admin/payments', icon: CreditCard },
+  { key: 'settings', href: '/admin/settings', icon: Settings },
 ] as const;
 
 export function AdminSidebar() {
@@ -53,7 +53,7 @@ export function AdminSidebar() {
       {/* Brand — Trinity identity anchor */}
       <div className="h-16 flex items-center px-4 border-b border-cream/10">
         <Link
-          href="/dashboard"
+          href="/admin/dashboard"
           className="flex items-center gap-2 overflow-hidden rounded-md"
           aria-label={t('common:app.admin-name')}
         >

@@ -2,22 +2,24 @@ import { withAuth } from 'next-auth/middleware';
 
 export default withAuth({
   pages: {
-    signIn: '/login',
+    signIn: '/admin/login',
   },
 });
 
-// Protect all admin routes except login and portal pages
+// Guards every admin route. /admin/login itself is intentionally excluded
+// from the matcher so NextAuth can redirect unauthenticated users there.
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/consultations/:path*',
-    '/students/:path*',
-    '/teachers/:path*',
-    '/programs/:path*',
-    '/timetable/:path*',
-    '/enrollments/:path*',
-    '/map/:path*',
-    '/payments/:path*',
-    '/settings/:path*',
+    '/admin/dashboard/:path*',
+    '/admin/consultations/:path*',
+    '/admin/students/:path*',
+    '/admin/teachers/:path*',
+    '/admin/program-mgmt/:path*',
+    '/admin/classes/:path*',
+    '/admin/timetable/:path*',
+    '/admin/enrollments/:path*',
+    '/admin/map/:path*',
+    '/admin/payments/:path*',
+    '/admin/settings/:path*',
   ],
 };
