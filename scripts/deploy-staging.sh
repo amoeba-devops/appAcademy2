@@ -92,15 +92,31 @@ done
 say "5. Restart backend + frontend"
 $COMPOSE up -d --no-deps backend frontend
 
-# --- 6. Reload nginx ----------------------------------------------------
-say "6. Reload host nginx"
-sudo nginx -t
-sudo systemctl reload nginx
+# --- 6. Sync + reload nginx ---------------------------------------------
+# The repo is the source of truth for the tpi.amoeba.site vhost. Install it
+# into /etc/nginx/sites-available/ only when the file content actually
+# changes, so normal app-only deploys don't require a reload-with-sudo.
+say "6. Sync + reload host nginx"
+NGINX_SRC="$REPO_DIR/docker/staging/nginx-tpi.conf"
+NGINX_DST="/etc/nginx/sites-available/tpi.amoeba.site"
+NGINX_LINK="/etc/nginx/sites-enabled/tpi.amoeba.site"
+
+if ! sudo cmp -s "$NGINX_SRC" "$NGINX_DST"; then
+    say "   nginx-tpi.conf changed — installing"
+    sudo cp "$NGINX_SRC" "$NGINX_DST"
+    [[ -L "$NGINX_LINK" ]] || sudo ln -sf "$NGINX_DST" "$NGINX_LINK"
+    sudo nginx -t
+    sudo systemctl reload nginx
+else
+    echo "   nginx-tpi.conf unchanged — skipping reload"
+fi
 
 # --- 7. Smoke test ------------------------------------------------------
-say "7. Smoke test http://tpi.amoeba.site/"
+# Follow redirects so a 301 http -> https counts as healthy.
+say "7. Smoke test https://tpi.amoeba.site/"
 sleep 5
-curl -sI http://tpi.amoeba.site/ | head -1 || warn "smoke test failed — check logs."
+curl -sIL --max-time 15 https://tpi.amoeba.site/ | head -1 \
+    || warn "smoke test failed — check logs + firewall (port 443)."
 
 # --- 8. Manifest --------------------------------------------------------
 cat > "$REPO_DIR/.last-deploy" <<EOF
