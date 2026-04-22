@@ -37,7 +37,7 @@ export default function RefundPolicyPage() {
   const { data: policies = [], isLoading } = useQuery<RefundPolicy[]>({
     queryKey: ['refundPolicies'],
     queryFn: async () => {
-      const res = await api.get<RefundPolicy[]>('/admin/payments/refund-policies');
+      const res = await api.get<RefundPolicy[]>('/payments/refund-policies');
       return res.data ?? [];
     },
   });
@@ -56,7 +56,7 @@ export default function RefundPolicyPage() {
 
   const createMutation = useMutation({
     mutationFn: (data: typeof form) =>
-      api.post('/admin/payments/refund-policies', data).then((r) => r.data),
+      api.post('/payments/refund-policies', data).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['refundPolicies'] });
       setShowForm(false);

@@ -24,7 +24,7 @@ export default function ReceiptsPage() {
   const { data: receipts = [], isLoading } = useQuery<ReceiptData[]>({
     queryKey: ['receipts'],
     queryFn: async () => {
-      const res = await api.get<ReceiptData[]>('/admin/payments/receipts');
+      const res = await api.get<ReceiptData[]>('/payments/receipts');
       return res.data ?? [];
     },
   });

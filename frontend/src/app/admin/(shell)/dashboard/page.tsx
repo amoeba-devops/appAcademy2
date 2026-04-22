@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const { data: kpi, isLoading } = useQuery<DashboardKpi | null>({
     queryKey: ["dashboard-kpi"],
     queryFn: async () => {
-      const res = await api.get<DashboardKpi>("/admin/dashboard/kpi");
+      const res = await api.get<DashboardKpi>("/dashboard/kpi");
       return res.data ?? null;
     },
   });
