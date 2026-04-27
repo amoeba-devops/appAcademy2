@@ -15,6 +15,7 @@ import {
   ClipboardList,
   FlaskConical,
   CreditCard,
+  Bell,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -33,6 +34,7 @@ const sidebarItems = [
   { key: 'enrollments', href: '/admin/enrollments', icon: ClipboardList },
   { key: 'map', href: '/admin/map', icon: FlaskConical },
   { key: 'payments', href: '/admin/payments', icon: CreditCard },
+  { key: 'notifications', href: '/admin/notifications', icon: Bell },
   { key: 'settings', href: '/admin/settings', icon: Settings },
 ] as const;
 
@@ -45,12 +47,12 @@ export function AdminSidebar() {
     <aside
       aria-label={t('admin:nav.dashboard') + ''}
       className={cn(
-        // Trinity brand shell retained; Amoeba-spec dimensions (§1.3: 240/64px)
+        // Tenant brand shell retained; Amoeba-spec dimensions (§1.3: 240/64px)
         'bg-navy text-cream flex flex-col shrink-0 transition-all duration-200',
         collapsed ? 'w-16' : 'w-60',
       )}
     >
-      {/* Brand — Trinity identity anchor */}
+      {/* Brand — tenant identity anchor */}
       <div className="h-16 flex items-center px-4 border-b border-cream/10">
         <Link
           href="/admin/dashboard"

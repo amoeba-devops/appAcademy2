@@ -19,12 +19,12 @@ INSERT INTO tac_academies (
 SET @academy_id = LAST_INSERT_ID();
 
 -- 2. Admin User (원장 계정)
---    email: admin@trinityacademy.kr / password: admin1234
+--    email: admin@tpi.co.kr / password: admin1234
 INSERT INTO tac_users (
     acd_id, usr_email, usr_password, usr_name, usr_role, usr_status
 ) VALUES (
     @academy_id,
-    'admin@trinityacademy.kr',
+    'admin@tpi.co.kr',
     '$2b$10$jqFudBx4XwshJ5tp/NiwE.ERdABEtTJ6bhCqbTF7.AEcE2A2S1f9G',
     '김원장',
     'MASTER',

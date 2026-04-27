@@ -18,6 +18,8 @@ import {
   GetTeacherDetailUseCase,
   CreateTeacherUseCase,
   UpdateTeacherUseCase,
+  SyncTeacherUseCase,
+  SearchAmaClientsUseCase,
 } from '../../application/use-cases/teacher';
 
 @ApiTags('Teachers')
@@ -30,6 +32,8 @@ export class TeacherController {
     private readonly getTeacherDetail: GetTeacherDetailUseCase,
     private readonly createTeacher: CreateTeacherUseCase,
     private readonly updateTeacher: UpdateTeacherUseCase,
+    private readonly syncTeacher: SyncTeacherUseCase,
+    private readonly searchAma: SearchAmaClientsUseCase,
   ) {}
 
   @Get()
@@ -46,6 +50,23 @@ export class TeacherController {
     return this.getTeachers.execute(user.academyId, { status, subject, search });
   }
 
+  @Get('ama-search')
+  @ApiOperation({ summary: 'Search AMA Clients (Teacher Picker)' })
+  @ApiQuery({ name: 'q', required: false, description: 'Free-text query (name or clientId)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async searchAmaClients(
+    @Query('q') q = '',
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+  ) {
+    return this.searchAma.execute(
+      q,
+      Math.max(1, Number(page) || 1),
+      Math.min(50, Math.max(1, Number(limit) || 20)),
+    );
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get teacher detail (교사 상세 조회)' })
   async detail(@Param('id', ParseIntPipe) id: number) {
@@ -59,6 +80,12 @@ export class TeacherController {
     @Body() dto: CreateTeacherDto,
   ) {
     return this.createTeacher.execute(user.academyId, dto);
+  }
+
+  @Post(':id/sync')
+  @ApiOperation({ summary: 'Force sync teacher with AMA Client master' })
+  async sync(@Param('id', ParseIntPipe) id: number) {
+    return this.syncTeacher.execute(id);
   }
 
   @Patch(':id')

@@ -1,0 +1,103 @@
+name: CD — Production
+
+# Production deploys are intentionally manual. Trigger from the Actions UI
+# (or `gh workflow run`) with the SHA you want to ship. The `production`
+# GitHub Environment must require reviewer approval before this job runs
+# — configure it in repo Settings → Environments → production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to deploy (full or short, must already be built by CD-Staging).'
+        required: true
+        type: string
+      skip_smoke:
+        description: 'Skip post-deploy smoke test (emergency rollback only).'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BASE: ghcr.io/${{ github.repository }}
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────
+  # 1. Verify the requested SHA's images exist in GHCR before we
+  #    touch the production host. We deploy ONLY images that were
+  #    built and tested by CD-Staging — never local builds.
+  # ──────────────────────────────────────────────────────────────────
+  preflight:
+    name: Preflight (verify images)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      sha_short: ${{ steps.normalize.outputs.sha_short }}
+    steps:
+      - id: normalize
+        run: |
+          sha='${{ inputs.sha }}'
+          # Accept full or short SHA; normalize to 7 chars (matches CD-Staging).
+          short="${sha:0:7}"
+          echo "sha_short=$short" >> "$GITHUB_OUTPUT"
+          echo "Deploying SHA: $short"
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify backend + frontend images present
+        run: |
+          set -e
+          for svc in tac-backend tac-frontend; do
+            img="${IMAGE_BASE}/${svc}:${{ steps.normalize.outputs.sha_short }}"
+            echo "checking $img"
+            docker manifest inspect "$img" >/dev/null \
+              || { echo "MISSING: $img — was this SHA built by CD-Staging?"; exit 1; }
+          done
+
+  # ──────────────────────────────────────────────────────────────────
+  # 2. Deploy to production. Requires GH Environment approval.
+  # ──────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: preflight
+    environment:
+      name: production
+      url: https://app-academy.amoeba.site
+
+    steps:
+      - name: Trigger remote deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.PRODUCTION_SSH_HOST }}
+          username: ${{ secrets.PRODUCTION_SSH_USER }}
+          key:      ${{ secrets.PRODUCTION_SSH_KEY }}
+          port:     ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          envs: DEPLOY_SHA
+          script: |
+            set -euo pipefail
+            export DEPLOY_SHA='${{ needs.preflight.outputs.sha_short }}'
+            cd ~/app-academy
+            scripts/deploy-production.sh
+
+      - name: Smoke test
+        if: ${{ inputs.skip_smoke != true }}
+        run: |
+          for i in $(seq 1 6); do
+            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://app-academy.amoeba.site/ || echo 000)
+            echo "attempt $i → $code"
+            [[ "$code" == "200" ]] && exit 0
+            sleep 5
+          done
+          echo "Smoke test failed"; exit 1

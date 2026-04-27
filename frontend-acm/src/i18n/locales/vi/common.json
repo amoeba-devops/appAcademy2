@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "ACM v1.0a",
+    "title": "Quản lý Học viện"
+  },
+  "nav": {
+    "dashboard": "Bảng điều khiển",
+    "csl": "Tư vấn mới",
+    "cls": "Lớp học",
+    "sch": "Trường học",
+    "ref": "Tài liệu tham khảo",
+    "qna": "Hỏi đáp"
+  },
+  "lang": {
+    "label": "Ngôn ngữ",
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "actions": {
+    "create": "Tạo",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "cancel": "Hủy",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải…",
+    "submit": "Gửi",
+    "submitting": "Đang gửi…"
+  },
+  "status": {
+    "loading": "Đang tải…",
+    "empty": "Không có mục nào để hiển thị.",
+    "error": "Đã xảy ra lỗi.",
+    "submitFailed": "Gửi không thành công."
+  },
+  "todo": "TODO: sẽ triển khai sau",
+  "dash": "—"
+}

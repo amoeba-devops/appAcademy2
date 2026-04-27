@@ -10,102 +10,69 @@
     "login": "Sign in"
   },
   "home": {
-    "hero-title": "OMNIBUS OMNIA",
-    "hero-subtitle": "Becoming all things to all people",
-    "cta-consult": "Request consultation",
-    "cta-map-test": "About MAP Test",
+    "header": {
+      "menu-consult": "Online Tutoring Consultation",
+      "menu-test": "Online MAP TEST Application",
+      "menu-map-test": "MAP TEST",
+      "menu-isee": "ISEE",
+      "btn-test": "Take MAP Test",
+      "btn-consult": "Consult",
+      "menu-toggle": "Open menu"
+    },
     "hero": {
-      "eyebrow": "Official NWEA MAP TEST partner",
-      "title": "TRINITY ACADEMY",
-      "subtitle": "Precise diagnosis · Certain admission",
-      "lead": "Since 2020, Trinity has guided more than 230 students into international schools. Through the MAP TEST diagnostic we provide a complete roadmap — from baseline assessment to target-school admission."
+      "title": "Trinity Prep Institute — Official NWEA MAP TEST Partner",
+      "subtitle": "Since 2017, TPI has supported international-school students in 10+ countries with MAP TEST-centered online classes and structured learning management.",
+      "cta-consult": "Online Tutoring Consultation",
+      "cta-test": "Online MAP TEST Application"
     },
-    "results": {
-      "eyebrow": "TRUSTED RESULTS",
-      "title": "Trinity Academy's confidence\ncomes from proven results.",
-      "lead": "Since 2020, Trinity has delivered admissions to students targeting seven accredited international schools plus unaccredited international schools nationwide. Verified data and expertise power the outcomes.",
-      "stat-value": "144",
-      "stat-unit": "",
-      "stat-label": "International school admissions · Chadwick · DIS · incl. unaccredited"
+    "intro": {
+      "title": "What is the MAP TEST?",
+      "body": "MAP TEST stands for \"Measures of Academic Progress\" — an academic-achievement assessment developed by NWEA (Northwest Evaluation Association), a U.S. educational evaluation and learning-diagnostic organization."
     },
-    "results-stats": {
-      "eyebrow": "PROVEN TRACK RECORD",
-      "title": "Trinity proven by data",
-      "item-graduates": "Alumni total",
-      "item-admitted": "Intl. school admissions",
-      "item-pass-rate": "Admission rate",
-      "item-founded": "Founded"
+    "importance": {
+      "title": "Why MAP TEST matters",
+      "i1": "Achievement assessment aligned to the U.S. Common Core State Standards",
+      "i2": "Entrance exam used by international schools",
+      "i3": "Core indicator of academic achievement",
+      "i4": "Starting point for SAT/ACT preparation"
     },
-    "campus-band": {
-      "eyebrow": "DUAL CAMPUS",
-      "title": "On-site admissions prep at our Jeju main campus and Apgujeong Dosan Park center,\nplus online 1:1 lessons from hand-picked instructors.",
-      "lead": "Trinity Academy's main campus sits inside Jeju's English Education City, putting us at the heart of the admissions ecosystem. Our know-how reaches every aspiring international-school applicant via on-site and online classes."
-    },
-    "pillars-section": {
-      "eyebrow": "OUR DIFFERENTIATORS",
-      "title": "Four pillars built for admissions success"
-    },
-    "pillars": {
-      "p1": {
-        "title": "'School-specific strategy' informed by 230+ admissions",
-        "problem": "International school admissions are more than an English test — each school has its own evaluation rubric.",
-        "label": "Real admissions analytics:",
-        "solution": "Over years of coaching 230+ admitted students, we've systematically catalogued school-specific exam patterns and admission profiles (NLCS, SJA, KIS, Chadwick, and more). We chart a learning path tuned to your target school's priorities."
-      },
-      "p2": {
-        "title": "A 99% admission rate backed by 'complete application strategy'",
-        "problem": "High test scores alone rarely reveal a student's full potential. Candidates must stand out on their own terms.",
-        "label": "Tailored application support:",
-        "solution": "Trinity preserves its 99% admission rate by translating each student's activities and story into the target school's educational philosophy. Interview prep and essays are fine-tuned so the student's strengths lead."
-      },
-      "p3": {
-        "title": "'Detailed diagnosis and learning roadmap' that converts to admission",
-        "problem": "We avoid vague preparation — learning direction is decided on objective metrics.",
-        "label": "Data-driven analysis:",
-        "solution": "Against 230+ admission cases, we benchmark each student's academic level. MAP Test, ISEE, and other skill-area data quantify strengths and gaps, driving a prioritized, efficient roadmap."
-      },
-      "p4": {
-        "title": "'All-in-One' support from application through post-admission",
-        "problem": "We prevent errors in the application package and plan for a smooth transition into school life.",
-        "label": "Structured guidance:",
-        "solution": "From recommendation letters to supporting documents, we deliver precision packaging. We also reinforce academic fundamentals before enrollment so students adjust smoothly to IB, AP and other curricula."
-      }
-    },
-    "process-section": {
-      "eyebrow": "ENROLLMENT PROCESS",
-      "title": "Trinity Academy\nadmissions prep process"
+    "features": {
+      "title": "What makes TPI different",
+      "f1-title": "Accurate diagnosis through the official NWEA MAP TEST and online trial classes",
+      "f1-body": "Built on the globally trusted NWEA MAP TEST, we precisely analyze the student's level and strengths. A free online trial class objectively measures real-class adaptability and performance.",
+      "f2-title": "TPI's 2,000+ proprietary item bank — past papers and original content",
+      "f2-body": "Years of accumulated past-paper analysis and in-house research drive a practice-oriented curriculum that fully reflects current exam trends.",
+      "f3-title": "MAP TEST specialist faculty plus international-school curriculum consultants",
+      "f3-body": "Faculty deeply versed in international and overseas curricula deliver individualized learning strategies aligned to each student's goals.",
+      "f4-title": "A structured feedback system that surfaces learning progress and outcomes",
+      "f4-body": "Diagnostic results and learning trajectories are summarized in feedback reports parents and students can read at a glance.",
+      "f5-title": "1:1 tailored tutoring that owns the path to your target score",
+      "f5-body": "Step-by-step coaching from concept to practice, calibrated to each student's level and target score, with steady management driving target-score achievement."
     },
     "process": {
-      "s1": {
-        "title": "Tailored initial consultation",
-        "label": "Baseline profile and learning style:",
-        "body": "We run a 1:1 baseline consultation based on the student's existing academic record to establish today's starting line."
-      },
-      "s2": {
-        "title": "Objective skill diagnostic",
-        "label": "Standardized level test:",
-        "body": "We administer the official NWEA MAP Test plus a trial class to evaluate Writing and Speaking. The diagnostic output quantifies the student's current performance."
-      },
-      "s3": {
-        "title": "Strategic goal setting",
-        "label": "In-depth consulting and school matching:",
-        "body": "Using the diagnostic, we align on target schools where the student can shine and build a concrete admissions plan."
-      },
-      "s4": {
-        "title": "Tailored curriculum and schedule",
-        "label": "Best-fit class grouping:",
-        "body": "We assign the most effective setting — group classes, 1:1, or summer/winter intensives — based on the student's level and timeline."
-      },
-      "s5": {
-        "title": "Close monitoring and performance sharing",
-        "label": "Regular curriculum and feedback system:",
-        "body": "Structured lessons combine with periodic NWEA MAP TEST mock exams. Progress data is shared transparently via parent feedback reports."
-      }
+      "title": "Enrollment process",
+      "s1-step": "Step 01",
+      "s1-title": "Student profile registration & baseline consultation",
+      "s2-step": "Step 02",
+      "s2-title": "Official MAP Test administration & RIT analysis",
+      "s3-step": "Step 03",
+      "s3-title": "Free trial class",
+      "s4-step": "Step 04",
+      "s4-title": "Curriculum consulting & instructor matching",
+      "s5-step": "Step 05",
+      "s5-title": "Class delivery & ongoing feedback"
     },
-    "closing": {
-      "eyebrow": "CONTACT US",
-      "title": "Trinity Academy will deliver your certain outcome.",
-      "lead": "Trinity's precise diagnostics, passionate tutoring, and proven track record secure confident international school admissions."
+    "reviews": {
+      "title": "Detailed feedback is the surest compass for academic growth.",
+      "prev": "Previous review",
+      "next": "Next review"
+    },
+    "bottom-cta": {
+      "title": "TPI — proven by results.",
+      "subtitle": "TPI's precise diagnosis, dedicated tutoring, and detailed class feedback secure your target outcome.",
+      "cta-kakao": "KakaoTalk consult",
+      "cta-phone": "Call 1555-2108",
+      "cta-consult": "Request consultation"
     }
   },
   "floating": {
@@ -418,14 +385,22 @@
     "admin-login-link": "Admin sign in →"
   },
   "footer": {
-    "address": "Address",
-    "phone": "Phone",
-    "email": "Email",
+    "company-name": "Trinity Prep Institute",
+    "legal-name": "TRINITY PREP INSTITUTE",
+    "business-id-label": "Business ID",
+    "business-id": "546-06-03432",
+    "address-label": "Address",
+    "address": "15-4, Eonju-ro 152-gil, Gangnam-gu, Seoul, Korea",
+    "phone-label": "Phone",
+    "phone": "1555-2108",
+    "email-label": "Email",
+    "email": "info@tpiglobal.network",
+    "kakao-label": "KakaoTalk consult",
     "consultation-hours": "Consultation hours",
     "class-hours": "Class hours",
-    "kakao-channel": "💛 KakaoTalk channel",
-    "business-info": "Business registration · representative · mail-order registration · privacy officer (TBD)",
-    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "COPYRIGHT © Trinity Prep Institute ALL RIGHTS RESERVED."
   },
   "site": {
     "hours-consultation": "14:00 – 22:00 (by appointment)",

@@ -10,102 +10,69 @@
     "login": "Đăng nhập"
   },
   "home": {
-    "hero-title": "OMNIBUS OMNIA",
-    "hero-subtitle": "Trở nên mọi sự cho mọi người",
-    "cta-consult": "Đăng ký tư vấn",
-    "cta-map-test": "Tìm hiểu MAP Test",
+    "header": {
+      "menu-consult": "온라인 튜터링 상담 신청",
+      "menu-test": "온라인 MAP TEST 응시 신청",
+      "menu-map-test": "MAP TEST",
+      "menu-isee": "ISEE",
+      "btn-test": "맵테스트 응시",
+      "btn-consult": "상담신청",
+      "menu-toggle": "메뉴 열기"
+    },
     "hero": {
-      "eyebrow": "Đơn vị chính thức của NWEA MAP TEST",
-      "title": "TRINITY ACADEMY",
-      "subtitle": "Chẩn đoán chính xác · Trúng tuyển chắc chắn",
-      "lead": "Kể từ năm 2020, Trinity đã dẫn dắt hơn 230 học sinh vào các trường quốc tế. Qua bài chẩn đoán MAP TEST, chúng tôi cung cấp lộ trình hoàn chỉnh — từ đánh giá ban đầu đến trúng tuyển trường mục tiêu."
+      "title": "NWEA MAP TEST 공식 기관 트리니티 프렙 인스티튜트",
+      "subtitle": "2017년 설립 이후 미국, 영국, 한국 등 전 세계 10개국 이상의 국제학교 학생들에게 MAP TEST 중심의 온라인 클래스와 체계적인 학습 관리를 종합적으로 제공합니다.",
+      "cta-consult": "온라인 튜터링 상담 신청",
+      "cta-test": "온라인 MAP TEST 응시 신청"
     },
-    "results": {
-      "eyebrow": "TRUSTED RESULTS",
-      "title": "Niềm tin của Trinity Academy\nđến từ kết quả đã chứng minh.",
-      "lead": "Từ năm 2020, Trinity đã đồng hành đưa học sinh vào 7 trường quốc tế được công nhận và nhiều trường quốc tế chưa được công nhận trên toàn quốc. Dữ liệu và bí quyết đã kiểm chứng dẫn dắt kết quả.",
-      "stat-value": "144",
-      "stat-unit": "",
-      "stat-label": "Đậu trường quốc tế · Chadwick · DIS · bao gồm chưa công nhận"
+    "intro": {
+      "title": "MAP TEST란?",
+      "body": "MAP TEST는 \"Measures of Academic Progress\"의 약자로 미국의 교육 평가 및 학습 진단 솔루션 기관인 NWEA (Northwest Evaluation Association)에서 개발한 학업 성취도 측정 시험입니다."
     },
-    "results-stats": {
-      "eyebrow": "PROVEN TRACK RECORD",
-      "title": "Trinity chứng minh bằng dữ liệu",
-      "item-graduates": "Tổng cựu học sinh",
-      "item-admitted": "Đậu trường quốc tế",
-      "item-pass-rate": "Tỷ lệ đậu",
-      "item-founded": "Năm thành lập"
+    "importance": {
+      "title": "MAP TEST가 중요한 이유",
+      "i1": "미국 교과과정(Common Core State Standards) 기반의 학업 성취도 평가",
+      "i2": "국제학교의 입학 시험",
+      "i3": "학업 성취도의 핵심 지표",
+      "i4": "Standardized Test(SAT/ACT) 준비의 시작점"
     },
-    "campus-band": {
-      "eyebrow": "DUAL CAMPUS",
-      "title": "Lớp luyện thi tại cơ sở chính Jeju và trung tâm Apgujeong Dosan Park,\ncùng lớp 1:1 trực tuyến với giáo viên tuyển chọn.",
-      "lead": "Cơ sở chính của Trinity nằm trong khu English Education City của Jeju, cho phép chúng tôi nắm bắt thông tin tuyển sinh quan trọng nhất. Bí quyết của Trinity lan tỏa tới mọi thí sinh qua các lớp offline và online."
-    },
-    "pillars-section": {
-      "eyebrow": "OUR DIFFERENTIATORS",
-      "title": "Bốn trụ cột cho thành công tuyển sinh"
-    },
-    "pillars": {
-      "p1": {
-        "title": "'Chiến lược theo từng trường' tích lũy từ 230+ ca đậu",
-        "problem": "Tuyển sinh trường quốc tế không đơn thuần là bài kiểm tra tiếng Anh — mỗi trường có tiêu chí đánh giá riêng.",
-        "label": "Dữ liệu phân tích thực chiến:",
-        "solution": "Qua nhiều năm đào tạo hơn 230 học sinh đậu, chúng tôi hệ thống hóa đề thi và hình mẫu ứng viên từng trường (NLCS, SJA, KIS, Chadwick, v.v.). Chúng tôi vạch lộ trình phù hợp với ưu tiên của trường mục tiêu."
-      },
-      "p2": {
-        "title": "Tỷ lệ đậu 99% nhờ 'chiến lược hồ sơ hoàn hảo'",
-        "problem": "Điểm thi cao chưa đủ để thể hiện tiềm năng. Ứng viên phải nổi bật bằng bản sắc riêng.",
-        "label": "Hướng dẫn hồ sơ cá nhân hóa:",
-        "solution": "Trinity duy trì 99% tỷ lệ đậu bằng cách chuyển hoạt động và câu chuyện của học sinh thành tường thuật hợp với triết lý trường. Phỏng vấn và bài luận được tinh chỉnh để điểm mạnh nổi bật."
-      },
-      "p3": {
-        "title": "'Chẩn đoán chi tiết và lộ trình học' dẫn đến đậu",
-        "problem": "Chúng tôi tránh chuẩn bị mơ hồ — hướng học dựa trên chỉ số khách quan.",
-        "label": "Phân tích dữ liệu:",
-        "solution": "Đối chiếu với 230+ ca đậu, chúng tôi định vị trình độ hiện tại. MAP Test, ISEE và các dữ liệu kỹ năng lượng hóa điểm mạnh và khoảng trống, ưu tiên tối ưu cho lộ trình hiệu quả."
-      },
-      "p4": {
-        "title": "Hỗ trợ 'All-in-One' từ hồ sơ tới sau khi nhập học",
-        "problem": "Chúng tôi tránh lỗi hồ sơ và chuẩn bị cho quá trình hòa nhập trường sau khi đậu.",
-        "label": "Hướng dẫn bài bản:",
-        "solution": "Từ thư giới thiệu tới giấy tờ chứng minh hoạt động, chúng tôi chuẩn bị hồ sơ chính xác. Đồng thời củng cố nền tảng học thuật trước khi nhập học để thích nghi tốt với IB, AP."
-      }
-    },
-    "process-section": {
-      "eyebrow": "ENROLLMENT PROCESS",
-      "title": "Quy trình luyện thi\nTrinity Academy"
+    "features": {
+      "title": "TPI만의 차별화된 강점",
+      "f1-title": "NWEA 공식 MAP TEST와 온라인 체험수업을 통한 정확한 학업 성취도 진단",
+      "f1-body": "세계적으로 공인된 NWEA MAP TEST를 기반으로, 학생의 학습 수준과 강점을 정밀하게 분석합니다. 온라인 체험수업(무료)를 통해 실제수업 적응도와 성취도를 객관적으로 진단합니다.",
+      "f2-title": "기출부터 자체제작까지, TPI만의 2000+문항 자료",
+      "f2-body": "수년간 축적된 기출 문제와 자체 연구 자료를 통해 시험 출제 경향을 완벽히 반영한 실전 중심의 커리큘럼을 제공합니다.",
+      "f3-title": "MAP TEST 전문 강사진과 국제학교 커리큘럼 전문 컨설턴트",
+      "f3-body": "국제학교 및 해외 교육 과정을 깊이 이해한 전문 강사진이 학생 개개인의 목표에 맞춘 맞춤형 학습 전략을 제시합니다.",
+      "f4-title": "학습 과정과 성취도를 정확하게 보여주는 체계적인 피드백 시스템",
+      "f4-body": "진단 결과와 학습 과정을 학부모와 학생이 한눈에 확인할 수 있는 체계적인 피드백 리포트를 제공합니다.",
+      "f5-title": "목표 점수 도달까지 확실하게 책임지는 1:1 맞춤 튜터링",
+      "f5-body": "각 학생의 수준과 목표 점수에 맞춰 개념부터 실전까지 단계별로 코칭하며, 꾸준한 관리로 목표 점수 달성을 이끌어냅니다."
     },
     "process": {
-      "s1": {
-        "title": "Tư vấn cơ bản cá nhân hóa",
-        "label": "Hồ sơ ban đầu và phong cách học:",
-        "body": "Tư vấn 1:1 dựa trên hồ sơ học tập hiện có để xác định điểm xuất phát hôm nay."
-      },
-      "s2": {
-        "title": "Chẩn đoán kỹ năng khách quan",
-        "label": "Bài kiểm tra trình độ chuẩn:",
-        "body": "Triển khai NWEA MAP Test chính thức cộng với lớp thử để đánh giá Viết và Nói. Kết quả lượng hóa năng lực hiện tại của học sinh."
-      },
-      "s3": {
-        "title": "Thiết lập mục tiêu chiến lược",
-        "label": "Tư vấn chuyên sâu và chọn trường:",
-        "body": "Dựa trên chẩn đoán, chúng tôi thống nhất trường mục tiêu phù hợp và xây dựng kế hoạch tuyển sinh cụ thể."
-      },
-      "s4": {
-        "title": "Chương trình và lịch học theo thiết kế riêng",
-        "label": "Phân lớp tối ưu:",
-        "body": "Chúng tôi chọn hình thức phù hợp — lớp nhóm, 1:1, hay lớp hè/đông — theo trình độ và mốc thời gian."
-      },
-      "s5": {
-        "title": "Theo dõi sát và chia sẻ tiến độ",
-        "label": "Giáo trình và hệ thống phản hồi:",
-        "body": "Bài giảng bài bản kết hợp với kỳ thi thử NWEA MAP TEST định kỳ. Dữ liệu tiến bộ được chia sẻ minh bạch qua báo cáo cho phụ huynh."
-      }
+      "title": "등록 프로세스",
+      "s1-step": "Step 01",
+      "s1-title": "학생 기본 정보 등록 및 기초 상담",
+      "s2-step": "Step 02",
+      "s2-title": "공식 MAP Test 응시 & RIT 분석",
+      "s3-step": "Step 03",
+      "s3-title": "무료 체험 수업 (Trial Class)",
+      "s4-step": "Step 04",
+      "s4-title": "커리큘럼 컨설팅 및 강사 매칭",
+      "s5-step": "Step 05",
+      "s5-title": "수업 진행 및 피드백 제공"
     },
-    "closing": {
-      "eyebrow": "CONTACT US",
-      "title": "Trinity Academy sẽ mang lại kết quả chắc chắn.",
-      "lead": "Chẩn đoán chính xác, giảng dạy tận tâm và kinh nghiệm đã được kiểm chứng của Trinity bảo đảm đậu trường quốc tế."
+    "reviews": {
+      "title": "디테일한 피드백은 확실한 학업 성취의 나침반입니다.",
+      "prev": "이전 후기",
+      "next": "다음 후기"
+    },
+    "bottom-cta": {
+      "title": "TPI는 결과로 증명합니다.",
+      "subtitle": "TPI의 정밀한 학업 진단, 열정적인 튜터링, 그리고 디테일한 클래스 피드백은 확실한 목표 달성을 보장합니다.",
+      "cta-kakao": "카카오톡 상담",
+      "cta-phone": "전화 1555-2108",
+      "cta-consult": "상담 신청"
     }
   },
   "floating": {
@@ -418,14 +385,22 @@
     "admin-login-link": "Đăng nhập quản trị →"
   },
   "footer": {
-    "address": "Địa chỉ",
-    "phone": "Điện thoại",
-    "email": "Email",
-    "consultation-hours": "Giờ tư vấn",
-    "class-hours": "Giờ học",
-    "kakao-channel": "💛 Kênh KakaoTalk",
-    "business-info": "Giấy phép kinh doanh · người đại diện · đăng ký bán hàng · phụ trách thông tin cá nhân (TBD)",
-    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+    "company-name": "트리니티 프렙 인스티튜트",
+    "legal-name": "TRINITY PREP INSTITUTE",
+    "business-id-label": "사업자등록번호",
+    "business-id": "546-06-03432",
+    "address-label": "주소",
+    "address": "서울특별시 강남구 언주로 152길 15-4",
+    "phone-label": "전화",
+    "phone": "1555-2108",
+    "email-label": "이메일",
+    "email": "info@tpiglobal.network",
+    "kakao-label": "카카오톡 상담",
+    "consultation-hours": "상담시간",
+    "class-hours": "수업시간",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "COPYRIGHT © Trinity Prep Institute ALL RIGHTS RESERVED."
   },
   "site": {
     "hours-consultation": "14:00 – 22:00 (theo hẹn trước)",

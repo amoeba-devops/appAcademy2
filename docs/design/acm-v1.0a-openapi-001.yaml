@@ -1,0 +1,868 @@
+# ACM v1.0a — OpenAPI 3.1 Specification
+# Document: ACM-API-001 v1.0.0
+# Date: 2026-04-26
+# Author: 김태윤 팀장 (PO)
+# Scope: Unified REST API for 5 modules — CSL / DSH / SCH / REF / QNA
+# Notes:
+#   - All paths inherit AuthGuard (JWT) + OwnEntityGuard from AMB Core.
+#   - `entId` injected from JWT — never accepted in path/body.
+#   - Standard error envelope: { error: { code, message, details? } }
+#   - Pagination: cursor-based (`cursor`, `limit`); responses include `data[]` + `meta.nextCursor`.
+
+openapi: 3.1.0
+
+info:
+  title: ACM v1.0a — Academy Custom Module API
+  version: 1.0.0
+  description: |
+    Trinity Academy Custom Module on AMB platform.
+    Modules: CSL (신규상담) · DSH (대시보드) · SCH (학교) · REF (참조자료) · QNA (정기상담).
+  contact:
+    name: 김태윤 팀장
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.amb.example.com/api/acm
+    description: Production
+  - url: https://stg-api.amb.example.com/api/acm
+    description: Staging
+  - url: http://localhost:3000/api/acm
+    description: Local
+
+tags:
+  - name: csl-inquiries
+    description: Counseling intake (신규상담)
+  - name: csl-students
+    description: Counseling student records
+  - name: dsh-dashboard
+    description: Dashboard read views
+  - name: dsh-admin
+    description: KPI configuration
+  - name: sch-schools
+    description: School master
+  - name: ref-guidelines
+    description: Class workflow guidelines
+  - name: ref-level-tests
+    description: Level test guides
+  - name: ref-benchmarks
+    description: Score benchmarks (versioned)
+  - name: qna-records
+    description: Regular counseling Q&A
+  - name: qna-faq
+    description: FAQ knowledge base
+  - name: migration
+    description: Excel migration jobs (admin)
+
+# ─────────────────────────────────────────────
+# Security
+# ─────────────────────────────────────────────
+security:
+  - bearerAuth: []
+
+# ─────────────────────────────────────────────
+# Paths
+# ─────────────────────────────────────────────
+paths:
+  # ╔══════════ CSL ══════════╗
+  /csl/inquiries:
+    get:
+      tags: [csl-inquiries]
+      operationId: listInquiries
+      summary: List inquiries (C-01)
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - in: query
+          name: status
+          schema: { type: array, items: { $ref: '#/components/schemas/InquiryStatus' } }
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: schoolId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: registeredFrom
+          schema: { type: string, format: date }
+        - in: query
+          name: registeredTo
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InquiryListResponse'
+    post:
+      tags: [csl-inquiries]
+      operationId: createInquiry
+      summary: Create inquiry (C-02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateInquiryDto' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Inquiry' }
+
+  /csl/inquiries/{inqId}:
+    parameters: [{ $ref: '#/components/parameters/InqId' }]
+    get:
+      tags: [csl-inquiries]
+      operationId: getInquiry
+      summary: Get inquiry detail (C-03)
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/InquiryDetail' } } } }, '404': { $ref: '#/components/responses/NotFound' } }
+    patch:
+      tags: [csl-inquiries]
+      operationId: updateInquiry
+      summary: Update inquiry (C-04)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateInquiryDto' } } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Inquiry' } } } } }
+    delete:
+      tags: [csl-inquiries]
+      operationId: softDeleteInquiry
+      summary: Soft-delete inquiry (C-05, team_lead+)
+      responses: { '204': { description: Deleted } }
+
+  /csl/inquiries/{inqId}/transition:
+    parameters: [{ $ref: '#/components/parameters/InqId' }]
+    post:
+      tags: [csl-inquiries]
+      operationId: transitionInquiry
+      summary: Status transition (C-06 .. C-12)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransitionDto' }
+      responses: { '200': { description: OK }, '422': { $ref: '#/components/responses/UnprocessableEntity' } }
+
+  /csl/inquiries/{inqId}/convert:
+    parameters: [{ $ref: '#/components/parameters/InqId' }]
+    post:
+      tags: [csl-inquiries]
+      operationId: convertToEnrolled
+      summary: Convert ACTIVE → ENROLLED (C-13)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                convertedClassId: { type: string, format: uuid }
+                note: { type: string, maxLength: 500 }
+      responses: { '200': { description: OK } }
+
+  /csl/inquiries/{inqId}/visits:
+    parameters: [{ $ref: '#/components/parameters/InqId' }]
+    get:
+      tags: [csl-inquiries]
+      operationId: listVisits
+      summary: Visit log list (C-20)
+      responses: { '200': { description: OK } }
+    post:
+      tags: [csl-inquiries]
+      operationId: addVisit
+      summary: Add visit log (C-21)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/VisitDto' } } }
+      responses: { '201': { description: Created } }
+
+  /csl/students/{stuId}/map-scores:
+    parameters: [{ $ref: '#/components/parameters/StuId' }]
+    get:
+      tags: [csl-students]
+      operationId: listMapScores
+      summary: List student MAP scores (C-30)
+      responses: { '200': { description: OK } }
+    post:
+      tags: [csl-students]
+      operationId: addMapScore
+      summary: Record MAP score → triggers gap analysis (C-31)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/MapScoreDto' } } }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mapScore: { $ref: '#/components/schemas/MapScore' }
+                  gapAnalysis: { $ref: '#/components/schemas/GapAnalysis' }
+
+  # ╔══════════ DSH ══════════╗
+  /dsh/dashboard:
+    get:
+      tags: [dsh-dashboard]
+      operationId: getDashboard
+      summary: Main dashboard read view (D-01)
+      parameters:
+        - in: query
+          name: viewType
+          schema: { type: string, enum: [DEFAULT, CSL_FOCUSED, QNA_FOCUSED, CUSTOM] }
+        - in: query
+          name: dateRange
+          schema: { type: string, enum: [TODAY, WEEK, MONTH, QUARTER] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DashboardResponse' }
+
+  /dsh/metrics:
+    get:
+      tags: [dsh-dashboard]
+      operationId: listMetrics
+      summary: List 21 KPI metric definitions (D-02)
+      responses: { '200': { description: OK } }
+
+  /dsh/metrics/{metricKey}:
+    parameters:
+      - in: path
+        name: metricKey
+        required: true
+        schema: { type: string }
+    get:
+      tags: [dsh-dashboard]
+      operationId: getMetricDetail
+      summary: Drill-down for one metric (D-03)
+      parameters:
+        - in: query
+          name: groupBy
+          schema: { type: string }
+      responses: { '200': { description: OK } }
+
+  /dsh/manual-inputs:
+    post:
+      tags: [dsh-dashboard]
+      operationId: submitManualInput
+      summary: Submit manual KPI input (D-10)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ManualInputDto' } } }
+      responses: { '201': { description: Created } }
+
+  /dsh/complaints:
+    get:
+      tags: [dsh-dashboard]
+      operationId: listComplaints
+      summary: List complaints (D-20)
+      responses: { '200': { description: OK } }
+    post:
+      tags: [dsh-dashboard]
+      operationId: logComplaint
+      summary: Log complaint (D-21)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ComplaintDto' } } }
+      responses: { '201': { description: Created } }
+
+  /dsh/admin/recompute:
+    post:
+      tags: [dsh-admin]
+      operationId: triggerRecompute
+      summary: Trigger BullMQ recompute (D-30, admin)
+      responses: { '202': { description: Accepted } }
+
+  # ╔══════════ SCH ══════════╗
+  /sch/schools:
+    get:
+      tags: [sch-schools]
+      operationId: listSchools
+      summary: List schools (S-01)
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: schoolType, schema: { type: string } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses: { '200': { description: OK } }
+    post:
+      tags: [sch-schools]
+      operationId: createSchool
+      summary: Create school (S-02)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateSchoolDto' } } }
+      responses: { '201': { description: Created } }
+
+  /sch/schools/autocomplete:
+    get:
+      tags: [sch-schools]
+      operationId: autocompleteSchools
+      summary: Autocomplete (S-10) — pg_trgm cached
+      parameters:
+        - { in: query, name: q, required: true, schema: { type: string, minLength: 1 } }
+        - { in: query, name: limit, schema: { type: integer, default: 10, maximum: 20 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/SchoolSummary' } } } } } }
+
+  /sch/schools/{schId}:
+    parameters: [{ in: path, name: schId, required: true, schema: { type: string, format: uuid } }]
+    get: { tags: [sch-schools], operationId: getSchool, summary: Detail (S-03), responses: { '200': { description: OK } } }
+    patch: { tags: [sch-schools], operationId: updateSchool, summary: Update (S-04), responses: { '200': { description: OK } } }
+    delete: { tags: [sch-schools], operationId: deleteSchool, summary: Soft-delete (S-05), responses: { '204': { description: Deleted }, '422': { description: Refs exist } } }
+
+  /sch/schools/{schId}/grade-bands:
+    parameters: [{ in: path, name: schId, required: true, schema: { type: string, format: uuid } }]
+    put:
+      tags: [sch-schools]
+      operationId: replaceGradeBands
+      summary: Replace grade bands atomically (S-20)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GradeBand' } } } }
+      responses: { '200': { description: OK } }
+
+  /sch/schools/{schId}/schedules:
+    parameters: [{ in: path, name: schId, required: true, schema: { type: string, format: uuid } }]
+    put:
+      tags: [sch-schools]
+      operationId: replaceSchedules
+      summary: Replace schedules atomically (S-21)
+      responses: { '200': { description: OK } }
+
+  # ╔══════════ REF ══════════╗
+  /ref/guidelines:
+    get: { tags: [ref-guidelines], operationId: listGuidelines, summary: R-01, responses: { '200': { description: OK } } }
+    post: { tags: [ref-guidelines], operationId: createGuideline, summary: R-03, responses: { '201': { description: Created } } }
+
+  /ref/guidelines/{cgdId}/new-version:
+    parameters: [{ in: path, name: cgdId, required: true, schema: { type: string, format: uuid } }]
+    post:
+      tags: [ref-guidelines]
+      operationId: newGuidelineVersion
+      summary: Versioned successor (R-04, team_lead+)
+      responses: { '201': { description: Created } }
+
+  /ref/level-tests:
+    get: { tags: [ref-level-tests], operationId: listLevelTests, summary: R-10, responses: { '200': { description: OK } } }
+    post: { tags: [ref-level-tests], operationId: createLevelTest, summary: R-12, responses: { '201': { description: Created } } }
+
+  /ref/benchmarks:
+    get:
+      tags: [ref-benchmarks]
+      operationId: lookupBenchmark
+      summary: Lookup matching benchmark (R-20)
+      parameters:
+        - { in: query, name: examType, required: true, schema: { type: string, enum: [MAP, ISEE, SSAT] } }
+        - { in: query, name: grade, required: true, schema: { type: string } }
+        - { in: query, name: effectiveAt, schema: { type: string, format: date } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/BenchmarkLookup' } } } } }
+    post:
+      tags: [ref-benchmarks]
+      operationId: createBenchmark
+      summary: Create with grade list (R-22)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateBenchmarkDto' } } }
+      responses: { '201': { description: Created } }
+
+  /ref/benchmarks/{sbmId}/new-version:
+    parameters: [{ in: path, name: sbmId, required: true, schema: { type: string, format: uuid } }]
+    post:
+      tags: [ref-benchmarks]
+      operationId: newBenchmarkVersion
+      summary: Versioned successor (R-23)
+      responses: { '201': { description: Created } }
+
+  /ref/benchmarks/gap-analysis:
+    get:
+      tags: [ref-benchmarks]
+      operationId: gapAnalysis
+      summary: Compute gap (R-27, advisor+)
+      parameters:
+        - { in: query, name: examType, required: true, schema: { type: string } }
+        - { in: query, name: grade, required: true, schema: { type: string } }
+        - { in: query, name: reading, schema: { type: number } }
+        - { in: query, name: math, schema: { type: number } }
+        - { in: query, name: isForeignSchool, schema: { type: boolean } }
+        - { in: query, name: effectiveAt, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GapAnalysis' }
+
+  # ╔══════════ QNA ══════════╗
+  /qna/records:
+    get:
+      tags: [qna-records]
+      operationId: listQna
+      summary: List/search Q&A (Q-01)
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: studentUserId, schema: { type: string, format: uuid } }
+        - { in: query, name: isFaq, schema: { type: boolean } }
+        - { in: query, name: status, schema: { type: array, items: { type: string } } }
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { $ref: '#/components/schemas/QnaListResponse' } } }
+    post:
+      tags: [qna-records]
+      operationId: createQna
+      summary: Create Q&A (Q-02)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateQnaDto' } } }
+      responses: { '201': { description: Created } }
+
+  /qna/records/{qnaId}:
+    parameters: [{ $ref: '#/components/parameters/QnaId' }]
+    get: { tags: [qna-records], operationId: getQna, summary: Q-03, responses: { '200': { description: OK } } }
+    patch: { tags: [qna-records], operationId: updateQna, summary: Q-04, responses: { '200': { description: OK } } }
+    delete: { tags: [qna-records], operationId: deleteQna, summary: Q-05 (team_lead+), responses: { '204': { description: Deleted } } }
+
+  /qna/records/{qnaId}/respond:
+    parameters: [{ $ref: '#/components/parameters/QnaId' }]
+    post:
+      tags: [qna-records]
+      operationId: respondQna
+      summary: Add response (Q-06)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/RespondDto' } } }
+      responses: { '200': { description: OK } }
+
+  /qna/records/{qnaId}/resolve:
+    parameters: [{ $ref: '#/components/parameters/QnaId' }]
+    post:
+      tags: [qna-records]
+      operationId: resolveQna
+      summary: Resolve (Q-07) — UNSATISFIED triggers DSH event
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ResolveDto' } } }
+      responses: { '200': { description: OK } }
+
+  /qna/records/{qnaId}/promote-faq:
+    parameters: [{ $ref: '#/components/parameters/QnaId' }]
+    post:
+      tags: [qna-faq]
+      operationId: promoteFaq
+      summary: Promote to FAQ (Q-21, team_lead+)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/PromoteFaqDto' } } }
+      responses: { '200': { description: OK }, '422': { description: BIZ_FAQ_NOT_RESOLVED } }
+
+  /qna/students/{userId}/qna:
+    parameters: [{ in: path, name: userId, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [qna-records]
+      operationId: studentQnaTimeline
+      summary: Per-student timeline (Q-40, advisor+)
+      responses: { '200': { description: OK } }
+
+  # ╔══════════ Migration ══════════╗
+  /qna/migration/import:
+    post:
+      tags: [migration]
+      operationId: qnaMigrationImport
+      summary: QNA xlsx import (Q-50, admin)
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { jobId: { type: string, format: uuid } }
+
+  /qna/migration/jobs/{jobId}:
+    parameters: [{ in: path, name: jobId, required: true, schema: { type: string, format: uuid } }]
+    get:
+      tags: [migration]
+      operationId: qnaMigrationJob
+      summary: Job status (Q-51)
+      responses: { '200': { description: OK } }
+
+# ─────────────────────────────────────────────
+# Components
+# ─────────────────────────────────────────────
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Cursor:
+      in: query
+      name: cursor
+      schema: { type: string }
+    Limit:
+      in: query
+      name: limit
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    InqId:
+      in: path
+      name: inqId
+      required: true
+      schema: { type: string, format: uuid }
+    StuId:
+      in: path
+      name: stuId
+      required: true
+      schema: { type: string, format: uuid }
+    QnaId:
+      in: path
+      name: qnaId
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    NotFound:
+      description: Not Found
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    UnprocessableEntity:
+      description: Business rule violation
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: Conflict
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: VAL_REQUIRED }
+            message: { type: string }
+            details: { type: object, additionalProperties: true }
+
+    PageMeta:
+      type: object
+      properties:
+        nextCursor: { type: string, nullable: true }
+        total: { type: integer, nullable: true }
+
+    InquiryStatus:
+      type: string
+      enum: [ACTIVE, ENROLLED, NOT_ENROLLED, SUSPENDED, DROPPED]
+
+    InquiryRoute:
+      type: string
+      enum: [BLOG, INSTAGRAM, REFERRAL, SEARCH, OFFLINE_AD, WALK_IN, EXISTING_FAMILY, OTHER]
+
+    DataPrivacyConsent:
+      type: object
+      required: [granted, grantedAt]
+      properties:
+        granted: { type: boolean }
+        grantedAt: { type: string, format: date-time }
+        retentionPeriodMonths: { type: integer, minimum: 1, maximum: 36 }
+
+    CreateInquiryDto:
+      type: object
+      required: [parentName, parentPhone, registeredAt, students, dataPrivacyConsent]
+      properties:
+        parentName: { type: string, maxLength: 100 }
+        parentPhone: { type: string, pattern: '^[0-9-]+$' }
+        parentEmail: { type: string, format: email, nullable: true }
+        registeredAt: { type: string, format: date-time }
+        route: { $ref: '#/components/schemas/InquiryRoute' }
+        routeNote: { type: string, maxLength: 500 }
+        targetExamTypes: { type: array, items: { type: string } }
+        budgetText: { type: string, maxLength: 500 }
+        students:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/InquiryStudentDto' }
+        dataPrivacyConsent: { $ref: '#/components/schemas/DataPrivacyConsent' }
+
+    InquiryStudentDto:
+      type: object
+      required: [studentName, currentGrade]
+      properties:
+        studentName: { type: string, maxLength: 100 }
+        studentBirthDate: { type: string, format: date }
+        currentGrade: { type: string, example: G3 }
+        targetGrade: { type: string }
+        currentSchoolId: { type: string, format: uuid, nullable: true }
+        currentSchoolNameSnapshot: { type: string }
+        targetSchoolId: { type: string, format: uuid, nullable: true }
+        isForeignSchool: { type: boolean }
+
+    UpdateInquiryDto:
+      allOf:
+        - $ref: '#/components/schemas/CreateInquiryDto'
+        - type: object
+          properties:
+            version: { type: integer }
+
+    Inquiry:
+      type: object
+      properties:
+        inqId: { type: string, format: uuid }
+        inqStatus: { $ref: '#/components/schemas/InquiryStatus' }
+        registeredAt: { type: string, format: date-time }
+        version: { type: integer }
+
+    InquiryDetail:
+      allOf:
+        - $ref: '#/components/schemas/Inquiry'
+        - type: object
+          properties:
+            students: { type: array, items: { type: object } }
+            visits: { type: array, items: { type: object } }
+
+    InquiryListResponse:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Inquiry' } }
+        meta: { $ref: '#/components/schemas/PageMeta' }
+
+    TransitionDto:
+      type: object
+      required: [targetStatus]
+      properties:
+        targetStatus: { $ref: '#/components/schemas/InquiryStatus' }
+        reason: { type: string, maxLength: 500 }
+
+    VisitDto:
+      type: object
+      required: [visitedAt, channel]
+      properties:
+        visitedAt: { type: string, format: date-time }
+        channel: { type: string, enum: [PHONE, IN_PERSON, KAKAO, EMAIL] }
+        note: { type: string, maxLength: 2000 }
+
+    MapScoreDto:
+      type: object
+      required: [testedOn, gradeAtTest]
+      properties:
+        testedOn: { type: string, format: date }
+        gradeAtTest: { type: string }
+        readingScore: { type: number, minimum: 0, maximum: 400 }
+        mathScore: { type: number, minimum: 0, maximum: 400 }
+        languageScore: { type: number }
+        percentile: { type: number, minimum: 0, maximum: 100 }
+        isForeignSchool: { type: boolean }
+
+    MapScore:
+      allOf:
+        - $ref: '#/components/schemas/MapScoreDto'
+        - type: object
+          properties: { mapScoreId: { type: string, format: uuid } }
+
+    GapAnalysis:
+      type: object
+      properties:
+        benchmark: { $ref: '#/components/schemas/BenchmarkLookup' }
+        axes:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string, enum: [READING, MATH, LANGUAGE, PERCENTILE] }
+              studentScore: { type: number }
+              benchmarkScore: { type: number }
+              delta: { type: number }
+              status: { type: string, enum: [ABOVE, AT, BELOW, NO_DATA] }
+              tier: { type: string, enum: [GENERAL, PREMIUM, TOP_BOARDING, NONE] }
+        modifierApplied: { type: object, nullable: true }
+        warning: { type: string, nullable: true }
+
+    BenchmarkLookup:
+      type: object
+      properties:
+        sbmId: { type: string, format: uuid }
+        sbmExamType: { type: string, enum: [MAP, ISEE, SSAT] }
+        versionNo: { type: integer }
+        effectiveFrom: { type: string, format: date }
+        effectiveTo: { type: string, format: date, nullable: true }
+        sbmDataStatus: { type: string, enum: [COMPLETE, INHERITED_FROM, PLACEHOLDER] }
+
+    CreateBenchmarkDto:
+      type: object
+      required: [sbmCode, sbmExamType, sbmLevelLabel, sbmDataStatus, grades, sbmEffectiveFrom]
+      properties:
+        sbmCode: { type: string, maxLength: 50 }
+        sbmExamType: { type: string, enum: [MAP, ISEE, SSAT] }
+        sbmLevelLabel: { type: string }
+        sbmMapReadingScore: { type: number }
+        sbmMapMathScore: { type: number }
+        sbmGeneralPct: { type: number }
+        sbmGeneralStanine: { type: string }
+        sbmDataStatus: { type: string, enum: [COMPLETE, INHERITED_FROM, PLACEHOLDER] }
+        sbmInheritsFromSbmId: { type: string, format: uuid }
+        grades:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [gradeLabel, gradeMin, gradeMax, curriculumSystem]
+            properties:
+              gradeLabel: { type: string }
+              gradeMin: { type: integer }
+              gradeMax: { type: integer }
+              curriculumSystem: { type: string, enum: [KR, US, IB] }
+        sbmEffectiveFrom: { type: string, format: date }
+
+    CreateSchoolDto:
+      type: object
+      required: [schName, schType]
+      properties:
+        schName: { type: string, maxLength: 200 }
+        schType: { type: string, enum: [DOMESTIC_PUBLIC, DOMESTIC_PRIVATE, INTERNATIONAL, FOREIGN, OTHER] }
+        schRegion: { type: string }
+        schCurriculumSystem: { type: string, enum: [KR, US, IB] }
+        gradeBands:
+          type: array
+          items: { $ref: '#/components/schemas/GradeBand' }
+
+    GradeBand:
+      type: object
+      required: [gradeLabel, gradeMin, gradeMax]
+      properties:
+        gradeLabel: { type: string }
+        gradeMin: { type: integer }
+        gradeMax: { type: integer }
+
+    SchoolSummary:
+      type: object
+      properties:
+        schId: { type: string, format: uuid }
+        schName: { type: string }
+        schType: { type: string }
+        schRegion: { type: string }
+
+    DashboardResponse:
+      type: object
+      properties:
+        viewType: { type: string }
+        dateRange: { type: string }
+        snapshotAt: { type: string, format: date-time }
+        columns:
+          type: array
+          items:
+            type: object
+            properties:
+              metricKey: { type: string }
+              metricLabelKr: { type: string }
+              aggregationType: { type: string, enum: [VOLUME_COUNT, STATUS_SNAPSHOT, DAILY_DISTINCT, NET_DELTA, COMPUTED] }
+              currentValue: { type: number }
+              priorPeriodValue: { type: number, nullable: true }
+              deltaPct: { type: number, nullable: true }
+              trend: { type: array, items: { type: number } }
+
+    ManualInputDto:
+      type: object
+      required: [metricKey, value, asOfDate]
+      properties:
+        metricKey: { type: string }
+        value: { type: number }
+        asOfDate: { type: string, format: date }
+        note: { type: string }
+
+    ComplaintDto:
+      type: object
+      required: [studentUserId, category, severity]
+      properties:
+        studentUserId: { type: string, format: uuid }
+        relatedQnaId: { type: string, format: uuid, nullable: true }
+        category: { type: string }
+        severity: { type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL] }
+        description: { type: string, maxLength: 2000 }
+
+    QnaChannel:
+      type: string
+      enum: [KAKAO_CHANNEL, PHONE, EMAIL, IN_PERSON, OTHER]
+
+    QnaResponseStatus:
+      type: string
+      enum: [DRAFT, INTERNAL_ONLY, EXTERNAL_READY, DELIVERED]
+
+    QnaStatus:
+      type: string
+      enum: [OPEN, RESPONDED, RESOLVED, ESCALATED, CLOSED]
+
+    ResolutionStatus:
+      type: string
+      enum: [CONFIRMED_RESOLVED, UNCONFIRMED, UNSATISFIED, NA]
+
+    StudentLink:
+      type: object
+      required: [qrsStudentUserId, qrsStudentNameSnapshot]
+      properties:
+        qrsStudentUserId: { type: string, format: uuid }
+        qrsStudentNameSnapshot: { type: string }
+        qrsInquiryId: { type: string, format: uuid, nullable: true }
+
+    CreateQnaDto:
+      type: object
+      required: [qnaChannel, qnaCategoryId, qnaIsGeneral, qnaResponseStatus]
+      properties:
+        qnaConsultedAt: { type: string, format: date-time }
+        qnaQuestionText: { type: string, maxLength: 5000 }
+        qnaQuestionSummary: { type: string, maxLength: 200 }
+        qnaChannel: { $ref: '#/components/schemas/QnaChannel' }
+        qnaResponseInternal: { type: string, maxLength: 10000 }
+        qnaResponseExternal: { type: string, maxLength: 10000 }
+        qnaResponseStatus: { $ref: '#/components/schemas/QnaResponseStatus' }
+        qnaCategoryId: { type: string, format: uuid }
+        qnaSubcategoryTags: { type: array, items: { type: string } }
+        qnaIsGeneral: { type: boolean }
+        students: { type: array, items: { $ref: '#/components/schemas/StudentLink' } }
+        qnaRelatedSchoolId: { type: string, format: uuid, nullable: true }
+        qnaRelatedInquiryId: { type: string, format: uuid, nullable: true }
+        qnaRelatedClassId: { type: string, format: uuid, nullable: true }
+        qnaRelatedRefBenchmarkId: { type: string, format: uuid, nullable: true }
+        qnaThreadParentId: { type: string, format: uuid, nullable: true }
+
+    RespondDto:
+      type: object
+      required: [qnaResponseInternal, qnaResponseStatus]
+      properties:
+        qnaResponseInternal: { type: string, minLength: 1, maxLength: 10000 }
+        qnaResponseExternal: { type: string, maxLength: 10000 }
+        qnaResponseStatus: { $ref: '#/components/schemas/QnaResponseStatus' }
+
+    ResolveDto:
+      type: object
+      required: [qnaResolutionStatus]
+      properties:
+        qnaResolutionStatus: { $ref: '#/components/schemas/ResolutionStatus' }
+        promptComplaintLog: { type: boolean }
+
+    PromoteFaqDto:
+      type: object
+      required: [qnaFaqVisibility]
+      properties:
+        qnaFaqVisibility:
+          type: string
+          enum: [ADVISOR_ONLY, ALL_USER, INCLUDE_TEACHER]
+
+    QnaListResponse:
+      type: object
+      properties:
+        data: { type: array, items: { type: object } }
+        meta: { $ref: '#/components/schemas/PageMeta' }

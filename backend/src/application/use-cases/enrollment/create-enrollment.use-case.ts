@@ -1,4 +1,5 @@
-import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Enrollment } from '../../../domain/entities/enrollment.js';
 import type { IClassRepository } from '../../../domain/repositories/class-repository.interface.js';
 import { CLASS_REPOSITORY } from '../../../domain/repositories/class-repository.interface.js';
@@ -6,11 +7,16 @@ import type { IEnrollmentRepository } from '../../../domain/repositories/enrollm
 import { ENROLLMENT_REPOSITORY } from '../../../domain/repositories/enrollment-repository.interface.js';
 import type { IStudentRepository } from '../../../domain/repositories/student-repository.interface.js';
 import { STUDENT_REPOSITORY } from '../../../domain/repositories/student-repository.interface.js';
+import type { IParentRepository } from '../../../domain/repositories/parent-repository.interface.js';
+import { PARENT_REPOSITORY } from '../../../domain/repositories/parent-repository.interface.js';
 import type { CreateEnrollmentDto } from '../../dto/enrollment/index.js';
 import { EnrollmentResponseDto } from '../../dto/enrollment/index.js';
+import { NOTIFICATION_EVENTS } from '../../notification/notification-context.types.js';
 
 @Injectable()
 export class CreateEnrollmentUseCase {
+  private readonly logger = new Logger(CreateEnrollmentUseCase.name);
+
   constructor(
     @Inject(ENROLLMENT_REPOSITORY)
     private readonly enrollmentRepo: IEnrollmentRepository,
@@ -18,6 +24,9 @@ export class CreateEnrollmentUseCase {
     private readonly classRepo: IClassRepository,
     @Inject(STUDENT_REPOSITORY)
     private readonly studentRepo: IStudentRepository,
+    @Inject(PARENT_REPOSITORY)
+    private readonly parentRepo: IParentRepository,
+    private readonly events: EventEmitter2,
   ) {}
 
   async execute(
@@ -62,6 +71,31 @@ export class CreateEnrollmentUseCase {
 
     if (status === 'CONFIRMED') {
       await this.classRepo.update(cls.id, { enrolledCount: confirmedCount + 1 });
+
+      // C-NTF-01: best-effort, isolate notification failures from domain transaction
+      try {
+        const parentId = enrollment.appliedParentId ?? student.primaryParentId;
+        const parent = parentId ? await this.parentRepo.findById(parentId) : null;
+        const parentPhone = parent?.phone ?? null;
+        if (parentPhone) {
+          this.events.emit(NOTIFICATION_EVENTS.EnrollmentConfirmed, {
+            academyId,
+            recipients: [parentPhone],
+            recipientKind: 'PARENT',
+            subjectId: saved.id,
+            subjectKind: 'ENROLLMENT',
+            variables: {
+              studentName: student.name ?? '',
+              className: cls.programName ?? '',
+              programName: cls.programName ?? '',
+            },
+          });
+        }
+      } catch (err) {
+        this.logger.warn(
+          `Failed to emit ENROLLMENT_CONFIRMED event: ${(err as Error).message}`,
+        );
+      }
     }
 
     return this.toResponse(saved);

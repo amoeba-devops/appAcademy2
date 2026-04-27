@@ -1,0 +1,87 @@
+---
+document_id: AMA-PLATFORM-SPEC-ASKS-1.0.0
+title: AMA 플랫폼 팀 사전 협의 요청서 — 학원관리앱 등재
+version: 1.0.0
+status: OPEN (awaiting AMA team response)
+date: 2026-04-27
+owner: gray.kim@amoeba.group
+audience: AMA Platform Team
+related:
+  - docs/analysis/AMA-APP-STORE-PIVOT-REQ-1.0.0.md
+  - docs/implementation/tasks/AMA-APP-STORE-PIVOT-TASK-1.0.0.md
+---
+
+# AMA Platform — Spec Asks for "학원관리앱" 등재
+
+> 본 문서는 학원관리앱(이하 **app-academy**)을 AMA 앱스토어에 독립 SaaS로 등재하기 위해 AMA 플랫폼 팀의 명세 확정이 필요한 항목을 정리한다. 회신 항목은 본 문서 §3 표의 "Response" 칸에 채워주시기 바란다.
+
+---
+
+## 1. Context (배경)
+
+- 본 앱은 학원 운영 통합 관리 SaaS이며, AMA 사용자가 앱스토어에서 구독하면 자동 provisioning되어 즉시 사용 가능해야 한다.
+- 결제·정산은 **AMA가 전담**하며, 본 앱은 lifecycle webhook만 수신한다.
+- 본 앱의 인증은 **AMA SSO 단일** (자체 회원가입 없음, break-glass용 SUPERADMIN 계정만 예외).
+- 도메인: `app-academy.amoeba.site` (production) / `app-academy-stg.amoeba.site` (staging)
+
+---
+
+## 2. Development Plan While Awaiting Response
+
+명세 확정 전이라도 다음 가정으로 mock 구현을 진행한다:
+- **인증**: OAuth 2.0 / OIDC (authorization code + PKCE)
+- **Webhook**: HTTPS POST + `X-AMA-Signature: HMAC-SHA256` + `X-AMA-Timestamp` + `X-AMA-Nonce` (P0-2 패턴 재사용)
+- **사용자 식별자**: `sub` claim = AMA user ID (string, 64자 이내)
+- **테넌트 식별자**: `ama_tenant_id` (string, 64자 이내)
+
+회신이 다른 형태로 오면 mock IdP만 교체하면 되도록 어댑터 인터페이스로 격리한다.
+
+---
+
+## 3. Spec Asks (명세 요청 7건)
+
+| # | 항목 | 요청 내용 | Response |
+|---|---|---|---|
+| **A-1** | **앱 등록 카테고리·승인 절차** | "교육/학원관리" 카테고리 신규 등록 가능한가? 승인 SLA·심사 자료 체크리스트는? | _TBD_ |
+| **A-2** | **SSO 표준** | OIDC discovery URL, `client_id`/`client_secret` 발급 절차, scope 목록(`openid profile email tenant_membership`?), userinfo 응답 스키마 (`sub`, `name`, `email`, `phone`?, `tenant_memberships[]`?), 토큰 만료/리프레시 정책 | _TBD_ |
+| **A-3** | **Subscription Webhook 명세** | 이벤트 타입 enum (`SUBSCRIPTION_CREATED` / `ACTIVATED` / `SUSPENDED` / `RESUMED` / `CANCELED` / `PLAN_CHANGED`?), payload 스키마, HMAC 알고리즘·서명 헤더명·timestamp tolerance(±5분?), nonce 길이/형식, 재시도 정책(at-least-once 횟수·간격), 실패 시 dead-letter 방식 | _TBD_ |
+| **A-4** | **Tenant ↔ User 멤버십 동기화** | (1) 사용자가 직접 직원 초대하는 모델인가, AMA가 멤버십을 관리하고 webhook으로 통보하는 모델인가? (2) 후자라면 `MEMBER_ADDED` / `MEMBER_REMOVED` / `ROLE_CHANGED` 이벤트 명세 필요 | _TBD_ |
+| **A-5** | **AMA 거래처(교사) 마스터 API** | 학원관리앱은 AMA 거래처를 교사 마스터로 동기화한다. 기존 AMA Client API의 endpoint, 인증 방식(앱 토큰? 사용자 위임?), rate limit, 변경 이벤트(webhook or polling) | _TBD_ |
+| **A-6** | **AmoebaTalk 알림 API** | 발신 식별자(앱 단위? 테넌트 단위?), 템플릿 사전 승인 절차, 비용 부담 주체(AMA 흡수 vs 앱 정산), 발신 quota | _TBD_ |
+| **A-7** | **결제 책임 경계 + Deep Link** | (1) AMA 결제센터 deep link URL 패턴(`https://ama.../billing?app=academy&tenant={ama_tenant_id}`?) (2) 환불·플랜 변경 처리는 모두 AMA UI에서 진행됨이 맞나? (3) 본 앱이 webhook 외 결제 API를 호출할 일이 있나? | _TBD_ |
+
+---
+
+## 4. Optional / Phase 2 Asks
+
+| # | 항목 | 비고 |
+|---|---|---|
+| B-1 | App-to-App deep link (AMA → 본 앱 특정 학생/수업으로 점프) | Phase 2 |
+| B-2 | AMA 알림센터 통합 (본 앱 이벤트가 AMA 통합 알림함에도 표시) | Phase 2 |
+| B-3 | 단일 사인아웃(SLO) — AMA 로그아웃 시 본 앱 세션도 종료 | Phase 2 |
+
+---
+
+## 5. Mocked Behavior (개발 중 본 앱이 가정하는 동작)
+
+```
+[ AMA OIDC mock ]
+  GET  /.well-known/openid-configuration  → mock 응답
+  GET  /authorize?...                      → 즉시 redirect with mock code
+  POST /token                              → mock id_token (sub=ama-user-001)
+  GET  /userinfo                           → { sub, name, email, picture }
+
+[ AMA Subscription Webhook mock ]
+  본 앱이 dev/test에서 직접 POST 호출 (curl) — 실제 AMA 호출 없음
+  Headers: X-AMA-Signature, X-AMA-Timestamp, X-AMA-Nonce
+  Body:    { event_type, ama_tenant_id, plan, ts, payload }
+```
+
+---
+
+## 6. Timeline & Owner
+
+- **회신 희망일**: S0 마감 (현 sprint +5d)
+- **AMA 측 contact**: TBD
+- **본 앱 측 contact**: gray.kim@amoeba.group
+- 회신 받는 즉시 본 문서 §3 Response 컬럼을 채우고, 분석서/작업계획서를 갱신한다.

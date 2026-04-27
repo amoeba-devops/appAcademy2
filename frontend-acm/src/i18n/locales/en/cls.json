@@ -1,0 +1,196 @@
+{
+  "title": "Class Management",
+  "tabs": {
+    "list": "Classes",
+    "calendar": "Calendar",
+    "settlements": "Settlements"
+  },
+  "actions": {
+    "createClass": "Create Class",
+    "editClass": "Edit Class",
+    "addSession": "Add Session",
+    "reschedule": "Reschedule",
+    "cancel": "Cancel",
+    "hold": "Mark Held",
+    "recordAttendance": "Record Attendance",
+    "writeFeedback": "Write Feedback",
+    "proposeMakeup": "Propose Makeup",
+    "approveMakeup": "Approve Makeup",
+    "rejectMakeup": "Reject Makeup",
+    "confirmSettlement": "Confirm Settlement",
+    "recompute": "Recompute",
+    "generate": "Generate Sessions"
+  },
+  "table": {
+    "code": "Class Code",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "students": "Students",
+    "status": "Status",
+    "startedAt": "Start Date",
+    "endedAt": "End Date",
+    "actions": "Actions",
+    "empty": "No classes."
+  },
+  "subjectType": {
+    "MAP_TEST": "MAP Test",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "WRITING": "Writing",
+    "LANGUAGE_ARTS": "Language Arts",
+    "MATH": "Math",
+    "INTL_PREP": "Study Abroad Prep",
+    "DEMO": "Demo Class",
+    "OTHER": "Other"
+  },
+  "status": {
+    "PROPOSED": "Proposed",
+    "ACTIVE": "Active",
+    "PAUSED": "Paused",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "startedFrom": {
+    "CSL_PIPELINE": "From Counseling",
+    "DIRECT_ENROLLMENT": "Direct Enrollment",
+    "MIGRATION": "Migration"
+  },
+  "session": {
+    "scheduledAt": "Scheduled",
+    "duration": "Duration",
+    "mode": "Mode",
+    "status": "Status",
+    "modes": {
+      "IN_PERSON": "In-Person",
+      "ONLINE": "Online",
+      "TWO_PERSON_IN_PERSON": "2-Person In-Person",
+      "HYBRID": "Hybrid"
+    },
+    "statuses": {
+      "SCHEDULED": "Scheduled",
+      "HELD": "Held",
+      "CANCELLED": "Cancelled",
+      "RESCHEDULED": "Rescheduled",
+      "NO_SHOW": "No-Show",
+      "MAKEUP_REPLACEMENT": "Makeup"
+    },
+    "cancelReasons": {
+      "STUDENT_ABSENCE": "Student Absence",
+      "STUDENT_ILLNESS": "Student Illness",
+      "TEACHER_ABSENCE": "Teacher Absence",
+      "TEACHER_BUSINESS_TRIP": "Teacher Business Trip",
+      "TEACHER_CONSULTING_PREP": "Teacher Consulting Prep",
+      "STUDENT_DAY_OF_CANCEL": "Student Day-Of Cancel",
+      "FAMILY_TRAVEL": "Family Travel",
+      "HOLIDAY": "Holiday",
+      "OTHER": "Other"
+    },
+    "dispositions": {
+      "MAKEUP_PLANNED": "Makeup Planned",
+      "CARRYOVER_TO_NEXT_MONTH": "Carryover Next Month",
+      "NO_MAKEUP": "No Makeup"
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "statuses": {
+      "PRESENT": "Present",
+      "ABSENT_EXCUSED": "Absent (Excused)",
+      "ABSENT_UNEXCUSED": "Absent (Unexcused)",
+      "LATE": "Late",
+      "LEFT_EARLY": "Left Early"
+    },
+    "billableHours": "Billable Hours",
+    "remark": "Remark"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "progress": "Progress",
+    "feedback": "Feedback",
+    "homework": "Homework",
+    "weaknessDev": "Weakness Development",
+    "academicPlan": "Academic Plan",
+    "statuses": {
+      "DRAFT": "Draft",
+      "SUBMITTED": "Submitted",
+      "DELIVERED_TO_PARENT": "Delivered to Parent"
+    },
+    "slaBreached": "SLA Breached"
+  },
+  "makeup": {
+    "title": "Makeup",
+    "originalSession": "Original Session",
+    "makeupScheduledAt": "Makeup Time",
+    "substituteTeacher": "Substitute Teacher",
+    "substitutionApprover": "Substitution Approver",
+    "remark": "Remark",
+    "statuses": {
+      "PROPOSED": "Proposed",
+      "APPROVED": "Approved",
+      "COMPLETED": "Completed",
+      "CARRIED_OVER": "Carried Over",
+      "REJECTED": "Rejected"
+    }
+  },
+  "settlement": {
+    "title": "Monthly Settlement",
+    "yearMonth": "Month",
+    "teacher": "Teacher",
+    "hoursTotal": "Total Hours",
+    "amountGross": "Gross",
+    "withholdingRate": "Withholding %",
+    "amountWithheld": "Withheld",
+    "amountAfterTax": "Net",
+    "statuses": {
+      "DRAFT": "Draft",
+      "CONFIRMED": "Confirmed",
+      "EXPORTED_TO_PAYROLL": "Exported",
+      "PAID": "Paid"
+    },
+    "lines": {
+      "title": "Line Items",
+      "sessionDate": "Date",
+      "billableHours": "Hours",
+      "hourlyRate": "Rate",
+      "amount": "Amount"
+    }
+  },
+  "recurrence": {
+    "title": "Recurrence",
+    "dayOfWeek": "Day",
+    "startTime": "Start Time",
+    "duration": "Duration (min)",
+    "defaultMode": "Default Mode",
+    "days": {
+      "MON": "Mon", "TUE": "Tue", "WED": "Wed", "THU": "Thu",
+      "FRI": "Fri", "SAT": "Sat", "SUN": "Sun"
+    }
+  },
+  "video": {
+    "provider": "Video Provider",
+    "providers": {
+      "GOOGLE_MEET": "Google Meet",
+      "BODASCHOOL": "Bodaschool",
+      "NONE": "None"
+    },
+    "persistentLink": "Persistent Link"
+  },
+  "calendar": {
+    "today": "Today",
+    "prev": "Prev",
+    "next": "Next",
+    "noSessions": "No sessions."
+  },
+  "errors": {
+    "VAL_NO_PRIMARY_STUDENT": "At least one PRIMARY student is required.",
+    "VAL_HOURS_RANGE": "Billable hours out of range.",
+    "VAL_DEMO_FEEDBACK_FIELDS": "Demo feedback requires weakness development and academic plan.",
+    "VAL_STANDARD_FEEDBACK_FIELDS": "Feedback requires homework field.",
+    "VAL_SES_STATUS_TRANSITION": "Disallowed session status transition.",
+    "VAL_SETTLEMENT_FROZEN": "Confirmed settlements cannot be modified.",
+    "CLS_SESSION_CONFLICT": "Schedule conflicts with another session for the teacher or student."
+  },
+  "validation": {
+    "required": "This field is required."
+  }
+}

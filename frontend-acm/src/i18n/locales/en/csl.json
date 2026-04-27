@@ -1,0 +1,163 @@
+{
+  "title": "Counseling",
+  "newInquiry": "New Inquiry",
+  "newInquiryShort": "+ New Inquiry",
+  "subtitle": "Capture INTAKE-stage info. Subsequent stages are handled from the inquiry detail.",
+  "anonymousInquiry": "Anonymous #{{seqNo}}",
+  "table": {
+    "seqNo": "No.",
+    "student": "Student",
+    "schoolGrade": "School / Grade",
+    "stage": "Stage",
+    "inflow": "Inflow",
+    "applyType": "Apply",
+    "registered": "Registered",
+    "followup": "Follow-up",
+    "empty": "No inquiries yet."
+  },
+  "form": {
+    "studentName": "Student name",
+    "studentNamePlaceholder": "Hong Gildong",
+    "isAnonymous": "Anonymous inquiry",
+    "parentPhone": "Parent phone",
+    "parentPhonePlaceholder": "010-1234-5678",
+    "phoneStatus": "Phone status",
+    "school": "School",
+    "schoolPlaceholder": "Seoul Middle School (freetext OK)",
+    "grade": "Grade",
+    "inflowType": "Inflow channel",
+    "applyType": "Apply type",
+    "applyPurpose": "Apply purpose",
+    "applyPurposeOther": "Other reason",
+    "applyPurposeOtherPlaceholder": "Specify reason",
+    "consultDone": "Counseling done",
+    "registeredAt": "Registered at",
+    "followupAt": "Follow-up date",
+    "followupMemo": "Follow-up memo",
+    "required": "*"
+  },
+  "validation": {
+    "phoneInvalid": "Invalid phone format",
+    "schoolRequired": "School is required",
+    "phoneRequiredForProvided": "Phone is required when status is PROVIDED",
+    "purposeOtherRequired": "Reason is required when purpose is OTHER",
+    "studentNameOrAnonymous": "Student name is required unless anonymous"
+  },
+  "stage": {
+    "INTAKE": "1. Intake",
+    "MAP_TEST": "2. MAP Test",
+    "TRIAL_CLASS": "3. Trial Class",
+    "ENROLLMENT_COUNSELING": "4. Enrollment",
+    "PAYMENT": "5. Payment",
+    "CLASS_STARTED": "6. Class Started",
+    "DROPPED": "Dropped"
+  },
+  "inflow": {
+    "HOMEPAGE": "Homepage",
+    "KAKAO_CHANNEL": "KakaoTalk Channel",
+    "PHONE": "Phone"
+  },
+  "applyType": {
+    "COUNSELING_ONLY": "Counseling only",
+    "EXAM_ONLY": "Exam only",
+    "BOTH": "Counseling + Exam"
+  },
+  "applyPurpose": {
+    "INTL_SCHOOL_PREP": "Intl. school prep",
+    "MAP_SCORE_UP": "MAP score up",
+    "STD_TEST_PREP": "Standardized test prep",
+    "GPA_MGMT": "GPA management",
+    "OTHER": "Other"
+  },
+  "phoneStatus": {
+    "PROVIDED": "Provided",
+    "DECLINED": "Declined",
+    "UNKNOWN": "Unknown"
+  },
+  "yesNo": {
+    "YES": "Done",
+    "NO": "Pending"
+  },
+  "grade": {
+    "E5": "G5", "E6": "G6",
+    "M1": "G7", "M2": "G8", "M3": "G9",
+    "H1": "G10", "H2": "G11", "H3": "G12",
+    "OTHER": "Other"
+  },
+  "detail": {
+    "backToList": "Back to list",
+    "drop": "Drop",
+    "reactivate": "Reactivate",
+    "mapTest": {
+      "title": "MAP Test",
+      "hasPriorScore": "Has prior score",
+      "feeStatus": "Fee status",
+      "waiverReason": "Waiver reason",
+      "waiverNote": "Waiver note",
+      "scheduledAt": "Scheduled date",
+      "scheduledStatus": "Schedule status",
+      "scores": "Scores (100–300)",
+      "scoreReading": "Reading",
+      "scoreMath": "Math",
+      "scoreLanguage": "Language",
+      "fee": { "PAID": "Paid", "UNPAID": "Unpaid", "WAIVED": "Waived" },
+      "waiver": {
+        "RETAKE_WITHIN_90D": "Retake within 90d",
+        "TRIAL_PROMOTION": "Trial promotion",
+        "SISTER_ACADEMY_TRANSFER": "Sister-academy transfer",
+        "OTHER": "Other"
+      },
+      "schedule": {
+        "SCHEDULED": "Scheduled",
+        "TAKEN": "Taken",
+        "NOT_TAKING": "Not taking",
+        "RESCHEDULED": "Rescheduled"
+      }
+    },
+    "trial": {
+      "title": "Trial classes",
+      "empty": "No trial classes yet.",
+      "heldAt": "Held on",
+      "feedbackStatus": "Feedback",
+      "note": "Note",
+      "add": "Add",
+      "feedback": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
+    },
+    "enrollment": {
+      "title": "Enrollment / Payment",
+      "counselDone": "Counseling done",
+      "paymentNoticeStatus": "Tuition notice status",
+      "applied": "Applied",
+      "paymentNoticeSent": "Tuition notice sent",
+      "classMinutes": "Class minutes",
+      "tuitionAmount": "Tuition",
+      "tuitionPaid": "Tuition paid",
+      "tuitionPaidHint": "※ Only senior managers may confirm payment.",
+      "classStartedAt": "Class start date",
+      "classStarted": "Class started",
+      "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
+    },
+    "cancel": {
+      "title": "Drop inquiry",
+      "subtitle": "Choose a drop reason. The audit trail cannot be deleted.",
+      "reasonCode": "Reason code",
+      "reasonOther": "Reason detail",
+      "reasonOtherPlaceholder": "Provide details",
+      "reason": {
+        "ACADEMY_CANCELLED": "Cancelled by academy",
+        "STUDENT_ILLNESS": "Student illness",
+        "STUDENT_SCHEDULE_CHANGE": "Student schedule change",
+        "PAYMENT_DECLINED": "Payment declined",
+        "LOST_TO_COMPETITOR": "Enrolled at competitor",
+        "OTHER": "Other"
+      }
+    },
+    "timeline": {
+      "title": "Activity timeline",
+      "empty": "No activity yet.",
+      "transition": "Stage change",
+      "add": "Add note",
+      "addPlaceholder": "Add a note or follow-up"
+    }
+  }
+}

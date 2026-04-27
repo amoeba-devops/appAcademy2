@@ -10,102 +10,69 @@
     "login": "登录"
   },
   "home": {
-    "hero-title": "OMNIBUS OMNIA",
-    "hero-subtitle": "向众人成为众人的样式",
-    "cta-consult": "申请咨询",
-    "cta-map-test": "了解 MAP Test",
+    "header": {
+      "menu-consult": "온라인 튜터링 상담 신청",
+      "menu-test": "온라인 MAP TEST 응시 신청",
+      "menu-map-test": "MAP TEST",
+      "menu-isee": "ISEE",
+      "btn-test": "맵테스트 응시",
+      "btn-consult": "상담신청",
+      "menu-toggle": "메뉴 열기"
+    },
     "hero": {
-      "eyebrow": "NWEA MAP TEST 官方授权机构",
-      "title": "TRINITY ACADEMY",
-      "subtitle": "精准诊断 · 稳定录取",
-      "lead": "自 2020 年成立以来,Trinity 已助力 230 多名学生进入国际学校。通过 MAP TEST 系统诊断,我们从初始评估到目标校录取提供完整的路线图。"
+      "title": "NWEA MAP TEST 공식 기관 트리니티 프렙 인스티튜트",
+      "subtitle": "2017년 설립 이후 미국, 영국, 한국 등 전 세계 10개국 이상의 국제학교 학생들에게 MAP TEST 중심의 온라인 클래스와 체계적인 학습 관리를 종합적으로 제공합니다.",
+      "cta-consult": "온라인 튜터링 상담 신청",
+      "cta-test": "온라인 MAP TEST 응시 신청"
     },
-    "results": {
-      "eyebrow": "TRUSTED RESULTS",
-      "title": "Trinity Academy 的底气\n来自确凿的结果。",
-      "lead": "自 2020 年起,Trinity 已为目标 7 所授权国际学校及多所未授权国际学校的学生交付确定的录取。以经过验证的数据与经验驱动结果。",
-      "stat-value": "144",
-      "stat-unit": "",
-      "stat-label": "国际学校录取 · Chadwick · DIS · 含未授权"
+    "intro": {
+      "title": "MAP TEST란?",
+      "body": "MAP TEST는 \"Measures of Academic Progress\"의 약자로 미국의 교육 평가 및 학습 진단 솔루션 기관인 NWEA (Northwest Evaluation Association)에서 개발한 학업 성취도 측정 시험입니다."
     },
-    "results-stats": {
-      "eyebrow": "PROVEN TRACK RECORD",
-      "title": "用数据见证 Trinity",
-      "item-graduates": "累计毕业生",
-      "item-admitted": "国际学校录取",
-      "item-pass-rate": "录取率",
-      "item-founded": "创立年份"
+    "importance": {
+      "title": "MAP TEST가 중요한 이유",
+      "i1": "미국 교과과정(Common Core State Standards) 기반의 학업 성취도 평가",
+      "i2": "국제학교의 입학 시험",
+      "i3": "학업 성취도의 핵심 지표",
+      "i4": "Standardized Test(SAT/ACT) 준비의 시작점"
     },
-    "campus-band": {
-      "eyebrow": "DUAL CAMPUS",
-      "title": "济州英语教育城本院 · 狎鸥亭岛山公园中心的线下备考课程\n以及精选师资的在线 1:1 课程",
-      "lead": "Trinity Academy 本院位于济州英语教育城内,第一时间掌握最关键的入学信息。Trinity 的经验通过线下与线上课程传递给每一位备考国际学校的学生。"
-    },
-    "pillars-section": {
-      "eyebrow": "OUR DIFFERENTIATORS",
-      "title": "四大支柱成就录取"
-    },
-    "pillars": {
-      "p1": {
-        "title": "基于 230+ 录取经验的 '按校定制策略'",
-        "problem": "国际学校入学不仅是英语测试 — 各校的评估标准差别显著。",
-        "label": "实战分析数据:",
-        "solution": "多年间培养出 230+ 录取生的积累,让我们系统掌握了各校(NLCS、SJA、KIS、Chadwick 等)的入学试题类型与偏好人才形象。我们根据目标校的出题趋势提供最接近录取的学习路径。"
-      },
-      "p2": {
-        "title": "支撑 99% 录取率的 '完美申请策略'",
-        "problem": "仅靠高分难以充分展现学生潜力,申请人的特质必须鲜明。",
-        "label": "个性化申请指导:",
-        "solution": "Trinity 为维持 99% 录取率,把学生的经历与活动以符合学校教育理念的叙事呈现。面试与文书都经过精细打磨,突出学生优势。"
-      },
-      "p3": {
-        "title": "通向录取的 '详尽诊断与学习路线图'",
-        "problem": "避免笼统备考 — 以客观指标决定学习方向。",
-        "label": "基于数据的分析:",
-        "solution": "依托 230+ 录取案例对比学生当前水平。MAP Test、ISEE 等领域数据量化优势与差距,按优先级高效弥补。"
-      },
-      "p4": {
-        "title": "从申请到入学后的 'All in One' 全程管理",
-        "problem": "避免申请过程中的失误,并为录取后的适应做好准备。",
-        "label": "系统化指导:",
-        "solution": "从推荐信到活动证明材料,确保零失误的申请包装。入学前夯实学术基础,顺利适应 IB、AP 等课程。"
-      }
-    },
-    "process-section": {
-      "eyebrow": "ENROLLMENT PROCESS",
-      "title": "Trinity Academy\n入学准备流程"
+    "features": {
+      "title": "TPI만의 차별화된 강점",
+      "f1-title": "NWEA 공식 MAP TEST와 온라인 체험수업을 통한 정확한 학업 성취도 진단",
+      "f1-body": "세계적으로 공인된 NWEA MAP TEST를 기반으로, 학생의 학습 수준과 강점을 정밀하게 분석합니다. 온라인 체험수업(무료)를 통해 실제수업 적응도와 성취도를 객관적으로 진단합니다.",
+      "f2-title": "기출부터 자체제작까지, TPI만의 2000+문항 자료",
+      "f2-body": "수년간 축적된 기출 문제와 자체 연구 자료를 통해 시험 출제 경향을 완벽히 반영한 실전 중심의 커리큘럼을 제공합니다.",
+      "f3-title": "MAP TEST 전문 강사진과 국제학교 커리큘럼 전문 컨설턴트",
+      "f3-body": "국제학교 및 해외 교육 과정을 깊이 이해한 전문 강사진이 학생 개개인의 목표에 맞춘 맞춤형 학습 전략을 제시합니다.",
+      "f4-title": "학습 과정과 성취도를 정확하게 보여주는 체계적인 피드백 시스템",
+      "f4-body": "진단 결과와 학습 과정을 학부모와 학생이 한눈에 확인할 수 있는 체계적인 피드백 리포트를 제공합니다.",
+      "f5-title": "목표 점수 도달까지 확실하게 책임지는 1:1 맞춤 튜터링",
+      "f5-body": "각 학생의 수준과 목표 점수에 맞춰 개념부터 실전까지 단계별로 코칭하며, 꾸준한 관리로 목표 점수 달성을 이끌어냅니다."
     },
     "process": {
-      "s1": {
-        "title": "个性化初步咨询",
-        "label": "基本信息登记与学习风格了解:",
-        "body": "基于学生已有的学习履历与基本信息开展 1:1 初步咨询,确认当前出发点。"
-      },
-      "s2": {
-        "title": "客观能力诊断",
-        "label": "基于权威指标的水平测试:",
-        "body": "包含 NWEA 官方 MAP Test,并通过体验课评估 Writing 与 Speaking。量化呈现学生当前学业成就。"
-      },
-      "s3": {
-        "title": "战略目标设定",
-        "label": "深度咨询与学校匹配:",
-        "body": "基于诊断结果,确定学生最能发挥实力的目标学校,制定具体的申请策略。"
-      },
-      "s4": {
-        "title": "定制学习形式与时间表",
-        "label": "按水平最优分班:",
-        "body": "根据学生水平与目标时间安排小组课、1:1 或寒暑期特训班等最有效的学习环境。"
-      },
-      "s5": {
-        "title": "紧密管理与成果分享",
-        "label": "常规课程与反馈系统:",
-        "body": "系统化教学结合定期模拟考试(NWEA MAP TEST),分析成果数据通过家长反馈报告透明共享,确保稳定进步。"
-      }
+      "title": "등록 프로세스",
+      "s1-step": "Step 01",
+      "s1-title": "학생 기본 정보 등록 및 기초 상담",
+      "s2-step": "Step 02",
+      "s2-title": "공식 MAP Test 응시 & RIT 분석",
+      "s3-step": "Step 03",
+      "s3-title": "무료 체험 수업 (Trial Class)",
+      "s4-step": "Step 04",
+      "s4-title": "커리큘럼 컨설팅 및 강사 매칭",
+      "s5-step": "Step 05",
+      "s5-title": "수업 진행 및 피드백 제공"
     },
-    "closing": {
-      "eyebrow": "CONTACT US",
-      "title": "Trinity Academy 将为您交付明确成果。",
-      "lead": "Trinity 的精准学业诊断、热情辅导与已验证的经验,保障国际学校录取。"
+    "reviews": {
+      "title": "디테일한 피드백은 확실한 학업 성취의 나침반입니다.",
+      "prev": "이전 후기",
+      "next": "다음 후기"
+    },
+    "bottom-cta": {
+      "title": "TPI는 결과로 증명합니다.",
+      "subtitle": "TPI의 정밀한 학업 진단, 열정적인 튜터링, 그리고 디테일한 클래스 피드백은 확실한 목표 달성을 보장합니다.",
+      "cta-kakao": "카카오톡 상담",
+      "cta-phone": "전화 1555-2108",
+      "cta-consult": "상담 신청"
     }
   },
   "floating": {
@@ -418,14 +385,22 @@
     "admin-login-link": "管理员登录 →"
   },
   "footer": {
-    "address": "地址",
-    "phone": "电话",
-    "email": "邮箱",
-    "consultation-hours": "咨询时间",
-    "class-hours": "上课时间",
-    "kakao-channel": "💛 KakaoTalk 频道",
-    "business-info": "营业执照 · 代表人 · 通讯销售业申报 · 个人信息负责人 (TBD)",
-    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+    "company-name": "트리니티 프렙 인스티튜트",
+    "legal-name": "TRINITY PREP INSTITUTE",
+    "business-id-label": "사업자등록번호",
+    "business-id": "546-06-03432",
+    "address-label": "주소",
+    "address": "서울특별시 강남구 언주로 152길 15-4",
+    "phone-label": "전화",
+    "phone": "1555-2108",
+    "email-label": "이메일",
+    "email": "info@tpiglobal.network",
+    "kakao-label": "카카오톡 상담",
+    "consultation-hours": "상담시간",
+    "class-hours": "수업시간",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "COPYRIGHT © Trinity Prep Institute ALL RIGHTS RESERVED."
   },
   "site": {
     "hours-consultation": "14:00 – 22:00（需预约）",

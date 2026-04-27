@@ -17,7 +17,7 @@ async function bootstrap() {
 
   // CORS — frontend (React) 허용
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL ?? 'http://localhost:3009',
     credentials: true,
   });
 
@@ -44,6 +44,6 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
   }
 
-  await app.listen(process.env.PORT ?? 4000);
+  await app.listen(process.env.PORT ?? 4009);
 }
 bootstrap();

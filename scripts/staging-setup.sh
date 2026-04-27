@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Trinity Academy — Staging server one-time bootstrap.
+# app-academy — Staging server one-time bootstrap.
 # Run ONCE on the staging host (appacademy@125.133.49.165).
 #
 #   ssh appacademy@125.133.49.165

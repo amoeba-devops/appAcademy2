@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useTeacher, useUpdateTeacher } from '@/hooks/use-teachers';
+import { useTeacher, useUpdateTeacher, useSyncTeacher } from '@/hooks/use-teachers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,10 +15,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Pencil, X, Check } from 'lucide-react';
+import { ArrowLeft, Pencil, X, Check, RefreshCw, AlertTriangle } from 'lucide-react';
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: 'bg-green-500',
+  INACTIVE: 'bg-red-500',
   SUSPENDED: 'bg-yellow-500',
   TERMINATED: 'bg-red-500',
 };
@@ -30,6 +31,7 @@ export default function TeacherDetailPage() {
   const { t, i18n } = useTranslation('admin');
   const { data: teacher, isLoading } = useTeacher(id);
   const updateTeacher = useUpdateTeacher();
+  const syncTeacher = useSyncTeacher();
   const [editing, setEditing] = useState(false);
   const [editSubjects, setEditSubjects] = useState('');
   const [editEmployment, setEditEmployment] = useState('');
@@ -99,6 +101,61 @@ export default function TeacherDetailPage() {
         </div>
       </div>
 
+      {/* AMA Sync Panel (FR-AMA-09) */}
+      <Card className="border-l-4 border-l-[#C9A656]">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            {t('teachers.sync.title', 'AMA Client 동기화')}
+          </CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={syncTeacher.isPending}
+            onClick={() => syncTeacher.mutate(teacher.id)}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${syncTeacher.isPending ? 'animate-spin' : ''}`} />
+            {syncTeacher.isPending
+              ? t('teachers.sync.syncing', '동기화 중...')
+              : t('teachers.sync.refresh', '새로고침')}
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {teacher.status === 'INACTIVE' && (
+            <div className="flex items-start gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                {t(
+                  'teachers.sync.inactive-warning',
+                  'AMA Client가 삭제되었거나 비활성 상태입니다. 교사 상태가 자동으로 비활성화되었습니다.',
+                )}
+              </div>
+            </div>
+          )}
+          <InfoRow
+            label={t('teachers.detail.label-last-sync', '마지막 동기화')}
+            value={
+              teacher.lastSyncedAt
+                ? new Date(teacher.lastSyncedAt).toLocaleString(i18n.resolvedLanguage ?? 'ko')
+                : '—'
+            }
+          />
+          <InfoRow
+            label={t('teachers.detail.label-name')}
+            value={teacher.cachedName ?? '—'}
+          />
+          <InfoRow
+            label={t('teachers.detail.label-phone')}
+            value={teacher.cachedPhone ?? '—'}
+          />
+          <p className="text-xs text-muted-foreground pt-2 border-t">
+            ⓘ {t(
+              'teachers.sync.notice',
+              '본 정보는 AMA Client 마스터의 캐시입니다 (read-only).',
+            )}
+          </p>
+        </CardContent>
+      </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -176,6 +233,7 @@ export default function TeacherDetailPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ACTIVE">{t('teachers.status.ACTIVE')}</SelectItem>
+                      <SelectItem value="INACTIVE">{t('teachers.status.INACTIVE', { defaultValue: 'INACTIVE' })}</SelectItem>
                       <SelectItem value="SUSPENDED">{t('teachers.status.SUSPENDED')}</SelectItem>
                       <SelectItem value="TERMINATED">{t('teachers.status.TERMINATED')}</SelectItem>
                     </SelectContent>

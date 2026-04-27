@@ -22,7 +22,7 @@ export default function SettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <InfoRow label={t('settings.info-rows.name')} value="Trinity Academy" />
+            <InfoRow label={t('settings.info-rows.name')} value="—" />
             <InfoRow label={t('settings.info-rows.status')} value="ACTIVE" />
             <Separator />
             <p className="text-xs text-muted-foreground">

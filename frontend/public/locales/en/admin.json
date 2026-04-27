@@ -10,6 +10,7 @@
     "enrollments": "Enrollments",
     "map": "MAP Question Bank",
     "payments": "Payments",
+    "notifications": "Notifications",
     "settings": "Settings"
   },
   "dashboard": {
@@ -32,7 +33,7 @@
     "quick-links": {
       "consultations-title": "Consultations",
       "consultations-desc": "Intake · Kanban board",
-      "payments-title": "Trinity Pay",
+      "payments-title": "Pay",
       "payments-desc": "Payments · refunds · tax invoices",
       "timetable-title": "Timetable",
       "timetable-desc": "Today's classes",
@@ -138,6 +139,7 @@
     },
     "status": {
       "ACTIVE": "Active",
+      "INACTIVE": "Inactive",
       "SUSPENDED": "Suspended",
       "TERMINATED": "Terminated"
     },
@@ -152,17 +154,37 @@
       "subjects": "Subjects",
       "employment": "Employment",
       "status": "Status",
+      "last-synced": "Synced",
       "created-at": "Registered",
       "actions": "Actions",
       "detail": "Detail"
     },
     "form": {
       "ama-id": "AMA Client ID",
+      "ama-client-label": "AMA Client",
+      "ama-required": "Please search and select an AMA Client.",
       "employment-label": "Employment",
       "subjects-label": "Subjects (comma separated)",
       "subjects-placeholder": "RC, Vocab, Math",
       "submit": "Register",
       "submitting": "Saving..."
+    },
+    "ama-picker": {
+      "search-placeholder": "Search by name or ID...",
+      "search-label": "Search AMA Client",
+      "no-results": "No matches found.",
+      "clear": "Clear selection",
+      "notice": "Name and contact info are managed in AMA (read-only in TAC)."
+    },
+    "sync": {
+      "title": "AMA Client Sync",
+      "refresh": "Refresh",
+      "syncing": "Syncing...",
+      "notice": "This data is a cached copy of the AMA Client master (read-only).",
+      "inactive-warning": "AMA Client has been deleted or is inactive. Teacher status was set to inactive automatically."
+    },
+    "errors": {
+      "AMA_CLIENT_NOT_FOUND": "AMA Client not found."
     },
     "detail": {
       "loading": "Loading...",
@@ -731,7 +753,7 @@
     "hub": {
       "hero-eyebrow": "MAP · Reading Comprehension",
       "hero-title": "Part A · Vocabulary + Part B · Reading",
-      "hero-lead": "Trinity's custom question bank, grounded in the MAP RC G2-5 Basic structure. Three tiers: Passage → Item → TestSet. Assignment → Grading end-to-end automation.",
+      "hero-lead": "Custom question bank, grounded in the MAP RC G2-5 Basic structure. Three tiers: Passage → Item → TestSet. Assignment → Grading end-to-end automation.",
       "add-passage": "Add passage",
       "add-testset": "Create TestSet",
       "kpi-passages": "Passages",
@@ -766,7 +788,7 @@
     }
   },
   "payments": {
-    "title": "Trinity Pay",
+    "title": "Pay",
     "title-menu": "Payments",
     "lead": "Unified management of payments · refunds · tax invoices · receipts",
     "new-order": "Create order",
@@ -1004,7 +1026,7 @@
       "amount-value-label": "Amount",
       "pay-now": "Pay now",
       "processing": "Processing payment...",
-      "order-name": "Trinity Academy tuition",
+      "order-name": "Academy tuition",
       "error-create-order": "Failed to create the order.",
       "error-client-key": "Toss client key is not configured.",
       "error-widget-load": "Failed to load payment widget.",
@@ -1132,6 +1154,7 @@
   },
   "login": {
     "title": "Admin sign in",
+    "brand-subtitle": "Admin Console",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",

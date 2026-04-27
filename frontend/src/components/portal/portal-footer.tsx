@@ -1,89 +1,87 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { SITE } from "@/lib/portal/site-content";
+import { TPI_SITE } from "@/lib/portal/tpi-content";
 
 export function PortalFooter() {
   const { t } = useTranslation("portal");
   return (
-    <footer className="bg-navy px-4 pb-6 pt-16 text-cream sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        <div className="grid gap-5 md:grid-cols-2">
-          <CampusBlock
-            name={t("site.campus-jeju.name")}
-            line1={t("site.campus-jeju.line1")}
-            line2={t("site.campus-jeju.line2")}
-            note={t("site.campus-jeju.note")}
-          />
-          <CampusBlock
-            name={t("site.campus-seoul.name")}
-            line1={t("site.campus-seoul.line1")}
-            note={t("site.campus-seoul.note")}
-          />
+    <footer className="border-t border-slate-200 bg-slate-900 px-4 pb-8 pt-12 text-slate-200 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
+        <div className="grid gap-6 text-sm md:grid-cols-2">
+          <div>
+            <p className="text-base font-semibold text-white">
+              {t("footer.company-name")}
+            </p>
+            <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">
+              {t("footer.legal-name")}
+            </p>
+            <dl className="mt-4 space-y-1.5 text-slate-300">
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-slate-400">
+                  {t("footer.business-id-label")}
+                </dt>
+                <dd>{t("footer.business-id")}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="w-24 shrink-0 text-slate-400">
+                  {t("footer.address-label")}
+                </dt>
+                <dd>{t("footer.address")}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <div>
+            <ul className="space-y-1.5">
+              <li>
+                <span className="mr-3 inline-block w-16 text-slate-400">
+                  {t("footer.phone-label")}
+                </span>
+                <a
+                  href={`tel:${TPI_SITE.phoneDigits}`}
+                  className="text-slate-200 hover:text-white"
+                >
+                  {t("footer.phone")}
+                </a>
+              </li>
+              <li>
+                <span className="mr-3 inline-block w-16 text-slate-400">
+                  {t("footer.email-label")}
+                </span>
+                <a
+                  href={`mailto:${TPI_SITE.email}`}
+                  className="text-slate-200 hover:text-white"
+                >
+                  {t("footer.email")}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={TPI_SITE.kakaoChat}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full bg-yellow-300 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-yellow-200"
+                >
+                  💬 {t("footer.kakao-label")}
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div className="mt-8 space-y-2 text-center text-sm">
-          <p>
-            <span className="font-semibold text-gold">{t("footer.consultation-hours")}</span>{" "}
-            {t("site.hours-consultation")}
-            <span className="mx-3 text-gold/40">·</span>
-            <span className="font-semibold text-gold">{t("footer.class-hours")}</span>{" "}
-            {t("site.hours-class")}
-          </p>
-          <p className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-cream/85">
-            <a href={`tel:${SITE.phones[0]}`} className="hover:text-gold">
-              📞 {SITE.phones[0]}
-            </a>
-            <a href={`tel:${SITE.phones[1]}`} className="hover:text-gold">
-              📱 {SITE.phones[1]}
-            </a>
-            <a href={`mailto:${SITE.email}`} className="hover:text-gold">
-              ✉️ {SITE.email}
-            </a>
-            <a
-              href={SITE.kakao}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-gold"
-            >
-              {t("footer.kakao-channel")}
-            </a>
-          </p>
-        </div>
-
-        <div className="mt-10 border-t border-cream/10 pt-5 text-center text-xs text-cream/60">
-          <p className="mb-2 text-cream/40">{t("footer.business-info")}</p>
+        <div className="mt-8 flex flex-col gap-2 border-t border-slate-700 pt-5 text-xs text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <p>{t("footer.copyright")}</p>
+          <div className="flex gap-4">
+            <a href="#terms" className="hover:text-white">
+              {t("footer.terms")}
+            </a>
+            <a href="#privacy" className="hover:text-white">
+              {t("footer.privacy")}
+            </a>
+          </div>
         </div>
       </div>
     </footer>
-  );
-}
-
-function CampusBlock({
-  name,
-  line1,
-  line2,
-  note,
-}: {
-  name: string;
-  line1: string;
-  line2?: string;
-  note?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-gold/20 p-5">
-      <p className="mb-2 font-semibold text-gold">{name}</p>
-      <p className="text-sm leading-relaxed text-cream/90">
-        {line1}
-        {line2 && (
-          <>
-            <br />
-            {line2}
-          </>
-        )}
-      </p>
-      {note && <p className="mt-3 text-xs text-cream/60">{note}</p>}
-    </div>
   );
 }

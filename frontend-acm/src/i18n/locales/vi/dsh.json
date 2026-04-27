@@ -1,0 +1,66 @@
+{
+  "title": "Bảng điều khiển",
+  "loadFailed": "Không thể tải KPI.",
+  "actions": {
+    "manualInput": "Nhập thủ công",
+    "addComplaint": "Thêm khiếu nại",
+    "save": "Lưu",
+    "cancel": "Hủy"
+  },
+  "status": {
+    "populated": "{{count}}/{{total}} ngày đã nhập"
+  },
+  "category": {
+    "MARKETING": "Marketing",
+    "CS": "CS",
+    "OPERATING": "Vận hành",
+    "CLASS": "Lớp học"
+  },
+  "grid": {
+    "day": "Ngày",
+    "dow": "Thứ",
+    "sum": "Tổng",
+    "aver": "TB."
+  },
+  "manualInput": {
+    "title": "Nhập thủ công theo ngày",
+    "date": "Ngày",
+    "visitor": "Khách",
+    "cost": "Chi phí (KRW)",
+    "effect": "Hiệu quả",
+    "complain": "Số khiếu nại",
+    "visitorSource": "Nguồn khách",
+    "costSource": "Nguồn chi phí",
+    "status": "Trạng thái",
+    "note": "Ghi chú",
+    "statuses": {
+      "PENDING": "Chưa nhập",
+      "PARTIAL": "Một phần",
+      "COMPLETE": "Hoàn tất"
+    }
+  },
+  "complaint": {
+    "title": "Ghi nhận khiếu nại",
+    "date": "Ngày xảy ra",
+    "channel": "Kênh",
+    "severity": "Mức độ",
+    "subject": "Tiêu đề",
+    "description": "Nội dung",
+    "linkedQnaId": "ID Q&A liên kết",
+    "channels": {
+      "PHONE": "Điện thoại",
+      "EMAIL": "Email",
+      "CHAT": "Chat",
+      "IN_PERSON": "Trực tiếp",
+      "OTHER": "Khác"
+    },
+    "severities": {
+      "LOW": "Thấp",
+      "MEDIUM": "Trung bình",
+      "HIGH": "Cao"
+    }
+  },
+  "empty": {
+    "noData": "Không có dữ liệu cho tháng này."
+  }
+}

@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Trinity Academy",
-    "admin-name": "Trinity 管理",
+    "name": "app-academy",
+    "admin-name": "管理控制台",
     "motto": "OMNIBUS OMNIA"
   },
   "buttons": {

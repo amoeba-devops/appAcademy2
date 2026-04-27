@@ -14,14 +14,20 @@ export class UserEntity {
   @PrimaryGeneratedColumn({ name: 'usr_id', type: 'bigint', unsigned: true })
   usrId: number;
 
-  @Column({ name: 'acd_id', type: 'bigint', unsigned: true })
-  acdId: number;
+  @Column({ name: 'acd_id', type: 'bigint', unsigned: true, nullable: true })
+  acdId: number | null;
+
+  @Column({ name: 'usr_active_acd_id', type: 'bigint', unsigned: true, nullable: true })
+  usrActiveAcdId: number | null;
 
   @Column({ name: 'usr_email', type: 'varchar', length: 200 })
   usrEmail: string;
 
-  @Column({ name: 'usr_password', type: 'varchar', length: 200 })
-  usrPassword: string;
+  @Column({ name: 'usr_ama_user_id', type: 'varchar', length: 64, nullable: true })
+  usrAmaUserId: string | null;
+
+  @Column({ name: 'usr_password', type: 'varchar', length: 200, nullable: true })
+  usrPassword: string | null;
 
   @Column({ name: 'usr_name', type: 'varchar', length: 100 })
   usrName: string;
@@ -34,6 +40,12 @@ export class UserEntity {
 
   @Column({ name: 'usr_last_login_at', type: 'datetime', nullable: true })
   usrLastLoginAt: Date | null;
+
+  @Column({ name: 'usr_invited_at', type: 'datetime', nullable: true })
+  usrInvitedAt: Date | null;
+
+  @Column({ name: 'usr_accepted_at', type: 'datetime', nullable: true })
+  usrAcceptedAt: Date | null;
 
   @CreateDateColumn({ name: 'usr_created_at' })
   usrCreatedAt: Date;

@@ -8,11 +8,14 @@ import {
   GetTeacherDetailUseCase,
   CreateTeacherUseCase,
   UpdateTeacherUseCase,
+  SyncTeacherUseCase,
+  SearchAmaClientsUseCase,
 } from '../application/use-cases/teacher/index';
 import { TeacherController } from './controllers/teacher.controller';
+import { AmaModule } from '../infrastructure/external/ama/ama.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TeacherEntity])],
+  imports: [TypeOrmModule.forFeature([TeacherEntity]), AmaModule],
   controllers: [TeacherController],
   providers: [
     { provide: TEACHER_REPOSITORY, useClass: TeacherRepository },
@@ -20,6 +23,8 @@ import { TeacherController } from './controllers/teacher.controller';
     GetTeacherDetailUseCase,
     CreateTeacherUseCase,
     UpdateTeacherUseCase,
+    SyncTeacherUseCase,
+    SearchAmaClientsUseCase,
   ],
   exports: [TEACHER_REPOSITORY],
 })

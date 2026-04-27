@@ -14,7 +14,9 @@ change_log:
       Amoeba Basic SPEC v2 템플릿 기반, Next.js 14 App Router 풀스택 구조에 맞게 커스터마이징.
 ---
 
-# Trinity Academy — Project Specification (트리니티 아카데미 프로젝트 명세서)
+# app-academy — Project Specification (학원 관리 SaaS 명세서)
+
+> Trinity Academy는 본 플랫폼 위에서 운영되는 첨 입주 테넌트다. 다른 학원은 AMA App Store를 통해 신규 프로비저닝된다.
 
 ## 1. Project Overview (프로젝트 개요)
 
@@ -23,7 +25,7 @@ change_log:
 | Item | Content |
 |------|---------|
 | **Document Name** | SPEC.md |
-| **Project Name** | Trinity Academy Management System (트리니티 아카데미 통합 운영 솔루션) |
+| **Project Name** | app-academy — Academy Management SaaS (학원 관리 멀티테넌트 솔루션) |
 | **Project Code** | TAC |
 | **Version** | v1.3.0 |
 | **Date** | 2026-04-19 |
@@ -33,7 +35,7 @@ change_log:
 
 ### 1.2 Service Introduction (서비스 소개)
 
-Trinity Academy는 중·고등부 영어·수학 학원의 전체 운영을 디지털화하는 솔루션이다. 학부모 대면 포털과 내부 운영 콘솔을 하나의 플랫폼으로 통합하여, 상담 → 등록 → 수강 → 결제 → MAP 평가까지 end-to-end로 관리한다.
+app-academy는 중·고등부 영어·수학 학원의 운영을 디지털화하는 멀티테넌트 SaaS다. 학부모 대면 포털과 내부 운영 콘솔을 하나의 플랫폼으로 통합해, 상담 → 등록 → 수강 → 결제 → MAP 평가까지 end-to-end로 관리한다. Trinity Academy는 첨 입주 테넌트다.
 
 기존 imweb 기반 홍보 사이트와 엑셀(TPI 학생 정보, 수업 확인표)에 분산된 업무 데이터를 단일 진실 원천(SSOT)으로 통합하고, AMA 교사 마스터·AmoebaTalk 알림과 연계한다.
 
@@ -166,6 +168,22 @@ Trinity Academy는 중·고등부 영어·수학 학원의 전체 운영을 디�
 - API 미들웨어에서 세션 기반 `academy_id` 자동 주입
 - 쿼리 시 `WHERE academy_id = ?` 필수
 
+### 3.4 Local Dev Port Convention (로컬 개발 포트 규칙)
+
+TAC는 로컬 개발 환경에서 다른 프로젝트와의 충돌을 피하기 위해 **고정 포트**를 사용한다. 포트 변경 시 본 섹션·CLAUDE.md §4.7·`.env*`·`frontend/package.json`·`frontend/next.config.mjs`·`backend/src/main.ts`를 함께 갱신한다.
+
+| Service | Port | URL |
+|---------|------|-----|
+| Frontend (Next.js dev) | **3009** | http://localhost:3009 |
+| Admin Console | 3009 | http://localhost:3009/admin |
+| Admin Login | 3009 | http://localhost:3009/admin/login |
+| Backend (NestJS API) | **4009** | http://localhost:4009/api |
+| Swagger Docs | 4009 | http://localhost:4009/api/docs |
+
+- **금지 포트**: 3000, 4000 (다른 로컬 프로젝트와 충돌, 과거 기본값) — 신규 코드/문서에 사용 금지.
+- 환경변수 기본값: `PORT=4009`, `FRONTEND_URL=http://localhost:3009`, `BACKEND_URL=http://localhost:4009`, `API_PROXY_URL=http://localhost:4009`, `NEXTAUTH_URL=http://localhost:3009`, `NEXT_PUBLIC_SITE_URL=http://localhost:3009`.
+- Staging/Production 컴포즈 내부 포트는 본 규칙 적용 대상 아님 (별도 운영).
+
 ---
 
 ## 4. Database Design (데이터베이스 설계)
@@ -247,7 +265,7 @@ Teacher ──── AMA Client (1:1, ama_client_id)
 
 | Module | FR Range | Priority |
 |--------|----------|----------|
-| Trinity Academy Main Portal | FR-043~046 | P0 |
+| Tenant Public Portal (포털 메인) | FR-043~046 | P0 |
 | Program Management | FR-001~003 | P0 |
 | Consultation Management | FR-004~006 | P0 |
 | Student/Parent Registration | FR-007~008 | P0 |

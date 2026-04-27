@@ -23,8 +23,32 @@ export class AcademyEntity {
   @Column({ name: 'acd_business_registration_no', type: 'varchar', length: 30, nullable: true })
   acdBusinessRegistrationNo: string | null;
 
+  @Column({ name: 'acd_ama_tenant_id', type: 'varchar', length: 64, nullable: true })
+  acdAmaTenantId: string | null;
+
+  @Column({ name: 'acd_slug', type: 'varchar', length: 60, nullable: true })
+  acdSlug: string | null;
+
   @Column({ name: 'acd_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   acdStatus: string;
+
+  @Column({ name: 'acd_subscription_status', type: 'varchar', length: 30, default: 'ACTIVE' })
+  acdSubscriptionStatus: string;
+
+  @Column({ name: 'acd_subscription_plan', type: 'varchar', length: 60, nullable: true })
+  acdSubscriptionPlan: string | null;
+
+  @Column({ name: 'acd_provisioned_at', type: 'datetime', nullable: true })
+  acdProvisionedAt: Date | null;
+
+  @Column({ name: 'acd_canceled_at', type: 'datetime', nullable: true })
+  acdCanceledAt: Date | null;
+
+  @Column({ name: 'acd_deprovisioned_at', type: 'datetime', nullable: true })
+  acdDeprovisionedAt: Date | null;
+
+  @Column({ name: 'acd_is_demo', type: 'tinyint', width: 1, default: 0 })
+  acdIsDemo: number;
 
   @CreateDateColumn({ name: 'acd_created_at' })
   acdCreatedAt: Date;

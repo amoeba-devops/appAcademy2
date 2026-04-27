@@ -1,0 +1,12 @@
+@import './tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Pretendard Variable', 'Pretendard', system-ui, sans-serif;
+    word-break: keep-all;
+    letter-spacing: -0.01em;
+  }
+}

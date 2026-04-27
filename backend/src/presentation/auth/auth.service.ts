@@ -7,17 +7,21 @@ import { UserEntity } from '../../infrastructure/database/entities/user.entity';
 
 export interface JwtPayload {
   sub: number;
-  acdId: number;
+  acdId: number | null;
   email: string;
   name: string;
   role: string;
+  /** AMA SSO sub claim (선택 — break-glass login 은 미발급) */
+  amaUserId?: string;
+  /** 현재 활성 academy. acdId 와 동일하나, 다중 멤버십 사용자에서는 헤더로 변경 가능. */
+  activeAcdId?: number | null;
 }
 
 export interface LoginResponse {
   accessToken: string;
   user: {
     id: number;
-    academyId: number;
+    academyId: number | null;
     email: string;
     name: string;
     role: string;
@@ -41,7 +45,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.usrPassword);
+    const isPasswordValid =
+      user.usrPassword != null &&
+      (await bcrypt.compare(password, user.usrPassword));
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

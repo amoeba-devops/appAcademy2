@@ -6,6 +6,8 @@ export { ClassroomEntity } from './classroom.entity';
 export { TeacherEntity } from './teacher.entity';
 export { ParentEntity } from './parent.entity';
 export { UserEntity } from './user.entity';
+export { UserAcademyEntity } from './user-academy.entity';
+export { SubscriptionEventEntity } from './subscription-event.entity';
 
 // Student & Consultation
 export { StudentEntity } from './student.entity';

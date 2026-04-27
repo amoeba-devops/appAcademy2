@@ -1,0 +1,123 @@
+{
+  "title": "Tài liệu tham chiếu",
+  "tabs": {
+    "guidelines": "Hướng dẫn lớp học",
+    "levelTests": "Hướng dẫn kiểm tra trình độ",
+    "benchmarks": "Tiêu chuẩn điểm"
+  },
+  "actions": {
+    "create": "Tạo mới",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "addStep": "+ Thêm bước",
+    "removeStep": "Xóa",
+    "addGrade": "+ Thêm khối lớp"
+  },
+  "table": {
+    "code": "Mã",
+    "examType": "Loại kỳ thi",
+    "label": "Nhãn",
+    "level": "Cấp độ",
+    "version": "Phiên bản",
+    "status": "Trạng thái",
+    "effectiveFrom": "Hiệu lực từ",
+    "gradeBasis": "Cơ sở lớp",
+    "stepsCount": "Số bước",
+    "createdAt": "Tạo lúc"
+  },
+  "examType": {
+    "MAP_TEST": "MAP Test",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "WRITING_COMP": "Writing Comp",
+    "SUMMER_CAMP": "Trại hè",
+    "JUNIOR_BOARDING": "Junior Boarding",
+    "BOARDING": "Trường nội trú",
+    "INTL_SCHOOL_APP": "Đơn trường QT",
+    "OTHER": "Khác"
+  },
+  "lvlExamType": {
+    "ISEE_LEVEL_TEST": "ISEE Level Test",
+    "SSAT_LEVEL_TEST": "SSAT Level Test",
+    "OTHER": "Khác"
+  },
+  "sbmExamType": {
+    "MAP": "MAP",
+    "ISEE": "ISEE",
+    "SSAT": "SSAT"
+  },
+  "dataStatus": {
+    "COMPLETE": "Hoàn chỉnh",
+    "PARTIAL": "Một phần",
+    "PLACEHOLDER": "Bản nháp",
+    "INHERITED_FROM": "Kế thừa"
+  },
+  "stepRole": {
+    "ADVISOR": "Cố vấn",
+    "TEAM_LEAD": "Trưởng nhóm",
+    "TEACHER": "Giáo viên",
+    "SENIOR_MANAGER": "Quản lý cao cấp",
+    "ADMIN": "Quản trị",
+    "OTHER": "Khác"
+  },
+  "gradeBasis": {
+    "TARGET_GRADE": "Lớp mục tiêu",
+    "CURRENT_GRADE": "Lớp hiện tại"
+  },
+  "resourceType": {
+    "DRIVE_FOLDER": "Drive Folder",
+    "EXTERNAL_LINK": "Liên kết ngoài",
+    "INTERNAL_DOC": "Tài liệu nội bộ"
+  },
+  "modifierType": {
+    "FOREIGN_SCHOOL": "Hiệu chỉnh trường nước ngoài",
+    "INTERNATIONAL_BOARDING": "Hiệu chỉnh boarding QT",
+    "OTHER": "Khác"
+  },
+  "form": {
+    "code": "Mã",
+    "examType": "Loại kỳ thi",
+    "labelKr": "Nhãn (KR)",
+    "labelEn": "Nhãn (EN)",
+    "workflowSteps": "Các bước quy trình",
+    "stepNum": "Thứ tự",
+    "role": "Vai trò",
+    "description": "Mô tả",
+    "remark": "Ghi chú",
+    "dataStatus": "Trạng thái dữ liệu",
+    "effectiveFrom": "Hiệu lực từ",
+    "gradeBasis": "Cơ sở lớp",
+    "assignmentRuleText": "Quy tắc phân công",
+    "resourceUrl": "URL tài nguyên",
+    "resourceType": "Loại tài nguyên",
+    "resourceNote": "Ghi chú tài nguyên",
+    "procedureSteps": "Các bước thực hiện",
+    "defaultDurationMin": "Thời lượng mặc định (phút)",
+    "level": "Cấp độ",
+    "mapReadingScore": "Điểm MAP Reading",
+    "mapMathScore": "Điểm MAP Math",
+    "mapNoUpperBound": "Không giới hạn trên",
+    "generalPct": "Chung (Pct)",
+    "premiumPrivatePct": "Premium Private (Pct)",
+    "topBoardingPct": "Top Boarding (Pct)",
+    "stanine": "Stanine",
+    "grades": "Khối lớp áp dụng",
+    "gradeLabel": "Nhãn khối",
+    "gradeMin": "Khối tối thiểu",
+    "gradeMax": "Khối tối đa"
+  },
+  "validation": {
+    "codeFormat": "Mã: A-Z, 0-9, _ (3-50 ký tự)",
+    "stanineFormat": "Stanine: đơn (1) hoặc khoảng (1-3)",
+    "mapScoreRange": "Điểm MAP từ 100-300",
+    "pctRange": "Phân vị từ 0-100",
+    "required": "Bắt buộc"
+  },
+  "empty": {
+    "guidelines": "Chưa có hướng dẫn lớp học",
+    "levelTests": "Chưa có hướng dẫn kiểm tra trình độ",
+    "benchmarks": "Chưa có tiêu chuẩn điểm"
+  }
+}

@@ -1,20 +1,23 @@
 import { HeroSection } from "@/components/portal/home/hero-section";
-import { ResultsBand, ResultsStatsBand } from "@/components/portal/home/results-band";
-import { CampusBand } from "@/components/portal/home/campus-band";
-import { PillarSection } from "@/components/portal/home/pillar-section";
-import { ProcessTimeline } from "@/components/portal/home/process-timeline";
-import { ClosingCta } from "@/components/portal/home/closing-cta";
+import { AmaSignInBanner } from "@/components/portal/home/ama-signin-banner";
+import { MapTestIntro } from "@/components/portal/home/map-test-intro";
+import { MapTestImportance } from "@/components/portal/home/map-test-importance";
+import { TpiFeatures } from "@/components/portal/home/tpi-features";
+import { EnrollmentProcess } from "@/components/portal/home/enrollment-process";
+import { ReviewsSlider } from "@/components/portal/home/reviews-slider";
+import { BottomCtaSection } from "@/components/portal/home/bottom-cta-section";
 
 export default function PortalHome() {
   return (
     <>
       <HeroSection />
-      <ResultsBand />
-      <CampusBand />
-      <PillarSection />
-      <ResultsStatsBand />
-      <ProcessTimeline />
-      <ClosingCta />
+      <AmaSignInBanner />
+      <MapTestIntro />
+      <MapTestImportance />
+      <TpiFeatures />
+      <EnrollmentProcess />
+      <ReviewsSlider />
+      <BottomCtaSection />
     </>
   );
 }

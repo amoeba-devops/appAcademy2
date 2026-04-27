@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Trinity Academy — Staging redeploy.
+# app-academy — Staging redeploy.
 # Run on the staging host after a `git push origin main` from a dev machine.
 #
 #   cd ~/app-academy && scripts/deploy-staging.sh
@@ -32,11 +32,24 @@ say "1. git pull origin $BRANCH"
 git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git reset --hard "origin/$BRANCH"
-DEPLOY_SHA="$(git rev-parse --short HEAD)"
+# DEPLOY_SHA from CD workflow trigger; otherwise local HEAD.
+DEPLOY_SHA="${DEPLOY_SHA:-$(git rev-parse --short HEAD)}"
+export DEPLOY_SHA
 
-# --- 2. Build images ----------------------------------------------------
-say "2. Build backend + frontend images ($DEPLOY_SHA)"
-$COMPOSE build backend frontend
+# --- 2. Pull (or build) images -----------------------------------------
+if [[ "${DEPLOY_BUILD_LOCAL:-0}" == "1" ]]; then
+    say "2. Build backend + frontend images locally ($DEPLOY_SHA)"
+    $COMPOSE build backend frontend
+else
+    say "2. Pull backend + frontend images from GHCR ($DEPLOY_SHA)"
+    if [[ -n "${GHCR_PULL_TOKEN:-}" ]] && [[ -n "${GHCR_PULL_USER:-}" ]]; then
+        echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USER" --password-stdin >/dev/null
+    fi
+    if ! $COMPOSE pull backend frontend; then
+        warn "GHCR pull failed — falling back to local build"
+        $COMPOSE build backend frontend
+    fi
+fi
 
 # --- 3. Ensure data services are up -------------------------------------
 say "3. Start mysql + redis (idempotent)"
@@ -93,30 +106,46 @@ say "5. Restart backend + frontend"
 $COMPOSE up -d --no-deps backend frontend
 
 # --- 6. Sync + reload nginx ---------------------------------------------
-# The repo is the source of truth for the tpi.amoeba.site vhost. Install it
-# into /etc/nginx/sites-available/ only when the file content actually
-# changes, so normal app-only deploys don't require a reload-with-sudo.
+# The repo is the source of truth for both vhosts. Install whichever has
+# changed; reload nginx once at the end if anything changed.
 say "6. Sync + reload host nginx"
-NGINX_SRC="$REPO_DIR/docker/staging/nginx-tpi.conf"
-NGINX_DST="/etc/nginx/sites-available/tpi.amoeba.site"
-NGINX_LINK="/etc/nginx/sites-enabled/tpi.amoeba.site"
+nginx_changed=0
 
-if ! sudo cmp -s "$NGINX_SRC" "$NGINX_DST"; then
-    say "   nginx-tpi.conf changed — installing"
-    sudo cp "$NGINX_SRC" "$NGINX_DST"
-    [[ -L "$NGINX_LINK" ]] || sudo ln -sf "$NGINX_DST" "$NGINX_LINK"
+install_vhost() {
+    local src="$1" name="$2"
+    local dst="/etc/nginx/sites-available/$name"
+    local link="/etc/nginx/sites-enabled/$name"
+    if ! sudo cmp -s "$src" "$dst"; then
+        say "   $name changed — installing"
+        sudo cp "$src" "$dst"
+        nginx_changed=1
+    fi
+    [[ -L "$link" ]] || { sudo ln -sf "$dst" "$link"; nginx_changed=1; }
+}
+
+# Canonical app-academy vhost (S4 cut-over).
+install_vhost "$REPO_DIR/docker/staging/nginx-app-academy.conf" \
+              "app-academy-stg.amoeba.site"
+# Legacy tpi vhost — now a 301 redirect to the canonical host. Kept for 6mo.
+install_vhost "$REPO_DIR/docker/staging/nginx-tpi.conf" \
+              "tpi.amoeba.site"
+
+if [[ "$nginx_changed" == "1" ]]; then
     sudo nginx -t
     sudo systemctl reload nginx
 else
-    echo "   nginx-tpi.conf unchanged — skipping reload"
+    echo "   nginx vhosts unchanged — skipping reload"
 fi
 
 # --- 7. Smoke test ------------------------------------------------------
 # Follow redirects so a 301 http -> https counts as healthy.
-say "7. Smoke test https://tpi.amoeba.site/"
+say "7. Smoke test https://app-academy-stg.amoeba.site/"
 sleep 5
-curl -sIL --max-time 15 https://tpi.amoeba.site/ | head -1 \
+curl -sIL --max-time 15 https://app-academy-stg.amoeba.site/ | head -1 \
     || warn "smoke test failed — check logs + firewall (port 443)."
+echo "   legacy redirect check:"
+curl -sI --max-time 10 https://tpi.amoeba.site/ | head -1 \
+    || warn "tpi → app-academy redirect not responding."
 
 # --- 8. Manifest --------------------------------------------------------
 cat > "$REPO_DIR/.last-deploy" <<EOF

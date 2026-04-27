@@ -1,23 +1,24 @@
-# Trinity Academy — Claude Code AI Instructions
+# app-academy — Claude Code AI Instructions
 
-> **Project Code**: TAC
-> **Version**: v1.3.0
-> **Last Updated**: 2026-04-19
+> **Project Code**: TAC (내부 코드 / DB prefix `tac_`)
+> **Version**: v1.4.0
+> **Last Updated**: 2026-04-27
 
 ---
 
 ## 1. Project Overview (프로젝트 개요)
 
-**Trinity Academy**(트리니티 아카데미)는 중·고등부 영어·수학 학원의 운영 전반을 디지털화하는 통합 관리 솔루션이다.
-- 학부모 대면 포털(trinityacademy.kr) + 운영 콘솔(admin)을 **프론트엔드(React/Next.js)** + **백엔드(NestJS)** Clean Architecture로 구축한다.
+**app-academy**는 중·고등부 영어·수학 학원의 운영 전반을 디지털화하는 다중 테넌트 학원 관리 SaaS다. AMA App Store를 통해 학원별로 프로비저닝된다.
+- 학부모 대면 포털 + 운영 콘솔(admin)을 **프론트엔드(React/Next.js)** + **백엔드(NestJS)** Clean Architecture로 구축한다.
 - 기존 imweb 기반 홍보 사이트와 엑셀(TPI 학생 정보, 수업 확인표)을 대체한다.
 - AMA(아메바) 플랫폼의 교사 마스터 · AmoebaTalk 알림 기능과 연계한다.
-- **결제·정산(Trinity Pay)은 Toss Payments PG 직결** — AMA 미경유.
+- **결제·정산(Pay)은 Toss Payments PG 직결** — AMA 미경유.
+- **첨 입주 테넌트**: Trinity Academy (트리니티 아카데미) — 테넌트 테마·로고·콘텐츠는 입주 테넌트별로 독립 관리된다.
 
-### Brand Identity
-- **Motto**: OMNIBUS OMNIA (고린도전서 9:22)
-- **Palette**: Navy `#0E1E3A`, Heraldic Gold `#C9A656`, Cream `#FAF7EE`, Deep Ink `#0B0D14`, AMA Accent `#6F4DB8`
-- **Typography**: Display — Cormorant Garamond + Noto Serif KR / Body — Inter + Pretendard
+### Default Brand (테넌트 중립 기본 셰)
+- 기본 컬러/타이포그래피는 내부 admin 콘솔용 세트립 색상 (Inter + Pretendard).
+- 입주 테넌트의 포털 브랜딩은 `academy.brand_*` 설정으로 주입된다.
+- Trinity Academy 테넌트 셰(Heraldic 방패 문장, OMNIBUS OMNIA, Navy/Gold/Cream, Cormorant Garamond)은 입주 테넌트 레퍼런스이며 새 공용 코드에 하드코딩하지 않는다.
 
 ---
 
@@ -97,7 +98,7 @@ app-academy/
 │   ├── public/                      # Static assets
 │   │   ├── images/
 │   │   └── fonts/
-│   ├── next.config.mjs              # API proxy → backend:4000
+│   ├── next.config.mjs              # API proxy → backend:4009
 │   ├── tailwind.config.ts
 │   └── package.json
 │
@@ -174,20 +175,20 @@ Domain (핵심)  →  Application (유스케이스)  →  Infrastructure (어댑
 ### 4.2 Frontend Route Convention
 - `(portal)` — SSG/ISR, 학부모 대면 공개 사이트. `PortalLayout` 사용.
 - `(admin)` — SSR, 인증 필수 운영 콘솔. `AdminLayout` (Sidebar + Header) 사용.
-- Frontend `/api/*` 요청은 `next.config.mjs` rewrite로 NestJS backend(`localhost:4000`)에 프록시.
+- Frontend `/api/*` 요청은 `next.config.mjs` rewrite로 NestJS backend(`localhost:4009`)에 프록시.
 
 ### 4.3 Backend API Convention
 - Global prefix: `/api`
 - RESTful JSON API — NestJS Controllers
 - Swagger docs: `/api/docs` (개발 환경)
-- Port: 4000 (Frontend: 3000)
+- Port: 4009 (Frontend: 3009)
 
 ### 4.4 Data Flow
 ```
-React (Frontend:3000)
+React (Frontend:3009)
     → fetch /api/*
     → Next.js rewrite proxy
-    → NestJS Controller (Backend:4000)
+    → NestJS Controller (Backend:4009)
     → Use Case → Domain Service → Repository Interface
     → TypeORM Repository Implementation → MySQL
                      ↕
@@ -202,7 +203,23 @@ React (Frontend:3000)
 
 ### 4.6 AMA Integration Boundary
 - **연동 O**: 교사 마스터(Client 1:1 참조), AmoebaTalk 알림
-- **연동 X**: 결제·환불·세무 트랜잭션 — Trinity Pay가 Toss Payments 직결
+- **연동 X**: 결제·환불·세무 트랜잭션 — Pay 모듈이 Toss Payments 직결
+
+### 4.7 Local Dev Port Convention (로컬 개발 포트 규칙)
+
+> **고정 포트** — 다른 로컬 프로젝트와의 충돌을 피하기 위해 TAC는 항상 아래 포트를 사용한다. 변경 시 본 섹션·SPEC.md·`.env*`·`next.config.mjs`·`backend/src/main.ts`를 함께 갱신한다.
+
+| Service | Port | URL | Source of truth |
+|---------|------|-----|-----------------|
+| Frontend (Next.js dev) | **3009** | http://localhost:3009 | `frontend/package.json` `dev` script (`next dev -p 3009`) |
+| Admin Console | 3009 | http://localhost:3009/admin | — |
+| Admin Login | 3009 | http://localhost:3009/admin/login | — |
+| Backend (NestJS) | **4009** | http://localhost:4009/api | `backend/.env` `PORT`, `backend/src/main.ts` default |
+| Swagger Docs | 4009 | http://localhost:4009/api/docs | — |
+
+- **금지 포트**: 3000(다른 로컬 프로젝트 점유), 4000(과거 기본값) — 새 코드/문서에 사용 금지.
+- 환경변수: `PORT=4009`, `FRONTEND_URL=http://localhost:3009`, `BACKEND_URL=http://localhost:4009`, `API_PROXY_URL=http://localhost:4009`, `NEXTAUTH_URL=http://localhost:3009`, `NEXT_PUBLIC_SITE_URL=http://localhost:3009`.
+- Staging/Production은 docker compose 내부 포트(컨테이너 간 통신)를 별도로 사용하며 본 섹션 적용 대상 아님.
 
 ---
 
@@ -313,7 +330,7 @@ Contact (Intake)         Teacher Management
 News                     Class Management
                          Timetable View
                          Enrollment Management
-                         Trinity Pay (Payment/Refund)
+                         Pay (Payment/Refund)
                          MAP Question Bank
                          Settings (Refund Policy)
 ```

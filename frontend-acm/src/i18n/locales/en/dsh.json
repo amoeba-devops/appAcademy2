@@ -1,0 +1,66 @@
+{
+  "title": "Dashboard",
+  "loadFailed": "Failed to load KPIs.",
+  "actions": {
+    "manualInput": "Manual Input",
+    "addComplaint": "Add Complaint",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "status": {
+    "populated": "{{count}}/{{total}} days populated"
+  },
+  "category": {
+    "MARKETING": "Marketing",
+    "CS": "CS",
+    "OPERATING": "Operating",
+    "CLASS": "Class"
+  },
+  "grid": {
+    "day": "Day",
+    "dow": "DoW",
+    "sum": "Sum",
+    "aver": "Aver."
+  },
+  "manualInput": {
+    "title": "Daily Manual Input",
+    "date": "Date",
+    "visitor": "Visitor",
+    "cost": "Cost (KRW)",
+    "effect": "Effect",
+    "complain": "Complaint count",
+    "visitorSource": "Visitor source",
+    "costSource": "Cost source",
+    "status": "Input status",
+    "note": "Note",
+    "statuses": {
+      "PENDING": "Pending",
+      "PARTIAL": "Partial",
+      "COMPLETE": "Complete"
+    }
+  },
+  "complaint": {
+    "title": "Log Complaint",
+    "date": "Occurred date",
+    "channel": "Channel",
+    "severity": "Severity",
+    "subject": "Subject",
+    "description": "Description",
+    "linkedQnaId": "Linked Q&A ID",
+    "channels": {
+      "PHONE": "Phone",
+      "EMAIL": "Email",
+      "CHAT": "Chat",
+      "IN_PERSON": "In person",
+      "OTHER": "Other"
+    },
+    "severities": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High"
+    }
+  },
+  "empty": {
+    "noData": "No data for this month."
+  }
+}

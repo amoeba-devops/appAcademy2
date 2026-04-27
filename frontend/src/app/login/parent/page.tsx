@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function ParentLoginPage() {
   const router = useRouter();
-  const { t } = useTranslation('portal');
+  const { t } = useTranslation(['portal', 'common']);
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -99,11 +99,8 @@ export default function ParentLoginPage() {
             <span className="text-3xl">⛨</span>
           </div>
           <h1 className="font-display text-2xl text-cream tracking-wide">
-            Trinity Academy
+            {t('common:app.name')}
           </h1>
-          <p className="text-cream/50 text-xs tracking-[0.3em] mt-1">
-            OMNIBUS OMNIA
-          </p>
         </div>
 
         <h2 className="text-cream text-center text-lg font-medium mb-6">

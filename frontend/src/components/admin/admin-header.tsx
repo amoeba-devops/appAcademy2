@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/common/language-switcher';
+import { TenantSwitcher } from '@/components/admin/tenant-switcher';
 
 export function AdminHeader() {
   const { data: session } = useSession();
@@ -40,6 +41,9 @@ export function AdminHeader() {
 
       {/* Right side */}
       <div className="flex items-center gap-3">
+        {/* Tenant switcher */}
+        <TenantSwitcher />
+
         {/* Language switcher */}
         <LanguageSwitcher />
 

@@ -1,18 +1,21 @@
-# Trinity Academy — Management System
+# app-academy — Academy Management SaaS
 
-> **OMNIBUS OMNIA** — 모든 이에게 모든 것이 되다 (고린도전서 9:22)
+[![CI](https://github.com/KimIgyong/app-academy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/KimIgyong/app-academy/actions/workflows/ci.yml)
+[![CD — Staging](https://github.com/KimIgyong/app-academy/actions/workflows/cd-staging.yml/badge.svg?branch=main)](https://github.com/KimIgyong/app-academy/actions/workflows/cd-staging.yml)
 
-중·고등부 영어·수학 학원의 운영 전반을 디지털화하는 통합 관리 솔루션.
+학원 운영 전반을 디지털화하는 멀티테넌트 관리 SaaS. AMA App Store를 통해 학원별로 프로비저닝된다.
+
+> Trinity Academy는 이 플랫폼 위에서 운영되는 첨 입주 테넌트다 (`tpi.amoeba.site` → `app-academy-stg.amoeba.site` → 프로덕션 컷오버).
 
 ## Overview
 
 | Item | Detail |
 |------|--------|
-| **Project Code** | TAC |
-| **Version** | v1.3.0 |
-| **Framework** | Next.js 14 (App Router) + React 18 |
-| **Database** | MySQL 8 + Prisma |
-| **Portal** | https://trinityacademy.kr/ |
+| **Project Code** | TAC (내부 코드 / DB prefix `tac_`) |
+| **Version** | v1.4.0 |
+| **Framework** | Next.js 14 (App Router) + NestJS 11 |
+| **Database** | MySQL 8 + TypeORM (multi-tenant by `academy_id`) |
+| **Distribution** | AMA App Store — https://amoeba.site/apps/app-academy |
 
 ## Architecture
 
@@ -34,7 +37,7 @@ Next.js 14 App Router
 | **Class** | 강의 개설, 회차 자동 생성, 스케줄 충돌 검증 |
 | **Timetable** | 학원/교사/학생 시간표 (class_sessions 파생 뷰) |
 | **Enrollment** | 수강 등록·상태 관리·출결 |
-| **Trinity Pay** | Toss Payments 직결 결제·환불·원장·영수증·세금계산서 |
+| **Pay** | Toss Payments 직결 결제·환불·원장·영수증·세금계산서 |
 | **MAP** | 문제은행·시험지·배정·채점·성적 이력 |
 | **Dashboard** | KPI 대시보드 |
 
@@ -100,10 +103,38 @@ app-academy/
 
 ## Brand System
 
-- **Colors**: Navy `#0E1E3A` · Gold `#C9A656` · Cream `#FAF7EE`
-- **Typography**: Cormorant Garamond + Noto Serif KR (display) / Inter + Pretendard (body)
-- **Identity**: Heraldic 방패 문장, OMNIBUS OMNIA 표어
+기본 셰은 테넌트에 중립적이다 (Inter + Pretendard, 메트로 팔레트). 입주 테넌트는 `academy.brand_*` 설정으로 로고·컬러·폰트를 오버라이드한다. (Trinity Academy 테넌트 셰은 `frontend/public/themes/trinity/` 아래에 분리 예정)
+
+## CI / CD
+
+| Pipeline | Trigger | Steps |
+|----------|---------|-------|
+| **CI** (`.github/workflows/ci.yml`) | PR + push to `main`/`develop` | backend lint/typecheck/unit · backend integration (MySQL service + ACM Testcontainers) · frontend lint/typecheck/build · Playwright e2e (non-blocking) · Docker build validation · Trivy scan |
+| **CD-Staging** (`.github/workflows/cd-staging.yml`) | push to `main` (or manual `workflow_dispatch`) | Build & push backend/frontend images to GHCR (`:${sha_short}` + `:staging`) → SSH into staging host → run [`scripts/deploy-staging.sh`](scripts/deploy-staging.sh) (git pull · docker pull · SQL migrations · `docker compose up -d` · nginx reload · smoke test) |
+
+### Required GitHub Secrets (CD)
+
+| Secret | Description |
+|--------|-------------|
+| `STAGING_SSH_HOST` | Staging server hostname or IP |
+| `STAGING_SSH_USER` | SSH login user |
+| `STAGING_SSH_KEY`  | Private key (PEM) — passwordless |
+| `STAGING_SSH_PORT` | _(optional)_ defaults to `22` |
+
+`GITHUB_TOKEN` (auto-provided) is used for GHCR push with `packages: write`.
+
+### Manual / Rollback Deploy
+
+```bash
+# On the staging host (~/app-academy):
+DEPLOY_SHA=<short-sha> scripts/deploy-staging.sh        # pull pre-built image
+DEPLOY_BUILD_LOCAL=1 scripts/deploy-staging.sh          # force local build (fallback)
+```
+
+### Dependabot
+
+Weekly updates configured in `.github/dependabot.yml` for `npm` (backend, frontend, root) and `github-actions`.
 
 ## License
 
-Private — Trinity Academy. All rights reserved.
+Private — app-academy. All rights reserved.

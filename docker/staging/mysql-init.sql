@@ -1,4 +1,4 @@
--- Trinity Academy — MySQL container first-boot initialization.
+-- app-academy — MySQL container first-boot initialization.
 -- Runs once when the mysql-data volume is empty (docker-entrypoint-initdb.d).
 -- Schema + seed files are applied separately by scripts/deploy-staging.sh
 -- via the `sql/_applied/` tracking ledger.

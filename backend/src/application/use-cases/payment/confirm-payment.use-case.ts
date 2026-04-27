@@ -5,13 +5,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { IPaymentOrderRepository } from '../../../domain/repositories/payment-order-repository.interface.js';
 import { PAYMENT_ORDER_REPOSITORY } from '../../../domain/repositories/payment-order-repository.interface.js';
 import type { IPaymentProvider } from '../../../domain/repositories/payment-provider.interface.js';
 import { PAYMENT_PROVIDER } from '../../../domain/repositories/payment-provider.interface.js';
+import type { IEnrollmentRepository } from '../../../domain/repositories/enrollment-repository.interface.js';
+import { ENROLLMENT_REPOSITORY } from '../../../domain/repositories/enrollment-repository.interface.js';
+import type { IStudentRepository } from '../../../domain/repositories/student-repository.interface.js';
+import { STUDENT_REPOSITORY } from '../../../domain/repositories/student-repository.interface.js';
+import type { IParentRepository } from '../../../domain/repositories/parent-repository.interface.js';
+import { PARENT_REPOSITORY } from '../../../domain/repositories/parent-repository.interface.js';
 import type { ConfirmPaymentDto } from '../../dto/payment/index.js';
 import { PaymentOrderResponseDto } from '../../dto/payment/index.js';
 import { PaymentOrder } from '../../../domain/entities/payment-order.js';
+import { NOTIFICATION_EVENTS } from '../../notification/notification-context.types.js';
 
 @Injectable()
 export class ConfirmPaymentUseCase {
@@ -22,6 +30,13 @@ export class ConfirmPaymentUseCase {
     private readonly paymentOrderRepo: IPaymentOrderRepository,
     @Inject(PAYMENT_PROVIDER)
     private readonly paymentProvider: IPaymentProvider,
+    @Inject(ENROLLMENT_REPOSITORY)
+    private readonly enrollmentRepo: IEnrollmentRepository,
+    @Inject(STUDENT_REPOSITORY)
+    private readonly studentRepo: IStudentRepository,
+    @Inject(PARENT_REPOSITORY)
+    private readonly parentRepo: IParentRepository,
+    private readonly events: EventEmitter2,
   ) {}
 
   async execute(dto: ConfirmPaymentDto): Promise<PaymentOrderResponseDto> {
@@ -64,7 +79,46 @@ export class ConfirmPaymentUseCase {
       `Payment confirmed: orderNo=${order.orderNo}, paymentKey=${tossResult.paymentKey}`,
     );
 
+    // C-NTF-01: best-effort notification
+    try {
+      const phone = await this.resolveParentPhone(updated.enrollmentId);
+      if (phone) {
+        this.events.emit(NOTIFICATION_EVENTS.PaymentDone, {
+          academyId: updated.academyId,
+          recipients: [phone],
+          recipientKind: 'PARENT',
+          subjectId: updated.id,
+          subjectKind: 'PAYMENT_ORDER',
+          variables: {
+            orderNo: updated.orderNo ?? '',
+            amount: String(updated.amount ?? 0),
+            studentName: updated.studentName ?? '',
+            programName: updated.programName ?? '',
+          },
+        });
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Failed to emit PAYMENT_DONE event: ${(err as Error).message}`,
+      );
+    }
+
     return this.toResponse(updated);
+  }
+
+  private async resolveParentPhone(enrollmentId: number): Promise<string | null> {
+    const enr = await this.enrollmentRepo.findById(enrollmentId);
+    if (!enr) return null;
+    const parentId = enr.appliedParentId ?? null;
+    if (!parentId) {
+      const student = await this.studentRepo.findById(enr.studentId);
+      const pid = student?.primaryParentId;
+      if (!pid) return null;
+      const p = await this.parentRepo.findById(pid);
+      return p?.phone ?? null;
+    }
+    const parent = await this.parentRepo.findById(parentId);
+    return parent?.phone ?? null;
   }
 
   private toResponse(o: PaymentOrder): PaymentOrderResponseDto {

@@ -1,0 +1,196 @@
+{
+  "title": "Quản lý lớp học",
+  "tabs": {
+    "list": "Danh sách lớp",
+    "calendar": "Lịch",
+    "settlements": "Thanh toán"
+  },
+  "actions": {
+    "createClass": "Tạo lớp",
+    "editClass": "Sửa lớp",
+    "addSession": "Thêm buổi học",
+    "reschedule": "Đổi lịch",
+    "cancel": "Hủy",
+    "hold": "Đánh dấu đã học",
+    "recordAttendance": "Ghi điểm danh",
+    "writeFeedback": "Viết phản hồi",
+    "proposeMakeup": "Đề xuất bù",
+    "approveMakeup": "Duyệt bù",
+    "rejectMakeup": "Từ chối bù",
+    "confirmSettlement": "Xác nhận thanh toán",
+    "recompute": "Tính lại",
+    "generate": "Tạo buổi"
+  },
+  "table": {
+    "code": "Mã lớp",
+    "subject": "Môn học",
+    "teacher": "Giáo viên",
+    "students": "Học sinh",
+    "status": "Trạng thái",
+    "startedAt": "Ngày bắt đầu",
+    "endedAt": "Ngày kết thúc",
+    "actions": "Thao tác",
+    "empty": "Không có lớp."
+  },
+  "subjectType": {
+    "MAP_TEST": "MAP Test",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "WRITING": "Viết",
+    "LANGUAGE_ARTS": "Ngữ văn",
+    "MATH": "Toán",
+    "INTL_PREP": "Du học",
+    "DEMO": "Lớp thử",
+    "OTHER": "Khác"
+  },
+  "status": {
+    "PROPOSED": "Đề xuất",
+    "ACTIVE": "Đang học",
+    "PAUSED": "Tạm dừng",
+    "COMPLETED": "Hoàn thành",
+    "CANCELLED": "Đã hủy"
+  },
+  "startedFrom": {
+    "CSL_PIPELINE": "Từ tư vấn",
+    "DIRECT_ENROLLMENT": "Đăng ký trực tiếp",
+    "MIGRATION": "Chuyển đổi"
+  },
+  "session": {
+    "scheduledAt": "Thời gian",
+    "duration": "Thời lượng",
+    "mode": "Hình thức",
+    "status": "Trạng thái",
+    "modes": {
+      "IN_PERSON": "Trực tiếp",
+      "ONLINE": "Online",
+      "TWO_PERSON_IN_PERSON": "Trực tiếp 2 người",
+      "HYBRID": "Hỗn hợp"
+    },
+    "statuses": {
+      "SCHEDULED": "Đã lên lịch",
+      "HELD": "Đã học",
+      "CANCELLED": "Đã hủy",
+      "RESCHEDULED": "Đã đổi lịch",
+      "NO_SHOW": "Không đến",
+      "MAKEUP_REPLACEMENT": "Buổi bù"
+    },
+    "cancelReasons": {
+      "STUDENT_ABSENCE": "Học sinh vắng",
+      "STUDENT_ILLNESS": "Học sinh bệnh",
+      "TEACHER_ABSENCE": "Giáo viên vắng",
+      "TEACHER_BUSINESS_TRIP": "Giáo viên công tác",
+      "TEACHER_CONSULTING_PREP": "Chuẩn bị tư vấn",
+      "STUDENT_DAY_OF_CANCEL": "Hủy trong ngày",
+      "FAMILY_TRAVEL": "Du lịch gia đình",
+      "HOLIDAY": "Ngày lễ",
+      "OTHER": "Khác"
+    },
+    "dispositions": {
+      "MAKEUP_PLANNED": "Đã lên lịch bù",
+      "CARRYOVER_TO_NEXT_MONTH": "Chuyển sang tháng sau",
+      "NO_MAKEUP": "Không bù"
+    }
+  },
+  "attendance": {
+    "title": "Điểm danh",
+    "statuses": {
+      "PRESENT": "Có mặt",
+      "ABSENT_EXCUSED": "Vắng có phép",
+      "ABSENT_UNEXCUSED": "Vắng không phép",
+      "LATE": "Muộn",
+      "LEFT_EARLY": "Về sớm"
+    },
+    "billableHours": "Giờ tính phí",
+    "remark": "Ghi chú"
+  },
+  "feedback": {
+    "title": "Phản hồi",
+    "progress": "Tiến độ",
+    "feedback": "Phản hồi",
+    "homework": "Bài tập",
+    "weaknessDev": "Phát triển điểm yếu",
+    "academicPlan": "Kế hoạch học tập",
+    "statuses": {
+      "DRAFT": "Bản nháp",
+      "SUBMITTED": "Đã gửi",
+      "DELIVERED_TO_PARENT": "Đã gửi phụ huynh"
+    },
+    "slaBreached": "Vượt SLA"
+  },
+  "makeup": {
+    "title": "Lớp bù",
+    "originalSession": "Buổi gốc",
+    "makeupScheduledAt": "Thời gian bù",
+    "substituteTeacher": "Giáo viên thay",
+    "substitutionApprover": "Người duyệt",
+    "remark": "Ghi chú",
+    "statuses": {
+      "PROPOSED": "Đề xuất",
+      "APPROVED": "Đã duyệt",
+      "COMPLETED": "Hoàn thành",
+      "CARRIED_OVER": "Chuyển tiếp",
+      "REJECTED": "Từ chối"
+    }
+  },
+  "settlement": {
+    "title": "Thanh toán hàng tháng",
+    "yearMonth": "Tháng",
+    "teacher": "Giáo viên",
+    "hoursTotal": "Tổng giờ",
+    "amountGross": "Tổng tiền",
+    "withholdingRate": "Khấu trừ %",
+    "amountWithheld": "Đã khấu trừ",
+    "amountAfterTax": "Thực nhận",
+    "statuses": {
+      "DRAFT": "Nháp",
+      "CONFIRMED": "Đã xác nhận",
+      "EXPORTED_TO_PAYROLL": "Đã xuất bảng lương",
+      "PAID": "Đã trả"
+    },
+    "lines": {
+      "title": "Chi tiết",
+      "sessionDate": "Ngày",
+      "billableHours": "Giờ",
+      "hourlyRate": "Đơn giá",
+      "amount": "Số tiền"
+    }
+  },
+  "recurrence": {
+    "title": "Lặp lại",
+    "dayOfWeek": "Thứ",
+    "startTime": "Giờ bắt đầu",
+    "duration": "Thời lượng (phút)",
+    "defaultMode": "Hình thức mặc định",
+    "days": {
+      "MON": "T2", "TUE": "T3", "WED": "T4", "THU": "T5",
+      "FRI": "T6", "SAT": "T7", "SUN": "CN"
+    }
+  },
+  "video": {
+    "provider": "Nền tảng video",
+    "providers": {
+      "GOOGLE_MEET": "Google Meet",
+      "BODASCHOOL": "Bodaschool",
+      "NONE": "Không"
+    },
+    "persistentLink": "Liên kết cố định"
+  },
+  "calendar": {
+    "today": "Hôm nay",
+    "prev": "Trước",
+    "next": "Sau",
+    "noSessions": "Không có buổi học."
+  },
+  "errors": {
+    "VAL_NO_PRIMARY_STUDENT": "Cần ít nhất 1 học sinh PRIMARY.",
+    "VAL_HOURS_RANGE": "Giờ tính phí ngoài phạm vi cho phép.",
+    "VAL_DEMO_FEEDBACK_FIELDS": "Phản hồi demo cần phần phát triển điểm yếu và kế hoạch học tập.",
+    "VAL_STANDARD_FEEDBACK_FIELDS": "Phản hồi cần trường bài tập.",
+    "VAL_SES_STATUS_TRANSITION": "Chuyển trạng thái không hợp lệ.",
+    "VAL_SETTLEMENT_FROZEN": "Thanh toán đã xác nhận không thể chỉnh sửa.",
+    "CLS_SESSION_CONFLICT": "Trùng lịch với buổi khác của giáo viên hoặc học sinh."
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc."
+  }
+}

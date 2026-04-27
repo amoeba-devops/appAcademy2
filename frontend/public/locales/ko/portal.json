@@ -10,102 +10,69 @@
     "login": "로그인"
   },
   "home": {
-    "hero-title": "OMNIBUS OMNIA",
-    "hero-subtitle": "모든 이에게 모든 것이 되다",
-    "cta-consult": "상담 신청",
-    "cta-map-test": "MAP 시험 안내",
+    "header": {
+      "menu-consult": "온라인 튜터링 상담 신청",
+      "menu-test": "온라인 MAP TEST 응시 신청",
+      "menu-map-test": "MAP TEST",
+      "menu-isee": "ISEE",
+      "btn-test": "맵테스트 응시",
+      "btn-consult": "상담신청",
+      "menu-toggle": "메뉴 열기"
+    },
     "hero": {
-      "eyebrow": "NWEA MAP TEST 공식 기관",
-      "title": "TRINITY ACADEMY",
-      "subtitle": "정확한 진단 · 확실한 합격",
-      "lead": "2020년 설립 이후 230명 이상의 국제학교 학생을 배출한 검증된 국제학교 입학 준비 기관. MAP TEST를 통한 체계적인 진단부터 목표 국제학교 합격까지 완벽한 로드맵을 제공합니다."
+      "title": "NWEA MAP TEST 공식 기관 트리니티 프렙 인스티튜트",
+      "subtitle": "2017년 설립 이후 미국, 영국, 한국 등 전 세계 10개국 이상의 국제학교 학생들에게 MAP TEST 중심의 온라인 클래스와 체계적인 학습 관리를 종합적으로 제공합니다.",
+      "cta-consult": "온라인 튜터링 상담 신청",
+      "cta-test": "온라인 MAP TEST 응시 신청"
     },
-    "results": {
-      "eyebrow": "TRUSTED RESULTS",
-      "title": "트리니티 아카데미의 자신감은\n확실한 결과에서 나옵니다.",
-      "lead": "트리니티는 2020년 설립 이후 인가 국제학교 7개와 국내 각지의 비인가 국제학교 입학을 희망하는 학생들에게 합격이라는 확실한 결과를 선사했습니다. 검증된 데이터와 노하우로 합격을 선사합니다.",
-      "stat-value": "144",
-      "stat-unit": "명",
-      "stat-label": "국제학교 합격 · 채드윅 · DIS · 비인가 포함"
+    "intro": {
+      "title": "MAP TEST란?",
+      "body": "MAP TEST는 \"Measures of Academic Progress\"의 약자로 미국의 교육 평가 및 학습 진단 솔루션 기관인 NWEA (Northwest Evaluation Association)에서 개발한 학업 성취도 측정 시험입니다."
     },
-    "results-stats": {
-      "eyebrow": "PROVEN TRACK RECORD",
-      "title": "데이터로 증명하는 트리니티",
-      "item-graduates": "누적 졸업생",
-      "item-admitted": "국제학교 합격",
-      "item-pass-rate": "합격률",
-      "item-founded": "설립"
+    "importance": {
+      "title": "MAP TEST가 중요한 이유",
+      "i1": "미국 교과과정(Common Core State Standards) 기반의 학업 성취도 평가",
+      "i2": "국제학교의 입학 시험",
+      "i3": "학업 성취도의 핵심 지표",
+      "i4": "Standardized Test(SAT/ACT) 준비의 시작점"
     },
-    "campus-band": {
-      "eyebrow": "DUAL CAMPUS",
-      "title": "제주 영어교육도시 본원 · 압구정 도산공원 센터의 오프라인 입학 준비 수업과\n엄선된 교사진의 온라인 개인 수업",
-      "lead": "트리니티 아카데미는 제주 영어 교육도시 현지에 위치한 본원을 통하여 입시와 관련된 가장 필수적이고 중요한 정보를 세밀하게 파악하고 있습니다. 트리니티의 노하우는 오프라인·온라인 수업을 통해서 국제학교 입시를 준비하는 학생에게 확실한 결과를 선사합니다."
-    },
-    "pillars-section": {
-      "eyebrow": "OUR DIFFERENTIATORS",
-      "title": "합격을 위한 네 가지 축"
-    },
-    "pillars": {
-      "p1": {
-        "title": "230명 이상의 합격 사례로 축적된 '학교별 맞춤 전략'",
-        "problem": "국제학교 입시는 단순한 영어 테스트가 아니기에, 학교마다 요구하는 평가 기준을 정확히 파악하는 것이 중요합니다.",
-        "label": "실전 분석 데이터:",
-        "solution": "지난 수년간 230명이 넘는 합격생을 배출하며 쌓아온 학교별(NLCS, SJA, KIS, Chadwick 등) 입학 시험 기출 유형과 각 학교가 선호하는 인재상을 체계적으로 보유하고 있습니다. 지망 학교의 출제 경향을 면밀히 분석하여 합격에 가까운 학습 경로를 제시합니다."
-      },
-      "p2": {
-        "title": "합격률 99%를 뒷받침하는 '완벽한 원서 지원 전략'",
-        "problem": "높은 시험 점수만으로는 학생의 잠재력을 충분히 보여주기 어렵습니다. 지원자만의 특징이 선명하게 드러나야 합니다.",
-        "label": "맞춤형 원서 지원 가이드:",
-        "solution": "트리니티는 99%의 합격률을 유지하기 위해, 학생이 가진 개별 활동과 경험을 학교의 교육 철학에 맞춰 설득력 있는 스토리텔링으로 구현합니다. 인터뷰와 에세이에서 학생의 역량이 돋보일 수 있도록 세밀하게 조율합니다."
-      },
-      "p3": {
-        "title": "합격을 달성하는 '상세 진단과 학습 로드맵'",
-        "problem": "막연한 준비가 아닌, 객관적인 지표를 바탕으로 학습 방향을 결정합니다.",
-        "label": "합격 데이터 기반 분석:",
-        "solution": "누적 230여 건의 합격 사례를 기준으로 현재 학생의 학업 수준을 진단합니다. MAP Test, ISEE 등 영역별 강약점을 수치화하여, 부족한 부분을 우선순위에 따라 보완하는 효율적인 로드맵을 제공합니다."
-      },
-      "p4": {
-        "title": "원서 준비부터 입학 후 적응까지 'All in One' 관리",
-        "problem": "원서 접수 과정의 실수를 방지하고, 합격 이후의 안정적인 학교 생활까지 고려합니다.",
-        "label": "체계적인 가이드:",
-        "solution": "추천서 준비부터 활동 증빙 서류까지 오차 없는 서류 패키징을 지원합니다. 또한, 입학 후 실제 교과 과정(IB, AP 등)에서 어려움을 겪지 않도록 입학 전 학업 기초를 탄탄하게 다져 실질적인 적응을 돕습니다."
-      }
-    },
-    "process-section": {
-      "eyebrow": "ENROLLMENT PROCESS",
-      "title": "트리니티 아카데미\n입학 준비반 프로세스"
+    "features": {
+      "title": "TPI만의 차별화된 강점",
+      "f1-title": "NWEA 공식 MAP TEST와 온라인 체험수업을 통한 정확한 학업 성취도 진단",
+      "f1-body": "세계적으로 공인된 NWEA MAP TEST를 기반으로, 학생의 학습 수준과 강점을 정밀하게 분석합니다. 온라인 체험수업(무료)를 통해 실제수업 적응도와 성취도를 객관적으로 진단합니다.",
+      "f2-title": "기출부터 자체제작까지, TPI만의 2000+문항 자료",
+      "f2-body": "수년간 축적된 기출 문제와 자체 연구 자료를 통해 시험 출제 경향을 완벽히 반영한 실전 중심의 커리큘럼을 제공합니다.",
+      "f3-title": "MAP TEST 전문 강사진과 국제학교 커리큘럼 전문 컨설턴트",
+      "f3-body": "국제학교 및 해외 교육 과정을 깊이 이해한 전문 강사진이 학생 개개인의 목표에 맞춘 맞춤형 학습 전략을 제시합니다.",
+      "f4-title": "학습 과정과 성취도를 정확하게 보여주는 체계적인 피드백 시스템",
+      "f4-body": "진단 결과와 학습 과정을 학부모와 학생이 한눈에 확인할 수 있는 체계적인 피드백 리포트를 제공합니다.",
+      "f5-title": "목표 점수 도달까지 확실하게 책임지는 1:1 맞춤 튜터링",
+      "f5-body": "각 학생의 수준과 목표 점수에 맞춰 개념부터 실전까지 단계별로 코칭하며, 꾸준한 관리로 목표 점수 달성을 이끌어냅니다."
     },
     "process": {
-      "s1": {
-        "title": "맞춤형 기초 상담",
-        "label": "학생 기본 정보 등록 및 학습 성향 파악:",
-        "body": "학생의 기존 학습 이력과 기본 정보를 바탕으로 1:1 기초 상담을 진행하여 합격을 달성하기 위한 현재 상황을 확인합니다."
-      },
-      "s2": {
-        "title": "객관적 실력 진단",
-        "label": "공인 지표 기반 레벨테스트:",
-        "body": "NWEA 공식 MAP Test를 포함하여 체험수업을 통한 Writing·Speaking 자체 평가를 실시합니다. 이를 통해 현재 학생의 학업 성취도를 수치화하여 상세히 안내합니다."
-      },
-      "s3": {
-        "title": "전략적 목표 설정",
-        "label": "심층 컨설팅 및 학교 매칭:",
-        "body": "진단 결과를 토대로 학생의 역량이 가장 돋보일 수 있는 목표 학교를 설정하고, 합격을 위한 구체적인 지원 전략을 수립합니다."
-      },
-      "s4": {
-        "title": "맞춤형 학습 유형·스케줄 편성",
-        "label": "수준별 최적 반 편성:",
-        "body": "학생의 현재 실력과 목표 시기에 맞춰 그룹 수업·개인 수업 혹은 여름·겨울 특강반 등 가장 효율적인 학습 환경을 배정합니다."
-      },
-      "s5": {
-        "title": "밀착 관리 및 성과 공유",
-        "label": "정규 커리큘럼 및 피드백 시스템:",
-        "body": "체계적인 수업 진행과 함께 주기적인 모의고사(NWEA MAP TEST)를 실시합니다. 분석된 성취도 데이터는 학부모 피드백 리포트를 통해 상세히 공유하며 확실한 성장을 돕습니다."
-      }
+      "title": "등록 프로세스",
+      "s1-step": "Step 01",
+      "s1-title": "학생 기본 정보 등록 및 기초 상담",
+      "s2-step": "Step 02",
+      "s2-title": "공식 MAP Test 응시 & RIT 분석",
+      "s3-step": "Step 03",
+      "s3-title": "무료 체험 수업 (Trial Class)",
+      "s4-step": "Step 04",
+      "s4-title": "커리큘럼 컨설팅 및 강사 매칭",
+      "s5-step": "Step 05",
+      "s5-title": "수업 진행 및 피드백 제공"
     },
-    "closing": {
-      "eyebrow": "CONTACT US",
-      "title": "트리니티 아카데미가 확실하게 선사하겠습니다.",
-      "lead": "트리니티의 정밀한 학업 진단, 열정적인 튜터링, 검증된 노하우로 확실한 국제학교 입학을 보장합니다."
+    "reviews": {
+      "title": "디테일한 피드백은 확실한 학업 성취의 나침반입니다.",
+      "prev": "이전 후기",
+      "next": "다음 후기"
+    },
+    "bottom-cta": {
+      "title": "TPI는 결과로 증명합니다.",
+      "subtitle": "TPI의 정밀한 학업 진단, 열정적인 튜터링, 그리고 디테일한 클래스 피드백은 확실한 목표 달성을 보장합니다.",
+      "cta-kakao": "카카오톡 상담",
+      "cta-phone": "전화 1555-2108",
+      "cta-consult": "상담 신청"
     }
   },
   "floating": {
@@ -418,14 +385,22 @@
     "admin-login-link": "운영진 로그인 →"
   },
   "footer": {
-    "address": "주소",
-    "phone": "전화",
-    "email": "이메일",
+    "company-name": "트리니티 프렙 인스티튜트",
+    "legal-name": "TRINITY PREP INSTITUTE",
+    "business-id-label": "사업자등록번호",
+    "business-id": "546-06-03432",
+    "address-label": "주소",
+    "address": "서울특별시 강남구 언주로 152길 15-4",
+    "phone-label": "전화",
+    "phone": "1555-2108",
+    "email-label": "이메일",
+    "email": "info@tpiglobal.network",
+    "kakao-label": "카카오톡 상담",
     "consultation-hours": "상담시간",
     "class-hours": "수업시간",
-    "kakao-channel": "💛 카카오톡 채널",
-    "business-info": "사업자등록번호 · 대표자 · 통신판매업신고 · 개인정보책임자 (TBD)",
-    "copyright": "COPYRIGHT © TRINITY ACADEMY ALL RIGHTS RESERVED."
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "copyright": "COPYRIGHT © Trinity Prep Institute ALL RIGHTS RESERVED."
   },
   "site": {
     "hours-consultation": "14:00 – 22:00 (사전 예약제)",

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,6 +20,11 @@ import { PostModule } from './presentation/post.module';
 import { DashboardModule } from './presentation/dashboard.module';
 import { PortalParentModule } from './presentation/portal-parent.module';
 import { NotificationModule } from './presentation/notification.module';
+import { SubscriptionModule } from './presentation/subscription.module';
+import { MeModule } from './presentation/me.module';
+import { TenantOpsModule } from './presentation/tenant-ops.module';
+import { AcmModule } from './modules/acm.module';
+import { ACM_DS } from './modules/acm-common/datasource';
 
 @Module({
   imports: [
@@ -30,6 +36,9 @@ import { NotificationModule } from './presentation/notification.module';
 
     // Scheduler (cron jobs)
     ScheduleModule.forRoot(),
+
+    // Event emitter (used for cross-module domain events → notifications, audit, etc.)
+    EventEmitterModule.forRoot({ wildcard: true, maxListeners: 20 }),
 
     // Rate limiting (60 requests per minute per IP)
     ThrottlerModule.forRoot([{
@@ -56,6 +65,26 @@ import { NotificationModule } from './presentation/notification.module';
       }),
     }),
 
+    // ACM v1.0a — separate PostgreSQL connection (db_amb)
+    TypeOrmModule.forRootAsync({
+      name: ACM_DS,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        name: ACM_DS,
+        host: config.get('ACM_PG_HOST', 'localhost'),
+        port: config.get<number>('ACM_PG_PORT', 5434),
+        username: config.get('ACM_PG_USER', 'acm'),
+        password: config.get('ACM_PG_PASSWORD', 'acm'),
+        database: config.get('ACM_PG_DATABASE', 'db_acm'),
+        autoLoadEntities: true,
+        synchronize: false,
+        logging: config.get('NODE_ENV') !== 'production',
+        retryAttempts: config.get('NODE_ENV') === 'production' ? 10 : 1,
+        retryDelay: 3000,
+      }),
+    }),
+
     // Auth
     AuthModule,
 
@@ -73,6 +102,12 @@ import { NotificationModule } from './presentation/notification.module';
     DashboardModule,
     PortalParentModule,
     NotificationModule,
+    SubscriptionModule,
+    MeModule,
+    TenantOpsModule,
+
+    // ACM v1.0a (5 modules: SCH, REF, CSL, QNA, DSH) — PostgreSQL
+    AcmModule,
   ],
   controllers: [HealthController],
   providers: [

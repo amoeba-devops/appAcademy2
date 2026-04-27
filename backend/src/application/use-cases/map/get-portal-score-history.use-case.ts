@@ -13,6 +13,9 @@ export class GetPortalScoreHistoryUseCase {
   ) {}
 
   async execute(user: CurrentUserPayload, studentId?: number): Promise<PortalScoreHistoryResponseDto> {
+    if (user.academyId == null) {
+      throw new Error('NO_ACTIVE_TENANT');
+    }
     const history = await this.mapScoreRepository.getPortalScoreHistory({
       academyId: user.academyId,
       userEmail: user.email,

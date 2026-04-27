@@ -1,4 +1,4 @@
-const API_PROXY_URL = process.env.API_PROXY_URL || 'http://localhost:4000';
+const API_PROXY_URL = process.env.API_PROXY_URL || 'http://localhost:4009';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,6 +14,10 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    remotePatterns: [
+      { protocol: 'https', hostname: 'cdn.imweb.me' },
+      { protocol: 'https', hostname: 'i.ifh.cc' },
+    ],
   },
   async rewrites() {
     return [

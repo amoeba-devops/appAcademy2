@@ -10,10 +10,10 @@ export default function PortalLayout({
 }) {
   return (
     <QueryProvider>
-      <div className="flex min-h-screen flex-col bg-cream text-deep-ink">
+      <div className="flex min-h-screen flex-col bg-white text-slate-900">
         <PortalHeader />
         <FloatingCta />
-        <main className="flex-1 pr-20 sm:pr-24">{children}</main>
+        <main className="flex-1">{children}</main>
         <PortalFooter />
       </div>
     </QueryProvider>

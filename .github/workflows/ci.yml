@@ -11,8 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ──────────────────────────────────────────────────────────────────
+  # Backend — unit + lint + typecheck (fast, no DB)
+  # ──────────────────────────────────────────────────────────────────
   backend:
-    name: Backend — Lint, Typecheck, Test
+    name: Backend — Lint, Typecheck, Unit Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,12 +38,98 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Unit Test
-        run: npm test -- --passWithNoTests
+      - name: Unit Test (with coverage)
+        run: npm run test:cov -- --passWithNoTests
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+          retention-days: 7
 
       - name: Build
         run: npm run build
 
+  # ──────────────────────────────────────────────────────────────────
+  # Backend integration — boots AppModule against a real MySQL service
+  # Also runs ACM Testcontainers integration suites (Postgres-in-Docker)
+  # ──────────────────────────────────────────────────────────────────
+  backend-integration:
+    name: Backend — Integration (MySQL + Testcontainers)
+    runs-on: ubuntu-latest
+    needs: backend
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: db_tac
+          MYSQL_CHARSET: utf8mb4
+          MYSQL_COLLATION: utf8mb4_unicode_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: password
+      DB_DATABASE: db_tac
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      - name: Wait for MySQL
+        run: |
+          for i in $(seq 1 30); do
+            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
+              echo "MySQL ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "MySQL did not become ready"; exit 1
+
+      - name: Apply schema + seed
+        working-directory: .
+        run: |
+          for f in sql/010-academy-management-schema.sql \
+                   sql/020-seed-dev.sql \
+                   sql/030-migration-notification-templates.sql \
+                   sql/070-migration-notification-logs.sql; do
+            echo "[apply] $f"
+            mysql -h 127.0.0.1 -uroot -ppassword db_tac < "$f"
+          done
+
+      - name: e2e (Nest AppModule boot)
+        run: npm run test:e2e
+
+      - name: ACM integration (Testcontainers)
+        run: npx jest --config ./test/jest-int.json --runInBand
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────────────────────────
+  # Frontend — lint + typecheck + build
+  # ──────────────────────────────────────────────────────────────────
   frontend:
     name: Frontend — Lint, Typecheck, Build
     runs-on: ubuntu-latest
@@ -67,3 +156,112 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Upload .next build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            frontend/.next/
+            !frontend/.next/cache/
+          retention-days: 1
+
+  # ──────────────────────────────────────────────────────────────────
+  # Frontend Playwright e2e (non-blocking — informational)
+  # ──────────────────────────────────────────────────────────────────
+  frontend-e2e:
+    name: Frontend — Playwright e2e
+    runs-on: ubuntu-latest
+    needs: frontend
+    defaults:
+      run:
+        working-directory: frontend
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Build (standalone)
+        run: npm run build
+
+      - name: Run Playwright tests
+        env:
+          CI: 'true'
+        run: npx playwright test
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────
+  # Docker image build validation (no push) — catches Dockerfile drift
+  # ──────────────────────────────────────────────────────────────────
+  docker-build:
+    name: Docker — Build Validation
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - { name: backend,  context: ./backend,  dockerfile: ./backend/Dockerfile }
+          - { name: frontend, context: ./frontend, dockerfile: ./frontend/Dockerfile }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.target.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.target.context }}
+          file: ${{ matrix.target.dockerfile }}
+          push: false
+          load: true
+          tags: tac-${{ matrix.target.name }}:ci
+          cache-from: type=gha,scope=${{ matrix.target.name }}
+          cache-to: type=gha,scope=${{ matrix.target.name }},mode=max
+
+      - name: Trivy vulnerability scan (image)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: tac-${{ matrix.target.name }}:ci
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+  # ──────────────────────────────────────────────────────────────────
+  # Filesystem secret/dependency scan
+  # ──────────────────────────────────────────────────────────────────
+  trivy-fs:
+    name: Trivy — FS Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          skip-dirs: node_modules,frontend/.next,backend/dist

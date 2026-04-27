@@ -1,0 +1,163 @@
+{
+  "title": "상담 관리",
+  "newInquiry": "신규 상담 등록",
+  "newInquiryShort": "+ 신규 상담",
+  "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
+  "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "table": {
+    "seqNo": "No.",
+    "student": "학생",
+    "schoolGrade": "학교 / 학년",
+    "stage": "단계",
+    "inflow": "유입",
+    "applyType": "신청",
+    "registered": "등록일",
+    "followup": "후속 일정",
+    "empty": "등록된 상담이 없습니다."
+  },
+  "form": {
+    "studentName": "학생 이름",
+    "studentNamePlaceholder": "홍길동",
+    "isAnonymous": "익명 문의",
+    "parentPhone": "보호자 전화번호",
+    "parentPhonePlaceholder": "010-1234-5678",
+    "phoneStatus": "전화번호 상태",
+    "school": "학교",
+    "schoolPlaceholder": "서울중학교 (자유 입력 가능)",
+    "grade": "학년",
+    "inflowType": "유입 경로",
+    "applyType": "신청 유형",
+    "applyPurpose": "신청 목적",
+    "applyPurposeOther": "기타 사유",
+    "applyPurposeOtherPlaceholder": "구체적인 사유를 입력하세요",
+    "consultDone": "상담 완료 여부",
+    "registeredAt": "등록일",
+    "followupAt": "후속 일정",
+    "followupMemo": "후속 메모",
+    "required": "*"
+  },
+  "validation": {
+    "phoneInvalid": "전화번호 형식이 올바르지 않습니다",
+    "schoolRequired": "학교명을 입력하세요",
+    "phoneRequiredForProvided": "전화번호 상태가 '제공'일 때 전화번호가 필요합니다",
+    "purposeOtherRequired": "기타를 선택한 경우 사유를 입력하세요",
+    "studentNameOrAnonymous": "익명이 아닌 경우 학생 이름을 입력하세요"
+  },
+  "stage": {
+    "INTAKE": "1. 접수",
+    "MAP_TEST": "2. MAP 테스트",
+    "TRIAL_CLASS": "3. 청강",
+    "ENROLLMENT_COUNSELING": "4. 등록 상담",
+    "PAYMENT": "5. 결제",
+    "CLASS_STARTED": "6. 수강 시작",
+    "DROPPED": "이탈"
+  },
+  "inflow": {
+    "HOMEPAGE": "홈페이지",
+    "KAKAO_CHANNEL": "카카오 채널",
+    "PHONE": "전화"
+  },
+  "applyType": {
+    "COUNSELING_ONLY": "상담만",
+    "EXAM_ONLY": "시험만",
+    "BOTH": "상담+시험"
+  },
+  "applyPurpose": {
+    "INTL_SCHOOL_PREP": "국제학교 진학 준비",
+    "MAP_SCORE_UP": "MAP 점수 향상",
+    "STD_TEST_PREP": "공인시험 준비",
+    "GPA_MGMT": "내신 관리",
+    "OTHER": "기타"
+  },
+  "phoneStatus": {
+    "PROVIDED": "제공됨",
+    "DECLINED": "거부",
+    "UNKNOWN": "미확인"
+  },
+  "yesNo": {
+    "YES": "완료",
+    "NO": "미완료"
+  },
+  "grade": {
+    "E5": "초5", "E6": "초6",
+    "M1": "중1", "M2": "중2", "M3": "중3",
+    "H1": "고1", "H2": "고2", "H3": "고3",
+    "OTHER": "기타"
+  },
+  "detail": {
+    "backToList": "상담 목록으로",
+    "drop": "이탈 처리",
+    "reactivate": "재활성화",
+    "mapTest": {
+      "title": "MAP 테스트",
+      "hasPriorScore": "이전 점수 보유",
+      "feeStatus": "응시료 상태",
+      "waiverReason": "면제 사유",
+      "waiverNote": "면제 비고",
+      "scheduledAt": "응시 예정일",
+      "scheduledStatus": "응시 상태",
+      "scores": "점수 (100~300)",
+      "scoreReading": "읽기",
+      "scoreMath": "수학",
+      "scoreLanguage": "언어",
+      "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
+      "waiver": {
+        "RETAKE_WITHIN_90D": "90일 내 재응시",
+        "TRIAL_PROMOTION": "체험 프로모션",
+        "SISTER_ACADEMY_TRANSFER": "자매학원 이동",
+        "OTHER": "기타"
+      },
+      "schedule": {
+        "SCHEDULED": "예정",
+        "TAKEN": "응시 완료",
+        "NOT_TAKING": "미응시",
+        "RESCHEDULED": "재예약"
+      }
+    },
+    "trial": {
+      "title": "청강 일정",
+      "empty": "등록된 청강이 없습니다.",
+      "heldAt": "청강일",
+      "feedbackStatus": "피드백 상태",
+      "note": "메모",
+      "add": "추가",
+      "feedback": { "SENT": "전송 완료", "PENDING": "대기", "NA": "해당 없음" }
+    },
+    "enrollment": {
+      "title": "등록 / 결제",
+      "counselDone": "등록 상담 완료",
+      "paymentNoticeStatus": "수강료 안내 상태",
+      "applied": "수강 신청",
+      "paymentNoticeSent": "수강료 안내 발송",
+      "classMinutes": "수업 시간(분)",
+      "tuitionAmount": "수강료",
+      "tuitionPaid": "수강료 납부 완료",
+      "tuitionPaidHint": "※ 결제 확정은 책임자만 표시할 수 있습니다.",
+      "classStartedAt": "수강 시작일",
+      "classStarted": "수강 시작 여부",
+      "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
+    },
+    "cancel": {
+      "title": "이탈 처리",
+      "subtitle": "이탈 사유를 선택하세요. 이력은 삭제할 수 없습니다.",
+      "reasonCode": "사유 코드",
+      "reasonOther": "상세 사유",
+      "reasonOtherPlaceholder": "상세 사유를 입력하세요",
+      "reason": {
+        "ACADEMY_CANCELLED": "학원 사정으로 취소",
+        "STUDENT_ILLNESS": "학생 건강",
+        "STUDENT_SCHEDULE_CHANGE": "학생 일정 변경",
+        "PAYMENT_DECLINED": "결제 거절",
+        "LOST_TO_COMPETITOR": "타 학원 등록",
+        "OTHER": "기타"
+      }
+    },
+    "timeline": {
+      "title": "기록 / 타임라인",
+      "empty": "기록이 없습니다.",
+      "transition": "단계 변경",
+      "add": "메모 추가",
+      "addPlaceholder": "메모 또는 후속 사항을 기록하세요"
+    }
+  }
+}

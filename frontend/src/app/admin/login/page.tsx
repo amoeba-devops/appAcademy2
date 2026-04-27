@@ -1,9 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
+import { TPI_LOGO, TPI_SITE } from '@/lib/portal/tpi-content';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,23 +38,32 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-navy">
-      <div className="w-full max-w-sm mx-auto px-6">
-        {/* Crest / Brand */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full border-2 border-heraldic-gold/40 mb-4">
-            <span className="text-3xl">⛨</span>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 px-4 py-10">
+      <div className="mx-auto w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div className="inline-flex h-16 w-40 items-center justify-center">
+            <Image
+              src={TPI_LOGO}
+              alt={TPI_SITE.name}
+              width={160}
+              height={48}
+              priority
+              unoptimized
+              className="h-12 w-auto object-contain"
+            />
           </div>
-          <h1 className="font-display text-2xl text-cream tracking-wide">
-            Trinity Academy
+          <h1 className="mt-4 font-display text-xl font-semibold tracking-wide text-slate-900">
+            {TPI_SITE.name}
           </h1>
-          <p className="text-cream/50 text-xs tracking-[0.3em] mt-1">
-            OMNIBUS OMNIA
+          <p className="mt-1 text-xs font-medium uppercase tracking-[0.3em] text-blue-600">
+            {t('login.brand-subtitle')}
           </p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        >
           <div>
             <label htmlFor="email" className="sr-only">
               {t('login.email')}
@@ -65,7 +76,7 @@ export default function LoginPage() {
               placeholder={t('login.email-placeholder')}
               required
               autoComplete="email"
-              className="w-full px-4 py-3 rounded-md bg-cream/10 border border-cream/20 text-cream placeholder-cream/40 focus:outline-none focus:border-heraldic-gold focus:ring-1 focus:ring-heraldic-gold transition-colors text-sm"
+              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -80,22 +91,31 @@ export default function LoginPage() {
               placeholder={t('login.password-placeholder')}
               required
               autoComplete="current-password"
-              className="w-full px-4 py-3 rounded-md bg-cream/10 border border-cream/20 text-cream placeholder-cream/40 focus:outline-none focus:border-heraldic-gold focus:ring-1 focus:ring-heraldic-gold transition-colors text-sm"
+              className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
-          {error && (
-            <p className="text-red-400 text-sm text-center">{error}</p>
-          )}
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-md bg-red-50 px-3 py-2 text-center text-sm text-red-700"
+            >
+              {error}
+            </p>
+          ) : null}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-md bg-heraldic-gold text-navy font-semibold text-sm hover:bg-heraldic-gold/90 focus:outline-none focus:ring-2 focus:ring-heraldic-gold/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full rounded-md bg-blue-600 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? t('login.submitting') : t('login.submit')}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()} {TPI_SITE.name}
+        </p>
       </div>
     </div>
   );

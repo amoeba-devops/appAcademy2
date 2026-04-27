@@ -46,10 +46,12 @@ services:
       retries: 5
 
   backend:
+    # When DEPLOY_SHA is set, this resolves to the GHCR image pushed by
+    # CD; falls back to the local build context for ad-hoc rebuilds.
+    image: ${BACKEND_IMAGE:-ghcr.io/kimigyong/app-academy/tac-backend:${DEPLOY_SHA:-staging}}
     build:
       context: ../../backend
       dockerfile: Dockerfile
-    image: tac-backend:staging
     container_name: tac-backend
     restart: unless-stopped
     depends_on:
@@ -68,16 +70,26 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
+      # AMA App Store integration (S2/S3 of pivot)
+      AMA_OIDC_MODE: ${AMA_OIDC_MODE:-mock}
+      AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER:-}
+      AMA_OIDC_CLIENT_ID: ${AMA_OIDC_CLIENT_ID:-}
+      AMA_OIDC_CLIENT_SECRET: ${AMA_OIDC_CLIENT_SECRET:-}
+      AMA_OIDC_REDIRECT_URI: ${AMA_OIDC_REDIRECT_URI:-}
+      AMA_WEBHOOK_SECRET: ${AMA_WEBHOOK_SECRET:-}
+      AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy-stg.amoeba.site}
+      BACKEND_URL: ${BACKEND_URL:-https://app-academy-stg.amoeba.site}
     ports:
       - "127.0.0.1:4000:4000"
 
   frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/kimigyong/app-academy/tac-frontend:${DEPLOY_SHA:-staging}}
     build:
       context: ../../frontend
       dockerfile: Dockerfile
       args:
         API_PROXY_URL: http://backend:4000
-    image: tac-frontend:staging
     container_name: tac-frontend
     restart: unless-stopped
     depends_on:
@@ -92,9 +104,11 @@ services:
       BACKEND_URL: http://backend:4000
       # nginx terminates TLS with the *.amoeba.site wildcard cert and
       # forwards X-Forwarded-Proto=https. NEXTAUTH_URL must match the
-      # scheme the browser sees so the session cookie's Secure flag and
-      # NextAuth's CSRF origin check line up.
-      NEXTAUTH_URL: https://tpi.amoeba.site
+      # canonical hostname users see (legacy tpi.amoeba.site 301-redirects
+      # to this one as of S4 of the AMA App Store pivot).
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://app-academy-stg.amoeba.site}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://app-academy-stg.amoeba.site}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy-stg.amoeba.site}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     ports:
       - "127.0.0.1:3000:3000"

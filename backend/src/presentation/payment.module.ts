@@ -41,11 +41,13 @@ import { PaymentController } from './controllers/payment.controller';
 import { WebhookController } from './controllers/webhook.controller';
 import { TossWebhookGuard } from './guards/toss-webhook.guard';
 import { EnrollmentModule } from './enrollment.module';
+import { StudentParentModule } from './student-parent.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PayOrderEntity, PayRefundPolicyEntity, PayRefundPolicyTierEntity, PayLedgerEntity, PayTaxInvoiceEntity, PayReceiptEntity]),
     EnrollmentModule,
+    StudentParentModule,
   ],
   controllers: [PaymentController, WebhookController],
   providers: [

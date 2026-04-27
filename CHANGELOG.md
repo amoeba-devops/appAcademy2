@@ -1,6 +1,33 @@
-# Trinity Academy — Change Log
+# app-academy — Change Log
 
 All notable changes to this project will be documented in this file.
+
+## [1.4.0] — 2026-04-27 — AMA App Store Pivot
+
+### Added — Multi-tenancy & AMA Integration
+- **S0 Foundation** — `tac_user_academies` (M:N membership), `tac_subscription_events` (webhook ledger), tenant columns on `tac_academies` (`acd_ama_tenant_id`, `acd_subscription_status/plan`, `acd_suspended_at`, `acd_canceled_at`, `acd_deprovisioned_at`, `acd_is_demo`).
+- **S1 AMA SSO** — OIDC integration (mock + http modes), CredentialsProvider, NextAuth user upsert by `usr_ama_user_id`.
+- **S2 Provisioning + Lifecycle** — idempotent `ProvisioningUseCase` w/ default refund policy seed, `LifecycleUseCase` (SUSPEND/RESUME/CANCEL/DEPROVISION/PLAN_CHANGED), `tenant-deprovision.cron` (daily 03:00, `AMA_DEPROVISION_GRACE_DAYS`), HMAC-SHA256 webhook signature verification with replay protection.
+- **S3 Onboarding & Multi-tenant UX** — `/api/me/{tenants,active-tenant}`, `/api/onboarding/{academy,hours,teacher-sync}`, `/api/billing/status`, `/api/auth/me`, AMA SSO callback page, 3-step onboarding wizard, `<TenantSwitcher />` in admin header, billing read-only page, AMA sign-in banner on portal landing.
+- **S4 Deployment** — production docker stack (`docker/production/`), `nginx-app-academy.conf` for both staging and production, `scripts/deploy-production.sh` (mandatory pre-deploy backup + GHCR-only image pull), `scripts/backup-db.sh` (staging 7d / production 30d retention), `.github/workflows/cd-production.yml` with manual approval gate, [docs/deployment/RUNBOOK.md](docs/deployment/RUNBOOK.md).
+- **S5 Demo & Launch Prep** — `sql/091-migration-trinity-as-demo.sql`, `scripts/export-demo-seed.sh`, [docs/test/UAT-CHECKLIST.md](docs/test/UAT-CHECKLIST.md) (4 UAT scenarios), [docs/deployment/CUTOVER.md](docs/deployment/CUTOVER.md), [docs/appstore/LISTING.md](docs/appstore/LISTING.md).
+
+### Changed — Debranding (Trinity → Generic)
+- README, SPEC.md, CLAUDE.md re-positioned: project name `Trinity Academy` → `app-academy`; Trinity reframed as the first onboarded tenant (not the product).
+- i18n locales (ko/en/vi/zh-CN) `common.json` + `admin.json`: removed `Trinity Academy`, `Trinity Pay`, `Trinity Admin` strings → generic `app-academy` / `결제` / `Pay` / `관리 콘솔`.
+- Admin shell hard-coded brand strings → i18n keys; settings page tenant name → dynamic `—` placeholder; onboarding slug placeholder → `my-academy`.
+- Staging nginx vhost (`tpi.amoeba.site`) converted to permanent 301 redirect → `app-academy-stg.amoeba.site` (kept for 6 months).
+- Compose env: `NEXTAUTH_URL`, `NEXT_PUBLIC_SITE_URL`, `FRONTEND_URL`, `BACKEND_URL` migrated to canonical hostnames.
+
+### Preserved (intentional)
+- DB and container `tac_` / `tac-` prefixes (per CLAUDE.md project code convention).
+- Portal (public) demo content for the Trinity tenant — operated as the showcase tenant on the platform.
+
+### Tests
+- 73/73 backend unit + integration tests pass (15 new across S2 webhook signature, provisioning, lifecycle, deprovision cron).
+- Backend + frontend `tsc --noEmit` clean.
+
+---
 
 ## [Unreleased]
 

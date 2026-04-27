@@ -1,0 +1,163 @@
+{
+  "title": "Tư vấn",
+  "newInquiry": "Đăng ký tư vấn mới",
+  "newInquiryShort": "+ Tư vấn mới",
+  "subtitle": "Nhập thông tin giai đoạn INTAKE. Các giai đoạn sau xử lý ở chi tiết.",
+  "anonymousInquiry": "Ẩn danh #{{seqNo}}",
+  "table": {
+    "seqNo": "STT",
+    "student": "Học sinh",
+    "schoolGrade": "Trường / Lớp",
+    "stage": "Giai đoạn",
+    "inflow": "Nguồn",
+    "applyType": "Đăng ký",
+    "registered": "Ngày đăng ký",
+    "followup": "Theo dõi",
+    "empty": "Chưa có tư vấn nào."
+  },
+  "form": {
+    "studentName": "Tên học sinh",
+    "studentNamePlaceholder": "Hong Gildong",
+    "isAnonymous": "Tư vấn ẩn danh",
+    "parentPhone": "SĐT phụ huynh",
+    "parentPhonePlaceholder": "010-1234-5678",
+    "phoneStatus": "Trạng thái SĐT",
+    "school": "Trường",
+    "schoolPlaceholder": "Tên trường (có thể nhập tự do)",
+    "grade": "Lớp",
+    "inflowType": "Nguồn liên hệ",
+    "applyType": "Loại đăng ký",
+    "applyPurpose": "Mục đích",
+    "applyPurposeOther": "Lý do khác",
+    "applyPurposeOtherPlaceholder": "Vui lòng nêu rõ",
+    "consultDone": "Đã tư vấn",
+    "registeredAt": "Ngày đăng ký",
+    "followupAt": "Ngày theo dõi",
+    "followupMemo": "Ghi chú theo dõi",
+    "required": "*"
+  },
+  "validation": {
+    "phoneInvalid": "SĐT không hợp lệ",
+    "schoolRequired": "Vui lòng nhập trường",
+    "phoneRequiredForProvided": "SĐT cần thiết khi trạng thái là 'Đã cung cấp'",
+    "purposeOtherRequired": "Cần nhập lý do khi chọn 'Khác'",
+    "studentNameOrAnonymous": "Vui lòng nhập tên học sinh hoặc chọn ẩn danh"
+  },
+  "stage": {
+    "INTAKE": "1. Tiếp nhận",
+    "MAP_TEST": "2. MAP Test",
+    "TRIAL_CLASS": "3. Học thử",
+    "ENROLLMENT_COUNSELING": "4. Tư vấn ghi danh",
+    "PAYMENT": "5. Thanh toán",
+    "CLASS_STARTED": "6. Bắt đầu học",
+    "DROPPED": "Hủy"
+  },
+  "inflow": {
+    "HOMEPAGE": "Trang web",
+    "KAKAO_CHANNEL": "Kênh KakaoTalk",
+    "PHONE": "Điện thoại"
+  },
+  "applyType": {
+    "COUNSELING_ONLY": "Chỉ tư vấn",
+    "EXAM_ONLY": "Chỉ thi",
+    "BOTH": "Tư vấn + Thi"
+  },
+  "applyPurpose": {
+    "INTL_SCHOOL_PREP": "Dự bị trường quốc tế",
+    "MAP_SCORE_UP": "Nâng điểm MAP",
+    "STD_TEST_PREP": "Luyện thi chuẩn hóa",
+    "GPA_MGMT": "Quản lý GPA",
+    "OTHER": "Khác"
+  },
+  "phoneStatus": {
+    "PROVIDED": "Đã cung cấp",
+    "DECLINED": "Từ chối",
+    "UNKNOWN": "Chưa rõ"
+  },
+  "yesNo": {
+    "YES": "Hoàn tất",
+    "NO": "Chưa"
+  },
+  "grade": {
+    "E5": "Lớp 5", "E6": "Lớp 6",
+    "M1": "Lớp 7", "M2": "Lớp 8", "M3": "Lớp 9",
+    "H1": "Lớp 10", "H2": "Lớp 11", "H3": "Lớp 12",
+    "OTHER": "Khác"
+  },
+  "detail": {
+    "backToList": "Quay lại danh sách",
+    "drop": "Hủy",
+    "reactivate": "Kích hoạt lại",
+    "mapTest": {
+      "title": "MAP Test",
+      "hasPriorScore": "Đã có điểm trước",
+      "feeStatus": "Trạng thái phí",
+      "waiverReason": "Lý do miễn",
+      "waiverNote": "Ghi chú miễn",
+      "scheduledAt": "Ngày dự thi",
+      "scheduledStatus": "Trạng thái lịch",
+      "scores": "Điểm (100–300)",
+      "scoreReading": "Đọc",
+      "scoreMath": "Toán",
+      "scoreLanguage": "Ngôn ngữ",
+      "fee": { "PAID": "Đã trả", "UNPAID": "Chưa trả", "WAIVED": "Miễn" },
+      "waiver": {
+        "RETAKE_WITHIN_90D": "Thi lại trong 90 ngày",
+        "TRIAL_PROMOTION": "Khuyến mãi học thử",
+        "SISTER_ACADEMY_TRANSFER": "Chuyển từ học viện chị em",
+        "OTHER": "Khác"
+      },
+      "schedule": {
+        "SCHEDULED": "Đã đặt lịch",
+        "TAKEN": "Đã thi",
+        "NOT_TAKING": "Không thi",
+        "RESCHEDULED": "Đặt lại"
+      }
+    },
+    "trial": {
+      "title": "Buổi học thử",
+      "empty": "Chưa có buổi học thử.",
+      "heldAt": "Ngày tổ chức",
+      "feedbackStatus": "Phản hồi",
+      "note": "Ghi chú",
+      "add": "Thêm",
+      "feedback": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
+    },
+    "enrollment": {
+      "title": "Ghi danh / Thanh toán",
+      "counselDone": "Đã tư vấn ghi danh",
+      "paymentNoticeStatus": "Trạng thái thông báo học phí",
+      "applied": "Đã đăng ký",
+      "paymentNoticeSent": "Đã gửi thông báo học phí",
+      "classMinutes": "Số phút mỗi buổi",
+      "tuitionAmount": "Học phí",
+      "tuitionPaid": "Đã thanh toán học phí",
+      "tuitionPaidHint": "※ Chỉ quản lý cấp cao mới có thể xác nhận thanh toán.",
+      "classStartedAt": "Ngày bắt đầu học",
+      "classStarted": "Đã bắt đầu học",
+      "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
+    },
+    "cancel": {
+      "title": "Hủy tư vấn",
+      "subtitle": "Chọn lý do hủy. Lịch sử không thể xóa.",
+      "reasonCode": "Mã lý do",
+      "reasonOther": "Chi tiết",
+      "reasonOtherPlaceholder": "Vui lòng nêu rõ",
+      "reason": {
+        "ACADEMY_CANCELLED": "Học viện hủy",
+        "STUDENT_ILLNESS": "Học sinh ốm",
+        "STUDENT_SCHEDULE_CHANGE": "Đổi lịch học sinh",
+        "PAYMENT_DECLINED": "Thanh toán bị từ chối",
+        "LOST_TO_COMPETITOR": "Đăng ký nơi khác",
+        "OTHER": "Khác"
+      }
+    },
+    "timeline": {
+      "title": "Dòng thời gian",
+      "empty": "Chưa có hoạt động.",
+      "transition": "Đổi giai đoạn",
+      "add": "Thêm ghi chú",
+      "addPlaceholder": "Ghi chú hoặc theo dõi"
+    }
+  }
+}

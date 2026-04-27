@@ -76,6 +76,7 @@ export class TeacherRepository implements ITeacherRepository {
       tchEmploymentType: data.employmentType!,
       tchStatus: data.status ?? 'ACTIVE',
       tchCachedProfile: data.cachedProfile ?? null,
+      tchLastSyncedAt: data.lastSyncedAt ?? null,
     });
     const saved = await this.repo.save(entity);
     return this.toDomain(saved);

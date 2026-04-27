@@ -1,0 +1,196 @@
+{
+  "title": "수업 관리",
+  "tabs": {
+    "list": "수업 목록",
+    "calendar": "달력",
+    "settlements": "정산"
+  },
+  "actions": {
+    "createClass": "수업 생성",
+    "editClass": "수업 수정",
+    "addSession": "세션 추가",
+    "reschedule": "일정 변경",
+    "cancel": "취소",
+    "hold": "수업 진행",
+    "recordAttendance": "출석 기록",
+    "writeFeedback": "피드백 작성",
+    "proposeMakeup": "보강 제안",
+    "approveMakeup": "보강 승인",
+    "rejectMakeup": "보강 반려",
+    "confirmSettlement": "정산 확정",
+    "recompute": "재계산",
+    "generate": "세션 생성"
+  },
+  "table": {
+    "code": "수업 코드",
+    "subject": "과목",
+    "teacher": "강사",
+    "students": "학생",
+    "status": "상태",
+    "startedAt": "개강일",
+    "endedAt": "종강일",
+    "actions": "작업",
+    "empty": "수업이 없습니다."
+  },
+  "subjectType": {
+    "MAP_TEST": "MAP Test",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "WRITING": "Writing",
+    "LANGUAGE_ARTS": "Language Arts",
+    "MATH": "Math",
+    "INTL_PREP": "유학 준비",
+    "DEMO": "데모 수업",
+    "OTHER": "기타"
+  },
+  "status": {
+    "PROPOSED": "제안",
+    "ACTIVE": "진행 중",
+    "PAUSED": "보류",
+    "COMPLETED": "종료",
+    "CANCELLED": "취소"
+  },
+  "startedFrom": {
+    "CSL_PIPELINE": "상담 연계",
+    "DIRECT_ENROLLMENT": "직접 등록",
+    "MIGRATION": "이관"
+  },
+  "session": {
+    "scheduledAt": "예정일시",
+    "duration": "수업 시간",
+    "mode": "수업 방식",
+    "status": "상태",
+    "modes": {
+      "IN_PERSON": "대면",
+      "ONLINE": "온라인",
+      "TWO_PERSON_IN_PERSON": "2인 대면",
+      "HYBRID": "혼합"
+    },
+    "statuses": {
+      "SCHEDULED": "예정",
+      "HELD": "완료",
+      "CANCELLED": "취소",
+      "RESCHEDULED": "변경",
+      "NO_SHOW": "노쇼",
+      "MAKEUP_REPLACEMENT": "보강 대체"
+    },
+    "cancelReasons": {
+      "STUDENT_ABSENCE": "학생 결석",
+      "STUDENT_ILLNESS": "학생 질병",
+      "TEACHER_ABSENCE": "강사 결석",
+      "TEACHER_BUSINESS_TRIP": "강사 출장",
+      "TEACHER_CONSULTING_PREP": "강사 상담 준비",
+      "STUDENT_DAY_OF_CANCEL": "학생 당일 취소",
+      "FAMILY_TRAVEL": "가족 여행",
+      "HOLIDAY": "공휴일",
+      "OTHER": "기타"
+    },
+    "dispositions": {
+      "MAKEUP_PLANNED": "보강 예정",
+      "CARRYOVER_TO_NEXT_MONTH": "차월 이월",
+      "NO_MAKEUP": "보강 없음"
+    }
+  },
+  "attendance": {
+    "title": "출석 기록",
+    "statuses": {
+      "PRESENT": "출석",
+      "ABSENT_EXCUSED": "사유 결석",
+      "ABSENT_UNEXCUSED": "무단 결석",
+      "LATE": "지각",
+      "LEFT_EARLY": "조퇴"
+    },
+    "billableHours": "정산 시간",
+    "remark": "비고"
+  },
+  "feedback": {
+    "title": "피드백",
+    "progress": "진행 상황",
+    "feedback": "피드백",
+    "homework": "과제",
+    "weaknessDev": "약점 개발",
+    "academicPlan": "학습 계획",
+    "statuses": {
+      "DRAFT": "작성 중",
+      "SUBMITTED": "제출",
+      "DELIVERED_TO_PARENT": "학부모 전달"
+    },
+    "slaBreached": "SLA 초과"
+  },
+  "makeup": {
+    "title": "보강",
+    "originalSession": "원본 세션",
+    "makeupScheduledAt": "보강 일시",
+    "substituteTeacher": "대체 강사",
+    "substitutionApprover": "대체 승인자",
+    "remark": "비고",
+    "statuses": {
+      "PROPOSED": "제안",
+      "APPROVED": "승인",
+      "COMPLETED": "완료",
+      "CARRIED_OVER": "이월",
+      "REJECTED": "반려"
+    }
+  },
+  "settlement": {
+    "title": "월별 정산",
+    "yearMonth": "정산월",
+    "teacher": "강사",
+    "hoursTotal": "총 시간",
+    "amountGross": "총액",
+    "withholdingRate": "원천세율",
+    "amountWithheld": "원천징수",
+    "amountAfterTax": "실지급",
+    "statuses": {
+      "DRAFT": "초안",
+      "CONFIRMED": "확정",
+      "EXPORTED_TO_PAYROLL": "급여 반영",
+      "PAID": "지급 완료"
+    },
+    "lines": {
+      "title": "정산 내역",
+      "sessionDate": "수업일",
+      "billableHours": "시간",
+      "hourlyRate": "시급",
+      "amount": "금액"
+    }
+  },
+  "recurrence": {
+    "title": "반복 일정",
+    "dayOfWeek": "요일",
+    "startTime": "시작 시각",
+    "duration": "수업 시간(분)",
+    "defaultMode": "기본 수업 방식",
+    "days": {
+      "MON": "월", "TUE": "화", "WED": "수", "THU": "목",
+      "FRI": "금", "SAT": "토", "SUN": "일"
+    }
+  },
+  "video": {
+    "provider": "영상 제공자",
+    "providers": {
+      "GOOGLE_MEET": "Google Meet",
+      "BODASCHOOL": "Bodaschool",
+      "NONE": "없음"
+    },
+    "persistentLink": "고정 링크"
+  },
+  "calendar": {
+    "today": "오늘",
+    "prev": "이전",
+    "next": "다음",
+    "noSessions": "세션이 없습니다."
+  },
+  "errors": {
+    "VAL_NO_PRIMARY_STUDENT": "최소 1명의 PRIMARY 학생이 필요합니다.",
+    "VAL_HOURS_RANGE": "정산 시간이 허용 범위를 벗어났습니다.",
+    "VAL_DEMO_FEEDBACK_FIELDS": "데모 피드백에는 약점 개발과 학습 계획이 필요합니다.",
+    "VAL_STANDARD_FEEDBACK_FIELDS": "피드백에는 과제 항목이 필요합니다.",
+    "VAL_SES_STATUS_TRANSITION": "허용되지 않은 세션 상태 전환입니다.",
+    "VAL_SETTLEMENT_FROZEN": "확정된 정산은 수정할 수 없습니다.",
+    "CLS_SESSION_CONFLICT": "강사 또는 학생의 다른 수업과 시간이 겹칩니다."
+  },
+  "validation": {
+    "required": "필수 입력 항목입니다."
+  }
+}

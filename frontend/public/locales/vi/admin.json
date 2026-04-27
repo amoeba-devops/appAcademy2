@@ -10,6 +10,7 @@
     "enrollments": "Ghi danh",
     "map": "Ngân hàng câu hỏi MAP",
     "payments": "Thanh toán",
+    "notifications": "Lịch sử thông báo",
     "settings": "Cài đặt"
   },
   "dashboard": {
@@ -32,7 +33,7 @@
     "quick-links": {
       "consultations-title": "Quản lý tư vấn",
       "consultations-desc": "Tiếp nhận · bảng Kanban",
-      "payments-title": "Trinity Pay",
+      "payments-title": "Thanh toán",
       "payments-desc": "Thanh toán · hoàn tiền · hóa đơn",
       "timetable-title": "Thời khóa biểu",
       "timetable-desc": "Buổi học hôm nay",
@@ -138,6 +139,7 @@
     },
     "status": {
       "ACTIVE": "Hoạt động",
+      "INACTIVE": "Không hoạt động",
       "SUSPENDED": "Tạm dừng",
       "TERMINATED": "Kết thúc"
     },
@@ -152,17 +154,37 @@
       "subjects": "Môn học",
       "employment": "Hình thức",
       "status": "Trạng thái",
+      "last-synced": "Đồng bộ",
       "created-at": "Ngày tạo",
       "actions": "Hành động",
       "detail": "Chi tiết"
     },
     "form": {
       "ama-id": "AMA Client ID",
+      "ama-client-label": "AMA Client",
+      "ama-required": "Vui lòng tìm và chọn AMA Client.",
       "employment-label": "Hình thức",
       "subjects-label": "Môn phụ trách (phân cách bởi dấu phẩy)",
       "subjects-placeholder": "RC, Vocab, Math",
       "submit": "Đăng ký",
       "submitting": "Đang lưu..."
+    },
+    "ama-picker": {
+      "search-placeholder": "Tìm theo tên hoặc mã...",
+      "search-label": "Tìm AMA Client",
+      "no-results": "Không có kết quả.",
+      "clear": "Bỏ chọn",
+      "notice": "Tên và liên hệ được quản lý trong AMA (TAC chỉ đọc)."
+    },
+    "sync": {
+      "title": "Đồng bộ AMA Client",
+      "refresh": "Làm mới",
+      "syncing": "Đang đồng bộ...",
+      "notice": "Dữ liệu này là bản sao bộ đệm của AMA Client (chỉ đọc).",
+      "inactive-warning": "AMA Client đã bị xóa hoặc không hoạt động. Trạng thái giáo viên đã tự động chuyển sang không hoạt động."
+    },
+    "errors": {
+      "AMA_CLIENT_NOT_FOUND": "Không tìm thấy AMA Client."
     },
     "detail": {
       "loading": "Đang tải...",
@@ -731,7 +753,7 @@
     "hub": {
       "hero-eyebrow": "MAP · Reading Comprehension",
       "hero-title": "Part A · Vocabulary + Part B · Reading",
-      "hero-lead": "Ngân hàng câu hỏi riêng của Trinity, dựa trên cấu trúc MAP RC G2-5 Basic. Ba tầng: Passage → Item → TestSet. Tự động hóa Assignment → Grading.",
+      "hero-lead": "Ngân hàng câu hỏi riêng của học viện, dựa trên cấu trúc MAP RC G2-5 Basic. Ba tầng: Passage → Item → TestSet. Tự động hóa Assignment → Grading.",
       "add-passage": "Thêm Passage",
       "add-testset": "Tạo TestSet",
       "kpi-passages": "Passages",
@@ -766,7 +788,7 @@
     }
   },
   "payments": {
-    "title": "Trinity Pay",
+    "title": "Thanh toán",
     "title-menu": "Thanh toán",
     "lead": "Quản lý thống nhất thanh toán · hoàn tiền · hóa đơn · biên lai",
     "new-order": "Tạo đơn thanh toán",
@@ -1004,7 +1026,7 @@
       "amount-value-label": "Số tiền",
       "pay-now": "Thanh toán",
       "processing": "Đang xử lý...",
-      "order-name": "Học phí Trinity Academy",
+      "order-name": "Học phí",
       "error-create-order": "Tạo đơn thất bại.",
       "error-client-key": "Chưa cấu hình Toss client key.",
       "error-widget-load": "Không tải được widget thanh toán.",
@@ -1132,6 +1154,7 @@
   },
   "login": {
     "title": "Đăng nhập quản trị",
+    "brand-subtitle": "Bảng quản trị",
     "email": "Email",
     "password": "Mật khẩu",
     "submit": "Đăng nhập",

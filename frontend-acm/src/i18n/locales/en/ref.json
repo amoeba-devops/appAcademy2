@@ -1,0 +1,123 @@
+{
+  "title": "Reference Materials",
+  "tabs": {
+    "guidelines": "Class Guidelines",
+    "levelTests": "Level Test Guides",
+    "benchmarks": "Score Benchmarks"
+  },
+  "actions": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "addStep": "+ Add step",
+    "removeStep": "Remove",
+    "addGrade": "+ Add grade"
+  },
+  "table": {
+    "code": "Code",
+    "examType": "Exam Type",
+    "label": "Label",
+    "level": "Level",
+    "version": "Version",
+    "status": "Status",
+    "effectiveFrom": "Effective From",
+    "gradeBasis": "Grade Basis",
+    "stepsCount": "Steps",
+    "createdAt": "Created"
+  },
+  "examType": {
+    "MAP_TEST": "MAP Test",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "WRITING_COMP": "Writing Comp",
+    "SUMMER_CAMP": "Summer Camp",
+    "JUNIOR_BOARDING": "Junior Boarding",
+    "BOARDING": "Boarding",
+    "INTL_SCHOOL_APP": "Intl School App",
+    "OTHER": "Other"
+  },
+  "lvlExamType": {
+    "ISEE_LEVEL_TEST": "ISEE Level Test",
+    "SSAT_LEVEL_TEST": "SSAT Level Test",
+    "OTHER": "Other"
+  },
+  "sbmExamType": {
+    "MAP": "MAP",
+    "ISEE": "ISEE",
+    "SSAT": "SSAT"
+  },
+  "dataStatus": {
+    "COMPLETE": "Complete",
+    "PARTIAL": "Partial",
+    "PLACEHOLDER": "Placeholder",
+    "INHERITED_FROM": "Inherited"
+  },
+  "stepRole": {
+    "ADVISOR": "Advisor",
+    "TEAM_LEAD": "Team Lead",
+    "TEACHER": "Teacher",
+    "SENIOR_MANAGER": "Senior Manager",
+    "ADMIN": "Admin",
+    "OTHER": "Other"
+  },
+  "gradeBasis": {
+    "TARGET_GRADE": "Target Grade",
+    "CURRENT_GRADE": "Current Grade"
+  },
+  "resourceType": {
+    "DRIVE_FOLDER": "Drive Folder",
+    "EXTERNAL_LINK": "External Link",
+    "INTERNAL_DOC": "Internal Doc"
+  },
+  "modifierType": {
+    "FOREIGN_SCHOOL": "Foreign School Modifier",
+    "INTERNATIONAL_BOARDING": "Intl Boarding Modifier",
+    "OTHER": "Other"
+  },
+  "form": {
+    "code": "Code",
+    "examType": "Exam Type",
+    "labelKr": "Label (KR)",
+    "labelEn": "Label (EN)",
+    "workflowSteps": "Workflow Steps",
+    "stepNum": "Order",
+    "role": "Role",
+    "description": "Description",
+    "remark": "Remark",
+    "dataStatus": "Data Status",
+    "effectiveFrom": "Effective From",
+    "gradeBasis": "Grade Basis",
+    "assignmentRuleText": "Assignment Rule",
+    "resourceUrl": "Resource URL",
+    "resourceType": "Resource Type",
+    "resourceNote": "Resource Note",
+    "procedureSteps": "Procedure Steps",
+    "defaultDurationMin": "Default Duration (min)",
+    "level": "Level",
+    "mapReadingScore": "MAP Reading Score",
+    "mapMathScore": "MAP Math Score",
+    "mapNoUpperBound": "No upper bound",
+    "generalPct": "General (Pct)",
+    "premiumPrivatePct": "Premium Private (Pct)",
+    "topBoardingPct": "Top Boarding (Pct)",
+    "stanine": "Stanine",
+    "grades": "Applicable Grades",
+    "gradeLabel": "Grade Label",
+    "gradeMin": "Grade Min",
+    "gradeMax": "Grade Max"
+  },
+  "validation": {
+    "codeFormat": "Code: A-Z, 0-9, _ (3-50 chars)",
+    "stanineFormat": "Stanine: single (1) or range (1-3)",
+    "mapScoreRange": "MAP score must be 100-300",
+    "pctRange": "Percentile must be 0-100",
+    "required": "Required"
+  },
+  "empty": {
+    "guidelines": "No class guidelines registered",
+    "levelTests": "No level test guides registered",
+    "benchmarks": "No score benchmarks registered"
+  }
+}

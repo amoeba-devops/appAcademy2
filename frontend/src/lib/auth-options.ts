@@ -16,7 +16,7 @@ export const authOptions: AuthOptions = {
         }
 
         const res = await fetch(
-          `${process.env.BACKEND_URL ?? 'http://localhost:4000'}/api/auth/login`,
+          `${process.env.BACKEND_URL ?? 'http://localhost:4009'}/api/auth/login`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -60,7 +60,7 @@ export const authOptions: AuthOptions = {
         }
 
         const res = await fetch(
-          `${process.env.BACKEND_URL ?? 'http://localhost:4000'}/api/auth/parent/verify-otp`,
+          `${process.env.BACKEND_URL ?? 'http://localhost:4009'}/api/auth/parent/verify-otp`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -88,6 +88,39 @@ export const authOptions: AuthOptions = {
           role: payload.parent.role,
           academyId: payload.parent.academyId,
           accessToken: payload.accessToken,
+        };
+      },
+    }),
+    CredentialsProvider({
+      id: 'ama-token',
+      name: 'AMA SSO Token',
+      credentials: {
+        token: { label: 'AccessToken', type: 'text' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.token) return null;
+        // Validate token by calling the backend `me` endpoint.
+        const res = await fetch(
+          `${process.env.BACKEND_URL ?? 'http://localhost:4009'}/api/auth/me`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${credentials.token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        if (!res.ok) return null;
+        const json = await res.json();
+        const u = json?.data?.user ?? json?.user ?? json?.data ?? json;
+        if (!u?.id && !u?.userId) return null;
+        return {
+          id: String(u.id ?? u.userId),
+          name: u.name ?? '',
+          email: u.email ?? '',
+          role: u.role ?? 'STAFF',
+          academyId: u.academyId ?? u.activeAcademyId ?? null,
+          accessToken: credentials.token,
         };
       },
     }),

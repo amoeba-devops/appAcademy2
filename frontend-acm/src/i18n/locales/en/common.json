@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "ACM v1.0a",
+    "title": "Academy Management"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "csl": "New Counseling",
+    "cls": "Classes",
+    "sch": "Schools",
+    "ref": "References",
+    "qna": "Q&A"
+  },
+  "lang": {
+    "label": "Language",
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "actions": {
+    "create": "Create",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "loading": "Loading…",
+    "submit": "Submit",
+    "submitting": "Submitting…"
+  },
+  "status": {
+    "loading": "Loading…",
+    "empty": "No items to display.",
+    "error": "An error occurred.",
+    "submitFailed": "Submission failed."
+  },
+  "todo": "TODO: implementation pending",
+  "dash": "—"
+}

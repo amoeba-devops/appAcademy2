@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
-import { SITE } from "@/lib/portal/site-content";
+import { TPI_SITE } from "@/lib/portal/tpi-content";
 
 export function FloatingCta() {
   const { t } = useTranslation("portal");
@@ -22,14 +22,14 @@ export function FloatingCta() {
       external: false,
     },
     {
-      href: SITE.kakao,
+      href: TPI_SITE.kakaoChat,
       icon: "💛",
       label: t("floating.kakao"),
       variant: "kakao" as const,
       external: true,
     },
     {
-      href: `tel:${SITE.phones[0]}`,
+      href: `tel:${TPI_SITE.phoneDigits}`,
       icon: "📞",
       label: t("floating.phone"),
       variant: "default" as const,

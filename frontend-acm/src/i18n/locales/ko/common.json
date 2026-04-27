@@ -1,0 +1,40 @@
+{
+  "app": {
+    "name": "ACM v1.0a",
+    "title": "Academy Management"
+  },
+  "nav": {
+    "dashboard": "대시보드",
+    "csl": "신규 상담",
+    "cls": "수업 관리",
+    "sch": "학교",
+    "ref": "참조 자료",
+    "qna": "Q&A"
+  },
+  "lang": {
+    "label": "언어",
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "actions": {
+    "create": "생성",
+    "save": "저장",
+    "saving": "저장 중…",
+    "cancel": "취소",
+    "edit": "수정",
+    "delete": "삭제",
+    "search": "검색",
+    "loading": "불러오는 중…",
+    "submit": "제출",
+    "submitting": "제출 중…"
+  },
+  "status": {
+    "loading": "불러오는 중…",
+    "empty": "표시할 항목이 없습니다.",
+    "error": "오류가 발생했습니다.",
+    "submitFailed": "제출에 실패했습니다."
+  },
+  "todo": "TODO: 추후 구현 예정",
+  "dash": "—"
+}

@@ -10,6 +10,7 @@
     "enrollments": "수강 관리",
     "map": "MAP 문제은행",
     "payments": "결제·정산",
+    "notifications": "알림 이력",
     "settings": "설정"
   },
   "dashboard": {
@@ -32,7 +33,7 @@
     "quick-links": {
       "consultations-title": "상담 관리",
       "consultations-desc": "신규 접수 · Kanban 보드",
-      "payments-title": "Trinity Pay",
+      "payments-title": "결제",
       "payments-desc": "결제 · 환불 · 세금계산서",
       "timetable-title": "시간표",
       "timetable-desc": "오늘 수업 확인",
@@ -138,6 +139,7 @@
     },
     "status": {
       "ACTIVE": "활성",
+      "INACTIVE": "비활성",
       "SUSPENDED": "정지",
       "TERMINATED": "종료"
     },
@@ -152,17 +154,37 @@
       "subjects": "과목",
       "employment": "근무형태",
       "status": "상태",
+      "last-synced": "동기화",
       "created-at": "등록일",
       "actions": "액션",
       "detail": "상세"
     },
     "form": {
       "ama-id": "AMA Client ID",
+      "ama-client-label": "AMA Client",
+      "ama-required": "AMA Client를 검색·선택해 주세요.",
       "employment-label": "근무형태",
       "subjects-label": "담당 과목 (콤마 구분)",
       "subjects-placeholder": "RC, Vocab, Math",
       "submit": "등록",
       "submitting": "등록 중..."
+    },
+    "ama-picker": {
+      "search-placeholder": "이름 또는 사번으로 검색...",
+      "search-label": "AMA Client 검색",
+      "no-results": "검색 결과가 없습니다.",
+      "clear": "선택 해제",
+      "notice": "이름·연락처는 AMA에서 관리됩니다 (TAC 수정 불가)"
+    },
+    "sync": {
+      "title": "AMA Client 동기화",
+      "refresh": "새로고침",
+      "syncing": "동기화 중...",
+      "notice": "본 정보는 AMA Client 마스터의 캐시입니다 (read-only).",
+      "inactive-warning": "AMA Client가 삭제되었거나 비활성 상태입니다. 교사 상태가 자동으로 비활성화되었습니다."
+    },
+    "errors": {
+      "AMA_CLIENT_NOT_FOUND": "AMA Client를 찾을 수 없습니다."
     },
     "detail": {
       "loading": "로딩 중...",
@@ -731,7 +753,7 @@
     "hub": {
       "hero-eyebrow": "MAP · Reading Comprehension",
       "hero-title": "Part A · Vocabulary + Part B · Reading",
-      "hero-lead": "Trinity의 독자 문제은행. 기출 MAP RC G2-5 Basic 구조 근거. Passage → Item → TestSet 3계층. Assignment → Grading end-to-end 자동화.",
+      "hero-lead": "학원 자체 문제은행. 기출 MAP RC G2-5 Basic 구조 근거. Passage → Item → TestSet 3계층. Assignment → Grading end-to-end 자동화.",
       "add-passage": "Passage 추가",
       "add-testset": "TestSet 생성",
       "kpi-passages": "Passages",
@@ -766,7 +788,7 @@
     }
   },
   "payments": {
-    "title": "Trinity Pay",
+    "title": "결제",
     "title-menu": "결제·정산",
     "lead": "결제 · 환불 · 세금계산서 · 영수증 통합 관리",
     "new-order": "결제 주문 생성",
@@ -1004,7 +1026,7 @@
       "amount-value-label": "결제 금액",
       "pay-now": "결제하기",
       "processing": "결제 처리 중...",
-      "order-name": "Trinity Academy 수강료",
+      "order-name": "수강료",
       "error-create-order": "주문 생성에 실패했습니다",
       "error-client-key": "Toss client key가 설정되지 않았습니다",
       "error-widget-load": "결제 위젯 로딩 실패",
@@ -1132,6 +1154,7 @@
   },
   "login": {
     "title": "관리자 로그인",
+    "brand-subtitle": "운영 콘솔",
     "email": "이메일",
     "password": "비밀번호",
     "submit": "로그인",

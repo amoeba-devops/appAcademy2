@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Trinity Academy",
-    "admin-name": "Trinity Admin",
+    "name": "app-academy",
+    "admin-name": "운영 콘솔",
     "motto": "OMNIBUS OMNIA"
   },
   "buttons": {

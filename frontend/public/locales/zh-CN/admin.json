@@ -10,6 +10,7 @@
     "enrollments": "报名管理",
     "map": "MAP 题库",
     "payments": "支付结算",
+    "notifications": "通知历史",
     "settings": "设置"
   },
   "dashboard": {
@@ -32,7 +33,7 @@
     "quick-links": {
       "consultations-title": "咨询管理",
       "consultations-desc": "新接入 · Kanban 看板",
-      "payments-title": "Trinity Pay",
+      "payments-title": "支付",
       "payments-desc": "支付 · 退款 · 税务发票",
       "timetable-title": "课表",
       "timetable-desc": "查看今日课程",
@@ -138,6 +139,7 @@
     },
     "status": {
       "ACTIVE": "在职",
+      "INACTIVE": "停用",
       "SUSPENDED": "停职",
       "TERMINATED": "离职"
     },
@@ -152,17 +154,37 @@
       "subjects": "科目",
       "employment": "雇佣方式",
       "status": "状态",
+      "last-synced": "同步",
       "created-at": "登记日期",
       "actions": "操作",
       "detail": "详情"
     },
     "form": {
       "ama-id": "AMA Client ID",
+      "ama-client-label": "AMA Client",
+      "ama-required": "请搜索并选择 AMA Client。",
       "employment-label": "雇佣方式",
       "subjects-label": "任教科目 (英文逗号分隔)",
       "subjects-placeholder": "RC, Vocab, Math",
       "submit": "注册",
       "submitting": "保存中..."
+    },
+    "ama-picker": {
+      "search-placeholder": "按姓名或工号搜索...",
+      "search-label": "搜索 AMA Client",
+      "no-results": "未找到匹配项。",
+      "clear": "清除选择",
+      "notice": "姓名与联系方式由 AMA 管理 (TAC 只读)。"
+    },
+    "sync": {
+      "title": "AMA Client 同步",
+      "refresh": "刷新",
+      "syncing": "同步中...",
+      "notice": "本数据为 AMA Client 主数据的缓存 (只读)。",
+      "inactive-warning": "AMA Client 已删除或停用。教师状态已自动设为停用。"
+    },
+    "errors": {
+      "AMA_CLIENT_NOT_FOUND": "未找到 AMA Client。"
     },
     "detail": {
       "loading": "加载中...",
@@ -731,7 +753,7 @@
     "hub": {
       "hero-eyebrow": "MAP · Reading Comprehension",
       "hero-title": "Part A · Vocabulary + Part B · Reading",
-      "hero-lead": "Trinity 自建题库,基于 MAP RC G2-5 Basic 结构。三层:文章 → 题目 → 试卷。分配 → 评分端到端自动化。",
+      "hero-lead": "学院自建题库,基于 MAP RC G2-5 Basic 结构。三层:文章 → 题目 → 试卷。分配 → 评分端到端自动化。",
       "add-passage": "添加文章",
       "add-testset": "创建试卷",
       "kpi-passages": "Passages",
@@ -766,7 +788,7 @@
     }
   },
   "payments": {
-    "title": "Trinity Pay",
+    "title": "支付",
     "title-menu": "支付结算",
     "lead": "支付 · 退款 · 税务发票 · 收据 统一管理",
     "new-order": "创建订单",
@@ -1004,7 +1026,7 @@
       "amount-value-label": "金额",
       "pay-now": "立即支付",
       "processing": "支付中...",
-      "order-name": "Trinity Academy 学费",
+      "order-name": "学费",
       "error-create-order": "创建订单失败。",
       "error-client-key": "未配置 Toss client key。",
       "error-widget-load": "支付控件加载失败。",
@@ -1132,6 +1154,7 @@
   },
   "login": {
     "title": "管理员登录",
+    "brand-subtitle": "管理控制台",
     "email": "邮箱",
     "password": "密码",
     "submit": "登录",
