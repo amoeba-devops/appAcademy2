@@ -406,5 +406,5 @@ chore: description              # 빌드/설정
 | Q-019 | Toss Brandpay 자동결제 | TBD |
 | Q-020 | 위약금(cancellation fee) 처리 | TBD |
 | Q-021 | 공동인증서 보관 방식 (HSM/KMS) | TBD |
-| Q-016 | 도메인 분리 (admin.trinityacademy.kr) | TBD |
+| Q-016 | 도메인 분리 (admin.trinityacademy.kr) | **Resolved** — 단일 호스트 + `/admin/*` 경로 유지 ([ADR-002](docs/design/adr/ADR-002-admin-domain-split.md), 2026-04-27) |
 | Q-017 | News — 헤드리스 CMS vs 자체 DB | **Resolved** — 자체 DB 유지 ([ADR-001](docs/design/adr/ADR-001-news-storage.md), 2026-04-27) |
