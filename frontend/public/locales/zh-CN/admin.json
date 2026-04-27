@@ -10,6 +10,7 @@
     "enrollments": "报名管理",
     "map": "MAP 题库",
     "payments": "支付结算",
+    "posts": "新闻",
     "notifications": "通知历史",
     "settings": "设置"
   },
@@ -1165,5 +1166,58 @@
   },
   "notifications": {
     "unread-badge": "有未读通知"
+  },
+  "posts": {
+    "title": "新闻管理",
+    "new": "新建",
+    "loading": "加载中…",
+    "empty": "暂无新闻。",
+    "back": "返回列表",
+    "confirm-delete": "删除该新闻？无法恢复。",
+    "filter": {
+      "all": "全部",
+      "status-placeholder": "状态",
+      "category-placeholder": "分类"
+    },
+    "status": {
+      "DRAFT": "草稿",
+      "PUBLISHED": "已发布",
+      "ARCHIVED": "已归档"
+    },
+    "category": {
+      "NOTICE": "公告",
+      "EVENT": "活动",
+      "RESULT": "升学成果"
+    },
+    "table": {
+      "id": "ID",
+      "title": "标题",
+      "category": "分类",
+      "status": "状态",
+      "published-at": "发布时间"
+    },
+    "form": {
+      "title": "标题",
+      "slug": "URL slug",
+      "slug-hint": "用于 URL。从标题自动生成，可编辑。",
+      "category": "分类",
+      "body": "正文（Markdown）",
+      "body-placeholder": "# 标题\n\n使用 Markdown 编写正文。",
+      "cover-image": "封面图片 URL",
+      "submit": "保存草稿",
+      "submitting": "保存中…",
+      "error-generic": "保存失败。"
+    },
+    "action": {
+      "save": "保存",
+      "publish": "发布",
+      "archive": "归档",
+      "restore": "重新发布",
+      "delete": "删除"
+    },
+    "detail": {
+      "created-at": "创建",
+      "published-at": "发布"
+    }
   }
 }

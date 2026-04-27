@@ -788,12 +788,15 @@ CREATE TABLE tac_posts (
     pst_published_at      DATETIME                 DEFAULT NULL,
     pst_status            VARCHAR(20)     NOT NULL DEFAULT 'DRAFT'
         COMMENT 'DRAFT/PUBLISHED/ARCHIVED',
+    pst_category          VARCHAR(30)     NOT NULL DEFAULT 'NOTICE'
+        COMMENT 'RESULT/EVENT/NOTICE',
     pst_created_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     pst_updated_at        DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                           ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (pst_id),
     UNIQUE KEY uq_tac_posts_acd_slug (acd_id, pst_slug),
     KEY idx_tac_posts_published (acd_id, pst_status, pst_published_at),
+    KEY idx_tac_posts_acd_cat_pub (acd_id, pst_category, pst_status, pst_published_at),
     CONSTRAINT fk_tac_posts_academy FOREIGN KEY (acd_id) REFERENCES tac_academies(acd_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

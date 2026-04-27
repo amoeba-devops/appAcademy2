@@ -10,6 +10,7 @@
     "enrollments": "Enrollments",
     "map": "MAP Question Bank",
     "payments": "Payments",
+    "posts": "News",
     "notifications": "Notifications",
     "settings": "Settings"
   },
@@ -1165,5 +1166,58 @@
   },
   "notifications": {
     "unread-badge": "Unread notifications available"
+  },
+  "posts": {
+    "title": "News management",
+    "new": "New post",
+    "loading": "Loading…",
+    "empty": "No posts yet.",
+    "back": "Back to list",
+    "confirm-delete": "Delete this post? This cannot be undone.",
+    "filter": {
+      "all": "All",
+      "status-placeholder": "Status",
+      "category-placeholder": "Category"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "ARCHIVED": "Archived"
+    },
+    "category": {
+      "NOTICE": "Notice",
+      "EVENT": "Event",
+      "RESULT": "Results"
+    },
+    "table": {
+      "id": "ID",
+      "title": "Title",
+      "category": "Category",
+      "status": "Status",
+      "published-at": "Published at"
+    },
+    "form": {
+      "title": "Title",
+      "slug": "URL slug",
+      "slug-hint": "Used in the URL. Auto-generated from the title and editable.",
+      "category": "Category",
+      "body": "Body (Markdown)",
+      "body-placeholder": "# Title\n\nWrite the body in Markdown.",
+      "cover-image": "Cover image URL",
+      "submit": "Save draft",
+      "submitting": "Saving…",
+      "error-generic": "Save failed."
+    },
+    "action": {
+      "save": "Save",
+      "publish": "Publish",
+      "archive": "Archive",
+      "restore": "Republish",
+      "delete": "Delete"
+    },
+    "detail": {
+      "created-at": "Created",
+      "published-at": "Published"
+    }
   }
 }

@@ -10,6 +10,7 @@
     "enrollments": "Ghi danh",
     "map": "Ngân hàng câu hỏi MAP",
     "payments": "Thanh toán",
+    "posts": "Tin tức",
     "notifications": "Lịch sử thông báo",
     "settings": "Cài đặt"
   },
@@ -1165,5 +1166,58 @@
   },
   "notifications": {
     "unread-badge": "Có thông báo chưa đọc"
+  },
+  "posts": {
+    "title": "Quản lý tin tức",
+    "new": "Tin mới",
+    "loading": "Đang tải…",
+    "empty": "Chưa có tin nào.",
+    "back": "Quay lại",
+    "confirm-delete": "Xóa tin này? Không thể hoàn tác.",
+    "filter": {
+      "all": "Tất cả",
+      "status-placeholder": "Trạng thái",
+      "category-placeholder": "Phân loại"
+    },
+    "status": {
+      "DRAFT": "Bản nháp",
+      "PUBLISHED": "Đã đăng",
+      "ARCHIVED": "Lưu trữ"
+    },
+    "category": {
+      "NOTICE": "Thông báo",
+      "EVENT": "Sự kiện",
+      "RESULT": "Kết quả"
+    },
+    "table": {
+      "id": "ID",
+      "title": "Tiêu đề",
+      "category": "Phân loại",
+      "status": "Trạng thái",
+      "published-at": "Ngày đăng"
+    },
+    "form": {
+      "title": "Tiêu đề",
+      "slug": "URL slug",
+      "slug-hint": "Dùng trong URL. Tự tạo từ tiêu đề, có thể sửa.",
+      "category": "Phân loại",
+      "body": "Nội dung (Markdown)",
+      "body-placeholder": "# Tiêu đề\n\nNhập nội dung bằng Markdown.",
+      "cover-image": "URL ảnh bìa",
+      "submit": "Lưu nháp",
+      "submitting": "Đang lưu…",
+      "error-generic": "Lưu thất bại."
+    },
+    "action": {
+      "save": "Lưu",
+      "publish": "Đăng",
+      "archive": "Lưu trữ",
+      "restore": "Đăng lại",
+      "delete": "Xóa"
+    },
+    "detail": {
+      "created-at": "Tạo",
+      "published-at": "Đăng"
+    }
   }
 }

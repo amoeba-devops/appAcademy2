@@ -10,6 +10,7 @@
     "enrollments": "수강 관리",
     "map": "MAP 문제은행",
     "payments": "결제·정산",
+    "posts": "소식",
     "notifications": "알림 이력",
     "settings": "설정"
   },
@@ -1165,5 +1166,58 @@
   },
   "notifications": {
     "unread-badge": "읽지 않은 알림 있음"
+  },
+  "posts": {
+    "title": "소식 관리",
+    "new": "새 소식 작성",
+    "loading": "불러오는 중…",
+    "empty": "등록된 소식이 없습니다.",
+    "back": "목록으로",
+    "confirm-delete": "이 소식을 삭제하시겠습니까? 되돌릴 수 없습니다.",
+    "filter": {
+      "all": "전체",
+      "status-placeholder": "상태",
+      "category-placeholder": "카테고리"
+    },
+    "status": {
+      "DRAFT": "임시저장",
+      "PUBLISHED": "게시중",
+      "ARCHIVED": "보관"
+    },
+    "category": {
+      "NOTICE": "공지",
+      "EVENT": "행사",
+      "RESULT": "합격 실적"
+    },
+    "table": {
+      "id": "ID",
+      "title": "제목",
+      "category": "카테고리",
+      "status": "상태",
+      "published-at": "게시 시각"
+    },
+    "form": {
+      "title": "제목",
+      "slug": "URL slug",
+      "slug-hint": "URL에 사용됩니다. 제목 입력 시 자동 생성되며 수정 가능합니다.",
+      "category": "카테고리",
+      "body": "본문 (Markdown)",
+      "body-placeholder": "# 제목\n\n본문을 Markdown 형식으로 입력하세요.",
+      "cover-image": "표지 이미지 URL",
+      "submit": "임시저장",
+      "submitting": "저장 중…",
+      "error-generic": "저장에 실패했습니다."
+    },
+    "action": {
+      "save": "저장",
+      "publish": "게시",
+      "archive": "보관",
+      "restore": "재게시",
+      "delete": "삭제"
+    },
+    "detail": {
+      "created-at": "등록",
+      "published-at": "게시"
+    }
   }
 }

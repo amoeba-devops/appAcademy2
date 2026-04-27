@@ -16,6 +16,7 @@ import {
   FlaskConical,
   CreditCard,
   Bell,
+  Newspaper,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -34,6 +35,7 @@ const sidebarItems = [
   { key: 'enrollments', href: '/admin/enrollments', icon: ClipboardList },
   { key: 'map', href: '/admin/map', icon: FlaskConical },
   { key: 'payments', href: '/admin/payments', icon: CreditCard },
+  { key: 'posts', href: '/admin/posts', icon: Newspaper },
   { key: 'notifications', href: '/admin/notifications', icon: Bell },
   { key: 'settings', href: '/admin/settings', icon: Settings },
 ] as const;
