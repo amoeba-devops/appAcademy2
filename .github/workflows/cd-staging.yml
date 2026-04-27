@@ -16,7 +16,6 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BASE: ghcr.io/${{ github.repository }}
 
 jobs:
   # ──────────────────────────────────────────────────────────────────
@@ -30,6 +29,7 @@ jobs:
       packages: write
     outputs:
       sha_short: ${{ steps.meta.outputs.sha_short }}
+      image_base: ${{ steps.meta.outputs.image_base }}
 
     strategy:
       matrix:
@@ -43,8 +43,10 @@ jobs:
           ref: ${{ inputs.sha || github.sha }}
 
       - id: meta
-        name: Compute short SHA
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+        name: Compute short SHA + lowercase image base
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "image_base=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -62,8 +64,8 @@ jobs:
           file: ${{ matrix.target.dockerfile }}
           push: true
           tags: |
-            ${{ env.IMAGE_BASE }}/${{ matrix.target.name }}:${{ steps.meta.outputs.sha_short }}
-            ${{ env.IMAGE_BASE }}/${{ matrix.target.name }}:staging
+            ${{ steps.meta.outputs.image_base }}/${{ matrix.target.name }}:${{ steps.meta.outputs.sha_short }}
+            ${{ steps.meta.outputs.image_base }}/${{ matrix.target.name }}:staging
           cache-from: type=gha,scope=cd-${{ matrix.target.name }}
           cache-to: type=gha,scope=cd-${{ matrix.target.name }},mode=max
           labels: |
