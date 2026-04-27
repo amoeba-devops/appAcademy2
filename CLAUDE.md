@@ -391,7 +391,7 @@ chore: description              # 빌드/설정
 1. **PCI-DSS SAQ-A**: 카드 PAN/CVC 절대 저장 금지. `pg_payment_key` 토큰만 보관.
 2. **개인정보**: 연락처·생년월일 암호화 저장 (AES-GCM). `VARBINARY` 컬럼 사용.
 3. **Webhook 검증**: Toss `TossPayments-Signature` HMAC, AMA HMAC 서명 필수 검증.
-4. **인증서**: 공동인증서는 HSM/KMS 보관. 코드에 하드코딩 금지.
+4. **인증서**: 공동인증서는 KMS envelope 암호화로 S3 보관, 서명 워커 메모리에서만 복호화 후 즉시 zeroize ([ADR-003](docs/design/adr/ADR-003-cert-storage.md)). 코드에 하드코딩 금지.
 5. **CAPTCHA**: Portal intake 폼에 reCAPTCHA v3 적용.
 6. **Rate Limiting**: API 엔드포인트에 rate limit 적용.
 7. **SQL Injection**: TypeORM parameterized queries 사용 (raw SQL 최소화).
@@ -405,6 +405,6 @@ chore: description              # 빌드/설정
 |---|-------|--------|
 | Q-019 | Toss Brandpay 자동결제 | TBD |
 | Q-020 | 위약금(cancellation fee) 처리 | TBD |
-| Q-021 | 공동인증서 보관 방식 (HSM/KMS) | TBD |
+| Q-021 | 공동인증서 보관 방식 (HSM/KMS) | **Resolved** — KMS envelope 암호화 + 서명 워커 메모리 처리 ([ADR-003](docs/design/adr/ADR-003-cert-storage.md), 2026-04-27) |
 | Q-016 | 도메인 분리 (admin.trinityacademy.kr) | **Resolved** — 단일 호스트 + `/admin/*` 경로 유지 ([ADR-002](docs/design/adr/ADR-002-admin-domain-split.md), 2026-04-27) |
 | Q-017 | News — 헤드리스 CMS vs 자체 DB | **Resolved** — 자체 DB 유지 ([ADR-001](docs/design/adr/ADR-001-news-storage.md), 2026-04-27) |
