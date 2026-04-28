@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] — 2026-04-28 — Repository Migration
+
+### Changed — Canonical repo cutover
+- **Git remote** — `KimIgyong/app-academy` → **`amoeba-devops/appAcademy2`** (org-owned canonical from this date).
+- **GHCR namespace** — `ghcr.io/kimigyong/app-academy/{tac-backend,tac-frontend}` → **`ghcr.io/amoeba-devops/appacademy2/{tac-backend,tac-frontend}`** (lowercase per registry policy).
+- Files updated: `docker/staging/docker-compose.staging.yml`, `docker/production/docker-compose.production.yml`, `scripts/staging-setup.sh`, `README.md`, `docs/deployment/CUTOVER.md` (commit `fd5419f`).
+- Empty trigger commit `92028be` after Phase A1 secrets registration on the new repo.
+- Old repo retained as-is (no archive) for fallback / history reference. Local `legacy` remote preserved.
+
+### Added — Documentation
+- [docs/deployment/REPO-MIGRATION-GUIDE.md](docs/deployment/REPO-MIGRATION-GUIDE.md) — end-to-end migration guide (local · CI/CD · staging host · GHCR · rollback · checklist).
+
 ## [1.4.0] — 2026-04-27 — AMA App Store Pivot
 
 ### Added — Multi-tenancy & AMA Integration

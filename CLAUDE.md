@@ -1,8 +1,9 @@
 # app-academy — Claude Code AI Instructions
 
 > **Project Code**: TAC (내부 코드 / DB prefix `tac_`)
-> **Version**: v1.4.0
-> **Last Updated**: 2026-04-27
+> **Version**: v1.4.1
+> **Last Updated**: 2026-04-28
+> **Canonical Repo**: https://github.com/amoeba-devops/appAcademy2 (이전 `KimIgyong/app-academy`은 fallback only — see [docs/deployment/REPO-MIGRATION-GUIDE.md](docs/deployment/REPO-MIGRATION-GUIDE.md))
 
 ---
 
