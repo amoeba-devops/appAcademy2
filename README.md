@@ -1,7 +1,7 @@
 # app-academy — Academy Management SaaS
 
-[![CI](https://github.com/KimIgyong/app-academy/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/KimIgyong/app-academy/actions/workflows/ci.yml)
-[![CD — Staging](https://github.com/KimIgyong/app-academy/actions/workflows/cd-staging.yml/badge.svg?branch=main)](https://github.com/KimIgyong/app-academy/actions/workflows/cd-staging.yml)
+[![CI](https://github.com/amoeba-devops/appAcademy2/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amoeba-devops/appAcademy2/actions/workflows/ci.yml)
+[![CD — Staging](https://github.com/amoeba-devops/appAcademy2/actions/workflows/cd-staging.yml/badge.svg?branch=main)](https://github.com/amoeba-devops/appAcademy2/actions/workflows/cd-staging.yml)
 
 학원 운영 전반을 디지털화하는 멀티테넌트 관리 SaaS. AMA App Store를 통해 학원별로 프로비저닝된다.
 

@@ -41,7 +41,7 @@ S5-7 산출물. UAT 전 항목 PASS 확인 후 production 첫 출시 또는 도�
 - [ ] Production 호스트에 코드 사전 clone:
   ```bash
   ssh prod
-  git clone https://github.com/KimIgyong/app-academy ~/app-academy
+  git clone https://github.com/amoeba-devops/appAcademy2 ~/app-academy
   cd ~/app-academy && git checkout main
   cp docker/production/.env.production.example docker/production/.env.production
   vi docker/production/.env.production  # 실 시크릿 입력

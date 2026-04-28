@@ -48,7 +48,7 @@ services:
   backend:
     # When DEPLOY_SHA is set, this resolves to the GHCR image pushed by
     # CD; falls back to the local build context for ad-hoc rebuilds.
-    image: ${BACKEND_IMAGE:-ghcr.io/kimigyong/app-academy/tac-backend:${DEPLOY_SHA:-staging}}
+    image: ${BACKEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/tac-backend:${DEPLOY_SHA:-staging}}
     build:
       context: ../../backend
       dockerfile: Dockerfile
@@ -84,7 +84,7 @@ services:
       - "127.0.0.1:4000:4000"
 
   frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/kimigyong/app-academy/tac-frontend:${DEPLOY_SHA:-staging}}
+    image: ${FRONTEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/tac-frontend:${DEPLOY_SHA:-staging}}
     build:
       context: ../../frontend
       dockerfile: Dockerfile

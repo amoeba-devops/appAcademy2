@@ -13,7 +13,7 @@
 #   · .env.staging secret values
 set -euo pipefail
 
-REPO_URL_SSH="git@github.com:KimIgyong/app-academy.git"
+REPO_URL_SSH="git@github.com:amoeba-devops/appAcademy2.git"
 REPO_DIR="$HOME/app-academy"
 BACKUP_TAG="pm2-backup-$(date +%Y%m%d-%H%M%S)"
 DEPLOY_KEY="$HOME/.ssh/github_deploy_tpi"
