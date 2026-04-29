@@ -74,8 +74,18 @@ done
 [[ "$mysql_ready" == "1" ]] || die "mysql did not become responsive in 180s."
 
 # --- 4. Apply pending SQL migrations ------------------------------------
+# Bootstrap mode: pre-mark every existing SQL file as applied (no DB exec)
+# and continue with the rest of the deploy. Use after a fresh repo clone
+# on a host whose DB already has the schema (the gitignored
+# sql/_applied/ directory got out of sync with reality):
+#   DEPLOY_SQL_BOOTSTRAP=1 scripts/deploy-staging.sh
 say "4. Apply SQL migrations (idempotent via sql/_applied/)"
 mkdir -p "$REPO_DIR/sql/_applied"
+
+# Idempotent error patterns from MySQL — these mean the schema change was
+# already applied successfully on a prior run and re-applying is safe to
+# treat as a no-op. We mark the migration as applied and continue.
+IDEMPOTENT_PATTERNS='ERROR 1050.*already exists|ERROR 1060.*Duplicate column|ERROR 1061.*Duplicate key|ERROR 1062.*Duplicate entry|ERROR 1091.*check that column/key exists'
 
 for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort); do
     fname="$(basename "$sql_file")"
@@ -87,12 +97,24 @@ for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort)
         continue
     fi
 
+    if [[ "${DEPLOY_SQL_BOOTSTRAP:-0}" == "1" ]]; then
+        echo "$current_hash" > "$marker"
+        echo "   [bootstrap-mark] $fname"
+        continue
+    fi
+
     printf '   [apply] %-58s ' "$fname"
     if docker exec -i tac-mysql mysql \
             --default-character-set=utf8mb4 \
             -uroot -p"$MYSQL_ROOT_PASSWORD" "${MYSQL_DATABASE:-db_tac}" \
             < "$sql_file" > /tmp/sql-out.log 2>&1; then
         echo "OK"
+        echo "$current_hash" > "$marker"
+    elif grep -E -q "$IDEMPOTENT_PATTERNS" /tmp/sql-out.log; then
+        # Migration's effect already present in DB — mark and continue.
+        # Surface the matched error so the operator can sanity-check.
+        echo "ALREADY-APPLIED (idempotent)"
+        grep -E "$IDEMPOTENT_PATTERNS" /tmp/sql-out.log | head -2 | sed 's/^/      /'
         echo "$current_hash" > "$marker"
     else
         echo "FAIL"
