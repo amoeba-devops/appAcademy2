@@ -41,6 +41,27 @@ services:
       - acm-pg-data:/var/lib/postgresql/data
       - ./sql/acm:/docker-entrypoint-initdb.d
 
+  # ACM v1.0a frontend (Vite SPA → nginx). Production-style image; daily
+  # dev still runs `npm run dev` natively on :5173 for HMR. Bring this up
+  # only when you need to validate the production bundle/proxy setup:
+  #   docker compose up -d --build frontend-acm
+  # Visit http://localhost:5174/. /api/* is proxied to the host's
+  # NestJS dev server via host.docker.internal:4009 — no backend container
+  # is required.
+  frontend-acm:
+    build:
+      context: ./frontend-acm
+      dockerfile: Dockerfile
+    image: acm-frontend:dev
+    container_name: acm-frontend
+    restart: unless-stopped
+    ports:
+      - '5174:80'
+    extra_hosts:
+      # Lets the upstream `backend` referenced by nginx.conf resolve to the
+      # docker host. Works on Docker Desktop (mac/win) and Linux 20.10+.
+      - 'backend:host-gateway'
+
 volumes:
   tac-mysql-data:
   tac-redis-data:

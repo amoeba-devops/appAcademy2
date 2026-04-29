@@ -5,14 +5,29 @@
 
 ## Setup
 
+### Native dev (Vite HMR — daily driver)
+
 ```bash
 cd frontend-acm
-pnpm install         # or npm install
-cp .env.example .env
-pnpm dev             # http://localhost:5173, proxies /api → :3000
+npm install                # or pnpm install
+cp .env.example .env       # optional — only if overriding VITE_API_BASE_URL
+npm run dev                # http://localhost:5173, proxies /api → :4009
 ```
 
-Backend must be running on port 3000 with `AcmModule` mounted.
+Backend must be running on port 4009 with `AcmModule` mounted (per CLAUDE.md §4.7).
+
+### Docker (production-style image — bundle/proxy validation)
+
+```bash
+# from repo root
+docker compose up -d --build frontend-acm
+# → http://localhost:5174/, served by nginx, /api proxied to host :4009
+```
+
+The container uses `host.docker.internal` (`extra_hosts: backend:host-gateway`)
+so the host's native NestJS dev server is reachable without spinning up a
+backend container. Use this image to validate the production bundle, not for
+HMR-driven daily work.
 
 ## Layout
 
