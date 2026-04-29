@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.2] — 2026-04-29 — ACM v1.0a Staging Deployment
+
+### Added — ACM frontend deploy pipeline
+- **CD-Staging matrix** — `acm-frontend` added to `.github/workflows/cd-staging.yml` build-push targets. GHCR images now publish at `ghcr.io/amoeba-devops/appacademy2/acm-frontend:{<sha>,staging}`.
+- **Staging compose** — `frontend-acm` service in `docker/staging/docker-compose.staging.yml` (loopback `127.0.0.1:5174:80`, depends_on backend, GHCR image with build context fallback).
+- **Host nginx vhost** — `docker/staging/nginx-acm.conf` for `acm-stg.amoeba.site` (TLS via *.amoeba.site wildcard, 80→443 redirect, proxies to `127.0.0.1:5174`).
+- **deploy-staging.sh** — installs the new vhost via the existing `install_vhost` helper, restarts `frontend-acm` alongside `backend`/`frontend`, and adds an acm-stg smoke check.
+
+### Added — ACM CLS frontend v1
+- `/cls` and `/cls/:id` routes — list (filters: status·subject·teacher·search) + detail (Info / Students / Schedule / Sessions tabs, status-change PATCH).
+- New components in `frontend-acm/src/modules/cls/{components,pages}/` and `useUpdateClassStatus` mutation hook.
+- Locale `zh-CN` added to frontend-acm — i18n init bumped from 3 to 4 locales (ko/en/vi/zh-CN). cls.json gains `filter` + `detail` key groups.
+- `LanguageSwitcher` handles full lang tags (`zh-CN`).
+- Vite proxy target updated 4000 → 4009 (CLAUDE.md §4.7 port convention).
+
+### Added — ACM frontend dockerization (local)
+- `frontend-acm/Dockerfile` — multi-stage (deps → vite build → nginx:1.27-alpine).
+- `frontend-acm/nginx.conf.template` — envsubst-driven, `${ACM_BACKEND_UPSTREAM}` configurable per environment (`backend:4009` local laptop / `backend:4000` staging compose; default `backend:4000`).
+- Root `docker-compose.yml` — `frontend-acm` service on host port 5174 with `extra_hosts: backend:host-gateway` and `ACM_BACKEND_UPSTREAM=backend:4009` for laptop dev.
+- README updated with native vs Docker workflows.
+
+### Operator follow-up (manual)
+- DNS: add A record `acm-stg.amoeba.site` → `125.133.49.165`.
+- Verify CD-Staging run after merge; confirm `acm-frontend` container running on host (`docker ps`) and `https://acm-stg.amoeba.site/` 200 once DNS propagates.
+
 ## [1.4.1] — 2026-04-28 — Repository Migration
 
 ### Changed — Canonical repo cutover

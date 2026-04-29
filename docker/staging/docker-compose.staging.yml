@@ -112,3 +112,21 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
     ports:
       - "127.0.0.1:3000:3000"
+
+  # ACM v1.0a Vite SPA, served by the image's own nginx. The image bakes
+  # the SPA bundle plus an /api/* → backend:4000 proxy (see
+  # frontend-acm/nginx.conf), so this container reuses the shared NestJS
+  # backend service on the compose network — no separate ACM API.
+  # Host nginx (acm-stg.amoeba.site vhost) terminates TLS and proxies to
+  # 127.0.0.1:5174 → this container's :80.
+  frontend-acm:
+    image: ${ACM_FRONTEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/acm-frontend:${DEPLOY_SHA:-staging}}
+    build:
+      context: ../../frontend-acm
+      dockerfile: Dockerfile
+    container_name: acm-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:5174:80"

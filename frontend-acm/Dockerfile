@@ -27,8 +27,13 @@ FROM nginx:1.27-alpine AS runtime
 LABEL org.opencontainers.image.title="acm-frontend"
 LABEL org.opencontainers.image.description="ACM v1.0a Vite SPA"
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# nginx:alpine auto-runs envsubst over /etc/nginx/templates/*.template at start
+# and writes the result to /etc/nginx/conf.d/. Filter limits substitution to
+# the variables we actually template, leaving nginx's own $vars intact.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+ENV NGINX_ENVSUBST_FILTER="ACM_BACKEND_UPSTREAM"
+ENV ACM_BACKEND_UPSTREAM="backend:4000"
 RUN apk add --no-cache tini
 EXPOSE 80
 ENTRYPOINT ["/sbin/tini","--"]
-CMD ["nginx","-g","daemon off;"]
+CMD ["/docker-entrypoint.sh","nginx","-g","daemon off;"]

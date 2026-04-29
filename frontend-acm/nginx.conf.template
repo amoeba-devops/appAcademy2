@@ -1,10 +1,14 @@
-# ACM frontend — nginx config (runs inside acm-frontend container).
+# ACM frontend — nginx config template (runs inside acm-frontend container).
 # - Serves the Vite SPA bundle from /usr/share/nginx/html.
 # - History API fallback: any unknown path → index.html (React Router).
-# - /api/* → upstream backend (configurable via Docker network alias).
+# - /api/* → upstream backend, host:port set via $ACM_BACKEND_UPSTREAM.
 #
-# Set the backend upstream via build/runtime by templating ACM_API_UPSTREAM
-# (defaulted to host.docker.internal:4009 for laptop dev).
+# nginx:1.27-alpine auto-runs envsubst over /etc/nginx/templates/*.template at
+# container start. Variables to substitute are listed in NGINX_ENVSUBST_FILTER.
+# Examples:
+#   - laptop dev (host backend):     ACM_BACKEND_UPSTREAM=backend:4009  (with extra_hosts: backend:host-gateway)
+#   - staging compose (containerized backend): ACM_BACKEND_UPSTREAM=backend:4000
+# Default falls back to backend:4000 if unset (matches staging).
 
 map $http_upgrade $connection_upgrade {
     default upgrade;
@@ -35,7 +39,7 @@ server {
     # native on the host, override at compose time:
     #   extra_hosts: ["backend:host-gateway"]
     location /api/ {
-        proxy_pass http://backend:4009;
+        proxy_pass http://${ACM_BACKEND_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

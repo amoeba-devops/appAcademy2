@@ -57,6 +57,9 @@ services:
     restart: unless-stopped
     ports:
       - '5174:80'
+    environment:
+      # nginx /api/ proxies here. Host's native NestJS dev server runs on 4009.
+      ACM_BACKEND_UPSTREAM: backend:4009
     extra_hosts:
       # Lets the upstream `backend` referenced by nginx.conf resolve to the
       # docker host. Works on Docker Desktop (mac/win) and Linux 20.10+.

@@ -102,8 +102,8 @@ for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort)
 done
 
 # --- 5. Restart app containers ------------------------------------------
-say "5. Restart backend + frontend"
-$COMPOSE up -d --no-deps backend frontend
+say "5. Restart backend + frontend + frontend-acm"
+$COMPOSE up -d --no-deps backend frontend frontend-acm
 
 # --- 6. Sync + reload nginx ---------------------------------------------
 # The repo is the source of truth for both vhosts. Install whichever has
@@ -129,6 +129,9 @@ install_vhost "$REPO_DIR/docker/staging/nginx-app-academy.conf" \
 # Legacy tpi vhost — now a 301 redirect to the canonical host. Kept for 6mo.
 install_vhost "$REPO_DIR/docker/staging/nginx-tpi.conf" \
               "tpi.amoeba.site"
+# ACM v1.0a SPA vhost — proxies to acm-frontend container on :5174.
+install_vhost "$REPO_DIR/docker/staging/nginx-acm.conf" \
+              "acm-stg.amoeba.site"
 
 if [[ "$nginx_changed" == "1" ]]; then
     sudo nginx -t
@@ -146,6 +149,9 @@ curl -sIL --max-time 15 https://app-academy-stg.amoeba.site/ | head -1 \
 echo "   legacy redirect check:"
 curl -sI --max-time 10 https://tpi.amoeba.site/ | head -1 \
     || warn "tpi → app-academy redirect not responding."
+echo "   acm-stg check (DNS may not yet exist on first cut-over):"
+curl -sIL --max-time 10 https://acm-stg.amoeba.site/ | head -1 \
+    || warn "acm-stg.amoeba.site not responding — verify DNS A record + nginx."
 
 # --- 8. Manifest --------------------------------------------------------
 cat > "$REPO_DIR/.last-deploy" <<EOF
