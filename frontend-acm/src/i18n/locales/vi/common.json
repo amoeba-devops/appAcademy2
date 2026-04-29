@@ -15,7 +15,8 @@
     "label": "Ngôn ngữ",
     "ko": "한국어",
     "en": "English",
-    "vi": "Tiếng Việt"
+    "vi": "Tiếng Việt",
+    "zh-CN": "中文(简体)"
   },
   "actions": {
     "create": "Tạo",

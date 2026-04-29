@@ -192,5 +192,58 @@
   },
   "validation": {
     "required": "This field is required."
+  },
+  "filter": {
+    "all": "All",
+    "search": "Search code or name…",
+    "labelStatus": "Status",
+    "labelSubject": "Subject",
+    "labelTeacher": "Teacher"
+  },
+  "detail": {
+    "back": "← Classes",
+    "tabs": {
+      "info": "Info",
+      "students": "Students",
+      "schedule": "Schedule",
+      "sessions": "Sessions"
+    },
+    "info": {
+      "title": "Class Info",
+      "startedFrom": "Source",
+      "defaultMode": "Default mode",
+      "hourlyRate": "Hourly rate",
+      "hourlyRateValue": "₩{{amount}}/hr",
+      "video": "Video tool",
+      "videoNone": "Not configured"
+    },
+    "students": {
+      "title": "Students",
+      "count": "{{count}} total",
+      "empty": "No students enrolled.",
+      "joinedAt": "Joined {{date}}",
+      "leftAt": "Left {{date}}",
+      "primary": "PRIMARY",
+      "secondary": "SECONDARY"
+    },
+    "schedule": {
+      "title": "Recurrences",
+      "empty": "No recurrence configured.",
+      "effectiveFrom": "From {{date}}",
+      "effectiveTo": " – {{date}}",
+      "durationMin": "{{minutes}} min"
+    },
+    "sessions": {
+      "title": "Recent Sessions",
+      "empty": "No sessions yet.",
+      "viewAll": "View all →",
+      "scheduledAt": "Scheduled",
+      "heldAt": "Held",
+      "limitNote": "Showing latest {{count}}"
+    },
+    "statusChange": {
+      "label": "Status",
+      "pending": "Updating…"
+    }
   }
 }

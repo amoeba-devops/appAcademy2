@@ -1,0 +1,66 @@
+{
+  "title": "대시보드",
+  "loadFailed": "KPI를 불러오지 못했습니다.",
+  "actions": {
+    "manualInput": "수동 입력",
+    "addComplaint": "불만 등록",
+    "save": "저장",
+    "cancel": "취소"
+  },
+  "status": {
+    "populated": "{{count}}/{{total}}일 데이터 입력됨"
+  },
+  "category": {
+    "MARKETING": "Marketing",
+    "CS": "CS",
+    "OPERATING": "Operating",
+    "CLASS": "Class"
+  },
+  "grid": {
+    "day": "Day",
+    "dow": "요일",
+    "sum": "합계",
+    "aver": "평균"
+  },
+  "manualInput": {
+    "title": "일별 수동 입력",
+    "date": "일자",
+    "visitor": "방문자",
+    "cost": "비용 (원)",
+    "effect": "효과",
+    "complain": "불만 건수",
+    "visitorSource": "방문자 출처",
+    "costSource": "비용 출처",
+    "status": "입력 상태",
+    "note": "메모",
+    "statuses": {
+      "PENDING": "미입력",
+      "PARTIAL": "부분 입력",
+      "COMPLETE": "완료"
+    }
+  },
+  "complaint": {
+    "title": "불만 사례 등록",
+    "date": "발생 일자",
+    "channel": "채널",
+    "severity": "심각도",
+    "subject": "제목",
+    "description": "내용",
+    "linkedQnaId": "연결 Q&A ID",
+    "channels": {
+      "PHONE": "전화",
+      "EMAIL": "이메일",
+      "CHAT": "채팅",
+      "IN_PERSON": "방문",
+      "OTHER": "기타"
+    },
+    "severities": {
+      "LOW": "낮음",
+      "MEDIUM": "보통",
+      "HIGH": "높음"
+    }
+  },
+  "empty": {
+    "noData": "해당 월에 데이터가 없습니다."
+  }
+}

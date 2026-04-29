@@ -192,5 +192,58 @@
   },
   "validation": {
     "required": "Trường này là bắt buộc."
+  },
+  "filter": {
+    "all": "전체",
+    "search": "코드·이름 검색…",
+    "labelStatus": "상태",
+    "labelSubject": "과목",
+    "labelTeacher": "강사"
+  },
+  "detail": {
+    "back": "← 수업 목록",
+    "tabs": {
+      "info": "정보",
+      "students": "학생",
+      "schedule": "반복 일정",
+      "sessions": "세션"
+    },
+    "info": {
+      "title": "기본 정보",
+      "startedFrom": "유입 경로",
+      "defaultMode": "기본 수업 방식",
+      "hourlyRate": "시급",
+      "hourlyRateValue": "시간당 ₩{{amount}}",
+      "video": "영상 도구",
+      "videoNone": "설정되지 않음"
+    },
+    "students": {
+      "title": "학생",
+      "count": "총 {{count}}명",
+      "empty": "등록된 학생이 없습니다.",
+      "joinedAt": "등록 {{date}}",
+      "leftAt": "탈퇴 {{date}}",
+      "primary": "PRIMARY",
+      "secondary": "SECONDARY"
+    },
+    "schedule": {
+      "title": "반복 일정",
+      "empty": "반복 일정이 없습니다.",
+      "effectiveFrom": "{{date}}부터",
+      "effectiveTo": " ~ {{date}}",
+      "durationMin": "{{minutes}}분"
+    },
+    "sessions": {
+      "title": "최근 세션",
+      "empty": "기록된 세션이 없습니다.",
+      "viewAll": "전체 세션 →",
+      "scheduledAt": "예정",
+      "heldAt": "완료",
+      "limitNote": "최근 {{count}}건 표시"
+    },
+    "statusChange": {
+      "label": "상태",
+      "pending": "변경 중…"
+    }
   }
 }

@@ -1,8 +1,8 @@
 /**
  * i18n bootstrap — NFR-016 / C-006 compliance.
  *
- * Languages: Korean (default) / English / Vietnamese
- * Namespaces: common, csl, ref, sch, qna, dsh
+ * Languages: Korean (default) / English / Vietnamese / Simplified Chinese
+ * Namespaces: common, csl, ref, sch, qna, dsh, cls
  *
  * Persisted user choice via localStorage key `acm.lang`.
  */
@@ -33,7 +33,15 @@ import viRef from './locales/vi/ref.json';
 import viQna from './locales/vi/qna.json';
 import viCls from './locales/vi/cls.json';
 
-export const SUPPORTED_LANGS = ['ko', 'en', 'vi'] as const;
+import zhCommon from './locales/zh-CN/common.json';
+import zhCsl from './locales/zh-CN/csl.json';
+import zhDsh from './locales/zh-CN/dsh.json';
+import zhSch from './locales/zh-CN/sch.json';
+import zhRef from './locales/zh-CN/ref.json';
+import zhQna from './locales/zh-CN/qna.json';
+import zhCls from './locales/zh-CN/cls.json';
+
+export const SUPPORTED_LANGS = ['ko', 'en', 'vi', 'zh-CN'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
 
 const STORAGE_KEY = 'acm.lang';
@@ -48,10 +56,14 @@ function detectInitialLang(): SupportedLang {
   } catch {
     /* localStorage unavailable */
   }
-  // Fall back to browser language prefix
-  const nav = typeof navigator !== 'undefined' ? navigator.language?.slice(0, 2) : undefined;
+  // Try full tag (e.g. "zh-CN") then language prefix ("zh", "ko", ...).
+  const nav = typeof navigator !== 'undefined' ? navigator.language : undefined;
   if (nav && (SUPPORTED_LANGS as readonly string[]).includes(nav)) {
     return nav as SupportedLang;
+  }
+  const short = nav?.slice(0, 2);
+  if (short && (SUPPORTED_LANGS as readonly string[]).includes(short)) {
+    return short as SupportedLang;
   }
   return DEFAULT_LANG;
 }
@@ -90,6 +102,15 @@ void i18n.use(initReactI18next).init({
       ref: viRef,
       qna: viQna,
       cls: viCls,
+    },
+    'zh-CN': {
+      common: zhCommon,
+      csl: zhCsl,
+      dsh: zhDsh,
+      sch: zhSch,
+      ref: zhRef,
+      qna: zhQna,
+      cls: zhCls,
     },
   },
 });

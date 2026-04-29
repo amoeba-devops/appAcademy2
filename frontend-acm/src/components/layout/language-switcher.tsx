@@ -4,7 +4,13 @@ import { changeLanguage, SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
 
 export function LanguageSwitcher() {
   const { t, i18n } = useTranslation('common');
-  const current = (i18n.language?.slice(0, 2) as SupportedLang) ?? 'ko';
+  const lang = i18n.language ?? 'ko';
+  const current: SupportedLang =
+    (SUPPORTED_LANGS as readonly string[]).includes(lang)
+      ? (lang as SupportedLang)
+      : (SUPPORTED_LANGS as readonly string[]).includes(lang.slice(0, 2))
+        ? (lang.slice(0, 2) as SupportedLang)
+        : 'ko';
 
   return (
     <label className="flex items-center gap-2 text-sm text-secondary">
