@@ -52,8 +52,8 @@ else
 fi
 
 # --- 3. Ensure data services are up -------------------------------------
-say "3. Start mysql + redis (idempotent)"
-$COMPOSE up -d mysql redis
+say "3. Start mysql + redis + postgres-acm (idempotent)"
+$COMPOSE up -d mysql redis postgres-acm
 
 # Wait until a real SQL query succeeds — mysqladmin ping can return healthy
 # during the MySQL entrypoint's temporary startup phase before the TCP
@@ -123,7 +123,47 @@ for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort)
     fi
 done
 
-# --- 5. Restart app containers ------------------------------------------
+# --- 4b. Apply ACM Postgres migrations (sql/acm/) -----------------------
+say "4b. Apply ACM Postgres migrations (sql/acm/)"
+acm_pg_ready=0
+for i in $(seq 1 30); do
+    if docker exec tac-postgres-acm pg_isready -U "${ACM_PG_USER:-acm}" -d "${ACM_PG_DATABASE:-db_acm}" > /dev/null 2>&1; then
+        acm_pg_ready=1
+        break
+    fi
+    sleep 2
+done
+[[ "$acm_pg_ready" == "1" ]] || die "postgres-acm did not become responsive in 60s."
+
+mkdir -p "$REPO_DIR/sql/_applied/acm"
+for sql_file in $(find "$REPO_DIR/sql/acm" -maxdepth 1 -type f -name '*.sql' | sort); do
+    fname="$(basename "$sql_file")"
+    marker="$REPO_DIR/sql/_applied/acm/$fname.sha256"
+    current_hash="$(sha256sum "$sql_file" | awk '{print $1}')"
+
+    if [[ -f "$marker" ]] && [[ "$(cat "$marker")" == "$current_hash" ]]; then
+        echo "   [skip]  acm/$fname (already applied)"
+        continue
+    fi
+
+    if [[ "${DEPLOY_SQL_BOOTSTRAP:-0}" == "1" ]]; then
+        echo "$current_hash" > "$marker"
+        echo "   [bootstrap-mark] acm/$fname"
+        continue
+    fi
+
+    printf '   [apply] acm/%-54s ' "$fname"
+    if docker exec -i -e PGPASSWORD="$ACM_PG_PASSWORD" tac-postgres-acm \
+            psql -U "${ACM_PG_USER:-acm}" -d "${ACM_PG_DATABASE:-db_acm}" \
+            -v ON_ERROR_STOP=1 -q < "$sql_file" > /tmp/acm-sql-out.log 2>&1; then
+        echo "OK"
+        echo "$current_hash" > "$marker"
+    else
+        echo "FAIL"
+        tail -10 /tmp/acm-sql-out.log
+        die "ACM SQL apply failed on $fname"
+    fi
+done
 say "5. Restart backend + frontend + frontend-acm"
 $COMPOSE up -d --no-deps backend frontend frontend-acm
 

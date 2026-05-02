@@ -30,6 +30,25 @@ services:
       retries: 10
       start_period: 30s
 
+  postgres-acm:
+    image: postgres:16-alpine
+    container_name: tac-postgres-acm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ACM_PG_DATABASE:-db_acm}
+      POSTGRES_USER: ${ACM_PG_USER:-acm}
+      POSTGRES_PASSWORD: ${ACM_PG_PASSWORD}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - ${DATA_DIR:-./data}/postgres-acm:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${ACM_PG_USER:-acm}", "-d", "${ACM_PG_DATABASE:-db_acm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   redis:
     image: redis:7-alpine
     container_name: tac-redis
@@ -59,6 +78,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      postgres-acm:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 4000
@@ -70,6 +91,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
+      # ACM v1.0a — separate Postgres datasource (ACM_DS = 'acm-pg')
+      ACM_PG_HOST: postgres-acm
+      ACM_PG_PORT: 5432
+      ACM_PG_USER: ${ACM_PG_USER:-acm}
+      ACM_PG_PASSWORD: ${ACM_PG_PASSWORD}
+      ACM_PG_DATABASE: ${ACM_PG_DATABASE:-db_acm}
+      ACM_PII_KEY: ${ACM_PII_KEY}
       # AMA App Store integration (S2/S3 of pivot)
       AMA_OIDC_MODE: ${AMA_OIDC_MODE:-mock}
       AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER:-}
