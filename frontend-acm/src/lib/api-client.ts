@@ -15,7 +15,15 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) useAuthStore.getState().clear();
+    if (err.response?.status === 401) {
+      const path = window.location.pathname;
+      useAuthStore.getState().clear();
+      // Avoid redirect loop on the login page itself.
+      if (!path.startsWith('/login')) {
+        const returnTo = encodeURIComponent(path + window.location.search);
+        window.location.assign(`/login?returnTo=${returnTo}`);
+      }
+    }
     return Promise.reject(err);
   },
 );

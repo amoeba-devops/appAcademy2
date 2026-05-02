@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { MetricDefinitionService } from '../application/metric-definition.service';
 import { DailyKpiService } from '../application/daily-kpi.service';
 import { ManualInputService } from '../application/manual-input.service';
@@ -11,7 +12,7 @@ import { CreateComplaintDto, UpdateComplaintDto } from '../application/dto/compl
 
 @ApiTags('acm-dsh')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/dsh')
 export class DashboardController {
   constructor(

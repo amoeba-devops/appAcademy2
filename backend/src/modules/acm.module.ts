@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AcmCommonModule } from './acm-common/acm-common.module';
+import { AcmAuthModule } from './acm-auth/acm-auth.module';
 import { AcmSchModule } from './acm-sch/acm-sch.module';
 import { AcmRefModule } from './acm-ref/acm-ref.module';
 import { AcmCslModule } from './acm-csl/acm-csl.module';
@@ -17,6 +18,7 @@ import { AcmClsModule } from './acm-cls/acm-cls.module';
 @Module({
   imports: [
     AcmCommonModule,
+    AcmAuthModule,
     AcmSchModule,
     AcmRefModule,
     AcmCslModule,
@@ -26,6 +28,7 @@ import { AcmClsModule } from './acm-cls/acm-cls.module';
   ],
   exports: [
     AcmCommonModule,
+    AcmAuthModule,
     AcmSchModule,
     AcmRefModule,
     AcmCslModule,

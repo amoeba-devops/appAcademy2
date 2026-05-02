@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGua
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { AttendanceService } from '../application/attendance.service';
 import {
   ApproveMakeupDto,
@@ -20,7 +21,7 @@ import { SessionService } from '../application/session.service';
 
 @ApiTags('acm-cls')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/cls')
 export class SessionController {
   constructor(

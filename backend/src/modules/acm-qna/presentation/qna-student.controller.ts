@@ -2,12 +2,13 @@ import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from '@nestjs
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { QuestionService } from '../application/question.service';
 
 /** Per-student QNA timeline (FR-QNA-P1-06). */
 @ApiTags('acm-qna')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/qna/students')
 export class QnaStudentController {
   constructor(private readonly service: QuestionService) {}

@@ -2,13 +2,14 @@ import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, P
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { QnaCategoryService } from '../application/qna-category.service';
 import { CreateQnaCategoryDto, UpdateQnaCategoryDto } from '../application/dto/qna-category.dto';
 
 /** Q-30..Q-33 — QNA Categories CRUD. */
 @ApiTags('acm-qna')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/qna/categories')
 export class QnaCategoryController {
   constructor(private readonly service: QnaCategoryService) {}

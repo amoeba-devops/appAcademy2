@@ -7,6 +7,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DataSource } from 'typeorm';
 import { AcmCommonModule } from '../../../src/modules/acm-common/acm-common.module';
+import { AcmAuthModule } from '../../../src/modules/acm-auth/acm-auth.module';
+import { AcmJwtAuthGuard } from '../../../src/modules/acm-auth/guards/acm-jwt-auth.guard';
 import { AcmCslModule } from '../../../src/modules/acm-csl/acm-csl.module';
 import { AcmSchModule } from '../../../src/modules/acm-sch/acm-sch.module';
 import { AcmRefModule } from '../../../src/modules/acm-ref/acm-ref.module';
@@ -31,6 +33,7 @@ const ACM_SQL_FILES = [
   '400-acm-v1.0a-sch-p1.sql',
   '410-acm-v1.0a-qna-p1.sql',
   '420-acm-qna-i18n-labels.sql',
+  '500-acm-auth.sql',
 ];
 
 export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
@@ -42,6 +45,7 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
     .start();
 
   process.env.ACM_PII_KEY = '0'.repeat(64); // 32 bytes hex
+  process.env.ACM_JWT_SECRET = 'acm-test-secret';
   process.env.NODE_ENV = 'test';
 
   const moduleRef: TestingModule = await Test.createTestingModule({
@@ -59,13 +63,18 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
         synchronize: false,
       }),
       AcmCommonModule,
+      AcmAuthModule,
       AcmSchModule,
       AcmRefModule,
       AcmCslModule,
       AcmQnaModule,
       AcmDshModule,
     ],
-  }).compile();
+  })
+    // Bypass JWT guard in tests; req.user is injected by middleware below.
+    .overrideGuard(AcmJwtAuthGuard)
+    .useValue({ canActivate: () => true })
+    .compile();
 
   const app = moduleRef.createNestApplication();
   // Note: forbidNonWhitelisted=false because OwnEntityGuard injects `entId` into req.body

@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -6,10 +6,12 @@ import {
   BookOpen,
   MessageCircleQuestion,
   GraduationCap,
+  LogOut,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { useAuthStore } from '@/stores/auth.store';
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
@@ -22,6 +24,15 @@ const NAV = [
 
 export function AppShell() {
   const { t } = useTranslation('common');
+  const { t: tAuth } = useTranslation('auth');
+  const user = useAuthStore((s) => s.user);
+  const clear = useAuthStore((s) => s.clear);
+  const navigate = useNavigate();
+
+  const onLogout = () => {
+    clear();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-canvas text-primary">
@@ -29,7 +40,23 @@ export function AppShell() {
         <Link to="/" className="font-semibold text-lg text-accent-700">
           {t('app.name')}
         </Link>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
+          {user?.email && (
+            <span className="text-sm text-secondary hidden sm:inline">
+              {user.email}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onLogout}
+            className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary px-2 py-1 rounded-md hover:bg-[var(--gray-100)]"
+            aria-label={tAuth('session.logout')}
+          >
+            <LogOut size={16} />
+            <span className="hidden sm:inline">{tAuth('session.logout')}</span>
+          </button>
+        </div>
       </header>
 
       <aside className="fixed left-0 top-header bottom-0 w-sidebar bg-surface border-r border-[var(--border-subtle)] py-4">

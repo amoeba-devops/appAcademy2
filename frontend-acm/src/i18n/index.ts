@@ -10,6 +10,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 import koCommon from './locales/ko/common.json';
+import koAuth from './locales/ko/auth.json';
 import koCsl from './locales/ko/csl.json';
 import koDsh from './locales/ko/dsh.json';
 import koSch from './locales/ko/sch.json';
@@ -18,6 +19,7 @@ import koQna from './locales/ko/qna.json';
 import koCls from './locales/ko/cls.json';
 
 import enCommon from './locales/en/common.json';
+import enAuth from './locales/en/auth.json';
 import enCsl from './locales/en/csl.json';
 import enDsh from './locales/en/dsh.json';
 import enSch from './locales/en/sch.json';
@@ -26,6 +28,7 @@ import enQna from './locales/en/qna.json';
 import enCls from './locales/en/cls.json';
 
 import viCommon from './locales/vi/common.json';
+import viAuth from './locales/vi/auth.json';
 import viCsl from './locales/vi/csl.json';
 import viDsh from './locales/vi/dsh.json';
 import viSch from './locales/vi/sch.json';
@@ -34,6 +37,7 @@ import viQna from './locales/vi/qna.json';
 import viCls from './locales/vi/cls.json';
 
 import zhCommon from './locales/zh-CN/common.json';
+import zhAuth from './locales/zh-CN/auth.json';
 import zhCsl from './locales/zh-CN/csl.json';
 import zhDsh from './locales/zh-CN/dsh.json';
 import zhSch from './locales/zh-CN/sch.json';
@@ -73,11 +77,12 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANG,
   supportedLngs: SUPPORTED_LANGS as unknown as string[],
   defaultNS: 'common',
-  ns: ['common', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls'],
+  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls'],
   interpolation: { escapeValue: false },
   resources: {
     ko: {
       common: koCommon,
+      auth: koAuth,
       csl: koCsl,
       dsh: koDsh,
       sch: koSch,
@@ -87,6 +92,7 @@ void i18n.use(initReactI18next).init({
     },
     en: {
       common: enCommon,
+      auth: enAuth,
       csl: enCsl,
       dsh: enDsh,
       sch: enSch,
@@ -96,6 +102,7 @@ void i18n.use(initReactI18next).init({
     },
     vi: {
       common: viCommon,
+      auth: viAuth,
       csl: viCsl,
       dsh: viDsh,
       sch: viSch,
@@ -105,6 +112,7 @@ void i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       common: zhCommon,
+      auth: zhAuth,
       csl: zhCsl,
       dsh: zhDsh,
       sch: zhSch,

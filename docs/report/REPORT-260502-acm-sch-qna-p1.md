@@ -229,12 +229,14 @@ ACM `v1.0a` 작업 백로그 중 SCH(학교) + QNA(상담 Q&A) 모듈의 P1 우�
 
 | URL | HTTP | 비고 |
 |---|---|---|
-| `https://acm-stg.amoeba.site/` | 200 | CMS shell 로딩 |
+| `https://acm-stg.amoeba.site/` | 200 | CMS shell 로딩 (commit `0e14bf2`) |
 | `https://acm-stg.amoeba.site/api/acm/sch/schools` | 403 | 인증 필요 → 라우트 정상 |
 | `https://acm-stg.amoeba.site/api/acm/sch/schools/:id/grade-bands` | 403 | 신규 P1 라우트 정상 등록 |
 | `https://acm-stg.amoeba.site/api/acm/sch/schools/:id/schedules` | 403 | 신규 P1 라우트 정상 등록 |
 | `https://acm-stg.amoeba.site/api/acm/qna/questions` | 403 | 인증 필요 → 라우트 정상 |
 | `https://acm-stg.amoeba.site/api/acm/qna/categories` | 403 | 신규 카테고리 CRUD 라우트 정상 |
+
+배포된 이미지 태그: `ghcr.io/amoeba-devops/appacademy2/{tac-backend,tac-frontend,acm-frontend}:0e14bf2`. nginx step 6 sudo TTY 오류는 conf 변경 없는 라운드라 영향 없음.
 
 ### 8.6 Outstanding Items
 

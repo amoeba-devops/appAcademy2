@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
+import { RequireAuth } from '@/components/layout/require-auth';
+import { LoginPage } from '@/modules/auth/pages/login-page';
 import { DashboardPage } from '@/modules/dsh/pages/dashboard-page';
 import { CslListPage } from '@/modules/csl/pages/csl-list-page';
 import { CslDetailPage } from '@/modules/csl/pages/csl-detail-page';
@@ -11,9 +13,14 @@ import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
 import { QnaCategoriesPage } from '@/modules/qna/pages/qna-categories-page';
 
 export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/',
-    element: <AppShell />,
+    element: (
+      <RequireAuth>
+        <AppShell />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },

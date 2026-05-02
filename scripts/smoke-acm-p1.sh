@@ -19,9 +19,22 @@ if [[ -z "${BASE_URL}" ]]; then
   echo "ERROR: BASE_URL required (arg #1 or ACM_SMOKE_BASE)"
   exit 2
 fi
+
+# If no TOKEN provided, log in via /api/acm/auth/login using
+# ACM_SMOKE_EMAIL / ACM_SMOKE_PASSWORD (defaults match the seed admin).
 if [[ -z "${TOKEN}" ]]; then
-  echo "ERROR: TOKEN required (arg #2 or ACM_SMOKE_TOKEN)"
-  exit 2
+  EMAIL="${ACM_SMOKE_EMAIL:-admin@acm.local}"
+  PASSWORD="${ACM_SMOKE_PASSWORD:-acm20261234}"
+  echo "Logging in as ${EMAIL} ..."
+  login_resp="$(curl -s -X POST -H 'Content-Type: application/json' \
+        --data "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}" \
+        "${BASE_URL}/api/acm/auth/login")"
+  TOKEN="$(printf '%s' "${login_resp}" | sed -n 's/.*"accessToken":"\([^"]*\)".*/\1/p')"
+  if [[ -z "${TOKEN}" ]]; then
+    echo "ERROR: login failed; response: ${login_resp}"
+    exit 2
+  fi
+  echo "  -> token acquired (${#TOKEN} chars)"
 fi
 
 PASS=0

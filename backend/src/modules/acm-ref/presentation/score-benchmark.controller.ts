@@ -16,6 +16,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { ScoreBenchmarkService } from '../application/score-benchmark.service';
 import {
   CreateScoreBenchmarkDto,
@@ -26,7 +27,7 @@ import {
 
 @ApiTags('acm-ref')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/ref/score-benchmarks')
 export class ScoreBenchmarkController {
   constructor(private readonly service: ScoreBenchmarkService) {}

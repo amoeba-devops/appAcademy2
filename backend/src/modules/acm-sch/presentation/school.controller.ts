@@ -2,12 +2,13 @@ import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Put, 
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { SchoolService } from '../application/school.service';
 import { CreateSchoolDto, SearchSchoolDto, UpdateSchoolDto } from '../application/dto/school.dto';
 
 @ApiTags('acm-sch')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/sch/schools')
 export class SchoolController {
   constructor(private readonly service: SchoolService) {}

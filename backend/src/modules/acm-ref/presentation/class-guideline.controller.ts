@@ -16,6 +16,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { ClassGuidelineService } from '../application/class-guideline.service';
 import {
   CreateClassGuidelineDto,
@@ -24,7 +25,7 @@ import {
 
 @ApiTags('acm-ref')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/ref/class-guidelines')
 export class ClassGuidelineController {
   constructor(private readonly service: ClassGuidelineService) {}

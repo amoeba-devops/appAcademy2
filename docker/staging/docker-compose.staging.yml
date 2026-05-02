@@ -101,6 +101,8 @@ services:
       ACM_PG_PASSWORD: ${ACM_PG_PASSWORD}
       ACM_PG_DATABASE: ${ACM_PG_DATABASE:-db_acm}
       ACM_PII_KEY: ${ACM_PII_KEY}
+      ACM_JWT_SECRET: ${ACM_JWT_SECRET}
+      ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
       # AMA App Store integration (S2/S3 of pivot)
       AMA_OIDC_MODE: ${AMA_OIDC_MODE:-mock}
       AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER:-}

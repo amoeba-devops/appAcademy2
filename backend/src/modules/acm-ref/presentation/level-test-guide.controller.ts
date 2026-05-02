@@ -15,6 +15,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { LevelTestGuideService } from '../application/level-test-guide.service';
 import {
   CreateLevelTestGuideDto,
@@ -23,7 +24,7 @@ import {
 
 @ApiTags('acm-ref')
 @ApiBearerAuth()
-@UseGuards(OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/ref/level-test-guides')
 export class LevelTestGuideController {
   constructor(private readonly service: LevelTestGuideService) {}
