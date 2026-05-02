@@ -83,7 +83,7 @@ estimated_effort: 5 sprints (1 sprint = 1 week 기준)
 | 경로 | 역할 |
 |------|------|
 | `sql/080-migration-ama-pivot.sql` | tac_academies + tac_users 컬럼 추가, tac_subscription_events 신규 |
-| `sql/090-seed-tenant-template.sql` | 신규 테넌트 자동 시드 템플릿 (참조용 SQL — provisioning use-case가 호출) |
+| `sql/templates/090-seed-tenant-template.sql` | 신규 테넌트 자동 시드 템플릿 (참조용 SQL — provisioning use-case가 호출, deploy 자동 적용 대상 아님) |
 | `sql/091-migration-trinity-as-demo.sql` | 기존 Trinity 행을 demo 테넌트로 표시 |
 | `scripts/export-tenant-pii.sh` | deprovisioning 시 PII export (mysqldump + zip) |
 
