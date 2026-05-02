@@ -13,7 +13,19 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Unwrap backend TransformInterceptor envelope: { success, data, meta? } → data
+    const body = res.data;
+    if (
+      body &&
+      typeof body === 'object' &&
+      'success' in body &&
+      'data' in body
+    ) {
+      res.data = (body as { data: unknown }).data;
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       const path = window.location.pathname;
