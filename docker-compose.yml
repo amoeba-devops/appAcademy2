@@ -28,7 +28,10 @@ services:
       - tac-redis-data:/data
 
   postgres:
-    image: postgres:15-alpine
+    build:
+      context: ./docker/staging
+      dockerfile: Dockerfile.postgres-acm
+    image: tac-postgres-acm:pg16-bigm
     container_name: acm-postgres
     restart: unless-stopped
     ports:
