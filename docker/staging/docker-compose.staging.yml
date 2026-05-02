@@ -31,7 +31,10 @@ services:
       start_period: 30s
 
   postgres-acm:
-    image: postgres:16-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres-acm
+    image: tac-postgres-acm:pg16-bigm
     container_name: tac-postgres-acm
     restart: unless-stopped
     environment:
