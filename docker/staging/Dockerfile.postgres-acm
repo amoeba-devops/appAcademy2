@@ -9,6 +9,8 @@ RUN set -eux; \
     apt-get install -y --no-install-recommends \
         build-essential \
         postgresql-server-dev-16 \
+        libicu-dev \
+        libxml2-dev \
         ca-certificates \
         wget; \
     cd /tmp; \
@@ -20,5 +22,5 @@ RUN set -eux; \
     make USE_PGXS=1 install; \
     cd /; \
     rm -rf /tmp/*; \
-    apt-get purge -y --auto-remove build-essential postgresql-server-dev-16 wget; \
+    apt-get purge -y --auto-remove build-essential postgresql-server-dev-16 libicu-dev libxml2-dev wget; \
     rm -rf /var/lib/apt/lists/*
