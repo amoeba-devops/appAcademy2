@@ -2,6 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.5] — 2026-05-03 — ACM Admin Auth (JWT login + RequireAuth + 403 해결)
+
+### Added — Backend
+- `modules/acm-auth/` 신규 모듈 — `passport-jwt` + `bcrypt(rounds=12)` + 12h expiry.
+  - `POST /api/acm/auth/login` (lockout 5회/60초/60초 cooldown, in-memory Map).
+  - `GET /api/acm/auth/me` (`AcmJwtAuthGuard` 통과 시 토큰 payload 반환).
+- `sql/acm/500-acm-auth.sql` — `amb_acm_user` 테이블 + seed admin (`admin@acm.local` / `acm20261234`, ent `00000000-...-001`).
+- `it-auth.int-spec.ts` — 4 PASS (login OK / 잘못된 비밀번호 401 / 미존재 이메일 401 / DTO 검증 400).
+- `docker/staging/docker-compose.staging.yml` — `ACM_JWT_SECRET` 환경변수 와이어링.
+
+### Added — Frontend (frontend-acm)
+- `/login` 페이지 (i18n: ko/en/vi/zh-CN, namespace `auth`).
+- `RequireAuth` 래퍼 — 미인증 시 `/login?returnTo=...` 리다이렉트.
+- `api-client` 401 인터셉터 → `/login` 강제 이동 + auth store clear.
+- `AppShell` 헤더에 `user.email` + Logout 버튼.
+- `auth-api.ts` — `POST /auth/login`, `GET /auth/me` 클라이언트 함수.
+
+### Changed
+- 14개 ACM controller 모두 `@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)` 로 변경.
+- `test/integration/acm/setup.ts` — `AcmJwtAuthGuard.canActivate=>true` override 로 기존 26 P1 테스트 회귀 없음.
+
+### Tests
+- 30/30 ACM PASS (26 기존 P1 + 4 신규 auth IT).
+- `it-02`/`it-09` 7건 실패는 v1.4.4 이전부터 존재 (별도 triage, P1 범위 밖).
+
+### Deploy
+- Staging 배포 완료 (commit `45db8bb`).
+- Public smoke: `/api/acm/auth/login` → 200 + accessToken.
+- 토큰 부착 시 `/sch/schools`, `/qna/questions`, `/qna/categories`, `/auth/me` 모두 200.
+- 사전 403 → 200 으로 해결.
+
+### Docs
+- [docs/analysis/ACM-AUTH-REQ-1.0.0.md](docs/analysis/ACM-AUTH-REQ-1.0.0.md), [docs/implementation/ACM-AUTH-PLAN-1.0.0.md](docs/implementation/ACM-AUTH-PLAN-1.0.0.md), [docs/test/ACM-AUTH-TC-1.0.0.md](docs/test/ACM-AUTH-TC-1.0.0.md).
+- [docs/report/REPORT-260502-acm-sch-qna-p1.md](docs/report/REPORT-260502-acm-sch-qna-p1.md) §9 Deploy Outcome (v1.4.5).
+
+### Notes
+- staging `.env.staging` 에 `ACM_JWT_SECRET` 자동 추가 (openssl rand -hex 64). 운영자가 회전 시 동일 방식.
+- 운영자 자격증명: `admin@acm.local` / `acm20261234` (rotated upon first deploy).
+- deploy step "6. Sync + reload host nginx" 는 `sudo` 필요 → 비대화형 SSH 에서 실패하지만 nginx config 변경 없을 시 무영향. 변경 시 수동 `sudo nginx -s reload` 필요.
+
 ## [1.4.4] — 2026-05-02 — ACM SCH + QNA P1 Follow-up (toast/confirm/forms + tests + i18n labelZh)
 
 ### Added — Frontend (frontend-acm)

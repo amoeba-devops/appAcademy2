@@ -248,3 +248,56 @@ ACM `v1.0a` 작업 백로그 중 SCH(학교) + QNA(상담 Q&A) 모듈의 P1 우�
 - **NestJS Guard → Pipe 순서**: `OwnEntityGuard` 가 `req.body.entId` 를 주입한 뒤 `ValidationPipe(forbidNonWhitelisted:true)` 가 거부 → 통합 테스트는 `forbidNonWhitelisted:false` 로 우회. 실제 운영 전역 파이프와 분리 운영.
 - **Named TypeORM connection**: `name:'acm-pg'` 등록 시 lookup 토큰은 `'acm-pgDataSource'` (이름 + Suffix). `app.get<DataSource>('acm-pgDataSource')` 로만 획득 가능.
 - **testcontainers 이미지 캐시**: 커스텀 빌드 이미지(`tac-postgres-acm:pg16-bigm`)는 `withPullPolicy({ shouldPull: () => false })` 로 NEVER_PULL 강제. 미설정 시 매번 Docker Hub pull 실패.
+
+---
+
+## §9 Deploy Outcome — v1.4.5 (ACM Admin Auth)
+
+### 9.1 Context
+
+`https://acm-stg.amoeba.site/api/acm/sch/schools` 등 ACM 백엔드 엔드포인트가 토큰 없이 호출되어 모두 **403 Forbidden** 반환. v1.4.5 에서 전체 인증 플로우 (Option B, REQ-1.0.0) 도입.
+
+### 9.2 Commit / Push
+
+- Commit: `45db8bb` — `feat(acm-auth): v1.4.5 — ACM admin login (JWT, Postgres user table, login page)`
+- 42 files changed, 1128 insertions(+), 23 deletions(-).
+- `origin/main` push: `0e14bf2..45db8bb`.
+
+### 9.3 Staging Deploy Sequence
+
+| Step | Action | Result |
+|---|---|---|
+| 1 | `git pull` (`~/app-academy`) | ✅ ff-only |
+| 2 | `ACM_JWT_SECRET=<openssl rand -hex 64>` → `.env.staging` 추가 | ✅ count=1 |
+| 3 | `nohup bash scripts/deploy-staging.sh` (pid 2206426) | ✅ |
+| 4 | sql/acm/500-acm-auth.sql apply (idempotent) | ✅ amb_acm_user 생성 + seed admin |
+| 5 | docker compose pull + recreate (`tac-backend`, `tac-frontend`, `acm-frontend:45db8bb`) | ✅ all Up |
+| 6 | nginx reload (sudo) | ⚠️ skipped (비대화형 SSH sudo 실패; conf 변경 없어 영향 없음) |
+
+### 9.4 Public Smoke Result
+
+```
+POST /api/acm/auth/login {email, password}
+→ HTTP 200 {success:true, data:{accessToken, user:{id, entId, email, name}}}
+
+Bearer <token>:
+200  /api/acm/sch/schools
+200  /api/acm/qna/questions
+200  /api/acm/qna/categories
+200  /api/acm/auth/me
+```
+
+**사전 403 → 200 전환 확인. 원인 해결 완료.**
+
+### 9.5 Lessons Learned (v1.4.5)
+
+- **`docker/staging/.env.staging` 권한**: `appacademy:appacademy` 0600. 신규 변수 추가 시 sudo 불필요 (직접 `>>` append).
+- **Expect 스크립트 `&&` 단락 평가**: `grep -q ... || (sudo tee ...) && deploy` 형태에서 sudo 실패가 deploy 실행은 막지 않지만, 의도한 secret 추가는 안 됨. **별도 명령으로 분리 권장**.
+- **Nginx step "6. Sync + reload host nginx"**: deploy 스크립트 내부 sudo 호출 → 비대화형 SSH 에서는 실패. conf 변경이 없는 일반 배포에서는 무해하지만, 라우팅 변경 시 수동 `sudo nginx -s reload` 후속 작업 필요.
+- **JwtModule `expiresIn: '12h'` 타입 에러**: `@nestjs/jwt` 의 `signOptions.expiresIn` 이 `number | StringValue` 로 좁혀져 있음 → `as any` 캐스트로 우회 (factory 반환 객체 전체).
+
+### 9.6 Outstanding
+
+- ⏸ 운영자 자격증명 rotation 정책 (1.4.5 deploy 직후 임시 admin → 운영 단계 시 신규 발급 + bcrypt 해시 SQL).
+- ⏸ `it-02`/`it-09` 7건 pre-existing 실패 — 별도 triage 라운드.
+- ⏸ Frontend bundle 크기 (691 kB / 207 kB gzip) — 향후 `manualChunks` 코드 스플릿 검토.
