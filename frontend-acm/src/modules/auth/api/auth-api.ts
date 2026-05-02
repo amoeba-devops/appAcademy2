@@ -12,15 +12,20 @@ export interface LoginResponse {
   user: AuthUserDTO;
 }
 
+interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+}
+
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const { data } = await apiClient.post<LoginResponse>('/acm/auth/login', {
+  const { data } = await apiClient.post<ApiEnvelope<LoginResponse>>('/acm/auth/login', {
     email,
     password,
   });
-  return data;
+  return data.data;
 }
 
 export async function me(): Promise<{ user: AuthUserDTO }> {
-  const { data } = await apiClient.get<{ user: AuthUserDTO }>('/acm/auth/me');
-  return data;
+  const { data } = await apiClient.get<ApiEnvelope<{ user: AuthUserDTO }>>('/acm/auth/me');
+  return data.data;
 }
