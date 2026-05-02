@@ -1,6 +1,7 @@
 {
   "title": "Trường học",
   "newSchool": "Trường mới",
+  "editSchool": "Sửa trường",
   "loading": "Đang tải...",
   "empty": "Chưa có trường nào.",
   "columns": {
@@ -19,13 +20,23 @@
     "edit": "Sửa",
     "delete": "Xóa"
   },
+  "form": {
+    "name": "Tên",
+    "level": "Cấp",
+    "region": "Khu vực",
+    "district": "Quận/Huyện",
+    "isForeign": "Trường nước ngoài",
+    "isAuthorized": "Được cấp phép",
+    "notes": "Ghi chú"
+  },
   "gradeBands": {
     "title": "Khối lớp — {{school}}",
     "label": "Nhãn",
     "min": "Lớp nhỏ nhất",
     "max": "Lớp lớn nhất",
     "note": "Ghi chú",
-    "add": "Thêm khối"
+    "add": "Thêm khối",
+    "edit": "Sửa khối"
   },
   "schedules": {
     "title": "Lịch — {{school}}",
@@ -35,7 +46,9 @@
     "close": "Đóng",
     "test": "Thi",
     "result": "Kết quả",
-    "add": "Thêm lịch"
+    "note": "Ghi chú",
+    "add": "Thêm lịch",
+    "edit": "Sửa lịch"
   }
 }
 

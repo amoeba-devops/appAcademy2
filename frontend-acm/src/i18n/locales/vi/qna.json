@@ -1,6 +1,7 @@
 {
   "title": "Hỏi đáp",
   "newQuestion": "Câu hỏi mới",
+  "editQuestion": "Sửa câu hỏi",
   "manageCategories": "Quản lý danh mục",
   "loading": "Đang tải...",
   "empty": "Chưa có câu hỏi.",
@@ -38,10 +39,21 @@
     "title": "Danh mục Q&A",
     "code": "Mã",
     "label": "Nhãn",
+    "labelKr": "Tiếng Hàn",
+    "labelEn": "Tiếng Anh",
+    "labelVi": "Tiếng Việt",
+    "labelZh": "Tiếng Trung",
     "active": "Hiệu lực",
+    "sortOrder": "Thứ tự",
     "refs": "Tham chiếu",
     "add": "Thêm danh mục",
+    "edit": "Sửa danh mục",
     "inUse": "Đang dùng — không xóa được"
+  },
+  "form": {
+    "category": "Danh mục",
+    "subject": "Chủ đề",
+    "body": "Nội dung"
   }
 }
 

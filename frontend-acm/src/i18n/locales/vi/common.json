@@ -36,6 +36,19 @@
     "error": "Đã xảy ra lỗi.",
     "submitFailed": "Gửi không thành công."
   },
+  "toast": {
+    "saved": "Đã lưu.",
+    "deleted": "Đã xóa.",
+    "created": "Đã tạo.",
+    "updated": "Đã cập nhật.",
+    "error": "Đã xảy ra lỗi."
+  },
+  "confirm": {
+    "ok": "Xác nhận",
+    "cancel": "Hủy",
+    "deleteTitle": "Xóa mục này?",
+    "deleteDescription": "Hành động này không thể hoàn tác."
+  },
   "todo": "TODO: sẽ triển khai sau",
   "dash": "—"
 }

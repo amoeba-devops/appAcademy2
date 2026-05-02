@@ -1,6 +1,7 @@
 {
   "title": "问答",
   "newQuestion": "新问题",
+  "editQuestion": "编辑问题",
   "manageCategories": "管理分类",
   "loading": "加载中...",
   "empty": "暂无问题。",
@@ -38,10 +39,21 @@
     "title": "问答分类",
     "code": "代码",
     "label": "名称",
+    "labelKr": "韩语",
+    "labelEn": "英语",
+    "labelVi": "越南语",
+    "labelZh": "中文",
     "active": "启用",
+    "sortOrder": "排序",
     "refs": "引用",
     "add": "添加分类",
+    "edit": "编辑分类",
     "inUse": "使用中 — 不能删除"
+  },
+  "form": {
+    "category": "分类",
+    "subject": "主题",
+    "body": "内容"
   }
 }
 

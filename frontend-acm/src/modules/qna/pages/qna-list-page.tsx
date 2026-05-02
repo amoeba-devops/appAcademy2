@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
+import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { QuestionFormDialog, type QuestionFormValue } from '@/modules/qna/components/question-form-dialog';
 
 interface Question {
   id: string;
   subject: string;
+  body?: string;
   status: string;
   isFaqPromoted: boolean;
   categoryId?: string | null;
@@ -17,10 +22,15 @@ interface Category {
   code: string;
   labelKr: string;
   labelEn?: string | null;
+  labelVi?: string | null;
+  labelZh?: string | null;
 }
 
 export function QnaListPage() {
   const { t, i18n } = useTranslation('qna');
+  const { t: tc } = useTranslation('common');
+  const toast = useToast();
+  const confirm = useConfirm();
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filterCategory, setFilterCategory] = useState<string>('');
@@ -29,6 +39,10 @@ export function QnaListPage() {
   const [error, setError] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<{ type: 'thread' | 'reply'; q: Question } | null>(null);
+  const [questionForm, setQuestionForm] = useState<{ open: boolean; initial: Partial<QuestionFormValue> | null }>({
+    open: false,
+    initial: null,
+  });
 
   const refresh = () => {
     const params = new URLSearchParams();
@@ -50,27 +64,52 @@ export function QnaListPage() {
     if (!id) return '—';
     const c = categories.find((x) => x.id === id);
     if (!c) return '—';
-    return i18n.language.startsWith('en') && c.labelEn ? c.labelEn : c.labelKr;
+    const lang = i18n.language;
+    if (lang.startsWith('zh') && c.labelZh) return c.labelZh;
+    if (lang.startsWith('vi') && c.labelVi) return c.labelVi;
+    if (lang.startsWith('en') && c.labelEn) return c.labelEn;
+    return c.labelKr;
   };
 
-  const handleAction = async (q: Question, action: 'reply' | 'escalate' | 'thread' | 'use-faq' | 'delete') => {
+  const handleAction = async (q: Question, action: 'reply' | 'edit' | 'escalate' | 'thread' | 'use-faq' | 'delete') => {
     setOpenMenu(null);
     if (action === 'thread') return setOpenModal({ type: 'thread', q });
     if (action === 'reply') return setOpenModal({ type: 'reply', q });
+    if (action === 'edit') return setQuestionForm({ open: true, initial: q });
     if (action === 'escalate') {
-      await apiClient.post(`/acm/qna/questions/${q.id}/escalate`, {}).catch((e) => setError(e.message));
+      try {
+        await apiClient.post(`/acm/qna/questions/${q.id}/escalate`, {});
+        toast.success(tc('toast.updated'));
+      } catch (e) {
+        toast.error((e as Error).message ?? tc('toast.error'));
+      }
       return refresh();
     }
     if (action === 'use-faq') {
-      const r = await apiClient.post(`/acm/qna/questions/${q.id}/use-faq`).catch(() => null);
-      if (r?.data?.externalBody) {
-        try { await navigator.clipboard.writeText(r.data.externalBody); } catch { /* ignore */ }
+      try {
+        const r = await apiClient.post(`/acm/qna/questions/${q.id}/use-faq`);
+        if (r?.data?.externalBody) {
+          try { await navigator.clipboard.writeText(r.data.externalBody); } catch { /* ignore */ }
+        }
+        toast.success(tc('toast.updated'));
+      } catch (e) {
+        toast.error((e as Error).message ?? tc('toast.error'));
       }
       return refresh();
     }
     if (action === 'delete') {
-      if (!confirm('Delete?')) return;
-      await apiClient.delete(`/acm/qna/questions/${q.id}`).catch((e) => setError(e.message));
+      const ok = await confirm({
+        title: tc('confirm.deleteTitle'),
+        description: q.subject,
+        variant: 'destructive',
+      });
+      if (!ok) return;
+      try {
+        await apiClient.delete(`/acm/qna/questions/${q.id}`);
+        toast.success(tc('toast.deleted'));
+      } catch (e) {
+        toast.error((e as Error).message ?? tc('toast.error'));
+      }
       return refresh();
     }
   };
@@ -79,9 +118,20 @@ export function QnaListPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <button className="px-3 py-1.5 rounded-md border border-[var(--border-subtle)] bg-surface hover:bg-[var(--bg-hover)]">
-          + {t('newQuestion')}
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/qna/categories"
+            className="px-3 py-1.5 rounded-md border border-[var(--border-subtle)] bg-surface hover:bg-[var(--bg-hover)] text-sm"
+          >
+            {t('manageCategories')}
+          </Link>
+          <button
+            onClick={() => setQuestionForm({ open: true, initial: null })}
+            className="px-3 py-1.5 rounded-md border border-[var(--border-subtle)] bg-surface hover:bg-[var(--bg-hover)]"
+          >
+            + {t('newQuestion')}
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2 items-center mb-4 text-sm">
@@ -142,6 +192,7 @@ export function QnaListPage() {
                     <button onClick={() => setOpenMenu(openMenu === q.id ? null : q.id)} className="px-2">⋯</button>
                     {openMenu === q.id && (
                       <div className="absolute right-0 mt-1 bg-surface border border-[var(--border-subtle)] rounded shadow-md z-10 min-w-[180px]">
+                        <ActionMenuItem label={tc('actions.edit')} onClick={() => handleAction(q, 'edit')} />
                         <ActionMenuItem label={t('actions.reply')} onClick={() => handleAction(q, 'reply')} />
                         <ActionMenuItem label={t('actions.escalate')} onClick={() => handleAction(q, 'escalate')} />
                         <ActionMenuItem label={t('actions.viewThread')} onClick={() => handleAction(q, 'thread')} />
@@ -165,6 +216,14 @@ export function QnaListPage() {
       {openModal?.type === 'reply' && (
         <ReplyModal q={openModal.q} onClose={() => { setOpenModal(null); refresh(); }} />
       )}
+
+      <QuestionFormDialog
+        open={questionForm.open}
+        initial={questionForm.initial}
+        categories={categories}
+        onClose={() => setQuestionForm({ open: false, initial: null })}
+        onSaved={refresh}
+      />
     </div>
   );
 }
@@ -210,6 +269,8 @@ function ThreadModal({ q, onClose }: { q: Question; onClose: () => void }) {
 
 function ReplyModal({ q, onClose }: { q: Question; onClose: () => void }) {
   const { t } = useTranslation('qna');
+  const { t: tc } = useTranslation('common');
+  const toast = useToast();
   const [subject, setSubject] = useState(`Re: ${q.subject}`);
   const [body, setBody] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -218,9 +279,10 @@ function ReplyModal({ q, onClose }: { q: Question; onClose: () => void }) {
     setSubmitting(true);
     try {
       await apiClient.post(`/acm/qna/questions/${q.id}/reply`, { subject, body });
+      toast.success(tc('toast.created'));
       onClose();
     } catch (e) {
-      alert((e as Error).message);
+      toast.error((e as Error).message ?? tc('toast.error'));
     } finally {
       setSubmitting(false);
     }

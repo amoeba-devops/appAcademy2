@@ -29,6 +29,9 @@ export class QnaCategoryTypeormEntity {
   @Column({ name: 'qct_label_vi', type: 'varchar', length: 100, nullable: true })
   labelVi?: string | null;
 
+  @Column({ name: 'qct_label_zh', type: 'varchar', length: 100, nullable: true })
+  labelZh?: string | null;
+
   @Column({ name: 'qct_is_active', type: 'boolean', default: true })
   isActive!: boolean;
 

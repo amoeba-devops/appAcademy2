@@ -1,6 +1,7 @@
 {
   "title": "Q&A",
   "newQuestion": "New Question",
+  "editQuestion": "Edit Question",
   "manageCategories": "Manage Categories",
   "loading": "Loading...",
   "empty": "No questions yet.",
@@ -40,10 +41,21 @@
     "title": "Q&A Categories",
     "code": "Code",
     "label": "Label",
+    "labelKr": "Korean",
+    "labelEn": "English",
+    "labelVi": "Vietnamese",
+    "labelZh": "Chinese",
     "active": "Active",
+    "sortOrder": "Sort",
     "refs": "Refs",
     "add": "Add category",
+    "edit": "Edit category",
     "inUse": "In use — cannot delete"
+  },
+  "form": {
+    "category": "Category",
+    "subject": "Subject",
+    "body": "Body"
   }
 }
 

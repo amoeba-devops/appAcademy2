@@ -36,6 +36,19 @@
     "error": "An error occurred.",
     "submitFailed": "Submission failed."
   },
+  "toast": {
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "created": "Created.",
+    "updated": "Updated.",
+    "error": "An error occurred."
+  },
+  "confirm": {
+    "ok": "Confirm",
+    "cancel": "Cancel",
+    "deleteTitle": "Delete this item?",
+    "deleteDescription": "This action cannot be undone."
+  },
   "todo": "TODO: implementation pending",
   "dash": "—"
 }

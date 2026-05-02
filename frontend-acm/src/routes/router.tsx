@@ -8,6 +8,7 @@ import { ClsDetailPage } from '@/modules/cls/pages/cls-detail-page';
 import { SchoolListPage } from '@/modules/sch/pages/school-list-page';
 import { ReferenceListPage } from '@/modules/ref/pages/reference-list-page';
 import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
+import { QnaCategoriesPage } from '@/modules/qna/pages/qna-categories-page';
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: 'sch', element: <SchoolListPage /> },
       { path: 'ref', element: <ReferenceListPage /> },
       { path: 'qna', element: <QnaListPage /> },
+      { path: 'qna/categories', element: <QnaCategoriesPage /> },
     ],
   },
 ]);

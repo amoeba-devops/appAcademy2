@@ -1,6 +1,7 @@
 {
   "title": "학교",
   "newSchool": "새 학교",
+  "editSchool": "학교 수정",
   "loading": "불러오는 중...",
   "empty": "등록된 학교가 없습니다.",
   "columns": {
@@ -22,13 +23,23 @@
     "edit": "편집",
     "delete": "삭제"
   },
+  "form": {
+    "name": "이름",
+    "level": "등급",
+    "region": "지역",
+    "district": "세부 지역",
+    "isForeign": "외국 학교",
+    "isAuthorized": "인가 학교",
+    "notes": "비고"
+  },
   "gradeBands": {
     "title": "학년대 — {{school}}",
     "label": "라벨",
     "min": "최소",
     "max": "최대",
     "note": "비고",
-    "add": "학년대 추가"
+    "add": "학년대 추가",
+    "edit": "학년대 수정"
   },
   "schedules": {
     "title": "일정 — {{school}}",
@@ -38,7 +49,9 @@
     "close": "접수 마감",
     "test": "시험일",
     "result": "발표일",
-    "add": "일정 추가"
+    "note": "비고",
+    "add": "일정 추가",
+    "edit": "일정 수정"
   }
 }
 

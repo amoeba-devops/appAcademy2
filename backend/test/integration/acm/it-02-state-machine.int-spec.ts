@@ -28,6 +28,8 @@ describe('IT-02 inquiry state machine', () => {
         schoolFreetext: '서울중',
         grade: 'M1',
         channel: 'PHONE',
+        inflowType: 'PHONE',
+        applyType: 'COUNSELING_ONLY',
       })
       .expect(201);
     expect(res.body.status).toBe('ACTIVE');

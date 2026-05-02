@@ -17,7 +17,7 @@ describe('IT-09 multi-tenancy isolation', () => {
     const created = await request(env.app.getHttpServer())
       .post('/api/acm/csl/inquiries')
       .set({ 'x-test-user': TEST_USER_ID, 'x-test-ent': ENT_A, 'x-test-roles': 'staff' })
-      .send({ studentName: 'A-student', schoolFreetext: 'A-school', grade: 'M1' })
+      .send({ studentName: 'A-student', schoolFreetext: 'A-school', grade: 'M1', inflowType: 'PHONE', applyType: 'COUNSELING_ONLY' })
       .expect(201);
 
     await request(env.app.getHttpServer())

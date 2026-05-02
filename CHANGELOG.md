@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.4] — 2026-05-02 — ACM SCH + QNA P1 Follow-up (toast/confirm/forms + tests + i18n labelZh)
+
+### Added — Frontend (frontend-acm)
+- `components/ui/toast.tsx` — `ToastProvider` + `useToast()` (success/error/info, 4s 자동 dismiss).
+- `components/ui/confirm-dialog.tsx` — `ConfirmProvider` + `useConfirm()` returning `Promise<boolean>` (Radix Dialog 기반).
+- SCH form dialogs: `school-form-dialog`, `grade-band-form-dialog`, `schedule-form-dialog` — 모두 create/edit 통합.
+- QNA form dialogs: `question-form-dialog` (POST/PUT, 4-locale category select), `category-form-dialog` (code/labelKr/En/Vi/Zh/isActive/sortOrder).
+- 신규 페이지: `qna-categories-page` + 라우트 `/qna/categories`.
+- 4 locales (ko/en/vi/zh-CN) `common.json` toast.* / confirm.*, `sch.json` form.* / editSchool / gradeBands.edit / schedules.edit / schedules.note, `qna.json` editQuestion / form.* / categories.{edit,labelKr,labelEn,labelVi,labelZh,sortOrder} 키 추가.
+
+### Added — Backend
+- `sql/acm/420-acm-qna-i18n-labels.sql` — `amb_acm_qna_category.qct_label_zh VARCHAR(100)`.
+- `qna-category` 엔티티/DTO/서비스에 `labelZh` 추가.
+- `scripts/smoke-acm-p1.sh` — 7 curl smoke (인증 토큰 인자).
+
+### Tests
+- 신규 통합 테스트 `it-sch-p1.int-spec.ts` (12 PASS), `it-qna-p1.int-spec.ts` (14 PASS) — testcontainers + named TypeORM connection (`acm-pg`) + `tac-postgres-acm:pg16-bigm` (NEVER_PULL).
+- `test/integration/acm/setup.ts` 정비 — 5 SQL files (100/300/400/410/420), `forbidNonWhitelisted:false` (Guard body mutation 우회).
+
+### Changed
+- 모든 SCH/QNA 페이지: native `confirm()`/`alert()` 제거 → `useConfirm()`/`useToast()` 통합 (검증 grep: 0 hits).
+- 카테고리 라벨 표시: `lang.startsWith('zh')→labelZh, vi→labelVi, en→labelEn, else labelKr` 4-locale fallback chain.
+
+### Notes
+- 보고서: [docs/report/REPORT-260502-acm-sch-qna-p1.md](docs/report/REPORT-260502-acm-sch-qna-p1.md) §8 (v1.2.0).
+- 잔여 follow-up: staging 배포 + smoke (별도 라운드), `it-02`/`it-09` 7건 pre-existing 실패 triage (P1 범위 밖).
+
 ## [1.4.3] — 2026-05-02 — ACM SCH + QNA P1 Boost
 
 ### Added — School (SCH) module enhancements

@@ -16,6 +16,9 @@ export class CreateQnaCategoryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   labelVi?: string;
 
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  labelZh?: string;
+
   @ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean()
   isActive?: boolean;
 

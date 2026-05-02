@@ -36,6 +36,19 @@
     "error": "오류가 발생했습니다.",
     "submitFailed": "제출에 실패했습니다."
   },
+  "toast": {
+    "saved": "저장되었습니다.",
+    "deleted": "삭제되었습니다.",
+    "created": "생성되었습니다.",
+    "updated": "수정되었습니다.",
+    "error": "오류가 발생했습니다."
+  },
+  "confirm": {
+    "ok": "확인",
+    "cancel": "취소",
+    "deleteTitle": "삭제하시겠습니까?",
+    "deleteDescription": "이 작업은 되돌릴 수 없습니다."
+  },
   "todo": "TODO: 추후 구현 예정",
   "dash": "—"
 }

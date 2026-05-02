@@ -1,6 +1,7 @@
 {
   "title": "学校",
   "newSchool": "新学校",
+  "editSchool": "编辑学校",
   "loading": "加载中...",
   "empty": "暂无学校。",
   "columns": {
@@ -19,13 +20,23 @@
     "edit": "编辑",
     "delete": "删除"
   },
+  "form": {
+    "name": "名称",
+    "level": "层级",
+    "region": "地区",
+    "district": "区/县",
+    "isForeign": "外国学校",
+    "isAuthorized": "已授权",
+    "notes": "备注"
+  },
   "gradeBands": {
     "title": "年级段 — {{school}}",
     "label": "标签",
     "min": "最低年级",
     "max": "最高年级",
     "note": "备注",
-    "add": "添加段"
+    "add": "添加段",
+    "edit": "编辑段"
   },
   "schedules": {
     "title": "日程 — {{school}}",
@@ -35,7 +46,9 @@
     "close": "截止",
     "test": "考试",
     "result": "放榜",
-    "add": "添加日程"
+    "note": "备注",
+    "add": "添加日程",
+    "edit": "编辑日程"
   }
 }
 

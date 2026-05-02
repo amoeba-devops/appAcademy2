@@ -19,13 +19,26 @@ export interface AcmTestEnv {
   ds: DataSource;
 }
 
-const SQL_PATH = path.resolve(__dirname, '../../../../sql/acm/100-acm-v1.0a-init.sql');
+const SQL_DIR = path.resolve(__dirname, '../../../../sql/acm');
+const PG_IMAGE = process.env.ACM_TEST_PG_IMAGE ?? 'tac-postgres-acm:pg16-bigm';
+/** Never-pull policy: assume image is built locally (`docker compose build postgres`). */
+const NEVER_PULL = { shouldPull: () => false };
+
+/** SQL files to run in order (schema only — skip seeds). */
+const ACM_SQL_FILES = [
+  '100-acm-v1.0a-init.sql',
+  '300-acm-cls-v1.0b.sql',
+  '400-acm-v1.0a-sch-p1.sql',
+  '410-acm-v1.0a-qna-p1.sql',
+  '420-acm-qna-i18n-labels.sql',
+];
 
 export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
-  const pg = await new PostgreSqlContainer('postgres:15-alpine')
+  const pg = await new PostgreSqlContainer(PG_IMAGE)
     .withDatabase('db_amb_test')
     .withUsername('amb')
     .withPassword('amb')
+    .withPullPolicy(NEVER_PULL)
     .start();
 
   process.env.ACM_PII_KEY = '0'.repeat(64); // 32 bytes hex
@@ -35,6 +48,7 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
     imports: [
       ConfigModule.forRoot({ isGlobal: true }),
       TypeOrmModule.forRoot({
+        name: 'acm-pg',
         type: 'postgres',
         host: pg.getHost(),
         port: pg.getPort(),
@@ -54,7 +68,9 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
   }).compile();
 
   const app = moduleRef.createNestApplication();
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+  // Note: forbidNonWhitelisted=false because OwnEntityGuard injects `entId` into req.body
+  // which would otherwise fail strict validation. `whitelist=true` still strips unknowns.
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }));
   app.setGlobalPrefix('api');
   // Test auth: inject req.user from x-test-user/x-test-ent/x-test-roles headers
   app.use((req: any, _res: any, next: any) => {
@@ -66,12 +82,12 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
   });
   await app.init();
 
-  const ds = app.get(DataSource);
-  if (fs.existsSync(SQL_PATH)) {
-    const sql = fs.readFileSync(SQL_PATH, 'utf8');
+  const ds = app.get<DataSource>('acm-pgDataSource');
+  for (const f of ACM_SQL_FILES) {
+    const p = path.resolve(SQL_DIR, f);
+    if (!fs.existsSync(p)) throw new Error(`Missing SQL: ${p}`);
+    const sql = fs.readFileSync(p, 'utf8');
     await ds.query(sql);
-  } else {
-    throw new Error(`Missing SQL: ${SQL_PATH}`);
   }
 
   return { app, pg, ds };

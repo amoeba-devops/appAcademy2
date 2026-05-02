@@ -37,6 +37,7 @@ export class QnaCategoryService {
       labelKr: dto.labelKr,
       labelEn: dto.labelEn ?? null,
       labelVi: dto.labelVi ?? null,
+      labelZh: dto.labelZh ?? null,
       isActive: dto.isActive ?? true,
       sortOrder: dto.sortOrder ?? 0,
     }));
@@ -48,6 +49,7 @@ export class QnaCategoryService {
     if (dto.labelKr !== undefined) found.labelKr = dto.labelKr;
     if (dto.labelEn !== undefined) found.labelEn = dto.labelEn ?? null;
     if (dto.labelVi !== undefined) found.labelVi = dto.labelVi ?? null;
+    if (dto.labelZh !== undefined) found.labelZh = dto.labelZh ?? null;
     if (dto.isActive !== undefined) found.isActive = dto.isActive;
     if (dto.sortOrder !== undefined) found.sortOrder = dto.sortOrder;
     return this.repo.save(found);

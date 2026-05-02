@@ -1,6 +1,7 @@
 {
   "title": "Q&A",
   "newQuestion": "새 질문",
+  "editQuestion": "질문 수정",
   "manageCategories": "카테고리 관리",
   "loading": "불러오는 중...",
   "empty": "등록된 질문이 없습니다.",
@@ -40,10 +41,21 @@
     "title": "Q&A 카테고리",
     "code": "코드",
     "label": "표시명",
+    "labelKr": "한국어",
+    "labelEn": "영어",
+    "labelVi": "베트남어",
+    "labelZh": "중국어",
     "active": "활성",
+    "sortOrder": "정렬 순서",
     "refs": "참조",
     "add": "카테고리 추가",
+    "edit": "카테고리 수정",
     "inUse": "사용 중 — 삭제 불가"
+  },
+  "form": {
+    "category": "카테고리",
+    "subject": "제목",
+    "body": "내용"
   }
 }
 

@@ -1,6 +1,7 @@
 {
   "title": "Schools",
   "newSchool": "New School",
+  "editSchool": "Edit School",
   "loading": "Loading...",
   "empty": "No schools registered yet.",
   "columns": {
@@ -22,13 +23,23 @@
     "edit": "Edit",
     "delete": "Delete"
   },
+  "form": {
+    "name": "Name",
+    "level": "Level",
+    "region": "Region",
+    "district": "District",
+    "isForeign": "Foreign",
+    "isAuthorized": "Authorized",
+    "notes": "Notes"
+  },
   "gradeBands": {
     "title": "Grade Bands — {{school}}",
     "label": "Label",
     "min": "Min Grade",
     "max": "Max Grade",
     "note": "Note",
-    "add": "Add band"
+    "add": "Add band",
+    "edit": "Edit band"
   },
   "schedules": {
     "title": "Schedules — {{school}}",
@@ -38,7 +49,9 @@
     "close": "Close",
     "test": "Test",
     "result": "Result",
-    "add": "Add schedule"
+    "note": "Note",
+    "add": "Add schedule",
+    "edit": "Edit schedule"
   }
 }
 
