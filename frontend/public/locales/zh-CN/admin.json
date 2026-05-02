@@ -1042,6 +1042,7 @@
     "academy-info": "学院信息",
     "system-info": "系统信息",
     "feature-status": "功能状态",
+    "access-control": "访问权限",
     "info-rows": {
       "name": "学院名称",
       "status": "状态",
@@ -1218,6 +1219,30 @@
     "detail": {
       "created-at": "创建",
       "published-at": "发布"
+    }
+  },
+  "menu-permissions": {
+    "title": "菜单权限管理",
+    "description": "按管理员等级控制侧边栏菜单的显示与访问。",
+    "matrix-title": "菜单 × 角色 矩阵",
+    "save": "保存",
+    "saving": "保存中...",
+    "save-success": "菜单权限已保存。",
+    "save-error": "保存失败，请重试。",
+    "reset": "重置",
+    "hint": "OWNER（院长）始终拥有全部权限且不可修改。隐藏菜单将自动禁止访问。",
+    "columns": {
+      "menu": "菜单"
+    },
+    "role": {
+      "owner": "院长",
+      "admin": "管理员",
+      "staff": "员工",
+      "readonly": "只读"
+    },
+    "toggle": {
+      "visible": "显示",
+      "accessible": "访问"
     }
   }
 }

@@ -1042,6 +1042,7 @@
     "academy-info": "Thông tin trung tâm",
     "system-info": "Thông tin hệ thống",
     "feature-status": "Tình trạng tính năng",
+    "access-control": "Phân quyền truy cập",
     "info-rows": {
       "name": "Trung tâm",
       "status": "Trạng thái",
@@ -1218,6 +1219,30 @@
     "detail": {
       "created-at": "Tạo",
       "published-at": "Đăng"
+    }
+  },
+  "menu-permissions": {
+    "title": "Quản lý quyền menu",
+    "description": "Kiểm soát hiển thị và truy cập sidebar theo cấp quản trị.",
+    "matrix-title": "Ma trận Menu × Vai trò",
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "save-success": "Đã lưu quyền menu.",
+    "save-error": "Lưu thất bại. Vui lòng thử lại.",
+    "reset": "Đặt lại",
+    "hint": "OWNER (Chủ học viện) luôn có toàn quyền và không thể chỉnh sửa. Ẩn menu sẽ tự động chặn truy cập.",
+    "columns": {
+      "menu": "Menu"
+    },
+    "role": {
+      "owner": "Chủ học viện",
+      "admin": "Quản trị viên",
+      "staff": "Nhân viên",
+      "readonly": "Chỉ đọc"
+    },
+    "toggle": {
+      "visible": "Hiển thị",
+      "accessible": "Truy cập"
     }
   }
 }

@@ -1,10 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Settings, Building2, Shield } from 'lucide-react';
+import { Settings, Building2, Shield, KeyRound, ChevronRight } from 'lucide-react';
 
 export default function SettingsPage() {
   const { t } = useTranslation('admin');
@@ -48,6 +49,29 @@ export default function SettingsPage() {
                 {t('settings.integration-note')}
               </span>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg">{t('settings.access-control')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Link
+              href="/admin/settings/menu-permissions"
+              className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/40 transition-colors"
+            >
+              <div className="flex items-start gap-3">
+                <KeyRound className="h-5 w-5 mt-0.5 text-[#0E1E3A]" />
+                <div>
+                  <div className="text-sm font-medium">{t('menu-permissions.title')}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {t('menu-permissions.description')}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </Link>
           </CardContent>
         </Card>
 

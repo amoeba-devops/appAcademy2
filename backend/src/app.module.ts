@@ -17,6 +17,7 @@ import { EnrollmentModule } from './presentation/enrollment.module';
 import { MapModule } from './presentation/map.module';
 import { PaymentModule } from './presentation/payment.module';
 import { PostModule } from './presentation/post.module';
+import { MenuPermissionModule } from './presentation/menu-permission.module';
 import { DashboardModule } from './presentation/dashboard.module';
 import { PortalParentModule } from './presentation/portal-parent.module';
 import { NotificationModule } from './presentation/notification.module';
@@ -99,6 +100,7 @@ import { ACM_DS } from './modules/acm-common/datasource';
     MapModule,
     PaymentModule,
     PostModule,
+    MenuPermissionModule,
     DashboardModule,
     PortalParentModule,
     NotificationModule,

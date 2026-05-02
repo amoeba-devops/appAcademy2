@@ -1042,6 +1042,7 @@
     "academy-info": "Academy info",
     "system-info": "System info",
     "feature-status": "Feature status",
+    "access-control": "Access control",
     "info-rows": {
       "name": "Academy",
       "status": "Status",
@@ -1218,6 +1219,30 @@
     "detail": {
       "created-at": "Created",
       "published-at": "Published"
+    }
+  },
+  "menu-permissions": {
+    "title": "Menu permissions",
+    "description": "Control sidebar visibility and access by admin role.",
+    "matrix-title": "Menu × Role matrix",
+    "save": "Save",
+    "saving": "Saving...",
+    "save-success": "Menu permissions saved.",
+    "save-error": "Save failed. Please try again.",
+    "reset": "Reset",
+    "hint": "OWNER always has full access and cannot be changed. Hiding a menu automatically blocks access.",
+    "columns": {
+      "menu": "Menu"
+    },
+    "role": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "staff": "Staff",
+      "readonly": "Read-only"
+    },
+    "toggle": {
+      "visible": "Visible",
+      "accessible": "Access"
     }
   }
 }

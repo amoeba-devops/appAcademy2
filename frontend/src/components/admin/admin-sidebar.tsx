@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEffectiveMenu } from '@/hooks/use-menu-permissions';
 
 const sidebarItems = [
   { key: 'dashboard', href: '/admin/dashboard', icon: BarChart3 },
@@ -44,6 +45,12 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const { t } = useTranslation(['admin', 'common']);
+  const { data: effective } = useEffectiveMenu();
+
+  const visibleSet = effective ? new Set(effective.visible) : null;
+  const visibleItems = visibleSet
+    ? sidebarItems.filter((item) => item.key === 'dashboard' || visibleSet.has(item.key))
+    : sidebarItems;
 
   return (
     <aside
@@ -72,7 +79,7 @@ export function AdminSidebar() {
 
       {/* Navigation — Amoeba active-state accent via left rail + gold keyline */}
       <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto" aria-label={t('common:actions.open-menu')}>
-        {sidebarItems.map((item) => {
+        {visibleItems.map((item) => {
           const isActive =
             pathname === item.href || pathname.startsWith(item.href + '/');
           const Icon = item.icon;

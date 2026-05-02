@@ -1042,6 +1042,7 @@
     "academy-info": "학원 정보",
     "system-info": "시스템 정보",
     "feature-status": "기능 현황",
+    "access-control": "접근 권한",
     "info-rows": {
       "name": "학원명",
       "status": "상태",
@@ -1218,6 +1219,30 @@
     "detail": {
       "created-at": "등록",
       "published-at": "게시"
+    }
+  },
+  "menu-permissions": {
+    "title": "메뉴 권한 관리",
+    "description": "관리자 등급별로 사이드바 메뉴 노출과 접근을 제어합니다.",
+    "matrix-title": "메뉴 × 등급 매트릭스",
+    "save": "저장",
+    "saving": "저장 중...",
+    "save-success": "메뉴 권한이 저장되었습니다.",
+    "save-error": "저장에 실패했습니다. 다시 시도해주세요.",
+    "reset": "원래대로",
+    "hint": "OWNER(원장)는 항상 모든 메뉴에 접근할 수 있어 수정할 수 없습니다. 메뉴를 숨기면 자동으로 접근도 차단됩니다.",
+    "columns": {
+      "menu": "메뉴"
+    },
+    "role": {
+      "owner": "원장",
+      "admin": "관리자",
+      "staff": "스태프",
+      "readonly": "읽기 전용"
+    },
+    "toggle": {
+      "visible": "노출",
+      "accessible": "접근"
     }
   }
 }

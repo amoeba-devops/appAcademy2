@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   HttpCode,
+  Inject,
+  Injectable,
   Post,
   Query,
   Req,
@@ -18,7 +20,15 @@ import {
   generatePkceVerifier,
   generateState,
 } from '../../infrastructure/external/ama/auth/ama-pkce.util';
+import { AMA_OIDC_SERVICE } from '../../infrastructure/external/ama/auth/interfaces/ama-oidc.interface';
+import type { AmaOidcService } from '../../infrastructure/external/ama/auth/interfaces/ama-oidc.interface';
 import { AmaOidcStateStore } from './ama-oidc-state.store';
+
+/** Wrap AMA_OIDC_SERVICE injection so the controller signature stays clean. */
+@Injectable()
+export class AmaOidcServiceRef {
+  constructor(@Inject(AMA_OIDC_SERVICE) public readonly service: AmaOidcService) {}
+}
 
 /**
  * AMA SSO endpoints.
@@ -107,16 +117,4 @@ export class AmaAuthController {
     const backend = String(this.config.get('BACKEND_URL', 'http://localhost:4009')).replace(/\/$/, '');
     return `${backend}/api/auth/ama/callback`;
   }
-}
-
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  AMA_OIDC_SERVICE,
-} from '../../infrastructure/external/ama/auth/interfaces/ama-oidc.interface';
-import type { AmaOidcService } from '../../infrastructure/external/ama/auth/interfaces/ama-oidc.interface';
-
-/** Wrap AMA_OIDC_SERVICE injection so the controller signature stays clean. */
-@Injectable()
-export class AmaOidcServiceRef {
-  constructor(@Inject(AMA_OIDC_SERVICE) public readonly service: AmaOidcService) {}
 }
