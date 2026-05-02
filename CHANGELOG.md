@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.3] — 2026-05-02 — ACM SCH + QNA P1 Boost
+
+### Added — School (SCH) module enhancements
+- `tac_acm_sch_school.is_authorized` (BOOL, default true) — flags MAP-authorized schools.
+- New table `amb_acm_sch_grade_band` — per-school grade tier definitions (label/min/max/note).
+- New table `amb_acm_sch_schedule` — per-school exam/admission cycle (year/type[REGULAR|ROLLING|ED|EA|OTHER]/open/close/test/result dates).
+- REST endpoints: `/acm/sch/schools/:schId/grade-bands` (GET/POST/PATCH/DELETE), `/acm/sch/schools/:schId/schedules` (GET/POST/PATCH/DELETE).
+- Grade-band create/update guards against `SCHOOL_NOT_AUTHORIZED` (422).
+- School delete now blocks with `SCHOOL_IN_USE` (422) when active CSL inquiries reference it.
+- Added `PATCH /acm/sch/schools/:id` (canonical); existing `PUT` preserved as deprecated alias.
+- New `SchSchoolPublicService` for cross-module reads (CSL/QNA/CLS).
+- SQL migration: `sql/acm/400-acm-v1.0a-sch-p1.sql` (idempotent).
+
+### Added — Q&A (QNA) module enhancements
+- New table `amb_acm_qna_category` (code/labelKr/labelEn/labelVi/isActive/sortOrder).
+- New columns on `amb_acm_qna_question`: `thread_parent_id` (self-FK for reply chain — distinct from `parent_id` user FK), `category_id`, `use_count`, `escalated_at`, `escalated_by`.
+- REST endpoints: `/acm/qna/categories` (GET/POST/PATCH/DELETE), `/acm/qna/questions/:id/escalate` (POST), `/acm/qna/questions/:id/reply` (POST), `/acm/qna/questions/:id/thread` (GET), `/acm/qna/questions/:id/use-faq` (POST), `/acm/qna/questions/:id` (DELETE), `/acm/qna/students/:userId/qna` (GET timeline).
+- Category delete blocks with `CATEGORY_IN_USE` (422) when questions reference it.
+- Escalate guard: rejects `RESOLVED`/`ESCALATED` with `INVALID_STATUS_TRANSITION` (422).
+- `useFaq` increments `use_count`; rejects non-FAQ with `NOT_FAQ` (422).
+- Question list now supports `?categoryId=`, `?faqOnly=true`, `?status=` filters.
+- New `QnaPublicService` (timeline/openCount) for student profile cross-reads.
+- SQL migration: `sql/acm/410-acm-v1.0a-qna-p1.sql` (idempotent).
+
+### Added — Frontend ACM (CMS)
+- `school-list-page.tsx` full implementation: table with name/level/region/authorized badge/lazy-loaded band·schedule counts; click count → modal listing children.
+- `qna-list-page.tsx` full implementation: filters (category/status/faqOnly), action menu (reply/escalate/viewThread/useFaq/delete), Reply modal (POST `:id/reply`), Thread modal (GET `:id/thread` with chronological hierarchy).
+- i18n keys (ko/en/vi/zh-CN) added under `sch.json` & `qna.json` namespaces — replaces TODO placeholders.
+
+### Tests
+- Backend `npm test` — **73/73 passing** (no regressions). Pre-existing unit suite covers shared dispatcher/AMA/notifications; new SCH/QNA endpoints exercised manually pending dedicated integration test scaffolding (deferred — see follow-ups).
+
+### Operator follow-up (manual)
+- Apply migrations on staging PG: `400-acm-v1.0a-sch-p1.sql`, `410-acm-v1.0a-qna-p1.sql`.
+- (Carryover) Generate `ACM_PII_KEY` (`openssl rand -hex 32`) into `docker/staging/.env.staging` and restart `tac-backend`.
+
+### Documents
+- REQ — `docs/analysis/acm-fn-sch-qna-p1-requirements.md` (ACM-REQ-SCH-QNA-P1-1.0.0).
+- PLAN — `docs/implementation/tasks/acm-fn-sch-qna-p1-plan.md` (ACM-PLAN-SCH-QNA-P1-1.0.0).
+- TC — `docs/test/acm-fn-sch-qna-p1-tc.md` (ACM-TC-SCH-QNA-P1-1.0.0).
+- REPORT — `docs/report/REPORT-260502-acm-sch-qna-p1.md` (ACM-REPORT-SCH-QNA-P1-1.0.0).
+
 ## [1.4.2] — 2026-04-29 — ACM v1.0a Staging Deployment
 
 ### Added — ACM frontend deploy pipeline

@@ -59,6 +59,22 @@ export class QuestionTypeormEntity {
   @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true })
   resolvedAt?: Date | null;
 
+  @Column({ name: 'escalated_at', type: 'timestamptz', nullable: true })
+  escalatedAt?: Date | null;
+
+  @Column({ name: 'escalated_by', type: 'uuid', nullable: true })
+  escalatedBy?: string | null;
+
+  /** Self-FK to parent QNA in the thread chain (Q-09/Q-10). Distinct from parentId (= parent user FK). */
+  @Column({ name: 'thread_parent_id', type: 'uuid', nullable: true })
+  threadParentId?: string | null;
+
+  @Column({ name: 'category_id', type: 'uuid', nullable: true })
+  categoryId?: string | null;
+
+  @Column({ name: 'use_count', type: 'int', default: 0 })
+  useCount!: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })

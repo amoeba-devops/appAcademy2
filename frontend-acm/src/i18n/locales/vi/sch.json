@@ -1,4 +1,41 @@
 {
   "title": "Trường học",
-  "todo": "TODO: triển khai theo fn-sch-001 (S-01..S-31)."
+  "newSchool": "Trường mới",
+  "loading": "Đang tải...",
+  "empty": "Chưa có trường nào.",
+  "columns": {
+    "name": "Tên",
+    "level": "Cấp",
+    "region": "Khu vực",
+    "authorized": "Auth",
+    "bands": "Khối",
+    "schedules": "Lịch",
+    "actions": "Hành động"
+  },
+  "authorized": { "yes": "AUTH", "no": "UNAUTH" },
+  "actions": {
+    "viewBands": "Xem khối lớp",
+    "viewSchedules": "Xem lịch",
+    "edit": "Sửa",
+    "delete": "Xóa"
+  },
+  "gradeBands": {
+    "title": "Khối lớp — {{school}}",
+    "label": "Nhãn",
+    "min": "Lớp nhỏ nhất",
+    "max": "Lớp lớn nhất",
+    "note": "Ghi chú",
+    "add": "Thêm khối"
+  },
+  "schedules": {
+    "title": "Lịch — {{school}}",
+    "year": "Năm",
+    "type": "Loại",
+    "open": "Mở",
+    "close": "Đóng",
+    "test": "Thi",
+    "result": "Kết quả",
+    "add": "Thêm lịch"
+  }
 }
+

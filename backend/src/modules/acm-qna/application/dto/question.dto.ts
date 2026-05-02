@@ -17,6 +17,9 @@ export class CreateQuestionDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   parentId?: string;
 
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  categoryId?: string;
+
   @ApiProperty() @IsString() @MinLength(2) @MaxLength(200)
   subject!: string;
 
@@ -29,6 +32,25 @@ export class CreateQuestionDto {
 }
 
 export class UpdateQuestionDto extends PartialType(CreateQuestionDto) {}
+
+export class ReplyQuestionDto {
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(200)
+  subject!: string;
+
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(10000)
+  body!: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(10000)
+  internalBody?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(10000)
+  externalBody?: string;
+}
+
+export class EscalateQnaDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  reason?: string;
+}
 
 export class RespondQuestionDto {
   @ApiPropertyOptional({ description: 'Internal analytical notes' })

@@ -1,4 +1,44 @@
 {
   "title": "Schools",
-  "todo": "TODO: implement per fn-sch-001 (S-01..S-31)."
+  "newSchool": "New School",
+  "loading": "Loading...",
+  "empty": "No schools registered yet.",
+  "columns": {
+    "name": "Name",
+    "level": "Level",
+    "region": "Region",
+    "authorized": "Auth",
+    "bands": "Bands",
+    "schedules": "Schedules",
+    "actions": "Actions"
+  },
+  "authorized": {
+    "yes": "AUTH'D",
+    "no": "UNAUTH'D"
+  },
+  "actions": {
+    "viewBands": "View Grade Bands",
+    "viewSchedules": "View Schedules",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "gradeBands": {
+    "title": "Grade Bands — {{school}}",
+    "label": "Label",
+    "min": "Min Grade",
+    "max": "Max Grade",
+    "note": "Note",
+    "add": "Add band"
+  },
+  "schedules": {
+    "title": "Schedules — {{school}}",
+    "year": "Year",
+    "type": "Type",
+    "open": "Open",
+    "close": "Close",
+    "test": "Test",
+    "result": "Result",
+    "add": "Add schedule"
+  }
 }
+

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
@@ -6,8 +6,10 @@ import { QuestionService } from '../application/question.service';
 import {
   ChangeQnaStatusDto,
   CreateQuestionDto,
+  EscalateQnaDto,
   MarkResolvedDto,
   PromoteFaqDto,
+  ReplyQuestionDto,
   RespondQuestionDto,
   UpdateQuestionDto,
 } from '../application/dto/question.dto';
@@ -30,10 +32,18 @@ export class QuestionController {
   list(
     @CurrentUser() user: AcmCurrentUser,
     @Query('status') status?: QnaStatus,
+    @Query('faqOnly') faqOnly?: string,
+    @Query('categoryId') categoryId?: string,
     @Query('limit') limit = '50',
     @Query('offset') offset = '0',
   ) {
-    return this.service.list(user.entId, status, Number(limit), Number(offset));
+    return this.service.list(user.entId, {
+      status,
+      faqOnly: faqOnly === 'true' || faqOnly === '1',
+      categoryId,
+      limit: Number(limit),
+      offset: Number(offset),
+    });
   }
 
   @Get(':id')
@@ -87,5 +97,53 @@ export class QuestionController {
     @Body() dto: PromoteFaqDto,
   ) {
     return this.service.promoteFaq(user.entId, id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Soft delete (Q-05) — team_lead+' })
+  async remove(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.service.softDelete(user.entId, id, user.id);
+  }
+
+  @Post(':id/escalate')
+  @ApiOperation({ summary: 'Escalate (Q-08)' })
+  escalate(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: EscalateQnaDto,
+  ) {
+    return this.service.escalate(user.entId, id, dto, user.id);
+  }
+
+  @Post(':id/reply')
+  @ApiOperation({ summary: 'Create child record in thread (Q-09)' })
+  reply(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReplyQuestionDto,
+  ) {
+    return this.service.reply(user.entId, id, dto, user.id);
+  }
+
+  @Get(':id/thread')
+  @ApiOperation({ summary: 'Thread chain — root + descendants (Q-10)' })
+  thread(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.service.thread(user.entId, id);
+  }
+
+  @Post(':id/use-faq')
+  @ApiOperation({ summary: 'Track FAQ usage + return externalBody (Q-23)' })
+  useFaq(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.service.useFaq(user.entId, id, user.id);
   }
 }

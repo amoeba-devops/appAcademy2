@@ -22,6 +22,9 @@ export class CreateSchoolDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
   isForeign?: boolean;
 
+  @ApiPropertyOptional({ default: true }) @IsOptional() @IsBoolean()
+  isAuthorized?: boolean;
+
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000)
   notes?: string;
 }

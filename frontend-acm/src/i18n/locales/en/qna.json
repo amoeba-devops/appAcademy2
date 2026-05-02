@@ -1,4 +1,49 @@
 {
   "title": "Q&A",
-  "todo": "TODO: implement per fn-qna-001 (Q-01..Q-53). Dual-tone editor required."
+  "newQuestion": "New Question",
+  "manageCategories": "Manage Categories",
+  "loading": "Loading...",
+  "empty": "No questions yet.",
+  "filters": {
+    "category": "Category",
+    "status": "Status",
+    "faqOnly": "FAQ only",
+    "all": "All"
+  },
+  "columns": {
+    "subject": "Subject",
+    "category": "Category",
+    "status": "Status",
+    "faq": "FAQ",
+    "createdAt": "Created",
+    "actions": "Actions"
+  },
+  "actions": {
+    "reply": "Reply (thread)",
+    "escalate": "Escalate",
+    "viewThread": "View thread",
+    "markResolved": "Mark resolved",
+    "useFaq": "Use as FAQ (clipboard)",
+    "delete": "Delete"
+  },
+  "reply": {
+    "title": "Reply — {{subject}}",
+    "subject": "Subject",
+    "body": "Body",
+    "send": "Send",
+    "cancel": "Cancel"
+  },
+  "thread": {
+    "title": "Thread chain"
+  },
+  "categories": {
+    "title": "Q&A Categories",
+    "code": "Code",
+    "label": "Label",
+    "active": "Active",
+    "refs": "Refs",
+    "add": "Add category",
+    "inUse": "In use — cannot delete"
+  }
 }
+

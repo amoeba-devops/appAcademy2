@@ -1,4 +1,47 @@
 {
-  "title": "Q&A",
-  "todo": "fn-qna-001 (Q-01..Q-53)에 따라 추후 구현 예정 — 듀얼톤 에디터 필요"
+  "title": "问答",
+  "newQuestion": "新问题",
+  "manageCategories": "管理分类",
+  "loading": "加载中...",
+  "empty": "暂无问题。",
+  "filters": {
+    "category": "分类",
+    "status": "状态",
+    "faqOnly": "仅 FAQ",
+    "all": "全部"
+  },
+  "columns": {
+    "subject": "主题",
+    "category": "分类",
+    "status": "状态",
+    "faq": "FAQ",
+    "createdAt": "创建时间",
+    "actions": "操作"
+  },
+  "actions": {
+    "reply": "回复 (会话)",
+    "escalate": "升级",
+    "viewThread": "查看会话",
+    "markResolved": "标记已解决",
+    "useFaq": "使用 FAQ (剪贴板)",
+    "delete": "删除"
+  },
+  "reply": {
+    "title": "回复 — {{subject}}",
+    "subject": "主题",
+    "body": "内容",
+    "send": "发送",
+    "cancel": "取消"
+  },
+  "thread": { "title": "会话链" },
+  "categories": {
+    "title": "问答分类",
+    "code": "代码",
+    "label": "名称",
+    "active": "启用",
+    "refs": "引用",
+    "add": "添加分类",
+    "inUse": "使用中 — 不能删除"
+  }
 }
+

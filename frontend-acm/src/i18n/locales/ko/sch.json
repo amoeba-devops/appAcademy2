@@ -1,4 +1,44 @@
 {
   "title": "학교",
-  "todo": "fn-sch-001 (S-01..S-31)에 따라 추후 구현 예정"
+  "newSchool": "새 학교",
+  "loading": "불러오는 중...",
+  "empty": "등록된 학교가 없습니다.",
+  "columns": {
+    "name": "이름",
+    "level": "등급",
+    "region": "지역",
+    "authorized": "인가",
+    "bands": "학년대",
+    "schedules": "일정",
+    "actions": "작업"
+  },
+  "authorized": {
+    "yes": "AUTH'D",
+    "no": "UNAUTH'D"
+  },
+  "actions": {
+    "viewBands": "학년대 보기",
+    "viewSchedules": "일정 보기",
+    "edit": "편집",
+    "delete": "삭제"
+  },
+  "gradeBands": {
+    "title": "학년대 — {{school}}",
+    "label": "라벨",
+    "min": "최소",
+    "max": "최대",
+    "note": "비고",
+    "add": "학년대 추가"
+  },
+  "schedules": {
+    "title": "일정 — {{school}}",
+    "year": "연도",
+    "type": "유형",
+    "open": "접수 시작",
+    "close": "접수 마감",
+    "test": "시험일",
+    "result": "발표일",
+    "add": "일정 추가"
+  }
 }
+

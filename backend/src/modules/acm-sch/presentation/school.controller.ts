@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
@@ -43,8 +43,20 @@ export class SchoolController {
     return this.service.findById(user.entId, id);
   }
 
-  @Put(':id')
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update school (S-04)' })
   update(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSchoolDto,
+  ) {
+    return this.service.update(user.entId, id, dto, user.id);
+  }
+
+  /** @deprecated Prefer PATCH. Kept for backward compatibility (Decision-D-impact §7). */
+  @Put(':id')
+  @ApiOperation({ summary: '[DEPRECATED] Update school via PUT — use PATCH (S-04)' })
+  updatePut(
     @CurrentUser() user: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateSchoolDto,

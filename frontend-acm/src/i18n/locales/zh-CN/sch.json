@@ -1,4 +1,41 @@
 {
-  "title": "학교",
-  "todo": "fn-sch-001 (S-01..S-31)에 따라 추후 구현 예정"
+  "title": "学校",
+  "newSchool": "新学校",
+  "loading": "加载中...",
+  "empty": "暂无学校。",
+  "columns": {
+    "name": "名称",
+    "level": "层级",
+    "region": "地区",
+    "authorized": "授权",
+    "bands": "年级段",
+    "schedules": "日程",
+    "actions": "操作"
+  },
+  "authorized": { "yes": "已授权", "no": "未授权" },
+  "actions": {
+    "viewBands": "查看年级段",
+    "viewSchedules": "查看日程",
+    "edit": "编辑",
+    "delete": "删除"
+  },
+  "gradeBands": {
+    "title": "年级段 — {{school}}",
+    "label": "标签",
+    "min": "最低年级",
+    "max": "最高年级",
+    "note": "备注",
+    "add": "添加段"
+  },
+  "schedules": {
+    "title": "日程 — {{school}}",
+    "year": "年份",
+    "type": "类型",
+    "open": "开始",
+    "close": "截止",
+    "test": "考试",
+    "result": "放榜",
+    "add": "添加日程"
+  }
 }
+

@@ -1,4 +1,47 @@
 {
   "title": "Hỏi đáp",
-  "todo": "TODO: triển khai theo fn-qna-001 (Q-01..Q-53). Cần trình soạn thảo dual-tone."
+  "newQuestion": "Câu hỏi mới",
+  "manageCategories": "Quản lý danh mục",
+  "loading": "Đang tải...",
+  "empty": "Chưa có câu hỏi.",
+  "filters": {
+    "category": "Danh mục",
+    "status": "Trạng thái",
+    "faqOnly": "Chỉ FAQ",
+    "all": "Tất cả"
+  },
+  "columns": {
+    "subject": "Chủ đề",
+    "category": "Danh mục",
+    "status": "Trạng thái",
+    "faq": "FAQ",
+    "createdAt": "Tạo",
+    "actions": "Hành động"
+  },
+  "actions": {
+    "reply": "Trả lời (luồng)",
+    "escalate": "Nâng cấp",
+    "viewThread": "Xem luồng",
+    "markResolved": "Đánh dấu đã giải quyết",
+    "useFaq": "Dùng FAQ (clipboard)",
+    "delete": "Xóa"
+  },
+  "reply": {
+    "title": "Trả lời — {{subject}}",
+    "subject": "Chủ đề",
+    "body": "Nội dung",
+    "send": "Gửi",
+    "cancel": "Hủy"
+  },
+  "thread": { "title": "Chuỗi luồng" },
+  "categories": {
+    "title": "Danh mục Q&A",
+    "code": "Mã",
+    "label": "Nhãn",
+    "active": "Hiệu lực",
+    "refs": "Tham chiếu",
+    "add": "Thêm danh mục",
+    "inUse": "Đang dùng — không xóa được"
+  }
 }
+

@@ -1,4 +1,49 @@
 {
   "title": "Q&A",
-  "todo": "fn-qna-001 (Q-01..Q-53)에 따라 추후 구현 예정 — 듀얼톤 에디터 필요"
+  "newQuestion": "새 질문",
+  "manageCategories": "카테고리 관리",
+  "loading": "불러오는 중...",
+  "empty": "등록된 질문이 없습니다.",
+  "filters": {
+    "category": "카테고리",
+    "status": "상태",
+    "faqOnly": "FAQ만",
+    "all": "전체"
+  },
+  "columns": {
+    "subject": "제목",
+    "category": "카테고리",
+    "status": "상태",
+    "faq": "FAQ",
+    "createdAt": "등록일",
+    "actions": "작업"
+  },
+  "actions": {
+    "reply": "답글 (스레드)",
+    "escalate": "에스컬레이트",
+    "viewThread": "스레드 보기",
+    "markResolved": "해결 완료",
+    "useFaq": "FAQ 사용 (클립보드)",
+    "delete": "삭제"
+  },
+  "reply": {
+    "title": "답글 — {{subject}}",
+    "subject": "제목",
+    "body": "내용",
+    "send": "등록",
+    "cancel": "취소"
+  },
+  "thread": {
+    "title": "스레드 체인"
+  },
+  "categories": {
+    "title": "Q&A 카테고리",
+    "code": "코드",
+    "label": "표시명",
+    "active": "활성",
+    "refs": "참조",
+    "add": "카테고리 추가",
+    "inUse": "사용 중 — 삭제 불가"
+  }
 }
+

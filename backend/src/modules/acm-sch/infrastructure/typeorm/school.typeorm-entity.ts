@@ -25,6 +25,9 @@ export class SchoolTypeormEntity {
   @Column({ name: 'is_foreign', type: 'boolean', default: false })
   isForeign!: boolean;
 
+  @Column({ name: 'is_authorized', type: 'boolean', default: true })
+  isAuthorized!: boolean;
+
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;
 

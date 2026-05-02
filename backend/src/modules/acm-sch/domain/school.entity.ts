@@ -12,6 +12,7 @@ export interface School {
   region?: string;
   district?: string;
   isForeign: boolean;
+  isAuthorized: boolean;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
