@@ -7,9 +7,15 @@
 
 -- ent_id for Trinity Academy (TPI): 00000000-0000-0000-0000-000000000001
 
--- UNIQUE constraint required for ON CONFLICT upsert (idempotent)
-ALTER TABLE amb_acm_std_student
-  ADD CONSTRAINT IF NOT EXISTS uq_acm_std_ent_name UNIQUE (ent_id, std_name);
+-- Ensure unique constraint exists (idempotent)
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_acm_std_ent_name'
+  ) THEN
+    ALTER TABLE amb_acm_std_student
+      ADD CONSTRAINT uq_acm_std_ent_name UNIQUE (ent_id, std_name);
+  END IF;
+END $$;
 
 INSERT INTO amb_acm_std_student
   (std_id, ent_id, std_name, std_english_name, std_gender, std_birth_date,

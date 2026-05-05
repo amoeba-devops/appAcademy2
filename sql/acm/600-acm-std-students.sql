@@ -64,3 +64,13 @@ CREATE INDEX IF NOT EXISTS idx_acm_std_ent_status
 
 CREATE INDEX IF NOT EXISTS idx_acm_std_name_trgm
   ON amb_acm_std_student USING GIN (std_name gin_trgm_ops);
+
+-- Unique constraint required for ON CONFLICT upsert in seed/import
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_acm_std_ent_name'
+  ) THEN
+    ALTER TABLE amb_acm_std_student
+      ADD CONSTRAINT uq_acm_std_ent_name UNIQUE (ent_id, std_name);
+  END IF;
+END $$;
