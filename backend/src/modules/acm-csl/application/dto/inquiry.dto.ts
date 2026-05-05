@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -42,12 +44,12 @@ const STAGES: readonly CslStage[] = [
 ] as const;
 const INFLOW_TYPES: readonly InflowType[] = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
 const APPLY_TYPES: readonly ApplyType[] = ['COUNSELING_ONLY', 'EXAM_ONLY', 'BOTH'] as const;
-const APPLY_PURPOSES: readonly ApplyPurpose[] = [
+const APPLY_PURPOSES = [
+  'MAP_TEST_TUTORING',
+  'ISEE_TUTORING',
   'INTL_SCHOOL_PREP',
-  'MAP_SCORE_UP',
-  'STD_TEST_PREP',
   'GPA_MGMT',
-  'OTHER',
+  'ADVANCED_COURSES',
 ] as const;
 const PHONE_STATUSES: readonly PhoneStatus[] = ['PROVIDED', 'DECLINED', 'UNKNOWN'] as const;
 const YES_NO: readonly YesNo[] = ['YES', 'NO'] as const;
@@ -117,17 +119,12 @@ export class CreateInquiryDto {
   @ApiProperty({ enum: APPLY_TYPES }) @IsEnum(APPLY_TYPES)
   applyType!: ApplyType;
 
-  /** F-08 */
-  @ApiPropertyOptional({ enum: APPLY_PURPOSES })
+  /** F-08 — multi-select; comma-joined on storage */
+  @ApiPropertyOptional({ type: [String], enum: APPLY_PURPOSES })
   @IsOptional()
-  @IsEnum(APPLY_PURPOSES)
-  applyPurpose?: ApplyPurpose;
-
-  @ApiPropertyOptional()
-  @ValidateIf((o: CreateInquiryDto) => o.applyPurpose === 'OTHER')
-  @IsString({ message: 'applyPurposeOther required when applyPurpose=OTHER' })
-  @MaxLength(500)
-  applyPurposeOther?: string;
+  @IsArray()
+  @IsIn([...APPLY_PURPOSES], { each: true })
+  applyPurposes?: string[];
 
   /** F-09 */
   @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)

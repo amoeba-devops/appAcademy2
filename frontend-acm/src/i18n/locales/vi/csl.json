@@ -63,11 +63,11 @@
     "BOTH": "Tư vấn + Thi"
   },
   "applyPurpose": {
-    "INTL_SCHOOL_PREP": "Dự bị trường quốc tế",
-    "MAP_SCORE_UP": "Nâng điểm MAP",
-    "STD_TEST_PREP": "Luyện thi chuẩn hóa",
-    "GPA_MGMT": "Quản lý GPA",
-    "OTHER": "Khác"
+    "MAP_TEST_TUTORING": "Dạy kèm MAP Test",
+    "ISEE_TUTORING": "Dạy kèm ISEE",
+    "INTL_SCHOOL_PREP": "Chuẩn bị tuyển sinh trường quốc tế/nước ngoài",
+    "GPA_MGMT": "Quản lý GPA theo yêu cầu",
+    "ADVANCED_COURSES": "Khóa nâng cao (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
   },
   "phoneStatus": {
     "PROVIDED": "Đã cung cấp",

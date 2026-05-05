@@ -76,9 +76,6 @@ export class InquiryService {
     if (!dto.schoolId && !dto.schoolFreetext) {
       throw new BadRequestException('schoolId or schoolFreetext required (C-105)');
     }
-    if (dto.applyPurpose === 'OTHER' && !dto.applyPurposeOther) {
-      throw new BadRequestException('applyPurposeOther required when applyPurpose=OTHER');
-    }
 
     // Allocate per-tenant sequential number
     const rows: Array<{ next: number }> = await this.ds.query(
@@ -114,8 +111,8 @@ export class InquiryService {
       phoneStatus,
       inflowType: dto.inflowType,
       applyType: dto.applyType,
-      applyPurpose: dto.applyPurpose ?? null,
-      applyPurposeOther: dto.applyPurposeOther ?? null,
+      applyPurpose: dto.applyPurposes?.length ? dto.applyPurposes.join(',') : null,
+      applyPurposeOther: null,
       consultDone: dto.consultDone ?? null,
       schoolId: dto.schoolId ?? null,
       schoolFreetext: dto.schoolFreetext ?? null,
@@ -189,17 +186,13 @@ export class InquiryService {
     if (dto.grade !== undefined) e.grade = dto.grade ?? null;
     if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
     if (dto.applyType !== undefined) e.applyType = dto.applyType;
-    if (dto.applyPurpose !== undefined) e.applyPurpose = dto.applyPurpose ?? null;
-    if (dto.applyPurposeOther !== undefined)
-      e.applyPurposeOther = dto.applyPurposeOther ?? null;
+    if (dto.applyPurposes !== undefined)
+      e.applyPurpose = dto.applyPurposes?.length ? dto.applyPurposes.join(',') : null;
     if (dto.consultDone !== undefined) e.consultDone = dto.consultDone ?? null;
     if (dto.registeredAt !== undefined) e.registeredAt = dto.registeredAt;
     if (dto.followupAt !== undefined) e.followupAt = dto.followupAt ?? null;
     if (dto.followupMemo !== undefined) e.followupMemo = dto.followupMemo ?? null;
 
-    if (e.applyPurpose === 'OTHER' && !e.applyPurposeOther) {
-      throw new BadRequestException('applyPurposeOther required when applyPurpose=OTHER');
-    }
     return this.toView(await this.inq.save(e));
   }
 
@@ -511,8 +504,7 @@ export class InquiryService {
       grade: e.grade,
       inflowType: e.inflowType,
       applyType: e.applyType,
-      applyPurpose: e.applyPurpose,
-      applyPurposeOther: e.applyPurposeOther,
+      applyPurposes: e.applyPurpose ? e.applyPurpose.split(',').filter(Boolean) : [],
       consultDone: e.consultDone,
       currentStage: e.currentStage,
       previousStage: e.previousStage,

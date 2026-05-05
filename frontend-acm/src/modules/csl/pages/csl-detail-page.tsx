@@ -31,7 +31,7 @@ interface InquiryDetail {
   grade?: string | null;
   inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
   applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
-  applyPurpose?: string | null;
+  applyPurposes?: string[];
   consultDone?: 'YES' | 'NO' | null;
   currentStage: CslStage;
   previousStage?: CslStage | null;

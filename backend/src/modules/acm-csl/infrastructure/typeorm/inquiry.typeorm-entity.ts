@@ -23,11 +23,11 @@ export type CslStage =
 export type InflowType = 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
 export type ApplyType = 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
 export type ApplyPurpose =
+  | 'MAP_TEST_TUTORING'
+  | 'ISEE_TUTORING'
   | 'INTL_SCHOOL_PREP'
-  | 'MAP_SCORE_UP'
-  | 'STD_TEST_PREP'
   | 'GPA_MGMT'
-  | 'OTHER';
+  | 'ADVANCED_COURSES';
 export type PhoneStatus = 'PROVIDED' | 'DECLINED' | 'UNKNOWN';
 export type YesNo = 'YES' | 'NO';
 
@@ -88,9 +88,9 @@ export class InquiryTypeormEntity {
   @Column({ name: 'inq_apply_type', type: 'varchar', length: 20 })
   applyType!: ApplyType;
 
-  /** F-08 */
-  @Column({ name: 'inq_apply_purpose', type: 'varchar', length: 32, nullable: true })
-  applyPurpose?: ApplyPurpose | null;
+  /** F-08 — comma-separated list of ApplyPurpose values (multi-select) */
+  @Column({ name: 'inq_apply_purpose', type: 'text', nullable: true })
+  applyPurpose?: string | null;
   @Column({ name: 'inq_apply_purpose_other', type: 'text', nullable: true })
   applyPurposeOther?: string | null;
 

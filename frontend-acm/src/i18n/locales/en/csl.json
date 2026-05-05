@@ -63,11 +63,11 @@
     "BOTH": "Counseling + Exam"
   },
   "applyPurpose": {
-    "INTL_SCHOOL_PREP": "Intl. school prep",
-    "MAP_SCORE_UP": "MAP score up",
-    "STD_TEST_PREP": "Standardized test prep",
-    "GPA_MGMT": "GPA management",
-    "OTHER": "Other"
+    "MAP_TEST_TUTORING": "MAP Test Tutoring",
+    "ISEE_TUTORING": "ISEE Tutoring",
+    "INTL_SCHOOL_PREP": "Intl./foreign school admission prep",
+    "GPA_MGMT": "Customized GPA management",
+    "ADVANCED_COURSES": "Advanced courses (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
   },
   "phoneStatus": {
     "PROVIDED": "Provided",

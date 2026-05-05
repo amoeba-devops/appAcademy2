@@ -63,11 +63,11 @@
     "BOTH": "상담+시험"
   },
   "applyPurpose": {
-    "INTL_SCHOOL_PREP": "국제학교 진학 준비",
-    "MAP_SCORE_UP": "MAP 점수 향상",
-    "STD_TEST_PREP": "공인시험 준비",
-    "GPA_MGMT": "내신 관리",
-    "OTHER": "기타"
+    "MAP_TEST_TUTORING": "MAP TEST 튜터링",
+    "ISEE_TUTORING": "ISEE 튜터링",
+    "INTL_SCHOOL_PREP": "국제학교/외국인학교 입학 준비",
+    "GPA_MGMT": "맞춤형 GPA 관리",
+    "ADVANCED_COURSES": "심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
   },
   "phoneStatus": {
     "PROVIDED": "제공됨",

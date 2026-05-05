@@ -27,11 +27,11 @@ const phoneRegex = /^[0-9+\-() ]{7,20}$/;
 const INFLOW_TYPES = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
 const APPLY_TYPES = ['COUNSELING_ONLY', 'EXAM_ONLY', 'BOTH'] as const;
 const APPLY_PURPOSES = [
+  'MAP_TEST_TUTORING',
+  'ISEE_TUTORING',
   'INTL_SCHOOL_PREP',
-  'MAP_SCORE_UP',
-  'STD_TEST_PREP',
   'GPA_MGMT',
-  'OTHER',
+  'ADVANCED_COURSES',
 ] as const;
 const PHONE_STATUSES = ['PROVIDED', 'DECLINED', 'UNKNOWN'] as const;
 const YES_NO = ['YES', 'NO'] as const;
@@ -52,8 +52,7 @@ const cslCreateSchema = z
     grade: z.enum(GRADES).optional(),
     inflowType: z.enum(INFLOW_TYPES),
     applyType: z.enum(APPLY_TYPES),
-    applyPurpose: z.enum(APPLY_PURPOSES).optional(),
-    applyPurposeOther: z.string().trim().max(500).optional().or(z.literal('')),
+    applyPurposes: z.array(z.enum(APPLY_PURPOSES)).default([]),
     consultDone: z.enum(YES_NO).optional(),
     registeredAt: z.string().optional().or(z.literal('')),
     followupAt: z.string().optional().or(z.literal('')),
@@ -70,12 +69,7 @@ const cslCreateSchema = z
   .refine((d) => d.phoneStatus !== 'PROVIDED' || !!d.parentPhone, {
     path: ['parentPhone'],
     message: 'csl:validation.phoneRequiredForProvided',
-  })
-  .refine(
-    (d) =>
-      d.applyPurpose !== 'OTHER' || !!(d.applyPurposeOther && d.applyPurposeOther.length > 0),
-    { path: ['applyPurposeOther'], message: 'csl:validation.purposeOtherRequired' },
-  );
+  });
 
 type CslCreateInput = z.infer<typeof cslCreateSchema>;
 
@@ -89,6 +83,7 @@ export function CslCreateDialog() {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CslCreateInput>({
     resolver: zodResolver(cslCreateSchema),
@@ -97,11 +92,12 @@ export function CslCreateDialog() {
       phoneStatus: 'UNKNOWN',
       inflowType: 'HOMEPAGE',
       applyType: 'COUNSELING_ONLY',
+      applyPurposes: [],
     },
   });
 
   const isAnonymous = watch('isAnonymous');
-  const applyPurpose = watch('applyPurpose');
+  const applyPurposes = watch('applyPurposes');
 
   const mutation = useMutation({
     mutationFn: async (payload: CslCreateInput) => {
@@ -115,8 +111,7 @@ export function CslCreateDialog() {
         grade: payload.grade || undefined,
         inflowType: payload.inflowType,
         applyType: payload.applyType,
-        applyPurpose: payload.applyPurpose || undefined,
-        applyPurposeOther: payload.applyPurposeOther || undefined,
+        applyPurposes: payload.applyPurposes.length ? payload.applyPurposes : undefined,
         consultDone: payload.consultDone || undefined,
         registeredAt: payload.registeredAt || undefined,
         followupAt: payload.followupAt || undefined,
@@ -231,28 +226,33 @@ export function CslCreateDialog() {
             </Field>
           </div>
 
-          {/* Apply purpose + other */}
-          <Field label={t('form.applyPurpose')}>
-            <Select {...register('applyPurpose')}>
-              <option value="">{t('common:dash')}</option>
-              {APPLY_PURPOSES.map((p) => (
-                <option key={p} value={p}>
-                  {t(`applyPurpose.${p}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          {applyPurpose === 'OTHER' && (
-            <Field
-              label={t('form.applyPurposeOther')}
-              error={tr(errors.applyPurposeOther?.message as string)}
-            >
-              <Input
-                {...register('applyPurposeOther')}
-                placeholder={t('form.applyPurposeOtherPlaceholder')}
-              />
-            </Field>
-          )}
+          {/* Apply purpose — multi-select checkboxes */}
+          <div className="grid gap-1">
+            <Label>{t('form.applyPurpose')}</Label>
+            <div className="grid gap-1.5 rounded-md border border-input bg-background px-3 py-2">
+              {APPLY_PURPOSES.map((p) => {
+                const checked = applyPurposes.includes(p);
+                return (
+                  <label key={p} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={checked}
+                      onChange={(e) => {
+                        const next = e.target.checked
+                          ? [...applyPurposes, p]
+                          : applyPurposes.filter((v) => v !== p);
+                        setValue('applyPurposes', next as typeof applyPurposes, {
+                          shouldValidate: true,
+                        });
+                      }}
+                    />
+                    {t(`applyPurpose.${p}`)}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Consult done + registered + followup */}
           <div className="grid grid-cols-3 gap-3">
