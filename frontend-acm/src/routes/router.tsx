@@ -13,9 +13,17 @@ import { SchoolListPage } from '@/modules/sch/pages/school-list-page';
 import { ReferenceListPage } from '@/modules/ref/pages/reference-list-page';
 import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
 import { QnaCategoriesPage } from '@/modules/qna/pages/qna-categories-page';
+import { WebContactPage } from '@/modules/web/pages/web-contact-page';
+import { WebTestPage } from '@/modules/web/pages/web-test-page';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+
+  // Public web pages (no auth required)
+  { path: '/web/contact', element: <WebContactPage /> },
+  { path: '/web/test', element: <WebTestPage /> },
+
+  // Admin pages (auth required)
   {
     path: '/',
     element: (
@@ -24,18 +32,19 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-      { path: 'dashboard', element: <DashboardPage /> },
-      { path: 'csl', element: <CslListPage /> },
-      { path: 'csl/:id', element: <CslDetailPage /> },
-      { path: 'cls', element: <ClsListPage /> },
-      { path: 'cls/:id', element: <ClsDetailPage /> },
-      { path: 'std', element: <StdListPage /> },
-      { path: 'std/:id', element: <StdDetailPage /> },
-      { path: 'sch', element: <SchoolListPage /> },
-      { path: 'ref', element: <ReferenceListPage /> },
-      { path: 'qna', element: <QnaListPage /> },
-      { path: 'qna/categories', element: <QnaCategoriesPage /> },
+      { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'admin', element: <Navigate to="/admin/dashboard" replace /> },
+      { path: 'admin/dashboard', element: <DashboardPage /> },
+      { path: 'admin/csl', element: <CslListPage /> },
+      { path: 'admin/csl/:id', element: <CslDetailPage /> },
+      { path: 'admin/cls', element: <ClsListPage /> },
+      { path: 'admin/cls/:id', element: <ClsDetailPage /> },
+      { path: 'admin/std', element: <StdListPage /> },
+      { path: 'admin/std/:id', element: <StdDetailPage /> },
+      { path: 'admin/sch', element: <SchoolListPage /> },
+      { path: 'admin/ref', element: <ReferenceListPage /> },
+      { path: 'admin/qna', element: <QnaListPage /> },
+      { path: 'admin/qna/categories', element: <QnaCategoriesPage /> },
     ],
   },
 ]);

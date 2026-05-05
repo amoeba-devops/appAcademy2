@@ -1,0 +1,80 @@
+{
+  "contact": {
+    "pageTitle": "咨询申请",
+    "subtitle": "从精准学业诊断到确实目标达成——专注学生成长。",
+    "purposeLabel": "您需要哪种咨询？（可多选）",
+    "purposes": {
+      "MAP_TEST_TUTORING": "MAP TEST 辅导",
+      "ISEE_TUTORING": "ISEE 辅导",
+      "INTL_SCHOOL_PREP": "国际学校入学准备",
+      "GPA_MGMT": "定制化 GPA 管理",
+      "ADVANCED_COURSES": "进阶课程（SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT）"
+    },
+    "fields": {
+      "studentName": "学生姓名",
+      "grade": "年级",
+      "parentPhone": "联系电话",
+      "privacyConsent": "我同意收集和使用个人信息。"
+    },
+    "placeholder": {
+      "studentName": "请输入学生姓名。",
+      "grade": "请选择年级。",
+      "parentPhone": "请输入可联系的电话号码。"
+    },
+    "submit": "提交",
+    "submitting": "提交中…",
+    "notice": "※ 提交后，专业顾问将在24个工作小时内与您联系。",
+    "success": {
+      "title": "咨询申请已提交。",
+      "body": "专业顾问将在24个工作小时内与您联系。"
+    },
+    "validation": {
+      "studentNameRequired": "请输入学生姓名。",
+      "phoneRequired": "请输入联系电话。",
+      "phoneInvalid": "请输入有效的电话号码。",
+      "privacyRequired": "请同意隐私政策。"
+    }
+  },
+  "test": {
+    "pageTitle": "MAP Test 报名",
+    "subtitle": "请填写参加 MAP Test 学生的基本信息。",
+    "fields": {
+      "studentName": "学生姓名（韩文）",
+      "studentNameEn": "学生姓名（英文）",
+      "birthdate": "出生日期",
+      "grade": "年级",
+      "gender": "性别",
+      "parentPhone": "联系电话",
+      "parentEmail": "家长邮箱",
+      "location": "考试国家/城市",
+      "privacyConsent": "我同意收集和使用个人信息。"
+    },
+    "placeholder": {
+      "studentName": "请输入学生韩文姓名。",
+      "studentNameEn": "请输入学生英文姓名。",
+      "birthdate": "请输入出生日期。",
+      "grade": "请选择年级。",
+      "gender": "请选择性别。",
+      "parentPhone": "请输入可联系的电话号码。",
+      "parentEmail": "请输入家长电子邮件地址。",
+      "location": "请输入考试所在国家和城市。"
+    },
+    "genderOptions": {
+      "male": "男",
+      "female": "女"
+    },
+    "submit": "报名",
+    "submitting": "提交中…",
+    "notice": "※ 提交后，专业顾问将在24个工作小时内与您联系。",
+    "success": {
+      "title": "MAP Test 报名已提交。",
+      "body": "专业顾问将在24个工作小时内与您联系。"
+    },
+    "validation": {
+      "studentNameRequired": "请输入学生姓名。",
+      "phoneRequired": "请输入联系电话。",
+      "phoneInvalid": "请输入有效的电话号码。",
+      "privacyRequired": "请同意隐私政策。"
+    }
+  }
+}

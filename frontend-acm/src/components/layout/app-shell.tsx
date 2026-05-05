@@ -15,13 +15,13 @@ import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
 
 const NAV = [
-  { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
-  { to: '/csl', icon: Users, key: 'csl' },
-  { to: '/std', icon: UserRound, key: 'std' },
-  { to: '/cls', icon: GraduationCap, key: 'cls' },
-  { to: '/sch', icon: School, key: 'sch' },
-  { to: '/ref', icon: BookOpen, key: 'ref' },
-  { to: '/qna', icon: MessageCircleQuestion, key: 'qna' },
+  { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
+  { to: '/admin/csl', icon: Users, key: 'csl' },
+  { to: '/admin/std', icon: UserRound, key: 'std' },
+  { to: '/admin/cls', icon: GraduationCap, key: 'cls' },
+  { to: '/admin/sch', icon: School, key: 'sch' },
+  { to: '/admin/ref', icon: BookOpen, key: 'ref' },
+  { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
 ] as const;
 
 export function AppShell() {

@@ -10,6 +10,7 @@ import { TransitionTypeormEntity } from './infrastructure/typeorm/transition.typ
 import { RemarkTypeormEntity } from './infrastructure/typeorm/remark.typeorm-entity';
 import { PiiAuditTypeormEntity } from './infrastructure/typeorm/pii-audit.typeorm-entity';
 import { InquiryController } from './presentation/inquiry.controller';
+import { WebInquiryController } from './presentation/web-inquiry.controller';
 import { InquiryService } from './application/inquiry.service';
 import { InquiryWorkflowService } from './application/inquiry-workflow.service';
 
@@ -34,7 +35,7 @@ import { InquiryWorkflowService } from './application/inquiry-workflow.service';
       ACM_DS,
     ),
   ],
-  controllers: [InquiryController],
+  controllers: [InquiryController, WebInquiryController],
   providers: [InquiryService, InquiryWorkflowService],
   exports: [InquiryService, InquiryWorkflowService],
 })

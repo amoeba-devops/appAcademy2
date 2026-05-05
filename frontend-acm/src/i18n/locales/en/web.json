@@ -1,0 +1,80 @@
+{
+  "contact": {
+    "pageTitle": "Consultation Request",
+    "subtitle": "From accurate diagnosis to achieving your goals — we focus on your student's growth.",
+    "purposeLabel": "What type of consultation do you need? (Multiple selection allowed)",
+    "purposes": {
+      "MAP_TEST_TUTORING": "MAP TEST Tutoring",
+      "ISEE_TUTORING": "ISEE Tutoring",
+      "INTL_SCHOOL_PREP": "International School Admission Prep",
+      "GPA_MGMT": "Customized GPA Management",
+      "ADVANCED_COURSES": "Advanced Courses (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    },
+    "fields": {
+      "studentName": "Student Name",
+      "grade": "Grade",
+      "parentPhone": "Phone Number",
+      "privacyConsent": "I agree to the collection and use of personal information."
+    },
+    "placeholder": {
+      "studentName": "Enter student name.",
+      "grade": "Select grade.",
+      "parentPhone": "Enter a reachable phone number."
+    },
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "notice": "※ A consultant will contact you within 24 business hours after submission.",
+    "success": {
+      "title": "Your consultation request has been submitted.",
+      "body": "A consultant will contact you within 24 business hours."
+    },
+    "validation": {
+      "studentNameRequired": "Please enter the student's name.",
+      "phoneRequired": "Please enter a phone number.",
+      "phoneInvalid": "Please enter a valid phone number.",
+      "privacyRequired": "Please agree to the privacy policy."
+    }
+  },
+  "test": {
+    "pageTitle": "MAP Test Registration",
+    "subtitle": "Please enter the student's basic information for the MAP Test.",
+    "fields": {
+      "studentName": "Student Name (Korean)",
+      "studentNameEn": "Student Name (English)",
+      "birthdate": "Date of Birth",
+      "grade": "Grade",
+      "gender": "Gender",
+      "parentPhone": "Phone Number",
+      "parentEmail": "Parent Email",
+      "location": "Country / City",
+      "privacyConsent": "I agree to the collection and use of personal information."
+    },
+    "placeholder": {
+      "studentName": "Enter student's Korean name.",
+      "studentNameEn": "Enter student's English name.",
+      "birthdate": "Enter date of birth.",
+      "grade": "Select grade.",
+      "gender": "Select gender.",
+      "parentPhone": "Enter a reachable phone number.",
+      "parentEmail": "Enter parent email address.",
+      "location": "Enter country and city for the test."
+    },
+    "genderOptions": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "submit": "Register",
+    "submitting": "Submitting…",
+    "notice": "※ A consultant will contact you within 24 business hours after submission.",
+    "success": {
+      "title": "Your MAP Test registration has been submitted.",
+      "body": "A consultant will contact you within 24 business hours."
+    },
+    "validation": {
+      "studentNameRequired": "Please enter the student's name.",
+      "phoneRequired": "Please enter a phone number.",
+      "phoneInvalid": "Please enter a valid phone number.",
+      "privacyRequired": "Please agree to the privacy policy."
+    }
+  }
+}

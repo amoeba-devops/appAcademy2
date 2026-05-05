@@ -1,0 +1,80 @@
+{
+  "contact": {
+    "pageTitle": "Đăng ký tư vấn",
+    "subtitle": "Từ chẩn đoán học thuật chính xác đến đạt mục tiêu — chúng tôi tập trung vào sự phát triển của học sinh.",
+    "purposeLabel": "Bạn muốn tư vấn về điều gì? (Có thể chọn nhiều)",
+    "purposes": {
+      "MAP_TEST_TUTORING": "Gia sư MAP TEST",
+      "ISEE_TUTORING": "Gia sư ISEE",
+      "INTL_SCHOOL_PREP": "Chuẩn bị vào trường quốc tế",
+      "GPA_MGMT": "Quản lý GPA theo yêu cầu",
+      "ADVANCED_COURSES": "Khóa học nâng cao (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    },
+    "fields": {
+      "studentName": "Tên học sinh",
+      "grade": "Lớp",
+      "parentPhone": "Số điện thoại",
+      "privacyConsent": "Tôi đồng ý với việc thu thập và sử dụng thông tin cá nhân."
+    },
+    "placeholder": {
+      "studentName": "Nhập tên học sinh.",
+      "grade": "Chọn lớp.",
+      "parentPhone": "Nhập số điện thoại có thể liên lạc."
+    },
+    "submit": "Gửi",
+    "submitting": "Đang gửi…",
+    "notice": "※ Sau khi gửi, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ làm việc.",
+    "success": {
+      "title": "Đăng ký tư vấn đã được gửi.",
+      "body": "Chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ làm việc."
+    },
+    "validation": {
+      "studentNameRequired": "Vui lòng nhập tên học sinh.",
+      "phoneRequired": "Vui lòng nhập số điện thoại.",
+      "phoneInvalid": "Vui lòng nhập số điện thoại hợp lệ.",
+      "privacyRequired": "Vui lòng đồng ý với chính sách bảo mật."
+    }
+  },
+  "test": {
+    "pageTitle": "Đăng ký thi MAP Test",
+    "subtitle": "Vui lòng nhập thông tin cơ bản của học sinh tham dự MAP Test.",
+    "fields": {
+      "studentName": "Tên học sinh (tiếng Hàn)",
+      "studentNameEn": "Tên học sinh (tiếng Anh)",
+      "birthdate": "Ngày sinh",
+      "grade": "Lớp",
+      "gender": "Giới tính",
+      "parentPhone": "Số điện thoại",
+      "parentEmail": "Email phụ huynh",
+      "location": "Quốc gia / Thành phố thi",
+      "privacyConsent": "Tôi đồng ý với việc thu thập và sử dụng thông tin cá nhân."
+    },
+    "placeholder": {
+      "studentName": "Nhập tên tiếng Hàn của học sinh.",
+      "studentNameEn": "Nhập tên tiếng Anh của học sinh.",
+      "birthdate": "Nhập ngày sinh.",
+      "grade": "Chọn lớp.",
+      "gender": "Chọn giới tính.",
+      "parentPhone": "Nhập số điện thoại có thể liên lạc.",
+      "parentEmail": "Nhập địa chỉ email của phụ huynh.",
+      "location": "Nhập quốc gia và thành phố thi."
+    },
+    "genderOptions": {
+      "male": "Nam",
+      "female": "Nữ"
+    },
+    "submit": "Đăng ký",
+    "submitting": "Đang gửi…",
+    "notice": "※ Sau khi gửi, chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ làm việc.",
+    "success": {
+      "title": "Đăng ký MAP Test đã được gửi.",
+      "body": "Chuyên viên tư vấn sẽ liên hệ trong vòng 24 giờ làm việc."
+    },
+    "validation": {
+      "studentNameRequired": "Vui lòng nhập tên học sinh.",
+      "phoneRequired": "Vui lòng nhập số điện thoại.",
+      "phoneInvalid": "Vui lòng nhập số điện thoại hợp lệ.",
+      "privacyRequired": "Vui lòng đồng ý với chính sách bảo mật."
+    }
+  }
+}

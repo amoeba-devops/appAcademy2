@@ -1,0 +1,80 @@
+{
+  "contact": {
+    "pageTitle": "상담 신청",
+    "subtitle": "정확한 학업 진단에서 확실한 목표 달성까지 학생의 성장에 집중합니다.",
+    "purposeLabel": "어떤 상담을 원하시나요? (복수 선택 가능)",
+    "purposes": {
+      "MAP_TEST_TUTORING": "MAP TEST 튜터링",
+      "ISEE_TUTORING": "ISEE 튜터링",
+      "INTL_SCHOOL_PREP": "국제학교/외국인학교 입학 준비",
+      "GPA_MGMT": "맞춤형 GPA 관리",
+      "ADVANCED_COURSES": "심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    },
+    "fields": {
+      "studentName": "학생 이름",
+      "grade": "학년",
+      "parentPhone": "연락처",
+      "privacyConsent": "개인정보 수집 및 이용에 동의합니다."
+    },
+    "placeholder": {
+      "studentName": "학생 이름을 입력해 주세요.",
+      "grade": "학년을 선택해 주세요.",
+      "parentPhone": "연락 가능한 전화번호를 입력해 주세요."
+    },
+    "submit": "상담하기",
+    "submitting": "제출 중…",
+    "notice": "※ 접수 후 영업일 기준 24시간 이내에 전문 컨설턴트가 순차적으로 연락드립니다.",
+    "success": {
+      "title": "상담 신청이 완료되었습니다.",
+      "body": "영업일 기준 24시간 이내에 전문 컨설턴트가 연락드립니다."
+    },
+    "validation": {
+      "studentNameRequired": "학생 이름을 입력해 주세요.",
+      "phoneRequired": "연락처를 입력해 주세요.",
+      "phoneInvalid": "유효한 전화번호를 입력해 주세요.",
+      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요."
+    }
+  },
+  "test": {
+    "pageTitle": "MAP Test 응시 신청",
+    "subtitle": "MAP Test를 응시하는 학생의 기본 인적사항을 입력해 주세요.",
+    "fields": {
+      "studentName": "학생 한글 이름",
+      "studentNameEn": "학생 영문 이름",
+      "birthdate": "생년월일",
+      "grade": "학년",
+      "gender": "성별",
+      "parentPhone": "연락처",
+      "parentEmail": "학부모 이메일",
+      "location": "응시 국가/도시",
+      "privacyConsent": "개인정보 수집 및 이용에 동의합니다."
+    },
+    "placeholder": {
+      "studentName": "학생의 한글 이름을 입력해 주세요.",
+      "studentNameEn": "학생의 영문 이름을 입력해 주세요.",
+      "birthdate": "생년월일을 입력해 주세요.",
+      "grade": "학년을 선택해 주세요.",
+      "gender": "성별을 선택해 주세요.",
+      "parentPhone": "연락 가능한 전화번호를 입력해 주세요.",
+      "parentEmail": "학부모 이메일 주소를 입력해 주세요.",
+      "location": "응시할 국가, 도시를 입력해 주세요."
+    },
+    "genderOptions": {
+      "male": "남",
+      "female": "여"
+    },
+    "submit": "신청하기",
+    "submitting": "제출 중…",
+    "notice": "※ 접수 후 영업일 기준 24시간 이내에 전문 컨설턴트가 순차적으로 연락드립니다.",
+    "success": {
+      "title": "MAP Test 신청이 완료되었습니다.",
+      "body": "영업일 기준 24시간 이내에 전문 컨설턴트가 연락드립니다."
+    },
+    "validation": {
+      "studentNameRequired": "학생 이름을 입력해 주세요.",
+      "phoneRequired": "연락처를 입력해 주세요.",
+      "phoneInvalid": "유효한 전화번호를 입력해 주세요.",
+      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요."
+    }
+  }
+}
