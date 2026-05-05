@@ -6,13 +6,31 @@
     "addComplaint": "添加投诉",
     "exportCsv": "导出CSV",
     "save": "保存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "preset": {
+      "thisMonth": "本月",
+      "lastMonth": "上月",
+      "last30": "最近30天",
+      "last90": "最近90天",
+      "custom": "自定义"
+    }
+  },
+  "range": {
+    "from": "起",
+    "to": "止",
+    "label": "期间"
   },
   "summary": {
     "sum": "合计",
     "aver": "平均",
-    "vsPrev": "vs 上月",
-    "noPrev": "无上月数据"
+    "vsPrev": "vs 上期",
+    "noPrev": "无上期数据",
+    "headers": {
+      "label": "指标",
+      "sum": "合计",
+      "avg": "平均",
+      "delta": "Δ%"
+    }
   },
   "status": {
     "populated": "{{count}}/{{total}}일 데이터 입력됨"
@@ -30,20 +48,49 @@
     "aver": "평균"
   },
   "manualInput": {
-    "title": "일별 수동 입력",
-    "date": "일자",
-    "visitor": "방문자",
-    "cost": "비용 (원)",
-    "effect": "효과",
-    "complain": "불만 건수",
-    "visitorSource": "방문자 출처",
-    "costSource": "비용 출처",
-    "status": "입력 상태",
-    "note": "메모",
+    "title": "每日手动录入",
+    "date": "日期",
+    "visitor": "访问者",
+    "cost": "费用 (韩元)",
+    "effect": "效果",
+    "complain": "投诉数",
+    "visitorSource": "访问来源",
+    "costSource": "费用来源",
+    "status": "状态",
+    "note": "备注",
+    "effectAutoNote": "效果 = 咨询 + 报名（自动计算）",
+    "sections": {
+      "marketing": "营销",
+      "cs": "客服",
+      "operating": "运营",
+      "class": "课程"
+    },
+    "fields": {
+      "marketingVisitor": "访问者",
+      "marketingCost": "总费用",
+      "marketingEffect": "效果（自动）",
+      "csCounseling": "咨询",
+      "csApply": "报名",
+      "csBeginning": "开课",
+      "csMissing": "缺席",
+      "csTrialClass": "体验课",
+      "csComplain": "投诉",
+      "opsNewSt": "新生",
+      "opsOutSt": "退学",
+      "opsCountSt": "学生总数",
+      "opsNewTc": "新老师",
+      "opsOutTc": "离职老师",
+      "opsCountTc": "老师总数",
+      "classMapTest": "MAP测试",
+      "classTtClass": "总课时",
+      "classStudent": "课堂学生",
+      "classTeacher": "任课老师",
+      "note": "备注"
+    },
     "statuses": {
-      "PENDING": "미입력",
-      "PARTIAL": "부분 입력",
-      "COMPLETE": "완료"
+      "PENDING": "未录入",
+      "PARTIAL": "部分",
+      "COMPLETE": "完成"
     }
   },
   "complaint": {

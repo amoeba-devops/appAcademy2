@@ -6,13 +6,31 @@
     "addComplaint": "불만 등록",
     "exportCsv": "CSV 다운로드",
     "save": "저장",
-    "cancel": "취소"
+    "cancel": "취소",
+    "preset": {
+      "thisMonth": "이번 달",
+      "lastMonth": "지난 달",
+      "last30": "최근 30일",
+      "last90": "최근 90일",
+      "custom": "사용자 지정"
+    }
+  },
+  "range": {
+    "from": "시작",
+    "to": "종료",
+    "label": "기간"
   },
   "summary": {
     "sum": "합계",
     "aver": "평균",
-    "vsPrev": "vs 전월",
-    "noPrev": "전월 데이터 없음"
+    "vsPrev": "vs 전기",
+    "noPrev": "전기 데이터 없음",
+    "headers": {
+      "label": "지표",
+      "sum": "합계",
+      "avg": "평균",
+      "delta": "Δ%"
+    }
   },
   "status": {
     "populated": "{{count}}/{{total}}일 데이터 입력됨"
@@ -40,6 +58,35 @@
     "costSource": "비용 출처",
     "status": "입력 상태",
     "note": "메모",
+    "effectAutoNote": "효과 = 상담 + 지원 (자동 계산)",
+    "sections": {
+      "marketing": "마케팅",
+      "cs": "CS",
+      "operating": "운영",
+      "class": "수업"
+    },
+    "fields": {
+      "marketingVisitor": "방문자",
+      "marketingCost": "전체 비용",
+      "marketingEffect": "효과 (자동)",
+      "csCounseling": "상담",
+      "csApply": "지원",
+      "csBeginning": "시강",
+      "csMissing": "누락",
+      "csTrialClass": "체험수업",
+      "csComplain": "불만",
+      "opsNewSt": "신입생",
+      "opsOutSt": "퇴소생",
+      "opsCountSt": "학생수 (스냅)",
+      "opsNewTc": "신규강사",
+      "opsOutTc": "퇴직강사",
+      "opsCountTc": "강사수 (스냅)",
+      "classMapTest": "MAP 테스트",
+      "classTtClass": "총 수업",
+      "classStudent": "수업 학생",
+      "classTeacher": "수업 강사",
+      "note": "메모"
+    },
     "statuses": {
       "PENDING": "미입력",
       "PARTIAL": "부분 입력",

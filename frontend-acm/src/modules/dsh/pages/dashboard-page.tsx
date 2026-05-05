@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Fragment } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ManualInputDialog } from '@/modules/dsh/components/manual-input-dialog';
 import { ComplaintDialog } from '@/modules/dsh/components/complaint-dialog';
 import { KpiSummaryCards, type CategorySummary } from '@/modules/dsh/components/kpi-summary-cards';
@@ -32,6 +34,7 @@ interface DailyKpiRow {
   date: string;
   dayOfMonth: number;
   dayOfWeekKr: string;
+  yearMonth?: string;
   marketingVisitor: number | null;
   marketingCost: string | null;
   marketingEffect: number | null;
@@ -55,17 +58,20 @@ interface DailyKpiRow {
   dataCompleteness: 'COMPLETE' | 'PARTIAL_PENDING_MANUAL' | 'PARTIAL_FUTURE';
 }
 
-interface MonthGridResult {
-  yearMonth: string;
+interface RangeGridResult {
+  from: string;
+  to: string;
   rows: DailyKpiRow[];
   sums: Record<string, number>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
 }
 
-interface MonthlySummaryResponse {
-  yearMonth: string;
-  previousYearMonth: string | null;
+interface RangeSummaryResponse {
+  from: string;
+  to: string;
+  previousFrom: string | null;
+  previousTo: string | null;
   populatedDayCount: number;
   categories: CategorySummary[];
 }
@@ -94,9 +100,50 @@ const METRIC_TO_FIELD: Record<string, keyof DailyKpiRow> = {
 
 const CATEGORY_ORDER: MetCategory[] = ['MARKETING', 'CS', 'OPERATING', 'CLASS'];
 
-function nowYearMonth(): string {
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+function isoToday(): string {
   const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function isoMonthStart(d: Date): string {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-01`;
+}
+
+function isoMonthEnd(d: Date): string {
+  const e = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  return `${e.getFullYear()}-${pad2(e.getMonth() + 1)}-${pad2(e.getDate())}`;
+}
+
+function addDaysIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+type PresetKey = 'thisMonth' | 'lastMonth' | 'last30' | 'last90' | 'custom';
+
+function presetRange(key: PresetKey): { from: string; to: string } | null {
+  const today = new Date();
+  if (key === 'thisMonth') {
+    return { from: isoMonthStart(today), to: isoMonthEnd(today) };
+  }
+  if (key === 'lastMonth') {
+    const d = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    return { from: isoMonthStart(d), to: isoMonthEnd(d) };
+  }
+  if (key === 'last30') {
+    const to = isoToday();
+    return { from: addDaysIso(to, -29), to };
+  }
+  if (key === 'last90') {
+    const to = isoToday();
+    return { from: addDaysIso(to, -89), to };
+  }
+  return null;
 }
 
 function fmt(value: unknown, format?: string | null): string {
@@ -114,11 +161,45 @@ function fmtAvg(value: number | null, format?: string | null): string {
   return value.toFixed(1);
 }
 
+function ymOf(iso: string): string {
+  return iso.slice(0, 7);
+}
+
 export function DashboardPage() {
   const { t, i18n } = useTranslation(['dsh', 'common']);
-  const [yearMonth, setYearMonth] = useState<string>(nowYearMonth());
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const defaultRange = presetRange('thisMonth')!;
+  const [from, setFrom] = useState<string>(searchParams.get('from') ?? defaultRange.from);
+  const [to, setTo] = useState<string>(searchParams.get('to') ?? defaultRange.to);
+  const [activePreset, setActivePreset] = useState<PresetKey>(
+    (searchParams.get('preset') as PresetKey | null) ?? 'thisMonth',
+  );
+
   const [manualOpen, setManualOpen] = useState(false);
+  const [manualDate, setManualDate] = useState<string>(isoToday());
   const [complaintOpen, setComplaintOpen] = useState(false);
+
+  // Sync state → URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    params.set('from', from);
+    params.set('to', to);
+    params.set('preset', activePreset);
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [from, to, activePreset]);
+
+  const applyPreset = (key: PresetKey) => {
+    setActivePreset(key);
+    const r = presetRange(key);
+    if (r) {
+      setFrom(r.from);
+      setTo(r.to);
+    }
+  };
+
+  const rangeKey = `${from}~${to}`;
 
   const metricsQ = useQuery({
     queryKey: ['dsh', 'metrics'],
@@ -126,29 +207,35 @@ export function DashboardPage() {
   });
 
   const gridQ = useQuery({
-    queryKey: ['dsh', 'grid', yearMonth],
+    queryKey: ['dsh', 'grid', rangeKey],
     queryFn: async () =>
-      (await apiClient.get<MonthGridResult>('/acm/dsh/daily-kpi', { params: { yearMonth } })).data,
+      (
+        await apiClient.get<RangeGridResult>('/acm/dsh/daily-kpi-range', {
+          params: { from, to },
+        })
+      ).data,
+    enabled: !!from && !!to && from <= to,
   });
 
   const summaryQ = useQuery({
-    queryKey: ['dsh', 'summary', yearMonth],
+    queryKey: ['dsh', 'summary', rangeKey],
     queryFn: async () =>
-      (await apiClient.get<MonthlySummaryResponse>('/acm/dsh/monthly-summary', { params: { yearMonth } })).data,
-  });
-
-  const yearMonthsQ = useQuery({
-    queryKey: ['dsh', 'year-months'],
-    queryFn: async () => (await apiClient.get<string[]>('/acm/dsh/year-months')).data,
+      (
+        await apiClient.get<RangeSummaryResponse>('/acm/dsh/range-summary', {
+          params: { from, to },
+        })
+      ).data,
+    enabled: !!from && !!to && from <= to,
   });
 
   const grouped = useMemo(() => {
     const m: Record<MetCategory, MetricDefinition[]> = {
-      MARKETING: [], CS: [], OPERATING: [], CLASS: [],
+      MARKETING: [],
+      CS: [],
+      OPERATING: [],
+      CLASS: [],
     };
-    for (const md of metricsQ.data ?? []) {
-      m[md.category].push(md);
-    }
+    for (const md of metricsQ.data ?? []) m[md.category].push(md);
     for (const cat of CATEGORY_ORDER) {
       m[cat].sort((a, b) => a.displayOrder - b.displayOrder);
     }
@@ -157,24 +244,14 @@ export function DashboardPage() {
 
   const isKr = i18n.language?.startsWith('ko');
   const flatMetrics = CATEGORY_ORDER.flatMap((c) => grouped[c]);
-
-  const monthOptions = useMemo(() => {
-    const seeded = yearMonthsQ.data ?? [];
-    const set = new Set<string>(seeded);
-    const now = new Date();
-    for (let i = -1; i <= 1; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-    }
-    return Array.from(set).sort().reverse();
-  }, [yearMonthsQ.data]);
+  const totalCols = 2 + flatMetrics.length;
 
   const handleExportCsv = () => {
     if (!metricsQ.data || !gridQ.data) return;
-    const header: (string | number)[] = [t('grid.day'), t('grid.dow')];
+    const header: (string | number)[] = ['Date', t('grid.dow')];
     for (const md of flatMetrics) header.push(isKr ? md.labelKr : md.labelEn);
     const dataRows: (string | number | null)[][] = gridQ.data.rows.map((row) => {
-      const cells: (string | number | null)[] = [row.dayOfMonth, row.dayOfWeekKr];
+      const cells: (string | number | null)[] = [row.date, row.dayOfWeekKr];
       for (const md of flatMetrics) {
         const field = METRIC_TO_FIELD[md.code];
         const v = field ? (row[field] as unknown) : null;
@@ -195,32 +272,74 @@ export function DashboardPage() {
       );
     }
     const csv = toCsv([header, ...dataRows, sumRow, averRow]);
-    downloadCsv(`dsh-${yearMonth}.csv`, csv);
+    downloadCsv(`dsh-${from}_${to}.csv`, csv);
+  };
+
+  const onRowClick = (date: string) => {
+    setManualDate(date);
+    setManualOpen(true);
   };
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex items-center gap-2">
-          <select
-            className="h-9 rounded-md border border-[var(--border-subtle)] bg-surface px-3 text-sm"
-            value={yearMonth}
-            onChange={(e) => setYearMonth(e.target.value)}
-          >
-            {monthOptions.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data}>
             {t('actions.exportCsv')}
           </Button>
-          <Button variant="outline" onClick={() => setManualOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setManualDate(isoToday());
+              setManualOpen(true);
+            }}
+          >
             {t('actions.manualInput')}
           </Button>
-          <Button onClick={() => setComplaintOpen(true)}>
-            {t('actions.addComplaint')}
-          </Button>
+          <Button onClick={() => setComplaintOpen(true)}>{t('actions.addComplaint')}</Button>
+        </div>
+      </div>
+
+      <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-3 flex flex-wrap items-end gap-3">
+        <div>
+          <label className="text-xs text-secondary block mb-1">{t('range.from')}</label>
+          <Input
+            type="date"
+            value={from}
+            max={to}
+            onChange={(e) => {
+              setFrom(e.target.value);
+              setActivePreset('custom');
+            }}
+            className="w-[160px]"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-secondary block mb-1">{t('range.to')}</label>
+          <Input
+            type="date"
+            value={to}
+            min={from}
+            onChange={(e) => {
+              setTo(e.target.value);
+              setActivePreset('custom');
+            }}
+            className="w-[160px]"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1">
+          {(['thisMonth', 'lastMonth', 'last30', 'last90', 'custom'] as PresetKey[]).map((k) => (
+            <Button
+              key={k}
+              type="button"
+              size="sm"
+              variant={activePreset === k ? 'default' : 'outline'}
+              onClick={() => applyPreset(k)}
+            >
+              {t(`actions.preset.${k}`)}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -247,8 +366,15 @@ export function DashboardPage() {
           <table className="min-w-full text-xs">
             <thead className="bg-surface-subtle">
               <tr>
-                <th className="px-2 py-1 text-left sticky left-0 bg-surface-subtle z-10" rowSpan={2}>{t('grid.day')}</th>
-                <th className="px-2 py-1 text-left" rowSpan={2}>{t('grid.dow')}</th>
+                <th
+                  className="px-2 py-1 text-left sticky left-0 bg-surface-subtle z-10"
+                  rowSpan={2}
+                >
+                  {t('grid.day')}
+                </th>
+                <th className="px-2 py-1 text-left" rowSpan={2}>
+                  {t('grid.dow')}
+                </th>
                 {CATEGORY_ORDER.map((cat) => (
                   <th
                     key={cat}
@@ -279,29 +405,50 @@ export function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {gridQ.data.rows.map((row) => (
-                <tr key={row.date} className="border-t border-[var(--border-subtle)]">
-                  <td className="px-2 py-1 sticky left-0 bg-surface">{row.dayOfMonth}</td>
-                  <td className="px-2 py-1">{row.dayOfWeekKr}</td>
-                  {flatMetrics.map((md, i) => {
-                    const field = METRIC_TO_FIELD[md.code];
-                    const v = field ? (row[field] as unknown) : null;
-                    const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
-                    const isFirstOfCat = prevCat !== md.category;
-                    return (
-                      <td
-                        key={md.id}
-                        className={
-                          'px-2 py-1 text-right ' +
-                          (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
-                        }
-                      >
-                        {fmt(v, md.format)}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {gridQ.data.rows.map((row, idx) => {
+                const ym = row.yearMonth ?? ymOf(row.date);
+                const prevYm =
+                  idx > 0 ? (gridQ.data!.rows[idx - 1].yearMonth ?? ymOf(gridQ.data!.rows[idx - 1].date)) : null;
+                const showDivider = prevYm !== null && prevYm !== ym;
+                return (
+                  <Fragment key={row.date}>
+                    {showDivider && (
+                      <tr className="bg-surface-subtle">
+                        <td
+                          colSpan={totalCols}
+                          className="px-2 py-1 text-[11px] font-medium text-secondary border-t border-[var(--border-subtle)]"
+                        >
+                          {ym}
+                        </td>
+                      </tr>
+                    )}
+                    <tr
+                      className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-surface-subtle"
+                      onClick={() => onRowClick(row.date)}
+                    >
+                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}</td>
+                      <td className="px-2 py-1">{row.dayOfWeekKr}</td>
+                      {flatMetrics.map((md, i) => {
+                        const field = METRIC_TO_FIELD[md.code];
+                        const v = field ? (row[field] as unknown) : null;
+                        const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
+                        const isFirstOfCat = prevCat !== md.category;
+                        return (
+                          <td
+                            key={md.id}
+                            className={
+                              'px-2 py-1 text-right ' +
+                              (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
+                            }
+                          >
+                            {fmt(v, md.format)}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </Fragment>
+                );
+              })}
             </tbody>
             <tfoot className="bg-surface-subtle font-medium">
               <tr className="border-t border-[var(--border-subtle)]">
@@ -340,7 +487,9 @@ export function DashboardPage() {
                         (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
                       }
                     >
-                      {md.aggregationType === 'STATUS_SNAPSHOT' ? '—' : fmtAvg(avg ?? null, md.format)}
+                      {md.aggregationType === 'STATUS_SNAPSHOT'
+                        ? '—'
+                        : fmtAvg(avg ?? null, md.format)}
                     </td>
                   );
                 })}
@@ -354,8 +503,17 @@ export function DashboardPage() {
         <p className="text-secondary mt-4">{t('empty.noData')}</p>
       )}
 
-      <ManualInputDialog open={manualOpen} onOpenChange={setManualOpen} yearMonth={yearMonth} />
-      <ComplaintDialog open={complaintOpen} onOpenChange={setComplaintOpen} yearMonth={yearMonth} />
+      <ManualInputDialog
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        initialDate={manualDate}
+        invalidateKey={rangeKey}
+      />
+      <ComplaintDialog
+        open={complaintOpen}
+        onOpenChange={setComplaintOpen}
+        yearMonth={ymOf(to)}
+      />
     </div>
   );
 }

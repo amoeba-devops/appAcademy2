@@ -5,6 +5,8 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { DailyKpiTypeormEntity, type DkpDayOfWeek } from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
 import { ManualInputTypeormEntity } from '../infrastructure/typeorm/manual-input.typeorm-entity';
 import { ComplaintTypeormEntity } from '../infrastructure/typeorm/complaint.typeorm-entity';
+import { Between } from 'typeorm';
+import type { UpsertDailyKpiManualDto } from './dto/daily-kpi-manual.dto';
 
 const DOW_EN: DkpDayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 const DOW_KR = ['일', '월', '화', '수', '목', '금', '토'];
@@ -15,6 +17,22 @@ export interface MonthGridResult {
   sums: Record<string, number>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
+}
+
+export interface RangeGridResult {
+  from: string;
+  to: string;
+  rows: DailyKpiTypeormEntity[];
+  sums: Record<string, number>;
+  averages: Record<string, number | null>;
+  populatedDayCount: number;
+}
+
+/** Override mkt_effect = cs_counseling + cs_apply on the in-memory row. */
+function applyEffectOverride(rows: DailyKpiTypeormEntity[]): void {
+  for (const r of rows) {
+    r.marketingEffect = (r.csCounseling ?? 0) + (r.csApply ?? 0);
+  }
 }
 
 @Injectable()
@@ -31,6 +49,7 @@ export class DailyKpiService {
       where: { entId, yearMonth },
       order: { date: 'ASC' },
     });
+    applyEffectOverride(rows);
 
     const sums: Record<string, number> = {
       mkt_visitor: 0, mkt_cost: 0, mkt_effect: 0,
@@ -103,6 +122,149 @@ export class DailyKpiService {
   }
 
   /**
+   * Range grid — same shape as monthly grid but for any [from, to] window.
+   * Caller validates from <= to and (to - from) <= 365 days.
+   */
+  async getRange(entId: string, from: string, to: string): Promise<RangeGridResult> {
+    const repo = this.ds.getRepository(DailyKpiTypeormEntity);
+    const rows = await repo.find({
+      where: { entId, date: Between(from, to) },
+      order: { date: 'ASC' },
+    });
+    applyEffectOverride(rows);
+
+    const sums: Record<string, number> = {
+      mkt_visitor: 0, mkt_cost: 0, mkt_effect: 0,
+      cs_counseling: 0, cs_apply: 0, cs_beginning: 0, cs_missing: 0, cs_trial_class: 0, cs_complain: 0,
+      ops_new_st: 0, ops_out_st: 0, ops_count_st: 0,
+      ops_new_tc: 0, ops_out_tc: 0, ops_count_tc: 0,
+      cls_map_test: 0, cls_tt_class: 0, cls_student: 0, cls_teacher: 0,
+    };
+
+    let populatedDayCount = 0;
+    for (const r of rows) {
+      const populated =
+        (r.marketingVisitor ?? 0) > 0 ||
+        r.csCounseling > 0 || r.csApply > 0 || r.csBeginning > 0 ||
+        r.csTrialClass > 0 || r.classMapTest > 0;
+      if (populated) populatedDayCount += 1;
+      sums.mkt_visitor += r.marketingVisitor ?? 0;
+      sums.mkt_cost += Number(r.marketingCost ?? 0);
+      sums.mkt_effect += r.marketingEffect ?? 0;
+      sums.cs_counseling += r.csCounseling;
+      sums.cs_apply += r.csApply;
+      sums.cs_beginning += r.csBeginning;
+      sums.cs_missing += r.csMissing;
+      sums.cs_trial_class += r.csTrialClass;
+      sums.cs_complain += r.csComplain;
+      sums.ops_new_st += r.opsNewSt;
+      sums.ops_out_st += r.opsOutSt;
+      sums.ops_new_tc += r.opsNewTc;
+      sums.ops_out_tc += r.opsOutTc;
+      sums.cls_map_test += r.classMapTest;
+      sums.cls_tt_class += Number(r.classTtClass ?? 0);
+      sums.cls_student += r.classStudent;
+      sums.cls_teacher += r.classTeacher;
+    }
+    const last = rows[rows.length - 1];
+    sums.ops_count_st = last?.opsCountSt ?? 0;
+    sums.ops_count_tc = last?.opsCountTc ?? 0;
+
+    const dayCount = rows.length || 1;
+    const averages: Record<string, number | null> = {
+      mkt_visitor: sums.mkt_visitor / dayCount,
+      mkt_cost: sums.mkt_cost / dayCount,
+      mkt_effect: sums.mkt_effect / dayCount,
+      cs_counseling: sums.cs_counseling / dayCount,
+      cs_apply: sums.cs_apply / dayCount,
+      cs_beginning: sums.cs_beginning / dayCount,
+      cs_missing: sums.cs_missing / dayCount,
+      cs_trial_class: sums.cs_trial_class / dayCount,
+      cs_complain: sums.cs_complain / dayCount,
+      ops_new_st: sums.ops_new_st / dayCount,
+      ops_out_st: sums.ops_out_st / dayCount,
+      ops_count_st: null,
+      ops_new_tc: sums.ops_new_tc / dayCount,
+      ops_out_tc: sums.ops_out_tc / dayCount,
+      ops_count_tc: null,
+      cls_map_test: sums.cls_map_test / dayCount,
+      cls_tt_class: sums.cls_tt_class / dayCount,
+      cls_student: sums.cls_student / dayCount,
+      cls_teacher: sums.cls_teacher / dayCount,
+    };
+
+    return { from, to, rows, sums, averages, populatedDayCount };
+  }
+
+  /**
+   * Full-row manual override of a single daily_kpi row.
+   * Sets dkp_manually_overridden=true so daily_batch will skip this day.
+   */
+  async upsertManualKpi(
+    entId: string,
+    isoDate: string,
+    dto: UpsertDailyKpiManualDto,
+  ): Promise<DailyKpiTypeormEntity> {
+    const repo = this.ds.getRepository(DailyKpiTypeormEntity);
+    const d = new Date(`${isoDate}T00:00:00Z`);
+    const yearMonth = isoDate.slice(0, 7);
+    const dayOfMonth = d.getUTCDate();
+    const dow = d.getUTCDay();
+    const now = new Date();
+
+    const existing = await repo.findOne({ where: { entId, date: isoDate } });
+    const base: Partial<DailyKpiTypeormEntity> = existing ?? {
+      entId, date: isoDate, yearMonth, dayOfMonth,
+      dayOfWeek: DOW_EN[dow], dayOfWeekKr: DOW_KR[dow],
+      csCounseling: 0, csApply: 0, csBeginning: 0, csMissing: 0,
+      csTrialClass: 0, csComplain: 0,
+      opsNewSt: 0, opsOutSt: 0, opsCountSt: 0,
+      opsNewTc: 0, opsOutTc: 0, opsCountTc: 0,
+      classMapTest: 0, classTtClass: '0', classStudent: 0, classTeacher: 0,
+      computationStatus: 'FRESH',
+      dataCompleteness: 'COMPLETE',
+      createdAt: now,
+    };
+
+    const apply = <K extends keyof DailyKpiTypeormEntity>(k: K, v: unknown) => {
+      if (v !== undefined && v !== null) (base as any)[k] = v;
+    };
+    apply('marketingVisitor', dto.marketingVisitor ?? null);
+    if (dto.marketingCost !== undefined) (base as any).marketingCost = String(dto.marketingCost);
+    apply('csCounseling', dto.csCounseling);
+    apply('csApply', dto.csApply);
+    apply('csBeginning', dto.csBeginning);
+    apply('csMissing', dto.csMissing);
+    apply('csTrialClass', dto.csTrialClass);
+    apply('csComplain', dto.csComplain);
+    apply('opsNewSt', dto.opsNewSt);
+    apply('opsOutSt', dto.opsOutSt);
+    apply('opsCountSt', dto.opsCountSt);
+    apply('opsNewTc', dto.opsNewTc);
+    apply('opsOutTc', dto.opsOutTc);
+    apply('opsCountTc', dto.opsCountTc);
+    apply('classMapTest', dto.classMapTest);
+    if (dto.classTtClass !== undefined) (base as any).classTtClass = dto.classTtClass.toFixed(1);
+    apply('classStudent', dto.classStudent);
+    apply('classTeacher', dto.classTeacher);
+    // derived effect
+    (base as any).marketingEffect = ((base as any).csCounseling ?? 0) + ((base as any).csApply ?? 0);
+    (base as any).manuallyOverridden = true;
+    (base as any).computationStatus = 'FRESH';
+    (base as any).dataCompleteness = 'COMPLETE';
+    (base as any).computedAt = now;
+    (base as any).updatedAt = now;
+    (base as any).lastRecomputeReason = 'manual_full_override';
+
+    if (existing) {
+      await repo.update({ id: existing.id }, base as object);
+      return (await repo.findOne({ where: { id: existing.id } }))!;
+    }
+    const inserted = await repo.save(base as DailyKpiTypeormEntity);
+    return inserted;
+  }
+
+  /**
    * Recompute a single day's daily_kpi row for the given entity.
    * Idempotent: deletes/inserts (ent_id, date) row.
    * In v1.0a: CSL-sourced metrics + manual inputs only. CLS metrics remain 0.
@@ -111,6 +273,13 @@ export class DailyKpiService {
     const dkpRepo = this.ds.getRepository(DailyKpiTypeormEntity);
     const minRepo = this.ds.getRepository(ManualInputTypeormEntity);
     const cmpRepo = this.ds.getRepository(ComplaintTypeormEntity);
+
+    // Skip if this row was full-overridden via manual upsert
+    const existing = await dkpRepo.findOne({ where: { entId, date: isoDate } });
+    if (existing?.manuallyOverridden) {
+      this.logger.log(`recomputeDay SKIP (manually_overridden) ent=${entId} date=${isoDate}`);
+      return;
+    }
 
     const d = new Date(`${isoDate}T00:00:00Z`);
     const yearMonth = isoDate.slice(0, 7);

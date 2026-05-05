@@ -6,13 +6,31 @@
     "addComplaint": "Add Complaint",
     "exportCsv": "Export CSV",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "preset": {
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "last30": "Last 30 days",
+      "last90": "Last 90 days",
+      "custom": "Custom"
+    }
+  },
+  "range": {
+    "from": "From",
+    "to": "To",
+    "label": "Range"
   },
   "summary": {
     "sum": "Sum",
     "aver": "Aver.",
-    "vsPrev": "vs prev. month",
-    "noPrev": "no previous data"
+    "vsPrev": "vs prev. period",
+    "noPrev": "no previous data",
+    "headers": {
+      "label": "Metric",
+      "sum": "Sum",
+      "avg": "Avg",
+      "delta": "Δ%"
+    }
   },
   "status": {
     "populated": "{{count}}/{{total}} days populated"
@@ -40,6 +58,35 @@
     "costSource": "Cost source",
     "status": "Input status",
     "note": "Note",
+    "effectAutoNote": "Effect = Counseling + Apply (auto-calculated)",
+    "sections": {
+      "marketing": "Marketing",
+      "cs": "CS",
+      "operating": "Operating",
+      "class": "Class"
+    },
+    "fields": {
+      "marketingVisitor": "Visitor",
+      "marketingCost": "Total cost",
+      "marketingEffect": "Effect (auto)",
+      "csCounseling": "Counseling",
+      "csApply": "Apply",
+      "csBeginning": "Beginning",
+      "csMissing": "Missing",
+      "csTrialClass": "Trial class",
+      "csComplain": "Complain",
+      "opsNewSt": "New st.",
+      "opsOutSt": "Out st.",
+      "opsCountSt": "# of students (snap)",
+      "opsNewTc": "New tc.",
+      "opsOutTc": "Out tc.",
+      "opsCountTc": "# of teachers (snap)",
+      "classMapTest": "MAP test",
+      "classTtClass": "Tt. class",
+      "classStudent": "Class student",
+      "classTeacher": "Class teacher",
+      "note": "Note"
+    },
     "statuses": {
       "PENDING": "Pending",
       "PARTIAL": "Partial",

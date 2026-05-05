@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
@@ -9,7 +9,23 @@ import { ManualInputService } from '../application/manual-input.service';
 import { ComplaintService } from '../application/complaint.service';
 import { MonthlySummaryService } from '../application/monthly-summary.service';
 import { UpsertManualInputDto } from '../application/dto/manual-input.dto';
+import { UpsertDailyKpiManualDto } from '../application/dto/daily-kpi-manual.dto';
 import { CreateComplaintDto, UpdateComplaintDto } from '../application/dto/complaint.dto';
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_RANGE_DAYS = 365;
+
+function validateRange(from: string, to: string): void {
+  if (!ISO_DATE.test(from) || !ISO_DATE.test(to)) {
+    throw new BadRequestException('from / to must be ISO YYYY-MM-DD');
+  }
+  if (from > to) throw new BadRequestException('from must be ≤ to');
+  const ms = new Date(`${to}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime();
+  const days = Math.round(ms / 86400000) + 1;
+  if (days > MAX_RANGE_DAYS) {
+    throw new BadRequestException(`Range too wide (${days}d) — max ${MAX_RANGE_DAYS}d`);
+  }
+}
 
 @ApiTags('acm-dsh')
 @ApiBearerAuth()
@@ -38,6 +54,40 @@ export class DashboardController {
     @Query('yearMonth') yearMonth: string,
   ) {
     return this.monthlySummary.getMonthlySummary(user.entId, yearMonth);
+  }
+
+  // -------- v2: range-based grid + summary --------
+  @Get('daily-kpi-range')
+  @ApiOperation({ summary: 'Daily KPI rows + sums/avgs for an arbitrary [from,to] window (max 365d)' })
+  getRange(
+    @CurrentUser() user: AcmCurrentUser,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    validateRange(from, to);
+    return this.dailyKpi.getRange(user.entId, from, to);
+  }
+
+  @Get('range-summary')
+  @ApiOperation({ summary: 'Per-category multi-metric summary for [from,to] (delta vs same-length prior window)' })
+  getRangeSummary(
+    @CurrentUser() user: AcmCurrentUser,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    validateRange(from, to);
+    return this.monthlySummary.getRangeSummary(user.entId, from, to);
+  }
+
+  @Put('daily-kpi-manual/:date')
+  @ApiOperation({ summary: 'Full-row manual override of a daily_kpi row (sets manually_overridden=true)' })
+  upsertDailyKpiManual(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('date') date: string,
+    @Body() dto: UpsertDailyKpiManualDto,
+  ) {
+    if (!ISO_DATE.test(date)) throw new BadRequestException('date must be ISO YYYY-MM-DD');
+    return this.dailyKpi.upsertManualKpi(user.entId, date, dto);
   }
 
   // -------- Metric registry --------

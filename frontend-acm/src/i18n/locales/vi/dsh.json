@@ -6,13 +6,31 @@
     "addComplaint": "Thêm khiếu nại",
     "exportCsv": "Xuất CSV",
     "save": "Lưu",
-    "cancel": "Hủy"
+    "cancel": "Hủy",
+    "preset": {
+      "thisMonth": "Tháng này",
+      "lastMonth": "Tháng trước",
+      "last30": "30 ngày qua",
+      "last90": "90 ngày qua",
+      "custom": "Tùy chỉnh"
+    }
+  },
+  "range": {
+    "from": "Từ",
+    "to": "Đến",
+    "label": "Khoảng"
   },
   "summary": {
     "sum": "Tổng",
     "aver": "TB",
-    "vsPrev": "vs tháng trước",
-    "noPrev": "không có dữ liệu tháng trước"
+    "vsPrev": "vs kỳ trước",
+    "noPrev": "không có dữ liệu kỳ trước",
+    "headers": {
+      "label": "Chỉ số",
+      "sum": "Tổng",
+      "avg": "TB",
+      "delta": "Δ%"
+    }
   },
   "status": {
     "populated": "{{count}}/{{total}} ngày đã nhập"
@@ -40,6 +58,35 @@
     "costSource": "Nguồn chi phí",
     "status": "Trạng thái",
     "note": "Ghi chú",
+    "effectAutoNote": "Hiệu quả = Tư vấn + Đăng ký (tự động)",
+    "sections": {
+      "marketing": "Marketing",
+      "cs": "CS",
+      "operating": "Vận hành",
+      "class": "Lớp"
+    },
+    "fields": {
+      "marketingVisitor": "Khách",
+      "marketingCost": "Tổng chi phí",
+      "marketingEffect": "Hiệu quả (tự động)",
+      "csCounseling": "Tư vấn",
+      "csApply": "Đăng ký",
+      "csBeginning": "Khai giảng",
+      "csMissing": "Vắng",
+      "csTrialClass": "Học thử",
+      "csComplain": "Khiếu nại",
+      "opsNewSt": "HS mới",
+      "opsOutSt": "HS nghỉ",
+      "opsCountSt": "Số HS (snap)",
+      "opsNewTc": "GV mới",
+      "opsOutTc": "GV nghỉ",
+      "opsCountTc": "Số GV (snap)",
+      "classMapTest": "MAP test",
+      "classTtClass": "Tổng buổi",
+      "classStudent": "HS lớp",
+      "classTeacher": "GV lớp",
+      "note": "Ghi chú"
+    },
     "statuses": {
       "PENDING": "Chưa nhập",
       "PARTIAL": "Một phần",

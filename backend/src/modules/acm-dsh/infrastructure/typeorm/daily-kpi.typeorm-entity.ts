@@ -96,4 +96,7 @@ export class DailyKpiTypeormEntity {
 
   @Column({ name: 'dkp_updated_at', type: 'timestamptz' })
   updatedAt!: Date;
+
+  @Column({ name: 'dkp_manually_overridden', type: 'boolean', default: false })
+  manuallyOverridden!: boolean;
 }

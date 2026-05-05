@@ -3,6 +3,17 @@ import { Sparkline } from './sparkline';
 
 export type DshCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
 
+export interface MetricSummary {
+  code: string;
+  labelKr: string;
+  labelEn: string;
+  isSnapshot: boolean;
+  sum: number;
+  aver: number | null;
+  previousSum: number | null;
+  momDeltaPct: number | null;
+}
+
 export interface CategorySummary {
   category: DshCategory;
   primaryMetricCode: string;
@@ -13,6 +24,7 @@ export interface CategorySummary {
   previousSum: number | null;
   momDeltaPct: number | null;
   series: number[];
+  metrics?: MetricSummary[];
 }
 
 interface KpiSummaryCardsProps {
@@ -33,6 +45,18 @@ function fmtNum(n: number | null): string {
   return (Math.round(n * 10) / 10).toString();
 }
 
+function DeltaCell({ delta }: { delta: number | null }) {
+  if (delta === null) return <span className="text-secondary">—</span>;
+  const color = delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-secondary';
+  const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '·';
+  return (
+    <span className={color}>
+      {arrow} {delta > 0 ? '+' : ''}
+      {fmtNum(delta)}%
+    </span>
+  );
+}
+
 export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps) {
   const { t, i18n } = useTranslation(['dsh', 'common']);
   const isKr = i18n.language?.startsWith('ko');
@@ -41,7 +65,10 @@ export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps)
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 h-[112px] animate-pulse" />
+          <div
+            key={i}
+            className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 h-[200px] animate-pulse"
+          />
         ))}
       </div>
     );
@@ -51,35 +78,58 @@ export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps)
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
       {categories.map((c) => {
         const accent = ACCENT[c.category];
-        const delta = c.momDeltaPct;
-        const deltaColor =
-          delta === null ? 'text-secondary' : delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-secondary';
-        const arrow = delta === null ? '—' : delta > 0 ? '▲' : delta < 0 ? '▼' : '·';
-        const label = isKr ? c.primaryMetricLabelKr : c.primaryMetricLabelEn;
+        const metrics: MetricSummary[] =
+          c.metrics ??
+          [
+            {
+              code: c.primaryMetricCode,
+              labelKr: c.primaryMetricLabelKr,
+              labelEn: c.primaryMetricLabelEn,
+              isSnapshot: false,
+              sum: c.sum,
+              aver: c.aver,
+              previousSum: c.previousSum,
+              momDeltaPct: c.momDeltaPct,
+            },
+          ];
+
         return (
           <div
             key={c.category}
             className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 flex flex-col gap-2"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] uppercase tracking-wider text-secondary">
+              <span
+                className="text-[11px] uppercase tracking-wider font-semibold"
+                style={{ color: accent }}
+              >
                 {t(`category.${c.category}`)}
               </span>
-              <span className="text-[11px] text-secondary">{label}</span>
             </div>
-            <div className="flex items-baseline gap-3">
-              <div>
-                <div className="text-[10px] text-secondary">{t('summary.sum')}</div>
-                <div className="text-2xl font-semibold leading-none">{fmtNum(c.sum)}</div>
-              </div>
-              <div>
-                <div className="text-[10px] text-secondary">{t('summary.aver')}</div>
-                <div className="text-base font-medium leading-none text-secondary">{fmtNum(c.aver)}</div>
-              </div>
-            </div>
-            <div className={`text-xs ${deltaColor}`}>
-              {arrow} {delta === null ? t('summary.noPrev') : `${delta > 0 ? '+' : ''}${fmtNum(delta)}% ${t('summary.vsPrev')}`}
-            </div>
+
+            <table className="w-full text-[11px] tabular-nums">
+              <thead>
+                <tr className="text-secondary">
+                  <th className="text-left font-normal py-0.5">{t('summary.headers.label')}</th>
+                  <th className="text-right font-normal py-0.5">{t('summary.headers.sum')}</th>
+                  <th className="text-right font-normal py-0.5">{t('summary.headers.avg')}</th>
+                  <th className="text-right font-normal py-0.5">{t('summary.headers.delta')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics.map((m) => (
+                  <tr key={m.code} className="border-t border-[var(--border-subtle)]">
+                    <td className="text-left py-0.5">{isKr ? m.labelKr : m.labelEn}</td>
+                    <td className="text-right py-0.5 font-medium">{fmtNum(m.sum)}</td>
+                    <td className="text-right py-0.5">{m.isSnapshot ? '—' : fmtNum(m.aver)}</td>
+                    <td className="text-right py-0.5">
+                      <DeltaCell delta={m.momDeltaPct} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
             <div style={{ color: accent }}>
               <Sparkline data={c.series} />
             </div>

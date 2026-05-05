@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -17,76 +16,161 @@ import {
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  yearMonth: string;
+  /** Optional initial date (ISO YYYY-MM-DD). Defaults to today. */
+  initialDate?: string;
+  /** Query key suffix to invalidate after save (e.g. range "from~to" or yearMonth). */
+  invalidateKey?: string;
 }
 
-interface FormInput {
+type NumKey =
+  | 'marketingVisitor'
+  | 'marketingCost'
+  | 'marketingEffect'
+  | 'csCounseling'
+  | 'csApply'
+  | 'csBeginning'
+  | 'csMissing'
+  | 'csTrialClass'
+  | 'csComplain'
+  | 'opsNewSt'
+  | 'opsOutSt'
+  | 'opsCountSt'
+  | 'opsNewTc'
+  | 'opsOutTc'
+  | 'opsCountTc'
+  | 'classMapTest'
+  | 'classTtClass'
+  | 'classStudent'
+  | 'classTeacher';
+
+type FormInput = {
   date: string;
-  marketingVisitor?: number;
-  marketingCost?: number;
-  marketingEffect?: number;
-  csComplain?: number;
-  status: 'PENDING' | 'PARTIAL' | 'COMPLETE';
-  visitorSource?: string;
-  costSource?: string;
   note?: string;
-}
+} & Partial<Record<NumKey, number | ''>>;
 
-interface ManualInputRow {
-  id: string;
+interface DailyKpiRow {
   date: string;
   marketingVisitor: number | null;
   marketingCost: string | null;
   marketingEffect: number | null;
-  csComplain: number | null;
-  status: 'PENDING' | 'PARTIAL' | 'COMPLETE';
+  csCounseling: number;
+  csApply: number;
+  csBeginning: number;
+  csMissing: number;
+  csTrialClass: number;
+  csComplain: number;
+  opsNewSt: number;
+  opsOutSt: number;
+  opsCountSt: number;
+  opsNewTc: number;
+  opsOutTc: number;
+  opsCountTc: number;
+  classMapTest: number;
+  classTtClass: string;
+  classStudent: number;
+  classTeacher: number;
 }
+
+const SECTIONS: Array<{ key: 'marketing' | 'cs' | 'operating' | 'class'; fields: NumKey[] }> = [
+  { key: 'marketing', fields: ['marketingVisitor', 'marketingCost', 'marketingEffect'] },
+  {
+    key: 'cs',
+    fields: ['csCounseling', 'csApply', 'csBeginning', 'csMissing', 'csTrialClass', 'csComplain'],
+  },
+  {
+    key: 'operating',
+    fields: ['opsNewSt', 'opsOutSt', 'opsCountSt', 'opsNewTc', 'opsOutTc', 'opsCountTc'],
+  },
+  { key: 'class', fields: ['classMapTest', 'classTtClass', 'classStudent', 'classTeacher'] },
+];
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function ManualInputDialog({ open, onOpenChange, yearMonth }: Props) {
+function toNum(v: unknown): number | undefined {
+  if (v === '' || v === null || v === undefined) return undefined;
+  const n = typeof v === 'string' ? Number(v) : (v as number);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+export function ManualInputDialog({ open, onOpenChange, initialDate, invalidateKey }: Props) {
   const { t } = useTranslation('dsh');
   const qc = useQueryClient();
-  const { register, handleSubmit, watch, reset, setValue } = useForm<FormInput>({
-    defaultValues: { date: todayIso(), status: 'PARTIAL' },
+  const { register, handleSubmit, reset, setValue, control } = useForm<FormInput>({
+    defaultValues: { date: initialDate ?? todayIso() },
   });
 
-  const date = watch('date');
+  const date = useWatch({ control, name: 'date' });
+  const csCounseling = useWatch({ control, name: 'csCounseling' });
+  const csApply = useWatch({ control, name: 'csApply' });
+
+  const autoEffect = useMemo(() => {
+    return (toNum(csCounseling) ?? 0) + (toNum(csApply) ?? 0);
+  }, [csCounseling, csApply]);
+
+  // Keep marketingEffect mirrored to derived value (read-only display).
+  useEffect(() => {
+    setValue('marketingEffect', autoEffect);
+  }, [autoEffect, setValue]);
+
   const existingQ = useQuery({
     enabled: open && !!date,
-    queryKey: ['dsh', 'manual-input', date],
-    queryFn: async () =>
-      (await apiClient.get<ManualInputRow | null>(`/acm/dsh/manual-inputs/${date}`)).data,
+    queryKey: ['dsh', 'daily-kpi-row', date],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<{ rows: DailyKpiRow[] }>('/acm/dsh/daily-kpi-range', {
+          params: { from: date, to: date },
+        });
+        return res.data.rows[0] ?? null;
+      } catch {
+        return null;
+      }
+    },
   });
 
   useEffect(() => {
-    if (existingQ.data) {
-      setValue('marketingVisitor', existingQ.data.marketingVisitor ?? undefined);
-      setValue(
-        'marketingCost',
-        existingQ.data.marketingCost ? Number(existingQ.data.marketingCost) : undefined,
-      );
-      setValue('marketingEffect', existingQ.data.marketingEffect ?? undefined);
-      setValue('csComplain', existingQ.data.csComplain ?? undefined);
-      setValue('status', existingQ.data.status);
-    }
-  }, [existingQ.data, setValue]);
+    if (!open) return;
+    const r = existingQ.data;
+    if (!r) return;
+    setValue('marketingVisitor', r.marketingVisitor ?? undefined);
+    setValue(
+      'marketingCost',
+      r.marketingCost !== null && r.marketingCost !== undefined ? Number(r.marketingCost) : undefined,
+    );
+    setValue('csCounseling', r.csCounseling);
+    setValue('csApply', r.csApply);
+    setValue('csBeginning', r.csBeginning);
+    setValue('csMissing', r.csMissing);
+    setValue('csTrialClass', r.csTrialClass);
+    setValue('csComplain', r.csComplain);
+    setValue('opsNewSt', r.opsNewSt);
+    setValue('opsOutSt', r.opsOutSt);
+    setValue('opsCountSt', r.opsCountSt);
+    setValue('opsNewTc', r.opsNewTc);
+    setValue('opsOutTc', r.opsOutTc);
+    setValue('opsCountTc', r.opsCountTc);
+    setValue('classMapTest', r.classMapTest);
+    setValue('classTtClass', Number(r.classTtClass) || 0);
+    setValue('classStudent', r.classStudent);
+    setValue('classTeacher', r.classTeacher);
+  }, [existingQ.data, open, setValue]);
 
   const mutation = useMutation({
     mutationFn: async (data: FormInput) => {
-      const { date: d, ...payload } = data;
+      const { date: d, marketingEffect: _ignored, ...rest } = data;
       const body: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(payload)) {
-        if (v !== undefined && v !== '' && !Number.isNaN(v)) body[k] = v;
+      for (const [k, v] of Object.entries(rest)) {
+        const num = toNum(v);
+        if (num !== undefined) body[k] = num;
+        else if (k === 'note' && typeof v === 'string' && v.trim() !== '') body[k] = v.trim();
       }
-      return apiClient.put(`/acm/dsh/manual-inputs/${d}`, body);
+      return apiClient.put(`/acm/dsh/daily-kpi-manual/${d}`, body);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['dsh', 'grid', yearMonth] });
-      qc.invalidateQueries({ queryKey: ['dsh', 'manual-input'] });
-      reset({ date: todayIso(), status: 'PARTIAL' });
+      qc.invalidateQueries({ queryKey: ['dsh'] });
+      if (invalidateKey) qc.invalidateQueries({ queryKey: ['dsh', 'grid', invalidateKey] });
+      reset({ date: initialDate ?? todayIso() });
       onOpenChange(false);
     },
   });
@@ -95,72 +179,77 @@ export function ManualInputDialog({ open, onOpenChange, yearMonth }: Props) {
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) reset({ date: todayIso(), status: 'PARTIAL' });
+        if (!o) reset({ date: initialDate ?? todayIso() });
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('manualInput.title')}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-3">
-          <div>
-            <Label>{t('manualInput.date')}</Label>
-            <Input type="date" {...register('date', { required: true })} />
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+        <form onSubmit={handleSubmit((d) => mutation.mutate(d))}>
+          <DialogHeader className="p-4 pb-2 sticky top-0 bg-surface z-10 border-b border-[var(--border-subtle)]">
+            <DialogTitle>{t('manualInput.title')}</DialogTitle>
+          </DialogHeader>
+
+          <div className="p-4 space-y-4">
+            <div className="max-w-xs">
+              <Label>{t('manualInput.date')}</Label>
+              <Input type="date" {...register('date', { required: true })} />
+            </div>
+
+            {SECTIONS.map((sec) => (
+              <fieldset
+                key={sec.key}
+                className="border border-[var(--border-subtle)] rounded p-3"
+              >
+                <legend className="px-1 text-sm font-medium">
+                  {t(`manualInput.sections.${sec.key}`)}
+                </legend>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {sec.fields.map((f) => {
+                    const isAutoEffect = f === 'marketingEffect';
+                    return (
+                      <div key={f}>
+                        <Label className="text-xs">{t(`manualInput.fields.${f}`)}</Label>
+                        {isAutoEffect ? (
+                          <Input
+                            type="number"
+                            value={autoEffect}
+                            readOnly
+                            className="bg-surface-subtle cursor-not-allowed"
+                          />
+                        ) : (
+                          <Input
+                            type="number"
+                            min={0}
+                            step={f === 'classTtClass' ? '0.5' : '1'}
+                            {...register(f, { valueAsNumber: true })}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {sec.key === 'marketing' && (
+                  <p className="text-[11px] text-secondary mt-2">
+                    {t('manualInput.effectAutoNote')}
+                  </p>
+                )}
+              </fieldset>
+            ))}
+
+            <div>
+              <Label>{t('manualInput.fields.note')}</Label>
+              <Input {...register('note')} />
+            </div>
           </div>
-          <fieldset className="border border-[var(--border-subtle)] rounded p-3 space-y-2">
-            <legend className="px-1 text-sm font-medium">{t('category.MARKETING')}</legend>
-            <div>
-              <Label>{t('manualInput.visitor')}</Label>
-              <Input type="number" min={0} {...register('marketingVisitor', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label>{t('manualInput.cost')}</Label>
-              <Input type="number" min={0} {...register('marketingCost', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label>{t('manualInput.effect')}</Label>
-              <Input type="number" min={0} {...register('marketingEffect', { valueAsNumber: true })} />
-            </div>
-            <div>
-              <Label>{t('manualInput.visitorSource')}</Label>
-              <Input {...register('visitorSource')} placeholder="Naver Analytics" />
-            </div>
-            <div>
-              <Label>{t('manualInput.costSource')}</Label>
-              <Input {...register('costSource')} placeholder="Naver Ads" />
-            </div>
-          </fieldset>
-          <fieldset className="border border-[var(--border-subtle)] rounded p-3 space-y-2">
-            <legend className="px-1 text-sm font-medium">{t('category.CS')}</legend>
-            <div>
-              <Label>{t('manualInput.complain')}</Label>
-              <Input type="number" min={0} {...register('csComplain', { valueAsNumber: true })} />
-            </div>
-          </fieldset>
-          <div>
-            <Label>{t('manualInput.status')}</Label>
-            <select
-              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 text-sm"
-              {...register('status')}
-            >
-              <option value="PENDING">{t('manualInput.statuses.PENDING')}</option>
-              <option value="PARTIAL">{t('manualInput.statuses.PARTIAL')}</option>
-              <option value="COMPLETE">{t('manualInput.statuses.COMPLETE')}</option>
-            </select>
-          </div>
-          <div>
-            <Label>{t('manualInput.note')}</Label>
-            <Input {...register('note')} />
-          </div>
-          <DialogFooter>
+
+          <div className="sticky bottom-0 bg-surface border-t border-[var(--border-subtle)] p-3 flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('actions.cancel')}
             </Button>
             <Button type="submit" disabled={mutation.isPending}>
               {t('actions.save')}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
