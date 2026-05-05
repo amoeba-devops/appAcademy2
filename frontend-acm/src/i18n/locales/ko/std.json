@@ -1,0 +1,85 @@
+{
+  "title": "학생 관리",
+  "actions": {
+    "create": "학생 등록",
+    "edit": "수정",
+    "import": "엑셀 업로드",
+    "deactivate": "비활성화"
+  },
+  "filter": {
+    "searchPlaceholder": "이름·학교 검색",
+    "labelStatus": "상태",
+    "schoolPlaceholder": "학교",
+    "gradePlaceholder": "학년",
+    "all": "전체"
+  },
+  "status": {
+    "ACTIVE": "재원",
+    "INACTIVE": "휴원",
+    "WITHDRAWN": "퇴원"
+  },
+  "gender": {
+    "M": "남",
+    "F": "여"
+  },
+  "table": {
+    "name": "이름",
+    "gender": "성별",
+    "school": "학교",
+    "grade": "학년",
+    "teacher": "담당강사",
+    "status": "상태",
+    "total": "총 {{count}}명",
+    "empty": "등록된 학생이 없습니다"
+  },
+  "field": {
+    "name": "이름(한글)",
+    "englishName": "영어 이름",
+    "gender": "성별",
+    "birthDate": "생년월일",
+    "phone": "연락처",
+    "residence": "거주지",
+    "school": "학교",
+    "grade": "학년",
+    "mapReading": "MAP Reading",
+    "mapMath": "MAP Math",
+    "mapLanguage": "MAP Language",
+    "mapNote": "MAP 메모",
+    "teacher": "담당강사",
+    "subject": "과목",
+    "curriculum": "교재",
+    "materials": "추가교재",
+    "mobility": "이동수단",
+    "gpa": "GPA",
+    "ssatIseeNote": "SSAT/ISEE",
+    "specialNote": "특이사항",
+    "goalsNote": "목표",
+    "satisfactionNote": "만족도",
+    "lastCounselDate": "최근 상담일",
+    "startDate": "등록일",
+    "status": "상태"
+  },
+  "form": {
+    "titleCreate": "학생 등록",
+    "titleEdit": "학생 정보 수정",
+    "sectionBasic": "기본 인적사항",
+    "sectionMap": "MAP 점수",
+    "sectionClass": "수업 정보",
+    "sectionMemo": "메모 / 상태"
+  },
+  "import": {
+    "title": "엑셀 업로드 (학생 일괄 등록)",
+    "dropHint": "파일을 끌어다 놓거나 클릭하여 선택",
+    "execute": "Import 실행",
+    "downloadTemplate": "양식 다운로드",
+    "resultSuccess": "성공 {{count}}건",
+    "resultFailed": "실패 {{count}}건",
+    "rowError": "{{row}}행"
+  },
+  "detail": {
+    "back": "목록으로",
+    "notFound": "학생을 찾을 수 없습니다",
+    "updatedAt": "최종 수정",
+    "confirmDeactivate": "이 학생을 비활성화하시겠습니까?"
+  }
+}

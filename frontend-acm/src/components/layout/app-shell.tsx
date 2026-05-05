@@ -6,6 +6,7 @@ import {
   BookOpen,
   MessageCircleQuestion,
   GraduationCap,
+  UserRound,
   LogOut,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,7 @@ import { useAuthStore } from '@/stores/auth.store';
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
   { to: '/csl', icon: Users, key: 'csl' },
+  { to: '/std', icon: UserRound, key: 'std' },
   { to: '/cls', icon: GraduationCap, key: 'cls' },
   { to: '/sch', icon: School, key: 'sch' },
   { to: '/ref', icon: BookOpen, key: 'ref' },

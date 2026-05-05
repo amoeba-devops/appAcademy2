@@ -7,6 +7,7 @@ import { AcmCslModule } from './acm-csl/acm-csl.module';
 import { AcmQnaModule } from './acm-qna/acm-qna.module';
 import { AcmDshModule } from './acm-dsh/acm-dsh.module';
 import { AcmClsModule } from './acm-cls/acm-cls.module';
+import { AcmStdModule } from './acm-std/acm-std.module';
 
 /**
  * ACM v1.0a aggregator.
@@ -25,6 +26,7 @@ import { AcmClsModule } from './acm-cls/acm-cls.module';
     AcmQnaModule,
     AcmDshModule,
     AcmClsModule,
+    AcmStdModule,
   ],
   exports: [
     AcmCommonModule,
@@ -35,6 +37,7 @@ import { AcmClsModule } from './acm-cls/acm-cls.module';
     AcmQnaModule,
     AcmDshModule,
     AcmClsModule,
+    AcmStdModule,
   ],
 })
 export class AcmModule {}

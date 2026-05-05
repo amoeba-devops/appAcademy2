@@ -1,0 +1,85 @@
+{
+  "title": "学生管理",
+  "actions": {
+    "create": "添加学生",
+    "edit": "编辑",
+    "import": "导入Excel",
+    "deactivate": "停用"
+  },
+  "filter": {
+    "searchPlaceholder": "搜索姓名/学校",
+    "labelStatus": "状态",
+    "schoolPlaceholder": "学校",
+    "gradePlaceholder": "年级",
+    "all": "全部"
+  },
+  "status": {
+    "ACTIVE": "在读",
+    "INACTIVE": "暂停",
+    "WITHDRAWN": "退出"
+  },
+  "gender": {
+    "M": "男",
+    "F": "女"
+  },
+  "table": {
+    "name": "姓名",
+    "gender": "性别",
+    "school": "学校",
+    "grade": "年级",
+    "teacher": "负责教师",
+    "status": "状态",
+    "total": "共 {{count}} 名学生",
+    "empty": "暂无学生"
+  },
+  "field": {
+    "name": "姓名（韩语）",
+    "englishName": "英文名",
+    "gender": "性别",
+    "birthDate": "出生日期",
+    "phone": "电话",
+    "residence": "居住地",
+    "school": "学校",
+    "grade": "年级",
+    "mapReading": "MAP 阅读",
+    "mapMath": "MAP 数学",
+    "mapLanguage": "MAP 语言",
+    "mapNote": "MAP 备注",
+    "teacher": "负责教师",
+    "subject": "科目",
+    "curriculum": "教材",
+    "materials": "补充材料",
+    "mobility": "交通方式",
+    "gpa": "GPA",
+    "ssatIseeNote": "SSAT/ISEE",
+    "specialNote": "特殊备注",
+    "goalsNote": "目标",
+    "satisfactionNote": "满意度",
+    "lastCounselDate": "最近辅导日",
+    "startDate": "注册日期",
+    "status": "状态"
+  },
+  "form": {
+    "titleCreate": "注册学生",
+    "titleEdit": "编辑学生信息",
+    "sectionBasic": "基本信息",
+    "sectionMap": "MAP成绩",
+    "sectionClass": "课程信息",
+    "sectionMemo": "备注 / 状态"
+  },
+  "import": {
+    "title": "Excel导入（批量）",
+    "dropHint": "拖放文件或点击选择",
+    "execute": "执行导入",
+    "downloadTemplate": "下载模板",
+    "resultSuccess": "成功 {{count}} 条",
+    "resultFailed": "失败 {{count}} 条",
+    "rowError": "第 {{row}} 行"
+  },
+  "detail": {
+    "back": "返回列表",
+    "notFound": "未找到学生",
+    "updatedAt": "最后更新",
+    "confirmDeactivate": "确认停用该学生？"
+  }
+}

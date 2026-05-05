@@ -1,0 +1,85 @@
+{
+  "title": "Quản lý học sinh",
+  "actions": {
+    "create": "Thêm học sinh",
+    "edit": "Chỉnh sửa",
+    "import": "Nhập Excel",
+    "deactivate": "Vô hiệu hóa"
+  },
+  "filter": {
+    "searchPlaceholder": "Tìm tên / trường",
+    "labelStatus": "Trạng thái",
+    "schoolPlaceholder": "Trường",
+    "gradePlaceholder": "Lớp",
+    "all": "Tất cả"
+  },
+  "status": {
+    "ACTIVE": "Đang học",
+    "INACTIVE": "Tạm nghỉ",
+    "WITHDRAWN": "Đã nghỉ"
+  },
+  "gender": {
+    "M": "Nam",
+    "F": "Nữ"
+  },
+  "table": {
+    "name": "Tên",
+    "gender": "Giới tính",
+    "school": "Trường",
+    "grade": "Lớp",
+    "teacher": "Giáo viên",
+    "status": "Trạng thái",
+    "total": "Tổng {{count}} học sinh",
+    "empty": "Chưa có học sinh nào"
+  },
+  "field": {
+    "name": "Tên (Hàn)",
+    "englishName": "Tên tiếng Anh",
+    "gender": "Giới tính",
+    "birthDate": "Ngày sinh",
+    "phone": "Điện thoại",
+    "residence": "Nơi ở",
+    "school": "Trường",
+    "grade": "Lớp",
+    "mapReading": "MAP Đọc",
+    "mapMath": "MAP Toán",
+    "mapLanguage": "MAP Ngôn ngữ",
+    "mapNote": "Ghi chú MAP",
+    "teacher": "Giáo viên",
+    "subject": "Môn học",
+    "curriculum": "Giáo trình",
+    "materials": "Tài liệu bổ sung",
+    "mobility": "Phương tiện",
+    "gpa": "GPA",
+    "ssatIseeNote": "SSAT/ISEE",
+    "specialNote": "Ghi chú đặc biệt",
+    "goalsNote": "Mục tiêu",
+    "satisfactionNote": "Mức độ hài lòng",
+    "lastCounselDate": "Tư vấn gần nhất",
+    "startDate": "Ngày đăng ký",
+    "status": "Trạng thái"
+  },
+  "form": {
+    "titleCreate": "Đăng ký học sinh",
+    "titleEdit": "Chỉnh sửa học sinh",
+    "sectionBasic": "Thông tin cơ bản",
+    "sectionMap": "Điểm MAP",
+    "sectionClass": "Thông tin lớp",
+    "sectionMemo": "Ghi chú / Trạng thái"
+  },
+  "import": {
+    "title": "Nhập Excel (Hàng loạt)",
+    "dropHint": "Kéo thả file hoặc nhấp để chọn",
+    "execute": "Thực hiện nhập",
+    "downloadTemplate": "Tải mẫu",
+    "resultSuccess": "Thành công {{count}} dòng",
+    "resultFailed": "Thất bại {{count}} dòng",
+    "rowError": "Dòng {{row}}"
+  },
+  "detail": {
+    "back": "Về danh sách",
+    "notFound": "Không tìm thấy học sinh",
+    "updatedAt": "Cập nhật lần cuối",
+    "confirmDeactivate": "Vô hiệu hóa học sinh này?"
+  }
+}

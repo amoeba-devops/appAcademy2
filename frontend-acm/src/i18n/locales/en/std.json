@@ -1,0 +1,85 @@
+{
+  "title": "Student Management",
+  "actions": {
+    "create": "Add Student",
+    "edit": "Edit",
+    "import": "Import Excel",
+    "deactivate": "Deactivate"
+  },
+  "filter": {
+    "searchPlaceholder": "Search name / school",
+    "labelStatus": "Status",
+    "schoolPlaceholder": "School",
+    "gradePlaceholder": "Grade",
+    "all": "All"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive",
+    "WITHDRAWN": "Withdrawn"
+  },
+  "gender": {
+    "M": "Male",
+    "F": "Female"
+  },
+  "table": {
+    "name": "Name",
+    "gender": "Gender",
+    "school": "School",
+    "grade": "Grade",
+    "teacher": "Teacher",
+    "status": "Status",
+    "total": "Total {{count}} students",
+    "empty": "No students registered"
+  },
+  "field": {
+    "name": "Name (Korean)",
+    "englishName": "English Name",
+    "gender": "Gender",
+    "birthDate": "Birth Date",
+    "phone": "Phone",
+    "residence": "Residence",
+    "school": "School",
+    "grade": "Grade",
+    "mapReading": "MAP Reading",
+    "mapMath": "MAP Math",
+    "mapLanguage": "MAP Language",
+    "mapNote": "MAP Note",
+    "teacher": "Teacher",
+    "subject": "Subject",
+    "curriculum": "Curriculum",
+    "materials": "Materials",
+    "mobility": "Transport",
+    "gpa": "GPA",
+    "ssatIseeNote": "SSAT/ISEE",
+    "specialNote": "Special Note",
+    "goalsNote": "Goals",
+    "satisfactionNote": "Satisfaction",
+    "lastCounselDate": "Last Counseling",
+    "startDate": "Enrollment Date",
+    "status": "Status"
+  },
+  "form": {
+    "titleCreate": "Register Student",
+    "titleEdit": "Edit Student",
+    "sectionBasic": "Basic Info",
+    "sectionMap": "MAP Scores",
+    "sectionClass": "Class Info",
+    "sectionMemo": "Memo / Status"
+  },
+  "import": {
+    "title": "Excel Import (Bulk)",
+    "dropHint": "Drop file here or click to select",
+    "execute": "Run Import",
+    "downloadTemplate": "Download Template",
+    "resultSuccess": "{{count}} succeeded",
+    "resultFailed": "{{count}} failed",
+    "rowError": "Row {{row}}"
+  },
+  "detail": {
+    "back": "Back to list",
+    "notFound": "Student not found",
+    "updatedAt": "Last updated",
+    "confirmDeactivate": "Deactivate this student?"
+  }
+}
