@@ -21,6 +21,9 @@ BRANCH="${BRANCH:-main}"
 say()  { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m!! %s\033[0m\n' "$*" >&2; }
 die()  { printf '\033[1;31mXX %s\033[0m\n' "$*" >&2; exit 1; }
+# sudo wrapper: reads password from SUDO_PASS env var (set in .env.staging or exported before call)
+# Falls back to interactive sudo if SUDO_PASS is unset/empty.
+sudow() { if [[ -n "${SUDO_PASS:-}" ]]; then echo "$SUDO_PASS" | sudo -S "$@" 2>/dev/null; else sudo "$@"; fi; }
 
 [[ -d "$REPO_DIR/.git" ]] || die "$REPO_DIR is not a git repo. Run scripts/staging-setup.sh first."
 [[ -f "$REPO_DIR/docker/staging/.env.staging" ]] || die "Missing docker/staging/.env.staging."
@@ -177,12 +180,12 @@ install_vhost() {
     local src="$1" name="$2"
     local dst="/etc/nginx/sites-available/$name"
     local link="/etc/nginx/sites-enabled/$name"
-    if ! sudo cmp -s "$src" "$dst"; then
+    if ! sudow cmp -s "$src" "$dst"; then
         say "   $name changed — installing"
-        sudo cp "$src" "$dst"
+        sudow cp "$src" "$dst"
         nginx_changed=1
     fi
-    [[ -L "$link" ]] || { sudo ln -sf "$dst" "$link"; nginx_changed=1; }
+    [[ -L "$link" ]] || { sudow ln -sf "$dst" "$link"; nginx_changed=1; }
 }
 
 # Canonical app-academy vhost (S4 cut-over).
@@ -196,8 +199,8 @@ install_vhost "$REPO_DIR/docker/staging/nginx-acm.conf" \
               "acm-stg.amoeba.site"
 
 if [[ "$nginx_changed" == "1" ]]; then
-    sudo nginx -t
-    sudo systemctl reload nginx
+    sudow nginx -t
+    sudow systemctl reload nginx
 else
     echo "   nginx vhosts unchanged — skipping reload"
 fi
