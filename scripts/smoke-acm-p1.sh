@@ -23,7 +23,7 @@ fi
 # If no TOKEN provided, log in via /api/acm/auth/login using
 # ACM_SMOKE_EMAIL / ACM_SMOKE_PASSWORD (defaults match the seed admin).
 if [[ -z "${TOKEN}" ]]; then
-  EMAIL="${ACM_SMOKE_EMAIL:-admin@acm.local}"
+  EMAIL="${ACM_SMOKE_EMAIL:-admin@tpi.co.kr}"
   PASSWORD="${ACM_SMOKE_PASSWORD:-acm20261234}"
   echo "Logging in as ${EMAIL} ..."
   login_resp="$(curl -s -X POST -H 'Content-Type: application/json' \
