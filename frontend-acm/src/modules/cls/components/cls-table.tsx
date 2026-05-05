@@ -40,7 +40,7 @@ export function ClsTable({ items, isLoading }: ClsTableProps) {
           {items.map((c) => (
             <tr
               key={c.id}
-              onClick={() => navigate(`/cls/${c.id}`)}
+              onClick={() => navigate(`/admin/cls/${c.id}`)}
               className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-[var(--gray-100)]"
             >
               <td className="px-4 py-3 font-medium tabular-nums">{c.code}</td>

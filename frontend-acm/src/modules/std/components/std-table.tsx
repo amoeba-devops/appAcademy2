@@ -39,7 +39,7 @@ export function StdTable({ items, isLoading }: StdTableProps) {
             <tr
               key={s.id}
               className="cursor-pointer hover:bg-[var(--gray-50)] transition-colors"
-              onClick={() => navigate(`/std/${s.id}`)}
+              onClick={() => navigate(`/admin/std/${s.id}`)}
             >
               <td className="px-4 py-3 text-secondary">{idx + 1}</td>
               <td className="px-4 py-3 font-medium">

@@ -76,7 +76,7 @@ export function CslListPage() {
             {(data?.items ?? []).map((c) => (
               <tr
                 key={c.id}
-                onClick={() => navigate(`/csl/${c.id}`)}
+                onClick={() => navigate(`/admin/csl/${c.id}`)}
                 className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-[var(--gray-100)]"
               >
                 <td className="px-4 py-3 text-secondary tabular-nums">#{c.seqNo}</td>
