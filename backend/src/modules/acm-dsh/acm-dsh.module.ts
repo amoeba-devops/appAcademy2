@@ -10,6 +10,7 @@ import { ManualInputService } from './application/manual-input.service';
 import { ComplaintService } from './application/complaint.service';
 import { DailyKpiService } from './application/daily-kpi.service';
 import { DailyKpiJob } from './application/daily-kpi.job';
+import { MonthlySummaryService } from './application/monthly-summary.service';
 import { DashboardController } from './presentation/dashboard.controller';
 
 /**
@@ -35,6 +36,7 @@ import { DashboardController } from './presentation/dashboard.controller';
     ComplaintService,
     DailyKpiService,
     DailyKpiJob,
+    MonthlySummaryService,
   ],
   exports: [DailyKpiService],
 })

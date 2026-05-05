@@ -7,6 +7,7 @@ import { MetricDefinitionService } from '../application/metric-definition.servic
 import { DailyKpiService } from '../application/daily-kpi.service';
 import { ManualInputService } from '../application/manual-input.service';
 import { ComplaintService } from '../application/complaint.service';
+import { MonthlySummaryService } from '../application/monthly-summary.service';
 import { UpsertManualInputDto } from '../application/dto/manual-input.dto';
 import { CreateComplaintDto, UpdateComplaintDto } from '../application/dto/complaint.dto';
 
@@ -20,7 +21,24 @@ export class DashboardController {
     private readonly dailyKpi: DailyKpiService,
     private readonly manualInput: ManualInputService,
     private readonly complaint: ComplaintService,
+    private readonly monthlySummary: MonthlySummaryService,
   ) {}
+
+  // -------- Year-month list / Monthly summary --------
+  @Get('year-months')
+  @ApiOperation({ summary: 'List distinct year-months that have any daily_kpi rows' })
+  listYearMonths(@CurrentUser() user: AcmCurrentUser) {
+    return this.monthlySummary.listYearMonths(user.entId);
+  }
+
+  @Get('monthly-summary')
+  @ApiOperation({ summary: 'Per-category Sum/Aver + MoM delta + sparkline series' })
+  getMonthlySummary(
+    @CurrentUser() user: AcmCurrentUser,
+    @Query('yearMonth') yearMonth: string,
+  ) {
+    return this.monthlySummary.getMonthlySummary(user.entId, yearMonth);
+  }
 
   // -------- Metric registry --------
   @Get('metrics')

@@ -4,8 +4,15 @@
   "actions": {
     "manualInput": "Manual Input",
     "addComplaint": "Add Complaint",
+    "exportCsv": "Export CSV",
     "save": "Save",
     "cancel": "Cancel"
+  },
+  "summary": {
+    "sum": "Sum",
+    "aver": "Aver.",
+    "vsPrev": "vs prev. month",
+    "noPrev": "no previous data"
   },
   "status": {
     "populated": "{{count}}/{{total}} days populated"

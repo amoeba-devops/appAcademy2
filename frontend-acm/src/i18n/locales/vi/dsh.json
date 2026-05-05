@@ -4,8 +4,15 @@
   "actions": {
     "manualInput": "Nhập thủ công",
     "addComplaint": "Thêm khiếu nại",
+    "exportCsv": "Xuất CSV",
     "save": "Lưu",
     "cancel": "Hủy"
+  },
+  "summary": {
+    "sum": "Tổng",
+    "aver": "TB",
+    "vsPrev": "vs tháng trước",
+    "noPrev": "không có dữ liệu tháng trước"
   },
   "status": {
     "populated": "{{count}}/{{total}} ngày đã nhập"

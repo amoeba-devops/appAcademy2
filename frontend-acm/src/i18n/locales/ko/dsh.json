@@ -4,8 +4,15 @@
   "actions": {
     "manualInput": "수동 입력",
     "addComplaint": "불만 등록",
+    "exportCsv": "CSV 다운로드",
     "save": "저장",
     "cancel": "취소"
+  },
+  "summary": {
+    "sum": "합계",
+    "aver": "평균",
+    "vsPrev": "vs 전월",
+    "noPrev": "전월 데이터 없음"
   },
   "status": {
     "populated": "{{count}}/{{total}}일 데이터 입력됨"

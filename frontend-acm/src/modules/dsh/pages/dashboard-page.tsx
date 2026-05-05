@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { ManualInputDialog } from '@/modules/dsh/components/manual-input-dialog';
 import { ComplaintDialog } from '@/modules/dsh/components/complaint-dialog';
+import { KpiSummaryCards, type CategorySummary } from '@/modules/dsh/components/kpi-summary-cards';
+import { toCsv, downloadCsv } from '@/modules/dsh/lib/export-csv';
 
 type MetCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
 type MetAggregationType =
@@ -59,6 +61,13 @@ interface MonthGridResult {
   sums: Record<string, number>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
+}
+
+interface MonthlySummaryResponse {
+  yearMonth: string;
+  previousYearMonth: string | null;
+  populatedDayCount: number;
+  categories: CategorySummary[];
 }
 
 const METRIC_TO_FIELD: Record<string, keyof DailyKpiRow> = {
@@ -122,6 +131,17 @@ export function DashboardPage() {
       (await apiClient.get<MonthGridResult>('/acm/dsh/daily-kpi', { params: { yearMonth } })).data,
   });
 
+  const summaryQ = useQuery({
+    queryKey: ['dsh', 'summary', yearMonth],
+    queryFn: async () =>
+      (await apiClient.get<MonthlySummaryResponse>('/acm/dsh/monthly-summary', { params: { yearMonth } })).data,
+  });
+
+  const yearMonthsQ = useQuery({
+    queryKey: ['dsh', 'year-months'],
+    queryFn: async () => (await apiClient.get<string[]>('/acm/dsh/year-months')).data,
+  });
+
   const grouped = useMemo(() => {
     const m: Record<MetCategory, MetricDefinition[]> = {
       MARKETING: [], CS: [], OPERATING: [], CLASS: [],
@@ -139,14 +159,44 @@ export function DashboardPage() {
   const flatMetrics = CATEGORY_ORDER.flatMap((c) => grouped[c]);
 
   const monthOptions = useMemo(() => {
-    const opts: string[] = [];
+    const seeded = yearMonthsQ.data ?? [];
+    const set = new Set<string>(seeded);
     const now = new Date();
-    for (let i = -6; i <= 1; i++) {
+    for (let i = -1; i <= 1; i++) {
       const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      opts.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+      set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
     }
-    return opts;
-  }, []);
+    return Array.from(set).sort().reverse();
+  }, [yearMonthsQ.data]);
+
+  const handleExportCsv = () => {
+    if (!metricsQ.data || !gridQ.data) return;
+    const header: (string | number)[] = [t('grid.day'), t('grid.dow')];
+    for (const md of flatMetrics) header.push(isKr ? md.labelKr : md.labelEn);
+    const dataRows: (string | number | null)[][] = gridQ.data.rows.map((row) => {
+      const cells: (string | number | null)[] = [row.dayOfMonth, row.dayOfWeekKr];
+      for (const md of flatMetrics) {
+        const field = METRIC_TO_FIELD[md.code];
+        const v = field ? (row[field] as unknown) : null;
+        cells.push(v === null || v === undefined ? null : (v as string | number));
+      }
+      return cells;
+    });
+    const sumRow: (string | number | null)[] = [t('grid.sum'), ''];
+    const averRow: (string | number | null)[] = [t('grid.aver'), ''];
+    for (const md of flatMetrics) {
+      sumRow.push(gridQ.data.sums[md.code] ?? null);
+      averRow.push(
+        md.aggregationType === 'STATUS_SNAPSHOT'
+          ? null
+          : gridQ.data.averages[md.code] !== null
+            ? Math.round((gridQ.data.averages[md.code] as number) * 10) / 10
+            : null,
+      );
+    }
+    const csv = toCsv([header, ...dataRows, sumRow, averRow]);
+    downloadCsv(`dsh-${yearMonth}.csv`, csv);
+  };
 
   return (
     <div>
@@ -162,6 +212,9 @@ export function DashboardPage() {
               <option key={m} value={m}>{m}</option>
             ))}
           </select>
+          <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data}>
+            {t('actions.exportCsv')}
+          </Button>
           <Button variant="outline" onClick={() => setManualOpen(true)}>
             {t('actions.manualInput')}
           </Button>
@@ -179,6 +232,11 @@ export function DashboardPage() {
           })}
         </p>
       )}
+
+      <KpiSummaryCards
+        categories={summaryQ.data?.categories ?? []}
+        isLoading={summaryQ.isLoading}
+      />
 
       {(metricsQ.isLoading || gridQ.isLoading) && (
         <p className="text-secondary">{t('common:status.loading')}</p>

@@ -2,10 +2,17 @@
   "title": "대시보드",
   "loadFailed": "KPI를 불러오지 못했습니다.",
   "actions": {
-    "manualInput": "수동 입력",
-    "addComplaint": "불만 등록",
-    "save": "저장",
-    "cancel": "취소"
+    "manualInput": "手动录入",
+    "addComplaint": "添加投诉",
+    "exportCsv": "导出CSV",
+    "save": "保存",
+    "cancel": "取消"
+  },
+  "summary": {
+    "sum": "合计",
+    "aver": "平均",
+    "vsPrev": "vs 上月",
+    "noPrev": "无上月数据"
   },
   "status": {
     "populated": "{{count}}/{{total}}일 데이터 입력됨"
