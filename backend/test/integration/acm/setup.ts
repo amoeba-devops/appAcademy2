@@ -34,6 +34,7 @@ const ACM_SQL_FILES = [
   '410-acm-v1.0a-qna-p1.sql',
   '420-acm-qna-i18n-labels.sql',
   '500-acm-auth.sql',
+  '510-acm-ama-sso.sql',
 ];
 
 export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
@@ -46,6 +47,8 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
 
   process.env.ACM_PII_KEY = '0'.repeat(64); // 32 bytes hex
   process.env.ACM_JWT_SECRET = 'acm-test-secret';
+  process.env.AMA_JWT_SECRET = 'dev-acm-ama-secret-change-me-32bytes-for-tests';
+  process.env.AMA_JWT_ALLOWED_APP_CODES = 'tpi-acm';
   process.env.NODE_ENV = 'test';
 
   const moduleRef: TestingModule = await Test.createTestingModule({

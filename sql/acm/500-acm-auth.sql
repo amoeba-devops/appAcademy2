@@ -1,8 +1,8 @@
 -- ============================================================================
 -- ACM v1.0a — Auth (login users)  — 2026-05-03
 -- @see docs/analysis/ACM-AUTH-REQ-1.0.0.md
--- Adds: amb_acm_user table + seed admin (admin@acm.local / acm20261234)
--- Idempotent.
+-- Adds: amb_acm_user table + seed admin (admin@tpi.co.kr / acm20261234)
+-- Idempotent. Renames legacy admin@acm.local → admin@tpi.co.kr if present.
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS amb_acm_user (
@@ -21,12 +21,23 @@ CREATE TABLE IF NOT EXISTS amb_acm_user (
 CREATE INDEX IF NOT EXISTS idx_acm_user_email_status
   ON amb_acm_user (usr_email, usr_status);
 
+-- Migrate legacy seed (admin@acm.local → admin@tpi.co.kr) if exists and target free.
+UPDATE amb_acm_user
+SET usr_email = 'admin@tpi.co.kr', updated_at = now()
+WHERE ent_id = '00000000-0000-0000-0000-000000000001'
+  AND usr_email = 'admin@acm.local'
+  AND NOT EXISTS (
+    SELECT 1 FROM amb_acm_user
+    WHERE ent_id = '00000000-0000-0000-0000-000000000001'
+      AND usr_email = 'admin@tpi.co.kr'
+  );
+
 -- Seed admin operator (staging / dev). Must rotate before production.
 -- Password: acm20261234  (bcrypt rounds 12)
 INSERT INTO amb_acm_user (ent_id, usr_email, usr_password_hash, usr_name, usr_status)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'admin@acm.local',
+  'admin@tpi.co.kr',
   '$2b$12$6szKyUcXX6Zgt9/o3M/k9OUz01iCbqr6Y7VMMj6SKPGiDBrTfZ0Ka',
   'ACM Admin',
   'ACTIVE'

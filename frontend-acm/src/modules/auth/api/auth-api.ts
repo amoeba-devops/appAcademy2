@@ -5,6 +5,7 @@ export interface AuthUserDTO {
   entId: string;
   email: string;
   name: string;
+  authSource?: 'local' | 'ama';
 }
 
 export interface LoginResponse {
@@ -16,6 +17,18 @@ export async function login(email: string, password: string): Promise<LoginRespo
   const { data } = await apiClient.post<LoginResponse>('/acm/auth/login', {
     email,
     password,
+  });
+  return data;
+}
+
+/**
+ * Exchange an AMA Custom App context JWT for an ACM JWT.
+ * Backend validates HS256 signature, exp, scope, and appCode whitelist.
+ * @see docs/analysis/ACM-AMA-SSO-REQ-1.0.0.md FR-AMA-01..15
+ */
+export async function exchangeAmaToken(amaToken: string): Promise<LoginResponse> {
+  const { data } = await apiClient.post<LoginResponse>('/acm/auth/ama-exchange', {
+    amaToken,
   });
   return data;
 }

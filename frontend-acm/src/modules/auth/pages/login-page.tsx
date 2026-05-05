@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
@@ -7,10 +7,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
-import { login } from '../api/auth-api';
+import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
+import { exchangeAmaToken, login } from '../api/auth-api';
+
+type AmaState =
+  | { kind: 'idle' }
+  | { kind: 'exchanging' }
+  | { kind: 'error'; code: string };
+
+function isSupportedLang(v: string): v is SupportedLang {
+  return (SUPPORTED_LANGS as readonly string[]).includes(v);
+}
+
+/** Strip `ama_token` and `locale` from the URL without a navigation. FR-AMA-52. */
+function scrubUrl(): void {
+  if (typeof window === 'undefined') return;
+  const u = new URL(window.location.href);
+  let dirty = false;
+  for (const k of ['ama_token', 'locale']) {
+    if (u.searchParams.has(k)) {
+      u.searchParams.delete(k);
+      dirty = true;
+    }
+  }
+  if (dirty) {
+    window.history.replaceState({}, '', u.pathname + (u.search ? u.search : '') + u.hash);
+  }
+}
 
 export function LoginPage() {
-  const { t } = useTranslation('auth');
+  const { t, i18n } = useTranslation('auth');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -19,6 +45,53 @@ export function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // AMA SSO auto-exchange — runs once on mount when ?ama_token=... is present.
+  const [ama, setAma] = useState<AmaState>(() =>
+    params.get('ama_token') ? { kind: 'exchanging' } : { kind: 'idle' },
+  );
+  const exchangedRef = useRef(false);
+
+  useEffect(() => {
+    const amaToken = params.get('ama_token');
+    const locale = params.get('locale');
+
+    // Apply locale before any UI text renders (FR-AMA-03).
+    if (locale && isSupportedLang(locale) && i18n.language !== locale) {
+      void i18n.changeLanguage(locale);
+    }
+
+    if (!amaToken || exchangedRef.current) return;
+    exchangedRef.current = true;
+
+    (async () => {
+      try {
+        const { accessToken, user } = await exchangeAmaToken(amaToken);
+        setAuth(accessToken, {
+          id: user.id,
+          entId: user.entId,
+          email: user.email,
+        });
+        scrubUrl();
+        const returnTo = params.get('returnTo');
+        navigate(
+          returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard',
+          { replace: true },
+        );
+      } catch (err) {
+        scrubUrl();
+        let code = 'NETWORK';
+        if (err instanceof AxiosError) {
+          const body = err.response?.data as
+            | { code?: string; message?: string }
+            | undefined;
+          code = body?.code ?? `HTTP_${err.response?.status ?? 'X'}`;
+        }
+        setAma({ kind: 'error', code });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,6 +122,21 @@ export function LoginPage() {
     }
   };
 
+  // ── AMA SSO splash (exchanging) ────────────────────────────────────────────
+  if (ama.kind === 'exchanging') {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-secondary">
+          <div
+            className="h-8 w-8 rounded-full border-2 border-accent-700 border-t-transparent animate-spin"
+            aria-hidden
+          />
+          <p className="text-sm">{t('ama.loading')}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-canvas flex flex-col">
       <header className="h-header flex items-center justify-end px-6">
@@ -56,6 +144,20 @@ export function LoginPage() {
       </header>
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-sm bg-surface border border-[var(--border-subtle)] rounded-lg p-8 shadow-sm">
+          {ama.kind === 'error' && (
+            <div
+              role="alert"
+              className="mb-5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2"
+            >
+              <p className="font-semibold">{t('ama.errorTitle')}</p>
+              <p className="mt-1">
+                {t(`ama.errors.${ama.code}`, {
+                  defaultValue: t('ama.errors.NETWORK'),
+                })}
+              </p>
+            </div>
+          )}
+
           <h1 className="text-xl font-semibold text-accent-700 mb-1">
             {t('login.title')}
           </h1>

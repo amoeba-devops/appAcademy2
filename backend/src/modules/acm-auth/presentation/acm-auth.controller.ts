@@ -11,7 +11,11 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AcmAuthService } from '../application/acm-auth.service';
-import { AcmLoginDto, AcmAuthUser } from '../application/dto/acm-auth.dto';
+import {
+  AcmLoginDto,
+  AcmAuthUser,
+  AmaExchangeDto,
+} from '../application/dto/acm-auth.dto';
 import { AcmJwtAuthGuard } from '../guards/acm-jwt-auth.guard';
 
 @ApiTags('acm-auth')
@@ -24,6 +28,16 @@ export class AcmAuthController {
   @ApiOperation({ summary: 'ACM login (email + password) — returns JWT' })
   login(@Body() dto: AcmLoginDto) {
     return this.service.login(dto.email, dto.password);
+  }
+
+  @Post('ama-exchange')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Exchange AMA Custom App JWT for ACM JWT — auto-provisions user on first call',
+  })
+  amaExchange(@Body() dto: AmaExchangeDto) {
+    return this.service.exchangeAmaToken(dto.amaToken);
   }
 
   @Get('me')

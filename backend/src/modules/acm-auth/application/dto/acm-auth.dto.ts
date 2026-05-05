@@ -19,9 +19,18 @@ export interface AcmAuthUser {
   entId: string;
   email: string;
   name: string;
+  authSource?: 'local' | 'ama';
 }
 
 export interface AcmLoginResponse {
   accessToken: string;
   user: AcmAuthUser;
+}
+
+export class AmaExchangeDto {
+  @ApiProperty({ description: 'AMA Custom App context JWT (HS256)' })
+  @IsString()
+  @MinLength(20)
+  @MaxLength(4096)
+  amaToken!: string;
 }

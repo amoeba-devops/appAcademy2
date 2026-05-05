@@ -1,6 +1,6 @@
 {
   "name": "trinity-academy",
-  "version": "1.3.0",
+  "version": "1.4.6",
   "private": true,
   "description": "Trinity Academy — Clean Architecture (React + NestJS + MySQL)",
   "scripts": {

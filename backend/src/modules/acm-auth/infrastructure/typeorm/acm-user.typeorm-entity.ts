@@ -19,8 +19,8 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'usr_email', type: 'varchar', length: 200 })
   email!: string;
 
-  @Column({ name: 'usr_password_hash', type: 'varchar', length: 120 })
-  passwordHash!: string;
+  @Column({ name: 'usr_password_hash', type: 'varchar', length: 120, nullable: true })
+  passwordHash!: string | null;
 
   @Column({ name: 'usr_name', type: 'varchar', length: 100 })
   name!: string;
@@ -30,6 +30,18 @@ export class AcmUserTypeormEntity {
 
   @Column({ name: 'usr_last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt?: Date | null;
+
+  @Column({ name: 'auth_source', type: 'varchar', length: 16, default: 'local' })
+  authSource!: string;
+
+  @Column({ name: 'ama_user_id', type: 'uuid', nullable: true })
+  amaUserId?: string | null;
+
+  @Column({ name: 'ama_entity_id', type: 'uuid', nullable: true })
+  amaEntityId?: string | null;
+
+  @Column({ name: 'ama_role', type: 'varchar', length: 40, nullable: true })
+  amaRole?: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

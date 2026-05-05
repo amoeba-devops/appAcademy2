@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.6] — 2026-05-05 — ACM × AMA Custom App SSO (Phase 1+2+3)
+
+### Added — Backend
+- `modules/acm-auth/infrastructure/ama-token.verifier.ts` — HS256 JWT verifier with exp / 30s clock skew / scope (`custom_app:context`) / appCode whitelist / required-claims checks. Disabled-mode (no `AMA_JWT_SECRET`) returns `AMA_TOKEN_INVALID_SIGNATURE` so legacy login keeps working.
+- `POST /api/acm/auth/ama-exchange` — exchanges AMA token → ACM JWT. Auto-provisions user (`auth_source='ama'`, `password_hash=NULL`), idempotent re-entry, email/role sync. Logs success + failures with reason code.
+- DTO: `AmaExchangeDto { amaToken: string }` (20–4096 chars).
+- `sql/acm/510-acm-ama-sso.sql` — `ALTER amb_acm_user ADD ama_user_id, ama_entity_id, ama_role, auth_source` + `ALTER usr_password_hash DROP NOT NULL` + `uq_acm_user_ent_ama_user` partial unique index. Idempotent.
+- TypeORM entity columns: `authSource`, `amaUserId`, `amaEntityId`, `amaRole`, plus `passwordHash` now nullable.
+- Tests: 10 unit (verifier) + 12 integration (`it-ama-sso.int-spec.ts` covering TC-INT-01~08 + TC-REG-01/02/06/07) — **22/22 PASS**.
+
+### Added — Frontend (frontend-acm)
+- `LoginPage` — auto-exchange on mount when `?ama_token=…` present (splash spinner → `setAuth` → `history.replaceState` to scrub URL → redirect to `returnTo` or `/dashboard`).
+- `?locale=…` query → `i18n.changeLanguage` if supported (ko/en/vi/zh-CN), otherwise ignored.
+- Error UI for AMA failure codes (`AMA_TOKEN_EXPIRED`, `_INVALID_SIGNATURE`, `_SCOPE_INVALID`, `_APP_CODE_INVALID`, `_CLAIMS_MISSING`, `AMA_SSO_DISABLED`, network).
+- `auth-api.ts` — `exchangeAmaToken(amaToken)` client + `AuthUserDTO.authSource?: 'local'|'ama'`.
+- i18n `auth.ama.*` keys added to all 4 locales.
+
+### Added — Infra
+- `docker/staging/nginx-acm.conf` — `Content-Security-Policy: frame-ancestors 'self' https://ama.amoeba.site https://ama-stg.amoeba.site` (replaces implicit X-Frame-Options).
+- `docker/staging/docker-compose.staging.yml` — passes `AMA_JWT_SECRET` + `AMA_JWT_ALLOWED_APP_CODES` (default `tpi-acm`) to backend.
+- `.env.example` (`backend/`, `docker/staging/`) — new vars documented.
+
+### Changed
+- `AcmAuthService.login()` — now guards `bcrypt.compare` against null `passwordHash` (FR-AMA-63: AMA-source users cannot self-login).
+- Both legacy `login()` and new `exchangeAmaToken()` issue identical `{sub, entId, email, name}` JWT payloads (FR-AMA-64).
+
+### Backward Compatibility (regression-tested)
+- Legacy `POST /api/acm/auth/login` unchanged — schema, status codes, rate limit identical.
+- `/login` form remains the default UI when no `ama_token` query.
+- `admin@tpi.co.kr` break-glass login continues to work after migration 510.
+
+### Docs
+- [docs/analysis/ACM-AMA-SSO-REQ-1.0.0.md](docs/analysis/ACM-AMA-SSO-REQ-1.0.0.md) v1.0.1 — added G-6 + FR-AMA-60..64 (legacy-login non-breaking guarantee).
+- [docs/implementation/PLAN-260505-acm-ama-sso.md](docs/implementation/PLAN-260505-acm-ama-sso.md) — 6-phase plan with ASCII mockups + sequence diagram.
+- [docs/test/TC-260505-acm-ama-sso.md](docs/test/TC-260505-acm-ama-sso.md) — 26 testcases + 8 regression cases + FR↔TC matrix.
+
+### Notes / Follow-ups
+- Phase 4 (E2E + manual iframe smoke) and Phase 5 (deploy + report) deferred to next session.
+- AMA team to provide production `AMA_JWT_SECRET` before staging cutover (currently empty → 503).
+- `replay-protection (jti cache)` is P1, not in 1.4.6.
+
+---
+
 ## [1.4.5] — 2026-05-03 — ACM Admin Auth (JWT login + RequireAuth + 403 해결)
 
 ### Added — Backend

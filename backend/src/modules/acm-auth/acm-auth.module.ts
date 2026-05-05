@@ -9,6 +9,7 @@ import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
 import { AcmAuthController } from './presentation/acm-auth.controller';
 import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-entity';
+import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-
     TypeOrmModule.forFeature([AcmUserTypeormEntity], ACM_DS),
   ],
   controllers: [AcmAuthController],
-  providers: [AcmAuthService, AcmJwtStrategy, AcmJwtAuthGuard],
+  providers: [AcmAuthService, AcmJwtStrategy, AcmJwtAuthGuard, AmaTokenVerifier],
   exports: [AcmAuthService, AcmJwtAuthGuard],
 })
 export class AcmAuthModule {}
