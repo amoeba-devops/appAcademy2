@@ -13,7 +13,8 @@
     "qna": "Q&A",
     "tch": "教师管理",
     "stf": "员工管理",
-    "cal": "日历"
+    "cal": "日历",
+    "map": "MAP 历年真题"
   },
   "lang": {
     "label": "语言",
@@ -32,7 +33,8 @@
     "search": "검색",
     "loading": "불러오는 중…",
     "submit": "제출",
-    "submitting": "제출 중…"
+    "submitting": "제출 중…",
+    "close": "关闭"
   },
   "status": {
     "loading": "加载中…",

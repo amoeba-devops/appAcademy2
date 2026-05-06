@@ -1,0 +1,70 @@
+{
+  "title": "MAP 기출문제 관리",
+  "actions": {
+    "create": "문항 추가",
+    "import": "엑셀 업로드"
+  },
+  "filter": {
+    "searchPlaceholder": "지문/문항 검색…",
+    "grade": "학년",
+    "allGrades": "전체 학년",
+    "hasAnswer": "정답 여부",
+    "answerAll": "정답 전체",
+    "answerYes": "정답 입력됨",
+    "answerNo": "정답 미입력",
+    "status": "상태",
+    "statusAll": "상태 전체",
+    "pairedOnly": "짝지문만"
+  },
+  "status": {
+    "PUBLISHED": "공개",
+    "DRAFT": "초안",
+    "ARCHIVED": "보관"
+  },
+  "difficulty": {
+    "BASIC": "기본",
+    "INTERMEDIATE": "중급",
+    "ADVANCED": "고급"
+  },
+  "table": {
+    "total": "총 {{count}}개",
+    "empty": "표시할 문항이 없습니다.",
+    "grade": "학년",
+    "question": "문항 / 보기",
+    "answer": "정답",
+    "status": "상태",
+    "clearAnswer": "정답 지우기"
+  },
+  "badges": {
+    "paired": "짝지문"
+  },
+  "form": {
+    "titleCreate": "MAP 기출문제 추가",
+    "titleEdit": "MAP 기출문제 수정",
+    "grade": "학년",
+    "externalNo": "문항 번호",
+    "externalNoHint": "비우면 자동 부여",
+    "difficulty": "난이도",
+    "passage1": "지문 1 (필수)",
+    "passage2": "지문 2 (짝지문, 선택)",
+    "passage2Hint": "짝지문이 있는 경우만 입력",
+    "glossary": "어휘 노트 (선택)",
+    "question": "문항",
+    "choice": "보기 {{n}}",
+    "answer": "정답",
+    "answerNone": "(정답 미입력)",
+    "explanation": "해설 (선택)"
+  },
+  "import": {
+    "title": "MAP 기출문제 일괄 업로드",
+    "dropHint": "여기에 .xlsx 파일을 끌어다 놓거나 클릭하세요",
+    "execute": "업로드 실행",
+    "downloadTemplate": "템플릿 다운로드",
+    "summary": "신규 {{inserted}}건, 업데이트 {{updated}}건 / 총 {{total}}건",
+    "rowError": "{{row}}행"
+  },
+  "delete": {
+    "title": "문항을 삭제하시겠습니까?",
+    "description": "{{no}}번 문항이 보관(아카이브) 처리됩니다."
+  }
+}

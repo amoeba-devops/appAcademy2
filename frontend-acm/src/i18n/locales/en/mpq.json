@@ -1,0 +1,70 @@
+{
+  "title": "MAP Past Questions",
+  "actions": {
+    "create": "Add Question",
+    "import": "Import xlsx"
+  },
+  "filter": {
+    "searchPlaceholder": "Search passage / question…",
+    "grade": "Grade",
+    "allGrades": "All grades",
+    "hasAnswer": "Answer key",
+    "answerAll": "Any",
+    "answerYes": "Has answer",
+    "answerNo": "Missing answer",
+    "status": "Status",
+    "statusAll": "Any status",
+    "pairedOnly": "Paired only"
+  },
+  "status": {
+    "PUBLISHED": "Published",
+    "DRAFT": "Draft",
+    "ARCHIVED": "Archived"
+  },
+  "difficulty": {
+    "BASIC": "Basic",
+    "INTERMEDIATE": "Intermediate",
+    "ADVANCED": "Advanced"
+  },
+  "table": {
+    "total": "{{count}} total",
+    "empty": "No questions to display.",
+    "grade": "Grade",
+    "question": "Question / Choices",
+    "answer": "Answer",
+    "status": "Status",
+    "clearAnswer": "Clear answer"
+  },
+  "badges": {
+    "paired": "Paired"
+  },
+  "form": {
+    "titleCreate": "Add MAP Question",
+    "titleEdit": "Edit MAP Question",
+    "grade": "Grade",
+    "externalNo": "Question No.",
+    "externalNoHint": "Leave blank for auto",
+    "difficulty": "Difficulty",
+    "passage1": "Passage 1 (required)",
+    "passage2": "Passage 2 (paired, optional)",
+    "passage2Hint": "Fill only when paired with another passage",
+    "glossary": "Glossary (optional)",
+    "question": "Question",
+    "choice": "Choice {{n}}",
+    "answer": "Answer",
+    "answerNone": "(no answer)",
+    "explanation": "Explanation (optional)"
+  },
+  "import": {
+    "title": "Bulk import MAP questions",
+    "dropHint": "Drop .xlsx here or click to browse",
+    "execute": "Run import",
+    "downloadTemplate": "Download template",
+    "summary": "{{inserted}} inserted, {{updated}} updated / {{total}} total",
+    "rowError": "Row {{row}}"
+  },
+  "delete": {
+    "title": "Archive this question?",
+    "description": "Question #{{no}} will be archived."
+  }
+}

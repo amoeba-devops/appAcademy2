@@ -1,0 +1,70 @@
+{
+  "title": "MAP 历年真题",
+  "actions": {
+    "create": "添加题目",
+    "import": "导入 xlsx"
+  },
+  "filter": {
+    "searchPlaceholder": "搜索文章/题目…",
+    "grade": "年级",
+    "allGrades": "全部年级",
+    "hasAnswer": "答案",
+    "answerAll": "全部",
+    "answerYes": "已填答案",
+    "answerNo": "缺少答案",
+    "status": "状态",
+    "statusAll": "全部状态",
+    "pairedOnly": "仅成对"
+  },
+  "status": {
+    "PUBLISHED": "已发布",
+    "DRAFT": "草稿",
+    "ARCHIVED": "已归档"
+  },
+  "difficulty": {
+    "BASIC": "基础",
+    "INTERMEDIATE": "中级",
+    "ADVANCED": "高级"
+  },
+  "table": {
+    "total": "共 {{count}} 道",
+    "empty": "暂无题目。",
+    "grade": "年级",
+    "question": "题目 / 选项",
+    "answer": "答案",
+    "status": "状态",
+    "clearAnswer": "清除答案"
+  },
+  "badges": {
+    "paired": "成对"
+  },
+  "form": {
+    "titleCreate": "添加 MAP 题目",
+    "titleEdit": "编辑 MAP 题目",
+    "grade": "年级",
+    "externalNo": "题号",
+    "externalNoHint": "留空则自动生成",
+    "difficulty": "难度",
+    "passage1": "文章 1 (必填)",
+    "passage2": "文章 2 (成对，可选)",
+    "passage2Hint": "仅在与另一篇文章成对时填写",
+    "glossary": "词汇表 (可选)",
+    "question": "题目",
+    "choice": "选项 {{n}}",
+    "answer": "答案",
+    "answerNone": "(未填)",
+    "explanation": "解析 (可选)"
+  },
+  "import": {
+    "title": "批量导入 MAP 题目",
+    "dropHint": "将 .xlsx 拖到此处或点击选择",
+    "execute": "执行导入",
+    "downloadTemplate": "下载模板",
+    "summary": "新增 {{inserted}} 条，更新 {{updated}} 条 / 共 {{total}} 条",
+    "rowError": "第 {{row}} 行"
+  },
+  "delete": {
+    "title": "归档此题目？",
+    "description": "第 {{no}} 题将被归档。"
+  }
+}

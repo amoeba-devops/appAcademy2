@@ -4,6 +4,7 @@ import {
   Users,
   School,
   BookOpen,
+  BookOpenCheck,
   MessageCircleQuestion,
   GraduationCap,
   UserRound,
@@ -27,6 +28,7 @@ const NAV = [
   { to: '/admin/cal', icon: CalendarDays, key: 'cal' },
   { to: '/admin/sch', icon: School, key: 'sch' },
   { to: '/admin/ref', icon: BookOpen, key: 'ref' },
+  { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
 ] as const;
 

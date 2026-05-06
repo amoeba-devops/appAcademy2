@@ -18,6 +18,7 @@ import { WebTestPage } from '@/modules/web/pages/web-test-page';
 import { TchListPage } from '@/modules/tch/pages/tch-list-page';
 import { StfListPage } from '@/modules/stf/pages/stf-list-page';
 import { CalMonthPage } from '@/modules/cal/pages/cal-month-page';
+import { MpqListPage } from '@/modules/map/pages/mpq-list-page';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'admin/tch', element: <TchListPage /> },
       { path: 'admin/stf', element: <StfListPage /> },
       { path: 'admin/cal', element: <CalMonthPage /> },
+      { path: 'admin/map', element: <MpqListPage /> },
       { path: 'admin/sch', element: <SchoolListPage /> },
       { path: 'admin/ref', element: <ReferenceListPage /> },
       { path: 'admin/qna', element: <QnaListPage /> },

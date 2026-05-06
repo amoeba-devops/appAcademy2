@@ -11,6 +11,7 @@ import { AcmStdModule } from './acm-std/acm-std.module';
 import { AcmTchModule } from './acm-tch/acm-tch.module';
 import { AcmStfModule } from './acm-stf/acm-stf.module';
 import { AcmCalModule } from './acm-cal/acm-cal.module';
+import { AcmMapModule } from './acm-map/acm-map.module';
 
 /**
  * ACM v1.0c aggregator.
@@ -33,6 +34,7 @@ import { AcmCalModule } from './acm-cal/acm-cal.module';
     AcmTchModule,
     AcmStfModule,
     AcmCalModule,
+    AcmMapModule,
   ],
   exports: [
     AcmCommonModule,
@@ -47,6 +49,7 @@ import { AcmCalModule } from './acm-cal/acm-cal.module';
     AcmTchModule,
     AcmStfModule,
     AcmCalModule,
+    AcmMapModule,
   ],
 })
 export class AcmModule {}

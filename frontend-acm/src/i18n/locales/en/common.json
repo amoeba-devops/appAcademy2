@@ -13,7 +13,8 @@
     "qna": "Q&A",
     "tch": "Teachers",
     "stf": "Staff",
-    "cal": "Calendar"
+    "cal": "Calendar",
+    "map": "MAP Past Questions"
   },
   "lang": {
     "label": "Language",
@@ -32,7 +33,8 @@
     "search": "Search",
     "loading": "Loading…",
     "submit": "Submit",
-    "submitting": "Submitting…"
+    "submitting": "Submitting…",
+    "close": "Close"
   },
   "status": {
     "loading": "Loading…",

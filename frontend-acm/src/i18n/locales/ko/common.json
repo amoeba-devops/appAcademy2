@@ -13,7 +13,8 @@
     "qna": "Q&A",
     "tch": "교사 관리",
     "stf": "직원 관리",
-    "cal": "캘린더"
+    "cal": "캘린더",
+    "map": "MAP 기출문제"
   },
   "lang": {
     "label": "언어",
@@ -32,7 +33,8 @@
     "search": "검색",
     "loading": "불러오는 중…",
     "submit": "제출",
-    "submitting": "제출 중…"
+    "submitting": "제출 중…",
+    "close": "닫기"
   },
   "status": {
     "loading": "불러오는 중…",

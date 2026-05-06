@@ -1,0 +1,70 @@
+{
+  "title": "Câu hỏi MAP cũ",
+  "actions": {
+    "create": "Thêm câu hỏi",
+    "import": "Nhập xlsx"
+  },
+  "filter": {
+    "searchPlaceholder": "Tìm đoạn văn / câu hỏi…",
+    "grade": "Lớp",
+    "allGrades": "Tất cả lớp",
+    "hasAnswer": "Đáp án",
+    "answerAll": "Tất cả",
+    "answerYes": "Có đáp án",
+    "answerNo": "Thiếu đáp án",
+    "status": "Trạng thái",
+    "statusAll": "Tất cả trạng thái",
+    "pairedOnly": "Chỉ cặp đôi"
+  },
+  "status": {
+    "PUBLISHED": "Đã xuất bản",
+    "DRAFT": "Bản nháp",
+    "ARCHIVED": "Lưu trữ"
+  },
+  "difficulty": {
+    "BASIC": "Cơ bản",
+    "INTERMEDIATE": "Trung cấp",
+    "ADVANCED": "Nâng cao"
+  },
+  "table": {
+    "total": "Tổng {{count}}",
+    "empty": "Không có câu hỏi.",
+    "grade": "Lớp",
+    "question": "Câu hỏi / Lựa chọn",
+    "answer": "Đáp án",
+    "status": "Trạng thái",
+    "clearAnswer": "Xóa đáp án"
+  },
+  "badges": {
+    "paired": "Cặp"
+  },
+  "form": {
+    "titleCreate": "Thêm câu hỏi MAP",
+    "titleEdit": "Sửa câu hỏi MAP",
+    "grade": "Lớp",
+    "externalNo": "Số câu",
+    "externalNoHint": "Để trống = tự động",
+    "difficulty": "Độ khó",
+    "passage1": "Đoạn văn 1 (bắt buộc)",
+    "passage2": "Đoạn văn 2 (cặp, tùy chọn)",
+    "passage2Hint": "Chỉ điền nếu có đoạn cặp",
+    "glossary": "Từ vựng (tùy chọn)",
+    "question": "Câu hỏi",
+    "choice": "Lựa chọn {{n}}",
+    "answer": "Đáp án",
+    "answerNone": "(chưa nhập)",
+    "explanation": "Giải thích (tùy chọn)"
+  },
+  "import": {
+    "title": "Nhập câu hỏi MAP hàng loạt",
+    "dropHint": "Kéo thả .xlsx vào đây hoặc bấm để chọn",
+    "execute": "Chạy nhập",
+    "downloadTemplate": "Tải mẫu",
+    "summary": "Mới {{inserted}}, cập nhật {{updated}} / Tổng {{total}}",
+    "rowError": "Dòng {{row}}"
+  },
+  "delete": {
+    "title": "Lưu trữ câu hỏi này?",
+    "description": "Câu hỏi #{{no}} sẽ được lưu trữ."
+  }
+}
