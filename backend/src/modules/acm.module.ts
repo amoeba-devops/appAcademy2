@@ -8,9 +8,12 @@ import { AcmQnaModule } from './acm-qna/acm-qna.module';
 import { AcmDshModule } from './acm-dsh/acm-dsh.module';
 import { AcmClsModule } from './acm-cls/acm-cls.module';
 import { AcmStdModule } from './acm-std/acm-std.module';
+import { AcmTchModule } from './acm-tch/acm-tch.module';
+import { AcmStfModule } from './acm-stf/acm-stf.module';
+import { AcmCalModule } from './acm-cal/acm-cal.module';
 
 /**
- * ACM v1.0a aggregator.
+ * ACM v1.0c aggregator.
  * Mount this in app.module.ts to enable all ACM modules.
  *
  * Required env: ACM_PII_KEY (32-byte hex)
@@ -27,6 +30,9 @@ import { AcmStdModule } from './acm-std/acm-std.module';
     AcmDshModule,
     AcmClsModule,
     AcmStdModule,
+    AcmTchModule,
+    AcmStfModule,
+    AcmCalModule,
   ],
   exports: [
     AcmCommonModule,
@@ -38,6 +44,9 @@ import { AcmStdModule } from './acm-std/acm-std.module';
     AcmDshModule,
     AcmClsModule,
     AcmStdModule,
+    AcmTchModule,
+    AcmStfModule,
+    AcmCalModule,
   ],
 })
 export class AcmModule {}

@@ -19,6 +19,9 @@ import koQna from './locales/ko/qna.json';
 import koCls from './locales/ko/cls.json';
 import koStd from './locales/ko/std.json';
 import koWeb from './locales/ko/web.json';
+import koTch from './locales/ko/tch.json';
+import koStf from './locales/ko/stf.json';
+import koCal from './locales/ko/cal.json';
 
 import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
@@ -30,6 +33,9 @@ import enQna from './locales/en/qna.json';
 import enCls from './locales/en/cls.json';
 import enStd from './locales/en/std.json';
 import enWeb from './locales/en/web.json';
+import enTch from './locales/en/tch.json';
+import enStf from './locales/en/stf.json';
+import enCal from './locales/en/cal.json';
 
 import viCommon from './locales/vi/common.json';
 import viAuth from './locales/vi/auth.json';
@@ -41,6 +47,9 @@ import viQna from './locales/vi/qna.json';
 import viCls from './locales/vi/cls.json';
 import viStd from './locales/vi/std.json';
 import viWeb from './locales/vi/web.json';
+import viTch from './locales/vi/tch.json';
+import viStf from './locales/vi/stf.json';
+import viCal from './locales/vi/cal.json';
 
 import zhCommon from './locales/zh-CN/common.json';
 import zhAuth from './locales/zh-CN/auth.json';
@@ -52,6 +61,9 @@ import zhQna from './locales/zh-CN/qna.json';
 import zhCls from './locales/zh-CN/cls.json';
 import zhStd from './locales/zh-CN/std.json';
 import zhWeb from './locales/zh-CN/web.json';
+import zhTch from './locales/zh-CN/tch.json';
+import zhStf from './locales/zh-CN/stf.json';
+import zhCal from './locales/zh-CN/cal.json';
 
 export const SUPPORTED_LANGS = ['ko', 'en', 'vi', 'zh-CN'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
@@ -85,7 +97,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANG,
   supportedLngs: SUPPORTED_LANGS as unknown as string[],
   defaultNS: 'common',
-  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web'],
+  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web', 'tch', 'stf', 'cal'],
   interpolation: { escapeValue: false },
   resources: {
     ko: {
@@ -99,6 +111,9 @@ void i18n.use(initReactI18next).init({
       cls: koCls,
       std: koStd,
       web: koWeb,
+      tch: koTch,
+      stf: koStf,
+      cal: koCal,
     },
     en: {
       common: enCommon,
@@ -111,6 +126,9 @@ void i18n.use(initReactI18next).init({
       cls: enCls,
       std: enStd,
       web: enWeb,
+      tch: enTch,
+      stf: enStf,
+      cal: enCal,
     },
     vi: {
       common: viCommon,
@@ -123,6 +141,9 @@ void i18n.use(initReactI18next).init({
       cls: viCls,
       std: viStd,
       web: viWeb,
+      tch: viTch,
+      stf: viStf,
+      cal: viCal,
     },
     'zh-CN': {
       common: zhCommon,
@@ -135,6 +156,9 @@ void i18n.use(initReactI18next).init({
       cls: zhCls,
       std: zhStd,
       web: zhWeb,
+      tch: zhTch,
+      stf: zhStf,
+      cal: zhCal,
     },
   },
 });

@@ -1,0 +1,75 @@
+{
+  "title": "교사 관리",
+  "actions": {
+    "create": "교사 등록",
+    "resetPassword": "비밀번호 재설정"
+  },
+  "filter": {
+    "searchPlaceholder": "이름·이메일 검색",
+    "all": "전체"
+  },
+  "status": {
+    "ACTIVE": "재직",
+    "INACTIVE": "비활성"
+  },
+  "account": {
+    "yes": "사용",
+    "no": "미발급"
+  },
+  "table": {
+    "name": "이름",
+    "email": "이메일",
+    "phone": "연락처",
+    "subjects": "담당 과목",
+    "account": "계정",
+    "status": "상태",
+    "total": "총 {{count}}명",
+    "empty": "등록된 교사가 없습니다."
+  },
+  "field": {
+    "name": "이름",
+    "englishName": "영문명",
+    "email": "이메일",
+    "phone": "연락처",
+    "birthDate": "생년월일",
+    "status": "상태",
+    "memo": "메모",
+    "subjects": "담당 과목",
+    "createAccount": "로그인 계정 발급",
+    "password": "비밀번호",
+    "passwordConfirm": "비밀번호 확인",
+    "newPassword": "새 비밀번호"
+  },
+  "subject": {
+    "MAP": "MAP",
+    "MATH": "수학",
+    "WRITING": "작문",
+    "LANGUAGE_ARTS": "Language Arts",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "INTL_PREP": "유학 준비",
+    "OTHER": "기타"
+  },
+  "form": {
+    "titleCreate": "교사 등록",
+    "titleEdit": "교사 정보 수정",
+    "sectionBasic": "기본 정보",
+    "sectionSubjects": "담당 과목 선택",
+    "sectionAccount": "계정 발급",
+    "sectionResetPassword": "비밀번호 재설정"
+  },
+  "hint": {
+    "passwordPolicy": "8자 이상, 영문·숫자를 모두 포함하세요."
+  },
+  "error": {
+    "passwordShort": "비밀번호는 8자 이상이어야 합니다.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다."
+  },
+  "toast": {
+    "passwordReset": "비밀번호가 재설정되었습니다."
+  },
+  "confirm": {
+    "delete": "교사 정보를 삭제하시겠습니까?"
+  }
+}

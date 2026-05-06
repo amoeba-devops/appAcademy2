@@ -1,0 +1,23 @@
+{
+  "title": "日历",
+  "actions": { "create": "新增日程", "today": "今天", "prev": "上一月", "next": "下一月" },
+  "category": { "CLASS": "课程", "MEETING": "会议", "EVENT": "活动", "PERSONAL": "个人" },
+  "provider": { "NONE": "无", "GOOGLE_MEET": "Google Meet", "BODASCHOOL": "Bodaschool", "OTHER": "其他" },
+  "field": {
+    "title": "标题", "description": "说明", "category": "分类",
+    "startAt": "开始", "endAt": "结束", "allDay": "全天",
+    "locationText": "地点", "meetingProvider": "在线会议", "meetingUrl": "会议链接"
+  },
+  "form": { "titleCreate": "新增日程", "titleEdit": "编辑日程", "sectionMeeting": "在线会议" },
+  "hint": {
+    "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",
+    "readOnlySource": "该日程从外部源同步,不可编辑。"
+  },
+  "error": {
+    "titleRequired": "请输入标题。",
+    "timeRequired": "请填写开始与结束时间。",
+    "endBeforeStart": "结束时间必须晚于开始时间。",
+    "meetingUrlRequired": "请输入有效的会议链接(http:// 或 https://)。"
+  },
+  "confirm": { "delete": "确定删除该日程?" }
+}

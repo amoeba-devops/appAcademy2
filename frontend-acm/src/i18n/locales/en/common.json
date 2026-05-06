@@ -10,7 +10,10 @@
     "std": "Students",
     "sch": "Schools",
     "ref": "References",
-    "qna": "Q&A"
+    "qna": "Q&A",
+    "tch": "Teachers",
+    "stf": "Staff",
+    "cal": "Calendar"
   },
   "lang": {
     "label": "Language",

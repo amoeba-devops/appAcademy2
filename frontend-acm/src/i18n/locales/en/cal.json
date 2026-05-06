@@ -1,0 +1,50 @@
+{
+  "title": "Calendar",
+  "actions": {
+    "create": "Add Event",
+    "today": "Today",
+    "prev": "Prev",
+    "next": "Next"
+  },
+  "category": {
+    "CLASS": "Class",
+    "MEETING": "Meeting",
+    "EVENT": "Event",
+    "PERSONAL": "Personal"
+  },
+  "provider": {
+    "NONE": "None",
+    "GOOGLE_MEET": "Google Meet",
+    "BODASCHOOL": "Bodaschool",
+    "OTHER": "Other"
+  },
+  "field": {
+    "title": "Title",
+    "description": "Description",
+    "category": "Category",
+    "startAt": "Start",
+    "endAt": "End",
+    "allDay": "All day",
+    "locationText": "Location",
+    "meetingProvider": "Meeting provider",
+    "meetingUrl": "Meeting URL"
+  },
+  "form": {
+    "titleCreate": "Add Event",
+    "titleEdit": "Edit Event",
+    "sectionMeeting": "Online meeting"
+  },
+  "hint": {
+    "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
+    "readOnlySource": "This event is synced from an external source and cannot be edited."
+  },
+  "error": {
+    "titleRequired": "Please enter a title.",
+    "timeRequired": "Start and end times are required.",
+    "endBeforeStart": "End time must be after start time.",
+    "meetingUrlRequired": "Enter a valid meeting URL (http:// or https://)."
+  },
+  "confirm": {
+    "delete": "Delete this event?"
+  }
+}

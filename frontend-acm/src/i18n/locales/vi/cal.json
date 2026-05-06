@@ -1,0 +1,23 @@
+{
+  "title": "Lịch",
+  "actions": { "create": "Thêm sự kiện", "today": "Hôm nay", "prev": "Trước", "next": "Sau" },
+  "category": { "CLASS": "Lớp học", "MEETING": "Họp", "EVENT": "Sự kiện", "PERSONAL": "Cá nhân" },
+  "provider": { "NONE": "Không", "GOOGLE_MEET": "Google Meet", "BODASCHOOL": "Bodaschool", "OTHER": "Khác" },
+  "field": {
+    "title": "Tiêu đề", "description": "Mô tả", "category": "Phân loại",
+    "startAt": "Bắt đầu", "endAt": "Kết thúc", "allDay": "Cả ngày",
+    "locationText": "Địa điểm", "meetingProvider": "Họp trực tuyến", "meetingUrl": "URL họp"
+  },
+  "form": { "titleCreate": "Thêm sự kiện", "titleEdit": "Sửa sự kiện", "sectionMeeting": "Họp trực tuyến" },
+  "hint": {
+    "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
+    "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa."
+  },
+  "error": {
+    "titleRequired": "Vui lòng nhập tiêu đề.",
+    "timeRequired": "Cần nhập thời gian bắt đầu và kết thúc.",
+    "endBeforeStart": "Thời gian kết thúc phải sau thời gian bắt đầu.",
+    "meetingUrlRequired": "Nhập URL hợp lệ (http:// hoặc https://)."
+  },
+  "confirm": { "delete": "Xoá sự kiện này?" }
+}

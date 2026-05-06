@@ -10,7 +10,10 @@
     "std": "Học sinh",
     "sch": "Trường học",
     "ref": "Tài liệu tham khảo",
-    "qna": "Hỏi đáp"
+    "qna": "Hỏi đáp",
+    "tch": "Giáo viên",
+    "stf": "Nhân viên",
+    "cal": "Lịch"
   },
   "lang": {
     "label": "Ngôn ngữ",

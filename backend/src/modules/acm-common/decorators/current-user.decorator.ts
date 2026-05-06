@@ -1,10 +1,15 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
+export type AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF';
+
 export interface AcmCurrentUser {
   id: string;
   entId: string;
+  role?: AcmRole;
+  /** @deprecated use `role` */
   roles?: string[];
   email?: string;
+  name?: string;
 }
 
 export const CurrentUser = createParamDecorator(

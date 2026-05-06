@@ -23,6 +23,7 @@ export interface AcmJwtPayload {
   entId: string;
   email: string;
   name: string;
+  role: 'ADMIN' | 'TEACHER' | 'STAFF';
 }
 
 interface FailureWindow {
@@ -71,6 +72,7 @@ export class AcmAuthService {
       entId: user.entId,
       email: user.email,
       name: user.name,
+      role: user.role ?? 'ADMIN',
     };
     const accessToken = this.jwtService.sign(payload);
     return {
@@ -80,6 +82,7 @@ export class AcmAuthService {
         entId: user.entId,
         email: user.email,
         name: user.name,
+        role: user.role ?? 'ADMIN',
       },
     };
   }
@@ -87,7 +90,73 @@ export class AcmAuthService {
   async findById(id: string): Promise<AcmAuthUser | null> {
     const u = await this.userRepo.findOne({ where: { id, status: 'ACTIVE' } });
     if (!u) return null;
-    return { id: u.id, entId: u.entId, email: u.email, name: u.name };
+    return { id: u.id, entId: u.entId, email: u.email, name: u.name, role: u.role ?? 'ADMIN' };
+  }
+
+  /**
+   * Provision a new local-login ACM user with the given role.
+   * Used by TCH/STF admin flows to create a teacher/staff login account.
+   * Throws 409 on duplicate email within tenant; 400 on weak password.
+   */
+  async createUserWithPassword(input: {
+    entId: string;
+    email: string;
+    plainPassword: string;
+    name: string;
+    role: 'ADMIN' | 'TEACHER' | 'STAFF';
+  }): Promise<{ id: string }> {
+    this.assertPasswordPolicy(input.plainPassword);
+    const email = input.email.trim().toLowerCase();
+    const dup = await this.userRepo.findOne({
+      where: { entId: input.entId, email },
+    });
+    if (dup) {
+      throw new HttpException(
+        { code: 'USER_EMAIL_DUPLICATE', message: 'Email already exists in tenant' },
+        HttpStatus.CONFLICT,
+      );
+    }
+    const passwordHash = await bcrypt.hash(input.plainPassword, 12);
+    const saved = await this.userRepo.save(
+      this.userRepo.create({
+        entId: input.entId,
+        email,
+        passwordHash,
+        name: input.name,
+        status: 'ACTIVE',
+        role: input.role,
+        authSource: 'local',
+      }),
+    );
+    return { id: saved.id };
+  }
+
+  /**
+   * Reset password for an existing user (admin-driven).
+   */
+  async updateUserPassword(userId: string, plainPassword: string): Promise<void> {
+    this.assertPasswordPolicy(plainPassword);
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u) {
+      throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    u.passwordHash = await bcrypt.hash(plainPassword, 12);
+    await this.userRepo.save(u);
+  }
+
+  private assertPasswordPolicy(pw: string): void {
+    if (typeof pw !== 'string' || pw.length < 8 || pw.length > 120) {
+      throw new HttpException(
+        { code: 'PASSWORD_LENGTH', message: 'Password must be 8-120 chars' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (!/[A-Za-z]/.test(pw) || !/[0-9]/.test(pw)) {
+      throw new HttpException(
+        { code: 'PASSWORD_COMPLEXITY', message: 'Password must contain letters and digits' },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   /**
@@ -144,6 +213,7 @@ export class AcmAuthService {
       entId: user.entId,
       email: user.email,
       name: user.name,
+      role: user.role ?? 'ADMIN',
     });
 
     return {
@@ -153,6 +223,7 @@ export class AcmAuthService {
         entId: user.entId,
         email: user.email,
         name: user.name,
+        role: user.role ?? 'ADMIN',
         authSource: 'ama',
       },
     };

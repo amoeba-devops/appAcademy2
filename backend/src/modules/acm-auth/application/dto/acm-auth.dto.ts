@@ -19,6 +19,7 @@ export interface AcmAuthUser {
   entId: string;
   email: string;
   name: string;
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
   authSource?: 'local' | 'ama';
 }
 

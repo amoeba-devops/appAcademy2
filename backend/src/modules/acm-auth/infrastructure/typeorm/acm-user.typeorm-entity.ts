@@ -28,6 +28,9 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'usr_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   status!: string;
 
+  @Column({ name: 'usr_role', type: 'varchar', length: 20, default: 'ADMIN' })
+  role!: 'ADMIN' | 'TEACHER' | 'STAFF';
+
   @Column({ name: 'usr_last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt?: Date | null;
 

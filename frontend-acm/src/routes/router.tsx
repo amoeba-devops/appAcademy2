@@ -15,6 +15,9 @@ import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
 import { QnaCategoriesPage } from '@/modules/qna/pages/qna-categories-page';
 import { WebContactPage } from '@/modules/web/pages/web-contact-page';
 import { WebTestPage } from '@/modules/web/pages/web-test-page';
+import { TchListPage } from '@/modules/tch/pages/tch-list-page';
+import { StfListPage } from '@/modules/stf/pages/stf-list-page';
+import { CalMonthPage } from '@/modules/cal/pages/cal-month-page';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -41,6 +44,9 @@ export const router = createBrowserRouter([
       { path: 'admin/cls/:id', element: <ClsDetailPage /> },
       { path: 'admin/std', element: <StdListPage /> },
       { path: 'admin/std/:id', element: <StdDetailPage /> },
+      { path: 'admin/tch', element: <TchListPage /> },
+      { path: 'admin/stf', element: <StfListPage /> },
+      { path: 'admin/cal', element: <CalMonthPage /> },
       { path: 'admin/sch', element: <SchoolListPage /> },
       { path: 'admin/ref', element: <ReferenceListPage /> },
       { path: 'admin/qna', element: <QnaListPage /> },

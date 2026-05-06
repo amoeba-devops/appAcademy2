@@ -1,0 +1,66 @@
+{
+  "title": "Staff",
+  "actions": {
+    "create": "Add Staff",
+    "resetPassword": "Reset Password"
+  },
+  "filter": {
+    "searchPlaceholder": "Search name / email / position",
+    "all": "All"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
+  },
+  "account": {
+    "yes": "Yes",
+    "no": "—"
+  },
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "position": "Position",
+    "department": "Department",
+    "account": "Account",
+    "status": "Status",
+    "total": "Total {{count}}",
+    "empty": "No staff registered."
+  },
+  "field": {
+    "name": "Name",
+    "englishName": "English name",
+    "email": "Email",
+    "phone": "Phone",
+    "position": "Position",
+    "department": "Department",
+    "hiredAt": "Hire date",
+    "status": "Status",
+    "memo": "Memo",
+    "createAccount": "Issue login account",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "newPassword": "New password"
+  },
+  "form": {
+    "titleCreate": "Add Staff",
+    "titleEdit": "Edit Staff",
+    "sectionBasic": "Basic info",
+    "sectionAccount": "Account",
+    "sectionResetPassword": "Reset password"
+  },
+  "hint": {
+    "passwordPolicy": "At least 8 characters with letters and digits."
+  },
+  "error": {
+    "passwordShort": "Password must be at least 8 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordComplexity": "Must include both letters and digits."
+  },
+  "toast": {
+    "passwordReset": "Password reset."
+  },
+  "confirm": {
+    "delete": "Delete this staff member?"
+  }
+}

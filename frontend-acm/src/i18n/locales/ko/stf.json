@@ -1,0 +1,66 @@
+{
+  "title": "직원 관리",
+  "actions": {
+    "create": "직원 등록",
+    "resetPassword": "비밀번호 재설정"
+  },
+  "filter": {
+    "searchPlaceholder": "이름·이메일·직책 검색",
+    "all": "전체"
+  },
+  "status": {
+    "ACTIVE": "재직",
+    "INACTIVE": "비활성"
+  },
+  "account": {
+    "yes": "사용",
+    "no": "미발급"
+  },
+  "table": {
+    "name": "이름",
+    "email": "이메일",
+    "phone": "연락처",
+    "position": "직책",
+    "department": "부서",
+    "account": "계정",
+    "status": "상태",
+    "total": "총 {{count}}명",
+    "empty": "등록된 직원이 없습니다."
+  },
+  "field": {
+    "name": "이름",
+    "englishName": "영문명",
+    "email": "이메일",
+    "phone": "연락처",
+    "position": "직책",
+    "department": "부서",
+    "hiredAt": "입사일",
+    "status": "상태",
+    "memo": "메모",
+    "createAccount": "로그인 계정 발급",
+    "password": "비밀번호",
+    "passwordConfirm": "비밀번호 확인",
+    "newPassword": "새 비밀번호"
+  },
+  "form": {
+    "titleCreate": "직원 등록",
+    "titleEdit": "직원 정보 수정",
+    "sectionBasic": "기본 정보",
+    "sectionAccount": "계정 발급",
+    "sectionResetPassword": "비밀번호 재설정"
+  },
+  "hint": {
+    "passwordPolicy": "8자 이상, 영문·숫자를 모두 포함하세요."
+  },
+  "error": {
+    "passwordShort": "비밀번호는 8자 이상이어야 합니다.",
+    "passwordMismatch": "비밀번호가 일치하지 않습니다.",
+    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다."
+  },
+  "toast": {
+    "passwordReset": "비밀번호가 재설정되었습니다."
+  },
+  "confirm": {
+    "delete": "직원 정보를 삭제하시겠습니까?"
+  }
+}

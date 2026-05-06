@@ -7,6 +7,9 @@ import {
   MessageCircleQuestion,
   GraduationCap,
   UserRound,
+  UserCog,
+  Briefcase,
+  CalendarDays,
   LogOut,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +22,9 @@ const NAV = [
   { to: '/admin/csl', icon: Users, key: 'csl' },
   { to: '/admin/std', icon: UserRound, key: 'std' },
   { to: '/admin/cls', icon: GraduationCap, key: 'cls' },
+  { to: '/admin/tch', icon: UserCog, key: 'tch' },
+  { to: '/admin/stf', icon: Briefcase, key: 'stf' },
+  { to: '/admin/cal', icon: CalendarDays, key: 'cal' },
   { to: '/admin/sch', icon: School, key: 'sch' },
   { to: '/admin/ref', icon: BookOpen, key: 'ref' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },

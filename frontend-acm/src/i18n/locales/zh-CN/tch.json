@@ -1,0 +1,37 @@
+{
+  "title": "教师管理",
+  "actions": { "create": "新增教师", "resetPassword": "重置密码" },
+  "filter": { "searchPlaceholder": "搜索姓名 / 邮箱", "all": "全部" },
+  "status": { "ACTIVE": "在职", "INACTIVE": "停用" },
+  "account": { "yes": "已开通", "no": "—" },
+  "table": {
+    "name": "姓名", "email": "邮箱", "phone": "电话",
+    "subjects": "授课科目", "account": "账号", "status": "状态",
+    "total": "共 {{count}} 人", "empty": "暂无教师。"
+  },
+  "field": {
+    "name": "姓名", "englishName": "英文名", "email": "邮箱",
+    "phone": "电话", "birthDate": "出生日期", "status": "状态",
+    "memo": "备注", "subjects": "授课科目",
+    "createAccount": "开通登录账号",
+    "password": "密码", "passwordConfirm": "确认密码", "newPassword": "新密码"
+  },
+  "subject": {
+    "MAP": "MAP", "MATH": "数学", "WRITING": "写作",
+    "LANGUAGE_ARTS": "Language Arts", "SSAT": "SSAT", "ISEE": "ISEE",
+    "INTL_PREP": "留学准备", "OTHER": "其他"
+  },
+  "form": {
+    "titleCreate": "新增教师", "titleEdit": "编辑教师",
+    "sectionBasic": "基本信息", "sectionSubjects": "授课科目",
+    "sectionAccount": "账号开通", "sectionResetPassword": "重置密码"
+  },
+  "hint": { "passwordPolicy": "至少 8 位,包含字母与数字。" },
+  "error": {
+    "passwordShort": "密码至少 8 位。",
+    "passwordMismatch": "两次密码不一致。",
+    "passwordComplexity": "必须同时包含字母和数字。"
+  },
+  "toast": { "passwordReset": "密码已重置。" },
+  "confirm": { "delete": "确定删除该教师?" }
+}
