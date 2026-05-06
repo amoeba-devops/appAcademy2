@@ -75,7 +75,7 @@ export function LoginPage() {
         scrubUrl();
         const returnTo = params.get('returnTo');
         navigate(
-          returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard',
+          returnTo && returnTo.startsWith('/') ? returnTo : '/admin/dashboard',
           { replace: true },
         );
       } catch (err) {
@@ -105,7 +105,7 @@ export function LoginPage() {
         email: user.email,
       });
       const returnTo = params.get('returnTo');
-      navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/dashboard', {
+      navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/admin/dashboard', {
         replace: true,
       });
     } catch (err) {
