@@ -36,7 +36,8 @@ DEFAULT_GRADE = "G3"
 def sql_str(value: object) -> str:
     if value is None:
         return "NULL"
-    s = str(value).replace("\\", "\\\\").replace("'", "''")
+    # PG standard_conforming_strings=on: backslash is literal; only escape single quotes.
+    s = str(value).replace("'", "''")
     return "'" + s + "'"
 
 
@@ -44,7 +45,8 @@ def sql_jsonb_choices(c1: str, c2: str, c3: str, c4: str) -> str:
     import json
 
     payload = json.dumps([c1 or "", c2 or "", c3 or "", c4 or ""], ensure_ascii=False)
-    payload = payload.replace("\\", "\\\\").replace("'", "''")
+    # JSON already escapes " and \\; only need to double single quotes for PG literal.
+    payload = payload.replace("'", "''")
     return "'" + payload + "'::jsonb"
 
 
