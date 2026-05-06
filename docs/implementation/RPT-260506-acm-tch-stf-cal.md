@@ -2,7 +2,7 @@
 
 - Document ID: `RPT-260506-acm-tch-stf-cal`
 - Version: 1.0.0
-- Status: Implemented (pending staging deploy)
+- Status: ✅ Deployed to staging (sha `f217cad`, 2026-05-06 12:42:28 KST)
 - Linked Docs: [REQ-260506-acm-tch-stf-cal](../analysis/REQ-260506-acm-tch-stf-cal.md), [PLN-260506-acm-tch-stf-cal](../plan/PLN-260506-acm-tch-stf-cal.md)
 
 ---
@@ -50,7 +50,11 @@
 | Backend TypeScript | `npx tsc --noEmit` | ✅ no output (clean) |
 | Frontend TypeScript | `npx tsc --noEmit` | ✅ no output (clean) |
 | Frontend Production Build | `npm run build` | ✅ 1909 modules, 814 kB → 235 kB gzip |
-| Staging deploy | `scripts/deploy-staging.sh` | ⏳ pending (별도 push 후 실행) |
+| Staging deploy | `scripts/deploy-staging.sh` | ✅ sha `f217cad` deployed 2026-05-06 12:42:28 KST |
+| Staging SQL apply | log `/tmp/deploy-tch.log` | ✅ 140 / 800 / 810 / 820 모두 `[apply] OK` |
+| Staging schema verify | `psql … information_schema.tables` | ✅ `amb_acm_tch_teacher` / `amb_acm_stf_staff` / `amb_acm_cal_event` 3행 확인 |
+| Staging usr_role 컬럼 | `psql … information_schema.columns` | ✅ `usr_role \| character varying` |
+| Staging acm-stg https smoke | `curl -I https://app-academy-stg.amoeba.site/` | ✅ HTTP/2 200 (acm-stg) |
 
 자동화된 단위/통합 테스트는 본 모듈에 대해 추가하지 않았다 (PLN 4단계는 수동 검증 + smoke 테스트 의존). 후속 작업으로 backlog 등록.
 
@@ -75,6 +79,9 @@
 ## 6. Memory / Document Updates
 
 - 본 보고서가 작업 완료 기록 (메모리 추가는 불필요 — 본 변경은 표준 ACM 모듈 패턴 준수).
+- 배포 식별자: `deployed_sha=f217cad`, `deployed_at=2026-05-06T12:42:28+09:00`, `branch=main`.
+- 호스트 nginx vhost 변경 없음 — reload skip.
+- 레거시 `https://app-academy-stg.amoeba.site/` 도메인의 smoke 실패 (HTTP/2 301)는 본 REQ 와 무관 (별도 cut-over 이슈).
 
 ## 7. Deploy Procedure (배포 절차)
 
