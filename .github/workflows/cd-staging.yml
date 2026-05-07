@@ -110,11 +110,13 @@ jobs:
             [[ "$i" == "6" ]] && { echo "Smoke test failed"; exit 1; }
           done
 
-      - name: Smoke test (legacy redirect)
+      - name: Smoke test (tpi landing)
         run: |
-          # tpi.amoeba.site must 301 to canonical (do not follow).
+          # tpi.amoeba.site now serves the Trinity Prep marketing landing
+          # mirrored from tpi.co.kr (frontend-acm/public/web/). It must
+          # return 200 with the landing HTML, not a redirect.
           code=$(curl -sI -o /dev/null -w '%{http_code}' --max-time 10 https://tpi.amoeba.site/ || echo 000)
-          loc=$(curl -sI --max-time 10 https://tpi.amoeba.site/ | awk -F': ' '/^[Ll]ocation:/ {print $2}' | tr -d '\r')
-          echo "tpi → status=$code  location=$loc"
-          [[ "$code" == "301" ]] || { echo "Expected 301 from tpi.amoeba.site"; exit 1; }
-          [[ "$loc" == https://app-academy-stg.amoeba.site/* ]] || { echo "Wrong redirect target"; exit 1; }
+          echo "tpi → status=$code"
+          [[ "$code" == "200" ]] || { echo "Expected 200 from tpi.amoeba.site"; exit 1; }
+          curl -s --max-time 10 https://tpi.amoeba.site/ | grep -q "트리니티\|MAP TEST" \
+            || { echo "Landing content marker not found"; exit 1; }

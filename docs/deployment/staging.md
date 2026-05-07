@@ -8,11 +8,23 @@ status: ACTIVE
 
 ## 1. Overview (개요)
 
-Target: `tpi.amoeba.site` (IP `125.133.49.165`, host user `appacademy`).
+Target hosts (IP `125.133.49.165`, user `appacademy`):
+
+| Hostname | Role | Backend |
+|----------|------|---------|
+| `app-academy-stg.amoeba.site` | Main app (Portal + Admin) | Next.js + NestJS in Docker Compose |
+| `acm-stg.amoeba.site` | ACM v1.0a SPA | acm-frontend container (Vite SPA) |
+| `tpi.amoeba.site` | **Trinity Prep marketing landing (mirror of tpi.co.kr)** | acm-frontend container, `/web/` static slot |
 
 Architecture: host nginx (port 80 → 301 → 443) terminates TLS with the
 `*.amoeba.site` wildcard cert, then reverse-proxies to a Docker Compose
 stack running MySQL 8, Redis 7, NestJS backend, and Next.js frontend.
+
+> **Note on `tpi.amoeba.site`** — As of 2026-05-07 this host serves the
+> static landing page mirrored from `tpi.co.kr`, located at
+> `frontend-acm/public/web/`. Host nginx internally rewrites every URI to
+> `/web/<path>` before proxying to the acm-frontend container on
+> `127.0.0.1:5174`. See `docker/staging/nginx-tpi.conf`.
 
 ## 2. Branch Policy (브랜치 정책)
 
