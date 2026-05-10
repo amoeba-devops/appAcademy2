@@ -1,6 +1,9 @@
 // TCH module types — mirrors backend DTO.
 
-export type TchStatus = 'ACTIVE' | 'INACTIVE';
+export type TchStatus = 'ACTIVE' | 'LEAVE' | 'RESIGNED';
+export type TchEmploymentType = 'FULL_TIME' | 'PART_TIME';
+export type TchAccountState = 'UNLOCKED' | 'LOCKED' | 'NO_ACCOUNT';
+
 export const TCH_SUBJECTS = [
   'MAP',
   'MATH',
@@ -12,6 +15,8 @@ export const TCH_SUBJECTS = [
   'OTHER',
 ] as const;
 export type TchSubject = (typeof TCH_SUBJECTS)[number];
+
+export type TchAttachmentKind = 'RESUME' | 'CERTIFICATE' | 'OTHER';
 
 export interface TeacherDetail {
   id: string;
@@ -26,6 +31,14 @@ export interface TeacherDetail {
   userId?: string | null;
   hasAccount: boolean;
   status: TchStatus;
+  // REQ-260510 additions
+  isInstructor: boolean;
+  employmentType: TchEmploymentType;
+  hiredAt?: string | null;
+  attendanceNo?: string | null;
+  accountUsername?: string | null;
+  accountLastLoginAt?: string | null;
+  accountLockedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +53,21 @@ export interface ListTeachersResponse {
 export interface ListTeachersQuery {
   q?: string;
   status?: string;
+  isInstructor?: 'INSTRUCTOR' | 'NON_INSTRUCTOR' | 'ALL';
+  employmentType?: TchEmploymentType | 'ALL';
+  accountState?: TchAccountState | 'ALL';
   page?: number;
   limit?: number;
 }
+
+export interface TeacherAttachment {
+  id: string;
+  tchId: string;
+  originalName: string;
+  mime: string;
+  sizeBytes: number;
+  kind: TchAttachmentKind;
+  createdAt: string;
+  createdBy?: string | null;
+}
+

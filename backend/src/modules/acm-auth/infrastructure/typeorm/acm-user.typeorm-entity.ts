@@ -34,6 +34,9 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'usr_last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt?: Date | null;
 
+  @Column({ name: 'usr_locked_at', type: 'timestamptz', nullable: true })
+  lockedAt?: Date | null;
+
   @Column({ name: 'auth_source', type: 'varchar', length: 16, default: 'local' })
   authSource!: string;
 

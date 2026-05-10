@@ -1,8 +1,10 @@
 {
   "title": "Teachers",
   "actions": {
-    "create": "Add Teacher",
-    "resetPassword": "Reset Password"
+    "create": "Add teacher",
+    "resetPassword": "Reset password",
+    "lock": "Lock account",
+    "unlock": "Unlock"
   },
   "filter": {
     "searchPlaceholder": "Search name / email",
@@ -10,32 +12,58 @@
   },
   "status": {
     "ACTIVE": "Active",
-    "INACTIVE": "Inactive"
+    "LEAVE": "On leave",
+    "RESIGNED": "Resigned"
+  },
+  "isInstructor": {
+    "yes": "Instructor",
+    "no": "Non-instructor"
+  },
+  "employmentType": {
+    "FULL_TIME": "Full-time",
+    "PART_TIME": "Part-time"
+  },
+  "accountState": {
+    "UNLOCKED": "Active",
+    "LOCKED": "Locked",
+    "NO_ACCOUNT": "No account"
   },
   "account": {
     "yes": "Yes",
-    "no": "—"
+    "no": "None"
   },
   "table": {
     "name": "Name",
+    "isInstructor": "Instructor",
+    "employmentType": "Employment",
+    "username": "Username",
+    "birthDate": "Birth date",
     "email": "Email",
     "phone": "Phone",
+    "hiredAt": "Hired at",
+    "attendanceNo": "Attendance #",
+    "lastLoginAt": "Last login",
+    "status": "Employment status",
+    "accountState": "Account state",
     "subjects": "Subjects",
     "account": "Account",
-    "status": "Status",
     "total": "Total {{count}}",
-    "empty": "No teachers registered."
+    "empty": "No teachers."
   },
   "field": {
     "name": "Name",
     "englishName": "English name",
     "email": "Email",
     "phone": "Phone",
-    "birthDate": "Date of birth",
-    "status": "Status",
+    "birthDate": "Birth date",
+    "status": "Employment status",
     "memo": "Memo",
     "subjects": "Subjects",
-    "createAccount": "Issue login account",
+    "isInstructor": "Instructor (check if instructor)",
+    "employmentType": "Employment type",
+    "hiredAt": "Hired at",
+    "attendanceNo": "Attendance number",
+    "createAccount": "Provision login account",
     "password": "Password",
     "passwordConfirm": "Confirm password",
     "newPassword": "New password"
@@ -47,29 +75,47 @@
     "LANGUAGE_ARTS": "Language Arts",
     "SSAT": "SSAT",
     "ISEE": "ISEE",
-    "INTL_PREP": "Intl. Prep",
+    "INTL_PREP": "Intl. prep",
     "OTHER": "Other"
   },
   "form": {
-    "titleCreate": "Add Teacher",
-    "titleEdit": "Edit Teacher",
+    "titleCreate": "Add teacher",
+    "titleEdit": "Edit teacher",
     "sectionBasic": "Basic info",
     "sectionSubjects": "Subjects",
-    "sectionAccount": "Account",
-    "sectionResetPassword": "Reset password"
+    "sectionAccount": "Account provisioning",
+    "sectionResetPassword": "Reset password",
+    "sectionAccountLock": "Account lock"
   },
   "hint": {
-    "passwordPolicy": "At least 8 characters with letters and digits."
+    "passwordPolicy": "Min 8 chars, must include letters and digits.",
+    "cannotLockSelf": "You cannot lock your own account."
   },
   "error": {
     "passwordShort": "Password must be at least 8 characters.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordComplexity": "Must include both letters and digits."
+    "passwordComplexity": "Must include letters and digits."
   },
   "toast": {
-    "passwordReset": "Password reset."
+    "passwordReset": "Password has been reset."
   },
   "confirm": {
-    "delete": "Delete this teacher?"
+    "delete": "Delete this teacher?",
+    "lock": "Lock this account? Login will be blocked while locked."
+  },
+  "attachment": {
+    "section": "Resume / attachments",
+    "hint": "PDF / JPG / PNG · Max 10 MB",
+    "empty": "No attachments.",
+    "actions": {
+      "upload": "Upload file"
+    },
+    "confirm": {
+      "delete": "Delete this file?"
+    },
+    "error": {
+      "mime": "Unsupported file type (PDF/JPG/PNG only).",
+      "size": "File size must be under 10 MB."
+    }
   }
 }

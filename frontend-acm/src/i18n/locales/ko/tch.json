@@ -2,7 +2,9 @@
   "title": "교사 관리",
   "actions": {
     "create": "교사 등록",
-    "resetPassword": "비밀번호 재설정"
+    "resetPassword": "비밀번호 재설정",
+    "lock": "계정 잠금",
+    "unlock": "잠금 해제"
   },
   "filter": {
     "searchPlaceholder": "이름·이메일 검색",
@@ -10,7 +12,21 @@
   },
   "status": {
     "ACTIVE": "재직",
-    "INACTIVE": "비활성"
+    "LEAVE": "휴직",
+    "RESIGNED": "퇴직"
+  },
+  "isInstructor": {
+    "yes": "강사",
+    "no": "비강사"
+  },
+  "employmentType": {
+    "FULL_TIME": "정규",
+    "PART_TIME": "시간제"
+  },
+  "accountState": {
+    "UNLOCKED": "정상",
+    "LOCKED": "잠김",
+    "NO_ACCOUNT": "미발급"
   },
   "account": {
     "yes": "사용",
@@ -18,11 +34,19 @@
   },
   "table": {
     "name": "이름",
+    "isInstructor": "강사여부",
+    "employmentType": "고용형태",
+    "username": "아이디(닉네임)",
+    "birthDate": "생년월일",
     "email": "이메일",
-    "phone": "연락처",
+    "phone": "핸드폰번호",
+    "hiredAt": "입사일자",
+    "attendanceNo": "출결번호",
+    "lastLoginAt": "최종로그인",
+    "status": "재직상태",
+    "accountState": "계정상태",
     "subjects": "담당 과목",
     "account": "계정",
-    "status": "상태",
     "total": "총 {{count}}명",
     "empty": "등록된 교사가 없습니다."
   },
@@ -32,9 +56,13 @@
     "email": "이메일",
     "phone": "연락처",
     "birthDate": "생년월일",
-    "status": "상태",
+    "status": "재직상태",
     "memo": "메모",
     "subjects": "담당 과목",
+    "isInstructor": "강사 여부 (체크 시 강사)",
+    "employmentType": "고용형태",
+    "hiredAt": "입사일자",
+    "attendanceNo": "출결번호",
     "createAccount": "로그인 계정 발급",
     "password": "비밀번호",
     "passwordConfirm": "비밀번호 확인",
@@ -56,10 +84,12 @@
     "sectionBasic": "기본 정보",
     "sectionSubjects": "담당 과목 선택",
     "sectionAccount": "계정 발급",
-    "sectionResetPassword": "비밀번호 재설정"
+    "sectionResetPassword": "비밀번호 재설정",
+    "sectionAccountLock": "로그인 계정 잠금"
   },
   "hint": {
-    "passwordPolicy": "8자 이상, 영문·숫자를 모두 포함하세요."
+    "passwordPolicy": "8자 이상, 영문·숫자를 모두 포함하세요.",
+    "cannotLockSelf": "본인 계정은 잠글 수 없습니다."
   },
   "error": {
     "passwordShort": "비밀번호는 8자 이상이어야 합니다.",
@@ -70,6 +100,22 @@
     "passwordReset": "비밀번호가 재설정되었습니다."
   },
   "confirm": {
-    "delete": "교사 정보를 삭제하시겠습니까?"
+    "delete": "교사 정보를 삭제하시겠습니까?",
+    "lock": "이 계정을 잠그시겠습니까? 잠긴 동안 로그인이 차단됩니다."
+  },
+  "attachment": {
+    "section": "이력서·첨부파일",
+    "hint": "PDF / JPG / PNG · 최대 10 MB",
+    "empty": "등록된 첨부파일이 없습니다.",
+    "actions": {
+      "upload": "파일 업로드"
+    },
+    "confirm": {
+      "delete": "이 파일을 삭제하시겠습니까?"
+    },
+    "error": {
+      "mime": "허용되지 않는 파일 형식입니다 (PDF/JPG/PNG).",
+      "size": "파일 크기는 10 MB 이하여야 합니다."
+    }
   }
 }

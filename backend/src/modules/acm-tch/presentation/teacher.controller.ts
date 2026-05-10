@@ -73,6 +73,20 @@ export class TeacherController {
     return this.svc.resetPassword(u.entId, id, dto);
   }
 
+  @Patch(':id/account/lock')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Lock teacher login account (REQ-260510)' })
+  lockAccount(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.svc.lockAccount(u.entId, id);
+  }
+
+  @Patch(':id/account/unlock')
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Unlock teacher login account (REQ-260510)' })
+  unlockAccount(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.svc.unlockAccount(u.entId, id);
+  }
+
   @Delete(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Soft-delete teacher (FR-TCH-005) — admin only' })

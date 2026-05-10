@@ -15,7 +15,9 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export const TCH_STATUSES = ['ACTIVE', 'INACTIVE'] as const;
+export const TCH_STATUSES = ['ACTIVE', 'LEAVE', 'RESIGNED'] as const;
+export const TCH_EMPLOYMENT_TYPES = ['FULL_TIME', 'PART_TIME'] as const;
+export const TCH_ACCOUNT_STATES = ['UNLOCKED', 'LOCKED', 'NO_ACCOUNT'] as const;
 export const TCH_SUBJECTS = [
   'MAP',
   'MATH',
@@ -54,6 +56,23 @@ export class CreateTeacherDto {
   @IsOptional() @IsEnum(TCH_STATUSES)
   tchStatus?: typeof TCH_STATUSES[number];
 
+  // --- REQ-260510: 신규 필드 ---
+  @ApiPropertyOptional({ description: '강사여부 (default true)' })
+  @IsOptional() @IsBoolean()
+  tchIsInstructor?: boolean;
+
+  @ApiPropertyOptional({ enum: TCH_EMPLOYMENT_TYPES, default: 'FULL_TIME' })
+  @IsOptional() @IsEnum(TCH_EMPLOYMENT_TYPES)
+  tchEmploymentType?: typeof TCH_EMPLOYMENT_TYPES[number];
+
+  @ApiPropertyOptional({ description: '입사일자 (YYYY-MM-DD)' })
+  @IsOptional() @IsDateString()
+  tchHiredAt?: string;
+
+  @ApiPropertyOptional({ description: '출결번호 (자유 입력, ≤50자)' })
+  @IsOptional() @IsString() @MaxLength(50)
+  tchAttendanceNo?: string;
+
   // 옵션: 로그인 계정 동시 생성
   @ApiPropertyOptional({ description: 'true 면 amb_acm_user 계정 생성 (TEACHER role)' })
   @IsOptional() @IsBoolean()
@@ -90,6 +109,19 @@ export class UpdateTeacherDto {
   @ApiPropertyOptional({ enum: TCH_STATUSES })
   @IsOptional() @IsEnum(TCH_STATUSES)
   tchStatus?: typeof TCH_STATUSES[number];
+
+  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  tchIsInstructor?: boolean;
+
+  @ApiPropertyOptional({ enum: TCH_EMPLOYMENT_TYPES })
+  @IsOptional() @IsEnum(TCH_EMPLOYMENT_TYPES)
+  tchEmploymentType?: typeof TCH_EMPLOYMENT_TYPES[number];
+
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  tchHiredAt?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50)
+  tchAttendanceNo?: string;
 }
 
 export class ResetTeacherPasswordDto {
@@ -104,6 +136,18 @@ export class ListTeachersQueryDto {
   @ApiPropertyOptional({ enum: [...TCH_STATUSES, 'ALL'] })
   @IsOptional() @IsString()
   status?: string;
+
+  @ApiPropertyOptional({ description: 'INSTRUCTOR | NON_INSTRUCTOR | ALL (default ALL)' })
+  @IsOptional() @IsString()
+  isInstructor?: string;
+
+  @ApiPropertyOptional({ enum: [...TCH_EMPLOYMENT_TYPES, 'ALL'] })
+  @IsOptional() @IsString()
+  employmentType?: string;
+
+  @ApiPropertyOptional({ enum: [...TCH_ACCOUNT_STATES, 'ALL'] })
+  @IsOptional() @IsString()
+  accountState?: string;
 
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(1)
   page?: number;

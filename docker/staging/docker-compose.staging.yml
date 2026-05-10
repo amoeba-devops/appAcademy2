@@ -116,6 +116,10 @@ services:
       AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
       FRONTEND_URL: ${FRONTEND_URL:-https://app-academy-stg.amoeba.site}
       BACKEND_URL: ${BACKEND_URL:-https://app-academy-stg.amoeba.site}
+      # ACM file uploads (REQ-260510 teacher resume etc.)
+      ACM_UPLOAD_DIR: /app/uploads
+    volumes:
+      - ${DATA_DIR:-./data}/acm-uploads:/app/uploads
     ports:
       - "127.0.0.1:4000:4000"
 

@@ -12,10 +12,14 @@ import {
 import {
   useCreateTeacher,
   useDeleteTeacher,
+  useLockTeacherAccount,
   useResetTeacherPassword,
+  useUnlockTeacherAccount,
   useUpdateTeacher,
 } from '../hooks/use-teachers';
 import { TCH_SUBJECTS, type TchSubject, type TeacherDetail } from '../types';
+import { useAuthStore } from '@/stores/auth.store';
+import { TchAttachmentPanel } from './tch-attachment-panel';
 
 interface Props {
   open: boolean;
@@ -31,6 +35,11 @@ type FormValues = {
   tchBirthDate: string;
   tchMemo: string;
   tchStatus: string;
+  // REQ-260510 신규 필드
+  tchIsInstructor: boolean;
+  tchEmploymentType: 'FULL_TIME' | 'PART_TIME';
+  tchHiredAt: string;
+  tchAttendanceNo: string;
   // 신규 등록 시만
   tchCreateAccount: boolean;
   tchPassword: string;
@@ -54,6 +63,10 @@ export function TchFormModal({ open, onClose, initial }: Props) {
       tchBirthDate: '',
       tchMemo: '',
       tchStatus: 'ACTIVE',
+      tchIsInstructor: true,
+      tchEmploymentType: 'FULL_TIME',
+      tchHiredAt: '',
+      tchAttendanceNo: '',
       tchCreateAccount: false,
       tchPassword: '',
       tchPasswordConfirm: '',
@@ -76,6 +89,10 @@ export function TchFormModal({ open, onClose, initial }: Props) {
         tchBirthDate: initial.birthDate ?? '',
         tchMemo: initial.memo ?? '',
         tchStatus: initial.status,
+        tchIsInstructor: initial.isInstructor,
+        tchEmploymentType: initial.employmentType,
+        tchHiredAt: initial.hiredAt ?? '',
+        tchAttendanceNo: initial.attendanceNo ?? '',
         tchCreateAccount: false,
         tchPassword: '',
         tchPasswordConfirm: '',
@@ -90,6 +107,10 @@ export function TchFormModal({ open, onClose, initial }: Props) {
         tchBirthDate: '',
         tchMemo: '',
         tchStatus: 'ACTIVE',
+        tchIsInstructor: true,
+        tchEmploymentType: 'FULL_TIME',
+        tchHiredAt: '',
+        tchAttendanceNo: '',
         tchCreateAccount: false,
         tchPassword: '',
         tchPasswordConfirm: '',
@@ -102,8 +123,16 @@ export function TchFormModal({ open, onClose, initial }: Props) {
   const updateMut = useUpdateTeacher(initial?.id ?? '');
   const deleteMut = useDeleteTeacher();
   const resetPwMut = useResetTeacherPassword(initial?.id ?? '');
+  const lockMut = useLockTeacherAccount();
+  const unlockMut = useUnlockTeacherAccount();
+  const currentUserId = useAuthStore((s) => s.user?.id);
   const isLoading =
-    createMut.isPending || updateMut.isPending || deleteMut.isPending || resetPwMut.isPending;
+    createMut.isPending ||
+    updateMut.isPending ||
+    deleteMut.isPending ||
+    resetPwMut.isPending ||
+    lockMut.isPending ||
+    unlockMut.isPending;
 
   const wantsAccount = watch('tchCreateAccount');
 
@@ -132,11 +161,15 @@ export function TchFormModal({ open, onClose, initial }: Props) {
       tchEmail: values.tchEmail,
       tchSubjects: subjects,
       tchStatus: values.tchStatus,
+      tchIsInstructor: !!values.tchIsInstructor,
+      tchEmploymentType: values.tchEmploymentType,
     };
     if (values.tchEnglishName) dto.tchEnglishName = values.tchEnglishName;
     if (values.tchPhone) dto.tchPhone = values.tchPhone;
     if (values.tchBirthDate) dto.tchBirthDate = values.tchBirthDate;
     if (values.tchMemo) dto.tchMemo = values.tchMemo;
+    if (values.tchHiredAt) dto.tchHiredAt = values.tchHiredAt;
+    if (values.tchAttendanceNo) dto.tchAttendanceNo = values.tchAttendanceNo;
 
     try {
       if (isEdit) {
@@ -235,8 +268,34 @@ export function TchFormModal({ open, onClose, initial }: Props) {
                 <label className={labelClass}>{t('field.status')}</label>
                 <select {...register('tchStatus')} className={inputClass}>
                   <option value="ACTIVE">{t('status.ACTIVE')}</option>
-                  <option value="INACTIVE">{t('status.INACTIVE')}</option>
+                  <option value="LEAVE">{t('status.LEAVE')}</option>
+                  <option value="RESIGNED">{t('status.RESIGNED')}</option>
                 </select>
+              </div>
+              <div>
+                <label className={labelClass}>{t('field.employmentType')}</label>
+                <select {...register('tchEmploymentType')} className={inputClass}>
+                  <option value="FULL_TIME">{t('employmentType.FULL_TIME')}</option>
+                  <option value="PART_TIME">{t('employmentType.PART_TIME')}</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>{t('field.hiredAt')}</label>
+                <input type="date" {...register('tchHiredAt')} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t('field.attendanceNo')}</label>
+                <input
+                  {...register('tchAttendanceNo')}
+                  className={inputClass}
+                  maxLength={50}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" {...register('tchIsInstructor')} />
+                  {t('field.isInstructor')}
+                </label>
               </div>
             </div>
           </fieldset>
@@ -309,6 +368,73 @@ export function TchFormModal({ open, onClose, initial }: Props) {
                 </div>
               )}
             </fieldset>
+          )}
+
+          {isEdit && initial?.hasAccount && (
+            <fieldset className="rounded-md border border-rose-200 bg-rose-50/40 p-4 space-y-3">
+              <legend className="text-xs font-semibold text-rose-800 px-1">
+                {t('form.sectionAccountLock')}
+              </legend>
+              <div className="flex items-center justify-between text-sm">
+                <div>
+                  <span className="font-medium">
+                    {initial.accountLockedAt
+                      ? t('accountState.LOCKED')
+                      : t('accountState.UNLOCKED')}
+                  </span>
+                  {initial.accountLockedAt && (
+                    <span className="ml-2 text-xs text-secondary">
+                      ({new Date(initial.accountLockedAt).toLocaleString()})
+                    </span>
+                  )}
+                </div>
+                {initial.userId === currentUserId ? (
+                  <span className="text-xs text-secondary">{t('hint.cannotLockSelf')}</span>
+                ) : initial.accountLockedAt ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      try {
+                        await unlockMut.mutateAsync(initial.id);
+                      } catch (e) {
+                        const msg = (e as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message;
+                        setError(msg ?? t('common:status.error'));
+                      }
+                    }}
+                  >
+                    {t('actions.unlock')}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isLoading}
+                    className="border-rose-200 text-rose-700 hover:bg-rose-50"
+                    onClick={async () => {
+                      if (!confirm(t('confirm.lock'))) return;
+                      try {
+                        await lockMut.mutateAsync(initial.id);
+                      } catch (e) {
+                        const msg = (e as { response?: { data?: { message?: string } } })
+                          ?.response?.data?.message;
+                        setError(msg ?? t('common:status.error'));
+                      }
+                    }}
+                  >
+                    {t('actions.lock')}
+                  </Button>
+                )}
+              </div>
+            </fieldset>
+          )}
+
+          {isEdit && initial && (
+            <TchAttachmentPanel teacherId={initial.id} />
           )}
 
           {isEdit && initial?.hasAccount && (

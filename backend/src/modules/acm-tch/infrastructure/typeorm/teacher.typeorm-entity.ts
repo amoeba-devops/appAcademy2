@@ -1,6 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-export type TchStatus = 'ACTIVE' | 'INACTIVE';
+export type TchStatus = 'ACTIVE' | 'LEAVE' | 'RESIGNED';
+export type TchEmploymentType = 'FULL_TIME' | 'PART_TIME';
 export type TchSubject =
   | 'MAP'
   | 'MATH'
@@ -46,6 +47,19 @@ export class TeacherTypeormEntity {
 
   @Column({ name: 'tch_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   status!: TchStatus;
+
+  // --- REQ-260510 additions ---
+  @Column({ name: 'tch_is_instructor', type: 'boolean', default: true })
+  isInstructor!: boolean;
+
+  @Column({ name: 'tch_employment_type', type: 'varchar', length: 20, default: 'FULL_TIME' })
+  employmentType!: TchEmploymentType;
+
+  @Column({ name: 'tch_hired_at', type: 'date', nullable: true })
+  hiredAt?: string | null;
+
+  @Column({ name: 'tch_attendance_no', type: 'varchar', length: 50, nullable: true })
+  attendanceNo?: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;

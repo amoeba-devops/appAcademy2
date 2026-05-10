@@ -3,6 +3,7 @@ import { apiClient } from '@/lib/api-client';
 import type {
   ListTeachersQuery,
   ListTeachersResponse,
+  TeacherAttachment,
   TeacherDetail,
 } from '../types';
 
@@ -65,4 +66,93 @@ export function useDeleteTeacher() {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'teachers'] }),
   });
+}
+
+// --- REQ-260510: account lock/unlock ---
+export function useLockTeacherAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.patch(`/acm/tch/teachers/${id}/account/lock`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'teachers'] }),
+  });
+}
+
+export function useUnlockTeacherAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.patch(`/acm/tch/teachers/${id}/account/unlock`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'teachers'] }),
+  });
+}
+
+// --- REQ-260510: attachments (resume) ---
+export function useTeacherAttachments(id: string | undefined) {
+  return useQuery({
+    enabled: !!id,
+    queryKey: [KEY, 'attachments', id],
+    queryFn: async () =>
+      (
+        await apiClient.get<TeacherAttachment[]>(
+          `/acm/tch/teachers/${id}/attachments`,
+        )
+      ).data,
+  });
+}
+
+export function useUploadTeacherAttachment(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await apiClient.post<TeacherAttachment>(
+        `/acm/tch/teachers/${id}/attachments`,
+        fd,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      );
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'attachments', id] }),
+  });
+}
+
+export function useDeleteTeacherAttachment(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (attId: string) => {
+      await apiClient.delete(`/acm/tch/teachers/${id}/attachments/${attId}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'attachments', id] }),
+  });
+}
+
+export function downloadTeacherAttachmentUrl(id: string, attId: string): string {
+  // Browser-direct download path (auth header attached by interceptor on Axios
+  // calls only — for direct anchor downloads we go through the apiClient blob
+  // download helper). Provided for future window.open usage; downloadAttachment
+  // below is the safe path that includes the JWT.
+  return `/acm/tch/teachers/${id}/attachments/${attId}/download`;
+}
+
+export async function downloadTeacherAttachment(
+  id: string,
+  attId: string,
+  filename: string,
+): Promise<void> {
+  const res = await apiClient.get<Blob>(
+    `/acm/tch/teachers/${id}/attachments/${attId}/download`,
+    { responseType: 'blob' },
+  );
+  const url = URL.createObjectURL(res.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

@@ -54,6 +54,14 @@ export class AcmAuthService {
     const user = await this.userRepo.findOne({
       where: { email, status: 'ACTIVE' },
     });
+
+    if (user && user.lockedAt) {
+      throw new HttpException(
+        { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 관리자에게 문의하세요.' },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
     const ok =
       !!user &&
       !!user.passwordHash &&
@@ -142,6 +150,30 @@ export class AcmAuthService {
     }
     u.passwordHash = await bcrypt.hash(plainPassword, 12);
     await this.userRepo.save(u);
+  }
+
+  /**
+   * Admin-driven account lock. Sets `usr_locked_at = NOW()`. While locked the
+   * user cannot login (login() throws ACCOUNT_LOCKED).
+   */
+  async lockUser(userId: string): Promise<void> {
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u) {
+      throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    if (u.lockedAt) return;
+    u.lockedAt = new Date();
+    await this.userRepo.update(userId, { lockedAt: u.lockedAt });
+  }
+
+  async unlockUser(userId: string): Promise<void> {
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u) {
+      throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    if (!u.lockedAt) return;
+    u.lockedAt = null;
+    await this.userRepo.update(userId, { lockedAt: null });
   }
 
   private assertPasswordPolicy(pw: string): void {

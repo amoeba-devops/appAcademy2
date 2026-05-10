@@ -1,38 +1,121 @@
 {
-  "title": "Giáo viên",
-  "actions": { "create": "Thêm giáo viên", "resetPassword": "Đặt lại mật khẩu" },
-  "filter": { "searchPlaceholder": "Tìm tên / email", "all": "Tất cả" },
-  "status": { "ACTIVE": "Đang làm việc", "INACTIVE": "Ngừng" },
-  "account": { "yes": "Có", "no": "—" },
+  "title": "Quản lý giáo viên",
+  "actions": {
+    "create": "Thêm giáo viên",
+    "resetPassword": "Đặt lại mật khẩu",
+    "lock": "Khóa tài khoản",
+    "unlock": "Mở khóa"
+  },
+  "filter": {
+    "searchPlaceholder": "Tìm tên / email",
+    "all": "Tất cả"
+  },
+  "status": {
+    "ACTIVE": "Đang làm",
+    "LEAVE": "Nghỉ phép",
+    "RESIGNED": "Đã nghỉ"
+  },
+  "isInstructor": {
+    "yes": "Giáo viên",
+    "no": "Không phải GV"
+  },
+  "employmentType": {
+    "FULL_TIME": "Toàn thời gian",
+    "PART_TIME": "Bán thời gian"
+  },
+  "accountState": {
+    "UNLOCKED": "Bình thường",
+    "LOCKED": "Đã khóa",
+    "NO_ACCOUNT": "Chưa cấp"
+  },
+  "account": {
+    "yes": "Có",
+    "no": "Không"
+  },
   "table": {
-    "name": "Tên", "email": "Email", "phone": "Điện thoại",
-    "subjects": "Môn dạy", "account": "Tài khoản", "status": "Trạng thái",
-    "total": "Tổng {{count}}", "empty": "Chưa có giáo viên."
+    "name": "Tên",
+    "isInstructor": "Là GV",
+    "employmentType": "Hình thức",
+    "username": "Tên đăng nhập",
+    "birthDate": "Ngày sinh",
+    "email": "Email",
+    "phone": "Điện thoại",
+    "hiredAt": "Ngày vào làm",
+    "attendanceNo": "Số chấm công",
+    "lastLoginAt": "Lần cuối đăng nhập",
+    "status": "Tình trạng",
+    "accountState": "Tài khoản",
+    "subjects": "Môn dạy",
+    "account": "Tài khoản",
+    "total": "Tổng {{count}}",
+    "empty": "Chưa có giáo viên."
   },
   "field": {
-    "name": "Tên", "englishName": "Tên tiếng Anh", "email": "Email",
-    "phone": "Điện thoại", "birthDate": "Ngày sinh", "status": "Trạng thái",
-    "memo": "Ghi chú", "subjects": "Môn dạy",
-    "createAccount": "Tạo tài khoản đăng nhập",
-    "password": "Mật khẩu", "passwordConfirm": "Xác nhận mật khẩu",
+    "name": "Tên",
+    "englishName": "Tên tiếng Anh",
+    "email": "Email",
+    "phone": "Điện thoại",
+    "birthDate": "Ngày sinh",
+    "status": "Tình trạng",
+    "memo": "Ghi chú",
+    "subjects": "Môn dạy",
+    "isInstructor": "Là giáo viên (chọn nếu là GV)",
+    "employmentType": "Hình thức làm việc",
+    "hiredAt": "Ngày vào làm",
+    "attendanceNo": "Số chấm công",
+    "createAccount": "Cấp tài khoản đăng nhập",
+    "password": "Mật khẩu",
+    "passwordConfirm": "Xác nhận mật khẩu",
     "newPassword": "Mật khẩu mới"
   },
   "subject": {
-    "MAP": "MAP", "MATH": "Toán", "WRITING": "Viết",
-    "LANGUAGE_ARTS": "Language Arts", "SSAT": "SSAT", "ISEE": "ISEE",
-    "INTL_PREP": "Du học", "OTHER": "Khác"
+    "MAP": "MAP",
+    "MATH": "Toán",
+    "WRITING": "Viết",
+    "LANGUAGE_ARTS": "Ngữ văn",
+    "SSAT": "SSAT",
+    "ISEE": "ISEE",
+    "INTL_PREP": "Du học",
+    "OTHER": "Khác"
   },
   "form": {
-    "titleCreate": "Thêm giáo viên", "titleEdit": "Sửa giáo viên",
-    "sectionBasic": "Thông tin cơ bản", "sectionSubjects": "Môn dạy",
-    "sectionAccount": "Tài khoản", "sectionResetPassword": "Đặt lại mật khẩu"
+    "titleCreate": "Thêm giáo viên",
+    "titleEdit": "Sửa giáo viên",
+    "sectionBasic": "Thông tin cơ bản",
+    "sectionSubjects": "Môn dạy",
+    "sectionAccount": "Tài khoản",
+    "sectionResetPassword": "Đặt lại mật khẩu",
+    "sectionAccountLock": "Khóa tài khoản"
   },
-  "hint": { "passwordPolicy": "Tối thiểu 8 ký tự, gồm chữ và số." },
+  "hint": {
+    "passwordPolicy": "Tối thiểu 8 ký tự, gồm chữ và số.",
+    "cannotLockSelf": "Không thể khóa tài khoản của chính bạn."
+  },
   "error": {
-    "passwordShort": "Mật khẩu phải có ít nhất 8 ký tự.",
+    "passwordShort": "Mật khẩu phải ≥ 8 ký tự.",
     "passwordMismatch": "Mật khẩu không khớp.",
-    "passwordComplexity": "Phải gồm cả chữ và số."
+    "passwordComplexity": "Phải có cả chữ và số."
   },
-  "toast": { "passwordReset": "Đã đặt lại mật khẩu." },
-  "confirm": { "delete": "Xoá giáo viên này?" }
+  "toast": {
+    "passwordReset": "Mật khẩu đã được đặt lại."
+  },
+  "confirm": {
+    "delete": "Xóa giáo viên này?",
+    "lock": "Khóa tài khoản này? Đăng nhập sẽ bị chặn."
+  },
+  "attachment": {
+    "section": "Hồ sơ / tệp đính kèm",
+    "hint": "PDF / JPG / PNG · Tối đa 10 MB",
+    "empty": "Chưa có tệp.",
+    "actions": {
+      "upload": "Tải tệp"
+    },
+    "confirm": {
+      "delete": "Xóa tệp này?"
+    },
+    "error": {
+      "mime": "Định dạng không hỗ trợ (PDF/JPG/PNG).",
+      "size": "Kích thước tối đa 10 MB."
+    }
+  }
 }

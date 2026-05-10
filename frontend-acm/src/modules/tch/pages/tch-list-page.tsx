@@ -55,7 +55,8 @@ export function TchListPage() {
           className="h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
         >
           <option value="ACTIVE">{t('status.ACTIVE')}</option>
-          <option value="INACTIVE">{t('status.INACTIVE')}</option>
+          <option value="LEAVE">{t('status.LEAVE')}</option>
+          <option value="RESIGNED">{t('status.RESIGNED')}</option>
           <option value="ALL">{t('filter.all')}</option>
         </select>
       </div>
