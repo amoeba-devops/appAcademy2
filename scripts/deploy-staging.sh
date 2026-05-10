@@ -167,6 +167,15 @@ for sql_file in $(find "$REPO_DIR/sql/acm" -maxdepth 1 -type f -name '*.sql' | s
         die "ACM SQL apply failed on $fname"
     fi
 done
+# --- 4c. Ensure ACM upload dir exists with backend container ownership ---
+# Container runs as uid 100/gid 101 (alpine `app` user). The bind-mount
+# host dir must be writable by that uid or POST /attachments returns 500.
+say "4c. Ensure ACM upload dir (${DATA_DIR:-./data}/acm-uploads) is writable by container uid 100"
+ACM_UPLOAD_HOST_DIR="${DATA_DIR:-$REPO_DIR/data}/acm-uploads"
+sudow mkdir -p "$ACM_UPLOAD_HOST_DIR"
+sudow chown -R 100:101 "$ACM_UPLOAD_HOST_DIR"
+sudow chmod 770 "$ACM_UPLOAD_HOST_DIR"
+
 say "5. Restart backend + frontend + frontend-acm"
 $COMPOSE up -d --no-deps backend frontend frontend-acm
 
