@@ -9,8 +9,12 @@ interface AuthRequest {
 
 /**
  * Multi-tenancy guard — enforces ent_id scoping.
- * Pulls JWT-bound entId and injects into request.body/query if missing.
- * Rejects request if entId mismatch with body/param entId.
+ * Rejects request if a client-supplied body.entId does not match the JWT-bound entId.
+ *
+ * NOTE: We deliberately do NOT inject entId into req.body. The global
+ * ValidationPipe runs with `whitelist: true` + `forbidNonWhitelisted: true`,
+ * so any property not declared on the DTO causes a 400. Handlers must read
+ * entId from `@CurrentUser()` (JWT) — never from the body.
  */
 @Injectable()
 export class OwnEntityGuard implements CanActivate {
@@ -22,10 +26,6 @@ export class OwnEntityGuard implements CanActivate {
     const bodyEntId = (req.body as { entId?: string } | undefined)?.entId;
     if (bodyEntId && bodyEntId !== entId) {
       throw new ForbiddenException('entId mismatch');
-    }
-
-    if (req.body && typeof req.body === 'object') {
-      (req.body as Record<string, unknown>).entId = entId;
     }
     return true;
   }
