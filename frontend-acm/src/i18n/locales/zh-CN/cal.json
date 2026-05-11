@@ -25,5 +25,12 @@
     "endBeforeStart": "结束时间必须晚于开始时间。",
     "meetingUrlRequired": "请输入有效的会议链接(http:// 或 https://)。"
   },
-  "confirm": { "delete": "确定删除该日程?" }
+  "confirm": { "delete": "确定删除该日程?" },
+  "filter": {
+    "label": "筛选",
+    "allOwners": "全部讲师",
+    "allAttendees": "全部参与者",
+    "searchStudent": "搜索学生姓名 / 邮箱",
+    "reset": "重置筛选"
+  }
 }

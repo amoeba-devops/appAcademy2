@@ -25,5 +25,12 @@
     "endBeforeStart": "Thời gian kết thúc phải sau thời gian bắt đầu.",
     "meetingUrlRequired": "Nhập URL hợp lệ (http:// hoặc https://)."
   },
-  "confirm": { "delete": "Xoá sự kiện này?" }
+  "confirm": { "delete": "Xoá sự kiện này?" },
+  "filter": {
+    "label": "Bộ lọc",
+    "allOwners": "Tất cả giáo viên",
+    "allAttendees": "Tất cả người tham dự",
+    "searchStudent": "Tìm học sinh theo tên / email",
+    "reset": "Đặt lại bộ lọc"
+  }
 }

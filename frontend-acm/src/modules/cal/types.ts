@@ -81,4 +81,6 @@ export interface ListCalEventsQuery {
   to: string;
   ownerUserId?: string;
   category?: CalCategory;
+  attendeeKind?: CalInviteeKind;
+  attendeeRefId?: string;
 }

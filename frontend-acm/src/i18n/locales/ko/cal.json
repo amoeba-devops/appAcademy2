@@ -61,5 +61,12 @@
   },
   "confirm": {
     "delete": "일정을 삭제하시겠습니까?"
+  },
+  "filter": {
+    "label": "필터",
+    "allOwners": "강사 전체",
+    "allAttendees": "참석자 전체",
+    "searchStudent": "학생 이름·이메일 검색",
+    "reset": "필터 초기화"
   }
 }

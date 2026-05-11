@@ -61,5 +61,12 @@
   },
   "confirm": {
     "delete": "Delete this event?"
+  },
+  "filter": {
+    "label": "Filter",
+    "allOwners": "All teachers",
+    "allAttendees": "All attendees",
+    "searchStudent": "Search student name / email",
+    "reset": "Reset filters"
   }
 }

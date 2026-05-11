@@ -5,6 +5,7 @@ export interface AuthUserDTO {
   entId: string;
   email: string;
   name: string;
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
   authSource?: 'local' | 'ama';
 }
 

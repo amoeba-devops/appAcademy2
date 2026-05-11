@@ -145,4 +145,12 @@ export class ListCalEventsQueryDto {
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
   @IsOptional() @IsEnum(CAL_CATEGORIES)
   category?: typeof CAL_CATEGORIES[number];
+
+  @ApiPropertyOptional({ enum: CAL_INVITEE_KINDS, description: 'Filter events that include an invitee of this kind (admin only). Requires attendeeRefId.' })
+  @IsOptional() @IsIn(CAL_INVITEE_KINDS)
+  attendeeKind?: typeof CAL_INVITEE_KINDS[number];
+
+  @ApiPropertyOptional({ description: 'Invitee ref id (UUID). Requires attendeeKind.' })
+  @IsOptional() @IsUUID()
+  attendeeRefId?: string;
 }

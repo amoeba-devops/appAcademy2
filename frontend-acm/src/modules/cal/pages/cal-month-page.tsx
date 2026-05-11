@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/stores/auth.store';
+import { useTeachers } from '@/modules/tch/hooks/use-teachers';
 import { useCalEvents } from '../hooks/use-cal-events';
 import {
   addMonths,
@@ -12,8 +14,9 @@ import {
   monthGridDays,
   startOfMonth,
 } from '../lib/date-utils';
-import type { CalEvent } from '../types';
+import type { CalEvent, InviteeCandidate, ListCalEventsQuery } from '../types';
 import { CalEventModal } from '../components/cal-event-modal';
+import { AttendeeFilter } from '../components/attendee-filter';
 
 const CATEGORY_COLOR: Record<CalEvent['category'], string> = {
   CLASS: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -28,6 +31,17 @@ export function CalMonthPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
+  const role = useAuthStore((s) => s.user?.role);
+  const isAdmin = role === 'ADMIN';
+  const [ownerUserId, setOwnerUserId] = useState<string | undefined>(undefined);
+  const [attendee, setAttendee] = useState<InviteeCandidate | null>(null);
+
+  // Teacher list for owner filter (admin only). Filter client-side to those with accounts.
+  const { data: tchData } = useTeachers({ limit: 200 });
+  const teacherOptions = useMemo(() => {
+    const items = tchData?.items ?? [];
+    return items.filter((t) => t.hasAccount && !!t.userId);
+  }, [tchData]);
 
   const days = useMemo(() => monthGridDays(anchor), [anchor]);
   const range = useMemo(
@@ -38,7 +52,19 @@ export function CalMonthPage() {
     [days],
   );
 
-  const { data, isLoading } = useCalEvents({ from: range.from, to: range.to });
+  const query: ListCalEventsQuery = useMemo(
+    () => ({
+      from: range.from,
+      to: range.to,
+      ...(isAdmin && ownerUserId ? { ownerUserId } : {}),
+      ...(isAdmin && attendee
+        ? { attendeeKind: attendee.kind, attendeeRefId: attendee.refId }
+        : {}),
+    }),
+    [range, isAdmin, ownerUserId, attendee],
+  );
+
+  const { data, isLoading } = useCalEvents(query);
   const events = data?.items ?? [];
 
   const eventsByDay = useMemo(() => {
@@ -113,6 +139,37 @@ export function CalMonthPage() {
           {t('actions.today')}
         </Button>
       </div>
+
+      {isAdmin && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
+          <span className="text-xs font-medium text-secondary">{t('filter.label', '필터')}:</span>
+          <select
+            value={ownerUserId ?? ''}
+            onChange={(e) => setOwnerUserId(e.target.value || undefined)}
+            className="h-8 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs text-primary"
+          >
+            <option value="">{t('filter.allOwners', '강사 전체')}</option>
+            {teacherOptions.map((tch) => (
+              <option key={tch.id} value={tch.userId ?? ''}>
+                {tch.name}
+              </option>
+            ))}
+          </select>
+          <AttendeeFilter value={attendee} onChange={setAttendee} kind="STUDENT" />
+          {(ownerUserId || attendee) && (
+            <button
+              type="button"
+              onClick={() => {
+                setOwnerUserId(undefined);
+                setAttendee(null);
+              }}
+              className="text-xs text-accent-600 hover:underline"
+            >
+              {t('filter.reset', '필터 초기화')}
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-7 gap-px rounded-md border border-[var(--border-subtle)] bg-[var(--border-subtle)] overflow-hidden">
         {weekdayLabels.map((wd, i) => (

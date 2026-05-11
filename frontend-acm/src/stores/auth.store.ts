@@ -5,6 +5,7 @@ interface AcmUser {
   id: string;
   entId: string;
   email?: string;
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
   roles?: string[];
 }
 

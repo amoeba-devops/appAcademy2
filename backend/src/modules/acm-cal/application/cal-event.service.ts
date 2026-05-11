@@ -55,6 +55,24 @@ export class CalEventService {
 
     if (actorRole === 'ADMIN') {
       if (q.ownerUserId) qb.andWhere('e.ownerUserId = :owner', { owner: q.ownerUserId });
+
+      const hasKind = !!q.attendeeKind;
+      const hasRef = !!q.attendeeRefId;
+      if (hasKind !== hasRef) {
+        throw new BadRequestException('INVALID_ATTENDEE_FILTER');
+      }
+      if (hasKind && hasRef) {
+        qb.andWhere(
+          `EXISTS (
+             SELECT 1 FROM amb_acm_cal_invitee i
+             WHERE i.evt_id = e.evt_id
+               AND i.ent_id = e.ent_id
+               AND i.kind   = :ak
+               AND i.ref_id = :ar
+           )`,
+          { ak: q.attendeeKind, ar: q.attendeeRefId },
+        );
+      }
     } else {
       qb.andWhere('e.ownerUserId = :owner', { owner: actorUserId });
     }

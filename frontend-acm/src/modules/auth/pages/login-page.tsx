@@ -71,6 +71,7 @@ export function LoginPage() {
           id: user.id,
           entId: user.entId,
           email: user.email,
+          role: user.role,
         });
         scrubUrl();
         const returnTo = params.get('returnTo');
@@ -103,6 +104,7 @@ export function LoginPage() {
         id: user.id,
         entId: user.entId,
         email: user.email,
+        role: user.role,
       });
       const returnTo = params.get('returnTo');
       navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/admin/dashboard', {
