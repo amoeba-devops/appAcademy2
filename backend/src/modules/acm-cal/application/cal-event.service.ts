@@ -65,10 +65,10 @@ export class CalEventService {
         qb.andWhere(
           `EXISTS (
              SELECT 1 FROM amb_acm_cal_invitee i
-             WHERE i.evt_id = e.evt_id
-               AND i.ent_id = e.ent_id
-               AND i.kind   = :ak
-               AND i.ref_id = :ar
+             WHERE i.evt_id     = e.evt_id
+               AND i.ent_id     = e.ent_id
+               AND i.inv_kind   = :ak
+               AND i.inv_ref_id = :ar
            )`,
           { ak: q.attendeeKind, ar: q.attendeeRefId },
         );
