@@ -6,9 +6,15 @@
   "field": {
     "title": "标题", "description": "说明", "category": "分类",
     "startAt": "开始", "endAt": "结束", "allDay": "全天",
-    "locationText": "地点", "meetingProvider": "在线会议", "meetingUrl": "会议链接"
+    "locationText": "地点", "meetingProvider": "在线会议", "meetingUrl": "会议链接", "creator": "创建人"
   },
-  "form": { "titleCreate": "新增日程", "titleEdit": "编辑日程", "sectionMeeting": "在线会议" },
+  "form": { "titleCreate": "新增日程", "titleEdit": "编辑日程", "sectionMeeting": "在线会议", "sectionAttendees": "参会人" },
+  "invitee": {
+    "pickerTitle": "选择参会人",
+    "kindAll": "全部", "kindStudent": "学生", "kindTeacher": "讲师", "kindParent": "家长",
+    "searchPlaceholder": "搜索姓名 / 邮箱", "empty": "无结果。", "noEmail": "(无邮箱)",
+    "add": "添加", "addBtn": "添加参会人", "notifyResult": "通知结果"
+  },
   "hint": {
     "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",
     "readOnlySource": "该日程从外部源同步,不可编辑。"

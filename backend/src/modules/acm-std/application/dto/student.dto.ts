@@ -1,19 +1,49 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsIn,
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export const STD_STATUSES = ['ACTIVE', 'INACTIVE', 'WITHDRAWN'] as const;
 export const STD_GENDERS = ['M', 'F'] as const;
+
+// ============================================================================
+// Parent (guardian) sub-DTO — embedded in student create/update payload
+// ============================================================================
+export class StudentParentInputDto {
+  /** par_id — when present, link existing parent (optionally update fields). */
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  parId?: string;
+
+  @ApiProperty() @IsString() @MaxLength(100)
+  parName!: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  parRelation?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
+  parPhone?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  parEmail?: string;
+
+  @ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean()
+  spIsPrimary?: boolean;
+}
 
 // ============================================================================
 // Create
@@ -33,6 +63,9 @@ export class CreateStudentDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
   stdPhone?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  stdEmail?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdResidence?: string;
@@ -97,6 +130,12 @@ export class CreateStudentDto {
   @ApiPropertyOptional({ enum: STD_STATUSES, default: 'ACTIVE' })
   @IsOptional() @IsEnum(STD_STATUSES)
   stdStatus?: typeof STD_STATUSES[number];
+
+  @ApiPropertyOptional({ type: [StudentParentInputDto] })
+  @IsOptional() @IsArray() @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => StudentParentInputDto)
+  stdParents?: StudentParentInputDto[];
 }
 
 // ============================================================================
@@ -117,6 +156,9 @@ export class UpdateStudentDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
   stdPhone?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  stdEmail?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdResidence?: string;
@@ -181,6 +223,12 @@ export class UpdateStudentDto {
   @ApiPropertyOptional({ enum: STD_STATUSES })
   @IsOptional() @IsEnum(STD_STATUSES)
   stdStatus?: typeof STD_STATUSES[number];
+
+  @ApiPropertyOptional({ type: [StudentParentInputDto] })
+  @IsOptional() @IsArray() @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => StudentParentInputDto)
+  stdParents?: StudentParentInputDto[];
 }
 
 // ============================================================================

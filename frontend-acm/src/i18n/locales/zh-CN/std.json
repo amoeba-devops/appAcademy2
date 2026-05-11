@@ -57,7 +57,14 @@
     "satisfactionNote": "满意度",
     "lastCounselDate": "最近辅导日",
     "startDate": "注册日期",
-    "status": "状态"
+    "status": "状态",
+    "email": "邮箱",
+    "phone": "电话",
+    "parentName": "姓名",
+    "parentRelation": "关系",
+    "parentPhone": "电话",
+    "parentEmail": "邮箱",
+    "parentPrimary": "主联系人"
   },
   "form": {
     "titleCreate": "注册学生",
@@ -65,7 +72,10 @@
     "sectionBasic": "基本信息",
     "sectionMap": "MAP成绩",
     "sectionClass": "课程信息",
-    "sectionMemo": "备注 / 状态"
+    "sectionMemo": "备注 / 状态",
+    "sectionParents": "家长信息",
+    "parentsEmpty": "尚未添加家长。点击 + 添加。",
+    "addParent": "添加家长"
   },
   "import": {
     "title": "Excel导入（批量）",

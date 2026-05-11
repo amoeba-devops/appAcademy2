@@ -26,6 +26,7 @@ import { MeModule } from './presentation/me.module';
 import { TenantOpsModule } from './presentation/tenant-ops.module';
 import { AcmModule } from './modules/acm.module';
 import { ACM_DS } from './modules/acm-common/datasource';
+import { MailerModule } from './infrastructure/mailer/mailer.module';
 
 @Module({
   imports: [
@@ -110,6 +111,9 @@ import { ACM_DS } from './modules/acm-common/datasource';
 
     // ACM v1.0a (5 modules: SCH, REF, CSL, QNA, DSH) — PostgreSQL
     AcmModule,
+
+    // SMTP mailer (global) — used by InviteeNotifier
+    MailerModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -57,7 +57,14 @@
     "satisfactionNote": "Mức độ hài lòng",
     "lastCounselDate": "Tư vấn gần nhất",
     "startDate": "Ngày đăng ký",
-    "status": "Trạng thái"
+    "status": "Trạng thái",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "parentName": "Họ tên",
+    "parentRelation": "Quan hệ",
+    "parentPhone": "Số điện thoại",
+    "parentEmail": "Email",
+    "parentPrimary": "Liên hệ chính"
   },
   "form": {
     "titleCreate": "Đăng ký học sinh",
@@ -65,7 +72,10 @@
     "sectionBasic": "Thông tin cơ bản",
     "sectionMap": "Điểm MAP",
     "sectionClass": "Thông tin lớp",
-    "sectionMemo": "Ghi chú / Trạng thái"
+    "sectionMemo": "Ghi chú / Trạng thái",
+    "sectionParents": "Thông tin phụ huynh",
+    "parentsEmpty": "Chưa có phụ huynh. Nhấn + để thêm.",
+    "addParent": "Thêm phụ huynh"
   },
   "import": {
     "title": "Nhập Excel (Hàng loạt)",

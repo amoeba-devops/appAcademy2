@@ -157,9 +157,15 @@ export function CalMonthPage() {
                     className={`truncate rounded border px-1.5 py-0.5 text-[10px] leading-tight ${
                       CATEGORY_COLOR[ev.category]
                     }`}
-                    title={ev.title}
+                    title={`${ev.ownerName ? `[${ev.ownerName}] ` : ''}${ev.title}${ev.inviteeCount ? ` · 참석 ${ev.inviteeCount}` : ''}`}
                   >
+                    {ev.ownerName && (
+                      <span className="font-semibold mr-1">[{ev.ownerName}]</span>
+                    )}
                     {ev.title}
+                    {ev.inviteeCount ? (
+                      <span className="ml-1 text-[9px] opacity-70">·{ev.inviteeCount}</span>
+                    ) : null}
                   </div>
                 ))}
                 {dayEvents.length > 3 && (

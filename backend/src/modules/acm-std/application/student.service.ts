@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository, ILike } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { StudentTypeormEntity } from '../infrastructure/typeorm/student.typeorm-entity';
 import type {
@@ -9,12 +9,14 @@ import type {
   ChangeStudentStatusDto,
   ListStudentsQueryDto,
 } from './dto/student.dto';
+import { ParentService } from './parent.service';
 
 @Injectable()
 export class StudentService {
   constructor(
     @InjectRepository(StudentTypeormEntity, ACM_DS)
     private readonly repo: Repository<StudentTypeormEntity>,
+    private readonly parentService: ParentService,
   ) {}
 
   async list(entId: string, q: ListStudentsQueryDto) {
@@ -68,7 +70,8 @@ export class StudentService {
       where: { id, entId, deletedAt: IsNull() },
     });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
-    return this.toDetail(entity);
+    const parents = await this.parentService.listForStudent(entId, id);
+    return { ...this.toDetail(entity), parents };
   }
 
   async create(entId: string, dto: CreateStudentDto) {
@@ -79,6 +82,7 @@ export class StudentService {
       gender: dto.stdGender,
       birthDate: dto.stdBirthDate,
       phone: dto.stdPhone,
+      email: dto.stdEmail,
       residence: dto.stdResidence,
       school: dto.stdSchool,
       grade: dto.stdGrade,
@@ -101,7 +105,11 @@ export class StudentService {
       status: dto.stdStatus ?? 'ACTIVE',
     });
     const saved = await this.repo.save(entity);
-    return this.toDetail(saved);
+    if (dto.stdParents) {
+      await this.parentService.syncForStudent(entId, saved.id, dto.stdParents);
+    }
+    const parents = await this.parentService.listForStudent(entId, saved.id);
+    return { ...this.toDetail(saved), parents };
   }
 
   async update(entId: string, id: string, dto: UpdateStudentDto) {
@@ -113,6 +121,7 @@ export class StudentService {
     if (dto.stdGender !== undefined) entity.gender = dto.stdGender;
     if (dto.stdBirthDate !== undefined) entity.birthDate = dto.stdBirthDate;
     if (dto.stdPhone !== undefined) entity.phone = dto.stdPhone;
+    if (dto.stdEmail !== undefined) entity.email = dto.stdEmail;
     if (dto.stdResidence !== undefined) entity.residence = dto.stdResidence;
     if (dto.stdSchool !== undefined) entity.school = dto.stdSchool;
     if (dto.stdGrade !== undefined) entity.grade = dto.stdGrade;
@@ -136,7 +145,11 @@ export class StudentService {
 
     entity.updatedAt = new Date();
     const saved = await this.repo.save(entity);
-    return this.toDetail(saved);
+    if (dto.stdParents !== undefined) {
+      await this.parentService.syncForStudent(entId, saved.id, dto.stdParents);
+    }
+    const parents = await this.parentService.listForStudent(entId, saved.id);
+    return { ...this.toDetail(saved), parents };
   }
 
   async changeStatus(entId: string, id: string, dto: ChangeStudentStatusDto) {
@@ -181,6 +194,7 @@ export class StudentService {
       gender: e.gender,
       birthDate: e.birthDate,
       phone: e.phone,
+      email: e.email,
       residence: e.residence,
       school: e.school,
       grade: e.grade,

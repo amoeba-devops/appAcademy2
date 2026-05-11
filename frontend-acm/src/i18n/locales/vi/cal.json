@@ -6,9 +6,15 @@
   "field": {
     "title": "Tiêu đề", "description": "Mô tả", "category": "Phân loại",
     "startAt": "Bắt đầu", "endAt": "Kết thúc", "allDay": "Cả ngày",
-    "locationText": "Địa điểm", "meetingProvider": "Họp trực tuyến", "meetingUrl": "URL họp"
+    "locationText": "Địa điểm", "meetingProvider": "Họp trực tuyến", "meetingUrl": "URL họp", "creator": "Người tạo"
   },
-  "form": { "titleCreate": "Thêm sự kiện", "titleEdit": "Sửa sự kiện", "sectionMeeting": "Họp trực tuyến" },
+  "form": { "titleCreate": "Thêm sự kiện", "titleEdit": "Sửa sự kiện", "sectionMeeting": "Họp trực tuyến", "sectionAttendees": "Người tham dự" },
+  "invitee": {
+    "pickerTitle": "Chọn người tham dự",
+    "kindAll": "Tất cả", "kindStudent": "Học sinh", "kindTeacher": "Giáo viên", "kindParent": "Phụ huynh",
+    "searchPlaceholder": "Tìm tên / email", "empty": "Không có kết quả.", "noEmail": "(không có email)",
+    "add": "Thêm", "addBtn": "Thêm người tham dự", "notifyResult": "Kết quả gửi thông báo"
+  },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
     "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa."

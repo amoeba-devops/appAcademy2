@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type {
   CalEvent,
+  InviteeCandidate,
   ListCalEventsQuery,
   ListCalEventsResponse,
 } from '../types';
@@ -55,5 +56,18 @@ export function useDeleteCalEvent() {
       await apiClient.delete(`/acm/cal/events/${id}`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'events'] }),
+  });
+}
+
+export function useInviteeCandidates(q: string, kind: string, enabled: boolean) {
+  return useQuery({
+    enabled,
+    queryKey: [KEY, 'invitee-candidates', q, kind],
+    queryFn: async () => {
+      const res = await apiClient.get<InviteeCandidate[]>('/acm/cal/invitee-candidates', {
+        params: { q: q || undefined, kind: kind || 'ALL' },
+      });
+      return res.data;
+    },
   });
 }

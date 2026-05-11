@@ -28,6 +28,9 @@ export class StudentTypeormEntity {
   @Column({ name: 'std_phone', type: 'varchar', length: 30, nullable: true })
   phone?: string | null;
 
+  @Column({ name: 'std_email', type: 'varchar', length: 200, nullable: true })
+  email?: string | null;
+
   @Column({ name: 'std_residence', type: 'varchar', length: 100, nullable: true })
   residence?: string | null;
 

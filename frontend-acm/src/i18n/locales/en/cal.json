@@ -27,12 +27,27 @@
     "allDay": "All day",
     "locationText": "Location",
     "meetingProvider": "Meeting provider",
-    "meetingUrl": "Meeting URL"
+    "meetingUrl": "Meeting URL",
+    "creator": "Creator"
   },
   "form": {
     "titleCreate": "Add Event",
     "titleEdit": "Edit Event",
-    "sectionMeeting": "Online meeting"
+    "sectionMeeting": "Online meeting",
+    "sectionAttendees": "Attendees"
+  },
+  "invitee": {
+    "pickerTitle": "Pick attendees",
+    "kindAll": "All",
+    "kindStudent": "Student",
+    "kindTeacher": "Teacher",
+    "kindParent": "Parent",
+    "searchPlaceholder": "Search name / email",
+    "empty": "No results.",
+    "noEmail": "(no email)",
+    "add": "Add",
+    "addBtn": "Add attendee",
+    "notifyResult": "Notification result"
   },
   "hint": {
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",

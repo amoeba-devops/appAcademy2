@@ -5,21 +5,31 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
+import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { ACM_DS } from '../../acm-common/datasource';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
+import { CalInviteeService } from './cal-invitee.service';
 import type {
   CreateCalEventDto,
   ListCalEventsQueryDto,
   UpdateCalEventDto,
 } from './dto/cal-event.dto';
+import {
+  InviteeNotifierService,
+  NotifySummary,
+} from './invitee-notifier.service';
 
 @Injectable()
 export class CalEventService {
   constructor(
     @InjectRepository(CalEventTypeormEntity, ACM_DS)
     private readonly repo: Repository<CalEventTypeormEntity>,
+    @InjectRepository(AcmUserTypeormEntity, ACM_DS)
+    private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    private readonly inviteeSvc: CalInviteeService,
+    private readonly notifier: InviteeNotifierService,
   ) {}
 
   async list(
@@ -38,15 +48,11 @@ export class CalEventService {
       .createQueryBuilder('e')
       .where('e.entId = :entId', { entId })
       .andWhere('e.deletedAt IS NULL')
-      // overlap: event_start < to AND event_end > from
       .andWhere('e.startAt < :to', { to })
       .andWhere('e.endAt > :from', { from });
 
     if (q.category) qb.andWhere('e.category = :category', { category: q.category });
 
-    // Visibility:
-    // - ADMIN: can see all (optionally filter by ownerUserId)
-    // - TEACHER/STAFF: only own events
     if (actorRole === 'ADMIN') {
       if (q.ownerUserId) qb.andWhere('e.ownerUserId = :owner', { owner: q.ownerUserId });
     } else {
@@ -55,14 +61,34 @@ export class CalEventService {
 
     qb.orderBy('e.startAt', 'ASC');
     const items = await qb.getMany();
-    return { items: items.map(this.toDetail) };
+
+    const ownerMap = await this.lookupOwners(entId, items.map((i) => i.ownerUserId));
+    const counts = await this.inviteeSvc.countsByEvent(entId, items.map((i) => i.id));
+
+    return {
+      items: items.map((e) => ({
+        ...this.toDetail(e),
+        ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
+        ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
+        inviteeCount: counts.get(e.id) ?? 0,
+      })),
+    };
   }
 
   async findOne(entId: string, actorUserId: string, actorRole: AcmRole, id: string) {
     const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanView(e, actorUserId, actorRole);
-    return this.toDetail(e);
+
+    const ownerMap = await this.lookupOwners(entId, [e.ownerUserId]);
+    const invitees = await this.inviteeSvc.listForEvent(entId, e.id);
+
+    return {
+      ...this.toDetail(e),
+      ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
+      ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
+      invitees,
+    };
   }
 
   async create(
@@ -98,7 +124,24 @@ export class CalEventService {
       source: 'MANUAL',
     });
     const saved = await this.repo.save(entity);
-    return this.toDetail(saved);
+
+    let notifySummary: NotifySummary | null = null;
+    if (dto.evtInvitees && dto.evtInvitees.length > 0) {
+      await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees);
+      const diff = await this.inviteeSvc.diff(entId, saved.id, dto.evtInvitees);
+      const added = await this.inviteeSvc.applyDiff(diff);
+      notifySummary = await this.notifier.notifyAdded(entId, saved, added);
+    }
+
+    const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
+    const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
+    return {
+      ...this.toDetail(saved),
+      ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
+      ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
+      invitees,
+      notifySummary,
+    };
   }
 
   async update(
@@ -128,7 +171,24 @@ export class CalEventService {
 
     e.updatedAt = new Date();
     const saved = await this.repo.save(e);
-    return this.toDetail(saved);
+
+    let notifySummary: NotifySummary | null = null;
+    if (dto.evtInvitees !== undefined) {
+      await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees);
+      const diff = await this.inviteeSvc.diff(entId, saved.id, dto.evtInvitees);
+      const added = await this.inviteeSvc.applyDiff(diff);
+      notifySummary = await this.notifier.notifyAdded(entId, saved, added);
+    }
+
+    const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
+    const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
+    return {
+      ...this.toDetail(saved),
+      ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
+      ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
+      invitees,
+      notifySummary,
+    };
   }
 
   async remove(entId: string, actorUserId: string, actorRole: AcmRole, id: string) {
@@ -139,6 +199,21 @@ export class CalEventService {
     e.updatedAt = new Date();
     await this.repo.save(e);
     return { id };
+  }
+
+  private async lookupOwners(
+    entId: string,
+    ids: string[],
+  ): Promise<Map<string, { name: string; email: string }>> {
+    const map = new Map<string, { name: string; email: string }>();
+    const unique = Array.from(new Set(ids.filter(Boolean)));
+    if (unique.length === 0) return map;
+    const rows = await this.userRepo.find({
+      where: { id: In(unique), entId },
+      select: ['id', 'name', 'email'],
+    });
+    for (const r of rows) map.set(r.id, { name: r.name, email: r.email });
+    return map;
   }
 
   private validateTimes(start: string, end: string) {

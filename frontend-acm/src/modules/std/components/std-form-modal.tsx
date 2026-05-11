@@ -9,7 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useCreateStudent, useUpdateStudent } from '../hooks/use-students';
-import type { StudentDetail } from '../types';
+import type { ParentInput, StudentDetail } from '../types';
+import { ParentSubform } from './parent-subform';
 
 interface StdFormModalProps {
   open: boolean;
@@ -23,6 +24,7 @@ type FormValues = {
   stdGender: string;
   stdBirthDate: string;
   stdPhone: string;
+  stdEmail: string;
   stdResidence: string;
   stdSchool: string;
   stdGrade: string;
@@ -38,6 +40,7 @@ type FormValues = {
   stdSpecialNote: string;
   stdStatus: string;
   stdStartDate: string;
+  stdParents: ParentInput[];
 };
 
 const inputClass =
@@ -48,13 +51,14 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
   const { t } = useTranslation('std');
   const isEdit = !!initial;
 
-  const { register, handleSubmit, reset } = useForm<FormValues>({
+  const { register, handleSubmit, reset, control } = useForm<FormValues>({
     defaultValues: {
       stdName: initial?.name ?? '',
       stdEnglishName: initial?.englishName ?? '',
       stdGender: initial?.gender ?? '',
       stdBirthDate: initial?.birthDate ?? '',
       stdPhone: initial?.phone ?? '',
+      stdEmail: initial?.email ?? '',
       stdResidence: initial?.residence ?? '',
       stdSchool: initial?.school ?? '',
       stdGrade: initial?.grade ?? '',
@@ -70,6 +74,15 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
       stdSpecialNote: initial?.specialNote ?? '',
       stdStatus: initial?.status ?? 'ACTIVE',
       stdStartDate: initial?.startDate ?? '',
+      stdParents:
+        initial?.parents?.map((p) => ({
+          parId: p.id,
+          parName: p.name,
+          parRelation: p.relation ?? '',
+          parPhone: p.phone ?? '',
+          parEmail: p.email ?? '',
+          spIsPrimary: p.isPrimary,
+        })) ?? [],
     },
   });
 
@@ -80,11 +93,26 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
   const onSubmit = async (values: FormValues) => {
     const dto: Record<string, unknown> = {};
     Object.entries(values).forEach(([k, v]) => {
+      if (k === 'stdParents') return;
       if (v !== '') dto[k] = v;
     });
     if (dto.stdMapReading) dto.stdMapReading = Number(dto.stdMapReading);
     if (dto.stdMapMath) dto.stdMapMath = Number(dto.stdMapMath);
     if (dto.stdMapLanguage) dto.stdMapLanguage = Number(dto.stdMapLanguage);
+
+    // Sanitize parents: drop empty rows + empty optional fields
+    const cleanParents = (values.stdParents ?? [])
+      .filter((p) => (p.parName ?? '').trim() !== '')
+      .map((p) => {
+        const o: Record<string, unknown> = { parName: p.parName.trim() };
+        if (p.parId) o.parId = p.parId;
+        if (p.parRelation) o.parRelation = p.parRelation;
+        if (p.parPhone) o.parPhone = p.parPhone;
+        if (p.parEmail) o.parEmail = p.parEmail;
+        if (p.spIsPrimary) o.spIsPrimary = true;
+        return o;
+      });
+    dto.stdParents = cleanParents;
 
     if (isEdit) {
       await updateMut.mutateAsync(dto);
@@ -128,8 +156,12 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
                 <input type="date" {...register('stdBirthDate')} className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>{t('field.phone')}</label>
+                <label className={labelClass}>{t('field.phone', '전화번호')}</label>
                 <input {...register('stdPhone')} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t('field.email', '이메일')}</label>
+                <input type="email" {...register('stdEmail')} className={inputClass} />
               </div>
               <div>
                 <label className={labelClass}>{t('field.residence')}</label>
@@ -145,6 +177,12 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
               </div>
             </div>
           </fieldset>
+
+          {/* 학부모 정보 */}
+          <ParentSubform
+            control={control as unknown as import('react-hook-form').Control<import('react-hook-form').FieldValues>}
+            register={register as unknown as import('react-hook-form').UseFormRegister<import('react-hook-form').FieldValues>}
+          />
 
           {/* MAP 점수 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">

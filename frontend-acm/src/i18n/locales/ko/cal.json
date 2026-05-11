@@ -27,12 +27,27 @@
     "allDay": "종일",
     "locationText": "장소",
     "meetingProvider": "화상 미팅",
-    "meetingUrl": "미팅 URL"
+    "meetingUrl": "미팅 URL",
+    "creator": "작성자"
   },
   "form": {
     "titleCreate": "일정 등록",
     "titleEdit": "일정 수정",
-    "sectionMeeting": "화상 미팅"
+    "sectionMeeting": "화상 미팅",
+    "sectionAttendees": "참석자"
+  },
+  "invitee": {
+    "pickerTitle": "참석자 선택",
+    "kindAll": "전체",
+    "kindStudent": "학생",
+    "kindTeacher": "강사",
+    "kindParent": "학부모",
+    "searchPlaceholder": "이름·이메일 검색",
+    "empty": "결과가 없습니다.",
+    "noEmail": "(이메일 없음)",
+    "add": "추가",
+    "addBtn": "참석자 추가",
+    "notifyResult": "알림 결과"
   },
   "hint": {
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",

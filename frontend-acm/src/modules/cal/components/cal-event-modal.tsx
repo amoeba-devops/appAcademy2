@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  useCalEvent,
   useCreateCalEvent,
   useDeleteCalEvent,
   useUpdateCalEvent,
@@ -18,12 +20,16 @@ import {
   CAL_CATEGORIES,
   CAL_PROVIDERS,
   type CalEvent,
+  type CalInviteeView,
+  type InviteeCandidate,
+  type NotifySummary,
 } from '../types';
 import {
   defaultEventTimes,
   formatDateTimeLocal,
   localInputToIso,
 } from '../lib/date-utils';
+import { InviteePickerModal } from './invitee-picker-modal';
 
 interface Props {
   open: boolean;
@@ -52,6 +58,11 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t } = useTranslation('cal');
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
+  const [invitees, setInvitees] = useState<
+    Array<{ kind: 'STUDENT' | 'TEACHER' | 'PARENT'; refId: string; name: string; email: string | null; notifyStatus?: string | null }>
+  >([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [notifySummary, setNotifySummary] = useState<NotifySummary | null>(null);
 
   const { register, handleSubmit, reset, watch } = useForm<FormValues>({
     defaultValues: {
@@ -70,6 +81,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setNotifySummary(null);
     if (initial) {
       reset({
         evtCategory: initial.category,
@@ -82,6 +94,15 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtMeetingProvider: initial.meetingProvider,
         evtMeetingUrl: initial.meetingUrl ?? '',
       });
+      setInvitees(
+        (initial.invitees ?? []).map((i: CalInviteeView) => ({
+          kind: i.kind,
+          refId: i.refId,
+          name: i.name,
+          email: i.email,
+          notifyStatus: i.notifyStatus,
+        })),
+      );
     } else {
       const { start, end } = defaultEventTimes(defaultDate ?? new Date());
       reset({
@@ -95,13 +116,29 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtMeetingProvider: 'NONE',
         evtMeetingUrl: '',
       });
+      setInvitees([]);
     }
   }, [open, initial, defaultDate, reset]);
 
   const createMut = useCreateCalEvent();
   const updateMut = useUpdateCalEvent(initial?.id ?? '');
   const deleteMut = useDeleteCalEvent();
+  const { data: detail } = useCalEvent(open && isEdit ? initial?.id : undefined);
   const isLoading = createMut.isPending || updateMut.isPending || deleteMut.isPending;
+  // Hydrate invitees + ownerName/Email from fresh detail fetch (list summary lacks them).
+  useEffect(() => {
+    if (!open || !detail) return;
+    setInvitees(
+      (detail.invitees ?? []).map((i: CalInviteeView) => ({
+        kind: i.kind,
+        refId: i.refId,
+        name: i.name,
+        email: i.email,
+        notifyStatus: i.notifyStatus,
+      })),
+    );
+  }, [open, detail]);
+
   const meetingProvider = watch('evtMeetingProvider');
   const isReadOnly = isEdit && initial?.source !== 'MANUAL';
 
@@ -136,13 +173,22 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       dto.evtMeetingUrl = values.evtMeetingUrl;
     }
 
+    dto.evtInvitees = invitees.map((i) => ({ kind: i.kind, refId: i.refId }));
+
     try {
+      let saved: CalEvent;
       if (isEdit) {
-        await updateMut.mutateAsync(dto);
+        saved = await updateMut.mutateAsync(dto);
       } else {
-        await createMut.mutateAsync(dto);
+        saved = await createMut.mutateAsync(dto);
       }
-      onClose();
+      if (saved.notifySummary) {
+        setNotifySummary(saved.notifySummary);
+        // Keep modal open briefly to show summary; then close after 2s.
+        setTimeout(() => onClose(), 2000);
+      } else {
+        onClose();
+      }
     } catch (e) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
@@ -256,6 +302,102 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             )}
           </fieldset>
 
+          {/* Creator meta (edit mode only) */}
+          {isEdit && (detail?.ownerName || initial?.ownerName) && (
+            <div className="rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] px-3 py-2 text-xs text-secondary">
+              <span className="font-semibold text-primary">{t('field.creator', '작성자')}:</span>{' '}
+              {detail?.ownerName ?? initial?.ownerName}
+              {(detail?.ownerEmail || initial?.ownerEmail) && (
+                <span className="ml-1 text-secondary">&lt;{detail?.ownerEmail ?? initial?.ownerEmail}&gt;</span>
+              )}
+            </div>
+          )}
+
+          {/* Attendees */}
+          <fieldset
+            className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2"
+            disabled={isReadOnly}
+          >
+            <legend className="text-xs font-semibold text-secondary px-1">
+              {t('form.sectionAttendees', '참석자')} ({invitees.length})
+            </legend>
+            {invitees.length === 0 && (
+              <p className="text-xs text-secondary">
+                {t('invitee.empty', '아직 참석자가 없습니다.')}
+              </p>
+            )}
+            <ul className="flex flex-wrap gap-1.5">
+              {invitees.map((inv) => {
+                const k = `${inv.kind}:${inv.refId}`;
+                const badgeColor =
+                  inv.notifyStatus === 'SENT'
+                    ? 'bg-green-100 text-green-700'
+                    : inv.notifyStatus === 'FAILED'
+                      ? 'bg-red-100 text-red-700'
+                      : inv.notifyStatus?.startsWith('SKIPPED')
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-gray-100 text-gray-700';
+                return (
+                  <li
+                    key={k}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] text-xs"
+                  >
+                    <span
+                      className={`text-[9px] font-mono uppercase px-1 py-0.5 rounded ${
+                        inv.kind === 'STUDENT'
+                          ? 'bg-blue-100 text-blue-700'
+                          : inv.kind === 'TEACHER'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {inv.kind[0]}
+                    </span>
+                    <span className="text-primary">{inv.name}</span>
+                    {inv.notifyStatus && (
+                      <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${badgeColor}`}>
+                        {inv.notifyStatus}
+                      </span>
+                    )}
+                    {!isReadOnly && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInvitees((prev) =>
+                            prev.filter((x) => `${x.kind}:${x.refId}` !== k),
+                          )
+                        }
+                        className="text-secondary hover:text-danger-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            {!isReadOnly && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPickerOpen(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {t('invitee.addBtn', '참석자 추가')}
+              </Button>
+            )}
+          </fieldset>
+
+          {/* Notify summary toast (after submit) */}
+          {notifySummary && (
+            <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+              {t('invitee.notifyResult', '알림 결과')}: SENT {notifySummary.sent} · SKIP_NO_EMAIL{' '}
+              {notifySummary.skippedNoEmail} · SKIP_NO_SMTP {notifySummary.skippedNoSmtp} · FAIL{' '}
+              {notifySummary.failed}
+            </div>
+          )}
+
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <DialogFooter className="flex justify-between">
@@ -286,6 +428,31 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
           </DialogFooter>
         </form>
       </DialogContent>
+
+      <InviteePickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onPick={(picked: InviteeCandidate[]) => {
+          setInvitees((prev) => {
+            const seen = new Set(prev.map((p) => `${p.kind}:${p.refId}`));
+            const merged = [...prev];
+            for (const c of picked) {
+              const k = `${c.kind}:${c.refId}`;
+              if (!seen.has(k)) {
+                merged.push({
+                  kind: c.kind,
+                  refId: c.refId,
+                  name: c.name,
+                  email: c.email,
+                  notifyStatus: null,
+                });
+              }
+            }
+            return merged;
+          });
+        }}
+        excludeKeys={new Set(invitees.map((i) => `${i.kind}:${i.refId}`))}
+      />
     </Dialog>
   );
 }

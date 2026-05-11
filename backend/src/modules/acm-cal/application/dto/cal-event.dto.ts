@@ -1,18 +1,36 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
+  IsIn,
   IsOptional,
   IsString,
   IsUUID,
   IsUrl,
   MaxLength,
   ValidateIf,
+  ValidateNested,
 } from 'class-validator';
 
 export const CAL_CATEGORIES = ['CLASS', 'MEETING', 'EVENT', 'PERSONAL'] as const;
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
+export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
+
+// ============================================================================
+// Invitee sub-DTO
+// ============================================================================
+export class CalInviteeInputDto {
+  @ApiProperty({ enum: CAL_INVITEE_KINDS })
+  @IsIn(CAL_INVITEE_KINDS)
+  kind!: typeof CAL_INVITEE_KINDS[number];
+
+  @ApiProperty() @IsUUID()
+  refId!: string;
+}
 
 export class CreateCalEventDto {
   @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'CLASS' })
@@ -53,6 +71,12 @@ export class CreateCalEventDto {
   /** Optional override (admin only — controller enforces). Default = current user. */
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   evtOwnerUserId?: string;
+
+  @ApiPropertyOptional({ type: [CalInviteeInputDto] })
+  @IsOptional() @IsArray() @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => CalInviteeInputDto)
+  evtInvitees?: CalInviteeInputDto[];
 }
 
 export class UpdateCalEventDto {
@@ -88,6 +112,21 @@ export class UpdateCalEventDto {
 
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   evtClsId?: string;
+
+  @ApiPropertyOptional({ type: [CalInviteeInputDto] })
+  @IsOptional() @IsArray() @ArrayMaxSize(200)
+  @ValidateNested({ each: true })
+  @Type(() => CalInviteeInputDto)
+  evtInvitees?: CalInviteeInputDto[];
+}
+
+export class ListInviteeCandidatesQueryDto {
+  @ApiPropertyOptional() @IsOptional() @IsString()
+  q?: string;
+
+  @ApiPropertyOptional({ enum: [...CAL_INVITEE_KINDS, 'ALL'], default: 'ALL' })
+  @IsOptional() @IsString()
+  kind?: string;
 }
 
 export class ListCalEventsQueryDto {

@@ -20,6 +20,7 @@ export interface StudentDetail extends StudentSummary {
   entId: string;
   birthDate?: string | null;
   phone?: string | null;
+  email?: string | null;
   residence?: string | null;
   mapReading?: number | null;
   mapMath?: number | null;
@@ -37,6 +38,26 @@ export interface StudentDetail extends StudentSummary {
   satisfactionNote?: string | null;
   lastCounselDate?: string | null;
   updatedAt: string;
+  parents?: ParentWithLink[];
+}
+
+export interface ParentWithLink {
+  id: string;
+  name: string;
+  relation?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  isPrimary: boolean;
+  linkId: string;
+}
+
+export interface ParentInput {
+  parId?: string;
+  parName: string;
+  parRelation?: string;
+  parPhone?: string;
+  parEmail?: string;
+  spIsPrimary?: boolean;
 }
 
 export interface ListStudentsResponse {

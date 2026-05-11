@@ -57,7 +57,14 @@
     "satisfactionNote": "Satisfaction",
     "lastCounselDate": "Last Counseling",
     "startDate": "Enrollment Date",
-    "status": "Status"
+    "status": "Status",
+    "email": "Email",
+    "phone": "Phone",
+    "parentName": "Name",
+    "parentRelation": "Relation",
+    "parentPhone": "Phone",
+    "parentEmail": "Email",
+    "parentPrimary": "Primary contact"
   },
   "form": {
     "titleCreate": "Register Student",
