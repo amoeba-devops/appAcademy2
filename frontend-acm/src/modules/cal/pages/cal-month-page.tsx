@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
-import { useTeachers } from '@/modules/tch/hooks/use-teachers';
+import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
 import {
   addMonths,
@@ -14,9 +14,10 @@ import {
   monthGridDays,
   startOfMonth,
 } from '../lib/date-utils';
-import type { CalEvent, InviteeCandidate, ListCalEventsQuery } from '../types';
+import type { CalEvent, CalInviteeKind, InviteeCandidate, ListCalEventsQuery } from '../types';
 import { CalEventModal } from '../components/cal-event-modal';
 import { AttendeeFilter } from '../components/attendee-filter';
+import { TeacherMultiCombo } from '../components/teacher-multi-combo';
 
 const CATEGORY_COLOR: Record<CalEvent['category'], string> = {
   CLASS: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -33,15 +34,9 @@ export function CalMonthPage() {
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
-  const [ownerUserId, setOwnerUserId] = useState<string | undefined>(undefined);
-  const [attendee, setAttendee] = useState<InviteeCandidate | null>(null);
-
-  // Teacher list for owner filter (admin only). Filter client-side to those with accounts.
-  const { data: tchData } = useTeachers({ limit: 200 });
-  const teacherOptions = useMemo(() => {
-    const items = tchData?.items ?? [];
-    return items.filter((t) => t.hasAccount && !!t.userId);
-  }, [tchData]);
+  const [selectedTeachers, setSelectedTeachers] = useState<TeacherDetail[]>([]);
+  const [attendeeKind, setAttendeeKind] = useState<CalInviteeKind>('STUDENT');
+  const [selectedAttendees, setSelectedAttendees] = useState<InviteeCandidate[]>([]);
 
   const days = useMemo(() => monthGridDays(anchor), [anchor]);
   const range = useMemo(
@@ -52,17 +47,20 @@ export function CalMonthPage() {
     [days],
   );
 
-  const query: ListCalEventsQuery = useMemo(
-    () => ({
+  const query: ListCalEventsQuery = useMemo(() => {
+    const ownerIds = selectedTeachers
+      .map((t) => t.userId)
+      .filter((u): u is string => !!u);
+    const attendeeIds = selectedAttendees.map((a) => a.refId);
+    return {
       from: range.from,
       to: range.to,
-      ...(isAdmin && ownerUserId ? { ownerUserId } : {}),
-      ...(isAdmin && attendee
-        ? { attendeeKind: attendee.kind, attendeeRefId: attendee.refId }
+      ...(isAdmin && ownerIds.length > 0 ? { ownerUserIds: ownerIds } : {}),
+      ...(isAdmin && attendeeIds.length > 0
+        ? { attendeeKind, attendeeRefIds: attendeeIds }
         : {}),
-    }),
-    [range, isAdmin, ownerUserId, attendee],
-  );
+    };
+  }, [range, isAdmin, selectedTeachers, attendeeKind, selectedAttendees]);
 
   const { data, isLoading } = useCalEvents(query);
   const events = data?.items ?? [];
@@ -141,27 +139,30 @@ export function CalMonthPage() {
       </div>
 
       {isAdmin && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
-          <span className="text-xs font-medium text-secondary">{t('filter.label', '필터')}:</span>
-          <select
-            value={ownerUserId ?? ''}
-            onChange={(e) => setOwnerUserId(e.target.value || undefined)}
-            className="h-8 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs text-primary"
-          >
-            <option value="">{t('filter.allOwners', '강사 전체')}</option>
-            {teacherOptions.map((tch) => (
-              <option key={tch.id} value={tch.userId ?? ''}>
-                {tch.name}
-              </option>
-            ))}
-          </select>
-          <AttendeeFilter value={attendee} onChange={setAttendee} kind="STUDENT" />
-          {(ownerUserId || attendee) && (
+        <div className="mb-3 flex flex-wrap items-start gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-secondary">
+              {t('filter.ownerLabel', '강사')}:
+            </span>
+            <TeacherMultiCombo value={selectedTeachers} onChange={setSelectedTeachers} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-secondary">
+              {t('filter.kindLabel', '참석자 종류')}:
+            </span>
+            <AttendeeFilter
+              kind={attendeeKind}
+              onKindChange={setAttendeeKind}
+              value={selectedAttendees}
+              onChange={setSelectedAttendees}
+            />
+          </div>
+          {(selectedTeachers.length > 0 || selectedAttendees.length > 0) && (
             <button
               type="button"
               onClick={() => {
-                setOwnerUserId(undefined);
-                setAttendee(null);
+                setSelectedTeachers([]);
+                setSelectedAttendees([]);
               }}
               className="text-xs text-accent-600 hover:underline"
             >

@@ -4,6 +4,9 @@ import { useAuthStore } from '@/stores/auth.store';
 export const apiClient: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: 15000,
+  // Serialize array params as repeated keys (?ids=a&ids=b) — NestJS Express
+  // default query parser expects this form for `string[]` DTO fields.
+  paramsSerializer: { indexes: null },
 });
 
 apiClient.interceptors.request.use((config) => {

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
@@ -15,6 +15,12 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
+
+const toStringArray = ({ value }: { value: unknown }): string[] | undefined => {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (Array.isArray(value)) return value.map((v) => String(v));
+  return [String(value)];
+};
 
 export const CAL_CATEGORIES = ['CLASS', 'MEETING', 'EVENT', 'PERSONAL'] as const;
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
@@ -138,19 +144,35 @@ export class ListCalEventsQueryDto {
   @IsDateString()
   to!: string;
 
-  @ApiPropertyOptional({ description: 'Filter by owner user id (admin can pass any; teacher restricted server-side)' })
+  @ApiPropertyOptional({ description: 'Filter by owner user id (admin can pass any; teacher restricted server-side). Deprecated: use ownerUserIds.' })
   @IsOptional() @IsUUID()
   ownerUserId?: string;
+
+  @ApiPropertyOptional({ description: 'Filter by multiple owner user ids (admin only).', type: [String] })
+  @IsOptional()
+  @Transform(toStringArray)
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsUUID('all', { each: true })
+  ownerUserIds?: string[];
 
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
   @IsOptional() @IsEnum(CAL_CATEGORIES)
   category?: typeof CAL_CATEGORIES[number];
 
-  @ApiPropertyOptional({ enum: CAL_INVITEE_KINDS, description: 'Filter events that include an invitee of this kind (admin only). Requires attendeeRefId.' })
+  @ApiPropertyOptional({ enum: CAL_INVITEE_KINDS, description: 'Filter events that include an invitee of this kind (admin only). Requires attendeeRefId(s).' })
   @IsOptional() @IsIn(CAL_INVITEE_KINDS)
   attendeeKind?: typeof CAL_INVITEE_KINDS[number];
 
-  @ApiPropertyOptional({ description: 'Invitee ref id (UUID). Requires attendeeKind.' })
+  @ApiPropertyOptional({ description: 'Invitee ref id (UUID). Requires attendeeKind. Deprecated: use attendeeRefIds.' })
   @IsOptional() @IsUUID()
   attendeeRefId?: string;
+
+  @ApiPropertyOptional({ description: 'Multiple invitee ref ids (UUID). Requires attendeeKind.', type: [String] })
+  @IsOptional()
+  @Transform(toStringArray)
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsUUID('all', { each: true })
+  attendeeRefIds?: string[];
 }

@@ -67,6 +67,16 @@
     "allOwners": "All teachers",
     "allAttendees": "All attendees",
     "searchStudent": "Search student name / email",
-    "reset": "Reset filters"
+    "reset": "Reset filters",
+    "ownerLabel": "Owner",
+    "kindLabel": "Attendee kind",
+    "kindStudent": "Student",
+    "kindTeacher": "Teacher",
+    "kindParent": "Parent",
+    "searchTeacher": "Search teacher",
+    "searchAttendee": "Search by name or email",
+    "addTeacher": "Add teacher",
+    "addAttendee": "Add attendee",
+    "maxSelected": "You can select up to {{n}} entries."
   }
 }

@@ -1,19 +1,53 @@
 {
   "title": "Lịch",
-  "actions": { "create": "Thêm sự kiện", "today": "Hôm nay", "prev": "Trước", "next": "Sau" },
-  "category": { "CLASS": "Lớp học", "MEETING": "Họp", "EVENT": "Sự kiện", "PERSONAL": "Cá nhân" },
-  "provider": { "NONE": "Không", "GOOGLE_MEET": "Google Meet", "BODASCHOOL": "Bodaschool", "OTHER": "Khác" },
-  "field": {
-    "title": "Tiêu đề", "description": "Mô tả", "category": "Phân loại",
-    "startAt": "Bắt đầu", "endAt": "Kết thúc", "allDay": "Cả ngày",
-    "locationText": "Địa điểm", "meetingProvider": "Họp trực tuyến", "meetingUrl": "URL họp", "creator": "Người tạo"
+  "actions": {
+    "create": "Thêm sự kiện",
+    "today": "Hôm nay",
+    "prev": "Trước",
+    "next": "Sau"
   },
-  "form": { "titleCreate": "Thêm sự kiện", "titleEdit": "Sửa sự kiện", "sectionMeeting": "Họp trực tuyến", "sectionAttendees": "Người tham dự" },
+  "category": {
+    "CLASS": "Lớp học",
+    "MEETING": "Họp",
+    "EVENT": "Sự kiện",
+    "PERSONAL": "Cá nhân"
+  },
+  "provider": {
+    "NONE": "Không",
+    "GOOGLE_MEET": "Google Meet",
+    "BODASCHOOL": "Bodaschool",
+    "OTHER": "Khác"
+  },
+  "field": {
+    "title": "Tiêu đề",
+    "description": "Mô tả",
+    "category": "Phân loại",
+    "startAt": "Bắt đầu",
+    "endAt": "Kết thúc",
+    "allDay": "Cả ngày",
+    "locationText": "Địa điểm",
+    "meetingProvider": "Họp trực tuyến",
+    "meetingUrl": "URL họp",
+    "creator": "Người tạo"
+  },
+  "form": {
+    "titleCreate": "Thêm sự kiện",
+    "titleEdit": "Sửa sự kiện",
+    "sectionMeeting": "Họp trực tuyến",
+    "sectionAttendees": "Người tham dự"
+  },
   "invitee": {
     "pickerTitle": "Chọn người tham dự",
-    "kindAll": "Tất cả", "kindStudent": "Học sinh", "kindTeacher": "Giáo viên", "kindParent": "Phụ huynh",
-    "searchPlaceholder": "Tìm tên / email", "empty": "Không có kết quả.", "noEmail": "(không có email)",
-    "add": "Thêm", "addBtn": "Thêm người tham dự", "notifyResult": "Kết quả gửi thông báo"
+    "kindAll": "Tất cả",
+    "kindStudent": "Học sinh",
+    "kindTeacher": "Giáo viên",
+    "kindParent": "Phụ huynh",
+    "searchPlaceholder": "Tìm tên / email",
+    "empty": "Không có kết quả.",
+    "noEmail": "(không có email)",
+    "add": "Thêm",
+    "addBtn": "Thêm người tham dự",
+    "notifyResult": "Kết quả gửi thông báo"
   },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
@@ -25,12 +59,24 @@
     "endBeforeStart": "Thời gian kết thúc phải sau thời gian bắt đầu.",
     "meetingUrlRequired": "Nhập URL hợp lệ (http:// hoặc https://)."
   },
-  "confirm": { "delete": "Xoá sự kiện này?" },
+  "confirm": {
+    "delete": "Xoá sự kiện này?"
+  },
   "filter": {
     "label": "Bộ lọc",
     "allOwners": "Tất cả giáo viên",
     "allAttendees": "Tất cả người tham dự",
     "searchStudent": "Tìm học sinh theo tên / email",
-    "reset": "Đặt lại bộ lọc"
+    "reset": "Đặt lại bộ lọc",
+    "ownerLabel": "Giáo viên",
+    "kindLabel": "Loại người tham dự",
+    "kindStudent": "Học sinh",
+    "kindTeacher": "Giáo viên",
+    "kindParent": "Phụ huynh",
+    "searchTeacher": "Tìm giáo viên",
+    "searchAttendee": "Tìm theo tên hoặc email",
+    "addTeacher": "Thêm giáo viên",
+    "addAttendee": "Thêm người tham dự",
+    "maxSelected": "Chỉ được chọn tối đa {{n}} mục."
   }
 }
