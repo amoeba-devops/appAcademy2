@@ -25,6 +25,7 @@ interface InquiryDetail {
   seqNo: number;
   studentName: string;
   isAnonymous: boolean;
+  parentName: string | null;
   parentPhone: string | null;
   phoneStatus: 'PROVIDED' | 'DECLINED' | 'UNKNOWN';
   schoolFreetext?: string | null;
@@ -118,6 +119,12 @@ export function CslDetailPage() {
             {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
             {inq.grade && ` (${t(`grade.${inq.grade}`, inq.grade)})`}
           </p>
+          {(inq.parentName || inq.parentPhone) && (
+            <p className="text-sm text-secondary mt-1">
+              👪 {inq.parentName ?? '—'}
+              {inq.parentPhone && ` · ☎ ️ ${inq.parentPhone}`}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           {!isDropped &&

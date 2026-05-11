@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
+  Users2,
   School,
   BookOpen,
   BookOpenCheck,
@@ -22,6 +23,7 @@ const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
   { to: '/admin/csl', icon: Users, key: 'csl' },
   { to: '/admin/std', icon: UserRound, key: 'std' },
+  { to: '/admin/std/parents', icon: Users2, key: 'parents' },
   { to: '/admin/cls', icon: GraduationCap, key: 'cls' },
   { to: '/admin/tch', icon: UserCog, key: 'tch' },
   { to: '/admin/stf', icon: Briefcase, key: 'stf' },

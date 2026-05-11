@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Repository } from 'typeorm';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { ParentTypeormEntity } from '../infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from '../infrastructure/typeorm/student-parent.typeorm-entity';
+import { StudentTypeormEntity } from '../infrastructure/typeorm/student.typeorm-entity';
 import type {
   CreateParentDto,
   ListParentsQueryDto,
   UpdateParentDto,
 } from './dto/parent.dto';
+import type { LinkParentDto } from './dto/student-parent.dto';
 import type { StudentParentInputDto } from './dto/student.dto';
 
 export interface ParentWithLink {
@@ -27,6 +29,9 @@ export class ParentService {
     private readonly parents: Repository<ParentTypeormEntity>,
     @InjectRepository(StudentParentTypeormEntity, ACM_DS)
     private readonly links: Repository<StudentParentTypeormEntity>,
+    @InjectRepository(StudentTypeormEntity, ACM_DS)
+    private readonly students: Repository<StudentTypeormEntity>,
+    @InjectDataSource(ACM_DS) private readonly ds: DataSource,
   ) {}
 
   // --------------------------------------------------------------------------
@@ -52,7 +57,28 @@ export class ParentService {
     qb.orderBy('p.name', 'ASC').skip(skip).take(limit);
 
     const [items, total] = await qb.getManyAndCount();
-    return { items: items.map(this.toDetail), total, page, limit };
+
+    // Annotate child count (REQ-260511 FR-PAR-01)
+    let childCounts = new Map<string, number>();
+    if (items.length > 0) {
+      const ids = items.map((p) => p.id);
+      const rows: Array<{ par_id: string; cnt: string }> = await this.links
+        .createQueryBuilder('l')
+        .select('l.par_id', 'par_id')
+        .addSelect('COUNT(l.std_id)', 'cnt')
+        .where('l.ent_id = :entId', { entId })
+        .andWhere('l.par_id IN (:...ids)', { ids })
+        .groupBy('l.par_id')
+        .getRawMany();
+      childCounts = new Map(rows.map((r) => [r.par_id, Number(r.cnt)]));
+    }
+
+    return {
+      items: items.map((p) => ({ ...this.toDetail(p), childCount: childCounts.get(p.id) ?? 0 })),
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(entId: string, id: string) {
@@ -60,7 +86,29 @@ export class ParentService {
       where: { id, entId, deletedAt: IsNull() },
     });
     if (!e) throw new NotFoundException('PARENT_NOT_FOUND');
-    return this.toDetail(e);
+    // REQ-260511 FR-PAR-02: include linked students
+    const links = await this.links.find({ where: { entId, parId: id } });
+    let students: Array<{ id: string; name: string; school: string | null; grade: string | null; isPrimary: boolean }> = [];
+    if (links.length > 0) {
+      const stdIds = links.map((l) => l.stdId);
+      const studentRows = await this.students.find({
+        where: { id: In(stdIds), entId, deletedAt: IsNull() },
+      });
+      students = links
+        .map((l) => {
+          const s = studentRows.find((x) => x.id === l.stdId);
+          if (!s) return null;
+          return {
+            id: s.id,
+            name: s.name,
+            school: s.school ?? null,
+            grade: s.grade ?? null,
+            isPrimary: l.isPrimary,
+          };
+        })
+        .filter((x): x is NonNullable<typeof x> => !!x);
+    }
+    return { ...this.toDetail(e), students };
   }
 
   async create(entId: string, dto: CreateParentDto) {
@@ -249,6 +297,98 @@ export class ParentService {
       map.set(r.id, { email: r.email ?? null, name: r.name });
     }
     return map;
+  }
+
+  // --------------------------------------------------------------------------
+  // Atomic per-student link operations (REQ-260511 FR-API-05..08)
+  // --------------------------------------------------------------------------
+
+  /** Link a parent to a student (existing parent by parId, or create new). */
+  async linkToStudent(entId: string, stdId: string, dto: LinkParentDto) {
+    const student = await this.students.findOne({
+      where: { id: stdId, entId, deletedAt: IsNull() },
+    });
+    if (!student) throw new NotFoundException('STUDENT_NOT_FOUND');
+
+    return this.ds.transaction(async (mgr) => {
+      const parents = mgr.getRepository(ParentTypeormEntity);
+      const links = mgr.getRepository(StudentParentTypeormEntity);
+
+      let parId: string;
+      if (dto.parId) {
+        const par = await parents.findOne({
+          where: { id: dto.parId, entId, deletedAt: IsNull() },
+        });
+        if (!par) throw new NotFoundException('PARENT_NOT_FOUND');
+        parId = par.id;
+        // Optional in-place update of provided fields
+        if (dto.parName !== undefined) par.name = dto.parName;
+        if (dto.parRelation !== undefined) par.relation = dto.parRelation ?? null;
+        if (dto.parPhone !== undefined) par.phone = dto.parPhone ?? null;
+        if (dto.parEmail !== undefined) par.email = dto.parEmail ?? null;
+        par.updatedAt = new Date();
+        await parents.save(par);
+      } else {
+        if (!dto.parName) throw new ConflictException('parName required when parId omitted');
+        const created = await parents.save(
+          parents.create({
+            entId,
+            name: dto.parName,
+            relation: dto.parRelation ?? null,
+            phone: dto.parPhone ?? null,
+            email: dto.parEmail ?? null,
+          }),
+        );
+        parId = created.id;
+      }
+
+      // Reject duplicate link
+      const existing = await links.findOne({ where: { entId, stdId, parId } });
+      if (existing) throw new ConflictException('PARENT_ALREADY_LINKED');
+
+      const wantPrimary = !!dto.spIsPrimary;
+      if (wantPrimary) {
+        // Clear existing primary first to avoid partial-unique conflict
+        await links
+          .createQueryBuilder()
+          .update()
+          .set({ isPrimary: false })
+          .where('std_id = :stdId AND ent_id = :entId', { stdId, entId })
+          .execute();
+      }
+
+      const link = await links.save(
+        links.create({ entId, stdId, parId, isPrimary: wantPrimary }),
+      );
+      return { linkId: link.id, parId, stdId, isPrimary: link.isPrimary };
+    });
+  }
+
+  /** Unlink (delete student-parent mapping); parent entity is preserved. */
+  async unlinkFromStudent(entId: string, stdId: string, parId: string) {
+    const link = await this.links.findOne({ where: { entId, stdId, parId } });
+    if (!link) throw new NotFoundException('LINK_NOT_FOUND');
+    await this.links.delete(link.id);
+  }
+
+  /** Set a parent as primary for a student (toggle off others atomically). */
+  async setPrimaryForStudent(entId: string, stdId: string, parId: string) {
+    const link = await this.links.findOne({ where: { entId, stdId, parId } });
+    if (!link) throw new NotFoundException('LINK_NOT_FOUND');
+
+    await this.ds.transaction(async (mgr) => {
+      const links = mgr.getRepository(StudentParentTypeormEntity);
+      // Step 1: clear any existing primary (avoid partial-unique conflict)
+      await links
+        .createQueryBuilder()
+        .update()
+        .set({ isPrimary: false })
+        .where('std_id = :stdId AND ent_id = :entId', { stdId, entId })
+        .execute();
+      // Step 2: set target primary
+      await links.update(link.id, { isPrimary: true, updatedAt: new Date() });
+    });
+    return { linkId: link.id, parId, stdId, isPrimary: true };
   }
 
   private toDetail(e: ParentTypeormEntity) {

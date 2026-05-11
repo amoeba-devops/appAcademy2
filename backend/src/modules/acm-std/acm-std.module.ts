@@ -9,6 +9,7 @@ import { StudentParentTypeormEntity } from './infrastructure/typeorm/student-par
 import { StudentTypeormEntity } from './infrastructure/typeorm/student.typeorm-entity';
 import { ParentController } from './presentation/parent.controller';
 import { StudentController } from './presentation/student.controller';
+import { StudentParentController } from './presentation/student-parent.controller';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { StudentController } from './presentation/student.controller';
       ACM_DS,
     ),
   ],
-  controllers: [StudentController, ParentController],
+  controllers: [StudentController, ParentController, StudentParentController],
   providers: [StudentService, ImportService, ParentService],
   exports: [StudentService, ParentService],
 })

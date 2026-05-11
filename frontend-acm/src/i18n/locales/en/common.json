@@ -8,6 +8,7 @@
     "csl": "New Counseling",
     "cls": "Classes",
     "std": "Students",
+    "parents": "Parents",
     "sch": "Schools",
     "ref": "References",
     "qna": "Q&A",
@@ -34,7 +35,10 @@
     "loading": "Loading…",
     "submit": "Submit",
     "submitting": "Submitting…",
-    "close": "Close"
+    "close": "Close",
+    "prev": "Prev",
+    "next": "Next",
+    "actions": "Actions"
   },
   "status": {
     "loading": "Loading…",

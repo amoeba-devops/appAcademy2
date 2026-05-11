@@ -8,6 +8,7 @@
     "csl": "신규 상담",
     "cls": "수업 관리",
     "std": "학생 관리",
+    "parents": "학부모 관리",
     "sch": "학교",
     "ref": "참조 자료",
     "qna": "Q&A",
@@ -34,7 +35,10 @@
     "loading": "불러오는 중…",
     "submit": "제출",
     "submitting": "제출 중…",
-    "close": "닫기"
+    "close": "닫기",
+    "prev": "이전",
+    "next": "다음",
+    "actions": "작업"
   },
   "status": {
     "loading": "불러오는 중…",

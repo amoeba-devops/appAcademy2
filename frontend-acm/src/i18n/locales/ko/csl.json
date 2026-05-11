@@ -21,6 +21,8 @@
     "isAnonymous": "익명 문의",
     "parentPhone": "보호자 전화번호",
     "parentPhonePlaceholder": "010-1234-5678",
+    "parentName": "보호자 이름",
+    "parentNamePlaceholder": "홍길동 (선택 입력, 암호화 저장)",
     "phoneStatus": "전화번호 상태",
     "school": "학교",
     "schoolPlaceholder": "서울중학교 (자유 입력 가능)",

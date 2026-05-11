@@ -80,6 +80,14 @@ export class InquiryTypeormEntity {
   @Column({ name: 'inq_phone_status', type: 'varchar', length: 16, default: 'UNKNOWN' })
   phoneStatus!: PhoneStatus;
 
+  /** REQ-260511 — encrypted parent name (optional) */
+  @Column({ name: 'inq_parent_name_encrypted', type: 'bytea', nullable: true })
+  parentNameEncrypted?: Buffer | null;
+  @Column({ name: 'inq_parent_name_iv', type: 'bytea', nullable: true })
+  parentNameIv?: Buffer | null;
+  @Column({ name: 'inq_parent_name_auth_tag', type: 'bytea', nullable: true })
+  parentNameAuthTag?: Buffer | null;
+
   /** F-06 */
   @Column({ name: 'inq_inflow_type', type: 'varchar', length: 20 })
   inflowType!: InflowType;

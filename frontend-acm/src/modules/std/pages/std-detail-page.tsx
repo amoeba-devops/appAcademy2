@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Pencil, UserX } from 'lucide-react';
+import { ArrowLeft, Pencil, UserX, Plus, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStudent, useChangeStudentStatus } from '../hooks/use-students';
+import {
+  useUnlinkParentFromStudent,
+  useSetPrimaryParent,
+} from '../hooks/use-parents';
 import { StdStatusBadge } from '../components/std-status-badge';
 import { StdFormModal } from '../components/std-form-modal';
+import { ParentPickOrCreateDialog } from '../components/parent-pick-or-create-dialog';
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
   return (
@@ -30,9 +35,12 @@ export function StdDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('std');
   const [showEdit, setShowEdit] = useState(false);
+  const [showParentPicker, setShowParentPicker] = useState(false);
 
   const { data: student, isLoading } = useStudent(id);
   const statusMut = useChangeStudentStatus(id ?? '');
+  const unlinkMut = useUnlinkParentFromStudent(id ?? '');
+  const setPrimaryMut = useSetPrimaryParent(id ?? '');
 
   if (isLoading) {
     return <p className="text-secondary py-12 text-center">{t('common:status.loading')}</p>;
@@ -140,11 +148,85 @@ export function StdDetailPage() {
         <InfoRow label={t('field.lastCounselDate')} value={student.lastCounselDate} />
       </Section>
 
+      {/* 학부모 */}
+      <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wide text-secondary">
+            {t('form.sectionParents', '학부모 정보')}
+          </h3>
+          <Button size="sm" variant="outline" onClick={() => setShowParentPicker(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            {t('form.addParent', '학부모 추가')}
+          </Button>
+        </div>
+        {(!student.parents || student.parents.length === 0) && (
+          <p className="py-3 text-xs text-secondary">
+            {t('form.parentsEmpty', '등록된 학부모가 없습니다. + 버튼으로 추가하세요.')}
+          </p>
+        )}
+        <div className="divide-y divide-[var(--border-subtle)]">
+          {student.parents?.map((p) => (
+            <div key={p.linkId} className="flex items-center justify-between gap-3 py-2">
+              <div className="min-w-0">
+                <div className="text-sm font-medium text-primary">
+                  {p.name}
+                  {p.relation && (
+                    <span className="ml-2 text-xs text-secondary">({p.relation})</span>
+                  )}
+                  {p.isPrimary && (
+                    <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                      <Star className="h-3 w-3" />
+                      {t('field.parentPrimary', '대표학부모')}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-secondary">
+                  {p.phone ?? '—'} · {p.email ?? '—'}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {!p.isPrimary && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={setPrimaryMut.isPending}
+                    onClick={() => setPrimaryMut.mutate(p.id)}
+                  >
+                    <Star className="h-3 w-3 mr-1" />
+                    {t('actions.setPrimary', '대표 지정')}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={unlinkMut.isPending}
+                  onClick={() => {
+                    if (confirm(t('actions.confirmUnlink', '이 학부모 연결을 해제하시겠습니까?'))) {
+                      unlinkMut.mutate(p.id);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {t('actions.unlink', '해제')}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <p className="text-xs text-secondary">
         {t('detail.updatedAt')}: {new Date(student.updatedAt).toLocaleString()}
       </p>
 
       <StdFormModal open={showEdit} onClose={() => setShowEdit(false)} initial={student} />
+      {id && (
+        <ParentPickOrCreateDialog
+          open={showParentPicker}
+          onClose={() => setShowParentPicker(false)}
+          stdId={id}
+        />
+      )}
     </div>
   );
 }

@@ -91,6 +91,7 @@ export class InquiryService {
       phoneStatus === 'PROVIDED' && dto.parentPhone
         ? this.crypto.encrypt(dto.parentPhone)
         : null;
+    const parentNameEnc = dto.parentName ? this.crypto.encrypt(dto.parentName) : null;
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -109,6 +110,9 @@ export class InquiryService {
       phoneIv: phoneEnc?.iv ?? null,
       phoneAuthTag: phoneEnc?.authTag ?? null,
       phoneStatus,
+      parentNameEncrypted: parentNameEnc?.ciphertext ?? null,
+      parentNameIv: parentNameEnc?.iv ?? null,
+      parentNameAuthTag: parentNameEnc?.authTag ?? null,
       inflowType: dto.inflowType,
       applyType: dto.applyType,
       applyPurpose: dto.applyPurposes?.length ? dto.applyPurposes.join(',') : null,
@@ -179,6 +183,18 @@ export class InquiryService {
         e.phoneEncrypted = null;
         e.phoneIv = null;
         e.phoneAuthTag = null;
+      }
+    }
+    if (dto.parentName !== undefined) {
+      if (dto.parentName) {
+        const enc = this.crypto.encrypt(dto.parentName);
+        e.parentNameEncrypted = enc.ciphertext;
+        e.parentNameIv = enc.iv;
+        e.parentNameAuthTag = enc.authTag;
+      } else {
+        e.parentNameEncrypted = null;
+        e.parentNameIv = null;
+        e.parentNameAuthTag = null;
       }
     }
     if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
@@ -488,6 +504,14 @@ export class InquiryService {
             authTag: e.phoneAuthTag,
           })
         : null;
+    const parentName =
+      e.parentNameEncrypted && e.parentNameIv && e.parentNameAuthTag
+        ? this.crypto.decrypt({
+            ciphertext: e.parentNameEncrypted,
+            iv: e.parentNameIv,
+            authTag: e.parentNameAuthTag,
+          })
+        : null;
     return {
       id: e.id,
       entId: e.entId,
@@ -497,6 +521,7 @@ export class InquiryService {
       followupMemo: e.followupMemo,
       studentName,
       isAnonymous: e.isAnonymous,
+      parentName,
       parentPhone, // ⚠ revealed on detail per existing convention; mask in list view client-side
       phoneStatus: e.phoneStatus,
       schoolId: e.schoolId,

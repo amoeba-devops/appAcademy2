@@ -4,7 +4,10 @@
     "create": "Add Student",
     "edit": "Edit",
     "import": "Import Excel",
-    "deactivate": "Deactivate"
+    "deactivate": "Deactivate",
+    "setPrimary": "Set primary",
+    "unlink": "Unlink",
+    "confirmUnlink": "Unlink this parent from the student?"
   },
   "filter": {
     "searchPlaceholder": "Search name / school",
@@ -72,7 +75,10 @@
     "sectionBasic": "Basic Info",
     "sectionMap": "MAP Scores",
     "sectionClass": "Class Info",
-    "sectionMemo": "Memo / Status"
+    "sectionMemo": "Memo / Status",
+    "sectionParents": "Parents",
+    "parentsEmpty": "No parents linked. Use + to add.",
+    "addParent": "Add parent"
   },
   "import": {
     "title": "Excel Import (Bulk)",
@@ -88,5 +94,26 @@
     "notFound": "Student not found",
     "updatedAt": "Last updated",
     "confirmDeactivate": "Deactivate this student?"
+  },
+  "parentPicker": {
+    "title": "Add Parent",
+    "modeSearch": "Pick existing parent",
+    "modeCreate": "Create new parent",
+    "searchPlaceholder": "Name, phone or email (≥2 chars)",
+    "linkAsPrimary": "Set as primary contact",
+    "noResults": "No matching parents",
+    "startTyping": "Type at least 2 characters to search",
+    "linkBtn": "Link",
+    "linkedChildren": "{{count}} linked children",
+    "createAndLink": "Create & Link"
+  },
+  "parentList": {
+    "title": "Parents",
+    "searchPlaceholder": "Name, phone or email",
+    "empty": "No parents registered",
+    "childCount": "Linked children",
+    "orphan": "Orphan (no children)",
+    "cannotDeleteLinked": "Cannot delete: parent has linked children",
+    "confirmDelete": "Delete this parent?"
   }
 }

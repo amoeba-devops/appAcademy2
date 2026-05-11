@@ -97,6 +97,13 @@ export class CreateInquiryDto {
   @Matches(/^[0-9+\-() ]{7,20}$/)
   parentPhone?: string;
 
+  /** REQ-260511 — parent name (optional, encrypted at rest) */
+  @ApiPropertyOptional({ description: 'Parent name (encrypted)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  parentName?: string;
+
   @ApiPropertyOptional({ enum: PHONE_STATUSES, default: 'UNKNOWN' })
   @IsOptional()
   @IsEnum(PHONE_STATUSES)

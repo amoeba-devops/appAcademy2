@@ -9,6 +9,7 @@ import { ClsListPage } from '@/modules/cls/pages/cls-list-page';
 import { ClsDetailPage } from '@/modules/cls/pages/cls-detail-page';
 import { StdListPage } from '@/modules/std/pages/std-list-page';
 import { StdDetailPage } from '@/modules/std/pages/std-detail-page';
+import { ParentListPage } from '@/modules/std/pages/parent-list-page';
 import { SchoolListPage } from '@/modules/sch/pages/school-list-page';
 import { ReferenceListPage } from '@/modules/ref/pages/reference-list-page';
 import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
@@ -44,6 +45,7 @@ export const router = createBrowserRouter([
       { path: 'admin/cls', element: <ClsListPage /> },
       { path: 'admin/cls/:id', element: <ClsDetailPage /> },
       { path: 'admin/std', element: <StdListPage /> },
+      { path: 'admin/std/parents', element: <ParentListPage /> },
       { path: 'admin/std/:id', element: <StdDetailPage /> },
       { path: 'admin/tch', element: <TchListPage /> },
       { path: 'admin/stf', element: <StfListPage /> },

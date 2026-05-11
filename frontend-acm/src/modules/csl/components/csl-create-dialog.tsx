@@ -46,6 +46,7 @@ const cslCreateSchema = z
       .trim()
       .optional()
       .refine((v) => !v || phoneRegex.test(v), { message: 'csl:validation.phoneInvalid' }),
+    parentName: z.string().trim().max(50).optional().or(z.literal('')),
     phoneStatus: z.enum(PHONE_STATUSES).default('UNKNOWN'),
     schoolFreetext: z.string().trim().max(100).optional().or(z.literal('')),
     schoolId: z.string().uuid().optional().or(z.literal('')),
@@ -105,6 +106,7 @@ export function CslCreateDialog() {
         studentName: payload.isAnonymous ? '익명' : (payload.studentName ?? ''),
         isAnonymous: payload.isAnonymous,
         parentPhone: payload.parentPhone || undefined,
+        parentName: payload.parentName || undefined,
         phoneStatus: payload.phoneStatus,
         schoolFreetext: payload.schoolFreetext || undefined,
         schoolId: payload.schoolId || undefined,
@@ -183,6 +185,14 @@ export function CslCreateDialog() {
               </Select>
             </Field>
           </div>
+
+          {/* Parent name (optional, encrypted) */}
+          <Field label={t('form.parentName')} error={tr(errors.parentName?.message as string)}>
+            <Input
+              {...register('parentName')}
+              placeholder={t('form.parentNamePlaceholder')}
+            />
+          </Field>
 
           {/* School + grade */}
           <div className="grid grid-cols-[1fr_120px] gap-3">
