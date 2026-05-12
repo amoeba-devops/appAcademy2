@@ -120,6 +120,21 @@ export function useUploadTeacherAttachment(id: string) {
   });
 }
 
+/** REQ-260512: imperative upload helper (used by create-mode staged uploads). */
+export async function uploadTeacherAttachment(
+  teacherId: string,
+  file: File,
+): Promise<TeacherAttachment> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const res = await apiClient.post<TeacherAttachment>(
+    `/acm/tch/teachers/${teacherId}/attachments`,
+    fd,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return res.data;
+}
+
 export function useDeleteTeacherAttachment(id: string) {
   const qc = useQueryClient();
   return useMutation({

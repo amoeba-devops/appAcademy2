@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Upload, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  uploadTeacherAttachment,
   useCreateTeacher,
   useDeleteTeacher,
   useLockTeacherAccount,
@@ -20,6 +22,14 @@ import {
 import { TCH_SUBJECTS, type TchSubject, type TeacherDetail } from '../types';
 import { useAuthStore } from '@/stores/auth.store';
 import { TchAttachmentPanel } from './tch-attachment-panel';
+
+const MAX_BYTES = 10 * 1024 * 1024;
+const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png'];
+const fmtSize = (n: number) => {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(2)} MB`;
+};
 
 interface Props {
   open: boolean;
@@ -75,11 +85,15 @@ export function TchFormModal({ open, onClose, initial }: Props) {
 
   const [subjects, setSubjects] = useState<TchSubject[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // FIX-260512: staged file uploads for create mode (uploaded after teacher is created)
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const stagedInputRef = useRef<HTMLInputElement | null>(null);
 
   // Sync defaults when opening for edit/create.
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setStagedFiles([]);
     if (initial) {
       reset({
         tchName: initial.name,
@@ -179,7 +193,25 @@ export function TchFormModal({ open, onClose, initial }: Props) {
           dto.tchCreateAccount = true;
           dto.tchPassword = values.tchPassword;
         }
-        await createMut.mutateAsync(dto);
+        const created = await createMut.mutateAsync(dto);
+        // FIX-260512: upload staged files sequentially after teacher is created
+        if (stagedFiles.length > 0 && created?.id) {
+          for (const f of stagedFiles) {
+            try {
+              await uploadTeacherAttachment(created.id, f);
+            } catch (uploadErr) {
+              const msg = (uploadErr as { response?: { data?: { message?: string } } })
+                ?.response?.data?.message;
+              setError(
+                t('attachment.error.uploadFailed', '첨부파일 업로드 실패: {{name}} ({{msg}})', {
+                  name: f.name,
+                  msg: msg ?? 'unknown',
+                }),
+              );
+              // continue with remaining files
+            }
+          }
+        }
       }
       onClose();
     } catch (e) {
@@ -435,6 +467,90 @@ export function TchFormModal({ open, onClose, initial }: Props) {
 
           {isEdit && initial && (
             <TchAttachmentPanel teacherId={initial.id} />
+          )}
+
+          {/* FIX-260512: staged attachments for create mode */}
+          {!isEdit && (
+            <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+              <legend className="text-xs font-semibold text-secondary px-1">
+                {t('attachment.section', '첨부파일')}
+              </legend>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-secondary">
+                  {t('attachment.hint', 'PDF/JPEG/PNG, 개별 최대 10MB. 교사 등록 후 자동 업로드됩니다.')}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => stagedInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  <Upload size={14} className="mr-1" />
+                  {t('attachment.actions.add', '파일 추가')}
+                </Button>
+                <input
+                  ref={stagedInputRef}
+                  type="file"
+                  multiple
+                  accept=".pdf,application/pdf,image/jpeg,image/png"
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    e.target.value = '';
+                    const accepted: File[] = [];
+                    for (const f of files) {
+                      if (!ALLOWED_MIME.includes(f.type)) {
+                        setError(t('attachment.error.mime', '허용되지 않은 파일 형식: {{name}}', { name: f.name }));
+                        continue;
+                      }
+                      if (f.size > MAX_BYTES) {
+                        setError(t('attachment.error.size', '파일 크기 초과(최대 10MB): {{name}}', { name: f.name }));
+                        continue;
+                      }
+                      accepted.push(f);
+                    }
+                    if (accepted.length > 0) {
+                      setError(null);
+                      setStagedFiles((prev) => [...prev, ...accepted]);
+                    }
+                  }}
+                />
+              </div>
+              {stagedFiles.length === 0 ? (
+                <p className="text-secondary py-2 text-center text-xs">
+                  {t('attachment.staged.empty', '추가된 파일이 없습니다')}
+                </p>
+              ) : (
+                <ul className="divide-y divide-[var(--border-subtle)]">
+                  {stagedFiles.map((f, idx) => (
+                    <li
+                      key={`${f.name}-${idx}`}
+                      className="flex items-center justify-between gap-3 py-2 text-sm"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{f.name}</p>
+                        <p className="text-xs text-secondary">
+                          {f.type || 'unknown'} · {fmtSize(f.size)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setStagedFiles((prev) => prev.filter((_, i) => i !== idx))
+                        }
+                        disabled={isLoading}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </fieldset>
           )}
 
           {isEdit && initial?.hasAccount && (

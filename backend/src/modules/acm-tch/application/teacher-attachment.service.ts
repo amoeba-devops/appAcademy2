@@ -86,12 +86,16 @@ export class TeacherAttachmentService {
     await fs.mkdir(absDir, { recursive: true });
     await fs.writeFile(absPath, file.buffer);
 
+    // FIX-260512: multer의 originalname은 latin1 인코딩으로 전달됨.
+    // 한글 파일명이 깨지지 않도록 utf-8로 디코딩.
+    const decodedName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
     const saved = await this.attRepo.save(
       this.attRepo.create({
         id: attId,
         entId,
         tchId,
-        originalName: file.originalname,
+        originalName: decodedName,
         mime: file.mimetype,
         sizeBytes: String(file.size),
         storagePath: relPath,
