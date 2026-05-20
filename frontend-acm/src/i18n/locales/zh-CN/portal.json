@@ -113,9 +113,24 @@
       "cta-test": "在线 MAP TEST 报名"
     },
     "equip-slider": {
-      "title": "TPI 设施与环境",
+      "title": "细致的反馈是稳健学业进步的指南针。",
       "prev": "上一张",
       "next": "下一张"
+    },
+    "value-proposition": {
+      "line1": "提升 MAP TEST 成绩是",
+      "line2-highlight": "实现目标",
+      "line2-suffix": "的关键。"
+    },
+    "results": {
+      "title": "TPI 以结果证明实力。",
+      "body": "精准的学业诊断、富有热情的辅导以及细致的课堂反馈，TPI 确保学生稳步实现目标成绩。"
+    },
+    "contact-cta": {
+      "eyebrow": "立即开始",
+      "title": "申请定制化在线辅导咨询",
+      "body": "专业顾问将根据您的目标设计专属学习路线图。",
+      "button": "申请咨询"
     }
   },
   "floating": {

@@ -113,9 +113,24 @@
       "cta-test": "Đăng ký thi MAP TEST trực tuyến"
     },
     "equip-slider": {
-      "title": "Cơ sở vật chất TPI",
+      "title": "Phản hồi chi tiết là kim chỉ nam cho thành tích học tập vững chắc.",
       "prev": "Trước",
       "next": "Tiếp"
+    },
+    "value-proposition": {
+      "line1": "Nâng cao điểm MAP TEST là",
+      "line2-highlight": "chìa khóa",
+      "line2-suffix": " để đạt mục tiêu."
+    },
+    "results": {
+      "title": "TPI chứng minh bằng kết quả.",
+      "body": "Chẩn đoán học tập chính xác, giảng dạy nhiệt huyết và phản hồi chi tiết — TPI đảm bảo tiến bộ chắc chắn đến điểm số mục tiêu."
+    },
+    "contact-cta": {
+      "eyebrow": "Bắt đầu ngay",
+      "title": "Đăng ký tư vấn gia sư trực tuyến cá nhân hóa",
+      "body": "Chuyên gia tư vấn sẽ thiết kế lộ trình học tập phù hợp với mục tiêu của bạn.",
+      "button": "Đăng ký tư vấn"
     }
   },
   "floating": {

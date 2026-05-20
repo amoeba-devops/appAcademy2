@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 const AUTOPLAY_MS = 5000;
 
 /**
- * 10-image facility / equipment slider.
- * Replaces v1 `ReviewsSlider` (8 images, different CDN).
- * Mirrors reference (tpi-index.mhtml `#equip-slider-section`).
+ * 8-image facility / equipment slider.
+ * Mirrors reference (tpi-index.mhtml `#equip-slider-section` L3169) — 8
+ * `.equip-item` slides on PC. `CKXn3z` / `FwgX9R` from the reference are
+ * prev/next navigation arrow icons, not slides — excluded.
  */
 const IMAGES: ReadonlyArray<string> = [
-  'https://i.ifh.cc/CKXn3z.png',
   'https://i.ifh.cc/XqogrM.png',
   'https://i.ifh.cc/VHvBZN.png',
   'https://i.ifh.cc/gvrj56.png',
@@ -18,7 +18,6 @@ const IMAGES: ReadonlyArray<string> = [
   'https://i.ifh.cc/w5Kc9B.png',
   'https://i.ifh.cc/Lb4OdL.png',
   'https://i.ifh.cc/noxm0B.png',
-  'https://i.ifh.cc/FwgX9R.png',
 ];
 
 export function EquipSlider() {

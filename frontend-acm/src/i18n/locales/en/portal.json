@@ -113,9 +113,24 @@
       "cta-test": "Online MAP TEST Registration"
     },
     "equip-slider": {
-      "title": "Our Facility & Environment",
+      "title": "Detailed feedback is the compass for sure academic progress.",
       "prev": "Previous",
       "next": "Next"
+    },
+    "value-proposition": {
+      "line1": "Improving your MAP TEST score is",
+      "line2-highlight": "the key to reaching",
+      "line2-suffix": " your goal."
+    },
+    "results": {
+      "title": "TPI proves it with results.",
+      "body": "Precise academic diagnosis, passionate tutoring, and detailed class feedback — TPI guarantees reliable progress toward your target score."
+    },
+    "contact-cta": {
+      "eyebrow": "Start now",
+      "title": "Request a personalized online tutoring consultation",
+      "body": "A specialist consultant will design a learning roadmap tailored to your goals.",
+      "button": "Request consultation"
     }
   },
   "floating": {

@@ -1,6 +1,6 @@
 ---
 document_id: RPT-260520-portal-design-and-auth-urls
-version: 2.0.0
+version: 3.0.0
 status: complete
 authors:
   - gray.kim@amoeba.group
@@ -12,6 +12,7 @@ related_doc:
 change_log:
   - 2026-05-20 — v1.0.0 — completion report (T1 landing / T2 forms / T3 auth URL reorg)
   - 2026-05-20 — v2.0.0 — T1-Plus 완료 (Reference MHTML 매칭): DualTabSection / TypingHero / FeatureSection / ProcessSection / EquipSlider 신규, home-page 재구성, Stats 실데이터 i18n 교체
+  - 2026-05-20 — v3.0.0 — T1-Plus-2 추가 (reference MHTML 14-섹션 완전 매칭): ValuePropositionHeading / ResultsSection / ContactCtaBanner 신규 3, EquipSlider 10→8 보정 + 헤딩 교체, home-page 11-섹션 재구성, i18n 373×4
 ---
 
 # 완료 보고서 — Portal Landing + Web Forms + Auth URL Reorg
@@ -340,3 +341,125 @@ docs/
 ---
 
 **v2 완료**. REQ-260520 의 모든 트랙 (T1 + T2 + T3 + T1-Plus) 검증 통과.
+
+---
+
+## 10. T1-Plus-2 결과 (v3.0.0 — Reference 14-섹션 완전 매칭)
+
+### 10.1 트리거
+v2 출고 후 사용자가 staging (`acm-stg.amoeba.site/web/`) ↔ local (`localhost:5173/`) 비교 요청. 정답 기준은 staging 이 아닌 [reference/tpi-index.mhtml](../../reference/tpi-index.mhtml) 임을 확인. subagent 가 MHTML 의 PC/mobile 14 섹션 구조 추출 → local 8 섹션 대비 **6 섹션 누락 + 2 섹션 분기** 식별.
+
+### 10.2 Gap → 적용
+
+| Ref # | Section | v2 상태 | v3 조치 |
+|---|---|---|---|
+| 1 | Dual tab | ✅ | KEEP |
+| 2-4 | Hero + typing + subtitle | ✅ | KEEP |
+| 5 | "MAP TEST 란?" + stats | ✅ (분리) | KEEP — 분리 유지 (가독성) |
+| 6 | "왜 MAP TEST 가 중요?" | ✅ | KEEP |
+| **7** | **"MAP TEST 성적 향상은 목표 달성의 핵심입니다."** | ❌ | **NEW** ValuePropositionHeading |
+| 8 | TPI 5 strengths | ✅ TpiFeatures | KEEP (내용 reference 일치 확인) |
+| 9 | Process 2-group | ✅ ProcessSection | KEEP |
+| **10** | **"디테일한 피드백은 확실한 학업 성취의 나침반입니다."** | ⚠️ 로컬 "TPI 의 시설과 환경" | **UPDATE** equip-slider title × 4 locale |
+| **11** | **Equip slider — 8 PC 이미지** | ⚠️ 로컬 10 (CKXn3z·FwgX9R 은 nav 화살표) | **FIX** 10→8 |
+| **12** | **"TPI 는 결과로 증명합니다." Results** | ❌ | **NEW** ResultsSection |
+| **13** | **Contact CTA banner → /web/contact** | ❌ | **NEW** ContactCtaBanner |
+| 14 | Footer | ✅ PortalFooter | KEEP |
+
+### 10.3 신규/교체 컴포넌트
+
+| Task | 산출물 | 변경 |
+|------|--------|------|
+| T1-PP-01 | [value-proposition-heading.tsx](../../frontend-acm/src/modules/portal/components/home/value-proposition-heading.tsx) | NEW — 중앙 정렬 H2 ("MAP TEST 성적 향상은 / 목표 달성의 핵심입니다.") 백색 BG |
+| T1-PP-02 | [results-section.tsx](../../frontend-acm/src/modules/portal/components/home/results-section.tsx) | NEW — 다크 네이비 BG `#090528`, "TPI 는 결과로 증명합니다." + 본문 |
+| T1-PP-03 | [contact-cta-banner.tsx](../../frontend-acm/src/modules/portal/components/home/contact-cta-banner.tsx) | NEW — 블루 그라데이션 배경 + 카드형 CTA → `/web/contact` (Lucide `ArrowRight`) |
+| T1-PP-04 | [equip-slider.tsx](../../frontend-acm/src/modules/portal/components/home/equip-slider.tsx) | MOD — `IMAGES` 10→8 (CKXn3z·FwgX9R 제외), JSDoc 갱신 |
+| T1-PP-05 | [home-page.tsx](../../frontend-acm/src/modules/portal/pages/home-page.tsx) | MOD — 11 섹션 composition (DualTab → TypingHero → MapTestIntro → Stats → Feature → **ValueProp** → TpiFeatures → Process → Equip → **Results** → **ContactCta**) |
+| T1-PP-06 | `portal.json` × 4 locale | MOD — 신규 9 키 (value-proposition×3 + results×2 + contact-cta×4) + equip-slider.title 교체 |
+
+### 10.4 i18n 신규/교체 (4 locale)
+
+신규 키 (9 × 4 = **36 항목**):
+- `home.value-proposition.{line1, line2-highlight, line2-suffix}`
+- `home.results.{title, body}`
+- `home.contact-cta.{eyebrow, title, body, button}`
+
+교체 키 (1 × 4 = 4 항목):
+- `home.equip-slider.title`: "TPI 의 시설과 환경" → **"디테일한 피드백은 확실한 학업 성취의 나침반입니다."**
+
+### 10.5 home-page.tsx 섹션 순서 (v3 최종)
+
+```
+ 1. DualTabSection             [v2]   MAP TEST / ISEE 탭
+ 2. TypingHero                 [v2]   타이핑 애니메이션 hero
+ 3. MapTestIntro               [v1]   "MAP TEST 란?"
+ 4. StatsSection               [v2]   4,500+ / 146 / 1,300만+ / 35,900+
+ 5. FeatureSection             [v2]   4 체크리스트
+ 6. ValuePropositionHeading    [NEW v3]   "MAP TEST 성적 향상은 목표 달성의 핵심"
+ 7. TpiFeatures                [v1]   5 핵심 가치 카드
+ 8. ProcessSection             [v2]   2-group × 5 step
+ 9. EquipSlider                [v3 보정]   8 시설 이미지 + 새 헤딩
+10. ResultsSection             [NEW v3]   "TPI 는 결과로 증명합니다."
+11. ContactCtaBanner           [NEW v3]   → /web/contact
+```
+
+폐기 (파일 보존, import 0): HeroSection, MapTestImportance, EnrollmentProcess, ReviewsSlider, BottomCtaSection, AmaSignInBanner
+
+### 10.6 검증
+
+```
+✓ npm run type-check                    EXIT=0
+✓ npm run build                         EXIT=0 (1971 modules, 1.07MB JS / 311 KB gzip)
+✓ Vite transform 신규 3 + 보정 1        HTTP 200 (4/4)
+✓ home-page.tsx                         HTTP 200
+✓ localhost:5173/                       HTTP 200
+✓ i18n parity                            ko/en/vi/zh-CN portal.json scalars = 373 (path diff 0)
+```
+
+### 10.7 v3 변경 파일 매니페스트
+
+```
+frontend-acm/src/
+├── modules/portal/
+│   ├── pages/home-page.tsx                                       [MOD] T1-PP-05
+│   └── components/home/
+│       ├── value-proposition-heading.tsx                         [NEW] T1-PP-01
+│       ├── results-section.tsx                                   [NEW] T1-PP-02
+│       ├── contact-cta-banner.tsx                                [NEW] T1-PP-03
+│       └── equip-slider.tsx                                      [MOD] T1-PP-04
+│
+└── i18n/locales/{ko,en,vi,zh-CN}/portal.json                     [MOD] × 4   T1-PP-06
+
+docs/
+└── implementation/RPT-260520-portal-design-and-auth-urls.md      [MOD] v3 (본 보고서)
+```
+
+**총 v3 추가**: 신규 3 + 변경 6 = **9 파일**.
+
+### 10.8 v3 AC 매트릭스 (Reference 14 섹션 ↔ 결과)
+
+| Ref # | 섹션 | 결과 |
+|-------|------|------|
+| 1 | DualTab | ✅ |
+| 2-4 | Hero + Typing + Subtitle | ✅ |
+| 5 | MAP TEST 란? + Stats | ✅ |
+| 6 | Feature 체크리스트 | ✅ |
+| 7 | Value Proposition heading | ✅ T1-PP-01 |
+| 8 | TPI 5 strengths | ✅ |
+| 9 | Process 2-group | ✅ |
+| 10 | Equip-slider intro heading | ✅ T1-PP-06 (i18n 교체) |
+| 11 | Equip slider 8 PC images | ✅ T1-PP-04 |
+| 12 | Results section | ✅ T1-PP-02 |
+| 13 | Contact CTA banner | ✅ T1-PP-03 |
+| 14 | Footer | ✅ (PortalFooter) |
+
+**14/14 reference 섹션 매칭 완료**.
+
+### 10.9 후속 (자동화 불가)
+- ContactCtaBanner 의 카피 (eyebrow / title / body / button) 는 reference 의 이미지 CTA 를 i18n 친화 타이포그래픽 형태로 변환 — 학원 측 운영 카피 확정 시 i18n 값 교체 (F-05)
+- ResultsSection 의 본문은 reference 그대로 — staging 운영 측이 별도 카피로 교체 원하면 i18n 값만 변경
+- 시각 검수 권고: ValuePropositionHeading 의 `line2-highlight` (`목표 달성`) 컬러 강조가 mobile 에서 줄바꿈 시 가독성 유지하는지 확인
+
+---
+
+**v3 완료**. Reference MHTML 14-섹션 완전 매칭.

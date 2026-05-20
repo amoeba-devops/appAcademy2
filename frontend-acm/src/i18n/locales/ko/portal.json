@@ -113,9 +113,24 @@
       "cta-test": "온라인 MAP TEST 응시 신청"
     },
     "equip-slider": {
-      "title": "TPI의 시설과 환경",
+      "title": "디테일한 피드백은 확실한 학업 성취의 나침반입니다.",
       "prev": "이전",
       "next": "다음"
+    },
+    "value-proposition": {
+      "line1": "MAP TEST 성적 향상은",
+      "line2-highlight": "목표 달성",
+      "line2-suffix": "의 핵심입니다."
+    },
+    "results": {
+      "title": "TPI는 결과로 증명합니다.",
+      "body": "TPI의 정밀한 학업 진단, 열정적인 튜터링, 그리고 디테일한 클래스 피드백은 확실한 목표 달성을 보장합니다."
+    },
+    "contact-cta": {
+      "eyebrow": "지금 시작하세요",
+      "title": "맞춤형 온라인 튜터링 상담을 신청하세요",
+      "body": "전문 컨설턴트가 학생의 목표에 맞는 학습 로드맵을 제안합니다.",
+      "button": "상담 신청"
     }
   },
   "floating": {
