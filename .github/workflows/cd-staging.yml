@@ -38,7 +38,7 @@ jobs:
           - { name: acm-frontend,  context: ./frontend-acm, dockerfile: ./frontend-acm/Dockerfile }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.sha || github.sha }}
 
