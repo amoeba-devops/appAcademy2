@@ -7,11 +7,12 @@ const CHAR_INTERVAL_MS = 60;
 const LINE_DELAY_MS = 350;
 
 /**
- * Typing-animation hero. Replaces v1 `HeroSection`.
- * Mirrors reference (tpi-index.mhtml `.typing-hero` + `.typing-hero-m`).
- * Line 1: "No. 1 [MAP TEST]" — highlight word colored.
- * Line 2: "온라인 튜터링 전문기관"
- * Animation runs once per mount. Strict-mode safe via mountedRef.
+ * Landing hero. Mirrors live tpi.co.kr layout:
+ *   1) Brand H1 (static, large) — "NWEA MAP TEST 공식 기관 / 트리니티 프렙 인스티튜트"
+ *   2) Typing tagline (animated) — "No. 1 [MAP TEST] / 온라인 튜터링 전문기관"
+ *   3) Subtitle paragraph
+ *   4) Dual CTA
+ * Animation starts after mount, runs once. Strict-mode safe via mountedRef.
  */
 export function TypingHero() {
   const { t } = useTranslation('portal');
@@ -26,10 +27,10 @@ export function TypingHero() {
   const mountedRef = useRef(false);
 
   useEffect(() => {
-    if (mountedRef.current) return; // strict-mode dedupe
+    if (mountedRef.current) return;
     mountedRef.current = true;
     let cancelled = false;
-    let timers: number[] = [];
+    const timers: number[] = [];
 
     const typeText = (
       full: string,
@@ -84,23 +85,30 @@ export function TypingHero() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8 lg:py-32">
-        <h1
+        {/* Brand H1 — static, large (mirrors live tpi.co.kr) */}
+        <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <span className="block">{t('home.typing-hero.brand-line1')}</span>
+          <span className="mt-1 block">{t('home.typing-hero.brand-line2')}</span>
+        </h1>
+
+        {/* Typing tagline — secondary, animated */}
+        <p
           aria-label={`${prefix}${highlight} ${line2Full}`}
-          className="text-3xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+          className="mx-auto mt-6 text-lg font-semibold text-blue-200 sm:text-xl lg:text-2xl"
         >
           <span>{shown1}</span>
           <span className="text-blue-300">{shownH}</span>
           {shown1 && !shown2 && caret}
-          <br />
-          <span>{shown2}</span>
-          {shown2 && caret}
-        </h1>
-
-        <p className="mx-auto mt-8 max-w-md text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
-          {t('home.typing-hero.brand-label')}
+          {shown2 && (
+            <>
+              <span className="mx-1.5 text-blue-300">·</span>
+              <span>{shown2}</span>
+              {caret}
+            </>
+          )}
         </p>
 
-        <p className="mx-auto mt-5 max-w-3xl text-base leading-relaxed text-white/85 sm:text-lg">
+        <p className="mx-auto mt-8 max-w-3xl text-base leading-relaxed text-white/85 sm:text-lg">
           {t('home.typing-hero.subtitle')}
         </p>
 
