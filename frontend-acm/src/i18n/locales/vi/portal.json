@@ -133,6 +133,23 @@
       "title": "Đăng ký tư vấn gia sư trực tuyến cá nhân hóa",
       "body": "Chuyên gia tư vấn sẽ thiết kế lộ trình học tập phù hợp với mục tiêu của bạn.",
       "button": "Đăng ký tư vấn"
+    },
+    "course-matrix": {
+      "core-header": "TPI Core Class",
+      "advanced-header": "TPI Advanced Class",
+      "core-1-line1": "NWEA Official",
+      "core-1-line2": "MAP TEST",
+      "core-2-line1": "MAP TEST",
+      "core-2-line2": "Lớp gia sư trực tuyến",
+      "isee-label": "Lớp gia sư trực tuyến ISEE",
+      "isee-line1": "ISEE",
+      "isee-line2": "Lớp gia sư trực tuyến",
+      "advanced-1-l1": "SSAT",
+      "advanced-1-l2": "TOEFL",
+      "advanced-1-l3": "Duolingo",
+      "advanced-2-l1": "PSAT",
+      "advanced-2-l2": "AP/IB",
+      "advanced-2-l3": "SAT/ACT"
     }
   },
   "floating": {

@@ -133,6 +133,23 @@
       "title": "맞춤형 온라인 튜터링 상담을 신청하세요",
       "body": "전문 컨설턴트가 학생의 목표에 맞는 학습 로드맵을 제안합니다.",
       "button": "상담 신청"
+    },
+    "course-matrix": {
+      "core-header": "TPI Core Class",
+      "advanced-header": "TPI Advanced Class",
+      "core-1-line1": "NWEA Official",
+      "core-1-line2": "MAP TEST",
+      "core-2-line1": "MAP TEST",
+      "core-2-line2": "온라인 튜터링 클래스",
+      "isee-label": "ISEE 온라인 튜터링 클래스",
+      "isee-line1": "ISEE",
+      "isee-line2": "온라인 튜터링 클래스",
+      "advanced-1-l1": "SSAT",
+      "advanced-1-l2": "TOEFL",
+      "advanced-1-l3": "Duolingo",
+      "advanced-2-l1": "PSAT",
+      "advanced-2-l2": "AP/IB",
+      "advanced-2-l3": "SAT/ACT"
     }
   },
   "floating": {

@@ -133,6 +133,23 @@
       "title": "Request a personalized online tutoring consultation",
       "body": "A specialist consultant will design a learning roadmap tailored to your goals.",
       "button": "Request consultation"
+    },
+    "course-matrix": {
+      "core-header": "TPI Core Class",
+      "advanced-header": "TPI Advanced Class",
+      "core-1-line1": "NWEA Official",
+      "core-1-line2": "MAP TEST",
+      "core-2-line1": "MAP TEST",
+      "core-2-line2": "Online Tutoring Class",
+      "isee-label": "ISEE Online Tutoring Class",
+      "isee-line1": "ISEE",
+      "isee-line2": "Online Tutoring Class",
+      "advanced-1-l1": "SSAT",
+      "advanced-1-l2": "TOEFL",
+      "advanced-1-l3": "Duolingo",
+      "advanced-2-l1": "PSAT",
+      "advanced-2-l2": "AP/IB",
+      "advanced-2-l3": "SAT/ACT"
     }
   },
   "floating": {

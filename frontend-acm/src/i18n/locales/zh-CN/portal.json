@@ -133,6 +133,23 @@
       "title": "申请定制化在线辅导咨询",
       "body": "专业顾问将根据您的目标设计专属学习路线图。",
       "button": "申请咨询"
+    },
+    "course-matrix": {
+      "core-header": "TPI Core Class",
+      "advanced-header": "TPI Advanced Class",
+      "core-1-line1": "NWEA Official",
+      "core-1-line2": "MAP TEST",
+      "core-2-line1": "MAP TEST",
+      "core-2-line2": "在线辅导课程",
+      "isee-label": "ISEE 在线辅导课程",
+      "isee-line1": "ISEE",
+      "isee-line2": "在线辅导课程",
+      "advanced-1-l1": "SSAT",
+      "advanced-1-l2": "TOEFL",
+      "advanced-1-l3": "Duolingo",
+      "advanced-2-l1": "PSAT",
+      "advanced-2-l2": "AP/IB",
+      "advanced-2-l3": "SAT/ACT"
     }
   },
   "floating": {
