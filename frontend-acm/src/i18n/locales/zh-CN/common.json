@@ -56,5 +56,18 @@
     "deleteDescription": "此操作无法撤销。"
   },
   "todo": "TODO: 추후 구현 예정",
-  "dash": "—"
+  "dash": "—",
+  "days-short": {
+    "mon": "一",
+    "tue": "二",
+    "wed": "三",
+    "thu": "四",
+    "fri": "五",
+    "sat": "六",
+    "sun": "日"
+  },
+  "currency": {
+    "krw-suffix": " 韩元",
+    "krw-format": "₩{{amount}}"
+  }
 }

@@ -14,12 +14,14 @@
       "studentName": "学生姓名",
       "grade": "年级",
       "parentPhone": "联系电话",
-      "privacyConsent": "我同意收集和使用个人信息。"
+      "privacyConsent": "我同意收集和使用个人信息。",
+      "parentName": "家长姓名"
     },
     "placeholder": {
       "studentName": "请输入学生姓名。",
       "grade": "请选择年级。",
-      "parentPhone": "请输入可联系的电话号码。"
+      "parentPhone": "请输入可联系的电话号码。",
+      "parentName": "请输入家长姓名。"
     },
     "submit": "提交",
     "submitting": "提交中…",
@@ -32,7 +34,8 @@
       "studentNameRequired": "请输入学生姓名。",
       "phoneRequired": "请输入联系电话。",
       "phoneInvalid": "请输入有效的电话号码。",
-      "privacyRequired": "请同意隐私政策。"
+      "privacyRequired": "请同意隐私政策。",
+      "parentNameRequired": "请输入家长姓名。"
     }
   },
   "test": {
@@ -47,7 +50,8 @@
       "parentPhone": "联系电话",
       "parentEmail": "家长邮箱",
       "location": "考试国家/城市",
-      "privacyConsent": "我同意收集和使用个人信息。"
+      "privacyConsent": "我同意收集和使用个人信息。",
+      "parentName": "家长姓名"
     },
     "placeholder": {
       "studentName": "请输入学生韩文姓名。",
@@ -57,7 +61,8 @@
       "gender": "请选择性别。",
       "parentPhone": "请输入可联系的电话号码。",
       "parentEmail": "请输入家长电子邮件地址。",
-      "location": "请输入考试所在国家和城市。"
+      "location": "请输入考试所在国家和城市。",
+      "parentName": "请输入家长姓名。"
     },
     "genderOptions": {
       "male": "男",
@@ -74,7 +79,8 @@
       "studentNameRequired": "请输入学生姓名。",
       "phoneRequired": "请输入联系电话。",
       "phoneInvalid": "请输入有效的电话号码。",
-      "privacyRequired": "请同意隐私政策。"
+      "privacyRequired": "请同意隐私政策。",
+      "parentNameRequired": "请输入家长姓名。"
     }
   }
 }

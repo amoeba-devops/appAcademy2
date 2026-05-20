@@ -14,12 +14,14 @@
       "studentName": "Student Name",
       "grade": "Grade",
       "parentPhone": "Phone Number",
-      "privacyConsent": "I agree to the collection and use of personal information."
+      "privacyConsent": "I agree to the collection and use of personal information.",
+      "parentName": "Parent name"
     },
     "placeholder": {
       "studentName": "Enter student name.",
       "grade": "Select grade.",
-      "parentPhone": "Enter a reachable phone number."
+      "parentPhone": "Enter a reachable phone number.",
+      "parentName": "Enter the parent's name."
     },
     "submit": "Submit",
     "submitting": "Submitting…",
@@ -32,7 +34,8 @@
       "studentNameRequired": "Please enter the student's name.",
       "phoneRequired": "Please enter a phone number.",
       "phoneInvalid": "Please enter a valid phone number.",
-      "privacyRequired": "Please agree to the privacy policy."
+      "privacyRequired": "Please agree to the privacy policy.",
+      "parentNameRequired": "Please enter the parent's name."
     }
   },
   "test": {
@@ -47,7 +50,8 @@
       "parentPhone": "Phone Number",
       "parentEmail": "Parent Email",
       "location": "Country / City",
-      "privacyConsent": "I agree to the collection and use of personal information."
+      "privacyConsent": "I agree to the collection and use of personal information.",
+      "parentName": "Parent name"
     },
     "placeholder": {
       "studentName": "Enter student's Korean name.",
@@ -57,7 +61,8 @@
       "gender": "Select gender.",
       "parentPhone": "Enter a reachable phone number.",
       "parentEmail": "Enter parent email address.",
-      "location": "Enter country and city for the test."
+      "location": "Enter country and city for the test.",
+      "parentName": "Enter the parent's name."
     },
     "genderOptions": {
       "male": "Male",
@@ -74,7 +79,8 @@
       "studentNameRequired": "Please enter the student's name.",
       "phoneRequired": "Please enter a phone number.",
       "phoneInvalid": "Please enter a valid phone number.",
-      "privacyRequired": "Please agree to the privacy policy."
+      "privacyRequired": "Please agree to the privacy policy.",
+      "parentNameRequired": "Please enter the parent's name."
     }
   }
 }

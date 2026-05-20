@@ -56,5 +56,18 @@
     "deleteDescription": "Hành động này không thể hoàn tác."
   },
   "todo": "TODO: sẽ triển khai sau",
-  "dash": "—"
+  "dash": "—",
+  "days-short": {
+    "mon": "T2",
+    "tue": "T3",
+    "wed": "T4",
+    "thu": "T5",
+    "fri": "T6",
+    "sat": "T7",
+    "sun": "CN"
+  },
+  "currency": {
+    "krw-suffix": " KRW",
+    "krw-format": "₩{{amount}}"
+  }
 }

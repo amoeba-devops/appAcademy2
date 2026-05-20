@@ -37,6 +37,12 @@ export class WebContactDto {
   @IsOptional() @IsString() @MaxLength(10)
   grade?: string;
 
+  @IsString() @MinLength(1) @MaxLength(50)
+  parentName!: string;
+
+  @IsOptional() @IsString() @MaxLength(100)
+  schoolName?: string;
+
   @IsString() @Matches(/^[0-9+\-() ]{7,20}$/)
   parentPhone!: string;
 
@@ -50,6 +56,10 @@ export class WebMapTestDto {
   /** 학생 한글 이름 */
   @IsString() @MinLength(1) @MaxLength(50)
   studentName!: string;
+
+  /** 학부모 이름 — REQ-260520 FR-02-002, 필수 */
+  @IsString() @MinLength(1) @MaxLength(50)
+  parentName!: string;
 
   /** 학생 영문 이름 */
   @IsOptional() @IsString() @MaxLength(100)
@@ -104,12 +114,14 @@ export class WebInquiryController {
     await this.inquiryService.create(DEFAULT_ENT_ID, {
       studentName: dto.studentName,
       grade: dto.grade,
+      parentName: dto.parentName,
+      schoolName: dto.schoolName,
       parentPhone: dto.parentPhone,
       phoneStatus: 'PROVIDED',
       inflowType: 'HOMEPAGE',
       applyType: 'COUNSELING_ONLY',
       applyPurposes: dto.applyPurposes ?? [],
-      schoolFreetext: '홈페이지 접수',
+      schoolFreetext: dto.schoolName || '홈페이지 접수',
       followupMemo: memo ?? undefined,
     });
 
@@ -133,6 +145,7 @@ export class WebInquiryController {
 
     await this.inquiryService.create(DEFAULT_ENT_ID, {
       studentName: dto.studentName,
+      parentName: dto.parentName,
       grade: dto.grade,
       parentPhone: dto.parentPhone,
       phoneStatus: 'PROVIDED',

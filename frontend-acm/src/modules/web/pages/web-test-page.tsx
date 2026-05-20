@@ -21,6 +21,7 @@ const schema = z.object({
     }),
   grade: z.string().optional(),
   gender: z.enum(['male', 'female']).optional(),
+  parentName: z.string().min(1).max(50),
   parentPhone: z
     .string()
     .min(1)
@@ -54,6 +55,7 @@ export function WebTestPage() {
         birthdate: data.birthdate || undefined,
         grade: data.grade || undefined,
         gender: data.gender ? (data.gender === 'male' ? '남' : '여') : undefined,
+        parentName: data.parentName,
         parentPhone: data.parentPhone,
         parentEmail: data.parentEmail || undefined,
         location: data.location || undefined,
@@ -182,6 +184,26 @@ export function WebTestPage() {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* 학부모 이름 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {t('test.fields.parentName')}
+              <span className="text-red-500 ml-0.5">*</span>
+            </label>
+            <input
+              {...register('parentName')}
+              type="text"
+              autoComplete="name"
+              placeholder={t('test.placeholder.parentName')}
+              className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            {errors.parentName && (
+              <p className="mt-1 text-xs text-red-500">
+                {t('test.validation.parentNameRequired')}
+              </p>
+            )}
           </div>
 
           {/* 연락처 */}

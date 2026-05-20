@@ -6,6 +6,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { CurrentUserPayload } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
+interface StudentKpi {
+  weekClasses: { total: number; held: number };
+  latestScore: { rit: number; percentile: number | null; date: string } | null;
+  unpaidOrders: number;
+}
+
 @ApiTags('Portal My')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -18,14 +24,12 @@ export class PortalParentController {
   @Get('children')
   @ApiOperation({ summary: 'Get parent children summary (자녀 요약 — FN-115)' })
   async getChildren(@CurrentUser() user: CurrentUserPayload) {
-    // For parent: sub = parentId; For admin preview: use query param
-    const parentId = user.role === 'PARENT' ? user.userId : null;
+    const parentId = user.role === 'PARENT' ? Number(user.userId) : null;
 
     if (!parentId) {
-      return { data: { children: [], selectedStudentId: null } };
+      return { children: [], selectedStudentId: null, kpi: null };
     }
 
-    // Get children
     const children = await this.ds.query(
       `SELECT s.std_id AS id, s.std_name AS name, s.std_grade AS grade,
               s.std_school AS school, s.std_status AS status
@@ -36,21 +40,13 @@ export class PortalParentController {
     );
 
     if (children.length === 0) {
-      return { data: { children: [], selectedStudentId: null, kpi: null } };
+      return { children: [], selectedStudentId: null, kpi: null };
     }
 
-    const selectedId = children[0].id;
-
-    // KPI for first child
+    const selectedId = Number(children[0].id);
     const kpi = await this.getStudentKpi(selectedId);
 
-    return {
-      data: {
-        children,
-        selectedStudentId: selectedId,
-        kpi,
-      },
-    };
+    return { children, selectedStudentId: selectedId, kpi };
   }
 
   @Get('timetable')
@@ -64,62 +60,44 @@ export class PortalParentController {
   ) {
     const stdId = Number(studentId);
     if (!stdId) {
-      return { data: { sessions: [], weekStart: '', weekEnd: '' } };
+      return { sessions: [], weekStart: '', weekEnd: '' };
     }
 
-    // Verify parent owns this student
     if (user.role === 'PARENT') {
       const check = await this.ds.query(
         `SELECT 1 FROM tac_students WHERE std_id = ? AND prt_id = ?`,
-        [stdId, user.userId],
+        [stdId, Number(user.userId)],
       );
       if (check.length === 0) {
-        return { data: { sessions: [], weekStart: '', weekEnd: '' } };
+        return { sessions: [], weekStart: '', weekEnd: '' };
       }
     }
 
-    // Calculate week boundaries
-    const now = weekStart ? new Date(weekStart) : new Date();
-    const day = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
+    const { mondayStr, sundayStr } = this.weekRange(weekStart);
 
-    const mondayStr = monday.toISOString().slice(0, 10);
-    const sundayStr = sunday.toISOString().slice(0, 10);
-
-    // Get sessions for this student's enrollments
     const sessions = await this.ds.query(
       `SELECT
-         cs.ses_id AS id,
-         cs.ses_date AS date,
-         cs.ses_start_time AS startTime,
-         cs.ses_end_time AS endTime,
-         cs.ses_status AS status,
-         c.cls_name AS className,
-         t.tch_name AS teacherName,
+         cs.csn_id AS id,
+         DATE(cs.csn_start_at) AS date,
+         TIME(cs.csn_start_at) AS startTime,
+         TIME(cs.csn_end_at) AS endTime,
+         cs.csn_session_status AS status,
+         p.prg_name AS className,
+         NULL AS teacherName,
          p.prg_name AS programName
        FROM tac_class_sessions cs
        JOIN tac_classes c ON c.cls_id = cs.cls_id
        JOIN tac_programs p ON p.prg_id = c.prg_id
-       LEFT JOIN tac_teachers t ON t.tch_id = c.tch_id
-       WHERE cs.ses_date BETWEEN ? AND ?
+       WHERE DATE(cs.csn_start_at) BETWEEN ? AND ?
          AND c.cls_id IN (
            SELECT e.cls_id FROM tac_enrollments e
-           WHERE e.std_id = ? AND e.enr_status = 'ACTIVE'
+           WHERE e.std_id = ? AND e.enr_status IN ('ACTIVE', 'CONFIRMED')
          )
-       ORDER BY cs.ses_date, cs.ses_start_time`,
+       ORDER BY cs.csn_start_at`,
       [mondayStr, sundayStr, stdId],
     );
 
-    return {
-      data: {
-        sessions,
-        weekStart: mondayStr,
-        weekEnd: sundayStr,
-      },
-    };
+    return { sessions, weekStart: mondayStr, weekEnd: sundayStr };
   }
 
   @Get('payments')
@@ -129,38 +107,41 @@ export class PortalParentController {
     @CurrentUser() user: CurrentUserPayload,
     @Query('studentId') studentId?: string,
   ) {
-    const parentId = user.role === 'PARENT' ? user.userId : null;
+    const parentId = user.role === 'PARENT' ? Number(user.userId) : null;
     if (!parentId) {
-      return { data: [] };
+      return [];
     }
 
+    // Pay orders are linked to enrollments (not directly to students). Join
+    // via tac_enrollments → tac_students → parent, and surface program name
+    // via tac_classes → tac_programs.
     let query = `
       SELECT
-        po.ord_id AS id,
-        po.ord_order_number AS orderNumber,
-        po.ord_amount AS amount,
-        po.ord_status AS status,
-        po.ord_created_at AS createdAt,
+        po.pod_id AS id,
+        po.pod_order_no AS orderNumber,
+        po.pod_amount AS amount,
+        po.pod_status AS status,
+        po.pod_created_at AS createdAt,
         p.prg_name AS programName,
-        s.std_name AS studentName
-      FROM tac_payment_orders po
-      LEFT JOIN tac_programs p ON p.prg_id = po.prg_id
-      LEFT JOIN tac_students s ON s.std_id = po.std_id
-      WHERE po.acd_id = 1
-        AND po.std_id IN (SELECT std_id FROM tac_students WHERE prt_id = ?)
+        s.std_name AS studentName,
+        s.std_id AS studentId
+      FROM tac_pay_orders po
+      JOIN tac_enrollments e ON e.enr_id = po.enr_id
+      JOIN tac_students s ON s.std_id = e.std_id
+      JOIN tac_classes c ON c.cls_id = e.cls_id
+      JOIN tac_programs p ON p.prg_id = c.prg_id
+      WHERE s.prt_id = ?
     `;
     const params: (string | number)[] = [parentId];
 
     if (studentId) {
-      query += ` AND po.std_id = ?`;
+      query += ` AND s.std_id = ?`;
       params.push(Number(studentId));
     }
 
-    query += ` ORDER BY po.ord_created_at DESC LIMIT 50`;
+    query += ` ORDER BY po.pod_created_at DESC LIMIT 50`;
 
-    const payments = await this.ds.query(query, params);
-
-    return { data: payments };
+    return this.ds.query(query, params);
   }
 
   @Get('kpi')
@@ -169,68 +150,73 @@ export class PortalParentController {
   async getKpi(
     @CurrentUser() user: CurrentUserPayload,
     @Query('studentId') studentId: string,
-  ) {
+  ): Promise<StudentKpi | null> {
     const stdId = Number(studentId);
-    if (!stdId) {
-      return { data: null };
-    }
+    if (!stdId) return null;
 
-    // Verify parent owns this student
     if (user.role === 'PARENT') {
       const check = await this.ds.query(
         `SELECT 1 FROM tac_students WHERE std_id = ? AND prt_id = ?`,
-        [stdId, user.userId],
+        [stdId, Number(user.userId)],
       );
-      if (check.length === 0) {
-        return { data: null };
-      }
+      if (check.length === 0) return null;
     }
 
-    const kpi = await this.getStudentKpi(stdId);
-    return { data: kpi };
+    return this.getStudentKpi(stdId);
   }
 
-  private async getStudentKpi(studentId: number) {
-    // This week's sessions
-    const now = new Date();
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  private weekRange(weekStart?: string): { mondayStr: string; sundayStr: string } {
+    const now = weekStart ? new Date(weekStart) : new Date();
     const day = now.getDay();
     const monday = new Date(now);
     monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    return {
+      mondayStr: monday.toISOString().slice(0, 10),
+      sundayStr: sunday.toISOString().slice(0, 10),
+    };
+  }
 
-    const mondayStr = monday.toISOString().slice(0, 10);
-    const sundayStr = sunday.toISOString().slice(0, 10);
+  private async getStudentKpi(studentId: number): Promise<StudentKpi> {
+    const { mondayStr, sundayStr } = this.weekRange();
 
     const [weekClasses] = await this.ds.query(
       `SELECT
          COUNT(*) AS total,
-         SUM(CASE WHEN cs.ses_status = 'HELD' THEN 1 ELSE 0 END) AS held
+         SUM(CASE WHEN cs.csn_session_status = 'HELD' THEN 1 ELSE 0 END) AS held
        FROM tac_class_sessions cs
        JOIN tac_classes c ON c.cls_id = cs.cls_id
-       WHERE cs.ses_date BETWEEN ? AND ?
+       WHERE DATE(cs.csn_start_at) BETWEEN ? AND ?
          AND c.cls_id IN (
            SELECT e.cls_id FROM tac_enrollments e
-           WHERE e.std_id = ? AND e.enr_status = 'ACTIVE'
+           WHERE e.std_id = ? AND e.enr_status IN ('ACTIVE', 'CONFIRMED')
          )`,
       [mondayStr, sundayStr, studentId],
     );
 
-    // Latest MAP score
+    // Latest MAP score — schema stores reading/math/language separately. We
+    // surface reading as the primary `rit` value and leave percentile null
+    // (no percentile column in tac_map_scores). UI can render NULL gracefully.
     const [latestScore] = await this.ds.query(
-      `SELECT ms.scr_rit AS rit, ms.scr_percentile AS percentile,
-              ms.scr_created_at AS date
+      `SELECT
+         ms.msc_reading_score AS reading,
+         ms.msc_math_score AS math,
+         ms.msc_language_score AS language,
+         ms.msc_assessed_at AS date
        FROM tac_map_scores ms
        WHERE ms.std_id = ?
-       ORDER BY ms.scr_created_at DESC LIMIT 1`,
+       ORDER BY ms.msc_assessed_at DESC, ms.msc_id DESC LIMIT 1`,
       [studentId],
     );
 
-    // Unpaid orders
     const [unpaid] = await this.ds.query(
       `SELECT COUNT(*) AS count
-       FROM tac_payment_orders
-       WHERE std_id = ? AND ord_status IN ('PENDING', 'READY')`,
+       FROM tac_pay_orders po
+       JOIN tac_enrollments e ON e.enr_id = po.enr_id
+       WHERE e.std_id = ? AND po.pod_status IN ('READY', 'PENDING')`,
       [studentId],
     );
 
@@ -240,7 +226,16 @@ export class PortalParentController {
         held: Number(weekClasses?.held ?? 0),
       },
       latestScore: latestScore
-        ? { rit: latestScore.rit, percentile: latestScore.percentile, date: latestScore.date }
+        ? {
+            rit: Number(
+              latestScore.reading ?? latestScore.math ?? latestScore.language ?? 0,
+            ),
+            percentile: null,
+            date:
+              latestScore.date instanceof Date
+                ? latestScore.date.toISOString().slice(0, 10)
+                : String(latestScore.date),
+          }
         : null,
       unpaidOrders: Number(unpaid?.count ?? 0),
     };

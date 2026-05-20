@@ -21,6 +21,8 @@ export class GetPortalScoreHistoryUseCase {
       userEmail: user.email,
       role: user.role,
       studentId,
+      // Phone-OTP parent tokens carry empty email — fall back to JWT sub.
+      parentId: user.role === 'PARENT' ? Number(user.userId) : undefined,
     });
 
     return toPortalScoreHistoryResponse(history);

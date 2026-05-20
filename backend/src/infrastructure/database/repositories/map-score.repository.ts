@@ -297,8 +297,11 @@ export class MapScoreRepository implements IMapScoreRepository {
     userEmail: string;
     role: string;
     studentId?: number;
+    parentId?: number;
   }): Promise<MapPortalScoreHistory> {
-    const matchedParent = await this.findParentByEmail(params.academyId, params.userEmail);
+    const matchedParent = params.parentId
+      ? await this.parentRepo.findOne({ where: { acdId: params.academyId, prtId: params.parentId } })
+      : await this.findParentByEmail(params.academyId, params.userEmail);
     const students = await this.resolvePortalStudents(params, matchedParent);
     const selectedStudent =
       (params.studentId ? students.find((student) => Number(student.stdId) === params.studentId) : undefined) ??
@@ -350,6 +353,7 @@ export class MapScoreRepository implements IMapScoreRepository {
     userEmail: string;
     role: string;
     studentId?: number;
+    parentId?: number;
   }, matchedParent: ParentEntity | null): Promise<StudentEntity[]> {
     if (matchedParent) {
       const students = await this.getStudentsForParent(params.academyId, Number(matchedParent.prtId));

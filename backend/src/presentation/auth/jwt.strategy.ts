@@ -15,14 +15,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   validate(payload: JwtPayload) {
+    // JWT claims (`sub`, `acdId`) are serialized as strings by jsonwebtoken.
+    // Coerce to number so downstream SQL parameter binding and TypeORM
+    // numeric column comparisons behave as expected.
+    const toNum = (v: unknown): number =>
+      typeof v === 'number' ? v : Number(v);
     return {
-      userId: payload.sub,
-      academyId: payload.acdId,
+      userId: toNum(payload.sub),
+      academyId: payload.acdId != null ? toNum(payload.acdId) : null,
       email: payload.email,
       name: payload.name,
       role: payload.role,
       amaUserId: payload.amaUserId,
-      activeAcademyId: payload.activeAcdId ?? payload.acdId,
+      activeAcademyId: toNum(payload.activeAcdId ?? payload.acdId),
     };
   }
 }

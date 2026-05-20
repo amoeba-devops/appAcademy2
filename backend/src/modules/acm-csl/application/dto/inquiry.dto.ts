@@ -104,6 +104,13 @@ export class CreateInquiryDto {
   @MaxLength(50)
   parentName?: string;
 
+  /** REQ-260511 — school name (optional) */
+  @ApiPropertyOptional({ description: 'School name' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  schoolName?: string;
+
   @ApiPropertyOptional({ enum: PHONE_STATUSES, default: 'UNKNOWN' })
   @IsOptional()
   @IsEnum(PHONE_STATUSES)

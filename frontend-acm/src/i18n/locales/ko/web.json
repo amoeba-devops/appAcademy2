@@ -14,12 +14,14 @@
       "studentName": "학생 이름",
       "grade": "학년",
       "parentPhone": "연락처",
-      "privacyConsent": "개인정보 수집 및 이용에 동의합니다."
+      "privacyConsent": "개인정보 수집 및 이용에 동의합니다.",
+      "parentName": "학부모 이름"
     },
     "placeholder": {
       "studentName": "학생 이름을 입력해 주세요.",
       "grade": "학년을 선택해 주세요.",
-      "parentPhone": "연락 가능한 전화번호를 입력해 주세요."
+      "parentPhone": "연락 가능한 전화번호를 입력해 주세요.",
+      "parentName": "학부모 성명을 입력해 주세요."
     },
     "submit": "상담하기",
     "submitting": "제출 중…",
@@ -32,7 +34,8 @@
       "studentNameRequired": "학생 이름을 입력해 주세요.",
       "phoneRequired": "연락처를 입력해 주세요.",
       "phoneInvalid": "유효한 전화번호를 입력해 주세요.",
-      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요."
+      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요.",
+      "parentNameRequired": "학부모 이름을 입력해 주세요."
     }
   },
   "test": {
@@ -47,7 +50,8 @@
       "parentPhone": "연락처",
       "parentEmail": "학부모 이메일",
       "location": "응시 국가/도시",
-      "privacyConsent": "개인정보 수집 및 이용에 동의합니다."
+      "privacyConsent": "개인정보 수집 및 이용에 동의합니다.",
+      "parentName": "학부모 이름"
     },
     "placeholder": {
       "studentName": "학생의 한글 이름을 입력해 주세요.",
@@ -57,7 +61,8 @@
       "gender": "성별을 선택해 주세요.",
       "parentPhone": "연락 가능한 전화번호를 입력해 주세요.",
       "parentEmail": "학부모 이메일 주소를 입력해 주세요.",
-      "location": "응시할 국가, 도시를 입력해 주세요."
+      "location": "응시할 국가, 도시를 입력해 주세요.",
+      "parentName": "학부모 성명을 입력해 주세요."
     },
     "genderOptions": {
       "male": "남",
@@ -74,7 +79,8 @@
       "studentNameRequired": "학생 이름을 입력해 주세요.",
       "phoneRequired": "연락처를 입력해 주세요.",
       "phoneInvalid": "유효한 전화번호를 입력해 주세요.",
-      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요."
+      "privacyRequired": "개인정보 수집 및 이용에 동의해 주세요.",
+      "parentNameRequired": "학부모 이름을 입력해 주세요."
     }
   }
 }

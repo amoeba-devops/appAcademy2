@@ -60,5 +60,18 @@
     "deleteDescription": "이 작업은 되돌릴 수 없습니다."
   },
   "todo": "TODO: 추후 구현 예정",
-  "dash": "—"
+  "dash": "—",
+  "days-short": {
+    "mon": "월",
+    "tue": "화",
+    "wed": "수",
+    "thu": "목",
+    "fri": "금",
+    "sat": "토",
+    "sun": "일"
+  },
+  "currency": {
+    "krw-suffix": "원",
+    "krw-format": "{{amount}}원"
+  }
 }

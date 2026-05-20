@@ -60,5 +60,18 @@
     "deleteDescription": "This action cannot be undone."
   },
   "todo": "TODO: implementation pending",
-  "dash": "—"
+  "dash": "—",
+  "days-short": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "currency": {
+    "krw-suffix": " KRW",
+    "krw-format": "₩{{amount}}"
+  }
 }

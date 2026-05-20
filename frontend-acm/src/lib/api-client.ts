@@ -9,8 +9,19 @@ export const apiClient: AxiosInstance = axios.create({
   paramsSerializer: { indexes: null },
 });
 
+/**
+ * Parent-side endpoints. Requests to these paths use the parent JWT (issued
+ * by `/auth/parent/verify-otp`, signed with JWT_SECRET) — admin's ACM JWT
+ * would 401 because backend uses different guard/secret.
+ */
+function isParentEndpoint(url: string): boolean {
+  return url.startsWith('/portal/my') || url.startsWith('/auth/parent');
+}
+
 apiClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
+  const url = config.url ?? '';
+  const state = useAuthStore.getState();
+  const token = isParentEndpoint(url) ? state.parent.token : state.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -32,11 +43,27 @@ apiClient.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       const path = window.location.pathname;
-      useAuthStore.getState().clear();
-      // Avoid redirect loop on the login page itself.
-      if (!path.startsWith('/login')) {
-        const returnTo = encodeURIComponent(path + window.location.search);
-        window.location.assign(`/login?returnTo=${returnTo}`);
+      const reqUrl: string = err.config?.url ?? '';
+      const isParent = isParentEndpoint(reqUrl);
+      const store = useAuthStore.getState();
+      // REQ-260520 FR-03 — group-based auth URLs.
+      const onLoginPage =
+        path.startsWith('/admin/login') ||
+        path.startsWith('/parent/login') ||
+        path === '/login' ||
+        path.startsWith('/login/');
+      if (isParent) {
+        store.clearParent();
+        if (!onLoginPage) {
+          const returnTo = encodeURIComponent(path + window.location.search);
+          window.location.assign(`/parent/login?returnTo=${returnTo}`);
+        }
+      } else {
+        store.clearAdmin();
+        if (!onLoginPage) {
+          const returnTo = encodeURIComponent(path + window.location.search);
+          window.location.assign(`/admin/login?returnTo=${returnTo}`);
+        }
       }
     }
     return Promise.reject(err);

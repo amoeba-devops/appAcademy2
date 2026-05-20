@@ -25,17 +25,28 @@
 
 ## 2. Tech Stack (기술 스택)
 
-### Frontend (`frontend/`)
+> ⚠️ **Primary Frontend (2026-05-19~)**: `frontend-acm/` (Vite SPA) — 모든 사용자 진입점 (Portal `/`, Admin `/admin/*`, Parent `/my/*`, `/login*`, `/web/*`). 신규 개발은 여기서만.
+> 🪦 **Legacy `frontend/` (Next.js)**: Deprecated read-only. `next.config.mjs` 의 `rewrites().beforeFiles` 가 모든 사용자 경로를 frontend-acm 으로 프록시한다 (Phase 4 cutover, [PLN-260519](docs/plan/PLN-260519-frontend-acm-consolidation.md)). 디렉토리/소스 파일은 archive (Phase 7) 까지 보존하되 트래픽은 받지 않는다.
+
+### Frontend (Primary — `frontend-acm/`)
 | Layer | Technology | Version |
 |-------|-----------|---------|
-| **Framework** | Next.js (App Router) | 14.x |
+| **Framework** | Vite + React Router | 6.x / 6.x |
 | **UI Library** | React | 18.x |
 | **Language** | TypeScript | 5.x |
-| **Styling** | TailwindCSS + shadcn/ui | 3.x |
-| **State** | Zustand (client) + React Query (server) | 5.x / 5.x |
-| **Form** | React Hook Form + Zod | 7.x / 4.x |
-| **Icons** | Lucide React | latest |
-| **i18n** | react-i18next (ko default) | 17.x |
+| **Styling** | TailwindCSS | 3.x |
+| **State** | Zustand (admin/parent 2-slot) + React Query | 5.x / 5.x |
+| **Form** | React Hook Form + Zod | 7.x / 3.x |
+| **Icons** | Lucide React | 0.469 |
+| **i18n** | react-i18next, 4 locale (ko/en/vi/zh-CN) | 14.x |
+| **Dev port** | 5173 (native) / 5174 (Docker) | — |
+
+### Frontend (Deprecated — `frontend/`)
+| Layer | Technology | Status |
+|-------|-----------|--------|
+| Framework | Next.js (App Router) 14.x | **Reverse-proxy only** — `rewrites().beforeFiles` to frontend-acm |
+| Auth (NextAuth) | — | **Disabled** ([middleware.ts](frontend/src/middleware.ts) matcher neutralized) |
+| Source tree | `frontend/src/app/(portal,admin)/**` | Read-only, no new PR |
 
 ### Backend (`backend/`)
 | Layer | Technology | Version |
@@ -345,6 +356,12 @@ News                     Class Management
 2. **SPEC.md** 프로젝트 명세 확인
 3. **관련 설계 문서** (`docs/design/`, `docs/analysis/`) 확인
 4. **Memory** (`/memories/`, `/memories/session/`, `/memories/repo/`) 확인
+
+⚠️ **frontend-acm Primary Rule (2026-05-19~ / Phase 4 Cutover)**
+- 모든 프론트엔드 신규 기능 (`/admin/*`, `/web/*`, `/my/*`, `/login*`, `/`, `/about`, `/programs`, `/news`) 은 **`frontend-acm/src/`** 에서만 개발한다.
+- `frontend/src/` (Next.js) 는 reverse-proxy + Next API routes (NextAuth / `/api/portal/*`) 호스팅 용도로만 유지. 신규 PR 거부 대상.
+- `localhost:3009` 진입 시 `next.config.mjs` 의 `rewrites().beforeFiles` 로 사용자 경로가 `frontend-acm` (`:5173`) 으로 자동 프록시된다 — admin/parent/portal UI 디버깅은 frontend-acm 코드만 보면 된다.
+- 관련 문서: [PLN-260519-frontend-acm-consolidation](docs/plan/PLN-260519-frontend-acm-consolidation.md) v2.0.0, [RPT Phase 1–4](docs/implementation/RPT-260519-frontend-acm-consolidation-phase1.md), [ADR-007](docs/design/adr/ADR-007-next-to-vite-pivot.md)
 
 ### 9.2 요구사항 작업 시 진행 중단점
 - 요구사항 분석서 + 작업 계획서 작성 후 **반드시 사용자 확인을 받은 후** 구현으로 진행한다.

@@ -23,6 +23,7 @@ import koTch from './locales/ko/tch.json';
 import koStf from './locales/ko/stf.json';
 import koCal from './locales/ko/cal.json';
 import koMpq from './locales/ko/mpq.json';
+import koPortal from './locales/ko/portal.json';
 
 import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
@@ -38,6 +39,7 @@ import enTch from './locales/en/tch.json';
 import enStf from './locales/en/stf.json';
 import enCal from './locales/en/cal.json';
 import enMpq from './locales/en/mpq.json';
+import enPortal from './locales/en/portal.json';
 
 import viCommon from './locales/vi/common.json';
 import viAuth from './locales/vi/auth.json';
@@ -53,6 +55,7 @@ import viTch from './locales/vi/tch.json';
 import viStf from './locales/vi/stf.json';
 import viCal from './locales/vi/cal.json';
 import viMpq from './locales/vi/mpq.json';
+import viPortal from './locales/vi/portal.json';
 
 import zhCommon from './locales/zh-CN/common.json';
 import zhAuth from './locales/zh-CN/auth.json';
@@ -68,6 +71,7 @@ import zhTch from './locales/zh-CN/tch.json';
 import zhStf from './locales/zh-CN/stf.json';
 import zhCal from './locales/zh-CN/cal.json';
 import zhMpq from './locales/zh-CN/mpq.json';
+import zhPortal from './locales/zh-CN/portal.json';
 
 export const SUPPORTED_LANGS = ['ko', 'en', 'vi', 'zh-CN'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
@@ -101,7 +105,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANG,
   supportedLngs: SUPPORTED_LANGS as unknown as string[],
   defaultNS: 'common',
-  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web', 'tch', 'stf', 'cal', 'mpq'],
+  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web', 'tch', 'stf', 'cal', 'mpq', 'portal'],
   interpolation: { escapeValue: false },
   resources: {
     ko: {
@@ -119,6 +123,7 @@ void i18n.use(initReactI18next).init({
       stf: koStf,
       cal: koCal,
       mpq: koMpq,
+      portal: koPortal,
     },
     en: {
       common: enCommon,
@@ -135,6 +140,7 @@ void i18n.use(initReactI18next).init({
       stf: enStf,
       cal: enCal,
       mpq: enMpq,
+      portal: enPortal,
     },
     vi: {
       common: viCommon,
@@ -151,6 +157,7 @@ void i18n.use(initReactI18next).init({
       stf: viStf,
       cal: viCal,
       mpq: viMpq,
+      portal: viPortal,
     },
     'zh-CN': {
       common: zhCommon,
@@ -167,6 +174,7 @@ void i18n.use(initReactI18next).init({
       stf: zhStf,
       cal: zhCal,
       mpq: zhMpq,
+      portal: zhPortal,
     },
   },
 });

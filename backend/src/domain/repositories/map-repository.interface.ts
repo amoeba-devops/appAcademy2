@@ -82,6 +82,12 @@ export interface IMapScoreRepository extends IRepository<MapScore> {
     userEmail: string;
     role: string;
     studentId?: number;
+    /**
+     * Parent ID resolved from JWT `sub`. When supplied (PARENT role), the
+     * repo skips the email-based lookup — necessary because phone-OTP-issued
+     * parent tokens carry `email: ''`.
+     */
+    parentId?: number;
   }): Promise<MapPortalScoreHistory>;
   getHubStats(academyId: number): Promise<MapHubStats>;
 }
