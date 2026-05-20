@@ -35,7 +35,6 @@ jobs:
       matrix:
         target:
           - { name: tac-backend,   context: ./backend,      dockerfile: ./backend/Dockerfile }
-          - { name: tac-frontend,  context: ./frontend,     dockerfile: ./frontend/Dockerfile }
           - { name: acm-frontend,  context: ./frontend-acm, dockerfile: ./frontend-acm/Dockerfile }
 
     steps:
