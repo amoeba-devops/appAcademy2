@@ -4,7 +4,11 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+# --legacy-peer-deps: dependabot bumped @eslint/js to 10.x while leaving
+# eslint at ^9.18.0, creating a peer-dep conflict. Eslint is dev-only and
+# only used during `npm run build` here, so accepting the loose resolution
+# is safe for image build.
+RUN --mount=type=cache,target=/root/.npm npm ci --legacy-peer-deps
 
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -18,7 +22,7 @@ ENV NODE_ENV=production
 ENV PORT=4000
 RUN apk add --no-cache tini && addgroup -S app && adduser -S app -G app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --legacy-peer-deps
 COPY --from=build /app/dist ./dist
 USER app
 EXPOSE 4000
