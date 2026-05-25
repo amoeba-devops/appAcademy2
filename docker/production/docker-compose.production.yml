@@ -1,16 +1,15 @@
 # app-academy — Production stack
-# Host: production server (hostname/IP set out-of-band)
+# Host: appacademy@211.110.140.172 (acm.amoeba.site)
 # Usage:
 #   docker compose -f docker/production/docker-compose.production.yml \
 #                  --env-file docker/production/.env.production \
 #                  up -d
 #
-# This file mirrors docker/staging/ with prod-only differences:
-#   - container names prefixed `tac-prod-`
-#   - canonical host: app-academy.amoeba.site (no -stg suffix)
-#   - HSTS bumped to 1y in nginx (see nginx-production.conf)
-#   - data lives under /var/lib/app-academy/ by default
-
+# Mirrors docker/staging/docker-compose.staging.yml with prod-only differences:
+#   - container names prefixed `tac-prod-` / `acm-prod-`
+#   - canonical host: acm.amoeba.site
+#   - HSTS bumped to 1y in nginx (see nginx-acm.conf)
+#   - data lives under $DATA_DIR (default /home/appacademy/app-academy/data)
 services:
   mysql:
     image: mysql:8.0
@@ -28,7 +27,7 @@ services:
     ports:
       - "127.0.0.1:3306:3306"
     volumes:
-      - ${DATA_DIR:-/var/lib/app-academy}/mysql:/var/lib/mysql
+      - ${DATA_DIR:-./data}/mysql:/var/lib/mysql
       - ./mysql-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
@@ -36,6 +35,28 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+
+  postgres-acm:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres-acm
+    image: tac-postgres-acm:pg16-bigm
+    container_name: tac-prod-postgres-acm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${ACM_PG_DATABASE:-db_acm}
+      POSTGRES_USER: ${ACM_PG_USER:-acm}
+      POSTGRES_PASSWORD: ${ACM_PG_PASSWORD}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - ${DATA_DIR:-./data}/postgres-acm:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${ACM_PG_USER:-acm}", "-d", "${ACM_PG_DATABASE:-db_acm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   redis:
     image: redis:7-alpine
@@ -45,7 +66,7 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
-      - ${DATA_DIR:-/var/lib/app-academy}/redis:/data
+      - ${DATA_DIR:-./data}/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -54,12 +75,17 @@ services:
 
   backend:
     image: ${BACKEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/tac-backend:${DEPLOY_SHA:-production}}
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
     container_name: tac-prod-backend
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      postgres-acm:
         condition: service_healthy
     environment:
       NODE_ENV: production
@@ -72,36 +98,47 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}
-      AMA_OIDC_MODE: ${AMA_OIDC_MODE:-http}
-      AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER}
-      AMA_OIDC_CLIENT_ID: ${AMA_OIDC_CLIENT_ID}
-      AMA_OIDC_CLIENT_SECRET: ${AMA_OIDC_CLIENT_SECRET}
-      AMA_OIDC_REDIRECT_URI: ${AMA_OIDC_REDIRECT_URI:-https://app-academy.amoeba.site/api/auth/ama/callback}
-      AMA_WEBHOOK_SECRET: ${AMA_WEBHOOK_SECRET}
+      # ACM v1.0a — separate Postgres datasource (ACM_DS = 'acm-pg')
+      ACM_PG_HOST: postgres-acm
+      ACM_PG_PORT: 5432
+      ACM_PG_USER: ${ACM_PG_USER:-acm}
+      ACM_PG_PASSWORD: ${ACM_PG_PASSWORD}
+      ACM_PG_DATABASE: ${ACM_PG_DATABASE:-db_acm}
+      ACM_PII_KEY: ${ACM_PII_KEY:-}
+      ACM_JWT_SECRET: ${ACM_JWT_SECRET:-${JWT_SECRET}}
+      ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
+      # AMA Custom App SSO (HS256 JWT exchange) — ACM-AMA-SSO-REQ-1.0.0
+      AMA_JWT_SECRET: ${AMA_JWT_SECRET:-}
+      AMA_JWT_ALLOWED_APP_CODES: ${AMA_JWT_ALLOWED_APP_CODES:-tpi-acm}
+      # AMA App Store integration
+      AMA_OIDC_MODE: ${AMA_OIDC_MODE:-mock}
+      AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER:-}
+      AMA_OIDC_CLIENT_ID: ${AMA_OIDC_CLIENT_ID:-}
+      AMA_OIDC_CLIENT_SECRET: ${AMA_OIDC_CLIENT_SECRET:-}
+      AMA_OIDC_REDIRECT_URI: ${AMA_OIDC_REDIRECT_URI:-https://acm.amoeba.site/api/auth/ama/callback}
+      AMA_WEBHOOK_SECRET: ${AMA_WEBHOOK_SECRET:-}
       AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
-      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy.amoeba.site}
-      BACKEND_URL: ${BACKEND_URL:-https://app-academy.amoeba.site}
+      FRONTEND_URL: ${FRONTEND_URL:-https://acm.amoeba.site}
+      BACKEND_URL: ${BACKEND_URL:-https://acm.amoeba.site}
+      # ACM file uploads
       ACM_UPLOAD_DIR: /app/uploads
     volumes:
       - ${DATA_DIR:-./data}/acm-uploads:/app/uploads
     ports:
       - "127.0.0.1:4000:4000"
 
-  frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/tac-frontend:${DEPLOY_SHA:-production}}
-    container_name: tac-prod-frontend
+  # ACM v1.0a Vite SPA — primary frontend (frontend-acm/).
+  # The image's own nginx serves the SPA bundle + /api/* → backend:4000
+  # proxy (see frontend-acm/nginx.conf). Host nginx (acm.amoeba.site
+  # vhost) terminates TLS and proxies to 127.0.0.1:5174 → this container's :80.
+  frontend-acm:
+    image: ${ACM_FRONTEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/acm-frontend:${DEPLOY_SHA:-production}}
+    build:
+      context: ../../frontend-acm
+      dockerfile: Dockerfile
+    container_name: acm-prod-frontend
     restart: unless-stopped
     depends_on:
       - backend
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      API_PROXY_URL: http://backend:4000
-      BACKEND_URL: http://backend:4000
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://app-academy.amoeba.site}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://app-academy.amoeba.site}
-      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy.amoeba.site}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXT_PUBLIC_AMA_APPSTORE_URL: ${NEXT_PUBLIC_AMA_APPSTORE_URL:-https://amoeba.site/apps/app-academy}
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:5174:80"
