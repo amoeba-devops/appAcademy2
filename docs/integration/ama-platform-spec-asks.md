@@ -29,12 +29,10 @@ related:
 ## 2. Development Plan While Awaiting Response
 
 명세 확정 전이라도 다음 가정으로 mock 구현을 진행한다:
-- **인증**: OAuth 2.0 / OIDC (authorization code + PKCE)
+- **인증**: HS256 short-lived JWT injection (`?ama_token=<JWT>` 쿼리, 1h 만료, scope=`custom_app:context`) — A-2 resolved 2026-05-25 (OIDC 채택 거절)
 - **Webhook**: HTTPS POST + `X-AMA-Signature: HMAC-SHA256` + `X-AMA-Timestamp` + `X-AMA-Nonce` (P0-2 패턴 재사용)
 - **사용자 식별자**: `sub` claim = AMA user ID (string, 64자 이내)
-- **테넌트 식별자**: `ama_tenant_id` (string, 64자 이내)
-
-회신이 다른 형태로 오면 mock IdP만 교체하면 되도록 어댑터 인터페이스로 격리한다.
+- **테넌트 식별자**: `entityId` claim = AMA tenant UUID
 
 ---
 
@@ -43,7 +41,7 @@ related:
 | # | 항목 | 요청 내용 | Response |
 |---|---|---|---|
 | **A-1** | **앱 등록 카테고리·승인 절차** | "교육/학원관리" 카테고리 신규 등록 가능한가? 승인 SLA·심사 자료 체크리스트는? | _TBD_ |
-| **A-2** | **SSO 표준** | OIDC discovery URL, `client_id`/`client_secret` 발급 절차, scope 목록(`openid profile email tenant_membership`?), userinfo 응답 스키마 (`sub`, `name`, `email`, `phone`?, `tenant_memberships[]`?), 토큰 만료/리프레시 정책 | _TBD_ |
+| **A-2** | **SSO 표준** | ~~OIDC discovery URL, `client_id`/`client_secret` 발급 절차, scope 목록, userinfo 응답 스키마, 토큰 만료/리프레시 정책~~ | **Resolved 2026-05-25** — AMA 측 OIDC 미지원 확정. **HS256 short-lived JWT injection 채택** (`?ama_token=<JWT>` 쿼리 1h, scope=`custom_app:context`). [REQ-260525-app-academy-ama-jwt-단일화](../analysis/REQ-260525-app-academy-ama-jwt-단일화.md) 로 OIDC 코드·환경변수 정리 완료. |
 | **A-3** | **Subscription Webhook 명세** | 이벤트 타입 enum (`SUBSCRIPTION_CREATED` / `ACTIVATED` / `SUSPENDED` / `RESUMED` / `CANCELED` / `PLAN_CHANGED`?), payload 스키마, HMAC 알고리즘·서명 헤더명·timestamp tolerance(±5분?), nonce 길이/형식, 재시도 정책(at-least-once 횟수·간격), 실패 시 dead-letter 방식 | _TBD_ |
 | **A-4** | **Tenant ↔ User 멤버십 동기화** | (1) 사용자가 직접 직원 초대하는 모델인가, AMA가 멤버십을 관리하고 webhook으로 통보하는 모델인가? (2) 후자라면 `MEMBER_ADDED` / `MEMBER_REMOVED` / `ROLE_CHANGED` 이벤트 명세 필요 | _TBD_ |
 | **A-5** | **AMA 거래처(교사) 마스터 API** | 학원관리앱은 AMA 거래처를 교사 마스터로 동기화한다. 기존 AMA Client API의 endpoint, 인증 방식(앱 토큰? 사용자 위임?), rate limit, 변경 이벤트(webhook or polling) | _TBD_ |
@@ -65,16 +63,17 @@ related:
 ## 5. Mocked Behavior (개발 중 본 앱이 가정하는 동작)
 
 ```
-[ AMA OIDC mock ]
-  GET  /.well-known/openid-configuration  → mock 응답
-  GET  /authorize?...                      → 즉시 redirect with mock code
-  POST /token                              → mock id_token (sub=ama-user-001)
-  GET  /userinfo                           → { sub, name, email, picture }
+[ AMA HS256 JWT injection (정식 채택, A-2 resolved) ]
+  Frontend 진입: /login?ama_token=<JWT>&locale=en
+  Backend 검증: POST /api/acm/auth/ama-exchange  body={amaToken}
+  Payload claims: sub, email, role, entityId, appId, appCode, scope, iat, exp(1h)
+  검증 규칙: HS256 + scope=='custom_app:context' + appCode ∈ whitelist
 
-[ AMA Subscription Webhook mock ]
+[ AMA Subscription Webhook ]
   본 앱이 dev/test에서 직접 POST 호출 (curl) — 실제 AMA 호출 없음
-  Headers: X-AMA-Signature, X-AMA-Timestamp, X-AMA-Nonce
-  Body:    { event_type, ama_tenant_id, plan, ts, payload }
+  Endpoint: POST /webhooks/ama/subscription
+  Headers:  X-AMA-Signature, X-AMA-Timestamp, X-AMA-Nonce
+  Body:     { eventType, tenantId, plan, occurredAt, ... }
 ```
 
 ---

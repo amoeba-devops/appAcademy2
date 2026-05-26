@@ -11,10 +11,6 @@ import { AuthService } from './auth.service';
 import { ParentAuthController } from './parent-auth.controller';
 import { ParentAuthService } from './parent-auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { AmaAuthController, AmaOidcServiceRef } from './ama-auth.controller';
-import { AmaOidcStateStore } from './ama-oidc-state.store';
-import { AmaSsoUseCase } from '../../application/auth/ama-sso.use-case';
-import { AmaAuthModule } from '../../infrastructure/external/ama/auth/ama-auth.module';
 import { ActiveTenantGuard } from '../../common/guards/active-tenant.guard';
 
 @Module({
@@ -30,24 +26,14 @@ import { ActiveTenantGuard } from '../../common/guards/active-tenant.guard';
       }),
     }),
     TypeOrmModule.forFeature([UserEntity, ParentEntity, UserAcademyEntity]),
-    AmaAuthModule,
   ],
-  controllers: [AuthController, ParentAuthController, AmaAuthController],
-  providers: [
-    AuthService,
-    ParentAuthService,
-    JwtStrategy,
-    AmaSsoUseCase,
-    AmaOidcStateStore,
-    AmaOidcServiceRef,
-    ActiveTenantGuard,
-  ],
+  controllers: [AuthController, ParentAuthController],
+  providers: [AuthService, ParentAuthService, JwtStrategy, ActiveTenantGuard],
   exports: [
     AuthService,
     ParentAuthService,
     JwtModule,
     PassportModule,
-    AmaSsoUseCase,
     ActiveTenantGuard,
     TypeOrmModule,
   ],

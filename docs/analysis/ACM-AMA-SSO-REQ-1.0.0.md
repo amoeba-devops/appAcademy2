@@ -64,7 +64,7 @@ https://acm-stg.amoeba.site/login
 - **AMA 운영자가 이미 호출 중**: 현재는 `/login` 페이지가 `ama_token`을 무시 → 수동 로그인 필요 → 사용자 경험 깨짐.
 - **iframe 차단**: 현재 nginx 응답에 X-Frame-Options 미설정 → 브라우저 기본 정책에 따라 iframe 임베드 실패 가능.
 - **본 사이트는 AMA 커스텀앱 정체성 확정**: appCode `tpi-acm` 으로 등재된 상태이므로 AMA SSO만이 정상 진입 경로 (자체 로그인은 break-glass용 보조).
-- **`docs/integration/ama-platform-spec-asks.md` Spec Ask A-2의 회신 대안**: AMA가 OIDC 대신 short-lived HS256 JWT injection 방식을 채택한 것으로 해석.
+- **`docs/integration/ama-platform-spec-asks.md` Spec Ask A-2 Resolved (2026-05-25)**: AMA는 OIDC 미지원 확정. short-lived HS256 JWT injection 방식이 **정식 인증 경로**로 채택됨. 별도 OIDC mock 코드·환경변수(`AMA_OIDC_*`)는 [REQ-260525-app-academy-ama-jwt-단일화](./REQ-260525-app-academy-ama-jwt-단일화.md) 로 일괄 제거됨.
 
 ### 1.3 Goals & Non-goals (목표 / 비목표)
 
