@@ -27,7 +27,7 @@ S5 산출물 — AMA App Store 출시 전 staging에서 실행한다. 모든 시
 | A-4 | DB: `SELECT * FROM tac_pay_refund_policy_tiers WHERE rfp_id=<new>` | 정확히 4 row, `rpt_tier_order` 1..4, ratio min/max + refund rate 학원법 §18 일치 | ☐ |
 | A-5 | DB: `SELECT * FROM tac_subscription_events WHERE evt_nonce=<webhook nonce>` | 1 row, `evt_action='PROVISION'`, `evt_status='APPLIED'` | ☐ |
 | A-6 | 동일 webhook 재전송 (replay) | HTTP 200, body `{ deduped: true }`, DB 신규 row 없음 | ☐ |
-| A-7 | AMA SSO 콜백으로 신규 운영자 로그인 (`/api/auth/ama/callback?token=<jwt>&next=onboarding`) | `/admin/onboarding` 진입, step 1 표시 | ☐ |
+| A-7 | AMA Custom App SSO JWT 교환으로 신규 운영자 로그인 (`/login?ama_token=<HS256 JWT>` → `POST /api/acm/auth/ama-exchange`) | `/admin/onboarding` 진입, step 1 표시 | ☐ |
 | A-8 | Onboarding wizard 3단계 완료 (학원정보 → 운영시간 → 교사동기화 skip) | `/admin/dashboard` 리다이렉트, 학원명/슬러그가 헤더에 표시 | ☐ |
 
 ---

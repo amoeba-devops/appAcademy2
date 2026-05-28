@@ -107,15 +107,10 @@ services:
       ACM_PII_KEY: ${ACM_PII_KEY:-}
       ACM_JWT_SECRET: ${ACM_JWT_SECRET:-${JWT_SECRET}}
       ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
-      # AMA Custom App SSO (HS256 JWT exchange) — ACM-AMA-SSO-REQ-1.0.0
+      # AMA Custom App SSO (HS256 JWT passthrough) — REQ-260525-app-academy-ama-jwt-단일화
       AMA_JWT_SECRET: ${AMA_JWT_SECRET:-}
       AMA_JWT_ALLOWED_APP_CODES: ${AMA_JWT_ALLOWED_APP_CODES:-tpi-acm}
       # AMA App Store integration
-      AMA_OIDC_MODE: ${AMA_OIDC_MODE:-mock}
-      AMA_OIDC_ISSUER: ${AMA_OIDC_ISSUER:-}
-      AMA_OIDC_CLIENT_ID: ${AMA_OIDC_CLIENT_ID:-}
-      AMA_OIDC_CLIENT_SECRET: ${AMA_OIDC_CLIENT_SECRET:-}
-      AMA_OIDC_REDIRECT_URI: ${AMA_OIDC_REDIRECT_URI:-https://acm.amoeba.site/api/auth/ama/callback}
       AMA_WEBHOOK_SECRET: ${AMA_WEBHOOK_SECRET:-}
       AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
       FRONTEND_URL: ${FRONTEND_URL:-https://acm.amoeba.site}
