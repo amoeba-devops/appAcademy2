@@ -59,7 +59,7 @@ jobs:
       - name: Verify backend + frontend images present
         run: |
           set -e
-          for svc in tac-backend tac-frontend; do
+          for svc in tac-backend acm-frontend; do
             img="${{ steps.normalize.outputs.image_base }}/${svc}:${{ steps.normalize.outputs.sha_short }}"
             echo "checking $img"
             docker manifest inspect "$img" >/dev/null \
