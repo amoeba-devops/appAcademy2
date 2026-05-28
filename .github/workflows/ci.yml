@@ -30,7 +30,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Lint
         run: npx eslint 'src/**/*.ts'
@@ -97,7 +97,7 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Wait for MySQL
         run: |
@@ -146,7 +146,7 @@ jobs:
           cache: npm
           cache-dependency-path: frontend-acm/package-lock.json
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Lint
         run: npm run lint
