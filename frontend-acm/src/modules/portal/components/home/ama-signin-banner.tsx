@@ -24,7 +24,7 @@ export function AmaSignInBanner() {
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <a
-            href="/api/auth/ama/login"
+            href="/login"
             className="inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
           >
             <LogIn className="h-4 w-4" aria-hidden="true" />

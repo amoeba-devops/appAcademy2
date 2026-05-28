@@ -24,9 +24,9 @@ S5-6 산출물. AMA App Store 마켓 팀에 제출하는 등재 자료 마스터
 | **Category** | 교육 / 학원 운영 |
 | **Pricing Model** | 월 구독 (`basic` / `pro`) — 가격은 AMA 측 결정 |
 | **Tenant Domain Pattern** | `app-academy.amoeba.site` (단일 호스트, 학원별 멤버십) |
-| **Required Permissions** | AMA 사용자 프로필 (`openid email profile`), 교사 마스터 read |
+| **Required Permissions** | AMA 사용자 프로필 (email, name, role), 교사 마스터 read |
 | **Webhook Endpoint** | `POST https://app-academy.amoeba.site/api/webhooks/ama/subscription` |
-| **OIDC Redirect URI** | `https://app-academy.amoeba.site/api/auth/ama/callback` |
+| **SSO Token Exchange** | `POST https://app-academy.amoeba.site/api/acm/auth/ama-exchange` (HS256 JWT passthrough) |
 
 ---
 
@@ -102,5 +102,5 @@ A multi-tenant SaaS that digitizes day-to-day academy operations. Provision your
 - [ ] §5 스크린샷 5종 캡션 + 워터마크 (학원명 가린 demo 데이터)
 - [ ] §6 데모 계정 생성 + reviewer 권한이 OWNER가 아닌 ADMIN 이하
 - [ ] §8 ToS / Privacy / Subprocessors 본문 법무 검토 완료
-- [ ] AMA Ops 측 Webhook 시크릿 + OIDC client credential 발급 완료
+- [ ] AMA Ops 측 Webhook 시크릿 + Custom App SSO HS256 JWT 시크릿 발급 완료
 - [ ] [docs/test/UAT-CHECKLIST.md](../test/UAT-CHECKLIST.md) 전 항목 PASS

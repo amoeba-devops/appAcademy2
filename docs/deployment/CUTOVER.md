@@ -25,7 +25,7 @@ S5-7 산출물. UAT 전 항목 PASS 확인 후 production 첫 출시 또는 도�
 
 - [ ] DNS A 레코드 `app-academy.amoeba.site` → production host IP, **TTL 300** 으로 사전 설정
 - [ ] `*.amoeba.site` 와일드카드 인증서 만료일 확인 (60일 이상 남아야 함)
-- [ ] `docker/production/.env.production` 의 모든 시크릿이 production 값인지 확인 (`AMA_OIDC_MODE=http`, `_CLIENT_ID/SECRET` 실 값, `JWT_SECRET`/`NEXTAUTH_SECRET` 32+ chars)
+- [ ] `docker/production/.env.production` 의 모든 시크릿이 production 값인지 확인 (`AMA_JWT_SECRET` 16+ chars, `AMA_WEBHOOK_SECRET` 실 값, `JWT_SECRET`/`NEXTAUTH_SECRET` 32+ chars)
 - [ ] GitHub Settings → Environments → `production` 리뷰어 최소 2명 등록 확인
 - [ ] cron 설치 확인: `crontab -l | grep backup-db`
 
