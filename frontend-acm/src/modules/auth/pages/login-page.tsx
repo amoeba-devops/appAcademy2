@@ -8,7 +8,14 @@ import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
 import { SUPPORTED_LANGS, type SupportedLang } from '@/i18n';
+import { DebugContextPanel } from '@/components/common/debug-context-panel';
 import { exchangeAmaToken, login } from '../api/auth-api';
+
+// Capture entry-time referrer + query before React render or scrubUrl().
+const _initialReferrer =
+  typeof document !== 'undefined' ? document.referrer : '';
+const _initialQueryParams =
+  typeof window !== 'undefined' ? window.location.search : '';
 
 type AmaState =
   | { kind: 'idle' }
@@ -84,9 +91,16 @@ export function LoginPage() {
         let code = 'NETWORK';
         if (err instanceof AxiosError) {
           const body = err.response?.data as
-            | { code?: string; message?: string }
+            | {
+                error?: { code?: string; message?: string };
+                code?: string;
+                message?: string;
+              }
             | undefined;
-          code = body?.code ?? `HTTP_${err.response?.status ?? 'X'}`;
+          code =
+            body?.error?.code ??
+            body?.code ??
+            `HTTP_${err.response?.status ?? 'X'}`;
         }
         setAma({ kind: 'error', code });
       }
@@ -127,19 +141,26 @@ export function LoginPage() {
   // ── AMA SSO splash (exchanging) ────────────────────────────────────────────
   if (ama.kind === 'exchanging') {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-secondary">
-          <div
-            className="h-8 w-8 rounded-full border-2 border-accent-700 border-t-transparent animate-spin"
-            aria-hidden
-          />
-          <p className="text-sm">{t('ama.loading')}</p>
+      <>
+        <div className="min-h-screen bg-canvas flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-secondary">
+            <div
+              className="h-8 w-8 rounded-full border-2 border-accent-700 border-t-transparent animate-spin"
+              aria-hidden
+            />
+            <p className="text-sm">{t('ama.loading')}</p>
+          </div>
         </div>
-      </div>
+        <DebugContextPanel
+          initialReferrer={_initialReferrer}
+          initialQueryParams={_initialQueryParams}
+        />
+      </>
     );
   }
 
   return (
+    <>
     <div className="min-h-screen bg-canvas flex flex-col">
       <header className="h-header flex items-center justify-end px-6">
         <LanguageSwitcher />
@@ -208,5 +229,10 @@ export function LoginPage() {
         </div>
       </main>
     </div>
+    <DebugContextPanel
+      initialReferrer={_initialReferrer}
+      initialQueryParams={_initialQueryParams}
+    />
+    </>
   );
 }

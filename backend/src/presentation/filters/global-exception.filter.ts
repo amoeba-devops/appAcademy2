@@ -20,8 +20,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
-      message = typeof res === 'string' ? res : (res as { message: string }).message;
-      code = `HTTP_${status}`;
+      if (typeof res === 'string') {
+        message = res;
+        code = `HTTP_${status}`;
+      } else {
+        const obj = res as { code?: string; message?: string | string[] };
+        code = obj.code ?? `HTTP_${status}`;
+        message = obj.message ?? `HTTP_${status}`;
+      }
     }
 
     response.status(status).json({
