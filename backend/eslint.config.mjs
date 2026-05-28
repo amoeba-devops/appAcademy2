@@ -72,6 +72,8 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+      'no-useless-assignment': 'warn',
       'prettier/prettier': ['warn', { endOfLine: 'auto' }],
     },
   },
