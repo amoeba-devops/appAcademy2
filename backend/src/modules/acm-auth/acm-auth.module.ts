@@ -4,7 +4,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
+import { AcademyEntity } from '../../infrastructure/database/entities/academy.entity';
 import { AcmAuthService } from './application/acm-auth.service';
+import { AcademySubscriptionGuard } from './application/academy-subscription.guard';
 import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
 import { AcmAuthController } from './presentation/acm-auth.controller';
@@ -29,9 +31,19 @@ import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
       }),
     }),
     TypeOrmModule.forFeature([AcmUserTypeormEntity], ACM_DS),
+    // AcademyEntity lives on the default (MySQL) datasource — registered
+    // here so AcademySubscriptionGuard can verify tenant subscription
+    // status during AMA token exchange (REQ-260604 FR-1).
+    TypeOrmModule.forFeature([AcademyEntity]),
   ],
   controllers: [AcmAuthController],
-  providers: [AcmAuthService, AcmJwtStrategy, AcmJwtAuthGuard, AmaTokenVerifier],
+  providers: [
+    AcmAuthService,
+    AcademySubscriptionGuard,
+    AcmJwtStrategy,
+    AcmJwtAuthGuard,
+    AmaTokenVerifier,
+  ],
   exports: [AcmAuthService, AcmJwtAuthGuard],
 })
 export class AcmAuthModule {}

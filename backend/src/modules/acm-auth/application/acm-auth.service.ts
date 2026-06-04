@@ -17,6 +17,7 @@ import {
   type AmaTokenPayload,
 } from '../infrastructure/ama-token.verifier';
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
+import { AcademySubscriptionGuard } from './academy-subscription.guard';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -46,6 +47,7 @@ export class AcmAuthService {
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     private readonly jwtService: JwtService,
     private readonly amaVerifier: AmaTokenVerifier,
+    private readonly subscriptionGuard: AcademySubscriptionGuard,
   ) {}
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -225,6 +227,13 @@ export class AcmAuthService {
       }
       throw e;
     }
+
+    // REQ-260604 FR-1 — only ACTIVE / TRIALING tenants may log in. Throws
+    // HttpException(403, { code: NO_ACADEMY | SUBSCRIPTION_<status> }) on
+    // failure; the frontend maps the code to a tenant-status error card.
+    // Break-glass email/password login bypasses this by going through a
+    // different entry point (loginWithPassword) — that's intentional.
+    await this.subscriptionGuard.ensureActive(payload.entityId);
 
     const user = await this.upsertAmaUser(payload);
 
