@@ -7,6 +7,13 @@ const ACCEPTED_STATUSES = ['ACTIVE', 'TRIALING'] as const;
 type AcceptedStatus = (typeof ACCEPTED_STATUSES)[number];
 
 /**
+ * @deprecated Superseded by `SubscriptionCheckService` (REQ-260604 v2,
+ * commit replacing 6dfadc4). The new service does a live stg-apps check
+ * with this guard's cache-only logic as a fallback path. File kept for
+ * rollback; remove after 1 sprint of clean v2 operation.
+ *
+ * --- Original v1 docstring below ---
+ *
  * Verifies that an AMA tenant has an active app-academy subscription before
  * an AMA-sourced login is allowed to proceed.
  *

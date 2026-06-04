@@ -17,7 +17,7 @@ import {
   type AmaTokenPayload,
 } from '../infrastructure/ama-token.verifier';
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
-import { AcademySubscriptionGuard } from './academy-subscription.guard';
+import { SubscriptionCheckService } from './subscription-check.service';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -47,7 +47,7 @@ export class AcmAuthService {
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     private readonly jwtService: JwtService,
     private readonly amaVerifier: AmaTokenVerifier,
-    private readonly subscriptionGuard: AcademySubscriptionGuard,
+    private readonly subscriptionCheck: SubscriptionCheckService,
   ) {}
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -228,12 +228,21 @@ export class AcmAuthService {
       throw e;
     }
 
-    // REQ-260604 FR-1 — only ACTIVE / TRIALING tenants may log in. Throws
-    // HttpException(403, { code: NO_ACADEMY | SUBSCRIPTION_<status> }) on
-    // failure; the frontend maps the code to a tenant-status error card.
-    // Break-glass email/password login bypasses this by going through a
-    // different entry point (loginWithPassword) — that's intentional.
-    await this.subscriptionGuard.ensureActive(payload.entityId);
+    // REQ-260604 v2 FR-1 + FR-9 — live stg-apps check with 24h cache
+    // fallback. Throws HttpException(403, NO_ACADEMY/NO_SUBSCRIPTION/
+    // SUBSCRIPTION_<status>) on terminal failure or 503 AMA_UNAVAILABLE on
+    // stg-apps 5xx + stale cache. `degraded=true` means we passed via
+    // cache fallback; record it in the audit log but proceed with login.
+    // Break-glass email/password login bypasses this — it goes through
+    // loginWithPassword, not exchangeAmaToken (AC-4-1).
+    const subCheck = await this.subscriptionCheck.ensureActive(
+      payload.entityId,
+    );
+    if (subCheck.degraded) {
+      this.logger.warn(
+        `degraded login (live 5xx + cache hit) entId=${payload.entityId} sub=${payload.sub}`,
+      );
+    }
 
     const user = await this.upsertAmaUser(payload);
 
