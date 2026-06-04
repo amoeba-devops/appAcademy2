@@ -1,164 +1,111 @@
 ---
 document_id: PLN-260604-ama-tenant-auth-and-user-directory
-version: 1.0.0
+version: 2.0.0
 status: draft
 created: 2026-06-04
+updated_at: 2026-06-04
 authors:
   - gray.kim@amoeba.group
 related:
-  - docs/analysis/REQ-260604-ama-tenant-auth-and-user-directory.md
+  - docs/analysis/REQ-260604-ama-tenant-auth-and-user-directory.md (v2.0.0)
+change_log:
+  - 2026-06-04 — v1.0.0 — 초안 (단일 service 가정)
+  - 2026-06-04 — v2.0.0 — REQ v2 반영: 2 service (stg-apps + ama platform), live 3-step 가드, mock-first 6 신규 env, T1 v1 (commit 6dfadc4) 를 보조 fallback 으로 흡수
 ---
 
-# 작업 계획서 — AMA 테넌트 인증 + 사용자 디렉터리 (PLN-260604)
+# 작업 계획서 v2 — AMA 테넌트 인증 + 사용자 디렉터리
 
-> [REQ-260604](../analysis/REQ-260604-ama-tenant-auth-and-user-directory.md) 의 FR-1 ~ FR-6 을 3 트랙 (T1 구독체크 / T2 디렉터리 / T3-4 UI 통합) 으로 분해.
-
----
-
-## 1. 개요
-
-```
-Track T1   Subscription Guard            ~ 1.5h   BE
-T1-01  AcademySubscriptionGuard 서비스      0.5h
-T1-02  exchangeAmaToken 에 가드 삽입        0.3h
-T1-03  i18n 에러 메시지 (4 locale)          0.2h
-T1-04  Login page 에러 UX                   0.3h
-T1-05  단위 테스트 + smoke                  0.2h
-
-Track T2   AMA Directory Client          ~ 2.5h   BE
-T2-01  ama-user-directory module/scaffold  0.3h
-T2-02  AmaDirectoryHttpClient (mock-first) 0.6h
-T2-03  AmaUserDirectoryService + LRU cache 0.5h
-T2-04  GET /api/acm/ama/users 컨트롤러     0.4h
-T2-05  AmaTokenVerifier 통합 (인증)         0.3h
-T2-06  단위/E2E 테스트                     0.4h
-
-Track T3   Frontend Picker 공통 컴포넌트  ~ 1.5h   FE
-T3-01  ama-user-picker.tsx 컴포넌트         0.6h
-T3-02  ama-user-api.ts (frontend client)   0.2h
-T3-03  i18n key 12개 × 4 locale            0.4h
-T3-04  UX: skeleton/empty/error            0.3h
-
-Track T4   Teacher/Staff Form 통합        ~ 1h     FE
-T4-01  TchFormModal 에 Picker 통합          0.3h
-T4-02  StfFormModal 에 Picker 통합          0.3h
-T4-03  POST 본문에 amaUserId 전달           0.2h
-T4-04  smoke + visual                      0.2h
-
-Track T5   AMA 팀 계약 + 실연동           외부 의존
-T5-01  AMA 디렉터리 API 계약 협의 (URL/auth/shape)
-T5-02  AMA_SERVICE_TOKEN 발급
-T5-03  mock → real client 전환
-T5-04  staging 통합 테스트
-```
-
-**합계**: 핵심 ≈ 6.5h (T1+T2+T3+T4 mock-first 기준), AMA 합의 후 T5 ≈ 추가 1h.
+> [REQ-260604 v2](../analysis/REQ-260604-ama-tenant-auth-and-user-directory.md) 의 9 FR 을 6 트랙으로 분해. T1 v1 (구독 로컬 캐시 가드, 이미 배포 `6dfadc4`) 은 v2 에서 **보조 fallback** 으로 흡수.
 
 ---
 
-## 2. UI 목업
-
-### 2.1 로그인 차단 화면 (T1-04)
+## 1. 트랙 개요
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                                                                │
-│                      ACM admin login                           │
-│                                                                │
-│         ⚠️  구독이 일시정지되었습니다                            │
-│                                                                │
-│   결제 정보를 확인하거나 AMA App Store 관리자에게 문의해 주세요. │
-│                                                                │
-│   [   AMA App Store 열기  →   ]   [  break-glass 로그인  ]      │
-│                                                                │
-│   상태: SUSPENDED  ·  Entity: tpi-...4f8a                      │
-│   마지막 활성: 2026-05-28 02:14 KST                            │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
+T1 (v1, DONE @ 6dfadc4)  로컬 캐시 구독 가드          [흡수 — 보조 fallback]
+                          academy-subscription.guard.ts
+                          + 4 locale i18n
+                          + 8 unit test
+
+Track T2   stg-apps Subscription Client      ~ 2h    BE
+T2-01  StgAppsSubscriptionClient (interface + DTO)        0.3h
+T2-02  Mock client (5 status fixture)                     0.4h
+T2-03  Http client (Bearer / HMAC) + retry/timeout        0.5h
+T2-04  SubscriptionCheckService — live + cache fallback   0.4h
+T2-05  단위 테스트 (3 모드: live OK / live 5xx + cache / live 5xx + stale) 0.4h
+
+Track T3   ama Platform Membership Guard    ~ 1.5h   BE
+T3-01  AmaPlatformClient — assertMember(entityId, userId) 0.4h
+T3-02  Mock + Http impl                                   0.4h
+T3-03  UserMembershipGuard + integration in exchangeAmaToken 0.3h
+T3-04  단위 테스트                                        0.4h
+
+Track T4   ama Platform Directory + LRU      ~ 2h    BE
+T4-01  AmaPlatformClient.searchUsers(...)                 0.4h
+T4-02  AmaUserDirectoryService + LRU 60s                  0.5h
+T4-03  GET /api/acm/ama/users controller                  0.4h
+T4-04  화이트리스트 강제 (OWNER 제외 서버측)              0.2h
+T4-05  단위 + E2E 테스트                                  0.5h
+
+Track T5   Frontend Picker + Modal 통합     ~ 1.5h   FE
+T5-01  AmaUserPicker 공통 컴포넌트                        0.5h
+T5-02  ama-user-api.ts                                    0.2h
+T5-03  Tch/Stf modal 통합                                 0.4h
+T5-04  i18n 4 locale × 12 키                              0.2h
+T5-05  Login page 신규 에러 코드 (3종)                    0.2h
+
+Track T6   AMA 팀 계약 + 실연동             외부 의존
+T6-01  endpoint 3종 + 인증 방식 협의
+T6-02  AMA_APPSTORE_SERVICE_TOKEN + AMA_PLATFORM_SERVICE_TOKEN 발급
+T6-03  mock → http 전환 (AMA_SERVICES_MODE=http)
+T6-04  staging 통합 + production 배포
 ```
 
-**텍스트 매트릭스** (i18n keys `auth.subscription.*`):
+**합계** (T2 ~ T5 mock-first): ≈ **7h**. T6 은 외부 의존.
 
-| 상태 | line1 | line2 |
-|------|-------|-------|
-| SUSPENDED | 구독이 일시정지되었습니다 | 결제 정보를 확인해 주세요 |
-| CANCELED | 구독이 취소되었습니다 | AMA App Store 에서 재구독 가능합니다 |
-| DEPROVISIONED | 이 테넌트의 데이터가 회수되었습니다 | 새로 구독 시 데이터는 복구되지 않습니다 |
-| NO_ACADEMY | 등록되지 않은 테넌트입니다 | AMA App Store 에서 app-academy 를 활성화하세요 |
+---
 
-### 2.2 AMA User Picker (T3-01)
+## 2. UI 목업 (v2 변경 부분만)
 
-**검색 시작 전 (empty state)**:
+### 2.1 로그인 차단 — 신규 에러 코드 (T5-05)
+
 ```
-┌── 교사 추가 ─────────────────────────────────────────────┐
-│                                                          │
-│  AMA 사용자 *                                            │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 🔍 이름 또는 이메일로 검색…                         │  │
-│  └────────────────────────────────────────────────────┘  │
-│  └→ AMA App Store 에 등록된 법인 구성원만 검색됩니다     │
-│                                                          │
-│  이메일                                                  │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ (사용자 선택 후 자동 입력)            [disabled]    │  │
-│  └────────────────────────────────────────────────────┘  │
-│                                                          │
-│  과목          [국어 ▾]                                  │
-│  연락처        [____________]                            │
-│  근무형태      [정규직 ▾]                                │
-│                                                          │
-│         [  취소  ]              [  추가  ] (disabled)    │
-└──────────────────────────────────────────────────────────┘
-```
+v1 (기존):
+  SUBSCRIPTION_SUSPENDED / CANCELED / DEPROVISIONED / NO_ACADEMY
 
-**검색 중 (loading)**:
-```
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 🔍 김  ⟳                                            │  │
-│  └────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │  ░░░░░░░░░  ░░░░░░░     [skeleton]                  │  │
-│  │  ░░░░░░░░░  ░░░░░░░                                 │  │
-│  └────────────────────────────────────────────────────┘  │
+v2 (추가):
+  NO_SUBSCRIPTION       — stg-apps 응답 NOT_SUBSCRIBED 또는 404
+  USER_NOT_IN_ENTITY    — ama 멤버십 404
+  AMA_UNAVAILABLE       — stg-apps 또는 ama 5xx/timeout + 로컬 캐시 stale
+
+화면 예 (USER_NOT_IN_ENTITY):
+┌───────────────────────────────────────────────────────────────┐
+│                                                               │
+│                    ACM admin login                            │
+│                                                               │
+│       ⚠️  이 entity 의 구성원이 아닙니다                       │
+│                                                               │
+│   로그인하시려는 사용자가 해당 법인 (entity_id: tpi-…4f8a)     │
+│   에 등록되지 않았습니다. AMA 관리자에게 권한 추가를 요청해    │
+│   주세요.                                                     │
+│                                                               │
+│   [   AMA 관리자에게 요청  ↗  ]   [  break-glass 로그인  ]    │
+└───────────────────────────────────────────────────────────────┘
+
+화면 예 (AMA_UNAVAILABLE — degraded):
+┌───────────────────────────────────────────────────────────────┐
+│  ⚠️  AMA 서비스에 일시적으로 연결할 수 없습니다                │
+│                                                               │
+│  자동 재시도 중… 잠시 후 다시 시도해 주세요.                   │
+│  ↻ 30초 후 자동 새로고침                                       │
+└───────────────────────────────────────────────────────────────┘
 ```
 
-**결과 리스트**:
-```
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 🔍 김                                              ✕│  │
-│  └────────────────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 👤 김교사    kim.teach@tpi.kr        [MANAGER]      │  │
-│  │ 👤 김민지    minji@tpi.kr            [MEMBER]       │  │
-│  │ 👤 김주영    jy.kim@tpi.kr           [VIEWER]       │  │
-│  │ — 더보기 (3 of 8)                                   │  │
-│  └────────────────────────────────────────────────────┘  │
-```
+### 2.2 Tch/Stf 추가 모달 (v1 과 동일 — REQ v1 § 2.2 참조)
 
-**선택 후**:
-```
-│  AMA 사용자 *  ✓ 김교사 (MANAGER)                        │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 김교사 · kim.teach@tpi.kr                       [✕]│  │
-│  └────────────────────────────────────────────────────┘  │
-│  이메일                                                  │
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ kim.teach@tpi.kr                       [auto-fill]│  │
-│  └────────────────────────────────────────────────────┘  │
-```
+목업은 REQ v1 § 2.2 그대로 (검색 → 결과 → 선택 → 자동 채움). 단 결과 행 우측 level 뱃지는 ama 응답의 실제 level 표시 (MANAGER/MEMBER/VIEWER).
 
-**에러 / fallback**:
-```
-│  ┌────────────────────────────────────────────────────┐  │
-│  │ 🔍 …                                                │  │
-│  └────────────────────────────────────────────────────┘  │
-│  ⚠️ 디렉터리 검색을 사용할 수 없습니다 — 수동 입력          │
-│                                                          │
-│  이름 *        [____________]    (수동 입력 모드)         │
-│  이메일 *      [____________]                            │
-```
-
-### 2.3 흐름도
+### 2.3 흐름도 (v2 — 3-step gate)
 
 ```
 [Login flow]
@@ -167,315 +114,320 @@ T5-04  staging 통합 테스트
   ▼
  POST /api/acm/auth/ama-exchange { amaToken }
   │
-  ├─ AmaTokenVerifier  (FR-1, 기존)
-  │    ✗ invalid → 401/403
+  ├─ [Step 1] AmaTokenVerifier  (기존)
+  │    ✗ invalid                  → 401/403 AMA_TOKEN_*
   │
-  ├─ SubscriptionGuard (FR-1, NEW)
-  │    ✗ no academy / not ACTIVE → 403 SUBSCRIPTION_*
+  ├─ [Step 2] SubscriptionCheckService.check(entityId)
+  │    ┌─ stg-apps live 호출 (3s timeout)
+  │    │   200 ACTIVE/TRIALING    → 통과 + 로컬 캐시 갱신
+  │    │   200 SUSPENDED 등        → 403 SUBSCRIPTION_<status>
+  │    │   200 NOT_SUBSCRIBED|404  → 403 NO_SUBSCRIPTION
+  │    │   5xx/timeout             → 로컬 캐시 fallback
+  │    │                              age ≤ 24h + ACTIVE → 통과 (degraded)
+  │    │                              그 외              → 503 AMA_UNAVAILABLE
+  │
+  ├─ [Step 3] UserMembershipGuard.assert(entityId, userId)
+  │    ┌─ ama platform live 호출 (3s timeout)
+  │    │   200                     → 통과
+  │    │   404                     → 403 USER_NOT_IN_ENTITY
+  │    │   5xx/timeout             → 503 AMA_UNAVAILABLE (fail-closed)
   │
   ├─ upsertAmaUser
   │
-  └─ signJwt + return ACM token  → /admin/dashboard
-
-
-[Teacher add flow]
- /admin/tch ──► "교사 추가" 클릭
-  │
-  ▼
- <TchFormModal>
-   <AmaUserPicker  // T3-01
-      onSelect={(amaUser) => setFields({name, email, amaUserId})}
-      levels={['MANAGER','MEMBER','VIEWER']}
-      placeholder="이름 또는 이메일로 검색"
-   />
-   ... 나머지 필드 ...
-  │  (300ms debounce 후)
-  ▼
- GET /api/acm/ama/users?level=MANAGER,MEMBER,VIEWER&q=김
-   ↓
- Backend: AmaUserDirectoryService.search(entId, q, levels)
-   ↓ LRU cache miss
- AMA HTTP client → AMA stg-apps API
-   ↓
- [{ amaUserId, name, email, level }, ...] (max 10)
-   ↓ 60s cache write
- Frontend: 리스트 렌더 → 선택 → 폼 자동 채움
-   ↓
- POST /api/acm/tch/teachers { tchName, tchEmail, tchAmaUserId, ... }
+  └─ signJwt + return ACM token   → /admin/dashboard
 ```
 
 ---
 
-## 3. Task 상세
+## 3. Task 상세 (v2)
 
-### T1-01 — AcademySubscriptionGuard 서비스
-**파일**: `backend/src/modules/acm-auth/application/academy-subscription.guard.ts` (NEW)
+### T2-01 — StgAppsSubscriptionClient interface
+**파일**: `backend/src/modules/acm-auth/infrastructure/stg-apps-subscription.client.ts` (NEW)
+
+```ts
+export type SubscriptionStatus =
+  | 'ACTIVE' | 'TRIALING'
+  | 'SUSPENDED' | 'CANCELED' | 'DEPROVISIONED'
+  | 'NOT_SUBSCRIBED';
+
+export interface SubscriptionInfo {
+  status: SubscriptionStatus;
+  plan?: string | null;
+  expiresAt?: string | null;
+}
+
+export interface IStgAppsSubscriptionClient {
+  /**
+   * @returns SubscriptionInfo on 200, null on 404 (NOT_SUBSCRIBED proxy).
+   * @throws AmaServiceUnavailableException on 5xx/timeout (caller decides fallback).
+   */
+  checkSubscription(entityId: string, appCode: string): Promise<SubscriptionInfo | null>;
+}
+
+export const STG_APPS_SUBSCRIPTION_CLIENT = Symbol('STG_APPS_SUBSCRIPTION_CLIENT');
+```
+
+### T2-04 — SubscriptionCheckService (live + cache fallback)
+
+**파일**: `backend/src/modules/acm-auth/application/subscription-check.service.ts` (NEW — T1 의 `academy-subscription.guard.ts` 를 흡수)
 
 ```ts
 @Injectable()
-export class AcademySubscriptionGuard {
+export class SubscriptionCheckService {
+  private readonly logger = new Logger(SubscriptionCheckService.name);
+  private readonly cacheTtlMs = 24 * 60 * 60 * 1000;  // 24h
+
   constructor(
-    @InjectRepository(AcademyEntity) private repo: Repository<AcademyEntity>,
+    @InjectRepository(AcademyEntity) private readonly academyRepo: Repository<AcademyEntity>,
+    @Inject(STG_APPS_SUBSCRIPTION_CLIENT) private readonly client: IStgAppsSubscriptionClient,
   ) {}
 
-  async ensureActive(amaEntityId: string): Promise<void> {
-    const academy = await this.repo.findOne({
-      where: { acdAmaTenantId: amaEntityId },
-    });
-    if (!academy) {
-      throw new HttpException(
-        { code: 'NO_ACADEMY', message: 'Tenant not provisioned' },
-        HttpStatus.FORBIDDEN,
-      );
+  async ensureActive(amaEntityId: string): Promise<{ degraded: boolean }> {
+    // 1. live first
+    try {
+      const info = await this.client.checkSubscription(amaEntityId, 'tpi-acm');
+      if (!info || info.status === 'NOT_SUBSCRIBED') {
+        throw this.deny('NO_SUBSCRIPTION', amaEntityId);
+      }
+      if (!['ACTIVE', 'TRIALING'].includes(info.status)) {
+        throw this.deny(`SUBSCRIPTION_${info.status}`, amaEntityId, info.status);
+      }
+      await this.refreshCache(amaEntityId, info);
+      return { degraded: false };
+    } catch (e) {
+      if (e instanceof HttpException) throw e;  // explicit deny
+      // 2. live 5xx/timeout → cache fallback
+      return await this.cacheFallback(amaEntityId);
     }
-    const status = academy.acdSubscriptionStatus;
-    if (!['ACTIVE', 'TRIALING'].includes(status)) {
-      throw new HttpException(
-        {
-          code: `SUBSCRIPTION_${status}`,
-          message: `Subscription is ${status}`,
-          data: { entityId: amaEntityId, status },
-        },
-        HttpStatus.FORBIDDEN,
-      );
+  }
+
+  private async cacheFallback(amaEntityId: string): Promise<{ degraded: true }> {
+    const academy = await this.academyRepo.findOne({ where: { acdAmaTenantId: amaEntityId } });
+    if (!academy) throw this.deny('NO_ACADEMY', amaEntityId);
+    const age = Date.now() - new Date(academy.acdUpdatedAt).getTime();
+    if (age > this.cacheTtlMs) {
+      this.logger.warn(`live 실패 + cache stale (${Math.round(age / 3600_000)}h) entId=${amaEntityId}`);
+      throw this.deny('AMA_UNAVAILABLE', amaEntityId);
     }
+    if (!['ACTIVE', 'TRIALING'].includes(academy.acdSubscriptionStatus)) {
+      throw this.deny(`SUBSCRIPTION_${academy.acdSubscriptionStatus}`, amaEntityId);
+    }
+    this.logger.warn(`degraded mode (live 5xx + cache hit) entId=${amaEntityId}`);
+    return { degraded: true };
+  }
+
+  private async refreshCache(amaEntityId: string, info: SubscriptionInfo): Promise<void> {
+    await this.academyRepo.update(
+      { acdAmaTenantId: amaEntityId },
+      { acdSubscriptionStatus: info.status, acdSubscriptionPlan: info.plan ?? null },
+    );
+  }
+
+  private deny(code: string, entityId: string, status?: string): HttpException {
+    this.logger.warn(`subscription denied entId=${entityId} code=${code}`);
+    return new HttpException(
+      { code, message: code, data: { entityId, status } },
+      code === 'AMA_UNAVAILABLE' ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.FORBIDDEN,
+    );
   }
 }
 ```
 
-### T1-02 — exchangeAmaToken 통합
-**파일**: `backend/src/modules/acm-auth/application/acm-auth.service.ts:202` (MOD)
+→ 기존 `AcademySubscriptionGuard` 는 deprecated 처리 (파일은 보존하되 import 0) 또는 `cacheFallback()` 으로 흡수.
+
+### T3-01 — AmaPlatformClient
+
+**파일**: `backend/src/modules/acm-auth/infrastructure/ama-platform.client.ts` (NEW)
+
+```ts
+export interface AmaPlatformUser {
+  userId: string;
+  entityId: string;
+  level: 'OWNER' | 'MANAGER' | 'MEMBER' | 'VIEWER';
+  name: string;
+  email: string;
+}
+
+export interface IAmaPlatformClient {
+  assertMember(entityId: string, userId: string): Promise<AmaPlatformUser | null>;
+  searchUsers(entityId: string, q: string, levels: string[], limit: number): Promise<AmaPlatformUser[]>;
+}
+
+export const AMA_PLATFORM_CLIENT = Symbol('AMA_PLATFORM_CLIENT');
+```
+
+### T3-03 — exchangeAmaToken 3-step 통합
+
+**파일**: `backend/src/modules/acm-auth/application/acm-auth.service.ts` (MOD)
 
 ```diff
-   async exchangeAmaToken(amaToken: string): Promise<AcmLoginResponse> {
-     // ...
-     payload = this.amaVerifier.verify(amaToken);
-+    await this.subscriptionGuard.ensureActive(payload.entityId);
-     const user = await this.upsertAmaUser(payload);
+   payload = this.amaVerifier.verify(amaToken);
+-  await this.subscriptionGuard.ensureActive(payload.entityId);
++  // Step 2 (FR-1) — live 구독 확인, fallback to cache (FR-9)
++  const subCheck = await this.subscriptionCheck.ensureActive(payload.entityId);
++  // Step 3 (FR-2) — entity 멤버십 확인 (live, fail-closed)
++  const member = await this.platformClient.assertMember(payload.entityId, payload.sub);
++  if (!member) {
++    throw new HttpException({ code: 'USER_NOT_IN_ENTITY' }, HttpStatus.FORBIDDEN);
++  }
++  if (subCheck.degraded) {
++    this.logger.warn(`login in degraded mode entId=${payload.entityId} userId=${payload.sub}`);
++  }
+   const user = await this.upsertAmaUser(payload);
 ```
 
-### T1-04 — Login page 에러 UX
-**파일**: `frontend-acm/src/modules/auth/pages/login-page.tsx`
+### T4-04 — 화이트리스트 강제 (서버측 OWNER 제외)
 
-`exchangeAmaToken()` catch 분기에서 error.code 가 `SUBSCRIPTION_*` 또는 `NO_ACADEMY` 면 전용 카드 렌더 (기본 break-glass 폼 위에 stack).
+**파일**: `backend/src/modules/acm-auth/application/ama-user-directory.service.ts`
 
-### T2-01..T2-05 — AMA Directory Module
-**파일**:
-```
-backend/src/modules/acm-auth/ama-directory/
-├── ama-directory.module.ts                  [NEW]
-├── ama-directory.types.ts                   [NEW]  AmaDirectoryUser, etc
-├── infrastructure/
-│   ├── ama-directory-http.client.ts         [NEW]  HTTP client
-│   └── ama-directory-mock.client.ts         [NEW]  fixture for dev (T5 전)
-├── application/
-│   └── ama-user-directory.service.ts        [NEW]  search() + LRU
-└── presentation/
-    └── ama-user.controller.ts                [NEW]  GET /api/acm/ama/users
-```
-
-**Controller skeleton**:
 ```ts
-@Controller('acm/ama/users')
-@UseGuards(AcmJwtGuard, OwnEntityGuard)
-export class AmaUserController {
-  constructor(private dir: AmaUserDirectoryService) {}
+const ALLOWED_LEVELS = ['MANAGER', 'MEMBER', 'VIEWER'] as const;
 
-  @Get()
-  async search(
-    @CurrentAcmUser() u: AcmUserCtx,
-    @Query('level') levelCsv: string,
-    @Query('q') q: string,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<AmaDirectoryUser[]> {
-    const levels = (levelCsv ?? '')
-      .split(',')
-      .map((s) => s.trim().toUpperCase())
-      .filter((s) => ['MANAGER', 'MEMBER', 'VIEWER'].includes(s));
-    if (!levels.length) levels.push('MANAGER', 'MEMBER', 'VIEWER');
-    return this.dir.search(u.amaEntityId, { q, levels, limit });
-  }
+async search(entityId: string, opts: SearchOpts): Promise<AmaPlatformUser[]> {
+  // 클라이언트가 level 강제로 OWNER 넣어도 무시
+  const safeLevels = (opts.levels ?? []).filter((l) => ALLOWED_LEVELS.includes(l as any));
+  if (!safeLevels.length) safeLevels.push(...ALLOWED_LEVELS);
+  // ... 캐시 + ama call ...
+  const result = await this.client.searchUsers(entityId, opts.q ?? '', safeLevels, opts.limit ?? 10);
+  // 응답에도 다시 강제 (방어적 코딩)
+  return result.filter((u) => ALLOWED_LEVELS.includes(u.level as any));
 }
 ```
 
-**Service (LRU cache)**:
-```ts
-@Injectable()
-export class AmaUserDirectoryService {
-  private cache = new LRUCache<string, AmaDirectoryUser[]>({ max: 1000, ttl: 60_000 });
-  constructor(private http: AmaDirectoryHttpClient) {}
-  async search(amaEntityId: string, opts: SearchOpts): Promise<AmaDirectoryUser[]> {
-    const key = `${amaEntityId}|${opts.levels.sort().join(',')}|${opts.q ?? ''}|${opts.limit}`;
-    const hit = this.cache.get(key);
-    if (hit) return hit;
-    const result = await this.http.searchUsers(amaEntityId, opts);
-    this.cache.set(key, result);
-    return result;
-  }
-}
-```
-
-**Mock client (T5 전)**:
-```ts
-@Injectable()
-export class AmaDirectoryMockClient implements AmaDirectoryHttpClient {
-  async searchUsers(entId: string, { q, levels, limit }: SearchOpts) {
-    const fixture: AmaDirectoryUser[] = [
-      { amaUserId: 'ama-1', name: '김교사', email: 'kim.teach@tpi.kr', level: 'MANAGER' },
-      { amaUserId: 'ama-2', name: '이민지', email: 'minji@tpi.kr', level: 'MEMBER' },
-      { amaUserId: 'ama-3', name: '박조회', email: 'view@tpi.kr', level: 'VIEWER' },
-      { amaUserId: 'ama-4', name: 'Chris', email: 'chris@tpi.kr', level: 'OWNER' },
-    ];
-    return fixture
-      .filter((u) => levels.includes(u.level))
-      .filter((u) => !q || u.name.includes(q) || u.email.includes(q))
-      .slice(0, limit);
-  }
-}
-```
-
-### T3-01 — AmaUserPicker 컴포넌트
-**파일**: `frontend-acm/src/modules/common/components/ama-user-picker.tsx` (NEW)
-
-Props:
-```ts
-interface Props {
-  value?: AmaDirectoryUser | null;
-  onChange: (user: AmaDirectoryUser | null) => void;
-  levels?: Array<'MANAGER' | 'MEMBER' | 'VIEWER'>;
-  required?: boolean;
-  label?: string;
-}
-```
-
-UX:
-- 300ms debounce (`useDebouncedValue`)
-- 빈 검색어 → 결과 없음 (안내문만)
-- 검색 중 → skeleton
-- 결과 ≤ 10 → 리스트 (이름/이메일/level 뱃지)
-- 에러 → `<button>수동 입력 모드</button>` 노출 → onChange(null) 후 부모 form 이 manual fields 전환
-
-### T4-01/02 — TchFormModal / StfFormModal 통합
-
-`tchName` / `stfName` + `tchEmail` / `stfEmail` 필드를 AmaUserPicker 로 대체. Picker 결과의 `amaUserId` 를 form state 에 보관, POST payload 에 `tchAmaUserId` / `stfAmaUserId` 로 전달. (스키마 변경 없이 nullable 새 컬럼 추가는 별건)
-
-### T1-05 / T2-06 — 테스트
-
-- `academy-subscription.guard.spec.ts` — ACTIVE/SUSPENDED/CANCELED/missing 각 케이스
-- `ama-user-directory.service.spec.ts` — cache hit/miss, level filter, OWNER 제외
-- `ama-user.controller.e2e-spec.ts` — entId 격리, levels query parsing
-- frontend smoke: `/admin/tch` → 모달 → 검색 + 선택 → POST 페이로드 확인
+### T5 — Frontend (REQ v1 § 2.2 와 동일)
+- AmaUserPicker (300ms debounce, skeleton/empty/error)
+- ama-user-api.ts
+- Tch/Stf modal 통합
+- i18n 신규 키 3종 추가 (`ama.errors.NO_SUBSCRIPTION` / `USER_NOT_IN_ENTITY` / `AMA_UNAVAILABLE`)
 
 ---
 
-## 4. 일정 (단일 개발자, AMA 합의 전 mock 우선)
+## 4. 일정 (단일 개발자, mock-first)
 
 ```
-Day 1 (오후 3h)
-  13:00 ~ 13:30  T1-01 SubscriptionGuard
-  13:30 ~ 13:50  T1-02 통합
-  13:50 ~ 14:10  T1-03 i18n
-  14:10 ~ 14:30  T1-04 Login UX
-  14:30 ~ 14:50  T1-05 테스트
-  14:50 ~ 15:30  T2-01..02 module + mock client
-  15:30 ~ 16:00  T2-03..05 service + controller
+Day 1 (오후 4h)
+  13:00 ~ 13:30  T2-01/02 stg-apps client interface + mock
+  13:30 ~ 14:00  T2-03    Http client
+  14:00 ~ 14:30  T2-04    SubscriptionCheckService 통합
+  14:30 ~ 15:00  T2-05    단위 테스트
+  15:00 ~ 15:30  T3-01/02 AmaPlatformClient interface + mock + http
+  15:30 ~ 16:00  T3-03/04 Membership guard + integration + tests
 
-Day 2 (오전 4h)
-  09:00 ~ 09:30  T2-06 backend tests
-  09:30 ~ 10:00  T3-01 AmaUserPicker
-  10:00 ~ 10:30  T3-02..04 client + i18n + UX
-  10:30 ~ 11:00  T4-01/02 Tch/Stf modal 통합
-  11:00 ~ 11:30  T4-03 POST payload
-  11:30 ~ 12:00  T4-04 smoke + visual + RPT
-
-(이후) T5: AMA 팀 합의 후 1차 fix-up (mock → real client 전환만)
+Day 2 (오전 3h)
+  09:00 ~ 09:30  T4-01    searchUsers 추가
+  09:30 ~ 10:00  T4-02/03 Directory service + controller
+  10:00 ~ 10:15  T4-04    화이트리스트 강제
+  10:15 ~ 10:45  T4-05    테스트
+  10:45 ~ 11:15  T5-01/02 AmaUserPicker + client
+  11:15 ~ 11:45  T5-03/04 Modal 통합 + i18n
+  11:45 ~ 12:00  T5-05    Login 에러 코드 + smoke
 ```
+
+→ ≈ **7h** (Day 1 + Day 2 오전). T6 은 외부.
 
 ---
 
-## 5. 환경 변수
+## 5. 환경 변수 (신규 6 + 기존)
 
-신규 (모두 production `.env.production` 에 추가 필요):
+`.env.production` (서버에 직접 적용, repo 의 `.env.production.example` 도 갱신):
 
 ```bash
-# AMA Directory API
-AMA_DIRECTORY_BASE_URL=https://stg-apps.amoeba.site
-AMA_DIRECTORY_USE_MOCK=true                    # T5 전: true, T5 후: false
-AMA_SERVICE_TOKEN=                              # AMA 팀 발급 후 채움
+# === REQ-260604 v2 신규 ===
+# AMA App Store (구독 서비스)
+AMA_APPSTORE_BASE_URL=https://stg-apps.amoeba.site
+AMA_APPSTORE_SERVICE_TOKEN=REPLACE_ME_FROM_AMA            # 발급 대기
+AMA_APPSTORE_TIMEOUT_MS=3000
+
+# AMA Platform (디렉터리)
+AMA_PLATFORM_BASE_URL=https://ama.amoeba.site
+AMA_PLATFORM_SERVICE_TOKEN=REPLACE_ME_FROM_AMA            # 발급 대기
+AMA_PLATFORM_TIMEOUT_MS=3000
+
+# 토글 — 둘 다 mock-first 로 시작
+AMA_SERVICES_MODE=mock                                    # mock | http
+
+# === 기존 (REQ-260525) — 유지 ===
+AMA_JWT_SECRET=...                                        # JWT 검증
+AMA_JWT_ALLOWED_APP_CODES=tpi-acm
+AMA_WEBHOOK_SECRET=...                                    # 구독 이벤트 push 검증
 ```
 
 ---
 
-## 6. 리스크 → 완화 매핑
+## 6. 리스크 → 완화 매핑 (v2)
 
-| RID (REQ §9) | 완화 task |
-|--------------|----------|
-| R-1 AMA API 미존재 | T2-02 mock client + `AMA_DIRECTORY_USE_MOCK` 토글 |
-| R-2 webhook 누락 stale | (별건 cron 보강, 본 PLN 범위 외) |
-| R-3 break-glass 우회 | T1-02: break-glass 경로는 가드 통과 안 함 (의도) |
-| R-4 OWNER 노출 | T2-04 컨트롤러에서 levels 화이트리스트 강제 |
-| R-5 latency | T2-03 LRU 60s + T3-01 debounce 300ms |
+| RID (REQ §10) | Task | 완화 |
+|---------------|------|------|
+| R-1 AMA endpoint 미존재 | T2/T3/T4 mock client | `AMA_SERVICES_MODE=mock` 토글 |
+| R-2 stg-apps 5xx → 마비 | T2-04 cache fallback | 24h 캐시 + degraded mode banner |
+| R-3 latency 증가 | T2-03 / T3-01 | 3s timeout, 1 retry, LRU 60s |
+| R-4 OWNER 노출 | T4-04 | 서버측 화이트리스트 강제 |
+| R-5 userId 매핑 | T3-01 | AMA 응답의 userId 와 JWT sub 비교 |
+| R-6 T1/v2 중복 | T2-04 | T1 의 가드는 deprecated → SubscriptionCheckService 가 흡수 |
 
 ---
 
-## 7. 변경 파일 매니페스트 (예상)
+## 7. 변경 파일 매니페스트 (v2)
 
 ```
 backend/src/modules/acm-auth/
+├── infrastructure/
+│   ├── stg-apps-subscription.client.ts          [NEW T2-01]
+│   ├── stg-apps-subscription-mock.client.ts     [NEW T2-02]
+│   ├── stg-apps-subscription-http.client.ts     [NEW T2-03]
+│   ├── ama-platform.client.ts                   [NEW T3-01]
+│   ├── ama-platform-mock.client.ts              [NEW T3-02]
+│   └── ama-platform-http.client.ts              [NEW T3-02]
 ├── application/
-│   ├── academy-subscription.guard.ts                         [NEW]
-│   ├── academy-subscription.guard.spec.ts                    [NEW]
-│   └── acm-auth.service.ts                                   [MOD]
-├── acm-auth.module.ts                                        [MOD]
-└── ama-directory/                                            [NEW dir]
-    ├── ama-directory.module.ts                               [NEW]
-    ├── ama-directory.types.ts                                [NEW]
-    ├── infrastructure/
-    │   ├── ama-directory-http.client.ts                      [NEW]
-    │   └── ama-directory-mock.client.ts                      [NEW]
-    ├── application/
-    │   ├── ama-user-directory.service.ts                     [NEW]
-    │   └── ama-user-directory.service.spec.ts                [NEW]
-    └── presentation/
-        └── ama-user.controller.ts                            [NEW]
+│   ├── academy-subscription.guard.ts            [DEPRECATED T1 — 흡수됨]
+│   ├── academy-subscription.guard.spec.ts       [DEPRECATED]
+│   ├── subscription-check.service.ts            [NEW T2-04]
+│   ├── subscription-check.service.spec.ts       [NEW T2-05]
+│   ├── user-membership.guard.ts                 [NEW T3-03]
+│   ├── user-membership.guard.spec.ts            [NEW T3-04]
+│   ├── ama-user-directory.service.ts            [NEW T4-02]
+│   ├── ama-user-directory.service.spec.ts       [NEW T4-05]
+│   └── acm-auth.service.ts                      [MOD T3-03]
+├── presentation/
+│   └── ama-user.controller.ts                   [NEW T4-03]
+└── acm-auth.module.ts                           [MOD providers]
 
 frontend-acm/src/
-├── modules/auth/pages/login-page.tsx                         [MOD]
-├── modules/common/components/ama-user-picker.tsx             [NEW]
-├── modules/common/api/ama-user-api.ts                        [NEW]
-├── modules/tch/components/tch-form-modal.tsx                 [MOD]
-├── modules/stf/components/stf-form-modal.tsx                 [MOD]
-└── i18n/locales/{ko,en,vi,zh-CN}/auth.json                   [MOD] × 4
-    + {ko,en,vi,zh-CN}/common.json                            [MOD] × 4
+├── modules/auth/pages/login-page.tsx            [MOD T5-05]
+├── modules/common/components/ama-user-picker.tsx[NEW T5-01]
+├── modules/common/api/ama-user-api.ts           [NEW T5-02]
+├── modules/tch/components/tch-form-modal.tsx    [MOD T5-03]
+├── modules/stf/components/stf-form-modal.tsx    [MOD T5-03]
+└── i18n/locales/{ko,en,vi,zh-CN}/{auth,common}.json  [MOD T5-04] × 8
 
+docker/{staging,production}/.env.{staging,production}.example [MOD]
 docs/
-├── analysis/REQ-260604-ama-tenant-auth-and-user-directory.md [NEW]
-├── plan/PLN-260604-ama-tenant-auth-and-user-directory.md     [NEW] (본 파일)
-└── implementation/RPT-260604-…                               [NEW] (완료 후)
+├── analysis/REQ-260604-... (v2.0.0)             [DONE]
+├── plan/PLN-260604-... (v2.0.0)                 [본 파일]
+└── implementation/RPT-260604-...                 [NEW after T5]
 ```
 
-**총**: 신규 14 + 변경 5 + 문서 3 = **22 파일** (mock-first 기준).
+**총**: 신규 12 + 변경 8 + 문서 3 = **23 파일**.
 
 ---
 
-## 8. 사용자 승인 필요 항목
+## 8. 사용자 승인 필요 항목 (v2)
 
-진행 전에 확인 부탁드립니다:
-
-1. **REQ-260604 § 6 USER_LEVEL 매핑** (OWNER 제외 / MANAGER·MEMBER·VIEWER 노출) — 정확한가요?
-2. **AMA 팀 컨택 경로** — 누가 디렉터리 API 발급 담당자인지?
-3. **mock-first 진행** OK? (실 API 합의는 T5 별건 진행)
-4. **구독 차단 UX** — § 2.1 의 4종 메시지 카피 OK? (CANCELED/DEPROVISIONED 의 "재구독 불가" 톤 등)
-5. **`AMA_SERVICE_TOKEN`** — service-to-service 인증을 ACM ↔ AMA 어떻게 할지 — AMA 팀과 협의 필요 (REQ § 5)
+1. **2-service 아키텍처** (§ 1) — `ama.amoeba.site` 와 `stg-apps.amoeba.site` 의 역할 분리 정확한가요?
+2. **AMA API 계약** (§ 6) — 3 endpoint 의 URL/응답 shape 가 합리적인가요? (AMA 팀 확인 필요)
+3. **인증 방식** (§ 6.1) — 서비스 토큰 (Bearer) 권장 — OK?
+4. **24h cache fallback** (FR-9) — stg-apps 5xx 시 24h 안의 ACTIVE 캐시면 통과 (degraded). 24h 보다 길면 fail-closed. 적절한가요? (12h / 48h 등 조정 가능)
+5. **T1 v1 (commit 6dfadc4) deprecate** — v2 의 SubscriptionCheckService 가 흡수. 별건 cleanup commit OK?
+6. **Mock-first** — T6 AMA 팀 합의 전 mock client 로 production deploy. OK?
 
 ---
 
 ## 9. 다음 단계
 
-1. 본 PLN 사용자 승인 ← 현재 단계
-2. T1 (구독 가드) 구현 + smoke (mock 데이터 사용)
-3. T2 (디렉터리 mock client) 구현 + backend test
-4. T3 (Picker 컴포넌트) + T4 (모달 통합) + i18n
-5. localhost + staging smoke test
-6. RPT-260604 작성 + 사용자 검수
-7. (별건 T5) AMA 팀 API 합의 후 mock → real 전환 PR
+1. 본 PLN v2 사용자 승인 ← 현재 단계
+2. T2-01..05 (stg-apps client + service + tests)
+3. T3-01..04 (ama platform membership + integration)
+4. T4-01..05 (directory + controller + tests)
+5. T5-01..05 (frontend Picker + modal + i18n + login errors)
+6. localhost smoke → staging deploy → production deploy (mock 모드)
+7. (T6 별건) AMA 팀 endpoint 합의 → http 모드 전환
