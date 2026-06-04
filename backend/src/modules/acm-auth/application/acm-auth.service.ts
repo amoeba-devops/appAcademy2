@@ -18,6 +18,7 @@ import {
 } from '../infrastructure/ama-token.verifier';
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
 import { SubscriptionCheckService } from './subscription-check.service';
+import { UserMembershipGuard } from './user-membership.guard';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -48,6 +49,7 @@ export class AcmAuthService {
     private readonly jwtService: JwtService,
     private readonly amaVerifier: AmaTokenVerifier,
     private readonly subscriptionCheck: SubscriptionCheckService,
+    private readonly membershipGuard: UserMembershipGuard,
   ) {}
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -228,11 +230,9 @@ export class AcmAuthService {
       throw e;
     }
 
-    // REQ-260604 v2 FR-1 + FR-9 — live stg-apps check with 24h cache
-    // fallback. Throws HttpException(403, NO_ACADEMY/NO_SUBSCRIPTION/
-    // SUBSCRIPTION_<status>) on terminal failure or 503 AMA_UNAVAILABLE on
-    // stg-apps 5xx + stale cache. `degraded=true` means we passed via
-    // cache fallback; record it in the audit log but proceed with login.
+    // REQ-260604 v2 FR-1 + FR-9 — live stg-apps subscription check with
+    // 24h cache fallback. Throws HttpException on terminal failure
+    // (NO_ACADEMY / NO_SUBSCRIPTION / SUBSCRIPTION_<status> / AMA_UNAVAILABLE).
     // Break-glass email/password login bypasses this — it goes through
     // loginWithPassword, not exchangeAmaToken (AC-4-1).
     const subCheck = await this.subscriptionCheck.ensureActive(
@@ -243,6 +243,12 @@ export class AcmAuthService {
         `degraded login (live 5xx + cache hit) entId=${payload.entityId} sub=${payload.sub}`,
       );
     }
+
+    // REQ-260604 v2 FR-2 — live ama platform membership check. No cache
+    // fallback: membership has no defensible grace window (an HR-revoked
+    // user must lose access immediately). 404 → USER_NOT_IN_ENTITY (403),
+    // 5xx → AMA_UNAVAILABLE (503, fail-closed).
+    await this.membershipGuard.ensureMember(payload.entityId, payload.sub);
 
     const user = await this.upsertAmaUser(payload);
 
