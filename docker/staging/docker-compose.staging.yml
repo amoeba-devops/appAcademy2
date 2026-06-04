@@ -118,35 +118,13 @@ services:
     ports:
       - "127.0.0.1:4000:4000"
 
-  frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/amoeba-devops/appacademy2/tac-frontend:${DEPLOY_SHA:-staging}}
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
-      args:
-        API_PROXY_URL: http://backend:4000
-    container_name: tac-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      API_PROXY_URL: http://backend:4000
-      # NextAuth authorize() runs server-side inside this container and
-      # fetches the backend directly. Must be reachable from the frontend
-      # container's network namespace — not 'localhost'.
-      BACKEND_URL: http://backend:4000
-      # nginx terminates TLS with the *.amoeba.site wildcard cert and
-      # forwards X-Forwarded-Proto=https. NEXTAUTH_URL must match the
-      # canonical hostname users see (legacy tpi.amoeba.site 301-redirects
-      # to this one as of S4 of the AMA App Store pivot).
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://app-academy-stg.amoeba.site}
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://app-academy-stg.amoeba.site}
-      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy-stg.amoeba.site}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-    ports:
-      - "127.0.0.1:3000:3000"
+  # Legacy `frontend` (Next.js) removed 2026-06-04 — directory was archived
+  # in PLN-260519 Phase 7 (commit 4a6178f) and CI no longer builds
+  # tac-frontend, so `docker compose pull` and a fallback build both fail.
+  # The Vite SPA in `frontend-acm` is the canonical user entrypoint via the
+  # acm-stg.amoeba.site vhost. Old running tac-frontend container can be
+  # stopped manually after first successful deploy:
+  #   docker stop tac-frontend && docker rm tac-frontend
 
   # ACM v1.0a Vite SPA, served by the image's own nginx. The image bakes
   # the SPA bundle plus an /api/* → backend:4000 proxy (see

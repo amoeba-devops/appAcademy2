@@ -40,17 +40,20 @@ DEPLOY_SHA="${DEPLOY_SHA:-$(git rev-parse --short HEAD)}"
 export DEPLOY_SHA
 
 # --- 2. Pull (or build) images -----------------------------------------
+# Legacy `frontend` (Next.js) service was removed from the compose on
+# 2026-06-04 — directory archived in PLN-260519 Phase 7. We now only
+# manage backend + frontend-acm.
 if [[ "${DEPLOY_BUILD_LOCAL:-0}" == "1" ]]; then
-    say "2. Build backend + frontend images locally ($DEPLOY_SHA)"
-    $COMPOSE build backend frontend
+    say "2. Build backend + frontend-acm images locally ($DEPLOY_SHA)"
+    $COMPOSE build backend frontend-acm
 else
-    say "2. Pull backend + frontend images from GHCR ($DEPLOY_SHA)"
+    say "2. Pull backend + frontend-acm images from GHCR ($DEPLOY_SHA)"
     if [[ -n "${GHCR_PULL_TOKEN:-}" ]] && [[ -n "${GHCR_PULL_USER:-}" ]]; then
         echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USER" --password-stdin >/dev/null
     fi
-    if ! $COMPOSE pull backend frontend; then
+    if ! $COMPOSE pull backend frontend-acm; then
         warn "GHCR pull failed — falling back to local build"
-        $COMPOSE build backend frontend
+        $COMPOSE build backend frontend-acm
     fi
 fi
 
@@ -176,8 +179,8 @@ sudow mkdir -p "$ACM_UPLOAD_HOST_DIR"
 sudow chown -R 100:101 "$ACM_UPLOAD_HOST_DIR"
 sudow chmod 770 "$ACM_UPLOAD_HOST_DIR"
 
-say "5. Restart backend + frontend + frontend-acm"
-$COMPOSE up -d --no-deps backend frontend frontend-acm
+say "5. Restart backend + frontend-acm"
+$COMPOSE up -d --no-deps backend frontend-acm
 
 # --- 6. Sync + reload nginx ---------------------------------------------
 # The repo is the source of truth for both vhosts. Install whichever has
