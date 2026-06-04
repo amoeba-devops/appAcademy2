@@ -66,7 +66,8 @@
     "createAccount": "Provision login account",
     "password": "Password",
     "passwordConfirm": "Confirm password",
-    "newPassword": "New password"
+    "newPassword": "New password",
+    "amaUser": "AMA user"
   },
   "subject": {
     "MAP": "MAP",

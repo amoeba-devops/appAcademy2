@@ -16,6 +16,8 @@ import {
   useUpdateStaff,
 } from '../hooks/use-staff';
 import type { StaffDetail } from '../types';
+import { AmaUserPicker } from '@/components/common/ama-user-picker';
+import type { AmaPlatformUser } from '@/lib/ama-user-api';
 
 interface Props {
   open: boolean;
@@ -46,8 +48,11 @@ export function StfFormModal({ open, onClose, initial }: Props) {
   const { t } = useTranslation('stf');
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
+  // REQ-260604 FR-4 — see TchFormModal for the rationale on amaUser + manualMode.
+  const [amaUser, setAmaUser] = useState<AmaPlatformUser | null>(null);
+  const [manualMode, setManualMode] = useState(false);
 
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       stfName: '',
       stfEnglishName: '',
@@ -67,6 +72,8 @@ export function StfFormModal({ open, onClose, initial }: Props) {
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setAmaUser(null);
+    setManualMode(false);
     if (initial) {
       reset({
         stfName: initial.name,
@@ -121,6 +128,10 @@ export function StfFormModal({ open, onClose, initial }: Props) {
     if (values.stfDepartment) dto.stfDepartment = values.stfDepartment;
     if (values.stfHiredAt) dto.stfHiredAt = values.stfHiredAt;
     if (values.stfMemo) dto.stfMemo = values.stfMemo;
+    // REQ-260604 FR-4 — propagate AMA picker selection to backend.
+    if (!isEdit && amaUser && !manualMode) {
+      dto.stfAmaUserId = amaUser.userId;
+    }
 
     try {
       if (isEdit) {
@@ -173,6 +184,32 @@ export function StfFormModal({ open, onClose, initial }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+          {/* REQ-260604 FR-4 — AMA directory picker (create mode only). */}
+          {!isEdit && !manualMode && (
+            <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+              <legend className="text-xs font-semibold text-secondary px-1">
+                {t('form.sectionAmaPicker', { defaultValue: 'AMA directory' })}
+              </legend>
+              <AmaUserPicker
+                value={amaUser}
+                levels={['MANAGER', 'MEMBER', 'VIEWER']}
+                onChange={(u) => {
+                  setAmaUser(u);
+                  if (u) {
+                    setValue('stfName', u.name);
+                    setValue('stfEmail', u.email);
+                  } else {
+                    setValue('stfName', '');
+                    setValue('stfEmail', '');
+                  }
+                }}
+                onManualMode={() => setManualMode(true)}
+                labelKey="stf:field.amaUser"
+                required
+              />
+            </fieldset>
+          )}
+
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
               {t('form.sectionBasic')}
@@ -180,7 +217,11 @@ export function StfFormModal({ open, onClose, initial }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.name')} *</label>
-                <input {...register('stfName', { required: true })} className={inputClass} />
+                <input
+                  {...register('stfName', { required: true })}
+                  className={inputClass}
+                  disabled={!isEdit && !manualMode && !!amaUser}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t('field.englishName')}</label>
@@ -192,7 +233,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
                   type="email"
                   {...register('stfEmail', { required: true })}
                   className={inputClass}
-                  disabled={isEdit}
+                  disabled={isEdit || (!manualMode && !!amaUser)}
                 />
               </div>
               <div>

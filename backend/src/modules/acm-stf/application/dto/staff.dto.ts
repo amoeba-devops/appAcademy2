@@ -51,6 +51,12 @@ export class CreateStaffDto {
   @ApiPropertyOptional({ description: '로그인 비밀번호 (≥8자, 영문+숫자)' })
   @IsOptional() @IsString() @MinLength(8) @MaxLength(120)
   stfPassword?: string;
+
+  // REQ-260604 v2 FR-4 — AMA platform user id from AmaUserPicker. See the
+  // matching tchAmaUserId field on CreateTeacherDto for rationale.
+  @ApiPropertyOptional({ description: 'AMA platform userId (from /api/acm/ama/users picker)' })
+  @IsOptional() @IsString() @MaxLength(64)
+  stfAmaUserId?: string;
 }
 
 export class UpdateStaffDto {

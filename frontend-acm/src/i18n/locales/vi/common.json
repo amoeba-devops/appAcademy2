@@ -69,5 +69,15 @@
   "currency": {
     "krw-suffix": " KRW",
     "krw-format": "₩{{amount}}"
-  }
+  },
+  "picker": {
+    "placeholder": "Tìm theo tên hoặc email",
+    "hint": "Chỉ hiển thị thành viên AMA đã đăng ký của tổ chức",
+    "minChars": "Nhập ít nhất 2 ký tự để tìm",
+    "errorTitle": "Không thể tìm kiếm danh bạ",
+    "errorHint": "Chuyển sang chế độ nhập thủ công để tự điền",
+    "manualMode": "Chuyển sang nhập thủ công",
+    "noResults": "Không có thành viên phù hợp"
+  },
+  "clear": "Xóa"
 }

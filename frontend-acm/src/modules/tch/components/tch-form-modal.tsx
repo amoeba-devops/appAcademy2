@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { AmaUserPicker } from '@/components/common/ama-user-picker';
+import type { AmaPlatformUser } from '@/lib/ama-user-api';
 import {
   uploadTeacherAttachment,
   useCreateTeacher,
@@ -64,7 +66,7 @@ export function TchFormModal({ open, onClose, initial }: Props) {
   const { t } = useTranslation('tch');
   const isEdit = !!initial;
 
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       tchName: '',
       tchEnglishName: '',
@@ -89,11 +91,20 @@ export function TchFormModal({ open, onClose, initial }: Props) {
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const stagedInputRef = useRef<HTMLInputElement | null>(null);
 
+  // REQ-260604 FR-3 — AMA-picker state. `amaUser` holds the selected directory
+  // entry (or null). `manualMode` lets the operator bypass the picker when
+  // AMA is unreachable (AC-3-5). Only relevant on create — edit reuses
+  // existing teacher.name/email.
+  const [amaUser, setAmaUser] = useState<AmaPlatformUser | null>(null);
+  const [manualMode, setManualMode] = useState(false);
+
   // Sync defaults when opening for edit/create.
   useEffect(() => {
     if (!open) return;
     setError(null);
     setStagedFiles([]);
+    setAmaUser(null);
+    setManualMode(false);
     if (initial) {
       reset({
         tchName: initial.name,
@@ -184,6 +195,12 @@ export function TchFormModal({ open, onClose, initial }: Props) {
     if (values.tchMemo) dto.tchMemo = values.tchMemo;
     if (values.tchHiredAt) dto.tchHiredAt = values.tchHiredAt;
     if (values.tchAttendanceNo) dto.tchAttendanceNo = values.tchAttendanceNo;
+    // REQ-260604 FR-3 — propagate AMA picker selection to backend. Only on
+    // create (edit doesn't re-issue the linkage); only when picker was used
+    // (manual mode bypasses).
+    if (!isEdit && amaUser && !manualMode) {
+      dto.tchAmaUserId = amaUser.userId;
+    }
 
     try {
       if (isEdit) {
@@ -265,6 +282,35 @@ export function TchFormModal({ open, onClose, initial }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+          {/* REQ-260604 FR-3 — AMA directory picker (create mode only). The
+              picker auto-fills tchName + tchEmail when a member is selected;
+              if AMA is unreachable the operator clicks "manual mode" and the
+              original inputs are shown unchanged. */}
+          {!isEdit && !manualMode && (
+            <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+              <legend className="text-xs font-semibold text-secondary px-1">
+                {t('form.sectionAmaPicker', { defaultValue: 'AMA directory' })}
+              </legend>
+              <AmaUserPicker
+                value={amaUser}
+                levels={['MANAGER', 'MEMBER', 'VIEWER']}
+                onChange={(u) => {
+                  setAmaUser(u);
+                  if (u) {
+                    setValue('tchName', u.name);
+                    setValue('tchEmail', u.email);
+                  } else {
+                    setValue('tchName', '');
+                    setValue('tchEmail', '');
+                  }
+                }}
+                onManualMode={() => setManualMode(true)}
+                labelKey="tch:field.amaUser"
+                required
+              />
+            </fieldset>
+          )}
+
           {/* 기본 정보 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
@@ -273,7 +319,13 @@ export function TchFormModal({ open, onClose, initial }: Props) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.name')} *</label>
-                <input {...register('tchName', { required: true })} className={inputClass} />
+                <input
+                  {...register('tchName', { required: true })}
+                  className={inputClass}
+                  // When the picker controls the name, lock the input so the
+                  // operator can't desync them. Manual mode unlocks it.
+                  disabled={!isEdit && !manualMode && !!amaUser}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t('field.englishName')}</label>
@@ -285,7 +337,7 @@ export function TchFormModal({ open, onClose, initial }: Props) {
                   type="email"
                   {...register('tchEmail', { required: true })}
                   className={inputClass}
-                  disabled={isEdit}
+                  disabled={isEdit || (!manualMode && !!amaUser)}
                 />
               </div>
               <div>

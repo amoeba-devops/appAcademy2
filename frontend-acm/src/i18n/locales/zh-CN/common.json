@@ -69,5 +69,15 @@
   "currency": {
     "krw-suffix": " 韩元",
     "krw-format": "₩{{amount}}"
-  }
+  },
+  "picker": {
+    "placeholder": "按姓名或邮箱搜索",
+    "hint": "仅显示该租户已注册的 AMA 成员",
+    "minChars": "请输入至少 2 个字符搜索",
+    "errorTitle": "目录搜索不可用",
+    "errorHint": "切换到手动输入模式自行填写",
+    "manualMode": "切换到手动输入",
+    "noResults": "该租户中没有匹配的成员"
+  },
+  "clear": "清除"
 }

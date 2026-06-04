@@ -73,5 +73,15 @@
   "currency": {
     "krw-suffix": "원",
     "krw-format": "{{amount}}원"
-  }
+  },
+  "picker": {
+    "placeholder": "이름 또는 이메일로 검색",
+    "hint": "이 법인에 등록된 AMA 구성원만 검색됩니다",
+    "minChars": "2글자 이상 입력해 주세요",
+    "errorTitle": "디렉터리 검색을 사용할 수 없습니다",
+    "errorHint": "수동 입력 모드로 전환하여 직접 입력하세요",
+    "manualMode": "수동 입력으로 전환",
+    "noResults": "일치하는 구성원이 없습니다"
+  },
+  "clear": "지우기"
 }

@@ -40,7 +40,8 @@
     "createAccount": "Issue login account",
     "password": "Password",
     "passwordConfirm": "Confirm password",
-    "newPassword": "New password"
+    "newPassword": "New password",
+    "amaUser": "AMA user"
   },
   "form": {
     "titleCreate": "Add Staff",

@@ -73,5 +73,15 @@
   "currency": {
     "krw-suffix": " KRW",
     "krw-format": "₩{{amount}}"
-  }
+  },
+  "picker": {
+    "placeholder": "Search by name or email",
+    "hint": "Only registered AMA members of your entity appear here",
+    "minChars": "Type at least 2 characters to search",
+    "errorTitle": "Directory search unavailable",
+    "errorHint": "Switch to manual input to enter details yourself",
+    "manualMode": "Switch to manual input",
+    "noResults": "No matching members in this entity"
+  },
+  "clear": "Clear"
 }

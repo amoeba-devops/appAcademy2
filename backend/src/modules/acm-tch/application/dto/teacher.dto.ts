@@ -81,6 +81,14 @@ export class CreateTeacherDto {
   @ApiPropertyOptional({ description: '로그인 비밀번호 (tchCreateAccount=true 일 때 필수, ≥8자, 영문+숫자)' })
   @IsOptional() @IsString() @MinLength(8) @MaxLength(120)
   tchPassword?: string;
+
+  // REQ-260604 v2 FR-3 — AMA platform user id from AmaUserPicker. Kept as
+  // a string passthrough for now (AMA returns uuids). Storage on the teacher
+  // entity is a follow-up (see PLN-260604 v2 § 7 note); accepting it here
+  // unblocks the frontend integration without crashing the ValidationPipe.
+  @ApiPropertyOptional({ description: 'AMA platform userId (from /api/acm/ama/users picker)' })
+  @IsOptional() @IsString() @MaxLength(64)
+  tchAmaUserId?: string;
 }
 
 export class UpdateTeacherDto {

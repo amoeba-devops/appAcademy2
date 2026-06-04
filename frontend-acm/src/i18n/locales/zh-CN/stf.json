@@ -1,33 +1,67 @@
 {
   "title": "员工管理",
-  "actions": { "create": "新增员工", "resetPassword": "重置密码" },
-  "filter": { "searchPlaceholder": "搜索姓名 / 邮箱 / 职位", "all": "全部" },
-  "status": { "ACTIVE": "在职", "INACTIVE": "停用" },
-  "account": { "yes": "已开通", "no": "—" },
+  "actions": {
+    "create": "新增员工",
+    "resetPassword": "重置密码"
+  },
+  "filter": {
+    "searchPlaceholder": "搜索姓名 / 邮箱 / 职位",
+    "all": "全部"
+  },
+  "status": {
+    "ACTIVE": "在职",
+    "INACTIVE": "停用"
+  },
+  "account": {
+    "yes": "已开通",
+    "no": "—"
+  },
   "table": {
-    "name": "姓名", "email": "邮箱", "phone": "电话",
-    "position": "职位", "department": "部门",
-    "account": "账号", "status": "状态",
-    "total": "共 {{count}} 人", "empty": "暂无员工。"
+    "name": "姓名",
+    "email": "邮箱",
+    "phone": "电话",
+    "position": "职位",
+    "department": "部门",
+    "account": "账号",
+    "status": "状态",
+    "total": "共 {{count}} 人",
+    "empty": "暂无员工。"
   },
   "field": {
-    "name": "姓名", "englishName": "英文名", "email": "邮箱",
-    "phone": "电话", "position": "职位", "department": "部门",
-    "hiredAt": "入职日期", "status": "状态", "memo": "备注",
+    "name": "姓名",
+    "englishName": "英文名",
+    "email": "邮箱",
+    "phone": "电话",
+    "position": "职位",
+    "department": "部门",
+    "hiredAt": "入职日期",
+    "status": "状态",
+    "memo": "备注",
     "createAccount": "开通登录账号",
-    "password": "密码", "passwordConfirm": "确认密码", "newPassword": "新密码"
+    "password": "密码",
+    "passwordConfirm": "确认密码",
+    "newPassword": "新密码",
+    "amaUser": "AMA 用户"
   },
   "form": {
-    "titleCreate": "新增员工", "titleEdit": "编辑员工",
+    "titleCreate": "新增员工",
+    "titleEdit": "编辑员工",
     "sectionBasic": "基本信息",
-    "sectionAccount": "账号开通", "sectionResetPassword": "重置密码"
+    "sectionAccount": "账号开通",
+    "sectionResetPassword": "重置密码"
   },
-  "hint": { "passwordPolicy": "至少 8 位,包含字母与数字。" },
+  "hint": {
+    "passwordPolicy": "至少 8 位,包含字母与数字。"
+  },
   "error": {
     "passwordShort": "密码至少 8 位。",
     "passwordMismatch": "两次密码不一致。",
     "passwordComplexity": "必须同时包含字母和数字。"
   },
-  "toast": { "passwordReset": "密码已重置。" },
-  "confirm": { "delete": "确定删除该员工?" }
+  "toast": {
+    "passwordReset": "密码已重置。"
+  },
+  "confirm": {
+    "delete": "确定删除该员工?"
+  }
 }
