@@ -10,7 +10,7 @@
 #   3. docker compose up -d mysql redis (if not already up)
 #   4. Apply pending SQL migrations (tracked under sql/_applied/)
 #   5. docker compose up -d backend frontend
-#   6. Reload host nginx (tpi.amoeba.site)
+#   6. Reload host nginx (app-academy-stg + acm-stg vhosts)
 #   7. Smoke test + write .last-deploy manifest
 set -euo pipefail
 
@@ -203,12 +203,12 @@ install_vhost() {
 # Canonical app-academy vhost (S4 cut-over).
 install_vhost "$REPO_DIR/docker/staging/nginx-app-academy.conf" \
               "app-academy-stg.amoeba.site"
-# Legacy tpi vhost — now a 301 redirect to the canonical host. Kept for 6mo.
-install_vhost "$REPO_DIR/docker/staging/nginx-tpi.conf" \
-              "tpi.amoeba.site"
 # ACM v1.0a SPA vhost — proxies to acm-frontend container on :5174.
 install_vhost "$REPO_DIR/docker/staging/nginx-acm.conf" \
               "acm-stg.amoeba.site"
+# Note: tpi.amoeba.site vhost removed 2026-06-08 (op request) — the
+# tpi.co.kr marketing mirror moved off the staging host. The config file
+# (docker/staging/nginx-tpi.conf) was deleted from the repo.
 
 if [[ "$nginx_changed" == "1" ]]; then
     sudow nginx -t
@@ -223,9 +223,6 @@ say "7. Smoke test https://app-academy-stg.amoeba.site/"
 sleep 5
 curl -sIL --max-time 15 https://app-academy-stg.amoeba.site/ | head -1 \
     || warn "smoke test failed — check logs + firewall (port 443)."
-echo "   legacy redirect check:"
-curl -sI --max-time 10 https://tpi.amoeba.site/ | head -1 \
-    || warn "tpi → app-academy redirect not responding."
 echo "   acm-stg check (DNS may not yet exist on first cut-over):"
 curl -sIL --max-time 10 https://acm-stg.amoeba.site/ | head -1 \
     || warn "acm-stg.amoeba.site not responding — verify DNS A record + nginx."
