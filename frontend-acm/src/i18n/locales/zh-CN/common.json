@@ -14,7 +14,8 @@
     "tch": "教师管理",
     "stf": "员工管理",
     "cal": "日历",
-    "map": "MAP 历年真题"
+    "map": "MAP 历年真题",
+    "config": "集成设置"
   },
   "lang": {
     "label": "语言",
@@ -79,5 +80,35 @@
     "manualMode": "切换到手动输入",
     "noResults": "该租户中没有匹配的成员"
   },
-  "clear": "清除"
+  "clear": "清除",
+  "config": {
+    "title": "AMA 集成设置",
+    "description": "仅当 ama.amoeba.site 自定义应用传递的法人信息（entityId · appCode）与以下值一致时才允许登录。",
+    "loading": "加载中…",
+    "saved": "已保存。",
+    "lastUpdated": "最后修改：{{at}}",
+    "fields": {
+      "entityId": {
+        "label": "允许的 AMA 法人 entityId",
+        "hint": "AMA 法人设置中的 entityId（UUID）。"
+      },
+      "appCode": {
+        "label": "自定义应用 appCode",
+        "hint": "注册自定义应用时填写的应用名称（例如：tpi-acm）。"
+      },
+      "isActive": {
+        "label": "使用此配置允许登录（启用）"
+      }
+    },
+    "deactivate": {
+      "title": "全面阻止登录？",
+      "description": "停用后，所有使用此配置的 AMA 登录都将被拒绝。",
+      "confirm": "停用"
+    },
+    "errors": {
+      "required": "请输入 entityId 和 appCode。",
+      "saveFailed": "保存失败。",
+      "loadFailed": "无法加载配置。"
+    }
+  }
 }

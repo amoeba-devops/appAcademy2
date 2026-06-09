@@ -15,7 +15,8 @@
     "tch": "Teachers",
     "stf": "Staff",
     "cal": "Calendar",
-    "map": "MAP Past Questions"
+    "map": "MAP Past Questions",
+    "config": "Integration"
   },
   "lang": {
     "label": "Language",
@@ -83,5 +84,35 @@
     "manualMode": "Switch to manual input",
     "noResults": "No matching members in this entity"
   },
-  "clear": "Clear"
+  "clear": "Clear",
+  "config": {
+    "title": "AMA Integration",
+    "description": "Login is allowed only when the corporate info (entityId · appCode) carried by the ama.amoeba.site custom app matches the values below.",
+    "loading": "Loading…",
+    "saved": "Saved.",
+    "lastUpdated": "Last updated: {{at}}",
+    "fields": {
+      "entityId": {
+        "label": "AMA entityId to allow",
+        "hint": "The entityId (UUID) from your AMA corporate settings."
+      },
+      "appCode": {
+        "label": "Custom app appCode",
+        "hint": "The app name you entered when registering the custom app (e.g. tpi-acm)."
+      },
+      "isActive": {
+        "label": "Allow login with this config (active)"
+      }
+    },
+    "deactivate": {
+      "title": "Block all logins?",
+      "description": "Deactivating rejects every AMA login that uses this config.",
+      "confirm": "Deactivate"
+    },
+    "errors": {
+      "required": "Please enter both entityId and appCode.",
+      "saveFailed": "Failed to save.",
+      "loadFailed": "Failed to load the config."
+    }
+  }
 }

@@ -35,6 +35,23 @@ const ACM_SQL_FILES = [
   '420-acm-qna-i18n-labels.sql',
   '500-acm-auth.sql',
   '510-acm-ama-sso.sql',
+  // REQ-260609B — admin-configurable AMA login gate (entityId + appCode).
+  '920-acm-ama-config.sql',
+];
+
+/**
+ * REQ-260609B — entityIds exercised by the happy-path AMA-exchange tests.
+ * Under the deny-all gate, each must have an active amb_acm_ama_config row
+ * (appCode 'tpi-acm') or login is rejected. Seeded after schema load below.
+ */
+const TEST_ALLOWED_ENTITY_IDS = [
+  '928f5fe4-12ab-4113-b9b9-d8d455ca4e3b', // default token entityId
+  '22222222-2222-2222-2222-222222222222',
+  '44444444-4444-4444-4444-444444444444',
+  '55555555-5555-5555-5555-555555555555',
+  '66666666-6666-6666-6666-666666666666',
+  '88888888-8888-8888-8888-888888888888',
+  '99999999-aaaa-bbbb-cccc-dddddddddddd',
 ];
 
 export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
@@ -100,6 +117,17 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
     if (!fs.existsSync(p)) throw new Error(`Missing SQL: ${p}`);
     const sql = fs.readFileSync(p, 'utf8');
     await ds.query(sql);
+  }
+
+  // REQ-260609B — seed AMA login-gate config for the test entityIds so the
+  // deny-all gate (AmaConfigGateService) admits the happy-path tokens.
+  for (const entId of TEST_ALLOWED_ENTITY_IDS) {
+    await ds.query(
+      `INSERT INTO amb_acm_ama_config (ent_id, amc_ama_entity_id, amc_app_code, amc_is_active)
+         VALUES ($1, $1, 'tpi-acm', TRUE)
+       ON CONFLICT (ent_id) DO NOTHING`,
+      [entId],
+    );
   }
 
   return { app, pg, ds };

@@ -19,7 +19,7 @@ import {
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
 import { SubscriptionCheckService } from './subscription-check.service';
 import { UserMembershipGuard } from './user-membership.guard';
-import { EntityGateService } from './entity-gate.service';
+import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
 
 export interface AcmJwtPayload {
@@ -52,7 +52,7 @@ export class AcmAuthService {
     private readonly amaVerifier: AmaTokenVerifier,
     private readonly subscriptionCheck: SubscriptionCheckService,
     private readonly membershipGuard: UserMembershipGuard,
-    private readonly entityGate: EntityGateService,
+    private readonly amaConfigGate: AmaConfigGateService,
   ) {}
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -233,10 +233,12 @@ export class AcmAuthService {
       throw e;
     }
 
-    // REQ-260609 FR-A — TPI-only entity gate. `tpi-acm` serves a single
-    // entity (VN3040); reject any other tenant before the heavier live
-    // subscription/membership calls. Throws 403 ENTITY_NOT_ALLOWED.
-    await this.entityGate.ensureAllowed(payload.entityId, payload.entityCode);
+    // REQ-260609B FR-3 — admin-configurable login gate. The token's
+    // entityId + appCode must match the values an admin registered at
+    // /admin/config (amb_acm_ama_config). Supersedes the env/MySQL entity
+    // gate (REQ-260609 FR-A). Runs before the heavier live subscription/
+    // membership calls. Throws 403 ENTITY_NOT_ALLOWED (fail-closed).
+    await this.amaConfigGate.ensureAllowed(payload.entityId, payload.appCode);
 
     // REQ-260604 v2 FR-1 + FR-9 — live stg-apps subscription check with
     // 24h cache fallback. Throws HttpException on terminal failure

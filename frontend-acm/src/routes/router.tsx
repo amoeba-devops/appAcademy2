@@ -38,6 +38,7 @@ import { MyPaymentsPage } from '@/modules/my/pages/payments-page';
 import { MyScoresPage } from '@/modules/my/pages/scores-page';
 import { MyTimetablePage } from '@/modules/my/pages/timetable-page';
 import { PostEditorPage } from '@/modules/posts/pages/post-editor-page';
+import { AmaConfigPage } from '@/modules/cfg/pages/ama-config-page';
 
 /** Preserve query string while redirecting (used for legacy login URL compat). */
 function RedirectWithSearch({ to }: { to: string }) {
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
       { path: 'enrollments', element: <EnrollmentsListPage /> },
       { path: 'qna', element: <QnaListPage /> },
       { path: 'qna/categories', element: <QnaCategoriesPage /> },
+      { path: 'config', element: <AmaConfigPage /> },
     ],
   },
 

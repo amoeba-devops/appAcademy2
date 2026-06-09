@@ -14,7 +14,8 @@
     "tch": "Giáo viên",
     "stf": "Nhân viên",
     "cal": "Lịch",
-    "map": "Câu hỏi MAP cũ"
+    "map": "Câu hỏi MAP cũ",
+    "config": "Tích hợp"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -79,5 +80,35 @@
     "manualMode": "Chuyển sang nhập thủ công",
     "noResults": "Không có thành viên phù hợp"
   },
-  "clear": "Xóa"
+  "clear": "Xóa",
+  "config": {
+    "title": "Tích hợp AMA",
+    "description": "Chỉ cho phép đăng nhập khi thông tin pháp nhân (entityId · appCode) do ứng dụng tùy chỉnh từ ama.amoeba.site gửi đến khớp với các giá trị bên dưới.",
+    "loading": "Đang tải…",
+    "saved": "Đã lưu.",
+    "lastUpdated": "Cập nhật lần cuối: {{at}}",
+    "fields": {
+      "entityId": {
+        "label": "entityId pháp nhân AMA được phép",
+        "hint": "entityId (UUID) trong cài đặt pháp nhân AMA."
+      },
+      "appCode": {
+        "label": "appCode của ứng dụng tùy chỉnh",
+        "hint": "Tên ứng dụng bạn đã nhập khi đăng ký ứng dụng tùy chỉnh (ví dụ: tpi-acm)."
+      },
+      "isActive": {
+        "label": "Cho phép đăng nhập với cấu hình này (kích hoạt)"
+      }
+    },
+    "deactivate": {
+      "title": "Chặn mọi đăng nhập?",
+      "description": "Vô hiệu hóa sẽ từ chối mọi lần đăng nhập AMA dùng cấu hình này.",
+      "confirm": "Vô hiệu hóa"
+    },
+    "errors": {
+      "required": "Vui lòng nhập cả entityId và appCode.",
+      "saveFailed": "Lưu thất bại.",
+      "loadFailed": "Không tải được cấu hình."
+    }
+  }
 }

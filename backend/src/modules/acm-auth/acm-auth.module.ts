@@ -9,12 +9,16 @@ import { AcmAuthService } from './application/acm-auth.service';
 import { SubscriptionCheckService } from './application/subscription-check.service';
 import { UserMembershipGuard } from './application/user-membership.guard';
 import { EntityGateService } from './application/entity-gate.service';
+import { AmaConfigService } from './application/ama-config.service';
+import { AmaConfigGateService } from './application/ama-config-gate.service';
 import { AmaUserDirectoryService } from './application/ama-user-directory.service';
 import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
 import { AcmAuthController } from './presentation/acm-auth.controller';
 import { AmaUserController } from './presentation/ama-user.controller';
+import { AmaConfigController } from './presentation/ama-config.controller';
 import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-entity';
+import { AmaConfigTypeormEntity } from './infrastructure/typeorm/ama-config.typeorm-entity';
 import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
 import { STG_APPS_SUBSCRIPTION_CLIENT } from './infrastructure/stg-apps-subscription.client';
 import { StgAppsSubscriptionMockClient } from './infrastructure/stg-apps-subscription-mock.client';
@@ -76,18 +80,23 @@ const amaPlatformProvider: Provider = {
         },
       }),
     }),
-    TypeOrmModule.forFeature([AcmUserTypeormEntity], ACM_DS),
+    TypeOrmModule.forFeature(
+      [AcmUserTypeormEntity, AmaConfigTypeormEntity],
+      ACM_DS,
+    ),
     // AcademyEntity lives on the default (MySQL) datasource — registered
     // here so SubscriptionCheckService can read/refresh the local cache
     // and fall back to it when stg-apps is unavailable (REQ-260604 v2 FR-1/FR-9).
     TypeOrmModule.forFeature([AcademyEntity]),
   ],
-  controllers: [AcmAuthController, AmaUserController],
+  controllers: [AcmAuthController, AmaUserController, AmaConfigController],
   providers: [
     AcmAuthService,
     SubscriptionCheckService,
     UserMembershipGuard,
     EntityGateService,
+    AmaConfigService,
+    AmaConfigGateService,
     AmaUserDirectoryService,
     stgAppsSubscriptionProvider,
     amaPlatformProvider,

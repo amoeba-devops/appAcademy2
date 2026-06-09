@@ -15,6 +15,7 @@ import {
   UserCog,
   Briefcase,
   CalendarDays,
+  Settings,
   LogOut,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +39,7 @@ const NAV = [
   { to: '/admin/enrollments', icon: ClipboardList, key: 'enrollments' },
   { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
+  { to: '/admin/config', icon: Settings, key: 'config' },
 ] as const;
 
 export function AppShell() {

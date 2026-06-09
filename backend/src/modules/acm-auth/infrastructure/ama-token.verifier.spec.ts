@@ -81,12 +81,13 @@ describe('AmaTokenVerifier (unit)', () => {
     expect(p.sub).toBeDefined();
   });
 
-  it('TC-UNIT-04: rejects unknown appCode', () => {
+  it('TC-UNIT-04: appCode authorization is delegated to the gate, not the verifier (REQ-260609B)', () => {
+    // The verifier no longer rejects unknown appCodes — authorization moved to
+    // AmaConfigGateService (admin-configured amb_acm_ama_config). The verifier
+    // only validates signature / claim presence / scope and passes appCode through.
     const v = new AmaTokenVerifier(makeConfig());
-    const t = makeToken({ appCode: 'evil-app' });
-    try { v.verify(t); fail('expected throw'); } catch (e) {
-      expect((e as AmaTokenVerifyException).code).toBe('AMA_TOKEN_APP_CODE_INVALID');
-    }
+    const p = v.verify(makeToken({ appCode: 'some-other-app' }));
+    expect(p.appCode).toBe('some-other-app');
   });
 
   it('TC-UNIT-05: rejects bad scope', () => {
@@ -123,8 +124,8 @@ describe('AmaTokenVerifier (unit)', () => {
     }
   });
 
-  it('multiple allowed appCodes via comma list', () => {
-    const v = new AmaTokenVerifier(makeConfig({ AMA_JWT_ALLOWED_APP_CODES: 'tpi-acm, other-app' }));
-    expect(() => v.verify(makeToken({ appCode: 'other-app' }))).not.toThrow();
+  it('accepts any appCode regardless of env (env whitelist removed — gate is authoritative)', () => {
+    const v = new AmaTokenVerifier(makeConfig());
+    expect(() => v.verify(makeToken({ appCode: 'arbitrary-app' }))).not.toThrow();
   });
 });

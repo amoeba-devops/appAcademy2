@@ -15,7 +15,8 @@
     "tch": "교사 관리",
     "stf": "직원 관리",
     "cal": "캘린더",
-    "map": "MAP 기출문제"
+    "map": "MAP 기출문제",
+    "config": "연동 설정"
   },
   "lang": {
     "label": "언어",
@@ -83,5 +84,35 @@
     "manualMode": "수동 입력으로 전환",
     "noResults": "일치하는 구성원이 없습니다"
   },
-  "clear": "지우기"
+  "clear": "지우기",
+  "config": {
+    "title": "AMA 연동 설정",
+    "description": "ama.amoeba.site 커스텀앱이 전달하는 법인정보(entityId·appCode)가 아래 값과 일치할 때만 로그인을 허용합니다.",
+    "loading": "불러오는 중…",
+    "saved": "저장되었습니다.",
+    "lastUpdated": "마지막 수정: {{at}}",
+    "fields": {
+      "entityId": {
+        "label": "사용할 AMA 법인 entityId",
+        "hint": "AMA 법인 설정의 entityId(UUID)."
+      },
+      "appCode": {
+        "label": "커스텀앱 appCode",
+        "hint": "커스텀앱 등록 시 작성한 앱 이름 (예: tpi-acm)."
+      },
+      "isActive": {
+        "label": "이 설정으로 로그인 허용 (활성)"
+      }
+    },
+    "deactivate": {
+      "title": "로그인을 전면 차단할까요?",
+      "description": "비활성화하면 이 설정으로의 모든 AMA 로그인이 거부됩니다.",
+      "confirm": "비활성화"
+    },
+    "errors": {
+      "required": "entityId와 appCode를 모두 입력해 주세요.",
+      "saveFailed": "저장에 실패했습니다.",
+      "loadFailed": "설정을 불러오지 못했습니다."
+    }
+  }
 }

@@ -41,7 +41,6 @@ const CLOCK_SKEW_SEC = 30;
 export class AmaTokenVerifier {
   private readonly logger = new Logger(AmaTokenVerifier.name);
   private readonly secret: string;
-  private readonly allowedAppCodes: string[];
   private readonly enabled: boolean;
 
   constructor(@Inject(ConfigService) config: ConfigService) {
@@ -54,11 +53,6 @@ export class AmaTokenVerifier {
           '/api/acm/auth/ama-exchange will return 503.',
       );
     }
-    const codes = config.get<string>('AMA_JWT_ALLOWED_APP_CODES', 'tpi-acm');
-    this.allowedAppCodes = codes
-      .split(',')
-      .map((c) => c.trim())
-      .filter(Boolean);
   }
 
   isEnabled(): boolean {
@@ -110,9 +104,10 @@ export class AmaTokenVerifier {
       throw new AmaTokenVerifyException('AMA_TOKEN_SCOPE_INVALID');
     }
 
-    if (!this.allowedAppCodes.includes(p.appCode)) {
-      throw new AmaTokenVerifyException('AMA_TOKEN_APP_CODE_INVALID');
-    }
+    // appCode authorization moved to AmaConfigGateService (REQ-260609B FR-3.3):
+    // the admin-configured (entityId, appCode) in amb_acm_ama_config is now the
+    // single source of truth. The verifier only enforces signature / claim
+    // presence / scope structure here; appCode presence is asserted above.
 
     // Optional claims (REQ-260609). `entityCode` lets the entity gate
     // cross-check the human-readable code; `jobRole` lets role mapping skip

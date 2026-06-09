@@ -187,13 +187,17 @@ describe('IT-AMA-SSO ama-exchange + legacy login regression', () => {
     expect(res.body.code).toBe('AMA_TOKEN_INVALID_SIGNATURE');
   });
 
-  it('TC-INT-04: unknown appCode → 403 AMA_TOKEN_APP_CODE_INVALID', async () => {
+  it('TC-INT-04: appCode mismatch vs admin config → 403 ENTITY_NOT_ALLOWED (REQ-260609B)', async () => {
+    // appCode authorization moved from the verifier env whitelist to the
+    // admin-configured gate (amb_acm_ama_config). The default token entityId
+    // is seeded with appCode 'tpi-acm'; sending a different appCode now fails
+    // the gate, not the verifier.
     const token = makeAmaToken({ appCode: 'other-app' });
     const res = await request(env.app.getHttpServer())
       .post('/api/acm/auth/ama-exchange')
       .send({ amaToken: token })
       .expect(403);
-    expect(res.body.code).toBe('AMA_TOKEN_APP_CODE_INVALID');
+    expect(res.body.code).toBe('ENTITY_NOT_ALLOWED');
   });
 
   it('TC-INT-08: DTO validation rejects missing/short amaToken (400)', async () => {
