@@ -103,7 +103,14 @@ services:
       ACM_PII_KEY: ${ACM_PII_KEY}
       ACM_JWT_SECRET: ${ACM_JWT_SECRET}
       ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
-      # AMA Custom App SSO (HS256 JWT passthrough) — REQ-260525-app-academy-ama-jwt-단일화
+      # AMA SSO verification mode (REQ-260609C) — 'ama_session' = OAuth gateway
+      # exchange + introspect (no local signing secret); 'local' = HS256 self-verify.
+      AMA_TOKEN_VERIFY_MODE: ${AMA_TOKEN_VERIFY_MODE:-local}
+      AMA_GATEWAY_URL: ${AMA_GATEWAY_URL:-https://api.amoeba.site}
+      AMA_CLIENT_ID: ${AMA_CLIENT_ID:-}
+      AMA_CLIENT_SECRET: ${AMA_CLIENT_SECRET:-}
+      AMA_OAUTH_TIMEOUT_MS: ${AMA_OAUTH_TIMEOUT_MS:-5000}
+      # AMA Custom App SSO (HS256 JWT passthrough — local mode only)
       AMA_JWT_SECRET: ${AMA_JWT_SECRET:-}
       AMA_JWT_ALLOWED_APP_CODES: ${AMA_JWT_ALLOWED_APP_CODES:-tpi-acm}
       # AMA App Store integration

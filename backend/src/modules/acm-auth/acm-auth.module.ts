@@ -68,15 +68,23 @@ const amaPlatformProvider: Provider = {
 };
 
 /**
- * AMA_OAUTH_CLIENT provider (REQ-260609C) — same AMA_SERVICES_MODE toggle.
- * Used by AmaSessionExchanger for the ama_session grant exchange + introspect.
+ * AMA_OAUTH_CLIENT provider (REQ-260609C). Decoupled from AMA_SERVICES_MODE:
+ * when AMA_TOKEN_VERIFY_MODE=ama_session the OAuth client MUST hit the real
+ * gateway (a mock would trust tokens without verification), so http is forced.
+ * Otherwise it follows AMA_SERVICES_MODE (mock by default; OAuth unused in local
+ * mode anyway). Used by AmaSessionExchanger for grant exchange + introspect.
  */
 const amaOAuthProvider: Provider = {
   provide: AMA_OAUTH_CLIENT,
   inject: [ConfigService],
   useFactory: (config: ConfigService) => {
-    const mode = String(config.get('AMA_SERVICES_MODE', 'mock')).toLowerCase();
-    if (mode === 'http') {
+    const verifyMode = String(
+      config.get('AMA_TOKEN_VERIFY_MODE', 'local'),
+    ).toLowerCase();
+    const servicesMode = String(
+      config.get('AMA_SERVICES_MODE', 'mock'),
+    ).toLowerCase();
+    if (verifyMode === 'ama_session' || servicesMode === 'http') {
       return new AmaOAuthHttpClient(config);
     }
     return new AmaOAuthMockClient();

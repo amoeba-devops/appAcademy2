@@ -237,51 +237,15 @@ export class AcmAuthService {
     // heavier live subscription/membership calls. 403 ENTITY_NOT_ALLOWED.
     await this.amaConfigGate.ensureAllowed(payload.entityId);
 
-    // REQ-260604 v2 FR-1 + FR-9 — live stg-apps subscription check with
-    // 24h cache fallback. Throws HttpException on terminal failure
-    // (NO_ACADEMY / NO_SUBSCRIPTION / SUBSCRIPTION_<status> / AMA_UNAVAILABLE).
-    // Break-glass email/password login bypasses this — it goes through
-    // loginWithPassword, not exchangeAmaToken (AC-4-1).
-    const subCheck = await this.subscriptionCheck.ensureActive(
-      payload.entityId,
-    );
-    if (subCheck.degraded) {
-      this.logger.warn(
-        `degraded login (live 5xx + cache hit) entId=${payload.entityId} sub=${payload.sub}`,
-      );
-    }
-
-    // REQ-260604 v2 FR-2 — live ama platform membership check. No cache
-    // fallback: membership has no defensible grace window (an HR-revoked
-    // user must lose access immediately). 404 → USER_NOT_IN_ENTITY (403),
-    // 5xx → AMA_UNAVAILABLE (503, fail-closed). Returns the directory record,
-    // which doubles as the live job-field lookup for role mapping (FR-B3).
-    const member = await this.membershipGuard.ensureMember(
-      payload.entityId,
-      payload.sub,
-    );
-
-    // REQ-260609 FR-B — compute ACM role from USER_LEVEL + job field, every
-    // login (level/job changes propagate). jobRole prefers the token claim,
-    // else the directory lookup. ADMIN from either the token level or the
-    // directory level wins.
-    const jobRole = payload.jobRole ?? member.jobRole ?? null;
-    const acmRole: AcmRole =
-      mapAcmRole(payload.role, jobRole) === 'ADMIN' ||
-      mapAcmRole(member.level, jobRole) === 'ADMIN'
-        ? 'ADMIN'
-        : mapAcmRole(payload.role, jobRole);
-
-    // REQ-260609C — ama_session introspect carries no email/name/level. Backfill
-    // from the live directory record (authoritative; both modes pass membership).
-    // local mode already has email/role on the token, so prefer the token value.
-    const email = payload.email || member.email;
-    const displayName = member.name || email.split('@')[0] || email;
-    const amaLevel =
-      payload.role && payload.role !== 'UNKNOWN' ? payload.role : member.level;
-    const enriched: AmaTokenPayload = { ...payload, email, role: amaLevel };
-
-    const user = await this.upsertAmaUser(enriched, acmRole, jobRole, displayName);
+    // REQ-260609C (SIMPLE) — in ama_session mode the OAuth exchange+introspect
+    // already proved the user is an active member of this entity for our app,
+    // so the extra subscription/membership live calls are redundant (and would
+    // need AMA platform API creds we don't provision). Build the user straight
+    // from the introspect claims (sub + entId).
+    const user =
+      this.verifyMode === 'ama_session'
+        ? await this.upsertSessionUser(payload)
+        : await this.loginViaLocalPipeline(payload);
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -392,6 +356,98 @@ export class AcmAuthService {
       }
       throw e;
     }
+  }
+
+  /**
+   * REQ-260604 — legacy local-mode pipeline: live subscription + membership
+   * checks, role mapping from USER_LEVEL + job field, then upsert. The
+   * membership record supplies email/name/level for the user row.
+   */
+  private async loginViaLocalPipeline(
+    payload: AmaTokenPayload,
+  ): Promise<AcmUserTypeormEntity> {
+    const subCheck = await this.subscriptionCheck.ensureActive(
+      payload.entityId,
+    );
+    if (subCheck.degraded) {
+      this.logger.warn(
+        `degraded login (live 5xx + cache hit) entId=${payload.entityId} sub=${payload.sub}`,
+      );
+    }
+
+    const member = await this.membershipGuard.ensureMember(
+      payload.entityId,
+      payload.sub,
+    );
+
+    const jobRole = payload.jobRole ?? member.jobRole ?? null;
+    const acmRole: AcmRole =
+      mapAcmRole(payload.role, jobRole) === 'ADMIN' ||
+      mapAcmRole(member.level, jobRole) === 'ADMIN'
+        ? 'ADMIN'
+        : mapAcmRole(payload.role, jobRole);
+
+    const email = payload.email || member.email;
+    const displayName = member.name || email.split('@')[0] || email;
+    const amaLevel =
+      payload.role && payload.role !== 'UNKNOWN' ? payload.role : member.level;
+    const enriched: AmaTokenPayload = { ...payload, email, role: amaLevel };
+
+    return this.upsertAmaUser(enriched, acmRole, jobRole, displayName);
+  }
+
+  /**
+   * REQ-260609C (SIMPLE) — ama_session upsert from introspect claims only.
+   * No subscription/membership calls. Keyed by (entId, amaUserId=sub).
+   * New SSO users default to ADMIN (per decision 2026-06-09); existing users
+   * keep their current role. introspect carries no email/name, so a stable
+   * per-user placeholder email is derived to avoid collisions.
+   */
+  private async upsertSessionUser(
+    payload: AmaTokenPayload,
+  ): Promise<AcmUserTypeormEntity> {
+    const email = payload.email || `${payload.sub}@ama-sso.local`;
+    const displayName = payload.email
+      ? payload.email.split('@')[0] || payload.email
+      : payload.sub;
+    const amaRole =
+      payload.role && payload.role !== 'UNKNOWN' ? payload.role : null;
+
+    let user = await this.userRepo.findOne({
+      where: { entId: payload.entityId, amaUserId: payload.sub },
+    });
+
+    if (!user) {
+      const created = this.userRepo.create({
+        entId: payload.entityId,
+        email,
+        name: displayName,
+        passwordHash: null,
+        status: 'ACTIVE',
+        authSource: 'ama',
+        role: 'ADMIN', // default for new SSO users (REQ-260609C decision)
+        amaUserId: payload.sub,
+        amaEntityId: payload.entityId,
+        amaRole,
+        amaJobRole: null,
+      });
+      const saved = await this.userRepo.save(created);
+      this.logger.log(`ama_session user created id=${saved.id} sub=${payload.sub}`);
+      return saved;
+    }
+
+    // Existing user — link AMA fields, KEEP current role.
+    const dirty: Partial<AcmUserTypeormEntity> = {};
+    if (!user.amaUserId) dirty.amaUserId = payload.sub;
+    if (user.amaEntityId !== payload.entityId)
+      dirty.amaEntityId = payload.entityId;
+    if (user.authSource !== 'ama') dirty.authSource = 'ama';
+    if (amaRole && user.amaRole !== amaRole) dirty.amaRole = amaRole;
+    if (Object.keys(dirty).length > 0) {
+      Object.assign(user, dirty);
+      user = await this.userRepo.save(user);
+    }
+    return user;
   }
 
   private async upsertAmaUser(
