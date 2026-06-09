@@ -21,6 +21,13 @@ export class ParentTypeormEntity {
   @Column({ name: 'par_email', type: 'varchar', length: 200, nullable: true })
   email?: string | null;
 
+  /** AMA client id once this parent is registered as an AMA client (REQ-260609 FR-C). Idempotency key. */
+  @Column({ name: 'par_ama_client_id', type: 'varchar', length: 40, nullable: true })
+  amaClientId?: string | null;
+
+  @Column({ name: 'par_ama_registered_at', type: 'timestamptz', nullable: true })
+  amaRegisteredAt?: Date | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;
 

@@ -12,6 +12,11 @@ export interface ParentSummary {
   phone?: string | null;
   email?: string | null;
   childCount?: number;
+  /** AMA client id once registered (REQ-260609 FR-C). null = not yet registered. */
+  amaClientId?: string | null;
+  amaRegisteredAt?: string | null;
+  /** True when the parent has ≥1 ACTIVE student → eligible for AMA client registration. */
+  amaEligible?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,8 +27,14 @@ export interface ParentDetail extends ParentSummary {
     name: string;
     school: string | null;
     grade: string | null;
+    status?: string;
     isPrimary: boolean;
   }>;
+}
+
+export interface RegisterAmaClientResponse {
+  amaClientId: string;
+  alreadyRegistered: boolean;
 }
 
 export interface ListParentsQuery {
@@ -70,6 +81,19 @@ export function useUpdateParent(id: string) {
   return useMutation({
     mutationFn: async (dto: Partial<LinkParentInput>) =>
       (await apiClient.put<ParentDetail>(`/acm/std/parents/${id}`, dto)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+}
+
+/**
+ * Register a parent as an AMA client under entity VN3040 (REQ-260609 FR-C).
+ * Staff/Admin only; backend enforces eligibility (422) + idempotency.
+ */
+export function useRegisterParentAsAmaClient() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) =>
+      (await apiClient.post<RegisterAmaClientResponse>(`/acm/std/parents/${id}/ama-client`)).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

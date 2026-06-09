@@ -35,6 +35,13 @@ export interface AmaPlatformUser {
   name: string;
   email: string;
   avatarUrl?: string | null;
+  /**
+   * AMA job/position field used to distinguish 강사(TEACHER) from 직원(STAFF)
+   * when the user's level is not admin-tier (REQ-260609 FR-B). Null when AMA
+   * does not provide it. Exact source field name is O-6 (unconfirmed) — the
+   * http client reads several candidate keys defensively.
+   */
+  jobRole?: string | null;
 }
 
 /**

@@ -9,8 +9,10 @@ import * as jwt from 'jsonwebtoken';
 export interface AmaTokenPayload {
   sub: string; // AMA user UUID
   email: string;
-  role: string; // e.g. 'MASTER'
+  role: string; // USER_LEVEL, e.g. 'MASTER' | 'MANAGER' | 'MEMBER' | 'VIEWER'
   entityId: string; // AMA tenant UUID
+  entityCode: string | null; // human-readable entity code, e.g. 'VN3040' (optional claim)
+  jobRole: string | null; // AMA job/position field, e.g. 'TEACHER' (optional claim; else fetched live)
   appId: string;
   appCode: string; // e.g. 'tpi-acm'
   scope: string; // e.g. 'custom_app:context'
@@ -112,11 +114,30 @@ export class AmaTokenVerifier {
       throw new AmaTokenVerifyException('AMA_TOKEN_APP_CODE_INVALID');
     }
 
+    // Optional claims (REQ-260609). `entityCode` lets the entity gate
+    // cross-check the human-readable code; `jobRole` lets role mapping skip
+    // the live directory lookup when AMA already embeds the job field.
+    const pp = p as jwt.JwtPayload & Record<string, unknown>;
+    const entityCode =
+      typeof pp.entityCode === 'string'
+        ? pp.entityCode
+        : typeof pp.entitySlug === 'string'
+          ? pp.entitySlug
+          : null;
+    const jobRole =
+      typeof pp.jobRole === 'string'
+        ? pp.jobRole
+        : typeof pp.position === 'string'
+          ? pp.position
+          : null;
+
     return {
       sub: p.sub,
       email: p.email,
       role: p.role ?? 'UNKNOWN',
       entityId: p.entityId,
+      entityCode,
+      jobRole,
       appId: p.appId ?? '',
       appCode: p.appCode,
       scope: p.scope,

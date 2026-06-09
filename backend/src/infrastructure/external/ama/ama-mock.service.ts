@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IAmaClientService } from './interfaces/ama-client.interface';
-import { AmaClientDto, AmaSearchResultDto } from './dto/ama-client.dto';
+import {
+  AmaClientDto,
+  AmaCreateClientInput,
+  AmaSearchResultDto,
+} from './dto/ama-client.dto';
 
 /**
  * In-memory mock AMA service for development and testing.
@@ -69,6 +73,31 @@ export class AmaMockService implements IAmaClientService {
     this.logger.debug(`[mock] getClient(${amaClientId})`);
     const found = this.fixture.find((c) => c.amaClientId === amaClientId);
     return found ?? null;
+  }
+
+  private seq = 1000;
+
+  async createClient(input: AmaCreateClientInput): Promise<AmaClientDto> {
+    this.logger.debug(
+      `[mock] createClient(entityId=${input.entityId}, name=${input.name})`,
+    );
+    // Simulate AMA dedup (O-5): same name+phone → return existing client.
+    const existing = this.fixture.find(
+      (c) => c.name === input.name && (c.phone ?? null) === (input.phone ?? null),
+    );
+    if (existing) return existing;
+    const created: AmaClientDto = {
+      amaClientId: `CL-MOCK-${++this.seq}`,
+      name: input.name,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      status: 'ACTIVE',
+      employmentType: null,
+      profileImageUrl: null,
+      updatedAt: new Date().toISOString(),
+    };
+    this.fixture.push(created);
+    return created;
   }
 
   async searchClients(

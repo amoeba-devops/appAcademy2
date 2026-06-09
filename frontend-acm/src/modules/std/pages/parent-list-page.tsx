@@ -1,12 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Trash2, Pencil } from 'lucide-react';
+import { Search, Trash2, Pencil, BadgeCheck, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/toast';
+import { useAuthStore } from '@/stores/auth.store';
 import {
   useParents,
   useDeleteParent,
   useUpdateParent,
+  useRegisterParentAsAmaClient,
   type ParentSummary,
 } from '../hooks/use-parents';
 
@@ -28,8 +31,26 @@ export function ParentListPage() {
   const [page, setPage] = useState(1);
   const limit = 20;
 
+  const toast = useToast();
+  const role = useAuthStore((s) => s.user?.role);
+  const canRegisterAma = role === 'ADMIN' || role === 'STAFF';
+
   const { data, isLoading } = useParents({ q: q.length >= 2 ? q : undefined, page, limit });
   const deleteMut = useDeleteParent();
+  const registerAmaMut = useRegisterParentAsAmaClient();
+
+  const handleRegisterAma = async (p: ParentSummary) => {
+    try {
+      const res = await registerAmaMut.mutateAsync(p.id);
+      toast.success(
+        res.alreadyRegistered
+          ? t('parentList.ama.alreadyRegistered', '이미 등록된 학부모입니다')
+          : t('parentList.ama.success', 'AMA 고객사로 등록되었습니다'),
+      );
+    } catch {
+      toast.error(t('parentList.ama.error', 'AMA 등록에 실패했습니다. 잠시 후 다시 시도하세요.'));
+    }
+  };
 
   const items = useMemo<ParentSummary[]>(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
@@ -83,20 +104,21 @@ export function ParentListPage() {
               <th className="px-3 py-2 text-left">{t('field.parentPhone', '전화번호')}</th>
               <th className="px-3 py-2 text-left">{t('field.parentEmail', '이메일')}</th>
               <th className="px-3 py-2 text-left">{t('parentList.childCount', '연결 자녀')}</th>
+              <th className="px-3 py-2 text-left">{t('parentList.ama.column', 'AMA 고객사')}</th>
               <th className="px-3 py-2 text-right">{t('common:actions.actions', '작업')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {isLoading && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-secondary">
+                <td colSpan={7} className="p-6 text-center text-secondary">
                   {t('common:status.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-secondary">
+                <td colSpan={7} className="p-6 text-center text-secondary">
                   {t('parentList.empty', '등록된 학부모가 없습니다')}
                 </td>
               </tr>
@@ -133,6 +155,7 @@ export function ParentListPage() {
                     />
                   </td>
                   <td className="px-3 py-2 text-secondary">{p.childCount ?? 0}</td>
+                  <td className="px-3 py-2 text-secondary">—</td>
                   <td className="px-3 py-2 text-right">
                     <Button size="sm" onClick={handleSaveEdit} disabled={updateMut.isPending}>
                       {t('common:actions.save', '저장')}
@@ -165,6 +188,39 @@ export function ParentListPage() {
                       >
                         {p.childCount}
                       </button>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {p.amaClientId ? (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-status-active-bg px-2 py-0.5 text-[10px] font-semibold text-status-active-fg"
+                        title={p.amaClientId}
+                      >
+                        <BadgeCheck className="h-3 w-3" />
+                        {t('parentList.ama.registered', '등록됨')}
+                      </span>
+                    ) : !p.amaEligible ? (
+                      <span
+                        className="text-[11px] text-secondary"
+                        title={t(
+                          'parentList.ama.eligibleHint',
+                          'ACTIVE 상태 학생을 보유한 학부모만 등록할 수 있습니다.',
+                        )}
+                      >
+                        {t('parentList.ama.notEligible', 'ACTIVE 학생 없음')}
+                      </span>
+                    ) : canRegisterAma ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={registerAmaMut.isPending}
+                        onClick={() => handleRegisterAma(p)}
+                      >
+                        <UserPlus className="mr-1 h-3 w-3" />
+                        {t('parentList.ama.register', 'AMA 고객사 등록')}
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] text-secondary">—</span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right">

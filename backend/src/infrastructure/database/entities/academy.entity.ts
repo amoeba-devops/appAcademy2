@@ -26,6 +26,10 @@ export class AcademyEntity {
   @Column({ name: 'acd_ama_tenant_id', type: 'varchar', length: 64, nullable: true })
   acdAmaTenantId: string | null;
 
+  /** AMA entity human-readable code (e.g. 'VN3040'). Login-gate whitelist key (REQ-260609 FR-A). */
+  @Column({ name: 'acd_ama_entity_code', type: 'varchar', length: 40, nullable: true })
+  acdAmaEntityCode: string | null;
+
   @Column({ name: 'acd_slug', type: 'varchar', length: 60, nullable: true })
   acdSlug: string | null;
 

@@ -1,10 +1,23 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { ParentTypeormEntity } from '../infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from '../infrastructure/typeorm/student-parent.typeorm-entity';
 import { StudentTypeormEntity } from '../infrastructure/typeorm/student.typeorm-entity';
+import {
+  AMA_CLIENT_SERVICE,
+  type IAmaClientService,
+} from '../../../infrastructure/external/ama/interfaces/ama-client.interface';
+import { AmaServiceUnavailableException } from '../../../infrastructure/external/ama/ama.exceptions';
 import type {
   CreateParentDto,
   ListParentsQueryDto,
@@ -32,6 +45,8 @@ export class ParentService {
     @InjectRepository(StudentTypeormEntity, ACM_DS)
     private readonly students: Repository<StudentTypeormEntity>,
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
+    @Inject(AMA_CLIENT_SERVICE)
+    private readonly amaClient: IAmaClientService,
   ) {}
 
   // --------------------------------------------------------------------------
@@ -58,8 +73,10 @@ export class ParentService {
 
     const [items, total] = await qb.getManyAndCount();
 
-    // Annotate child count (REQ-260511 FR-PAR-01)
+    // Annotate child count (REQ-260511 FR-PAR-01) + AMA-client eligibility
+    // (REQ-260609 FR-C2 — parent has ≥1 ACTIVE student).
     let childCounts = new Map<string, number>();
+    let activeCounts = new Map<string, number>();
     if (items.length > 0) {
       const ids = items.map((p) => p.id);
       const rows: Array<{ par_id: string; cnt: string }> = await this.links
@@ -71,10 +88,30 @@ export class ParentService {
         .groupBy('l.par_id')
         .getRawMany();
       childCounts = new Map(rows.map((r) => [r.par_id, Number(r.cnt)]));
+
+      const activeRows: Array<{ par_id: string; cnt: string }> = await this.links
+        .createQueryBuilder('l')
+        .innerJoin(
+          StudentTypeormEntity,
+          's',
+          's.std_id = l.std_id AND s.deleted_at IS NULL',
+        )
+        .select('l.par_id', 'par_id')
+        .addSelect('COUNT(l.std_id)', 'cnt')
+        .where('l.ent_id = :entId', { entId })
+        .andWhere('l.par_id IN (:...ids)', { ids })
+        .andWhere("s.std_status = 'ACTIVE'")
+        .groupBy('l.par_id')
+        .getRawMany();
+      activeCounts = new Map(activeRows.map((r) => [r.par_id, Number(r.cnt)]));
     }
 
     return {
-      items: items.map((p) => ({ ...this.toDetail(p), childCount: childCounts.get(p.id) ?? 0 })),
+      items: items.map((p) => ({
+        ...this.toDetail(p),
+        childCount: childCounts.get(p.id) ?? 0,
+        amaEligible: (activeCounts.get(p.id) ?? 0) > 0,
+      })),
       total,
       page,
       limit,
@@ -88,7 +125,7 @@ export class ParentService {
     if (!e) throw new NotFoundException('PARENT_NOT_FOUND');
     // REQ-260511 FR-PAR-02: include linked students
     const links = await this.links.find({ where: { entId, parId: id } });
-    let students: Array<{ id: string; name: string; school: string | null; grade: string | null; isPrimary: boolean }> = [];
+    let students: Array<{ id: string; name: string; school: string | null; grade: string | null; status: string; isPrimary: boolean }> = [];
     if (links.length > 0) {
       const stdIds = links.map((l) => l.stdId);
       const studentRows = await this.students.find({
@@ -103,12 +140,15 @@ export class ParentService {
             name: s.name,
             school: s.school ?? null,
             grade: s.grade ?? null,
+            status: s.status,
             isPrimary: l.isPrimary,
           };
         })
         .filter((x): x is NonNullable<typeof x> => !!x);
     }
-    return { ...this.toDetail(e), students };
+    // FR-C2 — eligible when ≥1 linked student is ACTIVE.
+    const amaEligible = students.some((s) => s.status === 'ACTIVE');
+    return { ...this.toDetail(e), students, amaEligible };
   }
 
   async create(entId: string, dto: CreateParentDto) {
@@ -399,8 +439,78 @@ export class ParentService {
       relation: e.relation,
       phone: e.phone,
       email: e.email,
+      amaClientId: e.amaClientId ?? null,
+      amaRegisteredAt: e.amaRegisteredAt ?? null,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
+  }
+
+  // --------------------------------------------------------------------------
+  // REQ-260609 FR-C — register parent as AMA client (entity VN3040)
+  // --------------------------------------------------------------------------
+
+  /** True when the parent is linked to ≥1 ACTIVE student (FR-C2 eligibility). */
+  async hasActiveStudent(entId: string, parId: string): Promise<boolean> {
+    const links = await this.links.find({ where: { entId, parId } });
+    if (links.length === 0) return false;
+    const stdIds = links.map((l) => l.stdId);
+    const active = await this.students.count({
+      where: { id: In(stdIds), entId, status: 'ACTIVE', deletedAt: IsNull() },
+    });
+    return active > 0;
+  }
+
+  /**
+   * Register the parent as an AMA client under the caller's entity (VN3040).
+   * Idempotent (par_ama_client_id); requires an ACTIVE-student parent (422).
+   * @param entId caller's AMA entity UUID (already gated to VN3040 at login).
+   */
+  async registerAsAmaClient(
+    entId: string,
+    id: string,
+  ): Promise<{ amaClientId: string; alreadyRegistered: boolean }> {
+    const parent = await this.parents.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
+    if (!parent) throw new NotFoundException('PARENT_NOT_FOUND');
+
+    // Idempotency — already registered: return existing, no duplicate POST.
+    if (parent.amaClientId) {
+      return { amaClientId: parent.amaClientId, alreadyRegistered: true };
+    }
+
+    // FR-C2 — only parents with an ACTIVE (enrolled) student are eligible.
+    if (!(await this.hasActiveStudent(entId, id))) {
+      throw new UnprocessableEntityException({
+        code: 'NO_ACTIVE_STUDENT',
+        message: 'Parent has no ACTIVE student — not eligible for AMA client registration',
+      });
+    }
+
+    let created;
+    try {
+      created = await this.amaClient.createClient({
+        entityId: entId,
+        name: parent.name,
+        phone: parent.phone ?? null,
+        email: parent.email ?? null,
+      });
+    } catch (e) {
+      if (e instanceof AmaServiceUnavailableException) {
+        throw new HttpException(
+          { code: 'AMA_UNAVAILABLE', message: 'AMA platform unavailable' },
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+      throw e;
+    }
+
+    parent.amaClientId = created.amaClientId;
+    parent.amaRegisteredAt = new Date();
+    parent.updatedAt = new Date();
+    await this.parents.save(parent);
+
+    return { amaClientId: created.amaClientId, alreadyRegistered: false };
   }
 }

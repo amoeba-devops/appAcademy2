@@ -62,7 +62,6 @@
     "startDate": "Enrollment Date",
     "status": "Status",
     "email": "Email",
-    "phone": "Phone",
     "parentName": "Name",
     "parentRelation": "Relation",
     "parentPhone": "Phone",
@@ -114,6 +113,16 @@
     "childCount": "Linked children",
     "orphan": "Orphan (no children)",
     "cannotDeleteLinked": "Cannot delete: parent has linked children",
-    "confirmDelete": "Delete this parent?"
+    "confirmDelete": "Delete this parent?",
+    "ama": {
+      "column": "AMA Client",
+      "register": "Register AMA client",
+      "registered": "Registered",
+      "notEligible": "No active student",
+      "eligibleHint": "Only parents with an ACTIVE student can be registered.",
+      "success": "Registered as AMA client",
+      "alreadyRegistered": "Parent is already registered",
+      "error": "Failed to register with AMA. Please try again later."
+    }
   }
 }
