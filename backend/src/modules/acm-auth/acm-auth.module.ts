@@ -26,6 +26,10 @@ import { StgAppsSubscriptionHttpClient } from './infrastructure/stg-apps-subscri
 import { AMA_PLATFORM_CLIENT } from './infrastructure/ama-platform.client';
 import { AmaPlatformMockClient } from './infrastructure/ama-platform-mock.client';
 import { AmaPlatformHttpClient } from './infrastructure/ama-platform-http.client';
+import { AMA_OAUTH_CLIENT } from './infrastructure/ama-oauth.client';
+import { AmaOAuthMockClient } from './infrastructure/ama-oauth-mock.client';
+import { AmaOAuthHttpClient } from './infrastructure/ama-oauth-http.client';
+import { AmaSessionExchanger } from './infrastructure/ama-session.exchanger';
 
 /**
  * STG_APPS_SUBSCRIPTION_CLIENT provider — picks mock or http based on
@@ -60,6 +64,22 @@ const amaPlatformProvider: Provider = {
       return new AmaPlatformHttpClient(config);
     }
     return new AmaPlatformMockClient();
+  },
+};
+
+/**
+ * AMA_OAUTH_CLIENT provider (REQ-260609C) — same AMA_SERVICES_MODE toggle.
+ * Used by AmaSessionExchanger for the ama_session grant exchange + introspect.
+ */
+const amaOAuthProvider: Provider = {
+  provide: AMA_OAUTH_CLIENT,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => {
+    const mode = String(config.get('AMA_SERVICES_MODE', 'mock')).toLowerCase();
+    if (mode === 'http') {
+      return new AmaOAuthHttpClient(config);
+    }
+    return new AmaOAuthMockClient();
   },
 };
 
@@ -98,8 +118,10 @@ const amaPlatformProvider: Provider = {
     AmaConfigService,
     AmaConfigGateService,
     AmaUserDirectoryService,
+    AmaSessionExchanger,
     stgAppsSubscriptionProvider,
     amaPlatformProvider,
+    amaOAuthProvider,
     AcmJwtStrategy,
     AcmJwtAuthGuard,
     AmaTokenVerifier,

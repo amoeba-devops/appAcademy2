@@ -87,7 +87,7 @@
   "clear": "Clear",
   "config": {
     "title": "AMA Integration",
-    "description": "Login is allowed only when the corporate info (entityId · appCode) carried by the ama.amoeba.site custom app matches the values below.",
+    "description": "AMA SSO login condition. Login is allowed only when the registered entityId (AMA corporate ID) matches.",
     "loading": "Loading…",
     "saved": "Saved.",
     "lastUpdated": "Last updated: {{at}}",
@@ -97,8 +97,8 @@
         "hint": "The entityId (UUID) from your AMA corporate settings."
       },
       "appCode": {
-        "label": "Custom app appCode",
-        "hint": "The app name you entered when registering the custom app (e.g. tpi-acm)."
+        "label": "Custom app appCode (reference)",
+        "hint": "The app name from the custom app registration (e.g. tpi-acm). Reference only — the login gate uses entityId."
       },
       "isActive": {
         "label": "Allow login with this config (active)"

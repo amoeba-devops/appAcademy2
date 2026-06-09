@@ -83,7 +83,7 @@
   "clear": "清除",
   "config": {
     "title": "AMA 集成设置",
-    "description": "仅当 ama.amoeba.site 自定义应用传递的法人信息（entityId · appCode）与以下值一致时才允许登录。",
+    "description": "AMA SSO 登录条件。仅当已登记的 entityId（AMA 法人 ID）一致时才允许登录。",
     "loading": "加载中…",
     "saved": "已保存。",
     "lastUpdated": "最后修改：{{at}}",
@@ -93,8 +93,8 @@
         "hint": "AMA 法人设置中的 entityId（UUID）。"
       },
       "appCode": {
-        "label": "自定义应用 appCode",
-        "hint": "注册自定义应用时填写的应用名称（例如：tpi-acm）。"
+        "label": "自定义应用 appCode（仅供参考）",
+        "hint": "注册自定义应用时填写的应用名称（例如：tpi-acm）。仅供参考 — 登录校验仅使用 entityId。"
       },
       "isActive": {
         "label": "使用此配置允许登录（启用）"

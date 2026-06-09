@@ -83,7 +83,7 @@
   "clear": "Xóa",
   "config": {
     "title": "Tích hợp AMA",
-    "description": "Chỉ cho phép đăng nhập khi thông tin pháp nhân (entityId · appCode) do ứng dụng tùy chỉnh từ ama.amoeba.site gửi đến khớp với các giá trị bên dưới.",
+    "description": "Điều kiện đăng nhập AMA SSO. Chỉ cho phép đăng nhập khi entityId (ID pháp nhân AMA) đã đăng ký khớp.",
     "loading": "Đang tải…",
     "saved": "Đã lưu.",
     "lastUpdated": "Cập nhật lần cuối: {{at}}",
@@ -93,8 +93,8 @@
         "hint": "entityId (UUID) trong cài đặt pháp nhân AMA."
       },
       "appCode": {
-        "label": "appCode của ứng dụng tùy chỉnh",
-        "hint": "Tên ứng dụng bạn đã nhập khi đăng ký ứng dụng tùy chỉnh (ví dụ: tpi-acm)."
+        "label": "appCode ứng dụng tùy chỉnh (tham khảo)",
+        "hint": "Tên ứng dụng khi đăng ký ứng dụng tùy chỉnh (ví dụ: tpi-acm). Chỉ tham khảo — cổng đăng nhập dùng entityId."
       },
       "isActive": {
         "label": "Cho phép đăng nhập với cấu hình này (kích hoạt)"

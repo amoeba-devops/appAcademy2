@@ -5,7 +5,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 import { AmaConfigGateService } from './ama-config-gate.service';
 
-describe('AmaConfigGateService (REQ-260609B FR-3)', () => {
+describe('AmaConfigGateService (REQ-260609B / C D-1 — entityId-only gate)', () => {
   let svc: AmaConfigGateService;
   let findOne: jest.Mock;
 
@@ -33,32 +33,30 @@ describe('AmaConfigGateService (REQ-260609B FR-3)', () => {
       ...over,
     }) as AmaConfigTypeormEntity;
 
-  it('allows when entityId + appCode match an active config', async () => {
+  it('allows when entityId matches an active config', async () => {
     await build();
     findOne.mockResolvedValue(cfg());
-    await expect(svc.ensureAllowed('ent-uuid', 'tpi-acm')).resolves.toBeUndefined();
+    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBeUndefined();
   });
 
   it('denies when no active config for the entityId (deny-all)', async () => {
     await build();
     findOne.mockResolvedValue(null);
-    await expect(svc.ensureAllowed('other', 'tpi-acm')).rejects.toMatchObject({
+    await expect(svc.ensureAllowed('other')).rejects.toMatchObject({
       response: { code: 'ENTITY_NOT_ALLOWED' },
     } as Partial<HttpException>);
   });
 
-  it('denies when appCode does not match', async () => {
+  it('appCode is NOT part of the gate (D-1) — any appCode in config is irrelevant', async () => {
     await build();
-    findOne.mockResolvedValue(cfg({ appCode: 'tpi-acm' }));
-    await expect(svc.ensureAllowed('ent-uuid', 'evil-app')).rejects.toMatchObject({
-      response: { code: 'ENTITY_NOT_ALLOWED' },
-    } as Partial<HttpException>);
+    findOne.mockResolvedValue(cfg({ appCode: 'whatever-app' }));
+    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBeUndefined();
   });
 
-  it('queries only active rows (inactive config is invisible → denied)', async () => {
+  it('queries only active rows by entityId', async () => {
     await build();
-    findOne.mockResolvedValue(null); // active:true filter yields nothing
-    await expect(svc.ensureAllowed('ent-uuid', 'tpi-acm')).rejects.toBeInstanceOf(
+    findOne.mockResolvedValue(null);
+    await expect(svc.ensureAllowed('ent-uuid')).rejects.toBeInstanceOf(
       HttpException,
     );
     expect(findOne).toHaveBeenCalledWith({

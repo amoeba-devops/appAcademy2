@@ -187,12 +187,12 @@ describe('IT-AMA-SSO ama-exchange + legacy login regression', () => {
     expect(res.body.code).toBe('AMA_TOKEN_INVALID_SIGNATURE');
   });
 
-  it('TC-INT-04: appCode mismatch vs admin config → 403 ENTITY_NOT_ALLOWED (REQ-260609B)', async () => {
-    // appCode authorization moved from the verifier env whitelist to the
-    // admin-configured gate (amb_acm_ama_config). The default token entityId
-    // is seeded with appCode 'tpi-acm'; sending a different appCode now fails
-    // the gate, not the verifier.
-    const token = makeAmaToken({ appCode: 'other-app' });
+  it('TC-INT-04: entityId not in admin config → 403 ENTITY_NOT_ALLOWED (REQ-260609B/C D-1)', async () => {
+    // The gate compares entityId only (appCode excluded per D-1). An entityId
+    // with no active amb_acm_ama_config row is rejected by the gate.
+    const token = makeAmaToken({
+      entityId: 'deadbeef-0000-0000-0000-000000000000',
+    });
     const res = await request(env.app.getHttpServer())
       .post('/api/acm/auth/ama-exchange')
       .send({ amaToken: token })

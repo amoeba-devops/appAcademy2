@@ -87,7 +87,7 @@
   "clear": "지우기",
   "config": {
     "title": "AMA 연동 설정",
-    "description": "ama.amoeba.site 커스텀앱이 전달하는 법인정보(entityId·appCode)가 아래 값과 일치할 때만 로그인을 허용합니다.",
+    "description": "AMA SSO 로그인 허용 조건입니다. 등록된 entityId(AMA 법인 ID)가 일치할 때만 로그인을 허용합니다.",
     "loading": "불러오는 중…",
     "saved": "저장되었습니다.",
     "lastUpdated": "마지막 수정: {{at}}",
@@ -97,8 +97,8 @@
         "hint": "AMA 법인 설정의 entityId(UUID)."
       },
       "appCode": {
-        "label": "커스텀앱 appCode",
-        "hint": "커스텀앱 등록 시 작성한 앱 이름 (예: tpi-acm)."
+        "label": "커스텀앱 appCode (참고용)",
+        "hint": "커스텀앱 등록 시 작성한 앱 이름 (예: tpi-acm). 참고용 — 로그인 게이트는 entityId만 사용합니다."
       },
       "isActive": {
         "label": "이 설정으로 로그인 허용 (활성)"

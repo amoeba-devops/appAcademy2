@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -16,11 +17,19 @@ import {
   AmaTokenVerifyException,
   type AmaTokenPayload,
 } from '../infrastructure/ama-token.verifier';
+import { AmaSessionExchanger } from '../infrastructure/ama-session.exchanger';
+import {
+  AmaOAuthRejectedException,
+  AmaOAuthUnavailableException,
+} from '../infrastructure/ama-oauth.client';
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
 import { SubscriptionCheckService } from './subscription-check.service';
 import { UserMembershipGuard } from './user-membership.guard';
 import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
+
+/** REQ-260609C — AMA token verification mode. */
+type AmaVerifyMode = 'local' | 'ama_session';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -44,6 +53,7 @@ const LOCKOUT_MS = 60_000;
 export class AcmAuthService {
   private readonly logger = new Logger(AcmAuthService.name);
   private readonly failures = new Map<string, FailureWindow>();
+  private readonly verifyMode: AmaVerifyMode;
 
   constructor(
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
@@ -53,7 +63,16 @@ export class AcmAuthService {
     private readonly subscriptionCheck: SubscriptionCheckService,
     private readonly membershipGuard: UserMembershipGuard,
     private readonly amaConfigGate: AmaConfigGateService,
-  ) {}
+    private readonly sessionExchanger: AmaSessionExchanger,
+    config: ConfigService,
+  ) {
+    this.verifyMode =
+      String(config.get('AMA_TOKEN_VERIFY_MODE', 'local')).toLowerCase() ===
+      'ama_session'
+        ? 'ama_session'
+        : 'local';
+    this.logger.log(`AMA token verify mode = ${this.verifyMode}`);
+  }
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
     this.assertNotLocked(email);
@@ -207,38 +226,16 @@ export class AcmAuthService {
    * controller returns a deterministic 4xx/5xx with that code.
    */
   async exchangeAmaToken(amaToken: string): Promise<AcmLoginResponse> {
-    if (!this.amaVerifier.isEnabled()) {
-      throw new HttpException(
-        { code: 'AMA_SSO_DISABLED', message: 'AMA SSO is not configured' },
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
-    let payload: AmaTokenPayload;
-    try {
-      payload = this.amaVerifier.verify(amaToken);
-    } catch (e) {
-      if (e instanceof AmaTokenVerifyException) {
-        const status =
-          e.code === 'AMA_TOKEN_CLAIMS_MISSING'
-            ? HttpStatus.BAD_REQUEST
-            : e.code === 'AMA_TOKEN_SCOPE_INVALID' ||
-                e.code === 'AMA_TOKEN_APP_CODE_INVALID'
-              ? HttpStatus.FORBIDDEN
-              : HttpStatus.UNAUTHORIZED;
-        this.logger.warn(
-          `AMA exchange rejected code=${e.code} reason=${e.message}`,
-        );
-        throw new HttpException({ code: e.code, message: e.code }, status);
-      }
-      throw e;
-    }
+    // REQ-260609C — verify the AMA token. `local` = legacy HS256 self-verify;
+    // `ama_session` = delegate to the AMA OAuth gateway (token exchange +
+    // introspect). Mode-specific error→HTTP mapping happens inside.
+    const payload = await this.verifyAmaToken(amaToken);
 
-    // REQ-260609B FR-3 — admin-configurable login gate. The token's
-    // entityId + appCode must match the values an admin registered at
-    // /admin/config (amb_acm_ama_config). Supersedes the env/MySQL entity
-    // gate (REQ-260609 FR-A). Runs before the heavier live subscription/
-    // membership calls. Throws 403 ENTITY_NOT_ALLOWED (fail-closed).
-    await this.amaConfigGate.ensureAllowed(payload.entityId, payload.appCode);
+    // REQ-260609B FR-3 (D-1) — admin-configurable login gate. The token's
+    // entityId must match the value an admin registered at /admin/config
+    // (amb_acm_ama_config). appCode is excluded from the gate. Runs before the
+    // heavier live subscription/membership calls. 403 ENTITY_NOT_ALLOWED.
+    await this.amaConfigGate.ensureAllowed(payload.entityId);
 
     // REQ-260604 v2 FR-1 + FR-9 — live stg-apps subscription check with
     // 24h cache fallback. Throws HttpException on terminal failure
@@ -275,7 +272,16 @@ export class AcmAuthService {
         ? 'ADMIN'
         : mapAcmRole(payload.role, jobRole);
 
-    const user = await this.upsertAmaUser(payload, acmRole, jobRole);
+    // REQ-260609C — ama_session introspect carries no email/name/level. Backfill
+    // from the live directory record (authoritative; both modes pass membership).
+    // local mode already has email/role on the token, so prefer the token value.
+    const email = payload.email || member.email;
+    const displayName = member.name || email.split('@')[0] || email;
+    const amaLevel =
+      payload.role && payload.role !== 'UNKNOWN' ? payload.role : member.level;
+    const enriched: AmaTokenPayload = { ...payload, email, role: amaLevel };
+
+    const user = await this.upsertAmaUser(enriched, acmRole, jobRole, displayName);
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -314,10 +320,85 @@ export class AcmAuthService {
     };
   }
 
+  /** REQ-260609C — dispatch token verification by configured mode. */
+  private async verifyAmaToken(amaToken: string): Promise<AmaTokenPayload> {
+    return this.verifyMode === 'ama_session'
+      ? this.verifyViaSession(amaToken)
+      : this.verifyViaLocal(amaToken);
+  }
+
+  /** Legacy local HS256 self-verification (AMA_JWT_SECRET). */
+  private verifyViaLocal(amaToken: string): AmaTokenPayload {
+    if (!this.amaVerifier.isEnabled()) {
+      throw new HttpException(
+        { code: 'AMA_SSO_DISABLED', message: 'AMA SSO is not configured' },
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+    try {
+      return this.amaVerifier.verify(amaToken);
+    } catch (e) {
+      if (e instanceof AmaTokenVerifyException) {
+        const status =
+          e.code === 'AMA_TOKEN_CLAIMS_MISSING'
+            ? HttpStatus.BAD_REQUEST
+            : e.code === 'AMA_TOKEN_SCOPE_INVALID' ||
+                e.code === 'AMA_TOKEN_APP_CODE_INVALID'
+              ? HttpStatus.FORBIDDEN
+              : HttpStatus.UNAUTHORIZED;
+        this.logger.warn(
+          `AMA exchange rejected code=${e.code} reason=${e.message}`,
+        );
+        throw new HttpException({ code: e.code, message: e.code }, status);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * REQ-260609C — verify via the AMA OAuth gateway (ama_session grant exchange
+   * + introspect). No local signing secret. Maps gateway outcomes to HTTP:
+   *   invalid_ama_token/unknown → 401, invalid_scope/user_inactive → 403,
+   *   invalid_client → 500 (our misconfig), 5xx/network/timeout → 503.
+   */
+  private async verifyViaSession(amaToken: string): Promise<AmaTokenPayload> {
+    try {
+      return await this.sessionExchanger.verify(amaToken);
+    } catch (e) {
+      if (e instanceof AmaOAuthUnavailableException) {
+        this.logger.error(`ama_session unavailable: ${e.reason}`);
+        throw new HttpException(
+          { code: 'AMA_UNAVAILABLE', message: 'AMA gateway unavailable' },
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+      if (e instanceof AmaOAuthRejectedException) {
+        const status =
+          e.code === 'invalid_scope' || e.code === 'user_inactive'
+            ? HttpStatus.FORBIDDEN
+            : e.code === 'invalid_client'
+              ? HttpStatus.INTERNAL_SERVER_ERROR
+              : HttpStatus.UNAUTHORIZED;
+        const code =
+          e.code === 'user_inactive'
+            ? 'USER_INACTIVE'
+            : e.code === 'invalid_scope'
+              ? 'AMA_SCOPE_INVALID'
+              : e.code === 'invalid_client'
+                ? 'AMA_CLIENT_MISCONFIGURED'
+                : 'AMA_TOKEN_INVALID';
+        this.logger.warn(`ama_session rejected code=${e.code} reason=${e.message}`);
+        throw new HttpException({ code, message: code }, status);
+      }
+      throw e;
+    }
+  }
+
   private async upsertAmaUser(
     payload: AmaTokenPayload,
     acmRole: AcmRole,
     jobRole: string | null,
+    displayName: string,
   ): Promise<AcmUserTypeormEntity> {
     // 1. Lookup by AMA user id (primary key for AMA-source users).
     let user = await this.userRepo.findOne({
@@ -345,7 +426,7 @@ export class AcmAuthService {
       const created = this.userRepo.create({
         entId: payload.entityId,
         email: payload.email,
-        name: payload.email.split('@')[0] || payload.email,
+        name: displayName,
         passwordHash: null,
         status: 'ACTIVE',
         authSource: 'ama',
@@ -360,6 +441,7 @@ export class AcmAuthService {
       // Sync mutable fields — role/jobRole re-evaluated each login (FR-B4).
       const dirty: Partial<AcmUserTypeormEntity> = {};
       if (user.email !== payload.email) dirty.email = payload.email;
+      if (displayName && user.name !== displayName) dirty.name = displayName;
       if (user.amaRole !== payload.role) dirty.amaRole = payload.role;
       if (user.amaJobRole !== jobRole) dirty.amaJobRole = jobRole;
       if (user.role !== acmRole) dirty.role = acmRole;
