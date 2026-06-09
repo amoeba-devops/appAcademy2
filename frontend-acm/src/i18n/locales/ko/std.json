@@ -40,7 +40,7 @@
     "englishName": "영어 이름",
     "gender": "성별",
     "birthDate": "생년월일",
-    "phone": "연락처",
+    "phone": "전화번호",
     "residence": "거주지",
     "school": "학교",
     "grade": "학년",
@@ -62,7 +62,6 @@
     "startDate": "등록일",
     "status": "상태",
     "email": "이메일",
-    "phone": "전화번호",
     "parentName": "이름",
     "parentRelation": "관계",
     "parentPhone": "전화번호",
@@ -114,6 +113,16 @@
     "childCount": "연결 자녀",
     "orphan": "고아 (자녀 없음)",
     "cannotDeleteLinked": "연결된 자녀가 있어 삭제할 수 없습니다",
-    "confirmDelete": "학부모를 삭제하시겠습니까?"
+    "confirmDelete": "학부모를 삭제하시겠습니까?",
+    "ama": {
+      "column": "AMA 고객사",
+      "register": "AMA 고객사 등록",
+      "registered": "등록됨",
+      "notEligible": "ACTIVE 학생 없음",
+      "eligibleHint": "ACTIVE 상태 학생을 보유한 학부모만 등록할 수 있습니다.",
+      "success": "AMA 고객사로 등록되었습니다",
+      "alreadyRegistered": "이미 등록된 학부모입니다",
+      "error": "AMA 등록에 실패했습니다. 잠시 후 다시 시도하세요."
+    }
   }
 }

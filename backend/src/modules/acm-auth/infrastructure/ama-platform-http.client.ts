@@ -149,6 +149,16 @@ export class AmaPlatformHttpClient implements IAmaPlatformClient {
       this.logger.warn(`ama user payload has unknown level="${String(level)}"`);
       return null;
     }
+    // REQ-260609 FR-B (O-6) — read the AMA job field from several candidate
+    // keys until the contract is confirmed. Null when none present.
+    const jobRole =
+      typeof r.jobRole === 'string'
+        ? r.jobRole
+        : typeof r.position === 'string'
+          ? (r.position as string)
+          : typeof r.job === 'string'
+            ? (r.job as string)
+            : null;
     return {
       userId: String(r.userId ?? ''),
       entityId: String(r.entityId ?? fallbackEntityId),
@@ -156,6 +166,7 @@ export class AmaPlatformHttpClient implements IAmaPlatformClient {
       name: String(r.name ?? ''),
       email: String(r.email ?? ''),
       avatarUrl: typeof r.avatarUrl === 'string' ? r.avatarUrl : null,
+      jobRole,
     };
   }
 }

@@ -36,7 +36,7 @@ related:
 
 ---
 
-## 3. Spec Asks (명세 요청 7건)
+## 3. Spec Asks (명세 요청 8건)
 
 | # | 항목 | 요청 내용 | Response |
 |---|---|---|---|
@@ -47,6 +47,7 @@ related:
 | **A-5** | **AMA 거래처(교사) 마스터 API** | 학원관리앱은 AMA 거래처를 교사 마스터로 동기화한다. 기존 AMA Client API의 endpoint, 인증 방식(앱 토큰? 사용자 위임?), rate limit, 변경 이벤트(webhook or polling) | _TBD_ |
 | **A-6** | **AmoebaTalk 알림 API** | 발신 식별자(앱 단위? 테넌트 단위?), 템플릿 사전 승인 절차, 비용 부담 주체(AMA 흡수 vs 앱 정산), 발신 quota | _TBD_ |
 | **A-7** | **결제 책임 경계 + Deep Link** | (1) AMA 결제센터 deep link URL 패턴(`https://ama.../billing?app=academy&tenant={ama_tenant_id}`?) (2) 환불·플랜 변경 처리는 모두 AMA UI에서 진행됨이 맞나? (3) 본 앱이 webhook 외 결제 API를 호출할 일이 있나? | _TBD_ |
+| **A-8** | **AMA 고객사(Client) 생성 API (write)** | REQ-260609 FR-C — 수강 결정 학부모를 entity 하위 고객사로 등록. 확인 필요: (1) endpoint — `POST /api/v1/entities/{entityId}/clients` 인가 `POST /api/v1/clients` (entityId in body)인가? (2) 인증 — read-only 미러링대로 `Bearer AMA_API_KEY` + HMAC(`X-Ama-Timestamp`,`X-Ama-Signature`) 맞나? (3) 요청 body 필수/선택 필드 (`name`+`phone`+`email` 외 사업자번호 등?) (4) 응답에 생성된 `amaClientId` 포함되나? (멱등키) (5) 중복(같은 이름/연락처) 시 동작 — 409+기존 id 반환 vs upsert? | _TBD_ — 그 전까지 `AMA_MODE=mock` 으로 검증, http 스위치만 대기 ([ama-client.service.ts](../../backend/src/infrastructure/external/ama/ama-client.service.ts) `createClient`) |
 
 ---
 

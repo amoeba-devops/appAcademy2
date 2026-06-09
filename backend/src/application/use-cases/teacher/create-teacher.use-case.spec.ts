@@ -20,6 +20,7 @@ describe('CreateTeacherUseCase', () => {
     const ama: jest.Mocked<IAmaClientService> = {
       getClient: jest.fn().mockResolvedValue(opts.amaClient),
       searchClients: jest.fn(),
+      createClient: jest.fn(),
     };
     const repo: jest.Mocked<ITeacherRepository> = {
       findByAmaClientId: jest.fn().mockResolvedValue(opts.existing ?? null),

@@ -32,6 +32,7 @@ describe('TeacherSyncService.syncOne', () => {
     const ama: jest.Mocked<IAmaClientService> = {
       getClient: jest.fn().mockResolvedValue(null),
       searchClients: jest.fn(),
+      createClient: jest.fn(),
     };
 
     const svc = new TeacherSyncService(repo as any, ama, makeConfig());
@@ -61,6 +62,7 @@ describe('TeacherSyncService.syncOne', () => {
         updatedAt: '2026-04-20T00:00:00Z',
       }),
       searchClients: jest.fn(),
+      createClient: jest.fn(),
     };
 
     const svc = new TeacherSyncService(repo as any, ama, makeConfig());
@@ -90,6 +92,7 @@ describe('TeacherSyncService.syncOne', () => {
         updatedAt: '2025-12-31T00:00:00Z',
       }),
       searchClients: jest.fn(),
+      createClient: jest.fn(),
     };
 
     const svc = new TeacherSyncService(repo as any, ama, makeConfig());

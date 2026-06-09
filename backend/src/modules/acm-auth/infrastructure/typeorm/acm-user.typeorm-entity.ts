@@ -49,6 +49,10 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'ama_role', type: 'varchar', length: 40, nullable: true })
   amaRole?: string | null;
 
+  /** AMA job/position field (e.g. 'TEACHER') — basis for TEACHER/STAFF mapping (REQ-260609 FR-B). */
+  @Column({ name: 'usr_ama_job_role', type: 'varchar', length: 40, nullable: true })
+  amaJobRole?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

@@ -8,6 +8,7 @@ import { AcademyEntity } from '../../infrastructure/database/entities/academy.en
 import { AcmAuthService } from './application/acm-auth.service';
 import { SubscriptionCheckService } from './application/subscription-check.service';
 import { UserMembershipGuard } from './application/user-membership.guard';
+import { EntityGateService } from './application/entity-gate.service';
 import { AmaUserDirectoryService } from './application/ama-user-directory.service';
 import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
@@ -86,6 +87,7 @@ const amaPlatformProvider: Provider = {
     AcmAuthService,
     SubscriptionCheckService,
     UserMembershipGuard,
+    EntityGateService,
     AmaUserDirectoryService,
     stgAppsSubscriptionProvider,
     amaPlatformProvider,

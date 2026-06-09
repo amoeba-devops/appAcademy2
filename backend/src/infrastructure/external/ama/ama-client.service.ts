@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IAmaClientService } from './interfaces/ama-client.interface';
-import { AmaClientDto, AmaSearchResultDto } from './dto/ama-client.dto';
+import {
+  AmaClientDto,
+  AmaCreateClientInput,
+  AmaSearchResultDto,
+} from './dto/ama-client.dto';
 import { AmaServiceUnavailableException } from './ama.exceptions';
 import { signAmaRequest } from './ama-signature.util';
 
@@ -59,6 +63,37 @@ export class AmaClientHttpService implements IAmaClientService {
     const data = Array.isArray(res?.data) ? res.data.map((c: any) => this.toDto(c)) : [];
     const meta = res?.meta ?? { page, limit, total: data.length };
     return { data, meta };
+  }
+
+  /**
+   * Register a parent as an AMA client under an entity (REQ-260609 FR-C).
+   *
+   * Contract (O-1..O-5, pending AMA confirmation — mirror of read-only auth):
+   *   POST /api/v1/entities/{entityId}/clients   Bearer + HMAC
+   *   body { name, phone?, email? }
+   *   → 200/201 { id|clientId|amaClientId, … }
+   *   → 409 (duplicate)  → resolve to the existing client id from the body
+   */
+  async createClient(input: AmaCreateClientInput): Promise<AmaClientDto> {
+    const path = `/api/v1/entities/${encodeURIComponent(input.entityId)}/clients`;
+    const body = JSON.stringify({
+      name: input.name,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+    });
+    try {
+      const res = await this.doRequest('POST', path, body);
+      return this.toDto(res ?? {});
+    } catch (err: any) {
+      // O-5 — duplicate: AMA returns 409 with the existing client in the body.
+      if (err?.status === 409 && err?.body) {
+        this.logger.warn(`AMA createClient duplicate for "${input.name}" — adopting existing`);
+        return this.toDto(err.body);
+      }
+      throw new AmaServiceUnavailableException(
+        (err as Error)?.message ?? 'createClient failed',
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -126,7 +161,15 @@ export class AmaClientHttpService implements IAmaClientService {
         throw e;
       }
       if (!resp.ok) {
-        throw new Error(`AMA ${method} ${path} → ${resp.status}`);
+        const e: any = new Error(`AMA ${method} ${path} → ${resp.status}`);
+        e.status = resp.status;
+        const raw = await resp.text().catch(() => '');
+        try {
+          e.body = raw ? JSON.parse(raw) : undefined;
+        } catch {
+          e.body = undefined;
+        }
+        throw e;
       }
       const text = await resp.text();
       return text ? JSON.parse(text) : null;

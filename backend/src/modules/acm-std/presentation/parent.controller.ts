@@ -17,6 +17,8 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { Roles } from '../../acm-common/decorators/roles.decorator';
 import {
   CreateParentDto,
   ListParentsQueryDto,
@@ -26,7 +28,7 @@ import { ParentService } from '../application/parent.service';
 
 @ApiTags('acm-std')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
 @Controller('acm/std/parents')
 export class ParentController {
   constructor(private readonly parents: ParentService) {}
@@ -69,5 +71,19 @@ export class ParentController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.parents.remove(u.entId, id);
+  }
+
+  @Post(':id/ama-client')
+  @Roles('ADMIN', 'STAFF')
+  @ApiOperation({
+    summary:
+      'Register parent as AMA client under entity VN3040 (REQ-260609 FR-C). ' +
+      'Staff/Admin only. Requires ≥1 ACTIVE student (422 otherwise). Idempotent.',
+  })
+  registerAmaClient(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.parents.registerAsAmaClient(u.entId, id);
   }
 }

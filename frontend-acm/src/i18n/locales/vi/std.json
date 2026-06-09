@@ -37,7 +37,7 @@
     "englishName": "Tên tiếng Anh",
     "gender": "Giới tính",
     "birthDate": "Ngày sinh",
-    "phone": "Điện thoại",
+    "phone": "Số điện thoại",
     "residence": "Nơi ở",
     "school": "Trường",
     "grade": "Lớp",
@@ -59,7 +59,6 @@
     "startDate": "Ngày đăng ký",
     "status": "Trạng thái",
     "email": "Email",
-    "phone": "Số điện thoại",
     "parentName": "Họ tên",
     "parentRelation": "Quan hệ",
     "parentPhone": "Số điện thoại",
@@ -91,5 +90,17 @@
     "notFound": "Không tìm thấy học sinh",
     "updatedAt": "Cập nhật lần cuối",
     "confirmDeactivate": "Vô hiệu hóa học sinh này?"
+  },
+  "parentList": {
+    "ama": {
+      "column": "Khách hàng AMA",
+      "register": "Đăng ký khách hàng AMA",
+      "registered": "Đã đăng ký",
+      "notEligible": "Không có học sinh đang học",
+      "eligibleHint": "Chỉ phụ huynh có học sinh ĐANG HỌC mới có thể đăng ký.",
+      "success": "Đã đăng ký làm khách hàng AMA",
+      "alreadyRegistered": "Phụ huynh đã được đăng ký",
+      "error": "Đăng ký AMA thất bại. Vui lòng thử lại sau."
+    }
   }
 }

@@ -49,6 +49,7 @@ export class AmaPlatformMockClient implements IAmaPlatformClient {
         level: 'MEMBER',
         name: '박조교',
         email: 'park.ta@tpi.kr',
+        jobRole: 'TEACHER', // → ACM TEACHER (강사)
       },
       {
         userId: 'ama-user-mem-2',
@@ -56,6 +57,7 @@ export class AmaPlatformMockClient implements IAmaPlatformClient {
         level: 'MEMBER',
         name: 'Chris Park',
         email: 'chris@tpi.kr',
+        jobRole: 'ADMIN_STAFF', // non-teacher → ACM STAFF (직원)
       },
       {
         userId: 'ama-user-view-1',
@@ -63,6 +65,7 @@ export class AmaPlatformMockClient implements IAmaPlatformClient {
         level: 'VIEWER',
         name: '학원장',
         email: 'view@tpi.kr',
+        jobRole: null, // unknown → ACM STAFF (직원)
       },
     ];
   }

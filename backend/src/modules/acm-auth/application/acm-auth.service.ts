@@ -19,6 +19,8 @@ import {
 import { AcmAuthUser, AcmLoginResponse } from './dto/acm-auth.dto';
 import { SubscriptionCheckService } from './subscription-check.service';
 import { UserMembershipGuard } from './user-membership.guard';
+import { EntityGateService } from './entity-gate.service';
+import { mapAcmRole, type AcmRole } from './acm-role.mapper';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -50,6 +52,7 @@ export class AcmAuthService {
     private readonly amaVerifier: AmaTokenVerifier,
     private readonly subscriptionCheck: SubscriptionCheckService,
     private readonly membershipGuard: UserMembershipGuard,
+    private readonly entityGate: EntityGateService,
   ) {}
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -230,6 +233,11 @@ export class AcmAuthService {
       throw e;
     }
 
+    // REQ-260609 FR-A — TPI-only entity gate. `tpi-acm` serves a single
+    // entity (VN3040); reject any other tenant before the heavier live
+    // subscription/membership calls. Throws 403 ENTITY_NOT_ALLOWED.
+    await this.entityGate.ensureAllowed(payload.entityId, payload.entityCode);
+
     // REQ-260604 v2 FR-1 + FR-9 — live stg-apps subscription check with
     // 24h cache fallback. Throws HttpException on terminal failure
     // (NO_ACADEMY / NO_SUBSCRIPTION / SUBSCRIPTION_<status> / AMA_UNAVAILABLE).
@@ -247,10 +255,25 @@ export class AcmAuthService {
     // REQ-260604 v2 FR-2 — live ama platform membership check. No cache
     // fallback: membership has no defensible grace window (an HR-revoked
     // user must lose access immediately). 404 → USER_NOT_IN_ENTITY (403),
-    // 5xx → AMA_UNAVAILABLE (503, fail-closed).
-    await this.membershipGuard.ensureMember(payload.entityId, payload.sub);
+    // 5xx → AMA_UNAVAILABLE (503, fail-closed). Returns the directory record,
+    // which doubles as the live job-field lookup for role mapping (FR-B3).
+    const member = await this.membershipGuard.ensureMember(
+      payload.entityId,
+      payload.sub,
+    );
 
-    const user = await this.upsertAmaUser(payload);
+    // REQ-260609 FR-B — compute ACM role from USER_LEVEL + job field, every
+    // login (level/job changes propagate). jobRole prefers the token claim,
+    // else the directory lookup. ADMIN from either the token level or the
+    // directory level wins.
+    const jobRole = payload.jobRole ?? member.jobRole ?? null;
+    const acmRole: AcmRole =
+      mapAcmRole(payload.role, jobRole) === 'ADMIN' ||
+      mapAcmRole(member.level, jobRole) === 'ADMIN'
+        ? 'ADMIN'
+        : mapAcmRole(payload.role, jobRole);
+
+    const user = await this.upsertAmaUser(payload, acmRole, jobRole);
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -258,6 +281,10 @@ export class AcmAuthService {
       // keep email/name in sync with AMA (FR-AMA-24)
       email: user.email,
       name: user.name,
+      // persist re-evaluated role + AMA snapshot every login (REQ-260609 FR-B4)
+      role: user.role,
+      amaRole: user.amaRole,
+      amaJobRole: user.amaJobRole,
     });
 
     this.logger.log(
@@ -287,6 +314,8 @@ export class AcmAuthService {
 
   private async upsertAmaUser(
     payload: AmaTokenPayload,
+    acmRole: AcmRole,
+    jobRole: string | null,
   ): Promise<AcmUserTypeormEntity> {
     // 1. Lookup by AMA user id (primary key for AMA-source users).
     let user = await this.userRepo.findOne({
@@ -302,6 +331,8 @@ export class AcmAuthService {
         user.amaUserId = payload.sub;
         user.amaEntityId = payload.entityId;
         user.amaRole = payload.role;
+        user.amaJobRole = jobRole;
+        user.role = acmRole;
         user.authSource = 'ama';
         user = await this.userRepo.save(user);
       }
@@ -316,16 +347,20 @@ export class AcmAuthService {
         passwordHash: null,
         status: 'ACTIVE',
         authSource: 'ama',
+        role: acmRole,
         amaUserId: payload.sub,
         amaEntityId: payload.entityId,
         amaRole: payload.role,
+        amaJobRole: jobRole,
       });
       user = await this.userRepo.save(created);
     } else {
-      // Sync mutable fields.
+      // Sync mutable fields — role/jobRole re-evaluated each login (FR-B4).
       const dirty: Partial<AcmUserTypeormEntity> = {};
       if (user.email !== payload.email) dirty.email = payload.email;
       if (user.amaRole !== payload.role) dirty.amaRole = payload.role;
+      if (user.amaJobRole !== jobRole) dirty.amaJobRole = jobRole;
+      if (user.role !== acmRole) dirty.role = acmRole;
       if (user.amaEntityId !== payload.entityId)
         dirty.amaEntityId = payload.entityId;
       if (Object.keys(dirty).length > 0) {
