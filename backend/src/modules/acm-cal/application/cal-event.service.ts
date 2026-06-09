@@ -20,6 +20,7 @@ import {
   InviteeNotifierService,
   NotifySummary,
 } from './invitee-notifier.service';
+import { BodaRoomService } from './boda-room.service';
 
 @Injectable()
 export class CalEventService {
@@ -30,6 +31,7 @@ export class CalEventService {
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     private readonly inviteeSvc: CalInviteeService,
     private readonly notifier: InviteeNotifierService,
+    private readonly bodaRoomSvc: BodaRoomService,
   ) {}
 
   async list(
@@ -132,7 +134,11 @@ export class CalEventService {
     dto: CreateCalEventDto,
   ) {
     this.validateTimes(dto.evtStartAt, dto.evtEndAt);
-    this.validateMeeting(dto.evtMeetingProvider, dto.evtMeetingUrl);
+    // REQ-260526 v2 FR-ROOM-4 — BODASCHOOL 의 URL 은 이벤트 저장 후 자동
+    // 생성되므로 사용자 입력을 강제하지 않는다. 그 외 provider 는 기존 로직.
+    if (dto.evtMeetingProvider !== 'BODASCHOOL') {
+      this.validateMeeting(dto.evtMeetingProvider, dto.evtMeetingUrl);
+    }
 
     let ownerUserId = actorUserId;
     if (dto.evtOwnerUserId && dto.evtOwnerUserId !== actorUserId) {
@@ -157,7 +163,20 @@ export class CalEventService {
       clsId: dto.evtClsId ?? null,
       source: 'MANUAL',
     });
-    const saved = await this.repo.save(entity);
+    let saved = await this.repo.save(entity);
+
+    // REQ-260526 v2 FR-ROOM-1/2/4 — BODASCHOOL 이면 룸 PENDING 생성 후
+    // 런처 URL 을 다시 evt_meeting_url 에 채워서 저장한다. update 는 별도
+    // round-trip 으로 처리 (save() 가 returning row 를 주지 않을 수 있음).
+    if (saved.meetingProvider === 'BODASCHOOL') {
+      const { launcherUrl } = await this.bodaRoomSvc.createPending({
+        evtId: saved.id,
+        entId,
+        sesId: null,
+      });
+      saved.meetingUrl = launcherUrl;
+      await this.repo.update({ id: saved.id }, { meetingUrl: launcherUrl });
+    }
 
     let notifySummary: NotifySummary | null = null;
     if (dto.evtInvitees && dto.evtInvitees.length > 0) {
@@ -229,6 +248,11 @@ export class CalEventService {
     const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanMutate(e, actorUserId, actorRole);
+    // REQ-260526 v2 FR-ROOM-7 — BODASCHOOL 이벤트면 SERVER API /close 호출
+    // 후 boda_room 행 CASCADE 삭제. SERVER API 실패는 deletion 을 막지 않음.
+    if (e.meetingProvider === 'BODASCHOOL') {
+      await this.bodaRoomSvc.closeAndDelete(e.id, entId);
+    }
     e.deletedAt = new Date();
     e.updatedAt = new Date();
     await this.repo.save(e);

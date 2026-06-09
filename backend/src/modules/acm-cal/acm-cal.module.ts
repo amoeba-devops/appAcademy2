@@ -17,6 +17,8 @@ import { BodaRoomTypeormEntity } from './infrastructure/typeorm/boda-room.typeor
 import { BodaParticipantTypeormEntity } from './infrastructure/typeorm/boda-participant.typeorm-entity';
 import { BodaEventLogTypeormEntity } from './infrastructure/typeorm/boda-event-log.typeorm-entity';
 import { BodaConfigService } from './application/boda-config.service';
+import { BodaRoomService } from './application/boda-room.service';
+import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
 import { BodaConfigController } from './presentation/boda-config.controller';
@@ -24,6 +26,7 @@ import { BodaConfigController } from './presentation/boda-config.controller';
 @Module({
   imports: [
     ConfigModule,
+    BodaeduModule, // BODAEDU_SERVER_CLIENT 주입
     TypeOrmModule.forFeature(
       [
         CalEventTypeormEntity,
@@ -32,7 +35,7 @@ import { BodaConfigController } from './presentation/boda-config.controller';
         StudentTypeormEntity,
         TeacherTypeormEntity,
         ParentTypeormEntity,
-        // BODA integration tables (T1 schema + T3 config service).
+        // BODA integration tables (T1 schema + T3 config + T4 room services).
         BodaConfigTypeormEntity,
         BodaRoomTypeormEntity,
         BodaParticipantTypeormEntity,
@@ -51,7 +54,8 @@ import { BodaConfigController } from './presentation/boda-config.controller';
     CalInviteeService,
     InviteeNotifierService,
     BodaConfigService,
+    BodaRoomService,
   ],
-  exports: [CalEventService, BodaConfigService],
+  exports: [CalEventService, BodaConfigService, BodaRoomService],
 })
 export class AcmCalModule {}
