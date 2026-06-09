@@ -75,7 +75,7 @@ jobs:
     needs: preflight
     environment:
       name: production
-      url: https://app-academy.amoeba.site
+      url: https://acm.amoeba.site
 
     steps:
       - name: Trigger remote deploy
@@ -96,7 +96,7 @@ jobs:
         if: ${{ inputs.skip_smoke != true }}
         run: |
           for i in $(seq 1 6); do
-            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://app-academy.amoeba.site/ || echo 000)
+            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://acm.amoeba.site/ || echo 000)
             echo "attempt $i → $code"
             [[ "$code" == "200" ]] && exit 0
             sleep 5
