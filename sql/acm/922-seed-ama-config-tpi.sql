@@ -13,6 +13,9 @@
 -- Idempotent (ON CONFLICT DO NOTHING). Target: ACM PostgreSQL.
 -- ============================================================================
 
+-- 무지정 ON CONFLICT DO NOTHING — ent_id / amc_ama_entity_id 두 unique 제약 중
+-- 어느 쪽이 충돌해도 no-op. (운영엔 이미 amc_ama_entity_id=928f5fe4 행이
+-- 다른 ent_id 하위로 존재할 수 있어 ON CONFLICT (ent_id) 로는 못 잡음.)
 INSERT INTO amb_acm_ama_config (ent_id, amc_ama_entity_id, amc_app_code, amc_is_active)
 VALUES (
   '928f5fe4-12ab-4113-b9b9-d8d455ca4e3b',
@@ -20,4 +23,4 @@ VALUES (
   'tpi-acm',
   TRUE
 )
-ON CONFLICT (ent_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
