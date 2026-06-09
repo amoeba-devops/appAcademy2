@@ -23,7 +23,7 @@ import {
 @ApiTags('acm-ama-config')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
-@Controller('admin/ama-config')
+@Controller('acm/admin/ama-config')
 export class AmaConfigController {
   constructor(private readonly svc: AmaConfigService) {}
 
