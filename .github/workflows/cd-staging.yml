@@ -82,7 +82,7 @@ jobs:
     needs: build-push
     environment:
       name: staging
-      url: https://app-academy-stg.amoeba.site
+      url: https://acm-stg.amoeba.site
 
     steps:
       - name: Trigger remote deploy
@@ -102,7 +102,7 @@ jobs:
       - name: Smoke test (canonical host)
         run: |
           for i in $(seq 1 6); do
-            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://app-academy-stg.amoeba.site/ || echo 000)
+            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://acm-stg.amoeba.site/ || echo 000)
             echo "attempt $i → $code"
             [[ "$code" == "200" ]] && break
             sleep 5
