@@ -1,0 +1,59 @@
+{
+  "loading": "正在加载教室…",
+  "signinRequired": "请先登录后再继续。",
+  "timeRange": "{{start}} – {{end}}",
+  "enterTeacher": "进入教室（教师）",
+  "enterStudent": "进入教室（学生）",
+  "teacherHint": "点击 ‘进入’ 启动 BODA 应用。若是首次使用，系统将引导您完成安装。",
+  "teacherJoined": "老师已经进入教室。",
+  "waiting": "正在等待老师进入…",
+  "waitingHint": "老师打开教室后，‘进入’按钮将激活（每 10 秒自动刷新）。",
+  "backToCalendar": "返回日历",
+  "roomEnded": {
+    "ENDED": "课程已结束。",
+    "CLOSED": "教室已关闭。",
+    "default": "此教室当前无法进入。"
+  },
+  "error": {
+    "unknown": {
+      "title": "无法进入教室",
+      "body": "请稍后重试或联系管理员。"
+    },
+    "BODA_LAUNCH_OUT_OF_WINDOW": {
+      "title": "不在可进入时段内",
+      "body": "您可在开始前 10 分钟至结束后 15 分钟内进入教室。"
+    },
+    "BODA_NOT_BODASCHOOL": {
+      "title": "非 BODA School 教室",
+      "body": "此活动使用其他视频系统。请在日历中查看会议 URL。"
+    },
+    "BODA_ROOM_NOT_PROVISIONED": {
+      "title": "教室尚未配置",
+      "body": "请管理员重新保存此事件以自动重新创建。"
+    },
+    "NOT_AN_ATTENDEE": {
+      "title": "您没有进入此教室的权限",
+      "body": "仅受邀学生和指定教师可加入。"
+    },
+    "EVENT_NOT_FOUND": {
+      "title": "未找到事件",
+      "body": "事件已被删除或链接无效。"
+    },
+    "BODA-NOT_INSTALLED": {
+      "title": "未安装 BODA School 应用",
+      "body": "请访问安装指南后再次尝试。"
+    },
+    "BODA-NOT_CONNECTED_AGENT": {
+      "title": "未连接到 BODA 应用",
+      "body": "请确认应用正在运行后重试。"
+    },
+    "BODA-SCRIPT_LOAD_FAILED": {
+      "title": "BODA 脚本加载失败",
+      "body": "请检查网络后重试。"
+    },
+    "BODA-SCRIPT_TIMEOUT": {
+      "title": "BODA 脚本响应超时",
+      "body": "请稍后再试。"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "loading": "Đang tải phòng học trực tuyến…",
+  "signinRequired": "Vui lòng đăng nhập để tiếp tục.",
+  "timeRange": "{{start}} – {{end}}",
+  "enterTeacher": "Vào lớp (Giáo viên)",
+  "enterStudent": "Vào lớp (Học sinh)",
+  "teacherHint": "Nhấn ‘Vào lớp’ để mở ứng dụng BODA. Nếu là lần đầu, hệ thống sẽ hướng dẫn cài đặt.",
+  "teacherJoined": "Giáo viên đã vào lớp.",
+  "waiting": "Đang chờ giáo viên…",
+  "waitingHint": "Nút ‘Vào lớp’ sẽ kích hoạt khi giáo viên mở lớp (tự động làm mới mỗi 10 giây).",
+  "backToCalendar": "Quay lại lịch",
+  "roomEnded": {
+    "ENDED": "Lớp học đã kết thúc.",
+    "CLOSED": "Phòng học đã bị đóng.",
+    "default": "Phòng học hiện không thể vào."
+  },
+  "error": {
+    "unknown": {
+      "title": "Không thể vào phòng học",
+      "body": "Vui lòng thử lại sau hoặc liên hệ quản trị viên."
+    },
+    "BODA_LAUNCH_OUT_OF_WINDOW": {
+      "title": "Ngoài khung giờ vào lớp",
+      "body": "Bạn có thể vào lớp từ 10 phút trước giờ bắt đầu đến 15 phút sau giờ kết thúc."
+    },
+    "BODA_NOT_BODASCHOOL": {
+      "title": "Không phải phòng BODA School",
+      "body": "Sự kiện này dùng hệ thống video khác. Kiểm tra URL trong lịch."
+    },
+    "BODA_ROOM_NOT_PROVISIONED": {
+      "title": "Phòng học chưa được cấp",
+      "body": "Yêu cầu quản trị viên lưu lại sự kiện để phòng được tạo tự động."
+    },
+    "NOT_AN_ATTENDEE": {
+      "title": "Bạn không có quyền vào phòng này",
+      "body": "Chỉ học sinh được mời và giáo viên phụ trách mới có thể tham gia."
+    },
+    "EVENT_NOT_FOUND": {
+      "title": "Không tìm thấy sự kiện",
+      "body": "Sự kiện đã bị xóa hoặc liên kết không hợp lệ."
+    },
+    "BODA-NOT_INSTALLED": {
+      "title": "Ứng dụng BODA School chưa được cài đặt",
+      "body": "Truy cập hướng dẫn cài đặt và thử lại."
+    },
+    "BODA-NOT_CONNECTED_AGENT": {
+      "title": "Không kết nối được tới ứng dụng BODA",
+      "body": "Đảm bảo ứng dụng đang chạy và thử lại."
+    },
+    "BODA-SCRIPT_LOAD_FAILED": {
+      "title": "Tải script BODA thất bại",
+      "body": "Kiểm tra kết nối mạng và thử lại."
+    },
+    "BODA-SCRIPT_TIMEOUT": {
+      "title": "Script BODA phản hồi quá lâu",
+      "body": "Vui lòng thử lại sau giây lát."
+    }
+  }
+}

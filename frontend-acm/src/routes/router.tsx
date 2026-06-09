@@ -22,6 +22,7 @@ import { QnaListPage } from '@/modules/qna/pages/qna-list-page';
 import { QnaCategoriesPage } from '@/modules/qna/pages/qna-categories-page';
 import { WebContactPage } from '@/modules/web/pages/web-contact-page';
 import { WebTestPage } from '@/modules/web/pages/web-test-page';
+import { WebClassroomPage } from '@/modules/web/pages/web-classroom-page';
 import { TchListPage } from '@/modules/tch/pages/tch-list-page';
 import { StfListPage } from '@/modules/stf/pages/stf-list-page';
 import { CalMonthPage } from '@/modules/cal/pages/cal-month-page';
@@ -56,6 +57,8 @@ export const router = createBrowserRouter([
   // ── Public web forms (legacy paths, kept) ───────────────────────────
   { path: '/web/contact', element: <WebContactPage /> },
   { path: '/web/test', element: <WebTestPage /> },
+  // ── BODA(보다에듀) 화상 강의실 런처 — REQ-260526 v2 T5 ────────────────
+  { path: '/web/classroom/:evtId', element: <WebClassroomPage /> },
 
   // ── Public portal pages (Phase 1 stubs → Phase 3 implementation) ────
   {

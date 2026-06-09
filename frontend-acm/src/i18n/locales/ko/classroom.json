@@ -1,0 +1,59 @@
+{
+  "loading": "강의실 입장 정보를 불러오는 중…",
+  "signinRequired": "로그인이 필요합니다.",
+  "timeRange": "{{start}} ~ {{end}}",
+  "enterTeacher": "강의실 입장 (강사)",
+  "enterStudent": "강의실 입장 (학생)",
+  "teacherHint": "‘입장’ 클릭 시 보다스쿨 앱이 실행됩니다. 처음이라면 자동 설치 안내가 표시됩니다.",
+  "teacherJoined": "선생님이 강의실에 입장했습니다.",
+  "waiting": "선생님 입장을 기다리는 중…",
+  "waitingHint": "선생님이 강의실을 여시면 입장 버튼이 활성화됩니다. (10초마다 자동 새로고침)",
+  "backToCalendar": "캘린더로 돌아가기",
+  "roomEnded": {
+    "ENDED": "수업이 종료되었습니다.",
+    "CLOSED": "강의실이 폐쇄되었습니다.",
+    "default": "강의실에 입장할 수 없는 상태입니다."
+  },
+  "error": {
+    "unknown": {
+      "title": "강의실 입장에 실패했습니다",
+      "body": "잠시 후 다시 시도하거나 관리자에게 문의해 주세요."
+    },
+    "BODA_LAUNCH_OUT_OF_WINDOW": {
+      "title": "입장 가능 시간이 아닙니다",
+      "body": "수업 시작 10분 전부터 종료 15분 후까지 입장하실 수 있습니다."
+    },
+    "BODA_NOT_BODASCHOOL": {
+      "title": "보다스쿨 강의실이 아닙니다",
+      "body": "이 일정은 다른 화상 시스템을 사용합니다. 캘린더에서 미팅 URL을 확인해 주세요."
+    },
+    "BODA_ROOM_NOT_PROVISIONED": {
+      "title": "강의실이 아직 준비되지 않았습니다",
+      "body": "관리자가 일정을 다시 저장하면 자동으로 발급됩니다."
+    },
+    "NOT_AN_ATTENDEE": {
+      "title": "이 강의실에 입장할 권한이 없습니다",
+      "body": "이 수업에 초대된 학생이거나 담당 강사만 입장할 수 있습니다."
+    },
+    "EVENT_NOT_FOUND": {
+      "title": "강의 일정을 찾을 수 없습니다",
+      "body": "삭제되었거나 잘못된 링크입니다."
+    },
+    "BODA-NOT_INSTALLED": {
+      "title": "보다스쿨 앱이 설치되어 있지 않습니다",
+      "body": "설치 안내 페이지로 이동한 뒤 다시 입장해 주세요."
+    },
+    "BODA-NOT_CONNECTED_AGENT": {
+      "title": "보다스쿨 앱과 연결되지 않았습니다",
+      "body": "앱을 실행 중인지 확인하고 다시 시도해 주세요."
+    },
+    "BODA-SCRIPT_LOAD_FAILED": {
+      "title": "보다스쿨 스크립트 로드 실패",
+      "body": "네트워크 상태를 확인하고 다시 시도해 주세요."
+    },
+    "BODA-SCRIPT_TIMEOUT": {
+      "title": "보다스쿨 스크립트 응답이 늦습니다",
+      "body": "잠시 후 다시 시도해 주세요."
+    }
+  }
+}

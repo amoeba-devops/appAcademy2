@@ -1,0 +1,59 @@
+{
+  "loading": "Loading the virtual classroom…",
+  "signinRequired": "Please sign in to continue.",
+  "timeRange": "{{start}} – {{end}}",
+  "enterTeacher": "Enter classroom (Teacher)",
+  "enterStudent": "Enter classroom (Student)",
+  "teacherHint": "Click Enter to open the BODA app. If this is your first visit, you'll be guided through installation.",
+  "teacherJoined": "Your teacher has entered the classroom.",
+  "waiting": "Waiting for the teacher…",
+  "waitingHint": "The Enter button becomes active once your teacher opens the classroom (auto-refresh every 10 seconds).",
+  "backToCalendar": "Back to calendar",
+  "roomEnded": {
+    "ENDED": "The class has ended.",
+    "CLOSED": "The classroom has been closed.",
+    "default": "This classroom is not available for entry."
+  },
+  "error": {
+    "unknown": {
+      "title": "Could not enter the classroom",
+      "body": "Please retry shortly or contact your administrator."
+    },
+    "BODA_LAUNCH_OUT_OF_WINDOW": {
+      "title": "Not within the entry window",
+      "body": "You can enter from 10 minutes before the start to 15 minutes after the end."
+    },
+    "BODA_NOT_BODASCHOOL": {
+      "title": "Not a BODA School classroom",
+      "body": "This event uses a different video system. Check the meeting URL in the calendar."
+    },
+    "BODA_ROOM_NOT_PROVISIONED": {
+      "title": "Classroom not yet provisioned",
+      "body": "Ask an admin to re-save the event and the classroom will be re-created automatically."
+    },
+    "NOT_AN_ATTENDEE": {
+      "title": "You are not authorized for this classroom",
+      "body": "Only invited students and the assigned teacher can join."
+    },
+    "EVENT_NOT_FOUND": {
+      "title": "Event not found",
+      "body": "The event was deleted or the link is invalid."
+    },
+    "BODA-NOT_INSTALLED": {
+      "title": "BODA School app is not installed",
+      "body": "Visit the installation guide and try again."
+    },
+    "BODA-NOT_CONNECTED_AGENT": {
+      "title": "Not connected to the BODA app",
+      "body": "Confirm the app is running and retry."
+    },
+    "BODA-SCRIPT_LOAD_FAILED": {
+      "title": "Failed to load BODA script",
+      "body": "Check your network and retry."
+    },
+    "BODA-SCRIPT_TIMEOUT": {
+      "title": "BODA script timed out",
+      "body": "Please retry in a moment."
+    }
+  }
+}
