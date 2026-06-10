@@ -20,12 +20,14 @@ import { BodaConfigService } from './application/boda-config.service';
 import { BodaRoomService } from './application/boda-room.service';
 import { BodaLaunchContextService } from './application/boda-launch-context.service';
 import { BodaWebhookService } from './application/boda-webhook.service';
+import { BodaReconcileService } from './application/boda-reconcile.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
 import { BodaConfigController } from './presentation/boda-config.controller';
 import { BodaLaunchController } from './presentation/boda-launch.controller';
 import { BodaWebhookController } from './presentation/boda-webhook.controller';
+import { BodaAdminController } from './presentation/boda-admin.controller';
 
 @Module({
   imports: [
@@ -54,6 +56,7 @@ import { BodaWebhookController } from './presentation/boda-webhook.controller';
     BodaConfigController,
     BodaLaunchController,
     BodaWebhookController,
+    BodaAdminController,
   ],
   providers: [
     CalEventService,
@@ -63,6 +66,7 @@ import { BodaWebhookController } from './presentation/boda-webhook.controller';
     BodaRoomService,
     BodaLaunchContextService,
     BodaWebhookService,
+    BodaReconcileService,
   ],
   exports: [CalEventService, BodaConfigService, BodaRoomService],
 })

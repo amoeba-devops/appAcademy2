@@ -30,6 +30,11 @@ import {
   localInputToIso,
 } from '../lib/date-utils';
 import { InviteePickerModal } from './invitee-picker-modal';
+import { useBodaRoomStatus } from '@/lib/boda-launch-api';
+import {
+  useBodaForceClose,
+  useBodaReconcile,
+} from '@/lib/boda-admin-api';
 
 interface Props {
   open: boolean;
@@ -302,6 +307,11 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             )}
           </fieldset>
 
+          {/* BODA(보다에듀) 룸 상태 — REQ-260526 v2 T7 (admin only on edit) */}
+          {isEdit && meetingProvider === 'BODASCHOOL' && initial && (
+            <BodaRoomPanel evtId={initial.id} />
+          )}
+
           {/* Creator meta (edit mode only) */}
           {isEdit && (detail?.ownerName || initial?.ownerName) && (
             <div className="rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] px-3 py-2 text-xs text-secondary">
@@ -454,5 +464,176 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         excludeKeys={new Set(invitees.map((i) => `${i.kind}:${i.refId}`))}
       />
     </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------
+// BODA(보다에듀) room status panel — REQ-260526 v2 T7 admin
+// ---------------------------------------------------------------------
+
+function BodaRoomPanel({ evtId }: { evtId: string }) {
+  const { t } = useTranslation('cal');
+  const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
+  const closeMut = useBodaForceClose(evtId);
+  const reconMut = useBodaReconcile(evtId);
+
+  if (isLoading) {
+    return (
+      <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2">
+        <legend className="text-xs font-semibold text-secondary px-1">
+          {t('boda.sectionTitle', 'BODA 화상 강의실')}
+        </legend>
+        <p className="text-xs text-secondary">{t('common:status.loading')}</p>
+      </fieldset>
+    );
+  }
+
+  // 404 means the room row hasn't been provisioned yet (event was created
+  // before BODA was wired in, or the provider was just switched). Show a
+  // helpful note instead of crashing.
+  const status404 =
+    error &&
+    (error as { response?: { status?: number } }).response?.status === 404;
+  if (status404 || !data) {
+    return (
+      <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2">
+        <legend className="text-xs font-semibold text-secondary px-1">
+          {t('boda.sectionTitle', 'BODA 화상 강의실')}
+        </legend>
+        <p className="text-xs text-secondary">
+          {t('boda.notProvisioned', '아직 BODA 룸이 생성되지 않았습니다.')}
+        </p>
+      </fieldset>
+    );
+  }
+
+  const badgeFor = (s: string) => {
+    switch (s) {
+      case 'OPEN':
+      case 'STARTED':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'PAUSED':
+        return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'PENDING':
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+      case 'ENDED':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'CLOSED':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
+
+  const isClosed = data.status === 'CLOSED';
+  const isLive =
+    data.status === 'OPEN' ||
+    data.status === 'STARTED' ||
+    data.status === 'PAUSED';
+
+  return (
+    <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+      <legend className="text-xs font-semibold text-secondary px-1">
+        {t('boda.sectionTitle', 'BODA 화상 강의실')}
+      </legend>
+
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-secondary">{t('boda.status', '상태')}:</span>
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ${badgeFor(
+            data.status,
+          )}`}
+        >
+          {t(`boda.statusValue.${data.status}`, data.status)}
+        </span>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="ml-auto text-[11px] text-accent-600 hover:underline"
+        >
+          {t('common:actions.refresh', '새로고침')}
+        </button>
+      </div>
+
+      {/* Timestamps */}
+      <ul className="text-[11px] text-secondary space-y-0.5 grid grid-cols-2 gap-x-3">
+        {data.openedAt && (
+          <li>
+            <span className="font-mono">{t('boda.openedAt', '개설')}:</span>{' '}
+            {new Date(data.openedAt).toLocaleString()}
+          </li>
+        )}
+        {data.startedAt && (
+          <li>
+            <span className="font-mono">{t('boda.startedAt', '시작')}:</span>{' '}
+            {new Date(data.startedAt).toLocaleString()}
+          </li>
+        )}
+        {data.endedAt && (
+          <li>
+            <span className="font-mono">{t('boda.endedAt', '종료')}:</span>{' '}
+            {new Date(data.endedAt).toLocaleString()}
+          </li>
+        )}
+        {data.closedAt && (
+          <li>
+            <span className="font-mono">{t('boda.closedAt', '폐쇄')}:</span>{' '}
+            {new Date(data.closedAt).toLocaleString()}
+          </li>
+        )}
+      </ul>
+
+      {/* Admin actions */}
+      <div className="flex gap-2 pt-1">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={reconMut.isPending}
+          onClick={() => reconMut.mutate()}
+        >
+          {reconMut.isPending
+            ? t('common:status.loading')
+            : t('boda.reconcileBtn', '출결 재동기화')}
+        </Button>
+        {!isClosed && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={closeMut.isPending}
+            onClick={() => {
+              if (isLive && !confirm(t('boda.confirmForceClose', '진행 중인 룸을 강제 폐쇄하시겠습니까?'))) {
+                return;
+              }
+              closeMut.mutate();
+            }}
+            className="text-red-600 border-red-200 hover:bg-red-50"
+          >
+            {closeMut.isPending
+              ? t('common:status.loading')
+              : t('boda.forceCloseBtn', '강제 폐쇄')}
+          </Button>
+        )}
+      </div>
+
+      {/* Result toasts */}
+      {reconMut.data && (
+        <p className="text-[11px] text-blue-700">
+          {t('boda.reconcileResult', '재동기화 완료')}: +{reconMut.data.inserted} /
+          ~{reconMut.data.updated}
+        </p>
+      )}
+      {closeMut.data && (
+        <p className="text-[11px] text-red-700">
+          {t('boda.forceCloseResult', '폐쇄 완료')} → {closeMut.data.status}
+        </p>
+      )}
+      {(reconMut.error || closeMut.error) && (
+        <p className="text-[11px] text-red-600">
+          {((reconMut.error || closeMut.error) as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('common:status.error')}
+        </p>
+      )}
+    </fieldset>
   );
 }

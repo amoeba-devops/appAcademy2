@@ -62,6 +62,28 @@
   "confirm": {
     "delete": "确定删除该日程?"
   },
+  "boda": {
+    "sectionTitle": "BODA 在线教室",
+    "status": "状态",
+    "statusValue": {
+      "PENDING": "等待中",
+      "OPEN": "已开启",
+      "STARTED": "进行中",
+      "PAUSED": "已暂停",
+      "ENDED": "已结束",
+      "CLOSED": "已关闭"
+    },
+    "openedAt": "开启",
+    "startedAt": "开始",
+    "endedAt": "结束",
+    "closedAt": "关闭",
+    "reconcileBtn": "重新同步考勤",
+    "forceCloseBtn": "强制关闭",
+    "confirmForceClose": "确定强制关闭进行中的教室?",
+    "reconcileResult": "同步完成",
+    "forceCloseResult": "已关闭",
+    "notProvisioned": "尚未创建 BODA 教室。"
+  },
   "filter": {
     "label": "筛选",
     "allOwners": "全部讲师",

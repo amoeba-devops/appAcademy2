@@ -62,6 +62,28 @@
   "confirm": {
     "delete": "일정을 삭제하시겠습니까?"
   },
+  "boda": {
+    "sectionTitle": "BODA 화상 강의실",
+    "status": "상태",
+    "statusValue": {
+      "PENDING": "대기",
+      "OPEN": "개설됨",
+      "STARTED": "진행 중",
+      "PAUSED": "일시정지",
+      "ENDED": "종료",
+      "CLOSED": "폐쇄됨"
+    },
+    "openedAt": "개설",
+    "startedAt": "시작",
+    "endedAt": "종료",
+    "closedAt": "폐쇄",
+    "reconcileBtn": "출결 재동기화",
+    "forceCloseBtn": "강제 폐쇄",
+    "confirmForceClose": "진행 중인 룸을 강제 폐쇄하시겠습니까?",
+    "reconcileResult": "재동기화 완료",
+    "forceCloseResult": "폐쇄 완료",
+    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다."
+  },
   "filter": {
     "label": "필터",
     "allOwners": "강사 전체",
