@@ -61,7 +61,7 @@ export class UpdateBodaConfigDto {
     description: 'Webhook 출발지 허용 IP/CIDR. 콤마 구분 (예: "1.2.3.4,10.0.0.0/24")',
   })
   @IsOptional() @IsString() @MaxLength(500)
-  @Matches(/^[0-9.,\/\s]*$/, { message: 'webhookAllowCidrs must contain only IPv4 / CIDR / "," / spaces' })
+  @Matches(/^[0-9.,/\s]*$/, { message: 'webhookAllowCidrs must contain only IPv4 / CIDR / "," / spaces' })
   webhookAllowCidrs?: string;
 
   @ApiPropertyOptional({ minimum: 0, maximum: 60, description: '입장 가능 시작 N분 전' })

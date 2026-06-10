@@ -32,9 +32,13 @@ export class AmaConfigGateService {
 
   /**
    * @param entityId 토큰/introspect 의 AMA 법인 식별자.
+   * @returns 매칭된 active 설정 행의 ACM 내부 테넌트 `entId`. AMA `entityId`(공개
+   *   법인 UUID)와 ACM `entId`(내부 테넌트 스코프)는 다를 수 있으므로(예: TPI
+   *   운영 테넌트 `00000000-…01` ↔ amaEntityId `928f5fe4…`), 호출부는 토큰의
+   *   `entityId` 가 아니라 **이 반환값**으로 사용자 스코프/JWT 를 발급해야 한다.
    * @throws 403 ENTITY_NOT_ALLOWED 등록값과 불일치/미설정/비활성 시.
    */
-  async ensureAllowed(entityId: string): Promise<void> {
+  async ensureAllowed(entityId: string): Promise<string> {
     const cfg = await this.repo.findOne({
       where: { amaEntityId: entityId, isActive: true },
     });
@@ -42,6 +46,8 @@ export class AmaConfigGateService {
     if (!cfg) {
       this.deny(entityId, 'no active AMA config for entityId');
     }
+
+    return cfg.entId;
   }
 
   private deny(entityId: string, reason: string): never {

@@ -163,7 +163,7 @@ export class CalEventService {
       clsId: dto.evtClsId ?? null,
       source: 'MANUAL',
     });
-    let saved = await this.repo.save(entity);
+    const saved = await this.repo.save(entity);
 
     // REQ-260526 v2 FR-ROOM-1/2/4 — BODASCHOOL 이면 룸 PENDING 생성 후
     // 런처 URL 을 다시 evt_meeting_url 에 채워서 저장한다. update 는 별도
