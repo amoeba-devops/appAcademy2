@@ -112,6 +112,14 @@
       },
       "isActive": {
         "label": "이 설정으로 로그인 허용 (활성)"
+      },
+      "categorySlug": {
+        "label": "카테고리 slug",
+        "hint": "커스텀카테고리 토큰의 eccSlug 값 (예: tpi-academy). 로컬 검증 시 비교합니다."
+      },
+      "categorySecret": {
+        "label": "Custom Category 서명 secret",
+        "hint": "AMA 커스텀카테고리의 HS256 서명 secret (커스텀앱과 다름). 암호화 저장되며 화면에 다시 표시되지 않습니다. 변경 시에만 입력하세요."
       }
     },
     "deactivate": {
@@ -123,6 +131,10 @@
       "required": "entityId와 appCode를 모두 입력해 주세요.",
       "saveFailed": "저장에 실패했습니다.",
       "loadFailed": "설정을 불러오지 못했습니다."
+    },
+    "category": {
+      "title": "커스텀카테고리 (Custom Category)",
+      "description": "AMA 커스텀카테고리(/menu) 진입 로그인 설정입니다. 커스텀앱과 별개의 서명 secret을 사용합니다."
     }
   }
 }

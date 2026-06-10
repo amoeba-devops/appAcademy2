@@ -57,6 +57,11 @@ export class AmaConfigService {
             ? packEncrypted(this.aes.encrypt(dto.customAppSecret))
             : null,
         expectedScope: dto.expectedScope ?? null,
+        categorySecretEnc:
+          dto.categorySecret !== undefined
+            ? packEncrypted(this.aes.encrypt(dto.categorySecret))
+            : null,
+        categorySlug: dto.categorySlug ?? null,
       });
       const saved = await this.repo.save(created);
       this.logger.log(`ama config created entId=${entId} id=${saved.id}`);
@@ -68,17 +73,25 @@ export class AmaConfigService {
     if (dto.isActive !== undefined) existing.isActive = dto.isActive;
     if (dto.expectedScope !== undefined)
       existing.expectedScope = dto.expectedScope;
+    if (dto.categorySlug !== undefined)
+      existing.categorySlug = dto.categorySlug;
     // Secret: encrypt only when a new value is sent; omitting keeps existing.
     if (dto.customAppSecret !== undefined) {
       existing.customAppSecretEnc = packEncrypted(
         this.aes.encrypt(dto.customAppSecret),
       );
     }
+    if (dto.categorySecret !== undefined) {
+      existing.categorySecretEnc = packEncrypted(
+        this.aes.encrypt(dto.categorySecret),
+      );
+    }
 
     const saved = await this.repo.save(existing);
     this.logger.log(
       `ama config updated entId=${entId} id=${saved.id} active=${saved.isActive} ` +
-        `secret_changed=${dto.customAppSecret !== undefined}`,
+        `app_secret_changed=${dto.customAppSecret !== undefined} ` +
+        `category_secret_changed=${dto.categorySecret !== undefined}`,
     );
     return this.toResponse(saved);
   }
@@ -92,6 +105,8 @@ export class AmaConfigService {
       isActive: row.isActive,
       customAppSecretIsSet: !!row.customAppSecretEnc?.length,
       expectedScope: row.expectedScope ?? null,
+      categorySecretIsSet: !!row.categorySecretEnc?.length,
+      categorySlug: row.categorySlug ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

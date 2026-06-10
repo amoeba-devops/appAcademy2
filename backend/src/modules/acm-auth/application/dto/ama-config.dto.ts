@@ -53,6 +53,27 @@ export class UpdateAmaConfigDto {
   @IsString()
   @MaxLength(60)
   expectedScope?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'local_config 모드: Custom Category(custom_category:context) HS256 서명 secret. ' +
+      '커스텀앱 secret 과 별개. 보낼 때만 AES-GCM 암호화 저장. 응답 미노출.',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(400)
+  categorySecret?: string;
+
+  @ApiPropertyOptional({
+    description: '커스텀카테고리 slug (토큰 eccSlug 와 비교)',
+    example: 'tpi-academy',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(60)
+  categorySlug?: string;
 }
 
 /** AMA 연동 설정 응답 DTO. secret 은 isSet 플래그로만 노출. */
@@ -65,6 +86,9 @@ export class AmaConfigResponseDto {
   /** Custom App secret 이 저장돼 있는지 여부만 (값 미노출). */
   @ApiProperty() customAppSecretIsSet!: boolean;
   @ApiPropertyOptional() expectedScope?: string | null;
+  /** Custom Category secret 이 저장돼 있는지 여부만 (값 미노출). */
+  @ApiProperty() categorySecretIsSet!: boolean;
+  @ApiPropertyOptional() categorySlug?: string | null;
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }

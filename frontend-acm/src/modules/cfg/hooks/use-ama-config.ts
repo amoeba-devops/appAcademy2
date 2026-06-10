@@ -11,6 +11,10 @@ export interface AmaConfig {
   /** local_config: whether a Custom App HS256 secret is stored (value never returned). */
   customAppSecretIsSet: boolean;
   expectedScope?: string | null;
+  /** local_config: whether a Custom Category HS256 secret is stored (value never returned). */
+  categorySecretIsSet: boolean;
+  /** Expected eccSlug for custom_category:context tokens. */
+  categorySlug?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +26,9 @@ export interface UpdateAmaConfigInput {
   /** Send only to set/rotate; omit to keep existing. */
   customAppSecret?: string;
   expectedScope?: string;
+  /** Custom Category secret — send only to set/rotate; omit to keep existing. */
+  categorySecret?: string;
+  categorySlug?: string;
 }
 
 const KEY = 'ama-config';
