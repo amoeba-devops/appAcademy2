@@ -19,11 +19,13 @@ import { BodaEventLogTypeormEntity } from './infrastructure/typeorm/boda-event-l
 import { BodaConfigService } from './application/boda-config.service';
 import { BodaRoomService } from './application/boda-room.service';
 import { BodaLaunchContextService } from './application/boda-launch-context.service';
+import { BodaWebhookService } from './application/boda-webhook.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
 import { BodaConfigController } from './presentation/boda-config.controller';
 import { BodaLaunchController } from './presentation/boda-launch.controller';
+import { BodaWebhookController } from './presentation/boda-webhook.controller';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import { BodaLaunchController } from './presentation/boda-launch.controller';
     CalInviteeCandidateController,
     BodaConfigController,
     BodaLaunchController,
+    BodaWebhookController,
   ],
   providers: [
     CalEventService,
@@ -59,6 +62,7 @@ import { BodaLaunchController } from './presentation/boda-launch.controller';
     BodaConfigService,
     BodaRoomService,
     BodaLaunchContextService,
+    BodaWebhookService,
   ],
   exports: [CalEventService, BodaConfigService, BodaRoomService],
 })
