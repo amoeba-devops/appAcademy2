@@ -8,6 +8,9 @@ export interface AmaConfig {
   amaEntityId: string;
   appCode: string;
   isActive: boolean;
+  /** local_config: whether a Custom App HS256 secret is stored (value never returned). */
+  customAppSecretIsSet: boolean;
+  expectedScope?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,6 +19,9 @@ export interface UpdateAmaConfigInput {
   amaEntityId?: string;
   appCode?: string;
   isActive?: boolean;
+  /** Send only to set/rotate; omit to keep existing. */
+  customAppSecret?: string;
+  expectedScope?: string;
 }
 
 const KEY = 'ama-config';

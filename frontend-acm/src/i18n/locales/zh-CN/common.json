@@ -96,6 +96,16 @@
         "label": "自定义应用 appCode（仅供参考）",
         "hint": "注册自定义应用时填写的应用名称（例如：tpi-acm）。仅供参考 — 登录校验仅使用 entityId。"
       },
+      "scope": {
+        "label": "期望 scope",
+        "hint": "Custom App 令牌的 scope（例如：custom_app:context）。本地校验时进行比较。"
+      },
+      "secret": {
+        "label": "Custom App 签名 secret",
+        "hint": "AMA Custom App 注册页面的 HS256 签名 secret。加密存储且不再显示。仅在更改时输入。",
+        "placeholderSet": "已设置 — 输入新值以更改",
+        "placeholderUnset": "未设置 — 输入 secret"
+      },
       "isActive": {
         "label": "使用此配置允许登录（启用）"
       }

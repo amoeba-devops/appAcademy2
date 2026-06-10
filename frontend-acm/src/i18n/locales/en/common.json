@@ -100,6 +100,16 @@
         "label": "Custom app appCode (reference)",
         "hint": "The app name from the custom app registration (e.g. tpi-acm). Reference only — the login gate uses entityId."
       },
+      "scope": {
+        "label": "Expected scope",
+        "hint": "The scope of the Custom App token (e.g. custom_app:context). Compared during local verification."
+      },
+      "secret": {
+        "label": "Custom App signing secret",
+        "hint": "The HS256 signing secret from the AMA Custom App registration. Stored encrypted and never shown again. Enter only to change it.",
+        "placeholderSet": "Set — enter a new value to change",
+        "placeholderUnset": "Not set — enter secret"
+      },
       "isActive": {
         "label": "Allow login with this config (active)"
       }

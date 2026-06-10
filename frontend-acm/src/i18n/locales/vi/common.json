@@ -96,6 +96,16 @@
         "label": "appCode ứng dụng tùy chỉnh (tham khảo)",
         "hint": "Tên ứng dụng khi đăng ký ứng dụng tùy chỉnh (ví dụ: tpi-acm). Chỉ tham khảo — cổng đăng nhập dùng entityId."
       },
+      "scope": {
+        "label": "Scope mong đợi",
+        "hint": "Scope của token Custom App (ví dụ: custom_app:context). Được so sánh khi xác minh cục bộ."
+      },
+      "secret": {
+        "label": "Secret ký Custom App",
+        "hint": "Secret ký HS256 từ đăng ký AMA Custom App. Lưu mã hóa và không hiển thị lại. Chỉ nhập khi thay đổi.",
+        "placeholderSet": "Đã đặt — nhập giá trị mới để thay đổi",
+        "placeholderUnset": "Chưa đặt — nhập secret"
+      },
       "isActive": {
         "label": "Cho phép đăng nhập với cấu hình này (kích hoạt)"
       }

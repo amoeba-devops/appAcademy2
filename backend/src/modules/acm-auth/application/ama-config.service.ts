@@ -2,7 +2,9 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
+import { packEncrypted } from '../infrastructure/ama-secret.codec';
 import {
   AmaConfigResponseDto,
   UpdateAmaConfigDto,
@@ -22,6 +24,7 @@ export class AmaConfigService {
   constructor(
     @InjectRepository(AmaConfigTypeormEntity, ACM_DS)
     private readonly repo: Repository<AmaConfigTypeormEntity>,
+    private readonly aes: AesGcmService,
   ) {}
 
   async findByEntId(entId: string): Promise<AmaConfigResponseDto | null> {
@@ -49,6 +52,11 @@ export class AmaConfigService {
         amaEntityId: dto.amaEntityId,
         appCode: dto.appCode,
         isActive: dto.isActive ?? true,
+        customAppSecretEnc:
+          dto.customAppSecret !== undefined
+            ? packEncrypted(this.aes.encrypt(dto.customAppSecret))
+            : null,
+        expectedScope: dto.expectedScope ?? null,
       });
       const saved = await this.repo.save(created);
       this.logger.log(`ama config created entId=${entId} id=${saved.id}`);
@@ -58,10 +66,19 @@ export class AmaConfigService {
     if (dto.amaEntityId !== undefined) existing.amaEntityId = dto.amaEntityId;
     if (dto.appCode !== undefined) existing.appCode = dto.appCode;
     if (dto.isActive !== undefined) existing.isActive = dto.isActive;
+    if (dto.expectedScope !== undefined)
+      existing.expectedScope = dto.expectedScope;
+    // Secret: encrypt only when a new value is sent; omitting keeps existing.
+    if (dto.customAppSecret !== undefined) {
+      existing.customAppSecretEnc = packEncrypted(
+        this.aes.encrypt(dto.customAppSecret),
+      );
+    }
 
     const saved = await this.repo.save(existing);
     this.logger.log(
-      `ama config updated entId=${entId} id=${saved.id} active=${saved.isActive}`,
+      `ama config updated entId=${entId} id=${saved.id} active=${saved.isActive} ` +
+        `secret_changed=${dto.customAppSecret !== undefined}`,
     );
     return this.toResponse(saved);
   }
@@ -73,6 +90,8 @@ export class AmaConfigService {
       amaEntityId: row.amaEntityId,
       appCode: row.appCode,
       isActive: row.isActive,
+      customAppSecretIsSet: !!row.customAppSecretEnc?.length,
+      expectedScope: row.expectedScope ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

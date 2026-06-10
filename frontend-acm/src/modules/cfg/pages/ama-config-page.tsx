@@ -25,12 +25,16 @@ export function AmaConfigPage() {
   const [amaEntityId, setAmaEntityId] = useState('');
   const [appCode, setAppCode] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [expectedScope, setExpectedScope] = useState('');
+  const [customAppSecret, setCustomAppSecret] = useState(''); // write-only
 
   useEffect(() => {
     if (data) {
       setAmaEntityId(data.amaEntityId);
       setAppCode(data.appCode);
       setIsActive(data.isActive);
+      setExpectedScope(data.expectedScope ?? '');
+      setCustomAppSecret(''); // never prefilled
     }
   }, [data]);
 
@@ -38,6 +42,8 @@ export function AmaConfigPage() {
     setAmaEntityId(data?.amaEntityId ?? '');
     setAppCode(data?.appCode ?? '');
     setIsActive(data?.isActive ?? true);
+    setExpectedScope(data?.expectedScope ?? '');
+    setCustomAppSecret('');
   };
 
   const onSave = async () => {
@@ -60,7 +66,13 @@ export function AmaConfigPage() {
         amaEntityId: amaEntityId.trim(),
         appCode: appCode.trim(),
         isActive,
+        expectedScope: expectedScope.trim() || undefined,
+        // send secret only when entered (keeps existing otherwise)
+        ...(customAppSecret.trim()
+          ? { customAppSecret: customAppSecret.trim() }
+          : {}),
       });
+      setCustomAppSecret('');
       toast.success(t('config.saved'));
     } catch {
       toast.error(t('config.errors.saveFailed'));
@@ -105,6 +117,35 @@ export function AmaConfigPage() {
                 autoComplete="off"
               />
               <p className="text-xs text-secondary">{t('config.fields.appCode.hint')}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="expectedScope">{t('config.fields.scope.label')}</Label>
+              <Input
+                id="expectedScope"
+                value={expectedScope}
+                onChange={(e) => setExpectedScope(e.target.value)}
+                placeholder="custom_app:context"
+                autoComplete="off"
+              />
+              <p className="text-xs text-secondary">{t('config.fields.scope.hint')}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="customAppSecret">{t('config.fields.secret.label')}</Label>
+              <Input
+                id="customAppSecret"
+                type="password"
+                value={customAppSecret}
+                onChange={(e) => setCustomAppSecret(e.target.value)}
+                placeholder={
+                  data?.customAppSecretIsSet
+                    ? t('config.fields.secret.placeholderSet')
+                    : t('config.fields.secret.placeholderUnset')
+                }
+                autoComplete="new-password"
+              />
+              <p className="text-xs text-secondary">{t('config.fields.secret.hint')}</p>
             </div>
 
             <label className="flex items-center gap-2 text-sm text-primary">

@@ -41,6 +41,17 @@ export class AmaConfigTypeormEntity {
   @Column({ name: 'amc_is_active', type: 'boolean', default: true })
   isActive!: boolean;
 
+  /**
+   * Custom App HS256 서명 검증용 secret (REQ-260609D, local_config 모드).
+   * AES-GCM 암호화 BYTEA. 포맷 [iv(12)][authTag(16)][ciphertext]. 응답 노출 금지.
+   */
+  @Column({ name: 'amc_custom_app_secret_enc', type: 'bytea', nullable: true })
+  customAppSecretEnc?: Buffer | null;
+
+  /** 기대 scope (예 'custom_app:context'). 토큰 scope 비교용. */
+  @Column({ name: 'amc_expected_scope', type: 'varchar', length: 60, nullable: true })
+  expectedScope?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

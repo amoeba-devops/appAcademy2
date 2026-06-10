@@ -100,6 +100,16 @@
         "label": "커스텀앱 appCode (참고용)",
         "hint": "커스텀앱 등록 시 작성한 앱 이름 (예: tpi-acm). 참고용 — 로그인 게이트는 entityId만 사용합니다."
       },
+      "scope": {
+        "label": "기대 scope",
+        "hint": "Custom App 토큰의 scope 값 (예: custom_app:context). 로컬 검증 시 비교합니다."
+      },
+      "secret": {
+        "label": "Custom App 서명 secret",
+        "hint": "AMA Custom App 등록 화면의 HS256 서명 secret. 암호화 저장되며 화면에 다시 표시되지 않습니다. 변경 시에만 입력하세요.",
+        "placeholderSet": "설정됨 — 변경하려면 새 값 입력",
+        "placeholderUnset": "미설정 — secret 입력"
+      },
       "isActive": {
         "label": "이 설정으로 로그인 허용 (활성)"
       }

@@ -18,6 +18,7 @@ import {
   type AmaTokenPayload,
 } from '../infrastructure/ama-token.verifier';
 import { AmaSessionExchanger } from '../infrastructure/ama-session.exchanger';
+import { AmaCustomAppVerifier } from '../infrastructure/ama-custom-app.verifier';
 import {
   AmaOAuthRejectedException,
   AmaOAuthUnavailableException,
@@ -28,8 +29,8 @@ import { UserMembershipGuard } from './user-membership.guard';
 import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
 
-/** REQ-260609C — AMA token verification mode. */
-type AmaVerifyMode = 'local' | 'ama_session';
+/** REQ-260609C/D — AMA token verification mode. */
+type AmaVerifyMode = 'local' | 'ama_session' | 'local_config';
 
 export interface AcmJwtPayload {
   sub: string;
@@ -64,12 +65,15 @@ export class AcmAuthService {
     private readonly membershipGuard: UserMembershipGuard,
     private readonly amaConfigGate: AmaConfigGateService,
     private readonly sessionExchanger: AmaSessionExchanger,
+    private readonly customAppVerifier: AmaCustomAppVerifier,
     config: ConfigService,
   ) {
+    const mode = String(
+      config.get('AMA_TOKEN_VERIFY_MODE', 'local'),
+    ).toLowerCase();
     this.verifyMode =
-      String(config.get('AMA_TOKEN_VERIFY_MODE', 'local')).toLowerCase() ===
-      'ama_session'
-        ? 'ama_session'
+      mode === 'ama_session' || mode === 'local_config'
+        ? (mode as AmaVerifyMode)
         : 'local';
     this.logger.log(`AMA token verify mode = ${this.verifyMode}`);
   }
@@ -245,7 +249,9 @@ export class AcmAuthService {
     const user =
       this.verifyMode === 'ama_session'
         ? await this.upsertSessionUser(payload)
-        : await this.loginViaLocalPipeline(payload);
+        : this.verifyMode === 'local_config'
+          ? await this.upsertLocalConfigUser(payload)
+          : await this.loginViaLocalPipeline(payload);
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -284,11 +290,41 @@ export class AcmAuthService {
     };
   }
 
-  /** REQ-260609C — dispatch token verification by configured mode. */
+  /** REQ-260609C/D — dispatch token verification by configured mode. */
   private async verifyAmaToken(amaToken: string): Promise<AmaTokenPayload> {
-    return this.verifyMode === 'ama_session'
-      ? this.verifyViaSession(amaToken)
-      : this.verifyViaLocal(amaToken);
+    if (this.verifyMode === 'ama_session') return this.verifyViaSession(amaToken);
+    if (this.verifyMode === 'local_config')
+      return this.verifyViaLocalConfig(amaToken);
+    return this.verifyViaLocal(amaToken);
+  }
+
+  /**
+   * REQ-260609D — verify the Custom App token locally using the secret +
+   * expected claims stored in /admin/config (AmaCustomAppVerifier). Token-level
+   * failures map to HTTP like local mode; config issues (ENTITY_NOT_ALLOWED 403,
+   * AMA_SSO_NOT_CONFIGURED 503) are already HttpExceptions and pass through.
+   */
+  private async verifyViaLocalConfig(
+    amaToken: string,
+  ): Promise<AmaTokenPayload> {
+    try {
+      return await this.customAppVerifier.verify(amaToken);
+    } catch (e) {
+      if (e instanceof AmaTokenVerifyException) {
+        const status =
+          e.code === 'AMA_TOKEN_CLAIMS_MISSING'
+            ? HttpStatus.BAD_REQUEST
+            : e.code === 'AMA_TOKEN_SCOPE_INVALID' ||
+                e.code === 'AMA_TOKEN_APP_CODE_INVALID'
+              ? HttpStatus.FORBIDDEN
+              : HttpStatus.UNAUTHORIZED;
+        this.logger.warn(
+          `local_config rejected code=${e.code} reason=${e.message}`,
+        );
+        throw new HttpException({ code: e.code, message: e.code }, status);
+      }
+      throw e; // HttpException (ENTITY_NOT_ALLOWED / AMA_SSO_NOT_CONFIGURED)
+    }
   }
 
   /** Legacy local HS256 self-verification (AMA_JWT_SECRET). */
@@ -448,6 +484,22 @@ export class AcmAuthService {
       user = await this.userRepo.save(user);
     }
     return user;
+  }
+
+  /**
+   * REQ-260609D (local_config) — upsert from the verified Custom App token.
+   * The token carries sub/email/role, so role maps from USER_LEVEL + jobRole
+   * (MASTER→ADMIN) and email/name come from the token — no membership call.
+   */
+  private async upsertLocalConfigUser(
+    payload: AmaTokenPayload,
+  ): Promise<AcmUserTypeormEntity> {
+    const jobRole = payload.jobRole ?? null;
+    const acmRole = mapAcmRole(payload.role, jobRole);
+    const displayName = payload.email
+      ? payload.email.split('@')[0] || payload.email
+      : payload.sub;
+    return this.upsertAmaUser(payload, acmRole, jobRole, displayName);
   }
 
   private async upsertAmaUser(

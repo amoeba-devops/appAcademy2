@@ -34,15 +34,37 @@ export class UpdateAmaConfigDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'local_config 모드: Custom App HS256 서명 secret. 보낼 때만 AES-GCM 암호화 저장. 응답 미노출.',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(400)
+  customAppSecret?: string;
+
+  @ApiPropertyOptional({
+    description: '기대 scope (Custom App 토큰의 scope 비교)',
+    example: 'custom_app:context',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  expectedScope?: string;
 }
 
-/** AMA 연동 설정 응답 DTO. */
+/** AMA 연동 설정 응답 DTO. secret 은 isSet 플래그로만 노출. */
 export class AmaConfigResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty() entId!: string;
   @ApiProperty() amaEntityId!: string;
   @ApiProperty() appCode!: string;
   @ApiProperty() isActive!: boolean;
+  /** Custom App secret 이 저장돼 있는지 여부만 (값 미노출). */
+  @ApiProperty() customAppSecretIsSet!: boolean;
+  @ApiPropertyOptional() expectedScope?: string | null;
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }

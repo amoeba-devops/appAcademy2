@@ -30,6 +30,8 @@ import { AMA_OAUTH_CLIENT } from './infrastructure/ama-oauth.client';
 import { AmaOAuthMockClient } from './infrastructure/ama-oauth-mock.client';
 import { AmaOAuthHttpClient } from './infrastructure/ama-oauth-http.client';
 import { AmaSessionExchanger } from './infrastructure/ama-session.exchanger';
+import { AmaCustomAppVerifier } from './infrastructure/ama-custom-app.verifier';
+import { AesGcmService } from '../acm-common/crypto/aes-gcm.service';
 
 /**
  * STG_APPS_SUBSCRIPTION_CLIENT provider — picks mock or http based on
@@ -127,6 +129,8 @@ const amaOAuthProvider: Provider = {
     AmaConfigGateService,
     AmaUserDirectoryService,
     AmaSessionExchanger,
+    AmaCustomAppVerifier,
+    AesGcmService,
     stgAppsSubscriptionProvider,
     amaPlatformProvider,
     amaOAuthProvider,
