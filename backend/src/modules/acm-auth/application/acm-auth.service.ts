@@ -239,7 +239,13 @@ export class AcmAuthService {
     // entityId must match the value an admin registered at /admin/config
     // (amb_acm_ama_config). appCode is excluded from the gate. Runs before the
     // heavier live subscription/membership calls. 403 ENTITY_NOT_ALLOWED.
-    await this.amaConfigGate.ensureAllowed(payload.entityId);
+    //
+    // The gate returns the matched config's ACM internal tenant `entId`, which
+    // may differ from the AMA `payload.entityId` (FIX-260610: TPI tenant
+    // 00000000-…01 ↔ amaEntityId 928f5fe4…). All user scoping + the signed JWT
+    // MUST use this resolved acmEntId so AMA-link users land in the same tenant
+    // as existing ACM data — never the raw token entityId.
+    const acmEntId = await this.amaConfigGate.ensureAllowed(payload.entityId);
 
     // REQ-260609C (SIMPLE) — in ama_session mode the OAuth exchange+introspect
     // already proved the user is an active member of this entity for our app,
@@ -248,10 +254,10 @@ export class AcmAuthService {
     // from the introspect claims (sub + entId).
     const user =
       this.verifyMode === 'ama_session'
-        ? await this.upsertSessionUser(payload)
+        ? await this.upsertSessionUser(payload, acmEntId)
         : this.verifyMode === 'local_config'
-          ? await this.upsertLocalConfigUser(payload)
-          : await this.loginViaLocalPipeline(payload);
+          ? await this.upsertLocalConfigUser(payload, acmEntId)
+          : await this.loginViaLocalPipeline(payload, acmEntId);
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -401,6 +407,7 @@ export class AcmAuthService {
    */
   private async loginViaLocalPipeline(
     payload: AmaTokenPayload,
+    acmEntId: string,
   ): Promise<AcmUserTypeormEntity> {
     const subCheck = await this.subscriptionCheck.ensureActive(
       payload.entityId,
@@ -429,7 +436,7 @@ export class AcmAuthService {
       payload.role && payload.role !== 'UNKNOWN' ? payload.role : member.level;
     const enriched: AmaTokenPayload = { ...payload, email, role: amaLevel };
 
-    return this.upsertAmaUser(enriched, acmRole, jobRole, displayName);
+    return this.upsertAmaUser(enriched, acmRole, jobRole, displayName, acmEntId);
   }
 
   /**
@@ -441,6 +448,7 @@ export class AcmAuthService {
    */
   private async upsertSessionUser(
     payload: AmaTokenPayload,
+    acmEntId: string,
   ): Promise<AcmUserTypeormEntity> {
     const email = payload.email || `${payload.sub}@ama-sso.local`;
     const displayName = payload.email
@@ -450,12 +458,12 @@ export class AcmAuthService {
       payload.role && payload.role !== 'UNKNOWN' ? payload.role : null;
 
     let user = await this.userRepo.findOne({
-      where: { entId: payload.entityId, amaUserId: payload.sub },
+      where: { entId: acmEntId, amaUserId: payload.sub },
     });
 
     if (!user) {
       const created = this.userRepo.create({
-        entId: payload.entityId,
+        entId: acmEntId,
         email,
         name: displayName,
         passwordHash: null,
@@ -493,13 +501,14 @@ export class AcmAuthService {
    */
   private async upsertLocalConfigUser(
     payload: AmaTokenPayload,
+    acmEntId: string,
   ): Promise<AcmUserTypeormEntity> {
     const jobRole = payload.jobRole ?? null;
     const acmRole = mapAcmRole(payload.role, jobRole);
     const displayName = payload.email
       ? payload.email.split('@')[0] || payload.email
       : payload.sub;
-    return this.upsertAmaUser(payload, acmRole, jobRole, displayName);
+    return this.upsertAmaUser(payload, acmRole, jobRole, displayName, acmEntId);
   }
 
   private async upsertAmaUser(
@@ -507,16 +516,19 @@ export class AcmAuthService {
     acmRole: AcmRole,
     jobRole: string | null,
     displayName: string,
+    acmEntId: string,
   ): Promise<AcmUserTypeormEntity> {
     // 1. Lookup by AMA user id (primary key for AMA-source users).
     let user = await this.userRepo.findOne({
-      where: { entId: payload.entityId, amaUserId: payload.sub },
+      where: { entId: acmEntId, amaUserId: payload.sub },
     });
 
-    // 2. Fallback — same tenant + email match → adopt as AMA-linked.
+    // 2. Fallback — same tenant + email match → adopt as AMA-linked. This is
+    //    what lets an AMA Custom App login resolve to the pre-existing ACM
+    //    account (e.g. admin@tpi.co.kr) instead of spawning a duplicate.
     if (!user) {
       user = await this.userRepo.findOne({
-        where: { entId: payload.entityId, email: payload.email },
+        where: { entId: acmEntId, email: payload.email },
       });
       if (user) {
         user.amaUserId = payload.sub;
@@ -532,7 +544,7 @@ export class AcmAuthService {
     // 3. Create new AMA-provisioned user.
     if (!user) {
       const created = this.userRepo.create({
-        entId: payload.entityId,
+        entId: acmEntId,
         email: payload.email,
         name: displayName,
         passwordHash: null,

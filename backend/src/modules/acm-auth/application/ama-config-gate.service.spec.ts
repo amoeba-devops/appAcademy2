@@ -33,10 +33,24 @@ describe('AmaConfigGateService (REQ-260609B / C D-1 — entityId-only gate)', ()
       ...over,
     }) as AmaConfigTypeormEntity;
 
-  it('allows when entityId matches an active config', async () => {
+  it('allows and returns the config entId when entityId matches an active config', async () => {
     await build();
     findOne.mockResolvedValue(cfg());
-    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBeUndefined();
+    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBe('ent-uuid');
+  });
+
+  it('returns the ACM entId, not the AMA entityId, when they diverge (FIX-260610)', async () => {
+    await build();
+    // TPI: ACM tenant 00000000-…01 mapped to AMA entityId 928f5fe4…
+    findOne.mockResolvedValue(
+      cfg({
+        entId: '00000000-0000-0000-0000-000000000001',
+        amaEntityId: '928f5fe4-12ab-4113-b9b9-d8d455ca4e3b',
+      }),
+    );
+    await expect(
+      svc.ensureAllowed('928f5fe4-12ab-4113-b9b9-d8d455ca4e3b'),
+    ).resolves.toBe('00000000-0000-0000-0000-000000000001');
   });
 
   it('denies when no active config for the entityId (deny-all)', async () => {
@@ -50,7 +64,7 @@ describe('AmaConfigGateService (REQ-260609B / C D-1 — entityId-only gate)', ()
   it('appCode is NOT part of the gate (D-1) — any appCode in config is irrelevant', async () => {
     await build();
     findOne.mockResolvedValue(cfg({ appCode: 'whatever-app' }));
-    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBeUndefined();
+    await expect(svc.ensureAllowed('ent-uuid')).resolves.toBe('ent-uuid');
   });
 
   it('queries only active rows by entityId', async () => {
