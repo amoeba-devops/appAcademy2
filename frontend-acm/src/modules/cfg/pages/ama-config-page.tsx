@@ -27,6 +27,8 @@ export function AmaConfigPage() {
   const [isActive, setIsActive] = useState(true);
   const [expectedScope, setExpectedScope] = useState('');
   const [customAppSecret, setCustomAppSecret] = useState(''); // write-only
+  const [categorySlug, setCategorySlug] = useState('');
+  const [categorySecret, setCategorySecret] = useState(''); // write-only
 
   useEffect(() => {
     if (data) {
@@ -35,6 +37,8 @@ export function AmaConfigPage() {
       setIsActive(data.isActive);
       setExpectedScope(data.expectedScope ?? '');
       setCustomAppSecret(''); // never prefilled
+      setCategorySlug(data.categorySlug ?? '');
+      setCategorySecret(''); // never prefilled
     }
   }, [data]);
 
@@ -44,6 +48,8 @@ export function AmaConfigPage() {
     setIsActive(data?.isActive ?? true);
     setExpectedScope(data?.expectedScope ?? '');
     setCustomAppSecret('');
+    setCategorySlug(data?.categorySlug ?? '');
+    setCategorySecret('');
   };
 
   const onSave = async () => {
@@ -67,12 +73,17 @@ export function AmaConfigPage() {
         appCode: appCode.trim(),
         isActive,
         expectedScope: expectedScope.trim() || undefined,
-        // send secret only when entered (keeps existing otherwise)
+        categorySlug: categorySlug.trim() || undefined,
+        // send secrets only when entered (keeps existing otherwise)
         ...(customAppSecret.trim()
           ? { customAppSecret: customAppSecret.trim() }
           : {}),
+        ...(categorySecret.trim()
+          ? { categorySecret: categorySecret.trim() }
+          : {}),
       });
       setCustomAppSecret('');
+      setCategorySecret('');
       toast.success(t('config.saved'));
     } catch {
       toast.error(t('config.errors.saveFailed'));
@@ -146,6 +157,46 @@ export function AmaConfigPage() {
                 autoComplete="new-password"
               />
               <p className="text-xs text-secondary">{t('config.fields.secret.hint')}</p>
+            </div>
+
+            <div className="border-t border-[var(--border-subtle)] pt-5">
+              <h2 className="mb-1 text-sm font-semibold text-primary">
+                {t('config.category.title')}
+              </h2>
+              <p className="mb-4 text-xs text-secondary">
+                {t('config.category.description')}
+              </p>
+
+              <div className="space-y-5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="categorySlug">{t('config.fields.categorySlug.label')}</Label>
+                  <Input
+                    id="categorySlug"
+                    value={categorySlug}
+                    onChange={(e) => setCategorySlug(e.target.value)}
+                    placeholder="tpi-academy"
+                    autoComplete="off"
+                  />
+                  <p className="text-xs text-secondary">{t('config.fields.categorySlug.hint')}</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="categorySecret">{t('config.fields.categorySecret.label')}</Label>
+                  <Input
+                    id="categorySecret"
+                    type="password"
+                    value={categorySecret}
+                    onChange={(e) => setCategorySecret(e.target.value)}
+                    placeholder={
+                      data?.categorySecretIsSet
+                        ? t('config.fields.secret.placeholderSet')
+                        : t('config.fields.secret.placeholderUnset')
+                    }
+                    autoComplete="new-password"
+                  />
+                  <p className="text-xs text-secondary">{t('config.fields.categorySecret.hint')}</p>
+                </div>
+              </div>
             </div>
 
             <label className="flex items-center gap-2 text-sm text-primary">

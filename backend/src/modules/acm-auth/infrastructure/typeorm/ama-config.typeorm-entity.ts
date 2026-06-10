@@ -52,6 +52,18 @@ export class AmaConfigTypeormEntity {
   @Column({ name: 'amc_expected_scope', type: 'varchar', length: 60, nullable: true })
   expectedScope?: string | null;
 
+  /**
+   * Custom Category HS256 서명 검증용 secret (custom_category:context 토큰).
+   * 커스텀앱과 별개 통합이라 secret 이 다르다. AES-GCM 암호화 BYTEA. 응답 노출 금지.
+   * @see sql/acm/924-acm-ama-config-custom-category.sql
+   */
+  @Column({ name: 'amc_category_secret_enc', type: 'bytea', nullable: true })
+  categorySecretEnc?: Buffer | null;
+
+  /** 기대 eccSlug (커스텀카테고리 slug, 예 'tpi-academy'). 토큰 eccSlug 비교용. */
+  @Column({ name: 'amc_category_slug', type: 'varchar', length: 60, nullable: true })
+  categorySlug?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

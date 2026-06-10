@@ -108,6 +108,14 @@
       },
       "isActive": {
         "label": "Cho phép đăng nhập với cấu hình này (kích hoạt)"
+      },
+      "categorySlug": {
+        "label": "Slug danh mục",
+        "hint": "Giá trị eccSlug trong token Custom Category (ví dụ: tpi-academy). Được so sánh khi xác minh cục bộ."
+      },
+      "categorySecret": {
+        "label": "Secret ký Custom Category",
+        "hint": "Secret ký HS256 của AMA Custom Category (khác với Custom App). Được lưu mã hóa và không hiển thị lại. Chỉ nhập khi muốn thay đổi."
       }
     },
     "deactivate": {
@@ -119,6 +127,10 @@
       "required": "Vui lòng nhập cả entityId và appCode.",
       "saveFailed": "Lưu thất bại.",
       "loadFailed": "Không tải được cấu hình."
+    },
+    "category": {
+      "title": "Custom Category (Danh mục tùy chỉnh)",
+      "description": "Cài đặt đăng nhập cho lối vào AMA Custom Category (/menu). Dùng secret ký riêng, khác với Custom App."
     }
   }
 }

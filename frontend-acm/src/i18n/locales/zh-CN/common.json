@@ -108,6 +108,14 @@
       },
       "isActive": {
         "label": "使用此配置允许登录（启用）"
+      },
+      "categorySlug": {
+        "label": "分类 slug",
+        "hint": "自定义分类令牌中的 eccSlug 值（例如 tpi-academy）。本地验证时进行比较。"
+      },
+      "categorySecret": {
+        "label": "自定义分类签名密钥",
+        "hint": "AMA 自定义分类的 HS256 签名密钥（与自定义应用不同）。加密存储且不再显示。仅在更改时输入。"
       }
     },
     "deactivate": {
@@ -119,6 +127,10 @@
       "required": "请输入 entityId 和 appCode。",
       "saveFailed": "保存失败。",
       "loadFailed": "无法加载配置。"
+    },
+    "category": {
+      "title": "自定义分类 (Custom Category)",
+      "description": "AMA 自定义分类(/menu)入口的登录设置。使用与自定义应用不同的签名密钥。"
     }
   }
 }

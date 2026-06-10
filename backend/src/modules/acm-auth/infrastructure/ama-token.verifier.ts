@@ -25,6 +25,7 @@ export type AmaVerifyError =
   | 'AMA_TOKEN_EXPIRED'
   | 'AMA_TOKEN_SCOPE_INVALID'
   | 'AMA_TOKEN_APP_CODE_INVALID'
+  | 'AMA_TOKEN_CATEGORY_SLUG_INVALID'
   | 'AMA_TOKEN_CLAIMS_MISSING';
 
 export class AmaTokenVerifyException extends Error {

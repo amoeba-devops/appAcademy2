@@ -112,6 +112,14 @@
       },
       "isActive": {
         "label": "Allow login with this config (active)"
+      },
+      "categorySlug": {
+        "label": "Category slug",
+        "hint": "The eccSlug claim in the Custom Category token (e.g. tpi-academy). Compared during local verification."
+      },
+      "categorySecret": {
+        "label": "Custom Category signing secret",
+        "hint": "HS256 signing secret of the AMA Custom Category (different from the Custom App). Stored encrypted and never shown again. Enter only to change."
       }
     },
     "deactivate": {
@@ -123,6 +131,10 @@
       "required": "Please enter both entityId and appCode.",
       "saveFailed": "Failed to save.",
       "loadFailed": "Failed to load the config."
+    },
+    "category": {
+      "title": "Custom Category",
+      "description": "Sign-in settings for the AMA Custom Category (/menu) entry. Uses a separate signing secret from the Custom App."
     }
   }
 }

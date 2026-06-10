@@ -321,7 +321,8 @@ export class AcmAuthService {
           e.code === 'AMA_TOKEN_CLAIMS_MISSING'
             ? HttpStatus.BAD_REQUEST
             : e.code === 'AMA_TOKEN_SCOPE_INVALID' ||
-                e.code === 'AMA_TOKEN_APP_CODE_INVALID'
+                e.code === 'AMA_TOKEN_APP_CODE_INVALID' ||
+                e.code === 'AMA_TOKEN_CATEGORY_SLUG_INVALID'
               ? HttpStatus.FORBIDDEN
               : HttpStatus.UNAUTHORIZED;
         this.logger.warn(
