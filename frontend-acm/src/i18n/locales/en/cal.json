@@ -84,6 +84,22 @@
     "forceCloseResult": "Closed",
     "notProvisioned": "BODA room not provisioned yet."
   },
+  "instant": {
+    "btnLabel": "Start instant class",
+    "btnTitle": "Open a BODA classroom right now without scheduling on the calendar",
+    "modalTitle": "Start an instant class",
+    "titleLabel": "Title",
+    "titlePlaceholder": "Instant class - teacher {{time}}",
+    "durationLabel": "Estimated duration",
+    "durationOption": "{{minutes}} min",
+    "inviteLabel": "Invite students",
+    "selectedCount": "Selected: {{count}}",
+    "emptySuggestions": "No suggestions yet (no active classes you teach, no recent attendees).",
+    "recentTag": "Recent",
+    "searchHint": "Search will arrive in a follow-up update.",
+    "notifyHint": "Invited students get a notification immediately when you start the class.",
+    "startBtn": "Start class"
+  },
   "filter": {
     "label": "Filter",
     "allOwners": "All teachers",

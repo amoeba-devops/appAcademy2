@@ -6,6 +6,9 @@ import { ACM_DS } from '../acm-common/datasource';
 import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
+import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
+import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
+import { redisProvider } from '../../infrastructure/config/redis.provider';
 import { CalEventService } from './application/cal-event.service';
 import { CalInviteeService } from './application/cal-invitee.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
@@ -21,6 +24,8 @@ import { BodaRoomService } from './application/boda-room.service';
 import { BodaLaunchContextService } from './application/boda-launch-context.service';
 import { BodaWebhookService } from './application/boda-webhook.service';
 import { BodaReconcileService } from './application/boda-reconcile.service';
+import { InstantEventService } from './application/instant-event.service';
+import { InviteeSuggestionsService } from './application/invitee-suggestions.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
@@ -28,6 +33,8 @@ import { BodaConfigController } from './presentation/boda-config.controller';
 import { BodaLaunchController } from './presentation/boda-launch.controller';
 import { BodaWebhookController } from './presentation/boda-webhook.controller';
 import { BodaAdminController } from './presentation/boda-admin.controller';
+import { InstantEventController } from './presentation/instant-event.controller';
+import { InviteeSuggestionsController } from './presentation/invitee-suggestions.controller';
 
 @Module({
   imports: [
@@ -46,6 +53,9 @@ import { BodaAdminController } from './presentation/boda-admin.controller';
         BodaRoomTypeormEntity,
         BodaParticipantTypeormEntity,
         BodaEventLogTypeormEntity,
+        // REQ-260610 — Instant classroom suggestions read from CLS tables.
+        ClassTypeormEntity,
+        ClassStudentTypeormEntity,
       ],
       ACM_DS,
     ),
@@ -57,6 +67,8 @@ import { BodaAdminController } from './presentation/boda-admin.controller';
     BodaLaunchController,
     BodaWebhookController,
     BodaAdminController,
+    InstantEventController,
+    InviteeSuggestionsController,
   ],
   providers: [
     CalEventService,
@@ -67,6 +79,9 @@ import { BodaAdminController } from './presentation/boda-admin.controller';
     BodaLaunchContextService,
     BodaWebhookService,
     BodaReconcileService,
+    InstantEventService,
+    InviteeSuggestionsService,
+    redisProvider,
   ],
   exports: [CalEventService, BodaConfigService, BodaRoomService],
 })

@@ -6,7 +6,7 @@ export type CalCategory = (typeof CAL_CATEGORIES)[number];
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
 export type CalMeetingProvider = (typeof CAL_PROVIDERS)[number];
 
-export type CalSource = 'MANUAL' | 'CLS_SESSION';
+export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 
 export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
 export type CalInviteeKind = (typeof CAL_INVITEE_KINDS)[number];

@@ -5,6 +5,7 @@
   "enterTeacher": "Vào lớp (Giáo viên)",
   "enterStudent": "Vào lớp (Học sinh)",
   "teacherHint": "Nhấn ‘Vào lớp’ để mở ứng dụng BODA. Nếu là lần đầu, hệ thống sẽ hướng dẫn cài đặt.",
+  "autoStarting": "Đang tự động mở lớp…",
   "teacherJoined": "Giáo viên đã vào lớp.",
   "waiting": "Đang chờ giáo viên…",
   "waitingHint": "Nút ‘Vào lớp’ sẽ kích hoạt khi giáo viên mở lớp (tự động làm mới mỗi 10 giây).",

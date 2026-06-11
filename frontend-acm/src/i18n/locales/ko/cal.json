@@ -84,6 +84,22 @@
     "forceCloseResult": "폐쇄 완료",
     "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다."
   },
+  "instant": {
+    "btnLabel": "즉시 강의 개설",
+    "btnTitle": "캘린더에 사전 등록 없이 지금 바로 BODA 강의실을 엽니다",
+    "modalTitle": "즉시 강의 개설",
+    "titleLabel": "제목",
+    "titlePlaceholder": "즉시 강의 - 강사 {{time}}",
+    "durationLabel": "예상 진행 시간",
+    "durationOption": "{{minutes}}분",
+    "inviteLabel": "학생 초대",
+    "selectedCount": "선택됨: {{count}}명",
+    "emptySuggestions": "추천할 학생이 없습니다. (담당 클래스가 비어있거나 최근 활동이 없음)",
+    "recentTag": "최근",
+    "searchHint": "추후 업데이트에서 검색 기능이 추가됩니다.",
+    "notifyHint": "강의 시작 시 초대한 학생에게 즉시 알림이 전송됩니다.",
+    "startBtn": "강의 시작"
+  },
   "filter": {
     "label": "필터",
     "allOwners": "강사 전체",

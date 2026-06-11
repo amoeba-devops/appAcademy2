@@ -5,6 +5,7 @@
   "enterTeacher": "Enter classroom (Teacher)",
   "enterStudent": "Enter classroom (Student)",
   "teacherHint": "Click Enter to open the BODA app. If this is your first visit, you'll be guided through installation.",
+  "autoStarting": "Starting your class automatically…",
   "teacherJoined": "Your teacher has entered the classroom.",
   "waiting": "Waiting for the teacher…",
   "waitingHint": "The Enter button becomes active once your teacher opens the classroom (auto-refresh every 10 seconds).",

@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
+import { InstantClassModal } from '../components/instant-class-modal';
 import {
   addMonths,
   endOfMonth,
@@ -32,8 +33,10 @@ export function CalMonthPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
+  const [instantOpen, setInstantOpen] = useState(false);
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
+  const canCreateInstant = role === 'ADMIN' || role === 'TEACHER';
   const [selectedTeachers, setSelectedTeachers] = useState<TeacherDetail[]>([]);
   const [attendeeKind, setAttendeeKind] = useState<CalInviteeKind>('STUDENT');
   const [selectedAttendees, setSelectedAttendees] = useState<InviteeCandidate[]>([]);
@@ -104,12 +107,30 @@ export function CalMonthPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
+          {canCreateInstant && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setInstantOpen(true)}
+              className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              title={t('instant.btnTitle')}
+            >
+              <Zap size={14} className="mr-1" />
+              {t('instant.btnLabel')}
+            </Button>
+          )}
           <Button size="sm" onClick={() => onDayClick(new Date())}>
             <Plus size={14} className="mr-1" />
             {t('actions.create')}
           </Button>
         </div>
       </div>
+
+      <InstantClassModal
+        open={instantOpen}
+        onClose={() => setInstantOpen(false)}
+      />
+
 
       <div className="mb-3 flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-surface p-3">
         <div className="flex items-center gap-2">
@@ -217,6 +238,9 @@ export function CalMonthPage() {
                     }`}
                     title={`${ev.ownerName ? `[${ev.ownerName}] ` : ''}${ev.title}${ev.inviteeCount ? ` · 참석 ${ev.inviteeCount}` : ''}`}
                   >
+                    {ev.source === 'INSTANT' && (
+                      <span className="text-amber-600 mr-0.5" title="즉시 강의">⚡</span>
+                    )}
                     {ev.ownerName && (
                       <span className="font-semibold mr-1">[{ev.ownerName}]</span>
                     )}

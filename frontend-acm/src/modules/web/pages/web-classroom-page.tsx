@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -70,11 +70,21 @@ export function WebClassroomPage() {
   }
 
   const ctx = ctxQuery.data!;
+  // REQ-260610 FR-INSTANT-5 — `?autoStart=1` (set on launcher URL returned by
+  // the instant-event endpoint) triggers BodaAppApi.bodaOpen() automatically
+  // for teachers/admins. Student-side autoStart is intentionally ignored — a
+  // student opening the URL needs the room to be OPEN first.
+  const [search] = useSearchParams();
+  const autoStart = search.get('autoStart') === '1' && ctx.userType === 11;
   return (
     <CenteredCard>
       <Header ctx={ctx} />
       {ctx.userType === 11 && (
-        <TeacherCta ctx={ctx} live={status ? LIVE_STATUSES.includes(status) : true} />
+        <TeacherCta
+          ctx={ctx}
+          live={status ? LIVE_STATUSES.includes(status) : true}
+          autoStart={autoStart}
+        />
       )}
       {ctx.userType !== 11 && status === 'PENDING' && <StudentWaiting />}
       {ctx.userType !== 11 && status && LIVE_STATUSES.includes(status) && (
@@ -118,10 +128,19 @@ function Header({ ctx }: { ctx: BodaLaunchContext }) {
   );
 }
 
-function TeacherCta({ ctx, live }: { ctx: BodaLaunchContext; live: boolean }) {
+function TeacherCta({
+  ctx,
+  live,
+  autoStart,
+}: {
+  ctx: BodaLaunchContext;
+  live: boolean;
+  autoStart: boolean;
+}) {
   const { t } = useTranslation('classroom');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoStartFired = useRef(false);
 
   const onClick = async () => {
     setError(null);
@@ -144,8 +163,21 @@ function TeacherCta({ ctx, live }: { ctx: BodaLaunchContext; live: boolean }) {
     }
   };
 
+  // REQ-260610 FR-INSTANT-5 — fire bodaOpen() once, as soon as the room is
+  // available, when the page was opened with autoStart=1 (instant classroom
+  // flow). Guarded by ref so React StrictMode re-renders don't double-fire.
+  useEffect(() => {
+    if (!autoStart || autoStartFired.current || !live || submitting) return;
+    autoStartFired.current = true;
+    onClick();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, live]);
+
   return (
     <div className="flex flex-col items-center gap-3 w-full">
+      {autoStart && submitting && (
+        <p className="text-xs text-accent-700">{t('autoStarting')}</p>
+      )}
       <Button
         size="lg"
         onClick={onClick}

@@ -5,6 +5,7 @@
   "enterTeacher": "进入教室（教师）",
   "enterStudent": "进入教室（学生）",
   "teacherHint": "点击 ‘进入’ 启动 BODA 应用。若是首次使用，系统将引导您完成安装。",
+  "autoStarting": "正在自动开课…",
   "teacherJoined": "老师已经进入教室。",
   "waiting": "正在等待老师进入…",
   "waitingHint": "老师打开教室后，‘进入’按钮将激活（每 10 秒自动刷新）。",

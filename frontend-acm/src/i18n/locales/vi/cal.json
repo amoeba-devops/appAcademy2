@@ -84,6 +84,22 @@
     "forceCloseResult": "Đã đóng",
     "notProvisioned": "Chưa tạo phòng BODA."
   },
+  "instant": {
+    "btnLabel": "Mở lớp tức thì",
+    "btnTitle": "Mở phòng BODA ngay không cần đặt lịch trước",
+    "modalTitle": "Mở lớp tức thì",
+    "titleLabel": "Tiêu đề",
+    "titlePlaceholder": "Lớp tức thì - giáo viên {{time}}",
+    "durationLabel": "Thời lượng dự kiến",
+    "durationOption": "{{minutes}} phút",
+    "inviteLabel": "Mời học sinh",
+    "selectedCount": "Đã chọn: {{count}}",
+    "emptySuggestions": "Chưa có gợi ý (không có lớp đang dạy hoặc người tham dự gần đây).",
+    "recentTag": "Gần đây",
+    "searchHint": "Tính năng tìm kiếm sẽ có ở bản cập nhật tiếp theo.",
+    "notifyHint": "Học sinh được mời sẽ nhận thông báo ngay khi bạn mở lớp.",
+    "startBtn": "Bắt đầu lớp"
+  },
   "filter": {
     "label": "Bộ lọc",
     "allOwners": "Tất cả giáo viên",

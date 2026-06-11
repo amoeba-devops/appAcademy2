@@ -2,7 +2,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 export type CalCategory = 'CLASS' | 'MEETING' | 'EVENT' | 'PERSONAL';
 export type CalMeetingProvider = 'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
-export type CalSource = 'MANUAL' | 'CLS_SESSION';
+export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 
 @Entity('amb_acm_cal_event')
 @Index('idx_acm_cal_evt_ent_range', ['entId', 'startAt'], { where: 'deleted_at IS NULL' })
