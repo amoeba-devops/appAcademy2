@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Zap } from 'lucide-react';
+import { Search, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
   useInviteeSuggestions,
   type InviteeSuggestion,
 } from '../hooks/use-instant-event';
+import { useDemoSeedBodaConfig } from '@/lib/boda-demo-api';
 
 interface Props {
   open: boolean;
@@ -41,6 +42,8 @@ export function InstantClassModal({ open, onClose }: Props) {
 
   const suggestions = useInviteeSuggestions({ enabled: open, limit: 12 });
   const createMut = useCreateInstantEvent();
+  const demoSeedMut = useDemoSeedBodaConfig();
+  const seededRef = useRef(false);
 
   // Reset state every time the modal opens.
   useEffect(() => {
@@ -62,6 +65,23 @@ export function InstantClassModal({ open, onClose }: Props) {
     });
   };
 
+  // Propagate `?demo=1` from the current page (e.g. /admin/cal?demo=1) to the
+  // launcher URL so the entire flow stays in demo mode.
+  const demoFromUrl =
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('demo') === '1';
+
+  // In demo mode, auto-seed the tenant's BODA config on first modal open so
+  // createPending() doesn't 422 for absence of company/room codes. Idempotent
+  // server-side — only seeds the secret BYTEA columns once.
+  useEffect(() => {
+    if (!open || !demoFromUrl || seededRef.current) return;
+    seededRef.current = true;
+    void demoSeedMut.mutateAsync().catch(() => {
+      seededRef.current = false; // allow retry on next open
+    });
+  }, [open, demoFromUrl, demoSeedMut]);
+
   const onStart = async () => {
     setError(null);
     try {
@@ -76,7 +96,10 @@ export function InstantClassModal({ open, onClose }: Props) {
       // Open launcher in a new tab so the teacher's current page (calendar)
       // stays put. autoStart=1 already on the URL → launcher will dispatch
       // bodaOpen() automatically (FR-INSTANT-5).
-      window.open(result.launcherUrl, '_blank', 'noopener,noreferrer');
+      const url = demoFromUrl
+        ? `${result.launcherUrl}${result.launcherUrl.includes('?') ? '&' : '?'}demo=1`
+        : result.launcherUrl;
+      window.open(url, '_blank', 'noopener,noreferrer');
       onClose();
     } catch (e) {
       const msg =
@@ -102,6 +125,11 @@ export function InstantClassModal({ open, onClose }: Props) {
           <DialogTitle className="flex items-center gap-2">
             <Zap size={18} className="text-amber-500" />
             {t('instant.modalTitle')}
+            {demoFromUrl && (
+              <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                <Sparkles size={10} /> DEMO
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 

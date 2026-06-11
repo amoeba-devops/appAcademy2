@@ -17,6 +17,7 @@ import {
   type BodaRoomStatus,
 } from '@/lib/boda-launch-api';
 import { useAuthStore } from '@/stores/auth.store';
+import { DemoBodaWindow } from '../components/demo-boda-window';
 
 const LIVE_STATUSES: BodaRoomStatus[] = ['OPEN', 'STARTED', 'PAUSED'];
 
@@ -74,8 +75,26 @@ export function WebClassroomPage() {
   // the instant-event endpoint) triggers BodaAppApi.bodaOpen() automatically
   // for teachers/admins. Student-side autoStart is intentionally ignored — a
   // student opening the URL needs the room to be OPEN first.
+  //
+  // `?demo=1` (REQ-260610 demo mode) swaps the real BodaAppApi load for an
+  // in-page mock window backed by the BODA_SIMULATE_ENABLED server endpoint.
   const [search] = useSearchParams();
   const autoStart = search.get('autoStart') === '1' && ctx.userType === 11;
+  const demo = search.get('demo') === '1';
+
+  if (demo && evtId) {
+    return (
+      <CenteredCard>
+        <Header ctx={ctx} />
+        <DemoBodaWindow
+          ctx={ctx}
+          evtId={evtId}
+          isTeacher={ctx.userType === 11}
+          initialStatus={status}
+        />
+      </CenteredCard>
+    );
+  }
   return (
     <CenteredCard>
       <Header ctx={ctx} />

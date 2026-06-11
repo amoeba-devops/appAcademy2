@@ -124,6 +124,13 @@ services:
       BACKEND_URL: ${BACKEND_URL:-https://acm.amoeba.site}
       # ACM file uploads
       ACM_UPLOAD_DIR: /app/uploads
+      # BODA(보다에듀) integration (REQ-260526). BODA_SIMULATE_ENABLED MUST
+      # stay unset/false in production — it bypasses webhook auth and seeds
+      # demo credentials.
+      BODA_MODE: ${BODA_MODE:-mock}
+      BODA_CRYPTO_KEY: ${BODA_CRYPTO_KEY:-}
+      BODA_DEFAULT_ROOM_CODE: ${BODA_DEFAULT_ROOM_CODE:-}
+      BODA_SIMULATE_ENABLED: ${BODA_SIMULATE_ENABLED:-false}
     volumes:
       - ${DATA_DIR:-./data}/acm-uploads:/app/uploads
     ports:

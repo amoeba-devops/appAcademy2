@@ -35,6 +35,7 @@ import { BodaWebhookController } from './presentation/boda-webhook.controller';
 import { BodaAdminController } from './presentation/boda-admin.controller';
 import { InstantEventController } from './presentation/instant-event.controller';
 import { InviteeSuggestionsController } from './presentation/invitee-suggestions.controller';
+import { BodaDemoController } from './presentation/boda-demo.controller';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { InviteeSuggestionsController } from './presentation/invitee-suggestions
     BodaAdminController,
     InstantEventController,
     InviteeSuggestionsController,
+    BodaDemoController,
   ],
   providers: [
     CalEventService,
