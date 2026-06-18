@@ -1,4 +1,7 @@
 import { Test } from '@nestjs/testing';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { ACM_DS } from '../../acm-common/datasource';
+import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 import {
   AMA_PLATFORM_CLIENT,
   AmaPlatformUnavailableException,
@@ -19,15 +22,27 @@ const user = (overrides: Partial<AmaPlatformUser>): AmaPlatformUser => ({
 describe('AmaUserDirectoryService', () => {
   let svc: AmaUserDirectoryService;
   let searchUsers: jest.Mock;
+  let configFindOne: jest.Mock;
 
   beforeEach(async () => {
     searchUsers = jest.fn();
+    // Default: identity mapping (acmEntId === amaEntityId) so the level/limit/
+    // cache assertions below — which assert on the entId value — keep holding.
+    // Resolution-specific behavior is covered in its own describe block.
+    configFindOne = jest.fn(
+      ({ where }: { where: { entId: string; isActive: boolean } }) =>
+        Promise.resolve({ amaEntityId: where.entId, isActive: true }),
+    );
     const mod = await Test.createTestingModule({
       providers: [
         AmaUserDirectoryService,
         {
           provide: AMA_PLATFORM_CLIENT,
           useValue: { searchUsers } as Partial<IAmaPlatformClient>,
+        },
+        {
+          provide: getRepositoryToken(AmaConfigTypeormEntity, ACM_DS),
+          useValue: { findOne: configFindOne },
         },
       ],
     }).compile();
@@ -118,6 +133,40 @@ describe('AmaUserDirectoryService', () => {
       await svc.search('e1', ['MANAGER'], 'kim', 10);
       await svc.search('e2', ['MANAGER'], 'kim', 10);
       expect(searchUsers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('entId → amaEntityId resolution (FIX-260619)', () => {
+    it('queries AMA with the resolved amaEntityId, not the ACM entId', async () => {
+      // The live TPI tenant: ACM entId 00000000-…01 ↔ amaEntityId 928f5fe4…
+      configFindOne.mockResolvedValue({
+        amaEntityId: '928f5fe4',
+        isActive: true,
+      });
+      searchUsers.mockResolvedValue([]);
+      await svc.search('00000000-0000-0000-0000-000000000001', ['MANAGER'], 'kim', 10);
+      expect(configFindOne).toHaveBeenCalledWith({
+        where: {
+          entId: '00000000-0000-0000-0000-000000000001',
+          isActive: true,
+        },
+      });
+      expect(searchUsers).toHaveBeenCalledWith('928f5fe4', 'kim', ['MANAGER'], 10);
+    });
+
+    it('returns empty (no platform call) when no active config exists', async () => {
+      configFindOne.mockResolvedValue(null);
+      const result = await svc.search('unknown-ent', ['MANAGER'], 'kim', 10);
+      expect(result).toEqual([]);
+      expect(searchUsers).not.toHaveBeenCalled();
+    });
+
+    it('caches the entId→amaEntityId map (no repeat config query within TTL)', async () => {
+      configFindOne.mockResolvedValue({ amaEntityId: 'a1', isActive: true });
+      searchUsers.mockResolvedValue([]);
+      await svc.search('e1', ['MANAGER'], 'kim', 10);
+      await svc.search('e1', ['MEMBER'], 'lee', 10); // different result-cache key
+      expect(configFindOne).toHaveBeenCalledTimes(1);
     });
   });
 
