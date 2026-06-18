@@ -24,6 +24,11 @@ import {
  *     Authorization: Bearer {AMA_PLATFORM_SERVICE_TOKEN}
  *     → 200 [AmaPlatformUser, …]
  *     → 5xx / timeout → AmaPlatformUnavailableException
+ *
+ * FIX-260619 — the REQ-260604 A3 contract assumed a *bare* JSON array/object,
+ * but the amoeba platform actually wraps responses in the `{ success, data }`
+ * envelope (same as the OAuth gateway client and ACM's own API). We accept
+ * BOTH shapes (bare + enveloped) so the picker works whichever AMA returns.
  */
 @Injectable()
 export class AmaPlatformHttpClient implements IAmaPlatformClient {
@@ -51,7 +56,7 @@ export class AmaPlatformHttpClient implements IAmaPlatformClient {
     )}/users/${encodeURIComponent(userId)}`;
     const res = await this.fetchJson(path);
     if (res === null) return null;
-    return this.toUser(res, entityId);
+    return this.toUser(this.unwrapObject(res), entityId);
   }
 
   async searchUsers(
@@ -70,18 +75,45 @@ export class AmaPlatformHttpClient implements IAmaPlatformClient {
       entityId,
     )}/users?${qs.toString()}`;
     const res = await this.fetchJson(path);
-    if (!Array.isArray(res)) {
+    const rows = this.unwrapArray(res);
+    if (rows === null) {
       this.logger.warn(
-        `ama searchUsers returned non-array for entityId=${entityId} q="${q}"`,
+        `ama searchUsers returned unrecognised payload for entityId=${entityId} ` +
+          `q="${q}" — expected an array or { data: [...] } envelope`,
       );
       return [];
     }
-    return res
+    return rows
       .map((r) => this.toUser(r, entityId))
       .filter((u): u is AmaPlatformUser => u !== null);
   }
 
   // ---------------------------------------------------------------------
+
+  /**
+   * Accept either a bare `[...]` array or the amoeba `{ success, data: [...] }`
+   * envelope. Returns null when neither (so the caller logs + falls back).
+   */
+  private unwrapArray(res: unknown): unknown[] | null {
+    if (Array.isArray(res)) return res;
+    if (res && typeof res === 'object') {
+      const data = (res as Record<string, unknown>).data;
+      if (Array.isArray(data)) return data;
+    }
+    return null;
+  }
+
+  /**
+   * Accept either a bare user object or the `{ success, data: {...} }` envelope.
+   * Falls back to the raw value when there is no `data` object (bare contract).
+   */
+  private unwrapObject(res: unknown): unknown {
+    if (res && typeof res === 'object' && !Array.isArray(res)) {
+      const data = (res as Record<string, unknown>).data;
+      if (data && typeof data === 'object') return data;
+    }
+    return res;
+  }
 
   private requireConfig(): void {
     if (!this.baseUrl) {

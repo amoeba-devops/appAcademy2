@@ -114,6 +114,14 @@ services:
       AMA_CLIENT_ID: ${AMA_CLIENT_ID:-}
       AMA_CLIENT_SECRET: ${AMA_CLIENT_SECRET:-}
       AMA_OAUTH_TIMEOUT_MS: ${AMA_OAUTH_TIMEOUT_MS:-5000}
+      # AMA platform directory API (REQ-260604 / FIX-260619) — powers the
+      # /admin/tch + /admin/stf AMA member picker. Used regardless of
+      # AMA_TOKEN_VERIFY_MODE. Without these the directory client silently
+      # defaults to mock and the picker returns fake fixtures / no results.
+      AMA_SERVICES_MODE: ${AMA_SERVICES_MODE:-mock}
+      AMA_PLATFORM_BASE_URL: ${AMA_PLATFORM_BASE_URL:-https://ama.amoeba.site}
+      AMA_PLATFORM_SERVICE_TOKEN: ${AMA_PLATFORM_SERVICE_TOKEN:-}
+      AMA_PLATFORM_TIMEOUT_MS: ${AMA_PLATFORM_TIMEOUT_MS:-3000}
       # AMA Custom App SSO (HS256 JWT passthrough — local mode only)
       AMA_JWT_SECRET: ${AMA_JWT_SECRET:-}
       AMA_JWT_ALLOWED_APP_CODES: ${AMA_JWT_ALLOWED_APP_CODES:-tpi-acm}
