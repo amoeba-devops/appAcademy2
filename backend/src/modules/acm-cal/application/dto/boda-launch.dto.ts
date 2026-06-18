@@ -49,6 +49,42 @@ export class BodaLaunchContextResponseDto {
 
   @ApiProperty({ description: '이벤트 종료 (ISO 8601)' })
   evtEndAt!: string;
+
+  // REQ-260619 FR-LX-4 — 헤더 컨텍스트 (강사 이름, 즉시 강의 여부, 수강생 명단).
+  @ApiProperty({ description: '강사(이벤트 owner) 이름' })
+  ownerName!: string;
+
+  @ApiProperty({
+    enum: ['MANUAL', 'INSTANT', 'CLS_SESSION'],
+    description: 'evt_source — INSTANT 면 헤더에 ⚡ 칩',
+  })
+  evtSource!: 'MANUAL' | 'INSTANT' | 'CLS_SESSION';
+
+  @ApiProperty({
+    description:
+      '수강생/참석자 명단. 학생/학부모 본인 화면(`userType=12`)에서는 빈 배열로 마스킹 (NFR-LX-2).',
+    type: 'array',
+    items: { type: 'object' },
+  })
+  invitees!: Array<{
+    kind: 'STUDENT' | 'TEACHER' | 'PARENT';
+    refId: string;
+    name: string;
+    subLabel: string | null;
+    notified: boolean;
+  }>;
+
+  @ApiPropertyOptional({
+    description:
+      'BODA WebRTC iframe 임베드 URL (모드 A) — `BODA_EMBED_ENABLED=true` 시에만 채워짐. 기본 null.',
+  })
+  embedUrl?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      '브라우저 새 탭 입장용 URL (모드 B). `embedUrl` 과 별개로 vendor 의 webrtc URL + 파라미터를 항상 채움 (config 가 비어있으면 null).',
+  })
+  webBrowserUrl?: string | null;
 }
 
 /**
@@ -70,6 +106,12 @@ export class BodaRoomStatusResponseDto {
 
   @ApiPropertyOptional()
   closedAt?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'REQ-260619 FR-LX-3 — vendor SPEC closeType (0/1/2/10/11/15/16/20/22/100). 종료 안내 메시지 분기에 사용.',
+  })
+  closeType?: string | null;
 }
 
 // -----------------------------------------------------------------------------

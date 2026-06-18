@@ -6,6 +6,42 @@
   "enterStudent": "Enter classroom (Student)",
   "teacherHint": "Click Enter to open the BODA app. If this is your first visit, you'll be guided through installation.",
   "autoStarting": "Starting your class automatically…",
+  "header": {
+    "teacher": "Teacher: {{name}}",
+    "instantBadge": "Instant",
+    "attendees": "Attendees ({{count}})",
+    "attendeesMoreBtn": "+{{more}}"
+  },
+  "attendees": {
+    "modalTitle": "Attendees ({{count}})",
+    "kindStudent": "Student",
+    "kindTeacher": "Teacher",
+    "kindParent": "Parent",
+    "notifiedTrue": "Notified",
+    "notifiedFalse": "Not yet notified"
+  },
+  "embed": {
+    "desktopTitle": "Enter the BODA classroom",
+    "desktopHint": "Use the desktop app if installed, or open the room in a new browser tab.",
+    "openInBrowser": "Open in a new browser tab",
+    "openInBrowserUnavailable": "Available after the operator finishes the BODA setup.",
+    "installGuide": "Install the BODA app",
+    "iframeFallbackToast": "Embed not allowed — falling back to the desktop app / new tab.",
+    "iframeTitle": "BODA Classroom",
+    "iframeLoading": "Loading the classroom…"
+  },
+  "closeReason": {
+    "UNKNOWN": "The classroom has ended.",
+    "OPEN_FAILED": "Classroom failed to open and was closed.",
+    "UNUSED": "Unused classroom was cleaned up automatically.",
+    "NO_USERS": "No attendees — the room was closed automatically.",
+    "NO_ROOM": "No matching BODA room — closed.",
+    "MANUAL_END": "Teacher ended the class manually.",
+    "AUTO": "Class time ended — the room was auto-closed.",
+    "ADMIN_CLOSED": "Operator force-closed the classroom.",
+    "HOST_CLOSED": "The host (teacher) ended the class.",
+    "CONNECTION_LOST": "Connection lost — classroom closed."
+  },
   "demo": {
     "banner": "DEMO MODE",
     "bannerHint": "Runs through a simulator instead of the real BODA client.",

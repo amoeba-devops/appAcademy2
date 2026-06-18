@@ -6,6 +6,42 @@
   "enterStudent": "进入教室（学生）",
   "teacherHint": "点击 ‘进入’ 启动 BODA 应用。若是首次使用，系统将引导您完成安装。",
   "autoStarting": "正在自动开课…",
+  "header": {
+    "teacher": "讲师: {{name}}",
+    "instantBadge": "立即课程",
+    "attendees": "学生 ({{count}})",
+    "attendeesMoreBtn": "+{{more}}"
+  },
+  "attendees": {
+    "modalTitle": "学生名单 ({{count}})",
+    "kindStudent": "学生",
+    "kindTeacher": "讲师",
+    "kindParent": "家长",
+    "notifiedTrue": "已通知",
+    "notifiedFalse": "未通知"
+  },
+  "embed": {
+    "desktopTitle": "进入 BODA 教室",
+    "desktopHint": "已安装桌面应用请点击 “进入教室”,或在浏览器新标签页中打开。",
+    "openInBrowser": "在新标签页中打开",
+    "openInBrowserUnavailable": "请等待运营商完成 BODA 配置后再使用。",
+    "installGuide": "安装 BODA 应用",
+    "iframeFallbackToast": "无法嵌入 — 改用桌面应用 / 新标签页进入。",
+    "iframeTitle": "BODA 教室",
+    "iframeLoading": "正在加载教室…"
+  },
+  "closeReason": {
+    "UNKNOWN": "教室已结束。",
+    "OPEN_FAILED": "开课失败 — 教室已关闭。",
+    "UNUSED": "未使用的教室已自动清理。",
+    "NO_USERS": "无参与者 — 教室自动关闭。",
+    "NO_ROOM": "BODA 端无匹配教室 — 已关闭。",
+    "MANUAL_END": "讲师手动结束课程。",
+    "AUTO": "课程时间结束 — 教室自动关闭。",
+    "ADMIN_CLOSED": "运营商强制关闭教室。",
+    "HOST_CLOSED": "主持人(讲师)结束了课程。",
+    "CONNECTION_LOST": "连接断开 — 教室已关闭。"
+  },
   "demo": {
     "banner": "演示模式",
     "bannerHint": "使用模拟器代替真实 BODA 客户端运行。",

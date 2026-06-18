@@ -6,28 +6,44 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
+import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { BodaLaunchContextService } from './boda-launch-context.service';
 import { BodaRoomService } from './boda-room.service';
 import { BodaConfigService } from './boda-config.service';
+import { CalInviteeService } from './cal-invitee.service';
 
 describe('BodaLaunchContextService', () => {
   let svc: BodaLaunchContextService;
   let evtFindOne: jest.Mock;
   let inviteeFind: jest.Mock;
   let userFindOne: jest.Mock;
+  let stdFind: jest.Mock;
   let roomFindByEvtId: jest.Mock;
   let cfgFindByEntId: jest.Mock;
+  let inviteeListForEvent: jest.Mock;
+  let cfgEnv: Record<string, string | undefined>;
 
   beforeEach(async () => {
     evtFindOne = jest.fn();
     inviteeFind = jest.fn().mockResolvedValue([]);
-    userFindOne = jest.fn().mockResolvedValue({ id: 'u1', name: '김교사' });
+    userFindOne = jest
+      .fn()
+      .mockImplementation(({ where }: { where: { id: string } }) => {
+        if (where.id === 'teacher-1') return Promise.resolve({ id: 'teacher-1', name: '김교사' });
+        return Promise.resolve({ id: where.id, name: 'User' });
+      });
+    stdFind = jest.fn().mockResolvedValue([]);
     roomFindByEvtId = jest.fn();
     cfgFindByEntId = jest.fn().mockResolvedValue({
       bodaWebUrl: 'https://bodaedu.kr',
+      webrtcUrl: 'https://bodaedu.kr/webrtc',
+      companyCode: '245',
+      companyId: 'tpi',
       graceBeforeMin: 10,
       graceAfterMin: 15,
     });
+    inviteeListForEvent = jest.fn().mockResolvedValue([]);
+    cfgEnv = { BODA_WEB_URL: 'https://bodaedu.kr' };
 
     const mod = await Test.createTestingModule({
       providers: [
@@ -45,6 +61,10 @@ describe('BodaLaunchContextService', () => {
           useValue: { findOne: userFindOne },
         },
         {
+          provide: getRepositoryToken(StudentTypeormEntity, ACM_DS),
+          useValue: { find: stdFind },
+        },
+        {
           provide: BodaRoomService,
           useValue: { findByEvtId: roomFindByEvtId } as Partial<BodaRoomService>,
         },
@@ -53,10 +73,15 @@ describe('BodaLaunchContextService', () => {
           useValue: { findByEntId: cfgFindByEntId } as Partial<BodaConfigService>,
         },
         {
+          provide: CalInviteeService,
+          useValue: {
+            listForEvent: inviteeListForEvent,
+          } as Partial<CalInviteeService>,
+        },
+        {
           provide: ConfigService,
           useValue: {
-            get: (k: string) =>
-              k === 'BODA_WEB_URL' ? 'https://bodaedu.kr' : undefined,
+            get: (k: string) => cfgEnv[k],
           } as unknown as ConfigService,
         },
       ],
@@ -77,6 +102,7 @@ describe('BodaLaunchContextService', () => {
       meetingProvider: 'BODASCHOOL',
       meetingUrl: 'https://acm.amoeba.site/web/classroom/...',
       deletedAt: null,
+      source: 'MANUAL',
       ...overrides,
     }) as unknown as CalEventTypeormEntity;
 
@@ -237,6 +263,103 @@ describe('BodaLaunchContextService', () => {
         'zh-CN',
       );
       expect(ctx.lang).toBe('ko');
+    });
+
+    // ────────────────────────────────────────────────────────────────
+    // REQ-260619 FR-LX-4 — ownerName / evtSource / invitees / embedUrl
+    // ────────────────────────────────────────────────────────────────
+
+    it('FR-LX-4: ownerName populated from acm_user lookup', async () => {
+      evtFindOne.mockResolvedValue(evt());
+      roomFindByEvtId.mockResolvedValue(room());
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'teacher-1',
+        'TEACHER',
+      );
+      expect(ctx.ownerName).toBe('김교사');
+      expect(ctx.evtSource).toBe('MANUAL');
+    });
+
+    it('FR-LX-4: teacher viewer → full invitees list with subLabel', async () => {
+      evtFindOne.mockResolvedValue(evt());
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeListForEvent.mockResolvedValue([
+        { id: 'i1', kind: 'STUDENT', refId: 'std-1', name: '박학생', email: null, notifyStatus: 'SENT', notifiedAt: new Date(), notifyError: null },
+        { id: 'i2', kind: 'STUDENT', refId: 'std-2', name: '이학생', email: null, notifyStatus: 'SKIPPED', notifiedAt: null, notifyError: null },
+      ]);
+      stdFind.mockResolvedValue([
+        { id: 'std-1', school: '중학교A', grade: '3' },
+      ]);
+
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'teacher-1',
+        'TEACHER',
+      );
+      expect(ctx.invitees).toHaveLength(2);
+      expect(ctx.invitees[0]).toMatchObject({
+        kind: 'STUDENT',
+        refId: 'std-1',
+        name: '박학생',
+        subLabel: '중학교A 3',
+        notified: true,
+      });
+      expect(ctx.invitees[1]).toMatchObject({
+        refId: 'std-2',
+        subLabel: null,
+        notified: false,
+      });
+    });
+
+    it('FR-LX-4: student viewer (userType=12) → invitees masked to []', async () => {
+      evtFindOne.mockResolvedValue(evt());
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeFind.mockResolvedValue([{ kind: 'STUDENT', refId: 'student-1' }]);
+      // Even if listForEvent would return rows, viewer masking returns empty array.
+      inviteeListForEvent.mockResolvedValue([
+        { id: 'i1', kind: 'STUDENT', refId: 'classmate-1', name: '다른학생', email: null, notifyStatus: 'SENT', notifiedAt: new Date(), notifyError: null },
+      ]);
+
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'student-1',
+        'STUDENT' as any,
+      );
+      expect(ctx.userType).toBe(12);
+      expect(ctx.invitees).toEqual([]);
+    });
+
+    it('FR-LX-2: embedUrl is null when BODA_EMBED_ENABLED unset, webBrowserUrl always built from cfg', async () => {
+      evtFindOne.mockResolvedValue(evt());
+      roomFindByEvtId.mockResolvedValue(room());
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'teacher-1',
+        'TEACHER',
+      );
+      expect(ctx.embedUrl).toBeNull();
+      expect(ctx.webBrowserUrl).toMatch(/^https:\/\/bodaedu\.kr\/webrtc\?/);
+      expect(ctx.webBrowserUrl).toContain('CCd=245');
+      expect(ctx.webBrowserUrl).toContain('meetKey=tac-');
+      expect(ctx.webBrowserUrl).toContain('UTy=11');
+    });
+
+    it('FR-LX-2: embedUrl is populated when BODA_EMBED_ENABLED=true', async () => {
+      cfgEnv.BODA_EMBED_ENABLED = 'true';
+      evtFindOne.mockResolvedValue(evt());
+      roomFindByEvtId.mockResolvedValue(room());
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'teacher-1',
+        'TEACHER',
+      );
+      expect(ctx.embedUrl).toMatch(/^https:\/\/bodaedu\.kr\/webrtc\?/);
     });
   });
 

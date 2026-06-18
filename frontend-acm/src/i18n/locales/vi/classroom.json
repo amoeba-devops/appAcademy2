@@ -6,6 +6,42 @@
   "enterStudent": "Vào lớp (Học sinh)",
   "teacherHint": "Nhấn ‘Vào lớp’ để mở ứng dụng BODA. Nếu là lần đầu, hệ thống sẽ hướng dẫn cài đặt.",
   "autoStarting": "Đang tự động mở lớp…",
+  "header": {
+    "teacher": "Giáo viên: {{name}}",
+    "instantBadge": "Tức thì",
+    "attendees": "Học sinh ({{count}})",
+    "attendeesMoreBtn": "+{{more}}"
+  },
+  "attendees": {
+    "modalTitle": "Danh sách học sinh ({{count}})",
+    "kindStudent": "Học sinh",
+    "kindTeacher": "Giáo viên",
+    "kindParent": "Phụ huynh",
+    "notifiedTrue": "Đã gửi thông báo",
+    "notifiedFalse": "Chưa gửi thông báo"
+  },
+  "embed": {
+    "desktopTitle": "Vào phòng học BODA",
+    "desktopHint": "Dùng ứng dụng máy tính nếu đã cài, hoặc mở phòng trong tab trình duyệt mới.",
+    "openInBrowser": "Mở trong tab mới",
+    "openInBrowserUnavailable": "Khả dụng sau khi quản trị viên cấu hình BODA.",
+    "installGuide": "Cài đặt ứng dụng BODA",
+    "iframeFallbackToast": "Không thể nhúng — chuyển sang ứng dụng máy tính / tab mới.",
+    "iframeTitle": "Phòng học BODA",
+    "iframeLoading": "Đang tải phòng học…"
+  },
+  "closeReason": {
+    "UNKNOWN": "Phòng học đã kết thúc.",
+    "OPEN_FAILED": "Mở phòng thất bại — đã đóng.",
+    "UNUSED": "Phòng không sử dụng — đã tự dọn.",
+    "NO_USERS": "Không có ai tham dự — phòng tự đóng.",
+    "NO_ROOM": "Không tìm thấy phòng BODA — đã đóng.",
+    "MANUAL_END": "Giáo viên đã kết thúc lớp.",
+    "AUTO": "Hết giờ — phòng tự đóng.",
+    "ADMIN_CLOSED": "Quản trị viên buộc đóng phòng.",
+    "HOST_CLOSED": "Người điều hành (giáo viên) đã kết thúc.",
+    "CONNECTION_LOST": "Mất kết nối — phòng đã đóng."
+  },
   "demo": {
     "banner": "CHẾ ĐỘ DEMO",
     "bannerHint": "Chạy qua trình mô phỏng thay vì ứng dụng BODA thật.",

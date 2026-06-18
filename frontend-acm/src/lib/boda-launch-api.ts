@@ -14,6 +14,14 @@ export type BodaRoomStatus =
   | 'ENDED'
   | 'CLOSED';
 
+export interface BodaInviteeView {
+  kind: 'STUDENT' | 'TEACHER' | 'PARENT';
+  refId: string;
+  name: string;
+  subLabel: string | null;
+  notified: boolean;
+}
+
 export interface BodaLaunchContext {
   meetKey: string;
   roomCode: string;
@@ -27,6 +35,12 @@ export interface BodaLaunchContext {
   evtTitle: string;
   evtStartAt: string;
   evtEndAt: string;
+  // REQ-260619 FR-LX-4 — 헤더 컨텍스트 + 임베디드 강의실 URL
+  ownerName: string;
+  evtSource: 'MANUAL' | 'INSTANT' | 'CLS_SESSION';
+  invitees: BodaInviteeView[];
+  embedUrl?: string | null;
+  webBrowserUrl?: string | null;
 }
 
 export interface BodaRoomStatusInfo {
@@ -35,6 +49,7 @@ export interface BodaRoomStatusInfo {
   startedAt?: string | null;
   endedAt?: string | null;
   closedAt?: string | null;
+  closeType?: string | null;
 }
 
 /**

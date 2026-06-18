@@ -1,36 +1,39 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
-  Loader2,
-  Video,
-  Clock,
   ChevronLeft,
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   loadBodaAppApi,
   useBodaLaunchContext,
   useBodaRoomStatus,
   type BodaLaunchContext,
   type BodaRoomStatus,
+  type BodaRoomStatusInfo,
 } from '@/lib/boda-launch-api';
 import { useAuthStore } from '@/stores/auth.store';
-import { DemoBodaWindow } from '../components/demo-boda-window';
+import { ClassroomHeader } from '../components/classroom-header';
+import { ClassroomEmbed } from '../components/classroom-embed';
 
 const LIVE_STATUSES: BodaRoomStatus[] = ['OPEN', 'STARTED', 'PAUSED'];
+const TERMINAL_STATUSES: BodaRoomStatus[] = ['ENDED', 'CLOSED'];
 
 /**
  * `/web/classroom/:evtId` — BODA(보다에듀) 화상 강의실 입장 런처.
  *
- * REQ-260526 v2 FR-LAUNCH-* / AC-LAUNCH-*. 흐름:
- *   1. 페이지 마운트 → `useBodaLaunchContext` 가 백엔드에서 권한+시간창 검증된
- *      payload 를 가져옴.
- *   2. status === PENDING 이고 viewer 가 학생 (userType=12) 이면 10s 폴링.
- *   3. status 가 live (OPEN/STARTED/PAUSED) 면 입장 버튼 활성.
- *   4. 클릭 → BodaAppApi.js 동적 로드 후 `bodaOpen()` (강사) 또는 `bodaJoin()` (학생).
- *   5. 스크립트 로드 실패 시 WebRTC 대체 입장 + 설치 안내 (Q5 회신 후 동작 가능).
+ * REQ-260526 v2 (T5) + REQ-260610 (instant + demo) + REQ-260619 (UX 강화).
+ *
+ * 흐름:
+ *   1. `useBodaLaunchContext` 가 헤더 정보·invitees·embedUrl·webBrowserUrl 까지
+ *      전부 한 번에 가져옴 (FR-LX-4).
+ *   2. `<ClassroomHeader>` 가 제목·강사·시간·수강생 칩 표시 (FR-LX-1).
+ *   3. `<ClassroomEmbed>` 가 데모/iframe/데스크톱 카드 3 모드 자동 분기 (FR-LX-2).
+ *   4. 룸 종료 시 closeType 별 안내 (FR-LX-3).
+ *   5. `?autoStart=1` 강사 → 자동 bodaOpen() (REQ-260610 FR-INSTANT-5).
  */
 export function WebClassroomPage() {
   const { t, i18n } = useTranslation('classroom');
@@ -41,7 +44,6 @@ export function WebClassroomPage() {
   const lang: 'ko' | 'en' = i18n.language === 'en' ? 'en' : 'ko';
   const ctxQuery = useBodaLaunchContext(evtId, lang, { enabled: !!acmUser });
 
-  // Poll status only while PENDING; stop once room is live (or terminal).
   const shouldPoll =
     ctxQuery.data?.status === 'PENDING' && ctxQuery.data.userType !== 11;
   const statusQuery = useBodaRoomStatus(evtId, {
@@ -49,7 +51,6 @@ export function WebClassroomPage() {
     refetchInterval: shouldPoll ? 10_000 : false,
   });
 
-  // Effective status: latest poll if any, else context value.
   const status: BodaRoomStatus | undefined =
     statusQuery.data?.status ?? ctxQuery.data?.status;
 
@@ -71,53 +72,83 @@ export function WebClassroomPage() {
   }
 
   const ctx = ctxQuery.data!;
-  // REQ-260610 FR-INSTANT-5 — `?autoStart=1` (set on launcher URL returned by
-  // the instant-event endpoint) triggers BodaAppApi.bodaOpen() automatically
-  // for teachers/admins. Student-side autoStart is intentionally ignored — a
-  // student opening the URL needs the room to be OPEN first.
-  //
-  // `?demo=1` (REQ-260610 demo mode) swaps the real BodaAppApi load for an
-  // in-page mock window backed by the BODA_SIMULATE_ENABLED server endpoint.
-  const [search] = useSearchParams();
+  const [search] = useSearchParamsCompat();
   const autoStart = search.get('autoStart') === '1' && ctx.userType === 11;
   const demo = search.get('demo') === '1';
+  const isTeacher = ctx.userType === 11;
+  const isTerminal = status ? TERMINAL_STATUSES.includes(status) : false;
 
-  if (demo && evtId) {
-    return (
-      <CenteredCard>
-        <Header ctx={ctx} />
-        <DemoBodaWindow
-          ctx={ctx}
-          evtId={evtId}
-          isTeacher={ctx.userType === 11}
-          initialStatus={status}
-        />
-      </CenteredCard>
-    );
-  }
   return (
-    <CenteredCard>
-      <Header ctx={ctx} />
-      {ctx.userType === 11 && (
-        <TeacherCta
+    <main className="min-h-screen bg-canvas">
+      {demo && <DemoBanner />}
+      <ClassroomHeader ctx={ctx} status={status} />
+      <section className="px-4 py-6">
+        {isTerminal ? (
+          <RoomEndedNotice
+            status={status!}
+            statusInfo={statusQuery.data ?? null}
+          />
+        ) : (
+          <ClassroomEmbed
+            ctx={ctx}
+            evtId={evtId!}
+            isTeacher={isTeacher}
+            demo={demo}
+            roomStatus={status}
+          />
+        )}
+      </section>
+
+      {/* Teacher autoStart path — invisible side-effect component */}
+      {!demo && isTeacher && autoStart && (
+        <AutoStartFx
           ctx={ctx}
           live={status ? LIVE_STATUSES.includes(status) : true}
-          autoStart={autoStart}
         />
       )}
-      {ctx.userType !== 11 && status === 'PENDING' && <StudentWaiting />}
-      {ctx.userType !== 11 && status && LIVE_STATUSES.includes(status) && (
-        <StudentCta ctx={ctx} />
-      )}
-      {status && !LIVE_STATUSES.includes(status) && status !== 'PENDING' && (
-        <RoomEndedNotice status={status} />
-      )}
-    </CenteredCard>
+    </main>
   );
 }
 
+// React-router-dom 6 API compat — bundled to keep import surface narrow.
+function useSearchParamsCompat() {
+  return useSearchParams();
+}
+
 // -----------------------------------------------------------------------------
-// Subcomponents
+// AutoStart side-effect (FR-INSTANT-5) — fires bodaOpen() once when ?autoStart=1
+// -----------------------------------------------------------------------------
+
+function AutoStartFx({ ctx, live }: { ctx: BodaLaunchContext; live: boolean }) {
+  const fired = useRef(false);
+
+  useEffect(() => {
+    if (fired.current || !live) return;
+    fired.current = true;
+    (async () => {
+      try {
+        const api = await loadBodaAppApi(ctx.appApiUrl);
+        if (!api.bodaOpen) return;
+        api.bodaOpen({
+          meetKey: ctx.meetKey,
+          roomCode: ctx.roomCode,
+          UTy: ctx.userType,
+          dup: 1,
+          joinUser: { UId: ctx.uid, UNm: ctx.uname },
+          joinOpt: { lang: ctx.lang },
+        });
+      } catch {
+        // Silent — DesktopAppCard re-exposes a manual button so the teacher
+        // can retry. Auto-start failures shouldn't blow up the page.
+      }
+    })();
+  }, [ctx, live]);
+
+  return null;
+}
+
+// -----------------------------------------------------------------------------
+// Layout / small components
 // -----------------------------------------------------------------------------
 
 function CenteredCard({ children }: { children: React.ReactNode }) {
@@ -130,151 +161,72 @@ function CenteredCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Header({ ctx }: { ctx: BodaLaunchContext }) {
+function DemoBanner() {
   const { t } = useTranslation('classroom');
   return (
-    <header className="flex flex-col items-center gap-1.5">
-      <Video className="h-8 w-8 text-accent-600" aria-hidden />
-      <h1 className="text-lg font-semibold text-primary">{ctx.evtTitle}</h1>
-      <p className="text-xs text-secondary flex items-center gap-1.5">
-        <Clock size={12} aria-hidden />
-        {t('timeRange', {
-          start: formatTime(ctx.evtStartAt),
-          end: formatTime(ctx.evtEndAt),
-        })}
-      </p>
-    </header>
+    <div className="bg-amber-50 border-b border-amber-300 px-4 py-2 text-xs text-amber-900 flex items-center justify-center gap-2">
+      <Sparkles size={12} aria-hidden />
+      <strong>{t('demo.banner')}</strong>
+      <span>—</span>
+      <span>{t('demo.bannerHint')}</span>
+    </div>
   );
 }
 
-function TeacherCta({
-  ctx,
-  live,
-  autoStart,
+// -----------------------------------------------------------------------------
+// Room ended — closeType-aware notice (REQ-260619 FR-LX-3 / T4)
+// -----------------------------------------------------------------------------
+
+function RoomEndedNotice({
+  status,
+  statusInfo,
 }: {
-  ctx: BodaLaunchContext;
-  live: boolean;
-  autoStart: boolean;
+  status: BodaRoomStatus;
+  statusInfo: BodaRoomStatusInfo | null;
 }) {
   const { t } = useTranslation('classroom');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const autoStartFired = useRef(false);
-
-  const onClick = async () => {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const api = await loadBodaAppApi(ctx.appApiUrl);
-      if (!api.bodaOpen) throw new Error('BODA-NOT_INSTALLED');
-      api.bodaOpen({
-        meetKey: ctx.meetKey,
-        roomCode: ctx.roomCode,
-        UTy: ctx.userType,
-        dup: 1, // teacher path always opens
-        joinUser: { UId: ctx.uid, UNm: ctx.uname },
-        joinOpt: { lang: ctx.lang },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'BODA-ERROR');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // REQ-260610 FR-INSTANT-5 — fire bodaOpen() once, as soon as the room is
-  // available, when the page was opened with autoStart=1 (instant classroom
-  // flow). Guarded by ref so React StrictMode re-renders don't double-fire.
-  useEffect(() => {
-    if (!autoStart || autoStartFired.current || !live || submitting) return;
-    autoStartFired.current = true;
-    onClick();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart, live]);
+  const closeReasonKey = closeTypeToKey(statusInfo?.closeType ?? null);
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full">
-      {autoStart && submitting && (
-        <p className="text-xs text-accent-700">{t('autoStarting')}</p>
+    <div className="max-w-lg mx-auto bg-surface border border-[var(--border-subtle)] rounded-lg p-8 text-center flex flex-col items-center gap-3">
+      <AlertTriangle className="h-7 w-7 text-amber-500" aria-hidden />
+      <h2 className="text-base font-semibold text-primary">
+        {t(`roomEnded.${status}`, { defaultValue: t('roomEnded.default') })}
+      </h2>
+      {closeReasonKey && (
+        <p className="text-sm text-secondary max-w-md">
+          {t(`closeReason.${closeReasonKey}`, {
+            defaultValue: t('closeReason.UNKNOWN'),
+          })}
+        </p>
       )}
-      <Button
-        size="lg"
-        onClick={onClick}
-        disabled={!live || submitting}
-        className="min-w-[16rem]"
-      >
-        {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Video size={16} className="mr-2" aria-hidden />}
-        {t('enterTeacher')}
-      </Button>
-      <p className="text-xs text-secondary max-w-xs">{t('teacherHint')}</p>
-      {error && <ErrorHint code={error} />}
-    </div>
-  );
-}
-
-function StudentWaiting() {
-  const { t } = useTranslation('classroom');
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <Loader2 className="h-6 w-6 animate-spin text-accent-600" aria-hidden />
-      <h2 className="text-base font-semibold text-primary">{t('waiting')}</h2>
-      <p className="text-xs text-secondary max-w-xs">{t('waitingHint')}</p>
-    </div>
-  );
-}
-
-function StudentCta({ ctx }: { ctx: BodaLaunchContext }) {
-  const { t } = useTranslation('classroom');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const onClick = async () => {
-    setError(null);
-    setSubmitting(true);
-    try {
-      const api = await loadBodaAppApi(ctx.appApiUrl);
-      if (!api.bodaJoin) throw new Error('BODA-NOT_INSTALLED');
-      api.bodaJoin({
-        meetKey: ctx.meetKey,
-        roomCode: ctx.roomCode,
-        UTy: ctx.userType,
-        joinUser: { UId: ctx.uid, UNm: ctx.uname },
-        joinOpt: { lang: ctx.lang },
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'BODA-ERROR');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center gap-3 w-full">
-      <p className="text-sm font-medium text-emerald-700">{t('teacherJoined')}</p>
-      <Button
-        size="lg"
-        onClick={onClick}
-        disabled={submitting}
-        className="min-w-[16rem]"
-      >
-        {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Video size={16} className="mr-2" aria-hidden />}
-        {t('enterStudent')}
-      </Button>
-      {error && <ErrorHint code={error} />}
-    </div>
-  );
-}
-
-function RoomEndedNotice({ status }: { status: BodaRoomStatus }) {
-  const { t } = useTranslation('classroom');
-  return (
-    <div className="flex flex-col items-center gap-2 text-secondary">
-      <AlertTriangle className="h-5 w-5 text-amber-500" aria-hidden />
-      <p className="text-sm">{t(`roomEnded.${status}`, { defaultValue: t('roomEnded.default') })}</p>
       <BackLink />
     </div>
   );
 }
+
+function closeTypeToKey(raw: string | null): string | null {
+  if (raw == null) return null;
+  // closeType is a numeric vendor code persisted as string; tolerate either.
+  const n = Number(raw);
+  switch (n) {
+    case 0: return 'UNKNOWN';
+    case 1: return 'OPEN_FAILED';
+    case 2: return 'UNUSED';
+    case 10: return 'NO_USERS';
+    case 11: return 'NO_ROOM';
+    case 15: return 'MANUAL_END';
+    case 16: return 'AUTO';
+    case 20: return 'ADMIN_CLOSED';
+    case 22: return 'HOST_CLOSED';
+    case 100: return 'CONNECTION_LOST';
+    default: return null;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Error cards
+// -----------------------------------------------------------------------------
 
 function ContextErrorCard({ error }: { error: unknown }) {
   const { t } = useTranslation('classroom');
@@ -282,7 +234,9 @@ function ContextErrorCard({ error }: { error: unknown }) {
   return (
     <CenteredCard>
       <AlertTriangle className="h-7 w-7 text-amber-500" aria-hidden />
-      <h1 className="text-base font-semibold text-primary">{t(`error.${code}.title`, { defaultValue: t('error.unknown.title') })}</h1>
+      <h1 className="text-base font-semibold text-primary">
+        {t(`error.${code}.title`, { defaultValue: t('error.unknown.title') })}
+      </h1>
       <p className="text-sm text-secondary max-w-xs">
         {t(`error.${code}.body`, { defaultValue: t('error.unknown.body') })}
       </p>
@@ -291,19 +245,13 @@ function ContextErrorCard({ error }: { error: unknown }) {
   );
 }
 
-function ErrorHint({ code }: { code: string }) {
-  const { t } = useTranslation('classroom');
-  return (
-    <p className="text-xs text-red-600 max-w-xs">
-      {t(`error.${code}.body`, { defaultValue: t('error.unknown.body') })}
-    </p>
-  );
-}
-
 function BackLink() {
   const { t } = useTranslation('classroom');
   return (
-    <a href="/" className="text-xs text-accent-600 hover:underline mt-2 inline-flex items-center gap-1">
+    <a
+      href="/"
+      className="text-xs text-accent-600 hover:underline mt-2 inline-flex items-center gap-1"
+    >
       <ChevronLeft size={12} aria-hidden /> {t('backToCalendar')}
     </a>
   );
@@ -313,16 +261,15 @@ function BackLink() {
 // Helpers
 // -----------------------------------------------------------------------------
 
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString();
-}
-
 function extractErrorCode(err: unknown): string {
-  // AxiosError with { error: { code }, code } body
   if (err && typeof err === 'object') {
-    const e = err as { response?: { data?: { error?: { code?: string }; code?: string } }; code?: string };
-    return e.response?.data?.error?.code ?? e.response?.data?.code ?? e.code ?? 'unknown';
+    const e = err as {
+      response?: { data?: { error?: { code?: string }; code?: string } };
+      code?: string;
+    };
+    return (
+      e.response?.data?.error?.code ?? e.response?.data?.code ?? e.code ?? 'unknown'
+    );
   }
   return 'unknown';
 }

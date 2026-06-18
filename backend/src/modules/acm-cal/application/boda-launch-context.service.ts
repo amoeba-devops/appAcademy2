@@ -17,12 +17,15 @@ import {
   CalInviteeTypeormEntity,
 } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
+import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { BodaConfigService } from './boda-config.service';
 import { BodaRoomService } from './boda-room.service';
+import { CalInviteeService } from './cal-invitee.service';
 import type {
   BodaLaunchContextResponseDto,
   BodaRoomStatusResponseDto,
 } from './dto/boda-launch.dto';
+import { In } from 'typeorm';
 
 /**
  * REQ-260526 v2 §5.3 (FR-LAUNCH-1..8) — 캘린더 이벤트 입장 런처용 컨텍스트.
@@ -48,8 +51,11 @@ export class BodaLaunchContextService {
     private readonly inviteeRepo: Repository<CalInviteeTypeormEntity>,
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    @InjectRepository(StudentTypeormEntity, ACM_DS)
+    private readonly stdRepo: Repository<StudentTypeormEntity>,
     private readonly rooms: BodaRoomService,
     private readonly cfg: BodaConfigService,
+    private readonly inviteeSvc: CalInviteeService,
     private readonly config: ConfigService,
   ) {}
 
@@ -68,6 +74,7 @@ export class BodaLaunchContextService {
       startedAt: room.startedAt?.toISOString() ?? null,
       endedAt: room.endedAt?.toISOString() ?? null,
       closedAt: room.closedAt?.toISOString() ?? null,
+      closeType: room.closeType ?? null,
     };
   }
 
@@ -86,14 +93,47 @@ export class BodaLaunchContextService {
     );
     await this.assertTimeWindow(event, entId);
 
-    const user = await this.userRepo.findOne({
-      where: { id: actorUserId, entId },
-      select: ['id', 'name'],
-    });
+    const [user, owner] = await Promise.all([
+      this.userRepo.findOne({
+        where: { id: actorUserId, entId },
+        select: ['id', 'name'],
+      }),
+      this.userRepo.findOne({
+        where: { id: event.ownerUserId, entId },
+        select: ['id', 'name'],
+      }),
+    ]);
     const uname = user?.name ?? 'User';
+    const ownerName = owner?.name ?? 'Teacher';
 
     const cfg = await this.cfg.findByEntId(entId);
     const appApiUrl = this.buildAppApiUrl(cfg?.bodaWebUrl);
+
+    // REQ-260619 FR-LX-4 — 학생/학부모 화면이면 다른 invitees 노출 금지 (NFR-LX-2).
+    // ADMIN 으로 관전 중인 경우(`userType === 13`) 도 풀 노출 — 운영 모니터링.
+    const inviteesPublic = await this.buildInviteesForViewer(
+      entId,
+      event.id,
+      userType,
+    );
+
+    const lang2: 'ko' | 'en' = lang === 'en' ? 'en' : 'ko';
+    const embedUrl = this.buildEmbedUrl({
+      cfg,
+      room,
+      userType,
+      uid: this.toBodaUid(actorUserId),
+      uname,
+      lang: lang2,
+    });
+    const webBrowserUrl = this.buildBrowserUrl({
+      cfg,
+      room,
+      userType,
+      uid: this.toBodaUid(actorUserId),
+      uname,
+      lang: lang2,
+    });
 
     return {
       meetKey: room.meetKey,
@@ -103,12 +143,115 @@ export class BodaLaunchContextService {
       userType,
       uid: this.toBodaUid(actorUserId),
       uname,
-      lang: lang === 'en' ? 'en' : 'ko',
+      lang: lang2,
       appApiUrl,
       evtTitle: event.title,
       evtStartAt: event.startAt.toISOString(),
       evtEndAt: event.endAt.toISOString(),
+      ownerName,
+      evtSource: event.source,
+      invitees: inviteesPublic,
+      embedUrl,
+      webBrowserUrl,
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // Invitee build — viewer-aware masking (FR-LX-4 / NFR-LX-2)
+  // -------------------------------------------------------------------------
+
+  private async buildInviteesForViewer(
+    entId: string,
+    evtId: string,
+    userType: 11 | 12 | 13,
+  ): Promise<BodaLaunchContextResponseDto['invitees']> {
+    // 학생/학부모 본인 화면에서는 다른 학생 명단을 일절 노출하지 않음.
+    if (userType === 12) return [];
+
+    const list = await this.inviteeSvc.listForEvent(entId, evtId);
+    if (list.length === 0) return [];
+
+    // STUDENT 행에 대해 학교명 batch lookup → subLabel.
+    const stdIds = list.filter((i) => i.kind === 'STUDENT').map((i) => i.refId);
+    const schoolMap = new Map<string, string>();
+    if (stdIds.length > 0) {
+      const rows = await this.stdRepo.find({
+        where: { id: In(stdIds), entId },
+        select: ['id', 'school', 'grade'],
+      });
+      for (const r of rows) {
+        const sub = [r.school, r.grade].filter(Boolean).join(' ');
+        if (sub) schoolMap.set(r.id, sub);
+      }
+    }
+
+    return list.map((i) => ({
+      kind: i.kind as 'STUDENT' | 'TEACHER' | 'PARENT',
+      refId: i.refId,
+      name: i.name,
+      subLabel: i.kind === 'STUDENT' ? schoolMap.get(i.refId) ?? null : null,
+      notified: i.notifyStatus === 'SENT',
+    }));
+  }
+
+  // -------------------------------------------------------------------------
+  // BODA WebRTC URL builders (모드 A iframe + 모드 B 브라우저 새 탭)
+  // -------------------------------------------------------------------------
+
+  /**
+   * 모드 A — iframe `src`. `BODA_EMBED_ENABLED=true` 일 때만 채움. vendor
+   * Q-LX-1 (iframe 임베드 허용 여부) 회신 전에는 항상 false → null 반환.
+   */
+  private buildEmbedUrl(input: {
+    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    room: { meetKey: string; roomCode: string };
+    userType: number;
+    uid: string;
+    uname: string;
+    lang: 'ko' | 'en';
+  }): string | null {
+    const enabled = this.config.get<string>('BODA_EMBED_ENABLED');
+    if (enabled !== 'true' && enabled !== '1') return null;
+    return this.buildVendorWebUrl(input);
+  }
+
+  /**
+   * 모드 B — "브라우저 새 탭으로 열기" 버튼이 클릭하는 URL. env flag 와 무관,
+   * cfg.webrtcUrl 이 있으면 항상 채움. cfg 미입력 시 null → FE 가 버튼 disabled.
+   */
+  private buildBrowserUrl(input: {
+    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    room: { meetKey: string; roomCode: string };
+    userType: number;
+    uid: string;
+    uname: string;
+    lang: 'ko' | 'en';
+  }): string | null {
+    return this.buildVendorWebUrl(input);
+  }
+
+  private buildVendorWebUrl(input: {
+    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    room: { meetKey: string; roomCode: string };
+    userType: number;
+    uid: string;
+    uname: string;
+    lang: 'ko' | 'en';
+  }): string | null {
+    const webrtcUrl = input.cfg?.webrtcUrl ?? this.config.get<string>('BODA_WEBRTC_URL');
+    if (!webrtcUrl) return null;
+    const params = new URLSearchParams({
+      CCd: String(input.cfg?.companyCode ?? ''),
+      CId: String(input.cfg?.companyId ?? ''),
+      meetKey: input.room.meetKey,
+      roomCode: input.room.roomCode,
+      UTy: String(input.userType),
+      UId: input.uid,
+      UNm: input.uname,
+      lang: input.lang,
+    });
+    const sep = webrtcUrl.includes('?') ? '&' : '?';
+    return `${webrtcUrl.replace(/\/$/, '')}${sep}${params.toString()}`;
   }
 
   // -------------------------------------------------------------------------

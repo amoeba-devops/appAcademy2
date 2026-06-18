@@ -6,6 +6,42 @@
   "enterStudent": "강의실 입장 (학생)",
   "teacherHint": "‘입장’ 클릭 시 보다스쿨 앱이 실행됩니다. 처음이라면 자동 설치 안내가 표시됩니다.",
   "autoStarting": "강의를 자동으로 시작합니다…",
+  "header": {
+    "teacher": "강사: {{name}}",
+    "instantBadge": "즉시 강의",
+    "attendees": "수강생 ({{count}}명)",
+    "attendeesMoreBtn": "+{{more}}명"
+  },
+  "attendees": {
+    "modalTitle": "수강생 명단 ({{count}}명)",
+    "kindStudent": "학생",
+    "kindTeacher": "강사",
+    "kindParent": "학부모",
+    "notifiedTrue": "알림 발송 완료",
+    "notifiedFalse": "알림 미발송"
+  },
+  "embed": {
+    "desktopTitle": "BODA 강의실에 입장합니다",
+    "desktopHint": "데스크톱 앱이 설치되어 있으면 ‘강의실 입장’ 을 누르세요. 브라우저에서 바로 참여하려면 ‘브라우저 새 탭으로 열기’ 를 선택해 주세요.",
+    "openInBrowser": "브라우저 새 탭으로 열기",
+    "openInBrowserUnavailable": "운영자가 BODA 설정을 등록한 후 이용할 수 있습니다.",
+    "installGuide": "BODA 앱 설치 안내",
+    "iframeFallbackToast": "내장 보기가 불가하여 데스크톱 앱 / 새 탭 진입으로 안내합니다.",
+    "iframeTitle": "BODA 강의실",
+    "iframeLoading": "강의실 화면을 불러오는 중…"
+  },
+  "closeReason": {
+    "UNKNOWN": "강의실이 종료되었습니다.",
+    "OPEN_FAILED": "강의실 개설에 실패하여 종료되었습니다.",
+    "UNUSED": "사용하지 않은 강의실이라 자동 정리되었습니다.",
+    "NO_USERS": "참석자가 없어 강의실이 자동으로 닫혔습니다.",
+    "NO_ROOM": "BODA 측 실제 강의실이 없어 종료되었습니다.",
+    "MANUAL_END": "강사가 수동으로 강의를 종료했습니다.",
+    "AUTO": "수업 시간이 종료되어 자동 폐쇄되었습니다.",
+    "ADMIN_CLOSED": "운영자가 강의실을 강제 폐쇄했습니다.",
+    "HOST_CLOSED": "진행자(강사)가 강의를 종료했습니다.",
+    "CONNECTION_LOST": "네트워크 연결이 끊겨 강의실이 폐쇄되었습니다."
+  },
   "demo": {
     "banner": "데모 모드 (DEMO MODE)",
     "bannerHint": "실제 BODA 클라이언트 대신 시뮬레이터로 동작합니다.",
