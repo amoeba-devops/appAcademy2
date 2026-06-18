@@ -131,6 +131,32 @@
     "category": {
       "title": "Custom Category (Danh mục tùy chỉnh)",
       "description": "Cài đặt đăng nhập cho lối vào AMA Custom Category (/menu). Dùng secret ký riêng, khác với Custom App."
+    },
+    "boda": {
+      "title": "Cấu hình BODA (보다에듀)",
+      "description": "Thông tin xác thực + tùy chọn vận hành cho tích hợp BODA SERVER API. Secret (authKey, eventSecret) được mã hóa AES-GCM và không hiển thị lại.",
+      "secretsTitle": "Secret (lưu mã hóa BYTEA)",
+      "secretHint": "Dán giá trị vendor cấp. Sau khi lưu sẽ bị ẩn — chỉ nhập khi xoay khóa.",
+      "isSetTrue": "đã đặt",
+      "isSetFalse": "chưa đặt",
+      "placeholderSet": "Đã đặt — nhập giá trị mới để xoay khóa",
+      "placeholderUnset": "Chưa đặt — nhập secret",
+      "fields": {
+        "bodaWebUrl": "BODA Web URL",
+        "svrUrl": "SERVER API URL",
+        "webrtcUrl": "WebRTC URL",
+        "companyCode": "Mã công ty (Ccd)",
+        "companyId": "Company ID (Cid)",
+        "defaultRoomCode": "Mã phòng mặc định",
+        "authKey": "Auth Key (AuCd)",
+        "eventSecret": "Webhook Event Secret",
+        "webhookAllowCidrs": "IP / CIDR cho phép Webhook",
+        "webhookAllowCidrsHint": "Phân cách bằng dấu phẩy (vd. 1.2.3.4, 10.0.0.0/24).",
+        "graceBeforeMin": "Mở trước N phút",
+        "graceAfterMin": "Mở sau M phút",
+        "reconcileDelayMin": "Độ trễ reconcile (phút)",
+        "isActive": "Kích hoạt tích hợp BODA với cấu hình này"
+      }
     }
   }
 }

@@ -135,6 +135,32 @@
     "category": {
       "title": "커스텀카테고리 (Custom Category)",
       "description": "AMA 커스텀카테고리(/menu) 진입 로그인 설정입니다. 커스텀앱과 별개의 서명 secret을 사용합니다."
+    },
+    "boda": {
+      "title": "BODA(보다에듀) 화상 강의 설정",
+      "description": "보다에듀 SERVER API 연동에 필요한 자격증명·운영 옵션입니다. 비밀값(authKey, eventSecret)은 AES-GCM으로 암호화 저장되며 화면에 다시 표시되지 않습니다.",
+      "secretsTitle": "비밀 값 (BYTEA 암호화)",
+      "secretHint": "벤더가 발급한 값을 그대로 입력하세요. 저장 후에는 마스킹되며, 변경할 때만 새 값을 입력합니다.",
+      "isSetTrue": "설정됨",
+      "isSetFalse": "미설정",
+      "placeholderSet": "설정됨 — 변경하려면 새 값 입력",
+      "placeholderUnset": "미설정 — secret 입력",
+      "fields": {
+        "bodaWebUrl": "BODA Web URL",
+        "svrUrl": "SERVER API URL",
+        "webrtcUrl": "WebRTC URL",
+        "companyCode": "Company Code (Ccd)",
+        "companyId": "Company ID (Cid)",
+        "defaultRoomCode": "기본 Room Code",
+        "authKey": "Auth Key (AuCd)",
+        "eventSecret": "Webhook Event Secret",
+        "webhookAllowCidrs": "Webhook 허용 IP / CIDR",
+        "webhookAllowCidrsHint": "BODA 측 출발지 IP를 콤마로 구분하여 입력 (예: 1.2.3.4, 10.0.0.0/24).",
+        "graceBeforeMin": "입장 가능 시작 N분 전",
+        "graceAfterMin": "입장 가능 종료 후 M분",
+        "reconcileDelayMin": "reconcile 지연 N분",
+        "isActive": "이 설정으로 BODA 연동 활성화"
+      }
     }
   }
 }

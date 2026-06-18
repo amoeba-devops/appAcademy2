@@ -131,6 +131,32 @@
     "category": {
       "title": "自定义分类 (Custom Category)",
       "description": "AMA 自定义分类(/menu)入口的登录设置。使用与自定义应用不同的签名密钥。"
+    },
+    "boda": {
+      "title": "BODA (보다에듀) 在线课堂设置",
+      "description": "BODA SERVER API 集成所需的凭证与运营选项。密钥 (authKey、eventSecret) 经 AES-GCM 加密保存,保存后不再显示。",
+      "secretsTitle": "密钥 (BYTEA 加密存储)",
+      "secretHint": "粘贴厂商发放的值。保存后将被隐藏,仅在轮换时输入。",
+      "isSetTrue": "已设置",
+      "isSetFalse": "未设置",
+      "placeholderSet": "已设置 — 输入新值以轮换",
+      "placeholderUnset": "未设置 — 请输入密钥",
+      "fields": {
+        "bodaWebUrl": "BODA Web URL",
+        "svrUrl": "SERVER API URL",
+        "webrtcUrl": "WebRTC URL",
+        "companyCode": "公司代码 (Ccd)",
+        "companyId": "Company ID (Cid)",
+        "defaultRoomCode": "默认教室代码",
+        "authKey": "Auth Key (AuCd)",
+        "eventSecret": "Webhook Event Secret",
+        "webhookAllowCidrs": "Webhook 允许 IP / CIDR",
+        "webhookAllowCidrsHint": "用逗号分隔 (例如: 1.2.3.4, 10.0.0.0/24)。",
+        "graceBeforeMin": "开课前 N 分钟可入场",
+        "graceAfterMin": "结束后 M 分钟可入场",
+        "reconcileDelayMin": "Reconcile 延迟 (分钟)",
+        "isActive": "使用此配置启用 BODA 集成"
+      }
     }
   }
 }

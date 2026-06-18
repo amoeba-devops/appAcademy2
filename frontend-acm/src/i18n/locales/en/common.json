@@ -135,6 +135,32 @@
     "category": {
       "title": "Custom Category",
       "description": "Sign-in settings for the AMA Custom Category (/menu) entry. Uses a separate signing secret from the Custom App."
+    },
+    "boda": {
+      "title": "BODA (보다에듀) Classroom Settings",
+      "description": "Credentials + ops options for the BODA SERVER API integration. Secrets (authKey, eventSecret) are AES-GCM encrypted and never returned again.",
+      "secretsTitle": "Secrets (stored as encrypted BYTEA)",
+      "secretHint": "Paste the vendor-issued value. Masked after save — enter only when rotating.",
+      "isSetTrue": "set",
+      "isSetFalse": "not set",
+      "placeholderSet": "Set — enter a new value to rotate",
+      "placeholderUnset": "Not set — enter the secret",
+      "fields": {
+        "bodaWebUrl": "BODA Web URL",
+        "svrUrl": "SERVER API URL",
+        "webrtcUrl": "WebRTC URL",
+        "companyCode": "Company Code (Ccd)",
+        "companyId": "Company ID (Cid)",
+        "defaultRoomCode": "Default Room Code",
+        "authKey": "Auth Key (AuCd)",
+        "eventSecret": "Webhook Event Secret",
+        "webhookAllowCidrs": "Webhook allowed IPs / CIDR",
+        "webhookAllowCidrsHint": "Comma-separated origin IPs from BODA (e.g. 1.2.3.4, 10.0.0.0/24).",
+        "graceBeforeMin": "Open N min before start",
+        "graceAfterMin": "Open M min after end",
+        "reconcileDelayMin": "Reconcile delay (min)",
+        "isActive": "Activate the BODA integration with this config"
+      }
     }
   }
 }

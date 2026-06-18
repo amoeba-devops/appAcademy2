@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useAmaConfig, useUpdateAmaConfig } from '@/modules/cfg/hooks/use-ama-config';
+import { BodaConfigSection } from '@/modules/cfg/components/boda-config-section';
 
 /**
  * /admin/config — AMA 연동 설정 (REQ-260609B).
@@ -228,6 +229,9 @@ export function AmaConfigPage() {
           </div>
         </div>
       )}
+
+      {/* REQ-260526 v2 / REQ-260619 — BODA(보다에듀) 화상 강의 설정 */}
+      <BodaConfigSection />
     </div>
   );
 }
