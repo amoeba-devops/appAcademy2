@@ -77,6 +77,12 @@ export class ParentService {
     // (REQ-260609 FR-C2 — parent has ≥1 ACTIVE student).
     let childCounts = new Map<string, number>();
     let activeCounts = new Map<string, number>();
+    // REQ-260619 — surface linked student names in the list (not just a count)
+    // so staff can verify who they are registering as an AMA client.
+    const childrenByPar = new Map<
+      string,
+      Array<{ id: string; name: string; status: string }>
+    >();
     if (items.length > 0) {
       const ids = items.map((p) => p.id);
       const rows: Array<{ par_id: string; cnt: string }> = await this.links
@@ -104,6 +110,32 @@ export class ParentService {
         .groupBy('l.par_id')
         .getRawMany();
       activeCounts = new Map(activeRows.map((r) => [r.par_id, Number(r.cnt)]));
+
+      const childRows: Array<{
+        par_id: string;
+        std_id: string;
+        std_name: string;
+        std_status: string;
+      }> = await this.links
+        .createQueryBuilder('l')
+        .innerJoin(
+          StudentTypeormEntity,
+          's',
+          's.std_id = l.std_id AND s.deleted_at IS NULL',
+        )
+        .select('l.par_id', 'par_id')
+        .addSelect('s.std_id', 'std_id')
+        .addSelect('s.std_name', 'std_name')
+        .addSelect('s.std_status', 'std_status')
+        .where('l.ent_id = :entId', { entId })
+        .andWhere('l.par_id IN (:...ids)', { ids })
+        .orderBy('s.std_name', 'ASC')
+        .getRawMany();
+      for (const r of childRows) {
+        const arr = childrenByPar.get(r.par_id) ?? [];
+        arr.push({ id: r.std_id, name: r.std_name, status: r.std_status });
+        childrenByPar.set(r.par_id, arr);
+      }
     }
 
     return {
@@ -111,6 +143,7 @@ export class ParentService {
         ...this.toDetail(p),
         childCount: childCounts.get(p.id) ?? 0,
         amaEligible: (activeCounts.get(p.id) ?? 0) > 0,
+        children: childrenByPar.get(p.id) ?? [],
       })),
       total,
       page,

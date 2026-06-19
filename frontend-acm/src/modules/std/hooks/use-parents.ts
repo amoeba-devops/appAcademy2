@@ -12,6 +12,8 @@ export interface ParentSummary {
   phone?: string | null;
   email?: string | null;
   childCount?: number;
+  /** Linked student names (REQ-260619) — surfaced in the parent list/edit view. */
+  children?: Array<{ id: string; name: string; status: string }>;
   /** AMA client id once registered (REQ-260609 FR-C). null = not yet registered. */
   amaClientId?: string | null;
   amaRegisteredAt?: string | null;
