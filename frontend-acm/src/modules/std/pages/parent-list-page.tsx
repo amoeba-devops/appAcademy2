@@ -69,6 +69,44 @@ export function ParentListPage() {
     setEdit(null);
   };
 
+  // REQ-260619 — render linked student names (ACTIVE highlighted, others dimmed);
+  // each name links to the student detail page. Falls back to count for the
+  // soft-deleted-student edge case, or an orphan badge when no children.
+  const renderChildren = (p: ParentSummary) => {
+    const kids = p.children ?? [];
+    const count = p.childCount ?? 0;
+    if (count === 0) {
+      return (
+        <span className="rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700">
+          {t('parentList.orphan', '고아 (자녀 없음)')}
+        </span>
+      );
+    }
+    if (kids.length === 0) {
+      return <span className="text-secondary">{count}</span>;
+    }
+    return (
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+        {kids.map((c, i) => (
+          <span key={c.id} className="inline-flex items-center">
+            <button
+              onClick={() => navigate(`/admin/std/${c.id}`)}
+              title={c.status}
+              className={
+                'hover:underline ' +
+                (c.status === 'ACTIVE' ? 'text-accent' : 'text-secondary opacity-60')
+              }
+            >
+              {c.name}
+            </button>
+            {i < kids.length - 1 && <span className="text-secondary">,</span>}
+          </span>
+        ))}
+        <span className="text-secondary">({kids.length})</span>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -154,7 +192,7 @@ export function ParentListPage() {
                       className={inputClass}
                     />
                   </td>
-                  <td className="px-3 py-2 text-secondary">{p.childCount ?? 0}</td>
+                  <td className="px-3 py-2">{renderChildren(p)}</td>
                   <td className="px-3 py-2 text-secondary">—</td>
                   <td className="px-3 py-2 text-right">
                     <Button size="sm" onClick={handleSaveEdit} disabled={updateMut.isPending}>
@@ -176,20 +214,7 @@ export function ParentListPage() {
                   <td className="px-3 py-2 text-secondary">{p.relation ?? '—'}</td>
                   <td className="px-3 py-2 text-secondary">{p.phone ?? '—'}</td>
                   <td className="px-3 py-2 text-secondary">{p.email ?? '—'}</td>
-                  <td className="px-3 py-2">
-                    {(p.childCount ?? 0) === 0 ? (
-                      <span className="rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700">
-                        {t('parentList.orphan', '고아 (자녀 없음)')}
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => navigate(`/admin/std/parents/${p.id}`)}
-                        className="text-accent hover:underline"
-                      >
-                        {p.childCount}
-                      </button>
-                    )}
-                  </td>
+                  <td className="px-3 py-2">{renderChildren(p)}</td>
                   <td className="px-3 py-2">
                     {p.amaClientId ? (
                       <span
