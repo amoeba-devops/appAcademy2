@@ -25,6 +25,7 @@ import koClassroom from './locales/ko/classroom.json';
 import koCal from './locales/ko/cal.json';
 import koMpq from './locales/ko/mpq.json';
 import koPortal from './locales/ko/portal.json';
+import koSystem from './locales/ko/system.json';
 
 import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
@@ -42,6 +43,7 @@ import enClassroom from './locales/en/classroom.json';
 import enCal from './locales/en/cal.json';
 import enMpq from './locales/en/mpq.json';
 import enPortal from './locales/en/portal.json';
+import enSystem from './locales/en/system.json';
 
 import viCommon from './locales/vi/common.json';
 import viAuth from './locales/vi/auth.json';
@@ -59,6 +61,7 @@ import viClassroom from './locales/vi/classroom.json';
 import viCal from './locales/vi/cal.json';
 import viMpq from './locales/vi/mpq.json';
 import viPortal from './locales/vi/portal.json';
+import viSystem from './locales/vi/system.json';
 
 import zhCommon from './locales/zh-CN/common.json';
 import zhAuth from './locales/zh-CN/auth.json';
@@ -76,6 +79,7 @@ import zhClassroom from './locales/zh-CN/classroom.json';
 import zhCal from './locales/zh-CN/cal.json';
 import zhMpq from './locales/zh-CN/mpq.json';
 import zhPortal from './locales/zh-CN/portal.json';
+import zhSystem from './locales/zh-CN/system.json';
 
 export const SUPPORTED_LANGS = ['ko', 'en', 'vi', 'zh-CN'] as const;
 export type SupportedLang = (typeof SUPPORTED_LANGS)[number];
@@ -109,7 +113,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANG,
   supportedLngs: SUPPORTED_LANGS as unknown as string[],
   defaultNS: 'common',
-  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web', 'tch', 'stf', 'cal', 'mpq', 'portal', 'classroom'],
+  ns: ['common', 'auth', 'csl', 'dsh', 'sch', 'ref', 'qna', 'cls', 'std', 'web', 'tch', 'stf', 'cal', 'mpq', 'portal', 'classroom', 'system'],
   interpolation: { escapeValue: false },
   resources: {
     ko: {
@@ -129,6 +133,7 @@ void i18n.use(initReactI18next).init({
       mpq: koMpq,
       portal: koPortal,
       classroom: koClassroom,
+      system: koSystem,
     },
     en: {
       common: enCommon,
@@ -147,6 +152,7 @@ void i18n.use(initReactI18next).init({
       mpq: enMpq,
       portal: enPortal,
       classroom: enClassroom,
+      system: enSystem,
     },
     vi: {
       common: viCommon,
@@ -165,6 +171,7 @@ void i18n.use(initReactI18next).init({
       mpq: viMpq,
       portal: viPortal,
       classroom: viClassroom,
+      system: viSystem,
     },
     'zh-CN': {
       common: zhCommon,
@@ -183,6 +190,7 @@ void i18n.use(initReactI18next).init({
       mpq: zhMpq,
       portal: zhPortal,
       classroom: zhClassroom,
+      system: zhSystem,
     },
   },
 });

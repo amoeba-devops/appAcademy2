@@ -27,7 +27,8 @@ export class AcmJwtStrategy extends PassportStrategy(Strategy, ACM_JWT_STRATEGY)
     entId: string;
     email: string;
     name: string;
-    role: 'ADMIN' | 'TEACHER' | 'STAFF';
+    role: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
+    mustChangePassword: boolean;
   }> {
     if (!payload?.sub || !payload?.entId) {
       throw new UnauthorizedException('Invalid token');
@@ -35,6 +36,10 @@ export class AcmJwtStrategy extends PassportStrategy(Strategy, ACM_JWT_STRATEGY)
     // Optional: re-check user is still ACTIVE.
     const u = await this.authService.findById(payload.sub);
     if (!u) throw new UnauthorizedException('User not active');
-    return { ...u, role: u.role ?? payload.role ?? 'ADMIN' };
+    return {
+      ...u,
+      role: u.role ?? payload.role ?? 'ADMIN',
+      mustChangePassword: u.mustChangePassword ?? false,
+    };
   }
 }

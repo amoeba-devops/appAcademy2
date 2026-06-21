@@ -15,7 +15,8 @@
     "stf": "员工管理",
     "cal": "日历",
     "map": "MAP 历年真题",
-    "config": "集成设置"
+    "config": "配置",
+    "systemAdmin": "系统管理"
   },
   "lang": {
     "label": "语言",
@@ -156,6 +157,21 @@
         "graceAfterMin": "结束后 M 分钟可入场",
         "reconcileDelayMin": "Reconcile 延迟 (分钟)",
         "isActive": "使用此配置启用 BODA 集成"
+      }
+    },
+    "backToList": "返回配置",
+    "landing": {
+      "title": "配置",
+      "description": "管理集成与外部服务设置。"
+    },
+    "cards": {
+      "ama": {
+        "title": "AMA 集成",
+        "description": "AMA 自定义应用 SSO 登录与法人设置"
+      },
+      "boda": {
+        "title": "BODA 视频课堂",
+        "description": "BODA 视频课堂集成设置"
       }
     }
   }

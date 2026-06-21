@@ -6,8 +6,10 @@ export interface AcmUser {
   id: string;
   entId: string;
   email?: string;
-  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
   roles?: string[];
+  /** REQ-260621 — true until the user rotates a seeded/admin-set password. */
+  mustChangePassword?: boolean;
 }
 
 /** Parent user — from `/auth/parent/verify-otp`. */
@@ -37,6 +39,7 @@ interface AuthState {
 
   // ── Admin actions (legacy names kept) ───────────────────────────────
   setAuth: (token: string, user: AcmUser) => void;
+  clearMustChangePassword: () => void;
   clear: () => void;
 
   // ── Parent actions ──────────────────────────────────────────────────
@@ -57,6 +60,9 @@ export const useAuthStore = create<AuthState>()(
 
       setAuth: (token, user) =>
         set({ token, user, active: 'admin' }),
+
+      clearMustChangePassword: () =>
+        set((s) => (s.user ? { user: { ...s.user, mustChangePassword: false } } : {})),
 
       setParentAuth: (token, user) =>
         set({ parent: { token, user }, active: 'parent' }),

@@ -79,8 +79,13 @@ export function LoginPage() {
           entId: user.entId,
           email: user.email,
           role: user.role,
+          mustChangePassword: user.mustChangePassword,
         });
         scrubUrl();
+        if (user.mustChangePassword) {
+          navigate('/admin/change-password', { replace: true });
+          return;
+        }
         const returnTo = params.get('returnTo');
         navigate(
           returnTo && returnTo.startsWith('/') ? returnTo : '/admin/dashboard',
@@ -119,7 +124,12 @@ export function LoginPage() {
         entId: user.entId,
         email: user.email,
         role: user.role,
+        mustChangePassword: user.mustChangePassword,
       });
+      if (user.mustChangePassword) {
+        navigate('/admin/change-password', { replace: true });
+        return;
+      }
       const returnTo = params.get('returnTo');
       navigate(returnTo && returnTo.startsWith('/') ? returnTo : '/admin/dashboard', {
         replace: true,

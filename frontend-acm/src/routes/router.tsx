@@ -5,6 +5,7 @@ import { ParentShell } from '@/components/layout/parent-shell';
 import { RequireAuth } from '@/components/layout/require-auth';
 import { LoginPage } from '@/modules/auth/pages/login-page';
 import { ParentLoginPage } from '@/modules/auth/pages/parent-login-page';
+import { ChangePasswordPage } from '@/modules/auth/pages/change-password-page';
 import { DashboardPage } from '@/modules/dsh/pages/dashboard-page';
 import { CslListPage } from '@/modules/csl/pages/csl-list-page';
 import { CslDetailPage } from '@/modules/csl/pages/csl-detail-page';
@@ -38,7 +39,12 @@ import { MyPaymentsPage } from '@/modules/my/pages/payments-page';
 import { MyScoresPage } from '@/modules/my/pages/scores-page';
 import { MyTimetablePage } from '@/modules/my/pages/timetable-page';
 import { PostEditorPage } from '@/modules/posts/pages/post-editor-page';
+import { ConfigLandingPage } from '@/modules/cfg/pages/config-landing-page';
 import { AmaConfigPage } from '@/modules/cfg/pages/ama-config-page';
+import { BodaConfigPage } from '@/modules/cfg/pages/boda-config-page';
+import { SystemShell } from '@/components/layout/system-shell';
+import { RequireAppAdmin } from '@/components/layout/require-app-admin';
+import { SystemAdminPage } from '@/modules/system/pages/system-admin-page';
 
 /** Preserve query string while redirecting (used for legacy login URL compat). */
 function RedirectWithSearch({ to }: { to: string }) {
@@ -50,6 +56,15 @@ export const router = createBrowserRouter([
   // ── Public auth pages (group-based) — REQ-260520 FR-03 ──────────────
   { path: '/admin/login', element: <LoginPage /> },
   { path: '/parent/login', element: <ParentLoginPage /> },
+  // REQ-260621 — forced password rotation (standalone, no shell).
+  {
+    path: '/admin/change-password',
+    element: (
+      <RequireAuth>
+        <ChangePasswordPage />
+      </RequireAuth>
+    ),
+  },
 
   // ── Legacy auth URL redirects (1-sprint backward-compat) ────────────
   { path: '/login', element: <RedirectWithSearch to="/admin/login" /> },
@@ -122,7 +137,24 @@ export const router = createBrowserRouter([
       { path: 'enrollments', element: <EnrollmentsListPage /> },
       { path: 'qna', element: <QnaListPage /> },
       { path: 'qna/categories', element: <QnaCategoriesPage /> },
-      { path: 'config', element: <AmaConfigPage /> },
+      // REQ-260621 — Configuration: landing card menu + per-integration pages.
+      { path: 'config', element: <ConfigLandingPage /> },
+      { path: 'config/ama', element: <AmaConfigPage /> },
+      { path: 'config/boda', element: <BodaConfigPage /> },
+    ],
+  },
+
+  // ── System administration (APP_ADMIN, cross-tenant) — REQ-260621 ────
+  {
+    path: '/system',
+    element: (
+      <RequireAppAdmin>
+        <SystemShell />
+      </RequireAppAdmin>
+    ),
+    children: [
+      { index: true, element: <Navigate to="/system/admin" replace /> },
+      { path: 'admin', element: <SystemAdminPage /> },
     ],
   },
 

@@ -16,7 +16,8 @@
     "stf": "직원 관리",
     "cal": "캘린더",
     "map": "MAP 기출문제",
-    "config": "연동 설정"
+    "config": "설정",
+    "systemAdmin": "시스템 관리"
   },
   "lang": {
     "label": "언어",
@@ -160,6 +161,21 @@
         "graceAfterMin": "입장 가능 종료 후 M분",
         "reconcileDelayMin": "reconcile 지연 N분",
         "isActive": "이 설정으로 BODA 연동 활성화"
+      }
+    },
+    "backToList": "설정으로 돌아가기",
+    "landing": {
+      "title": "설정",
+      "description": "연동 및 외부 서비스 설정을 관리합니다."
+    },
+    "cards": {
+      "ama": {
+        "title": "AMA 연동",
+        "description": "AMA 커스텀앱 SSO 로그인·법인 설정"
+      },
+      "boda": {
+        "title": "BODA 화상강의",
+        "description": "BODA(보다에듀) 화상 강의실 연동 설정"
       }
     }
   }

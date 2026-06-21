@@ -16,7 +16,8 @@
     "stf": "Staff",
     "cal": "Calendar",
     "map": "MAP Past Questions",
-    "config": "Integration"
+    "config": "Configuration",
+    "systemAdmin": "System Admin"
   },
   "lang": {
     "label": "Language",
@@ -160,6 +161,21 @@
         "graceAfterMin": "Open M min after end",
         "reconcileDelayMin": "Reconcile delay (min)",
         "isActive": "Activate the BODA integration with this config"
+      }
+    },
+    "backToList": "Back to Configuration",
+    "landing": {
+      "title": "Configuration",
+      "description": "Manage integrations and external service settings."
+    },
+    "cards": {
+      "ama": {
+        "title": "AMA Integration",
+        "description": "AMA Custom App SSO login & entity settings"
+      },
+      "boda": {
+        "title": "BODA Classroom",
+        "description": "BODA video classroom integration settings"
       }
     }
   }

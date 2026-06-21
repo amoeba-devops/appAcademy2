@@ -37,7 +37,7 @@ export interface AcmJwtPayload {
   entId: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'TEACHER' | 'STAFF';
+  role: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
 }
 
 interface FailureWindow {
@@ -121,6 +121,7 @@ export class AcmAuthService {
         email: user.email,
         name: user.name,
         role: user.role ?? 'ADMIN',
+        mustChangePassword: user.mustChangePassword ?? false,
       },
     };
   }
@@ -128,7 +129,14 @@ export class AcmAuthService {
   async findById(id: string): Promise<AcmAuthUser | null> {
     const u = await this.userRepo.findOne({ where: { id, status: 'ACTIVE' } });
     if (!u) return null;
-    return { id: u.id, entId: u.entId, email: u.email, name: u.name, role: u.role ?? 'ADMIN' };
+    return {
+      id: u.id,
+      entId: u.entId,
+      email: u.email,
+      name: u.name,
+      role: u.role ?? 'ADMIN',
+      mustChangePassword: u.mustChangePassword ?? false,
+    };
   }
 
   /**
@@ -141,7 +149,9 @@ export class AcmAuthService {
     email: string;
     plainPassword: string;
     name: string;
-    role: 'ADMIN' | 'TEACHER' | 'STAFF';
+    role: AcmRole;
+    /** REQ-260621 — force the user to rotate the (temporary) password on first use. */
+    mustChangePassword?: boolean;
   }): Promise<{ id: string }> {
     this.assertPasswordPolicy(input.plainPassword);
     const email = input.email.trim().toLowerCase();
@@ -164,13 +174,15 @@ export class AcmAuthService {
         status: 'ACTIVE',
         role: input.role,
         authSource: 'local',
+        mustChangePassword: input.mustChangePassword ?? false,
       }),
     );
     return { id: saved.id };
   }
 
   /**
-   * Reset password for an existing user (admin-driven).
+   * Reset password for an existing user (admin-driven). The target is forced to
+   * rotate the admin-set password on next use (REQ-260621).
    */
   async updateUserPassword(userId: string, plainPassword: string): Promise<void> {
     this.assertPasswordPolicy(plainPassword);
@@ -179,6 +191,30 @@ export class AcmAuthService {
       throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
     u.passwordHash = await bcrypt.hash(plainPassword, 12);
+    u.mustChangePassword = true;
+    await this.userRepo.save(u);
+  }
+
+  /**
+   * REQ-260621 — self-service password change. Verifies the current password,
+   * sets the new one (policy-checked), and clears the rotation requirement.
+   */
+  async changeOwnPassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u || !u.passwordHash) {
+      throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    const ok = await bcrypt.compare(currentPassword, u.passwordHash);
+    if (!ok) {
+      throw new UnauthorizedException('CURRENT_PASSWORD_INVALID');
+    }
+    this.assertPasswordPolicy(newPassword);
+    u.passwordHash = await bcrypt.hash(newPassword, 12);
+    u.mustChangePassword = false;
     await this.userRepo.save(u);
   }
 

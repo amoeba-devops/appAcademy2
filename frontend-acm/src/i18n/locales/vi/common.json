@@ -15,7 +15,8 @@
     "stf": "Nhân viên",
     "cal": "Lịch",
     "map": "Câu hỏi MAP cũ",
-    "config": "Tích hợp"
+    "config": "Cấu hình",
+    "systemAdmin": "Quản trị hệ thống"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -156,6 +157,21 @@
         "graceAfterMin": "Mở sau M phút",
         "reconcileDelayMin": "Độ trễ reconcile (phút)",
         "isActive": "Kích hoạt tích hợp BODA với cấu hình này"
+      }
+    },
+    "backToList": "Quay lại Cấu hình",
+    "landing": {
+      "title": "Cấu hình",
+      "description": "Quản lý tích hợp và cài đặt dịch vụ bên ngoài."
+    },
+    "cards": {
+      "ama": {
+        "title": "Tích hợp AMA",
+        "description": "Cài đặt đăng nhập SSO Custom App AMA & pháp nhân"
+      },
+      "boda": {
+        "title": "Lớp học BODA",
+        "description": "Cài đặt tích hợp lớp học trực tuyến BODA"
       }
     }
   }

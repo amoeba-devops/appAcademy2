@@ -29,13 +29,22 @@ export class AcmUserTypeormEntity {
   status!: string;
 
   @Column({ name: 'usr_role', type: 'varchar', length: 20, default: 'ADMIN' })
-  role!: 'ADMIN' | 'TEACHER' | 'STAFF';
+  role!: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
 
   @Column({ name: 'usr_last_login_at', type: 'timestamptz', nullable: true })
   lastLoginAt?: Date | null;
 
   @Column({ name: 'usr_locked_at', type: 'timestamptz', nullable: true })
   lockedAt?: Date | null;
+
+  /**
+   * REQ-260621 — forces a password change on next authenticated use. Set on
+   * seed/admin-reset; cleared by the user's own change-password. While true,
+   * privileged surfaces (e.g. /acm/system/*) are blocked by
+   * RequirePasswordRotationGuard.
+   */
+  @Column({ name: 'usr_must_change_password', type: 'boolean', default: false })
+  mustChangePassword!: boolean;
 
   @Column({ name: 'auth_source', type: 'varchar', length: 16, default: 'local' })
   authSource!: string;

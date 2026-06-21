@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -16,6 +16,7 @@ import {
   Briefcase,
   CalendarDays,
   Settings,
+  ShieldCheck,
   LogOut,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -54,33 +55,25 @@ export function AppShell() {
     navigate('/login', { replace: true });
   };
 
+  // REQ-260621 — force seeded/admin-reset accounts to rotate before any use.
+  if (user?.mustChangePassword) {
+    return <Navigate to="/admin/change-password" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-canvas text-primary">
       <header className="fixed inset-x-0 top-0 z-10 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-6">
-        <Link to="/" className="font-semibold text-lg text-accent-700">
-          {t('app.name')}
+        {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
+        <Link to="/admin" className="font-semibold text-lg text-accent-700">
+          ACM
         </Link>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
-          {user?.email && (
-            <span className="text-sm text-secondary hidden sm:inline">
-              {user.email}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={onLogout}
-            className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary px-2 py-1 rounded-md hover:bg-[var(--gray-100)]"
-            aria-label={tAuth('session.logout')}
-          >
-            <LogOut size={16} />
-            <span className="hidden sm:inline">{tAuth('session.logout')}</span>
-          </button>
         </div>
       </header>
 
-      <aside className="fixed left-0 top-header bottom-0 w-sidebar bg-surface border-r border-[var(--border-subtle)] py-4">
-        <nav className="flex flex-col gap-1 px-2">
+      <aside className="fixed left-0 top-header bottom-0 w-sidebar bg-surface border-r border-[var(--border-subtle)] flex flex-col">
+        <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
           {NAV.map(({ to, icon: Icon, key }) => (
             <NavLink
               key={to}
@@ -99,6 +92,40 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {/* REQ-260621 — user info + logout pinned to the sidebar bottom. */}
+        <div className="border-t border-[var(--border-subtle)] px-2 py-3">
+          {user?.role === 'APP_ADMIN' && (
+            <NavLink
+              to="/system/admin"
+              className={({ isActive }) =>
+                clsx(
+                  'mb-2 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-accent-50 text-accent-700'
+                    : 'text-secondary hover:bg-[var(--gray-100)]',
+                )
+              }
+            >
+              <ShieldCheck size={18} />
+              {t('nav.systemAdmin')}
+            </NavLink>
+          )}
+          {user?.email && (
+            <div className="px-3 pb-2 text-xs text-secondary truncate" title={user.email}>
+              {user.email}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onLogout}
+            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-secondary transition-colors hover:bg-[var(--gray-100)] hover:text-primary"
+            aria-label={tAuth('session.logout')}
+          >
+            <LogOut size={18} />
+            {tAuth('session.logout')}
+          </button>
+        </div>
       </aside>
 
       <main className="ml-sidebar mt-header p-6">

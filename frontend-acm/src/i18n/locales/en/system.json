@@ -1,0 +1,76 @@
+{
+  "badge": "System",
+  "backToAdmin": "Back to console",
+  "nav": {
+    "users": "User management"
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "create": "Create"
+  },
+  "roles": {
+    "APP_ADMIN": "App Admin",
+    "ADMIN": "Admin",
+    "TEACHER": "Teacher",
+    "STAFF": "Staff"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "INACTIVE": "Inactive"
+  },
+  "users": {
+    "title": "User Management",
+    "description": "Manage ACM user accounts across all tenants.",
+    "searchPlaceholder": "Search email or name",
+    "allRoles": "All roles",
+    "add": "Add user",
+    "loading": "Loading…",
+    "empty": "No users.",
+    "saved": "Saved.",
+    "created": "User created.",
+    "lockedBadge": "Locked",
+    "columns": {
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "tenant": "Tenant",
+      "status": "Status",
+      "lastLogin": "Last login",
+      "actions": "Actions"
+    },
+    "fields": {
+      "email": "Email",
+      "name": "Name",
+      "password": "Password",
+      "passwordHint": "8–120 chars, must contain letters and digits.",
+      "tenant": "Tenant (ent_id)",
+      "tenantHint": "UUID of the tenant the user belongs to."
+    },
+    "edit": {
+      "title": "Edit user"
+    },
+    "password": {
+      "title": "Reset password",
+      "confirm": "Reset",
+      "done": "Password updated."
+    },
+    "lock": {
+      "title": "Lock account",
+      "description": "Locking {{email}} prevents login.",
+      "confirm": "Lock"
+    },
+    "unlock": {
+      "title": "Unlock account",
+      "description": "Unlock {{email}}.",
+      "confirm": "Unlock"
+    },
+    "errors": {
+      "required": "Please fill in required fields.",
+      "createFailed": "Failed to create user.",
+      "saveFailed": "Failed to save.",
+      "loadFailed": "Failed to load list."
+    }
+  }
+}
