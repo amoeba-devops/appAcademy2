@@ -2,7 +2,8 @@
   "badge": "시스템",
   "backToAdmin": "관리 콘솔로",
   "nav": {
-    "users": "사용자 관리"
+    "users": "사용자 관리",
+    "tenants": "테넌트 관리"
   },
   "actions": {
     "cancel": "취소",
@@ -71,6 +72,50 @@
       "createFailed": "사용자 생성에 실패했습니다.",
       "saveFailed": "저장에 실패했습니다.",
       "loadFailed": "목록을 불러오지 못했습니다."
+    },
+    "detail": {
+      "title": "사용자 상세",
+      "authSource": "인증 방식",
+      "mustChange": "비밀번호 변경 필요",
+      "createdAt": "생성일",
+      "yes": "예",
+      "no": "아니오"
+    }
+  },
+  "tenants": {
+    "title": "테넌트 관리",
+    "description": "ACM에 등록된 테넌트와 테넌트별 메뉴 노출을 관리합니다.",
+    "add": "테넌트 추가",
+    "created": "테넌트가 등록되었습니다.",
+    "empty": "테넌트가 없습니다.",
+    "backToList": "테넌트 목록",
+    "saved": "저장되었습니다.",
+    "systemBadge": "시스템",
+    "columns": {
+      "name": "이름",
+      "entId": "ent_id",
+      "status": "상태",
+      "users": "사용자수"
+    },
+    "fields": {
+      "name": "이름",
+      "entId": "ent_id",
+      "entIdHint": "테넌트 UUID. 기존 사용자의 ent_id와 일치해야 합니다."
+    },
+    "info": {
+      "title": "정보"
+    },
+    "users": {
+      "title": "소속 사용자"
+    },
+    "menus": {
+      "title": "메뉴 노출",
+      "hint": "켜진 메뉴만 해당 테넌트의 관리자 사이드바에 표시됩니다(데이터 권한과 무관).",
+      "saved": "메뉴 설정이 저장되었습니다.",
+      "alwaysOn": "항상"
+    },
+    "errors": {
+      "createFailed": "테넌트 등록에 실패했습니다."
     }
   }
 }

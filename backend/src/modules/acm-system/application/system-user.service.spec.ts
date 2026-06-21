@@ -23,6 +23,7 @@ function makeUser(over: Partial<AcmUserTypeormEntity> = {}): AcmUserTypeormEntit
 
 describe('SystemUserService', () => {
   let repo: jest.Mocked<Repository<AcmUserTypeormEntity>>;
+  let tenantRepo: { find: jest.Mock };
   let auth: jest.Mocked<AcmAuthService>;
   let svc: SystemUserService;
   let qb: { andWhere: jest.Mock; orderBy: jest.Mock; skip: jest.Mock; take: jest.Mock; getManyAndCount: jest.Mock };
@@ -40,13 +41,22 @@ describe('SystemUserService', () => {
       save: jest.fn((x: unknown) => x),
       createQueryBuilder: jest.fn(() => qb),
     } as unknown as jest.Mocked<Repository<AcmUserTypeormEntity>>;
+    tenantRepo = {
+      find: jest.fn().mockResolvedValue([
+        { entId: '00000000-0000-0000-0000-000000000001', name: 'Trinity Academy' },
+      ]),
+    };
     auth = {
       createUserWithPassword: jest.fn(),
       updateUserPassword: jest.fn(),
       lockUser: jest.fn(),
       unlockUser: jest.fn(),
     } as unknown as jest.Mocked<AcmAuthService>;
-    svc = new SystemUserService(repo, auth);
+    svc = new SystemUserService(
+      repo,
+      tenantRepo as never,
+      auth,
+    );
   });
 
   it('list returns paginated items across tenants ({ items, total, page, limit })', async () => {
@@ -76,7 +86,7 @@ describe('SystemUserService', () => {
   });
 
   it('update mutates name/role/status', async () => {
-    repo.findOne.mockResolvedValueOnce(makeUser());
+    repo.findOne.mockResolvedValue(makeUser());
     const res = await svc.update('u1', { name: 'New', role: 'ADMIN', status: 'INACTIVE' });
     expect(res.name).toBe('New');
     expect(res.role).toBe('ADMIN');

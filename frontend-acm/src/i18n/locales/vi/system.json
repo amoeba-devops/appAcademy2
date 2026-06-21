@@ -2,7 +2,8 @@
   "badge": "Hệ thống",
   "backToAdmin": "Về bảng điều khiển",
   "nav": {
-    "users": "Quản lý người dùng"
+    "users": "Quản lý người dùng",
+    "tenants": "Pháp nhân"
   },
   "actions": {
     "cancel": "Hủy",
@@ -71,6 +72,50 @@
       "createFailed": "Tạo người dùng thất bại.",
       "saveFailed": "Lưu thất bại.",
       "loadFailed": "Tải danh sách thất bại."
+    },
+    "detail": {
+      "title": "Chi tiết người dùng",
+      "authSource": "Nguồn xác thực",
+      "mustChange": "Cần đổi mật khẩu",
+      "createdAt": "Tạo lúc",
+      "yes": "Có",
+      "no": "Không"
+    }
+  },
+  "tenants": {
+    "title": "Quản lý pháp nhân",
+    "description": "Quản lý pháp nhân đã đăng ký và hiển thị menu theo pháp nhân.",
+    "add": "Thêm pháp nhân",
+    "created": "Đã đăng ký pháp nhân.",
+    "empty": "Không có pháp nhân.",
+    "backToList": "Danh sách pháp nhân",
+    "saved": "Đã lưu.",
+    "systemBadge": "Hệ thống",
+    "columns": {
+      "name": "Tên",
+      "entId": "ent_id",
+      "status": "Trạng thái",
+      "users": "Người dùng"
+    },
+    "fields": {
+      "name": "Tên",
+      "entId": "ent_id",
+      "entIdHint": "UUID pháp nhân. Phải khớp ent_id của người dùng hiện có."
+    },
+    "info": {
+      "title": "Thông tin"
+    },
+    "users": {
+      "title": "Người dùng"
+    },
+    "menus": {
+      "title": "Hiển thị menu",
+      "hint": "Chỉ menu được bật mới hiển thị trong sidebar quản trị của pháp nhân (không ảnh hưởng quyền dữ liệu).",
+      "saved": "Đã lưu cài đặt menu.",
+      "alwaysOn": "Luôn"
+    },
+    "errors": {
+      "createFailed": "Đăng ký pháp nhân thất bại."
     }
   }
 }

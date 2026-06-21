@@ -2,7 +2,8 @@
   "badge": "System",
   "backToAdmin": "Back to console",
   "nav": {
-    "users": "User management"
+    "users": "User management",
+    "tenants": "Tenants"
   },
   "actions": {
     "cancel": "Cancel",
@@ -71,6 +72,50 @@
       "createFailed": "Failed to create user.",
       "saveFailed": "Failed to save.",
       "loadFailed": "Failed to load list."
+    },
+    "detail": {
+      "title": "User detail",
+      "authSource": "Auth source",
+      "mustChange": "Password change required",
+      "createdAt": "Created",
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "tenants": {
+    "title": "Tenant Management",
+    "description": "Manage registered tenants and per-tenant menu visibility.",
+    "add": "Add tenant",
+    "created": "Tenant registered.",
+    "empty": "No tenants.",
+    "backToList": "Tenants",
+    "saved": "Saved.",
+    "systemBadge": "System",
+    "columns": {
+      "name": "Name",
+      "entId": "ent_id",
+      "status": "Status",
+      "users": "Users"
+    },
+    "fields": {
+      "name": "Name",
+      "entId": "ent_id",
+      "entIdHint": "Tenant UUID. Must match existing users’ ent_id."
+    },
+    "info": {
+      "title": "Info"
+    },
+    "users": {
+      "title": "Users"
+    },
+    "menus": {
+      "title": "Menu visibility",
+      "hint": "Only enabled menus appear in this tenant’s admin sidebar (does not affect data permissions).",
+      "saved": "Menu settings saved.",
+      "alwaysOn": "Always"
+    },
+    "errors": {
+      "createFailed": "Failed to register tenant."
     }
   }
 }

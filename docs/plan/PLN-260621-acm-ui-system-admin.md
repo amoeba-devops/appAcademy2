@@ -9,6 +9,7 @@ related:
   - docs/analysis/REQ-260621-acm-ui-system-admin.md (v1.0.0)
 change_log:
   - 2026-06-21 v1.0.0 — T1–T6 구현 완료. nest/tsc/vite build clean, 5 system spec pass.
+  - 2026-06-21 v1.1.0 — System Admin 확장(사용자 상세 / 테넌트 허브 / 테넌트별 메뉴 노출). §9 참조.
 ---
 
 # 작업 계획서 — ACM UI 개편 + System Admin (REQ-260621)
@@ -75,3 +76,39 @@ PATCH  /api/acm/system/users/:id/unlock
 
 - cross-tenant 작업 감사 로그.
 - 테넌트(ent) CRUD 관리 화면.
+
+---
+
+## 9. v1.1 — System Admin 확장 (2026-06-21)
+
+### 9.1 데이터 모델 (신규 2테이블, `sql/acm/520-acm-tenant.sql`)
+- `amb_acm_tenant` — 테넌트 레지스트리 (tnt_ent_id PK / tnt_name / tnt_status / tnt_is_system). 시드: TPI(…0001), System(…00ff).
+- `amb_acm_tenant_menu` — 테넌트별 메뉴 노출 override (PK ent_id+menu_key, visible). 행 없으면 노출(기본).
+
+### 9.2 백엔드 (acm-system 확장)
+```
+GET   /acm/system/tenants                 테넌트 목록(+userCount)      [APP_ADMIN]
+POST  /acm/system/tenants                 테넌트 등록
+GET   /acm/system/tenants/:entId          상세
+PATCH /acm/system/tenants/:entId          이름/상태 수정
+GET   /acm/system/tenants/:entId/menus    메뉴 노출 설정(기본 병합)
+PUT   /acm/system/tenants/:entId/menus    메뉴 노출 일괄 저장
+GET   /acm/system/users/:id               사용자 상세
+GET   /acm/me/menus                        내 테넌트의 hidden 메뉴 키(로그인 사용자)
+```
+- `dashboard`는 항상 노출(토글 불가). 메뉴 키 정본: `admin-menu-keys.ts`(BE/FE 동기화).
+- `/acm/me/menus`는 APP_ADMIN 아닌 일반 사용자도 자기 ent 기준 호출.
+
+### 9.3 프론트
+- `/system/tenants`(목록) + `/system/tenants/:entId`(정보편집·소속 사용자·메뉴토글). system-shell 에 "테넌트 관리" 추가.
+- 사용자 리스트: 테넌트 이름 표시 + 행 클릭 → `UserDetailDrawer`(상세 + 수정/리셋/잠금).
+- `AppShell`: `useMyHiddenMenus()`(GET /acm/me/menus)로 NAV 필터 — fail-open(로딩/에러 시 전체 노출). **UI 숨김만**(백엔드 테넌트 스코핑 그대로).
+
+### 9.4 검증
+- nest build + `jest src/modules/acm-system` 10 pass(+tenant menu spec) / 전체 touched 103 pass.
+- frontend-acm tsc + vite build clean.
+
+### 9.5 배포 (직전과 동일 — DB 우선)
+1. `sql/acm/520-acm-tenant.sql` 적용 (전 환경, 코드 배포 전 필수 — 엔티티가 신규 테이블 참조).
+2. staging DB 적용 후 머지 → cd-staging.
+3. prod DB 적용 후 cd-production dispatch.
