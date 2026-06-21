@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export type AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF';
+export type AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
 
 export interface AcmCurrentUser {
   id: string;
@@ -10,6 +10,8 @@ export interface AcmCurrentUser {
   roles?: string[];
   email?: string;
   name?: string;
+  /** REQ-260621 — true while the user must rotate their password. */
+  mustChangePassword?: boolean;
 }
 
 export const CurrentUser = createParamDecorator(

@@ -1,4 +1,4 @@
-export type AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF';
+export type AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
 
 /**
  * AMA USER_LEVELs that map to ACM ADMIN (REQ-260609 FR-B1).

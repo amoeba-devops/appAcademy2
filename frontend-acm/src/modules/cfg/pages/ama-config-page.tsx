@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Settings, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useAmaConfig, useUpdateAmaConfig } from '@/modules/cfg/hooks/use-ama-config';
-import { BodaConfigSection } from '@/modules/cfg/components/boda-config-section';
 
 /**
- * /admin/config — AMA 연동 설정 (REQ-260609B).
+ * /admin/config/ama — AMA 연동 설정 (REQ-260609B, split out in REQ-260621).
  *
  * 어드민이 AMA 커스텀앱 SSO 로그인 허용 조건(entityId + appCode)을 등록한다.
  * 토큰의 법인정보가 저장값과 일치할 때만 로그인이 허용된다.
@@ -93,6 +93,13 @@ export function AmaConfigPage() {
 
   return (
     <div className="max-w-2xl">
+      <Link
+        to="/admin/config"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
+      >
+        <ArrowLeft size={16} />
+        {t('config.backToList')}
+      </Link>
       <header className="mb-6 flex items-center gap-2">
         <Settings size={20} className="text-accent-700" />
         <h1 className="text-xl font-semibold text-primary">{t('config.title')}</h1>
@@ -229,9 +236,6 @@ export function AmaConfigPage() {
           </div>
         </div>
       )}
-
-      {/* REQ-260526 v2 / REQ-260619 — BODA(보다에듀) 화상 강의 설정 */}
-      <BodaConfigSection />
     </div>
   );
 }

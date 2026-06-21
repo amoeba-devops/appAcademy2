@@ -5,8 +5,10 @@ export interface AuthUserDTO {
   entId: string;
   email: string;
   name: string;
-  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
   authSource?: 'local' | 'ama';
+  /** REQ-260621 — true when the user must rotate their password. */
+  mustChangePassword?: boolean;
 }
 
 export interface LoginResponse {
@@ -37,4 +39,12 @@ export async function exchangeAmaToken(amaToken: string): Promise<LoginResponse>
 export async function me(): Promise<{ user: AuthUserDTO }> {
   const { data } = await apiClient.get<{ user: AuthUserDTO }>('/acm/auth/me');
   return data;
+}
+
+/** REQ-260621 — change own password (verifies current); clears must-change. */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await apiClient.post('/acm/auth/change-password', { currentPassword, newPassword });
 }

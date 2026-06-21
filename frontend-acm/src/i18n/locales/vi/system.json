@@ -1,0 +1,76 @@
+{
+  "badge": "Hệ thống",
+  "backToAdmin": "Về bảng điều khiển",
+  "nav": {
+    "users": "Quản lý người dùng"
+  },
+  "actions": {
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "create": "Tạo"
+  },
+  "roles": {
+    "APP_ADMIN": "Quản trị ứng dụng",
+    "ADMIN": "Quản trị",
+    "TEACHER": "Giáo viên",
+    "STAFF": "Nhân viên"
+  },
+  "status": {
+    "ACTIVE": "Hoạt động",
+    "INACTIVE": "Ngừng"
+  },
+  "users": {
+    "title": "Quản lý người dùng",
+    "description": "Quản lý tài khoản người dùng ACM trên tất cả pháp nhân.",
+    "searchPlaceholder": "Tìm email hoặc tên",
+    "allRoles": "Tất cả vai trò",
+    "add": "Thêm người dùng",
+    "loading": "Đang tải…",
+    "empty": "Không có người dùng.",
+    "saved": "Đã lưu.",
+    "created": "Đã tạo người dùng.",
+    "lockedBadge": "Đã khóa",
+    "columns": {
+      "email": "Email",
+      "name": "Tên",
+      "role": "Vai trò",
+      "tenant": "Pháp nhân",
+      "status": "Trạng thái",
+      "lastLogin": "Đăng nhập gần nhất",
+      "actions": "Thao tác"
+    },
+    "fields": {
+      "email": "Email",
+      "name": "Tên",
+      "password": "Mật khẩu",
+      "passwordHint": "8–120 ký tự, phải có chữ và số.",
+      "tenant": "Pháp nhân (ent_id)",
+      "tenantHint": "UUID pháp nhân của người dùng."
+    },
+    "edit": {
+      "title": "Sửa người dùng"
+    },
+    "password": {
+      "title": "Đặt lại mật khẩu",
+      "confirm": "Đặt lại",
+      "done": "Đã cập nhật mật khẩu."
+    },
+    "lock": {
+      "title": "Khóa tài khoản",
+      "description": "Khóa {{email}} sẽ chặn đăng nhập.",
+      "confirm": "Khóa"
+    },
+    "unlock": {
+      "title": "Mở khóa tài khoản",
+      "description": "Mở khóa {{email}}.",
+      "confirm": "Mở khóa"
+    },
+    "errors": {
+      "required": "Vui lòng điền các trường bắt buộc.",
+      "createFailed": "Tạo người dùng thất bại.",
+      "saveFailed": "Lưu thất bại.",
+      "loadFailed": "Tải danh sách thất bại."
+    }
+  }
+}

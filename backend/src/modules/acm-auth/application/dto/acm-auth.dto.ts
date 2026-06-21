@@ -19,8 +19,24 @@ export interface AcmAuthUser {
   entId: string;
   email: string;
   name: string;
-  role?: 'ADMIN' | 'TEACHER' | 'STAFF';
+  role?: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
   authSource?: 'local' | 'ama';
+  /** REQ-260621 — true when the user must rotate their password before use. */
+  mustChangePassword?: boolean;
+}
+
+export class AcmChangePasswordDto {
+  @ApiProperty({ minLength: 8, maxLength: 120 })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(120)
+  currentPassword!: string;
+
+  @ApiProperty({ minLength: 8, maxLength: 120 })
+  @IsString()
+  @MinLength(8)
+  @MaxLength(120)
+  newPassword!: string;
 }
 
 export interface AcmLoginResponse {

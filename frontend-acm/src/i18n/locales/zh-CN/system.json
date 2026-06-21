@@ -1,0 +1,76 @@
+{
+  "badge": "系统",
+  "backToAdmin": "返回控制台",
+  "nav": {
+    "users": "用户管理"
+  },
+  "actions": {
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中…",
+    "create": "创建"
+  },
+  "roles": {
+    "APP_ADMIN": "应用管理员",
+    "ADMIN": "管理员",
+    "TEACHER": "教师",
+    "STAFF": "职员"
+  },
+  "status": {
+    "ACTIVE": "启用",
+    "INACTIVE": "停用"
+  },
+  "users": {
+    "title": "用户管理",
+    "description": "管理 ACM 所有租户的用户账号。",
+    "searchPlaceholder": "搜索邮箱或姓名",
+    "allRoles": "全部角色",
+    "add": "添加用户",
+    "loading": "加载中…",
+    "empty": "暂无用户。",
+    "saved": "已保存。",
+    "created": "用户已创建。",
+    "lockedBadge": "已锁定",
+    "columns": {
+      "email": "邮箱",
+      "name": "姓名",
+      "role": "角色",
+      "tenant": "租户",
+      "status": "状态",
+      "lastLogin": "最近登录",
+      "actions": "操作"
+    },
+    "fields": {
+      "email": "邮箱",
+      "name": "姓名",
+      "password": "密码",
+      "passwordHint": "8–120 个字符，须包含字母和数字。",
+      "tenant": "租户 (ent_id)",
+      "tenantHint": "用户所属租户的 UUID。"
+    },
+    "edit": {
+      "title": "编辑用户"
+    },
+    "password": {
+      "title": "重置密码",
+      "confirm": "重置",
+      "done": "密码已更新。"
+    },
+    "lock": {
+      "title": "锁定账号",
+      "description": "锁定 {{email}} 后将无法登录。",
+      "confirm": "锁定"
+    },
+    "unlock": {
+      "title": "解锁账号",
+      "description": "解锁 {{email}}。",
+      "confirm": "解锁"
+    },
+    "errors": {
+      "required": "请填写必填项。",
+      "createFailed": "创建用户失败。",
+      "saveFailed": "保存失败。",
+      "loadFailed": "加载列表失败。"
+    }
+  }
+}

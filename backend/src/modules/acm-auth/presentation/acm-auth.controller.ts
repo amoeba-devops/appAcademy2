@@ -15,8 +15,10 @@ import {
   AcmLoginDto,
   AcmAuthUser,
   AmaExchangeDto,
+  AcmChangePasswordDto,
 } from '../application/dto/acm-auth.dto';
 import { AcmJwtAuthGuard } from '../guards/acm-jwt-auth.guard';
+import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 
 @ApiTags('acm-auth')
 @Controller('acm/auth')
@@ -46,5 +48,25 @@ export class AcmAuthController {
   @ApiOperation({ summary: 'Current ACM user' })
   me(@Req() req: Request): { user: AcmAuthUser } {
     return { user: req.user as AcmAuthUser };
+  }
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AcmJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Change own password (verifies current) — clears the must-change flag (REQ-260621)',
+  })
+  async changePassword(
+    @CurrentUser() user: AcmCurrentUser,
+    @Body() dto: AcmChangePasswordDto,
+  ): Promise<{ success: true }> {
+    await this.service.changeOwnPassword(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+    return { success: true };
   }
 }
