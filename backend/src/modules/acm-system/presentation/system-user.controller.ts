@@ -44,6 +44,12 @@ export class SystemUserController {
     return this.svc.list(q);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single ACM user detail (APP_ADMIN)' })
+  detail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.svc.getDetail(id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create ACM user in any tenant (APP_ADMIN)' })
   create(@Body() dto: CreateSystemUserDto) {

@@ -9,6 +9,7 @@ related:
   - docs/plan/PLN-260621-acm-ui-system-admin.md
 change_log:
   - 2026-06-21 v1.0.0 — initial. ACM admin UI rework + cross-tenant System Admin.
+  - 2026-06-21 v1.1.0 — System Admin 확장: 사용자 상세보기, 테넌트 레지스트리/허브, 테넌트별 메뉴 노출(UI).
 ---
 
 # 요구사항 분석서 — ACM UI 개편 + System Admin (REQ-260621)
@@ -32,6 +33,10 @@ acm.amoeba.site 운영 콘솔의 헤더·네비게이션을 정리하고, 연동
 | FR-05 | `/system/admin` 신설 — ACM 등록 사용자 관리(목록/생성/수정/비밀번호/잠금) | [system-admin-page.tsx](../../frontend-acm/src/modules/system/pages/system-admin-page.tsx) + `/api/acm/system/users` |
 | FR-06 | 시스템 관리자 계정 생성: `admin@amoeba.group` / `temp@2026` / `APP_ADMIN` | dev/staging [511-seed-app-admin-dev.sql](../../sql/acm/511-seed-app-admin-dev.sql) · prod [gen-app-admin-seed.cjs](../../backend/scripts/gen-app-admin-seed.cjs) |
 | FR-07 | 시드/임시 비밀번호는 첫 로그인 시 강제 변경 | `usr_must_change_password` + `RequirePasswordRotationGuard` + `/admin/change-password` |
+| FR-08 (v1.1) | ACM 앱 사용자 리스트 — 테넌트 이름 표시 | list view `tenantName` 해석 (amb_acm_tenant join) |
+| FR-09 (v1.1) | 사용자 상세정보 보기 | `GET /acm/system/users/:id` + `UserDetailDrawer`(정보 + 수정/리셋/잠금 액션) |
+| FR-10 (v1.1) | 테넌트별 관리기능 (허브) | `amb_acm_tenant` 레지스트리 + `/system/tenants` 목록·상세(정보편집·소속 사용자·메뉴토글) |
+| FR-11 (v1.1) | 테넌트별 메뉴 노출 (UI) | `amb_acm_tenant_menu` + 토글 UI + `GET /acm/me/menus` 로 AppShell NAV 필터(데이터 권한 무관) |
 
 ## 3. Non-Functional / Security (비기능·보안)
 

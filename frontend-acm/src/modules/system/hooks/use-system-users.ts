@@ -8,12 +8,14 @@ export type SystemUserStatus = 'ACTIVE' | 'INACTIVE';
 export interface SystemUser {
   id: string;
   entId: string;
+  tenantName: string | null;
   email: string;
   name: string;
   role: SystemUserRole;
   status: string;
   authSource: string;
   locked: boolean;
+  mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
 }
@@ -57,6 +59,14 @@ export function useSystemUsers(params: ListSystemUsersQuery = {}) {
       const res = await apiClient.get<ListSystemUsersResponse>(BASE, { params });
       return res.data;
     },
+  });
+}
+
+export function useSystemUser(id: string | undefined) {
+  return useQuery({
+    enabled: !!id,
+    queryKey: [KEY, 'detail', id],
+    queryFn: async () => (await apiClient.get<SystemUser>(`${BASE}/${id}`)).data,
   });
 }
 

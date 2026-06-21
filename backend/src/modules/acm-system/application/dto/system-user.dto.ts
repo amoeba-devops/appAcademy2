@@ -101,12 +101,14 @@ export class ResetSystemUserPasswordDto {
 export interface SystemUserView {
   id: string;
   entId: string;
+  tenantName: string | null;
   email: string;
   name: string;
   role: string;
   status: string;
   authSource: string;
   locked: boolean;
+  mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
 }

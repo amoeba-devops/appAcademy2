@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, In, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { AcmAuthService } from '../../acm-auth/application/acm-auth.service';
 import type { AcmRole } from '../../acm-auth/application/acm-role.mapper';
+import { AcmTenantTypeormEntity } from '../infrastructure/typeorm/acm-tenant.typeorm-entity';
 import {
   CreateSystemUserDto,
   ListSystemUsersQueryDto,
@@ -24,6 +25,8 @@ export class SystemUserService {
   constructor(
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
+    private readonly tenantRepo: Repository<AcmTenantTypeormEntity>,
     private readonly authService: AcmAuthService,
   ) {}
 
@@ -53,7 +56,19 @@ export class SystemUserService {
       .take(limit);
 
     const [rows, total] = await qb.getManyAndCount();
-    return { items: rows.map((u) => this.toView(u)), total, page, limit };
+    const names = await this.tenantNames(rows.map((u) => u.entId));
+    return {
+      items: rows.map((u) => this.toView(u, names.get(u.entId) ?? null)),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  async getDetail(id: string): Promise<SystemUserView> {
+    const u = await this.getEntityOrThrow(id);
+    const names = await this.tenantNames([u.entId]);
+    return this.toView(u, names.get(u.entId) ?? null);
   }
 
   async create(dto: CreateSystemUserDto): Promise<SystemUserView> {
@@ -73,7 +88,8 @@ export class SystemUserService {
     if (dto.role !== undefined) u.role = dto.role;
     if (dto.status !== undefined) u.status = dto.status;
     await this.userRepo.save(u);
-    return this.toView(u);
+    const names = await this.tenantNames([u.entId]);
+    return this.toView(u, names.get(u.entId) ?? null);
   }
 
   async resetPassword(id: string, password: string): Promise<void> {
@@ -94,7 +110,14 @@ export class SystemUserService {
   }
 
   private async getOrThrow(id: string): Promise<SystemUserView> {
-    return this.toView(await this.getEntityOrThrow(id));
+    return this.getDetail(id);
+  }
+
+  private async tenantNames(entIds: string[]): Promise<Map<string, string>> {
+    const unique = [...new Set(entIds)];
+    if (unique.length === 0) return new Map();
+    const rows = await this.tenantRepo.find({ where: { entId: In(unique) } });
+    return new Map(rows.map((t) => [t.entId, t.name]));
   }
 
   private async getEntityOrThrow(id: string): Promise<AcmUserTypeormEntity> {
@@ -105,16 +128,21 @@ export class SystemUserService {
     return u;
   }
 
-  private toView(u: AcmUserTypeormEntity): SystemUserView {
+  private toView(
+    u: AcmUserTypeormEntity,
+    tenantName: string | null,
+  ): SystemUserView {
     return {
       id: u.id,
       entId: u.entId,
+      tenantName,
       email: u.email,
       name: u.name,
       role: u.role ?? 'ADMIN',
       status: u.status,
       authSource: u.authSource,
       locked: !!u.lockedAt,
+      mustChangePassword: u.mustChangePassword ?? false,
       lastLoginAt: u.lastLoginAt ? u.lastLoginAt.toISOString() : null,
       createdAt: u.createdAt.toISOString(),
     };

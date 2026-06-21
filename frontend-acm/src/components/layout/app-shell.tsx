@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
+import { useMyHiddenMenus } from '@/modules/system/hooks/use-my-menus';
 
 const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
@@ -50,6 +51,12 @@ export function AppShell() {
   const clear = useAuthStore((s) => s.clear);
   const navigate = useNavigate();
 
+  // REQ-260621 v1.1 — per-tenant menu visibility (UI-only). Fail-open: while
+  // loading or on error, `hidden` is undefined → all menus shown.
+  const { data: hidden } = useMyHiddenMenus();
+  const hiddenSet = new Set(hidden ?? []);
+  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key));
+
   const onLogout = () => {
     clear();
     navigate('/login', { replace: true });
@@ -74,7 +81,7 @@ export function AppShell() {
 
       <aside className="fixed left-0 top-header bottom-0 w-sidebar bg-surface border-r border-[var(--border-subtle)] flex flex-col">
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
-          {NAV.map(({ to, icon: Icon, key }) => (
+          {visibleNav.map(({ to, icon: Icon, key }) => (
             <NavLink
               key={to}
               to={to}

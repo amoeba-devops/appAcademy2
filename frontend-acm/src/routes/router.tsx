@@ -45,6 +45,8 @@ import { BodaConfigPage } from '@/modules/cfg/pages/boda-config-page';
 import { SystemShell } from '@/components/layout/system-shell';
 import { RequireAppAdmin } from '@/components/layout/require-app-admin';
 import { SystemAdminPage } from '@/modules/system/pages/system-admin-page';
+import { TenantListPage } from '@/modules/system/pages/tenant-list-page';
+import { TenantDetailPage } from '@/modules/system/pages/tenant-detail-page';
 
 /** Preserve query string while redirecting (used for legacy login URL compat). */
 function RedirectWithSearch({ to }: { to: string }) {
@@ -155,6 +157,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/system/admin" replace /> },
       { path: 'admin', element: <SystemAdminPage /> },
+      { path: 'tenants', element: <TenantListPage /> },
+      { path: 'tenants/:entId', element: <TenantDetailPage /> },
     ],
   },
 

@@ -1,11 +1,14 @@
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users, ArrowLeft, LogOut } from 'lucide-react';
+import { ShieldCheck, Users, Building2, ArrowLeft, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
 
-const NAV = [{ to: '/system/admin', icon: Users, key: 'users' }] as const;
+const NAV = [
+  { to: '/system/admin', icon: Users, key: 'users' },
+  { to: '/system/tenants', icon: Building2, key: 'tenants' },
+] as const;
 
 /**
  * REQ-260621 — System administration shell (APP_ADMIN). Visually distinct from
