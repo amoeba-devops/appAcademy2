@@ -60,8 +60,16 @@ change_log:
   - `s3://amoeba-acm-backups/pg/{prod,staging}/2026-06-22T{ts}/db_acm.sql.gz`
 - 보존: 90일 (lifecycle rule).
 
+### T0-05. Dual-write 11 테이블에 `legacy_id` 컬럼 추가
+- `sql/acm/951-acm-dual-write-legacy-id.sql` (작성 완료 — idempotent DO 블록).
+- 대상 11종: user / std_student / std_parent / std_student_parent / tch_teacher /
+  cls_classes / cls_sessions / cls_attendance / csl_enrollment / csl_inquiry /
+  map_passage.
+- cd-staging 다음 배포 시 자동 적용. Phase 3 migrator (특히 pay → enrollment FK)
+  의존성 차단 해결.
+
 ### T0-Gate. 운영자 승인
-- N 값 확정 / 스키마 매핑 spec 확정 / 백업 destination 확정.
+- N 값 확정 / 스키마 매핑 spec 확정 / 백업 destination 확정 / 951 마이그레이션 staging 적용 확인.
 
 ---
 
