@@ -13,6 +13,8 @@ import { NotificationTemplateTypeormEntity } from './infrastructure/typeorm/noti
  *
  * NOT imported into app.module.ts yet — Phase 2 explicit swap.
  */
+import { NotificationService } from './application/notification.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature(
@@ -20,5 +22,7 @@ import { NotificationTemplateTypeormEntity } from './infrastructure/typeorm/noti
       ACM_DS,
     ),
   ],
+  providers: [NotificationService],
+  exports: [NotificationService],
 })
 export class AcmNotificationModule {}

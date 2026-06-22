@@ -14,7 +14,11 @@ import { AuditLogTypeormEntity } from './infrastructure/typeorm/audit-log.typeor
  *
  * NOT imported into app.module.ts yet.
  */
+import { AuditService } from './application/audit.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([AuditLogTypeormEntity], ACM_DS)],
+  providers: [AuditService],
+  exports: [AuditService],
 })
 export class AcmAuditModule {}

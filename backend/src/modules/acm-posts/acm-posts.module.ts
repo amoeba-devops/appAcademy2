@@ -20,6 +20,10 @@ import { ProgramTypeormEntity } from './infrastructure/typeorm/program.typeorm-e
  *
  * NOT imported into app.module.ts yet.
  */
+import { ClassroomService } from './application/services/classroom.service';
+import { PostService } from './application/services/post.service';
+import { ProgramService } from './application/services/program.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature(
@@ -32,5 +36,7 @@ import { ProgramTypeormEntity } from './infrastructure/typeorm/program.typeorm-e
       ACM_DS,
     ),
   ],
+  providers: [PostService, ProgramService, ClassroomService],
+  exports: [PostService, ProgramService, ClassroomService],
 })
 export class AcmPostsModule {}
