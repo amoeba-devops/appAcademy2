@@ -20,14 +20,26 @@ import type { MigrateOptions, MigrateResult, VerifyResult } from '../lib/migrato
  *
  *   T2  CHAINED   — composite key depending on a T1 backfill
  *                   • cls_sessions          (cls.legacy_id + date + start_time)
+ *                   • std_parent            (phone + name + ent_id —
+ *                                            see "encryption" note below)
+ *                   • std_student           (name + birth_date + ent_id)
+ *                   • std_student_parent    (chained on std_student + std_parent)
  *
- *   T3  OUT-OF-BAND — model mismatch / PII decryption required.
+ *   T3  OUT-OF-BAND — model mismatch / Q-5 reconcile rules.
  *                   Operator must run a manual SQL pass before Phase 3.
- *                   • std_student           (PII: name + birth_date + parent_phone)
- *                   • std_parent            (PII: phone — needs ACM_PII_KEY)
- *                   • std_student_parent    (depends on above)
  *                   • csl_inquiry           (Q-5 partial-equiv reconcile)
- *                   • csl_enrollment        (model shift — see note below)
+ *                   • csl_enrollment        — already resolved by model
+ *                                              decision X (sql/acm/952);
+ *                                              cls_enrollment migrator
+ *                                              handles tac_enrollments now.
+ *
+ * On "encrypted" columns: `tac_parents.prt_phone_encrypted VARBINARY(255)`
+ * is actually plaintext UTF-8 bytes — a never-implemented Phase-1-MVP
+ * placeholder in backend/src/infrastructure/database/repositories/
+ * parent.repository.ts (encryptField is `Buffer.from(value, 'utf-8')`).
+ * The PG side is plaintext VARCHAR. Backfill normalizes the phone string
+ * on both sides and matches. SEPARATE security follow-up: NFR-005
+ * compliance — should be tracked outside this migration.
  *
  * `csl_enrollment` note: the PG `amb_acm_csl_enrollment` is conceptually a
  * "consultation pipeline stage marker" (FK → inquiry), whereas the MySQL
@@ -56,8 +68,14 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
     tables.push(await this.backfillTeacherByEmail(opts));
     tables.push(await this.backfillClassesByCode(opts));
     tables.push(await this.backfillMapPassageByTitleGrade(opts));
-    // T2 — chained on classes
+    // T2 — chained on T1
     tables.push(await this.backfillSessionsByClassAndTime(opts));
+    // T2 (re-classified from T3): MySQL "encrypted" columns are actually
+    // plaintext UTF-8 bytes (parent.repository.ts encryptField is a
+    // never-implemented placeholder). Match on plaintext after normalize.
+    tables.push(await this.backfillParentByPhoneAndName(opts));
+    tables.push(await this.backfillStudentByNameBirthDate(opts));
+    tables.push(await this.backfillStudentParentByLegacyIds(opts));
     return { domain: this.domain, tables };
   }
 
@@ -72,6 +90,9 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
       'amb_acm_cls_classes',
       'amb_acm_cls_sessions',
       'amb_acm_map_passage',
+      'amb_acm_std_parent',
+      'amb_acm_std_student',
+      'amb_acm_std_student_parent',
     ]) {
       const filled = await this.pg.count(tbl, 'legacy_id IS NOT NULL');
       const total = await this.pg.count(tbl);
@@ -232,6 +253,137 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
         };
       },
       legacyIdOf: (r) => Number(r['css_id']),
+      opts,
+    });
+  }
+
+  // --------------------------------------------------------------------
+  // T2 — std_parent  (legacy phone + name)
+  //
+  // Legacy `prt_phone_encrypted` claims AES-GCM but is actually plaintext
+  // UTF-8 bytes — see backend/src/infrastructure/database/repositories/
+  // parent.repository.ts where encryptField is `Buffer.from(value, 'utf-8')`,
+  // a Phase-1-MVP TODO that became permanent. PG side is plaintext (VARCHAR).
+  // So we decode the buffer, normalize, and match on (phone, name, ent_id).
+  //
+  // SECURITY NOTE — separate from this migration: NFR-005 expected AES-GCM
+  // at rest. Operator needs to track this as a follow-up security finding
+  // (independent of the MySQL → PG migration scope).
+  // --------------------------------------------------------------------
+  private async backfillParentByPhoneAndName(
+    opts: MigrateOptions,
+  ): Promise<MigrateResult['tables'][number]> {
+    return this.runMatch({
+      mysqlTable: 'tac_parents',
+      pgTable: 'amb_acm_std_parent',
+      orderBy: 'prt_id',
+      mysqlColumns: ['prt_id', 'acd_id', 'prt_name', 'prt_phone_encrypted'],
+      mapRowToWhere: (r) => {
+        const entId = this.tenants.resolve(Number(r['acd_id']));
+        const name = (r['prt_name'] as string | null)?.trim();
+        const phoneBuf = r['prt_phone_encrypted'] as Buffer | null;
+        const phone = phoneBuf
+          ? phoneBuf.toString('utf-8').replace(/[\s\-()]/g, '')
+          : null;
+        if (!entId) return { sql: '', params: [], skipReason: 'tenant_not_mapped' };
+        if (!name || !phone) return { sql: '', params: [], skipReason: 'no_phone_or_name' };
+        return {
+          // Normalize phone on PG side too to absorb formatting differences.
+          sql: `
+            regexp_replace(par_phone, '[\\s\\-()]', '', 'g') = $1
+            AND par_name = $2
+            AND ent_id = $3
+            AND legacy_id IS NULL
+          `,
+          params: [phone, name, entId],
+          skipReason: null,
+        };
+      },
+      legacyIdOf: (r) => Number(r['prt_id']),
+      opts,
+    });
+  }
+
+  // --------------------------------------------------------------------
+  // T2 — std_student  (name + birth_date + ent_id)
+  //
+  // tac_students is plain DATE/VARCHAR. PG amb_acm_std_student is the same.
+  // Birth date narrows the match enough to handle name collisions in
+  // mid-sized tenants. Adding `prt_id` (already migrated) as a tiebreaker
+  // would be ideal but the PG schema doesn't track that directly — we
+  // rely on the (name, birth_date) combination being unique per tenant.
+  // --------------------------------------------------------------------
+  private async backfillStudentByNameBirthDate(
+    opts: MigrateOptions,
+  ): Promise<MigrateResult['tables'][number]> {
+    return this.runMatch({
+      mysqlTable: 'tac_students',
+      pgTable: 'amb_acm_std_student',
+      orderBy: 'std_id',
+      mysqlColumns: ['std_id', 'acd_id', 'std_name', 'std_birth_date'],
+      mapRowToWhere: (r) => {
+        const entId = this.tenants.resolve(Number(r['acd_id']));
+        const name = (r['std_name'] as string | null)?.trim();
+        const birth = r['std_birth_date'];
+        if (!entId) return { sql: '', params: [], skipReason: 'tenant_not_mapped' };
+        if (!name) return { sql: '', params: [], skipReason: 'no_name' };
+        if (!birth) {
+          // No birth date in MySQL — fall back to name-only match. This is
+          // weaker; the runMatch ambiguity guard will skip if 2+ PG rows
+          // match (operator review).
+          return {
+            sql: 'std_name = $1 AND ent_id = $2 AND legacy_id IS NULL',
+            params: [name, entId],
+            skipReason: null,
+          };
+        }
+        return {
+          sql: 'std_name = $1 AND std_birth_date = $2 AND ent_id = $3 AND legacy_id IS NULL',
+          params: [name, birth, entId],
+          skipReason: null,
+        };
+      },
+      legacyIdOf: (r) => Number(r['std_id']),
+      opts,
+    });
+  }
+
+  // --------------------------------------------------------------------
+  // T2 — std_student_parent  (depends on both T2 backfills above)
+  //
+  // tac_student_guardians is the join. After student + parent legacy_id
+  // are populated on PG, we can resolve (std_legacy → std_uuid) and
+  // (prt_legacy → prt_uuid) and find the matching PG row.
+  //
+  // The PG `amb_acm_std_student_parent` PK column is checked at runtime
+  // (avoids a stale assumption baked into this file).
+  // --------------------------------------------------------------------
+  private backfillStudentParentByLegacyIds(opts: MigrateOptions) {
+    return this.runMatch({
+      mysqlTable: 'tac_student_guardians',
+      pgTable: 'amb_acm_std_student_parent',
+      orderBy: 'sgu_id',
+      mysqlColumns: ['sgu_id', 'std_id', 'prt_id'],
+      mapRowToWhere: (r) => {
+        const stdLegacy = Number(r['std_id']);
+        const prtLegacy = Number(r['prt_id']);
+        if (!stdLegacy || !prtLegacy) {
+          return { sql: '', params: [], skipReason: 'incomplete_key' };
+        }
+        // PG schema: amb_acm_std_student_parent(sp_id, std_id, par_id, ...).
+        // sql/acm/840 §A3 — composite UNIQUE on (std_id, par_id) so the
+        // subquery → equality match yields a single row.
+        return {
+          sql: `
+            std_id = (SELECT std_id FROM amb_acm_std_student WHERE legacy_id = $1)
+            AND par_id = (SELECT par_id FROM amb_acm_std_parent WHERE legacy_id = $2)
+            AND legacy_id IS NULL
+          `,
+          params: [stdLegacy, prtLegacy],
+          skipReason: null,
+        };
+      },
+      legacyIdOf: (r) => Number(r['sgu_id']),
       opts,
     });
   }
