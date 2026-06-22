@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "baseUrl": "../../backend",
+    "paths": {
+      "*": ["node_modules/*"]
+    },
+    "typeRoots": ["../../backend/node_modules/@types"]
+  },
+  "include": ["src/**/*.ts"]
+}
