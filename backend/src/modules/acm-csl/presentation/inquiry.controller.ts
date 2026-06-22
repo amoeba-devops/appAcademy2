@@ -148,7 +148,8 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: BackwardTransitionDto,
   ) {
-    const isAdmin = user.roles?.includes('admin') ?? false;
+    // FIX-260622: same root cause as upsertEnrollment — use the JWT `role`.
+    const isAdmin = user.role === 'ADMIN' || user.role === 'APP_ADMIN';
     return this.workflow.backwardTransition(user.entId, inqId, dto, user.id, isAdmin);
   }
 
@@ -214,8 +215,10 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: UpsertEnrollmentDto,
   ) {
-    const isSeniorManager =
-      user.roles?.includes('senior_manager') || user.roles?.includes('admin') || false;
+    // FIX-260622: derive from the JWT `role` (singular, uppercase). The legacy
+    // `user.roles` array is never populated and used lowercase values, so this
+    // was always false → BR-CSL-012 blocked every tuitionPaid change with 403.
+    const isSeniorManager = user.role === 'ADMIN' || user.role === 'APP_ADMIN';
     return this.base.upsertEnrollment(user.entId, inqId, dto, {
       id: user.id,
       isSeniorManager,
