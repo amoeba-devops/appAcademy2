@@ -54,10 +54,11 @@
 | **Framework** | NestJS | 11.x |
 | **Language** | TypeScript (strict) | 5.x |
 | **ORM** | TypeORM | latest |
-| **Database** | MySQL | 8.x |
+| **Database** | **PostgreSQL** (`pg_bigm`) | 16.x |
+| ~~Database (legacy)~~ | ~~MySQL~~ | ~~8.x~~ — REQ-260622 Phase 7 까지 단계적 폐기 |
 | **Validation** | class-validator + class-transformer | latest |
 | **API Docs** | Swagger (@nestjs/swagger) | latest |
-| **PG** | Toss Payments | Widget SDK v2 |
+| **PG (Payment)** | Toss Payments | Widget SDK v2 |
 
 ### Shared Infrastructure
 | Layer | Technology | Version |
@@ -197,12 +198,14 @@ Domain (핵심)  →  Application (유스케이스)  →  Infrastructure (어댑
 
 ### 4.4 Data Flow
 ```
-React (Frontend:3009)
+React SPA (frontend-acm:5173 dev / 5174 docker)
     → fetch /api/*
-    → Next.js rewrite proxy
+    → nginx + Vite proxy
     → NestJS Controller (Backend:4009)
     → Use Case → Domain Service → Repository Interface
-    → TypeORM Repository Implementation → MySQL
+    → TypeORM Repository Implementation → PostgreSQL (db_acm)
+                     ↕
+            Redis (cache + idempotency)
                      ↕
             RabbitMQ (events)
                      ↓
@@ -210,8 +213,8 @@ React (Frontend:3009)
 ```
 
 ### 4.5 Multi-Tenancy
-- 모든 데이터 테이블은 `academy_id` 컬럼으로 테넌트 격리 (NFR-004).
-- API Guard에서 세션의 `academy_id` 자동 주입.
+- 모든 PG 테이블은 `ent_id UUID` 컬럼으로 테넌트 격리 (NFR-004). (legacy MySQL 은 `acd_id BIGINT` — Phase 7 폐기)
+- API Guard 에서 JWT 의 `entId` 자동 주입 (`OwnEntityGuard`).
 
 ### 4.6 AMA Integration Boundary
 - **연동 O**: 교사 마스터(Client 1:1 참조), AmoebaTalk 알림
@@ -237,7 +240,27 @@ React (Frontend:3009)
 
 ## 5. Database Convention (DB 규칙)
 
-### 5.1 Naming
+> ⚠️ **REQ-260622 진행 중**: MySQL (`db_tac` / `tac_*`) 폐기 + PostgreSQL (`db_acm` / `amb_acm_*`) 단일화. 신규 테이블/엔티티는 **반드시 PG 컨벤션 (5.1)** 만 사용. legacy MySQL 컨벤션 (5.2) 은 Phase 7 까지의 readonly 참조용. 자세한 내용 → [REQ-260622](docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md), [SPEC schema map](docs/design/SPEC-260622-tac-to-pg-schema-map.md).
+
+### 5.1 PG Naming (신규 표준)
+| Item | Rule | Example |
+|------|------|---------|
+| Database | `db_acm` | — |
+| Table prefix | `amb_acm_{module}_{entity}` | `amb_acm_pay_order`, `amb_acm_cls_sessions`, `amb_acm_cal_event` |
+| Module prefix | `acm-{module}` | `acm-pay`, `acm-cls`, `acm-cal`, `acm-csl`, `acm-map`, `acm-dsh` |
+| Column (PK) | `{prefix}_id UUID DEFAULT gen_random_uuid()` | `pod_id`, `enr_id`, `mpg_id` |
+| Column (Tenant) | `ent_id UUID NOT NULL` | 모든 테이블 필수 |
+| Column (FK) | `{prefix}_id UUID` 참조 | `prp_id` (refund policy), `mts_id` (test set) |
+| Column (timestamp) | `created_at`, `updated_at` | `TIMESTAMPTZ NOT NULL DEFAULT NOW()` |
+| Column (soft delete) | `deleted_at` | `TIMESTAMPTZ`, nullable |
+| Column (boolean) | `is_{name}` 또는 `{prefix}_is_{name}` | `is_active`, `prp_is_default_template` |
+| Column (status) | `{prefix}_status VARCHAR(20)` + CHECK | UPPER_SNAKE enum |
+| Trigger (updated_at) | `set_acm_updated_at()` | 기존 함수 재사용 (sql/acm/910) |
+| Index | `idx_acm_{table_short}_{cols}` | `idx_acm_pay_order_status` |
+| Unique | `uq_acm_{table_short}_{cols}` | `uq_acm_pay_order_idempotency` |
+| Migration | `legacy_id BIGINT UNIQUE` | Phase 3 MySQL→PG 이전 대응, Phase 7 + 30일 drop |
+
+### 5.2 MySQL Naming (legacy, Phase 7 까지 readonly)
 | Item | Rule | Example |
 |------|------|---------|
 | Database | `db_tac` | — |
