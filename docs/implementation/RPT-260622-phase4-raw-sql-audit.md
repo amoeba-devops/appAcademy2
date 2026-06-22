@@ -1,6 +1,6 @@
 ---
 document_id: RPT-260622-phase4-raw-sql-audit
-version: 1.0.0
+version: 1.0.1
 status: draft
 created: 2026-06-22
 authors:
@@ -10,6 +10,7 @@ related:
   - docs/plan/PLN-260622-mysql-to-postgres-full-migration.md (Phase 4 T4-03)
 change_log:
   - 2026-06-22 v1.0.0 draft — Phase 4 raw-SQL audit + PG redo status
+  - 2026-06-22 v1.0.1 §3.2 정정 — staff JWT 에 entId 이미 존재. 실제 gap 은 PARENT 역할 부재 (Option A/B/C 비교)
 ---
 
 # Phase 4 — Raw SQL Audit (REQ-260622 T4-03)
@@ -62,33 +63,32 @@ $ grep -rE "FROM tac_|JOIN tac_|UPDATE tac_|INSERT INTO tac_" \
 | `tac_pay_orders.pod_created_at` | `amb_acm_pay_order.created_at` | 컬럼 prefix 떼고 standard timestamp |
 | `tac_map_scores.msc_*` | `amb_acm_map_score.msc_*` (또는 학생 행의 `std_map_*`) | 학생 snapshot 컬럼 + 히스토리 테이블 양쪽 존재 — controller 는 히스토리만 surface |
 
-### 3.2 JWT payload extension needed (Phase 6 prereq)
+### 3.2 Auth path 분기 (Phase 6 prereq — 정정 2026-06-22)
 
-현재 `CurrentUserPayload`:
-```ts
-{ userId: number; academyId: number | null; email: string; name: string; role: string }
-```
+**1차 audit 의 오류 정정**: ACM staff JWT (`AcmJwtPayload`) 에는 `entId` 가 이미 존재함 ([backend/src/modules/acm-auth/application/acm-auth.service.ts:108-115](backend/src/modules/acm-auth/application/acm-auth.service.ts#L108)). `AcmCurrentUser` 데코레이터도 `entId/id/email` 노출 중.
 
-Phase 6 cutover 직전 추가 필요:
-```ts
-{ ..., entId: string;  // UUID — tenant scope for PG queries
-       userUuid: string; // amb_acm_user.usr_id — for FK references
-       parentUuid?: string; // optional — pre-resolved at JWT issue time
-}
-```
+**실제 gap**: ACM auth 시스템은 admin/staff 전용 (`AcmRole = 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN'`). **`PARENT` 역할 미포함**. portal-parent 흐름은 legacy `JwtAuthGuard` (`CurrentUserPayload.userId: number`) 를 사용 중. 따라서 Phase 6 cutover 시 다음 옵션 중 택일:
 
-JWT 발급 path (`acm-auth.service`) 에서 채워야 함. 임시방편으로 `ParentPortalPgUseCase.findParentId(entId, email)` 가 매 호출마다 lookup (1 query 추가) 으로 동작.
+| Option | 비고 | 복잡도 |
+|---|---|---|
+| **A. AcmRole 확장** | `'PARENT'` 추가 + `amb_acm_user` 에 parent row 생성 + `par_id` 매핑 컬럼 추가 | 중 — 신규 컬럼 + JWT issue 흐름 변경 |
+| **B. Parent JWT 별도 발급** | `acm-parent-jwt` strategy 신규. `email + entId` payload, `parentUuid` 사전 주입 | 중-상 — 신규 strategy + guard |
+| **C. legacy JwtAuthGuard 유지** | parent 경로만 legacy 유지. 내부에서 PG 쿼리 시 email lookup + tenant 직접 resolve | 저 — 현재 `ParentPortalPgUseCase.findParentId(entId, email)` 와 일치 |
+
+**권장**: Option C — Phase 6 swap 시 controller 가 legacy JwtAuthGuard 그대로 사용하되, `req.user.email` + 별도 tenant resolver (request domain 또는 query param) 로 `entId` 산출. `ParentPortalPgUseCase` 가 이미 (entId, email) signature 라 호환됨. parent auth 전면 재설계는 별도 REQ 로 분리.
+
+성능: `findParentId(entId, email)` 가 매 호출마다 lookup (1 query +5ms). 필요 시 Redis 60s cache 로 mitigate. 사전주입은 Option A/B 로 가야 가능.
 
 ---
 
 ## 4. Phase 6 cutover 작업 (이 RPT 의 follow-up)
 
-1. JWT payload 에 `entId` 추가 (`acm-auth.service` + JwtAuthGuard 양쪽).
+1. **Parent auth** — §3.2 Option C 채택 가정. portal-parent controller 는 legacy `JwtAuthGuard` 유지. `entId` 는 request host (`acm.amoeba.site` ↔ `ent_id` map) 또는 `X-Ent-Id` header (admin 만) 로 resolve. `email` 은 그대로 JWT payload 에서 추출.
 2. controller import swap:
-   - `presentation/controllers/portal-parent.controller.ts` → 새 controller 가 `ParentPortalPgUseCase` 호출.
-   - `app/dashboard.module.ts` (또는 해당 모듈) → `GetDashboardKpiPgUseCase`.
-   - subscription provisioning 흐름 → `ProvisioningPgSeed.applySeedTemplate` 호출 추가.
-3. `repositories/map-test-set.repository.ts` → 삭제 + 새 controller가 `acm-map.MapAssignmentService` + 추가 신규 `MapTestSetService` (Phase 6 신규) 호출.
+   - [presentation/controllers/portal-parent.controller.ts](backend/src/presentation/controllers/portal-parent.controller.ts) → `ParentPortalPgUseCase` 호출하는 신규 controller 로 교체. legacy `.ts` 는 Phase 7 삭제 대상.
+   - dashboard 호출 site → `GetDashboardKpiPgUseCase` import swap. `entId` 는 staff JWT (`AcmCurrentUser.entId`) 에서 직접.
+   - subscription provisioning 흐름 → `ProvisioningPgSeed.applySeedTemplate(entId)` 호출 추가 (legacy MySQL seed 호출 직후 또는 대체).
+3. [repositories/map-test-set.repository.ts](backend/src/infrastructure/database/repositories/map-test-set.repository.ts) → Phase 7 일괄 삭제. 신규 controller 가 `acm-map.MapAssignmentService` + 추가 신규 `MapTestSetService` (Phase 6 신규) 호출.
 
 ---
 
