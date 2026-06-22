@@ -28,14 +28,12 @@ import { TenantBootstrapMigrator } from './migrators/tenant-bootstrap.migrator';
 import { BackfillLegacyIdMigrator } from './migrators/backfill-legacy-id.migrator';
 import { ClsEnrollmentMigrator } from './migrators/cls-enrollment.migrator';
 import { PayMigrator } from './migrators/pay.migrator';
-import {
-  AuditMigrator,
-  CslAuxMigrator,
-  MapMigrator,
-  NotificationMigrator,
-  PostsMigrator,
-  SubscriptionMigrator,
-} from './migrators/stubs';
+import { MapMigrator } from './migrators/map.migrator';
+import { NotificationMigrator } from './migrators/notification.migrator';
+import { AuditMigrator } from './migrators/audit.migrator';
+import { PostsMigrator } from './migrators/posts.migrator';
+import { CslAuxMigrator } from './migrators/csl-aux.migrator';
+import { SubscriptionMigrator } from './migrators/subscription.migrator';
 import type { BaseMigrator } from './lib/migrator';
 
 interface CliArgs {
@@ -144,12 +142,12 @@ async function main(): Promise<void> {
     'backfill-legacy-id': () => new BackfillLegacyIdMigrator(mysql, pg, tenants, cfg),
     'cls-enrollment':     () => new ClsEnrollmentMigrator(mysql, pg, tenants, cfg),
     pay:                  () => new PayMigrator(mysql, pg, tenants, cfg),
-    map:                  () => new MapMigrator('map', mysql, pg, tenants, cfg),
-    notification:         () => new NotificationMigrator('notification', mysql, pg, tenants, cfg),
-    audit:                () => new AuditMigrator('audit', mysql, pg, tenants, cfg),
-    posts:                () => new PostsMigrator('posts', mysql, pg, tenants, cfg),
-    'csl-aux':            () => new CslAuxMigrator('csl-aux', mysql, pg, tenants, cfg),
-    subscription:         () => new SubscriptionMigrator('subscription', mysql, pg, tenants, cfg),
+    map:                  () => new MapMigrator(mysql, pg, tenants, cfg),
+    notification:         () => new NotificationMigrator(mysql, pg, tenants, cfg),
+    audit:                () => new AuditMigrator(mysql, pg, tenants, cfg),
+    posts:                () => new PostsMigrator(mysql, pg, tenants, cfg),
+    'csl-aux':            () => new CslAuxMigrator(mysql, pg, tenants, cfg),
+    subscription:         () => new SubscriptionMigrator(mysql, pg, tenants, cfg),
   };
 
   const make = factory[args.domain];
