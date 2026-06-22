@@ -1,5 +1,6 @@
 import { BaseMigrator } from '../lib/migrator';
 import type { MigrateOptions, MigrateResult, VerifyResult } from '../lib/migrator';
+import { AesGcm, normalizePhone } from '../lib/aes-gcm';
 
 /**
  * Backfill `legacy_id` BIGINT on the 11 dual-write tables (REQ-260622 T0-05).
@@ -25,13 +26,16 @@ import type { MigrateOptions, MigrateResult, VerifyResult } from '../lib/migrato
  *                   • std_student           (name + birth_date + ent_id)
  *                   • std_student_parent    (chained on std_student + std_parent)
  *
- *   T3  OUT-OF-BAND — model mismatch / Q-5 reconcile rules.
- *                   Operator must run a manual SQL pass before Phase 3.
- *                   • csl_inquiry           (Q-5 partial-equiv reconcile)
- *                   • csl_enrollment        — already resolved by model
- *                                              decision X (sql/acm/952);
- *                                              cls_enrollment migrator
- *                                              handles tac_enrollments now.
+ *   T3  Q-5 RECONCILE — implemented via PG-side AES-GCM decryption.
+ *                   • csl_inquiry           (parent name + phone within
+ *                                            registered_at ±1 day) — requires
+ *                                            ACM_PII_KEY env. Skips silently
+ *                                            with a warn line if the key is
+ *                                            missing.
+ *                   • csl_enrollment        — resolved by model decision X
+ *                                              (sql/acm/952); cls_enrollment
+ *                                              migrator handles tac_enrollments
+ *                                              separately.
  *
  * On "encrypted" columns: `tac_parents.prt_phone_encrypted VARBINARY(255)`
  * is actually plaintext UTF-8 bytes — a never-implemented Phase-1-MVP
@@ -52,6 +56,8 @@ import type { MigrateOptions, MigrateResult, VerifyResult } from '../lib/migrato
  * deterministic match (extremely rare in practice) and skips the rest.
  */
 export class BackfillLegacyIdMigrator extends BaseMigrator {
+  private readonly aesGcm: AesGcm;
+
   constructor(
     mysql: ConstructorParameters<typeof BaseMigrator>[1],
     pg: ConstructorParameters<typeof BaseMigrator>[2],
@@ -59,6 +65,7 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
     cfg: ConstructorParameters<typeof BaseMigrator>[4],
   ) {
     super('backfill-legacy-id', mysql, pg, tenants, cfg);
+    this.aesGcm = new AesGcm(process.env.ACM_PII_KEY);
   }
 
   async migrate(opts: MigrateOptions): Promise<MigrateResult> {
@@ -76,6 +83,8 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
     tables.push(await this.backfillParentByPhoneAndName(opts));
     tables.push(await this.backfillStudentByNameBirthDate(opts));
     tables.push(await this.backfillStudentParentByLegacyIds(opts));
+    // T3 — Q-5 reconcile (uses ACM_PII_KEY for PG-side AES-GCM decryption).
+    tables.push(await this.backfillInquiryByParentAndDate(opts));
     return { domain: this.domain, tables };
   }
 
@@ -93,6 +102,7 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
       'amb_acm_std_parent',
       'amb_acm_std_student',
       'amb_acm_std_student_parent',
+      'amb_acm_csl_inquiry',
     ]) {
       const filled = await this.pg.count(tbl, 'legacy_id IS NOT NULL');
       const total = await this.pg.count(tbl);
@@ -386,6 +396,185 @@ export class BackfillLegacyIdMigrator extends BaseMigrator {
       legacyIdOf: (r) => Number(r['sgu_id']),
       opts,
     });
+  }
+
+  // --------------------------------------------------------------------
+  // T3 — csl_inquiry (Q-5 auto reconcile)
+  //
+  // Custom matching path — `runMatch()` doesn't handle this because PG-side
+  // name/phone is AES-GCM encrypted. We decrypt in Node, compare, and tag
+  // legacy_id when exactly one PG candidate matches.
+  //
+  // Match flow:
+  //   1. MySQL tac_consultations.prt_id → MySQL tac_parents → parent name + phone
+  //      (plaintext after the encrypt-field placeholder unwinds).
+  //   2. Constrain PG inquiry candidates by (ent_id, inq_registered_at near
+  //      cst_created_at::date ± 1 day) — narrows from O(tenant total) to
+  //      typically 0–5 candidates.
+  //   3. AES-GCM decrypt each candidate's inq_name/phone.
+  //   4. Compare normalized strings. Exact match on (name + phone) → tag.
+  //   5. 0 or 2+ matches → skip + log (operator review).
+  //
+  // ACM_PII_KEY absent → method emits the full row count under
+  // skippedNoKey with reason 'no_pii_key' and returns without touching PG.
+  // --------------------------------------------------------------------
+  private async backfillInquiryByParentAndDate(
+    opts: MigrateOptions,
+  ): Promise<MigrateResult['tables'][number]> {
+    const start = Date.now();
+    const dryRun = opts.dryRun ?? this.cfg.dryRun;
+    const total = await this.mysql.count('tac_consultations');
+    this.log.info('begin backfill tac_consultations → amb_acm_csl_inquiry', {
+      total, dryRun, aesGcmEnabled: this.aesGcm.enabled,
+    });
+
+    if (!this.aesGcm.enabled) {
+      this.log.warn('skip csl_inquiry backfill — ACM_PII_KEY missing');
+      return {
+        mysqlTable: 'tac_consultations',
+        pgTable: 'amb_acm_csl_inquiry',
+        mysqlCount: total,
+        pgInserted: 0,
+        pgSkipped: total,
+        durationMs: Date.now() - start,
+      };
+    }
+
+    let matched = 0;
+    let skippedNoParent = 0;
+    let skippedNoCandidates = 0;
+    let skippedAmbiguous = 0;
+
+    type Row = {
+      cst_id: number;
+      acd_id: number;
+      prt_id: number | null;
+      cst_created_at: Date | string;
+    };
+
+    for await (const batch of this.mysql.iterate<Row>('tac_consultations', {
+      orderBy: 'cst_id',
+      batchSize: this.cfg.batchSize,
+      columns: ['cst_id', 'acd_id', 'prt_id', 'cst_created_at'],
+      limit: opts.limit,
+    })) {
+      for (const row of batch) {
+        if (!row.prt_id) {
+          skippedNoParent++;
+          continue;
+        }
+        const entId = this.tenants.resolve(Number(row.acd_id));
+        if (!entId) {
+          skippedNoParent++;
+          continue;
+        }
+
+        // 1) Get parent name + phone from MySQL.
+        const parent = await this.mysql.findOne<{
+          prt_name: string;
+          prt_phone_encrypted: Buffer | null;
+        }>(
+          'SELECT prt_name, prt_phone_encrypted FROM tac_parents WHERE prt_id = ?',
+          [row.prt_id],
+        );
+        if (!parent) {
+          skippedNoParent++;
+          continue;
+        }
+        const targetName = (parent.prt_name ?? '').trim();
+        const targetPhone = normalizePhone(
+          parent.prt_phone_encrypted?.toString('utf-8') ?? null,
+        );
+
+        // 2) Candidate PG inquiries (ent + date window).
+        const createdDate = this.toTimestampTz(row.cst_created_at);
+        if (!createdDate) {
+          skippedNoCandidates++;
+          continue;
+        }
+        const isoDate = createdDate.toISOString().slice(0, 10);
+        const candidates = await this.pg.query<{
+          inq_id: string;
+          inq_name_encrypted: Buffer;
+          inq_name_iv: Buffer;
+          inq_name_auth_tag: Buffer;
+          inq_phone_encrypted: Buffer | null;
+          inq_phone_iv: Buffer | null;
+          inq_phone_auth_tag: Buffer | null;
+        }>(
+          `SELECT inq_id, inq_name_encrypted, inq_name_iv, inq_name_auth_tag,
+                  inq_phone_encrypted, inq_phone_iv, inq_phone_auth_tag
+             FROM amb_acm_csl_inquiry
+            WHERE ent_id = $1
+              AND inq_registered_at BETWEEN $2::date - INTERVAL '1 day'
+                                       AND $2::date + INTERVAL '1 day'
+              AND legacy_id IS NULL`,
+          [entId, isoDate],
+        );
+        if (candidates.length === 0) {
+          skippedNoCandidates++;
+          continue;
+        }
+
+        // 3) Decrypt each candidate and compare.
+        const hits: string[] = [];
+        for (const c of candidates) {
+          const decName = this.aesGcm.decrypt(
+            c.inq_name_encrypted,
+            c.inq_name_iv,
+            c.inq_name_auth_tag,
+          );
+          if (decName == null) continue;
+          if (decName.trim() !== targetName) continue;
+          // Name matches — also verify phone if both sides have it.
+          if (targetPhone && c.inq_phone_encrypted) {
+            const decPhone = this.aesGcm.decrypt(
+              c.inq_phone_encrypted,
+              c.inq_phone_iv,
+              c.inq_phone_auth_tag,
+            );
+            if (normalizePhone(decPhone) !== targetPhone) continue;
+          }
+          hits.push(c.inq_id);
+        }
+
+        if (hits.length === 0) {
+          skippedNoCandidates++;
+          continue;
+        }
+        if (hits.length > 1) {
+          skippedAmbiguous++;
+          this.log.warn(`ambiguous inquiry match (${hits.length} rows) — skip`, {
+            cst_id: row.cst_id, prt_id: row.prt_id, hits,
+          });
+          continue;
+        }
+
+        if (dryRun) {
+          matched++;
+          continue;
+        }
+        await this.pg.query(
+          'UPDATE amb_acm_csl_inquiry SET legacy_id = $1 WHERE inq_id = $2',
+          [row.cst_id, hits[0]],
+        );
+        matched++;
+      }
+    }
+
+    const durationMs = Date.now() - start;
+    this.log.info('done csl_inquiry backfill', {
+      matched, skippedNoParent, skippedNoCandidates, skippedAmbiguous, durationMs,
+    });
+
+    return {
+      mysqlTable: 'tac_consultations',
+      pgTable: 'amb_acm_csl_inquiry',
+      mysqlCount: total,
+      pgInserted: matched,
+      pgSkipped: skippedNoParent + skippedNoCandidates + skippedAmbiguous,
+      durationMs,
+    };
   }
 
   // --------------------------------------------------------------------
