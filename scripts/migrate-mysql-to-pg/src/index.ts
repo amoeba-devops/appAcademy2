@@ -25,6 +25,7 @@ import { MysqlClient } from './lib/mysql-client';
 import { PgClient } from './lib/pg-client';
 import { TenantMap } from './lib/tenant-map';
 import { TenantBootstrapMigrator } from './migrators/tenant-bootstrap.migrator';
+import { BackfillLegacyIdMigrator } from './migrators/backfill-legacy-id.migrator';
 import { PayMigrator } from './migrators/pay.migrator';
 import {
   AuditMigrator,
@@ -76,14 +77,17 @@ Usage:
   npx ts-node src/index.ts --domain <name> [options]
 
 Domains (run in this order for full migration):
-  tenant-bootstrap   MUST be first — populates amb_acm_tenant.legacy_acd_id
-  pay                6 결제 테이블
-  map                8 MAP 평가 테이블
-  notification       2 알림 테이블
-  audit              1 PII 감사 로그 (Q-2 N-day cutoff)
-  posts              4 카탈로그 테이블 (posts/program/program_setting/classroom)
-  csl-aux            3 상담 보조 + 학생 외부점수
-  subscription       1 AMA 구독 이벤트
+  tenant-bootstrap     MUST be first — populates amb_acm_tenant.legacy_acd_id
+  backfill-legacy-id   MUST be second — populates legacy_id on dual-write
+                       tables via natural-key match (T0-05 prereq for FK
+                       resolution in domain migrators)
+  pay                  6 결제 테이블
+  map                  8 MAP 평가 테이블
+  notification         2 알림 테이블
+  audit                1 PII 감사 로그 (Q-2 N-day cutoff)
+  posts                4 카탈로그 테이블 (posts/program/program_setting/classroom)
+  csl-aux              3 상담 보조 + 학생 외부점수
+  subscription         1 AMA 구독 이벤트
 
 Options:
   --dry-run          Don't write to PG; print transform sample
@@ -133,14 +137,15 @@ async function main(): Promise<void> {
   log.info(`tenants loaded: ${tenants.size()}`);
 
   const factory: Record<string, () => BaseMigrator> = {
-    'tenant-bootstrap': () => new TenantBootstrapMigrator(mysql, pg, tenants, cfg),
-    pay:                 () => new PayMigrator(mysql, pg, tenants, cfg),
-    map:                 () => new MapMigrator('map', mysql, pg, tenants, cfg),
-    notification:        () => new NotificationMigrator('notification', mysql, pg, tenants, cfg),
-    audit:               () => new AuditMigrator('audit', mysql, pg, tenants, cfg),
-    posts:               () => new PostsMigrator('posts', mysql, pg, tenants, cfg),
-    'csl-aux':           () => new CslAuxMigrator('csl-aux', mysql, pg, tenants, cfg),
-    subscription:        () => new SubscriptionMigrator('subscription', mysql, pg, tenants, cfg),
+    'tenant-bootstrap':   () => new TenantBootstrapMigrator(mysql, pg, tenants, cfg),
+    'backfill-legacy-id': () => new BackfillLegacyIdMigrator(mysql, pg, tenants, cfg),
+    pay:                  () => new PayMigrator(mysql, pg, tenants, cfg),
+    map:                  () => new MapMigrator('map', mysql, pg, tenants, cfg),
+    notification:         () => new NotificationMigrator('notification', mysql, pg, tenants, cfg),
+    audit:                () => new AuditMigrator('audit', mysql, pg, tenants, cfg),
+    posts:                () => new PostsMigrator('posts', mysql, pg, tenants, cfg),
+    'csl-aux':            () => new CslAuxMigrator('csl-aux', mysql, pg, tenants, cfg),
+    subscription:         () => new SubscriptionMigrator('subscription', mysql, pg, tenants, cfg),
   };
 
   const make = factory[args.domain];
