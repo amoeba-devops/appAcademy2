@@ -7,7 +7,11 @@ import { PayReceiptTypeormEntity } from './infrastructure/typeorm/pay-receipt.ty
 import { PayRefundPolicyTierTypeormEntity } from './infrastructure/typeorm/pay-refund-policy-tier.typeorm-entity';
 import { PayRefundPolicyTypeormEntity } from './infrastructure/typeorm/pay-refund-policy.typeorm-entity';
 import { PayTaxInvoiceTypeormEntity } from './infrastructure/typeorm/pay-tax-invoice.typeorm-entity';
+import { PayLedgerService } from './application/services/pay-ledger.service';
 import { PayOrderService } from './application/services/pay-order.service';
+import { PayReceiptService } from './application/services/pay-receipt.service';
+import { PayRefundPolicyService } from './application/services/pay-refund-policy.service';
+import { PayTaxInvoiceService } from './application/services/pay-tax-invoice.service';
 
 /**
  * REQ-260622 Phase 2 — `acm-pay` 모듈.
@@ -37,7 +41,19 @@ import { PayOrderService } from './application/services/pay-order.service';
       ACM_DS,
     ),
   ],
-  providers: [PayOrderService],
-  exports: [PayOrderService],
+  providers: [
+    PayOrderService,
+    PayLedgerService,
+    PayReceiptService,
+    PayRefundPolicyService,
+    PayTaxInvoiceService,
+  ],
+  exports: [
+    PayOrderService,
+    PayLedgerService,
+    PayReceiptService,
+    PayRefundPolicyService,
+    PayTaxInvoiceService,
+  ],
 })
 export class AcmPayModule {}
