@@ -15,6 +15,7 @@ import { MapScoreTypeormEntity } from './infrastructure/typeorm/map-score.typeor
 import { MpqService } from './application/mpq.service';
 import { MpqImportService } from './application/mpq-import.service';
 import { MapAssignmentService } from './application/services/map-assignment.service';
+import { MapTestSetService } from './application/services/map-test-set.service';
 import { MpqController } from './presentation/mpq.controller';
 
 @Module({
@@ -36,7 +37,7 @@ import { MpqController } from './presentation/mpq.controller';
     ),
   ],
   controllers: [MpqController],
-  providers: [MpqService, MpqImportService, MapAssignmentService],
-  exports: [MpqService, MapAssignmentService],
+  providers: [MpqService, MpqImportService, MapAssignmentService, MapTestSetService],
+  exports: [MpqService, MapAssignmentService, MapTestSetService],
 })
 export class AcmMapModule {}
