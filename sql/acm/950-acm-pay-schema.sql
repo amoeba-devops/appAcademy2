@@ -112,8 +112,10 @@ CREATE TABLE IF NOT EXISTS amb_acm_pay_order (
     UNIQUE (pod_order_no),
   CONSTRAINT uq_acm_pay_order_idempotency
     UNIQUE (pod_idempotency_key),
-  CONSTRAINT fk_acm_pay_order_enrollment
-    FOREIGN KEY (enrollment_id) REFERENCES amb_acm_csl_enrollment (enr_id),
+  -- REQ-260622 model decision X: pay → amb_acm_cls_enrollment (class
+  -- enrollment), NOT amb_acm_csl_enrollment (counseling pipeline stage).
+  -- The FK constraint is added in sql/acm/952 because that file creates
+  -- the referenced table (deploy order is lexical; 950 runs before 952).
   CONSTRAINT fk_acm_pay_order_refund_policy
     FOREIGN KEY (prp_id) REFERENCES amb_acm_pay_refund_policy (prp_id),
   CONSTRAINT chk_acm_pay_order_status

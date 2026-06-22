@@ -47,7 +47,9 @@ export class PayMigrator extends BaseMigrator {
   }
   private get acmEnrollmentMap(): IdMap {
     if (!this.enrollmentMap) {
-      this.enrollmentMap = new IdMap(this.pg, 'amb_acm_csl_enrollment', 'enr_id');
+      // REQ-260622 model decision X — pay.enrollment_id → amb_acm_cls_enrollment
+      // (class enrollment), NOT csl_enrollment (consultation pipeline marker).
+      this.enrollmentMap = new IdMap(this.pg, 'amb_acm_cls_enrollment', 'ce_id');
     }
     return this.enrollmentMap;
   }

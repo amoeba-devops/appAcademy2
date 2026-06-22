@@ -73,6 +73,14 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 ## 2. 도메인별 매핑
 
+### 2.0 모델 분리 결정 — Class enrollment ≠ CSL pipeline marker
+
+본 마이그레이션 진행 중 `tac_enrollments` (학생-수업 join) 와 PG `amb_acm_csl_enrollment` (상담 파이프라인 단계 마커, FK → inquiry) 가 **다른 도메인 개념** 임을 확인. 옵션 X 채택:
+
+- **신규**: `amb_acm_cls_enrollment` (sql/acm/952) — 학생 × 수업 join, `tac_enrollments` 1:1 미러
+- **기존**: `amb_acm_csl_enrollment` (sql/acm/100) — 상담 파이프라인 단계 마커 그대로 유지
+- 결제 모듈 FK: `amb_acm_pay_order.enrollment_id → amb_acm_cls_enrollment(ce_id)`. sql/acm/950 의 ALTER 는 952 끝에 위치 (deploy 순서 보장).
+
 ### 2.1 결제 (`tac_pay_*` → `amb_acm_pay_*`) — 6 테이블
 
 #### 2.1.1 `tac_pay_refund_policies` → `amb_acm_pay_refund_policy`

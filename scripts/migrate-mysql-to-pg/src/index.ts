@@ -26,6 +26,7 @@ import { PgClient } from './lib/pg-client';
 import { TenantMap } from './lib/tenant-map';
 import { TenantBootstrapMigrator } from './migrators/tenant-bootstrap.migrator';
 import { BackfillLegacyIdMigrator } from './migrators/backfill-legacy-id.migrator';
+import { ClsEnrollmentMigrator } from './migrators/cls-enrollment.migrator';
 import { PayMigrator } from './migrators/pay.migrator';
 import {
   AuditMigrator,
@@ -81,6 +82,8 @@ Domains (run in this order for full migration):
   backfill-legacy-id   MUST be second — populates legacy_id on dual-write
                        tables via natural-key match (T0-05 prereq for FK
                        resolution in domain migrators)
+  cls-enrollment       tac_enrollments → amb_acm_cls_enrollment (model
+                       decision X — separate from csl_enrollment pipeline)
   pay                  6 결제 테이블
   map                  8 MAP 평가 테이블
   notification         2 알림 테이블
@@ -139,6 +142,7 @@ async function main(): Promise<void> {
   const factory: Record<string, () => BaseMigrator> = {
     'tenant-bootstrap':   () => new TenantBootstrapMigrator(mysql, pg, tenants, cfg),
     'backfill-legacy-id': () => new BackfillLegacyIdMigrator(mysql, pg, tenants, cfg),
+    'cls-enrollment':     () => new ClsEnrollmentMigrator(mysql, pg, tenants, cfg),
     pay:                  () => new PayMigrator(mysql, pg, tenants, cfg),
     map:                  () => new MapMigrator('map', mysql, pg, tenants, cfg),
     notification:         () => new NotificationMigrator('notification', mysql, pg, tenants, cfg),
