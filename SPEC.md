@@ -18,6 +18,8 @@ change_log:
 
 > Trinity Academy는 본 플랫폼 위에서 운영되는 첨 입주 테넌트다. 다른 학원은 AMA App Store를 통해 신규 프로비저닝된다.
 
+> ⚠️ **2026-06-22 — Migration in progress (REQ-260622)**: MySQL 단일화 폐기 + PostgreSQL 통합 작업 진행 중. 본 문서의 MySQL / `tac_*` / `db_tac` / `utf8mb4` 관련 명세는 **Phase 7 (예정) 까지의 현행 상태** 기준. 신규 모듈은 PostgreSQL (`db_acm` / `amb_acm_*`) 단독 사용. 자세한 내용은 [docs/analysis/REQ-260622](docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md) 및 [PLN-260622](docs/plan/PLN-260622-mysql-to-postgres-full-migration.md) 참조.
+
 ## 1. Project Overview (프로젝트 개요)
 
 ### 1.1 Document Information (문서 정보)
@@ -83,11 +85,12 @@ app-academy는 중·고등부 영어·수학 학원의 운영을 디지털화하
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | Node.js | 20.x LTS | Runtime |
-| MySQL | 8.x | Primary database |
-| Prisma | latest | ORM / Schema management |
-| Redis | 7.x | Cache, session, rate limiting |
+| **PostgreSQL** (`pg_bigm`) | 16.x | **Primary database** — ACM v1.0a `db_acm` / `amb_acm_*` (REQ-260622 이후 단일 DB) |
+| ~~MySQL~~ | ~~8.x~~ | ~~Legacy `db_tac` / `tac_*`~~ — Phase 7 (REQ-260622) 까지 단계적 폐기 중 |
+| TypeORM | latest | ORM (NestJS 표준) |
+| Redis | 7.x | Cache, session, idempotency key |
 | RabbitMQ | 3.x | Message queue (events) |
-| S3 Compatible | — | Object storage (MAP assets, receipts, tax invoice PDF/XML) |
+| S3 Compatible | — | Object storage (MAP assets, receipts, tax invoice PDF/XML, DB backup) |
 
 ### 2.3 External Services
 
@@ -190,12 +193,29 @@ TAC는 로컬 개발 환경에서 다른 프로젝트와의 충돌을 피하기 
 
 ### 4.1 Database Info
 
+#### 4.1.1 PostgreSQL (`db_acm`) — 신규 표준, REQ-260622 이후 단일 DB
+
+| Item | Value |
+|------|-------|
+| Engine | PostgreSQL 16.x |
+| Extensions | `uuid-ossp`, `pgcrypto`, `pg_trgm`, `pg_bigm` |
+| Database name | `db_acm` |
+| Table prefix | `amb_acm_{module}_{entity}` (예: `amb_acm_pay_order`, `amb_acm_cls_sessions`) |
+| Column prefix (PK/FK) | 3-char abbreviation per entity (예: `pod_id`, `enr_id`, `mpg_id`) |
+| Tenant guard | 모든 테이블 `ent_id UUID NOT NULL` |
+| Timestamps | `TIMESTAMPTZ` + `set_acm_updated_at()` trigger |
+| ID 체계 | `UUID DEFAULT gen_random_uuid()` (BIGINT autoinc 폐기) |
+| Index 명명 | `idx_acm_{table_short}_{cols}`, `uq_acm_{table_short}_{cols}` |
+
+#### 4.1.2 MySQL (`db_tac`) — Legacy, Phase 7 까지 폐기 중
+
 | Item | Value |
 |------|-------|
 | Database name | `db_tac` |
 | Table prefix | `tac_` |
 | Charset | `utf8mb4` |
 | Collation | `utf8mb4_unicode_ci` |
+| 상태 | ⚠️ REQ-260622 폐기 대상 — 신규 테이블/엔티티 추가 금지. 모든 `tac_*` 데이터는 Phase 6 cutover 시점에 PG 로 이전 후 Phase 7 에 컨테이너 삭제 (Q-4 즉시). |
 
 ### 4.2 Entity Summary (v1.3 — 28+ tables)
 
