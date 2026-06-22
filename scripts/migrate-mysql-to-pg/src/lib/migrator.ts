@@ -68,14 +68,22 @@ export abstract class BaseMigrator {
    *
    * Failure of any single batch rolls back that batch only; previous
    * batches stay committed. Caller decides whether to retry.
+   *
+   * The optional `preBatch` callback runs before each batch's `mapRow`
+   * loop — useful for resolving FK legacy_ids in bulk (see id-map.ts).
+   * Its return value is passed as the second arg to `mapRow`.
    */
-  protected async migrateTable<TMysqlRow extends Record<string, unknown>>(input: {
+  protected async migrateTable<
+    TMysqlRow extends Record<string, unknown>,
+    TCtx = void,
+  >(input: {
     mysqlTable: string;
     pgTable: string;
     orderBy: string;
     columns: string[];
     where?: string;
-    mapRow: (row: TMysqlRow) => Record<string, unknown> | null;
+    preBatch?: (batch: TMysqlRow[]) => Promise<TCtx>;
+    mapRow: (row: TMysqlRow, ctx: TCtx) => Record<string, unknown> | null;
     onConflict: string; // typically 'legacy_id'
     opts: MigrateOptions;
   }): Promise<MigrateResult['tables'][number]> {
@@ -97,8 +105,11 @@ export abstract class BaseMigrator {
       where: input.where,
       limit: input.opts.limit,
     })) {
+      const ctx = (input.preBatch
+        ? await input.preBatch(batch)
+        : undefined) as TCtx;
       const mapped = batch
-        .map((r) => input.mapRow(r))
+        .map((r) => input.mapRow(r, ctx))
         .filter((r): r is Record<string, unknown> => r !== null);
       const skippedInThisBatch = batch.length - mapped.length;
       pgSkipped += skippedInThisBatch;

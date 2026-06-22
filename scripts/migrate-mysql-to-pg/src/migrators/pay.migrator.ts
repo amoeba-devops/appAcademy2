@@ -1,21 +1,57 @@
 import { BaseMigrator } from '../lib/migrator';
 import type { MigrateOptions, MigrateResult, VerifyResult } from '../lib/migrator';
+import { IdMap } from '../lib/id-map';
 
 /**
  * Payment domain — 6 tables (REQ-260622 §2.1).
  *
  * Order matters (FK dependency):
- *   1. refund_policy        — no FK
- *   2. refund_policy_tier   — FK to refund_policy
- *   3. order                — FK to refund_policy + enrollment (already migrated)
+ *   1. refund_policy        — only depends on tenant
+ *   2. refund_policy_tier   — FK to refund_policy (legacy_id resolve)
+ *   3. order                — FK to refund_policy + enrollment (see gap note)
  *   4. ledger               — FK to order + refund_policy_tier
- *   5. receipt              — FK to order (BYTEA buyer_identifier preserved as-is)
+ *   5. receipt              — FK to order (BYTEA buyer_identifier preserved as Buffer)
  *   6. tax_invoice          — FK to order
  *
- * All IDs are new UUIDs; `legacy_id BIGINT UNIQUE` preserves MySQL PKs
- * for FK resolution between tables in the same run.
+ * Enrollment FK gap: `amb_acm_csl_enrollment` doesn't yet have a
+ * `legacy_id` column. Phase 3 prerequisite is a small ALTER TABLE on
+ * the 14 dual-write tables OR an alternative matching scheme (e.g., a
+ * pre-built CSV map). Until that's in place, orders whose enrollment
+ * can't be resolved are skipped + counted under `pgSkipped`.
  */
 export class PayMigrator extends BaseMigrator {
+  // Per-run caches — instantiated lazily per method since some methods
+  // don't need every map.
+  private rfpMap?: IdMap;
+  private prtMap?: IdMap;
+  private orderMap?: IdMap;
+  private enrollmentMap?: IdMap;
+
+  private get refundPolicyMap(): IdMap {
+    if (!this.rfpMap) {
+      this.rfpMap = new IdMap(this.pg, 'amb_acm_pay_refund_policy', 'prp_id');
+    }
+    return this.rfpMap;
+  }
+  private get refundTierMap(): IdMap {
+    if (!this.prtMap) {
+      this.prtMap = new IdMap(this.pg, 'amb_acm_pay_refund_policy_tier', 'prt_id');
+    }
+    return this.prtMap;
+  }
+  private get payOrderMap(): IdMap {
+    if (!this.orderMap) {
+      this.orderMap = new IdMap(this.pg, 'amb_acm_pay_order', 'pod_id');
+    }
+    return this.orderMap;
+  }
+  private get acmEnrollmentMap(): IdMap {
+    if (!this.enrollmentMap) {
+      this.enrollmentMap = new IdMap(this.pg, 'amb_acm_csl_enrollment', 'enr_id');
+    }
+    return this.enrollmentMap;
+  }
+
   constructor(
     mysql: ConstructorParameters<typeof BaseMigrator>[1],
     pg: ConstructorParameters<typeof BaseMigrator>[2],
@@ -48,7 +84,7 @@ export class PayMigrator extends BaseMigrator {
   }
 
   // ----------------------------------------------------------------------
-  // 1) refund_policy
+  // 1) refund_policy — tenant-only FK
   // ----------------------------------------------------------------------
   private migrateRefundPolicies(opts: MigrateOptions) {
     return this.migrateTable<{
@@ -61,7 +97,7 @@ export class PayMigrator extends BaseMigrator {
       rfp_effective_to: string | null;
       rfp_is_default_template: number;
       rfp_created_by: number | null;
-      rfp_created_at: string;
+      rfp_created_at: Date | string;
     }>({
       mysqlTable: 'tac_pay_refund_policies',
       pgTable: 'amb_acm_pay_refund_policy',
@@ -74,7 +110,7 @@ export class PayMigrator extends BaseMigrator {
       mapRow: (r) => {
         const entId = this.tenants.resolve(r.acd_id);
         if (!entId) {
-          this.log.warn(`skip refund_policy ${r.rfp_id} — tenant not mapped (acd_id=${r.acd_id})`);
+          this.log.warn(`skip refund_policy ${r.rfp_id} — tenant not mapped`, { acd_id: r.acd_id });
           return null;
         }
         return {
@@ -95,10 +131,10 @@ export class PayMigrator extends BaseMigrator {
   }
 
   // ----------------------------------------------------------------------
-  // 2) refund_policy_tier — FK resolves via PG SELECT on legacy_id
+  // 2) refund_policy_tier — FK via refund_policy.legacy_id (preBatch)
   // ----------------------------------------------------------------------
   private migrateRefundPolicyTiers(opts: MigrateOptions) {
-    return this.migrateTable<{
+    type Row = {
       rpt_id: number;
       rfp_id: number;
       rpt_tier_order: number;
@@ -106,7 +142,8 @@ export class PayMigrator extends BaseMigrator {
       rpt_elapsed_ratio_max: string;
       rpt_refund_rate: string;
       rpt_note: string | null;
-    }>({
+    };
+    return this.migrateTable<Row, Map<number, string>>({
       mysqlTable: 'tac_pay_refund_policy_tiers',
       pgTable: 'amb_acm_pay_refund_policy_tier',
       orderBy: 'rpt_id',
@@ -115,16 +152,19 @@ export class PayMigrator extends BaseMigrator {
         'prt_elapsed_ratio_min', 'prt_elapsed_ratio_max', 'prt_refund_rate',
         'prt_note',
       ],
-      mapRow: (r) => {
-        // FK lookup — PG already has the parent row from step 1.
-        // (synchronous resolution would be ideal, but we batch — see TODO below)
+      preBatch: (batch) =>
+        this.refundPolicyMap.resolveMany(batch.map((r) => r.rfp_id)),
+      mapRow: (r, rfpMap) => {
+        const prp_id = rfpMap.get(Number(r.rfp_id));
+        if (!prp_id) {
+          this.log.warn(`skip refund_policy_tier ${r.rpt_id} — parent policy not in PG`, {
+            rfp_id: r.rfp_id,
+          });
+          return null;
+        }
         return {
           legacy_id: r.rpt_id,
-          // Placeholder — actual implementation needs an async pre-resolution
-          // loop in this migrator. For Phase 3 implementation, see:
-          // TODO: precompute prp_id by SELECTing legacy_id IN (...) before the
-          // mapRow call; store in a Map, then mapRow just looks up.
-          prp_id: null,
+          prp_id,
           prt_tier_order: r.rpt_tier_order,
           prt_elapsed_ratio_min: r.rpt_elapsed_ratio_min,
           prt_elapsed_ratio_max: r.rpt_elapsed_ratio_max,
@@ -138,14 +178,10 @@ export class PayMigrator extends BaseMigrator {
   }
 
   // ----------------------------------------------------------------------
-  // 3) order — FK to refund_policy + enrollment (already migrated by acm-csl)
+  // 3) order — FK to refund_policy (resolvable) + enrollment (gap)
   // ----------------------------------------------------------------------
-  private async migrateOrders(opts: MigrateOptions) {
-    // TODO Phase 3: build a per-batch FK pre-resolve map for both
-    //   - prp_id (legacy_id → UUID)  via SELECT FROM amb_acm_pay_refund_policy
-    //   - enrollment_id (legacy_id → UUID) via SELECT FROM amb_acm_csl_enrollment
-    // For now, this is a stub demonstrating the structure.
-    return this.migrateTable<{
+  private migrateOrders(opts: MigrateOptions) {
+    type Row = {
       pod_id: number;
       acd_id: number;
       enr_id: number;
@@ -159,11 +195,15 @@ export class PayMigrator extends BaseMigrator {
       pod_pg_payment_key: string | null;
       pod_status: string;
       rfp_id: number;
-      pod_expires_at: string | null;
-      pod_approved_at: string | null;
-      pod_canceled_at: string | null;
-      pod_created_at: string;
-      pod_updated_at: string;
+      pod_expires_at: Date | string | null;
+      pod_approved_at: Date | string | null;
+      pod_canceled_at: Date | string | null;
+      pod_created_at: Date | string;
+      pod_updated_at: Date | string;
+    };
+    return this.migrateTable<Row, {
+      rfp: Map<number, string>;
+      enr: Map<number, string>;
     }>({
       mysqlTable: 'tac_pay_orders',
       pgTable: 'amb_acm_pay_order',
@@ -175,13 +215,26 @@ export class PayMigrator extends BaseMigrator {
         'prp_id', 'pod_expires_at', 'pod_approved_at', 'pod_canceled_at',
         'created_at', 'updated_at',
       ],
-      mapRow: (r) => {
+      preBatch: async (batch) => {
+        const rfp = await this.refundPolicyMap.resolveMany(batch.map((r) => r.rfp_id));
+        const enr = await this.acmEnrollmentMap.resolveMany(batch.map((r) => r.enr_id));
+        return { rfp, enr };
+      },
+      mapRow: (r, ctx) => {
         const entId = this.tenants.resolve(r.acd_id);
-        if (!entId) return null;
+        const prp_id = ctx.rfp.get(Number(r.rfp_id));
+        const enrollment_id = ctx.enr.get(Number(r.enr_id));
+        if (!entId || !prp_id || !enrollment_id) {
+          this.log.warn(`skip pay_order ${r.pod_id}`, {
+            tenantOk: !!entId, refundPolicyOk: !!prp_id, enrollmentOk: !!enrollment_id,
+            acd_id: r.acd_id, rfp_id: r.rfp_id, enr_id: r.enr_id,
+          });
+          return null;
+        }
         return {
           legacy_id: r.pod_id,
           ent_id: entId,
-          enrollment_id: null, // TODO Phase 3 — pre-resolve via id-map
+          enrollment_id,
           pod_order_no: r.pod_order_no,
           pod_idempotency_key: r.pod_idempotency_key,
           pod_amount: r.pod_amount,
@@ -191,7 +244,7 @@ export class PayMigrator extends BaseMigrator {
           pod_pg_order_id: r.pod_pg_order_id,
           pod_pg_payment_key: r.pod_pg_payment_key,
           pod_status: r.pod_status,
-          prp_id: null, // TODO Phase 3 — pre-resolve
+          prp_id,
           pod_expires_at: this.toTimestampTz(r.pod_expires_at),
           pod_approved_at: this.toTimestampTz(r.pod_approved_at),
           pod_canceled_at: this.toTimestampTz(r.pod_canceled_at),
@@ -205,47 +258,195 @@ export class PayMigrator extends BaseMigrator {
   }
 
   // ----------------------------------------------------------------------
-  // 4) ledger — TODO Phase 3 (similar pattern)
+  // 4) ledger — FK to order + refund_policy_tier (nullable)
   // ----------------------------------------------------------------------
-  private async migrateLedger(opts: MigrateOptions): Promise<MigrateResult['tables'][number]> {
-    this.log.warn('migrateLedger not implemented yet — Phase 3 work');
-    return {
+  private migrateLedger(opts: MigrateOptions) {
+    type Row = {
+      ldg_id: number;
+      pod_id: number;
+      ldg_entry_type: string;
+      ldg_amount: string;
+      ldg_balance_after: string;
+      rpt_id: number | null;
+      ldg_elapsed_ratio_at_refund: string | null;
+      ldg_memo: string | null;
+      ldg_recorded_by: number | null;
+      ldg_recorded_at: Date | string;
+    };
+    return this.migrateTable<Row, {
+      order: Map<number, string>;
+      tier: Map<number, string>;
+    }>({
       mysqlTable: 'tac_pay_ledger',
       pgTable: 'amb_acm_pay_ledger',
-      mysqlCount: await this.mysql.count('tac_pay_ledger'),
-      pgInserted: 0,
-      pgSkipped: 0,
-      durationMs: 0,
-    };
+      orderBy: 'ldg_id',
+      columns: [
+        'legacy_id', 'pod_id', 'ldg_entry_type', 'ldg_amount',
+        'ldg_balance_after', 'prt_id', 'ldg_elapsed_ratio_at_refund',
+        'ldg_memo', 'ldg_recorded_at',
+      ],
+      preBatch: async (batch) => {
+        const order = await this.payOrderMap.resolveMany(batch.map((r) => r.pod_id));
+        // tier is nullable — skip rows with null rpt_id
+        const tierIds = batch
+          .map((r) => r.rpt_id)
+          .filter((v): v is number => v != null);
+        const tier = await this.refundTierMap.resolveMany(tierIds);
+        return { order, tier };
+      },
+      mapRow: (r, ctx) => {
+        const pod_id = ctx.order.get(Number(r.pod_id));
+        if (!pod_id) {
+          this.log.warn(`skip ledger ${r.ldg_id} — order not in PG`, { pod_id: r.pod_id });
+          return null;
+        }
+        const prt_id = r.rpt_id != null ? ctx.tier.get(Number(r.rpt_id)) ?? null : null;
+        return {
+          legacy_id: r.ldg_id,
+          pod_id,
+          ldg_entry_type: r.ldg_entry_type,
+          ldg_amount: r.ldg_amount,
+          ldg_balance_after: r.ldg_balance_after,
+          prt_id,
+          ldg_elapsed_ratio_at_refund: r.ldg_elapsed_ratio_at_refund,
+          ldg_memo: r.ldg_memo,
+          ldg_recorded_at: this.toTimestampTz(r.ldg_recorded_at),
+        };
+      },
+      onConflict: 'legacy_id',
+      opts,
+    });
   }
 
   // ----------------------------------------------------------------------
-  // 5) receipt — BYTEA buyer_identifier preserved as Buffer (no re-encryption)
+  // 5) receipt — BYTEA buyer_identifier preserved as Buffer (no re-enc)
   // ----------------------------------------------------------------------
-  private async migrateReceipts(opts: MigrateOptions): Promise<MigrateResult['tables'][number]> {
-    this.log.warn('migrateReceipts not implemented yet — Phase 3 work');
-    return {
+  private migrateReceipts(opts: MigrateOptions) {
+    type Row = {
+      rct_id: number;
+      pod_id: number;
+      rct_receipt_type: string;
+      rct_issued_at: Date | string;
+      rct_pdf_url: string | null;
+      rct_cash_receipt_no: string | null;
+      rct_buyer_identifier: Buffer | null;
+      rct_canceled_at: Date | string | null;
+    };
+    return this.migrateTable<Row, Map<number, string>>({
       mysqlTable: 'tac_pay_receipts',
       pgTable: 'amb_acm_pay_receipt',
-      mysqlCount: await this.mysql.count('tac_pay_receipts'),
-      pgInserted: 0,
-      pgSkipped: 0,
-      durationMs: 0,
-    };
+      orderBy: 'rct_id',
+      columns: [
+        'legacy_id', 'pod_id', 'rct_receipt_type', 'rct_issued_at',
+        'rct_pdf_url', 'rct_cash_receipt_no', 'rct_buyer_identifier',
+        'rct_canceled_at',
+      ],
+      preBatch: (batch) =>
+        this.payOrderMap.resolveMany(batch.map((r) => r.pod_id)),
+      mapRow: (r, orderMap) => {
+        const pod_id = orderMap.get(Number(r.pod_id));
+        if (!pod_id) {
+          this.log.warn(`skip receipt ${r.rct_id} — order not in PG`, { pod_id: r.pod_id });
+          return null;
+        }
+        return {
+          legacy_id: r.rct_id,
+          pod_id,
+          rct_receipt_type: r.rct_receipt_type,
+          rct_issued_at: this.toTimestampTz(r.rct_issued_at),
+          rct_pdf_url: r.rct_pdf_url,
+          rct_cash_receipt_no: r.rct_cash_receipt_no,
+          // VARBINARY(128) → BYTEA. mysql2 returns Buffer; pg accepts Buffer
+          // directly. AES-GCM ciphertext bytes preserved 1:1 — NO re-encrypt
+          // (REQ-260622 NFR-MYSQL-OUT-5).
+          rct_buyer_identifier: r.rct_buyer_identifier,
+          rct_canceled_at: this.toTimestampTz(r.rct_canceled_at),
+        };
+      },
+      onConflict: 'legacy_id',
+      opts,
+    });
   }
 
   // ----------------------------------------------------------------------
-  // 6) tax_invoice
+  // 6) tax_invoice — FK to order
   // ----------------------------------------------------------------------
-  private async migrateTaxInvoices(opts: MigrateOptions): Promise<MigrateResult['tables'][number]> {
-    this.log.warn('migrateTaxInvoices not implemented yet — Phase 3 work');
-    return {
+  private migrateTaxInvoices(opts: MigrateOptions) {
+    type Row = {
+      txi_id: number;
+      pod_id: number;
+      acd_id: number;
+      txi_invoice_no: string;
+      txi_nts_issue_no: string | null;
+      txi_supplier_biz_no: string;
+      txi_buyer_biz_no: string | null;
+      txi_buyer_type: string;
+      txi_supply_amount: string;
+      txi_tax_amount: string;
+      txi_total_amount: string;
+      txi_issue_date: string;
+      txi_status: string;
+      txi_nts_submitted_at: Date | string | null;
+      txi_nts_approved_at: Date | string | null;
+      txi_nts_error_code: string | null;
+      txi_nts_error_message: string | null;
+      txi_xml_payload_url: string | null;
+      txi_pdf_url: string | null;
+      txi_created_at: Date | string;
+      txi_updated_at: Date | string;
+    };
+    return this.migrateTable<Row, Map<number, string>>({
       mysqlTable: 'tac_pay_tax_invoices',
       pgTable: 'amb_acm_pay_tax_invoice',
-      mysqlCount: await this.mysql.count('tac_pay_tax_invoices'),
-      pgInserted: 0,
-      pgSkipped: 0,
-      durationMs: 0,
-    };
+      orderBy: 'txi_id',
+      columns: [
+        'legacy_id', 'pod_id', 'ent_id', 'txi_invoice_no', 'txi_nts_issue_no',
+        'txi_supplier_biz_no', 'txi_buyer_biz_no', 'txi_buyer_type',
+        'txi_supply_amount', 'txi_tax_amount', 'txi_total_amount',
+        'txi_issue_date', 'txi_status',
+        'txi_nts_submitted_at', 'txi_nts_approved_at',
+        'txi_nts_error_code', 'txi_nts_error_message',
+        'txi_xml_payload_url', 'txi_pdf_url',
+        'created_at', 'updated_at',
+      ],
+      preBatch: (batch) =>
+        this.payOrderMap.resolveMany(batch.map((r) => r.pod_id)),
+      mapRow: (r, orderMap) => {
+        const pod_id = orderMap.get(Number(r.pod_id));
+        const entId = this.tenants.resolve(r.acd_id);
+        if (!pod_id || !entId) {
+          this.log.warn(`skip tax_invoice ${r.txi_id}`, {
+            orderOk: !!pod_id, tenantOk: !!entId,
+            pod_id: r.pod_id, acd_id: r.acd_id,
+          });
+          return null;
+        }
+        return {
+          legacy_id: r.txi_id,
+          pod_id,
+          ent_id: entId,
+          txi_invoice_no: r.txi_invoice_no,
+          txi_nts_issue_no: r.txi_nts_issue_no,
+          txi_supplier_biz_no: r.txi_supplier_biz_no,
+          txi_buyer_biz_no: r.txi_buyer_biz_no,
+          txi_buyer_type: r.txi_buyer_type,
+          txi_supply_amount: r.txi_supply_amount,
+          txi_tax_amount: r.txi_tax_amount,
+          txi_total_amount: r.txi_total_amount,
+          txi_issue_date: r.txi_issue_date,
+          txi_status: r.txi_status,
+          txi_nts_submitted_at: this.toTimestampTz(r.txi_nts_submitted_at),
+          txi_nts_approved_at: this.toTimestampTz(r.txi_nts_approved_at),
+          txi_nts_error_code: r.txi_nts_error_code,
+          txi_nts_error_message: r.txi_nts_error_message,
+          txi_xml_payload_url: r.txi_xml_payload_url,
+          txi_pdf_url: r.txi_pdf_url,
+          created_at: this.toTimestampTz(r.txi_created_at),
+          updated_at: this.toTimestampTz(r.txi_updated_at),
+        };
+      },
+      onConflict: 'legacy_id',
+      opts,
+    });
   }
 }
