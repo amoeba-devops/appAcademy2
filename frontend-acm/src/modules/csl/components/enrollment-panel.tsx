@@ -35,7 +35,20 @@ type FormValues = {
   classStarted: '' | (typeof YES_NO)[number];
 };
 
-export function EnrollmentPanel({ inqId }: { inqId: string }) {
+export function EnrollmentPanel({
+  inqId,
+  currentStage,
+  onAfterAdvance,
+}: {
+  inqId: string;
+  /** Drives the "save & advance" button visibility. PAYMENT/CLASS_STARTED reuse
+   *  the same panel for read-only display, but the advance shortcut only fires
+   *  from ENROLLMENT_COUNSELING where the counsel_done = YES gate lives. */
+  currentStage?: 'ENROLLMENT_COUNSELING' | 'PAYMENT' | 'CLASS_STARTED';
+  /** Parent-supplied transition trigger — called with the next stage after the
+   *  enrollment row has been persisted with counselDone = 'YES'. */
+  onAfterAdvance?: (nextStage: 'PAYMENT') => void;
+}) {
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
 
@@ -81,23 +94,52 @@ export function EnrollmentPanel({ inqId }: { inqId: string }) {
     }
   }, [data, reset]);
 
+  /** Map form values → PUT body. `forceCounselDone` is used by the
+   *  save-and-advance path: enrollment counseling is admin-discretion data
+   *  (수강료/시간 모두 운영자 임의 입력) so the next-stage shortcut must imply
+   *  counselDone = 'YES' even if the operator left the dropdown empty. */
+  function toBody(v: FormValues, forceCounselDone = false) {
+    return {
+      paymentNoticeStatus: v.paymentNoticeStatus || undefined,
+      counselDone: forceCounselDone ? ('YES' as const) : v.counselDone || undefined,
+      applied: v.applied,
+      paymentNoticeSent: v.paymentNoticeSent || undefined,
+      classMinutes: v.classMinutes ? Number(v.classMinutes) : undefined,
+      tuitionAmount: v.tuitionAmount ? Number(v.tuitionAmount) : undefined,
+      tuitionPaid: v.tuitionPaid,
+      classStartedAt: v.classStartedAt || undefined,
+      classStarted: v.classStarted || undefined,
+    };
+  }
+
   const mutation = useMutation({
     mutationFn: async (v: FormValues) => {
-      const body = {
-        paymentNoticeStatus: v.paymentNoticeStatus || undefined,
-        counselDone: v.counselDone || undefined,
-        applied: v.applied,
-        paymentNoticeSent: v.paymentNoticeSent || undefined,
-        classMinutes: v.classMinutes ? Number(v.classMinutes) : undefined,
-        tuitionAmount: v.tuitionAmount ? Number(v.tuitionAmount) : undefined,
-        tuitionPaid: v.tuitionPaid,
-        classStartedAt: v.classStartedAt || undefined,
-        classStarted: v.classStarted || undefined,
-      };
-      const res = await apiClient.put(`/acm/csl/inquiries/${inqId}/enrollment`, body);
+      const res = await apiClient.put(
+        `/acm/csl/inquiries/${inqId}/enrollment`,
+        toBody(v, false),
+      );
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] }),
+  });
+
+  /** "저장하고 다음 단계로" — single-shot save (with counselDone forced YES)
+   *  + forward transition to PAYMENT. Used only at ENROLLMENT_COUNSELING. */
+  const saveAndAdvance = useMutation({
+    mutationFn: async (v: FormValues) => {
+      const res = await apiClient.put(
+        `/acm/csl/inquiries/${inqId}/enrollment`,
+        toBody(v, true),
+      );
+      // Sync local form so the YES override is visible immediately even before
+      // the next refetch lands.
+      reset({ ...v, counselDone: 'YES' });
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] });
+      onAfterAdvance?.('PAYMENT');
+    },
   });
 
   return (
@@ -185,15 +227,34 @@ export function EnrollmentPanel({ inqId }: { inqId: string }) {
           {t('detail.enrollment.tuitionPaidHint')}
         </p>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={mutation.isPending}>
+        <div className="flex justify-end gap-2">
+          <Button
+            type="submit"
+            variant={currentStage === 'ENROLLMENT_COUNSELING' ? 'outline' : 'default'}
+            disabled={mutation.isPending || saveAndAdvance.isPending}
+          >
             {mutation.isPending ? t('common:actions.saving') : t('common:actions.save')}
           </Button>
+          {currentStage === 'ENROLLMENT_COUNSELING' && onAfterAdvance && (
+            <Button
+              type="button"
+              onClick={handleSubmit((v) => saveAndAdvance.mutate(v))}
+              disabled={mutation.isPending || saveAndAdvance.isPending}
+            >
+              {saveAndAdvance.isPending
+                ? t('common:actions.saving')
+                : t('detail.enrollment.saveAndAdvance')}
+            </Button>
+          )}
         </div>
-        {mutation.isError && (
+        {(mutation.isError || saveAndAdvance.isError) && (
           <p className="text-xs text-red-600">
-            {(mutation.error as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message ?? (mutation.error as Error).message}
+            {(
+              (mutation.error ?? saveAndAdvance.error) as {
+                response?: { data?: { message?: string } };
+              }
+            )?.response?.data?.message ??
+              ((mutation.error ?? saveAndAdvance.error) as Error).message}
           </p>
         )}
       </form>

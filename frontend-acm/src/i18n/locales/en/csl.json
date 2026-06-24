@@ -135,6 +135,7 @@
       "tuitionAmount": "Tuition",
       "tuitionPaid": "Tuition paid",
       "tuitionPaidHint": "※ Only senior managers may confirm payment.",
+      "saveAndAdvance": "Save and move to Payment",
       "classStartedAt": "Class start date",
       "classStarted": "Class started",
       "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }

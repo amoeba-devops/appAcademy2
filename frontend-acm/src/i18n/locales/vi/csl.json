@@ -133,6 +133,7 @@
       "tuitionAmount": "Học phí",
       "tuitionPaid": "Đã thanh toán học phí",
       "tuitionPaidHint": "※ Chỉ quản lý cấp cao mới có thể xác nhận thanh toán.",
+      "saveAndAdvance": "Lưu và chuyển sang Thanh toán",
       "classStartedAt": "Ngày bắt đầu học",
       "classStarted": "Đã bắt đầu học",
       "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
