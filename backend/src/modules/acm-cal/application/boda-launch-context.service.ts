@@ -107,7 +107,8 @@ export class BodaLaunchContextService {
     const ownerName = owner?.name ?? 'Teacher';
 
     const cfg = await this.cfg.findByEntId(entId);
-    const appApiUrl = this.buildAppApiUrl(cfg?.bodaWebUrl);
+    const bodaWeb = this.bodaWebBase(cfg?.bodaWebUrl);
+    const appApiUrl = bodaWeb ? `${bodaWeb}/BodaAppApi.js` : '';
 
     // REQ-260619 FR-LX-4 — 학생/학부모 화면이면 다른 invitees 노출 금지 (NFR-LX-2).
     // ADMIN 으로 관전 중인 경우(`userType === 13`) 도 풀 노출 — 운영 모니터링.
@@ -145,6 +146,9 @@ export class BodaLaunchContextService {
       uname,
       lang: lang2,
       appApiUrl,
+      bodaWeb,
+      companyId: cfg?.companyId || null,
+      companyCode: cfg?.companyCode || null,
       evtTitle: event.title,
       evtStartAt: event.startAt.toISOString(),
       evtEndAt: event.endAt.toISOString(),
@@ -345,14 +349,16 @@ export class BodaLaunchContextService {
     }
   }
 
-  private buildAppApiUrl(bodaWebUrl: string | undefined | null): string {
-    const base = (
+  /**
+   * BODA Backend API 베이스 URL (`bodaWeb`, 끝 슬래시 제거). bodaOpen()/bodaJoin()
+   * 의 1번째 위치 인자이자 `{base}/BodaAppApi.js` 스크립트 경로의 베이스.
+   */
+  private bodaWebBase(bodaWebUrl: string | undefined | null): string {
+    return (
       bodaWebUrl ??
       this.config.get<string>('BODA_WEB_URL') ??
       ''
     ).replace(/\/$/, '');
-    // BodaAppApi.js path documented in vendor SPEC_823.
-    return base ? `${base}/BodaAppApi.js` : '';
   }
 
   /** Strip UUID dashes → 32 hex chars. BODA `UId` is constrained to ≤ 32 (FR-LAUNCH-5). */

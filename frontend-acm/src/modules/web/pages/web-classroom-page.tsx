@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import {
+  enterBodaRoom,
   loadBodaAppApi,
   useBodaLaunchContext,
   useBodaRoomStatus,
@@ -130,15 +131,8 @@ function AutoStartFx({ ctx, live }: { ctx: BodaLaunchContext; live: boolean }) {
     (async () => {
       try {
         const api = await loadBodaAppApi(ctx.appApiUrl);
-        if (!api.bodaOpen) return;
-        api.bodaOpen({
-          meetKey: ctx.meetKey,
-          roomCode: ctx.roomCode,
-          UTy: ctx.userType,
-          dup: 1,
-          joinUser: { UId: ctx.uid, UNm: ctx.uname },
-          joinOpt: { lang: ctx.lang },
-        });
+        // hide:true → 윈도우 앱을 입장 확인 없이 자동 실행 (823.001.8 / FR-INSTANT-5).
+        enterBodaRoom(api, ctx, { isTeacher: true, hide: true });
       } catch {
         // Silent — DesktopAppCard re-exposes a manual button so the teacher
         // can retry. Auto-start failures shouldn't blow up the page.

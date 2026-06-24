@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
+  enterBodaRoom,
   loadBodaAppApi,
   type BodaLaunchContext,
 } from '@/lib/boda-launch-api';
@@ -38,17 +39,11 @@ export function DesktopAppCard({
     setSubmitting(true);
     try {
       const api = await loadBodaAppApi(ctx.appApiUrl);
-      const fn = isTeacher ? api.bodaOpen : api.bodaJoin;
-      if (!fn) throw new Error('BODA-NOT_INSTALLED');
-      const params: Record<string, unknown> = {
-        meetKey: ctx.meetKey,
-        roomCode: ctx.roomCode,
-        UTy: ctx.userType,
-        joinUser: { UId: ctx.uid, UNm: ctx.uname },
-        joinOpt: { lang: ctx.lang },
-      };
-      if (isTeacher) params.dup = 1;
-      fn(params);
+      // bodaOpen/Join report install/launch failures asynchronously via the
+      // error callback rather than throwing (823.001.4) — surface those too.
+      api.setErrorCallback?.((code) => setError(code || 'BODA-ERROR'));
+      const launched = enterBodaRoom(api, ctx, { isTeacher });
+      if (!launched) throw new Error('BODA-NOT_INSTALLED');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'BODA-ERROR');
     } finally {

@@ -41,6 +41,20 @@ export class BodaLaunchContextResponseDto {
   @ApiProperty({ description: 'BodaAppApi.js 절대 URL — 페이지가 <script> 로 로드' })
   appApiUrl!: string;
 
+  @ApiProperty({
+    description:
+      'bodaOpen()/bodaJoin() 의 1번째 위치 인자 — BODA Backend API 베이스 URL (= bodaWebUrl, 끝 슬래시 제거). SPEC_823 v823.002.',
+  })
+  bodaWeb!: string;
+
+  @ApiPropertyOptional({ description: 'joinUser.CId — 회사 아이디 (SPEC_823)' })
+  companyId?: string | null;
+
+  @ApiPropertyOptional({
+    description: 'joinUser.CCd — 회사 인덱스 (숫자 문자열, FE 가 Number 로 변환)',
+  })
+  companyCode?: string | null;
+
   @ApiProperty({ description: '이벤트 제목 — UI 안내문 표시용' })
   evtTitle!: string;
 
