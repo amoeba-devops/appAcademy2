@@ -1,5 +1,5 @@
 {
-  "title": "캘린더",
+  "title": "수업일정",
   "actions": {
     "create": "일정 등록",
     "today": "오늘",
@@ -86,7 +86,7 @@
   },
   "instant": {
     "btnLabel": "즉시 강의 개설",
-    "btnTitle": "캘린더에 사전 등록 없이 지금 바로 BODA 강의실을 엽니다",
+    "btnTitle": "수업일정에 사전 등록 없이 지금 바로 BODA 강의실을 엽니다",
     "modalTitle": "즉시 강의 개설",
     "titleLabel": "제목",
     "titlePlaceholder": "즉시 강의 - 강사 {{time}}",

@@ -1,5 +1,5 @@
 {
-  "title": "Calendar",
+  "title": "Schedule",
   "actions": {
     "create": "Add Event",
     "today": "Today",
@@ -86,7 +86,7 @@
   },
   "instant": {
     "btnLabel": "Start instant class",
-    "btnTitle": "Open a BODA classroom right now without scheduling on the calendar",
+    "btnTitle": "Open a BODA classroom right now without scheduling it in advance",
     "modalTitle": "Start an instant class",
     "titleLabel": "Title",
     "titlePlaceholder": "Instant class - teacher {{time}}",

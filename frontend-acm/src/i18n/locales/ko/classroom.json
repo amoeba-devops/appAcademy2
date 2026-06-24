@@ -62,7 +62,7 @@
   "teacherJoined": "선생님이 강의실에 입장했습니다.",
   "waiting": "선생님 입장을 기다리는 중…",
   "waitingHint": "선생님이 강의실을 여시면 입장 버튼이 활성화됩니다. (10초마다 자동 새로고침)",
-  "backToCalendar": "캘린더로 돌아가기",
+  "backToCalendar": "수업일정으로 돌아가기",
   "roomEnded": {
     "ENDED": "수업이 종료되었습니다.",
     "CLOSED": "강의실이 폐쇄되었습니다.",
@@ -79,7 +79,7 @@
     },
     "BODA_NOT_BODASCHOOL": {
       "title": "보다스쿨 강의실이 아닙니다",
-      "body": "이 일정은 다른 화상 시스템을 사용합니다. 캘린더에서 미팅 URL을 확인해 주세요."
+      "body": "이 일정은 다른 화상 시스템을 사용합니다. 수업일정에서 미팅 URL을 확인해 주세요."
     },
     "BODA_ROOM_NOT_PROVISIONED": {
       "title": "강의실이 아직 준비되지 않았습니다",

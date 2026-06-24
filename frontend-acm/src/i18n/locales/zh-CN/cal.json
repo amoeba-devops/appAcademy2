@@ -1,5 +1,5 @@
 {
-  "title": "日历",
+  "title": "课程表",
   "actions": {
     "create": "新增日程",
     "today": "今天",
@@ -86,7 +86,7 @@
   },
   "instant": {
     "btnLabel": "立即开课",
-    "btnTitle": "无需提前在日历登记,立即打开 BODA 在线教室",
+    "btnTitle": "无需提前在课程表登记,立即打开 BODA 在线教室",
     "modalTitle": "立即开课",
     "titleLabel": "标题",
     "titlePlaceholder": "立即课程 - 讲师 {{time}}",
