@@ -11,10 +11,11 @@ import { BODA_EVENT_CODES } from '../../../infrastructure/external/bodaedu/bodae
 
 /**
  * Behaviors covered:
- *  1. verifyAuth: NO_SHARED_SECRET when secret missing
- *  2. verifyAuth: INVALID_TOKEN when wrong header
- *  3. verifyAuth: NOT_IN_ALLOWLIST when IP outside CIDR
- *  4. verifyAuth: ok when all gates pass
+ *  1. verifyAuth: NO_AUTH_CONFIGURED when neither factor set (fail closed)
+ *  2. verifyAuth: INVALID_TOKEN when a token is sent but mismatches
+ *  3. verifyAuth: NOT_IN_ALLOWLIST when IP outside CIDR (hard gate)
+ *  4. verifyAuth: ok when token + IP pass; ok with no token when IP allowlisted
+ *     (FIX-260624 — BODA sends no webhook token); MISSING_TOKEN when secret-only
  *  5. handle: persists log row + calls applyEvent + marks processed
  *  6. handle: returns {deduped:true} on PG UNIQUE 23505
  *  7. handle: USER_JOINED → participant insert + closes any open prior row
@@ -101,13 +102,14 @@ describe('BodaWebhookService', () => {
   // -----------------------------------------------------------------
 
   describe('verifyAuth', () => {
-    it('returns NO_SHARED_SECRET when tenant secret unset', async () => {
+    it('returns NO_AUTH_CONFIGURED when neither secret nor allowlist set', async () => {
       getDecryptedEventSecret.mockResolvedValue(null);
+      findByEntId.mockResolvedValue({ webhookAllowCidrs: null });
       const r = await svc.verifyAuth('ent-1', 'whatever', '1.2.3.4');
-      expect(r).toEqual({ ok: false, reason: 'NO_SHARED_SECRET' });
+      expect(r).toEqual({ ok: false, reason: 'NO_AUTH_CONFIGURED' });
     });
 
-    it('returns INVALID_TOKEN when header mismatches', async () => {
+    it('returns INVALID_TOKEN when a token is sent but mismatches', async () => {
       getDecryptedEventSecret.mockResolvedValue('secret-abc');
       findByEntId.mockResolvedValue({ webhookAllowCidrs: '1.2.3.0/24' });
       const r = await svc.verifyAuth('ent-1', 'wrong-token', '1.2.3.4');
@@ -115,7 +117,7 @@ describe('BodaWebhookService', () => {
       expect(r.reason).toBe('INVALID_TOKEN');
     });
 
-    it('returns NOT_IN_ALLOWLIST when token OK but IP outside CIDR', async () => {
+    it('returns NOT_IN_ALLOWLIST when IP outside CIDR (IP is a hard gate)', async () => {
       getDecryptedEventSecret.mockResolvedValue('secret-abc');
       findByEntId.mockResolvedValue({ webhookAllowCidrs: '10.0.0.0/8' });
       const r = await svc.verifyAuth('ent-1', 'secret-abc', '1.2.3.4');
@@ -128,6 +130,29 @@ describe('BodaWebhookService', () => {
       findByEntId.mockResolvedValue({ webhookAllowCidrs: '1.2.3.0/24' });
       const r = await svc.verifyAuth('ent-1', 'secret-abc', '1.2.3.99');
       expect(r).toEqual({ ok: true });
+    });
+
+    // FIX-260624 — BODA sends events without a token; IP allowlist authenticates.
+    it('returns ok with NO token when IP is allowlisted (secret unset)', async () => {
+      getDecryptedEventSecret.mockResolvedValue(null);
+      findByEntId.mockResolvedValue({ webhookAllowCidrs: '1.2.3.0/24' });
+      const r = await svc.verifyAuth('ent-1', undefined, '1.2.3.99');
+      expect(r).toEqual({ ok: true });
+    });
+
+    it('returns ok with NO token when IP allowlisted even if a secret is set', async () => {
+      getDecryptedEventSecret.mockResolvedValue('secret-abc');
+      findByEntId.mockResolvedValue({ webhookAllowCidrs: '1.2.3.0/24' });
+      const r = await svc.verifyAuth('ent-1', undefined, '1.2.3.99');
+      expect(r).toEqual({ ok: true });
+    });
+
+    it('returns MISSING_TOKEN when secret is the only factor and no token sent', async () => {
+      getDecryptedEventSecret.mockResolvedValue('secret-abc');
+      findByEntId.mockResolvedValue({ webhookAllowCidrs: null });
+      const r = await svc.verifyAuth('ent-1', undefined, '1.2.3.4');
+      expect(r.ok).toBe(false);
+      expect(r.reason).toBe('MISSING_TOKEN');
     });
   });
 
