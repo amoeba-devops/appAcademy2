@@ -102,9 +102,18 @@ export function InstantClassModal({ open, onClose }: Props) {
       window.open(url, '_blank', 'noopener,noreferrer');
       onClose();
     } catch (e) {
-      const msg =
-        (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? t('common:status.error'));
+      // Backend error shape is { success:false, error:{ code, message } }.
+      const err = (
+        e as {
+          response?: { data?: { error?: { code?: string; message?: string } } };
+        }
+      )?.response?.data?.error;
+      // Prefer a localized, actionable message for known business codes
+      // (e.g. BODA config gaps) → fall back to the raw backend message → generic.
+      const localized = err?.code
+        ? t(`instant.errors.${err.code}`, { defaultValue: '' })
+        : '';
+      setError(localized || err?.message || t('common:status.error'));
     }
   };
 

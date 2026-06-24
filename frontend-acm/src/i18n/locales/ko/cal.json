@@ -98,7 +98,11 @@
     "recentTag": "최근",
     "searchHint": "추후 업데이트에서 검색 기능이 추가됩니다.",
     "notifyHint": "강의 시작 시 초대한 학생에게 즉시 알림이 전송됩니다.",
-    "startBtn": "강의 시작"
+    "startBtn": "강의 시작",
+    "errors": {
+      "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA 기본 룸코드가 설정되지 않았습니다. 설정 → BODA 연동에서 기본 룸코드를 입력한 뒤 다시 시도해 주세요.",
+      "BODA_DISABLED_FOR_TENANT": "BODA 연동이 비활성화되어 있습니다. 설정 → BODA 연동에서 활성화한 뒤 다시 시도해 주세요."
+    }
   },
   "filter": {
     "label": "필터",

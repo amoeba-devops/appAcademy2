@@ -98,7 +98,11 @@
     "recentTag": "Gần đây",
     "searchHint": "Tính năng tìm kiếm sẽ có ở bản cập nhật tiếp theo.",
     "notifyHint": "Học sinh được mời sẽ nhận thông báo ngay khi bạn mở lớp.",
-    "startBtn": "Bắt đầu lớp"
+    "startBtn": "Bắt đầu lớp",
+    "errors": {
+      "BODA_DEFAULT_ROOM_CODE_MISSING": "Chưa thiết lập mã phòng mặc định của BODA. Vui lòng nhập tại Cài đặt → Tích hợp BODA rồi thử lại.",
+      "BODA_DISABLED_FOR_TENANT": "Tích hợp BODA đang bị tắt. Vui lòng bật tại Cài đặt → Tích hợp BODA rồi thử lại."
+    }
   },
   "filter": {
     "label": "Bộ lọc",
