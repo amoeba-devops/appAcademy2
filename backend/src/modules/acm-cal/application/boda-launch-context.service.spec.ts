@@ -129,6 +129,10 @@ describe('BodaLaunchContextService', () => {
       expect(ctx.roomCode).toBe('699');
       expect(ctx.lang).toBe('ko');
       expect(ctx.appApiUrl).toBe('https://bodaedu.kr/BodaAppApi.js');
+      // SPEC_823 v823.002 — bodaOpen()/bodaJoin() 1st positional arg + joinUser company ids.
+      expect(ctx.bodaWeb).toBe('https://bodaedu.kr');
+      expect(ctx.companyId).toBe('tpi');
+      expect(ctx.companyCode).toBe('245');
       // toBodaUid strips dashes from the ACM user UUID → vendor's UId (≤32hex).
       expect(ctx.uid).toBe('teacher1');
       // No leaking of authKey/secret values.

@@ -32,6 +32,11 @@ export interface BodaLaunchContext {
   uname: string;
   lang: 'ko' | 'en';
   appApiUrl: string;
+  // SPEC_823 v823.002 — bodaOpen()/bodaJoin() 의 1번째 위치 인자(bodaWeb) +
+  // joinUser 의 회사 식별자(CId/CCd).
+  bodaWeb: string;
+  companyId?: string | null;
+  companyCode?: string | null;
   evtTitle: string;
   evtStartAt: string;
   evtEndAt: string;
@@ -104,26 +109,100 @@ export function useBodaRoomStatus(
 }
 
 /**
- * Vendor `BodaAppApi.js` shape — we only call two functions, so the surface
- * is intentionally narrow. Declared on `window.BodaAppApi` (BodaAppApi.js is
- * a global-mode script per vendor docs SPEC_823).
+ * Vendor `BodaAppApi.js` shapes — SPEC_823 v823.002 (BODA APP API 가이드).
+ * `bodaOpen`/`bodaJoin` take **5 positional arguments**, NOT a single object:
+ *   (bodaWeb, joinUser, roomOpt, appOpt, joinOpt)
  */
+export interface BodaJoinUser {
+  /** 사용자 인덱스 (항상 0) */
+  UI?: number;
+  /** 등록할 사용자 아이디 (≤32). 공란이면 임시 사용자 */
+  UId?: string;
+  /** 사용자 이름 (≤32) */
+  UNm: string;
+  /** 사용자 타입 — 10 참석자 / 11 강사 / 12 학생 / 13 운영자 */
+  UTy: number;
+  /** 회사 인덱스 (opt) */
+  CCd?: number;
+  /** 회사 아이디 (opt) */
+  CId?: string;
+  /** 인증키 (opt) */
+  AuCd?: number;
+}
+
+/** bodaOpen: { roomCode, roomTitle, roomPwd, dup, meetKey } / bodaJoin: { meetKey, meetIdx, inviteCode } */
+export interface BodaRoomOpt {
+  roomCode?: string;
+  roomTitle?: string;
+  roomPwd?: string;
+  dup?: number;
+  /** SPEC v823.002: String (was Integer) — "+" 문자열 사용 불가 */
+  meetKey?: string;
+  meetIdx?: string;
+  inviteCode?: string;
+}
+
+export interface BodaJoinOpt {
+  lang?: 'ko' | 'en';
+  /** true 이면 윈도우 앱 자동실행 (823.001.8) */
+  hide?: boolean;
+}
+
+type BodaEnterFn = (
+  bodaWeb: string,
+  joinUser: BodaJoinUser,
+  roomOpt: BodaRoomOpt,
+  appOpt?: Record<string, unknown>,
+  joinOpt?: BodaJoinOpt,
+) => void;
+
 export interface BodaAppApiGlobal {
-  /**
-   * Teacher entry — opens (creates+joins) the room.
-   * vendor params: { CCd, CId, AuCd, UTy=11, dup=1, meetKey, roomCode,
-   *                  joinUser:{UId,UNm}, joinOpt:{lang} }
-   * The launch context provides all of these but `AuCd` (NFR-3) — we send it
-   * only when explicitly enabled by Q1 outcome. Until then, leave undefined
-   * and let the BODA Client / TCPS resolve it.
-   */
-  bodaOpen?: (params: unknown) => void;
-
-  /** Student entry — joins an existing room. Same params minus `dup`. */
-  bodaJoin?: (params: unknown) => void;
-
-  /** Optional error sink — vendor calls this on `BODA-NOT_INSTALLED` etc. */
+  /** Teacher entry — opens (creates+joins) the room. */
+  bodaOpen?: BodaEnterFn;
+  /** Student entry — joins an existing room. */
+  bodaJoin?: BodaEnterFn;
+  /** Error sink — vendor calls this on `BODA-NOT_INSTALLED` etc. (823.001.4) */
   setErrorCallback?: (cb: (code: string, message?: string) => void) => void;
+}
+
+/**
+ * Build the 5 positional args and invoke `bodaOpen` (teacher) / `bodaJoin`
+ * (student) per SPEC_823 v823.002. Centralizes the mapping so the two call
+ * sites (autoStart side-effect + desktop card) can't drift.
+ *
+ * @returns false if the vendor function is missing (client not installed).
+ */
+export function enterBodaRoom(
+  api: BodaAppApiGlobal,
+  ctx: BodaLaunchContext,
+  opts: { isTeacher: boolean; hide?: boolean },
+): boolean {
+  const fn = opts.isTeacher ? api.bodaOpen : api.bodaJoin;
+  if (!fn) return false;
+
+  const joinUser: BodaJoinUser = {
+    UI: 0,
+    UId: ctx.uid,
+    UNm: ctx.uname,
+    UTy: ctx.userType,
+  };
+  if (ctx.companyId) joinUser.CId = ctx.companyId;
+  const ccd = ctx.companyCode != null ? Number(ctx.companyCode) : NaN;
+  if (Number.isFinite(ccd)) joinUser.CCd = ccd;
+
+  const roomOpt: BodaRoomOpt = { meetKey: ctx.meetKey };
+  if (opts.isTeacher) {
+    roomOpt.roomCode = ctx.roomCode;
+    roomOpt.dup = 1;
+  } else if (ctx.meetIdx) {
+    roomOpt.meetIdx = ctx.meetIdx;
+  }
+
+  const joinOpt: BodaJoinOpt = { lang: ctx.lang };
+  if (opts.hide) joinOpt.hide = true;
+
+  fn(ctx.bodaWeb, joinUser, roomOpt, {}, joinOpt);
+  return true;
 }
 
 declare global {
