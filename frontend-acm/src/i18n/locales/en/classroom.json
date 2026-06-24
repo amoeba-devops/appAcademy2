@@ -62,7 +62,7 @@
   "teacherJoined": "Your teacher has entered the classroom.",
   "waiting": "Waiting for the teacher…",
   "waitingHint": "The Enter button becomes active once your teacher opens the classroom (auto-refresh every 10 seconds).",
-  "backToCalendar": "Back to calendar",
+  "backToCalendar": "Back to schedule",
   "roomEnded": {
     "ENDED": "The class has ended.",
     "CLOSED": "The classroom has been closed.",
@@ -79,7 +79,7 @@
     },
     "BODA_NOT_BODASCHOOL": {
       "title": "Not a BODA School classroom",
-      "body": "This event uses a different video system. Check the meeting URL in the calendar."
+      "body": "This event uses a different video system. Check the meeting URL in the schedule."
     },
     "BODA_ROOM_NOT_PROVISIONED": {
       "title": "Classroom not yet provisioned",

@@ -62,7 +62,7 @@
   "teacherJoined": "Giáo viên đã vào lớp.",
   "waiting": "Đang chờ giáo viên…",
   "waitingHint": "Nút ‘Vào lớp’ sẽ kích hoạt khi giáo viên mở lớp (tự động làm mới mỗi 10 giây).",
-  "backToCalendar": "Quay lại lịch",
+  "backToCalendar": "Quay lại lịch học",
   "roomEnded": {
     "ENDED": "Lớp học đã kết thúc.",
     "CLOSED": "Phòng học đã bị đóng.",
@@ -79,7 +79,7 @@
     },
     "BODA_NOT_BODASCHOOL": {
       "title": "Không phải phòng BODA School",
-      "body": "Sự kiện này dùng hệ thống video khác. Kiểm tra URL trong lịch."
+      "body": "Sự kiện này dùng hệ thống video khác. Kiểm tra URL trong lịch học."
     },
     "BODA_ROOM_NOT_PROVISIONED": {
       "title": "Phòng học chưa được cấp",
