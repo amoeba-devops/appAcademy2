@@ -54,9 +54,22 @@ export class BodaWebhookService {
   // -------------------------------------------------------------------------
 
   /**
-   * @returns ok=true when both shared-secret AND IP allowlist accept.
-   *          The controller treats { ok:false, reason:'NO_SHARED_SECRET' } as a
-   *          configuration error (500) — distinct from honest token mismatch (401).
+   * Webhook authentication — IP-allowlist primary, shared-secret token optional
+   * (FIX-260624 / REQ-260526 Q2).
+   *
+   * The BODA vendor spec (SPEC_823 v823.002) does NOT define a webhook signature
+   * or token, and the vendor delivers events to the registered URL without one.
+   * Requiring a token would reject every real event, so the policy is:
+   *
+   *   • At least one factor (allowlist OR shared-secret) MUST be configured.
+   *     If neither is set → reject (NO_AUTH_CONFIGURED) — never open to all.
+   *   • If an IP allowlist is configured, the source IP MUST be inside it.
+   *   • If a shared-secret is configured AND a token is present, it MUST match.
+   *     If the secret is configured but BODA sends no token, accept ONLY when the
+   *     IP allowlist also gated the request (IP-only fallback). With no allowlist,
+   *     a configured secret still requires the token (MISSING_TOKEN).
+   *
+   * The controller maps any { ok:false } to HTTP 401 `AUTH_<reason>`.
    */
   async verifyAuth(
     entId: string,
@@ -64,16 +77,35 @@ export class BodaWebhookService {
     srcIp: string | undefined,
   ): Promise<{ ok: boolean; reason?: string }> {
     const sharedSecret = await this.cfg.getDecryptedEventSecret(entId);
-    if (!sharedSecret) {
-      return { ok: false, reason: 'NO_SHARED_SECRET' };
-    }
-    const tok: VerifyResult = verifyBodaWebhookToken(sharedSecret, receivedToken);
-    if (!tok.ok) return { ok: false, reason: tok.reason };
-
     const cfg = await this.cfg.findByEntId(entId);
-    const allowCidrs = cfg?.webhookAllowCidrs ?? null;
-    const allow: AllowResult = isIpInBodaAllowlist(srcIp, allowCidrs);
-    if (!allow.allowed) return { ok: false, reason: allow.reason };
+    const allowCidrs = cfg?.webhookAllowCidrs?.trim() || null;
+
+    const tokenConfigured = !!sharedSecret;
+    const ipConfigured = !!allowCidrs;
+
+    // Fail closed: at least one authentication factor must be configured.
+    if (!tokenConfigured && !ipConfigured) {
+      return { ok: false, reason: 'NO_AUTH_CONFIGURED' };
+    }
+
+    // IP gate — when configured it is a hard requirement.
+    if (ipConfigured) {
+      const allow: AllowResult = isIpInBodaAllowlist(srcIp, allowCidrs);
+      if (!allow.allowed) return { ok: false, reason: allow.reason };
+    }
+
+    // Token gate — only enforced when a secret is configured.
+    if (tokenConfigured) {
+      if (receivedToken) {
+        const tok: VerifyResult = verifyBodaWebhookToken(sharedSecret, receivedToken);
+        if (!tok.ok) return { ok: false, reason: tok.reason };
+      } else if (!ipConfigured) {
+        // Secret is the only configured factor and BODA sent no token.
+        return { ok: false, reason: 'MISSING_TOKEN' };
+      }
+      // else: token absent but the IP gate already passed → IP-only accept.
+    }
+
     return { ok: true };
   }
 
