@@ -54,3 +54,10 @@ sql/_applied/
 
 # ── Office lock files ─────────────────────────────────────
 ~$*
+
+# BODA vendor reference — exclude secret-bearing connection docs + junk/archives.
+# The "연동 정보" docx holds live AuCd/Basic credentials → never commit (use secret store).
+reference/BODA_API_TPI/*연동 정보*.docx
+reference/**/~$*
+reference/**/.DS_Store
+reference/BODA_API_TPI/*.zip
