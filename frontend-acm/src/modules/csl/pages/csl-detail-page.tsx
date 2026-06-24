@@ -168,7 +168,13 @@ export function CslDetailPage() {
           {inq.currentStage === 'TRIAL_CLASS' && <TrialClassPanel inqId={inq.id} />}
           {(inq.currentStage === 'ENROLLMENT_COUNSELING' ||
             inq.currentStage === 'PAYMENT' ||
-            inq.currentStage === 'CLASS_STARTED') && <EnrollmentPanel inqId={inq.id} />}
+            inq.currentStage === 'CLASS_STARTED') && (
+            <EnrollmentPanel
+              inqId={inq.id}
+              currentStage={inq.currentStage}
+              onAfterAdvance={(next) => forward.mutate(next)}
+            />
+          )}
         </div>
         <RemarksPanel inqId={inq.id} />
       </div>
