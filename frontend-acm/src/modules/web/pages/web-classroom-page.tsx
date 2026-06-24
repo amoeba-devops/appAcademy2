@@ -40,6 +40,9 @@ export function WebClassroomPage() {
   const params = useParams<{ evtId: string }>();
   const evtId = params.evtId;
   const acmUser = useAuthStore((s) => s.user);
+  // Rules of Hooks: this must run on every render, before any early return
+  // below — otherwise the hook count changes between renders (React #310).
+  const [search] = useSearchParamsCompat();
 
   const lang: 'ko' | 'en' = i18n.language === 'en' ? 'en' : 'ko';
   const ctxQuery = useBodaLaunchContext(evtId, lang, { enabled: !!acmUser });
@@ -72,7 +75,6 @@ export function WebClassroomPage() {
   }
 
   const ctx = ctxQuery.data!;
-  const [search] = useSearchParamsCompat();
   const autoStart = search.get('autoStart') === '1' && ctx.userType === 11;
   const demo = search.get('demo') === '1';
   const isTeacher = ctx.userType === 11;
