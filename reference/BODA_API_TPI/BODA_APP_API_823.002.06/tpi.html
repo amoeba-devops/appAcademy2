@@ -1,0 +1,780 @@
+<!-- 
+*****************************************************************************************************************************************
+ - BodaAppApi.js를 사용하는 자세한 방법은 제공해 드린 문서를 참고하시기 바랍니다.
+ - 본 소스는 BodaAppApi.js를 테스트하기 위한 샘플 소스로 고객사에서 적용하는 경우 해당 환경에 맞게 적용하시기 바랍니다.
+    본 소스는 참고용으로 사용하시고 그대로 사용하시는 것은 권장하지 않습니다. 
+*****************************************************************************************************************************************
+ -->
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<title>BODA APP API</title>
+
+		<style type="text/css">
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background-color: #f5f5f5;
+			}
+
+			.nav {
+				padding: 10px;
+				background-color: #2f2f2f;
+				color: white;
+				width: calc(100% - 520px);
+			}
+
+			.nav > .title {
+				margin: 0;
+				padding: 0 10px;
+			}
+
+			.container {
+				width: 100%;
+				margin: 0 auto;
+			}
+
+			.content {
+				padding: 10px;
+			}
+
+			.container .content section {
+				width: calc(100% - 550px);
+				margin: 20px;
+			}
+
+			article header {
+				background-color: #e4e4e4;
+				border: 1px solid #a0a0a0;
+				border-radius: 5px 5px 0 0;
+				padding: 10px;
+				font-weight: bold;
+			}
+
+			article header small {
+				font-weight: normal;
+			}
+
+			article .desc {
+				background-color: #efefef;
+				border: 1px solid #a0a0a0;
+				border-top: none;
+				padding: 10px;
+			}
+
+			article .body {
+				background-color: #f5f5f5;
+				border: 1px solid #a0a0a0;
+				border-top: none;
+				border-bottom: none;
+				padding: 10px;
+			}
+
+			article .footer {
+				background-color: #f5f5f5;
+				border: 1px solid #a0a0a0;
+				border-radius: 0 0 5px 5px;
+				padding: 10px;
+			}
+
+			.input-section div {
+				margin: 3px;
+				position: relative;
+			}
+
+			label {
+				width: 380px;
+				display: inline-block;
+				text-align: right;
+				font-size: 13px;
+			}
+			label > span:first-child {
+				float: left;
+				color: #4b4b4b;
+			}
+			label > span:last-child {
+				font-size: 13px;
+			}
+
+			input {
+				width: calc(100% - 380px - 10px);
+				padding: 5px;
+				background-color: #fff;
+				background-clip: padding-box;
+				border: 1px solid #ced4da;
+				border-radius: 3px;
+			}
+
+			.btn {
+				background-color: #007bff;
+				background-clip: padding-box;
+				color: white;
+				border: 0px solid #ced4da;
+				border-radius: 3px;
+				padding: 5px 10px;
+				font-weight: 400;
+				font-size: 1rem;
+				cursor: pointer;
+			}
+
+			.console {
+				width: 480px;
+				height: calc(100% - 20px);
+				position: fixed;
+				right: 10px;
+				top: 10px;
+			}
+
+			.section-title {
+				font-size: 14px;
+				font-weight: bold;
+			}
+
+			@media (max-width: 1200px) {
+				.nav {
+					width: inherit;
+				}
+
+				.container .content section {
+					width: inherit;
+				}
+
+				.console {
+					width: inherit;
+					height: 300px;
+					position: relative;
+					margin: 0 5px;
+				}
+			}
+
+			@media (max-width: 800px) {
+				label {
+					display: flex;
+					flex-direction: column;
+					text-align: left;
+					margin-left: 10px;
+				}
+				label > span:last-child {
+					font-size: 14px;
+				}
+				input {
+					width: 100%;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="nav">
+			<h3 class="title">BODA APP API</h3>
+		</header>
+
+		<datalist id="set_boolean">
+			<option value="true"></option>
+			<option value="false"></option>
+		</datalist>
+		<datalist id="set_platformType">
+			<option value="WIN">Windows</option>
+			<option value="AOS">Android</option>
+			<option value="IOS">iOS</option>
+			<option value="MAC">Mac</option>
+			<option value="WEB">WebRTC</option>
+		</datalist>
+		<datalist id="set_userType">
+			<option value="5">운영자</option>
+			<option value="2">방청객</option>
+			<option value="3">관리자</option>
+			<option value="4">관리용 옵저버</option>
+			<option value="11">커스텀 타입 11</option>
+			<option value="12">커스텀 타입 12</option>
+			<option value="13">커스텀 타입 13</option>
+			<option value="14">커스텀 타입 14</option>
+			<option value="15">커스텀 타입 15</option>
+		</datalist>
+
+
+		<div class="container">
+			<div class="content">
+
+				<!-- 유틸 -->
+				<!-- 
+					API를 사용하기 위한 부가 기능입니다.
+					- roomCode는 생성 규칙에 맞게 생성해야합니다. 
+				-->
+				<section>
+					<article>
+						<header>유틸</header>
+						<div class="footer" style="border-top: 0">
+							<button type="button" class="btn" id="btn_meetCode_make">MeetCode 자동 생성</button>
+						</div>
+						
+						<div class="footer" style="border-top: 0">
+							<span>Authorization</span><input id="authorization" type="text" name="authorization" data-type="string" value="" />
+						</div>
+
+						<div class="footer" style="border-top: 0">
+							<button type="button" class="btn" id="btn_agenda_upload">문서 등록</button>
+							<textarea id="agenda_upload_req" rows="15" style="width: 100%; height: auto; resize: vertical;"></textarea>
+						</div>
+
+						<div class="footer" style="border-top: 0">
+							<button type="button" class="btn" id="btn_meet_info">회의 상세정보</button>
+							<span>MeetKey</span><input id="meet_info_key" type="text" name="meet_info_key" data-type="string" value="" />
+						</div>
+
+						<div class="footer" style="border-top: 0">
+							<button type="button" class="btn" id="btn_meet_list">회의 목록</button>
+							<span>companyId</span><input id="meet_list_companyId" type="text" name="meet_list_companyId" data-type="string" value="ktgf" />
+						</div>
+					</article>
+				</section>
+
+				<section>
+					<article>
+						<header>요청 URL</header>
+						<div class="footer" style="border-top: 0">
+							<div>
+								<label><span>bodaWebURL</span><span>bodaWebURL</span></label> <input type="text" name="bodaWebURL" data-type="string" value="https://bodaedu.kr" />
+							</div>
+						</div>
+					</article>
+				</section>
+
+				<!-- 개설/입장 -->
+				<!-- 
+					 멀티룸을 개설한 후 입장한다.
+				  -->
+				
+				<section>
+					<form id="openJoinForm" data-boda-api="openJoin">
+						<article>
+							<header>개설&입장 </header>
+							<div class="body">
+								<div class="input-section">
+									<div style="font-weight: bold">기본 설정</div>
+									<div>
+										<label><span>companyId</span><span>회사 코드</span></label> <input type="text" name="companyId" data-type="string" value="tpi" />
+									</div>
+									<div>
+										<label><span>userId</span><span>사용자 아이디 (미입력시 임시사용자)</span></label> <input type="text" name="userId" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>userName</span><span>사용자 이름</span></label> <input type="text" name="userName" data-type="string" value="tpi테스트사용자1" />
+									</div>
+									<div>
+										<label><span>userType<small>(Number)</small></span><span>사용자 타입</span></label> <input type="text" name="userType" data-type="number" value="11" list="set_userType" />
+									</div>
+									<div>
+										<label><span>roomCode</span><span>룸코드</span></label> <input type="text" name="roomCode" data-type="string" value="699" />
+									</div>
+									<div>
+										<label><span>meetKey</span><span>Meet Key</span></label> <input type="text" name="meetKey" data-type="number" value="" />
+									</div>
+									<div>
+										<label><span>roomTitle</span><span>룸 제목</span></label> <input type="text" name="roomTitle" data-type="string" value="tpiMV_WEB_API 테스트" />
+									</div>
+									<div>
+										<label><span>roomPwd</span><span>룸 패스워드</span></label> <input type="text" name="roomPwd" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>dup</span><span>중복 개설 허용</span></label> <input type="text" name="dup" data-type="number" value="1" />
+									</div>
+									<div>
+										<label><span>appOpt</span></label> <textarea type="text" name="appOpt" data-type="string" value="" rows="25" style="width: 100%; resize: vertical;">
+
+										</textarea>
+									</div>
+								</div>
+							</div>
+							<div class="footer" style="text-align: right">
+								<button type="submit" class="btn">실행</button>
+							</div>
+						</article>
+					</form>
+				</section>
+
+				<section>
+					<form id="joinForm" data-boda-api="join">
+						<article>
+							<header>입장 </header>
+							<div class="body">
+								<div class="input-section">
+									<div style="font-weight: bold">기본 설정</div>
+									<div>
+										<label><span>companyId</span><span>회사 코드</span></label> <input type="text" name="companyId" data-type="string" value="tpi" />
+									</div>
+									<div>
+										<label><span>userId</span><span>사용자 아이디 (미입력시 임시사용자)</span></label> <input type="text" name="userId" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>userName</span><span>사용자 이름</span></label> <input type="text" name="userName" data-type="string" value="tpi테스트사용자2" />
+									</div>
+									<div>
+										<label><span>userType<small>(Number)</small></span><span>사용자 타입</span></label> <input type="text" name="userType" data-type="number" value="12" list="set_userType" />
+									</div>
+									<div>
+										<label><span>meetKey</span><span>Meet Key</span></label> <input type="text" name="meetKey" data-type="number" value="" />
+									</div>
+									<div>
+										<label><span>meetIdx</span><span>Meet Idx</span></label> <input type="text" name="meetIdx" data-type="number" value="" />
+									</div>
+									<div>
+										<label><span>inviteCode</span><span>Invite Code</span></label> <input type="text" name="inviteCode" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>appOpt</span></label> <textarea type="text" name="appOpt" data-type="string" value="" rows="25" style="width: 100%; resize: vertical;"></textarea>
+									</div>
+								</div>
+							</div>
+							<div class="footer" style="text-align: right">
+								<button type="submit" class="btn">실행</button>
+							</div>
+						</article>
+					</form>
+				</section>
+				<!-- logForm-->
+				<section>
+					<form id="logForm" data-boda-api="logUser">
+						<article>
+							<header>이력 조회</header>
+							<div class="body">
+								<div class="input-section">
+									<div style="font-weight: bold">조회 조건</div>
+									<div>
+										<label><span>companyIdx</span><span>회사 일련번호</span></label>
+										<input type="text" name="companyIdx" data-type="number" value="" />
+									</div>
+									<div>
+										<label><span>meetKey</span><span>Meet Key</span></label>
+										<input type="text" name="meetKey" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>meetIdx</span><span>Meet Idx(선택)</span></label>
+										<input type="text" name="meetIdx" data-type="number" value="" />
+									</div>
+								</div>
+							</div>
+							<div class="footer" style="text-align: right">
+								<button type="submit" class="btn">실행</button>
+							</div>
+						</article>
+					</form>
+				</section>
+
+				<section>
+					<form id="logJoinForm" data-boda-api="logJoinUser">
+						<article>
+							<header>입/퇴장 이력 조회</header>
+							<div class="body">
+								<div class="input-section">
+									<div style="font-weight: bold">조회 조건</div>
+									<div>
+										<label><span>companyIdx</span><span>회사 일련번호</span></label>
+										<input type="text" name="companyIdx" data-type="number" value="" />
+									</div>
+									<div>
+										<label><span>meetKey</span><span>Meet Key</span></label>
+										<input type="text" name="meetKey" data-type="string" value="" />
+									</div>
+									<div>
+										<label><span>meetIdx</span><span>Meet Idx(선택)</span></label>
+										<input type="text" name="meetIdx" data-type="number" value="" />
+									</div>
+								</div>
+							</div>
+							<div class="footer" style="text-align: right">
+								<button type="submit" class="btn">실행</button>
+							</div>
+						</article>
+					</form>
+				</section>
+
+				
+				<aside>
+					<div class="console">
+						<div style="font-weight: bold">Console</div>
+						<textarea id="view_console" style="width: 100%; height: calc(100% - 25px); resize: none; border-style: dotted" readonly></textarea>
+					</div>
+				</aside>
+
+		<script type="text/javascript" src="./build/BodaAppApi.js"></script>
+		<script type="text/javascript">
+			/*************************************************************************************************************************************/
+			var btn_meetCode_make = document.querySelector('#btn_meetCode_make');
+			btn_meetCode_make.addEventListener('click', () => {
+				var meetKey = String(Math.floor(100000 + Math.random() * 900000));
+
+				document.querySelectorAll('input[name=meetKey]').forEach((input) => {
+					input.value = meetKey;
+				});
+
+				try{
+					let json = JSON.parse(document.querySelector('#agenda_upload_req').value);
+					if(json['MKy'] != undefined){
+						json['MKy'] = meetKey;
+					}
+
+					document.querySelector('#agenda_upload_req').value = JSON.stringify(json, null, 4);
+				}catch {}
+
+				document.querySelector('#meet_info_key').value = meetKey;
+
+				ViewConsole.print('[MeetKey 생성] 호출. meetKey:' + meetKey);
+			});
+			
+			
+			let bodaWebURL = document.querySelector('input[name="bodaWebURL"]').value;
+
+			//////////////////////////////////
+			// /svr/meet/agenda
+			//////////////////////////////////
+			var btn_agenda_upload = document.querySelector('#btn_agenda_upload');
+			btn_agenda_upload.addEventListener('click', () => {
+				
+				//MTI6MjQxNjc1OTY2
+				let url = `${bodaWebURL}/svr/meet/agenda`;
+				let authCode = btoa(document.querySelector('#authorization').value);
+				let headers = {
+					'Authorization': `Basic ${authCode}`,
+					'Content-Type': 'application/json',
+				};
+
+				let body = document.querySelector('#agenda_upload_req').value;
+				fetch(url, {
+					method: 'POST',
+					headers,
+					body
+				})
+				.then(res => res.json())
+				.then((data) => {
+					ViewConsole.print('[문서 등록] 호출 성공. response:' + JSON.stringify(data));
+				})
+				.catch(err => console.error(err));
+			});
+			document.querySelector('#agenda_upload_req').value = JSON.stringify({
+				"MCd": 0,
+				"MKy": '',
+				"A": [{
+					"fileType" : "pdf",
+					"JDocUl": "https://lab.boda.zone/appapi/test.pdf", // 문서다운로드 URL
+					"agendaName": "아젠다 업로드 테스트",
+					"JSON_RECV": {
+						"recvId": [],
+						"recvType": [],
+						"recvTypeExcept": [],
+					}
+				}]
+			}, null, 4);
+
+			//////////////////////////////////
+			// /svr/meet/info
+			//////////////////////////////////
+			var btn_meet_info = document.querySelector('#btn_meet_info');
+			btn_meet_info.addEventListener('click', ()=>{
+				let url = `${bodaWebURL}/svr/meet/info?meetKey=${encodeURIComponent(document.querySelector('#meet_info_key').value)}`;
+				let authCode = btoa(document.querySelector('#authorization').value);
+				let headers = {
+					'Authorization': `Basic ${authCode}`,
+					'Content-Type': 'application/json',
+				};
+
+				let body = JSON.stringify({
+					meetKey: document.querySelector('#meet_info_key').value
+				});
+				fetch(url, {
+					method: 'POST',
+					headers,
+					body
+				})
+				.then(res => res.json())
+				.then((data) => {
+					ViewConsole.print('[회의 상세정보] 호출 성공. response: ' + JSON.stringify(data, null, 4));
+				})
+				.catch(err => console.error(err));
+			})
+
+			//////////////////////////////////
+			// /svr/meet/list
+			//////////////////////////////////
+			var btn_meet_list = document.querySelector('#btn_meet_list');
+			btn_meet_list.addEventListener('click', ()=>{
+				let url = `${bodaWebURL}/svr/meet/list`;
+				let authCode = btoa(document.querySelector('#authorization').value);
+				let headers = {
+					'Authorization': `Basic ${authCode}`,
+					'Content-Type': 'application/json',
+				};
+
+				let body = JSON.stringify({
+					companyId: document.querySelector('#meet_list_companyId').value
+				});
+				fetch(url, {
+					method: 'POST',
+					headers,
+					body
+				})
+				.then(res => res.json())
+				.then((data) => {
+					ViewConsole.print('[회의 목록] 호출 성공. response: ' + JSON.stringify(data, null, 4));
+				})
+				.catch(err => console.error(err));
+			})
+			// 에러 콜백 등록
+			BodaAppApi.setErrorCallback((errorCode, reason) => {
+				ViewConsole.print(`[Error Callback] 호출. errorCode: ${errorCode}, reason: ${reason}`);
+			});	
+			/*************************************************************************************************************************************/
+
+			document.querySelectorAll('form[data-boda-api]').forEach((form) => {
+				
+				form.addEventListener('submit', (event) => {
+					bodaWebURL = document.querySelector('input[name="bodaWebURL"]').value;
+					event.preventDefault();
+
+					const apiName = form.getAttribute('data-boda-api');
+					if (apiName === 'openJoin' && typeof BodaAppApi.bodaOpen === 'function') {
+						const inputs = form.querySelectorAll('input, textarea');
+
+						// Form 데이터 추출 및 변환
+						const values = Array.from(inputs).reduce((acc, input) => {
+							let value = input.value;
+							const dataType = input.getAttribute('data-type');
+
+							// 데이터 타입 변환
+							if (dataType === 'boolean') {
+								value = value === 'true';
+							} else if (dataType === 'number') {
+								value = value === '' ? undefined : Number(value);
+							} else if (dataType === 'object') {
+								try {
+									value = JSON.parse(value);
+								} catch (e) {
+									console.error(`Invalid JSON in input "${input.name}":`, value);
+								}
+							}
+
+							acc[input.getAttribute('name')] = value;
+							return acc;
+						}, {});
+
+						// BodaAppApi.bodaOpen 호출
+						let aoOptJson = {};
+						if (values.appOpt && typeof values.appOpt === 'string' && values.appOpt.trim() !== '') {
+							try {
+								aoOptJson = JSON.parse(values.appOpt);
+							} catch (e) {
+								ViewConsole.print('Invalid JSON in appOpt:', values.appOpt);
+								return;
+							}
+						}
+						BodaAppApi.bodaOpen(
+							bodaWebURL,
+							{
+								UId: values.userId,
+								UNm: values.userName,
+								UTy: values.userType,
+								CId: values.companyId,
+							},
+							{
+								roomCode: values.roomCode ,
+								roomTitle: values.roomTitle ,
+								roomPwd: values.roomPwd ,
+								dup: values.dup || 0,
+								meetKey: values.meetKey ,
+							},
+							aoOptJson,	// 추가 앱 옵션
+							// {
+							// 	"agendaAdd": {
+							// 		"A": [
+							// 			{
+							// 				//"fileType": "img" | "pdf",			//*필수아님* 파일 타입
+							// 				"JDocUl": "", 							//*필수* lh 에서 제공할 다운로드 url
+							// 				"agendaName": "",						//*필수아님* 자료명 을 다른걸로 지정하고자 할때
+							// 				//JSON_RECV 가 없으면 모두가 대상자
+							// 				"JSON_RECV": {
+							// 					// ======== 이중에 하나라도 포함되면 대상자=======
+							// 					"recvType": [10],					// 사용자 타입
+							// 					"recvId": ["id01"],			// 사용자 아이디	
+							// 					//"recvIdx": [1007, 1008],		// 디비 유저 인덱스
+							// 					// ============================================
+							// 				}
+							// 			},
+							// 			//...
+							// 		]
+							// 	}
+							// },
+							{
+								lang: 'ko', // 언어 설정 기본값 ko (예: 'ko', 'en', 'jp', 'cn')
+								hide: false,
+							}
+						);
+					} else if (apiName === 'join' && typeof BodaAppApi.bodaJoin === 'function') {
+						const inputs = form.querySelectorAll('input, textarea');
+
+						// Form 데이터 추출 및 변환
+						const values = Array.from(inputs).reduce((acc, input) => {
+							let value = input.value;
+							const dataType = input.getAttribute('data-type');
+
+							// 데이터 타입 변환
+							if (dataType === 'boolean') {
+								value = value === 'true';
+							} else if (dataType === 'number') {
+								value = value === '' ? undefined : Number(value);
+							} else if (dataType === 'object') {
+								try {
+									value = JSON.parse(value);
+								} catch (e) {
+									console.error(`Invalid JSON in input "${input.name}":`, value);
+									return;
+								}
+							}
+
+							acc[input.getAttribute('name')] = value;
+							return acc;
+						}, {});
+
+						// BodaAppApi.bodaOpen 호출
+						let aoOptJson = {};
+						if (values.appOpt && typeof values.appOpt === 'string' && values.appOpt.trim() !== '') {
+							try {
+								aoOptJson = JSON.parse(values.appOpt);
+							} catch (e) {
+								ViewConsole.print('Invalid JSON in appOpt:', values.appOpt);
+							}
+						}
+						BodaAppApi.bodaJoin(
+							bodaWebURL,
+							{
+								UId: values.userId,
+								UNm: values.userName,
+								UTy: values.userType,
+								CId: values.companyId,
+							},
+							{
+								meetIdx: values.meetIdx ,
+								meetKey: values.meetKey ,
+								inviteCode: values.inviteCode ,
+							},
+							aoOptJson,	// 추가 앱 옵션
+							{
+								lang: 'ko', // 언어 설정 기본값 ko (예: 'ko', 'en', 'jp', 'cn')
+								hide: false,
+							}
+						);
+					} else if (apiName === 'logUser') {
+						runMeetLog('user', form);
+					} else if (apiName === 'logJoinUser') {
+						runMeetLog('join', form);
+					} else {
+						console.error(`API ${apiName} is not recognized or not defined.`);
+					}
+				});
+			});
+			//////////////////////////////////
+			// /svr/meet/log/user ?/join
+			//////////////////////////////////
+			function runMeetLog(type, form) {	// type: 'user' | 'join'
+				// 최신 bodaWebURL 반영
+				bodaWebURL = document.querySelector('input[name="bodaWebURL"]').value;
+				const meetKey = (form.querySelector('input[name="meetKey"]')?.value || '').trim();
+				const meetIdxStr = (form.querySelector('input[name="meetIdx"]')?.value || '').trim();
+				const companyIdxStr = (form.querySelector('input[name="companyIdx"]')?.value || '').trim();
+
+				if (!meetKey && !meetIdxStr) {
+					ViewConsole.print(type === 'join'
+						? '[입/퇴장 이력 조회] meetKey 또는 meetIdx를 입력하세요.'
+						: '[이력 조회] meetKey 또는 meetIdx를 입력하세요.');
+					return;
+				}
+				if (!companyIdxStr) {
+					ViewConsole.print('[조회] companyIdx를 입력하세요.');
+					return;
+				}
+
+				const authInput = (document.querySelector('#authorization')?.value || '').trim();
+
+				// 1) BodaAppApi 함수가 있으면 우선 사용
+				const fn = (type === 'join') ? BodaAppApi?.logJoinUser : BodaAppApi?.logUser;
+				if (typeof fn === 'function') {
+					fn(bodaWebURL, {
+						companyIdx: Number(companyIdxStr),
+						authorization: authInput,
+						meetKey: meetKey || undefined,
+						meetIdx: meetIdxStr === '' ? undefined : Number(meetIdxStr),
+					})
+					.then((data) => {
+						const title = (type === 'join')
+							? '[입/퇴장 이력 조회 /log/user/join]'
+							: '[이력 조회 /log/user]';
+						ViewConsole.print(title + ' response: ' + JSON.stringify(data, null, 4));
+					})
+					.catch((err) => {
+						console.error(err);
+						ViewConsole.print('[조회] 호출 실패: ' + (err?.message || err));
+					});
+					return;
+				}
+
+				// 2) 없으면 fetch로 직접 호출 (서버 API 기준)
+				// authorization 입력이 "companyIdx:token" 형태가 아니면 자동으로 붙여서 Basic 생성
+				const rawForBasic = authInput.includes(':') ? authInput : `${companyIdxStr}:${authInput}`;
+				const headers = {
+					'Authorization': `Basic ${btoa(rawForBasic)}`,
+					'Content-Type': 'application/json',
+				};
+
+				const params = new URLSearchParams();
+				params.set('companyIdx', companyIdxStr);
+				if (meetKey) params.set('meetKey', meetKey);
+				if (meetIdxStr) params.set('meetIdx', meetIdxStr);
+
+				const path = (type === 'join') ? '/svr/meet/log/user/join' : '/svr/meet/log/user';
+				const url = `${bodaWebURL}${path}?${params.toString()}`;
+
+				fetch(url, { method: 'GET', headers })
+					.then(res => res.json())
+					.then((data) => {
+						const title = (type === 'join')
+							? '[입/퇴장 이력 조회 /log/user/join]'
+							: '[이력 조회 /log/user]';
+						ViewConsole.print(title + ' response: ' + JSON.stringify(data, null, 4));
+					})
+					.catch((err) => {
+						console.error(err);
+						ViewConsole.print('[조회] 호출 실패: ' + (err?.message || err));
+					});
+			}
+
+
+			/*************************************************************************************************************************************/
+			// 호출 로그를 화면에 표시한다.
+			var ViewConsole = {
+				_info: {
+					$view_console: document.querySelector('#view_console'),
+				},
+				print: function (msg) {
+					var now = new Date();
+					var view_time = '[' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + ']';
+
+					var html = this._info.$view_console.innerHTML;
+					this._info.$view_console.innerHTML = html + '\n' + view_time + '\n' + msg + '\n';
+
+					this._info.$view_console.scrollTop = this._info.$view_console.scrollHeight;
+				},
+			};
+
+			var Util = {
+				pad: function (n, width) {
+					n = n + '';
+					return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+				},
+			};
+		</script>
+	</body>
+</html>
