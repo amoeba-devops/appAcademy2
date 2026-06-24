@@ -98,7 +98,11 @@
     "recentTag": "Recent",
     "searchHint": "Search will arrive in a follow-up update.",
     "notifyHint": "Invited students get a notification immediately when you start the class.",
-    "startBtn": "Start class"
+    "startBtn": "Start class",
+    "errors": {
+      "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA default room code is not set. Enter it under Settings → BODA integration and try again.",
+      "BODA_DISABLED_FOR_TENANT": "BODA integration is disabled. Enable it under Settings → BODA integration and try again."
+    }
   },
   "filter": {
     "label": "Filter",

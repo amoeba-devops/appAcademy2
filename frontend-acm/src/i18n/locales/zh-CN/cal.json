@@ -98,7 +98,11 @@
     "recentTag": "最近",
     "searchHint": "搜索功能将在后续更新中提供。",
     "notifyHint": "您开课时,被邀请的学生会立即收到通知。",
-    "startBtn": "开始上课"
+    "startBtn": "开始上课",
+    "errors": {
+      "BODA_DEFAULT_ROOM_CODE_MISSING": "尚未设置 BODA 默认房间代码。请在 设置 → BODA 集成 中填写后重试。",
+      "BODA_DISABLED_FOR_TENANT": "BODA 集成已禁用。请在 设置 → BODA 集成 中启用后重试。"
+    }
   },
   "filter": {
     "label": "筛选",
