@@ -56,10 +56,18 @@ server {
     }
 
     # SPA fallback — every other route renders index.html so React Router
-    # can take over.
+    # can take over. HTML documents (the SPA shell + static pages under
+    # /web/*.html) must NOT be heuristically cached: without an explicit
+    # Cache-Control, a browser that fetched this URL *before* the file
+    # existed cached the index.html fallback and then React Router bounces
+    # it to "/". `no-cache` forces revalidation (ETag/304) on every load.
     location / {
         root /usr/share/nginx/html;
         index index.html;
         try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache" always;
+        add_header X-Frame-Options DENY always;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
     }
 }
