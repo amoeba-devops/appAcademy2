@@ -323,6 +323,10 @@ export class InquiryService {
         heldAt: dto.heldAt,
         feedbackStatus: dto.feedbackStatus ?? 'PENDING',
         note: dto.note ?? null,
+        // REQ-260626 additions
+        heldTime: dto.heldTime ?? null,
+        teacherId: dto.teacherId ?? null,
+        completed: false,
       }),
     );
   }
@@ -332,6 +336,91 @@ export class InquiryService {
       where: { entId, inqId },
       order: { heldAt: 'ASC' },
     });
+  }
+
+  /**
+   * REQ-260626 FR-CSL-122~125 — partial update of a demo class.
+   * Independent fields so operator iterates (schedule → teacher → mark
+   * completed → feedback) without re-sending the whole row.
+   */
+  async updateTrialClass(
+    entId: string,
+    inqId: string,
+    tclId: string,
+    patch: {
+      heldAt?: string;
+      heldTime?: string;
+      teacherId?: string;
+      completed?: boolean;
+      note?: string;
+      calEventId?: string;
+    },
+  ): Promise<TrialClassTypeormEntity> {
+    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
+    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    if (patch.heldAt !== undefined) tc.heldAt = patch.heldAt;
+    if (patch.heldTime !== undefined) tc.heldTime = patch.heldTime ?? null;
+    if (patch.teacherId !== undefined) tc.teacherId = patch.teacherId ?? null;
+    if (patch.completed !== undefined) tc.completed = patch.completed;
+    if (patch.note !== undefined) tc.note = patch.note ?? null;
+    if (patch.calEventId !== undefined) tc.calEventId = patch.calEventId ?? null;
+    return this.trialClasses.save(tc);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // REQ-260626 — Demo class feedback workflow (FR-CSL-127/128, FN-CSL-223/224)
+  //
+  //   TEACHER writes body   → marks authored_by/at + completed=true
+  //   STAFF↑  confirms       → stamps confirmed_by/at
+  //   STAFF↑  marks delivered → stamps delivered_at (after manual KakaoTalk)
+  //
+  // Controller enforces role gates; service stamps from the actor it gets.
+  // ──────────────────────────────────────────────────────────────────────
+
+  async writeFeedback(
+    entId: string,
+    inqId: string,
+    tclId: string,
+    body: string,
+    actorId: string,
+  ): Promise<TrialClassTypeormEntity> {
+    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
+    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    tc.feedbackBody = body;
+    tc.feedbackAuthoredBy = actorId;
+    tc.feedbackAuthoredAt = new Date();
+    tc.completed = true; // writing feedback implies the session happened
+    return this.trialClasses.save(tc);
+  }
+
+  async confirmFeedback(
+    entId: string,
+    inqId: string,
+    tclId: string,
+    actorId: string,
+  ): Promise<TrialClassTypeormEntity> {
+    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
+    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    if (!tc.feedbackBody) {
+      throw new BadRequestException('Cannot confirm — teacher feedback body is empty');
+    }
+    tc.feedbackConfirmedBy = actorId;
+    tc.feedbackConfirmedAt = new Date();
+    return this.trialClasses.save(tc);
+  }
+
+  async markFeedbackDelivered(
+    entId: string,
+    inqId: string,
+    tclId: string,
+  ): Promise<TrialClassTypeormEntity> {
+    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
+    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    if (!tc.feedbackConfirmedAt) {
+      throw new BadRequestException('Cannot mark delivered — feedback not yet confirmed');
+    }
+    tc.feedbackDeliveredAt = new Date();
+    return this.trialClasses.save(tc);
   }
 
   // ──────────────────────────────────────────────────────────────────────
