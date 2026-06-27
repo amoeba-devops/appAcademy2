@@ -126,6 +126,17 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "Ghi nhận kết quả (STAFF↑)",
       "resultEntered": "Đã ghi kết quả lúc {{when}}",
+      "isee": { "label": "ISEE — Scaled / Percentile / Stanine theo phần" },
+      "ssat": { "label": "SSAT — Score / Percentile theo phần + Tổng" },
+      "duolingo": { "label": "Duolingo — tổng + 4 phần chính + 4 phụ (mỗi 10~160)" },
+      "toefl": { "label": "TOEFL — tổng + 4 phần (mỗi 1~6, bước 0.5)" },
+      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "other": {
+        "label": "Khác — nhập tự do khóa/giá trị",
+        "empty": "Chưa có mục nào.",
+        "keyPlaceholder": "Tên mục",
+        "valuePlaceholder": "Giá trị"
+      },
       "fee": { "PAID": "Đã trả", "UNPAID": "Chưa trả", "WAIVED": "Miễn" },
       "waiver": {
         "RETAKE_WITHIN_90D": "Thi lại trong 90 ngày",

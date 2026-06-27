@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LevelTestScoreEditor } from './level-test-score-editor';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -60,11 +61,12 @@ type FormValues = {
   scoreReading: string;
   scoreMath: string;
   scoreLanguage: string;
-  // REQ-260626
+  // REQ-260626 — `scoreDetail` lives outside the form (useState) so the
+  // per-type editor (LevelTestScoreEditor) can update nested keys
+  // atomically without fighting react-hook-form's set semantics.
   testType: LevelTestType;
   testTypeOther: string;
   scheduledTime: string;
-  scoreDetailJson: string;
 };
 
 /**
@@ -117,9 +119,10 @@ export function MapTestPanel({
       testType: 'MAP',
       testTypeOther: '',
       scheduledTime: '',
-      scoreDetailJson: '',
     },
   });
+
+  const [scoreDetail, setScoreDetail] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     if (data) {
@@ -136,27 +139,19 @@ export function MapTestPanel({
         testType: data.testType ?? 'MAP',
         testTypeOther: data.testTypeOther ?? '',
         scheduledTime: data.scheduledTime?.slice(0, 5) ?? '',
-        scoreDetailJson: data.scoreDetail
-          ? JSON.stringify(data.scoreDetail, null, 2)
-          : '',
       });
+      setScoreDetail(data.scoreDetail ?? null);
     }
   }, [data, reset]);
 
   const testType = watch('testType');
 
   function toBody(v: FormValues) {
-    // REQ-260626 — scoreDetail textarea is type-tolerant: an invalid JSON
-    // payload is sent as-is and rejected by the server validator (DSN §5.6)
-    // instead of silently swallowing the operator's input.
-    let scoreDetail: unknown = undefined;
-    if (v.scoreDetailJson.trim()) {
-      try {
-        scoreDetail = JSON.parse(v.scoreDetailJson);
-      } catch {
-        scoreDetail = { _raw: v.scoreDetailJson };
-      }
-    }
+    // REQ-260626 — scoreDetail comes from the structured editor's state
+    // (LevelTestScoreEditor). Empty object collapses to undefined so we
+    // don't send `{}` and overwrite a populated row with nothing.
+    const detailIsEmpty =
+      !scoreDetail || Object.keys(scoreDetail).length === 0;
     return {
       hasPriorScore: v.hasPriorScore,
       feeStatus: v.feeStatus || undefined,
@@ -171,7 +166,7 @@ export function MapTestPanel({
       testType: v.testType,
       testTypeOther: v.testTypeOther || undefined,
       scheduledTime: v.scheduledTime || undefined,
-      scoreDetail,
+      scoreDetail: detailIsEmpty ? undefined : scoreDetail,
     };
   }
 
@@ -182,20 +177,14 @@ export function MapTestPanel({
    */
   const recordResult = useMutation({
     mutationFn: async (v: FormValues) => {
-      let scoreDetail: unknown = undefined;
-      if (v.scoreDetailJson.trim()) {
-        try {
-          scoreDetail = JSON.parse(v.scoreDetailJson);
-        } catch {
-          throw new Error('scoreDetail JSON 형식이 올바르지 않습니다');
-        }
-      }
+      const detailIsEmpty =
+        !scoreDetail || Object.keys(scoreDetail).length === 0;
       await apiClient.post(`/acm/csl/inquiries/${inqId}/map-test/result`, {
         testType: v.testType,
         scoreReading: v.scoreReading ? Number(v.scoreReading) : undefined,
         scoreMath: v.scoreMath ? Number(v.scoreMath) : undefined,
         scoreLanguage: v.scoreLanguage ? Number(v.scoreLanguage) : undefined,
-        scoreDetail,
+        scoreDetail: detailIsEmpty ? undefined : scoreDetail,
       });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'map-test', inqId] }),
@@ -285,17 +274,13 @@ export function MapTestPanel({
             </div>
 
             {testType !== 'MAP' && (
-              <Field label={t('detail.mapTest.scoreDetail')}>
-                <textarea
-                  {...register('scoreDetailJson')}
-                  rows={6}
-                  className="min-h-[120px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 font-mono text-xs"
-                  placeholder={t('detail.mapTest.scoreDetailPlaceholder')}
+              <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+                <LevelTestScoreEditor
+                  testType={testType}
+                  value={scoreDetail}
+                  onChange={setScoreDetail}
                 />
-                <p className="text-[11px] text-secondary">
-                  {t('detail.mapTest.scoreDetailHint')}
-                </p>
-              </Field>
+              </div>
             )}
           </>
         )}
