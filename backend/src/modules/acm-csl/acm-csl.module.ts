@@ -15,8 +15,13 @@ import { TeacherAssignmentTypeormEntity } from './infrastructure/typeorm/teacher
 import { CourseTypeormEntity } from './infrastructure/typeorm/course.typeorm-entity';
 import { InquiryController } from './presentation/inquiry.controller';
 import { WebInquiryController } from './presentation/web-inquiry.controller';
+// REQ-260626 P2B — course master CRUD endpoints (under /acm/csl/courses)
+import { CourseController } from './presentation/course.controller';
 import { InquiryService } from './application/inquiry.service';
 import { InquiryWorkflowService } from './application/inquiry-workflow.service';
+// REQ-260626 P2B — multi-teacher assignment + course master
+import { TeacherAssignmentService } from './application/teacher-assignment.service';
+import { CourseService } from './application/course.service';
 
 /**
  * acm-csl — Counseling / Inquiry Module
@@ -43,8 +48,18 @@ import { InquiryWorkflowService } from './application/inquiry-workflow.service';
       ACM_DS,
     ),
   ],
-  controllers: [InquiryController, WebInquiryController],
-  providers: [InquiryService, InquiryWorkflowService],
-  exports: [InquiryService, InquiryWorkflowService],
+  controllers: [InquiryController, WebInquiryController, CourseController],
+  providers: [
+    InquiryService,
+    InquiryWorkflowService,
+    TeacherAssignmentService,
+    CourseService,
+  ],
+  exports: [
+    InquiryService,
+    InquiryWorkflowService,
+    TeacherAssignmentService,
+    CourseService,
+  ],
 })
 export class AcmCslModule {}

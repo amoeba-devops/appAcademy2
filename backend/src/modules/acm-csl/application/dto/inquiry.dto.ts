@@ -325,6 +325,76 @@ export class UpsertEnrollmentDto {
   /** F-24 */
   @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
   classStarted?: YesNo;
+
+  // ── REQ-260626 (FR-CSL-131~135) ────────────────────────────────────────
+
+  /** FR-CSL-131 — operator-recorded counsel memo. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000)
+  counselMemo?: string;
+
+  /** FR-CSL-132 — course master FK. Mutually exclusive-ish with courseFreetext. */
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  courseId?: string;
+
+  /** FR-CSL-132 — freetext course when no master row exists. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  courseFreetext?: string;
+
+  /** FR-CSL-134 — total session count. */
+  @ApiPropertyOptional({ minimum: 0 }) @IsOptional() @IsInt() @Min(0)
+  sessionCount?: number;
+
+  /** FR-CSL-135 — enrollment date range (DB CHECK end >= start). */
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  endDate?: string;
+}
+
+// ── REQ-260626 — Multi-teacher assignment + Payment approval ────────────
+
+/** FR-CSL-136 — assign a teacher to an inquiry (PRIMARY/SECONDARY role). */
+export class AssignTeacherDto {
+  @ApiProperty() @IsUUID()
+  teacherId!: string;
+
+  @ApiPropertyOptional({ enum: ['PRIMARY', 'SECONDARY'], default: 'PRIMARY' })
+  @IsOptional() @IsEnum(['PRIMARY', 'SECONDARY'])
+  role?: 'PRIMARY' | 'SECONDARY';
+}
+
+/**
+ * FR-CSL-141 — explicit payment approval endpoint. Distinct from the
+ * generic enrollment upsert so the role gate (ADMIN/APP_ADMIN) lives on
+ * a single semantic action. method/memo are confirmation metadata only —
+ * no online PG (Out-of-Scope per REQ §3.2).
+ */
+export class ApprovePaymentDto {
+  @ApiProperty({ enum: ['CARD', 'BANK_TRANSFER'] })
+  @IsEnum(['CARD', 'BANK_TRANSFER'])
+  method!: 'CARD' | 'BANK_TRANSFER';
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  memo?: string;
+}
+
+// ── REQ-260626 — Course master (per-tenant) ─────────────────────────────
+
+export class CreateCourseDto {
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(40)
+  code!: string;
+
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(100)
+  name!: string;
+}
+
+export class UpdateCourseDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  name?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  isActive?: boolean;
 }
 
 // ── Cancellation (1:N append-only) ──────────────────────────────────────

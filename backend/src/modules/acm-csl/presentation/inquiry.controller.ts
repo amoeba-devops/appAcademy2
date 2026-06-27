@@ -21,11 +21,17 @@ import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { InquiryService } from '../application/inquiry.service';
 import { InquiryWorkflowService } from '../application/inquiry-workflow.service';
+import { TeacherAssignmentService } from '../application/teacher-assignment.service';
+import { CourseService } from '../application/course.service';
 import {
+  ApprovePaymentDto,
+  AssignTeacherDto,
   ChangeStageDto,
   CreateCancellationDto,
+  CreateCourseDto,
   CreateInquiryDto,
   CreateTrialClassDto,
+  UpdateCourseDto,
   UpdateInquiryDto,
   RecordLevelTestResultDto,
   UpsertEnrollmentDto,
@@ -49,6 +55,8 @@ export class InquiryController {
   constructor(
     private readonly base: InquiryService,
     private readonly workflow: InquiryWorkflowService,
+    private readonly teachers: TeacherAssignmentService,
+    private readonly courses: CourseService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -255,6 +263,61 @@ export class InquiryController {
   @Get(':inqId/enrollment')
   getEnrollment(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.base.getEnrollment(user.entId, inqId);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-141/142 — explicit payment approval (ADMIN/APP_ADMIN).
+   * Distinct from PUT /enrollment so the role gate is on a single audit
+   * surface. Idempotent — already-approved returns the current row.
+   */
+  @Post(':inqId/enrollment/approve-payment')
+  @ApiOperation({ summary: 'Approve payment — ADMIN/APP_ADMIN only (FR-CSL-141)' })
+  approvePayment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Body() dto: ApprovePaymentDto,
+  ) {
+    const isSeniorManager = user.role === 'ADMIN' || user.role === 'APP_ADMIN';
+    return this.base.approvePayment(user.entId, inqId, dto.method, dto.memo, {
+      id: user.id,
+      isSeniorManager,
+    });
+  }
+
+  // ── REQ-260626 FR-CSL-136 — Multi-teacher assignment ────────────────
+  @Get(':inqId/teacher-assignments')
+  @ApiOperation({ summary: 'List assigned teachers (FR-CSL-136)' })
+  listTeacherAssignments(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
+    return this.teachers.list(user.entId, inqId);
+  }
+
+  @Post(':inqId/teacher-assignments')
+  @ApiOperation({ summary: 'Assign teacher (PRIMARY/SECONDARY) — upsert by (inq,tch)' })
+  assignTeacher(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Body() dto: AssignTeacherDto,
+  ) {
+    return this.teachers.assign({
+      entId: user.entId,
+      inqId,
+      teacherId: dto.teacherId,
+      role: dto.role ?? 'PRIMARY',
+      actorId: user.id,
+    });
+  }
+
+  @Delete(':inqId/teacher-assignments/:asgId')
+  @ApiOperation({ summary: 'Remove a teacher assignment by row id' })
+  removeTeacherAssignment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('asgId', ParseUUIDPipe) asgId: string,
+  ) {
+    return this.teachers.remove(user.entId, inqId, asgId);
   }
 
   // ── Remarks ─────────────────────────────────────────────────────────
