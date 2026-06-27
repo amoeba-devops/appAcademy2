@@ -128,6 +128,17 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "결과 입력 저장 (STAFF↑)",
       "resultEntered": "결과 입력: {{when}}",
+      "isee": { "label": "ISEE — 영역별 Scaled / Percentile / Stanine" },
+      "ssat": { "label": "SSAT — 영역별 Score / Percentile + Total" },
+      "duolingo": { "label": "Duolingo — 총점 + 4 영역 + 4 세부 (각 10~160)" },
+      "toefl": { "label": "TOEFL — 총점 + 4 영역 (각 1~6, 0.5 단위)" },
+      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "other": {
+        "label": "기타 — 자유 키/값 입력",
+        "empty": "아직 추가된 항목이 없습니다.",
+        "keyPlaceholder": "항목명",
+        "valuePlaceholder": "값"
+      },
       "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
       "waiver": {
         "RETAKE_WITHIN_90D": "90일 내 재응시",

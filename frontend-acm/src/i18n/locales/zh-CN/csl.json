@@ -126,6 +126,17 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "保存结果 (STAFF↑)",
       "resultEntered": "结果输入时间: {{when}}",
+      "isee": { "label": "ISEE — 各部分 Scaled / Percentile / Stanine" },
+      "ssat": { "label": "SSAT — 各部分 Score / Percentile + 总分" },
+      "duolingo": { "label": "Duolingo — 总分 + 4 主项 + 4 细项(各 10~160)" },
+      "toefl": { "label": "TOEFL — 总分 + 4 部分(各 1~6,0.5 单位)" },
+      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "other": {
+        "label": "其他 — 自由键值输入",
+        "empty": "尚未添加任何项。",
+        "keyPlaceholder": "键名",
+        "valuePlaceholder": "值"
+      },
       "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
       "waiver": {
         "RETAKE_WITHIN_90D": "90일 내 재응시",
