@@ -163,7 +163,11 @@ export function CslDetailPage() {
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4">
           {(inq.currentStage === 'MAP_TEST' || inq.currentStage === 'INTAKE') && (
-            <MapTestPanel inqId={inq.id} />
+            <MapTestPanel
+              inqId={inq.id}
+              currentStage={inq.currentStage}
+              onAfterAdvance={(next) => forward.mutate(next)}
+            />
           )}
           {inq.currentStage === 'TRIAL_CLASS' && <TrialClassPanel inqId={inq.id} />}
           {(inq.currentStage === 'ENROLLMENT_COUNSELING' ||
