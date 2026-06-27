@@ -30,6 +30,7 @@ import type {
   UpsertMapTestDto,
 } from './dto/inquiry.dto';
 import { validateLevelTestScoreDetail } from './dto/level-test-score.validator';
+import { StdInheritanceService } from './std-inheritance.service';
 
 /**
  * 6-stage CSL pipeline transition matrix (acm-req-csl-001 v2.1 §4.1, §4.4).
@@ -69,6 +70,7 @@ export class InquiryService {
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly crypto: AesGcmService,
     private readonly events: EventEmitter2,
+    private readonly stdInheritance: StdInheritanceService,
   ) {}
 
   // ──────────────────────────────────────────────────────────────────────
@@ -679,6 +681,26 @@ export class InquiryService {
         actorId,
         inqId: inq.id,
       });
+
+      // REQ-260626 T-19 / Q-CSL-102 — best-effort inherit MAP scores to
+      // the matching STD student. Failures here must NOT abort the
+      // transition; we already saved the inquiry above.
+      try {
+        const mt = await this.mapTests.findOne({
+          where: { entId, inqId: inq.id },
+        });
+        await this.stdInheritance.inheritMapScoresOnClassStart(inq, mt);
+      } catch (e) {
+        // Swallow — surface a structured event so an operator dashboard
+        // can flag inquiries whose STD inheritance failed. The transition
+        // itself stays successful.
+        this.events.emit('acm.csl.std_inheritance_failed', {
+          entId,
+          inqId: inq.id,
+          occurredAt: new Date().toISOString(),
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
     return { id: saved.id, fromStage, toStage, currentStage: saved.currentStage };
   }

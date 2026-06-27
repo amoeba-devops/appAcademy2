@@ -22,6 +22,9 @@ import { InquiryWorkflowService } from './application/inquiry-workflow.service';
 // REQ-260626 P2B — multi-teacher assignment + course master
 import { TeacherAssignmentService } from './application/teacher-assignment.service';
 import { CourseService } from './application/course.service';
+// REQ-260626 T-19 — MAP→STD inheritance hook
+import { StdInheritanceService } from './application/std-inheritance.service';
+import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
 
 /**
  * acm-csl — Counseling / Inquiry Module
@@ -44,6 +47,9 @@ import { CourseService } from './application/course.service';
         AttachmentTypeormEntity,
         TeacherAssignmentTypeormEntity,
         CourseTypeormEntity,
+        // REQ-260626 T-19 — read-only access to the STD student row from
+        // the CSL module so we can copy MAP scores on CLASS_STARTED.
+        StudentTypeormEntity,
       ],
       ACM_DS,
     ),
@@ -54,12 +60,14 @@ import { CourseService } from './application/course.service';
     InquiryWorkflowService,
     TeacherAssignmentService,
     CourseService,
+    StdInheritanceService,
   ],
   exports: [
     InquiryService,
     InquiryWorkflowService,
     TeacherAssignmentService,
     CourseService,
+    StdInheritanceService,
   ],
 })
 export class AcmCslModule {}
