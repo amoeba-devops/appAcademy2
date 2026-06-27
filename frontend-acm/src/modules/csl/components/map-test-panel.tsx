@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -290,6 +290,8 @@ export function MapTestPanel({
           </p>
         )}
       </form>
+
+      {!isIntake && <ResultPdfDownload inqId={inqId} />}
     </Panel>
   );
 }
@@ -324,6 +326,66 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
       {...props}
       className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
     />
+  );
+}
+
+/**
+ * REQ-260626 FR-CSL-116 / T-13 — level-test result PDF download.
+ * Fetches the PDF binary via the apiClient (so the JWT cookie/header
+ * is carried correctly), turns it into a blob URL, and triggers a
+ * download. 404s when the level-test row hasn't been recorded yet
+ * (operator sees the inline error).
+ */
+function ResultPdfDownload({ inqId }: { inqId: string }) {
+  const { t } = useTranslation(['csl', 'common']);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function download() {
+    setError(null);
+    setPending(true);
+    try {
+      const res = await apiClient.get<Blob>(
+        `/acm/csl/inquiries/${inqId}/map-test/result-pdf`,
+        { responseType: 'blob' },
+      );
+      const blob = res.data;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      // Try to recover filename from Content-Disposition; fall back to a
+      // generic name. apiClient may expose raw headers as lower-case.
+      const cd =
+        (res.headers as Record<string, string | undefined> | undefined)?.[
+          'content-disposition'
+        ] ?? '';
+      const match = /filename="?([^";]+)"?/.exec(cd);
+      a.download = match ? decodeURIComponent(match[1]) : `level-test-${inqId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setError(err.response?.data?.message ?? err.message ?? 'PDF download failed');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-3">
+      <div>
+        <p className="text-sm font-medium">{t('detail.mapTest.resultPdf')}</p>
+        <p className="text-[11px] text-secondary">
+          {t('detail.mapTest.resultPdfHint')}
+        </p>
+      </div>
+      <div className="flex flex-col items-end gap-1">
+        <Button type="button" variant="outline" onClick={download} disabled={pending}>
+          {pending ? t('common:actions.loading') : t('detail.mapTest.downloadPdf')}
+        </Button>
+        {error && <p className="text-xs text-red-600">{error}</p>}
+      </div>
+    </div>
   );
 }
 

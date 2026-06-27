@@ -13,8 +13,10 @@ import {
   Post,
   Put,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
@@ -23,6 +25,7 @@ import { InquiryService } from '../application/inquiry.service';
 import { InquiryWorkflowService } from '../application/inquiry-workflow.service';
 import { TeacherAssignmentService } from '../application/teacher-assignment.service';
 import { CourseService } from '../application/course.service';
+import { LevelTestPdfService } from '../application/level-test-pdf.service';
 import {
   ApprovePaymentDto,
   AssignTeacherDto,
@@ -59,6 +62,7 @@ export class InquiryController {
     private readonly workflow: InquiryWorkflowService,
     private readonly teachers: TeacherAssignmentService,
     private readonly courses: CourseService,
+    private readonly pdf: LevelTestPdfService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -227,6 +231,35 @@ export class InquiryController {
       );
     }
     return this.base.recordLevelTestResult(user.entId, inqId, dto, user.id);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-116 / DSN §5.7 — server-rendered level-test PDF.
+   * STAFF↑ only (mirrors result-entry gate). Response is a binary PDF
+   * stream with Content-Disposition: attachment so the browser triggers
+   * a download instead of inline render. NFR-CSL-104 audit logging is
+   * stubbed inline (the formal audit table comes with T-20).
+   */
+  @Get(':inqId/map-test/result-pdf')
+  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116)' })
+  async downloadResultPdf(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const allowed =
+      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+    }
+    const { buffer, filename } = await this.pdf.generate(user.entId, inqId);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(buffer);
   }
 
   @Post(':inqId/trial-classes')

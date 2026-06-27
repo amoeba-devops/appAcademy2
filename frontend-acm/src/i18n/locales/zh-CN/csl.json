@@ -105,6 +105,9 @@
       "saveAndAdvance": "保存并进入水平测试",
       "transcripts": "成绩单(多文件)",
       "transcriptsComingSoon": "※ S3 上传集成中(T-06)。即将启用。",
+      "resultPdf": "教师共享 PDF",
+      "resultPdfHint": "生成包含学生 / 考试类型 / 分数的 PDF。(STAFF↑)",
+      "downloadPdf": "下载 PDF",
       "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
       "waiver": {
         "RETAKE_WITHIN_90D": "90일 내 재응시",

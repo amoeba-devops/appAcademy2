@@ -25,6 +25,8 @@ import { CourseService } from './application/course.service';
 // REQ-260626 T-19 — MAP→STD inheritance hook
 import { StdInheritanceService } from './application/std-inheritance.service';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+// REQ-260626 T-13 — level-test result PDF
+import { LevelTestPdfService } from './application/level-test-pdf.service';
 
 /**
  * acm-csl — Counseling / Inquiry Module
@@ -61,6 +63,7 @@ import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.
     TeacherAssignmentService,
     CourseService,
     StdInheritanceService,
+    LevelTestPdfService,
   ],
   exports: [
     InquiryService,
@@ -68,6 +71,7 @@ import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.
     TeacherAssignmentService,
     CourseService,
     StdInheritanceService,
+    LevelTestPdfService,
   ],
 })
 export class AcmCslModule {}
