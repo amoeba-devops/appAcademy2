@@ -33,6 +33,8 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
+    "add": "Add",
+    "remove": "Remove",
     "search": "Search",
     "loading": "Loading…",
     "submit": "Submit",

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,32 @@ interface Enrollment {
   tuitionPaid: boolean | null;
   classStartedAt: string | null;
   classStarted: 'YES' | 'NO' | null;
+  // REQ-260626 — fields added at enrollment counseling
+  counselMemo?: string | null;
+  courseId?: string | null;
+  courseFreetext?: string | null;
+  sessionCount?: number | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
+interface Course {
+  id: string;
+  code: string;
+  name: string;
+  isActive: boolean;
+}
+
+interface TeacherAssignment {
+  id: string;
+  teacherId: string;
+  role: 'PRIMARY' | 'SECONDARY';
+  assignedAt: string;
+}
+
+interface Teacher {
+  id: string;
+  name: string;
 }
 
 const NOTICE_STATUSES = ['SENT', 'PENDING', 'NA'] as const;
@@ -33,6 +59,13 @@ type FormValues = {
   tuitionPaid: boolean;
   classStartedAt: string;
   classStarted: '' | (typeof YES_NO)[number];
+  // REQ-260626
+  counselMemo: string;
+  courseId: string;
+  courseFreetext: string;
+  sessionCount: string;
+  startDate: string;
+  endDate: string;
 };
 
 export function EnrollmentPanel({
@@ -62,6 +95,38 @@ export function EnrollmentPanel({
     },
   });
 
+  const { data: courses = [] } = useQuery({
+    queryKey: ['csl', 'courses'],
+    queryFn: async () => {
+      const res = await apiClient.get<Course[]>('/acm/csl/courses');
+      return res.data;
+    },
+  });
+
+  const { data: assignments = [], refetch: refetchAssignments } = useQuery({
+    queryKey: ['csl', 'teacher-assignments', inqId],
+    queryFn: async () => {
+      const res = await apiClient.get<TeacherAssignment[]>(
+        `/acm/csl/inquiries/${inqId}/teacher-assignments`,
+      );
+      return res.data;
+    },
+  });
+
+  const { data: teacherDirectory = [] } = useQuery({
+    queryKey: ['acm', 'teachers'],
+    // The teacher master is exposed by acm-tch; consume only what we need
+    // for the picker. Tolerate the endpoint being absent (returns []).
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<Teacher[]>('/acm/tch/teachers');
+        return res.data;
+      } catch {
+        return [];
+      }
+    },
+  });
+
   const { register, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: {
       paymentNoticeStatus: '',
@@ -73,6 +138,12 @@ export function EnrollmentPanel({
       tuitionPaid: false,
       classStartedAt: '',
       classStarted: '',
+      counselMemo: '',
+      courseId: '',
+      courseFreetext: '',
+      sessionCount: '',
+      startDate: '',
+      endDate: '',
     },
   });
 
@@ -90,6 +161,12 @@ export function EnrollmentPanel({
         tuitionPaid: data.tuitionPaid ?? false,
         classStartedAt: data.classStartedAt ?? '',
         classStarted: (data.classStarted ?? '') as FormValues['classStarted'],
+        counselMemo: data.counselMemo ?? '',
+        courseId: data.courseId ?? '',
+        courseFreetext: data.courseFreetext ?? '',
+        sessionCount: data.sessionCount?.toString() ?? '',
+        startDate: data.startDate ?? '',
+        endDate: data.endDate ?? '',
       });
     }
   }, [data, reset]);
@@ -109,6 +186,14 @@ export function EnrollmentPanel({
       tuitionPaid: v.tuitionPaid,
       classStartedAt: v.classStartedAt || undefined,
       classStarted: v.classStarted || undefined,
+      // REQ-260626 — empty strings collapse to undefined so the server keeps
+      // the existing column value rather than clearing it.
+      counselMemo: v.counselMemo || undefined,
+      courseId: v.courseId || undefined,
+      courseFreetext: v.courseFreetext || undefined,
+      sessionCount: v.sessionCount ? Number(v.sessionCount) : undefined,
+      startDate: v.startDate || undefined,
+      endDate: v.endDate || undefined,
     };
   }
 
@@ -150,6 +235,47 @@ export function EnrollmentPanel({
         onSubmit={handleSubmit((v) => mutation.mutate(v))}
         className="grid gap-3"
       >
+        {/* REQ-260626 FR-CSL-131~135 — enrollment counseling fields */}
+        <Field label={t('detail.enrollment.counselMemo')}>
+          <textarea
+            {...register('counselMemo')}
+            rows={3}
+            className="min-h-[72px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 text-sm"
+            placeholder={t('detail.enrollment.counselMemoPlaceholder')}
+          />
+        </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t('detail.enrollment.course')}>
+            <Select {...register('courseId')}>
+              <option value="">{t('common:dash')}</option>
+              {courses.filter((c) => c.isActive).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={t('detail.enrollment.courseFreetext')}>
+            <Input
+              {...register('courseFreetext')}
+              placeholder={t('detail.enrollment.courseFreetextPlaceholder')}
+            />
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr_1fr] gap-3">
+          <Field label={t('detail.enrollment.sessionCount')}>
+            <Input type="number" min={0} {...register('sessionCount')} />
+          </Field>
+          <Field label={t('detail.enrollment.startDate')}>
+            <Input type="date" {...register('startDate')} />
+          </Field>
+          <Field label={t('detail.enrollment.endDate')}>
+            <Input type="date" {...register('endDate')} />
+          </Field>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <Field label={t('detail.enrollment.counselDone')}>
             <Select {...register('counselDone')}>
@@ -258,7 +384,234 @@ export function EnrollmentPanel({
           </p>
         )}
       </form>
+
+      <TeacherAssignmentsBlock
+        inqId={inqId}
+        assignments={assignments}
+        teachers={teacherDirectory}
+        onChange={() => refetchAssignments()}
+      />
+
+      {currentStage === 'PAYMENT' && (
+        <PaymentApprovalBlock
+          inqId={inqId}
+          alreadyPaid={!!data?.tuitionPaid}
+          onApproved={() => qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] })}
+        />
+      )}
     </section>
+  );
+}
+
+/**
+ * REQ-260626 FR-CSL-136 — multi-teacher assignment widget. Lives next to
+ * the form so the operator can manage assignments without leaving the
+ * enrollment panel. Add via teacher picker + role dropdown; remove by row.
+ */
+function TeacherAssignmentsBlock({
+  inqId,
+  assignments,
+  teachers,
+  onChange,
+}: {
+  inqId: string;
+  assignments: TeacherAssignment[];
+  teachers: Teacher[];
+  onChange: () => void;
+}) {
+  const { t } = useTranslation(['csl', 'common']);
+  const [teacherId, setTeacherId] = useState('');
+  const [role, setRole] = useState<'PRIMARY' | 'SECONDARY'>('PRIMARY');
+
+  const assign = useMutation({
+    mutationFn: async () => {
+      await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/teacher-assignments`,
+        { teacherId, role },
+      );
+    },
+    onSuccess: () => {
+      setTeacherId('');
+      onChange();
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: async (asgId: string) => {
+      await apiClient.delete(
+        `/acm/csl/inquiries/${inqId}/teacher-assignments/${asgId}`,
+      );
+    },
+    onSuccess: () => onChange(),
+  });
+
+  const nameById = new Map(teachers.map((tt) => [tt.id, tt.name]));
+
+  return (
+    <div className="mt-5 border-t border-[var(--border-subtle)] pt-4">
+      <h3 className="text-sm font-semibold mb-3">
+        {t('detail.enrollment.teacherAssignments')}
+      </h3>
+
+      <ul className="grid gap-2 mb-3">
+        {assignments.length === 0 && (
+          <li className="text-xs text-secondary">
+            {t('detail.enrollment.noAssignments')}
+          </li>
+        )}
+        {assignments.map((a) => (
+          <li
+            key={a.id}
+            className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
+          >
+            <span>
+              {nameById.get(a.teacherId) ?? a.teacherId.slice(0, 8)}
+              <span className="ml-2 inline-block rounded bg-[var(--surface-strong)] px-2 py-0.5 text-[10px]">
+                {t(`detail.enrollment.assignRole.${a.role}`)}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => remove.mutate(a.id)}
+              disabled={remove.isPending}
+              className="text-xs text-red-600 hover:underline"
+            >
+              {t('common:actions.remove', 'Remove')}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div className="flex gap-2 items-end">
+        <div className="grid gap-1 flex-1">
+          <Label className="text-xs">{t('detail.enrollment.assignTeacher')}</Label>
+          <Select
+            value={teacherId}
+            onChange={(e) => setTeacherId(e.target.value)}
+          >
+            <option value="">{t('common:dash')}</option>
+            {teachers.map((tt) => (
+              <option key={tt.id} value={tt.id}>
+                {tt.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('detail.enrollment.assignRoleLabel')}</Label>
+          <Select
+            value={role}
+            onChange={(e) => setRole(e.target.value as 'PRIMARY' | 'SECONDARY')}
+          >
+            <option value="PRIMARY">{t('detail.enrollment.assignRole.PRIMARY')}</option>
+            <option value="SECONDARY">{t('detail.enrollment.assignRole.SECONDARY')}</option>
+          </Select>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => assign.mutate()}
+          disabled={!teacherId || assign.isPending}
+        >
+          {t('common:actions.add', 'Add')}
+        </Button>
+      </div>
+      {assign.isError && (
+        <p className="mt-1 text-xs text-red-600">
+          {(assign.error as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message ?? (assign.error as Error).message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * REQ-260626 FR-CSL-141/142 — SCR-CSL-05 payment approval block. Renders
+ * only on PAYMENT stage. POSTs to /enrollment/approve-payment which
+ * enforces the ADMIN/APP_ADMIN gate; non-admins get a 403 with the BR
+ * message displayed inline.
+ */
+function PaymentApprovalBlock({
+  inqId,
+  alreadyPaid,
+  onApproved,
+}: {
+  inqId: string;
+  alreadyPaid: boolean;
+  onApproved: () => void;
+}) {
+  const { t } = useTranslation(['csl', 'common']);
+  const [method, setMethod] = useState<'CARD' | 'BANK_TRANSFER'>('CARD');
+  const [memo, setMemo] = useState('');
+
+  const approve = useMutation({
+    mutationFn: async () => {
+      await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/enrollment/approve-payment`,
+        { method, memo: memo || undefined },
+      );
+    },
+    onSuccess: () => {
+      setMemo('');
+      onApproved();
+    },
+  });
+
+  return (
+    <div className="mt-5 border-t border-[var(--border-subtle)] pt-4">
+      <h3 className="text-sm font-semibold mb-2">
+        {t('detail.enrollment.paymentApproval')}
+      </h3>
+      <p className="text-[11px] text-secondary mb-3">
+        {t('detail.enrollment.paymentApprovalHint')}
+      </p>
+      {alreadyPaid ? (
+        <p className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          ✓ {t('detail.enrollment.paymentAlreadyApproved')}
+        </p>
+      ) : (
+        <div className="grid gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1">
+              <Label className="text-xs">{t('detail.enrollment.paymentMethod')}</Label>
+              <Select
+                value={method}
+                onChange={(e) =>
+                  setMethod(e.target.value as 'CARD' | 'BANK_TRANSFER')
+                }
+              >
+                <option value="CARD">{t('detail.enrollment.method.CARD')}</option>
+                <option value="BANK_TRANSFER">
+                  {t('detail.enrollment.method.BANK_TRANSFER')}
+                </option>
+              </Select>
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">{t('detail.enrollment.paymentMemo')}</Label>
+              <Input value={memo} onChange={(e) => setMemo(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              onClick={() => approve.mutate()}
+              disabled={approve.isPending}
+            >
+              {approve.isPending
+                ? t('common:actions.saving')
+                : t('detail.enrollment.approvePayment')}
+            </Button>
+          </div>
+          {approve.isError && (
+            <p className="text-xs text-red-600">
+              {(approve.error as { response?: { data?: { message?: string } } })
+                ?.response?.data?.message ?? (approve.error as Error).message}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
