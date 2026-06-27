@@ -70,16 +70,18 @@ export class LevelTestPdfService {
     // the constant 'student' so file-system tools don't choke on a row
     // of dashes.
     const studentName = decryptedName ?? '-';
-    const filenameSlug = decryptedName?.replace(/[^\w가-힣\-]/g, '').slice(0, 30);
+    const filenameSlug = decryptedName
+      ?.replace(/[^\w가-힣-]/g, '')
+      .slice(0, 30);
 
     const buffer = await renderPdfBuffer((doc) => {
       // ── Header ────────────────────────────────────────────────────────
       doc.fontSize(18).text('Level Test Result', { align: 'center' });
       doc.moveDown(0.4);
-      doc.fontSize(9).fillColor('#666').text(
-        '(Teacher-shared report — confidential)',
-        { align: 'center' },
-      );
+      doc
+        .fontSize(9)
+        .fillColor('#666')
+        .text('(Teacher-shared report — confidential)', { align: 'center' });
       doc.moveDown(0.8);
       doc.fillColor('#000');
 
@@ -88,7 +90,9 @@ export class LevelTestPdfService {
       const grade = inq.grade ?? '-';
       const school = inq.schoolFreetext ?? '-';
       const seqNo = inq.seqNo ?? '-';
-      doc.text(`Student: ${studentName}    Grade: ${grade}    School: ${school}`);
+      doc.text(
+        `Student: ${studentName}    Grade: ${grade}    School: ${school}`,
+      );
       doc.text(`Inquiry #${seqNo}`);
       doc.moveDown(0.3);
 
@@ -98,9 +102,14 @@ export class LevelTestPdfService {
         ? `${mt.scheduledAt}${mt.scheduledTime ? ` ${mt.scheduledTime.slice(0, 5)}` : ''}`
         : '-';
       const enteredAt = mt.resultEnteredAt
-        ? new Date(mt.resultEnteredAt).toISOString().slice(0, 16).replace('T', ' ')
+        ? new Date(mt.resultEnteredAt)
+            .toISOString()
+            .slice(0, 16)
+            .replace('T', ' ')
         : '-';
-      doc.text(`Test: ${testLabel}    Scheduled: ${scheduled}    Entered at: ${enteredAt}`);
+      doc.text(
+        `Test: ${testLabel}    Scheduled: ${scheduled}    Entered at: ${enteredAt}`,
+      );
       doc.moveDown(0.8);
 
       drawHr(doc);
@@ -139,17 +148,20 @@ export class LevelTestPdfService {
 type Doc = InstanceType<typeof PDFDocument>;
 
 function renderPdfBuffer(render: (doc: Doc) => void): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
+  return new Promise<Buffer>((resolve, reject) => {
+    const fail = (e: unknown): void => {
+      reject(e instanceof Error ? e : new Error(String(e)));
+    };
     const doc = new PDFDocument({ size: 'A4', margin: 50 });
     const chunks: Buffer[] = [];
     doc.on('data', (c: Buffer) => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
-    doc.on('error', reject);
+    doc.on('error', fail);
     try {
       render(doc);
       doc.end();
     } catch (e) {
-      reject(e);
+      fail(e);
     }
   });
 }
@@ -157,7 +169,10 @@ function renderPdfBuffer(render: (doc: Doc) => void): Promise<Buffer> {
 function drawHr(doc: Doc): void {
   const y = doc.y;
   doc.strokeColor('#ccc').lineWidth(0.5);
-  doc.moveTo(50, y).lineTo(doc.page.width - 50, y).stroke();
+  doc
+    .moveTo(50, y)
+    .lineTo(doc.page.width - 50, y)
+    .stroke();
   doc.strokeColor('#000');
 }
 
@@ -188,7 +203,10 @@ function drawTable(doc: Doc, header: string[], body: string[][]): void {
   body.forEach((r) => row(r));
 }
 
-function formatTestType(type: LevelTestType, other: string | null | undefined): string {
+function formatTestType(
+  type: LevelTestType,
+  other: string | null | undefined,
+): string {
   if (type === 'OTHER') return other ? `Other (${other})` : 'Other';
   if (type === 'TOEFL_JR') return 'TOEFL Jr';
   return type;
@@ -199,7 +217,10 @@ function formatTestType(type: LevelTestType, other: string | null | undefined): 
  * Missing leaves rendered as "-" so the row count stays predictable
  * (FR-CSL-116 says "all indicators must be shown").
  */
-function scoreRows(mt: MapTestTypeormEntity): { header: string[]; body: string[][] } {
+function scoreRows(mt: MapTestTypeormEntity): {
+  header: string[];
+  body: string[][];
+} {
   const t = mt.testType;
   if (t === 'MAP') {
     return {
@@ -211,7 +232,10 @@ function scoreRows(mt: MapTestTypeormEntity): { header: string[]; body: string[]
       ],
     };
   }
-  const detail = (mt.scoreDetail ?? {}) as Record<string, Record<string, number | undefined> | number | undefined>;
+  const detail = (mt.scoreDetail ?? {}) as Record<
+    string,
+    Record<string, number | undefined> | number | undefined
+  >;
   switch (t) {
     case 'ISEE':
       return {
@@ -232,31 +256,49 @@ function scoreRows(mt: MapTestTypeormEntity): { header: string[]; body: string[]
         body: [
           ...['verbal', 'quantitative', 'reading'].map((k) => {
             const row = (detail[k] as Record<string, number | undefined>) ?? {};
-            return [capitalize(k), formatNum(row.score), formatNum(row.percentile)];
+            return [
+              capitalize(k),
+              formatNum(row.score),
+              formatNum(row.percentile),
+            ];
           }),
           (() => {
-            const total = (detail.total as Record<string, number | undefined>) ?? {};
-            return ['Total', formatNum(total.score), formatNum(total.percentile)];
+            const total =
+              (detail.total as Record<string, number | undefined>) ?? {};
+            return [
+              'Total',
+              formatNum(total.score),
+              formatNum(total.percentile),
+            ];
           })(),
         ],
       };
     case 'DUOLINGO': {
       const keys = [
-        'total', 'speaking', 'writing', 'reading', 'listening',
-        'production', 'literacy', 'comprehension', 'conversation',
+        'total',
+        'speaking',
+        'writing',
+        'reading',
+        'listening',
+        'production',
+        'literacy',
+        'comprehension',
+        'conversation',
       ];
       return {
         header: ['Item', 'Score'],
-        body: keys.map((k) => [capitalize(k), formatNum(detail[k] as number | undefined)]),
+        body: keys.map((k) => [
+          capitalize(k),
+          formatNum(detail[k] as number | undefined),
+        ]),
       };
     }
     case 'TOEFL':
       return {
         header: ['Section', 'Score (1~6)'],
-        body: ['total', 'speaking', 'writing', 'reading', 'listening'].map((k) => [
-          capitalize(k),
-          formatNum(detail[k] as number | undefined),
-        ]),
+        body: ['total', 'speaking', 'writing', 'reading', 'listening'].map(
+          (k) => [capitalize(k), formatNum(detail[k] as number | undefined)],
+        ),
       };
     case 'TOEFL_JR':
       return {
@@ -271,7 +313,12 @@ function scoreRows(mt: MapTestTypeormEntity): { header: string[]; body: string[]
     case 'OTHER':
       return {
         header: ['Key', 'Value'],
-        body: Object.entries(detail).map(([k, v]) => [k, String(v ?? '-')]),
+        // OTHER schema only allows scalar values (validator enforces);
+        // narrow before stringifying so we never render '[object Object]'.
+        body: Object.entries(detail).map(([k, v]) => [
+          k,
+          typeof v === 'number' || typeof v === 'string' ? String(v) : '-',
+        ]),
       };
   }
 }
