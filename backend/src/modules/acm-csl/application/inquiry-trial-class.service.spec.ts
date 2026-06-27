@@ -11,6 +11,7 @@ import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm
 import { TransitionTypeormEntity } from '../infrastructure/typeorm/transition.typeorm-entity';
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
 import { InquiryService } from './inquiry.service';
+import { StdInheritanceService } from './std-inheritance.service';
 
 /**
  * REQ-260626 FR-CSL-122~128 — demo class update + feedback workflow.
@@ -44,6 +45,10 @@ describe('InquiryService — demo class + feedback', () => {
         { provide: getRepositoryToken(EnrollmentTypeormEntity, ACM_DS), useValue: {} },
         { provide: getRepositoryToken(CancellationTypeormEntity, ACM_DS), useValue: {} },
         { provide: getRepositoryToken(TransitionTypeormEntity, ACM_DS), useValue: {} },
+        {
+          provide: StdInheritanceService,
+          useValue: { inheritMapScoresOnClassStart: jest.fn() },
+        },
       ],
     }).compile();
 
