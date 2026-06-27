@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Headers,
   HttpCode,
@@ -26,6 +27,7 @@ import {
   CreateInquiryDto,
   CreateTrialClassDto,
   UpdateInquiryDto,
+  RecordLevelTestResultDto,
   UpsertEnrollmentDto,
   UpsertMapTestDto,
 } from '../application/dto/inquiry.dto';
@@ -190,6 +192,31 @@ export class InquiryController {
   @Get(':inqId/map-test')
   getMapTest(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.base.getMapTest(user.entId, inqId);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-115 / Q-CSL-111 — admin/staff only.
+   * Separated from upsertMapTest so the role gate can wrap result entry
+   * without restricting the rest of the level-test surface (operator
+   * schedules + intake fields are open to any authenticated staff).
+   */
+  @Post(':inqId/map-test/result')
+  @ApiOperation({ summary: 'Record level test result (operator-only, FR-CSL-115)' })
+  recordLevelTestResult(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Body() dto: RecordLevelTestResultDto,
+  ) {
+    // STAFF↑ — TEACHER must NOT be able to enter or alter scores.
+    const allowed = user.role === 'STAFF'
+      || user.role === 'ADMIN'
+      || user.role === 'APP_ADMIN';
+    if (!allowed) {
+      throw new ForbiddenException(
+        'POL-CSL-201: only STAFF/ADMIN can record level-test results',
+      );
+    }
+    return this.base.recordLevelTestResult(user.entId, inqId, dto, user.id);
   }
 
   @Post(':inqId/trial-classes')

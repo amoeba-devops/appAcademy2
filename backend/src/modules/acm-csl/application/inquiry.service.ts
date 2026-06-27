@@ -24,10 +24,12 @@ import type {
   CreateCancellationDto,
   CreateInquiryDto,
   CreateTrialClassDto,
+  RecordLevelTestResultDto,
   UpdateInquiryDto,
   UpsertEnrollmentDto,
   UpsertMapTestDto,
 } from './dto/inquiry.dto';
+import { validateLevelTestScoreDetail } from './dto/level-test-score.validator';
 
 /**
  * 6-stage CSL pipeline transition matrix (acm-req-csl-001 v2.1 §4.1, §4.4).
@@ -229,6 +231,15 @@ export class InquiryService {
     if (!mt) {
       mt = this.mapTests.create({ id: randomUUID(), entId, inqId });
     }
+
+    // REQ-260626 — when scoreDetail is provided, validate against the
+    // schema for the *effective* testType (incoming dto override else stored).
+    let normalizedDetail: Record<string, unknown> | null | undefined = undefined;
+    if (dto.scoreDetail !== undefined) {
+      const effectiveType = dto.testType ?? mt.testType ?? 'MAP';
+      normalizedDetail = validateLevelTestScoreDetail(effectiveType, dto.scoreDetail);
+    }
+
     Object.assign(mt, {
       hasPriorScore: dto.hasPriorScore ?? mt.hasPriorScore ?? null,
       feeStatus: dto.feeStatus ?? mt.feeStatus ?? null,
@@ -239,7 +250,59 @@ export class InquiryService {
       scoreReading: dto.scoreReading ?? mt.scoreReading ?? null,
       scoreMath: dto.scoreMath ?? mt.scoreMath ?? null,
       scoreLanguage: dto.scoreLanguage ?? mt.scoreLanguage ?? null,
+      // REQ-260626 additions
+      testType: dto.testType ?? mt.testType ?? 'MAP',
+      testTypeOther: dto.testTypeOther ?? mt.testTypeOther ?? null,
+      scheduledTime: dto.scheduledTime ?? mt.scheduledTime ?? null,
+      ...(normalizedDetail !== undefined ? { scoreDetail: normalizedDetail } : {}),
     });
+    return this.mapTests.save(mt);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-115 / Q-CSL-111 — operator-only result recording.
+   * Persists scores + actor/at audit fields. Caller (controller) enforces
+   * the STAFF↑ role gate; this service only stamps the actor it receives.
+   */
+  async recordLevelTestResult(
+    entId: string,
+    inqId: string,
+    dto: RecordLevelTestResultDto,
+    actorId: string,
+  ) {
+    await this.getOrThrow(entId, inqId);
+    const mt = await this.mapTests.findOne({ where: { inqId, entId } });
+    if (!mt) {
+      throw new NotFoundException(
+        'Level-test row not found — operator must schedule before recording a result',
+      );
+    }
+
+    const normalizedDetail = validateLevelTestScoreDetail(dto.testType, dto.scoreDetail);
+
+    if (dto.testType === 'MAP') {
+      // MAP path: dedicated columns; reject scoreDetail (validator already
+      // does, but be defensive here too).
+      Object.assign(mt, {
+        testType: 'MAP',
+        scoreReading: dto.scoreReading ?? mt.scoreReading ?? null,
+        scoreMath: dto.scoreMath ?? mt.scoreMath ?? null,
+        scoreLanguage: dto.scoreLanguage ?? mt.scoreLanguage ?? null,
+        scoreDetail: null,
+      });
+    } else {
+      // Non-MAP path: clear dedicated columns, persist JSONB.
+      Object.assign(mt, {
+        testType: dto.testType,
+        scoreReading: null,
+        scoreMath: null,
+        scoreLanguage: null,
+        scoreDetail: normalizedDetail,
+      });
+    }
+
+    mt.resultEnteredBy = actorId;
+    mt.resultEnteredAt = new Date();
     return this.mapTests.save(mt);
   }
 
