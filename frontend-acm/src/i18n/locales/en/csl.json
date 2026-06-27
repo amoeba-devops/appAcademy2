@@ -107,6 +107,9 @@
       "saveAndAdvance": "Save and move to Level Test",
       "transcripts": "Transcript files (multi)",
       "transcriptsComingSoon": "※ S3 upload integration in progress (T-06). Will be enabled soon.",
+      "resultPdf": "Teacher-shared PDF",
+      "resultPdfHint": "Generates a PDF with student / test type / scores. (STAFF↑)",
+      "downloadPdf": "Download PDF",
       "fee": { "PAID": "Paid", "UNPAID": "Unpaid", "WAIVED": "Waived" },
       "waiver": {
         "RETAKE_WITHIN_90D": "Retake within 90d",

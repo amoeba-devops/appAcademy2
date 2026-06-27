@@ -105,6 +105,9 @@
       "saveAndAdvance": "Lưu và chuyển sang Bài kiểm tra trình độ",
       "transcripts": "Bảng điểm (nhiều file)",
       "transcriptsComingSoon": "※ Đang tích hợp upload S3 (T-06). Sẽ kích hoạt sau.",
+      "resultPdf": "PDF chia sẻ cho giáo viên",
+      "resultPdfHint": "Tạo PDF với thông tin học viên / loại bài kiểm tra / điểm số. (STAFF↑)",
+      "downloadPdf": "Tải PDF",
       "fee": { "PAID": "Đã trả", "UNPAID": "Chưa trả", "WAIVED": "Miễn" },
       "waiver": {
         "RETAKE_WITHIN_90D": "Thi lại trong 90 ngày",
