@@ -274,17 +274,78 @@ export class RecordLevelTestResultDto {
   scoreDetail?: Record<string, unknown>;
 }
 
-// ── Trial class (1:N) ───────────────────────────────────────────────────
+// ── Trial class / Demo class (1:N) ─────────────────────────────────────
 export class CreateTrialClassDto {
   @ApiProperty() @IsDateString()
   heldAt!: string;
 
+  /**
+   * @deprecated REQ-260626 FR-CSL-124 — replaced by `completed` + feedback_*
+   * columns. DTO field retained for legacy client compatibility (PENDING
+   * default is the no-op state).
+   */
   @ApiPropertyOptional({ enum: FEEDBACK_STATUSES, default: 'PENDING' })
   @IsOptional() @IsEnum(FEEDBACK_STATUSES)
   feedbackStatus?: FeedbackStatus;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
   note?: string;
+
+  // ── REQ-260626 (FR-CSL-122/123) ────────────────────────────────────────
+
+  /** FR-CSL-122 — 30-min granularity time HH:MM[:SS]. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
+    message: 'heldTime must be HH:MM with 30-min granularity',
+  })
+  heldTime?: string;
+
+  /** FR-CSL-123 — demo teacher (AMA Client via amb_acm_tch_teacher). */
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  teacherId?: string;
+}
+
+/**
+ * REQ-260626 FR-CSL-122~125 — partial update for an existing demo class.
+ * Each field is independent so the operator can iterate (assign teacher
+ * first, mark completed later, schedule edit, …) without re-sending the
+ * whole row.
+ */
+export class UpdateTrialClassDto {
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  heldAt?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
+    message: 'heldTime must be HH:MM with 30-min granularity',
+  })
+  heldTime?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  teacherId?: string;
+
+  /** FR-CSL-125 — completion flag (replaces deprecated feedbackStatus). */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  completed?: boolean;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
+  note?: string;
+
+  /** FR-CSL-122 — CAL event link (set by T-08 integration; allowed to clear). */
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  calEventId?: string;
+}
+
+/**
+ * REQ-260626 FR-CSL-127 — TEACHER writes feedback after the session.
+ * Controller enforces the TEACHER role gate (or STAFF↑ for late edits);
+ * the service stamps authorId/At from the actor.
+ */
+export class WriteFeedbackDto {
+  @ApiProperty() @IsString() @MinLength(1) @MaxLength(4000)
+  body!: string;
 }
 
 // ── Enrollment (1:1) ────────────────────────────────────────────────────

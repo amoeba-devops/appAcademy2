@@ -31,11 +31,13 @@ import {
   CreateCourseDto,
   CreateInquiryDto,
   CreateTrialClassDto,
+  RecordLevelTestResultDto,
   UpdateCourseDto,
   UpdateInquiryDto,
-  RecordLevelTestResultDto,
+  UpdateTrialClassDto,
   UpsertEnrollmentDto,
   UpsertMapTestDto,
+  WriteFeedbackDto,
 } from '../application/dto/inquiry.dto';
 import {
   AssignDto,
@@ -242,6 +244,77 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
   ) {
     return this.base.listTrialClasses(user.entId, inqId);
+  }
+
+  // ── REQ-260626 — Demo class update + feedback workflow ──────────────
+
+  @Patch(':inqId/trial-classes/:tclId')
+  @ApiOperation({ summary: 'Update demo class (FR-CSL-122~125)' })
+  updateTrialClass(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('tclId', ParseUUIDPipe) tclId: string,
+    @Body() dto: UpdateTrialClassDto,
+  ) {
+    return this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-127 — TEACHER writes the feedback after the demo.
+   * STAFF/ADMIN can also edit (operator correction path). The completion
+   * flag is set as a side-effect by the service (session implied held).
+   */
+  @Patch(':inqId/trial-classes/:tclId/feedback')
+  @ApiOperation({ summary: 'Teacher writes demo feedback (FR-CSL-127)' })
+  writeFeedback(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('tclId', ParseUUIDPipe) tclId: string,
+    @Body() dto: WriteFeedbackDto,
+  ) {
+    const allowed = !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('Only TEACHER/STAFF/ADMIN may write demo feedback');
+    }
+    return this.base.writeFeedback(user.entId, inqId, tclId, dto.body, user.id);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-128 — operator confirms the feedback before parent
+   * delivery. ADMIN/STAFF only. Requires feedback body to be set (the
+   * service raises 400 otherwise).
+   */
+  @Post(':inqId/trial-classes/:tclId/feedback/confirm')
+  @ApiOperation({ summary: 'Operator confirms demo feedback (FR-CSL-128)' })
+  confirmFeedback(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('tclId', ParseUUIDPipe) tclId: string,
+  ) {
+    const allowed = !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('Only STAFF/ADMIN may confirm demo feedback');
+    }
+    return this.base.confirmFeedback(user.entId, inqId, tclId, user.id);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-128 — operator marks feedback as delivered after
+   * manually pasting into KakaoTalk (auto delivery is out-of-scope, see
+   * Q-CSL-108). Requires the confirm step to have happened.
+   */
+  @Post(':inqId/trial-classes/:tclId/feedback/delivered')
+  @ApiOperation({ summary: 'Mark feedback delivered to parent (FR-CSL-128)' })
+  markFeedbackDelivered(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('tclId', ParseUUIDPipe) tclId: string,
+  ) {
+    const allowed = !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('Only STAFF/ADMIN may mark delivery');
+    }
+    return this.base.markFeedbackDelivered(user.entId, inqId, tclId);
   }
 
   @Put(':inqId/enrollment')
