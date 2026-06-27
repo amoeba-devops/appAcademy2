@@ -66,6 +66,32 @@ export class EnrollmentTypeormEntity {
   @Column({ name: 'cls_started', type: 'varchar', length: 8, nullable: true })
   classStarted?: YesNo | null;
 
+  // ── REQ-260626 (DSN §3.2 ALTER — enrollment counseling) ────────────────
+
+  /** FR-CSL-131 — operator-recorded counseling memo (phone/in-person notes). */
+  @Column({ name: 'enr_counsel_memo', type: 'text', nullable: true })
+  counselMemo?: string | null;
+
+  /** FR-CSL-132 — course master FK (amb_acm_csl_course). */
+  @Column({ name: 'enr_course_id', type: 'uuid', nullable: true })
+  courseId?: string | null;
+
+  /** FR-CSL-132 — freetext course when master entry is absent. */
+  @Column({ name: 'enr_course_freetext', type: 'varchar', length: 100, nullable: true })
+  courseFreetext?: string | null;
+
+  /** FR-CSL-134 — total session count (>= 0). */
+  @Column({ name: 'enr_session_count', type: 'int', nullable: true })
+  sessionCount?: number | null;
+
+  /** FR-CSL-135 — enrollment start date. */
+  @Column({ name: 'enr_start_date', type: 'date', nullable: true })
+  startDate?: string | null;
+
+  /** FR-CSL-135 — enrollment end date (>= start_date when both present). */
+  @Column({ name: 'enr_end_date', type: 'date', nullable: true })
+  endDate?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })

@@ -9,6 +9,10 @@ import { CancellationTypeormEntity } from './infrastructure/typeorm/cancellation
 import { TransitionTypeormEntity } from './infrastructure/typeorm/transition.typeorm-entity';
 import { RemarkTypeormEntity } from './infrastructure/typeorm/remark.typeorm-entity';
 import { PiiAuditTypeormEntity } from './infrastructure/typeorm/pii-audit.typeorm-entity';
+// REQ-260626 Phase 1 — pipeline revision: 3 new entities.
+import { AttachmentTypeormEntity } from './infrastructure/typeorm/attachment.typeorm-entity';
+import { TeacherAssignmentTypeormEntity } from './infrastructure/typeorm/teacher-assignment.typeorm-entity';
+import { CourseTypeormEntity } from './infrastructure/typeorm/course.typeorm-entity';
 import { InquiryController } from './presentation/inquiry.controller';
 import { WebInquiryController } from './presentation/web-inquiry.controller';
 import { InquiryService } from './application/inquiry.service';
@@ -31,6 +35,10 @@ import { InquiryWorkflowService } from './application/inquiry-workflow.service';
         TransitionTypeormEntity,
         RemarkTypeormEntity,
         PiiAuditTypeormEntity,
+        // REQ-260626 Phase 1
+        AttachmentTypeormEntity,
+        TeacherAssignmentTypeormEntity,
+        CourseTypeormEntity,
       ],
       ACM_DS,
     ),
