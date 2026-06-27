@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsIn,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -160,7 +161,12 @@ export class CreateInquiryDto {
 
 export class UpdateInquiryDto extends PartialType(CreateInquiryDto) {}
 
-// ── MAP test (1:1) ──────────────────────────────────────────────────────
+// ── MAP / Level test (1:1) ──────────────────────────────────────────────
+
+/** REQ-260626 FR-CSL-112 — generalized level test types (DSN §5.6). */
+const LEVEL_TEST_TYPES = ['MAP', 'ISEE', 'SSAT', 'DUOLINGO', 'TOEFL', 'TOEFL_JR', 'OTHER'] as const;
+export type LevelTestType = (typeof LEVEL_TEST_TYPES)[number];
+
 export class UpsertMapTestDto {
   /** F-10 */
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
@@ -184,23 +190,88 @@ export class UpsertMapTestDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString()
   scheduledAt?: string;
 
+  /**
+   * @deprecated REQ-260626 FR-CSL-107 — scheduling status field removed from UI.
+   * DTO field kept temporarily so legacy clients don't break.
+   */
   @ApiPropertyOptional({ enum: MAP_SCHEDULE_STATUSES })
   @IsOptional()
   @IsEnum(MAP_SCHEDULE_STATUSES)
   scheduledStatus?: MapScheduleStatus;
 
-  /** F-13 — NWEA range 100-300 */
-  @ApiPropertyOptional({ minimum: 100, maximum: 300 })
-  @IsOptional() @IsInt() @Min(100) @Max(300)
+  /**
+   * F-13 — MAP score range **100~350** per "시험별 점수표" (DSN §5.6).
+   * Previously documented as 100~300; DB CHECK now matches 350 ceiling
+   * (sql/acm/985 §1). Non-MAP test scores live in `scoreDetail` JSONB.
+   */
+  @ApiPropertyOptional({ minimum: 100, maximum: 350 })
+  @IsOptional() @IsInt() @Min(100) @Max(350)
   scoreReading?: number;
 
-  @ApiPropertyOptional({ minimum: 100, maximum: 300 })
-  @IsOptional() @IsInt() @Min(100) @Max(300)
+  @ApiPropertyOptional({ minimum: 100, maximum: 350 })
+  @IsOptional() @IsInt() @Min(100) @Max(350)
   scoreMath?: number;
 
-  @ApiPropertyOptional({ minimum: 100, maximum: 300 })
-  @IsOptional() @IsInt() @Min(100) @Max(300)
+  @ApiPropertyOptional({ minimum: 100, maximum: 350 })
+  @IsOptional() @IsInt() @Min(100) @Max(350)
   scoreLanguage?: number;
+
+  // ── REQ-260626 (DSN §3.2 + §5.6) ───────────────────────────────────────
+
+  /** FR-CSL-112 — test type. Defaults to MAP on first write (matches DB default). */
+  @ApiPropertyOptional({ enum: LEVEL_TEST_TYPES })
+  @IsOptional() @IsEnum(LEVEL_TEST_TYPES)
+  testType?: LevelTestType;
+
+  /** FR-CSL-112 — required only when testType=OTHER. */
+  @ApiPropertyOptional()
+  @ValidateIf((o: UpsertMapTestDto) => o.testType === 'OTHER')
+  @IsString({ message: 'testTypeOther required when testType=OTHER' })
+  @MaxLength(100)
+  testTypeOther?: string;
+
+  /**
+   * FR-CSL-113 — 30-min granularity. Format: 'HH:MM' or 'HH:MM:SS' (TIME).
+   * Server-side validation: minutes ∈ {00, 30}. DB CHECK enforces too.
+   */
+  @ApiPropertyOptional({ description: '30-min granularity time (HH:MM)' })
+  @IsOptional()
+  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
+    message: 'scheduledTime must be HH:MM with 30-min granularity (e.g., 14:00 or 14:30)',
+  })
+  scheduledTime?: string;
+
+  /**
+   * FR-CSL-115 / DSN §5.6 — non-MAP score detail JSONB. Shape depends on
+   * testType. MAP uses the dedicated `score{Reading,Math,Language}` columns
+   * above. Per-type schema validation runs in {@link validateLevelTestScoreDetail}.
+   */
+  @ApiPropertyOptional({ description: 'Non-MAP score detail (DSN §5.6 schema by test type)' })
+  @IsOptional() @IsObject()
+  scoreDetail?: Record<string, unknown>;
+}
+
+/**
+ * REQ-260626 FR-CSL-115 / Q-CSL-111 — operator-only result recording.
+ * Separates "schedule + intake" (UpsertMapTestDto) from "result entry"
+ * so the controller can enforce role guard (STAFF↑) without leaking
+ * across other PATCH fields.
+ */
+export class RecordLevelTestResultDto {
+  @ApiProperty({ enum: LEVEL_TEST_TYPES })
+  @IsEnum(LEVEL_TEST_TYPES)
+  testType!: LevelTestType;
+
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  scoreReading?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  scoreMath?: number;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  scoreLanguage?: number;
+
+  /** Per-type schema validated separately (see validateLevelTestScoreDetail). */
+  @ApiPropertyOptional() @IsOptional() @IsObject()
+  scoreDetail?: Record<string, unknown>;
 }
 
 // ── Trial class (1:N) ───────────────────────────────────────────────────
