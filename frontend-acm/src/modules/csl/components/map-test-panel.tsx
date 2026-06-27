@@ -18,6 +18,13 @@ interface MapTest {
   scoreReading: number | null;
   scoreMath: number | null;
   scoreLanguage: number | null;
+  // REQ-260626
+  testType: LevelTestType | null;
+  testTypeOther: string | null;
+  scheduledTime: string | null;
+  scoreDetail: Record<string, unknown> | null;
+  resultEnteredBy: string | null;
+  resultEnteredAt: string | null;
 }
 
 const FEE_STATUSES = ['PAID', 'UNPAID', 'WAIVED'] as const;
@@ -28,6 +35,20 @@ const WAIVER_REASONS = [
   'OTHER',
 ] as const;
 const SCHEDULE_STATUSES = ['SCHEDULED', 'TAKEN', 'NOT_TAKING', 'RESCHEDULED'] as const;
+const LEVEL_TEST_TYPES = [
+  'MAP', 'ISEE', 'SSAT', 'DUOLINGO', 'TOEFL', 'TOEFL_JR', 'OTHER',
+] as const;
+type LevelTestType = (typeof LEVEL_TEST_TYPES)[number];
+
+/** 30-min slots 09:00 ~ 22:30 — same shape as the demo class picker. */
+const LEVEL_TEST_TIME_SLOTS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 9; h <= 22; h++) {
+    out.push(`${String(h).padStart(2, '0')}:00`);
+    out.push(`${String(h).padStart(2, '0')}:30`);
+  }
+  return out;
+})();
 
 type FormValues = {
   hasPriorScore: boolean;
@@ -39,6 +60,11 @@ type FormValues = {
   scoreReading: string;
   scoreMath: string;
   scoreLanguage: string;
+  // REQ-260626
+  testType: LevelTestType;
+  testTypeOther: string;
+  scheduledTime: string;
+  scoreDetailJson: string;
 };
 
 /**
@@ -88,6 +114,10 @@ export function MapTestPanel({
       scoreReading: '',
       scoreMath: '',
       scoreLanguage: '',
+      testType: 'MAP',
+      testTypeOther: '',
+      scheduledTime: '',
+      scoreDetailJson: '',
     },
   });
 
@@ -103,13 +133,30 @@ export function MapTestPanel({
         scoreReading: data.scoreReading?.toString() ?? '',
         scoreMath: data.scoreMath?.toString() ?? '',
         scoreLanguage: data.scoreLanguage?.toString() ?? '',
+        testType: data.testType ?? 'MAP',
+        testTypeOther: data.testTypeOther ?? '',
+        scheduledTime: data.scheduledTime?.slice(0, 5) ?? '',
+        scoreDetailJson: data.scoreDetail
+          ? JSON.stringify(data.scoreDetail, null, 2)
+          : '',
       });
     }
   }, [data, reset]);
 
-  const feeStatus = watch('feeStatus');
+  const testType = watch('testType');
 
   function toBody(v: FormValues) {
+    // REQ-260626 — scoreDetail textarea is type-tolerant: an invalid JSON
+    // payload is sent as-is and rejected by the server validator (DSN §5.6)
+    // instead of silently swallowing the operator's input.
+    let scoreDetail: unknown = undefined;
+    if (v.scoreDetailJson.trim()) {
+      try {
+        scoreDetail = JSON.parse(v.scoreDetailJson);
+      } catch {
+        scoreDetail = { _raw: v.scoreDetailJson };
+      }
+    }
     return {
       hasPriorScore: v.hasPriorScore,
       feeStatus: v.feeStatus || undefined,
@@ -120,8 +167,39 @@ export function MapTestPanel({
       scoreReading: v.scoreReading ? Number(v.scoreReading) : undefined,
       scoreMath: v.scoreMath ? Number(v.scoreMath) : undefined,
       scoreLanguage: v.scoreLanguage ? Number(v.scoreLanguage) : undefined,
+      // REQ-260626
+      testType: v.testType,
+      testTypeOther: v.testTypeOther || undefined,
+      scheduledTime: v.scheduledTime || undefined,
+      scoreDetail,
     };
   }
+
+  /**
+   * REQ-260626 FR-CSL-115 / Q-CSL-111 — operator-only result recording.
+   * Distinct from the regular PUT/save so the server-side admin gate
+   * applies cleanly and the actor/at timestamps land on the row.
+   */
+  const recordResult = useMutation({
+    mutationFn: async (v: FormValues) => {
+      let scoreDetail: unknown = undefined;
+      if (v.scoreDetailJson.trim()) {
+        try {
+          scoreDetail = JSON.parse(v.scoreDetailJson);
+        } catch {
+          throw new Error('scoreDetail JSON 형식이 올바르지 않습니다');
+        }
+      }
+      await apiClient.post(`/acm/csl/inquiries/${inqId}/map-test/result`, {
+        testType: v.testType,
+        scoreReading: v.scoreReading ? Number(v.scoreReading) : undefined,
+        scoreMath: v.scoreMath ? Number(v.scoreMath) : undefined,
+        scoreLanguage: v.scoreLanguage ? Number(v.scoreLanguage) : undefined,
+        scoreDetail,
+      });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'map-test', inqId] }),
+  });
 
   const mutation = useMutation({
     mutationFn: async (v: FormValues) => {
@@ -161,109 +239,133 @@ export function MapTestPanel({
           {t('detail.mapTest.hasPriorScore')}
         </label>
 
-        {/* REQ-260626 FR-CSL-106/107 — fee/schedule are hidden at INTAKE
-            (moved to SCR-CSL-02 stage 2). Kept visible at MAP_TEST for
-            back-compat until T-15 rebuilds the level-test view. */}
+        {/*
+          REQ-260626 SCR-CSL-02 (FR-CSL-111~115). MAP_TEST stage shows:
+          test type select, schedule (date + 30-min time), optional
+          freetext (for OTHER), and the score detail block. fee/waiver/
+          scheduledStatus are DEPRECATED (FR-CSL-106/107) — kept in DB
+          for back-compat but never re-written from this UI.
+        */}
         {!isIntake && (
           <>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={t('detail.mapTest.feeStatus')}>
-                <Select {...register('feeStatus')}>
-                  <option value="">{t('common:dash')}</option>
-                  {FEE_STATUSES.map((s) => (
+            <div className="grid grid-cols-[1fr_1fr] gap-3">
+              <Field label={t('detail.mapTest.testType')}>
+                <Select {...register('testType')}>
+                  {LEVEL_TEST_TYPES.map((s) => (
                     <option key={s} value={s}>
-                      {t(`detail.mapTest.fee.${s}`)}
+                      {t(`detail.mapTest.type.${s}`)}
                     </option>
                   ))}
                 </Select>
               </Field>
-              {feeStatus === 'WAIVED' && (
-                <Field label={t('detail.mapTest.waiverReason')}>
-                  <Select {...register('waiverReason')}>
-                    <option value="">{t('common:dash')}</option>
-                    {WAIVER_REASONS.map((s) => (
-                      <option key={s} value={s}>
-                        {t(`detail.mapTest.waiver.${s}`)}
-                      </option>
-                    ))}
-                  </Select>
+              {testType === 'OTHER' && (
+                <Field label={t('detail.mapTest.testTypeOther')}>
+                  <Input
+                    {...register('testTypeOther')}
+                    placeholder={t('detail.mapTest.testTypeOtherPlaceholder')}
+                  />
                 </Field>
               )}
             </div>
 
-            {feeStatus === 'WAIVED' && (
-              <Field label={t('detail.mapTest.waiverNote')}>
-                <Input {...register('waiverNote')} />
-              </Field>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-[1fr_140px] gap-3">
               <Field label={t('detail.mapTest.scheduledAt')}>
                 <Input type="date" {...register('scheduledAt')} />
               </Field>
-              <Field label={t('detail.mapTest.scheduledStatus')}>
-                <Select {...register('scheduledStatus')}>
-                  <option value="">{t('common:dash')}</option>
-                  {SCHEDULE_STATUSES.map((s) => (
+              <Field label={t('detail.mapTest.scheduledTime')}>
+                <Select {...register('scheduledTime')}>
+                  <option value="">—</option>
+                  {LEVEL_TEST_TIME_SLOTS.map((s) => (
                     <option key={s} value={s}>
-                      {t(`detail.mapTest.schedule.${s}`)}
+                      {s}
                     </option>
                   ))}
                 </Select>
+              </Field>
+            </div>
+
+            {testType !== 'MAP' && (
+              <Field label={t('detail.mapTest.scoreDetail')}>
+                <textarea
+                  {...register('scoreDetailJson')}
+                  rows={6}
+                  className="min-h-[120px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 font-mono text-xs"
+                  placeholder={t('detail.mapTest.scoreDetailPlaceholder')}
+                />
+                <p className="text-[11px] text-secondary">
+                  {t('detail.mapTest.scoreDetailHint')}
+                </p>
+              </Field>
+            )}
+          </>
+        )}
+
+        {/*
+          MAP score block — shown at INTAKE (prior score) and at MAP_TEST
+          when testType === 'MAP'. Other test types use scoreDetailJson
+          above instead of these dedicated columns.
+        */}
+        {(isIntake || testType === 'MAP') && (
+          <>
+            <Label className="mt-2">
+              {isIntake ? t('detail.mapTest.priorScores') : t('detail.mapTest.scores')}
+            </Label>
+            {isIntake && (
+              <p className="text-[11px] text-secondary -mt-2">
+                {t('detail.mapTest.priorScoresHint')}
+              </p>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {/*
+                FR-CSL-102 — Reading / Math / Language Usage labels are English-fixed
+                across all locales (per requirement: 한국어 모드에서도 영문 표기).
+              */}
+              <Field label="Reading">
+                <Input
+                  type="number"
+                  min={100}
+                  max={350}
+                  placeholder="100~350"
+                  {...register('scoreReading')}
+                />
+              </Field>
+              <Field label="Math">
+                <Input
+                  type="number"
+                  min={100}
+                  max={350}
+                  placeholder="100~350"
+                  {...register('scoreMath')}
+                />
+              </Field>
+              <Field label="Language Usage">
+                <Input
+                  type="number"
+                  min={100}
+                  max={350}
+                  placeholder="100~350"
+                  {...register('scoreLanguage')}
+                />
               </Field>
             </div>
           </>
         )}
 
-        <Label className="mt-2">
-          {isIntake ? t('detail.mapTest.priorScores') : t('detail.mapTest.scores')}
-        </Label>
-        {isIntake && (
-          <p className="text-[11px] text-secondary -mt-2">
-            {t('detail.mapTest.priorScoresHint')}
+        {isIntake && <TranscriptUploadStub />}
+
+        {!isIntake && data?.resultEnteredAt && (
+          <p className="text-[11px] text-secondary">
+            {t('detail.mapTest.resultEntered', {
+              when: new Date(data.resultEnteredAt).toLocaleString(),
+            })}
           </p>
         )}
-        <div className="grid grid-cols-3 gap-3">
-          {/*
-            FR-CSL-102 — Reading / Math / Language Usage labels are English-fixed
-            across all locales (per requirement: 한국어 모드에서도 영문 표기).
-          */}
-          <Field label="Reading">
-            <Input
-              type="number"
-              min={100}
-              max={350}
-              placeholder="100~350"
-              {...register('scoreReading')}
-            />
-          </Field>
-          <Field label="Math">
-            <Input
-              type="number"
-              min={100}
-              max={350}
-              placeholder="100~350"
-              {...register('scoreMath')}
-            />
-          </Field>
-          <Field label="Language Usage">
-            <Input
-              type="number"
-              min={100}
-              max={350}
-              placeholder="100~350"
-              {...register('scoreLanguage')}
-            />
-          </Field>
-        </div>
-
-        {isIntake && <TranscriptUploadStub />}
 
         <div className="flex justify-end gap-2">
           <Button
             type="submit"
-            variant={isIntake && onAfterAdvance ? 'outline' : 'default'}
-            disabled={mutation.isPending || saveAndAdvance.isPending}
+            variant={isIntake && onAfterAdvance ? 'outline' : 'outline'}
+            disabled={mutation.isPending || saveAndAdvance.isPending || recordResult.isPending}
           >
             {mutation.isPending ? t('common:actions.saving') : t('common:actions.save')}
           </Button>
@@ -278,15 +380,26 @@ export function MapTestPanel({
                 : t('detail.mapTest.saveAndAdvance')}
             </Button>
           )}
+          {!isIntake && (
+            <Button
+              type="button"
+              onClick={handleSubmit((v) => recordResult.mutate(v))}
+              disabled={recordResult.isPending || mutation.isPending}
+            >
+              {recordResult.isPending
+                ? t('common:actions.saving')
+                : t('detail.mapTest.recordResult')}
+            </Button>
+          )}
         </div>
-        {(mutation.isError || saveAndAdvance.isError) && (
+        {(mutation.isError || saveAndAdvance.isError || recordResult.isError) && (
           <p className="text-xs text-red-600">
             {(
-              (mutation.error ?? saveAndAdvance.error) as {
+              (mutation.error ?? saveAndAdvance.error ?? recordResult.error) as {
                 response?: { data?: { message?: string } };
               }
             )?.response?.data?.message ??
-              ((mutation.error ?? saveAndAdvance.error) as Error).message}
+              ((mutation.error ?? saveAndAdvance.error ?? recordResult.error) as Error).message}
           </p>
         )}
       </form>
