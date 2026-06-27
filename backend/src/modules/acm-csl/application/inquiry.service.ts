@@ -366,6 +366,50 @@ export class InquiryService {
     if (dto.tuitionAmount !== undefined) er.tuitionAmount = String(dto.tuitionAmount);
     if (dto.classStartedAt !== undefined) er.classStartedAt = dto.classStartedAt;
     if (dto.classStarted !== undefined) er.classStarted = dto.classStarted;
+
+    // REQ-260626 (FR-CSL-131~135)
+    if (dto.counselMemo !== undefined) er.counselMemo = dto.counselMemo ?? null;
+    if (dto.courseId !== undefined) er.courseId = dto.courseId ?? null;
+    if (dto.courseFreetext !== undefined) er.courseFreetext = dto.courseFreetext ?? null;
+    if (dto.sessionCount !== undefined) er.sessionCount = dto.sessionCount ?? null;
+    if (dto.startDate !== undefined) er.startDate = dto.startDate ?? null;
+    if (dto.endDate !== undefined) er.endDate = dto.endDate ?? null;
+    return this.enrollments.save(er);
+  }
+
+  /**
+   * REQ-260626 FR-CSL-141/142 — explicit payment approval. ADMIN/APP_ADMIN
+   * only. Idempotent: re-approving a row already paid is a no-op (actor/at
+   * preserved). Distinct from upsertEnrollment so the role gate has a
+   * single, audit-friendly surface area.
+   */
+  async approvePayment(
+    entId: string,
+    inqId: string,
+    method: 'CARD' | 'BANK_TRANSFER',
+    memo: string | undefined,
+    actor: { id: string; isSeniorManager: boolean },
+  ) {
+    if (!actor.isSeniorManager) {
+      throw new ForbiddenException('BR-CSL-012: only senior manager can approve payment');
+    }
+    await this.getOrThrow(entId, inqId);
+    let er = await this.enrollments.findOne({ where: { inqId, entId } });
+    if (!er) {
+      er = this.enrollments.create({ id: randomUUID(), entId, inqId });
+    }
+    if (er.tuitionPaid === true) {
+      // already approved — return current row unchanged (idempotent).
+      return er;
+    }
+    er.tuitionPaid = true;
+    er.tuitionPaidActorId = actor.id;
+    er.tuitionPaidAt = new Date();
+    // method/memo go into the memo field so audit captures what the operator
+    // saw (card vs bank transfer). counselMemo already covers free-form
+    // counsel notes; we append rather than overwrite.
+    const tag = `[payment-approved method=${method}${memo ? ` memo=${memo}` : ''}]`;
+    er.counselMemo = er.counselMemo ? `${er.counselMemo}\n${tag}` : tag;
     return this.enrollments.save(er);
   }
 
