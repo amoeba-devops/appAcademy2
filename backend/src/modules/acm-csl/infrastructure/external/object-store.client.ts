@@ -83,7 +83,7 @@ export class ObjectStoreClient implements OnModuleInit {
    * prefix level (bucket policy can deny cross-tenant access later).
    */
   buildKey(entId: string, attId: string, filename: string): string {
-    const safe = filename.replace(/[^\w.\-]+/g, '_');
+    const safe = filename.replace(/[^\w.-]+/g, '_');
     return `${entId}/${attId}/${safe}`;
   }
 
