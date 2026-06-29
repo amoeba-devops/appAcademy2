@@ -89,6 +89,37 @@
     "notReached": "Chưa đến giai đoạn này"
   },
   "detail": {
+    "levelTest": {
+      "title": "2. Bài kiểm tra trình độ",
+      "skipHint": "※ Trường hợp đã nhập điểm trước ở bước 1 có thể bỏ qua bước này.",
+      "empty": "Chưa có kỳ thi nào. Chọn mục đích ở bước 1.",
+      "col": {
+        "test": "Kỳ thi",
+        "schedule": "Ngày dự thi",
+        "teacher": "Giáo viên",
+        "status": "Trạng thái",
+        "actions": "Kết quả / PDF"
+      },
+      "status": {
+        "PENDING": "Đang chờ",
+        "COMPLETED": "Hoàn thành",
+        "NOT_HELD": "Chưa thực hiện"
+      },
+      "scoreToggle": "Nhập điểm",
+      "scoreLockedHint": "Chỉ nhập điểm khi trạng thái = Hoàn thành",
+      "pdfLockedHint": "Có sau khi ghi nhận kết quả",
+      "scoreEditorHeader": "Điểm kết quả {{test}}",
+      "recordResult": "Lưu kết quả (STAFF↑)",
+      "unifiedPdf": "Tải PDF tổng hợp (đã hoàn thành)",
+      "dialog": {
+        "title": "Lịch {{test}}",
+        "date": "Ngày",
+        "time": "Giờ (30 phút)",
+        "teacher": "Giáo viên",
+        "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
+        "saveAndCal": "Lưu + đăng ký CAL"
+      }
+    },
     "intake": {
       "title": "1. Tiếp nhận",
       "readOnlyHeader": "Thông tin tiếp nhận",

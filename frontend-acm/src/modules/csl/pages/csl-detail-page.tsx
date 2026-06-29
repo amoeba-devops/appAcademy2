@@ -5,8 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { CslStageStepper } from '@/modules/csl/components/csl-stage-stepper';
-import { MapTestPanel } from '@/modules/csl/components/map-test-panel';
 import { IntakeStagePanel } from '@/modules/csl/components/intake-stage-panel';
+import { LevelTestPanel } from '@/modules/csl/components/level-test-panel';
 import { TrialClassPanel } from '@/modules/csl/components/trial-class-panel';
 import { EnrollmentPanel } from '@/modules/csl/components/enrollment-panel';
 import { CancellationDialog } from '@/modules/csl/components/cancellation-dialog';
@@ -205,15 +205,7 @@ export function CslDetailPage() {
             />
           )}
           {effectiveSelected === 'MAP_TEST' && (
-            <MapTestPanel
-              inqId={inq.id}
-              currentStage="MAP_TEST"
-              onAfterAdvance={
-                inq.currentStage === 'MAP_TEST'
-                  ? (next) => forward.mutate(next)
-                  : undefined
-              }
-            />
+            <LevelTestPanel inqId={inq.id} />
           )}
           {effectiveSelected === 'TRIAL_CLASS' && (
             <TrialClassPanel inqId={inq.id} />

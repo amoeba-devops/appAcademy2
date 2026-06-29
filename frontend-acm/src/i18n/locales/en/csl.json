@@ -91,6 +91,37 @@
     "notReached": "Stage not yet reached"
   },
   "detail": {
+    "levelTest": {
+      "title": "2. Level Test",
+      "skipHint": "※ Inquiries with prior scores entered at intake can skip this stage and move to Demo Class.",
+      "empty": "No applied tests. Pick an apply purpose at stage 1.",
+      "col": {
+        "test": "Test",
+        "schedule": "Scheduled",
+        "teacher": "Teacher",
+        "status": "Status",
+        "actions": "Result / PDF"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "COMPLETED": "Completed",
+        "NOT_HELD": "Not held"
+      },
+      "scoreToggle": "Enter score",
+      "scoreLockedHint": "Score entry available only when status = Completed",
+      "pdfLockedHint": "Available after result is recorded",
+      "scoreEditorHeader": "{{test}} result scores",
+      "recordResult": "Save result (STAFF↑)",
+      "unifiedPdf": "Download unified PDF (all completed)",
+      "dialog": {
+        "title": "{{test}} schedule",
+        "date": "Date",
+        "time": "Time (30-min slot)",
+        "teacher": "Assigned teacher",
+        "calHint": "Will be registered on the class calendar automatically.",
+        "saveAndCal": "Save + CAL register"
+      }
+    },
     "intake": {
       "title": "1. Intake",
       "readOnlyHeader": "Intake information",
