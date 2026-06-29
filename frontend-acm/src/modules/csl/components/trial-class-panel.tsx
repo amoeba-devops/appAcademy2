@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AttachmentPanel } from './attachment-panel';
 
 /**
  * REQ-260626 SCR-CSL-03 — demo class panel.
@@ -378,6 +379,11 @@ function DemoClassRow({
               ((writeFb.error ?? confirmFb.error ?? deliveredFb.error) as Error).message}
           </p>
         )}
+      </div>
+
+      {/* T-06 / ADR-008 — class material attachments scoped to this row */}
+      <div className="mt-3">
+        <AttachmentPanel inqId={inqId} category="MATERIAL" refId={tcl.id} />
       </div>
     </article>
   );

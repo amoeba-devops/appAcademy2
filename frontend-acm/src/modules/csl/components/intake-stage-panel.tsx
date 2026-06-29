@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AttachmentPanel } from './attachment-panel';
 
 /**
  * REQ-260626 SCR-CSL-01 v2 (DSN-260629) — INTAKE stage panel.
@@ -286,20 +287,9 @@ export function IntakeStagePanel({
         )}
       </div>
 
-      {/* 4. Transcript upload stub (T-06 dependency) */}
-      <div className="grid gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
-        <Label className="text-xs">{t('detail.mapTest.transcripts')}</Label>
-        <p className="text-[11px] text-secondary">
-          {t('detail.mapTest.transcriptsComingSoon')}
-        </p>
-        <input
-          type="file"
-          multiple
-          disabled
-          accept="application/pdf,image/jpeg,image/png"
-          className="text-xs file:mr-2 file:cursor-not-allowed file:rounded file:border file:border-input file:bg-transparent file:px-2 file:py-1 file:text-xs file:text-secondary opacity-60"
-        />
-      </div>
+      {/* 4. Transcript upload — T-06 / ADR-008 (presigned PUT to MinIO/S3) */}
+      <AttachmentPanel inqId={inqId} category="TRANSCRIPT" />
+
 
       {/* 5. Save + advance */}
       <div className="flex justify-end gap-2">

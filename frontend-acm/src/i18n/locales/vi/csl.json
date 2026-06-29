@@ -89,6 +89,22 @@
     "notReached": "Chưa đến giai đoạn này"
   },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "Bảng điểm / Điểm trước đó",
+        "MATERIAL": "Tài liệu giảng dạy",
+        "RESULT_PDF": "PDF kết quả"
+      },
+      "dropHint": "Kéo PDF/JPEG/PNG vào đây hoặc bấm để chọn (≤10MB)",
+      "empty": "Chưa có tệp nào",
+      "confirmDelete": "Xóa tệp này?",
+      "error": {
+        "size": "Tệp quá lớn (tối đa {{max}})",
+        "empty": "Không thể tải lên tệp rỗng",
+        "mime": "Chỉ chấp nhận PDF/JPEG/PNG",
+        "count": "Tối đa {{max}} tệp"
+      }
+    },
     "levelTest": {
       "title": "2. Bài kiểm tra trình độ",
       "skipHint": "※ Trường hợp đã nhập điểm trước ở bước 1 có thể bỏ qua bước này.",

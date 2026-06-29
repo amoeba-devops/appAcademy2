@@ -91,6 +91,22 @@
     "notReached": "Stage not yet reached"
   },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "Transcripts / Prior Scores",
+        "MATERIAL": "Class Materials",
+        "RESULT_PDF": "Result PDF"
+      },
+      "dropHint": "Drag PDF/JPEG/PNG here or click to choose (≤10MB)",
+      "empty": "No files uploaded",
+      "confirmDelete": "Delete this file?",
+      "error": {
+        "size": "File is too large (max {{max}})",
+        "empty": "Empty files cannot be uploaded",
+        "mime": "Only PDF/JPEG/PNG are allowed",
+        "count": "Up to {{max}} files allowed"
+      }
+    },
     "levelTest": {
       "title": "2. Level Test",
       "skipHint": "※ Inquiries with prior scores entered at intake can skip this stage and move to Demo Class.",

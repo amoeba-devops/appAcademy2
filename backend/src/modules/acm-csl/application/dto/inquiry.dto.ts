@@ -491,6 +491,38 @@ export class ApprovePaymentDto {
   memo?: string;
 }
 
+// ── REQ-260626 T-06 — Attachment (presigned upload) ─────────────────────
+
+const ATTACHMENT_CATEGORIES = ['TRANSCRIPT', 'MATERIAL', 'RESULT_PDF'] as const;
+const ATTACHMENT_MIMES = ['application/pdf', 'image/jpeg', 'image/png'] as const;
+
+export class PresignedUploadDto {
+  @ApiProperty({ enum: ATTACHMENT_CATEGORIES })
+  @IsEnum(ATTACHMENT_CATEGORIES)
+  category!: (typeof ATTACHMENT_CATEGORIES)[number];
+
+  @ApiProperty({ description: 'Original file name', maxLength: 255 })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  filename!: string;
+
+  @ApiProperty({ enum: ATTACHMENT_MIMES })
+  @IsEnum(ATTACHMENT_MIMES)
+  mime!: (typeof ATTACHMENT_MIMES)[number];
+
+  @ApiProperty({ minimum: 1, maximum: 10485760, description: 'Size in bytes (≤10MB)' })
+  @IsInt()
+  @Min(1)
+  @Max(10 * 1024 * 1024)
+  sizeBytes!: number;
+
+  @ApiPropertyOptional({ description: 'tcl_id for MATERIAL, mpt_id for RESULT_PDF' })
+  @IsOptional()
+  @IsUUID()
+  refId?: string;
+}
+
 // ── REQ-260626 — Course master (per-tenant) ─────────────────────────────
 
 export class CreateCourseDto {

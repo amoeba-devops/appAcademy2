@@ -91,6 +91,22 @@
     "notReached": "아직 도달하지 않은 단계입니다"
   },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "성적표 / 기존 점수 자료",
+        "MATERIAL": "수업 자료",
+        "RESULT_PDF": "결과 PDF"
+      },
+      "dropHint": "여기에 PDF/JPEG/PNG 파일을 끌어다 놓거나 클릭하세요 (≤10MB)",
+      "empty": "업로드된 파일 없음",
+      "confirmDelete": "이 파일을 삭제할까요?",
+      "error": {
+        "size": "파일 용량이 너무 큽니다 ({{max}} 이하)",
+        "empty": "빈 파일은 업로드할 수 없습니다",
+        "mime": "PDF/JPEG/PNG 형식만 허용됩니다",
+        "count": "최대 {{max}}개까지 업로드 가능합니다"
+      }
+    },
     "levelTest": {
       "title": "2. 레벨테스트",
       "skipHint": "※ 1단계에서 이전 점수를 입력한 인콰이어리는 본 단계를 스킵하고 데모수업으로 이동할 수 있습니다.",

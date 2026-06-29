@@ -89,6 +89,22 @@
     "notReached": "尚未到达此阶段"
   },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "成绩单 / 以往成绩",
+        "MATERIAL": "课程资料",
+        "RESULT_PDF": "结果 PDF"
+      },
+      "dropHint": "拖拽 PDF/JPEG/PNG 到此或点击选择 (≤10MB)",
+      "empty": "未上传任何文件",
+      "confirmDelete": "确定删除该文件？",
+      "error": {
+        "size": "文件过大 (最多 {{max}})",
+        "empty": "不能上传空文件",
+        "mime": "仅允许 PDF/JPEG/PNG",
+        "count": "最多 {{max}} 个文件"
+      }
+    },
     "levelTest": {
       "title": "2. 分级测试",
       "skipHint": "※ 第1阶段已填写既有成绩的咨询可跳过本阶段，直接进入示范课。",
