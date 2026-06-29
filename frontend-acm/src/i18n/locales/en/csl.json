@@ -81,6 +81,7 @@
     "NO": "Pending"
   },
   "grade": {
+    "E1": "G1", "E2": "G2", "E3": "G3", "E4": "G4",
     "E5": "G5", "E6": "G6",
     "M1": "G7", "M2": "G8", "M3": "G9",
     "H1": "G10", "H2": "G11", "H3": "G12",
@@ -185,6 +186,9 @@
       "applied": "Applied",
       "paymentNoticeSent": "Tuition notice sent",
       "classMinutes": "Class minutes",
+      "classMinutesPresets": "Preset",
+      "classMinutesFreeInput": "Custom minutes",
+      "classMinutesUnit": "min",
       "tuitionAmount": "Tuition",
       "tuitionPaid": "Tuition paid",
       "tuitionPaidHint": "※ Only senior managers may confirm payment.",

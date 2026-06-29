@@ -79,6 +79,7 @@
     "NO": "Chưa"
   },
   "grade": {
+    "E1": "Lớp 1", "E2": "Lớp 2", "E3": "Lớp 3", "E4": "Lớp 4",
     "E5": "Lớp 5", "E6": "Lớp 6",
     "M1": "Lớp 7", "M2": "Lớp 8", "M3": "Lớp 9",
     "H1": "Lớp 10", "H2": "Lớp 11", "H3": "Lớp 12",
@@ -183,6 +184,9 @@
       "applied": "Đã đăng ký",
       "paymentNoticeSent": "Đã gửi thông báo học phí",
       "classMinutes": "Số phút mỗi buổi",
+      "classMinutesPresets": "Mẫu",
+      "classMinutesFreeInput": "Nhập số phút",
+      "classMinutesUnit": "phút",
       "tuitionAmount": "Học phí",
       "tuitionPaid": "Đã thanh toán học phí",
       "tuitionPaidHint": "※ Chỉ quản lý cấp cao mới có thể xác nhận thanh toán.",

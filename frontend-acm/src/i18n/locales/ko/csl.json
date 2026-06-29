@@ -81,6 +81,7 @@
     "NO": "미완료"
   },
   "grade": {
+    "E1": "초1", "E2": "초2", "E3": "초3", "E4": "초4",
     "E5": "초5", "E6": "초6",
     "M1": "중1", "M2": "중2", "M3": "중3",
     "H1": "고1", "H2": "고2", "H3": "고3",
@@ -185,6 +186,9 @@
       "applied": "수강 신청",
       "paymentNoticeSent": "수강료 안내 발송",
       "classMinutes": "수업 시간(분)",
+      "classMinutesPresets": "프리셋",
+      "classMinutesFreeInput": "분단위 자유입력",
+      "classMinutesUnit": "분",
       "tuitionAmount": "수강료",
       "tuitionPaid": "수강료 납부 완료",
       "tuitionPaidHint": "※ 결제 확정은 책임자만 표시할 수 있습니다.",
