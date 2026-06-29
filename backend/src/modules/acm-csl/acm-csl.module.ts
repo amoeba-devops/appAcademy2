@@ -27,6 +27,9 @@ import { StdInheritanceService } from './application/std-inheritance.service';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
 // REQ-260626 T-13 — level-test result PDF
 import { LevelTestPdfService } from './application/level-test-pdf.service';
+// REQ-260626 T-08 — CAL event linkage on level-test + demo-class scheduling
+import { CslCalLinkerService } from './application/csl-cal-linker.service';
+import { AcmCalModule } from '../acm-cal/acm-cal.module';
 
 /**
  * acm-csl — Counseling / Inquiry Module
@@ -55,6 +58,7 @@ import { LevelTestPdfService } from './application/level-test-pdf.service';
       ],
       ACM_DS,
     ),
+    AcmCalModule,
   ],
   controllers: [InquiryController, WebInquiryController, CourseController],
   providers: [
@@ -64,6 +68,7 @@ import { LevelTestPdfService } from './application/level-test-pdf.service';
     CourseService,
     StdInheritanceService,
     LevelTestPdfService,
+    CslCalLinkerService,
   ],
   exports: [
     InquiryService,
@@ -72,6 +77,7 @@ import { LevelTestPdfService } from './application/level-test-pdf.service';
     CourseService,
     StdInheritanceService,
     LevelTestPdfService,
+    CslCalLinkerService,
   ],
 })
 export class AcmCslModule {}
