@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { AmaUserPicker } from '@/components/common/ama-user-picker';
+import type { AmaPlatformUser } from '@/lib/ama-user-api';
 
 /**
  * DSN-260629 §6.4 — 응시예정일 + 시간 + 담당강사 한꺼번에 잡는 모달.
@@ -31,17 +33,18 @@ const TIME_SLOTS: string[] = (() => {
   return out;
 })();
 
-interface Teacher {
-  id: string;
-  name: string;
-}
-
 interface LevelTestRow {
   testType: string;
   testTypeOther: string | null;
   scheduledAt: string | null;
   scheduledTime: string | null;
   teacherId: string | null;
+  /** Display-only seed for the AMA picker when the row was previously saved
+   *  with a teacherAmaUserId. Pulled from the level-test list response (see
+   *  level-test-panel `teacherAmaUserId`/`teacherAmaName`/`teacherAmaEmail`). */
+  teacherAmaUserId?: string | null;
+  teacherAmaName?: string | null;
+  teacherAmaEmail?: string | null;
 }
 
 export function LevelTestScheduleDialog({
@@ -65,30 +68,43 @@ export function LevelTestScheduleDialog({
   const [scheduledTime, setScheduledTime] = useState(
     row.scheduledTime ? row.scheduledTime.slice(0, 5) : '',
   );
-  const [teacherId, setTeacherId] = useState(row.teacherId ?? '');
+  // REQ-260629 — picker holds the full AMA user object. Saved row may only
+  // have teacherId (legacy) or amaUserId — we seed with whatever the parent
+  // passes; if both absent the picker starts empty.
+  const initialAma: AmaPlatformUser | null = row.teacherAmaUserId
+    ? {
+        userId: row.teacherAmaUserId,
+        entityId: '',
+        level: 'MEMBER',
+        name: row.teacherAmaName ?? row.teacherAmaUserId,
+        email: row.teacherAmaEmail ?? '',
+      }
+    : null;
+  const [amaUser, setAmaUser] = useState<AmaPlatformUser | null>(initialAma);
 
   // Re-sync when row changes (different exam type opened in same dialog instance).
   useEffect(() => {
     setScheduledAt(row.scheduledAt ?? '');
     setScheduledTime(row.scheduledTime ? row.scheduledTime.slice(0, 5) : '');
-    setTeacherId(row.teacherId ?? '');
-  }, [row.testType, row.scheduledAt, row.scheduledTime, row.teacherId]);
-
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['acm', 'teachers'],
-    queryFn: async () => {
-      try {
-        const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
-          '/acm/tch/teachers',
-        );
-        const body = res.data;
-        return Array.isArray(body) ? body : (body?.items ?? []);
-      } catch {
-        return [];
-      }
-    },
-    staleTime: 60_000,
-  });
+    setAmaUser(
+      row.teacherAmaUserId
+        ? {
+            userId: row.teacherAmaUserId,
+            entityId: '',
+            level: 'MEMBER',
+            name: row.teacherAmaName ?? row.teacherAmaUserId,
+            email: row.teacherAmaEmail ?? '',
+          }
+        : null,
+    );
+  }, [
+    row.testType,
+    row.scheduledAt,
+    row.scheduledTime,
+    row.teacherAmaUserId,
+    row.teacherAmaName,
+    row.teacherAmaEmail,
+  ]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -97,7 +113,9 @@ export function LevelTestScheduleDialog({
         {
           scheduledAt: scheduledAt || undefined,
           scheduledTime: scheduledTime ? `${scheduledTime}:00` : undefined,
-          teacherId: teacherId || undefined,
+          teacherAmaUserId: amaUser?.userId || undefined,
+          teacherAmaName: amaUser?.name || undefined,
+          teacherAmaEmail: amaUser?.email || undefined,
         },
       );
     },
@@ -149,18 +167,15 @@ export function LevelTestScheduleDialog({
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t('detail.levelTest.dialog.teacher')}</Label>
-            <select
-              value={teacherId}
-              onChange={(e) => setTeacherId(e.target.value)}
-              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
-            >
-              <option value="">—</option>
-              {teachers.map((tt) => (
-                <option key={tt.id} value={tt.id}>
-                  {tt.name}
-                </option>
-              ))}
-            </select>
+            <AmaUserPicker
+              value={amaUser}
+              onChange={setAmaUser}
+              levels={['MANAGER', 'MEMBER', 'VIEWER']}
+              labelKey="csl:detail.levelTest.dialog.teacher"
+            />
+            <p className="text-[10px] text-secondary">
+              {t('detail.levelTest.dialog.amaPickerHint')}
+            </p>
           </div>
           <p className="text-[11px] text-secondary">
             {t('detail.levelTest.dialog.calHint')}

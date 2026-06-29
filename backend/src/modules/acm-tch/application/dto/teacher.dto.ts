@@ -82,13 +82,31 @@ export class CreateTeacherDto {
   @IsOptional() @IsString() @MinLength(8) @MaxLength(120)
   tchPassword?: string;
 
-  // REQ-260604 v2 FR-3 — AMA platform user id from AmaUserPicker. Kept as
-  // a string passthrough for now (AMA returns uuids). Storage on the teacher
-  // entity is a follow-up (see PLN-260604 v2 § 7 note); accepting it here
-  // unblocks the frontend integration without crashing the ValidationPipe.
+  // REQ-260604 v2 FR-3 / REQ-260629 FR-304 — AMA platform user id from
+  // AmaUserPicker. Now persisted on `amb_acm_tch_teacher.tch_ama_user_id`
+  // (sql/acm/989). Optional — left null for non-AMA-sourced teachers.
   @ApiPropertyOptional({ description: 'AMA platform userId (from /api/acm/ama/users picker)' })
   @IsOptional() @IsString() @MaxLength(64)
   tchAmaUserId?: string;
+}
+
+/**
+ * REQ-260629 FR-305 — body for `POST /acm/tch/teachers/ama-import`.
+ * name/email are best-effort cache from the AMA picker so the teacher
+ * row has reasonable defaults even when the directory is briefly down.
+ */
+export class AmaImportTeacherDto {
+  @ApiProperty({ description: 'AMA platform userId', maxLength: 64 })
+  @IsString() @MinLength(1) @MaxLength(64)
+  amaUserId!: string;
+
+  @ApiPropertyOptional({ description: 'Display name from AMA picker cache' })
+  @IsOptional() @IsString() @MaxLength(100)
+  name?: string;
+
+  @ApiPropertyOptional({ description: 'Email from AMA picker cache' })
+  @IsOptional() @IsString() @MaxLength(200)
+  email?: string;
 }
 
 export class UpdateTeacherDto {

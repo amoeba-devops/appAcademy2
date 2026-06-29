@@ -134,6 +134,7 @@
         "date": "Date",
         "time": "Time (30-min slot)",
         "teacher": "Assigned teacher",
+        "amaPickerHint": "Search and pick from the AMA directory. The teacher master will be auto-created on save.",
         "calHint": "Will be registered on the class calendar automatically.",
         "saveAndCal": "Save + CAL register"
       }

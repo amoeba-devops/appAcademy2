@@ -139,6 +139,7 @@ export class TeacherService {
       subjects: dto.tchSubjects ?? [],
       memo: dto.tchMemo ?? null,
       userId,
+      amaUserId: dto.tchAmaUserId ?? null,
       status: dto.tchStatus ?? 'ACTIVE',
       isInstructor: dto.tchIsInstructor ?? true,
       employmentType: dto.tchEmploymentType ?? 'FULL_TIME',
@@ -148,6 +149,81 @@ export class TeacherService {
     const saved = await this.repo.save(entity);
     const meta = saved.userId ? await this.fetchAccountMeta(saved.userId) : undefined;
     return this.toDetail(saved, meta);
+  }
+
+  /**
+   * REQ-260629 FR-303/305 — find-or-create a local teacher row from an AMA
+   * platform userId. Used by:
+   *   • `POST /acm/tch/teachers/ama-import` from the /admin/tch AMA section
+   *   • CSL stage 2/3 schedule save when operator picked an AMA user that
+   *     isn't yet in the local roster (lazy upsert)
+   *
+   * Idempotent — UNIQUE(ent_id, tch_ama_user_id) per sql/acm/989 means
+   * concurrent callers either both see the existing row or one wins the
+   * INSERT and the other catches QueryFailedError → re-finds. We chain
+   * find → create → save in a single transaction for simplicity.
+   *
+   * Email is derived from AMA. If two AMA users share the same email
+   * within a tenant (rare but possible), the email-uniqueness check still
+   * applies — we fall back to <name>+<short-amaUserId> to keep the row
+   * insertable.
+   */
+  async upsertFromAma(
+    entId: string,
+    opts: { amaUserId: string; name?: string; email?: string },
+  ): Promise<{ teacherId: string; created: boolean }> {
+    if (!opts.amaUserId || opts.amaUserId.length === 0) {
+      throw new BadRequestException('AMA_USER_ID_REQUIRED');
+    }
+
+    // 1. Fast path — existing row (by ama userId, scoped to tenant + alive).
+    const existing = await this.repo.findOne({
+      where: { entId, amaUserId: opts.amaUserId, deletedAt: IsNull() },
+    });
+    if (existing) {
+      return { teacherId: existing.id, created: false };
+    }
+
+    // 2. Create. Name + email are best-effort: client passes the AMA cache;
+    //    if both absent we still create with placeholders so the row exists
+    //    and the FK constraint downstream stays satisfied.
+    const name = opts.name?.trim() || `AMA ${opts.amaUserId.slice(0, 8)}`;
+    let email = opts.email?.trim().toLowerCase();
+    if (!email) {
+      email = `${opts.amaUserId.slice(0, 8)}@ama.invalid`;
+    } else {
+      // Avoid collision with an existing teacher's email — append a suffix.
+      const dup = await this.repo.findOne({
+        where: { entId, email, deletedAt: IsNull() },
+      });
+      if (dup) {
+        email = `${opts.amaUserId.slice(0, 8)}+${email}`;
+      }
+    }
+
+    const entity = this.repo.create({
+      entId,
+      name,
+      email,
+      amaUserId: opts.amaUserId,
+      status: 'ACTIVE',
+      isInstructor: true,
+      employmentType: 'FULL_TIME',
+      subjects: [],
+    });
+    try {
+      const saved = await this.repo.save(entity);
+      return { teacherId: saved.id, created: true };
+    } catch (err) {
+      // UNIQUE violation — another concurrent caller won. Re-read and use theirs.
+      const racer = await this.repo.findOne({
+        where: { entId, amaUserId: opts.amaUserId, deletedAt: IsNull() },
+      });
+      if (racer) {
+        return { teacherId: racer.id, created: false };
+      }
+      throw err;
+    }
   }
 
   async update(entId: string, id: string, dto: UpdateTeacherDto) {
@@ -227,6 +303,7 @@ export class TeacherService {
     subjects: e.subjects ?? [],
     memo: e.memo,
     userId: e.userId,
+    amaUserId: e.amaUserId ?? null,
     hasAccount: !!e.userId,
     status: e.status,
     isInstructor: e.isInstructor,

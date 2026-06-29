@@ -313,6 +313,20 @@ export class UpsertLevelTestDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
 
+  /**
+   * REQ-260629 FR-302/303 — AMA-sourced teacher. Controller resolves to a
+   * local teacherId via TeacherService.upsertFromAma before persisting.
+   * Takes precedence over teacherId when both are present.
+   */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
+  teacherAmaUserId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  teacherAmaName?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  teacherAmaEmail?: string;
+
   @ApiPropertyOptional({ enum: LEVEL_TEST_STATUSES })
   @IsOptional() @IsEnum(LEVEL_TEST_STATUSES)
   status?: LevelTestStatus;
@@ -355,6 +369,16 @@ export class CreateTrialClassDto {
   /** FR-CSL-123 — demo teacher (AMA Client via amb_acm_tch_teacher). */
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
+
+  /** REQ-260629 — see UpsertLevelTestDto.teacherAmaUserId. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
+  teacherAmaUserId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  teacherAmaName?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  teacherAmaEmail?: string;
 }
 
 /**
@@ -376,6 +400,16 @@ export class UpdateTrialClassDto {
 
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
+
+  /** REQ-260629 FR-302/303 — see UpsertLevelTestDto.teacherAmaUserId. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
+  teacherAmaUserId?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  teacherAmaName?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  teacherAmaEmail?: string;
 
   /** FR-CSL-125 — completion flag (replaces deprecated feedbackStatus). */
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
