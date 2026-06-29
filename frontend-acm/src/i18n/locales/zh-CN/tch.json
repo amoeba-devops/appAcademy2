@@ -1,5 +1,15 @@
 {
   "title": "教师管理",
+  "amaDirectory": {
+    "title": "AMA 目录查询",
+    "subtitle": "(从 AMA 主数据中选择并注册为教师)",
+    "searchPlaceholder": "搜索姓名 / 邮箱 (≥2 字符)",
+    "hintTwoChars": "请输入至少 2 个字符以查询 AMA 目录。",
+    "empty": "未找到匹配的 AMA 用户。",
+    "errorUnavailable": "AMA 目录暂时不可用，请稍后重试。",
+    "alreadyRegistered": "已注册 ✓",
+    "registerAsTeacher": "注册为教师 ▶"
+  },
   "actions": {
     "create": "添加教师",
     "resetPassword": "重置密码",

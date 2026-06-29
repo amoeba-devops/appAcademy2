@@ -1,5 +1,15 @@
 {
   "title": "Quản lý giáo viên",
+  "amaDirectory": {
+    "title": "Tra cứu thư mục AMA",
+    "subtitle": "(Chọn từ AMA master để đăng ký làm giáo viên)",
+    "searchPlaceholder": "Tìm theo tên / email (≥2 ký tự)",
+    "hintTwoChars": "Nhập ít nhất 2 ký tự để tra cứu thư mục AMA.",
+    "empty": "Không có kết quả AMA.",
+    "errorUnavailable": "Thư mục AMA tạm thời không khả dụng. Vui lòng thử lại.",
+    "alreadyRegistered": "Đã đăng ký ✓",
+    "registerAsTeacher": "Đăng ký giáo viên ▶"
+  },
   "actions": {
     "create": "Thêm giáo viên",
     "resetPassword": "Đặt lại mật khẩu",

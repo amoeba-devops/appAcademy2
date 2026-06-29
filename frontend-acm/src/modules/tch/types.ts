@@ -29,6 +29,7 @@ export interface TeacherDetail {
   subjects: TchSubject[];
   memo?: string | null;
   userId?: string | null;
+  amaUserId?: string | null;
   hasAccount: boolean;
   status: TchStatus;
   // REQ-260510 additions

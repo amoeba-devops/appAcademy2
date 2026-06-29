@@ -24,6 +24,8 @@ import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { InquiryService } from '../application/inquiry.service';
 import { InquiryWorkflowService } from '../application/inquiry-workflow.service';
 import { TeacherAssignmentService } from '../application/teacher-assignment.service';
+// REQ-260629 — lazy upsert AMA user → local teacher row for stage 2/3 picker.
+import { TeacherService } from '../../acm-tch/application/teacher.service';
 import { CourseService } from '../application/course.service';
 import { LevelTestPdfService } from '../application/level-test-pdf.service';
 import { CslCalLinkerService } from '../application/csl-cal-linker.service';
@@ -70,6 +72,7 @@ export class InquiryController {
     private readonly pdf: LevelTestPdfService,
     private readonly calLinker: CslCalLinkerService,
     private readonly attachments: AttachmentService,
+    private readonly tchService: TeacherService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -310,11 +313,22 @@ export class InquiryController {
     @Param('testType') testType: string,
     @Body() dto: UpsertLevelTestDto,
   ) {
+    // REQ-260629 FR-302/303 — translate AMA userId → local teacherId via
+    // lazy upsert before persisting on the level-test row.
+    const resolved = { ...dto };
+    if (dto.teacherAmaUserId) {
+      const upserted = await this.tchService.upsertFromAma(user.entId, {
+        amaUserId: dto.teacherAmaUserId,
+        name: dto.teacherAmaName,
+        email: dto.teacherAmaEmail,
+      });
+      resolved.teacherId = upserted.teacherId;
+    }
     const saved = await this.base.upsertLevelTest(
       user.entId,
       inqId,
       testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
-      dto,
+      resolved,
     );
     // Best-effort CAL link (same pattern as upsertMapTest).
     if (saved.scheduledAt && saved.scheduledTime) {
@@ -418,7 +432,17 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: CreateTrialClassDto,
   ) {
-    const saved = await this.base.addTrialClass(user.entId, inqId, dto);
+    // REQ-260629 — AMA userId → local teacherId lazy upsert.
+    const resolved = { ...dto };
+    if (dto.teacherAmaUserId) {
+      const upserted = await this.tchService.upsertFromAma(user.entId, {
+        amaUserId: dto.teacherAmaUserId,
+        name: dto.teacherAmaName,
+        email: dto.teacherAmaEmail,
+      });
+      resolved.teacherId = upserted.teacherId;
+    }
+    const saved = await this.base.addTrialClass(user.entId, inqId, resolved);
     if (saved.heldAt && saved.heldTime) {
       const inq = await this.base.getOrThrow(user.entId, inqId);
       await this.calLinker.linkDemoClass(
@@ -449,7 +473,17 @@ export class InquiryController {
     @Param('tclId', ParseUUIDPipe) tclId: string,
     @Body() dto: UpdateTrialClassDto,
   ) {
-    const saved = await this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    // REQ-260629 — same AMA-userId → local-teacherId lazy upsert as upsertLevelTest.
+    const resolved = { ...dto };
+    if (dto.teacherAmaUserId) {
+      const upserted = await this.tchService.upsertFromAma(user.entId, {
+        amaUserId: dto.teacherAmaUserId,
+        name: dto.teacherAmaName,
+        email: dto.teacherAmaEmail,
+      });
+      resolved.teacherId = upserted.teacherId;
+    }
+    const saved = await this.base.updateTrialClass(user.entId, inqId, tclId, resolved);
     // REQ-260626 T-08 — late-bound schedule. CAL link is idempotent: if
     // calEventId is already set, the linker no-ops. So this is safe to
     // call on every patch.

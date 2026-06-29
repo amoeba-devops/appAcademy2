@@ -132,6 +132,7 @@
         "date": "Ngày",
         "time": "Giờ (30 phút)",
         "teacher": "Giáo viên",
+        "amaPickerHint": "Tìm và chọn từ thư mục AMA. Master giáo viên sẽ được tự động tạo khi lưu.",
         "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
         "saveAndCal": "Lưu + đăng ký CAL"
       }
