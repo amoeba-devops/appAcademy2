@@ -150,9 +150,13 @@ services:
       ACM_PII_KEY: ${ACM_PII_KEY:-}
       ACM_JWT_SECRET: ${ACM_JWT_SECRET:-${JWT_SECRET}}
       ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
-      # AMA SSO verification mode (REQ-260609C) — 'ama_session' = OAuth gateway
-      # exchange + introspect (no local signing secret); 'local' = HS256 self-verify.
-      AMA_TOKEN_VERIFY_MODE: ${AMA_TOKEN_VERIFY_MODE:-local}
+      # AMA SSO verification mode — 'local_config' = verify Custom App/Category
+      # tokens with the per-tenant secret from /admin/config (REQ-260609D, the
+      # mode this deployment uses); 'ama_session' = OAuth gateway exchange +
+      # introspect; 'local' = legacy HS256 self-verify (AMA_JWT_SECRET).
+      # Default local_config so a missing .env value does not silently fall back
+      # to 'local' and reject Custom Category logins with 401 (FIX-260630).
+      AMA_TOKEN_VERIFY_MODE: ${AMA_TOKEN_VERIFY_MODE:-local_config}
       AMA_GATEWAY_URL: ${AMA_GATEWAY_URL:-https://api.amoeba.site}
       AMA_CLIENT_ID: ${AMA_CLIENT_ID:-}
       AMA_CLIENT_SECRET: ${AMA_CLIENT_SECRET:-}
