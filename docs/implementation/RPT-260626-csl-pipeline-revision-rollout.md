@@ -1,7 +1,7 @@
 ---
 document_id: RPT-260626-csl-pipeline-revision-rollout
-version: 1.0.0
-status: draft
+version: 1.1.0
+status: deployed
 created: 2026-06-27
 product_code: ACM
 title: ACM 상담관리 파이프라인 개편 — 권식 (Rollout) 보고서
@@ -12,15 +12,18 @@ authors:
 related:
   - docs/analysis/REQ-260626-acm-csl-pipeline-revision.md
   - docs/design/DSN-260626-acm-csl-pipeline-revision.md v1.2.1
+  - docs/design/DSN-260629-csl-stage-screen-revision.md v0.2 (Stage 2 1:N pivot supersedes DSN-260626 §3.1/§4.2)
   - docs/plan/PLN-260626-acm-csl-pipeline-revision.md v1.0.1
   - sql/acm/985-acm-csl-pipeline-revision.sql
+  - sql/acm/987-acm-csl-level-test-per-type.sql (Stage 2 1:N pivot — DSN-260629 §6)
 change_log:
   - { version: 1.0.0, date: 2026-06-27, author: Claude, notes: "초안 — 10 PR / Phase 1-4 + T-13 + T-19 staging 배포 완료, T-06/T-08/T-20 v2 후속" }
+  - { version: 1.1.0, date: 2026-06-29, author: Claude, notes: "T-08 CAL meetKey ✓ (PR #71), FR-CSL-104/133 validator gap fix ✓ (PR #72), DSN-260629 v0.1 INTAKE 풀-필드 ✓ (PR #74), DSN-260629 v0.2 §6 stage 2 1:N pivot ✓ (PR #75/#76, sha=673785b production)" }
 ---
 
 # RPT-260626 — ACM CSL 파이프라인 개편 권식 보고서
 
-> PLN-260626 v1.0.1 의 1차 권식. **Phase 1-4 (M1 데이터 + M2 백엔드 + M3 프론트) + T-13 (PDF) + T-19 (MAP→STD 승계) staging 배포 완료**. T-06 (S3) / T-08 (CAL) / T-20 v2 (전체 통합 테스트) 후속.
+> PLN-260626 v1.0.1 의 2차 권식. **Phase 1-4 + T-08 CAL + T-13 PDF + T-15 v2 구조화 점수 + T-19 STD 승계 production 배포 완료**. **DSN-260629 §6 (Stage 2 1:N pivot) production 배포 완료** (2026-06-29 sha=673785b). 잔여: T-06 (S3) / T-20 v2 (E2E 통합).
 
 ---
 
@@ -38,14 +41,21 @@ change_log:
 | T-19 | MAP→STD 승계 hook (CLASS_STARTED) | [#66](https://github.com/amoeba-devops/appAcademy2/pull/66) | `407ff50` | ✅ |
 | T-13 | 결과 PDF 생성 (pdfkit + 다운로드 endpoint) | [#67](https://github.com/amoeba-devops/appAcademy2/pull/67) | `3291983` | ✅ |
 | P4 (T-15) | SCR-02 레벨테스트 풀-패널 | [#68](https://github.com/amoeba-devops/appAcademy2/pull/68) | `3b9ad00` | ✅ |
+| T-15 v2 | 시험 type별 구조화 점수 입력 폼 | [#69](https://github.com/amoeba-devops/appAcademy2/pull/69) | `faa2f51` | ✅ |
+| T-08 | CAL meetKey 일정 연동 (레벨테스트 + 데모수업) | [#71](https://github.com/amoeba-devops/appAcademy2/pull/71) | `eb59805` | ✅ |
+| FIX | FR-CSL-104 (E1~E4) + FR-CSL-133 (수업시간 프리셋) 검증 보완 | [#72](https://github.com/amoeba-devops/appAcademy2/pull/72) | `894bb7c` | ✅ |
+| FIX-260629 | /admin/csl/:id teacher picker `n.map` crash | [#73](https://github.com/amoeba-devops/appAcademy2/pull/73) | `727e3a0` | ✅ prod |
+| DSN-260629 v0.1 | INTAKE 풀-필드 + 동적 점수칸 + Stepper navigate | [#74](https://github.com/amoeba-devops/appAcademy2/pull/74) | `c507eae` | ✅ prod (sha=3926fb9) |
+| DSN-260629 v0.2 §6 BE | Stage 2 1:N pivot — 987 SQL + per-type endpoints + unified PDF | [#75](https://github.com/amoeba-devops/appAcademy2/pull/75) | `dd5ed53` | ✅ prod |
+| DSN-260629 v0.2 §6 FE | LevelTestPanel + Schedule modal + 4 locale | [#76](https://github.com/amoeba-devops/appAcademy2/pull/76) | `06ab555` | ✅ prod (sha=673785b) |
 
-**누적 합계** (REQ-260626 만):
-- 10 PR 머지 (모두 `--merge` 방식, main fast-forward)
-- Backend: 25+ endpoint · 8 service · 8 신규 entity · 6 SQL 변경 (3 ALTER + 3 신규 테이블)
-- Frontend: 5/5 패널 SCR-CSL-01~05 모두 라이브, 2 신규 component (TeacherAssignmentsBlock / PaymentApprovalBlock)
-- i18n: 4 locale × 50+ 신규 키 (csl + common)
-- Tests: jest 116 → **174 pass** (58 신규 spec)
-- 인프라: `pdfkit` 추가 (backend)
+**누적 합계** (REQ-260626 + DSN-260629):
+- 17 PR 머지 (모두 `--merge` 방식, main fast-forward)
+- Backend: 30+ endpoint · 9 service · 9 신규 entity · 7 SQL 변경 (3 ALTER + 4 신규 테이블 — 985 + 987 포함)
+- Frontend: 5/5 패널 SCR-CSL-01~05 모두 라이브, 4 신규 component (TeacherAssignmentsBlock / PaymentApprovalBlock / IntakeStagePanel / LevelTestPanel + LevelTestScheduleDialog)
+- i18n: 4 locale × 80+ 신규 키 (csl + common)
+- Tests: jest 174 → 180+ pass (per-type validator + level-test 1:N service spec)
+- 인프라: `pdfkit` 추가 (backend, 다중 페이지 unified PDF 지원)
 
 ---
 
@@ -56,7 +66,7 @@ change_log:
 |---|---|---|
 | FR-CSL-101 | 신청 목적 다중선택 + 기본정보 박스 표기 | csl-create-dialog (기 존재) |
 | FR-CSL-102 | MAP 이전 점수 (R/M/L) 입력, **영문 라벨 고정**, 범위 100~350 | ✅ MapTestPanel@INTAKE (P4 #65) |
-| FR-CSL-103 | ISEE 영역별 입력란 | ⏸ JSON textarea 로 v1 처리 (T-15 v2 — per-type 구조화 폼) |
+| FR-CSL-103 | ISEE 영역별 입력란 | ✅ T-15 v2 #69 — per-type 구조화 폼 (LevelTestScoreEditor 6 type schema) |
 | FR-CSL-104 | 기본정보 + 학년 초1~고3 | ✅ csl-create-dialog (기 존재) |
 | FR-CSL-105 | 성적표 멀티 파일 업로드 | ⏸ TranscriptUploadStub disabled (T-06 의존) |
 | FR-CSL-106 | 응시료/응시예정일/응시상태 INTAKE 에서 제거 | ✅ P4 #65 hidden at isIntake |
@@ -70,7 +80,7 @@ change_log:
 | FR-CSL-111 | 라벨 "레벨테스트" (코드 불변) | ✅ stage.MAP_TEST i18n (P4 #63) |
 | FR-CSL-112 | 시험 종류 select + 자유입력 (MAP/ISEE/SSAT/Duolingo/TOEFL/TOEFL Jr/기타) | ✅ T-15 #68 |
 | FR-CSL-113 | 응시예정일 운영자 지정 (30분) | ✅ T-15 #68 (date + 30분 slot) |
-| FR-CSL-114 | CAL 스케줄에 이벤트 등록 | ⏸ `mpt_cal_event_id` 컬럼 + DTO 만 (T-08 의존 — CAL 모듈 통합) |
+| FR-CSL-114 | CAL 스케줄에 이벤트 등록 | ✅ T-08 #71 + DSN-260629 §6 #75 — `CslCalLinkerService` PUT /level-tests/:type 시 자동 fire, meetKey 멱등 |
 | FR-CSL-115 | 결과 점수 운영자 입력 (시험 종류별) | ✅ T-04 #60 (admin endpoint) + T-15 #68 (UI) |
 | FR-CSL-116 | 강사 공유 PDF 다운로드 | ✅ T-13 #67 — `pdfkit` 서버 렌더 |
 
@@ -123,7 +133,7 @@ change_log:
 | Q-CSL-104 | 시험별 점수항목 확정 (DSN §5.6) | ✅ T-04 #60 `level-test-score.validator.ts` (6 type schema) |
 | Q-CSL-105 | 학년 초1~고3 | ✅ csl-create-dialog (기 존재) |
 | Q-CSL-106 | 성적표 PDF/JPEG/PNG, ≤10MB × 최대 10개 | ✅ P1 #59 attachment CHECK 제약 |
-| Q-CSL-107 | CAL 결합키 (meetKey) | ⏸ T-08 — `mpt_cal_event_id` / `tcl_cal_event_id` 컬럼만 |
+| Q-CSL-107 | CAL 결합키 (meetKey) | ✅ T-08 #71 — `CslCalLinkerService` meetKey 멱등 (`csl/levelTest/{inq}/{type}` + `csl/trial/{trial}`) |
 | Q-CSL-108 | 카카오 전달 수동 복사 | ✅ T-16 #64 — `navigator.clipboard.writeText` + "Copied ✓" UX |
 | Q-CSL-109 | 강좌코스 마스터 + 자유입력 | ✅ T-11 #61 `CourseService` + freetext fallback |
 | Q-CSL-110 | enum 코드 불변, 라벨만 변경 | ✅ stage.MAP_TEST/TRIAL_CLASS 라벨만 변경 (P4 #63), DB CHECK 불변 |
@@ -180,11 +190,14 @@ URL: `https://app-academy-stg.amoeba.site/admin/csl`
 
 | Task | 비고 | 차단 사유 |
 |---|---|---|
-| T-06 | S3 transcript/material upload | AWS credentials 운영자 설정 필요 (env: `ACM_S3_*`) |
-| T-08 | CAL meetKey 등록 | REQ-260526 모듈 통합 — 별도 PR |
-| T-15 v2 | 비-MAP 타입 per-type 구조화 입력 폼 (현 v1 = JSON textarea) | UX 정교화 (현 텍스트에어리어로 기능 충족) |
+| T-06 | S3 transcript/material upload (FR-CSL-105/126) | AWS credentials 운영자 설정 필요 (env: `ACM_S3_*`) |
 | T-19 v2 | REQ-260511 §D7 전체 parent matching (name + phone) | 현 v1 = name-only conservative 매칭 |
-| T-20 v2 | E2E 통합 테스트 + 정식 audit_log 통합 | 본 RPT v1 = unit spec + 운영자 매트릭스로 충족 |
+| T-20 v2 | E2E 통합 테스트 + 정식 audit_log 통합 | 본 RPT v1.1 = unit spec + 운영자 매트릭스 + 본 production smoke 로 충족 |
+
+**v1.0 → v1.1 에서 해소된 항목**:
+- T-08 (CAL meetKey) ✅ PR #71 + DSN-260629 §6 #75 — 레벨테스트 + 데모수업 모두 자동 fire
+- T-15 v2 (per-type 구조화 점수 폼) ✅ PR #69 — `LevelTestScoreEditor` 6 type schema
+- Stage 2 1:N pivot ✅ DSN-260629 §6 PR #75/#76 — 시험별 1 row + UNIQUE(inq_id, mpt_test_type) + 3-state status + per-type/unified PDF
 
 ---
 
@@ -194,7 +207,7 @@ URL: `https://app-academy-stg.amoeba.site/admin/csl`
 |---|---|
 | Backend deps | `pdfkit ^0.19.1` + `@types/pdfkit` 추가 (T-13) |
 | Frontend deps | 변경 없음 |
-| SQL 적용 | `sql/acm/985-acm-csl-pipeline-revision.sql` staging 자동 적용 ([apply] OK PR #59) |
+| SQL 적용 | `sql/acm/985-acm-csl-pipeline-revision.sql` (PR #59) + `sql/acm/987-acm-csl-level-test-per-type.sql` (DSN-260629 §6 PR #75) staging+prod 자동 적용 ✅ |
 | Env vars | 변경 없음 (T-06 의 `ACM_S3_*` 도입 시 영향) |
 
 ---
