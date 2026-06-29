@@ -13,8 +13,18 @@ export type MapWaiverReason =
   | 'TRIAL_PROMOTION'
   | 'SISTER_ACADEMY_TRANSFER'
   | 'OTHER';
-/** @deprecated REQ-260626 FR-CSL-107 — no longer written; UI removed. */
+/**
+ * @deprecated DSN-260629 §6 — replaced by LevelTestStatus.
+ * Legacy values mapped in sql/acm/987: SCHEDULED→PENDING, TAKEN→COMPLETED,
+ * NOT_TAKING→NOT_HELD, RESCHEDULED→PENDING.
+ */
 export type MapScheduleStatus = 'SCHEDULED' | 'TAKEN' | 'NOT_TAKING' | 'RESCHEDULED';
+
+/**
+ * DSN-260629 §6.3 — 3-state level-test status. Shared column with the
+ * deprecated `MapScheduleStatus` (legacy values migrated by sql/acm/987).
+ */
+export type LevelTestStatus = 'PENDING' | 'COMPLETED' | 'NOT_HELD';
 
 /** REQ-260626 FR-CSL-112 — generalized level test. Q-CSL-110: enum unchanged, UI label only. */
 export type LevelTestType =
@@ -66,7 +76,7 @@ export class MapTestTypeormEntity {
    * removed in this revision. Phase-7 candidate for drop.
    */
   @Column({ name: 'mpt_scheduled_status', type: 'varchar', length: 16, nullable: true })
-  scheduledStatus?: MapScheduleStatus | null;
+  scheduledStatus?: LevelTestStatus | null;
 
   /** F-13 — MAP score range 100~350 (NWEA per "시험별 점수표"; was previously documented 100-300). */
   @Column({ name: 'mpt_score_reading', type: 'int', nullable: true })
@@ -93,6 +103,14 @@ export class MapTestTypeormEntity {
   /** FR-CSL-114 — CAL event link via meetKey csl:{inq}:LVT. */
   @Column({ name: 'mpt_cal_event_id', type: 'uuid', nullable: true })
   calEventId?: string | null;
+
+  /**
+   * DSN-260629 §6 — 시험별 학원측 시간조율 담당강사 (FK amb_acm_tch_teacher).
+   * CAL invitee 자동 추가. 데모수업의 `tcl_teacher_id` 와는 별도 — 본
+   * 컬럼은 레벨테스트 일정 조율 책임자.
+   */
+  @Column({ name: 'mpt_teacher_id', type: 'uuid', nullable: true })
+  teacherId?: string | null;
 
   /**
    * FR-CSL-115 / DSN §5.6 — non-MAP scores live here as JSONB

@@ -44,18 +44,27 @@ export class LevelTestPdfService {
     private readonly crypto: AesGcmService,
   ) {}
 
+  /**
+   * DSN-260629 §6.5 — single-exam PDF. Optional `testType` selects which
+   * row (1:N table per sql/acm/987). When omitted, falls back to the
+   * legacy 1:1 behaviour (first matching row).
+   */
   async generate(
     entId: string,
     inqId: string,
+    testType?: MapTestTypeormEntity['testType'],
   ): Promise<{ buffer: Buffer; filename: string }> {
     const inq = await this.inqRepo.findOne({ where: { entId, id: inqId } });
     if (!inq) throw new NotFoundException({ code: 'INQUIRY_NOT_FOUND', inqId });
 
-    const mt = await this.mtRepo.findOne({ where: { entId, inqId } });
+    const mt = await this.mtRepo.findOne({
+      where: testType ? { entId, inqId, testType } : { entId, inqId },
+    });
     if (!mt) {
       throw new NotFoundException({
         code: 'LEVEL_TEST_ROW_NOT_FOUND',
         inqId,
+        testType,
         hint: 'Schedule the level test and record the result before downloading the PDF',
       });
     }
@@ -65,74 +74,13 @@ export class LevelTestPdfService {
       iv: inq.nameIv,
       authTag: inq.nameAuthTag,
     });
-    // Display in the PDF header uses '-' so a missing field is visibly
-    // empty rather than the literal placeholder; filename falls back to
-    // the constant 'student' so file-system tools don't choke on a row
-    // of dashes.
     const studentName = decryptedName ?? '-';
     const filenameSlug = decryptedName
       ?.replace(/[^\w가-힣-]/g, '')
       .slice(0, 30);
 
     const buffer = await renderPdfBuffer((doc) => {
-      // ── Header ────────────────────────────────────────────────────────
-      doc.fontSize(18).text('Level Test Result', { align: 'center' });
-      doc.moveDown(0.4);
-      doc
-        .fontSize(9)
-        .fillColor('#666')
-        .text('(Teacher-shared report — confidential)', { align: 'center' });
-      doc.moveDown(0.8);
-      doc.fillColor('#000');
-
-      // ── Student row ───────────────────────────────────────────────────
-      doc.fontSize(11);
-      const grade = inq.grade ?? '-';
-      const school = inq.schoolFreetext ?? '-';
-      const seqNo = inq.seqNo ?? '-';
-      doc.text(
-        `Student: ${studentName}    Grade: ${grade}    School: ${school}`,
-      );
-      doc.text(`Inquiry #${seqNo}`);
-      doc.moveDown(0.3);
-
-      // ── Test row ──────────────────────────────────────────────────────
-      const testLabel = formatTestType(mt.testType, mt.testTypeOther);
-      const scheduled = mt.scheduledAt
-        ? `${mt.scheduledAt}${mt.scheduledTime ? ` ${mt.scheduledTime.slice(0, 5)}` : ''}`
-        : '-';
-      const enteredAt = mt.resultEnteredAt
-        ? new Date(mt.resultEnteredAt)
-            .toISOString()
-            .slice(0, 16)
-            .replace('T', ' ')
-        : '-';
-      doc.text(
-        `Test: ${testLabel}    Scheduled: ${scheduled}    Entered at: ${enteredAt}`,
-      );
-      doc.moveDown(0.8);
-
-      drawHr(doc);
-      doc.moveDown(0.4);
-
-      // ── Score table ───────────────────────────────────────────────────
-      doc.fontSize(13).text('Scores', { underline: false });
-      doc.moveDown(0.3);
-      doc.fontSize(10);
-
-      const rows = scoreRows(mt);
-      drawTable(doc, rows.header, rows.body);
-
-      // ── Footer ────────────────────────────────────────────────────────
-      doc.moveDown(1.5);
-      drawHr(doc);
-      doc.moveDown(0.3);
-      doc.fontSize(8).fillColor('#777');
-      doc.text(
-        `Generated at ${new Date().toISOString().slice(0, 19).replace('T', ' ')} (UTC)`,
-        { align: 'left' },
-      );
-      doc.text('For internal academy use only.', { align: 'left' });
+      renderPageFor(doc, studentName, inq, mt);
     });
 
     const filename = `LevelTest_${filenameSlug || 'student'}_${mt.testType}_${inqId.slice(0, 8)}.pdf`;
@@ -141,11 +89,130 @@ export class LevelTestPdfService {
     );
     return { buffer, filename };
   }
+
+  /**
+   * DSN-260629 §6.5 — unified PDF: one page per COMPLETED level-test row.
+   * Skips rows still PENDING / NOT_HELD (no scores) so the bundle only
+   * contains finalized results. Empty result → 404 with a hint.
+   */
+  async generateUnified(
+    entId: string,
+    inqId: string,
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const inq = await this.inqRepo.findOne({ where: { entId, id: inqId } });
+    if (!inq) throw new NotFoundException({ code: 'INQUIRY_NOT_FOUND', inqId });
+
+    // Render every row that has a result entered. PENDING/NOT_HELD rows
+    // are skipped — operators usually want a clean report.
+    const rows = await this.mtRepo.find({
+      where: { entId, inqId },
+      order: { testType: 'ASC' },
+    });
+    const completed = rows.filter((r) => r.resultEnteredAt != null);
+    if (completed.length === 0) {
+      throw new NotFoundException({
+        code: 'NO_COMPLETED_LEVEL_TESTS',
+        inqId,
+        hint: 'Record at least one level-test result before downloading the unified PDF',
+      });
+    }
+
+    const decryptedName = this.crypto.decrypt({
+      ciphertext: inq.nameEncrypted,
+      iv: inq.nameIv,
+      authTag: inq.nameAuthTag,
+    });
+    const studentName = decryptedName ?? '-';
+    const filenameSlug = decryptedName?.replace(/[^\w가-힣-]/g, '').slice(0, 30);
+
+    const buffer = await renderPdfBuffer((doc) => {
+      completed.forEach((mt, i) => {
+        if (i > 0) doc.addPage();
+        renderPageFor(doc, studentName, inq, mt);
+      });
+    });
+
+    const filename = `LevelTest_${filenameSlug || 'student'}_ALL_${inqId.slice(0, 8)}.pdf`;
+    this.log.log(
+      `generated unified PDF inq=${inqId} std=${studentName} pages=${completed.length} bytes=${buffer.length}`,
+    );
+    return { buffer, filename };
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
 type Doc = InstanceType<typeof PDFDocument>;
+
+/**
+ * Render one page of the level-test report into the current doc cursor.
+ * Used by both single-test and unified-PDF entry points (the unified
+ * variant calls this once per completed row, with addPage() in between).
+ */
+function renderPageFor(
+  doc: Doc,
+  studentName: string,
+  inq: InquiryTypeormEntity,
+  mt: MapTestTypeormEntity,
+): void {
+  // ── Header ────────────────────────────────────────────────────────
+  doc.fontSize(18).text('Level Test Result', { align: 'center' });
+  doc.moveDown(0.4);
+  doc
+    .fontSize(9)
+    .fillColor('#666')
+    .text('(Teacher-shared report — confidential)', { align: 'center' });
+  doc.moveDown(0.8);
+  doc.fillColor('#000');
+
+  // ── Student row ───────────────────────────────────────────────────
+  doc.fontSize(11);
+  const grade = inq.grade ?? '-';
+  const school = inq.schoolFreetext ?? '-';
+  const seqNo = inq.seqNo ?? '-';
+  doc.text(`Student: ${studentName}    Grade: ${grade}    School: ${school}`);
+  doc.text(`Inquiry #${seqNo}`);
+  doc.moveDown(0.3);
+
+  // ── Test row ──────────────────────────────────────────────────────
+  const testLabel = formatTestType(mt.testType, mt.testTypeOther);
+  const scheduled = mt.scheduledAt
+    ? `${mt.scheduledAt}${mt.scheduledTime ? ` ${mt.scheduledTime.slice(0, 5)}` : ''}`
+    : '-';
+  const enteredAt = mt.resultEnteredAt
+    ? new Date(mt.resultEnteredAt)
+        .toISOString()
+        .slice(0, 16)
+        .replace('T', ' ')
+    : '-';
+  doc.text(
+    `Test: ${testLabel}    Scheduled: ${scheduled}    Entered at: ${enteredAt}`,
+  );
+  doc.moveDown(0.8);
+
+  drawHr(doc);
+  doc.moveDown(0.4);
+
+  // ── Score table ───────────────────────────────────────────────────
+  doc.fontSize(13).text('Scores', { underline: false });
+  doc.moveDown(0.3);
+  doc.fontSize(10);
+
+  const rows = scoreRows(mt);
+  drawTable(doc, rows.header, rows.body);
+
+  // ── Footer ────────────────────────────────────────────────────────
+  doc.moveDown(1.5);
+  drawHr(doc);
+  doc.moveDown(0.3);
+  doc.fontSize(8).fillColor('#777');
+  doc.text(
+    `Generated at ${new Date().toISOString().slice(0, 19).replace('T', ' ')} (UTC)`,
+    { align: 'left' },
+  );
+  doc.text('For internal academy use only.', { align: 'left' });
+  doc.fillColor('#000');
+}
 
 function renderPdfBuffer(render: (doc: Doc) => void): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {

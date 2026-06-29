@@ -41,6 +41,7 @@ import {
   UpdateInquiryDto,
   UpdateTrialClassDto,
   UpsertEnrollmentDto,
+  UpsertLevelTestDto,
   UpsertMapTestDto,
   WriteFeedbackDto,
 } from '../application/dto/inquiry.dto';
@@ -255,7 +256,7 @@ export class InquiryController {
    * stubbed inline (the formal audit table comes with T-20).
    */
   @Get(':inqId/map-test/result-pdf')
-  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116)' })
+  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116, legacy 1:1)' })
   async downloadResultPdf(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -267,6 +268,138 @@ export class InquiryController {
       throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
     }
     const { buffer, filename } = await this.pdf.generate(user.entId, inqId);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(buffer);
+  }
+
+  // ── DSN-260629 §6 — per-test-type level-test routes ──────────────────
+
+  /**
+   * List every level-test row for an inquiry (one per applied exam type).
+   * Returns [] when none yet scheduled. Frontend renders the schedule
+   * table on top of this.
+   */
+  @Get(':inqId/level-tests')
+  @ApiOperation({ summary: 'List per-exam-type level tests (DSN-260629 §6)' })
+  listLevelTests(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
+    return this.base.listLevelTests(user.entId, inqId);
+  }
+
+  /**
+   * Upsert one level-test row (1:N by exam type). Body = schedule fields
+   * only — scoring is a separate endpoint with the admin gate. After
+   * persistence, fires the CAL linker if scheduledAt + scheduledTime
+   * are present.
+   */
+  @Put(':inqId/level-tests/:testType')
+  @ApiOperation({ summary: 'Upsert per-type schedule + teacher + status' })
+  async upsertLevelTest(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Body() dto: UpsertLevelTestDto,
+  ) {
+    const saved = await this.base.upsertLevelTest(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      dto,
+    );
+    // Best-effort CAL link (same pattern as upsertMapTest).
+    if (saved.scheduledAt && saved.scheduledTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkLevelTest(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
+  }
+
+  /**
+   * DSN-260629 §6 — per-type result entry. Same admin gate as the legacy
+   * `/map-test/result` route.
+   */
+  @Post(':inqId/level-tests/:testType/result')
+  @ApiOperation({ summary: 'Record per-type result (STAFF↑)' })
+  recordLevelTestResultByType(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Body() dto: RecordLevelTestResultDto,
+  ) {
+    const allowed =
+      !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException(
+        'POL-CSL-201: only STAFF/ADMIN can record level-test results',
+      );
+    }
+    // dto carries scoreReading/Math/Language/scoreDetail; we re-route by the
+    // URL-bound testType so a stale dto.testType can't poison the wrong row.
+    return this.base.recordLevelTestResultByType(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      dto,
+      user.id,
+    );
+  }
+
+  @Get(':inqId/level-tests/:testType/result-pdf')
+  @ApiOperation({ summary: 'Download per-type result PDF (DSN-260629 §6.5)' })
+  async downloadResultPdfByType(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const allowed =
+      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+    }
+    const { buffer, filename } = await this.pdf.generate(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(buffer);
+  }
+
+  /**
+   * DSN-260629 §6.5 — unified PDF: one page per COMPLETED level-test row.
+   * Operator-friendly single-file download instead of N per-type PDFs.
+   */
+  @Get(':inqId/level-tests/result-pdf')
+  @ApiOperation({ summary: 'Download unified PDF (all completed level tests)' })
+  async downloadUnifiedResultPdf(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const allowed =
+      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+    }
+    const { buffer, filename } = await this.pdf.generateUnified(user.entId, inqId);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
