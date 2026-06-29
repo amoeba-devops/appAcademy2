@@ -35,7 +35,14 @@ const APPLY_PURPOSES = [
 ] as const;
 const PHONE_STATUSES = ['PROVIDED', 'DECLINED', 'UNKNOWN'] as const;
 const YES_NO = ['YES', 'NO'] as const;
-const GRADES = ['E5', 'E6', 'M1', 'M2', 'M3', 'H1', 'H2', 'H3', 'OTHER'] as const;
+// REQ-260626 FR-CSL-104 / Q-CSL-105 — 초1~고3 전체 + 기타.
+// (기존 코드는 초5~고3 만 — 초1~초4 학년의 인콰이어리 등록을 막고 있었음.)
+const GRADES = [
+  'E1', 'E2', 'E3', 'E4', 'E5', 'E6',
+  'M1', 'M2', 'M3',
+  'H1', 'H2', 'H3',
+  'OTHER',
+] as const;
 
 const cslCreateSchema = z
   .object({

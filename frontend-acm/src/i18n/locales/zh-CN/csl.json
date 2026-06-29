@@ -79,10 +79,11 @@
     "NO": "미완료"
   },
   "grade": {
-    "E5": "초5", "E6": "초6",
-    "M1": "중1", "M2": "중2", "M3": "중3",
-    "H1": "고1", "H2": "고2", "H3": "고3",
-    "OTHER": "기타"
+    "E1": "小学1年级", "E2": "小学2年级", "E3": "小学3年级", "E4": "小学4年级",
+    "E5": "小学5年级", "E6": "小学6年级",
+    "M1": "初中1年级", "M2": "初中2年级", "M3": "初中3年级",
+    "H1": "高中1年级", "H2": "高中2年级", "H3": "高中3年级",
+    "OTHER": "其他"
   },
   "detail": {
     "backToList": "상담 목록으로",
@@ -182,7 +183,10 @@
       "paymentNoticeStatus": "수강료 안내 상태",
       "applied": "수강 신청",
       "paymentNoticeSent": "수강료 안내 발송",
-      "classMinutes": "수업 시간(분)",
+      "classMinutes": "课时(分钟)",
+      "classMinutesPresets": "预设",
+      "classMinutesFreeInput": "自定义分钟",
+      "classMinutesUnit": "分钟",
       "tuitionAmount": "수강료",
       "tuitionPaid": "수강료 납부 완료",
       "tuitionPaidHint": "※ 仅负责人(ADMIN)可确认付款。",
