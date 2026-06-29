@@ -26,6 +26,8 @@ import { InquiryWorkflowService } from '../application/inquiry-workflow.service'
 import { TeacherAssignmentService } from '../application/teacher-assignment.service';
 import { CourseService } from '../application/course.service';
 import { LevelTestPdfService } from '../application/level-test-pdf.service';
+import { CslCalLinkerService } from '../application/csl-cal-linker.service';
+import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import {
   ApprovePaymentDto,
   AssignTeacherDto,
@@ -63,6 +65,7 @@ export class InquiryController {
     private readonly teachers: TeacherAssignmentService,
     private readonly courses: CourseService,
     private readonly pdf: LevelTestPdfService,
+    private readonly calLinker: CslCalLinkerService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -194,13 +197,24 @@ export class InquiryController {
 
   // ── Sub-resources ───────────────────────────────────────────────────
   @Put(':inqId/map-test')
-  @ApiOperation({ summary: 'Upsert MAP test record' })
-  upsertMapTest(
+  @ApiOperation({ summary: 'Upsert MAP test record (CAL link auto-fired on schedule)' })
+  async upsertMapTest(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: UpsertMapTestDto,
   ) {
-    return this.base.upsertMapTest(user.entId, inqId, dto);
+    const saved = await this.base.upsertMapTest(user.entId, inqId, dto);
+    // REQ-260626 T-08 / FR-CSL-114 — link to CAL after persistence. Best
+    // effort; linker handles "already linked" / "schedule incomplete" /
+    // "cal create failed" all the same way (returns null, no throw).
+    const inq = await this.base.getOrThrow(user.entId, inqId);
+    await this.calLinker.linkLevelTest(
+      inq,
+      saved,
+      user.id,
+      (user.role ?? 'STAFF') as AcmRole,
+    );
+    return saved;
   }
 
   @Get(':inqId/map-test')
@@ -263,12 +277,22 @@ export class InquiryController {
   }
 
   @Post(':inqId/trial-classes')
-  addTrialClass(
+  async addTrialClass(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: CreateTrialClassDto,
   ) {
-    return this.base.addTrialClass(user.entId, inqId, dto);
+    const saved = await this.base.addTrialClass(user.entId, inqId, dto);
+    if (saved.heldAt && saved.heldTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkDemoClass(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
   }
 
   @Get(':inqId/trial-classes')
@@ -283,13 +307,26 @@ export class InquiryController {
 
   @Patch(':inqId/trial-classes/:tclId')
   @ApiOperation({ summary: 'Update demo class (FR-CSL-122~125)' })
-  updateTrialClass(
+  async updateTrialClass(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('tclId', ParseUUIDPipe) tclId: string,
     @Body() dto: UpdateTrialClassDto,
   ) {
-    return this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    const saved = await this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    // REQ-260626 T-08 — late-bound schedule. CAL link is idempotent: if
+    // calEventId is already set, the linker no-ops. So this is safe to
+    // call on every patch.
+    if (saved.heldAt && saved.heldTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkDemoClass(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
   }
 
   /**
