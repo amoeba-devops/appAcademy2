@@ -8,6 +8,7 @@
     "empty": "검색 결과가 없습니다.",
     "errorUnavailable": "AMA 디렉토리에 일시적으로 접근할 수 없습니다. 잠시 후 다시 시도하세요.",
     "alreadyRegistered": "이미 등록됨 ✓",
+    "linkAma": "AMA 연결 ↪",
     "registerAsTeacher": "강사 등록 ▶"
   },
   "actions": {

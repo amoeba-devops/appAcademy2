@@ -148,6 +148,14 @@ export class UpdateTeacherDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50)
   tchAttendanceNo?: string;
+
+  /**
+   * REQ-260629 — allow backfilling AMA userId on an existing teacher row
+   * (e.g. operator created the row manually before the AMA picker existed).
+   * Set null to clear. Backend enforces UNIQUE(ent_id, tch_ama_user_id).
+   */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
+  tchAmaUserId?: string;
 }
 
 export class ResetTeacherPasswordDto {

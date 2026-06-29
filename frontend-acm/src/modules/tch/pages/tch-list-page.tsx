@@ -39,8 +39,10 @@ export function TchListPage() {
     setShowForm(true);
   };
 
-  const onPickExistingTeacher = (teacher: TeacherDetail) => {
-    setPrefillFromAma(null);
+  const onPickExistingTeacher = (teacher: TeacherDetail, amaUser: AmaPlatformUser) => {
+    // Pass amaUser through so the modal can backfill amaUserId on update
+    // when the local row had it empty (email-match branch).
+    setPrefillFromAma(teacher.amaUserId ? null : amaUser);
     setEditing(teacher);
     setShowForm(true);
   };

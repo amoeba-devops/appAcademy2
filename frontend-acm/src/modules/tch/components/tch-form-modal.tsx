@@ -203,10 +203,12 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     if (values.tchMemo) dto.tchMemo = values.tchMemo;
     if (values.tchHiredAt) dto.tchHiredAt = values.tchHiredAt;
     if (values.tchAttendanceNo) dto.tchAttendanceNo = values.tchAttendanceNo;
-    // REQ-260604 FR-3 — propagate AMA picker selection to backend. Only on
-    // create (edit doesn't re-issue the linkage); only when picker was used
-    // (manual mode bypasses).
-    if (!isEdit && amaUser && !manualMode) {
+    // REQ-260604 FR-3 / REQ-260629 — propagate AMA picker selection to backend.
+    //   - On create: linkage carries through.
+    //   - On edit: backfill amaUserId when the operator routed here from the
+    //     AmaDirectorySection's "email match" branch (existing teacher row
+    //     without amaUserId) — UpdateTeacherDto.tchAmaUserId now accepts it.
+    if (amaUser && !manualMode) {
       dto.tchAmaUserId = amaUser.userId;
     }
 
