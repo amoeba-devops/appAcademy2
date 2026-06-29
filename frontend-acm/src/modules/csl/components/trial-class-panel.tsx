@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AttachmentPanel } from './attachment-panel';
-import { AmaUserPicker } from '@/components/common/ama-user-picker';
-import type { AmaPlatformUser } from '@/lib/ama-user-api';
 
 /**
  * REQ-260626 SCR-CSL-03 — demo class panel.
@@ -62,9 +60,8 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
   const qc = useQueryClient();
   const [heldAt, setHeldAt] = useState('');
   const [heldTime, setHeldTime] = useState('');
-  // REQ-260629 — create-form picker is AMA-sourced. teacherAmaUserId goes
-  // to backend, which lazy-upserts into amb_acm_tch_teacher.
-  const [createAmaUser, setCreateAmaUser] = useState<AmaPlatformUser | null>(null);
+  // REQ-260629 v0.2 — create-form picker is local strict select. Source = /acm/tch/teachers.
+  const [teacherId, setTeacherId] = useState('');
 
   const { data: classes = [] } = useQuery({
     queryKey: ['csl', 'trial-classes', inqId],
@@ -99,15 +96,13 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
       await apiClient.post(`/acm/csl/inquiries/${inqId}/trial-classes`, {
         heldAt,
         heldTime: heldTime || undefined,
-        teacherAmaUserId: createAmaUser?.userId || undefined,
-        teacherAmaName: createAmaUser?.name || undefined,
-        teacherAmaEmail: createAmaUser?.email || undefined,
+        teacherId: teacherId || undefined,
       });
     },
     onSuccess: () => {
       setHeldAt('');
       setHeldTime('');
-      setCreateAmaUser(null);
+      setTeacherId('');
       qc.invalidateQueries({ queryKey: ['csl', 'trial-classes', inqId] });
     },
   });
@@ -133,6 +128,7 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
             key={c.id}
             inqId={inqId}
             tcl={c}
+            teachers={teachers}
             teacherName={c.teacherId ? nameById.get(c.teacherId) ?? null : null}
             dateLocale={dateLocale}
             onChange={() =>
@@ -165,12 +161,19 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t('detail.trial.teacher')}</Label>
-            <AmaUserPicker
-              value={createAmaUser}
-              onChange={setCreateAmaUser}
-              levels={['MANAGER', 'MEMBER', 'VIEWER']}
-              labelKey="csl:detail.trial.teacher"
-            />
+            <Select value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+              <option value="">—</option>
+              {teachers.map((tt) => (
+                <option key={tt.id} value={tt.id}>
+                  {tt.name}
+                </option>
+              ))}
+            </Select>
+            {teachers.length === 0 && (
+              <p className="text-[10px] text-red-600">
+                {t('detail.trial.noTeachersHint')}
+              </p>
+            )}
           </div>
           <Button onClick={() => create.mutate()} disabled={!heldAt || create.isPending}>
             {t('detail.trial.add')}
@@ -192,12 +195,14 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
 function DemoClassRow({
   inqId,
   tcl,
+  teachers,
   teacherName,
   dateLocale,
   onChange,
 }: {
   inqId: string;
   tcl: TrialClass;
+  teachers: Teacher[];
   teacherName: string | null;
   dateLocale: string;
   onChange: () => void;
@@ -205,9 +210,8 @@ function DemoClassRow({
   const { t } = useTranslation(['csl', 'common']);
   const [feedbackDraft, setFeedbackDraft] = useState(tcl.feedbackBody ?? '');
   const [editingTime, setEditingTime] = useState(tcl.heldTime ?? '');
-  // REQ-260629 — picker holds AMA user object; on save we send teacherAmaUserId
-  // and the backend lazy-upserts a local teacher row.
-  const [editingAmaUser, setEditingAmaUser] = useState<AmaPlatformUser | null>(null);
+  // REQ-260629 v0.2 — local strict select. Source is the parent's teachers query.
+  const [editingTeacherId, setEditingTeacherId] = useState(tcl.teacherId ?? '');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
   const patch = useMutation({
@@ -296,21 +300,24 @@ function DemoClassRow({
         </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t('detail.trial.teacher')}</Label>
-          <AmaUserPicker
-            value={editingAmaUser}
-            onChange={setEditingAmaUser}
-            levels={['MANAGER', 'MEMBER', 'VIEWER']}
-            labelKey="csl:detail.trial.teacher"
-          />
+          <Select
+            value={editingTeacherId}
+            onChange={(e) => setEditingTeacherId(e.target.value)}
+          >
+            <option value="">—</option>
+            {teachers.map((tt) => (
+              <option key={tt.id} value={tt.id}>
+                {tt.name}
+              </option>
+            ))}
+          </Select>
         </div>
         <Button
           variant="outline"
           onClick={() =>
             patch.mutate({
               heldTime: editingTime || undefined,
-              teacherAmaUserId: editingAmaUser?.userId || undefined,
-              teacherAmaName: editingAmaUser?.name || undefined,
-              teacherAmaEmail: editingAmaUser?.email || undefined,
+              teacherId: editingTeacherId || undefined,
             })
           }
           disabled={patch.isPending}

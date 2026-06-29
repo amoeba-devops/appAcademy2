@@ -132,7 +132,7 @@
         "date": "日期",
         "time": "时间（30 分钟）",
         "teacher": "负责教师",
-        "amaPickerHint": "请从 AMA 目录中搜索并选择。保存时会自动创建教师主数据。",
+        "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
         "calHint": "保存时将自动登记至课程日历。",
         "saveAndCal": "保存并登记 CAL"
       }
@@ -238,6 +238,7 @@
       "heldTime": "时间 (30 分钟)",
       "teacher": "指定教师",
       "noTeacher": "未指定",
+      "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
       "completed": "已完成",
       "feedbackStatus": "反馈",
       "note": "备注",

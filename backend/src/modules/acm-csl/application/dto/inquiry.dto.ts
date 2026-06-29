@@ -314,9 +314,10 @@ export class UpsertLevelTestDto {
   teacherId?: string;
 
   /**
-   * REQ-260629 FR-302/303 — AMA-sourced teacher. Controller resolves to a
-   * local teacherId via TeacherService.upsertFromAma before persisting.
-   * Takes precedence over teacherId when both are present.
+   * @deprecated REQ-260629 v0.2 (2026-06-30) — CSL stage 2/3 picker reverted
+   * to local strict select. Fields kept for back-compat in case a stale
+   * client still POSTs them; controller no longer honors them. Remove in
+   * a follow-up PR after FE rollout is verified.
    */
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
   teacherAmaUserId?: string;
@@ -370,7 +371,7 @@ export class CreateTrialClassDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
 
-  /** REQ-260629 — see UpsertLevelTestDto.teacherAmaUserId. */
+  /** @deprecated REQ-260629 v0.2 — see UpsertLevelTestDto.teacherAmaUserId. */
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
   teacherAmaUserId?: string;
 
@@ -401,7 +402,7 @@ export class UpdateTrialClassDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
 
-  /** REQ-260629 FR-302/303 — see UpsertLevelTestDto.teacherAmaUserId. */
+  /** @deprecated REQ-260629 v0.2 — see UpsertLevelTestDto.teacherAmaUserId. */
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
   teacherAmaUserId?: string;
 
