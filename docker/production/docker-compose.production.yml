@@ -118,14 +118,17 @@ services:
       dockerfile: Dockerfile
     container_name: tac-prod-backend
     restart: unless-stopped
+    # NOTE: minio is intentionally NOT in depends_on. Backend has a graceful
+    # `ObjectStoreClient.isConfigured()` fallback that returns 503 on attachment
+    # endpoints when MinIO env is missing — this keeps the rest of the app
+    # bootable when the operator hasn't run scripts/setup-minio-env.sh yet
+    # (FIX after PR #79 hard-depends_on broke production /api/* with 502).
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
       postgres-acm:
-        condition: service_healthy
-      minio:
         condition: service_healthy
     environment:
       NODE_ENV: production
