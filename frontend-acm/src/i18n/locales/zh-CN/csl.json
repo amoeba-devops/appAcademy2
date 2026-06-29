@@ -85,10 +85,40 @@
     "H1": "高中1年级", "H2": "高中2年级", "H3": "高中3年级",
     "OTHER": "其他"
   },
+  "stepper": {
+    "notReached": "尚未到达此阶段"
+  },
   "detail": {
-    "backToList": "상담 목록으로",
-    "drop": "이탈 처리",
-    "reactivate": "재활성화",
+    "intake": {
+      "title": "1. 接收",
+      "readOnlyHeader": "接收信息",
+      "applyPurposesHeader": "申请目的(多选)",
+      "priorScoresHeader": "以往分数(根据所选申请目的动态显示)",
+      "noPurposeScoreHint": "请至少选择一个申请目的以显示对应的分数输入项。",
+      "mapScores": "MAP 以往分数 (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "ISEE 以往分数 — 4 部分 × Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine 在第 2 阶段(水平测试)输入。",
+      "advancedHeader": "其他考试 (SSAT / Duolingo / TOEFL 等)",
+      "advancedHint": "运营自由输入分数。正式验证在第 2 阶段进行。",
+      "advancedTestName": "考试名称",
+      "advancedScoresLabel": "分数 (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "学生",
+        "grade": "年级",
+        "parentName": "家长",
+        "parentPhone": "电话",
+        "school": "学校",
+        "inflowType": "来源",
+        "applyType": "申请类型",
+        "consultDone": "咨询完成",
+        "registeredAt": "登记日期",
+        "isAnonymous": "匿名"
+      }
+    },
+    "backToList": "返回列表",
+    "drop": "退出处理",
+    "reactivate": "重新激活",
     "mapTest": {
       "title": "水平测试 / MAP 分数",
       "hasPriorScore": "持有以往分数",

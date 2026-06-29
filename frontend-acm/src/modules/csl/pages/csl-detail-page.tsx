@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { CslStageStepper } from '@/modules/csl/components/csl-stage-stepper';
 import { MapTestPanel } from '@/modules/csl/components/map-test-panel';
+import { IntakeStagePanel } from '@/modules/csl/components/intake-stage-panel';
 import { TrialClassPanel } from '@/modules/csl/components/trial-class-panel';
 import { EnrollmentPanel } from '@/modules/csl/components/enrollment-panel';
 import { CancellationDialog } from '@/modules/csl/components/cancellation-dialog';
@@ -58,6 +59,17 @@ export function CslDetailPage() {
   const qc = useQueryClient();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
+  /**
+   * DSN-260629 §3.1 — selectedStage decouples panel rendering from the
+   * server-side currentStage. Operator can navigate the stepper without
+   * triggering a transition. Defaults to currentStage on each load.
+   */
+  const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
+
+  // When the server moves the inquiry to a new currentStage (operator clicks
+  // a forward button), automatically follow it so the operator sees the new
+  // stage's panel without an extra click.
+  // Note: useEffect runs below inq fetch — guarded by inq existence.
 
   const { data: inq, isLoading } = useQuery({
     queryKey: ['csl', 'detail', id],
@@ -95,12 +107,25 @@ export function CslDetailPage() {
     return inq.isAnonymous ? t('anonymousInquiry', { seqNo: inq.seqNo }) : inq.studentName;
   }, [inq, t]);
 
+  // Auto-follow the new currentStage after a forward / reactivate transition.
+  // Must run unconditionally (above the loading guard) per React Hooks rules.
+  useEffect(() => {
+    if (inq?.currentStage) setSelectedStage(inq.currentStage);
+  }, [inq?.currentStage]);
+
   if (isLoading || !inq) {
     return <p className="text-secondary">{t('common:status.loading')}</p>;
   }
 
   const allowedForward = FORWARD[inq.currentStage];
   const isDropped = inq.currentStage === 'DROPPED';
+
+  // DSN-260629 §3.1 — when selectedStage hasn't been touched (null) or the
+  // inquiry is DROPPED, fall back to currentStage. DROPPED inquiries don't
+  // render the stage pipeline at all (dropped banner takes over below).
+  const effectiveSelected: CslStage = isDropped
+    ? inq.currentStage
+    : (selectedStage ?? inq.currentStage);
 
   return (
     <div className="grid gap-6">
@@ -156,27 +181,54 @@ export function CslDetailPage() {
         </div>
       )}
 
-      {/* Stepper */}
-      <CslStageStepper currentStage={inq.currentStage} />
+      {/* Stepper — clicking a chip changes selectedStage (panel only); does NOT
+          trigger a server transition. Forward/Drop buttons in the header are
+          the only paths that mutate currentStage. */}
+      <CslStageStepper
+        currentStage={inq.currentStage}
+        selectedStage={effectiveSelected}
+        onSelect={(stage) => setSelectedStage(stage)}
+      />
 
-      {/* Active sub-stage panel */}
+      {/* Active sub-stage panel — driven by selectedStage, not currentStage,
+          so operators can navigate back to past stages to review saved data. */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4">
-          {(inq.currentStage === 'MAP_TEST' || inq.currentStage === 'INTAKE') && (
-            <MapTestPanel
+          {effectiveSelected === 'INTAKE' && (
+            <IntakeStagePanel
               inqId={inq.id}
-              currentStage={inq.currentStage}
-              onAfterAdvance={(next) => forward.mutate(next)}
+              onAfterAdvance={
+                inq.currentStage === 'INTAKE'
+                  ? () => forward.mutate('MAP_TEST')
+                  : undefined
+              }
             />
           )}
-          {inq.currentStage === 'TRIAL_CLASS' && <TrialClassPanel inqId={inq.id} />}
-          {(inq.currentStage === 'ENROLLMENT_COUNSELING' ||
-            inq.currentStage === 'PAYMENT' ||
-            inq.currentStage === 'CLASS_STARTED') && (
+          {effectiveSelected === 'MAP_TEST' && (
+            <MapTestPanel
+              inqId={inq.id}
+              currentStage="MAP_TEST"
+              onAfterAdvance={
+                inq.currentStage === 'MAP_TEST'
+                  ? (next) => forward.mutate(next)
+                  : undefined
+              }
+            />
+          )}
+          {effectiveSelected === 'TRIAL_CLASS' && (
+            <TrialClassPanel inqId={inq.id} />
+          )}
+          {(effectiveSelected === 'ENROLLMENT_COUNSELING' ||
+            effectiveSelected === 'PAYMENT' ||
+            effectiveSelected === 'CLASS_STARTED') && (
             <EnrollmentPanel
               inqId={inq.id}
-              currentStage={inq.currentStage}
-              onAfterAdvance={(next) => forward.mutate(next)}
+              currentStage={effectiveSelected}
+              onAfterAdvance={
+                inq.currentStage === effectiveSelected
+                  ? (next) => forward.mutate(next)
+                  : undefined
+              }
             />
           )}
         </div>
