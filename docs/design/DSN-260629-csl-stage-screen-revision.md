@@ -1,7 +1,7 @@
 ---
 document_id: DSN-260629-csl-stage-screen-revision
-version: 0.1.0-draft
-status: Draft (사용자 확인 대기)
+version: 0.2.0-draft
+status: Draft (Stage 2 재설계 — 사용자 확인 대기)
 created: 2026-06-29
 product_code: ACM
 title: CSL 상담관리 단계별 화면 재설계 — 접수 풀-필드 표시 + 동적 점수칸 + 단계 navigate
@@ -16,7 +16,8 @@ related:
   - docs/implementation/RPT-260626-csl-pipeline-revision-rollout.md (1차 권식)
 target_inquiry: 7598e1cb-3515-434e-9c75-e08f1cd2a974 (사용자 검증용 production inquiry)
 change_log:
-  - { version: 0.1.0-draft, date: 2026-06-29, author: Claude, notes: "초안 — 운영자 추가 요구 3건 (접수 풀-필드 / 동적 점수칸 / stepper navigate) 반영. 사용자 확인 후 구현 진행" }
+  - { version: 0.1.0-draft, date: 2026-06-29, author: Claude, notes: "초안 — 운영자 추가 요구 3건 (접수 풀-필드 / 동적 점수칸 / stepper navigate) 반영" }
+  - { version: 0.2.0-draft, date: 2026-06-29, author: Claude, notes: "§6 Stage 2 (레벨테스트) 재설계 — 시험별 1:N 일정 + 모달 + 상태 + 점수 + PDF. 사용자 확인 대기" }
 ---
 
 # DSN-260629 — CSL 단계별 화면 재설계
@@ -208,12 +209,162 @@ DSN-260626 §4.2~4.5 그대로. selectedStage navigate 만 추가 (§3.1).
 
 ---
 
-## 5. 사용자 확인 사항
+## 5. 사용자 확인 사항 (v0.1 — 완료)
 
-1. **§3.1 단계 navigate 모델** — selectedStage 도입으로 stepper 클릭 시 stage 별 저장 내용 표시. 미래 stage 는 disabled. 동의?
-2. **§3.2 IntakeStagePanel 구조** — 접수 정보 read-only 박스 + 신청목적 multi-select + 신청목적 기반 동적 점수칸. 동의?
-3. **§4.1 백엔드 데이터 모델 옵션 A vs B** — 신규 `mpt_prior_scores_detail` 컬럼 (A) 권장. 또는 기존 `mpt_score_detail` 재사용 (B). 선택?
-4. **TR-07 Advanced 시험 점수 (SSAT/Duolingo/TOEFL)** — INTAKE 에서는 자유입력 form 으로만 받고, 정식 검증은 2단계에서. 동의?
-5. **scope** — 본 PR 범위는 위 10 task. 별도 PR 분리?
+1~5: ✅ 승인 받음, PR #74 머지·staging·production 배포 완료 (2026-06-29).
 
-승인 후 TR-01 부터 착수.
+---
+
+## 6. Stage 2 재설계 — 레벨테스트 (v0.2)
+
+### 6.1 배경 + 운영자 추가 요구
+
+운영자 검증 중 stage 2 패널의 추가 갭 확인:
+
+> "1단계에서 이전 점수를 입력한 상담건은 2단계를 스킵하고 데모수업 단계로 이동하므로,
+> 2단계 레벨테스트 화면에 '이전점수보유 여부' 텍스트는 노출할 필요 없음.
+> 상담자가 선택한 **시험종류별로** 응시예정일 지정 — 신청한 시험 종류별 레벨테스트
+> 예약 (응시 예정일, 학원관리자가 강사와 시간 조율하여 일정 등록).
+> 화면 구성: 시험 / 응시예정일(날짜+시간 모달) / 담당강사 / 상태(대기/진행완료/미진행).
+> 점수 입력은 시험별. PDF 다운로드는 시험종류·점수 내용 포함."
+
+### 6.2 갭 분석 (현 PR #74 / DSN-260629 v0.1 기준)
+
+| ID | 현 상태 | 요구 |
+|---|---|---|
+| GAP-04 | `hasPriorScore` 체크박스가 MAP_TEST 패널 상단에 노출 | 제거 (이전 점수 보유는 1단계에서 입력 → 2단계 스킵 흐름이므로 무의미) |
+| GAP-05 | `amb_acm_csl_map_test` 가 1:1 (인콰이어리당 1 row) — testType 단일 | **1:N (인콰이어리당 시험종류 별 1 row)** — `uq(inq_id, mpt_test_type)` |
+| GAP-06 | 응시예정일 = `<input type=date>` + 별도 `scheduledTime` select | **모달**: 날짜+시간(30분 단위)를 모달 한 번에 선택 |
+| GAP-07 | 담당강사 컬럼 없음 (mpt 에 없음) — 데모수업(trial_class) 에만 존재 | **레벨테스트 별 담당강사** 추가 (시간 조율 책임자, CAL invitee 활용) |
+| GAP-08 | 응시 상태 (`PENDING/HELD/RESCHEDULED/...`) deprecated, UI 무 | **재도입** but 3-state: `PENDING (대기)` / `COMPLETED (진행완료)` / `NOT_HELD (미진행)` |
+| GAP-09 | 점수 입력은 mpt 단일 row 에 — type 별 분리 안 됨 | 시험별 row 에 점수 (`mpt_score_detail` per row) |
+| GAP-10 | PDF (`/map-test/result-pdf`) 는 인콰이어리당 1 PDF — 시험종류 1개 가정 | **시험별 PDF** 또는 통합 PDF (시험 모두 포함). 선택 UX 결정 필요 |
+
+### 6.3 데이터 모델 결정
+
+**Option C (권장)**: `amb_acm_csl_map_test` 를 1:N 으로 확장
+
+- `uq_acm_csl_mpt_inq_type` UNIQUE INDEX `(inq_id, mpt_test_type)` 추가
+- 기존 1:1 데이터 (production 에 약간) 는 그대로 (testType='MAP' 한 row → 그대로 동작)
+- 신규 시험종류는 row 추가
+- 기존 `findOne({inqId, entId})` 호출지점을 모두 `find()` + filter by type 로 변경
+- 영향 범위: `inquiry.service.upsertMapTest`, `recordLevelTestResult`, `LevelTestPdfService`, `CslCalLinkerService`, `StdInheritanceService`
+
+**Option D**: 신규 테이블 `amb_acm_csl_level_test_schedule` (시험별 1 row)
+
+- map_test 는 INTAKE prior scores 전용으로 격하 (이미 `priorScoresDetail` 가 거기 있음)
+- 신규 테이블에 schedule + teacher + status + scores + cal_event_id
+- 두 테이블 병존 — 명확한 책임 분리. 하지만 PDF / inheritance / CAL linker 등 모든 consumer 가 새 테이블 추가 처리 필요
+
+**권장 Option C** — 기존 데이터 마이그레이션 0, 새 row 만 추가하면 됨. UNIQUE 제약 추가만 새 SQL (987).
+
+**상태 enum 분리**:
+- 기존 `mpt_scheduled_status` 는 deprecated 라벨 유지하되 v2 로 의미 변경:
+  `PENDING` (default, 대기) / `COMPLETED` (진행완료) / `NOT_HELD` (미진행)
+- DB CHECK 추가: `('PENDING','COMPLETED','NOT_HELD')` (deprecated 였던 'SCHEDULED'/'TAKEN'/'NOT_TAKING'/'RESCHEDULED' 은 별도 alias 없음 — production data 없음을 가정. 있으면 마이그레이션 매핑 필요)
+
+### 6.4 화면 구성안 SCR-CSL-02 v2
+
+```
+┌────────────────────────────── 2. 레벨테스트 ──────────────────────────────┐
+│ ※ 1단계에서 이전 점수를 입력한 인콰이어리는 본 단계를 스킵하고 데모수업으로│
+│   이동할 수 있습니다. (운영자 판단)                                       │
+│                                                                          │
+│ ── 신청 시험 종류별 일정 (운영자가 강사와 조율하여 등록) ────────────────│
+│ ┌──────────┬─────────────────────┬──────────────┬───────────────┐         │
+│ │  시험     │  응시예정일         │  담당강사    │  상태         │         │
+│ ├──────────┼─────────────────────┼──────────────┼───────────────┤         │
+│ │  MAP     │  📅 2026-07-03 14:00 │  ▼ 이강사    │  대기  [▼]    │ [점수입력]│
+│ │  ISEE    │  📅  ─ (미지정)      │  ▼ ─         │  대기  [▼]    │ [점수입력]│
+│ │  SSAT    │  📅 2026-07-10 16:30 │  ▼ 박강사    │  진행완료     │ [점수입력]│
+│ └──────────┴─────────────────────┴──────────────┴───────────────┘         │
+│                                                                          │
+│ 📅 클릭 → 모달:                                                          │
+│   ┌─ 응시예정일 지정 (MAP) ─┐                                            │
+│   │  날짜:    [ 2026-07-03 ]   │                                          │
+│   │  시간:    [ 14:00 ▼ ] (30분단위 09:00~22:30)                          │
+│   │  담당강사: [ 이강사 ▼ ]                                              │
+│   │                                                                      │
+│   │           [ 취소 ]  [ 저장 + CAL 등록 ]                              │
+│   └────────────────────────┘                                             │
+│                                                                          │
+│ ── 점수 입력 (운영자 전용 — 진행완료한 시험만) ────────────────────────  │
+│  진행완료 상태인 시험을 클릭하면 시험별 점수 입력 폼 노출                │
+│  (LevelTestScoreEditor 재사용 — 시험 종류별 동적 폼)                     │
+│                                                                          │
+│  • MAP        진행완료  Reading [220] Math [215] Language Usage [210]    │
+│                          [ 결과 저장 ]                                   │
+│  • ISEE       대기      (점수 입력 비활성)                              │
+│  • SSAT       진행완료  verbal: {score, percentile}, ... 4 sections      │
+│                          [ 결과 저장 ]                                   │
+│                                                                          │
+│ ── 결과 PDF 다운로드 ─────────────────────────────────────────────────  │
+│  [ 통합 PDF 다운로드 ]   각 시험별 [ MAP PDF ] [ ISEE PDF ] [ SSAT PDF ] │
+│                                                                          │
+│                                              [ 다음 단계 ▶ 데모수업 ]    │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**구성 요소 매핑**
+
+| 요소 | 컴포넌트 (신규/기존) | 데이터 소스 | FR |
+|---|---|---|---|
+| 시험별 행 (테이블) | `LevelTestScheduleTable` NEW | `GET /acm/csl/inquiries/:id/level-tests` (List) | FR-CSL-112/113 |
+| 응시일 + 시간 + 강사 모달 | `LevelTestScheduleDialog` NEW | `PUT /acm/csl/inquiries/:id/level-tests/:type` | FR-CSL-113/114 |
+| 상태 select inline | (테이블 row 내) | `PATCH .../level-tests/:type` (status only) | (new) |
+| 진행완료 시 점수 입력 | 기존 `LevelTestScoreEditor` 재사용 | `POST .../level-tests/:type/result` (admin) | FR-CSL-115 |
+| 통합 PDF + 시험별 PDF | 기존 PDF endpoint 확장 | `GET .../level-tests/:type/result-pdf` + `GET .../level-tests/all/result-pdf` | FR-CSL-116 |
+| 안내 카피 ("이전 점수 입력 시 스킵 가능") | static 헤더 | — | (운영자 안내) |
+
+**CAL 연동**: 모달 "저장 + CAL 등록" 클릭 시 — 현 `CslCalLinkerService.linkLevelTest` 호출 흐름 유지 + 시험명+학생명 title 갱신. 강사도 invitee 로 추가 (Phase 2).
+
+### 6.5 PDF 정책
+
+| 시나리오 | 출력 |
+|---|---|
+| **시험별 PDF** | 1 시험 = 1 페이지 (현 LevelTestPdfService 의 §5.7 layout) — `mpt_test_type` 기반 |
+| **통합 PDF** | 모든 진행완료 시험의 페이지 묶음 — pdfkit `addPage()` 로 page break |
+| **권장** v1 | **시험별 PDF만** — 통합 PDF 는 v2 follow-up (PDF service 다중 시험 호출 + 페이지 break) |
+
+→ v1: 기존 `GET /map-test/result-pdf` 를 `GET /level-tests/:type/result-pdf` 로 변경 (별 path), 통합은 v2.
+
+### 6.6 작업 계획 WBS (TR-S2-xx)
+
+| ID | 작업 | 영역 | 효(d) | 의존 |
+|---|---|---|---|---|
+| TR-S2-01 | 987 SQL — `mpt_scheduled_status` 의미 변경 (CHECK + COMMENT), `uq(inq_id, mpt_test_type)` UNIQUE 추가, `mpt_teacher_id UUID` 컬럼 추가 + FK | DB | 0.5 | — |
+| TR-S2-02 | `MapTestTypeormEntity` — `teacherId` 매핑 + scheduledStatus 의미 update | BE | 0.3 | TR-S2-01 |
+| TR-S2-03 | `InquiryService.listLevelTests(entId, inqId)` 신규 — 1:N find by inq | BE | 0.3 | TR-S2-02 |
+| TR-S2-04 | `InquiryService.upsertLevelTest(entId, inqId, type, dto)` 신규 — 시험 type 별 1 row upsert | BE | 0.5 | TR-S2-03 |
+| TR-S2-05 | `recordLevelTestResult` 의 시그니처를 `(entId, inqId, type, dto, actorId)` 로 변경 + per-type row 업데이트 | BE | 0.3 | TR-S2-04 |
+| TR-S2-06 | `LevelTestPdfService.generate(entId, inqId, type)` 시그니처 변경 (type 필수) | BE | 0.3 | TR-S2-04 |
+| TR-S2-07 | `CslCalLinkerService.linkLevelTest` — per-row 처리, invitee 에 teacher 추가 | BE | 0.5 | TR-S2-04 |
+| TR-S2-08 | controller routes — `GET/PUT/PATCH/POST /level-tests/:type[/result]` + `result-pdf` 시그니처 | BE | 0.5 | TR-S2-03/04/05 |
+| TR-S2-09 | 기존 endpoint deprecation note 추가 (`/map-test` legacy 유지하되 새 흐름 권장) | BE | 0.2 | TR-S2-08 |
+| TR-S2-10 | NEW `LevelTestScheduleTable` + `LevelTestScheduleDialog` (모달) | FE | 1 | TR-S2-08 |
+| TR-S2-11 | `MapTestPanel` 의 MAP_TEST 분기 → 신규 `LevelTestPanel` 로 swap. `hasPriorScore` UI 제거 | FE | 0.5 | TR-S2-10 |
+| TR-S2-12 | per-type 점수 입력 (기존 LevelTestScoreEditor 재사용) | FE | 0.3 | TR-S2-10 |
+| TR-S2-13 | per-type PDF 다운로드 버튼 (행 단위) + 통합 PDF stub | FE | 0.3 | TR-S2-08 |
+| TR-S2-14 | i18n 4 locale 신규 키 (status / scheduleDialog / saveAndCal 등) | FE | 0.3 | TR-S2-10+ |
+| TR-S2-15 | service spec 업데이트 + 운영자 검증 매트릭스 추가 | QA | 0.5 | TR-S2-08+ |
+
+**합계**: ~5.6 영업일
+
+### 6.7 위험 + 완화
+
+| 위험 | 완화 |
+|---|---|
+| 기존 1:1 데이터 (production map_test) — UNIQUE 제약 충돌 | 마이그레이션 전 row 점검; 충돌 시 `PRESERVE 1 row per inq` 정책으로 첫 row 만 유지하고 mpt_test_type='MAP' 채움 |
+| PDF endpoint URL 변경 (`/map-test/result-pdf` → `/level-tests/:type/result-pdf`) | 기존 `/map-test/result-pdf` 는 deprecated 로 유지하고 첫 row 반환 (backward compat). 신규 path 가 primary |
+| std-inheritance / cal-linker 가 모든 row 처리 | 첫 PR 에서는 MAP row 만 inherit/link. 다중 type 별 처리는 v2 |
+| 시험 종류 수가 많은 인콰이어리 (3+ 시험) — UI 가로 공간 | 테이블 row 가 vertical stack 이므로 영향 적음 |
+
+### 6.8 사용자 확인 사항 (v0.2)
+
+1. **§6.3 Option C (map_test 1:N 확장)** — UNIQUE(inq_id, mpt_test_type) 추가. 동의?
+2. **§6.3 상태 enum** — `PENDING / COMPLETED / NOT_HELD` 3-state. 기존 `SCHEDULED/TAKEN/...` 와 매핑 없음 (production data 미존재 가정). 동의?
+3. **§6.4 화면 — 강사 컬럼**: 레벨테스트 자체 담당강사 1명 (학원 측 시간 조율 책임자). CAL invitee 로 자동 추가. 동의?
+4. **§6.5 PDF v1 — 시험별 1 PDF, 통합 PDF v2**: 운영자가 시험별 다운로드 → 직접 합치는 흐름. 동의?
+5. **§6.6 WBS — 단일 PR 권장 (~5.6일)** — 또는 데이터 모델(TR-S2-01~09) + UI(TR-S2-10~15) 분리?
+
+승인 후 TR-S2-01 부터 착수.
