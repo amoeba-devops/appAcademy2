@@ -249,6 +249,15 @@ export class UpsertMapTestDto {
   @ApiPropertyOptional({ description: 'Non-MAP score detail (DSN §5.6 schema by test type)' })
   @IsOptional() @IsObject()
   scoreDetail?: Record<string, unknown>;
+
+  /**
+   * DSN-260629 §4.1 — INTAKE 단계 self-report 이전 점수.
+   * Validator 는 v1 에선 shape pass-through (operator-discretion 자유입력 허용),
+   * 정식 검증은 2단계 LevelTest result 에서.
+   */
+  @ApiPropertyOptional({ description: 'INTAKE prior self-report scores (DSN-260629 §4.1)' })
+  @IsOptional() @IsObject()
+  priorScoresDetail?: Record<string, unknown>;
 }
 
 /**

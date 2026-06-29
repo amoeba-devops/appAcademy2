@@ -257,6 +257,15 @@ export class InquiryService {
       testTypeOther: dto.testTypeOther ?? mt.testTypeOther ?? null,
       scheduledTime: dto.scheduledTime ?? mt.scheduledTime ?? null,
       ...(normalizedDetail !== undefined ? { scoreDetail: normalizedDetail } : {}),
+      // DSN-260629 — INTAKE prior scores. Pass-through (no per-key validation v1).
+      ...(dto.priorScoresDetail !== undefined
+        ? {
+            priorScoresDetail:
+              Object.keys(dto.priorScoresDetail).length === 0
+                ? null
+                : dto.priorScoresDetail,
+          }
+        : {}),
     });
     return this.mapTests.save(mt);
   }

@@ -85,7 +85,37 @@
     "H1": "Lớp 10", "H2": "Lớp 11", "H3": "Lớp 12",
     "OTHER": "Khác"
   },
+  "stepper": {
+    "notReached": "Chưa đến giai đoạn này"
+  },
   "detail": {
+    "intake": {
+      "title": "1. Tiếp nhận",
+      "readOnlyHeader": "Thông tin tiếp nhận",
+      "applyPurposesHeader": "Mục đích đăng ký (chọn nhiều)",
+      "priorScoresHeader": "Điểm trước đó (hiển thị theo mục đích đã chọn)",
+      "noPurposeScoreHint": "Chọn ít nhất một mục đích để hiển thị các trường nhập điểm tương ứng.",
+      "mapScores": "Điểm MAP trước đó (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "Điểm ISEE trước đó — 4 phần × Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine được nhập ở bước 2 (Bài kiểm tra trình độ).",
+      "advancedHeader": "Kỳ thi khác (SSAT / Duolingo / TOEFL / ...)",
+      "advancedHint": "Nhập điểm tự do. Xác thực chính thức ở bước 2.",
+      "advancedTestName": "Tên kỳ thi",
+      "advancedScoresLabel": "Điểm (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "Học viên",
+        "grade": "Khối",
+        "parentName": "Phụ huynh",
+        "parentPhone": "Điện thoại",
+        "school": "Trường",
+        "inflowType": "Nguồn",
+        "applyType": "Loại đăng ký",
+        "consultDone": "Hoàn tất tư vấn",
+        "registeredAt": "Ngày đăng ký",
+        "isAnonymous": "Ẩn danh"
+      }
+    },
     "backToList": "Quay lại danh sách",
     "drop": "Hủy",
     "reactivate": "Kích hoạt lại",

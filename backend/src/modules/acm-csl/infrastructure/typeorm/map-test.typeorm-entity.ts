@@ -101,6 +101,15 @@ export class MapTestTypeormEntity {
   @Column({ name: 'mpt_score_detail', type: 'jsonb', nullable: true })
   scoreDetail?: unknown | null;
 
+  /**
+   * DSN-260629 §4.1 — INTAKE 단계 운영자가 받은 self-report 이전 점수.
+   * 2단계 결과 점수 (`scoreDetail`) 와 의미가 다르므로 별도 컬럼.
+   * Shape: { iseeIntake?: {verbal, reading, quantitative, mathematics},
+   *          priorAdvanced?: {testName, scores: {...}} }
+   */
+  @Column({ name: 'mpt_prior_scores_detail', type: 'jsonb', nullable: true })
+  priorScoresDetail?: Record<string, unknown> | null;
+
   /** Q-CSL-111 — result entry is admin-only; actor recorded for audit. */
   @Column({ name: 'mpt_result_entered_by', type: 'uuid', nullable: true })
   resultEnteredBy?: string | null;
