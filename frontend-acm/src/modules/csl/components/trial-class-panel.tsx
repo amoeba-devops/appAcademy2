@@ -73,10 +73,16 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
+    // /acm/tch/teachers returns `{ items, total, page, limit }` (no `meta`,
+    // so the global TransformInterceptor doesn't unwrap items). Handle
+    // both shapes so a future shape change doesn't break the picker.
     queryFn: async () => {
       try {
-        const res = await apiClient.get<Teacher[]>('/acm/tch/teachers');
-        return res.data;
+        const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
+          '/acm/tch/teachers',
+        );
+        const body = res.data;
+        return Array.isArray(body) ? body : (body?.items ?? []);
       } catch {
         return [];
       }

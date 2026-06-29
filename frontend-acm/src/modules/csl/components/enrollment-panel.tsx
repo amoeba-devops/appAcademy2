@@ -116,11 +116,17 @@ export function EnrollmentPanel({
   const { data: teacherDirectory = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
     // The teacher master is exposed by acm-tch; consume only what we need
-    // for the picker. Tolerate the endpoint being absent (returns []).
+    // for the picker. The endpoint returns `{ items, total, page, limit }`
+    // (paginated shape — no `meta` key, so TransformInterceptor doesn't
+    // unwrap items). Accept either an array or the paginated envelope so
+    // a future shape change doesn't break this picker again.
     queryFn: async () => {
       try {
-        const res = await apiClient.get<Teacher[]>('/acm/tch/teachers');
-        return res.data;
+        const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
+          '/acm/tch/teachers',
+        );
+        const body = res.data;
+        return Array.isArray(body) ? body : (body?.items ?? []);
       } catch {
         return [];
       }
