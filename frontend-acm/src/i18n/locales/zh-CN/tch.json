@@ -8,6 +8,7 @@
     "empty": "未找到匹配的 AMA 用户。",
     "errorUnavailable": "AMA 目录暂时不可用，请稍后重试。",
     "alreadyRegistered": "已注册 ✓",
+    "linkAma": "关联 AMA ↪",
     "registerAsTeacher": "注册为教师 ▶"
   },
   "actions": {

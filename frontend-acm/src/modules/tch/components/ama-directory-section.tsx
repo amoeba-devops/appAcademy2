@@ -28,7 +28,15 @@ const LEVELS_DEFAULT: AmaUserLevel[] = ['MANAGER', 'MEMBER', 'VIEWER'];
 
 interface Props {
   onPickAmaUser: (user: AmaPlatformUser) => void;
-  onPickExistingTeacher: (teacher: TeacherDetail) => void;
+  /**
+   * Called when the AMA result row matches an existing local teacher.
+   * Receives both, so the parent can open the edit modal AND seed the
+   * AMA picker for backfill when the local row's amaUserId is empty.
+   */
+  onPickExistingTeacher: (
+    teacher: TeacherDetail,
+    amaUser: AmaPlatformUser,
+  ) => void;
 }
 
 export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Props) {
@@ -59,6 +67,18 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
     const m = new Map<string, TeacherDetail>();
     (local?.items ?? []).forEach((t) => {
       if (t.amaUserId) m.set(t.amaUserId, t);
+    });
+    return m;
+  }, [local]);
+  // REQ-260629 fix — also detect teachers whose amaUserId is empty but whose
+  // email matches the AMA hit (operator manually created them before this
+  // feature shipped). Without this the operator clicks "register" → backend
+  // 409 on email duplicate. With it we route to the edit modal so they can
+  // backfill amaUserId via UpdateTeacherDto.tchAmaUserId.
+  const localByEmail = useMemo(() => {
+    const m = new Map<string, TeacherDetail>();
+    (local?.items ?? []).forEach((t) => {
+      if (t.email) m.set(t.email.toLowerCase(), t);
     });
     return m;
   }, [local]);
@@ -127,7 +147,12 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
               {results
                 .filter((u) => u.level !== 'OWNER') // defense in depth
                 .map((u) => {
-                  const existing = localByAma.get(u.userId);
+                  // Match by amaUserId first; fall back to email so manually
+                  // created teachers (no amaUserId yet) are detected and the
+                  // operator gets routed to the edit modal for backfill.
+                  const existing =
+                    localByAma.get(u.userId) ??
+                    localByEmail.get(u.email.toLowerCase());
                   return (
                     <li
                       key={u.userId}
@@ -145,9 +170,11 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => onPickExistingTeacher(existing)}
+                          onClick={() => onPickExistingTeacher(existing, u)}
                         >
-                          {t('amaDirectory.alreadyRegistered')}
+                          {existing.amaUserId
+                            ? t('amaDirectory.alreadyRegistered')
+                            : t('amaDirectory.linkAma')}
                         </Button>
                       ) : (
                         <Button

@@ -242,6 +242,7 @@ export class TeacherService {
     if (dto.tchEmploymentType !== undefined) e.employmentType = dto.tchEmploymentType;
     if (dto.tchHiredAt !== undefined) e.hiredAt = dto.tchHiredAt;
     if (dto.tchAttendanceNo !== undefined) e.attendanceNo = dto.tchAttendanceNo;
+    if (dto.tchAmaUserId !== undefined) e.amaUserId = dto.tchAmaUserId ?? null;
     e.updatedAt = new Date();
 
     const saved = await this.repo.save(e);

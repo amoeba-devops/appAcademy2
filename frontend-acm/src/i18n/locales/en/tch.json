@@ -8,6 +8,7 @@
     "empty": "No matching AMA users.",
     "errorUnavailable": "AMA directory is temporarily unavailable. Try again shortly.",
     "alreadyRegistered": "Already registered ✓",
+    "linkAma": "Link AMA ↪",
     "registerAsTeacher": "Register as teacher ▶"
   },
   "actions": {
