@@ -27,6 +27,7 @@ import { TeacherAssignmentService } from '../application/teacher-assignment.serv
 import { CourseService } from '../application/course.service';
 import { LevelTestPdfService } from '../application/level-test-pdf.service';
 import { CslCalLinkerService } from '../application/csl-cal-linker.service';
+import { AttachmentService } from '../application/attachment.service';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import {
   ApprovePaymentDto,
@@ -36,6 +37,7 @@ import {
   CreateCourseDto,
   CreateInquiryDto,
   CreateTrialClassDto,
+  PresignedUploadDto,
   RecordLevelTestResultDto,
   UpdateCourseDto,
   UpdateInquiryDto,
@@ -67,6 +69,7 @@ export class InquiryController {
     private readonly courses: CourseService,
     private readonly pdf: LevelTestPdfService,
     private readonly calLinker: CslCalLinkerService,
+    private readonly attachments: AttachmentService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -609,5 +612,84 @@ export class InquiryController {
   @Get(':inqId/remarks')
   listRemarks(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.workflow.listRemarks(user.entId, inqId);
+  }
+
+  // ── REQ-260626 T-06 / ADR-008 — Attachments (presigned upload to MinIO/S3) ──
+
+  @Post(':inqId/attachments/presigned-upload')
+  @ApiOperation({ summary: 'Issue presigned PUT URL (5 min TTL)' })
+  presignedUpload(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Body() dto: PresignedUploadDto,
+  ) {
+    // STAFF↑ for TRANSCRIPT (sensitive), TEACHER/STAFF↑ for MATERIAL.
+    const role = user.role as AcmRole | undefined;
+    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    const isTeacherPlus = !!role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    if (dto.category === 'TRANSCRIPT' && !isStaffPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
+    }
+    if (dto.category === 'MATERIAL' && !isTeacherPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_TEACHER_PLUS' });
+    }
+    return this.attachments.issuePresignedUpload(user.entId, inqId, dto);
+  }
+
+  @Post(':inqId/attachments/:attId/confirm')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Confirm the browser completed the PUT' })
+  confirmAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('attId', ParseUUIDPipe) attId: string,
+  ) {
+    return this.attachments.confirmUpload(user.entId, inqId, attId, user.id);
+  }
+
+  @Get(':inqId/attachments')
+  @ApiOperation({ summary: 'List attachments (filtered by role visibility)' })
+  async listAttachments(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Query('category') category?: 'TRANSCRIPT' | 'MATERIAL' | 'RESULT_PDF',
+  ) {
+    const rows = await this.attachments.list(user.entId, inqId, category);
+    const role = (user.role as AcmRole | undefined) ?? 'STAFF';
+    return rows.filter((r) => AttachmentService.canView(r, role));
+  }
+
+  @Get(':inqId/attachments/:attId/download')
+  @ApiOperation({ summary: 'Issue presigned GET URL (5 min) — visibility-guarded' })
+  async downloadAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('attId', ParseUUIDPipe) attId: string,
+  ) {
+    const rows = await this.attachments.list(user.entId, inqId);
+    const row = rows.find((r) => r.id === attId);
+    const role = (user.role as AcmRole | undefined) ?? 'STAFF';
+    if (!row || !AttachmentService.canView(row, role)) {
+      throw new ForbiddenException({ code: 'ATTACHMENT_FORBIDDEN' });
+    }
+    // NFR-CSL-104 — log the download (best-effort, doesn't block).
+    this.attachments.buildDownloadAuditPayload(row, user.id);
+    return this.attachments.getDownloadUrl(user.entId, inqId, attId);
+  }
+
+  @Delete(':inqId/attachments/:attId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Soft delete (STAFF↑)' })
+  async deleteAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('attId', ParseUUIDPipe) attId: string,
+  ): Promise<void> {
+    const role = user.role as AcmRole | undefined;
+    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    if (!isStaffPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
+    }
+    await this.attachments.softDelete(user.entId, inqId, attId);
   }
 }
