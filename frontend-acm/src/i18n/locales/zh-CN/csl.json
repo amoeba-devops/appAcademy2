@@ -89,6 +89,37 @@
     "notReached": "尚未到达此阶段"
   },
   "detail": {
+    "levelTest": {
+      "title": "2. 分级测试",
+      "skipHint": "※ 第1阶段已填写既有成绩的咨询可跳过本阶段，直接进入示范课。",
+      "empty": "无申请考试。请先在第1阶段选择申请目的。",
+      "col": {
+        "test": "考试",
+        "schedule": "考试预定日",
+        "teacher": "负责教师",
+        "status": "状态",
+        "actions": "成绩 / PDF"
+      },
+      "status": {
+        "PENDING": "待办",
+        "COMPLETED": "已完成",
+        "NOT_HELD": "未进行"
+      },
+      "scoreToggle": "输入成绩",
+      "scoreLockedHint": "仅在状态为已完成时可输入成绩",
+      "pdfLockedHint": "录入结果后可下载",
+      "scoreEditorHeader": "{{test}} 结果分数",
+      "recordResult": "保存结果（STAFF↑）",
+      "unifiedPdf": "下载汇总 PDF（全部已完成）",
+      "dialog": {
+        "title": "{{test}} 考试预定",
+        "date": "日期",
+        "time": "时间（30 分钟）",
+        "teacher": "负责教师",
+        "calHint": "保存时将自动登记至课程日历。",
+        "saveAndCal": "保存并登记 CAL"
+      }
+    },
     "intake": {
       "title": "1. 接收",
       "readOnlyHeader": "接收信息",

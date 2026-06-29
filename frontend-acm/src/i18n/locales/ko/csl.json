@@ -91,6 +91,37 @@
     "notReached": "아직 도달하지 않은 단계입니다"
   },
   "detail": {
+    "levelTest": {
+      "title": "2. 레벨테스트",
+      "skipHint": "※ 1단계에서 이전 점수를 입력한 인콰이어리는 본 단계를 스킵하고 데모수업으로 이동할 수 있습니다.",
+      "empty": "신청 시험이 없습니다. 1단계에서 신청 목적을 선택하세요.",
+      "col": {
+        "test": "시험",
+        "schedule": "응시예정일",
+        "teacher": "담당강사",
+        "status": "상태",
+        "actions": "결과/PDF"
+      },
+      "status": {
+        "PENDING": "대기",
+        "COMPLETED": "진행완료",
+        "NOT_HELD": "미진행"
+      },
+      "scoreToggle": "점수 입력",
+      "scoreLockedHint": "진행완료 상태에서만 점수 입력 가능",
+      "pdfLockedHint": "결과 입력 후 다운로드 가능",
+      "scoreEditorHeader": "{{test}} 결과 점수",
+      "recordResult": "결과 저장 (STAFF↑)",
+      "unifiedPdf": "통합 PDF 다운로드 (진행완료 모두)",
+      "dialog": {
+        "title": "{{test}} 응시예정일 지정",
+        "date": "날짜",
+        "time": "시간 (30분 단위)",
+        "teacher": "담당강사",
+        "calHint": "저장 시 수업일정(CAL)에 자동 등록됩니다.",
+        "saveAndCal": "저장 + CAL 등록"
+      }
+    },
     "intake": {
       "title": "1. 접수",
       "readOnlyHeader": "접수 정보",
