@@ -313,21 +313,6 @@ export class UpsertLevelTestDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
 
-  /**
-   * @deprecated REQ-260629 v0.2 (2026-06-30) — CSL stage 2/3 picker reverted
-   * to local strict select. Fields kept for back-compat in case a stale
-   * client still POSTs them; controller no longer honors them. Remove in
-   * a follow-up PR after FE rollout is verified.
-   */
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
-  teacherAmaUserId?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
-  teacherAmaName?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
-  teacherAmaEmail?: string;
-
   @ApiPropertyOptional({ enum: LEVEL_TEST_STATUSES })
   @IsOptional() @IsEnum(LEVEL_TEST_STATUSES)
   status?: LevelTestStatus;
@@ -370,16 +355,6 @@ export class CreateTrialClassDto {
   /** FR-CSL-123 — demo teacher (AMA Client via amb_acm_tch_teacher). */
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
-
-  /** @deprecated REQ-260629 v0.2 — see UpsertLevelTestDto.teacherAmaUserId. */
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
-  teacherAmaUserId?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
-  teacherAmaName?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
-  teacherAmaEmail?: string;
 }
 
 /**
@@ -401,16 +376,6 @@ export class UpdateTrialClassDto {
 
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   teacherId?: string;
-
-  /** @deprecated REQ-260629 v0.2 — see UpsertLevelTestDto.teacherAmaUserId. */
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(64)
-  teacherAmaUserId?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
-  teacherAmaName?: string;
-
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
-  teacherAmaEmail?: string;
 
   /** FR-CSL-125 — completion flag (replaces deprecated feedbackStatus). */
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
