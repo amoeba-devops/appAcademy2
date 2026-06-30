@@ -16,6 +16,7 @@ import {
   AttachmentVisibility,
 } from '../infrastructure/typeorm/attachment.typeorm-entity';
 import { ObjectStoreClient } from '../infrastructure/external/object-store.client';
+import { AuditService } from '../../acm-audit/application/audit.service';
 
 /**
  * REQ-260626 T-06 / ADR-008 — CSL attachment service.
@@ -57,6 +58,7 @@ export class AttachmentService {
     @InjectRepository(AttachmentTypeormEntity, ACM_DS)
     private readonly repo: Repository<AttachmentTypeormEntity>,
     private readonly store: ObjectStoreClient,
+    private readonly audit: AuditService,
   ) {}
 
   // ── Issue presigned upload ─────────────────────────────────────────────
@@ -215,18 +217,37 @@ export class AttachmentService {
   }
 
   /**
-   * NFR-CSL-104 — best-effort audit log of attachment downloads.
-   * Returns a structured payload that the controller can persist to
-   * the global audit_log table. Pulled out so it lives next to the
-   * row lookup.
+   * NFR-CSL-104 / REQ-260626 T-20 v2.1 — persist an attachment download
+   * to `amb_acm_audit_log`. Best-effort: any audit failure is logged but
+   * never blocks the presigned URL issuance (download UX > strict trail).
+   *
+   * action='EXPORT' is the closest fit in the AuditAction enum; the
+   * `reason` field carries the CSL-specific event tag so admin panels
+   * can filter for attachment downloads specifically.
    */
-  buildDownloadAuditPayload(row: AttachmentTypeormEntity, actorId: string) {
-    return {
-      action: 'acm.csl.attachment.download',
-      entId: row.entId,
-      actorId,
-      target: { attId: row.id, inqId: row.inqId, category: row.category },
-    };
+  async recordDownloadAudit(
+    row: AttachmentTypeormEntity,
+    actorId: string,
+    ip?: string | null,
+    userAgent?: string | null,
+  ): Promise<void> {
+    try {
+      await this.audit.record({
+        entId: row.entId,
+        userId: actorId,
+        action: 'EXPORT',
+        entityType: 'acm.csl.attachment',
+        entityId: row.id,
+        fieldName: row.category,
+        ip: ip ?? null,
+        userAgent: userAgent ?? null,
+        reason: `download:inq=${row.inqId}`,
+      });
+    } catch (err) {
+      this.log.warn(
+        `audit record failed for attId=${row.id} actor=${actorId}: ${(err as Error).message}`,
+      );
+    }
   }
 
   // ── Soft delete (STAFF↑) ──────────────────────────────────────────────

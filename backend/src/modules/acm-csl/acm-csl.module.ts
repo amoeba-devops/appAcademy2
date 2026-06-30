@@ -30,6 +30,8 @@ import { LevelTestPdfService } from './application/level-test-pdf.service';
 // REQ-260626 T-08 — CAL event linkage on level-test + demo-class scheduling
 import { CslCalLinkerService } from './application/csl-cal-linker.service';
 import { AcmCalModule } from '../acm-cal/acm-cal.module';
+// REQ-260626 T-20 v2.1 — attachment download audit_log persistence
+import { AcmAuditModule } from '../acm-audit/acm-audit.module';
 // REQ-260626 T-06 / ADR-008 — attachment upload (MinIO/S3)
 import { AttachmentService } from './application/attachment.service';
 import { ObjectStoreClient } from './infrastructure/external/object-store.client';
@@ -62,6 +64,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
       ACM_DS,
     ),
     AcmCalModule,
+    AcmAuditModule,
   ],
   controllers: [InquiryController, WebInquiryController, CourseController],
   providers: [
