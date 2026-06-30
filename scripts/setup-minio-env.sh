@@ -10,6 +10,16 @@
 # Credentials are generated server-side, so they never appear in this
 # script's stdout (or any local logs).
 #
+# IMPORTANT — every `docker compose` invocation MUST pass --env-file
+# pointing to the .env.{staging,production} file. Without it docker
+# compose defaults to `.env` (which doesn't exist on these hosts), so
+# every `${VAR}` interpolation (MYSQL_PASSWORD, ACM_PG_PASSWORD, DATA_DIR,
+# …) resolves to empty string — and that recreates mysql/postgres-acm
+# containers with empty env + a fresh data dir → both DBs crash-loop with
+# "uninitialized + password not specified" and backend goes 502 (this
+# happened on prod 2026-06-29). See deploy-{staging,production}.sh which
+# build COMPOSE the same way.
+#
 # Guide: docs/deployment/SETUP-260629-minio-attachment-store.md
 
 set -euo pipefail
@@ -60,17 +70,17 @@ else
 fi
 
 echo "[boot] docker compose up -d minio minio-init backend"
-docker compose -f $COMPOSE_FILE up -d minio minio-init backend
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE up -d minio minio-init backend
 
 sleep 5
 echo ""
 echo "── minio service ─────────────────────────────────"
-docker compose -f $COMPOSE_FILE ps minio
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE ps minio
 echo ""
 echo "── minio-init log (bucket creation) ──────────────"
-docker compose -f $COMPOSE_FILE logs minio-init --tail 10 || true
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE logs minio-init --tail 10 || true
 echo ""
 echo "── backend ObjectStoreClient log ─────────────────"
-docker compose -f $COMPOSE_FILE logs backend --tail 50 | grep ObjectStoreClient || \
+docker compose -f $COMPOSE_FILE --env-file $ENV_FILE logs backend --tail 50 | grep ObjectStoreClient || \
   echo "[warn] ObjectStoreClient log not found yet — re-run 'logs backend --tail 100' in ~30s."
 EOF
