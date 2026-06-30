@@ -134,7 +134,7 @@
         "date": "Date",
         "time": "Time (30-min slot)",
         "teacher": "Assigned teacher",
-        "amaPickerHint": "Search and pick from the AMA directory. The teacher master will be auto-created on save.",
+        "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
         "calHint": "Will be registered on the class calendar automatically.",
         "saveAndCal": "Save + CAL register"
       }
@@ -240,6 +240,7 @@
       "heldTime": "Time (30-min)",
       "teacher": "Assigned teacher",
       "noTeacher": "Unassigned",
+      "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
       "completed": "Completed",
       "feedbackStatus": "Feedback",
       "note": "Note",

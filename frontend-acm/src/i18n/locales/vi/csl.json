@@ -132,7 +132,7 @@
         "date": "Ngày",
         "time": "Giờ (30 phút)",
         "teacher": "Giáo viên",
-        "amaPickerHint": "Tìm và chọn từ thư mục AMA. Master giáo viên sẽ được tự động tạo khi lưu.",
+        "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
         "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
         "saveAndCal": "Lưu + đăng ký CAL"
       }
@@ -238,6 +238,7 @@
       "heldTime": "Giờ (30 phút)",
       "teacher": "Giáo viên phụ trách",
       "noTeacher": "Chưa chỉ định",
+      "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
       "completed": "Hoàn thành",
       "feedbackStatus": "Phản hồi",
       "note": "Ghi chú",

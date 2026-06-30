@@ -313,8 +313,10 @@ export class InquiryController {
     @Param('testType') testType: string,
     @Body() dto: UpsertLevelTestDto,
   ) {
-    // REQ-260629 FR-302/303 — translate AMA userId → local teacherId via
-    // lazy upsert before persisting on the level-test row.
+    // REQ-260629 v0.2 — picker is local strict select; this lazy-upsert
+    // branch is a no-op for current clients. Retained for back-compat
+    // (older FE bundles still POSTing teacherAmaUserId) and will be
+    // removed in a follow-up.
     const resolved = { ...dto };
     if (dto.teacherAmaUserId) {
       const upserted = await this.tchService.upsertFromAma(user.entId, {
@@ -432,7 +434,7 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: CreateTrialClassDto,
   ) {
-    // REQ-260629 — AMA userId → local teacherId lazy upsert.
+    // REQ-260629 v0.2 — see upsertLevelTest comment; no-op for current FE.
     const resolved = { ...dto };
     if (dto.teacherAmaUserId) {
       const upserted = await this.tchService.upsertFromAma(user.entId, {

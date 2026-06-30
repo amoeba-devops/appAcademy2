@@ -1,7 +1,7 @@
 ---
 document_id: REQ-260629-acm-ama-directory-teacher-picker
-version: 0.1.0
-status: Draft
+version: 0.2.0
+status: Approved
 created: 2026-06-29
 product_code: ACM
 title: ACM TCH AMA 디렉토리 검색 + CSL 단계별 강사 픽커 AMA 통합
@@ -18,6 +18,7 @@ related:
   - frontend-acm/src/components/common/ama-user-picker.tsx (공용 picker)
 change_log:
   - { version: 0.1.0, date: 2026-06-29, author: Claude, notes: "초안 — TCH list 페이지 AMA 검색 섹션 + CSL stage 2/3 picker AMA 교체 + tch_ama_user_id 영속화" }
+  - { version: 0.2.0, date: 2026-06-30, author: Claude, notes: "FR-AMA-302 개정 — 운영자 결정에 따라 CSL stage 2/3 picker 를 AMA 검색 → **로컬 강사 select 로 환원**. 강사 등록 흐름은 /admin/tch (AMA 디렉토리 섹션 포함, FR-301) 에 집중. lazy upsert (FR-303) 와 ama-import endpoint (FR-305) 는 그대로 유지 (TCH 모듈 내부에서만 사용)." }
 ---
 
 # REQ-260629 — ACM TCH AMA 디렉토리 검색 + CSL 단계별 강사 픽커 AMA 통합
@@ -57,14 +58,17 @@ CSL 단계에서 AMA 마스터를 1차 진실원천으로 본다. 로컬 `amb_ac
 - "강사 등록" 클릭 → 기존 TchFormModal 오픈 + 해당 AMA user 정보 prefill (name/email/amaUserId)
 - 이미 로컬 강사로 등록된 AMA user 는 결과에서 "이미 등록됨" 뱃지 + 클릭 시 해당 강사 편집 모달 오픈
 
-### FR-AMA-302 — CSL stage 2/3 picker AMA 교체
+### FR-AMA-302 — CSL stage 2/3 picker (v0.2 개정 — **로컬 강사 strict select**)
 
-- LevelTestScheduleDialog (stage 2): 기존 `<select>` 의 teachers → `AmaUserPicker` 로 교체
-- DemoClassRow (stage 3): 동일 교체
-- AmaUserPicker `levels` prop = `['MANAGER', 'MEMBER', 'VIEWER']` (OWNER 는 server-side 가드, 어차피 응답 안 옴)
-- 저장 시 backend 는 AMA userId 를 받아 lazy upsert (FR-AMA-303) → 로컬 teacher row 의 UUID 를 반환 / 저장
-- 픽커는 이름 · 이메일 · 레벨 배지 표시 (기존 AmaUserPicker UX 그대로)
-- 한 row 의 schedule modal 안에서 선택 → `PUT /level-tests/:type` 또는 `PATCH /trial-classes/:tclId` 로 전송
+> 🔄 **v0.1 → v0.2 변경 (2026-06-30)** — 운영자 결정에 따라 본 picker 는 AMA 검색이 아닌 **`/admin/tch` 에 등록된 로컬 강사 리스트만** 노출한다. 강사 등록(AMA 검색 포함) 은 `/admin/tch` (FR-301) 에 1회 집중, CSL 단계에서는 등록된 강사 풀에서만 선택.
+
+- LevelTestScheduleDialog (stage 2): teacher `<select>` 는 `GET /acm/tch/teachers` 응답을 source로 사용. 빈 결과면 "강사 미등록 — /admin/tch 에서 추가 필요" 안내.
+- TrialClassPanel 의 create form + DemoClassRow.edit 동일.
+- 백엔드 lazy upsert (FR-303) 와 `POST /teachers/ama-import` (FR-305) 는 그대로 유지하되, CSL 컨트롤러는 더 이상 `teacherAmaUserId` 경로를 사용하지 않음. DTO 필드는 deprecated 표시로 남겨두어 후속 PR 에서 일괄 제거 (back-compat 안전망).
+- 운영 흐름:
+  1. 운영자가 `/admin/tch` 에서 강사를 등록 (AMA 검색 → "강사 등록" OR 수동 등록)
+  2. `/admin/csl/<inq>` 단계 2/3 에서 등록된 강사 풀에서 선택
+  3. 로컬에 없는 사람을 강사로 쓰려면 먼저 `/admin/tch` 에서 등록 단계 거쳐야 함
 
 ### FR-AMA-303 — 백엔드 lazy upsert (강사 자동 등록)
 
