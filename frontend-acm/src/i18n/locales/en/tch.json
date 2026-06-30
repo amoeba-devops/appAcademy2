@@ -106,7 +106,10 @@
   "error": {
     "passwordShort": "Password must be at least 8 characters.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordComplexity": "Must include letters and digits."
+    "passwordComplexity": "Must include letters and digits.",
+    "nameDuplicate": "Name [{{value}}] is already in use. Please enter a different one.",
+    "englishNameDuplicate": "English name [{{value}}] is already in use. Please enter a different one.",
+    "emailDuplicate": "Email [{{value}}] is already in use. Please enter a different one."
   },
   "toast": {
     "passwordReset": "Password has been reset."

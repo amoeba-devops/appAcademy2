@@ -106,7 +106,10 @@
   "error": {
     "passwordShort": "Mật khẩu phải ≥ 8 ký tự.",
     "passwordMismatch": "Mật khẩu không khớp.",
-    "passwordComplexity": "Phải có cả chữ và số."
+    "passwordComplexity": "Phải có cả chữ và số.",
+    "nameDuplicate": "Tên [{{value}}] đã được dùng. Vui lòng nhập tên khác.",
+    "englishNameDuplicate": "Tên tiếng Anh [{{value}}] đã được dùng. Vui lòng nhập tên khác.",
+    "emailDuplicate": "Email [{{value}}] đã được dùng. Vui lòng nhập email khác."
   },
   "toast": {
     "passwordReset": "Mật khẩu đã được đặt lại."

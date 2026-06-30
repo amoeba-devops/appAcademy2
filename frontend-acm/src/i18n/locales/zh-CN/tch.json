@@ -106,7 +106,10 @@
   "error": {
     "passwordShort": "密码至少 8 位。",
     "passwordMismatch": "两次密码不一致。",
-    "passwordComplexity": "需包含字母和数字。"
+    "passwordComplexity": "需包含字母和数字。",
+    "nameDuplicate": "姓名 [{{value}}] 已被使用，请重新输入。",
+    "englishNameDuplicate": "英文名 [{{value}}] 已被使用，请重新输入。",
+    "emailDuplicate": "邮箱 [{{value}}] 已被使用，请重新输入。"
   },
   "toast": {
     "passwordReset": "密码已重置。"
