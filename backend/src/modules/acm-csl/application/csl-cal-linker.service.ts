@@ -70,6 +70,8 @@ export class CslCalLinkerService {
       title,
       scheduledAt: mt.scheduledAt,
       scheduledTime: mt.scheduledTime,
+      // REQ-260630 FR-A02 — surface the level-test teacher as the event's 담당자.
+      assigneeTchId: mt.teacherId ?? null,
       storeFn: async (calId) => {
         await this.mapTests.update({ id: mt.id }, { calEventId: calId });
       },
@@ -104,6 +106,8 @@ export class CslCalLinkerService {
       title,
       scheduledAt: tcl.heldAt,
       scheduledTime: tcl.heldTime,
+      // REQ-260630 FR-A02 — demo-class teacher → calendar 담당자.
+      assigneeTchId: tcl.teacherId ?? null,
       storeFn: async (calId) => {
         await this.trialClasses.update({ id: tcl.id }, { calEventId: calId });
       },
@@ -129,6 +133,8 @@ export class CslCalLinkerService {
     title: string;
     scheduledAt: string;
     scheduledTime: string;
+    /** REQ-260630 — null when the source row has no teacher assigned. */
+    assigneeTchId: string | null;
     storeFn: (calId: string) => Promise<void>;
     logTag: string;
   }): Promise<string | null> {
@@ -154,6 +160,10 @@ export class CslCalLinkerService {
           // (CLASS is reserved for ongoing enrollments, not one-offs).
           evtCategory: 'EVENT',
           evtMeetingProvider: 'NONE',
+          // REQ-260630 — teacher pre-set on the CSL row becomes the
+          // calendar event's 담당자. Omit when null so service treats it
+          // as "no assignee".
+          evtAssigneeTchId: input.assigneeTchId ?? undefined,
         },
       );
       await input.storeFn(event.id);

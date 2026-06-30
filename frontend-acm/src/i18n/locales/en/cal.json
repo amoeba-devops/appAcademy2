@@ -28,7 +28,9 @@
     "locationText": "Location",
     "meetingProvider": "Meeting provider",
     "meetingUrl": "Meeting URL",
-    "creator": "Creator"
+    "creator": "Creator",
+    "assignee": "Assignee",
+    "assigneeNone": "Unassigned"
   },
   "form": {
     "titleCreate": "Add Event",
