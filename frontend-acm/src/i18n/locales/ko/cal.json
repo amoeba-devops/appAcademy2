@@ -28,7 +28,9 @@
     "locationText": "장소",
     "meetingProvider": "화상 미팅",
     "meetingUrl": "미팅 URL",
-    "creator": "작성자"
+    "creator": "작성자",
+    "assignee": "담당자",
+    "assigneeNone": "미지정"
   },
   "form": {
     "titleCreate": "일정 등록",

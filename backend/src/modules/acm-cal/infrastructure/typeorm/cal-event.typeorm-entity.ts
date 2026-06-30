@@ -47,6 +47,13 @@ export class CalEventTypeormEntity {
   @Column({ name: 'evt_cls_id', type: 'uuid', nullable: true })
   clsId?: string | null;
 
+  /**
+   * REQ-260630 — 담당자 강사. Separate from `ownerUserId` (작성자) and
+   * the `amb_acm_cal_invitee` rows (참석자). FK ON DELETE SET NULL.
+   */
+  @Column({ name: 'evt_assignee_tch_id', type: 'uuid', nullable: true })
+  assigneeTchId?: string | null;
+
   @Column({ name: 'evt_source', type: 'varchar', length: 20, default: 'MANUAL' })
   source!: CalSource;
 

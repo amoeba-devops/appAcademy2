@@ -28,7 +28,9 @@
     "locationText": "Địa điểm",
     "meetingProvider": "Họp trực tuyến",
     "meetingUrl": "URL họp",
-    "creator": "Người tạo"
+    "creator": "Người tạo",
+    "assignee": "Người phụ trách",
+    "assigneeNone": "Chưa chỉ định"
   },
   "form": {
     "titleCreate": "Thêm sự kiện",

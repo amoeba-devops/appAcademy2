@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ACM_DS } from '../../acm-common/datasource';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
@@ -29,6 +30,8 @@ export class CalEventService {
     private readonly repo: Repository<CalEventTypeormEntity>,
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    @InjectRepository(TeacherTypeormEntity, ACM_DS)
+    private readonly tchRepo: Repository<TeacherTypeormEntity>,
     private readonly inviteeSvc: CalInviteeService,
     private readonly notifier: InviteeNotifierService,
     private readonly bodaRoomSvc: BodaRoomService,
@@ -99,6 +102,10 @@ export class CalEventService {
     const items = await qb.getMany();
 
     const ownerMap = await this.lookupOwners(entId, items.map((i) => i.ownerUserId));
+    const assigneeMap = await this.lookupAssignees(
+      entId,
+      items.map((i) => i.assigneeTchId),
+    );
     const counts = await this.inviteeSvc.countsByEvent(entId, items.map((i) => i.id));
 
     return {
@@ -106,6 +113,12 @@ export class CalEventService {
         ...this.toDetail(e),
         ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
         ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
+        assigneeName: e.assigneeTchId
+          ? assigneeMap.get(e.assigneeTchId)?.name ?? null
+          : null,
+        assigneeEmail: e.assigneeTchId
+          ? assigneeMap.get(e.assigneeTchId)?.email ?? null
+          : null,
         inviteeCount: counts.get(e.id) ?? 0,
       })),
     };
@@ -117,12 +130,19 @@ export class CalEventService {
     this.assertCanView(e, actorUserId, actorRole);
 
     const ownerMap = await this.lookupOwners(entId, [e.ownerUserId]);
+    const assigneeMap = await this.lookupAssignees(entId, [e.assigneeTchId]);
     const invitees = await this.inviteeSvc.listForEvent(entId, e.id);
 
     return {
       ...this.toDetail(e),
       ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
+      assigneeName: e.assigneeTchId
+        ? assigneeMap.get(e.assigneeTchId)?.name ?? null
+        : null,
+      assigneeEmail: e.assigneeTchId
+        ? assigneeMap.get(e.assigneeTchId)?.email ?? null
+        : null,
       invitees,
     };
   }
@@ -161,6 +181,7 @@ export class CalEventService {
       meetingProvider: dto.evtMeetingProvider ?? 'NONE',
       meetingUrl: dto.evtMeetingUrl ?? null,
       clsId: dto.evtClsId ?? null,
+      assigneeTchId: dto.evtAssigneeTchId ?? null,
       source: 'MANUAL',
     });
     const saved = await this.repo.save(entity);
@@ -187,11 +208,18 @@ export class CalEventService {
     }
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
+    const assigneeMap = await this.lookupAssignees(entId, [saved.assigneeTchId]);
     const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
     return {
       ...this.toDetail(saved),
       ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
+      assigneeName: saved.assigneeTchId
+        ? assigneeMap.get(saved.assigneeTchId)?.name ?? null
+        : null,
+      assigneeEmail: saved.assigneeTchId
+        ? assigneeMap.get(saved.assigneeTchId)?.email ?? null
+        : null,
       invitees,
       notifySummary,
     };
@@ -218,6 +246,7 @@ export class CalEventService {
     if (dto.evtMeetingProvider !== undefined) e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
+    if (dto.evtAssigneeTchId !== undefined) e.assigneeTchId = dto.evtAssigneeTchId;
 
     if (e.endAt <= e.startAt) throw new BadRequestException('END_BEFORE_START');
     this.validateMeeting(e.meetingProvider, e.meetingUrl ?? undefined);
@@ -234,11 +263,18 @@ export class CalEventService {
     }
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
+    const assigneeMap = await this.lookupAssignees(entId, [saved.assigneeTchId]);
     const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
     return {
       ...this.toDetail(saved),
       ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
+      assigneeName: saved.assigneeTchId
+        ? assigneeMap.get(saved.assigneeTchId)?.name ?? null
+        : null,
+      assigneeEmail: saved.assigneeTchId
+        ? assigneeMap.get(saved.assigneeTchId)?.email ?? null
+        : null,
       invitees,
       notifySummary,
     };
@@ -267,6 +303,28 @@ export class CalEventService {
     const unique = Array.from(new Set(ids.filter(Boolean)));
     if (unique.length === 0) return map;
     const rows = await this.userRepo.find({
+      where: { id: In(unique), entId },
+      select: ['id', 'name', 'email'],
+    });
+    for (const r of rows) map.set(r.id, { name: r.name, email: r.email });
+    return map;
+  }
+
+  /**
+   * REQ-260630 — resolve teacher names/emails for the assignee column.
+   * Soft-deleted teachers (`deleted_at IS NOT NULL`) still resolve so a
+   * historical event's display doesn't go blank.
+   */
+  private async lookupAssignees(
+    entId: string,
+    ids: (string | null | undefined)[],
+  ): Promise<Map<string, { name: string; email: string }>> {
+    const map = new Map<string, { name: string; email: string }>();
+    const unique = Array.from(
+      new Set(ids.filter((x): x is string => typeof x === 'string' && x.length > 0)),
+    );
+    if (unique.length === 0) return map;
+    const rows = await this.tchRepo.find({
       where: { id: In(unique), entId },
       select: ['id', 'name', 'email'],
     });
@@ -316,6 +374,7 @@ export class CalEventService {
     meetingProvider: e.meetingProvider,
     meetingUrl: e.meetingUrl,
     clsId: e.clsId,
+    assigneeTchId: e.assigneeTchId ?? null,
     source: e.source,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
