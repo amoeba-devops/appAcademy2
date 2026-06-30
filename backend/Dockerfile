@@ -20,7 +20,12 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
-RUN apk add --no-cache tini && addgroup -S app && adduser -S app -G app
+# font-nanum: CJK font required by LevelTestPdfService to render Korean
+# student / parent / teacher names + Korean labels in the unified level
+# test PDF. Installs into /usr/share/fonts/nanum/NanumGothic.ttf — the
+# PDF service registers it on first use and falls back to Helvetica with
+# a warning when the path is missing (dev / local hosts).
+RUN apk add --no-cache tini font-nanum && addgroup -S app && adduser -S app -G app
 COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --legacy-peer-deps
 COPY --from=build /app/dist ./dist
