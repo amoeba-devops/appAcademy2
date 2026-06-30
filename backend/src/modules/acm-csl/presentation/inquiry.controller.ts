@@ -665,6 +665,8 @@ export class InquiryController {
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('attId', ParseUUIDPipe) attId: string,
+    @Ip() ip: string,
+    @Headers('user-agent') userAgent?: string,
   ) {
     const rows = await this.attachments.list(user.entId, inqId);
     const row = rows.find((r) => r.id === attId);
@@ -672,8 +674,10 @@ export class InquiryController {
     if (!row || !AttachmentService.canView(row, role)) {
       throw new ForbiddenException({ code: 'ATTACHMENT_FORBIDDEN' });
     }
-    // NFR-CSL-104 — log the download (best-effort, doesn't block).
-    this.attachments.buildDownloadAuditPayload(row, user.id);
+    // NFR-CSL-104 / T-20 v2.1 — persist to amb_acm_audit_log (best-effort,
+    // any failure is swallowed inside the service so the download URL still
+    // returns 200).
+    await this.attachments.recordDownloadAudit(row, user.id, ip, userAgent);
     return this.attachments.getDownloadUrl(user.entId, inqId, attId);
   }
 

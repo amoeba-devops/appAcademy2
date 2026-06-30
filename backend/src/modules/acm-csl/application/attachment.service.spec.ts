@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AttachmentTypeormEntity } from '../infrastructure/typeorm/attachment.typeorm-entity';
 import { ObjectStoreClient } from '../infrastructure/external/object-store.client';
+import { AuditService } from '../../acm-audit/application/audit.service';
 import { AttachmentService } from './attachment.service';
 
 /**
@@ -19,6 +20,7 @@ describe('AttachmentService', () => {
   let storeIsConfigured: jest.Mock;
   let storeBuildKey: jest.Mock;
   let storePresignPut: jest.Mock;
+  let auditRecord: jest.Mock;
 
   beforeEach(async () => {
     repoCount = jest.fn().mockResolvedValue(0);
@@ -28,6 +30,7 @@ describe('AttachmentService', () => {
     storeIsConfigured = jest.fn().mockReturnValue(true);
     storeBuildKey = jest.fn().mockReturnValue('e1/att-1/foo.pdf');
     storePresignPut = jest.fn().mockResolvedValue('https://minio/sig');
+    auditRecord = jest.fn().mockResolvedValue({ id: 'aud-1' });
 
     const mod = await Test.createTestingModule({
       providers: [
@@ -52,6 +55,10 @@ describe('AttachmentService', () => {
             findOne: repoFindOne,
             createQueryBuilder: jest.fn(),
           },
+        },
+        {
+          provide: AuditService,
+          useValue: { record: auditRecord },
         },
       ],
     }).compile();
@@ -167,6 +174,46 @@ describe('AttachmentService', () => {
       sizeBytes: 100,
     });
     expect(capturedRow?.visibility).toBe('STAFF_ONLY');
+  });
+
+  describe('recordDownloadAudit (T-20 v2.1)', () => {
+    const baseRow = {
+      id: 'att-9',
+      entId: 'e1',
+      inqId: 'inq-9',
+      category: 'TRANSCRIPT',
+      visibility: 'STAFF_ONLY',
+    } as unknown as AttachmentTypeormEntity;
+
+    it('persists an EXPORT row with attachment metadata + reason tag', async () => {
+      await svc.recordDownloadAudit(baseRow, 'user-7', '10.0.0.1', 'jest');
+      expect(auditRecord).toHaveBeenCalledTimes(1);
+      expect(auditRecord).toHaveBeenCalledWith({
+        entId: 'e1',
+        userId: 'user-7',
+        action: 'EXPORT',
+        entityType: 'acm.csl.attachment',
+        entityId: 'att-9',
+        fieldName: 'TRANSCRIPT',
+        ip: '10.0.0.1',
+        userAgent: 'jest',
+        reason: 'download:inq=inq-9',
+      });
+    });
+
+    it('swallows audit failures so the download URL still returns', async () => {
+      auditRecord.mockRejectedValueOnce(new Error('db down'));
+      await expect(
+        svc.recordDownloadAudit(baseRow, 'user-7'),
+      ).resolves.toBeUndefined();
+    });
+
+    it('omits ip/userAgent when not provided', async () => {
+      await svc.recordDownloadAudit(baseRow, 'user-7');
+      expect(auditRecord).toHaveBeenCalledWith(
+        expect.objectContaining({ ip: null, userAgent: null }),
+      );
+    });
   });
 
   describe('canView visibility helper', () => {
