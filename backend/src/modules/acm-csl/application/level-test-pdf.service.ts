@@ -37,9 +37,14 @@ import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teach
  *     (name + email) are looked up and printed alongside student info.
  */
 const KOREAN_FONT_CANDIDATES = [
+  // Path baked into the runtime Dockerfile (downloaded NanumGothic OFL).
+  '/usr/share/fonts/korean/NanumGothic.ttf',
+  // Common alpine apk-installed paths (kept as fallbacks for hosts that
+  // already have font-nanum or font-noto-cjk installed system-wide).
   '/usr/share/fonts/nanum/NanumGothic.ttf',
   '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
   '/usr/share/fonts/TTF/NanumGothic.ttf',
+  '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
 ];
 const KOREAN_FONT_PATH: string | null =
   KOREAN_FONT_CANDIDATES.find((p) => existsSync(p)) ?? null;
