@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -71,20 +70,15 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
-      // 1. issue presigned URL
-      const { data } = await apiClient.post<{
-        attId: string;
-        presignedUrl: string;
-      }>(`/acm/csl/inquiries/${inqId}/attachments/presigned-upload`, {
-        category,
-        filename: file.name,
-        mime: file.type,
-        sizeBytes: file.size,
-        refId: refId ?? undefined,
-      });
-      // 2. PUT to MinIO/S3
-      await axios.put(data.presignedUrl, file, {
-        headers: { 'Content-Type': file.type },
+      // FIX-260630 — single-step backend-proxied multipart upload.
+      // (Previous presigned-PUT scheme blocked by Mixed Content because
+      // MinIO is on a docker-internal hostname.)
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('category', category);
+      if (refId) fd.append('refId', refId);
+      await apiClient.post(`/acm/csl/inquiries/${inqId}/attachments`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (e) => {
           const total = e.total;
           if (total) {
@@ -92,10 +86,6 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
           }
         },
       });
-      // 3. confirm
-      await apiClient.post(
-        `/acm/csl/inquiries/${inqId}/attachments/${data.attId}/confirm`,
-      );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: listKey }),
   });
@@ -145,15 +135,29 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
     onSuccess: () => qc.invalidateQueries({ queryKey: listKey }),
   });
 
-  async function download(attId: string): Promise<void> {
+  async function download(attId: string, fallbackName: string): Promise<void> {
     try {
-      const { data } = await apiClient.get<{ url: string; filename: string }>(
+      // FIX-260630 — backend streams the file body directly (no presigned
+      // URL). We fetch as blob + use Content-Disposition for the filename
+      // when available, fallback to the row's filename.
+      const res = await apiClient.get<Blob>(
         `/acm/csl/inquiries/${inqId}/attachments/${attId}/download`,
+        { responseType: 'blob' },
       );
+      const cd =
+        (res.headers as Record<string, string | undefined> | undefined)?.[
+          'content-disposition'
+        ] ?? '';
+      const match = /filename\*?=(?:UTF-8'')?([^";]+)/i.exec(cd);
+      const filename = match ? decodeURIComponent(match[1]) : fallbackName;
+      const url = URL.createObjectURL(res.data);
       const a = document.createElement('a');
-      a.href = data.url;
-      a.download = data.filename;
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
       window.alert(err.response?.data?.message ?? 'Download failed');
@@ -244,7 +248,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => void download(r.id)}
+                onClick={() => void download(r.id, r.filename)}
                 className="h-7 text-xs px-2"
               >
                 ↓

@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'stream';
 import {
   S3Client,
   HeadObjectCommand,
@@ -149,5 +150,53 @@ export class ObjectStoreClient implements OnModuleInit {
   async delete(key: string): Promise<void> {
     const { client, bucket } = this.requireClient();
     await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+  }
+
+  /**
+   * Backend-proxied upload (FIX-260630 PDF Mixed Content). The browser
+   * cannot hit MinIO directly via presigned PUT because MinIO is on the
+   * docker internal hostname (`http://minio:9000`) which (a) doesn't
+   * resolve from the browser and (b) violates HTTPS Mixed Content.
+   * Backend receives the file then streams it through to MinIO.
+   */
+  async putObject(opts: {
+    key: string;
+    body: Buffer;
+    mime: string;
+  }): Promise<void> {
+    const { client, bucket } = this.requireClient();
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: opts.key,
+        Body: opts.body,
+        ContentType: opts.mime,
+        ContentLength: opts.body.length,
+      }),
+    );
+  }
+
+  /**
+   * Stream an object back to the controller, which forwards it to the
+   * browser with Content-Disposition. Avoids buffering the whole object
+   * in memory.
+   */
+  async getObjectStream(key: string): Promise<{
+    stream: Readable;
+    mime?: string;
+    contentLength?: number;
+  }> {
+    const { client, bucket } = this.requireClient();
+    const res = await client.send(
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+    );
+    if (!res.Body) {
+      throw new Error('OBJECT_BODY_EMPTY');
+    }
+    return {
+      stream: res.Body as Readable,
+      mime: res.ContentType,
+      contentLength: res.ContentLength,
+    };
   }
 }

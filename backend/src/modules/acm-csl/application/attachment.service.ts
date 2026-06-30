@@ -1,6 +1,6 @@
+import { Readable } from 'stream';
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -42,11 +42,8 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 const MAX_PER_INQ_CATEGORY = 10;
 const ALLOWED_MIMES: AttachmentMime[] = ['application/pdf', 'image/jpeg', 'image/png'];
 
-interface PresignedUploadOpts {
+interface UploadOpts {
   category: AttachmentCategory;
-  filename: string;
-  mime: string;
-  sizeBytes: number;
   refId?: string | null;
 }
 
@@ -61,34 +58,45 @@ export class AttachmentService {
     private readonly audit: AuditService,
   ) {}
 
-  // ── Issue presigned upload ─────────────────────────────────────────────
+  // ── Upload (backend-proxied) ──────────────────────────────────────────
 
-  async issuePresignedUpload(
+  /**
+   * FIX-260630 — single-step multipart upload. Replaces the previous
+   * presigned PUT flow because MinIO sits on the docker internal hostname
+   * (`http://minio:9000`) so the browser couldn't reach it directly
+   * (Mixed Content + DNS). Backend receives the file via multer, validates,
+   * streams the buffer to MinIO via the internal client, then writes the
+   * att row in a single atomic operation.
+   */
+  async upload(
     entId: string,
     inqId: string,
-    opts: PresignedUploadOpts,
-  ): Promise<{
-    attId: string;
-    s3Key: string;
-    presignedUrl: string;
-    expiresIn: number;
-  }> {
+    file: Express.Multer.File | undefined,
+    opts: UploadOpts,
+    actorId: string,
+  ): Promise<AttachmentTypeormEntity> {
     if (!this.store.isConfigured()) {
       throw new ServiceUnavailableException({
         code: 'OBJECT_STORE_NOT_CONFIGURED',
         message: 'Attachment storage is not configured (set ACM_S3_* env)',
       });
     }
-    if (opts.sizeBytes <= 0 || opts.sizeBytes > MAX_SIZE_BYTES) {
+    if (!file) {
       throw new BadRequestException({
-        code: 'SIZE_EXCEEDED',
-        message: `File size must be 1B..10MB (got ${opts.sizeBytes})`,
+        code: 'FILE_REQUIRED',
+        message: 'multipart "file" part missing',
       });
     }
-    if (!ALLOWED_MIMES.includes(opts.mime as AttachmentMime)) {
+    if (file.size <= 0 || file.size > MAX_SIZE_BYTES) {
+      throw new BadRequestException({
+        code: 'SIZE_EXCEEDED',
+        message: `File size must be 1B..10MB (got ${file.size})`,
+      });
+    }
+    if (!ALLOWED_MIMES.includes(file.mimetype as AttachmentMime)) {
       throw new BadRequestException({
         code: 'MIME_NOT_ALLOWED',
-        message: `Only ${ALLOWED_MIMES.join(', ')} are allowed (got ${opts.mime})`,
+        message: `Only ${ALLOWED_MIMES.join(', ')} are allowed (got ${file.mimetype})`,
       });
     }
     const count = await this.repo.count({
@@ -101,68 +109,46 @@ export class AttachmentService {
       });
     }
 
+    // multer's originalname is latin1-decoded (FIX-260512 same root cause as
+    // teacher attachment). Re-encode to UTF-8 so Korean filenames don't
+    // arrive corrupted.
+    const filename = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
     const visibility = this.defaultVisibility(opts.category);
     const row = this.repo.create({
       entId,
       inqId,
       category: opts.category,
       refId: opts.refId ?? null,
-      s3Key: '', // filled below
-      filename: opts.filename,
-      mime: opts.mime as AttachmentMime,
-      sizeBytes: String(opts.sizeBytes),
+      s3Key: '',
+      filename,
+      mime: file.mimetype as AttachmentMime,
+      sizeBytes: String(file.size),
       visibility,
-      uploadedBy: null,
+      uploadedBy: actorId,
     });
     const saved = await this.repo.save(row);
-    saved.s3Key = this.store.buildKey(entId, saved.id, opts.filename);
+    saved.s3Key = this.store.buildKey(entId, saved.id, filename);
     await this.repo.save(saved);
 
-    const presignedUrl = await this.store.presignPut({
-      key: saved.s3Key,
-      mime: opts.mime,
-      sizeBytes: opts.sizeBytes,
-    });
-    return {
-      attId: saved.id,
-      s3Key: saved.s3Key,
-      presignedUrl,
-      expiresIn: 300,
-    };
-  }
-
-  // ── Confirm the PUT completed ─────────────────────────────────────────
-
-  async confirmUpload(
-    entId: string,
-    inqId: string,
-    attId: string,
-    actorId: string,
-  ): Promise<AttachmentTypeormEntity> {
-    const row = await this.findOrThrow(entId, inqId, attId);
-    if (row.uploadedBy) {
-      // Idempotent — already confirmed.
-      return row;
-    }
-    const head = await this.store.head(row.s3Key);
-    if (!head) {
+    // Stream buffer to MinIO. Throws → row stays in DB with non-null
+    // uploadedBy but no object; cleanup is the operator's responsibility
+    // until a sweeper exists.
+    try {
+      await this.store.putObject({
+        key: saved.s3Key,
+        body: file.buffer,
+        mime: file.mimetype,
+      });
+    } catch (err) {
+      // Roll back the row so we don't show ghost entries in the list.
+      await this.repo.delete({ id: saved.id });
       throw new BadRequestException({
-        code: 'OBJECT_NOT_FOUND',
-        message: 'PUT to presigned URL did not complete — re-upload required',
+        code: 'OBJECT_STORE_PUT_FAILED',
+        message: (err as Error).message,
       });
     }
-    if (head.size !== Number(row.sizeBytes)) {
-      // The browser uploaded a different size than declared — reject so
-      // we don't end up with a row whose `size_bytes` lies. The object
-      // is left in place; the cleanup job can sweep dangling keys.
-      throw new BadRequestException({
-        code: 'SIZE_MISMATCH',
-        message: `Declared ${row.sizeBytes}B but stored ${head.size}B`,
-      });
-    }
-    row.uploadedBy = actorId;
-    await this.repo.save(row);
-    return row;
+    return saved;
   }
 
   // ── List + download ───────────────────────────────────────────────────
@@ -192,11 +178,22 @@ export class AttachmentService {
     return qb.getMany();
   }
 
-  async getDownloadUrl(
+  /**
+   * FIX-260630 — backend-proxied download. Returns a Node Readable for
+   * the controller to wrap in StreamableFile + Content-Disposition. Same
+   * reason as upload: presigned GET URL points at internal `minio:9000`
+   * which the browser can't reach over HTTPS Mixed Content.
+   */
+  async streamDownload(
     entId: string,
     inqId: string,
     attId: string,
-  ): Promise<{ url: string; filename: string; expiresIn: number }> {
+  ): Promise<{
+    stream: Readable;
+    filename: string;
+    mime: string;
+    sizeBytes: number;
+  }> {
     if (!this.store.isConfigured()) {
       throw new ServiceUnavailableException({
         code: 'OBJECT_STORE_NOT_CONFIGURED',
@@ -209,11 +206,13 @@ export class AttachmentService {
         message: 'Attachment upload was not confirmed',
       });
     }
-    const url = await this.store.presignGet({
-      key: row.s3Key,
+    const { stream, mime } = await this.store.getObjectStream(row.s3Key);
+    return {
+      stream,
       filename: row.filename,
-    });
-    return { url, filename: row.filename, expiresIn: 300 };
+      mime: mime ?? row.mime,
+      sizeBytes: Number(row.sizeBytes),
+    };
   }
 
   /**

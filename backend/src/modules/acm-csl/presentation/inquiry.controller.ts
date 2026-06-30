@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,10 +15,14 @@ import {
   Put,
   Query,
   Res,
+  StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
@@ -37,7 +42,6 @@ import {
   CreateCourseDto,
   CreateInquiryDto,
   CreateTrialClassDto,
-  PresignedUploadDto,
   RecordLevelTestResultDto,
   UpdateCourseDto,
   UpdateInquiryDto,
@@ -614,37 +618,41 @@ export class InquiryController {
     return this.workflow.listRemarks(user.entId, inqId);
   }
 
-  // ── REQ-260626 T-06 / ADR-008 — Attachments (presigned upload to MinIO/S3) ──
+  // ── REQ-260626 T-06 / ADR-008 — Attachments (backend-proxied to MinIO) ──
+  // FIX-260630: presigned PUT/GET removed because MinIO's docker-internal
+  // endpoint (`http://minio:9000`) is unreachable from the browser over
+  // HTTPS Mixed Content. Backend now proxies the upload + download stream.
 
-  @Post(':inqId/attachments/presigned-upload')
-  @ApiOperation({ summary: 'Issue presigned PUT URL (5 min TTL)' })
-  presignedUpload(
+  @Post(':inqId/attachments')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload attachment (multipart) — backend proxies to MinIO' })
+  async uploadAttachment(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
-    @Body() dto: PresignedUploadDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('category') category?: string,
+    @Body('refId') refId?: string,
   ) {
-    // STAFF↑ for TRANSCRIPT (sensitive), TEACHER/STAFF↑ for MATERIAL.
     const role = user.role as AcmRole | undefined;
     const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
     const isTeacherPlus = !!role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
-    if (dto.category === 'TRANSCRIPT' && !isStaffPlus) {
+    if (!category || !['TRANSCRIPT', 'MATERIAL', 'RESULT_PDF'].includes(category)) {
+      throw new BadRequestException({ code: 'CATEGORY_REQUIRED' });
+    }
+    if (category === 'TRANSCRIPT' && !isStaffPlus) {
       throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
     }
-    if (dto.category === 'MATERIAL' && !isTeacherPlus) {
+    if (category === 'MATERIAL' && !isTeacherPlus) {
       throw new ForbiddenException({ code: 'ROLE_REQUIRED_TEACHER_PLUS' });
     }
-    return this.attachments.issuePresignedUpload(user.entId, inqId, dto);
-  }
-
-  @Post(':inqId/attachments/:attId/confirm')
-  @HttpCode(200)
-  @ApiOperation({ summary: 'Confirm the browser completed the PUT' })
-  confirmAttachment(
-    @CurrentUser() user: AcmCurrentUser,
-    @Param('inqId', ParseUUIDPipe) inqId: string,
-    @Param('attId', ParseUUIDPipe) attId: string,
-  ) {
-    return this.attachments.confirmUpload(user.entId, inqId, attId, user.id);
+    return this.attachments.upload(
+      user.entId,
+      inqId,
+      file,
+      { category: category as 'TRANSCRIPT' | 'MATERIAL' | 'RESULT_PDF', refId },
+      user.id,
+    );
   }
 
   @Get(':inqId/attachments')
@@ -660,25 +668,33 @@ export class InquiryController {
   }
 
   @Get(':inqId/attachments/:attId/download')
-  @ApiOperation({ summary: 'Issue presigned GET URL (5 min) — visibility-guarded' })
+  @ApiOperation({ summary: 'Stream attachment bytes (backend-proxied from MinIO)' })
   async downloadAttachment(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('attId', ParseUUIDPipe) attId: string,
     @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response,
     @Headers('user-agent') userAgent?: string,
-  ) {
+  ): Promise<StreamableFile> {
     const rows = await this.attachments.list(user.entId, inqId);
     const row = rows.find((r) => r.id === attId);
     const role = (user.role as AcmRole | undefined) ?? 'STAFF';
     if (!row || !AttachmentService.canView(row, role)) {
       throw new ForbiddenException({ code: 'ATTACHMENT_FORBIDDEN' });
     }
-    // NFR-CSL-104 / T-20 v2.1 — persist to amb_acm_audit_log (best-effort,
-    // any failure is swallowed inside the service so the download URL still
-    // returns 200).
+    // NFR-CSL-104 / T-20 v2.1 — audit (best-effort, swallowed in service).
     await this.attachments.recordDownloadAudit(row, user.id, ip, userAgent);
-    return this.attachments.getDownloadUrl(user.entId, inqId, attId);
+
+    const { stream, filename, mime, sizeBytes } =
+      await this.attachments.streamDownload(user.entId, inqId, attId);
+    const encoded = encodeURIComponent(filename);
+    res.set({
+      'Content-Type': mime,
+      'Content-Length': String(sizeBytes),
+      'Content-Disposition': `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`,
+    });
+    return new StreamableFile(stream);
   }
 
   @Delete(':inqId/attachments/:attId')
