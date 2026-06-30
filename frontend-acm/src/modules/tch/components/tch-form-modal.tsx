@@ -242,8 +242,30 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
       }
       onClose();
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? t('common:status.error'));
+      // REQ-260630 — backend returns structured 409 for name/englishName/email
+      // duplicates. Render a per-field Korean message; fall back to the
+      // raw `message` for other errors.
+      const err = e as {
+        response?: {
+          data?: {
+            code?: string;
+            field?: string;
+            value?: string;
+            message?: string;
+          };
+        };
+      };
+      const code = err.response?.data?.code;
+      const value = err.response?.data?.value ?? '';
+      if (code === 'NAME_DUPLICATE') {
+        setError(t('error.nameDuplicate', { value }));
+      } else if (code === 'ENGLISH_NAME_DUPLICATE') {
+        setError(t('error.englishNameDuplicate', { value }));
+      } else if (code === 'EMAIL_DUPLICATE') {
+        setError(t('error.emailDuplicate', { value }));
+      } else {
+        setError(err.response?.data?.message ?? t('common:status.error'));
+      }
     }
   };
 

@@ -106,7 +106,10 @@
   "error": {
     "passwordShort": "비밀번호는 8자 이상이어야 합니다.",
     "passwordMismatch": "비밀번호가 일치하지 않습니다.",
-    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다."
+    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다.",
+    "nameDuplicate": "이름 [{{value}}] 사용중입니다. 다시 입력해주세요.",
+    "englishNameDuplicate": "영문명 [{{value}}] 사용중입니다. 다시 입력해주세요.",
+    "emailDuplicate": "이메일 [{{value}}] 사용중입니다. 다시 입력해주세요."
   },
   "toast": {
     "passwordReset": "비밀번호가 재설정되었습니다."

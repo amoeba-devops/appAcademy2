@@ -109,10 +109,11 @@ export class TeacherService {
 
   async create(entId: string, dto: CreateTeacherDto) {
     const email = dto.tchEmail.trim().toLowerCase();
-    const dup = await this.repo.findOne({
-      where: { entId, email, deletedAt: IsNull() },
+    await this.assertNoDuplicate(entId, {
+      name: dto.tchName,
+      englishName: dto.tchEnglishName ?? null,
+      email,
     });
-    if (dup) throw new ConflictException('TEACHER_EMAIL_DUPLICATE');
 
     let userId: string | null = null;
     if (dto.tchCreateAccount) {
@@ -230,6 +231,19 @@ export class TeacherService {
     const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
 
+    // Same dup check as create — only on fields the operator is changing,
+    // and excludes the current row so its own values don't collide with
+    // themselves.
+    await this.assertNoDuplicate(
+      entId,
+      {
+        name: dto.tchName,
+        englishName: dto.tchEnglishName,
+        email: dto.tchEmail ? dto.tchEmail.trim().toLowerCase() : undefined,
+      },
+      id,
+    );
+
     if (dto.tchName !== undefined) e.name = dto.tchName;
     if (dto.tchEnglishName !== undefined) e.englishName = dto.tchEnglishName;
     if (dto.tchEmail !== undefined) e.email = dto.tchEmail.trim().toLowerCase();
@@ -281,6 +295,83 @@ export class TeacherService {
     e.updatedAt = new Date();
     await this.repo.save(e);
     return { id };
+  }
+
+  /**
+   * Reject create/update when any of (name, englishName, email) already
+   * exists for an active teacher in the same tenant. Each field is
+   * checked separately so the controller / FE can render a precise
+   * message — collisions are not mixed up.
+   *
+   * `excludeId` skips the current row (used by update — the row's own
+   * name is allowed to match itself).
+   */
+  private async assertNoDuplicate(
+    entId: string,
+    candidate: {
+      name?: string | null;
+      englishName?: string | null;
+      email?: string | null;
+    },
+    excludeId?: string,
+  ): Promise<void> {
+    // Email (already normalized lowercase by the caller).
+    if (candidate.email) {
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('t.email = :email', { email: candidate.email })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'EMAIL_DUPLICATE',
+          field: 'email',
+          value: candidate.email,
+        });
+      }
+    }
+    // Name (case-sensitive — Korean / non-Latin doesn't have a single
+    // lowercase form; we trim leading/trailing whitespace to avoid
+    // silent collisions).
+    if (candidate.name) {
+      const trimmed = candidate.name.trim();
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('t.name = :name', { name: trimmed })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'NAME_DUPLICATE',
+          field: 'name',
+          value: trimmed,
+        });
+      }
+    }
+    // English name (case-insensitive — Latin form).
+    if (candidate.englishName) {
+      const trimmed = candidate.englishName.trim();
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('LOWER(t.englishName) = LOWER(:englishName)', {
+          englishName: trimmed,
+        })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'ENGLISH_NAME_DUPLICATE',
+          field: 'englishName',
+          value: trimmed,
+        });
+      }
+    }
   }
 
   private async fetchAccountMeta(userId: string): Promise<AccountMeta | undefined> {
