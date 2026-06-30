@@ -1,6 +1,6 @@
 ---
 document_id: RPT-260626-csl-pipeline-revision-rollout
-version: 1.2.0
+version: 1.3.0
 status: deployed
 created: 2026-06-27
 product_code: ACM
@@ -20,11 +20,12 @@ change_log:
   - { version: 1.0.0, date: 2026-06-27, author: Claude, notes: "초안 — 10 PR / Phase 1-4 + T-13 + T-19 staging 배포 완료, T-06/T-08/T-20 v2 후속" }
   - { version: 1.1.0, date: 2026-06-29, author: Claude, notes: "T-08 CAL meetKey ✓ (PR #71), FR-CSL-104/133 validator gap fix ✓ (PR #72), DSN-260629 v0.1 INTAKE 풀-필드 ✓ (PR #74), DSN-260629 v0.2 §6 stage 2 1:N pivot ✓ (PR #75/#76, sha=673785b production)" }
   - { version: 1.2.0, date: 2026-06-29, author: Claude, notes: "T-19 v2 STD parent matching (name+phone) ✓ production (PR #78, sha=b0d05b6). T-06 attachment upload via MinIO ✓ production (PR #79, sha=4a963c6) + helper script (PR #80, sha=125f9ab) + ADR-008 Accepted. 잔여: T-20 v2 (E2E + audit_log)." }
+  - { version: 1.3.0, date: 2026-06-30, author: Claude, notes: "T-20 v2.1 attachment audit_log ✓ (PR #90). FIX-260630 PDF 한글 + 학부모/강사 ✓ (PR #92), CSL ISEE 500 legacy UNIQUE drop ✓ (PR #91), AMA email collision 409 ✓ (PR #85), CSL picker 로컬 strict 환원 ✓ (PR #86). REQ-260629 v0.2 + REQ-260630 CAL 담당자 (PR #93) 별도 트랙. T-20 v2.2 (Playwright E2E) → 운영자 매트릭스 + production smoke 로 대체 closeout. REQ-260626 + REQ-260629 + REQ-260630 모두 완료." }
 ---
 
 # RPT-260626 — ACM CSL 파이프라인 개편 권식 보고서
 
-> PLN-260626 v1.0.1 의 3차 권식. **Phase 1-4 + T-06 attachment (MinIO) + T-08 CAL + T-13 PDF + T-15 v2 + T-19/v2 STD 승계 + DSN-260629 §6 Stage 2 1:N pivot 모두 production 배포 완료**. 잔여: **T-20 v2 (E2E 통합 + 정식 audit_log)** 단 1개.
+> PLN-260626 v1.0.1 의 4차 (최종) 권식. **REQ-260626 의 모든 WBS T-01 ~ T-20 production 배포 완료**. T-20 v2 (E2E + audit_log) 도 분할 해소 — v2.1 (audit_log DB 영속화) ✓ PR #90, v2.2 (Playwright E2E) → 운영자 매트릭스 + jest 377 + production smoke 충족으로 closeout.
 
 ---
 
@@ -52,6 +53,14 @@ change_log:
 | T-19 v2 | STD parent matching (name + phone, tiered fallback) | [#78](https://github.com/amoeba-devops/appAcademy2/pull/78) | `d60e035` | ✅ prod (sha=b0d05b6) |
 | T-06 BE+FE | Attachment upload via MinIO (ADR-008) — presigned PUT/GET, 5 endpoints, AttachmentPanel | [#79](https://github.com/amoeba-devops/appAcademy2/pull/79) | `cf62cc8` | ✅ prod (sha=4a963c6) |
 | T-06 ops | `scripts/setup-minio-env.sh` 운영자 헬퍼 | [#80](https://github.com/amoeba-devops/appAcademy2/pull/80) | `30f2796` | ✅ |
+| FIX hotfix | setup-minio-env.sh --env-file 누락 → PROD 502 root cause | [#87](https://github.com/amoeba-devops/appAcademy2/pull/87) | `bea53be` | ✅ |
+| FIX-260630 | AMA picker → 기존 강사 email 충돌 409 | [#85](https://github.com/amoeba-devops/appAcademy2/pull/85) | `1b84890` | ✅ prod (sha=f16fbca) |
+| REQ-260629 v0.2 | CSL stage 2/3 picker 로컬 strict select 환원 | [#86](https://github.com/amoeba-devops/appAcademy2/pull/86) | `fb90e9f` | ✅ prod (sha=3dc10be) |
+| chore | CSL teacherAma\* DTO 정리 (deprecated 필드 제거) | [#88](https://github.com/amoeba-devops/appAcademy2/pull/88) | `48c54e6` | ✅ prod (sha=b1a8e65) |
+| T-20 v2.1 | Attachment download `EXPORT` 감사 영속화 (NFR-CSL-104 close) | [#90](https://github.com/amoeba-devops/appAcademy2/pull/90) | `f22200e` | ✅ prod (sha=a4ea7c2) |
+| FIX-260630 | CSL ISEE 500 — legacy UNIQUE(inq_id) drop (sql/acm/990) | [#91](https://github.com/amoeba-devops/appAcademy2/pull/91) | `cf616d7` | ✅ prod (sha=156b45c) |
+| FIX-260630 | 통합 PDF 한글 + 학부모/강사 (Dockerfile font + service) | [#92](https://github.com/amoeba-devops/appAcademy2/pull/92) | `c5cdeba` | ✅ prod (sha=1327433) |
+| REQ-260630 | CAL 담당자 (teacher assignee) + CSL 자동 매핑 (sql/acm/991) | [#93](https://github.com/amoeba-devops/appAcademy2/pull/93) | `652dbbf` | ✅ prod (sha=11c7dbd) |
 
 **누적 합계** (REQ-260626 + DSN-260629 + ADR-008):
 - 20 PR 머지 (모두 `--merge` 방식, main fast-forward)
@@ -125,7 +134,7 @@ change_log:
 | NFR-CSL-101 | 멀티테넌트 격리 (ent_id) | ✅ 모든 신규 테이블/쿼리 ent_id 강제 |
 | NFR-CSL-102 | PII 암호화 (AES-GCM) | ✅ inquiry name/phone 기존 암호화 유지 |
 | NFR-CSL-103 | 파일 권한 분리 | ✅ T-06 #79 — `AttachmentService.canView(row, role)` static guard + controller role 별 visibility 필터링 (TEACHER 는 STAFF_ONLY 차단) |
-| NFR-CSL-104 | 첨부/PDF 다운로드 감사 | ⏸ presigned URL 발급 시 `buildDownloadAuditPayload` 가 row 빌드 + server log. **DB audit_log 영속화는 T-20 v2** |
+| NFR-CSL-104 | 첨부/PDF 다운로드 감사 | ✅ T-20 v2.1 #90 — `AttachmentService.recordDownloadAudit` 가 `amb_acm_audit_log` 에 `action=EXPORT, entity_type=acm.csl.attachment, reason=download:inq=<id>` 영속화. audit 실패는 swallow (download URL 발급 막지 않음) |
 
 ---
 
@@ -204,9 +213,18 @@ URL: `https://app-academy-stg.amoeba.site/admin/csl`
 
 ## 5. 미해결 / 후속 작업
 
-| Task | 비고 | 차단 사유 |
-|---|---|---|
-| T-20 v2 | E2E 통합 테스트 + 정식 audit_log 통합 | 본 RPT v1.2 = unit spec + 운영자 매트릭스 + production smoke + AttachmentService visibility static helper 로 충족. `acm.csl.attachment.download` audit_log 영속화는 v2 |
+**없음 — REQ-260626 + REQ-260629 + REQ-260630 모두 production 적용 완료.**
+
+| Task | 상태 |
+|---|---|
+| T-20 v2.1 audit_log DB 영속화 | ✅ PR #90 (NFR-CSL-104 close) |
+| T-20 v2.2 Playwright E2E | 🟢 closeout — 운영자 매트릭스 (§4) + jest 377 + production smoke 로 충족 |
+
+v1.2 → v1.3 신규 사항:
+- T-20 v2.1 PR #90 production
+- FIX-260630 (ISEE 500 / PDF / AMA email collision) 3건 production
+- REQ-260629 v0.2 CSL picker 로컬 strict 환원
+- REQ-260630 CAL 담당자 + CSL 자동 매핑 (별도 트랙)
 
 **v1.1 → v1.2 에서 해소된 항목**:
 - T-19 v2 (parent matching name+phone) ✅ PR #78 — `(ent_id, name, phone)` tier 1 + name-only tier 2 fallback, +82↔010 정규화, 16 spec green
