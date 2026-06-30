@@ -25,6 +25,8 @@ import { CourseService } from './application/course.service';
 // REQ-260626 T-19 — MAP→STD inheritance hook
 import { StdInheritanceService } from './application/std-inheritance.service';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+// REQ-260630 PDF improvement — teacher lookup for the level-test report
+import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 // REQ-260626 T-13 — level-test result PDF
 import { LevelTestPdfService } from './application/level-test-pdf.service';
 // REQ-260626 T-08 — CAL event linkage on level-test + demo-class scheduling
@@ -60,6 +62,8 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
         // REQ-260626 T-19 — read-only access to the STD student row from
         // the CSL module so we can copy MAP scores on CLASS_STARTED.
         StudentTypeormEntity,
+        // REQ-260630 — read-only access for the level-test PDF teacher block.
+        TeacherTypeormEntity,
       ],
       ACM_DS,
     ),
