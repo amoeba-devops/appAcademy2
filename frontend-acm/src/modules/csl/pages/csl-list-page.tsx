@@ -1,34 +1,38 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { List, LayoutGrid } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { CslCreateDialog } from '@/modules/csl/components/csl-create-dialog';
+import {
+  CslKanbanBoard,
+  type KanbanInquiry,
+} from '@/modules/csl/components/csl-kanban-board';
 
-interface Inquiry {
-  id: string;
-  seqNo: number;
-  studentName: string;
-  isAnonymous: boolean;
-  schoolFreetext?: string | null;
-  grade?: string | null;
-  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
-  applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
-  currentStage:
-    | 'INTAKE'
-    | 'MAP_TEST'
-    | 'TRIAL_CLASS'
-    | 'ENROLLMENT_COUNSELING'
-    | 'PAYMENT'
-    | 'CLASS_STARTED'
-    | 'DROPPED';
-  registeredAt: string;
-  followupAt?: string | null;
+interface Inquiry extends KanbanInquiry {
   createdAt: string;
+}
+
+// REQ-260701 — persisted view toggle. Defaults to 'list'.
+const VIEW_STORAGE_KEY = 'csl:viewMode';
+type ViewMode = 'list' | 'kanban';
+
+function loadViewMode(): ViewMode {
+  if (typeof window === 'undefined') return 'list';
+  const v = window.localStorage.getItem(VIEW_STORAGE_KEY);
+  return v === 'kanban' ? 'kanban' : 'list';
 }
 
 export function CslListPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['csl', 'common']);
+  const [view, setView] = useState<ViewMode>(loadViewMode);
+
+  useEffect(() => {
+    window.localStorage.setItem(VIEW_STORAGE_KEY, view);
+  }, [view]);
+
   const { data, isLoading } = useQuery({
     queryKey: ['csl', 'list'],
     queryFn: async () => {
@@ -51,13 +55,22 @@ export function CslListPage() {
     return 'bg-accent-50 text-accent-700';
   };
 
+  const items = data?.items ?? [];
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <CslCreateDialog />
+        <div className="flex items-center gap-2">
+          <ViewToggle value={view} onChange={setView} />
+          <CslCreateDialog />
+        </div>
       </div>
       {isLoading && <p className="text-secondary">{t('common:status.loading')}</p>}
+      {!isLoading && view === 'kanban' && (
+        <CslKanbanBoard inquiries={items} dateLocale={dateLocale} />
+      )}
+      {view === 'list' && (
       <div className="rounded-lg bg-surface border border-[var(--border-subtle)] overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-[var(--gray-100)] text-secondary">
@@ -119,6 +132,51 @@ export function CslListPage() {
           </tbody>
         </table>
       </div>
+      )}
+    </div>
+  );
+}
+
+// ── View toggle (List / Kanban) ────────────────────────────────────────
+
+function ViewToggle({
+  value,
+  onChange,
+}: {
+  value: ViewMode;
+  onChange: (v: ViewMode) => void;
+}) {
+  const { t } = useTranslation('csl');
+  const base =
+    'inline-flex items-center gap-1.5 px-2.5 h-8 text-xs font-medium transition';
+  return (
+    <div className="inline-flex rounded-md border border-[var(--border-subtle)] overflow-hidden bg-surface">
+      <button
+        type="button"
+        onClick={() => onChange('list')}
+        aria-pressed={value === 'list'}
+        className={`${base} ${
+          value === 'list'
+            ? 'bg-accent-50 text-accent-700'
+            : 'text-secondary hover:bg-[var(--gray-100)]'
+        }`}
+      >
+        <List size={14} />
+        {t('view.list')}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange('kanban')}
+        aria-pressed={value === 'kanban'}
+        className={`${base} border-l border-[var(--border-subtle)] ${
+          value === 'kanban'
+            ? 'bg-accent-50 text-accent-700'
+            : 'text-secondary hover:bg-[var(--gray-100)]'
+        }`}
+      >
+        <LayoutGrid size={14} />
+        {t('view.kanban')}
+      </button>
     </div>
   );
 }

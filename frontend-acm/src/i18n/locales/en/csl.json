@@ -4,6 +4,13 @@
   "newInquiryShort": "+ New Inquiry",
   "subtitle": "Capture INTAKE-stage info. Subsequent stages are handled from the inquiry detail.",
   "anonymousInquiry": "Anonymous #{{seqNo}}",
+  "view": {
+    "list": "List",
+    "kanban": "Kanban"
+  },
+  "kanban": {
+    "emptyColumn": "No cards"
+  },
   "table": {
     "seqNo": "No.",
     "student": "Student",
