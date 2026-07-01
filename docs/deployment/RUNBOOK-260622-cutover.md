@@ -1,7 +1,7 @@
 ---
 document_id: RUNBOOK-260622-cutover
-version: 1.0.0
-status: draft
+version: 1.1.0
+status: ready-for-rehearsal
 created: 2026-06-22
 authors:
   - gray.kim@amoeba.group
@@ -10,8 +10,12 @@ related:
   - docs/plan/PLN-260622-mysql-to-postgres-full-migration.md (Phase 5 / 6 / 7)
   - docs/deployment/SPEC-260622-backup-policy.md
   - scripts/migrate-mysql-to-pg/
+  - scripts/cutover-mysql-to-pg.sh
+  - docker/maintenance/maintenance.html
+  - docker/maintenance/nginx-acm-maintenance.conf
 change_log:
   - 2026-06-22 v1.0.0 draft — operator runbook for production cutover
+  - 2026-07-01 v1.1.0 ready-for-rehearsal — T5-01/T5-02 아티팩트 완성 (cutover wrapper + maintenance vhost + 503 page). rehearsal 실행 가능 상태
 ---
 
 # Operator Runbook — MySQL → PostgreSQL Cutover (REQ-260622)
@@ -55,11 +59,27 @@ AmoebaTalk + 학원 portal 공지 게시:
 > 점검 시간 동안 학부모/관리자 포털 및 결제 페이지가 일시 중단됩니다.
 > 결제 진행 중이신 분은 점검 시작 전에 마무리해 주세요.
 
-### 1.3 사전 점검 항목
+### 1.3 사전 설치 (T-24h) — 각 호스트에 아티팩트 배치
+
+`scripts/cutover-mysql-to-pg.sh` 는 아래 두 파일이 시스템 경로에 설치되어 있어야 정상 동작한다.
+
+```bash
+# 각 호스트 (acm-stg + acm) 에서 1회
+sudo mkdir -p /var/www/maintenance /etc/nginx/sites-available
+sudo cp ~/app-academy/docker/maintenance/maintenance.html /var/www/maintenance/
+sudo cp ~/app-academy/docker/maintenance/nginx-acm-maintenance.conf \
+        /etc/nginx/sites-available/acm-maintenance.conf
+sudo nginx -t          # syntax check (link은 아직 swap 하지 않음)
+```
+
+Cutover 실행 시 `scripts/cutover-mysql-to-pg.sh` 가 `sites-enabled` symlink 를 swap 하고 nginx reload 한다.
+
+### 1.4 사전 점검 항목
 
 - [ ] cd-staging 에서 동일 cutover 시뮬레이션 1회 이상 통과 (Phase 5 T5-03).
 - [ ] `scripts/migrate-mysql-to-pg/` build clean (`npm run build` in script dir).
 - [ ] Staging row diff = 0 (verify-only 모드).
+- [ ] `scripts/cutover-mysql-to-pg.sh staging --verify-only` — smoke pass, 롤백 drill 필요 없음
 - [ ] S3 버킷 `amoeba-acm-backups` + IAM `acm-backup-writer` 활성 (T0-04 완료).
 - [ ] `ACM_PII_KEY` env value 가 staging/production 양쪽에 설정됨 (csl_inquiry 자동 reconcile 시 필수).
 - [ ] Rollback drill 1회 실행 (mysqldump restore + image revert 30분 SLA 검증).
@@ -380,4 +400,12 @@ FROM amb_acm_user;
 ---
 
 **작성**: 2026-06-22 (Claude Code session)
-**검토 필요**: Phase 5 rehearsal 1회 통과 후 운영자 sign-off.
+**v1.1 갱신 (2026-07-01)**: T5-01 cutover wrapper (`scripts/cutover-mysql-to-pg.sh`) + T5-02 maintenance vhost/HTML 완성. 상태 `ready-for-rehearsal` — 운영자가 staging 에서 rehearsal 1회 실행 후 sign-off 시 Phase 6 진입 가능.
+
+### 다음 단계 (운영자)
+
+1. staging + production 각 호스트에 §1.3 사전 설치 1회 수행.
+2. staging 에서 `scripts/cutover-mysql-to-pg.sh staging --verify-only` — 무해한 verify (읽기 only, maintenance page swap X).
+3. staging 에서 `scripts/cutover-mysql-to-pg.sh staging` — 실제 rehearsal. 예상 15분. row diff 0 + smoke 200 통과 확인.
+4. 문제 없으면 production maintenance window 확정 (KST 02:00 ~ 04:00) + AmoebaTalk 사전 공지.
+5. Window 시작: `scripts/cutover-mysql-to-pg.sh production` 실행 (Claude Code session 동시 active 권장).
