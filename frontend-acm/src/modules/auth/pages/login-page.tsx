@@ -188,6 +188,11 @@ export function LoginPage() {
                   defaultValue: t('ama.errors.NETWORK'),
                 })}
               </p>
+              {/* FIX-260630 — surface the raw backend error code for diagnosis
+                  (e.g. AMA_TOKEN_INVALID_SIGNATURE) instead of only the status. */}
+              <p className="mt-1.5 font-mono text-xs text-red-500/80">
+                code: {ama.code}
+              </p>
             </div>
           )}
 

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { apiClient } from '@/lib/api-client';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,7 +55,15 @@ type FormValues = {
   evtLocationText: string;
   evtMeetingProvider: string;
   evtMeetingUrl: string;
+  /** REQ-260630 — local teacher id (empty string = no assignee). */
+  evtAssigneeTchId: string;
 };
+
+interface TeacherOption {
+  id: string;
+  name: string;
+  email: string;
+}
 
 const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
@@ -80,7 +90,27 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtLocationText: '',
       evtMeetingProvider: 'NONE',
       evtMeetingUrl: '',
+      evtAssigneeTchId: '',
     },
+  });
+
+  // REQ-260630 — local teachers for the 담당자 select.
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['acm', 'teachers'],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get<TeacherOption[] | { items: TeacherOption[] }>(
+          '/acm/tch/teachers',
+          { params: { status: 'ACTIVE', limit: 200 } },
+        );
+        const body = res.data;
+        return Array.isArray(body) ? body : (body?.items ?? []);
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60_000,
+    enabled: open,
   });
 
   useEffect(() => {
@@ -98,6 +128,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: initial.locationText ?? '',
         evtMeetingProvider: initial.meetingProvider,
         evtMeetingUrl: initial.meetingUrl ?? '',
+        evtAssigneeTchId: initial.assigneeTchId ?? '',
       });
       setInvitees(
         (initial.invitees ?? []).map((i: CalInviteeView) => ({
@@ -120,6 +151,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: '',
         evtMeetingProvider: 'NONE',
         evtMeetingUrl: '',
+        evtAssigneeTchId: '',
       });
       setInvitees([]);
     }
@@ -176,6 +208,14 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
     if (values.evtMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
       dto.evtMeetingUrl = values.evtMeetingUrl;
+    }
+    // REQ-260630 — send teacher id when picked; explicit null on edit lets
+    // the operator clear an existing assignee. Create path sends `undefined`
+    // (omits the field) when empty.
+    if (isEdit) {
+      dto.evtAssigneeTchId = values.evtAssigneeTchId || null;
+    } else if (values.evtAssigneeTchId) {
+      dto.evtAssigneeTchId = values.evtAssigneeTchId;
     }
 
     dto.evtInvitees = invitees.map((i) => ({ kind: i.kind, refId: i.refId }));
@@ -246,6 +286,21 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   {t('field.allDay')}
                 </label>
               </div>
+              {/* REQ-260630 — 담당자 (teacher assignee). Local teacher pool. */}
+              <div className="col-span-2">
+                <label className={labelClass}>
+                  {t('field.assignee', '담당자')}
+                </label>
+                <select {...register('evtAssigneeTchId')} className={inputClass}>
+                  <option value="">— {t('field.assigneeNone', '미지정')} —</option>
+                  {teachers.map((tt) => (
+                    <option key={tt.id} value={tt.id}>
+                      {tt.name}
+                      {tt.email ? ` (${tt.email})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className={labelClass}>{t('field.startAt')} *</label>
                 <input
@@ -312,13 +367,33 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             <BodaRoomPanel evtId={initial.id} />
           )}
 
-          {/* Creator meta (edit mode only) */}
+          {/* Creator + Assignee meta (edit mode only) */}
           {isEdit && (detail?.ownerName || initial?.ownerName) && (
-            <div className="rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] px-3 py-2 text-xs text-secondary">
-              <span className="font-semibold text-primary">{t('field.creator', '작성자')}:</span>{' '}
-              {detail?.ownerName ?? initial?.ownerName}
-              {(detail?.ownerEmail || initial?.ownerEmail) && (
-                <span className="ml-1 text-secondary">&lt;{detail?.ownerEmail ?? initial?.ownerEmail}&gt;</span>
+            <div className="rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] px-3 py-2 text-xs text-secondary space-y-1">
+              <div>
+                <span className="font-semibold text-primary">
+                  {t('field.creator', '작성자')}:
+                </span>{' '}
+                {detail?.ownerName ?? initial?.ownerName}
+                {(detail?.ownerEmail || initial?.ownerEmail) && (
+                  <span className="ml-1 text-secondary">
+                    &lt;{detail?.ownerEmail ?? initial?.ownerEmail}&gt;
+                  </span>
+                )}
+              </div>
+              {/* REQ-260630 — 담당자 separately from 작성자 / 참석자. */}
+              {(detail?.assigneeName ?? initial?.assigneeName) && (
+                <div>
+                  <span className="font-semibold text-primary">
+                    {t('field.assignee', '담당자')}:
+                  </span>{' '}
+                  {detail?.assigneeName ?? initial?.assigneeName}
+                  {(detail?.assigneeEmail ?? initial?.assigneeEmail) && (
+                    <span className="ml-1 text-secondary">
+                      &lt;{detail?.assigneeEmail ?? initial?.assigneeEmail}&gt;
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           )}

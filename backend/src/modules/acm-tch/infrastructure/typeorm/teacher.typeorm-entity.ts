@@ -45,6 +45,14 @@ export class TeacherTypeormEntity {
   @Column({ name: 'tch_user_id', type: 'uuid', nullable: true })
   userId?: string | null;
 
+  /**
+   * REQ-260629 FR-304 — AMA platform userId. Populated when the teacher row
+   * is created via AmaUserPicker (TchFormModal) or lazy-upserted from a CSL
+   * stage 2/3 schedule save. UNIQUE per tenant (sql/acm/989).
+   */
+  @Column({ name: 'tch_ama_user_id', type: 'varchar', length: 64, nullable: true })
+  amaUserId?: string | null;
+
   @Column({ name: 'tch_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   status!: TchStatus;
 

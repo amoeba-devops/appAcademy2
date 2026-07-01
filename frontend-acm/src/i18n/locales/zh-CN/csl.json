@@ -4,6 +4,18 @@
   "newInquiryShort": "+ 신규 상담",
   "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
   "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "view": {
+    "list": "列表",
+    "kanban": "看板"
+  },
+  "kanban": {
+    "emptyColumn": "无卡片",
+    "filter": {
+      "label": "状态筛选",
+      "reset": "全选",
+      "noneSelected": "请至少选择一个阶段进行显示。"
+    }
+  },
   "table": {
     "seqNo": "No.",
     "student": "학생",
@@ -132,6 +144,7 @@
         "date": "日期",
         "time": "时间（30 分钟）",
         "teacher": "负责教师",
+        "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
         "calHint": "保存时将自动登记至课程日历。",
         "saveAndCal": "保存并登记 CAL"
       }
@@ -237,6 +250,7 @@
       "heldTime": "时间 (30 分钟)",
       "teacher": "指定教师",
       "noTeacher": "未指定",
+      "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
       "completed": "已完成",
       "feedbackStatus": "反馈",
       "note": "备注",

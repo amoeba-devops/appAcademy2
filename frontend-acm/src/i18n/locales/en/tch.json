@@ -1,5 +1,16 @@
 {
   "title": "Teachers",
+  "amaDirectory": {
+    "title": "AMA Directory",
+    "subtitle": "(Pick from AMA master to register as a teacher)",
+    "searchPlaceholder": "Search name / email (≥2 chars)",
+    "hintTwoChars": "Type at least 2 characters to query AMA directory.",
+    "empty": "No matching AMA users.",
+    "errorUnavailable": "AMA directory is temporarily unavailable. Try again shortly.",
+    "alreadyRegistered": "Already registered ✓",
+    "linkAma": "Link AMA ↪",
+    "registerAsTeacher": "Register as teacher ▶"
+  },
   "actions": {
     "create": "Add teacher",
     "resetPassword": "Reset password",
@@ -95,7 +106,10 @@
   "error": {
     "passwordShort": "Password must be at least 8 characters.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordComplexity": "Must include letters and digits."
+    "passwordComplexity": "Must include letters and digits.",
+    "nameDuplicate": "Name [{{value}}] is already in use. Please enter a different one.",
+    "englishNameDuplicate": "English name [{{value}}] is already in use. Please enter a different one.",
+    "emailDuplicate": "Email [{{value}}] is already in use. Please enter a different one."
   },
   "toast": {
     "passwordReset": "Password has been reset."

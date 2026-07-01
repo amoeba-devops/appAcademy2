@@ -52,38 +52,69 @@ const FORWARD: Record<CslStage, CslStage[]> = {
   DROPPED: [],
 };
 
+/**
+ * `/admin/csl/:id` route entry. Reads inqId from URL, renders the
+ * shared detail body with the standard "← 상담목록으로" back link.
+ */
 export function CslDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation(['csl', 'common']);
+
+  if (!id) {
+    return <p className="text-secondary">{t('common:status.error')}</p>;
+  }
+
+  return (
+    <CslDetailBody
+      inqId={id}
+      onBack={() => navigate('/admin/csl')}
+      backLabel={t('detail.backToList')}
+      variant="page"
+    />
+  );
+}
+
+/**
+ * REQ-260701 modal enhancement — the same body content, rendered inside
+ * a Dialog from the kanban board.
+ *
+ *   • variant='page'  → header shows "← 상담목록으로" (list navigate)
+ *   • variant='modal' → callers control layout; back button becomes ✕ close
+ */
+export function CslDetailBody({
+  inqId,
+  onBack,
+  backLabel,
+  variant = 'page',
+}: {
+  inqId: string;
+  onBack?: () => void;
+  backLabel?: string;
+  variant?: 'page' | 'modal';
+}) {
+  const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
-  /**
-   * DSN-260629 §3.1 — selectedStage decouples panel rendering from the
-   * server-side currentStage. Operator can navigate the stepper without
-   * triggering a transition. Defaults to currentStage on each load.
-   */
   const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
 
-  // When the server moves the inquiry to a new currentStage (operator clicks
-  // a forward button), automatically follow it so the operator sees the new
-  // stage's panel without an extra click.
-  // Note: useEffect runs below inq fetch — guarded by inq existence.
-
   const { data: inq, isLoading } = useQuery({
-    queryKey: ['csl', 'detail', id],
+    queryKey: ['csl', 'detail', inqId],
     queryFn: async () => {
-      const res = await apiClient.get<InquiryDetail>(`/acm/csl/inquiries/${id}`);
+      const res = await apiClient.get<InquiryDetail>(`/acm/csl/inquiries/${inqId}`);
       return res.data;
     },
-    enabled: !!id,
+    enabled: !!inqId,
   });
 
   const forward = useMutation({
     mutationFn: async (toStage: CslStage) => {
       setErrorMsg(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${id}/transitions`, { toStage });
+      const res = await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/transitions`,
+        { toStage },
+      );
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
@@ -94,7 +125,7 @@ export function CslDetailPage() {
   const reactivate = useMutation({
     mutationFn: async () => {
       setErrorMsg(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${id}/reactivate`);
+      const res = await apiClient.post(`/acm/csl/inquiries/${inqId}/reactivate`);
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
@@ -107,8 +138,6 @@ export function CslDetailPage() {
     return inq.isAnonymous ? t('anonymousInquiry', { seqNo: inq.seqNo }) : inq.studentName;
   }, [inq, t]);
 
-  // Auto-follow the new currentStage after a forward / reactivate transition.
-  // Must run unconditionally (above the loading guard) per React Hooks rules.
   useEffect(() => {
     if (inq?.currentStage) setSelectedStage(inq.currentStage);
   }, [inq?.currentStage]);
@@ -119,10 +148,6 @@ export function CslDetailPage() {
 
   const allowedForward = FORWARD[inq.currentStage];
   const isDropped = inq.currentStage === 'DROPPED';
-
-  // DSN-260629 §3.1 — when selectedStage hasn't been touched (null) or the
-  // inquiry is DROPPED, fall back to currentStage. DROPPED inquiries don't
-  // render the stage pipeline at all (dropped banner takes over below).
   const effectiveSelected: CslStage = isDropped
     ? inq.currentStage
     : (selectedStage ?? inq.currentStage);
@@ -132,12 +157,15 @@ export function CslDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <button
-            onClick={() => navigate('/csl')}
-            className="text-xs text-secondary hover:text-primary mb-2"
-          >
-            ← {t('detail.backToList')}
-          </button>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="text-xs text-secondary hover:text-primary mb-2"
+            >
+              {variant === 'modal' ? '✕' : '←'}{' '}
+              {backLabel ?? t('detail.backToList')}
+            </button>
+          )}
           <h1 className="text-2xl font-semibold">{displayName}</h1>
           <p className="text-sm text-secondary mt-1">
             #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)} · {t(`applyType.${inq.applyType}`)}
@@ -181,17 +209,12 @@ export function CslDetailPage() {
         </div>
       )}
 
-      {/* Stepper — clicking a chip changes selectedStage (panel only); does NOT
-          trigger a server transition. Forward/Drop buttons in the header are
-          the only paths that mutate currentStage. */}
       <CslStageStepper
         currentStage={inq.currentStage}
         selectedStage={effectiveSelected}
         onSelect={(stage) => setSelectedStage(stage)}
       />
 
-      {/* Active sub-stage panel — driven by selectedStage, not currentStage,
-          so operators can navigate back to past stages to review saved data. */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4">
           {effectiveSelected === 'INTAKE' && (

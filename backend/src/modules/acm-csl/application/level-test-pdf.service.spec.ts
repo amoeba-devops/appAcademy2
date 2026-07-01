@@ -5,6 +5,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { LevelTestPdfService } from './level-test-pdf.service';
 
 /**
@@ -66,7 +67,8 @@ describe('LevelTestPdfService', () => {
         LevelTestPdfService,
         { provide: AesGcmService, useValue: { decrypt } },
         { provide: getRepositoryToken(InquiryTypeormEntity, ACM_DS), useValue: { findOne: inqFindOne } },
-        { provide: getRepositoryToken(MapTestTypeormEntity, ACM_DS), useValue: { findOne: mtFindOne } },
+        { provide: getRepositoryToken(MapTestTypeormEntity, ACM_DS), useValue: { findOne: mtFindOne, find: jest.fn() } },
+        { provide: getRepositoryToken(TeacherTypeormEntity, ACM_DS), useValue: { find: jest.fn().mockResolvedValue([]) } },
       ],
     }).compile();
 

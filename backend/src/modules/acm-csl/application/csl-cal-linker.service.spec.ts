@@ -161,6 +161,49 @@ describe('CslCalLinkerService', () => {
     );
   });
 
+  // ── REQ-260630 — 담당자 (teacher assignee) propagation ────────────────
+
+  it('REQ-260630: propagates mt.teacherId → evtAssigneeTchId on level test', async () => {
+    await svc.linkLevelTest(
+      makeInq(),
+      makeMt({ teacherId: 'tch-7' }),
+      'u1',
+      'STAFF',
+    );
+    expect(calCreate).toHaveBeenCalledWith(
+      'e1',
+      'u1',
+      'STAFF',
+      expect.objectContaining({ evtAssigneeTchId: 'tch-7' }),
+    );
+  });
+
+  it('REQ-260630: omits evtAssigneeTchId when mt.teacherId is null', async () => {
+    await svc.linkLevelTest(
+      makeInq(),
+      makeMt({ teacherId: null }),
+      'u1',
+      'STAFF',
+    );
+    const arg = calCreate.mock.calls[0][3] as Record<string, unknown>;
+    expect(arg.evtAssigneeTchId).toBeUndefined();
+  });
+
+  it('REQ-260630: propagates tcl.teacherId → evtAssigneeTchId on demo class', async () => {
+    await svc.linkDemoClass(
+      makeInq(),
+      makeTcl({ teacherId: 'tch-3' }),
+      'u1',
+      'STAFF',
+    );
+    expect(calCreate).toHaveBeenCalledWith(
+      'e1',
+      'u1',
+      'STAFF',
+      expect.objectContaining({ evtAssigneeTchId: 'tch-3' }),
+    );
+  });
+
   it('hour rollover across midnight (HH:MM end > 23:00) — still constructs valid ISO', async () => {
     await svc.linkLevelTest(
       makeInq(),

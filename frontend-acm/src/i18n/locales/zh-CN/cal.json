@@ -28,7 +28,9 @@
     "locationText": "地点",
     "meetingProvider": "在线会议",
     "meetingUrl": "会议链接",
-    "creator": "创建人"
+    "creator": "创建人",
+    "assignee": "负责人",
+    "assigneeNone": "未指定"
   },
   "form": {
     "titleCreate": "新增日程",

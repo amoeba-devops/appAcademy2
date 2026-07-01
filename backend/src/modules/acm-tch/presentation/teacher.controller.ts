@@ -19,6 +19,7 @@ import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { TeacherService } from '../application/teacher.service';
 import {
+  AmaImportTeacherDto,
   CreateTeacherDto,
   ListTeachersQueryDto,
   ResetTeacherPasswordDto,
@@ -49,6 +50,23 @@ export class TeacherController {
   @ApiOperation({ summary: 'Create teacher (FR-TCH-003) — admin only' })
   create(@CurrentUser() u: AcmCurrentUser, @Body() dto: CreateTeacherDto) {
     return this.svc.create(u.entId, dto);
+  }
+
+  @Post('ama-import')
+  @Roles('STAFF', 'ADMIN')
+  @ApiOperation({
+    summary:
+      'REQ-260629 FR-305 — find-or-create a teacher row from an AMA platform userId',
+    description:
+      'Used by /admin/tch AMA directory section and by CSL stage 2/3 lazy upsert. ' +
+      'Idempotent: returns the existing teacherId when the row already exists.',
+  })
+  amaImport(@CurrentUser() u: AcmCurrentUser, @Body() dto: AmaImportTeacherDto) {
+    return this.svc.upsertFromAma(u.entId, {
+      amaUserId: dto.amaUserId,
+      name: dto.name,
+      email: dto.email,
+    });
   }
 
   @Put(':id')

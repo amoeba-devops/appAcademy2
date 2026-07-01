@@ -62,11 +62,16 @@ export interface CalEvent {
   meetingProvider: CalMeetingProvider;
   meetingUrl?: string | null;
   clsId?: string | null;
+  /** REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher). Separate from owner/invitee. */
+  assigneeTchId?: string | null;
   source: CalSource;
   createdAt: string;
   updatedAt: string;
   ownerName?: string | null;
   ownerEmail?: string | null;
+  /** REQ-260630 — resolved teacher name for the assignee column. */
+  assigneeName?: string | null;
+  assigneeEmail?: string | null;
   inviteeCount?: number;
   invitees?: CalInviteeView[];
   notifySummary?: NotifySummary | null;

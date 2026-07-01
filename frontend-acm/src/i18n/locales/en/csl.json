@@ -4,6 +4,18 @@
   "newInquiryShort": "+ New Inquiry",
   "subtitle": "Capture INTAKE-stage info. Subsequent stages are handled from the inquiry detail.",
   "anonymousInquiry": "Anonymous #{{seqNo}}",
+  "view": {
+    "list": "List",
+    "kanban": "Kanban"
+  },
+  "kanban": {
+    "emptyColumn": "No cards",
+    "filter": {
+      "label": "Status filter",
+      "reset": "Select all",
+      "noneSelected": "Choose at least one stage to display."
+    }
+  },
   "table": {
     "seqNo": "No.",
     "student": "Student",
@@ -134,6 +146,7 @@
         "date": "Date",
         "time": "Time (30-min slot)",
         "teacher": "Assigned teacher",
+        "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
         "calHint": "Will be registered on the class calendar automatically.",
         "saveAndCal": "Save + CAL register"
       }
@@ -239,6 +252,7 @@
       "heldTime": "Time (30-min)",
       "teacher": "Assigned teacher",
       "noTeacher": "Unassigned",
+      "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
       "completed": "Completed",
       "feedbackStatus": "Feedback",
       "note": "Note",

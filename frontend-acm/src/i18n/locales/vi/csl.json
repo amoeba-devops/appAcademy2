@@ -4,6 +4,18 @@
   "newInquiryShort": "+ Tư vấn mới",
   "subtitle": "Nhập thông tin giai đoạn INTAKE. Các giai đoạn sau xử lý ở chi tiết.",
   "anonymousInquiry": "Ẩn danh #{{seqNo}}",
+  "view": {
+    "list": "Danh sách",
+    "kanban": "Bảng"
+  },
+  "kanban": {
+    "emptyColumn": "Không có thẻ",
+    "filter": {
+      "label": "Bộ lọc trạng thái",
+      "reset": "Chọn tất cả",
+      "noneSelected": "Vui lòng chọn ít nhất một trạng thái để hiển thị."
+    }
+  },
   "table": {
     "seqNo": "STT",
     "student": "Học sinh",
@@ -132,6 +144,7 @@
         "date": "Ngày",
         "time": "Giờ (30 phút)",
         "teacher": "Giáo viên",
+        "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
         "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
         "saveAndCal": "Lưu + đăng ký CAL"
       }
@@ -237,6 +250,7 @@
       "heldTime": "Giờ (30 phút)",
       "teacher": "Giáo viên phụ trách",
       "noTeacher": "Chưa chỉ định",
+      "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
       "completed": "Hoàn thành",
       "feedbackStatus": "Phản hồi",
       "note": "Ghi chú",

@@ -31,17 +31,17 @@ const TIME_SLOTS: string[] = (() => {
   return out;
 })();
 
-interface Teacher {
-  id: string;
-  name: string;
-}
-
 interface LevelTestRow {
   testType: string;
   testTypeOther: string | null;
   scheduledAt: string | null;
   scheduledTime: string | null;
   teacherId: string | null;
+}
+
+interface Teacher {
+  id: string;
+  name: string;
 }
 
 export function LevelTestScheduleDialog({
@@ -65,9 +65,9 @@ export function LevelTestScheduleDialog({
   const [scheduledTime, setScheduledTime] = useState(
     row.scheduledTime ? row.scheduledTime.slice(0, 5) : '',
   );
+  // REQ-260629 v0.2 — picker is local strict select. Source = /acm/tch/teachers.
   const [teacherId, setTeacherId] = useState(row.teacherId ?? '');
 
-  // Re-sync when row changes (different exam type opened in same dialog instance).
   useEffect(() => {
     setScheduledAt(row.scheduledAt ?? '');
     setScheduledTime(row.scheduledTime ? row.scheduledTime.slice(0, 5) : '');
@@ -80,6 +80,7 @@ export function LevelTestScheduleDialog({
       try {
         const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
           '/acm/tch/teachers',
+          { params: { status: 'ACTIVE', limit: 200 } },
         );
         const body = res.data;
         return Array.isArray(body) ? body : (body?.items ?? []);
@@ -161,6 +162,11 @@ export function LevelTestScheduleDialog({
                 </option>
               ))}
             </select>
+            {teachers.length === 0 && (
+              <p className="text-[10px] text-red-600">
+                {t('detail.levelTest.dialog.noTeachersHint')}
+              </p>
+            )}
           </div>
           <p className="text-[11px] text-secondary">
             {t('detail.levelTest.dialog.calHint')}

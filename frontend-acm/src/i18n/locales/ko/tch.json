@@ -1,5 +1,16 @@
 {
   "title": "교사 관리",
+  "amaDirectory": {
+    "title": "AMA 디렉토리 조회",
+    "subtitle": "(AMA 마스터에서 강사로 추가)",
+    "searchPlaceholder": "이름 / 이메일 검색 (2자 이상)",
+    "hintTwoChars": "2자 이상 입력하면 AMA 디렉토리에서 검색합니다.",
+    "empty": "검색 결과가 없습니다.",
+    "errorUnavailable": "AMA 디렉토리에 일시적으로 접근할 수 없습니다. 잠시 후 다시 시도하세요.",
+    "alreadyRegistered": "이미 등록됨 ✓",
+    "linkAma": "AMA 연결 ↪",
+    "registerAsTeacher": "강사 등록 ▶"
+  },
   "actions": {
     "create": "교사 등록",
     "resetPassword": "비밀번호 재설정",
@@ -95,7 +106,10 @@
   "error": {
     "passwordShort": "비밀번호는 8자 이상이어야 합니다.",
     "passwordMismatch": "비밀번호가 일치하지 않습니다.",
-    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다."
+    "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다.",
+    "nameDuplicate": "이름 [{{value}}] 사용중입니다. 다시 입력해주세요.",
+    "englishNameDuplicate": "영문명 [{{value}}] 사용중입니다. 다시 입력해주세요.",
+    "emailDuplicate": "이메일 [{{value}}] 사용중입니다. 다시 입력해주세요."
   },
   "toast": {
     "passwordReset": "비밀번호가 재설정되었습니다."
