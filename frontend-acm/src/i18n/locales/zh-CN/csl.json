@@ -9,7 +9,12 @@
     "kanban": "看板"
   },
   "kanban": {
-    "emptyColumn": "无卡片"
+    "emptyColumn": "无卡片",
+    "filter": {
+      "label": "状态筛选",
+      "reset": "全选",
+      "noneSelected": "请至少选择一个阶段进行显示。"
+    }
   },
   "table": {
     "seqNo": "No.",

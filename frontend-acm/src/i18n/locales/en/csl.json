@@ -9,7 +9,12 @@
     "kanban": "Kanban"
   },
   "kanban": {
-    "emptyColumn": "No cards"
+    "emptyColumn": "No cards",
+    "filter": {
+      "label": "Status filter",
+      "reset": "Select all",
+      "noneSelected": "Choose at least one stage to display."
+    }
   },
   "table": {
     "seqNo": "No.",
