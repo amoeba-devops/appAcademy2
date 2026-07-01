@@ -9,7 +9,12 @@
     "kanban": "칸반"
   },
   "kanban": {
-    "emptyColumn": "카드 없음"
+    "emptyColumn": "카드 없음",
+    "filter": {
+      "label": "상태 필터",
+      "reset": "전체 선택",
+      "noneSelected": "표시할 단계를 선택하세요."
+    }
   },
   "table": {
     "seqNo": "No.",

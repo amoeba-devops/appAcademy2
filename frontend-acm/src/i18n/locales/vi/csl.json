@@ -9,7 +9,12 @@
     "kanban": "Bảng"
   },
   "kanban": {
-    "emptyColumn": "Không có thẻ"
+    "emptyColumn": "Không có thẻ",
+    "filter": {
+      "label": "Bộ lọc trạng thái",
+      "reset": "Chọn tất cả",
+      "noneSelected": "Vui lòng chọn ít nhất một trạng thái để hiển thị."
+    }
   },
   "table": {
     "seqNo": "STT",
