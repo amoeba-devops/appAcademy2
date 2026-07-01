@@ -4,6 +4,13 @@
   "newInquiryShort": "+ Tư vấn mới",
   "subtitle": "Nhập thông tin giai đoạn INTAKE. Các giai đoạn sau xử lý ở chi tiết.",
   "anonymousInquiry": "Ẩn danh #{{seqNo}}",
+  "view": {
+    "list": "Danh sách",
+    "kanban": "Bảng"
+  },
+  "kanban": {
+    "emptyColumn": "Không có thẻ"
+  },
   "table": {
     "seqNo": "STT",
     "student": "Học sinh",

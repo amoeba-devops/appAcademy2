@@ -4,6 +4,13 @@
   "newInquiryShort": "+ 신규 상담",
   "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
   "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "view": {
+    "list": "목록",
+    "kanban": "칸반"
+  },
+  "kanban": {
+    "emptyColumn": "카드 없음"
+  },
   "table": {
     "seqNo": "No.",
     "student": "학생",
