@@ -116,18 +116,24 @@ export function EnrollmentPanel({
   const { data: teacherDirectory = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
     // The teacher master is exposed by acm-tch; consume only what we need
-    // for the picker. Tolerate the endpoint being absent (returns []).
+    // for the picker. The endpoint returns `{ items, total, page, limit }`
+    // (paginated shape — no `meta` key, so TransformInterceptor doesn't
+    // unwrap items). Accept either an array or the paginated envelope so
+    // a future shape change doesn't break this picker again.
     queryFn: async () => {
       try {
-        const res = await apiClient.get<Teacher[]>('/acm/tch/teachers');
-        return res.data;
+        const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
+          '/acm/tch/teachers',
+        );
+        const body = res.data;
+        return Array.isArray(body) ? body : (body?.items ?? []);
       } catch {
         return [];
       }
     },
   });
 
-  const { register, handleSubmit, reset } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       paymentNoticeStatus: '',
       counselDone: '',
@@ -318,7 +324,24 @@ export function EnrollmentPanel({
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={t('detail.enrollment.classMinutes')}>
-            <Input type="number" min={1} {...register('classMinutes')} />
+            {/*
+              REQ-260626 FR-CSL-133 — 60/90/120 프리셋 + 분단위 자유입력.
+              프리셋 버튼은 form value 를 직접 갱신, 자유입력은 number input.
+              한 줄에 같이 두어 운영자가 빠르게 전환할 수 있도록 함.
+            */}
+            <ClassMinutesField
+              register={register('classMinutes')}
+              currentValue={watch('classMinutes')}
+              setValue={(next) =>
+                setValue('classMinutes', next, { shouldDirty: true })
+              }
+              presetLabel={t('detail.enrollment.classMinutesPresets', '프리셋')}
+              freeInputPlaceholder={t(
+                'detail.enrollment.classMinutesFreeInput',
+                '분단위 자유입력',
+              )}
+              suffix={t('detail.enrollment.classMinutesUnit', '분')}
+            />
           </Field>
           <Field label={t('detail.enrollment.tuitionAmount')}>
             <Input
@@ -636,5 +659,55 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
       {...props}
       className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
     />
+  );
+}
+
+/**
+ * REQ-260626 FR-CSL-133 — preset chips (60 / 90 / 120) + free-input.
+ * Highlights the active preset when the typed value matches; preset
+ * click overwrites the input.
+ */
+function ClassMinutesField({
+  register,
+  currentValue,
+  setValue,
+  presetLabel,
+  freeInputPlaceholder,
+  suffix,
+}: {
+  register: React.InputHTMLAttributes<HTMLInputElement>;
+  currentValue: string;
+  setValue: (next: string) => void;
+  presetLabel: string;
+  freeInputPlaceholder: string;
+  suffix: string;
+}) {
+  const presets = [60, 90, 120];
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex gap-1.5 items-center">
+        <span className="text-[11px] text-secondary mr-1">{presetLabel}:</span>
+        {presets.map((m) => {
+          const active = currentValue === String(m);
+          return (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setValue(String(m))}
+              className={
+                'h-7 rounded-md border px-2 text-xs ' +
+                (active
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-[var(--border-subtle)] bg-transparent hover:bg-[var(--surface-strong)]')
+              }
+            >
+              {m}
+              {suffix}
+            </button>
+          );
+        })}
+      </div>
+      <Input type="number" min={1} {...register} placeholder={freeInputPlaceholder} />
+    </div>
   );
 }

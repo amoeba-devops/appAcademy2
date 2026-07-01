@@ -4,6 +4,18 @@
   "newInquiryShort": "+ Tư vấn mới",
   "subtitle": "Nhập thông tin giai đoạn INTAKE. Các giai đoạn sau xử lý ở chi tiết.",
   "anonymousInquiry": "Ẩn danh #{{seqNo}}",
+  "view": {
+    "list": "Danh sách",
+    "kanban": "Bảng"
+  },
+  "kanban": {
+    "emptyColumn": "Không có thẻ",
+    "filter": {
+      "label": "Bộ lọc trạng thái",
+      "reset": "Chọn tất cả",
+      "noneSelected": "Vui lòng chọn ít nhất một trạng thái để hiển thị."
+    }
+  },
   "table": {
     "seqNo": "STT",
     "student": "Học sinh",
@@ -79,12 +91,91 @@
     "NO": "Chưa"
   },
   "grade": {
+    "E1": "Lớp 1", "E2": "Lớp 2", "E3": "Lớp 3", "E4": "Lớp 4",
     "E5": "Lớp 5", "E6": "Lớp 6",
     "M1": "Lớp 7", "M2": "Lớp 8", "M3": "Lớp 9",
     "H1": "Lớp 10", "H2": "Lớp 11", "H3": "Lớp 12",
     "OTHER": "Khác"
   },
+  "stepper": {
+    "notReached": "Chưa đến giai đoạn này"
+  },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "Bảng điểm / Điểm trước đó",
+        "MATERIAL": "Tài liệu giảng dạy",
+        "RESULT_PDF": "PDF kết quả"
+      },
+      "dropHint": "Kéo PDF/JPEG/PNG vào đây hoặc bấm để chọn (≤10MB)",
+      "empty": "Chưa có tệp nào",
+      "confirmDelete": "Xóa tệp này?",
+      "error": {
+        "size": "Tệp quá lớn (tối đa {{max}})",
+        "empty": "Không thể tải lên tệp rỗng",
+        "mime": "Chỉ chấp nhận PDF/JPEG/PNG",
+        "count": "Tối đa {{max}} tệp"
+      }
+    },
+    "levelTest": {
+      "title": "2. Bài kiểm tra trình độ",
+      "skipHint": "※ Trường hợp đã nhập điểm trước ở bước 1 có thể bỏ qua bước này.",
+      "empty": "Chưa có kỳ thi nào. Chọn mục đích ở bước 1.",
+      "col": {
+        "test": "Kỳ thi",
+        "schedule": "Ngày dự thi",
+        "teacher": "Giáo viên",
+        "status": "Trạng thái",
+        "actions": "Kết quả / PDF"
+      },
+      "status": {
+        "PENDING": "Đang chờ",
+        "COMPLETED": "Hoàn thành",
+        "NOT_HELD": "Chưa thực hiện"
+      },
+      "scoreToggle": "Nhập điểm",
+      "scoreLockedHint": "Chỉ nhập điểm khi trạng thái = Hoàn thành",
+      "pdfLockedHint": "Có sau khi ghi nhận kết quả",
+      "scoreEditorHeader": "Điểm kết quả {{test}}",
+      "recordResult": "Lưu kết quả (STAFF↑)",
+      "unifiedPdf": "Tải PDF tổng hợp (đã hoàn thành)",
+      "dialog": {
+        "title": "Lịch {{test}}",
+        "date": "Ngày",
+        "time": "Giờ (30 phút)",
+        "teacher": "Giáo viên",
+        "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
+        "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
+        "saveAndCal": "Lưu + đăng ký CAL"
+      }
+    },
+    "intake": {
+      "title": "1. Tiếp nhận",
+      "readOnlyHeader": "Thông tin tiếp nhận",
+      "applyPurposesHeader": "Mục đích đăng ký (chọn nhiều)",
+      "priorScoresHeader": "Điểm trước đó (hiển thị theo mục đích đã chọn)",
+      "noPurposeScoreHint": "Chọn ít nhất một mục đích để hiển thị các trường nhập điểm tương ứng.",
+      "mapScores": "Điểm MAP trước đó (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "Điểm ISEE trước đó — 4 phần × Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine được nhập ở bước 2 (Bài kiểm tra trình độ).",
+      "advancedHeader": "Kỳ thi khác (SSAT / Duolingo / TOEFL / ...)",
+      "advancedHint": "Nhập điểm tự do. Xác thực chính thức ở bước 2.",
+      "advancedTestName": "Tên kỳ thi",
+      "advancedScoresLabel": "Điểm (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "Học viên",
+        "grade": "Khối",
+        "parentName": "Phụ huynh",
+        "parentPhone": "Điện thoại",
+        "school": "Trường",
+        "inflowType": "Nguồn",
+        "applyType": "Loại đăng ký",
+        "consultDone": "Hoàn tất tư vấn",
+        "registeredAt": "Ngày đăng ký",
+        "isAnonymous": "Ẩn danh"
+      }
+    },
     "backToList": "Quay lại danh sách",
     "drop": "Hủy",
     "reactivate": "Kích hoạt lại",
@@ -159,6 +250,7 @@
       "heldTime": "Giờ (30 phút)",
       "teacher": "Giáo viên phụ trách",
       "noTeacher": "Chưa chỉ định",
+      "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
       "completed": "Hoàn thành",
       "feedbackStatus": "Phản hồi",
       "note": "Ghi chú",
@@ -183,6 +275,9 @@
       "applied": "Đã đăng ký",
       "paymentNoticeSent": "Đã gửi thông báo học phí",
       "classMinutes": "Số phút mỗi buổi",
+      "classMinutesPresets": "Mẫu",
+      "classMinutesFreeInput": "Nhập số phút",
+      "classMinutesUnit": "phút",
       "tuitionAmount": "Học phí",
       "tuitionPaid": "Đã thanh toán học phí",
       "tuitionPaidHint": "※ Chỉ quản lý cấp cao mới có thể xác nhận thanh toán.",

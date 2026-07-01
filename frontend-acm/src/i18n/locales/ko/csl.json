@@ -4,6 +4,18 @@
   "newInquiryShort": "+ 신규 상담",
   "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
   "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "view": {
+    "list": "목록",
+    "kanban": "칸반"
+  },
+  "kanban": {
+    "emptyColumn": "카드 없음",
+    "filter": {
+      "label": "상태 필터",
+      "reset": "전체 선택",
+      "noneSelected": "표시할 단계를 선택하세요."
+    }
+  },
   "table": {
     "seqNo": "No.",
     "student": "학생",
@@ -81,12 +93,91 @@
     "NO": "미완료"
   },
   "grade": {
+    "E1": "초1", "E2": "초2", "E3": "초3", "E4": "초4",
     "E5": "초5", "E6": "초6",
     "M1": "중1", "M2": "중2", "M3": "중3",
     "H1": "고1", "H2": "고2", "H3": "고3",
     "OTHER": "기타"
   },
+  "stepper": {
+    "notReached": "아직 도달하지 않은 단계입니다"
+  },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "성적표 / 기존 점수 자료",
+        "MATERIAL": "수업 자료",
+        "RESULT_PDF": "결과 PDF"
+      },
+      "dropHint": "여기에 PDF/JPEG/PNG 파일을 끌어다 놓거나 클릭하세요 (≤10MB)",
+      "empty": "업로드된 파일 없음",
+      "confirmDelete": "이 파일을 삭제할까요?",
+      "error": {
+        "size": "파일 용량이 너무 큽니다 ({{max}} 이하)",
+        "empty": "빈 파일은 업로드할 수 없습니다",
+        "mime": "PDF/JPEG/PNG 형식만 허용됩니다",
+        "count": "최대 {{max}}개까지 업로드 가능합니다"
+      }
+    },
+    "levelTest": {
+      "title": "2. 레벨테스트",
+      "skipHint": "※ 1단계에서 이전 점수를 입력한 인콰이어리는 본 단계를 스킵하고 데모수업으로 이동할 수 있습니다.",
+      "empty": "신청 시험이 없습니다. 1단계에서 신청 목적을 선택하세요.",
+      "col": {
+        "test": "시험",
+        "schedule": "응시예정일",
+        "teacher": "담당강사",
+        "status": "상태",
+        "actions": "결과/PDF"
+      },
+      "status": {
+        "PENDING": "대기",
+        "COMPLETED": "진행완료",
+        "NOT_HELD": "미진행"
+      },
+      "scoreToggle": "점수 입력",
+      "scoreLockedHint": "진행완료 상태에서만 점수 입력 가능",
+      "pdfLockedHint": "결과 입력 후 다운로드 가능",
+      "scoreEditorHeader": "{{test}} 결과 점수",
+      "recordResult": "결과 저장 (STAFF↑)",
+      "unifiedPdf": "통합 PDF 다운로드 (진행완료 모두)",
+      "dialog": {
+        "title": "{{test}} 응시예정일 지정",
+        "date": "날짜",
+        "time": "시간 (30분 단위)",
+        "teacher": "담당강사",
+        "noTeachersHint": "등록된 강사가 없습니다 — /admin/tch 에서 먼저 추가하세요.",
+        "calHint": "저장 시 수업일정(CAL)에 자동 등록됩니다.",
+        "saveAndCal": "저장 + CAL 등록"
+      }
+    },
+    "intake": {
+      "title": "1. 접수",
+      "readOnlyHeader": "접수 정보",
+      "applyPurposesHeader": "신청 목적 (다중)",
+      "priorScoresHeader": "이전 점수 (선택한 신청 목적에 따라 동적 노출)",
+      "noPurposeScoreHint": "신청 목적을 1개 이상 선택하면 해당 시험의 이전 점수 입력란이 표시됩니다.",
+      "mapScores": "MAP 이전 점수 (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "ISEE 이전 점수 — 4 영역 Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine 상세는 2단계 레벨테스트에서 입력합니다.",
+      "advancedHeader": "기타 시험 (SSAT / Duolingo / TOEFL 등)",
+      "advancedHint": "운영자가 받은 점수를 자유 입력하세요. 정식 검증은 2단계 레벨테스트에서 진행합니다.",
+      "advancedTestName": "시험명",
+      "advancedScoresLabel": "점수 (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "학생",
+        "grade": "학년",
+        "parentName": "보호자",
+        "parentPhone": "전화",
+        "school": "학교",
+        "inflowType": "유입",
+        "applyType": "신청유형",
+        "consultDone": "상담완료",
+        "registeredAt": "등록일",
+        "isAnonymous": "익명"
+      }
+    },
     "backToList": "상담 목록으로",
     "drop": "이탈 처리",
     "reactivate": "재활성화",
@@ -161,6 +252,7 @@
       "heldTime": "시간 (30분)",
       "teacher": "담당강사",
       "noTeacher": "강사 미지정",
+      "noTeachersHint": "등록된 강사가 없습니다 — /admin/tch 에서 먼저 추가하세요.",
       "completed": "완료",
       "feedbackStatus": "피드백 상태",
       "note": "메모",
@@ -185,6 +277,9 @@
       "applied": "수강 신청",
       "paymentNoticeSent": "수강료 안내 발송",
       "classMinutes": "수업 시간(분)",
+      "classMinutesPresets": "프리셋",
+      "classMinutesFreeInput": "분단위 자유입력",
+      "classMinutesUnit": "분",
       "tuitionAmount": "수강료",
       "tuitionPaid": "수강료 납부 완료",
       "tuitionPaidHint": "※ 결제 확정은 책임자만 표시할 수 있습니다.",

@@ -4,6 +4,18 @@
   "newInquiryShort": "+ New Inquiry",
   "subtitle": "Capture INTAKE-stage info. Subsequent stages are handled from the inquiry detail.",
   "anonymousInquiry": "Anonymous #{{seqNo}}",
+  "view": {
+    "list": "List",
+    "kanban": "Kanban"
+  },
+  "kanban": {
+    "emptyColumn": "No cards",
+    "filter": {
+      "label": "Status filter",
+      "reset": "Select all",
+      "noneSelected": "Choose at least one stage to display."
+    }
+  },
   "table": {
     "seqNo": "No.",
     "student": "Student",
@@ -81,12 +93,91 @@
     "NO": "Pending"
   },
   "grade": {
+    "E1": "G1", "E2": "G2", "E3": "G3", "E4": "G4",
     "E5": "G5", "E6": "G6",
     "M1": "G7", "M2": "G8", "M3": "G9",
     "H1": "G10", "H2": "G11", "H3": "G12",
     "OTHER": "Other"
   },
+  "stepper": {
+    "notReached": "Stage not yet reached"
+  },
   "detail": {
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "Transcripts / Prior Scores",
+        "MATERIAL": "Class Materials",
+        "RESULT_PDF": "Result PDF"
+      },
+      "dropHint": "Drag PDF/JPEG/PNG here or click to choose (≤10MB)",
+      "empty": "No files uploaded",
+      "confirmDelete": "Delete this file?",
+      "error": {
+        "size": "File is too large (max {{max}})",
+        "empty": "Empty files cannot be uploaded",
+        "mime": "Only PDF/JPEG/PNG are allowed",
+        "count": "Up to {{max}} files allowed"
+      }
+    },
+    "levelTest": {
+      "title": "2. Level Test",
+      "skipHint": "※ Inquiries with prior scores entered at intake can skip this stage and move to Demo Class.",
+      "empty": "No applied tests. Pick an apply purpose at stage 1.",
+      "col": {
+        "test": "Test",
+        "schedule": "Scheduled",
+        "teacher": "Teacher",
+        "status": "Status",
+        "actions": "Result / PDF"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "COMPLETED": "Completed",
+        "NOT_HELD": "Not held"
+      },
+      "scoreToggle": "Enter score",
+      "scoreLockedHint": "Score entry available only when status = Completed",
+      "pdfLockedHint": "Available after result is recorded",
+      "scoreEditorHeader": "{{test}} result scores",
+      "recordResult": "Save result (STAFF↑)",
+      "unifiedPdf": "Download unified PDF (all completed)",
+      "dialog": {
+        "title": "{{test}} schedule",
+        "date": "Date",
+        "time": "Time (30-min slot)",
+        "teacher": "Assigned teacher",
+        "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
+        "calHint": "Will be registered on the class calendar automatically.",
+        "saveAndCal": "Save + CAL register"
+      }
+    },
+    "intake": {
+      "title": "1. Intake",
+      "readOnlyHeader": "Intake information",
+      "applyPurposesHeader": "Apply purposes (multi-select)",
+      "priorScoresHeader": "Prior scores (rendered per selected purpose)",
+      "noPurposeScoreHint": "Pick at least one apply purpose to show the matching score inputs.",
+      "mapScores": "MAP prior scores (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "ISEE prior scores — 4 sections × Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine are captured in stage 2 (Level Test).",
+      "advancedHeader": "Advanced tests (SSAT / Duolingo / TOEFL / ...)",
+      "advancedHint": "Operator-entered scores. Formal validation runs in stage 2 (Level Test).",
+      "advancedTestName": "Test name",
+      "advancedScoresLabel": "Scores (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "Student",
+        "grade": "Grade",
+        "parentName": "Parent",
+        "parentPhone": "Phone",
+        "school": "School",
+        "inflowType": "Source",
+        "applyType": "Apply type",
+        "consultDone": "Consult done",
+        "registeredAt": "Registered",
+        "isAnonymous": "Anonymous"
+      }
+    },
     "backToList": "Back to list",
     "drop": "Drop",
     "reactivate": "Reactivate",
@@ -161,6 +252,7 @@
       "heldTime": "Time (30-min)",
       "teacher": "Assigned teacher",
       "noTeacher": "Unassigned",
+      "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
       "completed": "Completed",
       "feedbackStatus": "Feedback",
       "note": "Note",
@@ -185,6 +277,9 @@
       "applied": "Applied",
       "paymentNoticeSent": "Tuition notice sent",
       "classMinutes": "Class minutes",
+      "classMinutesPresets": "Preset",
+      "classMinutesFreeInput": "Custom minutes",
+      "classMinutesUnit": "min",
       "tuitionAmount": "Tuition",
       "tuitionPaid": "Tuition paid",
       "tuitionPaidHint": "※ Only senior managers may confirm payment.",

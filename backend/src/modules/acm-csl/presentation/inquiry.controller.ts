@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,10 +15,14 @@ import {
   Put,
   Query,
   Res,
+  StreamableFile,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
@@ -26,6 +31,9 @@ import { InquiryWorkflowService } from '../application/inquiry-workflow.service'
 import { TeacherAssignmentService } from '../application/teacher-assignment.service';
 import { CourseService } from '../application/course.service';
 import { LevelTestPdfService } from '../application/level-test-pdf.service';
+import { CslCalLinkerService } from '../application/csl-cal-linker.service';
+import { AttachmentService } from '../application/attachment.service';
+import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import {
   ApprovePaymentDto,
   AssignTeacherDto,
@@ -39,6 +47,7 @@ import {
   UpdateInquiryDto,
   UpdateTrialClassDto,
   UpsertEnrollmentDto,
+  UpsertLevelTestDto,
   UpsertMapTestDto,
   WriteFeedbackDto,
 } from '../application/dto/inquiry.dto';
@@ -63,6 +72,8 @@ export class InquiryController {
     private readonly teachers: TeacherAssignmentService,
     private readonly courses: CourseService,
     private readonly pdf: LevelTestPdfService,
+    private readonly calLinker: CslCalLinkerService,
+    private readonly attachments: AttachmentService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -194,13 +205,24 @@ export class InquiryController {
 
   // ── Sub-resources ───────────────────────────────────────────────────
   @Put(':inqId/map-test')
-  @ApiOperation({ summary: 'Upsert MAP test record' })
-  upsertMapTest(
+  @ApiOperation({ summary: 'Upsert MAP test record (CAL link auto-fired on schedule)' })
+  async upsertMapTest(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: UpsertMapTestDto,
   ) {
-    return this.base.upsertMapTest(user.entId, inqId, dto);
+    const saved = await this.base.upsertMapTest(user.entId, inqId, dto);
+    // REQ-260626 T-08 / FR-CSL-114 — link to CAL after persistence. Best
+    // effort; linker handles "already linked" / "schedule incomplete" /
+    // "cal create failed" all the same way (returns null, no throw).
+    const inq = await this.base.getOrThrow(user.entId, inqId);
+    await this.calLinker.linkLevelTest(
+      inq,
+      saved,
+      user.id,
+      (user.role ?? 'STAFF') as AcmRole,
+    );
+    return saved;
   }
 
   @Get(':inqId/map-test')
@@ -241,7 +263,7 @@ export class InquiryController {
    * stubbed inline (the formal audit table comes with T-20).
    */
   @Get(':inqId/map-test/result-pdf')
-  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116)' })
+  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116, legacy 1:1)' })
   async downloadResultPdf(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -262,13 +284,155 @@ export class InquiryController {
     res.end(buffer);
   }
 
+  // ── DSN-260629 §6 — per-test-type level-test routes ──────────────────
+
+  /**
+   * List every level-test row for an inquiry (one per applied exam type).
+   * Returns [] when none yet scheduled. Frontend renders the schedule
+   * table on top of this.
+   */
+  @Get(':inqId/level-tests')
+  @ApiOperation({ summary: 'List per-exam-type level tests (DSN-260629 §6)' })
+  listLevelTests(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
+    return this.base.listLevelTests(user.entId, inqId);
+  }
+
+  /**
+   * Upsert one level-test row (1:N by exam type). Body = schedule fields
+   * only — scoring is a separate endpoint with the admin gate. After
+   * persistence, fires the CAL linker if scheduledAt + scheduledTime
+   * are present.
+   */
+  @Put(':inqId/level-tests/:testType')
+  @ApiOperation({ summary: 'Upsert per-type schedule + teacher + status' })
+  async upsertLevelTest(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Body() dto: UpsertLevelTestDto,
+  ) {
+    const saved = await this.base.upsertLevelTest(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      dto,
+    );
+    // Best-effort CAL link (same pattern as upsertMapTest).
+    if (saved.scheduledAt && saved.scheduledTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkLevelTest(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
+  }
+
+  /**
+   * DSN-260629 §6 — per-type result entry. Same admin gate as the legacy
+   * `/map-test/result` route.
+   */
+  @Post(':inqId/level-tests/:testType/result')
+  @ApiOperation({ summary: 'Record per-type result (STAFF↑)' })
+  recordLevelTestResultByType(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Body() dto: RecordLevelTestResultDto,
+  ) {
+    const allowed =
+      !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException(
+        'POL-CSL-201: only STAFF/ADMIN can record level-test results',
+      );
+    }
+    // dto carries scoreReading/Math/Language/scoreDetail; we re-route by the
+    // URL-bound testType so a stale dto.testType can't poison the wrong row.
+    return this.base.recordLevelTestResultByType(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      dto,
+      user.id,
+    );
+  }
+
+  @Get(':inqId/level-tests/:testType/result-pdf')
+  @ApiOperation({ summary: 'Download per-type result PDF (DSN-260629 §6.5)' })
+  async downloadResultPdfByType(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const allowed =
+      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+    }
+    const { buffer, filename } = await this.pdf.generate(
+      user.entId,
+      inqId,
+      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(buffer);
+  }
+
+  /**
+   * DSN-260629 §6.5 — unified PDF: one page per COMPLETED level-test row.
+   * Operator-friendly single-file download instead of N per-type PDFs.
+   */
+  @Get(':inqId/level-tests/result-pdf')
+  @ApiOperation({ summary: 'Download unified PDF (all completed level tests)' })
+  async downloadUnifiedResultPdf(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const allowed =
+      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    if (!allowed) {
+      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+    }
+    const { buffer, filename } = await this.pdf.generateUnified(user.entId, inqId);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${encodeURIComponent(filename)}"`,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.end(buffer);
+  }
+
   @Post(':inqId/trial-classes')
-  addTrialClass(
+  async addTrialClass(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: CreateTrialClassDto,
   ) {
-    return this.base.addTrialClass(user.entId, inqId, dto);
+    const saved = await this.base.addTrialClass(user.entId, inqId, dto);
+    if (saved.heldAt && saved.heldTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkDemoClass(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
   }
 
   @Get(':inqId/trial-classes')
@@ -283,13 +447,26 @@ export class InquiryController {
 
   @Patch(':inqId/trial-classes/:tclId')
   @ApiOperation({ summary: 'Update demo class (FR-CSL-122~125)' })
-  updateTrialClass(
+  async updateTrialClass(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('tclId', ParseUUIDPipe) tclId: string,
     @Body() dto: UpdateTrialClassDto,
   ) {
-    return this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    const saved = await this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    // REQ-260626 T-08 — late-bound schedule. CAL link is idempotent: if
+    // calEventId is already set, the linker no-ops. So this is safe to
+    // call on every patch.
+    if (saved.heldAt && saved.heldTime) {
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkDemoClass(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+    }
+    return saved;
   }
 
   /**
@@ -439,5 +616,100 @@ export class InquiryController {
   @Get(':inqId/remarks')
   listRemarks(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.workflow.listRemarks(user.entId, inqId);
+  }
+
+  // ── REQ-260626 T-06 / ADR-008 — Attachments (backend-proxied to MinIO) ──
+  // FIX-260630: presigned PUT/GET removed because MinIO's docker-internal
+  // endpoint (`http://minio:9000`) is unreachable from the browser over
+  // HTTPS Mixed Content. Backend now proxies the upload + download stream.
+
+  @Post(':inqId/attachments')
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload attachment (multipart) — backend proxies to MinIO' })
+  async uploadAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body('category') category?: string,
+    @Body('refId') refId?: string,
+  ) {
+    const role = user.role as AcmRole | undefined;
+    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    const isTeacherPlus = !!role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    if (!category || !['TRANSCRIPT', 'MATERIAL', 'RESULT_PDF'].includes(category)) {
+      throw new BadRequestException({ code: 'CATEGORY_REQUIRED' });
+    }
+    if (category === 'TRANSCRIPT' && !isStaffPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
+    }
+    if (category === 'MATERIAL' && !isTeacherPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_TEACHER_PLUS' });
+    }
+    return this.attachments.upload(
+      user.entId,
+      inqId,
+      file,
+      { category: category as 'TRANSCRIPT' | 'MATERIAL' | 'RESULT_PDF', refId },
+      user.id,
+    );
+  }
+
+  @Get(':inqId/attachments')
+  @ApiOperation({ summary: 'List attachments (filtered by role visibility)' })
+  async listAttachments(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Query('category') category?: 'TRANSCRIPT' | 'MATERIAL' | 'RESULT_PDF',
+  ) {
+    const rows = await this.attachments.list(user.entId, inqId, category);
+    const role = (user.role as AcmRole | undefined) ?? 'STAFF';
+    return rows.filter((r) => AttachmentService.canView(r, role));
+  }
+
+  @Get(':inqId/attachments/:attId/download')
+  @ApiOperation({ summary: 'Stream attachment bytes (backend-proxied from MinIO)' })
+  async downloadAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('attId', ParseUUIDPipe) attId: string,
+    @Ip() ip: string,
+    @Res({ passthrough: true }) res: Response,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<StreamableFile> {
+    const rows = await this.attachments.list(user.entId, inqId);
+    const row = rows.find((r) => r.id === attId);
+    const role = (user.role as AcmRole | undefined) ?? 'STAFF';
+    if (!row || !AttachmentService.canView(row, role)) {
+      throw new ForbiddenException({ code: 'ATTACHMENT_FORBIDDEN' });
+    }
+    // NFR-CSL-104 / T-20 v2.1 — audit (best-effort, swallowed in service).
+    await this.attachments.recordDownloadAudit(row, user.id, ip, userAgent);
+
+    const { stream, filename, mime, sizeBytes } =
+      await this.attachments.streamDownload(user.entId, inqId, attId);
+    const encoded = encodeURIComponent(filename);
+    res.set({
+      'Content-Type': mime,
+      'Content-Length': String(sizeBytes),
+      'Content-Disposition': `attachment; filename="${encoded}"; filename*=UTF-8''${encoded}`,
+    });
+    return new StreamableFile(stream);
+  }
+
+  @Delete(':inqId/attachments/:attId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Soft delete (STAFF↑)' })
+  async deleteAttachment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('attId', ParseUUIDPipe) attId: string,
+  ): Promise<void> {
+    const role = user.role as AcmRole | undefined;
+    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    if (!isStaffPlus) {
+      throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
+    }
+    await this.attachments.softDelete(user.entId, inqId, attId);
   }
 }

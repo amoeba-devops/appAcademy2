@@ -37,6 +37,12 @@ interface Props {
   open: boolean;
   onClose: () => void;
   initial?: TeacherDetail;
+  /**
+   * REQ-260629 FR-301 — pre-selected AMA user from /admin/tch list page's
+   * AmaDirectorySection. When set, the form opens in create mode with the
+   * AMA picker pre-populated (name/email locked, amaUserId carried through).
+   */
+  prefillFromAma?: import('@/lib/ama-user-api').AmaPlatformUser | null;
 }
 
 type FormValues = {
@@ -62,7 +68,7 @@ const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 const labelClass = 'block text-xs text-secondary mb-1';
 
-export function TchFormModal({ open, onClose, initial }: Props) {
+export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) {
   const { t } = useTranslation('tch');
   const isEdit = !!initial;
 
@@ -103,7 +109,9 @@ export function TchFormModal({ open, onClose, initial }: Props) {
     if (!open) return;
     setError(null);
     setStagedFiles([]);
-    setAmaUser(null);
+    // REQ-260629 — when opened with a prefill from the list-page AMA section,
+    // seed the picker so the operator just clicks "save".
+    setAmaUser(prefillFromAma ?? null);
     setManualMode(false);
     if (initial) {
       reset({
@@ -125,9 +133,9 @@ export function TchFormModal({ open, onClose, initial }: Props) {
       setSubjects(initial.subjects ?? []);
     } else {
       reset({
-        tchName: '',
+        tchName: prefillFromAma?.name ?? '',
         tchEnglishName: '',
-        tchEmail: '',
+        tchEmail: prefillFromAma?.email ?? '',
         tchPhone: '',
         tchBirthDate: '',
         tchMemo: '',
@@ -142,7 +150,7 @@ export function TchFormModal({ open, onClose, initial }: Props) {
       });
       setSubjects([]);
     }
-  }, [open, initial, reset]);
+  }, [open, initial, prefillFromAma, reset]);
 
   const createMut = useCreateTeacher();
   const updateMut = useUpdateTeacher(initial?.id ?? '');
@@ -195,10 +203,12 @@ export function TchFormModal({ open, onClose, initial }: Props) {
     if (values.tchMemo) dto.tchMemo = values.tchMemo;
     if (values.tchHiredAt) dto.tchHiredAt = values.tchHiredAt;
     if (values.tchAttendanceNo) dto.tchAttendanceNo = values.tchAttendanceNo;
-    // REQ-260604 FR-3 — propagate AMA picker selection to backend. Only on
-    // create (edit doesn't re-issue the linkage); only when picker was used
-    // (manual mode bypasses).
-    if (!isEdit && amaUser && !manualMode) {
+    // REQ-260604 FR-3 / REQ-260629 — propagate AMA picker selection to backend.
+    //   - On create: linkage carries through.
+    //   - On edit: backfill amaUserId when the operator routed here from the
+    //     AmaDirectorySection's "email match" branch (existing teacher row
+    //     without amaUserId) — UpdateTeacherDto.tchAmaUserId now accepts it.
+    if (amaUser && !manualMode) {
       dto.tchAmaUserId = amaUser.userId;
     }
 
@@ -232,8 +242,30 @@ export function TchFormModal({ open, onClose, initial }: Props) {
       }
       onClose();
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? t('common:status.error'));
+      // REQ-260630 — backend returns structured 409 for name/englishName/email
+      // duplicates. Render a per-field Korean message; fall back to the
+      // raw `message` for other errors.
+      const err = e as {
+        response?: {
+          data?: {
+            code?: string;
+            field?: string;
+            value?: string;
+            message?: string;
+          };
+        };
+      };
+      const code = err.response?.data?.code;
+      const value = err.response?.data?.value ?? '';
+      if (code === 'NAME_DUPLICATE') {
+        setError(t('error.nameDuplicate', { value }));
+      } else if (code === 'ENGLISH_NAME_DUPLICATE') {
+        setError(t('error.englishNameDuplicate', { value }));
+      } else if (code === 'EMAIL_DUPLICATE') {
+        setError(t('error.emailDuplicate', { value }));
+      } else {
+        setError(err.response?.data?.message ?? t('common:status.error'));
+      }
     }
   };
 

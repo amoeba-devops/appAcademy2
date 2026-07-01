@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trinity Academy — 시스템 점검 중</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Pretendard",
+                   "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #1a1f2e;
+      background: linear-gradient(180deg, #f7f6f2 0%, #ecece5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      max-width: 560px;
+      width: calc(100% - 32px);
+      padding: 40px 32px 32px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.06);
+      text-align: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #fef3c7;
+      color: #78350f;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 12px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    p {
+      color: #4b5563;
+      line-height: 1.6;
+      margin: 8px 0;
+      font-size: 15px;
+    }
+    .window {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: #f9fafb;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+      color: #374151;
+    }
+    .window strong { color: #111827; }
+    footer {
+      margin-top: 32px;
+      color: #9ca3af;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .lang-en, .lang-vi, .lang-zh {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px dashed #e5e7eb;
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">🛠 시스템 점검 중 · MAINTENANCE</span>
+    <h1>잠시 후 다시 이용해 주세요</h1>
+    <p>Trinity Academy 시스템이 데이터 저장소 이전 작업으로 잠시 점검 중입니다.</p>
+    <p>점검 완료 후 자동으로 정상 이용이 가능하며, 별도 로그인 재접속은 필요하지 않습니다.</p>
+
+    <div class="window">
+      <strong>예상 종료:</strong> 관리자 공지 참조 (일반적으로 KST 02:00 ~ 04:00)<br />
+      <strong>문의:</strong> gray.kim@amoeba.group
+    </div>
+
+    <div class="lang-en">
+      Trinity Academy is undergoing scheduled maintenance. Please try again shortly. No sign-in action required after the window ends.
+    </div>
+    <div class="lang-vi">
+      Trinity Academy đang trong thời gian bảo trì. Vui lòng thử lại sau. Bạn không cần đăng nhập lại sau khi bảo trì kết thúc.
+    </div>
+    <div class="lang-zh">
+      Trinity Academy 系统正在维护中，请稍后再试。维护结束后无需重新登录。
+    </div>
+
+    <footer>
+      REQ-260622 — MySQL → PostgreSQL data storage migration
+    </footer>
+  </main>
+</body>
+</html>

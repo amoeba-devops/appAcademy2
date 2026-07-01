@@ -257,6 +257,15 @@ export class InquiryService {
       testTypeOther: dto.testTypeOther ?? mt.testTypeOther ?? null,
       scheduledTime: dto.scheduledTime ?? mt.scheduledTime ?? null,
       ...(normalizedDetail !== undefined ? { scoreDetail: normalizedDetail } : {}),
+      // DSN-260629 — INTAKE prior scores. Pass-through (no per-key validation v1).
+      ...(dto.priorScoresDetail !== undefined
+        ? {
+            priorScoresDetail:
+              Object.keys(dto.priorScoresDetail).length === 0
+                ? null
+                : dto.priorScoresDetail,
+          }
+        : {}),
     });
     return this.mapTests.save(mt);
   }
@@ -309,7 +318,116 @@ export class InquiryService {
   }
 
   getMapTest(entId: string, inqId: string) {
+    // Legacy 1:1 accessor — returns the first row matching (entId, inqId).
+    // DSN-260629 §6 moved to 1:N per testType; new callers should use
+    // listLevelTests + filtered access.
     return this.mapTests.findOne({ where: { inqId, entId } });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // DSN-260629 §6 — per-test-type level-test schedule (1:N)
+  //
+  //   listLevelTests   — all rows for an inquiry (one per exam type)
+  //   getLevelTest     — single row by (inq, type)
+  //   upsertLevelTest  — schedule / teacher / status / type_other (NOT scores)
+  //   recordLevelTestResultByType — replaces the legacy 1:1 recorder.
+  //
+  // The legacy 1:1 methods above (upsertMapTest / recordLevelTestResult)
+  // stay for back-compat with already-deployed clients.
+  // ──────────────────────────────────────────────────────────────────────
+
+  listLevelTests(entId: string, inqId: string): Promise<MapTestTypeormEntity[]> {
+    return this.mapTests.find({
+      where: { entId, inqId },
+      order: { testType: 'ASC' },
+    });
+  }
+
+  getLevelTestByType(
+    entId: string,
+    inqId: string,
+    testType: string,
+  ): Promise<MapTestTypeormEntity | null> {
+    return this.mapTests.findOne({
+      where: { entId, inqId, testType: testType as MapTestTypeormEntity['testType'] },
+    });
+  }
+
+  async upsertLevelTest(
+    entId: string,
+    inqId: string,
+    testType: MapTestTypeormEntity['testType'],
+    dto: {
+      scheduledAt?: string;
+      scheduledTime?: string;
+      teacherId?: string;
+      status?: 'PENDING' | 'COMPLETED' | 'NOT_HELD';
+      testTypeOther?: string;
+    },
+  ): Promise<MapTestTypeormEntity> {
+    await this.getOrThrow(entId, inqId);
+    let mt = await this.mapTests.findOne({ where: { entId, inqId, testType } });
+    if (!mt) {
+      mt = this.mapTests.create({
+        id: randomUUID(),
+        entId,
+        inqId,
+        testType,
+      });
+    }
+    if (dto.scheduledAt !== undefined) mt.scheduledAt = dto.scheduledAt ?? null;
+    if (dto.scheduledTime !== undefined) mt.scheduledTime = dto.scheduledTime ?? null;
+    if (dto.teacherId !== undefined) mt.teacherId = dto.teacherId ?? null;
+    if (dto.status !== undefined) mt.scheduledStatus = dto.status ?? null;
+    if (dto.testTypeOther !== undefined) {
+      mt.testTypeOther = dto.testTypeOther ?? null;
+    }
+    return this.mapTests.save(mt);
+  }
+
+  /**
+   * DSN-260629 §6 — per-type result entry. Same payload shape as the
+   * legacy `recordLevelTestResult` but explicit `testType` param routes
+   * to the matching row in the 1:N table.
+   */
+  async recordLevelTestResultByType(
+    entId: string,
+    inqId: string,
+    testType: MapTestTypeormEntity['testType'],
+    dto: {
+      scoreReading?: number;
+      scoreMath?: number;
+      scoreLanguage?: number;
+      scoreDetail?: Record<string, unknown>;
+    },
+    actorId: string,
+  ): Promise<MapTestTypeormEntity> {
+    await this.getOrThrow(entId, inqId);
+    const mt = await this.mapTests.findOne({ where: { entId, inqId, testType } });
+    if (!mt) {
+      throw new NotFoundException(
+        `Level-test row (testType=${testType}) not found — schedule it first`,
+      );
+    }
+    const normalizedDetail = validateLevelTestScoreDetail(testType, dto.scoreDetail);
+    if (testType === 'MAP') {
+      Object.assign(mt, {
+        scoreReading: dto.scoreReading ?? mt.scoreReading ?? null,
+        scoreMath: dto.scoreMath ?? mt.scoreMath ?? null,
+        scoreLanguage: dto.scoreLanguage ?? mt.scoreLanguage ?? null,
+        scoreDetail: null,
+      });
+    } else {
+      Object.assign(mt, {
+        scoreReading: null,
+        scoreMath: null,
+        scoreLanguage: null,
+        scoreDetail: normalizedDetail,
+      });
+    }
+    mt.resultEnteredBy = actorId;
+    mt.resultEnteredAt = new Date();
+    return this.mapTests.save(mt);
   }
 
   // ──────────────────────────────────────────────────────────────────────

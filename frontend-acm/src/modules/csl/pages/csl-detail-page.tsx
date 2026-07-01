@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { CslStageStepper } from '@/modules/csl/components/csl-stage-stepper';
-import { MapTestPanel } from '@/modules/csl/components/map-test-panel';
+import { IntakeStagePanel } from '@/modules/csl/components/intake-stage-panel';
+import { LevelTestPanel } from '@/modules/csl/components/level-test-panel';
 import { TrialClassPanel } from '@/modules/csl/components/trial-class-panel';
 import { EnrollmentPanel } from '@/modules/csl/components/enrollment-panel';
 import { CancellationDialog } from '@/modules/csl/components/cancellation-dialog';
@@ -51,27 +52,69 @@ const FORWARD: Record<CslStage, CslStage[]> = {
   DROPPED: [],
 };
 
+/**
+ * `/admin/csl/:id` route entry. Reads inqId from URL, renders the
+ * shared detail body with the standard "← 상담목록으로" back link.
+ */
 export function CslDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation(['csl', 'common']);
+
+  if (!id) {
+    return <p className="text-secondary">{t('common:status.error')}</p>;
+  }
+
+  return (
+    <CslDetailBody
+      inqId={id}
+      onBack={() => navigate('/admin/csl')}
+      backLabel={t('detail.backToList')}
+      variant="page"
+    />
+  );
+}
+
+/**
+ * REQ-260701 modal enhancement — the same body content, rendered inside
+ * a Dialog from the kanban board.
+ *
+ *   • variant='page'  → header shows "← 상담목록으로" (list navigate)
+ *   • variant='modal' → callers control layout; back button becomes ✕ close
+ */
+export function CslDetailBody({
+  inqId,
+  onBack,
+  backLabel,
+  variant = 'page',
+}: {
+  inqId: string;
+  onBack?: () => void;
+  backLabel?: string;
+  variant?: 'page' | 'modal';
+}) {
+  const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
 
   const { data: inq, isLoading } = useQuery({
-    queryKey: ['csl', 'detail', id],
+    queryKey: ['csl', 'detail', inqId],
     queryFn: async () => {
-      const res = await apiClient.get<InquiryDetail>(`/acm/csl/inquiries/${id}`);
+      const res = await apiClient.get<InquiryDetail>(`/acm/csl/inquiries/${inqId}`);
       return res.data;
     },
-    enabled: !!id,
+    enabled: !!inqId,
   });
 
   const forward = useMutation({
     mutationFn: async (toStage: CslStage) => {
       setErrorMsg(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${id}/transitions`, { toStage });
+      const res = await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/transitions`,
+        { toStage },
+      );
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
@@ -82,7 +125,7 @@ export function CslDetailPage() {
   const reactivate = useMutation({
     mutationFn: async () => {
       setErrorMsg(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${id}/reactivate`);
+      const res = await apiClient.post(`/acm/csl/inquiries/${inqId}/reactivate`);
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
@@ -95,24 +138,34 @@ export function CslDetailPage() {
     return inq.isAnonymous ? t('anonymousInquiry', { seqNo: inq.seqNo }) : inq.studentName;
   }, [inq, t]);
 
+  useEffect(() => {
+    if (inq?.currentStage) setSelectedStage(inq.currentStage);
+  }, [inq?.currentStage]);
+
   if (isLoading || !inq) {
     return <p className="text-secondary">{t('common:status.loading')}</p>;
   }
 
   const allowedForward = FORWARD[inq.currentStage];
   const isDropped = inq.currentStage === 'DROPPED';
+  const effectiveSelected: CslStage = isDropped
+    ? inq.currentStage
+    : (selectedStage ?? inq.currentStage);
 
   return (
     <div className="grid gap-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <button
-            onClick={() => navigate('/csl')}
-            className="text-xs text-secondary hover:text-primary mb-2"
-          >
-            ← {t('detail.backToList')}
-          </button>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="text-xs text-secondary hover:text-primary mb-2"
+            >
+              {variant === 'modal' ? '✕' : '←'}{' '}
+              {backLabel ?? t('detail.backToList')}
+            </button>
+          )}
           <h1 className="text-2xl font-semibold">{displayName}</h1>
           <p className="text-sm text-secondary mt-1">
             #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)} · {t(`applyType.${inq.applyType}`)}
@@ -156,27 +209,41 @@ export function CslDetailPage() {
         </div>
       )}
 
-      {/* Stepper */}
-      <CslStageStepper currentStage={inq.currentStage} />
+      <CslStageStepper
+        currentStage={inq.currentStage}
+        selectedStage={effectiveSelected}
+        onSelect={(stage) => setSelectedStage(stage)}
+      />
 
-      {/* Active sub-stage panel */}
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4">
-          {(inq.currentStage === 'MAP_TEST' || inq.currentStage === 'INTAKE') && (
-            <MapTestPanel
+          {effectiveSelected === 'INTAKE' && (
+            <IntakeStagePanel
               inqId={inq.id}
-              currentStage={inq.currentStage}
-              onAfterAdvance={(next) => forward.mutate(next)}
+              onAfterAdvance={
+                inq.currentStage === 'INTAKE'
+                  ? () => forward.mutate('MAP_TEST')
+                  : undefined
+              }
             />
           )}
-          {inq.currentStage === 'TRIAL_CLASS' && <TrialClassPanel inqId={inq.id} />}
-          {(inq.currentStage === 'ENROLLMENT_COUNSELING' ||
-            inq.currentStage === 'PAYMENT' ||
-            inq.currentStage === 'CLASS_STARTED') && (
+          {effectiveSelected === 'MAP_TEST' && (
+            <LevelTestPanel inqId={inq.id} />
+          )}
+          {effectiveSelected === 'TRIAL_CLASS' && (
+            <TrialClassPanel inqId={inq.id} />
+          )}
+          {(effectiveSelected === 'ENROLLMENT_COUNSELING' ||
+            effectiveSelected === 'PAYMENT' ||
+            effectiveSelected === 'CLASS_STARTED') && (
             <EnrollmentPanel
               inqId={inq.id}
-              currentStage={inq.currentStage}
-              onAfterAdvance={(next) => forward.mutate(next)}
+              currentStage={effectiveSelected}
+              onAfterAdvance={
+                inq.currentStage === effectiveSelected
+                  ? (next) => forward.mutate(next)
+                  : undefined
+              }
             />
           )}
         </div>

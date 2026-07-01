@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AttachmentPanel } from './attachment-panel';
 
 /**
  * REQ-260626 SCR-CSL-03 — demo class panel.
@@ -59,6 +60,7 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
   const qc = useQueryClient();
   const [heldAt, setHeldAt] = useState('');
   const [heldTime, setHeldTime] = useState('');
+  // REQ-260629 v0.2 — create-form picker is local strict select. Source = /acm/tch/teachers.
   const [teacherId, setTeacherId] = useState('');
 
   const { data: classes = [] } = useQuery({
@@ -73,10 +75,16 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
+    // /acm/tch/teachers returns `{ items, total, page, limit }` (no `meta`,
+    // so the global TransformInterceptor doesn't unwrap items). Handle
+    // both shapes so a future shape change doesn't break the picker.
     queryFn: async () => {
       try {
-        const res = await apiClient.get<Teacher[]>('/acm/tch/teachers');
-        return res.data;
+        const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
+          '/acm/tch/teachers',
+        );
+        const body = res.data;
+        return Array.isArray(body) ? body : (body?.items ?? []);
       } catch {
         return [];
       }
@@ -161,6 +169,11 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
                 </option>
               ))}
             </Select>
+            {teachers.length === 0 && (
+              <p className="text-[10px] text-red-600">
+                {t('detail.trial.noTeachersHint')}
+              </p>
+            )}
           </div>
           <Button onClick={() => create.mutate()} disabled={!heldAt || create.isPending}>
             {t('detail.trial.add')}
@@ -197,7 +210,8 @@ function DemoClassRow({
   const { t } = useTranslation(['csl', 'common']);
   const [feedbackDraft, setFeedbackDraft] = useState(tcl.feedbackBody ?? '');
   const [editingTime, setEditingTime] = useState(tcl.heldTime ?? '');
-  const [editingTeacher, setEditingTeacher] = useState(tcl.teacherId ?? '');
+  // REQ-260629 v0.2 — local strict select. Source is the parent's teachers query.
+  const [editingTeacherId, setEditingTeacherId] = useState(tcl.teacherId ?? '');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
   const patch = useMutation({
@@ -287,8 +301,8 @@ function DemoClassRow({
         <div className="grid gap-1">
           <Label className="text-xs">{t('detail.trial.teacher')}</Label>
           <Select
-            value={editingTeacher}
-            onChange={(e) => setEditingTeacher(e.target.value)}
+            value={editingTeacherId}
+            onChange={(e) => setEditingTeacherId(e.target.value)}
           >
             <option value="">—</option>
             {teachers.map((tt) => (
@@ -303,7 +317,7 @@ function DemoClassRow({
           onClick={() =>
             patch.mutate({
               heldTime: editingTime || undefined,
-              teacherId: editingTeacher || undefined,
+              teacherId: editingTeacherId || undefined,
             })
           }
           disabled={patch.isPending}
@@ -372,6 +386,11 @@ function DemoClassRow({
               ((writeFb.error ?? confirmFb.error ?? deliveredFb.error) as Error).message}
           </p>
         )}
+      </div>
+
+      {/* T-06 / ADR-008 — class material attachments scoped to this row */}
+      <div className="mt-3">
+        <AttachmentPanel inqId={inqId} category="MATERIAL" refId={tcl.id} />
       </div>
     </article>
   );

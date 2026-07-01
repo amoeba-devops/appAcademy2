@@ -1,5 +1,16 @@
 {
   "title": "教师管理",
+  "amaDirectory": {
+    "title": "AMA 目录查询",
+    "subtitle": "(从 AMA 主数据中选择并注册为教师)",
+    "searchPlaceholder": "搜索姓名 / 邮箱 (≥2 字符)",
+    "hintTwoChars": "请输入至少 2 个字符以查询 AMA 目录。",
+    "empty": "未找到匹配的 AMA 用户。",
+    "errorUnavailable": "AMA 目录暂时不可用，请稍后重试。",
+    "alreadyRegistered": "已注册 ✓",
+    "linkAma": "关联 AMA ↪",
+    "registerAsTeacher": "注册为教师 ▶"
+  },
   "actions": {
     "create": "添加教师",
     "resetPassword": "重置密码",
@@ -95,7 +106,10 @@
   "error": {
     "passwordShort": "密码至少 8 位。",
     "passwordMismatch": "两次密码不一致。",
-    "passwordComplexity": "需包含字母和数字。"
+    "passwordComplexity": "需包含字母和数字。",
+    "nameDuplicate": "姓名 [{{value}}] 已被使用，请重新输入。",
+    "englishNameDuplicate": "英文名 [{{value}}] 已被使用，请重新输入。",
+    "emailDuplicate": "邮箱 [{{value}}] 已被使用，请重新输入。"
   },
   "toast": {
     "passwordReset": "密码已重置。"

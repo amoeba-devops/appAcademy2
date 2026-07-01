@@ -78,6 +78,13 @@ export class CreateCalEventDto {
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   evtOwnerUserId?: string;
 
+  /**
+   * REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher.tch_id). Separate
+   * from owner/invitee — surfaces in /admin/cal card + detail modal.
+   */
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  evtAssigneeTchId?: string;
+
   @ApiPropertyOptional({ type: [CalInviteeInputDto] })
   @IsOptional() @IsArray() @ArrayMaxSize(200)
   @ValidateNested({ each: true })
@@ -118,6 +125,23 @@ export class UpdateCalEventDto {
 
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   evtClsId?: string;
+
+  /**
+   * REQ-260630 — 담당자 강사. Set to null to clear; omit to leave unchanged.
+   * Send the literal string 'null' from the client when clearing isn't
+   * representable, or use the dedicated clear endpoint if needed (not
+   * required at this layer — null in the payload is accepted directly).
+   */
+  @ApiPropertyOptional({
+    type: 'string',
+    format: 'uuid',
+    nullable: true,
+    description: 'Pass null to clear, omit to leave unchanged',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null)
+  @IsUUID()
+  evtAssigneeTchId?: string | null;
 
   @ApiPropertyOptional({ type: [CalInviteeInputDto] })
   @IsOptional() @IsArray() @ArrayMaxSize(200)

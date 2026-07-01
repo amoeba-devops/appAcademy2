@@ -1,7 +1,7 @@
 ---
 document_id: DSN-260626-acm-csl-pipeline-revision
-version: 1.2.1
-status: Draft
+version: 1.3.0
+status: Stage 2 superseded by DSN-260629 §6 (per-test-type 1:N); Stages 1/3/4/5 active
 created: 2026-06-26
 product_code: ACM
 title: ACM 상담관리 파이프라인 개편 — 설계서 (데이터모델·화면·기능·시퀀스)
@@ -20,6 +20,7 @@ change_log:
   - { version: 1.1.0, date: 2026-06-26, author: Claude, notes: "시험별 점수표 반영 — §5.6 시험별 점수 스키마(MAP 100~350 전용컬럼 / ISEE·SSAT·Duolingo·TOEFL·TOEFL Jr JSONB), test_type에 TOEFL_JR 추가, MAP DB CHECK 100~350" }
   - { version: 1.2.0, date: 2026-06-26, author: Claude, notes: "결과 PDF에 시험 종류별 전체 지표 표기 확정 — §5.7 강사 공유 PDF 양식 추가(ISEE Scaled/Percentile/Stanine, SSAT 총점 포함 등)" }
   - { version: 1.2.1, date: 2026-06-27, author: Claude, notes: "DDL 파일을 sql/acm/985-acm-csl-pipeline-revision.sql 로 재번호 (PR #46 의 980-acm-subscription-event.sql 와 prefix 충돌)" }
+  - { version: 1.3.0, date: 2026-06-29, author: Claude, notes: "Stage 2 (MAP_TEST) 부분 supersede — §3.1 1:1 MAP_TEST + §4.2 단일 화면은 DSN-260629 §6 (1:N per-exam-type + 3-state status + per-row modal + unified PDF) 로 대체. sql/acm/987-acm-csl-level-test-per-type.sql 적용." }
 ---
 
 # DSN-260626 — ACM 상담관리 파이프라인 개편 설계서
@@ -57,6 +58,8 @@ change_log:
 ---
 
 ## 3. 데이터 모델 (Data Model)
+
+> ⚠️ **Stage 2 (MAP_TEST) supersession (2026-06-29)**: `INQUIRY ||--o| MAP_TEST (1:1)` 모델은 **DSN-260629 §6 + sql/acm/987** 의 `INQUIRY ||--o{ LEVEL_TEST (1:N, UNIQUE(inq_id, mpt_test_type))` 로 대체되었다. 신청한 시험 종류별 1 row + 3-state status (PENDING/COMPLETED/NOT_HELD) + `mpt_teacher_id` (FK to `amb_acm_tch_teacher`) 가 추가되었다. 본 §3.1 의 MAP_TEST 블록은 v1 1:1 흔적(legacy)이며, **현행 스키마는 DSN-260629 §6.2 ERD 참조**.
 
 ### 3.1 ERD
 
@@ -235,6 +238,8 @@ erDiagram
 
 ### 4.2 SCR-CSL-02 — 레벨테스트 (MAP_TEST · 라벨 "레벨테스트")
 
+> ⚠️ **Superseded by DSN-260629 §6 (2026-06-29)** — 단일 시험 1:1 화면은 **신청한 시험 종류별 N row** 의 schedule 테이블 + per-row 모달(날짜+시간+강사) + per-row PDF + unified PDF 로 전면 재설계되었다. 본 §4.2 의 와이어프레임은 v1 1:1 흔적(legacy) 이며, 현행 화면은 **DSN-260629 §6.3 SCR-CSL-02 v2 (LevelTestPanel) 참조**.
+
 ```
 ┌────────────────────────────── 2. 레벨테스트 ──────────────────────────┐
 │ 레벨테스트 종류 [▼ MAP | ISEE | SSAT | Duolingo | TOEFL | 기타 ]      │
@@ -383,6 +388,8 @@ erDiagram
 
 > 출처: 사용자 업로드 "시험별 점수표". 종류 선택(`mpt_test_type`)에 따라 입력 폼·검증·저장 위치가 달라진다.
 > **MAP** 만 전용 정수 컬럼(`mpt_score_reading/math/language`)을 쓰고, **나머지는 모두 `mpt_score_detail` JSONB**.
+>
+> 📌 **DSN-260629 §6 supersession (2026-06-29)** — 본 절의 **점수 범위/형태는 그대로 유효**하다. 변경된 것은 **저장 위치**뿐: 종전엔 inquiry 당 단일 row(`amb_acm_csl_map_test` 1:1), 현재는 시험종류별 N row(`UNIQUE(inq_id, mpt_test_type)`). 백엔드 검증기는 `backend/src/modules/acm-csl/domain/validators/level-test-score.validator.ts` 가 단일 출처(per-type schema).
 
 **MAP** — 각 영역 100~350 정수 (전용 컬럼)
 

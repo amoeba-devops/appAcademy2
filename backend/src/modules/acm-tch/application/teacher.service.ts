@@ -109,10 +109,11 @@ export class TeacherService {
 
   async create(entId: string, dto: CreateTeacherDto) {
     const email = dto.tchEmail.trim().toLowerCase();
-    const dup = await this.repo.findOne({
-      where: { entId, email, deletedAt: IsNull() },
+    await this.assertNoDuplicate(entId, {
+      name: dto.tchName,
+      englishName: dto.tchEnglishName ?? null,
+      email,
     });
-    if (dup) throw new ConflictException('TEACHER_EMAIL_DUPLICATE');
 
     let userId: string | null = null;
     if (dto.tchCreateAccount) {
@@ -139,6 +140,7 @@ export class TeacherService {
       subjects: dto.tchSubjects ?? [],
       memo: dto.tchMemo ?? null,
       userId,
+      amaUserId: dto.tchAmaUserId ?? null,
       status: dto.tchStatus ?? 'ACTIVE',
       isInstructor: dto.tchIsInstructor ?? true,
       employmentType: dto.tchEmploymentType ?? 'FULL_TIME',
@@ -150,9 +152,97 @@ export class TeacherService {
     return this.toDetail(saved, meta);
   }
 
+  /**
+   * REQ-260629 FR-303/305 — find-or-create a local teacher row from an AMA
+   * platform userId. Used by:
+   *   • `POST /acm/tch/teachers/ama-import` from the /admin/tch AMA section
+   *   • CSL stage 2/3 schedule save when operator picked an AMA user that
+   *     isn't yet in the local roster (lazy upsert)
+   *
+   * Idempotent — UNIQUE(ent_id, tch_ama_user_id) per sql/acm/989 means
+   * concurrent callers either both see the existing row or one wins the
+   * INSERT and the other catches QueryFailedError → re-finds. We chain
+   * find → create → save in a single transaction for simplicity.
+   *
+   * Email is derived from AMA. If two AMA users share the same email
+   * within a tenant (rare but possible), the email-uniqueness check still
+   * applies — we fall back to <name>+<short-amaUserId> to keep the row
+   * insertable.
+   */
+  async upsertFromAma(
+    entId: string,
+    opts: { amaUserId: string; name?: string; email?: string },
+  ): Promise<{ teacherId: string; created: boolean }> {
+    if (!opts.amaUserId || opts.amaUserId.length === 0) {
+      throw new BadRequestException('AMA_USER_ID_REQUIRED');
+    }
+
+    // 1. Fast path — existing row (by ama userId, scoped to tenant + alive).
+    const existing = await this.repo.findOne({
+      where: { entId, amaUserId: opts.amaUserId, deletedAt: IsNull() },
+    });
+    if (existing) {
+      return { teacherId: existing.id, created: false };
+    }
+
+    // 2. Create. Name + email are best-effort: client passes the AMA cache;
+    //    if both absent we still create with placeholders so the row exists
+    //    and the FK constraint downstream stays satisfied.
+    const name = opts.name?.trim() || `AMA ${opts.amaUserId.slice(0, 8)}`;
+    let email = opts.email?.trim().toLowerCase();
+    if (!email) {
+      email = `${opts.amaUserId.slice(0, 8)}@ama.invalid`;
+    } else {
+      // Avoid collision with an existing teacher's email — append a suffix.
+      const dup = await this.repo.findOne({
+        where: { entId, email, deletedAt: IsNull() },
+      });
+      if (dup) {
+        email = `${opts.amaUserId.slice(0, 8)}+${email}`;
+      }
+    }
+
+    const entity = this.repo.create({
+      entId,
+      name,
+      email,
+      amaUserId: opts.amaUserId,
+      status: 'ACTIVE',
+      isInstructor: true,
+      employmentType: 'FULL_TIME',
+      subjects: [],
+    });
+    try {
+      const saved = await this.repo.save(entity);
+      return { teacherId: saved.id, created: true };
+    } catch (err) {
+      // UNIQUE violation — another concurrent caller won. Re-read and use theirs.
+      const racer = await this.repo.findOne({
+        where: { entId, amaUserId: opts.amaUserId, deletedAt: IsNull() },
+      });
+      if (racer) {
+        return { teacherId: racer.id, created: false };
+      }
+      throw err;
+    }
+  }
+
   async update(entId: string, id: string, dto: UpdateTeacherDto) {
     const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
+
+    // Same dup check as create — only on fields the operator is changing,
+    // and excludes the current row so its own values don't collide with
+    // themselves.
+    await this.assertNoDuplicate(
+      entId,
+      {
+        name: dto.tchName,
+        englishName: dto.tchEnglishName,
+        email: dto.tchEmail ? dto.tchEmail.trim().toLowerCase() : undefined,
+      },
+      id,
+    );
 
     if (dto.tchName !== undefined) e.name = dto.tchName;
     if (dto.tchEnglishName !== undefined) e.englishName = dto.tchEnglishName;
@@ -166,6 +256,7 @@ export class TeacherService {
     if (dto.tchEmploymentType !== undefined) e.employmentType = dto.tchEmploymentType;
     if (dto.tchHiredAt !== undefined) e.hiredAt = dto.tchHiredAt;
     if (dto.tchAttendanceNo !== undefined) e.attendanceNo = dto.tchAttendanceNo;
+    if (dto.tchAmaUserId !== undefined) e.amaUserId = dto.tchAmaUserId ?? null;
     e.updatedAt = new Date();
 
     const saved = await this.repo.save(e);
@@ -206,6 +297,83 @@ export class TeacherService {
     return { id };
   }
 
+  /**
+   * Reject create/update when any of (name, englishName, email) already
+   * exists for an active teacher in the same tenant. Each field is
+   * checked separately so the controller / FE can render a precise
+   * message — collisions are not mixed up.
+   *
+   * `excludeId` skips the current row (used by update — the row's own
+   * name is allowed to match itself).
+   */
+  private async assertNoDuplicate(
+    entId: string,
+    candidate: {
+      name?: string | null;
+      englishName?: string | null;
+      email?: string | null;
+    },
+    excludeId?: string,
+  ): Promise<void> {
+    // Email (already normalized lowercase by the caller).
+    if (candidate.email) {
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('t.email = :email', { email: candidate.email })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'EMAIL_DUPLICATE',
+          field: 'email',
+          value: candidate.email,
+        });
+      }
+    }
+    // Name (case-sensitive — Korean / non-Latin doesn't have a single
+    // lowercase form; we trim leading/trailing whitespace to avoid
+    // silent collisions).
+    if (candidate.name) {
+      const trimmed = candidate.name.trim();
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('t.name = :name', { name: trimmed })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'NAME_DUPLICATE',
+          field: 'name',
+          value: trimmed,
+        });
+      }
+    }
+    // English name (case-insensitive — Latin form).
+    if (candidate.englishName) {
+      const trimmed = candidate.englishName.trim();
+      const dup = await this.repo
+        .createQueryBuilder('t')
+        .where('t.entId = :entId', { entId })
+        .andWhere('LOWER(t.englishName) = LOWER(:englishName)', {
+          englishName: trimmed,
+        })
+        .andWhere('t.deletedAt IS NULL')
+        .andWhere(excludeId ? 't.id != :excludeId' : '1=1', { excludeId })
+        .getOne();
+      if (dup) {
+        throw new ConflictException({
+          code: 'ENGLISH_NAME_DUPLICATE',
+          field: 'englishName',
+          value: trimmed,
+        });
+      }
+    }
+  }
+
   private async fetchAccountMeta(userId: string): Promise<AccountMeta | undefined> {
     const u = await this.userRepo.findOne({ where: { id: userId } });
     if (!u) return undefined;
@@ -227,6 +395,7 @@ export class TeacherService {
     subjects: e.subjects ?? [],
     memo: e.memo,
     userId: e.userId,
+    amaUserId: e.amaUserId ?? null,
     hasAccount: !!e.userId,
     status: e.status,
     isInstructor: e.isInstructor,

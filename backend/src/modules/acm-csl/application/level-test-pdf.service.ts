@@ -1,6 +1,7 @@
+import { existsSync } from 'fs';
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import PDFDocument from 'pdfkit';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
@@ -9,6 +10,7 @@ import {
   LevelTestType,
   MapTestTypeormEntity,
 } from '../infrastructure/typeorm/map-test.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 
 /**
  * REQ-260626 T-13 / FR-CSL-116 / DSN §5.7 — server-side rendering of the
@@ -25,13 +27,27 @@ import {
  * Content-Disposition. No file I/O, no temp files.
  *
  * Notes
- *   - pdfkit ships its own Helvetica family — Korean characters render as
- *     boxes until we install a CJK font. Keeping Latin-only labels in the
- *     PDF for the v1 (FR-CSL-116 wording is "강사 공유 PDF", but the
- *     rendered content is the test scores which are numeric).
+ *   - Korean text rendering requires a CJK font. Dockerfile installs
+ *     `font-nanum` → /usr/share/fonts/nanum/NanumGothic.ttf. The service
+ *     registers it lazily and falls back to Helvetica with a warning
+ *     when the path is missing (dev/local hosts without the apk pkg).
  *   - Score detail JSONB shape is governed by DSN §5.6 / the
  *     level-test-score validator. We tolerate missing keys.
+ *   - REQ-260630 (PDF improvement): parent name + assigned teacher
+ *     (name + email) are looked up and printed alongside student info.
  */
+const KOREAN_FONT_CANDIDATES = [
+  // Path baked into the runtime Dockerfile (downloaded NanumGothic OFL).
+  '/usr/share/fonts/korean/NanumGothic.ttf',
+  // Common alpine apk-installed paths (kept as fallbacks for hosts that
+  // already have font-nanum or font-noto-cjk installed system-wide).
+  '/usr/share/fonts/nanum/NanumGothic.ttf',
+  '/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+  '/usr/share/fonts/TTF/NanumGothic.ttf',
+  '/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc',
+];
+const KOREAN_FONT_PATH: string | null =
+  KOREAN_FONT_CANDIDATES.find((p) => existsSync(p)) ?? null;
 @Injectable()
 export class LevelTestPdfService {
   private readonly log = new Logger(LevelTestPdfService.name);
@@ -41,21 +57,72 @@ export class LevelTestPdfService {
     private readonly inqRepo: Repository<InquiryTypeormEntity>,
     @InjectRepository(MapTestTypeormEntity, ACM_DS)
     private readonly mtRepo: Repository<MapTestTypeormEntity>,
+    @InjectRepository(TeacherTypeormEntity, ACM_DS)
+    private readonly tchRepo: Repository<TeacherTypeormEntity>,
     private readonly crypto: AesGcmService,
-  ) {}
+  ) {
+    if (!KOREAN_FONT_PATH) {
+      this.log.warn(
+        'No Korean font installed — PDF will render Hangul as boxes. Install font-nanum (apk) or place NanumGothic.ttf at /usr/share/fonts/nanum/.',
+      );
+    }
+  }
 
+  /**
+   * REQ-260630 PDF improvement — best-effort lookup of teachers attached
+   * to the supplied level-test rows. Returns a Map keyed by teacherId
+   * (the local tch_id, not amaUserId) so the renderer can resolve names
+   * inline. Soft-deleted teachers are skipped (defensive — visibility).
+   */
+  private async fetchTeachers(
+    entId: string,
+    rows: MapTestTypeormEntity[],
+  ): Promise<Map<string, TeacherTypeormEntity>> {
+    const ids = Array.from(
+      new Set(rows.map((r) => r.teacherId).filter((id): id is string => !!id)),
+    );
+    if (ids.length === 0) return new Map();
+    const teachers = await this.tchRepo.find({
+      where: ids.map((id) => ({ id, entId, deletedAt: IsNull() })),
+    });
+    return new Map(teachers.map((t) => [t.id, t]));
+  }
+
+  private decryptOptional(
+    ciphertext?: Buffer | null,
+    iv?: Buffer | null,
+    authTag?: Buffer | null,
+  ): string | null {
+    if (!ciphertext || !iv || !authTag) return null;
+    try {
+      const plain = this.crypto.decrypt({ ciphertext, iv, authTag });
+      return plain && plain.length > 0 ? plain : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * DSN-260629 §6.5 — single-exam PDF. Optional `testType` selects which
+   * row (1:N table per sql/acm/987). When omitted, falls back to the
+   * legacy 1:1 behaviour (first matching row).
+   */
   async generate(
     entId: string,
     inqId: string,
+    testType?: MapTestTypeormEntity['testType'],
   ): Promise<{ buffer: Buffer; filename: string }> {
     const inq = await this.inqRepo.findOne({ where: { entId, id: inqId } });
     if (!inq) throw new NotFoundException({ code: 'INQUIRY_NOT_FOUND', inqId });
 
-    const mt = await this.mtRepo.findOne({ where: { entId, inqId } });
+    const mt = await this.mtRepo.findOne({
+      where: testType ? { entId, inqId, testType } : { entId, inqId },
+    });
     if (!mt) {
       throw new NotFoundException({
         code: 'LEVEL_TEST_ROW_NOT_FOUND',
         inqId,
+        testType,
         hint: 'Schedule the level test and record the result before downloading the PDF',
       });
     }
@@ -65,74 +132,25 @@ export class LevelTestPdfService {
       iv: inq.nameIv,
       authTag: inq.nameAuthTag,
     });
-    // Display in the PDF header uses '-' so a missing field is visibly
-    // empty rather than the literal placeholder; filename falls back to
-    // the constant 'student' so file-system tools don't choke on a row
-    // of dashes.
     const studentName = decryptedName ?? '-';
+    const parentName = this.decryptOptional(
+      inq.parentNameEncrypted,
+      inq.parentNameIv,
+      inq.parentNameAuthTag,
+    );
+    const teachers = await this.fetchTeachers(entId, [mt]);
     const filenameSlug = decryptedName
       ?.replace(/[^\w가-힣-]/g, '')
       .slice(0, 30);
 
     const buffer = await renderPdfBuffer((doc) => {
-      // ── Header ────────────────────────────────────────────────────────
-      doc.fontSize(18).text('Level Test Result', { align: 'center' });
-      doc.moveDown(0.4);
-      doc
-        .fontSize(9)
-        .fillColor('#666')
-        .text('(Teacher-shared report — confidential)', { align: 'center' });
-      doc.moveDown(0.8);
-      doc.fillColor('#000');
-
-      // ── Student row ───────────────────────────────────────────────────
-      doc.fontSize(11);
-      const grade = inq.grade ?? '-';
-      const school = inq.schoolFreetext ?? '-';
-      const seqNo = inq.seqNo ?? '-';
-      doc.text(
-        `Student: ${studentName}    Grade: ${grade}    School: ${school}`,
-      );
-      doc.text(`Inquiry #${seqNo}`);
-      doc.moveDown(0.3);
-
-      // ── Test row ──────────────────────────────────────────────────────
-      const testLabel = formatTestType(mt.testType, mt.testTypeOther);
-      const scheduled = mt.scheduledAt
-        ? `${mt.scheduledAt}${mt.scheduledTime ? ` ${mt.scheduledTime.slice(0, 5)}` : ''}`
-        : '-';
-      const enteredAt = mt.resultEnteredAt
-        ? new Date(mt.resultEnteredAt)
-            .toISOString()
-            .slice(0, 16)
-            .replace('T', ' ')
-        : '-';
-      doc.text(
-        `Test: ${testLabel}    Scheduled: ${scheduled}    Entered at: ${enteredAt}`,
-      );
-      doc.moveDown(0.8);
-
-      drawHr(doc);
-      doc.moveDown(0.4);
-
-      // ── Score table ───────────────────────────────────────────────────
-      doc.fontSize(13).text('Scores', { underline: false });
-      doc.moveDown(0.3);
-      doc.fontSize(10);
-
-      const rows = scoreRows(mt);
-      drawTable(doc, rows.header, rows.body);
-
-      // ── Footer ────────────────────────────────────────────────────────
-      doc.moveDown(1.5);
-      drawHr(doc);
-      doc.moveDown(0.3);
-      doc.fontSize(8).fillColor('#777');
-      doc.text(
-        `Generated at ${new Date().toISOString().slice(0, 19).replace('T', ' ')} (UTC)`,
-        { align: 'left' },
-      );
-      doc.text('For internal academy use only.', { align: 'left' });
+      renderPageFor(doc, {
+        studentName,
+        parentName,
+        teacher: mt.teacherId ? teachers.get(mt.teacherId) ?? null : null,
+        inq,
+        mt,
+      });
     });
 
     const filename = `LevelTest_${filenameSlug || 'student'}_${mt.testType}_${inqId.slice(0, 8)}.pdf`;
@@ -141,11 +159,177 @@ export class LevelTestPdfService {
     );
     return { buffer, filename };
   }
+
+  /**
+   * DSN-260629 §6.5 — unified PDF: one page per COMPLETED level-test row.
+   * Skips rows still PENDING / NOT_HELD (no scores) so the bundle only
+   * contains finalized results. Empty result → 404 with a hint.
+   */
+  async generateUnified(
+    entId: string,
+    inqId: string,
+  ): Promise<{ buffer: Buffer; filename: string }> {
+    const inq = await this.inqRepo.findOne({ where: { entId, id: inqId } });
+    if (!inq) throw new NotFoundException({ code: 'INQUIRY_NOT_FOUND', inqId });
+
+    // Render every row that has a result entered. PENDING/NOT_HELD rows
+    // are skipped — operators usually want a clean report.
+    const rows = await this.mtRepo.find({
+      where: { entId, inqId },
+      order: { testType: 'ASC' },
+    });
+    const completed = rows.filter((r) => r.resultEnteredAt != null);
+    if (completed.length === 0) {
+      throw new NotFoundException({
+        code: 'NO_COMPLETED_LEVEL_TESTS',
+        inqId,
+        hint: 'Record at least one level-test result before downloading the unified PDF',
+      });
+    }
+
+    const decryptedName = this.crypto.decrypt({
+      ciphertext: inq.nameEncrypted,
+      iv: inq.nameIv,
+      authTag: inq.nameAuthTag,
+    });
+    const studentName = decryptedName ?? '-';
+    const parentName = this.decryptOptional(
+      inq.parentNameEncrypted,
+      inq.parentNameIv,
+      inq.parentNameAuthTag,
+    );
+    const teachers = await this.fetchTeachers(entId, completed);
+    const filenameSlug = decryptedName?.replace(/[^\w가-힣-]/g, '').slice(0, 30);
+
+    const buffer = await renderPdfBuffer((doc) => {
+      completed.forEach((mt, i) => {
+        if (i > 0) doc.addPage();
+        renderPageFor(doc, {
+          studentName,
+          parentName,
+          teacher: mt.teacherId ? teachers.get(mt.teacherId) ?? null : null,
+          inq,
+          mt,
+        });
+      });
+    });
+
+    const filename = `LevelTest_${filenameSlug || 'student'}_ALL_${inqId.slice(0, 8)}.pdf`;
+    this.log.log(
+      `generated unified PDF inq=${inqId} std=${studentName} pages=${completed.length} bytes=${buffer.length}`,
+    );
+    return { buffer, filename };
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
 type Doc = InstanceType<typeof PDFDocument>;
+
+interface PageContext {
+  studentName: string;
+  parentName: string | null;
+  teacher: TeacherTypeormEntity | null;
+  inq: InquiryTypeormEntity;
+  mt: MapTestTypeormEntity;
+}
+
+/**
+ * Render one page of the level-test report into the current doc cursor.
+ * Used by both single-test and unified-PDF entry points (the unified
+ * variant calls this once per completed row, with addPage() in between).
+ *
+ * REQ-260630: Korean labels + 학부모 / 강사 정보 추가. Korean font is
+ * registered as 'Korean' on first text emission when NanumGothic.ttf is
+ * available; otherwise the doc falls through to the default Helvetica
+ * (Hangul → boxes, but Latin still renders fine).
+ */
+function renderPageFor(doc: Doc, ctx: PageContext): void {
+  const { studentName, parentName, teacher, inq, mt } = ctx;
+
+  // Register the Korean font once per doc. PDFKit dedupes via the family
+  // name, so subsequent registerFont calls on the same name are no-ops.
+  let useKorean = false;
+  if (KOREAN_FONT_PATH) {
+    try {
+      doc.registerFont('Korean', KOREAN_FONT_PATH);
+      useKorean = true;
+    } catch {
+      useKorean = false;
+    }
+  }
+  const setFont = (size: number): void => {
+    if (useKorean) doc.font('Korean');
+    doc.fontSize(size);
+  };
+
+  // ── Header ────────────────────────────────────────────────────────
+  setFont(18);
+  doc.text('레벨테스트 결과 보고서', { align: 'center' });
+  doc.moveDown(0.4);
+  setFont(9);
+  doc.fillColor('#666').text('(강사 공유 — 대외비)', { align: 'center' });
+  doc.moveDown(0.8);
+  doc.fillColor('#000');
+
+  // ── Student row ───────────────────────────────────────────────────
+  setFont(11);
+  const grade = inq.grade ?? '-';
+  const school = inq.schoolFreetext ?? '-';
+  const seqNo = inq.seqNo ?? '-';
+  doc.text(`학생: ${studentName}    학년: ${grade}    학교: ${school}`);
+  doc.text(`접수번호 #${seqNo}`);
+  doc.moveDown(0.2);
+
+  // ── Parent row ────────────────────────────────────────────────────
+  doc.text(`학부모: ${parentName ?? '-'}`);
+  doc.moveDown(0.2);
+
+  // ── Teacher row ───────────────────────────────────────────────────
+  const teacherDisplay = teacher
+    ? `${teacher.name}${teacher.email ? ` (${teacher.email})` : ''}`
+    : '-';
+  doc.text(`담당강사: ${teacherDisplay}`);
+  doc.moveDown(0.3);
+
+  // ── Test row ──────────────────────────────────────────────────────
+  const testLabel = formatTestType(mt.testType, mt.testTypeOther);
+  const scheduled = mt.scheduledAt
+    ? `${mt.scheduledAt}${mt.scheduledTime ? ` ${mt.scheduledTime.slice(0, 5)}` : ''}`
+    : '-';
+  const enteredAt = mt.resultEnteredAt
+    ? new Date(mt.resultEnteredAt)
+        .toISOString()
+        .slice(0, 16)
+        .replace('T', ' ')
+    : '-';
+  doc.text(`시험: ${testLabel}    응시예정일: ${scheduled}    결과입력: ${enteredAt}`);
+  doc.moveDown(0.8);
+
+  drawHr(doc);
+  doc.moveDown(0.4);
+
+  // ── Score table ───────────────────────────────────────────────────
+  setFont(13);
+  doc.text('점수', { underline: false });
+  doc.moveDown(0.3);
+  setFont(10);
+
+  const rows = scoreRows(mt);
+  drawTable(doc, rows.header, rows.body, useKorean);
+
+  // ── Footer ────────────────────────────────────────────────────────
+  doc.moveDown(1.5);
+  drawHr(doc);
+  doc.moveDown(0.3);
+  setFont(8);
+  doc.fillColor('#777');
+  doc.text(
+    `생성일시 ${new Date().toISOString().slice(0, 19).replace('T', ' ')} (UTC) · 학원 내부 사용 한정`,
+    { align: 'left' },
+  );
+  doc.fillColor('#000');
+}
 
 function renderPdfBuffer(render: (doc: Doc) => void): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
@@ -176,7 +360,12 @@ function drawHr(doc: Doc): void {
   doc.strokeColor('#000');
 }
 
-function drawTable(doc: Doc, header: string[], body: string[][]): void {
+function drawTable(
+  doc: Doc,
+  header: string[],
+  body: string[][],
+  useKorean = false,
+): void {
   const startX = 50;
   const cellPad = 6;
   const cols = header.length;
@@ -189,6 +378,7 @@ function drawTable(doc: Doc, header: string[], body: string[][]): void {
     cells.forEach((text, i) => {
       const x = startX + colWidth * i;
       doc.rect(x, rowY, colWidth, height).strokeColor('#bbb').stroke();
+      if (useKorean) doc.font('Korean');
       doc.fontSize(opts.bold ? 10 : 9).fillColor('#000');
       doc.text(text || '-', x + cellPad, rowY + 4, {
         width: colWidth - cellPad * 2,

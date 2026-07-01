@@ -249,6 +249,15 @@ export class UpsertMapTestDto {
   @ApiPropertyOptional({ description: 'Non-MAP score detail (DSN §5.6 schema by test type)' })
   @IsOptional() @IsObject()
   scoreDetail?: Record<string, unknown>;
+
+  /**
+   * DSN-260629 §4.1 — INTAKE 단계 self-report 이전 점수.
+   * Validator 는 v1 에선 shape pass-through (operator-discretion 자유입력 허용),
+   * 정식 검증은 2단계 LevelTest result 에서.
+   */
+  @ApiPropertyOptional({ description: 'INTAKE prior self-report scores (DSN-260629 §4.1)' })
+  @IsOptional() @IsObject()
+  priorScoresDetail?: Record<string, unknown>;
 }
 
 /**
@@ -273,6 +282,48 @@ export class RecordLevelTestResultDto {
   @ApiPropertyOptional() @IsOptional() @IsObject()
   scoreDetail?: Record<string, unknown>;
 }
+
+// ── DSN-260629 §6 — per-test-type level-test schedule + status ──────────
+
+const LEVEL_TEST_STATUSES = ['PENDING', 'COMPLETED', 'NOT_HELD'] as const;
+export type LevelTestStatus = (typeof LEVEL_TEST_STATUSES)[number];
+
+/**
+ * DSN-260629 §6 — upsert a single per-type level-test row.
+ *
+ *   PUT /acm/csl/inquiries/:inqId/level-tests/:testType
+ *
+ * The row is keyed by (inq_id, testType) via uq_acm_csl_mpt_inq_type
+ * (sql/acm/987). Empty fields keep the stored value; explicit nulls
+ * clear it. Scoring is a separate endpoint (RecordLevelTestResultDto)
+ * so the admin gate only wraps result writes.
+ */
+export class UpsertLevelTestDto {
+  /** 30-min granularity scheduled time (HH:MM[:SS]). Reuses UpsertMapTestDto regex. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
+    message: 'scheduledTime must be HH:MM with 30-min granularity',
+  })
+  scheduledTime?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  scheduledAt?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  teacherId?: string;
+
+  @ApiPropertyOptional({ enum: LEVEL_TEST_STATUSES })
+  @IsOptional() @IsEnum(LEVEL_TEST_STATUSES)
+  status?: LevelTestStatus;
+
+  /** For OTHER type only — freetext exam name. */
+  @ApiPropertyOptional()
+  @IsOptional() @IsString() @MaxLength(100)
+  testTypeOther?: string;
+}
+
+export { LEVEL_TEST_STATUSES };
 
 // ── Trial class / Demo class (1:N) ─────────────────────────────────────
 export class CreateTrialClassDto {
@@ -439,6 +490,15 @@ export class ApprovePaymentDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
   memo?: string;
 }
+
+// ── REQ-260626 T-06 — Attachment upload ─────────────────────────────────
+//
+// FIX-260630 — PresignedUploadDto removed. Backend now receives multipart
+// uploads directly (FileInterceptor on POST /:inqId/attachments) because
+// the previous presigned-PUT scheme couldn't reach MinIO's docker-internal
+// hostname from the browser (HTTPS Mixed Content). category + optional
+// refId arrive as multipart form fields; the controller validates them
+// inline (no class-validator DTO needed).
 
 // ── REQ-260626 — Course master (per-tenant) ─────────────────────────────
 

@@ -4,6 +4,18 @@
   "newInquiryShort": "+ 신규 상담",
   "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
   "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "view": {
+    "list": "列表",
+    "kanban": "看板"
+  },
+  "kanban": {
+    "emptyColumn": "无卡片",
+    "filter": {
+      "label": "状态筛选",
+      "reset": "全选",
+      "noneSelected": "请至少选择一个阶段进行显示。"
+    }
+  },
   "table": {
     "seqNo": "No.",
     "student": "학생",
@@ -79,15 +91,94 @@
     "NO": "미완료"
   },
   "grade": {
-    "E5": "초5", "E6": "초6",
-    "M1": "중1", "M2": "중2", "M3": "중3",
-    "H1": "고1", "H2": "고2", "H3": "고3",
-    "OTHER": "기타"
+    "E1": "小学1年级", "E2": "小学2年级", "E3": "小学3年级", "E4": "小学4年级",
+    "E5": "小学5年级", "E6": "小学6年级",
+    "M1": "初中1年级", "M2": "初中2年级", "M3": "初中3年级",
+    "H1": "高中1年级", "H2": "高中2年级", "H3": "高中3年级",
+    "OTHER": "其他"
+  },
+  "stepper": {
+    "notReached": "尚未到达此阶段"
   },
   "detail": {
-    "backToList": "상담 목록으로",
-    "drop": "이탈 처리",
-    "reactivate": "재활성화",
+    "attachment": {
+      "category": {
+        "TRANSCRIPT": "成绩单 / 以往成绩",
+        "MATERIAL": "课程资料",
+        "RESULT_PDF": "结果 PDF"
+      },
+      "dropHint": "拖拽 PDF/JPEG/PNG 到此或点击选择 (≤10MB)",
+      "empty": "未上传任何文件",
+      "confirmDelete": "确定删除该文件？",
+      "error": {
+        "size": "文件过大 (最多 {{max}})",
+        "empty": "不能上传空文件",
+        "mime": "仅允许 PDF/JPEG/PNG",
+        "count": "最多 {{max}} 个文件"
+      }
+    },
+    "levelTest": {
+      "title": "2. 分级测试",
+      "skipHint": "※ 第1阶段已填写既有成绩的咨询可跳过本阶段，直接进入示范课。",
+      "empty": "无申请考试。请先在第1阶段选择申请目的。",
+      "col": {
+        "test": "考试",
+        "schedule": "考试预定日",
+        "teacher": "负责教师",
+        "status": "状态",
+        "actions": "成绩 / PDF"
+      },
+      "status": {
+        "PENDING": "待办",
+        "COMPLETED": "已完成",
+        "NOT_HELD": "未进行"
+      },
+      "scoreToggle": "输入成绩",
+      "scoreLockedHint": "仅在状态为已完成时可输入成绩",
+      "pdfLockedHint": "录入结果后可下载",
+      "scoreEditorHeader": "{{test}} 结果分数",
+      "recordResult": "保存结果（STAFF↑）",
+      "unifiedPdf": "下载汇总 PDF（全部已完成）",
+      "dialog": {
+        "title": "{{test}} 考试预定",
+        "date": "日期",
+        "time": "时间（30 分钟）",
+        "teacher": "负责教师",
+        "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
+        "calHint": "保存时将自动登记至课程日历。",
+        "saveAndCal": "保存并登记 CAL"
+      }
+    },
+    "intake": {
+      "title": "1. 接收",
+      "readOnlyHeader": "接收信息",
+      "applyPurposesHeader": "申请目的(多选)",
+      "priorScoresHeader": "以往分数(根据所选申请目的动态显示)",
+      "noPurposeScoreHint": "请至少选择一个申请目的以显示对应的分数输入项。",
+      "mapScores": "MAP 以往分数 (Reading / Math / Language Usage, 100~350)",
+      "iseeIntakeHeader": "ISEE 以往分数 — 4 部分 × Scaled (760~940)",
+      "iseeIntakeHint": "Percentile / Stanine 在第 2 阶段(水平测试)输入。",
+      "advancedHeader": "其他考试 (SSAT / Duolingo / TOEFL 等)",
+      "advancedHint": "运营自由输入分数。正式验证在第 2 阶段进行。",
+      "advancedTestName": "考试名称",
+      "advancedScoresLabel": "分数 (JSON)",
+      "advancedScoresPlaceholder": "{ \"verbal\": 600, \"math\": 580 }",
+      "field": {
+        "student": "学生",
+        "grade": "年级",
+        "parentName": "家长",
+        "parentPhone": "电话",
+        "school": "学校",
+        "inflowType": "来源",
+        "applyType": "申请类型",
+        "consultDone": "咨询完成",
+        "registeredAt": "登记日期",
+        "isAnonymous": "匿名"
+      }
+    },
+    "backToList": "返回列表",
+    "drop": "退出处理",
+    "reactivate": "重新激活",
     "mapTest": {
       "title": "水平测试 / MAP 分数",
       "hasPriorScore": "持有以往分数",
@@ -159,6 +250,7 @@
       "heldTime": "时间 (30 分钟)",
       "teacher": "指定教师",
       "noTeacher": "未指定",
+      "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
       "completed": "已完成",
       "feedbackStatus": "反馈",
       "note": "备注",
@@ -182,7 +274,10 @@
       "paymentNoticeStatus": "수강료 안내 상태",
       "applied": "수강 신청",
       "paymentNoticeSent": "수강료 안내 발송",
-      "classMinutes": "수업 시간(분)",
+      "classMinutes": "课时(分钟)",
+      "classMinutesPresets": "预设",
+      "classMinutesFreeInput": "自定义分钟",
+      "classMinutesUnit": "分钟",
       "tuitionAmount": "수강료",
       "tuitionPaid": "수강료 납부 완료",
       "tuitionPaidHint": "※ 仅负责人(ADMIN)可确认付款。",
