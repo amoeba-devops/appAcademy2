@@ -10,6 +10,13 @@ audience: Ops / Maintainer
 
 현재 운영 기준은 PostgreSQL-only ACM 스택이다. MySQL runtime, cutover script, legacy migration runner는 제거되었으며 이 문서는 현재 저장소 기준의 배포 절차만 다룬다.
 
+## 0. Current State Snapshot (2026-07-04)
+
+- Production runtime: `tac-prod-mysql` removed
+- Staging runtime: `tac-mysql` removed
+- Active datastore: PostgreSQL `db_acm` only
+- Retained legacy artifacts: `db_tac-*.sql.gz` backup archives may remain under `/var/backups/app-academy/*/`
+
 ## 1. 현재 런타임
 
 | 영역 | 현재 기준 |
@@ -102,3 +109,4 @@ scripts/deploy-production.sh
 - TypeORM `synchronize` 는 사용하지 않는다.
 - 과거 `RUNBOOK.md`, `CUTOVER.md`, `RUNBOOK-260622-cutover.md`, `UAT-CHECKLIST.md` 는 참고용 아카이브다.
 - MySQL 관련 명령, `db_tac`, `tac_*`, `scripts/migrate-mysql-to-pg/*` 기준 절차는 현재 운영 문서로 사용하지 않는다.
+- legacy MySQL rollback 자산은 런타임이 아니라 백업 아카이브로만 유지한다.

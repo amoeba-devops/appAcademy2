@@ -16,6 +16,7 @@ related:
 change_log:
   - 2026-06-22 v1.0.0 draft — operator runbook for production cutover
   - 2026-07-01 v1.1.0 ready-for-rehearsal — T5-01/T5-02 아티팩트 완성 (cutover wrapper + maintenance vhost + 503 page). rehearsal 실행 가능 상태
+  - 2026-07-04 v1.1.1 archived after execution — staging/prod mysql runtime removed, PostgreSQL-only operation established
 ---
 
 # Operator Runbook — MySQL → PostgreSQL Cutover (REQ-260622)
@@ -24,6 +25,7 @@ change_log:
 > Dual-write 0일 (Q-3) — **단일 시점 전환**. 컷오버 후 MySQL 즉시 삭제 (Q-4).
 >
 > **2026-07-04 아카이브 안내**: 본 컷오버는 완료되었고 관련 스크립트/서비스는 저장소에서 제거되었다. 현행 운영 문서로 사용하지 말고, 이행 기록 참고용으로만 사용한다.
+> **실행 결과 메모**: `tac-prod-mysql`, `tac-mysql` 런타임 컨테이너는 2026-07-04 제거되었고 ACM 운영 데이터 소스는 `db_acm` 단일화되었다.
 
 ---
 
