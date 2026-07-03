@@ -34,6 +34,7 @@ import { SessionTypeormEntity } from '../acm-cls/infrastructure/typeorm/session.
 import { ClsEnrollmentTypeormEntity } from '../acm-cls/infrastructure/typeorm/cls-enrollment.typeorm-entity';
 import { MapScoreTypeormEntity } from '../acm-map/infrastructure/typeorm/map-score.typeorm-entity';
 import { PayOrderTypeormEntity } from '../acm-pay/infrastructure/typeorm/pay-order.typeorm-entity';
+import { PayRefundPolicyTypeormEntity } from '../acm-pay/infrastructure/typeorm/pay-refund-policy.typeorm-entity';
 import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
 import { STG_APPS_SUBSCRIPTION_CLIENT } from './infrastructure/stg-apps-subscription.client';
 import { StgAppsSubscriptionMockClient } from './infrastructure/stg-apps-subscription-mock.client';
@@ -139,6 +140,7 @@ const amaOAuthProvider: Provider = {
         ClsEnrollmentTypeormEntity,
         MapScoreTypeormEntity,
         PayOrderTypeormEntity,
+        PayRefundPolicyTypeormEntity,
       ],
       ACM_DS,
     ),
