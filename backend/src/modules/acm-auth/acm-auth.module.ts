@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
-import { AcademyEntity } from '../../infrastructure/database/entities/academy.entity';
 import { AcmAuthService } from './application/acm-auth.service';
 import { SubscriptionCheckService } from './application/subscription-check.service';
 import { UserMembershipGuard } from './application/user-membership.guard';
@@ -17,6 +16,7 @@ import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
 import { AcmAuthController } from './presentation/acm-auth.controller';
 import { AmaUserController } from './presentation/ama-user.controller';
 import { AmaConfigController } from './presentation/ama-config.controller';
+import { AcmTenantTypeormEntity } from '../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-entity';
 import { AmaConfigTypeormEntity } from './infrastructure/typeorm/ama-config.typeorm-entity';
 import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
@@ -111,13 +111,9 @@ const amaOAuthProvider: Provider = {
       }),
     }),
     TypeOrmModule.forFeature(
-      [AcmUserTypeormEntity, AmaConfigTypeormEntity],
+      [AcmUserTypeormEntity, AmaConfigTypeormEntity, AcmTenantTypeormEntity],
       ACM_DS,
     ),
-    // AcademyEntity lives on the default (MySQL) datasource — registered
-    // here so SubscriptionCheckService can read/refresh the local cache
-    // and fall back to it when stg-apps is unavailable (REQ-260604 v2 FR-1/FR-9).
-    TypeOrmModule.forFeature([AcademyEntity]),
   ],
   controllers: [AcmAuthController, AmaUserController, AmaConfigController],
   providers: [

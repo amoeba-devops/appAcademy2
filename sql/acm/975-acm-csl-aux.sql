@@ -1,10 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — CSL 보조 + 학생 외부 점수 PG 스키마 (REQ-260622 Phase 1 T1-06)
 --
--- Migrates 3 MySQL tables:
---   tac_visit_records             → amb_acm_csl_visit_record
---   tac_consultation_intake_form  → amb_acm_csl_intake_form (orphan — schema 보존)
---   tac_external_test_scores      → amb_acm_std_external_test_score (orphan — 보존)
+-- Defines PostgreSQL CSL visit record, intake form, and external score tables.
 --
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.6
 -- ============================================================================

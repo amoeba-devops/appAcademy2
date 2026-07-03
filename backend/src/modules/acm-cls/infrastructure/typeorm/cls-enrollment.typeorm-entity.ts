@@ -18,7 +18,7 @@ export type ClsEnrollmentStatus =
  *
  * Separate from `amb_acm_csl_enrollment` which is a counseling pipeline
  * stage marker (FK → inquiry). This table is the actual student-enrolled-
- * in-class record, mirroring MySQL `tac_enrollments`.
+ * in-class record.
  *
  * @see sql/acm/952-acm-cls-enrollment.sql
  * @see docs/analysis/REQ-260622 §2.1 (decision X)
@@ -46,7 +46,7 @@ export class ClsEnrollmentTypeormEntity {
   @Column({ name: 'std_id', type: 'uuid' })
   studentId!: string;
 
-  /** 신청 보호자 (`tac_enrollments.enr_applied_prt_id`). */
+  /** 신청 보호자. */
   @Column({ name: 'ce_applied_prt_id', type: 'uuid' })
   appliedParentId!: string;
 

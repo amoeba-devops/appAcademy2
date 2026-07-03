@@ -53,39 +53,17 @@ jobs:
         run: npm run build
 
   # ──────────────────────────────────────────────────────────────────
-  # Backend integration — boots AppModule against a real MySQL service
-  # Also runs ACM Testcontainers integration suites (Postgres-in-Docker)
+  # Backend integration — ACM Testcontainers integration suites
   # ──────────────────────────────────────────────────────────────────
   backend-integration:
-    name: Backend — Integration (MySQL + Testcontainers)
+    name: Backend — Integration (PostgreSQL Testcontainers)
     runs-on: ubuntu-latest
     needs: backend
     defaults:
       run:
         working-directory: backend
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: db_tac
-          MYSQL_CHARSET: utf8mb4
-          MYSQL_COLLATION: utf8mb4_unicode_ci
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -uroot -ppassword"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=10
-
     env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_USERNAME: root
-      DB_PASSWORD: password
-      DB_DATABASE: db_tac
       NODE_ENV: test
 
     steps:
@@ -99,31 +77,9 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
-      - name: Wait for MySQL
-        run: |
-          for i in $(seq 1 30); do
-            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
-              echo "MySQL ready"; exit 0
-            fi
-            sleep 2
-          done
-          echo "MySQL did not become ready"; exit 1
-
-      - name: Apply schema + seed
-        working-directory: .
-        run: |
-          for f in sql/010-academy-management-schema.sql \
-                   sql/020-seed-dev.sql \
-                   sql/030-migration-notification-templates.sql \
-                   sql/070-migration-notification-logs.sql; do
-            echo "[apply] $f"
-            mysql -h 127.0.0.1 -uroot -ppassword db_tac < "$f"
-          done
-
       - name: e2e (Nest AppModule boot)
         run: npm run test:e2e
-        # TEMP: marked non-blocking until CI gains ACM_PII_KEY env and a
-        # postgres-acm service for the ACM datasource. Tracked separately.
+        # TEMP: marked non-blocking until CI gains full ACM_PG_* and ACM_PII_KEY env.
         continue-on-error: true
 
       - name: ACM integration (Testcontainers)

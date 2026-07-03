@@ -1,8 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — AMA Subscription Event Ledger (REQ-260622 Phase 1 T1-07)
 --
--- Migrates tac_subscription_events (MySQL) to amb_acm_subscription_event.
--- AMA webhook 멱등성 보장 + lifecycle audit.
+-- Defines PostgreSQL AMA webhook event ledger for idempotency + lifecycle audit.
 --
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.7
 -- ============================================================================

@@ -1,11 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — Posts / Programs / Classrooms PG 스키마 (REQ-260622 Phase 1 T1-05)
 --
--- Migrates 4 MySQL tables:
---   tac_posts            → amb_acm_post
---   tac_programs         → amb_acm_program
---   tac_program_settings → amb_acm_program_setting
---   tac_classrooms       → amb_acm_classroom
+-- Defines PostgreSQL posts, programs, program settings, and classrooms.
 --
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.5
 -- ============================================================================

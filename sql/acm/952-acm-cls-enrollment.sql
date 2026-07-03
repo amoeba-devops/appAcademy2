@@ -1,23 +1,19 @@
 -- ============================================================================
 -- ACM v1.0g — Class Enrollment PG 스키마 (REQ-260622 — model separation)
 --
--- Decision (Phase 0 follow-up): the MySQL `tac_enrollments` table — which is
--- the *student × class* enrollment record — does NOT map onto the existing
--- PG `amb_acm_csl_enrollment` (which is a counseling pipeline stage marker
+-- Decision: the student × class enrollment record does NOT map onto the
+-- existing `amb_acm_csl_enrollment` (which is a counseling pipeline stage marker
 -- per acm-req-csl-001 §4.1 — columns like enr_payment_notice_status,
 -- enr_counsel_done, etc).
 --
--- Two semantically distinct concepts were folded into one MySQL table
--- historically. PG preserves the separation:
+-- PostgreSQL preserves the separation:
 --
 --   amb_acm_csl_enrollment   (existing) — CSL pipeline stage
 --                                          FK → amb_acm_csl_inquiry
 --   amb_acm_cls_enrollment   (this file) — student↔class join with status
---                                          mirror of tac_enrollments
 --
--- Pay module references the new `amb_acm_cls_enrollment` (sql/acm/950 updated
--- in the same commit). Phase 3 migrator inserts tac_enrollments rows here,
--- not into amb_acm_csl_enrollment.
+-- Pay module references the new `amb_acm_cls_enrollment`, not
+-- `amb_acm_csl_enrollment`.
 --
 -- @see docs/analysis/REQ-260622 §2.1 (decision X)
 -- ============================================================================

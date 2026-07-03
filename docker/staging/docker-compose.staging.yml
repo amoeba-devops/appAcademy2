@@ -5,31 +5,6 @@
 #                  --env-file docker/staging/.env.staging \
 #                  up -d
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: tac-mysql
-    restart: unless-stopped
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_0900_ai_ci
-      --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-db_tac}
-      MYSQL_USER: ${MYSQL_USER:-tac}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    ports:
-      - "127.0.0.1:3306:3306"
-    volumes:
-      - ${DATA_DIR:-./data}/mysql:/var/lib/mysql
-      - ./mysql-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   postgres-acm:
     build:
       context: .
@@ -123,8 +98,6 @@ services:
     # bootable when the operator hasn't run scripts/setup-minio-env.sh yet
     # (FIX after PR #79 hard-depends_on broke production /api/* with 502).
     depends_on:
-      mysql:
-        condition: service_healthy
       redis:
         condition: service_healthy
       postgres-acm:
@@ -132,11 +105,6 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_USERNAME: ${MYSQL_USER:-tac}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
-      DB_DATABASE: ${MYSQL_DATABASE:-db_tac}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET}

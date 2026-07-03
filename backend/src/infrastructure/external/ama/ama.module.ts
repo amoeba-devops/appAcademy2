@@ -1,11 +1,8 @@
 import { Module, Provider } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { TeacherEntity } from '../../database/entities/teacher.entity';
 import { AMA_CLIENT_SERVICE } from './interfaces/ama-client.interface';
 import { AmaMockService } from './ama-mock.service';
 import { AmaClientHttpService } from './ama-client.service';
-import { TeacherSyncService } from './teacher-sync.service';
 
 /**
  * AMA integration module — Read-only Teacher Master Mirror.
@@ -29,8 +26,8 @@ const amaClientProvider: Provider = {
 };
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([TeacherEntity])],
-  providers: [amaClientProvider, TeacherSyncService],
-  exports: [AMA_CLIENT_SERVICE, TeacherSyncService],
+  imports: [ConfigModule],
+  providers: [amaClientProvider],
+  exports: [AMA_CLIENT_SERVICE],
 })
 export class AmaModule {}

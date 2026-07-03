@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
 import { MapPassageTypeormEntity } from './infrastructure/typeorm/map-passage.typeorm-entity';
 import { MapQuestionTypeormEntity } from './infrastructure/typeorm/map-question.typeorm-entity';
-// REQ-260622 Phase 2 — 8 new entities replacing the legacy tac_map_* tree.
+// MAP domain entities for the PostgreSQL ACM datasource.
 import { MapPassageAssetTypeormEntity } from './infrastructure/typeorm/map-passage-asset.typeorm-entity';
 import { MapItemTypeormEntity } from './infrastructure/typeorm/map-item.typeorm-entity';
 import { MapItemTagTypeormEntity } from './infrastructure/typeorm/map-item-tag.typeorm-entity';

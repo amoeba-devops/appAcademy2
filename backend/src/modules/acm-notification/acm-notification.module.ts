@@ -7,11 +7,10 @@ import { NotificationTemplateTypeormEntity } from './infrastructure/typeorm/noti
 /**
  * REQ-260622 Phase 2 — `acm-notification` 모듈.
  *
- * Replaces the legacy MySQL `tac_notification_*` path. Wires 2 entities;
- * the dispatcher service + invitee-notifier integration is Phase 2
- * follow-up.
+ * PostgreSQL notification module. Wires 2 entities; the dispatcher service +
+ * invitee-notifier integration is a follow-up.
  *
- * NOT imported into app.module.ts yet — Phase 2 explicit swap.
+ * Import into app.module.ts when notification dispatch is enabled.
  */
 import { NotificationService } from './application/notification.service';
 

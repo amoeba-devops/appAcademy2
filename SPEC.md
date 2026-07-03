@@ -1,9 +1,9 @@
 ---
 document_id: TAC-SPEC-1.3.0
-version: 1.3.0
-status: Draft
+version: 1.3.1
+status: Archived Reference
 created: 2026-04-19
-updated: 2026-04-19
+updated: 2026-07-04
 author: 김익용
 change_log:
   - version: 1.3.0
@@ -18,7 +18,9 @@ change_log:
 
 > Trinity Academy는 본 플랫폼 위에서 운영되는 첨 입주 테넌트다. 다른 학원은 AMA App Store를 통해 신규 프로비저닝된다.
 
-> ⚠️ **2026-06-22 — Migration in progress (REQ-260622)**: MySQL 단일화 폐기 + PostgreSQL 통합 작업 진행 중. 본 문서의 MySQL / `tac_*` / `db_tac` / `utf8mb4` 관련 명세는 **Phase 7 (예정) 까지의 현행 상태** 기준. 신규 모듈은 PostgreSQL (`db_acm` / `amb_acm_*`) 단독 사용. 자세한 내용은 [docs/analysis/REQ-260622](docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md) 및 [PLN-260622](docs/plan/PLN-260622-mysql-to-postgres-full-migration.md) 참조.
+> **2026-07-04 안내**: MySQL runtime과 legacy source는 제거되었다. 현재 구현 기준의 공식 명세는 [docs/standard/SPEC.md](docs/standard/SPEC.md) 이다.
+
+> 이 루트 `SPEC.md` 는 초기/이행 단계 설계를 보존하는 아카이브 문서다. 아래 내용에는 과거 MySQL, `tac_*`, cutover 계획이 포함될 수 있다.
 
 ## 1. Project Overview (프로젝트 개요)
 

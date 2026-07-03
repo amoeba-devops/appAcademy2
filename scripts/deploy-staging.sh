@@ -7,8 +7,8 @@
 # Responsibilities:
 #   1. git pull origin main
 #   2. docker compose build (backend + frontend)
-#   3. docker compose up -d mysql redis (if not already up)
-#   4. Apply pending SQL migrations (tracked under sql/_applied/)
+#   3. docker compose up -d postgres-acm redis minio (if not already up)
+#   4. Apply pending PostgreSQL ACM SQL migrations
 #   5. docker compose up -d backend frontend
 #   6. Reload host nginx (app-academy-stg + acm-stg vhosts)
 #   7. Smoke test + write .last-deploy manifest
@@ -58,79 +58,19 @@ else
 fi
 
 # --- 3. Ensure data services are up -------------------------------------
-say "3. Start mysql + redis + postgres-acm (idempotent)"
-$COMPOSE up -d mysql redis postgres-acm
+say "3. Start redis + postgres-acm + minio (idempotent)"
+$COMPOSE up -d redis postgres-acm minio minio-init
 
-# Wait until a real SQL query succeeds — mysqladmin ping can return healthy
-# during the MySQL entrypoint's temporary startup phase before the TCP
-# listener is actually ready, so ping alone is not enough.
 # shellcheck disable=SC1091
 set -a; source "$REPO_DIR/docker/staging/.env.staging"; set +a
-say "   waiting for mysql responsive..."
-mysql_ready=0
-for i in $(seq 1 90); do
-    if docker exec tac-mysql mysql --default-character-set=utf8mb4 \
-            -uroot -p"$MYSQL_ROOT_PASSWORD" -e 'SELECT 1' > /dev/null 2>&1; then
-        mysql_ready=1
-        echo "   ready after ${i}x2s"
-        break
-    fi
-    sleep 2
-done
-[[ "$mysql_ready" == "1" ]] || die "mysql did not become responsive in 180s."
 
-# --- 4. Apply pending SQL migrations ------------------------------------
+# --- 4. Apply ACM Postgres migrations -----------------------------------
 # Bootstrap mode: pre-mark every existing SQL file as applied (no DB exec)
 # and continue with the rest of the deploy. Use after a fresh repo clone
 # on a host whose DB already has the schema (the gitignored
 # sql/_applied/ directory got out of sync with reality):
 #   DEPLOY_SQL_BOOTSTRAP=1 scripts/deploy-staging.sh
-say "4. Apply SQL migrations (idempotent via sql/_applied/)"
-mkdir -p "$REPO_DIR/sql/_applied"
-
-# Idempotent error patterns from MySQL — these mean the schema change was
-# already applied successfully on a prior run and re-applying is safe to
-# treat as a no-op. We mark the migration as applied and continue.
-IDEMPOTENT_PATTERNS='ERROR 1050.*already exists|ERROR 1060.*Duplicate column|ERROR 1061.*Duplicate key|ERROR 1062.*Duplicate entry|ERROR 1091.*check that column/key exists'
-
-for sql_file in $(find "$REPO_DIR/sql" -maxdepth 1 -type f -name '*.sql' | sort); do
-    fname="$(basename "$sql_file")"
-    marker="$REPO_DIR/sql/_applied/$fname.sha256"
-    current_hash="$(sha256sum "$sql_file" | awk '{print $1}')"
-
-    if [[ -f "$marker" ]] && [[ "$(cat "$marker")" == "$current_hash" ]]; then
-        echo "   [skip]  $fname (already applied)"
-        continue
-    fi
-
-    if [[ "${DEPLOY_SQL_BOOTSTRAP:-0}" == "1" ]]; then
-        echo "$current_hash" > "$marker"
-        echo "   [bootstrap-mark] $fname"
-        continue
-    fi
-
-    printf '   [apply] %-58s ' "$fname"
-    if docker exec -i tac-mysql mysql \
-            --default-character-set=utf8mb4 \
-            -uroot -p"$MYSQL_ROOT_PASSWORD" "${MYSQL_DATABASE:-db_tac}" \
-            < "$sql_file" > /tmp/sql-out.log 2>&1; then
-        echo "OK"
-        echo "$current_hash" > "$marker"
-    elif grep -E -q "$IDEMPOTENT_PATTERNS" /tmp/sql-out.log; then
-        # Migration's effect already present in DB — mark and continue.
-        # Surface the matched error so the operator can sanity-check.
-        echo "ALREADY-APPLIED (idempotent)"
-        grep -E "$IDEMPOTENT_PATTERNS" /tmp/sql-out.log | head -2 | sed 's/^/      /'
-        echo "$current_hash" > "$marker"
-    else
-        echo "FAIL"
-        grep -v 'Using a password' /tmp/sql-out.log | tail -5
-        die "SQL apply failed on $fname"
-    fi
-done
-
-# --- 4b. Apply ACM Postgres migrations (sql/acm/) -----------------------
-say "4b. Apply ACM Postgres migrations (sql/acm/)"
+say "4. Apply ACM Postgres migrations (sql/acm/)"
 acm_pg_ready=0
 for i in $(seq 1 30); do
     if docker exec tac-postgres-acm pg_isready -U "${ACM_PG_USER:-acm}" -d "${ACM_PG_DATABASE:-db_acm}" > /dev/null 2>&1; then

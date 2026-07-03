@@ -1,7 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — MAP 평가 모듈 PG 스키마 확장 (REQ-260622 Phase 1 T1-02)
 --
--- Migrates tac_map_* (MySQL, 8 tables) to PG amb_acm_map_*.
+-- Defines PostgreSQL MAP evaluation tables.
 -- 기존 amb_acm_map_passage / amb_acm_map_question 와 별개로 평가 흐름 (item bank,
 -- test set, assignment, response, score) 을 추가.
 --

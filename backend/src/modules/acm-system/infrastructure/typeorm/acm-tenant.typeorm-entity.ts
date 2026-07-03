@@ -21,6 +21,24 @@ export class AcmTenantTypeormEntity {
   @Column({ name: 'tnt_is_system', type: 'boolean', default: false })
   isSystem!: boolean;
 
+  @Column({ name: 'tnt_ama_entity_id', type: 'varchar', length: 80, nullable: true })
+  amaEntityId?: string | null;
+
+  @Column({ name: 'tnt_ama_entity_code', type: 'varchar', length: 40, nullable: true })
+  amaEntityCode?: string | null;
+
+  @Column({ name: 'tnt_subscription_status', type: 'varchar', length: 30, default: 'ACTIVE' })
+  subscriptionStatus!: string;
+
+  @Column({ name: 'tnt_subscription_plan', type: 'varchar', length: 80, nullable: true })
+  subscriptionPlan?: string | null;
+
+  @Column({ name: 'tnt_canceled_at', type: 'timestamptz', nullable: true })
+  canceledAt?: Date | null;
+
+  @Column({ name: 'tnt_deprovisioned_at', type: 'timestamptz', nullable: true })
+  deprovisionedAt?: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

@@ -4,9 +4,8 @@
  * Source of truth for whether a given AMA entity has an active app-academy
  * subscription. ACM calls this on every AMA-sourced login (REQ-260604 v2
  * FR-1, A1) before issuing an ACM JWT. On 5xx/timeout the caller (see
- * SubscriptionCheckService) falls back to the local
- * tac_academies.acd_subscription_status copy (kept current by the AMA
- * subscription webhook).
+ * SubscriptionCheckService) falls back to the local PostgreSQL tenant
+ * subscription cache.
  *
  * Implementations:
  *   • StgAppsSubscriptionMockClient — fixture-driven, default for dev/test

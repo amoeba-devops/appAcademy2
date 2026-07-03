@@ -1,23 +1,4 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: tac-mysql
-    restart: unless-stopped
-    ports:
-      - '3306:3306'
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: db_tac
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
-    volumes:
-      - tac-mysql-data:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d
-    command: >
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-authentication-plugin=mysql_native_password
-
   redis:
     image: redis:7-alpine
     container_name: tac-redis
@@ -69,6 +50,5 @@ services:
       - 'backend:host-gateway'
 
 volumes:
-  tac-mysql-data:
   tac-redis-data:
   acm-pg-data:

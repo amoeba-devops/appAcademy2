@@ -16,16 +16,12 @@ import { PayTaxInvoiceService } from './application/services/pay-tax-invoice.ser
 /**
  * REQ-260622 Phase 2 — `acm-pay` 모듈.
  *
- * Migrates the legacy `presentation/payment.module.ts` (which reads from
- * MySQL `tac_pay_*`) to the PG-only world. Wires 6 TypeORM entities +
- * service stack against the `ACM_DS` datasource (db_acm).
+ * PostgreSQL payment module. Wires 6 TypeORM entities + service stack
+ * against the `ACM_DS` datasource (db_acm).
  *
- * **NOT yet imported into `app.module.ts`** — Phase 2 actual implementation
- * will add this to the root imports, swap out the legacy payment.module,
- * and rewrite controllers. Until then the module compiles, type-checks,
- * and is unit-test ready but does not participate in the running app.
+ * Import into `app.module.ts` when payment controllers are enabled.
  *
- * @see docs/plan/PLN-260622-mysql-to-postgres-full-migration.md §3 (Phase 2)
+ * @see sql/acm/950-acm-pay-schema.sql
  */
 @Module({
   imports: [

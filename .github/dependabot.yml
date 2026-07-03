@@ -16,10 +16,9 @@ updates:
       typeorm:
         patterns:
           - typeorm
-          - mysql2
 
   - package-ecosystem: npm
-    directory: /frontend
+    directory: /frontend-acm
     schedule:
       interval: weekly
       day: monday

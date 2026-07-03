@@ -1,13 +1,9 @@
 -- ============================================================================
 -- ACM v1.0g — Payment 모듈 PG 스키마 (REQ-260622 Phase 1 T1-01)
 --
--- Migrates tac_pay_* (MySQL) 6 tables to PostgreSQL amb_acm_pay_*.
--- BIGINT AUTOINC → UUID + legacy_id BIGINT UNIQUE preservation column
--- for the duration of the migration (drop at Phase 7 + 30 days).
+-- Defines PostgreSQL payment tables for ACM.
 --
--- @see docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.1
--- @see docs/plan/PLN-260622-mysql-to-postgres-full-migration.md Phase 1
 --
 -- Apply order:
 --   0. amb_acm_tenant.legacy_acd_id 컬럼 추가 (이 파일 §0).
@@ -18,8 +14,7 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 0) tenant.legacy_acd_id 추가 — Phase 3 데이터 이전 시 acd_id → ent_id 조인용
---    Phase 7 + 30일 후 drop 대상.
+-- 0) tenant.legacy_acd_id 추가 — historical compatibility column.
 -- ----------------------------------------------------------------------------
 DO $$ BEGIN
   IF NOT EXISTS (

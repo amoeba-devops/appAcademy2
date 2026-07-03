@@ -1,7 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — PII Audit Log PG 스키마 (REQ-260622 Phase 1 T1-04)
 --
--- Migrates tac_audit_logs (MySQL — PII 접근 감사) to PG amb_acm_audit_log.
+-- Defines PostgreSQL PII access audit log.
 -- Q-2 결정: 최근 N일 (default 90일) 만 이전. 그 외는 S3 cold archive.
 --
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.4

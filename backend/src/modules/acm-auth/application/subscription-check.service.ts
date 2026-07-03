@@ -7,7 +7,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AcademyEntity } from '../../../infrastructure/database/entities/academy.entity';
+import { ACM_DS } from '../../acm-common/datasource';
+import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
+import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 import {
   STG_APPS_SUBSCRIPTION_CLIENT,
   type IStgAppsSubscriptionClient,
@@ -33,13 +35,13 @@ export interface SubscriptionCheckResult {
  *      • 200 SUSPENDED / CANCELED / DEPROVISIONED  → 403 SUBSCRIPTION_<status>
  *      • 200 NOT_SUBSCRIBED  or  404               → 403 NO_SUBSCRIPTION
  *   2. live 5xx / network / timeout → cache fallback
- *      • no tac_academies row                       → 403 NO_ACADEMY
+ *      • no tenant row                              → 403 NO_TENANT
  *      • cache age ≤ 24h  and  cached status ACTIVE/TRIALING → pass (degraded)
  *      • cache age > 24h  or  cached status not active       → 503 AMA_UNAVAILABLE
  *
  * The 24h ceiling exists so a hard stg-apps outage can't paper over a real
  * lapsed subscription forever — the AMA subscription webhook normally keeps
- * `acd_subscription_status` fresh within seconds, so anything older than 24h
+ * `tnt_subscription_status` fresh within seconds, so anything older than 24h
  * almost certainly means webhooks are broken too.
  *
  * Absorbs the v1 [AcademySubscriptionGuard](./academy-subscription.guard.ts)
@@ -50,8 +52,10 @@ export class SubscriptionCheckService {
   private readonly logger = new Logger(SubscriptionCheckService.name);
 
   constructor(
-    @InjectRepository(AcademyEntity)
-    private readonly academyRepo: Repository<AcademyEntity>,
+    @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
+    private readonly tenantRepo: Repository<AcmTenantTypeormEntity>,
+    @InjectRepository(AmaConfigTypeormEntity, ACM_DS)
+    private readonly amaConfigRepo: Repository<AmaConfigTypeormEntity>,
     @Inject(STG_APPS_SUBSCRIPTION_CLIENT)
     private readonly client: IStgAppsSubscriptionClient,
   ) {}
@@ -87,14 +91,12 @@ export class SubscriptionCheckService {
   private async cacheFallback(
     amaEntityId: string,
   ): Promise<SubscriptionCheckResult> {
-    const academy = await this.academyRepo.findOne({
-      where: { acdAmaTenantId: amaEntityId },
-    });
-    if (!academy) {
-      throw this.deny('NO_ACADEMY', amaEntityId);
+    const tenant = await this.findTenantByAmaEntityId(amaEntityId);
+    if (!tenant) {
+      throw this.deny('NO_TENANT', amaEntityId);
     }
-    const cachedAt = academy.acdUpdatedAt
-      ? new Date(academy.acdUpdatedAt).getTime()
+    const cachedAt = tenant.updatedAt
+      ? new Date(tenant.updatedAt).getTime()
       : 0;
     const age = Date.now() - cachedAt;
     if (age > CACHE_FALLBACK_TTL_MS) {
@@ -109,7 +111,7 @@ export class SubscriptionCheckService {
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
-    const status = academy.acdSubscriptionStatus;
+    const status = tenant.subscriptionStatus;
     if (!(ACCEPTED_STATUSES as readonly string[]).includes(status)) {
       throw this.deny(`SUBSCRIPTION_${status}`, amaEntityId, status);
     }
@@ -124,11 +126,16 @@ export class SubscriptionCheckService {
     info: SubscriptionInfo,
   ): Promise<void> {
     try {
-      await this.academyRepo.update(
-        { acdAmaTenantId: amaEntityId },
+      const tenant = await this.findTenantByAmaEntityId(amaEntityId);
+      if (!tenant) {
+        this.logger.warn(`cache refresh skipped; tenant not found entId=${amaEntityId}`);
+        return;
+      }
+      await this.tenantRepo.update(
+        { entId: tenant.entId },
         {
-          acdSubscriptionStatus: info.status,
-          acdSubscriptionPlan: info.plan ?? null,
+          subscriptionStatus: info.status,
+          subscriptionPlan: info.plan ?? null,
         },
       );
     } catch (e) {
@@ -153,5 +160,23 @@ export class SubscriptionCheckService {
       },
       HttpStatus.FORBIDDEN,
     );
+  }
+
+  private async findTenantByAmaEntityId(
+    amaEntityId: string,
+  ): Promise<AcmTenantTypeormEntity | null> {
+    const direct = await this.tenantRepo.findOne({
+      where: { amaEntityId },
+    });
+    if (direct) return direct;
+
+    const config = await this.amaConfigRepo.findOne({
+      where: { amaEntityId, isActive: true },
+    });
+    if (!config) return null;
+
+    return await this.tenantRepo.findOne({
+      where: { entId: config.entId },
+    });
   }
 }

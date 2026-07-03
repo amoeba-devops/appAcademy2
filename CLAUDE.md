@@ -4,6 +4,8 @@
 > **Version**: v1.4.1
 > **Last Updated**: 2026-04-28
 > **Canonical Repo**: https://github.com/amoeba-devops/appAcademy2 (이전 `KimIgyong/app-academy`은 fallback only — see [docs/deployment/REPO-MIGRATION-GUIDE.md](docs/deployment/REPO-MIGRATION-GUIDE.md))
+>
+> **2026-07-04 안내**: 현재 구현 기준 표준 문서는 `docs/standard/*` 이다. MySQL runtime과 legacy source는 제거되었으며, 신규 작업은 PostgreSQL `db_acm` / `amb_acm_*` / `ACM_DS` 기준으로 수행한다.
 
 ---
 
@@ -55,7 +57,6 @@
 | **Language** | TypeScript (strict) | 5.x |
 | **ORM** | TypeORM | latest |
 | **Database** | **PostgreSQL** (`pg_bigm`) | 16.x |
-| ~~Database (legacy)~~ | ~~MySQL~~ | ~~8.x~~ — REQ-260622 Phase 7 까지 단계적 폐기 |
 | **Validation** | class-validator + class-transformer | latest |
 | **API Docs** | Swagger (@nestjs/swagger) | latest |
 | **PG (Payment)** | Toss Payments | Widget SDK v2 |
@@ -240,7 +241,7 @@ React SPA (frontend-acm:5173 dev / 5174 docker)
 
 ## 5. Database Convention (DB 규칙)
 
-> ⚠️ **REQ-260622 진행 중**: MySQL (`db_tac` / `tac_*`) 폐기 + PostgreSQL (`db_acm` / `amb_acm_*`) 단일화. 신규 테이블/엔티티는 **반드시 PG 컨벤션 (5.1)** 만 사용. legacy MySQL 컨벤션 (5.2) 은 Phase 7 까지의 readonly 참조용. 자세한 내용 → [REQ-260622](docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md), [SPEC schema map](docs/design/SPEC-260622-tac-to-pg-schema-map.md).
+> **현재 기준**: PostgreSQL (`db_acm` / `amb_acm_*`) 이 단일 표준이다. 신규 테이블/엔티티는 **반드시 PG 컨벤션 (5.1)** 만 사용한다. 과거 MySQL naming/history는 아카이브 문서에서만 참조한다.
 
 ### 5.1 PG Naming (신규 표준)
 | Item | Rule | Example |
@@ -258,24 +259,17 @@ React SPA (frontend-acm:5173 dev / 5174 docker)
 | Trigger (updated_at) | `set_acm_updated_at()` | 기존 함수 재사용 (sql/acm/910) |
 | Index | `idx_acm_{table_short}_{cols}` | `idx_acm_pay_order_status` |
 | Unique | `uq_acm_{table_short}_{cols}` | `uq_acm_pay_order_idempotency` |
-| Migration | `legacy_id BIGINT UNIQUE` | Phase 3 MySQL→PG 이전 대응, Phase 7 + 30일 drop |
+| Migration | `legacy_id BIGINT UNIQUE` | 필요 시 과거 데이터 이관 호환용으로만 제한 사용 |
 
-### 5.2 MySQL Naming (legacy, Phase 7 까지 readonly)
-| Item | Rule | Example |
-|------|------|---------|
-| Database | `db_tac` | — |
-| Table prefix | `tac_` | `tac_students`, `tac_payment_orders` |
-| Sub-domain prefix | `tac_{sub}_` | `tac_map_items`, `tac_pay_ledger` |
-| Column (PK) | `id` (BIGINT AUTO_INCREMENT) | — |
-| Column (FK) | `{referenced_table}_id` | `student_id`, `class_id` |
-| Column (timestamp) | `created_at`, `updated_at` | DATETIME, NOT NULL |
-| Column (soft delete) | `deleted_at` | DATETIME, nullable |
-| Column (boolean) | `is_{name}` | `is_active`, `is_default_template` |
-| Column (status) | `status` | VARCHAR, ENUM values in UPPER_SNAKE |
-| Index | `idx_{table}_{columns}` | `idx_tac_students_academy_status` |
-| Unique | `uq_{table}_{columns}` | `uq_tac_teachers_academy_ama_client` |
+### 5.2 Legacy Archive
 
-### 5.2 Key Entity Rules
+MySQL naming, `tac_*` 테이블 규칙, `db_tac` 관련 설명은 현재 코드 표준이 아니다. 과거 설계/이행 기록이 필요하면 다음 문서를 참조한다.
+
+- `docs/analysis/REQ-260622-mysql-to-postgres-full-migration.md`
+- `docs/design/SPEC-260622-tac-to-pg-schema-map.md`
+- `docs/deployment/RUNBOOK-260622-cutover.md`
+
+### 5.3 Key Entity Rules
 - `parents.phone_encrypted`, `email_encrypted` — AES-GCM 암호화 (NFR-005)
 - `receipts.buyer_identifier` — VARBINARY(128) 암호화
 - `payment_orders.pg_payment_key` — VARCHAR(200), 카드 PAN 미저장 (PCI-DSS SAQ-A)

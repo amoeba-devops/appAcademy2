@@ -13,9 +13,9 @@
 # IMPORTANT — every `docker compose` invocation MUST pass --env-file
 # pointing to the .env.{staging,production} file. Without it docker
 # compose defaults to `.env` (which doesn't exist on these hosts), so
-# every `${VAR}` interpolation (MYSQL_PASSWORD, ACM_PG_PASSWORD, DATA_DIR,
-# …) resolves to empty string — and that recreates mysql/postgres-acm
-# containers with empty env + a fresh data dir → both DBs crash-loop with
+# every `${VAR}` interpolation (ACM_PG_PASSWORD, DATA_DIR, …) resolves to
+# empty string — and that recreates postgres-acm containers with empty env
+# + a fresh data dir → DB crash-loops with
 # "uninitialized + password not specified" and backend goes 502 (this
 # happened on prod 2026-06-29). See deploy-{staging,production}.sh which
 # build COMPOSE the same way.

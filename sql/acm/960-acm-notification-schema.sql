@@ -1,7 +1,7 @@
 -- ============================================================================
 -- ACM v1.0g — Notification 모듈 PG 스키마 (REQ-260622 Phase 1 T1-03)
 --
--- Migrates tac_notification_templates + tac_notification_logs (MySQL) to PG.
+-- Defines PostgreSQL notification template and log tables.
 -- @see docs/design/SPEC-260622-tac-to-pg-schema-map.md §2.3
 -- ============================================================================
 

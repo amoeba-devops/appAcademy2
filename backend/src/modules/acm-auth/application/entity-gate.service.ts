@@ -7,19 +7,20 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AcademyEntity } from '../../../infrastructure/database/entities/academy.entity';
+import { ACM_DS } from '../../acm-common/datasource';
+import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
+import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 
 /**
  * REQ-260609 FR-A — TPI-only entity gate.
  *
  * `tpi-acm` is a single-tenant app: only the TPI entity (code `VN3040`)
- * may sign in. On each AMA SSO exchange we resolve the academy by the
- * token's entityId (UUID) and assert its stored `acd_ama_entity_code` is
- * in the allowed whitelist (env `AMA_ALLOWED_ENTITY_CODES`, default
- * `VN3040`). If the AMA token also carries a human-readable entity code
- * claim we cross-check it against the stored value (FR-A3).
+ * may sign in. On each AMA SSO exchange we resolve an active PostgreSQL
+ * AMA config by the token's entityId (UUID). When a tenant entity code or
+ * token entity code is present, it must be in the allowed whitelist (env
+ * `AMA_ALLOWED_ENTITY_CODES`, default `VN3040`).
  *
- * Fail-closed: unknown academy / missing code / not-whitelisted →
+ * Fail-closed: unknown AMA config / not-whitelisted →
  * 403 ENTITY_NOT_ALLOWED. Runs before subscription + membership checks so
  * a non-TPI entity never reaches the heavier live calls.
  */
@@ -29,8 +30,10 @@ export class EntityGateService {
   private readonly allowedCodes: string[];
 
   constructor(
-    @InjectRepository(AcademyEntity)
-    private readonly academyRepo: Repository<AcademyEntity>,
+    @InjectRepository(AmaConfigTypeormEntity, ACM_DS)
+    private readonly amaConfigRepo: Repository<AmaConfigTypeormEntity>,
+    @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
+    private readonly tenantRepo: Repository<AcmTenantTypeormEntity>,
     config: ConfigService,
   ) {
     const raw = config.get<string>('AMA_ALLOWED_ENTITY_CODES', 'VN3040');
@@ -50,21 +53,24 @@ export class EntityGateService {
     entityId: string,
     tokenEntityCode?: string | null,
   ): Promise<void> {
-    const academy = await this.academyRepo.findOne({
-      where: { acdAmaTenantId: entityId },
+    const config = await this.amaConfigRepo.findOne({
+      where: { amaEntityId: entityId, isActive: true },
     });
-
-    const storedCode = academy?.acdAmaEntityCode?.trim().toUpperCase() ?? null;
-
-    if (!academy || !storedCode || !this.allowedCodes.includes(storedCode)) {
-      this.deny(entityId, `code=${storedCode ?? 'none'} not in whitelist`);
+    if (!config) {
+      this.deny(entityId, 'active AMA config not found');
     }
 
-    // FR-A3 — if the token carries an entity code claim, it must match the
-    // academy's stored code (defends against a token minted for another entity
-    // that somehow shares a tenant row).
-    const claimCode = tokenEntityCode?.trim().toUpperCase();
-    if (claimCode && claimCode !== storedCode) {
+    const tenant = await this.tenantRepo.findOne({
+      where: { entId: config.entId },
+    });
+    const storedCode = tenant?.amaEntityCode?.trim().toUpperCase() ?? null;
+    const claimCode = tokenEntityCode?.trim().toUpperCase() ?? null;
+    const codeToCheck = storedCode ?? claimCode;
+
+    if (codeToCheck && !this.allowedCodes.includes(codeToCheck)) {
+      this.deny(entityId, `code=${codeToCheck} not in whitelist`);
+    }
+    if (storedCode && claimCode && claimCode !== storedCode) {
       this.deny(
         entityId,
         `token code=${claimCode} != stored code=${storedCode}`,

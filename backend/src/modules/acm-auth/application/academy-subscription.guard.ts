@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AcademyEntity } from '../../../infrastructure/database/entities/academy.entity';
+import { ACM_DS } from '../../acm-common/datasource';
+import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 
 const ACCEPTED_STATUSES = ['ACTIVE', 'TRIALING'] as const;
 type AcceptedStatus = (typeof ACCEPTED_STATUSES)[number];
@@ -17,11 +18,9 @@ type AcceptedStatus = (typeof ACCEPTED_STATUSES)[number];
  * Verifies that an AMA tenant has an active app-academy subscription before
  * an AMA-sourced login is allowed to proceed.
  *
- * Source of truth is `tac_academies.acd_subscription_status`, kept current
- * by the AMA subscription webhook ([ama-subscription-webhook.controller.ts]
- * + [lifecycle.use-case.ts]). We rely on that local copy rather than calling
- * AMA live — webhook latency on a healthy network is sub-second and avoids
- * adding an extra hop to every login.
+ * Source of truth is the PostgreSQL `amb_acm_tenant.tnt_subscription_status`
+ * cache. New code should use `SubscriptionCheckService`, which performs live
+ * stg-apps checks and falls back to this cache.
  *
  * Per [REQ-260604](../../../../docs/analysis/REQ-260604-ama-tenant-auth-and-user-directory.md)
  * AC-1-2 / AC-1-3, the guard MUST distinguish between:
@@ -34,32 +33,32 @@ export class AcademySubscriptionGuard {
   private readonly logger = new Logger(AcademySubscriptionGuard.name);
 
   constructor(
-    @InjectRepository(AcademyEntity)
-    private readonly academyRepo: Repository<AcademyEntity>,
+    @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
+    private readonly tenantRepo: Repository<AcmTenantTypeormEntity>,
   ) {}
 
   async ensureActive(amaEntityId: string): Promise<void> {
-    const academy = await this.academyRepo.findOne({
-      where: { acdAmaTenantId: amaEntityId },
+    const tenant = await this.tenantRepo.findOne({
+      where: { amaEntityId },
     });
 
-    if (!academy) {
+    if (!tenant) {
       this.logger.warn(
-        `subscription denied entId=${amaEntityId} reason=NO_ACADEMY`,
+        `subscription denied entId=${amaEntityId} reason=NO_TENANT`,
       );
       throw new HttpException(
         {
-          code: 'NO_ACADEMY',
+          code: 'NO_TENANT',
           message: 'Tenant not provisioned for app-academy',
         },
         HttpStatus.FORBIDDEN,
       );
     }
 
-    const status = academy.acdSubscriptionStatus;
+    const status = tenant.subscriptionStatus;
     if (!ACCEPTED_STATUSES.includes(status as AcceptedStatus)) {
       this.logger.warn(
-        `subscription denied entId=${amaEntityId} acdId=${academy.acdId} reason=SUBSCRIPTION_INACTIVE status=${status}`,
+        `subscription denied entId=${amaEntityId} tenant=${tenant.entId} reason=SUBSCRIPTION_INACTIVE status=${status}`,
       );
       throw new HttpException(
         {
@@ -68,8 +67,8 @@ export class AcademySubscriptionGuard {
           data: {
             entityId: amaEntityId,
             status,
-            canceledAt: academy.acdCanceledAt,
-            deprovisionedAt: academy.acdDeprovisionedAt,
+            canceledAt: tenant.canceledAt,
+            deprovisionedAt: tenant.deprovisionedAt,
           },
         },
         HttpStatus.FORBIDDEN,
