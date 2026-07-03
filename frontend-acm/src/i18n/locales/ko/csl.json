@@ -64,7 +64,7 @@
     "ENROLLMENT_COUNSELING": "4. 등록 상담",
     "PAYMENT": "5. 결제",
     "CLASS_STARTED": "6. 수강 시작",
-    "DROPPED": "이탈"
+    "DROPPED": "완료"
   },
   "inflow": {
     "HOMEPAGE": "홈페이지",
@@ -179,7 +179,7 @@
       }
     },
     "backToList": "상담 목록으로",
-    "drop": "이탈 처리",
+    "drop": "완료 처리",
     "reactivate": "재활성화",
     "mapTest": {
       "title": "레벨테스트 / MAP 점수",
@@ -309,8 +309,8 @@
       "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
     },
     "cancel": {
-      "title": "이탈 처리",
-      "subtitle": "이탈 사유를 선택하세요. 이력은 삭제할 수 없습니다.",
+      "title": "완료 처리",
+      "subtitle": "완료 사유를 선택하세요. 이력은 삭제할 수 없습니다.",
       "reasonCode": "사유 코드",
       "reasonOther": "상세 사유",
       "reasonOtherPlaceholder": "상세 사유를 입력하세요",

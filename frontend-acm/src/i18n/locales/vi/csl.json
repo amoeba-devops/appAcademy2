@@ -62,7 +62,7 @@
     "ENROLLMENT_COUNSELING": "4. Tư vấn ghi danh",
     "PAYMENT": "5. Thanh toán",
     "CLASS_STARTED": "6. Bắt đầu học",
-    "DROPPED": "Hủy"
+    "DROPPED": "Hoàn tất"
   },
   "inflow": {
     "HOMEPAGE": "Trang web",
@@ -177,7 +177,7 @@
       }
     },
     "backToList": "Quay lại danh sách",
-    "drop": "Hủy",
+    "drop": "Hoàn tất",
     "reactivate": "Kích hoạt lại",
     "mapTest": {
       "title": "MAP Test",
@@ -307,8 +307,8 @@
       "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
     },
     "cancel": {
-      "title": "Hủy tư vấn",
-      "subtitle": "Chọn lý do hủy. Lịch sử không thể xóa.",
+      "title": "Hoàn tất tư vấn",
+      "subtitle": "Chọn lý do hoàn tất. Lịch sử không thể xóa.",
       "reasonCode": "Mã lý do",
       "reasonOther": "Chi tiết",
       "reasonOtherPlaceholder": "Vui lòng nêu rõ",
