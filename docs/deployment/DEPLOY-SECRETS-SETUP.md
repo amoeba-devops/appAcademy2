@@ -32,13 +32,13 @@ CD 워크플로 정의에서 그대로 추출한 값이다. 시크릿 이름·�
 | 환경 | 앱(ACM) 호스트 = **canonical** | 컨테이너 | 비고 |
 |------|-------------------------------|----------|------|
 | Production | **`acm.amoeba.site`** | frontend-acm SPA `:5174` | `acm.amoeba.site/admin/login` 등 실제 진입점 |
-| Staging | **`acm-stg.amoeba.site`** | frontend-acm SPA | — |
+| Staging | **`acm-stg.amoeba.site`** | frontend-acm SPA | 유일한 staging 진입점 |
 
 > ⚠️ **`app-academy.amoeba.site`(production) 는 앱 호스트가 아니다** — 레거시 Next.js 스택(`:3000`)용
 > vhost 로, 2026-06-04 compose 에서 frontend 서비스가 제거되어 **사실상 죽은 호스트**다.
 > `deploy-production.sh` 는 이 vhost 를 설치하지 않는다. → cd-production smoke 도 `acm.amoeba.site` 로 정정함.
-> (staging 의 `app-academy-stg.amoeba.site` 는 아직 포털 canonical 로 살아있어 deploy-staging 의 hard-smoke
-> 대상이므로 cd-staging 은 그대로 둔다.)
+> staging 의 `app-academy-stg.amoeba.site` 도 2026-07-04 retire 되었고, 현재 staging smoke / review URL 은
+> `acm-stg.amoeba.site` 만 사용한다.
 >
 > ⚠️ **`tpi.amoeba.site` 는 앱 호스트가 아니다** — 2026-06-08 staging 스택에서 vhost 제거됨
 > ([deploy-staging.sh](../../scripts/deploy-staging.sh) L209 주석). cd-staging 의 stale `tpi` smoke step 은 제거함.

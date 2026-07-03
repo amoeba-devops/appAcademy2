@@ -67,7 +67,7 @@ A multi-tenant SaaS that digitizes day-to-day academy operations. Provision your
 
 | Field | Value |
 |-------|-------|
-| URL | https://app-academy-stg.amoeba.site/admin/login |
+| URL | https://acm-stg.amoeba.site/admin/login |
 | ID | `reviewer@amoeba.site` |
 | Password | (별도 안전 채널로 전달) |
 | Tenant | "Trinity Academy (Demo)" — 읽기 전용 시연 데이터 |

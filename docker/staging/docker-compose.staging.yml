@@ -142,8 +142,8 @@ services:
       # AMA App Store integration
       AMA_WEBHOOK_SECRET: ${AMA_WEBHOOK_SECRET:-}
       AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
-      FRONTEND_URL: ${FRONTEND_URL:-https://app-academy-stg.amoeba.site}
-      BACKEND_URL: ${BACKEND_URL:-https://app-academy-stg.amoeba.site}
+      FRONTEND_URL: ${FRONTEND_URL:-https://acm-stg.amoeba.site}
+      BACKEND_URL: ${BACKEND_URL:-https://acm-stg.amoeba.site}
       # ACM file uploads (REQ-260510 teacher resume etc.)
       ACM_UPLOAD_DIR: /app/uploads
       # REQ-260626 T-06 / ADR-008 — CSL attachment object store (MinIO)
@@ -165,13 +165,9 @@ services:
     ports:
       - "127.0.0.1:4000:4000"
 
-  # Legacy `frontend` (Next.js) removed 2026-06-04 — directory was archived
-  # in PLN-260519 Phase 7 (commit 4a6178f) and CI no longer builds
-  # tac-frontend, so `docker compose pull` and a fallback build both fail.
-  # The Vite SPA in `frontend-acm` is the canonical user entrypoint via the
-  # acm-stg.amoeba.site vhost. Old running tac-frontend container can be
-  # stopped manually after first successful deploy:
-  #   docker stop tac-frontend && docker rm tac-frontend
+  # Legacy `frontend` (Next.js) was retired from staging on 2026-07-04.
+  # `acm-stg.amoeba.site` is the sole live staging entrypoint and
+  # `frontend-acm` is the only managed frontend runtime in this compose.
 
   # ACM v1.0a Vite SPA, served by the image's own nginx. The image bakes
   # the SPA bundle plus an /api/* → backend:4000 proxy (see

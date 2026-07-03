@@ -14,6 +14,7 @@ audience: Ops / Maintainer
 
 - Production runtime: `tac-prod-mysql` removed
 - Staging runtime: `tac-mysql` removed
+- Staging legacy frontend: `tac-frontend` retired
 - Active datastore: PostgreSQL `db_acm` only
 - Retained legacy artifacts: `db_tac-*.sql.gz` backup archives may remain under `/var/backups/app-academy/*/`
 
@@ -43,8 +44,7 @@ audience: Ops / Maintainer
 
 | 환경 | 호스트 |
 | --- | --- |
-| Staging portal/app | `https://app-academy-stg.amoeba.site/` |
-| Staging ACM SPA | `https://acm-stg.amoeba.site/` |
+| Staging | `https://acm-stg.amoeba.site/` |
 | Production ACM SPA | `https://acm.amoeba.site/` |
 
 ## 4. Staging 배포
@@ -99,8 +99,7 @@ scripts/deploy-production.sh
 
 - API health: `http://127.0.0.1:4000/api/health`
 - Production app: `https://acm.amoeba.site/`
-- Staging app: `https://app-academy-stg.amoeba.site/`
-- ACM staging: `https://acm-stg.amoeba.site/`
+- Staging app: `https://acm-stg.amoeba.site/`
 - migration marker: `sql/_applied/acm/*.sha256`
 
 ## 8. 주의 사항

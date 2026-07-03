@@ -52,4 +52,4 @@ Legacy MySQL runtime 은 제거했지만 rollback/reference 용 dump archive 는
 
 - 저장소 기준 compose/runtime/env example 은 이미 PostgreSQL-only 상태였다.
 - `backend/.env` 에 남아 있는 MySQL 값은 tracked config 가 아닌 로컬 개발용 파일이므로 본 정리 범위에 포함하지 않았다.
-- staging host 에는 MySQL 과 별개로 legacy `tac-frontend` 컨테이너가 남아 있었다. 이는 본 보고서 범위 밖이며 별도 정리 대상이다.
+- staging legacy `tac-frontend` 정리는 동일 일자 후속 작업으로 완료되었고, 별도 정리 기록으로 남긴다.

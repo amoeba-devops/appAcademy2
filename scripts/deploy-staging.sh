@@ -10,7 +10,7 @@
 #   3. docker compose up -d postgres-acm redis minio (if not already up)
 #   4. Apply pending PostgreSQL ACM SQL migrations
 #   5. docker compose up -d backend frontend
-#   6. Reload host nginx (app-academy-stg + acm-stg vhosts)
+#   6. Reload host nginx (acm-stg vhost only; retire stale app-academy-stg alias)
 #   7. Smoke test + write .last-deploy manifest
 set -euo pipefail
 
@@ -140,15 +140,18 @@ install_vhost() {
     [[ -L "$link" ]] || { sudow ln -sf "$dst" "$link"; nginx_changed=1; }
 }
 
-# Canonical app-academy vhost (S4 cut-over).
-install_vhost "$REPO_DIR/docker/staging/nginx-app-academy.conf" \
-              "app-academy-stg.amoeba.site"
 # ACM v1.0a SPA vhost — proxies to acm-frontend container on :5174.
 install_vhost "$REPO_DIR/docker/staging/nginx-acm.conf" \
               "acm-stg.amoeba.site"
-# Note: tpi.amoeba.site vhost removed 2026-06-08 (op request) — the
-# tpi.co.kr marketing mirror moved off the staging host. The config file
-# (docker/staging/nginx-tpi.conf) was deleted from the repo.
+
+# Retire stale app-academy-stg alias and its old tac-frontend request path.
+if [[ -L "/etc/nginx/sites-enabled/app-academy-stg.amoeba.site" ]] || \
+   [[ -f "/etc/nginx/sites-available/app-academy-stg.amoeba.site" ]]; then
+    say "   app-academy-stg.amoeba.site retired — removing stale vhost"
+    sudow rm -f /etc/nginx/sites-enabled/app-academy-stg.amoeba.site
+    sudow rm -f /etc/nginx/sites-available/app-academy-stg.amoeba.site
+    nginx_changed=1
+fi
 
 if [[ "$nginx_changed" == "1" ]]; then
     sudow nginx -t
@@ -158,12 +161,9 @@ else
 fi
 
 # --- 7. Smoke test ------------------------------------------------------
-# Follow redirects so a 301 http -> https counts as healthy.
-say "7. Smoke test https://app-academy-stg.amoeba.site/"
+# acm-stg.amoeba.site is the sole live staging entrypoint.
+say "7. Smoke test https://acm-stg.amoeba.site/"
 sleep 5
-curl -sIL --max-time 15 https://app-academy-stg.amoeba.site/ | head -1 \
-    || warn "smoke test failed — check logs + firewall (port 443)."
-echo "   acm-stg check (DNS may not yet exist on first cut-over):"
 curl -sIL --max-time 10 https://acm-stg.amoeba.site/ | head -1 \
     || warn "acm-stg.amoeba.site not responding — verify DNS A record + nginx."
 
