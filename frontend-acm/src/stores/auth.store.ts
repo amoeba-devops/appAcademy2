@@ -14,10 +14,10 @@ export interface AcmUser {
 
 /** Parent user — from `/auth/parent/verify-otp`. */
 export interface ParentUser {
-  id: number;
-  academyId: number;
+  id: string;
+  entId: string;
   name: string;
-  phone: string;
+  phone: string | null;
   role: 'PARENT';
 }
 
@@ -85,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'acm-auth',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AuthState>;
         if (!version || version < 2) {
@@ -95,6 +95,14 @@ export const useAuthStore = create<AuthState>()(
             parent: initialParent,
             active: p.token ? 'admin' : null,
           } as Partial<AuthState> as AuthState;
+        }
+        if (version < 3) {
+          return {
+            token: p.token ?? null,
+            user: p.user ?? null,
+            parent: initialParent,
+            active: p.token ? 'admin' : null,
+          } as AuthState;
         }
         return p as AuthState;
       },

@@ -15,7 +15,7 @@ export function MyPaymentsPage() {
   const { t, i18n } = useTranslation(['portal', 'common']);
   const [params] = useSearchParams();
   const studentIdParam = params.get('studentId');
-  const studentId = studentIdParam ? Number(studentIdParam) : undefined;
+  const studentId = studentIdParam || undefined;
 
   const paymentsQ = usePayments(studentId);
   const payments = paymentsQ.data ?? [];

@@ -8,7 +8,7 @@ export const portalApi = {
     });
     return data ?? [];
   },
-  async program(id: string | number): Promise<Program | null> {
+  async program(id: string): Promise<Program | null> {
     try {
       const { data } = await apiClient.get<Program>(`/portal/programs/${id}`);
       return data ?? null;

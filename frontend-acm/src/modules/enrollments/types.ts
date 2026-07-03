@@ -1,8 +1,8 @@
 export interface Enrollment {
-  id: number;
-  classId: number;
-  studentId: number;
-  appliedParentId: number;
+  id: string;
+  classId: string;
+  studentId: string;
+  appliedParentId: string;
   status: string;
   appliedAt: string;
   confirmedAt: string | null;

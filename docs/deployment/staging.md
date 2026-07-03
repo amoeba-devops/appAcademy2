@@ -1,10 +1,12 @@
 ---
 document_id: STAGING-DEPLOY-GUIDE-1.0.0
-version: 1.0.0
-status: ACTIVE
+version: 1.0.1
+status: Archived Reference
 ---
 
 # Staging Deployment Guide (스테이징 배포 가이드)
+
+> **2026-07-04 아카이브 안내**: 이 문서의 아키텍처 설명에는 MySQL/Next.js legacy staging 구성이 포함되어 있다. 현재 staging 기준은 PostgreSQL-only compose와 `scripts/deploy-staging.sh` 이다.
 
 ## 1. Overview (개요)
 

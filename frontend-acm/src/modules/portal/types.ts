@@ -1,11 +1,11 @@
 export interface ProgramSetting {
-  feeAmount: string | null;
+  feeAmount: number | null;
   capacityMax: number | null;
   sessionCount: number | null;
 }
 
 export interface Program {
-  id: number;
+  id: string;
   name: string;
   category: string;
   description: string | null;
@@ -18,7 +18,7 @@ export interface Program {
 }
 
 export interface NewsPost {
-  id: number;
+  id: string;
   slug: string;
   title: string;
   bodyMd: string;

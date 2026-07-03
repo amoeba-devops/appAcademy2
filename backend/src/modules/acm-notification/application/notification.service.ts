@@ -108,4 +108,53 @@ export class NotificationService {
       .execute();
     return { deleted: result.affected ?? 0 };
   }
+
+  async list(
+    entId: string,
+    input: {
+      page?: number;
+      limit?: number;
+      status?: string;
+      templateCode?: string;
+    },
+  ): Promise<{ items: NotificationLogTypeormEntity[]; total: number }> {
+    const page = input.page ?? 1;
+    const limit = input.limit ?? 20;
+    const qb = this.logRepo
+      .createQueryBuilder('l')
+      .where('l.entId = :entId', { entId });
+
+    if (input.status) {
+      qb.andWhere('l.status = :status', { status: input.status });
+    }
+    if (input.templateCode) {
+      qb.andWhere('l.templateCode = :templateCode', {
+        templateCode: input.templateCode,
+      });
+    }
+
+    qb.orderBy('l.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total };
+  }
+
+  async resend(
+    entId: string,
+    id: string,
+  ): Promise<NotificationLogTypeormEntity> {
+    const row = await this.logRepo.findOne({ where: { entId, id } });
+    if (!row) {
+      throw new NotFoundException({ code: 'NOTIFICATION_LOG_NOT_FOUND', id });
+    }
+    if (row.status !== 'SENT') {
+      row.status = 'PENDING';
+      row.error = null;
+      row.sentAt = null;
+      return this.logRepo.save(row);
+    }
+    return row;
+  }
 }

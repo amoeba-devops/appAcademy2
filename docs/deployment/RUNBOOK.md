@@ -1,7 +1,7 @@
 ---
 document_id: APP-ACADEMY-RUNBOOK-1.0.0
-version: 1.0.0
-status: Draft
+version: 1.0.1
+status: Archived Reference
 created: 2026-04-27
 audience: Ops / on-call
 ---
@@ -9,6 +9,8 @@ audience: Ops / on-call
 # app-academy — Deployment & Operations RUNBOOK
 
 운영 환경 절차 — 배포·롤백·DB 백업/복구·도메인 컷오버.
+
+> **2026-07-04 아카이브 안내**: 이 문서는 MySQL legacy 운영 절차를 포함한 과거 runbook이다. 현재 배포 기준은 PostgreSQL-only 이며, 실제 적용 절차는 `scripts/deploy-staging.sh`, `scripts/deploy-production.sh`, `docker/{staging,production}/docker-compose.*.yml`, `docs/standard/SPEC.md` 를 우선 참조한다.
 
 ---
 

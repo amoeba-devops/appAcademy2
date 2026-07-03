@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Not, Repository } from 'typeorm';
 import { ACM_DS } from '../../../acm-common/datasource';
@@ -102,5 +102,45 @@ export class PostService {
     const row = await this.findById(entId, id);
     row.status = 'ARCHIVED';
     return this.repo.save(row);
+  }
+
+  async update(
+    entId: string,
+    id: string,
+    input: {
+      title?: string;
+      slug?: string;
+      bodyMd?: string;
+      category?: PostCategory;
+      status?: PostStatus;
+      coverImageUrl?: string | null;
+      publishedAt?: Date | null;
+    },
+  ): Promise<PostTypeormEntity> {
+    const row = await this.findById(entId, id);
+    if (input.slug !== undefined && input.slug !== row.slug) {
+      const dup = await this.findBySlug(entId, input.slug);
+      if (dup && dup.id !== id) {
+        throw new ConflictException({ code: 'POST_SLUG_DUPLICATE' });
+      }
+    }
+    if (input.title !== undefined) row.title = input.title;
+    if (input.slug !== undefined) row.slug = input.slug;
+    if (input.bodyMd !== undefined) row.bodyMd = input.bodyMd;
+    if (input.category !== undefined) row.category = input.category;
+    if (input.coverImageUrl !== undefined) row.coverImageUrl = input.coverImageUrl;
+    if (input.status !== undefined) {
+      row.status = input.status;
+      if (input.status === 'PUBLISHED' && input.publishedAt === undefined && !row.publishedAt) {
+        row.publishedAt = new Date();
+      }
+    }
+    if (input.publishedAt !== undefined) row.publishedAt = input.publishedAt;
+    return this.repo.save(row);
+  }
+
+  async remove(entId: string, id: string): Promise<void> {
+    const row = await this.findById(entId, id);
+    await this.repo.remove(row);
   }
 }

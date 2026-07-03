@@ -1,11 +1,11 @@
 export interface NotificationLog {
-  id: number;
+  id: string;
   event: string;
   status: string;
   channel: string;
   recipient: string;
   recipientKind: string;
-  subjectId: number | null;
+  subjectId: string | null;
   subjectKind: string | null;
   sentAt: string | null;
   createdAt: string;

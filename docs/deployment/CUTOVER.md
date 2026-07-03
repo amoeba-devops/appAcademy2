@@ -1,7 +1,7 @@
 ---
 document_id: APP-ACADEMY-CUTOVER-1.0.0
-version: 1.0.0
-status: Draft
+version: 1.0.1
+status: Archived Reference
 created: 2026-04-27
 audience: Ops on-call + Tech Lead
 ---
@@ -9,6 +9,8 @@ audience: Ops on-call + Tech Lead
 # app-academy — Production Cut-over Checklist (프로덕션 컷오버)
 
 S5-7 산출물. UAT 전 항목 PASS 확인 후 production 첫 출시 또는 도메인 전환 시 사용한다.
+
+> **2026-07-04 아카이브 안내**: 이 문서는 MySQL legacy 전환기 cut-over 체크리스트를 포함한다. 현재 기본 운영 기준은 PostgreSQL-only 이며, 실제 배포는 현재 compose와 `scripts/deploy-*.sh` 기준으로 수행한다.
 
 > **Reference**: [docs/deployment/RUNBOOK.md](RUNBOOK.md), [docs/test/UAT-CHECKLIST.md](../test/UAT-CHECKLIST.md)
 

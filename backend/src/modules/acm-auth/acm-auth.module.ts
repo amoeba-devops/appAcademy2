@@ -11,14 +11,29 @@ import { EntityGateService } from './application/entity-gate.service';
 import { AmaConfigService } from './application/ama-config.service';
 import { AmaConfigGateService } from './application/ama-config-gate.service';
 import { AmaUserDirectoryService } from './application/ama-user-directory.service';
+import { ParentAuthService } from './application/parent-auth.service';
+import { ParentPortalService } from './application/parent-portal.service';
 import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
+import { ParentJwtStrategy } from './jwt/parent-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
+import { ParentJwtAuthGuard } from './guards/parent-jwt-auth.guard';
 import { AcmAuthController } from './presentation/acm-auth.controller';
 import { AmaUserController } from './presentation/ama-user.controller';
 import { AmaConfigController } from './presentation/ama-config.controller';
+import { ParentAuthController } from './presentation/parent-auth.controller';
+import { PortalMyController } from './presentation/portal-my.controller';
 import { AcmTenantTypeormEntity } from '../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-entity';
 import { AmaConfigTypeormEntity } from './infrastructure/typeorm/ama-config.typeorm-entity';
+import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { StudentParentTypeormEntity } from '../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
+import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
+import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
+import { SessionTypeormEntity } from '../acm-cls/infrastructure/typeorm/session.typeorm-entity';
+import { ClsEnrollmentTypeormEntity } from '../acm-cls/infrastructure/typeorm/cls-enrollment.typeorm-entity';
+import { MapScoreTypeormEntity } from '../acm-map/infrastructure/typeorm/map-score.typeorm-entity';
+import { PayOrderTypeormEntity } from '../acm-pay/infrastructure/typeorm/pay-order.typeorm-entity';
 import { AmaTokenVerifier } from './infrastructure/ama-token.verifier';
 import { STG_APPS_SUBSCRIPTION_CLIENT } from './infrastructure/stg-apps-subscription.client';
 import { StgAppsSubscriptionMockClient } from './infrastructure/stg-apps-subscription-mock.client';
@@ -111,13 +126,34 @@ const amaOAuthProvider: Provider = {
       }),
     }),
     TypeOrmModule.forFeature(
-      [AcmUserTypeormEntity, AmaConfigTypeormEntity, AcmTenantTypeormEntity],
+      [
+        AcmUserTypeormEntity,
+        AmaConfigTypeormEntity,
+        AcmTenantTypeormEntity,
+        ParentTypeormEntity,
+        StudentParentTypeormEntity,
+        StudentTypeormEntity,
+        ClassStudentTypeormEntity,
+        ClassTypeormEntity,
+        SessionTypeormEntity,
+        ClsEnrollmentTypeormEntity,
+        MapScoreTypeormEntity,
+        PayOrderTypeormEntity,
+      ],
       ACM_DS,
     ),
   ],
-  controllers: [AcmAuthController, AmaUserController, AmaConfigController],
+  controllers: [
+    AcmAuthController,
+    AmaUserController,
+    AmaConfigController,
+    ParentAuthController,
+    PortalMyController,
+  ],
   providers: [
     AcmAuthService,
+    ParentAuthService,
+    ParentPortalService,
     SubscriptionCheckService,
     UserMembershipGuard,
     EntityGateService,
@@ -131,9 +167,16 @@ const amaOAuthProvider: Provider = {
     amaPlatformProvider,
     amaOAuthProvider,
     AcmJwtStrategy,
+    ParentJwtStrategy,
     AcmJwtAuthGuard,
+    ParentJwtAuthGuard,
     AmaTokenVerifier,
   ],
-  exports: [AcmAuthService, AcmJwtAuthGuard],
+  exports: [
+    AcmAuthService,
+    ParentAuthService,
+    AcmJwtAuthGuard,
+    ParentJwtAuthGuard,
+  ],
 })
 export class AcmAuthModule {}

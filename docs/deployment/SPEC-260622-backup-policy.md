@@ -1,7 +1,7 @@
 ---
 document_id: SPEC-260622-backup-policy
-version: 1.0.0
-status: draft
+version: 1.0.1
+status: Archived Reference
 created: 2026-06-22
 authors:
   - gray.kim@amoeba.group
@@ -12,6 +12,8 @@ related:
 # 백업 정책 — MySQL → PostgreSQL 마이그레이션 (REQ-260622)
 
 > Phase 6 (production cutover) 직전 백업 + Phase 7 직후 MySQL 제거 사이의 안전 그물.
+>
+> **2026-07-04 아카이브 안내**: 이 문서는 MySQL → PostgreSQL cutover 당시의 백업 계획을 보존한다. 현재 운영 백업 정책은 PostgreSQL-only 구조를 기준으로 별도 갱신되어야 한다.
 
 ---
 

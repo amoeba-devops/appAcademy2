@@ -1,5 +1,5 @@
 export interface ChildInfo {
-  id: number;
+  id: string;
   name: string;
   grade: string | null;
   school: string | null;
@@ -13,7 +13,7 @@ export interface StudentKpi {
 }
 
 export interface TimetableSession {
-  id: number;
+  id: string;
   date: string;
   startTime: string;
   endTime: string;
@@ -30,34 +30,34 @@ export interface TimetableResponse {
 }
 
 export interface PaymentOrder {
-  id: number;
+  id: string;
   orderNumber: string;
   amount: number | string;
   status: string;
   createdAt: string;
   programName: string;
   studentName: string;
-  studentId: number;
+  studentId: string;
 }
 
 export interface ChildrenResponse {
   children: ChildInfo[];
-  selectedStudentId: number | null;
+  selectedStudentId: string | null;
   kpi: StudentKpi | null;
 }
 
 export interface PortalStudent {
-  studentId: number;
+  studentId: string;
   studentName: string;
   gradeLevel: string | null;
   school: string | null;
 }
 
 export interface MapScoreEntry {
-  id: number;
-  studentId: number;
+  id: string;
+  studentId: string;
   studentName: string;
-  assignmentId: number | null;
+  assignmentId: string | null;
   assessedAt: string;
   readingScore: number | null;
   mathScore: number | null;
@@ -80,7 +80,7 @@ export interface MapScoreSummary {
 
 export interface ScoreHistoryResponse {
   accessMode: 'PARENT' | 'PARENT_UNBOUND' | 'ACADEMY_PREVIEW';
-  selectedStudentId: number | null;
+  selectedStudentId: string | null;
   selectedStudentName: string | null;
   students: PortalStudent[];
   summary: MapScoreSummary | null;

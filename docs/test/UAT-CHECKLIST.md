@@ -1,7 +1,7 @@
 ---
 document_id: APP-ACADEMY-UAT-1.0.0
-version: 1.0.0
-status: Draft
+version: 1.0.1
+status: Archived Reference
 created: 2026-04-27
 audience: QA / Product / Ops
 ---
@@ -9,6 +9,8 @@ audience: QA / Product / Ops
 # app-academy — UAT Checklist (사용자 인수 테스트 체크리스트)
 
 S5 산출물 — AMA App Store 출시 전 staging에서 실행한다. 모든 시나리오가 PASS여야 production cut-over로 진행한다.
+
+> **2026-07-04 아카이브 안내**: 이 체크리스트는 MySQL 기반 초기 UAT 시나리오를 보존한 문서다. 현재 시스템은 PostgreSQL-only 기준이며, DB 검증 시 `amb_acm_*` / `db_acm` 구조와 현재 ACM 모듈 동작을 기준으로 별도 체크리스트를 재작성해야 한다.
 
 > **Environment**: https://app-academy-stg.amoeba.site
 > **Pre-condition**: `sql/091-migration-trinity-as-demo.sql` 적용됨, 데모 테넌트(Trinity) `acd_is_demo=1`.

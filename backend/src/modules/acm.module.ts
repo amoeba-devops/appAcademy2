@@ -13,6 +13,8 @@ import { AcmStfModule } from './acm-stf/acm-stf.module';
 import { AcmCalModule } from './acm-cal/acm-cal.module';
 import { AcmMapModule } from './acm-map/acm-map.module';
 import { AcmSystemModule } from './acm-system/acm-system.module';
+import { AcmPostsModule } from './acm-posts/acm-posts.module';
+import { AcmNotificationModule } from './acm-notification/acm-notification.module';
 
 /**
  * ACM v1.0c aggregator.
@@ -36,6 +38,8 @@ import { AcmSystemModule } from './acm-system/acm-system.module';
     AcmStfModule,
     AcmCalModule,
     AcmMapModule,
+    AcmPostsModule,
+    AcmNotificationModule,
     AcmSystemModule,
   ],
   exports: [
@@ -52,6 +56,8 @@ import { AcmSystemModule } from './acm-system/acm-system.module';
     AcmStfModule,
     AcmCalModule,
     AcmMapModule,
+    AcmPostsModule,
+    AcmNotificationModule,
     AcmSystemModule,
   ],
 })

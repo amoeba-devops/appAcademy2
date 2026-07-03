@@ -21,8 +21,10 @@ function getDayIndex(dateStr: string): number {
 
 const STATUS_COLORS: Record<string, string> = {
   DONE: 'text-emerald-600',
-  PENDING: 'text-amber-600',
+  IN_PROGRESS: 'text-amber-600',
   READY: 'text-blue-600',
+  EXPIRED: 'text-slate-500',
+  ABORTED: 'text-slate-500',
   CANCELED: 'text-red-600',
   PARTIAL_CANCELED: 'text-orange-600',
 };
@@ -34,7 +36,7 @@ export function MyDashboardPage() {
   const childrenQ = useChildren();
   const children = childrenQ.data?.children ?? [];
 
-  const [selectedChild, setSelectedChild] = useState<number | null>(null);
+  const [selectedChild, setSelectedChild] = useState<string | null>(null);
 
   useEffect(() => {
     if (childrenQ.data?.selectedStudentId && selectedChild === null) {
@@ -107,10 +109,10 @@ export function MyDashboardPage() {
             <button
               key={child.id}
               type="button"
-              onClick={() => setSelectedChild(Number(child.id))}
+              onClick={() => setSelectedChild(child.id)}
               className={clsx(
                 'px-4 py-2 rounded-full text-sm font-medium transition-colors',
-                Number(selectedChild) === Number(child.id)
+                selectedChild === child.id
                   ? 'bg-accent-700 text-white'
                   : 'bg-[var(--gray-100)] text-primary hover:bg-[var(--gray-200)]',
               )}

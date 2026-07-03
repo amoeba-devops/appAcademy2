@@ -12,7 +12,7 @@ function formatDelta(value: number | null): string {
 export function MyScoresPage() {
   const { t, i18n } = useTranslation(['portal', 'common']);
   const [params, setParams] = useSearchParams();
-  const requestedStudentId = Number(params.get('studentId') ?? '') || undefined;
+  const requestedStudentId = params.get('studentId') || undefined;
 
   const scoresQ = useScores(requestedStudentId);
   const data = scoresQ.data ?? null;

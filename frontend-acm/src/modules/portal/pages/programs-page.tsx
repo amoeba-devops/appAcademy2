@@ -29,7 +29,7 @@ export function ProgramsPage() {
   const [category, setCategory] = useState<string>('');
   const { t } = useTranslation('portal');
 
-  const formatFee = (amount: string | null) => {
+  const formatFee = (amount: number | string | null) => {
     if (!amount) return t('programs.fee-inquiry');
     const n = Number(amount);
     return isNaN(n) ? amount : `₩${n.toLocaleString()}`;

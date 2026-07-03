@@ -4,8 +4,8 @@ import type { Enrollment } from '../types';
 
 export interface EnrollmentFilters {
   status?: string;
-  classId?: number;
-  studentId?: number;
+  classId?: string;
+  studentId?: string;
 }
 
 export function useEnrollments(filters: EnrollmentFilters = {}) {
@@ -24,7 +24,7 @@ export function useUpdateEnrollmentStatus() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const res = await apiClient.patch<Enrollment>(`/enrollments/${id}/status`, {
         status,
       });

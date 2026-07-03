@@ -34,13 +34,13 @@ export function MyTimetablePage() {
   const childrenQ = useChildren();
 
   // Resolve studentId: from URL, fallback to first child.
-  const [resolvedStudentId, setResolvedStudentId] = useState<number | null>(
-    studentIdParam ? Number(studentIdParam) : null,
+  const [resolvedStudentId, setResolvedStudentId] = useState<string | null>(
+    studentIdParam || null,
   );
   useEffect(() => {
     if (resolvedStudentId !== null) return;
     const firstId = childrenQ.data?.selectedStudentId ?? childrenQ.data?.children[0]?.id;
-    if (firstId != null) setResolvedStudentId(Number(firstId));
+    if (firstId != null) setResolvedStudentId(firstId);
   }, [childrenQ.data, resolvedStudentId]);
 
   const [weekStart, setWeekStart] = useState<string | undefined>(undefined);

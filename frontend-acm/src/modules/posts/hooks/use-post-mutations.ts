@@ -15,10 +15,11 @@ export function useCreatePost() {
   });
 }
 
-export function useUpdatePost(postId: number) {
+export function useUpdatePost(postId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: UpdatePostPayload) => {
+      if (!postId) throw new Error('postId is required');
       const res = await apiClient.patch<Post>(`/admin/posts/${postId}`, payload);
       return res.data;
     },
@@ -29,10 +30,11 @@ export function useUpdatePost(postId: number) {
   });
 }
 
-export function useDeletePost(postId: number) {
+export function useDeletePost(postId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
+      if (!postId) throw new Error('postId is required');
       await apiClient.delete(`/admin/posts/${postId}`);
     },
     onSuccess: () => {

@@ -25,13 +25,13 @@ export function PostEditorPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const { id } = useParams();
-  const postId = id ? Number(id) : undefined;
+  const postId = id || undefined;
   const isNew = !postId;
 
   const postQuery = usePost(postId);
   const createPost = useCreatePost();
-  const updatePost = useUpdatePost(postId ?? 0);
-  const deletePost = useDeletePost(postId ?? 0);
+  const updatePost = useUpdatePost(postId);
+  const deletePost = useDeletePost(postId);
 
   type PostFormState = CreatePostPayload & {
     coverImageUrl: string;

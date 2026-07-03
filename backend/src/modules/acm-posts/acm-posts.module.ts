@@ -23,6 +23,9 @@ import { ProgramTypeormEntity } from './infrastructure/typeorm/program.typeorm-e
 import { ClassroomService } from './application/services/classroom.service';
 import { PostService } from './application/services/post.service';
 import { ProgramService } from './application/services/program.service';
+import { AdminPostController } from './presentation/admin-post.controller';
+import { PortalProgramController } from './presentation/portal-program.controller';
+import { PortalNewsController } from './presentation/portal-news.controller';
 
 @Module({
   imports: [
@@ -36,6 +39,7 @@ import { ProgramService } from './application/services/program.service';
       ACM_DS,
     ),
   ],
+  controllers: [AdminPostController, PortalProgramController, PortalNewsController],
   providers: [PostService, ProgramService, ClassroomService],
   exports: [PostService, ProgramService, ClassroomService],
 })

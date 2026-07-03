@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
 import { AttendanceService } from './application/attendance.service';
+import { EnrollmentAdminService } from './application/enrollment-admin.service';
 import { ClassService } from './application/class.service';
 import { ClsJobs } from './application/cls.jobs';
 import { FeedbackService } from './application/feedback.service';
@@ -19,8 +20,12 @@ import { SettlementLineTypeormEntity } from './infrastructure/typeorm/settlement
 import { SettlementTypeormEntity } from './infrastructure/typeorm/settlement.typeorm-entity';
 import { VideoConfigTypeormEntity } from './infrastructure/typeorm/video-config.typeorm-entity';
 import { ClassController } from './presentation/class.controller';
+import { EnrollmentController } from './presentation/enrollment.controller';
 import { SessionController } from './presentation/session.controller';
 import { SettlementController } from './presentation/settlement.controller';
+import { ClsEnrollmentTypeormEntity } from './infrastructure/typeorm/cls-enrollment.typeorm-entity';
+import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 
 @Module({
   imports: [
@@ -30,19 +35,28 @@ import { SettlementController } from './presentation/settlement.controller';
         ClassStudentTypeormEntity,
         RecurrenceTypeormEntity,
         SessionTypeormEntity,
+        ClsEnrollmentTypeormEntity,
         AttendanceTypeormEntity,
         MakeupTypeormEntity,
         FeedbackTypeormEntity,
         VideoConfigTypeormEntity,
         SettlementTypeormEntity,
         SettlementLineTypeormEntity,
+        StudentTypeormEntity,
+        ParentTypeormEntity,
       ],
       ACM_DS,
     ),
   ],
-  controllers: [ClassController, SessionController, SettlementController],
+  controllers: [
+    ClassController,
+    SessionController,
+    SettlementController,
+    EnrollmentController,
+  ],
   providers: [
     ClassService,
+    EnrollmentAdminService,
     SessionService,
     AttendanceService,
     FeedbackService,

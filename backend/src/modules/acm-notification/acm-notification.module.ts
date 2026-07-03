@@ -13,6 +13,7 @@ import { NotificationTemplateTypeormEntity } from './infrastructure/typeorm/noti
  * Import into app.module.ts when notification dispatch is enabled.
  */
 import { NotificationService } from './application/notification.service';
+import { NotificationLogController } from './presentation/notification-log.controller';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NotificationService } from './application/notification.service';
       ACM_DS,
     ),
   ],
+  controllers: [NotificationLogController],
   providers: [NotificationService],
   exports: [NotificationService],
 })

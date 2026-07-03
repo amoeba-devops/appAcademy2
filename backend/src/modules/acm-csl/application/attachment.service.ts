@@ -9,6 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import {
   AttachmentCategory,
   AttachmentMime,
@@ -267,7 +268,7 @@ export class AttachmentService {
    */
   static canView(
     row: AttachmentTypeormEntity,
-    role: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN',
+    role: AcmRole,
   ): boolean {
     if (role === 'ADMIN' || role === 'APP_ADMIN' || role === 'STAFF') return true;
     if (role === 'TEACHER') return row.visibility === 'TEACHER_STUDENT';

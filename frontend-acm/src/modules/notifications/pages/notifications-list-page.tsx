@@ -25,7 +25,7 @@ export function NotificationsListPage() {
   });
 
   const resendMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await apiClient.post(`/notifications/logs/${id}/resend`);
       return res.data;
     },

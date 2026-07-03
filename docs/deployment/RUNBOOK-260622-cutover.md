@@ -1,7 +1,7 @@
 ---
 document_id: RUNBOOK-260622-cutover
-version: 1.1.0
-status: ready-for-rehearsal
+version: 1.1.1
+status: Archived Reference
 created: 2026-06-22
 authors:
   - gray.kim@amoeba.group
@@ -22,6 +22,8 @@ change_log:
 
 > Phase 5 (rehearsal) + Phase 6 (production) 의 운영자 실행 절차.
 > Dual-write 0일 (Q-3) — **단일 시점 전환**. 컷오버 후 MySQL 즉시 삭제 (Q-4).
+>
+> **2026-07-04 아카이브 안내**: 본 컷오버는 완료되었고 관련 스크립트/서비스는 저장소에서 제거되었다. 현행 운영 문서로 사용하지 말고, 이행 기록 참고용으로만 사용한다.
 
 ---
 

@@ -1,5 +1,7 @@
 # Deploy Secrets & Environment Setup Guide (배포 시크릿·환경 구성 가이드)
 
+> **2026-07-04 아카이브 안내**: 일부 호스트/서비스 설명은 MySQL legacy 및 과거 vhost 구성을 전제로 작성되었다. 현재 배포는 PostgreSQL-only 기준이며, 최신 런타임/구성은 현재 compose 파일과 deploy script를 우선 참조한다.
+
 > **목적**: CD 파이프라인의 `Deploy to Staging` / `Deploy to Production` step이
 > `error: missing server host` 로 실패하는 문제를 해결한다. 원인은 GitHub
 > Environment 에 SSH 시크릿이 미설정 + `production` 환경의 reviewer 승인 게이트
