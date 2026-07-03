@@ -11,6 +11,7 @@ import { TrialClassPanel } from '@/modules/csl/components/trial-class-panel';
 import { EnrollmentPanel } from '@/modules/csl/components/enrollment-panel';
 import { CancellationDialog } from '@/modules/csl/components/cancellation-dialog';
 import { RemarksPanel } from '@/modules/csl/components/remarks-panel';
+import { ClassStatusSummaryPanel } from '@/modules/csl/components/class-status-summary-panel';
 
 export type CslStage =
   | 'INTAKE'
@@ -236,15 +237,20 @@ export function CslDetailBody({
           {(effectiveSelected === 'ENROLLMENT_COUNSELING' ||
             effectiveSelected === 'PAYMENT' ||
             effectiveSelected === 'CLASS_STARTED') && (
-            <EnrollmentPanel
-              inqId={inq.id}
-              currentStage={effectiveSelected}
-              onAfterAdvance={
-                inq.currentStage === effectiveSelected
-                  ? (next) => forward.mutate(next)
-                  : undefined
-              }
-            />
+            <>
+              <EnrollmentPanel
+                inqId={inq.id}
+                currentStage={effectiveSelected}
+                onAfterAdvance={
+                  inq.currentStage === effectiveSelected
+                    ? (next) => forward.mutate(next)
+                    : undefined
+                }
+              />
+              {effectiveSelected === 'CLASS_STARTED' && (
+                <ClassStatusSummaryPanel inqId={inq.id} />
+              )}
+            </>
           )}
         </div>
         <RemarksPanel inqId={inq.id} />

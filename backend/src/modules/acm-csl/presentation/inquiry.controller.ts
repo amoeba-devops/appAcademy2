@@ -82,11 +82,31 @@ export class InquiryController {
   list(
     @CurrentUser() user: AcmCurrentUser,
     @Query('stage') stage?: CslStage,
+    @Query('q') q?: string,
+    @Query('inflowType') inflowType?: string,
+    @Query('applyType') applyType?: string,
+    @Query('applyPurpose') applyPurpose?: string,
+    @Query('registeredFrom') registeredFrom?: string,
+    @Query('registeredTo') registeredTo?: string,
+    @Query('followupState') followupState?: 'SET' | 'EMPTY',
     @Query('limit') limit = '50',
     @Query('offset') offset = '0',
   ) {
     return this.base.list(user.entId, {
       stage,
+      q,
+      inflowType: inflowType as 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | undefined,
+      applyType: applyType as 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH' | undefined,
+      applyPurpose: applyPurpose as
+        | 'MAP_TEST_TUTORING'
+        | 'ISEE_TUTORING'
+        | 'INTL_SCHOOL_PREP'
+        | 'GPA_MGMT'
+        | 'ADVANCED_COURSES'
+        | undefined,
+      registeredFrom,
+      registeredTo,
+      followupState,
       limit: Number(limit),
       offset: Number(offset),
     });

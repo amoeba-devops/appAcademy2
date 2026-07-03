@@ -13,6 +13,9 @@ import { ACM_DS } from '../../acm-common/datasource';
 import {
   InquiryTypeormEntity,
   type CslStage,
+  type ApplyPurpose,
+  type ApplyType,
+  type InflowType,
 } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
@@ -145,18 +148,83 @@ export class InquiryService {
 
   async list(
     entId: string,
-    opts: { stage?: CslStage; limit?: number; offset?: number } = {},
+    opts: {
+      stage?: CslStage;
+      q?: string;
+      inflowType?: InflowType;
+      applyType?: ApplyType;
+      applyPurpose?: ApplyPurpose;
+      registeredFrom?: string;
+      registeredTo?: string;
+      followupState?: 'SET' | 'EMPTY';
+      limit?: number;
+      offset?: number;
+    } = {},
   ) {
-    const { stage, limit = 50, offset = 0 } = opts;
-    const where = stage
-      ? { entId, currentStage: stage, deletedAt: IsNull() }
-      : { entId, deletedAt: IsNull() };
-    const [items, total] = await this.inq.findAndCount({
-      where,
-      take: limit,
-      skip: offset,
-      order: { seqNo: 'DESC' },
-    });
+    const {
+      stage,
+      q,
+      inflowType,
+      applyType,
+      applyPurpose,
+      registeredFrom,
+      registeredTo,
+      followupState,
+      limit = 50,
+      offset = 0,
+    } = opts;
+
+    const qb = this.inq
+      .createQueryBuilder('inq')
+      .where('inq.ent_id = :entId', { entId })
+      .andWhere('inq.deleted_at IS NULL');
+
+    if (stage) {
+      qb.andWhere('inq.inq_current_stage = :stage', { stage });
+    }
+    if (inflowType) {
+      qb.andWhere('inq.inq_inflow_type = :inflowType', { inflowType });
+    }
+    if (applyType) {
+      qb.andWhere('inq.inq_apply_type = :applyType', { applyType });
+    }
+    if (applyPurpose) {
+      qb.andWhere('inq.inq_apply_purpose ILIKE :applyPurpose', {
+        applyPurpose: `%${applyPurpose}%`,
+      });
+    }
+    if (registeredFrom) {
+      qb.andWhere('inq.inq_registered_at >= :registeredFrom', { registeredFrom });
+    }
+    if (registeredTo) {
+      qb.andWhere('inq.inq_registered_at <= :registeredTo', { registeredTo });
+    }
+    if (followupState === 'SET') {
+      qb.andWhere('inq.inq_followup_at IS NOT NULL');
+    }
+    if (followupState === 'EMPTY') {
+      qb.andWhere('inq.inq_followup_at IS NULL');
+    }
+
+    qb.orderBy('inq.inq_seq_no', 'DESC');
+
+    if (q && q.trim()) {
+      const needle = q.trim().toLocaleLowerCase();
+      const rows = await qb.getMany();
+      const filtered = rows
+        .map((e) => this.toView(e))
+        .filter((row) => {
+          const student = row.studentName?.toLocaleLowerCase() ?? '';
+          const parent = row.parentName?.toLocaleLowerCase() ?? '';
+          return student.includes(needle) || parent.includes(needle);
+        });
+      return {
+        items: filtered.slice(offset, offset + limit),
+        total: filtered.length,
+      };
+    }
+
+    const [items, total] = await qb.clone().skip(offset).take(limit).getManyAndCount();
     return { items: items.map((e) => this.toView(e)), total };
   }
 
@@ -573,6 +641,10 @@ export class InquiryService {
       er.paymentNoticeSent = dto.paymentNoticeSent ?? null;
     if (dto.classMinutes !== undefined) er.classMinutes = dto.classMinutes;
     if (dto.tuitionAmount !== undefined) er.tuitionAmount = String(dto.tuitionAmount);
+    if (dto.paymentDate !== undefined) er.paymentDate = dto.paymentDate ?? null;
+    if (dto.paymentMethod !== undefined) er.paymentMethod = dto.paymentMethod ?? null;
+    if (dto.paymentAmount !== undefined) er.paymentAmount = String(dto.paymentAmount);
+    if (dto.paymentMemo !== undefined) er.paymentMemo = dto.paymentMemo ?? null;
     if (dto.classStartedAt !== undefined) er.classStartedAt = dto.classStartedAt;
     if (dto.classStarted !== undefined) er.classStarted = dto.classStarted;
 
@@ -595,7 +667,7 @@ export class InquiryService {
   async approvePayment(
     entId: string,
     inqId: string,
-    method: 'CARD' | 'BANK_TRANSFER',
+    method: 'CARD' | 'BANK_TRANSFER' | 'OTHER',
     memo: string | undefined,
     actor: { id: string; isSeniorManager: boolean },
   ) {
@@ -614,6 +686,8 @@ export class InquiryService {
     er.tuitionPaid = true;
     er.tuitionPaidActorId = actor.id;
     er.tuitionPaidAt = new Date();
+    er.paymentMethod = method;
+    if (memo !== undefined) er.paymentMemo = memo;
     // method/memo go into the memo field so audit captures what the operator
     // saw (card vs bank transfer). counselMemo already covers free-form
     // counsel notes; we append rather than overwrite.

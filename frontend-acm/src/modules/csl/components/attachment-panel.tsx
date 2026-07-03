@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { FilePreviewDialog } from './file-preview-dialog';
 
 /**
  * REQ-260626 T-06 / ADR-008 — attachment uploader + list.
@@ -54,6 +55,11 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
   const [dragOver, setDragOver] = useState(false);
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [preview, setPreview] = useState<{
+    url: string;
+    mime: string;
+    filename: string;
+  } | null>(null);
 
   const listKey = ['csl', 'attachments', inqId, category];
 
@@ -137,20 +143,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
 
   async function download(attId: string, fallbackName: string): Promise<void> {
     try {
-      // FIX-260630 — backend streams the file body directly (no presigned
-      // URL). We fetch as blob + use Content-Disposition for the filename
-      // when available, fallback to the row's filename.
-      const res = await apiClient.get<Blob>(
-        `/acm/csl/inquiries/${inqId}/attachments/${attId}/download`,
-        { responseType: 'blob' },
-      );
-      const cd =
-        (res.headers as Record<string, string | undefined> | undefined)?.[
-          'content-disposition'
-        ] ?? '';
-      const match = /filename\*?=(?:UTF-8'')?([^";]+)/i.exec(cd);
-      const filename = match ? decodeURIComponent(match[1]) : fallbackName;
-      const url = URL.createObjectURL(res.data);
+      const { filename, url } = await fetchAttachmentBlob(inqId, attId, fallbackName);
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
@@ -164,114 +157,170 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
     }
   }
 
+  async function previewFile(attId: string, row: AttachmentRow): Promise<void> {
+    try {
+      if (preview?.url) URL.revokeObjectURL(preview.url);
+      const { url } = await fetchAttachmentBlob(inqId, attId, row.filename);
+      setPreview({
+        url,
+        mime: row.mime,
+        filename: row.filename,
+      });
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } } };
+      window.alert(err.response?.data?.message ?? 'Preview failed');
+    }
+  }
+
   return (
-    <div className="grid gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
-      <Label className="text-xs">
-        {t(`detail.attachment.category.${category}`)}{' '}
-        <span className="text-[11px] text-secondary">
-          ({rows.length}/{MAX_COUNT})
-        </span>
-      </Label>
+    <>
+      <div className="grid gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
+        <Label className="text-xs">
+          {t(`detail.attachment.category.${category}`)}{' '}
+          <span className="text-[11px] text-secondary">
+            ({rows.length}/{MAX_COUNT})
+          </span>
+        </Label>
 
-      {/* Uploader */}
-      {!readOnly && (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragOver(false);
-            if (e.dataTransfer.files.length > 0) void handleFiles(e.dataTransfer.files);
-          }}
-          onClick={() => fileRef.current?.click()}
-          className={`cursor-pointer rounded-md border border-dashed px-3 py-4 text-center text-xs ${
-            dragOver
-              ? 'border-primary bg-[var(--surface)]'
-              : 'border-[var(--border-subtle)] text-secondary hover:border-primary'
-          }`}
-        >
-          {t('detail.attachment.dropHint')}
-          <input
-            ref={fileRef}
-            type="file"
-            multiple
-            accept={ALLOWED_MIMES.join(',')}
-            className="hidden"
-            onChange={(e) => {
-              if (e.target.files) void handleFiles(e.target.files);
-              e.target.value = '';
+        {/* Uploader */}
+        {!readOnly && (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
             }}
-          />
-        </div>
-      )}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              if (e.dataTransfer.files.length > 0) void handleFiles(e.dataTransfer.files);
+            }}
+            onClick={() => fileRef.current?.click()}
+            className={`cursor-pointer rounded-md border border-dashed px-3 py-4 text-center text-xs ${
+              dragOver
+                ? 'border-primary bg-[var(--surface)]'
+                : 'border-[var(--border-subtle)] text-secondary hover:border-primary'
+            }`}
+          >
+            {t('detail.attachment.dropHint')}
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept={ALLOWED_MIMES.join(',')}
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) void handleFiles(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </div>
+        )}
 
-      {/* In-progress uploads */}
-      {Object.entries(progress).length > 0 && (
-        <div className="grid gap-1 text-[11px]">
-          {Object.entries(progress).map(([name, pct]) => (
-            <div key={name} className="flex items-center gap-2">
-              <span className="truncate flex-1">{name}</span>
-              <span className="w-12 text-right text-secondary">{Math.round(pct)}%</span>
-            </div>
-          ))}
-        </div>
-      )}
+        {/* In-progress uploads */}
+        {Object.entries(progress).length > 0 && (
+          <div className="grid gap-1 text-[11px]">
+            {Object.entries(progress).map(([name, pct]) => (
+              <div key={name} className="flex items-center gap-2">
+                <span className="truncate flex-1">{name}</span>
+                <span className="w-12 text-right text-secondary">{Math.round(pct)}%</span>
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* Validation errors */}
-      {Object.entries(errors).length > 0 && (
-        <div className="grid gap-1 text-[11px] text-red-600">
-          {Object.entries(errors).map(([name, err]) => (
-            <div key={name}>
-              <span className="font-medium">{name}</span>: {err}
-            </div>
-          ))}
-        </div>
-      )}
+        {/* Validation errors */}
+        {Object.entries(errors).length > 0 && (
+          <div className="grid gap-1 text-[11px] text-red-600">
+            {Object.entries(errors).map(([name, err]) => (
+              <div key={name}>
+                <span className="font-medium">{name}</span>: {err}
+              </div>
+            ))}
+          </div>
+        )}
 
-      {/* List */}
-      {rows.length === 0 ? (
-        <p className="text-[11px] text-secondary">{t('detail.attachment.empty')}</p>
-      ) : (
-        <ul className="grid gap-1 text-sm">
-          {rows.map((r) => (
-            <li
-              key={r.id}
-              className="flex items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1.5"
-            >
-              <span className="text-xs flex-1 truncate">{r.filename}</span>
-              <span className="text-[10px] text-secondary">
-                {(Number(r.sizeBytes) / 1024).toFixed(0)} KB
-              </span>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => void download(r.id, r.filename)}
-                className="h-7 text-xs px-2"
+        {/* List */}
+        {rows.length === 0 ? (
+          <p className="text-[11px] text-secondary">{t('detail.attachment.empty')}</p>
+        ) : (
+          <ul className="grid gap-1 text-sm">
+            {rows.map((r) => (
+              <li
+                key={r.id}
+                className="flex items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1.5"
               >
-                ↓
-              </Button>
-              {!readOnly && (
+                <span className="text-xs flex-1 truncate">{r.filename}</span>
+                <span className="text-[10px] text-secondary">
+                  {(Number(r.sizeBytes) / 1024).toFixed(0)} KB
+                </span>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    if (window.confirm(t('detail.attachment.confirmDelete'))) {
-                      delMut.mutate(r.id);
-                    }
-                  }}
+                  onClick={() => void previewFile(r.id, r)}
                   className="h-7 text-xs px-2"
-                  disabled={delMut.isPending}
                 >
-                  ✕
+                  {t('detail.attachment.preview', { defaultValue: '보기' })}
                 </Button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void download(r.id, r.filename)}
+                  className="h-7 text-xs px-2"
+                >
+                  ↓
+                </Button>
+                {!readOnly && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (window.confirm(t('detail.attachment.confirmDelete'))) {
+                        delMut.mutate(r.id);
+                      }
+                    }}
+                    className="h-7 text-xs px-2"
+                    disabled={delMut.isPending}
+                  >
+                    ✕
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <FilePreviewDialog
+        open={!!preview}
+        onOpenChange={(next) => {
+          if (!next && preview?.url) URL.revokeObjectURL(preview.url);
+          if (!next) setPreview(null);
+        }}
+        title={preview?.filename ?? 'Preview'}
+        src={preview?.url ?? null}
+        mime={preview?.mime ?? null}
+      />
+    </>
   );
+}
+
+async function fetchAttachmentBlob(
+  inqId: string,
+  attId: string,
+  fallbackName: string,
+): Promise<{ filename: string; url: string }> {
+  const res = await apiClient.get<Blob>(
+    `/acm/csl/inquiries/${inqId}/attachments/${attId}/download`,
+    { responseType: 'blob' },
+  );
+  const cd =
+    (res.headers as Record<string, string | undefined> | undefined)?.[
+      'content-disposition'
+    ] ?? '';
+  const match = /filename\*?=(?:UTF-8'')?([^";]+)/i.exec(cd);
+  const filename = match ? decodeURIComponent(match[1]) : fallbackName;
+  return {
+    filename,
+    url: URL.createObjectURL(res.data),
+  };
 }

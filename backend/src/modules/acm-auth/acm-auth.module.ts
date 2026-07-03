@@ -32,6 +32,7 @@ import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/cla
 import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
 import { SessionTypeormEntity } from '../acm-cls/infrastructure/typeorm/session.typeorm-entity';
 import { ClsEnrollmentTypeormEntity } from '../acm-cls/infrastructure/typeorm/cls-enrollment.typeorm-entity';
+import { MapAssignmentTypeormEntity } from '../acm-map/infrastructure/typeorm/map-assignment.typeorm-entity';
 import { MapScoreTypeormEntity } from '../acm-map/infrastructure/typeorm/map-score.typeorm-entity';
 import { PayOrderTypeormEntity } from '../acm-pay/infrastructure/typeorm/pay-order.typeorm-entity';
 import { PayRefundPolicyTypeormEntity } from '../acm-pay/infrastructure/typeorm/pay-refund-policy.typeorm-entity';
@@ -138,6 +139,7 @@ const amaOAuthProvider: Provider = {
         ClassTypeormEntity,
         SessionTypeormEntity,
         ClsEnrollmentTypeormEntity,
+        MapAssignmentTypeormEntity,
         MapScoreTypeormEntity,
         PayOrderTypeormEntity,
         PayRefundPolicyTypeormEntity,

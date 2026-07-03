@@ -9,6 +9,7 @@ import {
 
 export type NoticeStatus = 'SENT' | 'PENDING' | 'NA';
 export type YesNo = 'YES' | 'NO';
+export type PaymentMethod = 'BANK_TRANSFER' | 'CARD' | 'OTHER';
 
 /**
  * Enrollment sub-table (1:1 with inquiry; F-16 ~ F-24).
@@ -49,6 +50,16 @@ export class EnrollmentTypeormEntity {
   /** F-21 — KRW, 0 ≤ x ≤ 50_000_000 (Q-CSL-008) */
   @Column({ name: 'enr_tuition_amount', type: 'numeric', precision: 12, scale: 0, nullable: true })
   tuitionAmount?: string | null;
+
+  /** REQ-260704 — actual payment metadata entered by operator. */
+  @Column({ name: 'enr_payment_date', type: 'date', nullable: true })
+  paymentDate?: string | null;
+  @Column({ name: 'enr_payment_method', type: 'varchar', length: 20, nullable: true })
+  paymentMethod?: PaymentMethod | null;
+  @Column({ name: 'enr_payment_amount', type: 'numeric', precision: 12, scale: 0, nullable: true })
+  paymentAmount?: string | null;
+  @Column({ name: 'enr_payment_memo', type: 'text', nullable: true })
+  paymentMemo?: string | null;
 
   /** F-22 — BR-CSL-012 senior manager only */
   @Column({ name: 'enr_tuition_paid', type: 'boolean', nullable: true })

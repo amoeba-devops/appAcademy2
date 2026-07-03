@@ -6,6 +6,10 @@ import { List, LayoutGrid } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { CslCreateDialog } from '@/modules/csl/components/csl-create-dialog';
 import {
+  CslListFilters,
+  type CslListFiltersValue,
+} from '@/modules/csl/components/csl-list-filters';
+import {
   CslKanbanBoard,
   type KanbanInquiry,
 } from '@/modules/csl/components/csl-kanban-board';
@@ -17,6 +21,19 @@ interface Inquiry extends KanbanInquiry {
 // REQ-260701 — persisted view toggle. Defaults to 'list'.
 const VIEW_STORAGE_KEY = 'csl:viewMode';
 type ViewMode = 'list' | 'kanban';
+const PAGE_SIZE = 20;
+const KANBAN_LIMIT = 500;
+
+const DEFAULT_FILTERS: CslListFiltersValue = {
+  q: '',
+  stage: '',
+  inflowType: '',
+  applyType: '',
+  applyPurpose: '',
+  registeredFrom: '',
+  registeredTo: '',
+  followupState: '',
+};
 
 function loadViewMode(): ViewMode {
   if (typeof window === 'undefined') return 'list';
@@ -28,19 +45,37 @@ export function CslListPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['csl', 'common']);
   const [view, setView] = useState<ViewMode>(loadViewMode);
+  const [filters, setFilters] = useState<CslListFiltersValue>(DEFAULT_FILTERS);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     window.localStorage.setItem(VIEW_STORAGE_KEY, view);
   }, [view]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['csl', 'list'],
+    queryKey: ['csl', 'list', view, filters, page],
     queryFn: async () => {
       const res = await apiClient.get<Inquiry[] | { items: Inquiry[]; total: number }>(
         '/acm/csl/inquiries',
+        {
+          params: {
+            ...(filters.q.trim() ? { q: filters.q.trim() } : {}),
+            ...(filters.stage ? { stage: filters.stage } : {}),
+            ...(filters.inflowType ? { inflowType: filters.inflowType } : {}),
+            ...(filters.applyType ? { applyType: filters.applyType } : {}),
+            ...(filters.applyPurpose ? { applyPurpose: filters.applyPurpose } : {}),
+            ...(filters.registeredFrom ? { registeredFrom: filters.registeredFrom } : {}),
+            ...(filters.registeredTo ? { registeredTo: filters.registeredTo } : {}),
+            ...(filters.followupState ? { followupState: filters.followupState } : {}),
+            limit: view === 'list' ? PAGE_SIZE : KANBAN_LIMIT,
+            offset: view === 'list' ? (page - 1) * PAGE_SIZE : 0,
+          },
+        },
       );
       const payload = res.data;
-      return Array.isArray(payload) ? { items: payload } : payload;
+      return Array.isArray(payload)
+        ? { items: payload, total: payload.length }
+        : payload;
     },
   });
 
@@ -56,6 +91,16 @@ export function CslListPage() {
   };
 
   const items = data?.items ?? [];
+  const total = data?.total ?? items.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  function updateFilter<K extends keyof CslListFiltersValue>(
+    key: K,
+    next: CslListFiltersValue[K],
+  ): void {
+    setPage(1);
+    setFilters((current) => ({ ...current, [key]: next }));
+  }
 
   return (
     <div>
@@ -65,6 +110,31 @@ export function CslListPage() {
           <ViewToggle value={view} onChange={setView} />
           <CslCreateDialog />
         </div>
+      </div>
+      <CslListFilters
+        value={filters}
+        onChange={updateFilter}
+        onReset={() => {
+          setPage(1);
+          setFilters(DEFAULT_FILTERS);
+        }}
+      />
+      <div className="flex items-center justify-between mb-3 text-sm text-secondary">
+        <span>
+          {t('table.totalCount', {
+            count: total,
+            defaultValue: `총 ${total}건`,
+          })}
+        </span>
+        {view === 'list' && (
+          <span>
+            {t('pagination.pageStatus', {
+              page,
+              totalPages,
+              defaultValue: `${page} / ${totalPages} 페이지`,
+            })}
+          </span>
+        )}
       </div>
       {isLoading && <p className="text-secondary">{t('common:status.loading')}</p>}
       {!isLoading && view === 'kanban' && (
@@ -77,7 +147,9 @@ export function CslListPage() {
             <tr>
               <th className="text-left px-4 py-3 w-16">{t('table.seqNo')}</th>
               <th className="text-left px-4 py-3">{t('table.student')}</th>
-              <th className="text-left px-4 py-3">{t('table.schoolGrade')}</th>
+              <th className="text-left px-4 py-3">
+                {t('table.grade', { defaultValue: '학년' })}
+              </th>
               <th className="text-left px-4 py-3">{t('table.inflow')}</th>
               <th className="text-left px-4 py-3">{t('table.applyType')}</th>
               <th className="text-left px-4 py-3">{t('table.stage')}</th>
@@ -99,7 +171,7 @@ export function CslListPage() {
                     : c.studentName}
                 </td>
                 <td className="px-4 py-3 text-secondary">
-                  {c.schoolFreetext ?? dash} / {c.grade ? t(`grade.${c.grade}`, c.grade) : dash}
+                  {c.grade ? t(`grade.${c.grade}`, c.grade) : dash}
                 </td>
                 <td className="px-4 py-3 text-secondary">{t(`inflow.${c.inflowType}`)}</td>
                 <td className="px-4 py-3 text-secondary">{t(`applyType.${c.applyType}`)}</td>
@@ -132,6 +204,29 @@ export function CslListPage() {
           </tbody>
         </table>
       </div>
+      )}
+      {view === 'list' && total > 0 && (
+        <div className="flex items-center justify-end gap-2 mt-4">
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={page <= 1}
+            className="h-8 rounded-md border border-[var(--border-subtle)] px-3 text-sm disabled:opacity-40"
+          >
+            {t('pagination.prev', { defaultValue: '이전' })}
+          </button>
+          <span className="min-w-[88px] text-center text-sm text-secondary">
+            {page} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={page >= totalPages}
+            className="h-8 rounded-md border border-[var(--border-subtle)] px-3 text-sm disabled:opacity-40"
+          >
+            {t('pagination.next', { defaultValue: '다음' })}
+          </button>
+        </div>
       )}
     </div>
   );

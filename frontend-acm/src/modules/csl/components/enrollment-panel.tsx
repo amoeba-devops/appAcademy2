@@ -15,6 +15,10 @@ interface Enrollment {
   paymentNoticeSent: 'YES' | 'NO' | null;
   classMinutes: number | null;
   tuitionAmount: string | null;
+  paymentDate?: string | null;
+  paymentMethod?: 'BANK_TRANSFER' | 'CARD' | 'OTHER' | null;
+  paymentAmount?: string | null;
+  paymentMemo?: string | null;
   tuitionPaid: boolean | null;
   classStartedAt: string | null;
   classStarted: 'YES' | 'NO' | null;
@@ -48,6 +52,7 @@ interface Teacher {
 
 const NOTICE_STATUSES = ['SENT', 'PENDING', 'NA'] as const;
 const YES_NO = ['YES', 'NO'] as const;
+const PAYMENT_METHODS = ['BANK_TRANSFER', 'CARD', 'OTHER'] as const;
 
 type FormValues = {
   paymentNoticeStatus: '' | (typeof NOTICE_STATUSES)[number];
@@ -56,6 +61,10 @@ type FormValues = {
   paymentNoticeSent: '' | (typeof YES_NO)[number];
   classMinutes: string;
   tuitionAmount: string;
+  paymentDate: string;
+  paymentMethod: '' | (typeof PAYMENT_METHODS)[number];
+  paymentAmount: string;
+  paymentMemo: string;
   tuitionPaid: boolean;
   classStartedAt: string;
   classStarted: '' | (typeof YES_NO)[number];
@@ -141,6 +150,10 @@ export function EnrollmentPanel({
       paymentNoticeSent: '',
       classMinutes: '',
       tuitionAmount: '',
+      paymentDate: '',
+      paymentMethod: '',
+      paymentAmount: '',
+      paymentMemo: '',
       tuitionPaid: false,
       classStartedAt: '',
       classStarted: '',
@@ -164,6 +177,10 @@ export function EnrollmentPanel({
           '') as FormValues['paymentNoticeSent'],
         classMinutes: data.classMinutes?.toString() ?? '',
         tuitionAmount: data.tuitionAmount ?? '',
+        paymentDate: data.paymentDate ?? '',
+        paymentMethod: (data.paymentMethod ?? '') as FormValues['paymentMethod'],
+        paymentAmount: data.paymentAmount ?? '',
+        paymentMemo: data.paymentMemo ?? '',
         tuitionPaid: data.tuitionPaid ?? false,
         classStartedAt: data.classStartedAt ?? '',
         classStarted: (data.classStarted ?? '') as FormValues['classStarted'],
@@ -189,6 +206,10 @@ export function EnrollmentPanel({
       paymentNoticeSent: v.paymentNoticeSent || undefined,
       classMinutes: v.classMinutes ? Number(v.classMinutes) : undefined,
       tuitionAmount: v.tuitionAmount ? Number(v.tuitionAmount) : undefined,
+      paymentDate: v.paymentDate || undefined,
+      paymentMethod: v.paymentMethod || undefined,
+      paymentAmount: v.paymentAmount ? Number(v.paymentAmount) : undefined,
+      paymentMemo: v.paymentMemo || undefined,
       tuitionPaid: v.tuitionPaid,
       classStartedAt: v.classStartedAt || undefined,
       classStarted: v.classStarted || undefined,
@@ -293,23 +314,13 @@ export function EnrollmentPanel({
               ))}
             </Select>
           </Field>
-          <Field label={t('detail.enrollment.paymentNoticeStatus')}>
-            <Select {...register('paymentNoticeStatus')}>
-              <option value="">{t('common:dash')}</option>
-              {NOTICE_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`detail.enrollment.notice.${s}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
           <label className="flex items-center gap-2 text-sm pt-5">
             <input type="checkbox" {...register('applied')} />
             {t('detail.enrollment.applied')}
           </label>
+        </div>
+
+        <div className="grid grid-cols-[1fr_1fr] gap-3">
           <Field label={t('detail.enrollment.paymentNoticeSent')}>
             <Select {...register('paymentNoticeSent')}>
               <option value="">{t('common:dash')}</option>
@@ -320,6 +331,7 @@ export function EnrollmentPanel({
               ))}
             </Select>
           </Field>
+          <div />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -353,10 +365,61 @@ export function EnrollmentPanel({
           </Field>
         </div>
 
-        <div className="grid grid-cols-[1fr_1fr_auto] gap-3 items-end">
-          <Field label={t('detail.enrollment.classStartedAt')}>
-            <Input type="date" {...register('classStartedAt')} />
-          </Field>
+        <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-4 grid gap-3">
+          <div className="text-sm font-semibold">
+            {t('detail.enrollment.paymentSection', {
+              defaultValue: '결제 정보',
+            })}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label={t('detail.enrollment.paymentDate', {
+                defaultValue: '결제일',
+              })}
+            >
+              <Input type="date" {...register('paymentDate')} />
+            </Field>
+            <Field
+              label={t('detail.enrollment.paymentMethodInput', {
+                defaultValue: '결제 방법',
+              })}
+            >
+              <Select {...register('paymentMethod')}>
+                <option value="">{t('common:dash')}</option>
+                {PAYMENT_METHODS.map((method) => (
+                  <option key={method} value={method}>
+                    {t(`detail.enrollment.method.${method}`, {
+                      defaultValue:
+                        method === 'BANK_TRANSFER'
+                          ? '계좌이체'
+                          : method === 'CARD'
+                            ? '카드'
+                            : '기타',
+                    })}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label={t('detail.enrollment.paymentAmount', {
+                defaultValue: '결제금액',
+              })}
+            >
+              <Input type="number" min={0} max={50000000} {...register('paymentAmount')} />
+            </Field>
+            <Field
+              label={t('detail.enrollment.paymentMemoInput', {
+                defaultValue: '비고',
+              })}
+            >
+              <Input {...register('paymentMemo')} />
+            </Field>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
           <Field label={t('detail.enrollment.classStarted')}>
             <Select {...register('classStarted')}>
               <option value="">{t('common:dash')}</option>
@@ -414,14 +477,6 @@ export function EnrollmentPanel({
         teachers={teacherDirectory}
         onChange={() => refetchAssignments()}
       />
-
-      {currentStage === 'PAYMENT' && (
-        <PaymentApprovalBlock
-          inqId={inqId}
-          alreadyPaid={!!data?.tuitionPaid}
-          onApproved={() => qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] })}
-        />
-      )}
     </section>
   );
 }
@@ -544,95 +599,6 @@ function TeacherAssignmentsBlock({
           {(assign.error as { response?: { data?: { message?: string } } })?.response
             ?.data?.message ?? (assign.error as Error).message}
         </p>
-      )}
-    </div>
-  );
-}
-
-/**
- * REQ-260626 FR-CSL-141/142 — SCR-CSL-05 payment approval block. Renders
- * only on PAYMENT stage. POSTs to /enrollment/approve-payment which
- * enforces the ADMIN/APP_ADMIN gate; non-admins get a 403 with the BR
- * message displayed inline.
- */
-function PaymentApprovalBlock({
-  inqId,
-  alreadyPaid,
-  onApproved,
-}: {
-  inqId: string;
-  alreadyPaid: boolean;
-  onApproved: () => void;
-}) {
-  const { t } = useTranslation(['csl', 'common']);
-  const [method, setMethod] = useState<'CARD' | 'BANK_TRANSFER'>('CARD');
-  const [memo, setMemo] = useState('');
-
-  const approve = useMutation({
-    mutationFn: async () => {
-      await apiClient.post(
-        `/acm/csl/inquiries/${inqId}/enrollment/approve-payment`,
-        { method, memo: memo || undefined },
-      );
-    },
-    onSuccess: () => {
-      setMemo('');
-      onApproved();
-    },
-  });
-
-  return (
-    <div className="mt-5 border-t border-[var(--border-subtle)] pt-4">
-      <h3 className="text-sm font-semibold mb-2">
-        {t('detail.enrollment.paymentApproval')}
-      </h3>
-      <p className="text-[11px] text-secondary mb-3">
-        {t('detail.enrollment.paymentApprovalHint')}
-      </p>
-      {alreadyPaid ? (
-        <p className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          ✓ {t('detail.enrollment.paymentAlreadyApproved')}
-        </p>
-      ) : (
-        <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1">
-              <Label className="text-xs">{t('detail.enrollment.paymentMethod')}</Label>
-              <Select
-                value={method}
-                onChange={(e) =>
-                  setMethod(e.target.value as 'CARD' | 'BANK_TRANSFER')
-                }
-              >
-                <option value="CARD">{t('detail.enrollment.method.CARD')}</option>
-                <option value="BANK_TRANSFER">
-                  {t('detail.enrollment.method.BANK_TRANSFER')}
-                </option>
-              </Select>
-            </div>
-            <div className="grid gap-1">
-              <Label className="text-xs">{t('detail.enrollment.paymentMemo')}</Label>
-              <Input value={memo} onChange={(e) => setMemo(e.target.value)} />
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              onClick={() => approve.mutate()}
-              disabled={approve.isPending}
-            >
-              {approve.isPending
-                ? t('common:actions.saving')
-                : t('detail.enrollment.approvePayment')}
-            </Button>
-          </div>
-          {approve.isError && (
-            <p className="text-xs text-red-600">
-              {(approve.error as { response?: { data?: { message?: string } } })
-                ?.response?.data?.message ?? (approve.error as Error).message}
-            </p>
-          )}
-        </div>
       )}
     </div>
   );

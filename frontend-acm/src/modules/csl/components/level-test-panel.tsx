@@ -4,6 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { FilePreviewDialog } from './file-preview-dialog';
 import { LevelTestScheduleDialog } from './level-test-schedule-dialog';
 import { LevelTestScoreEditor } from './level-test-score-editor';
 import type { LevelTestType } from './level-test-score-editor';
@@ -66,6 +73,13 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
   const [expandedScoreType, setExpandedScoreType] = useState<LevelTestType | null>(
     null,
   );
+  const [resultPreviewRow, setResultPreviewRow] = useState<LevelTest | null>(null);
+  const [pdfPreview, setPdfPreview] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
+  const [newType, setNewType] = useState<LevelTestType>('SSAT');
+  const [newTypeOther, setNewTypeOther] = useState('');
 
   const { data: inq } = useQuery({
     queryKey: ['csl', 'detail', inqId],
@@ -129,6 +143,20 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'level-tests', inqId] }),
   });
 
+  const addTestType = useMutation({
+    mutationFn: async () => {
+      await apiClient.put(`/acm/csl/inquiries/${inqId}/level-tests/${newType}`, {
+        ...(newType === 'OTHER'
+          ? { testTypeOther: newTypeOther.trim() || undefined }
+          : {}),
+      });
+    },
+    onSuccess: () => {
+      setNewTypeOther('');
+      qc.invalidateQueries({ queryKey: ['csl', 'level-tests', inqId] });
+    },
+  });
+
   async function downloadPdf(testType: LevelTestType | 'all'): Promise<void> {
     const path =
       testType === 'all'
@@ -152,6 +180,24 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
       window.alert(err.response?.data?.message ?? 'PDF download failed');
+    }
+  }
+
+  async function previewPdf(testType: LevelTestType): Promise<void> {
+    try {
+      if (pdfPreview?.url) URL.revokeObjectURL(pdfPreview.url);
+      const res = await apiClient.get<Blob>(
+        `/acm/csl/inquiries/${inqId}/level-tests/${testType}/result-pdf`,
+        { responseType: 'blob' },
+      );
+      const title = `${typeLabel(testType, byType.get(testType)?.testTypeOther ?? null)} PDF`;
+      setPdfPreview({
+        url: URL.createObjectURL(res.data),
+        title,
+      });
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } } };
+      window.alert(err.response?.data?.message ?? 'PDF preview failed');
     }
   }
 
@@ -191,7 +237,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
               <th className="text-left py-2">{t('detail.levelTest.col.schedule')}</th>
               <th className="text-left py-2 w-40">{t('detail.levelTest.col.teacher')}</th>
               <th className="text-left py-2 w-32">{t('detail.levelTest.col.status')}</th>
-              <th className="text-right py-2 w-56">{t('detail.levelTest.col.actions')}</th>
+              <th className="text-right py-2 w-80">{t('detail.levelTest.col.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -278,7 +324,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => downloadPdf(type)}
+                        onClick={() => setResultPreviewRow(row)}
                         disabled={!row.resultEnteredAt}
                         title={
                           !row.resultEnteredAt
@@ -286,7 +332,24 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
                             : undefined
                         }
                       >
-                        PDF
+                        {t('detail.levelTest.previewResult', {
+                          defaultValue: '결과 보기',
+                        })}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => void previewPdf(type)}
+                        disabled={!row.resultEnteredAt}
+                        title={
+                          !row.resultEnteredAt
+                            ? t('detail.levelTest.pdfLockedHint')
+                            : undefined
+                        }
+                      >
+                        {t('detail.levelTest.previewPdf', {
+                          defaultValue: 'PDF 보기',
+                        })}
                       </Button>
                     </div>
                   </td>
@@ -309,6 +372,72 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
           onClose={() => setExpandedScoreType(null)}
         />
       )}
+
+      <div className="grid gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <Label className="text-sm font-semibold">
+              {t('detail.levelTest.addTypeLabel', {
+                defaultValue: '시험종류 추가',
+              })}
+            </Label>
+            <p className="text-[11px] text-secondary mt-1">
+              {t('detail.levelTest.addTypeHint', {
+                defaultValue: '운영자가 시험 row 를 수동으로 추가할 수 있습니다.',
+              })}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-end gap-2">
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as LevelTestType)}
+              className="h-9 rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
+            >
+              {LEVEL_TEST_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type === 'TOEFL_JR' ? 'TOEFL Jr' : type}
+                </option>
+              ))}
+            </select>
+            {newType === 'OTHER' && (
+              <input
+                type="text"
+                value={newTypeOther}
+                onChange={(e) => setNewTypeOther(e.target.value)}
+                placeholder={t('detail.levelTest.otherNamePlaceholder', {
+                  defaultValue: '시험명 직접 입력',
+                })}
+                className="h-9 rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
+              />
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => addTestType.mutate()}
+              disabled={
+                addTestType.isPending ||
+                !!byType.get(newType) ||
+                (newType === 'OTHER' && !newTypeOther.trim())
+              }
+            >
+              {t('common:actions.add', { defaultValue: '추가' })}
+            </Button>
+          </div>
+        </div>
+        {!!byType.get(newType) && (
+          <p className="text-xs text-amber-700">
+            {t('detail.levelTest.duplicateType', {
+              defaultValue: '이미 추가된 시험종류입니다.',
+            })}
+          </p>
+        )}
+        {addTestType.isError && (
+          <p className="text-xs text-red-600">
+            {(addTestType.error as { response?: { data?: { message?: string } } })?.response
+              ?.data?.message ?? (addTestType.error as Error).message}
+          </p>
+        )}
+      </div>
 
       {/* Unified PDF */}
       <div className="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
@@ -337,6 +466,21 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
           }}
         />
       )}
+      <ResultPreviewDialog
+        open={!!resultPreviewRow}
+        onOpenChange={(next) => !next && setResultPreviewRow(null)}
+        row={resultPreviewRow}
+      />
+      <FilePreviewDialog
+        open={!!pdfPreview}
+        onOpenChange={(next) => {
+          if (!next && pdfPreview?.url) URL.revokeObjectURL(pdfPreview.url);
+          if (!next) setPdfPreview(null);
+        }}
+        title={pdfPreview?.title ?? 'PDF Preview'}
+        src={pdfPreview?.url ?? null}
+        mime="application/pdf"
+      />
     </section>
   );
 }
@@ -487,6 +631,97 @@ function Field({
     <div className="grid gap-1">
       <Label className="text-xs">{label}</Label>
       {children}
+    </div>
+  );
+}
+
+function ResultPreviewDialog({
+  open,
+  onOpenChange,
+  row,
+}: {
+  open: boolean;
+  onOpenChange: (next: boolean) => void;
+  row: LevelTest | null;
+}) {
+  const { t } = useTranslation(['csl']);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
+            {t('detail.levelTest.previewResultTitle', {
+              defaultValue: '레벨테스트 결과 미리보기',
+            })}
+          </DialogTitle>
+        </DialogHeader>
+        {!row ? (
+          <p className="text-sm text-secondary">-</p>
+        ) : row.testType === 'MAP' ? (
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <PreviewItem label="Reading" value={row.scoreReading} />
+            <PreviewItem label="Math" value={row.scoreMath} />
+            <PreviewItem label="Language Usage" value={row.scoreLanguage} />
+          </div>
+        ) : (
+          <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3 text-sm">
+            <DetailPreviewTree value={row.scoreDetail} />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PreviewItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  return (
+    <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+      <div className="text-xs text-secondary">{label}</div>
+      <div className="mt-1 text-base font-semibold">{value ?? '—'}</div>
+    </div>
+  );
+}
+
+function DetailPreviewTree({
+  value,
+  depth = 0,
+}: {
+  value: Record<string, unknown> | null;
+  depth?: number;
+}) {
+  if (!value || Object.keys(value).length === 0) {
+    return <p className="text-sm text-secondary">—</p>;
+  }
+
+  return (
+    <div className="grid gap-2">
+      {Object.entries(value).map(([key, entry]) => {
+        const isObject =
+          typeof entry === 'object' && entry !== null && !Array.isArray(entry);
+        return (
+          <div
+            key={`${depth}-${key}`}
+            className={depth > 0 ? 'pl-3 border-l border-[var(--border-subtle)]' : ''}
+          >
+            <div className="text-xs font-medium text-secondary">{key}</div>
+            {isObject ? (
+              <DetailPreviewTree
+                value={entry as Record<string, unknown>}
+                depth={depth + 1}
+              />
+            ) : (
+              <div className="mt-0.5 text-sm">{String(entry ?? '—')}</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

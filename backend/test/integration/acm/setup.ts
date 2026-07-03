@@ -6,11 +6,13 @@ import { ConfigModule } from '@nestjs/config';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { DataSource } from 'typeorm';
+import { MailerModule } from '../../../src/infrastructure/mailer/mailer.module';
 import { AcmCommonModule } from '../../../src/modules/acm-common/acm-common.module';
 import { AcmAuthModule } from '../../../src/modules/acm-auth/acm-auth.module';
 import { AcmJwtAuthGuard } from '../../../src/modules/acm-auth/guards/acm-jwt-auth.guard';
 import { AcmCslModule } from '../../../src/modules/acm-csl/acm-csl.module';
 import { AcmSchModule } from '../../../src/modules/acm-sch/acm-sch.module';
+import { AcmMapModule } from '../../../src/modules/acm-map/acm-map.module';
 import { AcmRefModule } from '../../../src/modules/acm-ref/acm-ref.module';
 import { AcmQnaModule } from '../../../src/modules/acm-qna/acm-qna.module';
 import { AcmDshModule } from '../../../src/modules/acm-dsh/acm-dsh.module';
@@ -29,14 +31,23 @@ const NEVER_PULL = { shouldPull: () => false };
 /** SQL files to run in order (schema only — skip seeds). */
 const ACM_SQL_FILES = [
   '100-acm-v1.0a-init.sql',
+  '120-migration-csl-apply-purposes.sql',
   '300-acm-cls-v1.0b.sql',
   '400-acm-v1.0a-sch-p1.sql',
   '410-acm-v1.0a-qna-p1.sql',
   '420-acm-qna-i18n-labels.sql',
   '500-acm-auth.sql',
+  '505-migration-user-role.sql',
   '510-acm-ama-sso.sql',
+  '510-migration-app-admin-role.sql',
+  '800-acm-tch-teacher.sql',
+  '830-acm-tch-extend.sql',
+  '870-csl-inquiry-parent-name.sql',
+  '910-acm-cal-boda.sql',
   // REQ-260609B — admin-configurable AMA login gate (entityId + appCode).
   '920-acm-ama-config.sql',
+  '985-acm-csl-pipeline-revision.sql',
+  '993-acm-csl-enrollment-payment-fields.sql',
 ];
 
 /**
@@ -82,9 +93,11 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
         autoLoadEntities: true,
         synchronize: false,
       }),
+      MailerModule,
       AcmCommonModule,
       AcmAuthModule,
       AcmSchModule,
+      AcmMapModule,
       AcmRefModule,
       AcmCslModule,
       AcmQnaModule,
@@ -106,7 +119,11 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
     const id = req.headers['x-test-user'];
     const entId = req.headers['x-test-ent'];
     const roles = (req.headers['x-test-roles'] as string | undefined)?.split(',') ?? [];
-    if (id && entId) req.user = { id, entId, roles };
+    const roleHeader = req.headers['x-test-role'];
+    const role = typeof roleHeader === 'string' && roleHeader
+      ? roleHeader
+      : (typeof roles[0] === 'string' ? roles[0].toUpperCase() : undefined);
+    if (id && entId) req.user = { id, entId, roles, role };
     next();
   });
   await app.init();
@@ -124,16 +141,17 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
   for (const entId of TEST_ALLOWED_ENTITY_IDS) {
     await ds.query(
       `INSERT INTO amb_acm_ama_config (ent_id, amc_ama_entity_id, amc_app_code, amc_is_active)
-         VALUES ($1, $1, 'tpi-acm', TRUE)
+         VALUES ($1::uuid, $2::varchar, 'tpi-acm', TRUE)
        ON CONFLICT (ent_id) DO NOTHING`,
-      [entId],
+      [entId, entId],
     );
   }
 
   return { app, pg, ds };
 }
 
-export async function teardownAcmTestEnv(env: AcmTestEnv) {
+export async function teardownAcmTestEnv(env?: AcmTestEnv) {
+  if (!env) return;
   await env.app.close();
   await env.pg.stop();
 }

@@ -31,7 +31,10 @@ import type {
   MapWaiverReason,
 } from '../../infrastructure/typeorm/map-test.typeorm-entity';
 import type { FeedbackStatus } from '../../infrastructure/typeorm/trial-class.typeorm-entity';
-import type { NoticeStatus } from '../../infrastructure/typeorm/enrollment.typeorm-entity';
+import type {
+  NoticeStatus,
+  PaymentMethod,
+} from '../../infrastructure/typeorm/enrollment.typeorm-entity';
 import type { CancellationReasonCode } from '../../infrastructure/typeorm/cancellation.typeorm-entity';
 
 const STAGES: readonly CslStage[] = [
@@ -71,6 +74,7 @@ const MAP_SCHEDULE_STATUSES: readonly MapScheduleStatus[] = [
 
 const FEEDBACK_STATUSES: readonly FeedbackStatus[] = ['SENT', 'PENDING', 'NA'] as const;
 const NOTICE_STATUSES: readonly NoticeStatus[] = ['SENT', 'PENDING', 'NA'] as const;
+const PAYMENT_METHODS: readonly PaymentMethod[] = ['BANK_TRANSFER', 'CARD', 'OTHER'] as const;
 const CANCELLATION_REASON_CODES: readonly CancellationReasonCode[] = [
   'ACADEMY_CANCELLED',
   'STUDENT_ILLNESS',
@@ -426,6 +430,21 @@ export class UpsertEnrollmentDto {
   @IsOptional() @IsInt() @Min(0) @Max(50_000_000)
   tuitionAmount?: number;
 
+  /** REQ-260704 — actual payment date entered by operator. */
+  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  paymentDate?: string;
+
+  @ApiPropertyOptional({ enum: PAYMENT_METHODS })
+  @IsOptional() @IsEnum(PAYMENT_METHODS)
+  paymentMethod?: PaymentMethod;
+
+  @ApiPropertyOptional({ minimum: 0, maximum: 50_000_000 })
+  @IsOptional() @IsInt() @Min(0) @Max(50_000_000)
+  paymentAmount?: number;
+
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000)
+  paymentMemo?: string;
+
   /** F-22 — BR-CSL-012 (server enforces senior-manager role) */
   @ApiPropertyOptional() @IsOptional() @IsBoolean()
   tuitionPaid?: boolean;
@@ -483,9 +502,9 @@ export class AssignTeacherDto {
  * no online PG (Out-of-Scope per REQ §3.2).
  */
 export class ApprovePaymentDto {
-  @ApiProperty({ enum: ['CARD', 'BANK_TRANSFER'] })
-  @IsEnum(['CARD', 'BANK_TRANSFER'])
-  method!: 'CARD' | 'BANK_TRANSFER';
+  @ApiProperty({ enum: PAYMENT_METHODS })
+  @IsEnum(PAYMENT_METHODS)
+  method!: PaymentMethod;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
   memo?: string;

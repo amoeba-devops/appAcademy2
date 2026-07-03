@@ -60,16 +60,45 @@ interface MapTest {
   priorScoresDetail: Record<string, unknown> | null;
 }
 
-interface IseeIntakeScores {
-  verbal?: number;
-  reading?: number;
-  quantitative?: number;
-  mathematics?: number;
-}
-interface PriorAdvanced {
-  testName?: string;
-  scores?: Record<string, string>;
-}
+type IseeSection = {
+  scaled?: number;
+  percentile?: number;
+  stanine?: number;
+};
+
+type IseeIntakeScores = Partial<
+  Record<'verbal' | 'reading' | 'quantitative' | 'mathematics', IseeSection>
+>;
+
+type SsatSection = {
+  score?: number;
+  percentile?: number;
+};
+
+type SsatIntakeScores = Partial<
+  Record<'verbal' | 'quantitative' | 'reading' | 'total', SsatSection>
+>;
+
+type DuolingoIntakeScores = Partial<
+  Record<
+    | 'total'
+    | 'speaking'
+    | 'writing'
+    | 'reading'
+    | 'listening'
+    | 'production'
+    | 'literacy'
+    | 'comprehension'
+    | 'conversation',
+    number
+  >
+>;
+
+type ToeflIntakeScores = Partial<
+  Record<'total' | 'reading' | 'listening' | 'speaking' | 'writing', number>
+>;
+
+type SatIntakeScores = Partial<Record<'rw' | 'math' | 'total', number>>;
 
 export function IntakeStagePanel({
   inqId,
@@ -104,7 +133,11 @@ export function IntakeStagePanel({
   const [scoreMath, setScoreMath] = useState<string>('');
   const [scoreLanguage, setScoreLanguage] = useState<string>('');
   const [iseeIntake, setIseeIntake] = useState<IseeIntakeScores>({});
-  const [priorAdvanced, setPriorAdvanced] = useState<PriorAdvanced>({});
+  const [ssatIntake, setSsatIntake] = useState<SsatIntakeScores>({});
+  const [duolingoIntake, setDuolingoIntake] = useState<DuolingoIntakeScores>({});
+  const [toeflIntake, setToeflIntake] = useState<ToeflIntakeScores>({});
+  const [satIntake, setSatIntake] = useState<SatIntakeScores>({});
+  const [otherTestsText, setOtherTestsText] = useState('');
 
   useEffect(() => {
     if (mt) {
@@ -113,20 +146,49 @@ export function IntakeStagePanel({
       setScoreLanguage(mt.scoreLanguage?.toString() ?? '');
       const det = (mt.priorScoresDetail ?? {}) as {
         iseeIntake?: IseeIntakeScores;
-        priorAdvanced?: PriorAdvanced;
+        ssatIntake?: SsatIntakeScores;
+        duolingoIntake?: DuolingoIntakeScores;
+        toeflIntake?: ToeflIntakeScores;
+        satIntake?: SatIntakeScores;
+        otherTestsText?: string;
+        priorAdvanced?: { testName?: string; scores?: Record<string, unknown> };
       };
       setIseeIntake(det.iseeIntake ?? {});
-      setPriorAdvanced(det.priorAdvanced ?? {});
+      setSsatIntake(det.ssatIntake ?? {});
+      setDuolingoIntake(det.duolingoIntake ?? {});
+      setToeflIntake(det.toeflIntake ?? {});
+      setSatIntake(det.satIntake ?? {});
+      setOtherTestsText(
+        det.otherTestsText ??
+          (det.priorAdvanced
+            ? [
+                det.priorAdvanced.testName,
+                det.priorAdvanced.scores
+                  ? JSON.stringify(det.priorAdvanced.scores)
+                  : null,
+              ]
+                .filter(Boolean)
+                .join('\n')
+            : ''),
+      );
     }
   }, [mt]);
 
   const save = useMutation({
     mutationFn: async (opts: { advance: boolean }) => {
       const priorScoresDetail: Record<string, unknown> = {};
-      if (Object.keys(iseeIntake).length > 0)
+      if (hasMeaningfulValue(iseeIntake))
         priorScoresDetail.iseeIntake = iseeIntake;
-      if (priorAdvanced.testName || priorAdvanced.scores)
-        priorScoresDetail.priorAdvanced = priorAdvanced;
+      if (hasMeaningfulValue(ssatIntake))
+        priorScoresDetail.ssatIntake = ssatIntake;
+      if (hasMeaningfulValue(duolingoIntake))
+        priorScoresDetail.duolingoIntake = duolingoIntake;
+      if (hasMeaningfulValue(toeflIntake))
+        priorScoresDetail.toeflIntake = toeflIntake;
+      if (hasMeaningfulValue(satIntake))
+        priorScoresDetail.satIntake = satIntake;
+      if (otherTestsText.trim())
+        priorScoresDetail.otherTestsText = otherTestsText.trim();
 
       await apiClient.put(`/acm/csl/inquiries/${inqId}/map-test`, {
         scoreReading: scoreReading ? Number(scoreReading) : undefined,
@@ -225,27 +287,76 @@ export function IntakeStagePanel({
             <p className="text-[11px] text-secondary">
               {t('detail.intake.iseeIntakeHint')}
             </p>
-            <div className="grid grid-cols-4 gap-3">
-              {(['verbal', 'reading', 'quantitative', 'mathematics'] as const).map(
-                (k) => (
-                  <Field key={k} label={capitalize(k)}>
-                    <Input
-                      type="number"
-                      min={760}
-                      max={940}
-                      placeholder="760~940"
-                      value={iseeIntake[k]?.toString() ?? ''}
-                      onChange={(e) => {
-                        const n = e.target.value
-                          ? Number(e.target.value)
-                          : undefined;
-                        setIseeIntake({ ...iseeIntake, [k]: n });
-                      }}
-                    />
-                  </Field>
-                ),
-              )}
-            </div>
+            <table className="w-full border-collapse text-xs">
+              <thead>
+                <tr className="text-secondary">
+                  <th className="text-left py-1 w-28">Section</th>
+                  <th className="text-left py-1">Scaled</th>
+                  <th className="text-left py-1">Percentile</th>
+                  <th className="text-left py-1">Stanine</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(['verbal', 'reading', 'quantitative', 'mathematics'] as const).map(
+                  (k) => {
+                    const row = iseeIntake[k] ?? {};
+                    return (
+                      <tr key={k} className="border-t border-[var(--border-subtle)]">
+                        <td className="py-1.5 font-medium capitalize">{k}</td>
+                        <td className="py-1">
+                          <Input
+                            type="number"
+                            placeholder="Scaled"
+                            value={row.scaled?.toString() ?? ''}
+                            onChange={(e) =>
+                              setIseeIntake({
+                                ...iseeIntake,
+                                [k]: {
+                                  ...row,
+                                  scaled: emptyToNumber(e.target.value),
+                                },
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="py-1">
+                          <Input
+                            type="number"
+                            placeholder="Percentile"
+                            value={row.percentile?.toString() ?? ''}
+                            onChange={(e) =>
+                              setIseeIntake({
+                                ...iseeIntake,
+                                [k]: {
+                                  ...row,
+                                  percentile: emptyToNumber(e.target.value),
+                                },
+                              })
+                            }
+                          />
+                        </td>
+                        <td className="py-1">
+                          <Input
+                            type="number"
+                            placeholder="Stanine"
+                            value={row.stanine?.toString() ?? ''}
+                            onChange={(e) =>
+                              setIseeIntake({
+                                ...iseeIntake,
+                                [k]: {
+                                  ...row,
+                                  stanine: emptyToNumber(e.target.value),
+                                },
+                              })
+                            }
+                          />
+                        </td>
+                      </tr>
+                    );
+                  },
+                )}
+              </tbody>
+            </table>
           </fieldset>
         )}
 
@@ -257,29 +368,153 @@ export function IntakeStagePanel({
             <p className="text-[11px] text-secondary">
               {t('detail.intake.advancedHint')}
             </p>
-            <div className="grid grid-cols-[160px_1fr] gap-3">
-              <Field label={t('detail.intake.advancedTestName')}>
-                <Input
-                  placeholder="SSAT / Duolingo / TOEFL / ..."
-                  value={priorAdvanced.testName ?? ''}
-                  onChange={(e) =>
-                    setPriorAdvanced({ ...priorAdvanced, testName: e.target.value })
-                  }
-                />
-              </Field>
-              <Field label={t('detail.intake.advancedScoresLabel')}>
+            <div className="grid gap-4">
+              <StructuredSection title="SSAT">
+                <div className="grid grid-cols-4 gap-3">
+                  {(['verbal', 'quantitative', 'reading', 'total'] as const).map((key) => {
+                    const row = ssatIntake[key] ?? {};
+                    return (
+                      <div key={key} className="grid gap-2">
+                        <Label className="text-[11px] capitalize">{key}</Label>
+                        <Input
+                          type="number"
+                          placeholder="Score"
+                          value={row.score?.toString() ?? ''}
+                          onChange={(e) =>
+                            setSsatIntake({
+                              ...ssatIntake,
+                              [key]: {
+                                ...row,
+                                score: emptyToNumber(e.target.value),
+                              },
+                            })
+                          }
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Percentile"
+                          value={row.percentile?.toString() ?? ''}
+                          onChange={(e) =>
+                            setSsatIntake({
+                              ...ssatIntake,
+                              [key]: {
+                                ...row,
+                                percentile: emptyToNumber(e.target.value),
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </StructuredSection>
+
+              <StructuredSection title="Duolingo">
+                <div className="grid grid-cols-3 gap-3">
+                  {(
+                    [
+                      'total',
+                      'speaking',
+                      'writing',
+                      'reading',
+                      'listening',
+                      'production',
+                      'literacy',
+                      'comprehension',
+                      'conversation',
+                    ] as const
+                  ).map((key) => (
+                    <Field key={key} label={capitalize(key)}>
+                      <Input
+                        type="number"
+                        value={duolingoIntake[key]?.toString() ?? ''}
+                        onChange={(e) =>
+                          setDuolingoIntake({
+                            ...duolingoIntake,
+                            [key]: emptyToNumber(e.target.value),
+                          })
+                        }
+                      />
+                    </Field>
+                  ))}
+                </div>
+              </StructuredSection>
+
+              <StructuredSection title="TOEFL">
+                <div className="grid grid-cols-5 gap-3">
+                  {(['total', 'reading', 'listening', 'speaking', 'writing'] as const).map(
+                    (key) => (
+                      <Field key={key} label={capitalize(key)}>
+                        <Input
+                          type="number"
+                          value={toeflIntake[key]?.toString() ?? ''}
+                          onChange={(e) =>
+                            setToeflIntake({
+                              ...toeflIntake,
+                              [key]: emptyToNumber(e.target.value),
+                            })
+                          }
+                        />
+                      </Field>
+                    ),
+                  )}
+                </div>
+              </StructuredSection>
+
+              <StructuredSection title="SAT">
+                <div className="grid grid-cols-3 gap-3">
+                  <Field label="Reading & Writing">
+                    <Input
+                      type="number"
+                      value={satIntake.rw?.toString() ?? ''}
+                      onChange={(e) =>
+                        setSatIntake({
+                          ...satIntake,
+                          rw: emptyToNumber(e.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="Math">
+                    <Input
+                      type="number"
+                      value={satIntake.math?.toString() ?? ''}
+                      onChange={(e) =>
+                        setSatIntake({
+                          ...satIntake,
+                          math: emptyToNumber(e.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="Total">
+                    <Input
+                      type="number"
+                      value={satIntake.total?.toString() ?? ''}
+                      onChange={(e) =>
+                        setSatIntake({
+                          ...satIntake,
+                          total: emptyToNumber(e.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+                </div>
+              </StructuredSection>
+
+              <Field
+                label={t('detail.intake.otherTestsText', {
+                  defaultValue: '기타 시험 / 메모',
+                })}
+              >
                 <textarea
-                  className="min-h-[60px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 font-mono text-xs"
-                  placeholder={t('detail.intake.advancedScoresPlaceholder')}
-                  value={JSON.stringify(priorAdvanced.scores ?? {}, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const parsed = JSON.parse(e.target.value);
-                      setPriorAdvanced({ ...priorAdvanced, scores: parsed });
-                    } catch {
-                      // Allow free typing; only commit on valid JSON
-                    }
-                  }}
+                  className="min-h-[88px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 text-sm"
+                  placeholder={t('detail.intake.otherTestsPlaceholder', {
+                    defaultValue: 'AP / IB / PSAT 등 기타 점수를 자유 텍스트로 입력',
+                  })}
+                  value={otherTestsText}
+                  onChange={(e) => setOtherTestsText(e.target.value)}
                 />
               </Field>
             </div>
@@ -517,6 +752,38 @@ function Field({
       {children}
     </div>
   );
+}
+
+function StructuredSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
+      <div className="text-xs font-semibold text-secondary mb-3">{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function emptyToNumber(value: string): number | undefined {
+  return value ? Number(value) : undefined;
+}
+
+function hasMeaningfulValue(value: unknown): boolean {
+  if (value == null) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (Array.isArray(value)) return value.some((item) => hasMeaningfulValue(item));
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).some((entry) =>
+      hasMeaningfulValue(entry),
+    );
+  }
+  return false;
 }
 
 function capitalize(s: string): string {
