@@ -108,7 +108,14 @@ export class BodaLaunchContextService {
 
     const cfg = await this.cfg.findByEntId(entId);
     const bodaWeb = this.bodaWebBase(cfg?.bodaWebUrl);
-    const appApiUrl = bodaWeb ? `${bodaWeb}/BodaAppApi.js` : '';
+    // FIX-260703: BodaAppApi.js 는 vendor 호스트(bodaWeb)가 서빙하지 않는다
+    // (bodaedu.kr/BodaAppApi.js → text/html SPA fallback → nosniff 로 실행 거부).
+    // vendor 가이드대로 **자체 호스팅** 복사본을 로드한다 (tpi.html 과 동일 파일,
+    // frontend-acm/public/web/BODA_APP/build/). same-origin 절대경로면 런처 페이지
+    // 오리진(acm.amoeba.site)에서 실제 JS 로 로드된다. env 로 override 가능.
+    const appApiUrl =
+      this.config.get<string>('BODA_APP_API_URL') ??
+      '/web/BODA_APP/build/BodaAppApi.js';
 
     // REQ-260619 FR-LX-4 — 학생/학부모 화면이면 다른 invitees 노출 금지 (NFR-LX-2).
     // ADMIN 으로 관전 중인 경우(`userType === 13`) 도 풀 노출 — 운영 모니터링.
@@ -351,7 +358,7 @@ export class BodaLaunchContextService {
 
   /**
    * BODA Backend API 베이스 URL (`bodaWeb`, 끝 슬래시 제거). bodaOpen()/bodaJoin()
-   * 의 1번째 위치 인자이자 `{base}/BodaAppApi.js` 스크립트 경로의 베이스.
+   * 의 1번째 위치 인자. (BodaAppApi.js 스크립트는 자체 호스팅 — appApiUrl 참조.)
    */
   private bodaWebBase(bodaWebUrl: string | undefined | null): string {
     return (
