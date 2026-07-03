@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronRight, Filter } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -58,23 +58,6 @@ const COLUMN_ACCENT: Record<Stage, string> = {
   DROPPED: 'border-[var(--border-subtle)] bg-[var(--gray-100)]',
 };
 
-// REQ-260701 (v0.2) — persist per-user stage filter across reloads.
-const FILTER_KEY = 'csl:kanban:stageFilter';
-
-function loadStageFilter(): Set<Stage> {
-  if (typeof window === 'undefined') return new Set(ACTIVE_STAGES);
-  const raw = window.localStorage.getItem(FILTER_KEY);
-  if (!raw) return new Set(ACTIVE_STAGES);
-  try {
-    const arr = JSON.parse(raw) as string[];
-    const known = new Set([...ACTIVE_STAGES, 'DROPPED' as Stage]);
-    const filtered = arr.filter((s): s is Stage => known.has(s as Stage));
-    return filtered.length ? new Set(filtered) : new Set(ACTIVE_STAGES);
-  } catch {
-    return new Set(ACTIVE_STAGES);
-  }
-}
-
 export function CslKanbanBoard({
   inquiries,
   dateLocale,
@@ -84,21 +67,7 @@ export function CslKanbanBoard({
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const [droppedOpen, setDroppedOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [enabledStages, setEnabledStages] = useState<Set<Stage>>(loadStageFilter);
   const [selectedInqId, setSelectedInqId] = useState<string | null>(null);
-
-  // Persist filter choice.
-  const persistFilter = (next: Set<Stage>) => {
-    setEnabledStages(next);
-    window.localStorage.setItem(FILTER_KEY, JSON.stringify(Array.from(next)));
-  };
-  const toggleStage = (stage: Stage) => {
-    const next = new Set(enabledStages);
-    if (next.has(stage)) next.delete(stage);
-    else next.add(stage);
-    persistFilter(next);
-  };
 
   const byStage = useMemo(() => {
     const map = new Map<Stage, KanbanInquiry[]>();
@@ -111,131 +80,74 @@ export function CslKanbanBoard({
   }, [inquiries]);
 
   const droppedCount = byStage.get('DROPPED')?.length ?? 0;
-  const visibleActiveStages = ACTIVE_STAGES.filter((s) => enabledStages.has(s));
-  const droppedVisible = enabledStages.has('DROPPED');
-  const activeStageCount = enabledStages.size - (droppedVisible ? 1 : 0);
 
   return (
     <div className="grid gap-4">
-      {/* Filter toolbar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setFilterOpen((v) => !v)}
-          className="inline-flex items-center gap-1.5 h-8 rounded-md border border-[var(--border-subtle)] bg-surface px-3 text-xs text-secondary hover:text-primary"
-        >
-          <Filter size={12} />
-          {t('kanban.filter.label')}
-          <span className="tabular-nums">
-            {activeStageCount}/{ACTIVE_STAGES.length}
-          </span>
-        </button>
-        {filterOpen && (
-          <div className="flex flex-wrap items-center gap-1.5 ml-1">
-            {[...ACTIVE_STAGES, 'DROPPED' as Stage].map((stage) => {
-              const on = enabledStages.has(stage);
-              return (
-                <button
-                  key={stage}
-                  type="button"
-                  onClick={() => toggleStage(stage)}
-                  aria-pressed={on}
-                  className={`text-[11px] rounded px-2 py-1 border transition ${
-                    on
-                      ? 'bg-accent-50 text-accent-700 border-accent-200'
-                      : 'bg-surface text-secondary border-[var(--border-subtle)] opacity-50 hover:opacity-80'
-                  }`}
-                >
-                  {t(`stage.${stage}`)}
-                </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => persistFilter(new Set(ACTIVE_STAGES))}
-              className="text-[11px] text-secondary hover:text-primary underline ml-1"
+      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {ACTIVE_STAGES.map((stage) => {
+          const cards = byStage.get(stage) ?? [];
+          return (
+            <section
+              key={stage}
+              className={`rounded-lg border ${COLUMN_ACCENT[stage]} p-2 flex flex-col min-h-[200px]`}
             >
-              {t('kanban.filter.reset')}
-            </button>
-          </div>
-        )}
+              <header className="flex items-baseline justify-between px-1 py-2 mb-2 border-b border-[var(--border-subtle)]">
+                <span className="text-sm font-semibold text-primary">
+                  {t(`stage.${stage}`)}
+                </span>
+                <span className="text-[11px] text-secondary tabular-nums">
+                  {cards.length}
+                </span>
+              </header>
+              <div className="grid gap-2">
+                {cards.length === 0 && (
+                  <p className="text-[11px] text-secondary text-center py-4">
+                    {t('kanban.emptyColumn')}
+                  </p>
+                )}
+                {cards.map((c) => (
+                  <KanbanCard
+                    key={c.id}
+                    inq={c}
+                    dateLocale={dateLocale}
+                    onOpen={() => setSelectedInqId(c.id)}
+                  />
+                ))}
+              </div>
+            </section>
+          );
+        })}
       </div>
 
-      {/* Active columns (filtered) */}
-      {visibleActiveStages.length === 0 && !droppedVisible ? (
-        <p className="text-sm text-secondary text-center py-8">
-          {t('kanban.filter.noneSelected')}
-        </p>
-      ) : (
-        <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-          {visibleActiveStages.map((stage) => {
-            const cards = byStage.get(stage) ?? [];
-            return (
-              <section
-                key={stage}
-                className={`rounded-lg border ${COLUMN_ACCENT[stage]} p-2 flex flex-col min-h-[200px]`}
-              >
-                <header className="flex items-baseline justify-between px-1 py-2 mb-2 border-b border-[var(--border-subtle)]">
-                  <span className="text-sm font-semibold text-primary">
-                    {t(`stage.${stage}`)}
-                  </span>
-                  <span className="text-[11px] text-secondary tabular-nums">
-                    {cards.length}
-                  </span>
-                </header>
-                <div className="grid gap-2">
-                  {cards.length === 0 && (
-                    <p className="text-[11px] text-secondary text-center py-4">
-                      {t('kanban.emptyColumn')}
-                    </p>
-                  )}
-                  {cards.map((c) => (
-                    <KanbanCard
-                      key={c.id}
-                      inq={c}
-                      dateLocale={dateLocale}
-                      onOpen={() => setSelectedInqId(c.id)}
-                    />
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      )}
-
-      {/* DROPPED — collapsed footer (only when filter enables it) */}
-      {droppedVisible && (
-        <section
-          className={`rounded-lg border ${COLUMN_ACCENT.DROPPED} px-3 py-2`}
+      <section
+        className={`rounded-lg border ${COLUMN_ACCENT.DROPPED} px-3 py-2`}
+      >
+        <button
+          type="button"
+          onClick={() => setDroppedOpen((v) => !v)}
+          className="flex w-full items-center gap-2 text-left"
         >
-          <button
-            type="button"
-            onClick={() => setDroppedOpen((v) => !v)}
-            className="flex w-full items-center gap-2 text-left"
-          >
-            {droppedOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <span className="text-sm font-semibold">
-              {t('stage.DROPPED')}
-            </span>
-            <span className="text-[11px] text-secondary tabular-nums">
-              ({droppedCount})
-            </span>
-          </button>
-          {droppedOpen && droppedCount > 0 && (
-            <div className="grid gap-2 mt-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-              {(byStage.get('DROPPED') ?? []).map((c) => (
-                <KanbanCard
-                  key={c.id}
-                  inq={c}
-                  dateLocale={dateLocale}
-                  onOpen={() => setSelectedInqId(c.id)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+          {droppedOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          <span className="text-sm font-semibold">
+            {t('stage.DROPPED')}
+          </span>
+          <span className="text-[11px] text-secondary tabular-nums">
+            ({droppedCount})
+          </span>
+        </button>
+        {droppedOpen && droppedCount > 0 && (
+          <div className="grid gap-2 mt-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            {(byStage.get('DROPPED') ?? []).map((c) => (
+              <KanbanCard
+                key={c.id}
+                inq={c}
+                dateLocale={dateLocale}
+                onOpen={() => setSelectedInqId(c.id)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Modal — card click renders CslDetailBody inside a wide Dialog. */}
       <Dialog

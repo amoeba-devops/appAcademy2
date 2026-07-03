@@ -20,9 +20,11 @@
     "seqNo": "No.",
     "student": "Student",
     "schoolGrade": "School / Grade",
+    "grade": "Grade",
     "stage": "Stage",
     "inflow": "Inflow",
     "applyType": "Apply",
+    "applyPurpose": "Apply purpose",
     "registered": "Registered",
     "followup": "Follow-up",
     "empty": "No inquiries yet."
@@ -63,7 +65,7 @@
     "TRIAL_CLASS": "3. Demo Class",
     "ENROLLMENT_COUNSELING": "4. Enrollment",
     "PAYMENT": "5. Payment",
-    "CLASS_STARTED": "6. Class Started",
+    "CLASS_STARTED": "6. Class Status",
     "DROPPED": "Completed"
   },
   "inflow": {
@@ -271,7 +273,7 @@
       "feedback": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
     },
     "enrollment": {
-      "title": "Enrollment / Payment",
+      "title": "Enrollment Counseling",
       "counselDone": "Counseling done",
       "paymentNoticeStatus": "Tuition notice status",
       "applied": "Applied",
@@ -307,6 +309,16 @@
       "classStartedAt": "Class start date",
       "classStarted": "Class started",
       "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
+    },
+    "classStatus": {
+      "title": "6. Class Status",
+      "subtitle": "Review intake details and current class information at a glance.",
+      "sections": {
+        "intake": "1. Intake Details",
+        "classInfo": "2. Class Information",
+        "levelTest": "Level test summary",
+        "trial": "Demo class history"
+      }
     },
     "cancel": {
       "title": "Complete inquiry",

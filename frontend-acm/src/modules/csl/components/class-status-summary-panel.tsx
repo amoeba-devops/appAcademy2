@@ -44,20 +44,12 @@ interface Enrollment {
   startDate?: string | null;
   endDate?: string | null;
   classMinutes?: number | null;
-  paymentNoticeSent?: 'YES' | 'NO' | null;
-  classStarted?: 'YES' | 'NO' | null;
-  tuitionPaid?: boolean | null;
-  paymentDate?: string | null;
-  paymentMethod?: 'BANK_TRANSFER' | 'CARD' | 'OTHER' | null;
-  paymentAmount?: string | null;
-  paymentMemo?: string | null;
 }
 
 interface Course {
   id: string;
   code: string;
   name: string;
-  isActive: boolean;
 }
 
 interface Teacher {
@@ -65,9 +57,15 @@ interface Teacher {
   name: string;
 }
 
-type SectionKey = 'intake' | 'levelTest' | 'trial' | 'course' | 'payment';
+interface TeacherAssignment {
+  id: string;
+  teacherId: string;
+  role: 'PRIMARY' | 'SECONDARY';
+}
 
-const DEFAULT_OPEN: SectionKey[] = ['intake'];
+type SectionKey = 'intake' | 'classInfo';
+
+const DEFAULT_OPEN: SectionKey[] = ['intake', 'classInfo'];
 
 export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
   const { t } = useTranslation(['csl', 'common']);
@@ -121,6 +119,16 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
     },
   });
 
+  const { data: assignments = [] } = useQuery({
+    queryKey: ['csl', 'teacher-assignments', inqId],
+    queryFn: async () => {
+      const res = await apiClient.get<TeacherAssignment[]>(
+        `/acm/csl/inquiries/${inqId}/teacher-assignments`,
+      );
+      return res.data;
+    },
+  });
+
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
     queryFn: async () => {
@@ -137,8 +145,19 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
     staleTime: 60_000,
   });
 
-  const teacherName = new Map(teachers.map((tt) => [tt.id, tt.name]));
-  const courseName = new Map(courses.map((course) => [course.id, `${course.code} — ${course.name}`]));
+  const teacherName = new Map(teachers.map((teacher) => [teacher.id, teacher.name]));
+  const courseName = new Map(
+    courses.map((course) => [course.id, `${course.code} — ${course.name}`]),
+  );
+  const assignedTeachers = assignments
+    .map((assignment) => {
+      const role = t(`detail.enrollment.assignRole.${assignment.role}`, {
+        defaultValue: assignment.role === 'PRIMARY' ? '주' : '부',
+      });
+      const name = teacherName.get(assignment.teacherId) ?? assignment.teacherId;
+      return `${role} ${name}`;
+    })
+    .join(', ');
 
   function toggle(section: SectionKey): void {
     setOpenSections((current) => {
@@ -157,7 +176,7 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
         </h2>
         <p className="mt-1 text-[11px] text-secondary">
           {t('detail.classStatus.subtitle', {
-            defaultValue: '접수부터 결제까지 주요 상담 이력을 단계별로 확인합니다.',
+            defaultValue: '접수 내용과 현재 운영 중인 수업 정보를 한 번에 확인합니다.',
           })}
         </p>
       </div>
@@ -170,7 +189,7 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
         {!inq ? (
           <p className="text-sm text-secondary">—</p>
         ) : (
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <div className="grid gap-2 text-sm md:grid-cols-2 md:gap-x-6">
             <Info label={t('detail.intake.field.student')} value={inq.studentName} />
             <Info
               label={t('detail.intake.field.grade')}
@@ -195,179 +214,128 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
                   : '—'
               }
             />
-            <Info label={t('detail.intake.field.registeredAt')} value={inq.registeredAt ?? '—'} />
+            <Info
+              label={t('detail.intake.field.registeredAt')}
+              value={inq.registeredAt ?? '—'}
+            />
             <Info
               label={t('form.followupMemo')}
-              value={inq.followupMemo || inq.followupAt || '—'}
+              value={formatFollowup(inq.followupAt, inq.followupMemo)}
             />
           </div>
         )}
       </AccordionSection>
 
       <AccordionSection
-        open={openSections.has('levelTest')}
-        onToggle={() => toggle('levelTest')}
-        title={t('detail.classStatus.sections.levelTest', {
-          defaultValue: '2. 레벨테스트 점수',
+        open={openSections.has('classInfo')}
+        onToggle={() => toggle('classInfo')}
+        title={t('detail.classStatus.sections.classInfo', {
+          defaultValue: '2. 수업 정보',
         })}
       >
-        {levelTests.length === 0 ? (
-          <p className="text-sm text-secondary">—</p>
-        ) : (
-          <div className="grid gap-2">
-            {levelTests.map((row) => (
-              <div
-                key={`${row.testType}-${row.testTypeOther ?? ''}`}
-                className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3"
-              >
-                <div className="text-sm font-semibold">
-                  {row.testType === 'OTHER' && row.testTypeOther
-                    ? row.testTypeOther
-                    : row.testType === 'TOEFL_JR'
-                      ? 'TOEFL Jr'
-                      : row.testType}
-                </div>
-                <div className="mt-1 text-xs text-secondary">
-                  {row.scheduledAt ?? '—'}
-                  {row.scheduledTime ? ` ${row.scheduledTime.slice(0, 5)}` : ''}
-                </div>
-                <div className="mt-2 text-sm">
-                  {row.testType === 'MAP' ? (
-                    <span>
-                      Reading {row.scoreReading ?? '—'} / Math {row.scoreMath ?? '—'} /
-                      Language {row.scoreLanguage ?? '—'}
-                    </span>
-                  ) : row.scoreDetail && Object.keys(row.scoreDetail).length > 0 ? (
-                    <ScoreDetailText value={row.scoreDetail} />
-                  ) : (
-                    '—'
-                  )}
-                </div>
-              </div>
-            ))}
+        <div className="grid gap-4">
+          <div className="grid gap-2 text-sm md:grid-cols-2 md:gap-x-6">
+            <Info
+              label={t('detail.enrollment.course')}
+              value={
+                (enrollment?.courseId && courseName.get(enrollment.courseId)) ||
+                enrollment?.courseFreetext ||
+                '—'
+              }
+            />
+            <Info
+              label={t('detail.enrollment.teacherAssignments')}
+              value={assignedTeachers || '—'}
+            />
+            <Info
+              label={t('detail.enrollment.sessionCount')}
+              value={enrollment?.sessionCount?.toString() ?? '—'}
+            />
+            <Info
+              label={t('detail.enrollment.classMinutes')}
+              value={enrollment?.classMinutes ? `${enrollment.classMinutes}분` : '—'}
+            />
+            <Info
+              label={t('detail.enrollment.startDate')}
+              value={enrollment?.startDate ?? '—'}
+            />
+            <Info
+              label={t('detail.enrollment.endDate')}
+              value={enrollment?.endDate ?? '—'}
+            />
           </div>
-        )}
-      </AccordionSection>
 
-      <AccordionSection
-        open={openSections.has('trial')}
-        onToggle={() => toggle('trial')}
-        title={t('detail.classStatus.sections.trial', {
-          defaultValue: '3. 데모수업 정보',
-        })}
-      >
-        {trialClasses.length === 0 ? (
-          <p className="text-sm text-secondary">—</p>
-        ) : (
-          <div className="grid gap-2">
-            {trialClasses.map((row) => (
-              <div
-                key={row.id}
-                className="grid grid-cols-[1fr_1fr_120px] gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3 text-sm"
-              >
-                <Info label={t('detail.trial.heldAt')} value={row.heldAt} compact />
-                <Info
-                  label={t('detail.trial.teacher')}
-                  value={
-                    row.teacherId ? teacherName.get(row.teacherId) ?? row.teacherId : '—'
-                  }
-                  compact
-                />
-                <Info
-                  label={t('detail.trial.completed')}
-                  value={row.completed ? t('yesNo.YES') : t('yesNo.NO')}
-                  compact
-                />
+          <SummaryBlock
+            title={t('detail.classStatus.sections.levelTest', {
+              defaultValue: '레벨테스트 요약',
+            })}
+          >
+            {levelTests.length === 0 ? (
+              <p className="text-sm text-secondary">—</p>
+            ) : (
+              <div className="grid gap-2">
+                {levelTests.map((row) => (
+                  <div
+                    key={`${row.testType}-${row.testTypeOther ?? ''}`}
+                    className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3"
+                  >
+                    <div className="text-sm font-semibold">
+                      {displayTestType(row)}
+                    </div>
+                    <div className="mt-1 text-xs text-secondary">
+                      {row.scheduledAt ?? '—'}
+                      {row.scheduledTime ? ` ${row.scheduledTime.slice(0, 5)}` : ''}
+                    </div>
+                    <div className="mt-2 text-sm">
+                      {row.testType === 'MAP' ? (
+                        <span>
+                          Reading {row.scoreReading ?? '—'} / Math {row.scoreMath ?? '—'} /
+                          Language {row.scoreLanguage ?? '—'}
+                        </span>
+                      ) : row.scoreDetail && Object.keys(row.scoreDetail).length > 0 ? (
+                        <ScoreDetailText value={row.scoreDetail} />
+                      ) : (
+                        '—'
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </AccordionSection>
+            )}
+          </SummaryBlock>
 
-      <AccordionSection
-        open={openSections.has('course')}
-        onToggle={() => toggle('course')}
-        title={t('detail.classStatus.sections.course', {
-          defaultValue: '4. 수강강좌 정보',
-        })}
-      >
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <Info
-            label={t('detail.enrollment.course')}
-            value={
-              (enrollment?.courseId && courseName.get(enrollment.courseId)) ||
-              enrollment?.courseFreetext ||
-              '—'
-            }
-          />
-          <Info
-            label={t('detail.enrollment.sessionCount')}
-            value={enrollment?.sessionCount?.toString() ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.startDate')}
-            value={enrollment?.startDate ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.endDate')}
-            value={enrollment?.endDate ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.classMinutes')}
-            value={enrollment?.classMinutes ? `${enrollment.classMinutes}분` : '—'}
-          />
-          <Info
-            label={t('detail.enrollment.paymentNoticeSent')}
-            value={
-              enrollment?.paymentNoticeSent ? t(`yesNo.${enrollment.paymentNoticeSent}`) : '—'
-            }
-          />
-        </div>
-      </AccordionSection>
-
-      <AccordionSection
-        open={openSections.has('payment')}
-        onToggle={() => toggle('payment')}
-        title={t('detail.classStatus.sections.payment', {
-          defaultValue: '5. 결제 정보',
-        })}
-      >
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <Info
-            label={t('detail.enrollment.paymentDate', { defaultValue: '결제일' })}
-            value={enrollment?.paymentDate ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.paymentMethodInput', { defaultValue: '결제 방법' })}
-            value={
-              enrollment?.paymentMethod
-                ? t(`detail.enrollment.method.${enrollment.paymentMethod}`, {
-                    defaultValue:
-                      enrollment.paymentMethod === 'BANK_TRANSFER'
-                        ? '계좌이체'
-                        : enrollment.paymentMethod === 'CARD'
-                          ? '카드'
-                          : '기타',
-                  })
-                : '—'
-            }
-          />
-          <Info
-            label={t('detail.enrollment.paymentAmount', { defaultValue: '결제금액' })}
-            value={enrollment?.paymentAmount ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.paymentMemoInput', { defaultValue: '비고' })}
-            value={enrollment?.paymentMemo ?? '—'}
-          />
-          <Info
-            label={t('detail.enrollment.tuitionPaid')}
-            value={enrollment?.tuitionPaid ? t('yesNo.YES') : t('yesNo.NO')}
-          />
-          <Info
-            label={t('detail.enrollment.classStarted')}
-            value={enrollment?.classStarted ? t(`yesNo.${enrollment.classStarted}`) : '—'}
-          />
+          <SummaryBlock
+            title={t('detail.classStatus.sections.trial', {
+              defaultValue: '데모수업 이력',
+            })}
+          >
+            {trialClasses.length === 0 ? (
+              <p className="text-sm text-secondary">—</p>
+            ) : (
+              <div className="grid gap-2">
+                {trialClasses.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3 text-sm md:grid-cols-3"
+                  >
+                    <Info label={t('detail.trial.heldAt')} value={row.heldAt} compact />
+                    <Info
+                      label={t('detail.trial.teacher')}
+                      value={
+                        row.teacherId ? teacherName.get(row.teacherId) ?? row.teacherId : '—'
+                      }
+                      compact
+                    />
+                    <Info
+                      label={t('detail.trial.completed')}
+                      value={row.completed ? t('yesNo.YES') : t('yesNo.NO')}
+                      compact
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </SummaryBlock>
         </div>
       </AccordionSection>
     </section>
@@ -400,19 +368,34 @@ function AccordionSection({
   );
 }
 
+function SummaryBlock({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="grid gap-2">
+      <div className="text-xs font-semibold text-secondary">{title}</div>
+      {children}
+    </div>
+  );
+}
+
 function Info({
   label,
   value,
   compact = false,
 }: {
   label: string;
-  value: string;
+  value: React.ReactNode;
   compact?: boolean;
 }) {
   return (
     <div className={compact ? 'grid gap-1' : 'grid grid-cols-[120px_1fr] gap-1'}>
       <span className="text-xs text-secondary">{label}</span>
-      <span className="text-sm">{value}</span>
+      <span className="text-sm whitespace-pre-wrap break-words">{value}</span>
     </div>
   );
 }
@@ -441,4 +424,15 @@ function formatEntry(value: unknown): string {
       .join(', ');
   }
   return String(value);
+}
+
+function formatFollowup(followupAt?: string | null, followupMemo?: string | null): string {
+  const parts = [followupAt, followupMemo].filter(Boolean);
+  return parts.length ? parts.join('\n') : '—';
+}
+
+function displayTestType(row: { testType: string; testTypeOther: string | null }): string {
+  if (row.testType === 'OTHER' && row.testTypeOther) return row.testTypeOther;
+  if (row.testType === 'TOEFL_JR') return 'TOEFL Jr';
+  return row.testType;
 }

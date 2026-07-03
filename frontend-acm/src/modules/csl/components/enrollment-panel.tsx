@@ -83,10 +83,8 @@ export function EnrollmentPanel({
   onAfterAdvance,
 }: {
   inqId: string;
-  /** Drives the "save & advance" button visibility. PAYMENT/CLASS_STARTED reuse
-   *  the same panel for read-only display, but the advance shortcut only fires
-   *  from ENROLLMENT_COUNSELING where the counsel_done = YES gate lives. */
-  currentStage?: 'ENROLLMENT_COUNSELING' | 'PAYMENT' | 'CLASS_STARTED';
+  /** Drives which sections are visible. */
+  currentStage: 'ENROLLMENT_COUNSELING' | 'PAYMENT';
   /** Parent-supplied transition trigger — called with the next stage after the
    *  enrollment row has been persisted with counselDone = 'YES'. */
   onAfterAdvance?: (nextStage: 'PAYMENT') => void;
@@ -254,200 +252,215 @@ export function EnrollmentPanel({
     },
   });
 
+  const isCounselStage = currentStage === 'ENROLLMENT_COUNSELING';
+  const isPaymentStage = currentStage === 'PAYMENT';
+
   return (
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5">
-      <h2 className="text-base font-semibold mb-4">{t('detail.enrollment.title')}</h2>
+      <h2 className="text-base font-semibold mb-4">{t(`stage.${currentStage}`)}</h2>
 
       <form
         onSubmit={handleSubmit((v) => mutation.mutate(v))}
         className="grid gap-3"
       >
-        {/* REQ-260626 FR-CSL-131~135 — enrollment counseling fields */}
-        <Field label={t('detail.enrollment.counselMemo')}>
-          <textarea
-            {...register('counselMemo')}
-            rows={3}
-            className="min-h-[72px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 text-sm"
-            placeholder={t('detail.enrollment.counselMemoPlaceholder')}
-          />
-        </Field>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t('detail.enrollment.course')}>
-            <Select {...register('courseId')}>
-              <option value="">{t('common:dash')}</option>
-              {courses.filter((c) => c.isActive).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.code} — {c.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label={t('detail.enrollment.courseFreetext')}>
-            <Input
-              {...register('courseFreetext')}
-              placeholder={t('detail.enrollment.courseFreetextPlaceholder')}
-            />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr_1fr] gap-3">
-          <Field label={t('detail.enrollment.sessionCount')}>
-            <Input type="number" min={0} {...register('sessionCount')} />
-          </Field>
-          <Field label={t('detail.enrollment.startDate')}>
-            <Input type="date" {...register('startDate')} />
-          </Field>
-          <Field label={t('detail.enrollment.endDate')}>
-            <Input type="date" {...register('endDate')} />
-          </Field>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t('detail.enrollment.counselDone')}>
-            <Select {...register('counselDone')}>
-              <option value="">{t('common:dash')}</option>
-              {YES_NO.map((s) => (
-                <option key={s} value={s}>
-                  {t(`yesNo.${s}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <label className="flex items-center gap-2 text-sm pt-5">
-            <input type="checkbox" {...register('applied')} />
-            {t('detail.enrollment.applied')}
-          </label>
-        </div>
-
-        <div className="grid grid-cols-[1fr_1fr] gap-3">
-          <Field label={t('detail.enrollment.paymentNoticeSent')}>
-            <Select {...register('paymentNoticeSent')}>
-              <option value="">{t('common:dash')}</option>
-              {YES_NO.map((s) => (
-                <option key={s} value={s}>
-                  {t(`yesNo.${s}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <div />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t('detail.enrollment.classMinutes')}>
-            {/*
-              REQ-260626 FR-CSL-133 — 60/90/120 프리셋 + 분단위 자유입력.
-              프리셋 버튼은 form value 를 직접 갱신, 자유입력은 number input.
-              한 줄에 같이 두어 운영자가 빠르게 전환할 수 있도록 함.
-            */}
-            <ClassMinutesField
-              register={register('classMinutes')}
-              currentValue={watch('classMinutes')}
-              setValue={(next) =>
-                setValue('classMinutes', next, { shouldDirty: true })
-              }
-              presetLabel={t('detail.enrollment.classMinutesPresets', '프리셋')}
-              freeInputPlaceholder={t(
-                'detail.enrollment.classMinutesFreeInput',
-                '분단위 자유입력',
-              )}
-              suffix={t('detail.enrollment.classMinutesUnit', '분')}
-            />
-          </Field>
-          <Field label={t('detail.enrollment.tuitionAmount')}>
-            <Input
-              type="number"
-              min={0}
-              max={50000000}
-              {...register('tuitionAmount')}
-            />
-          </Field>
-        </div>
-
-        <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-4 grid gap-3">
-          <div className="text-sm font-semibold">
-            {t('detail.enrollment.paymentSection', {
-              defaultValue: '결제 정보',
-            })}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              label={t('detail.enrollment.paymentDate', {
-                defaultValue: '결제일',
-              })}
-            >
-              <Input type="date" {...register('paymentDate')} />
+        {isCounselStage && (
+          <>
+            <Field label={t('detail.enrollment.counselMemo')}>
+              <textarea
+                {...register('counselMemo')}
+                rows={3}
+                className="min-h-[72px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 text-sm"
+                placeholder={t('detail.enrollment.counselMemoPlaceholder')}
+              />
             </Field>
-            <Field
-              label={t('detail.enrollment.paymentMethodInput', {
-                defaultValue: '결제 방법',
-              })}
-            >
-              <Select {...register('paymentMethod')}>
-                <option value="">{t('common:dash')}</option>
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {t(`detail.enrollment.method.${method}`, {
-                      defaultValue:
-                        method === 'BANK_TRANSFER'
-                          ? '계좌이체'
-                          : method === 'CARD'
-                            ? '카드'
-                            : '기타',
-                    })}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field
-              label={t('detail.enrollment.paymentAmount', {
-                defaultValue: '결제금액',
-              })}
-            >
-              <Input type="number" min={0} max={50000000} {...register('paymentAmount')} />
-            </Field>
-            <Field
-              label={t('detail.enrollment.paymentMemoInput', {
-                defaultValue: '비고',
-              })}
-            >
-              <Input {...register('paymentMemo')} />
-            </Field>
-          </div>
-        </div>
 
-        <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
-          <Field label={t('detail.enrollment.classStarted')}>
-            <Select {...register('classStarted')}>
-              <option value="">{t('common:dash')}</option>
-              {YES_NO.map((s) => (
-                <option key={s} value={s}>
-                  {t(`yesNo.${s}`)}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <label className="flex items-center gap-2 text-sm h-9 px-2 rounded-md border border-amber-300 bg-amber-50 text-amber-800">
-            <input type="checkbox" {...register('tuitionPaid')} />
-            {t('detail.enrollment.tuitionPaid')}
-          </label>
-        </div>
-        <p className="text-[11px] text-secondary -mt-1">
-          {t('detail.enrollment.tuitionPaidHint')}
-        </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t('detail.enrollment.course')}>
+                <Select {...register('courseId')}>
+                  <option value="">{t('common:dash')}</option>
+                  {courses.filter((c) => c.isActive).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label={t('detail.enrollment.courseFreetext')}>
+                <Input
+                  {...register('courseFreetext')}
+                  placeholder={t('detail.enrollment.courseFreetextPlaceholder')}
+                />
+              </Field>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <Field label={t('detail.enrollment.sessionCount')}>
+                <Input type="number" min={0} {...register('sessionCount')} />
+              </Field>
+              <Field label={t('detail.enrollment.startDate')}>
+                <Input type="date" {...register('startDate')} />
+              </Field>
+              <Field label={t('detail.enrollment.endDate')}>
+                <Input type="date" {...register('endDate')} />
+              </Field>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t('detail.enrollment.counselDone')}>
+                <Select {...register('counselDone')}>
+                  <option value="">{t('common:dash')}</option>
+                  {YES_NO.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`yesNo.${s}`)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <label className="flex items-center gap-2 text-sm pt-5">
+                <input type="checkbox" {...register('applied')} />
+                {t('detail.enrollment.applied')}
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t('detail.enrollment.paymentNoticeSent')}>
+                <Select {...register('paymentNoticeSent')}>
+                  <option value="">{t('common:dash')}</option>
+                  {YES_NO.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`yesNo.${s}`)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <div />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <Field label={t('detail.enrollment.classMinutes')}>
+                {/*
+                  REQ-260626 FR-CSL-133 — 60/90/120 프리셋 + 분단위 자유입력.
+                  프리셋 버튼은 form value 를 직접 갱신, 자유입력은 number input.
+                  한 줄에 같이 두어 운영자가 빠르게 전환할 수 있도록 함.
+                */}
+                <ClassMinutesField
+                  register={register('classMinutes')}
+                  currentValue={watch('classMinutes')}
+                  setValue={(next) =>
+                    setValue('classMinutes', next, { shouldDirty: true })
+                  }
+                  presetLabel={t('detail.enrollment.classMinutesPresets', '프리셋')}
+                  freeInputPlaceholder={t(
+                    'detail.enrollment.classMinutesFreeInput',
+                    '분단위 자유입력',
+                  )}
+                  suffix={t('detail.enrollment.classMinutesUnit', '분')}
+                />
+              </Field>
+              <Field label={t('detail.enrollment.tuitionAmount')}>
+                <Input
+                  type="number"
+                  min={0}
+                  max={50000000}
+                  {...register('tuitionAmount')}
+                />
+              </Field>
+            </div>
+          </>
+        )}
+
+        {isPaymentStage && (
+          <>
+            <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-4 grid gap-3">
+              <div className="text-sm font-semibold">
+                {t('detail.enrollment.paymentSection', {
+                  defaultValue: '결제 정보',
+                })}
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field
+                  label={t('detail.enrollment.paymentDate', {
+                    defaultValue: '결제일',
+                  })}
+                >
+                  <Input type="date" {...register('paymentDate')} />
+                </Field>
+                <Field
+                  label={t('detail.enrollment.paymentMethodInput', {
+                    defaultValue: '결제 방법',
+                  })}
+                >
+                  <Select {...register('paymentMethod')}>
+                    <option value="">{t('common:dash')}</option>
+                    {PAYMENT_METHODS.map((method) => (
+                      <option key={method} value={method}>
+                        {t(`detail.enrollment.method.${method}`, {
+                          defaultValue:
+                            method === 'BANK_TRANSFER'
+                              ? '계좌이체'
+                              : method === 'CARD'
+                                ? '카드'
+                                : '기타',
+                        })}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <Field
+                  label={t('detail.enrollment.paymentAmount', {
+                    defaultValue: '결제금액',
+                  })}
+                >
+                  <Input
+                    type="number"
+                    min={0}
+                    max={50000000}
+                    {...register('paymentAmount')}
+                  />
+                </Field>
+                <Field
+                  label={t('detail.enrollment.paymentMemoInput', {
+                    defaultValue: '비고',
+                  })}
+                >
+                  <Input {...register('paymentMemo')} />
+                </Field>
+              </div>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+              <Field label={t('detail.enrollment.classStarted')}>
+                <Select {...register('classStarted')}>
+                  <option value="">{t('common:dash')}</option>
+                  {YES_NO.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`yesNo.${s}`)}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <label className="flex items-center gap-2 text-sm h-9 px-3 rounded-md border border-amber-300 bg-amber-50 text-amber-800">
+                <input type="checkbox" {...register('tuitionPaid')} />
+                {t('detail.enrollment.tuitionPaid')}
+              </label>
+            </div>
+            <p className="text-[11px] text-secondary -mt-1">
+              {t('detail.enrollment.tuitionPaidHint')}
+            </p>
+          </>
+        )}
 
         <div className="flex justify-end gap-2">
           <Button
             type="submit"
-            variant={currentStage === 'ENROLLMENT_COUNSELING' ? 'outline' : 'default'}
+            variant={isCounselStage ? 'outline' : 'default'}
             disabled={mutation.isPending || saveAndAdvance.isPending}
           >
             {mutation.isPending ? t('common:actions.saving') : t('common:actions.save')}
           </Button>
-          {currentStage === 'ENROLLMENT_COUNSELING' && onAfterAdvance && (
+          {isCounselStage && onAfterAdvance && (
             <Button
               type="button"
               onClick={handleSubmit((v) => saveAndAdvance.mutate(v))}
@@ -471,12 +484,14 @@ export function EnrollmentPanel({
         )}
       </form>
 
-      <TeacherAssignmentsBlock
-        inqId={inqId}
-        assignments={assignments}
-        teachers={teacherDirectory}
-        onChange={() => refetchAssignments()}
-      />
+      {isCounselStage && (
+        <TeacherAssignmentsBlock
+          inqId={inqId}
+          assignments={assignments}
+          teachers={teacherDirectory}
+          onChange={() => refetchAssignments()}
+        />
+      )}
     </section>
   );
 }

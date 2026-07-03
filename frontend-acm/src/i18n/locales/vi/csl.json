@@ -20,9 +20,11 @@
     "seqNo": "STT",
     "student": "Học sinh",
     "schoolGrade": "Trường / Lớp",
+    "grade": "Lớp",
     "stage": "Giai đoạn",
     "inflow": "Nguồn",
     "applyType": "Đăng ký",
+    "applyPurpose": "Mục đích",
     "registered": "Ngày đăng ký",
     "followup": "Theo dõi",
     "empty": "Chưa có tư vấn nào."
@@ -61,7 +63,7 @@
     "TRIAL_CLASS": "3. Lớp học thử",
     "ENROLLMENT_COUNSELING": "4. Tư vấn ghi danh",
     "PAYMENT": "5. Thanh toán",
-    "CLASS_STARTED": "6. Bắt đầu học",
+    "CLASS_STARTED": "6. Tình trạng lớp học",
     "DROPPED": "Hoàn tất"
   },
   "inflow": {
@@ -269,7 +271,7 @@
       "feedback": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
     },
     "enrollment": {
-      "title": "Ghi danh / Thanh toán",
+      "title": "Tư vấn ghi danh",
       "counselDone": "Đã tư vấn ghi danh",
       "paymentNoticeStatus": "Trạng thái thông báo học phí",
       "applied": "Đã đăng ký",
@@ -305,6 +307,16 @@
       "classStartedAt": "Ngày bắt đầu học",
       "classStarted": "Đã bắt đầu học",
       "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
+    },
+    "classStatus": {
+      "title": "6. Tình trạng lớp học",
+      "subtitle": "Xem nhanh nội dung tiếp nhận và thông tin lớp học hiện tại.",
+      "sections": {
+        "intake": "1. Nội dung tiếp nhận",
+        "classInfo": "2. Thông tin lớp học",
+        "levelTest": "Tóm tắt bài kiểm tra trình độ",
+        "trial": "Lịch sử lớp học thử"
+      }
     },
     "cancel": {
       "title": "Hoàn tất tư vấn",

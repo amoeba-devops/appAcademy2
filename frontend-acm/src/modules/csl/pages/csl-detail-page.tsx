@@ -235,22 +235,19 @@ export function CslDetailBody({
             <TrialClassPanel inqId={inq.id} />
           )}
           {(effectiveSelected === 'ENROLLMENT_COUNSELING' ||
-            effectiveSelected === 'PAYMENT' ||
-            effectiveSelected === 'CLASS_STARTED') && (
-            <>
-              <EnrollmentPanel
-                inqId={inq.id}
-                currentStage={effectiveSelected}
-                onAfterAdvance={
-                  inq.currentStage === effectiveSelected
-                    ? (next) => forward.mutate(next)
-                    : undefined
-                }
-              />
-              {effectiveSelected === 'CLASS_STARTED' && (
-                <ClassStatusSummaryPanel inqId={inq.id} />
-              )}
-            </>
+            effectiveSelected === 'PAYMENT') && (
+            <EnrollmentPanel
+              inqId={inq.id}
+              currentStage={effectiveSelected}
+              onAfterAdvance={
+                inq.currentStage === effectiveSelected
+                  ? (next) => forward.mutate(next)
+                  : undefined
+              }
+            />
+          )}
+          {effectiveSelected === 'CLASS_STARTED' && (
+            <ClassStatusSummaryPanel inqId={inq.id} />
           )}
         </div>
         <RemarksPanel inqId={inq.id} />
