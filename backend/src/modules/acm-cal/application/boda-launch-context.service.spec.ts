@@ -128,7 +128,8 @@ describe('BodaLaunchContextService', () => {
       expect(ctx.meetKey).toBe('tac-11111111222233334444555555555555');
       expect(ctx.roomCode).toBe('699');
       expect(ctx.lang).toBe('ko');
-      expect(ctx.appApiUrl).toBe('https://bodaedu.kr/BodaAppApi.js');
+      // FIX-260703: 자체 호스팅 SDK (vendor 호스트는 text/html 반환).
+      expect(ctx.appApiUrl).toBe('/web/BODA_APP/build/BodaAppApi.js');
       // SPEC_823 v823.002 — bodaOpen()/bodaJoin() 1st positional arg + joinUser company ids.
       expect(ctx.bodaWeb).toBe('https://bodaedu.kr');
       expect(ctx.companyId).toBe('tpi');

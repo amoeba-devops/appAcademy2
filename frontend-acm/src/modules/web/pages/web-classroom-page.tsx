@@ -20,7 +20,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import { ClassroomHeader } from '../components/classroom-header';
 import { ClassroomEmbed } from '../components/classroom-embed';
 
-const LIVE_STATUSES: BodaRoomStatus[] = ['OPEN', 'STARTED', 'PAUSED'];
 const TERMINAL_STATUSES: BodaRoomStatus[] = ['ENDED', 'CLOSED'];
 
 /**
@@ -102,11 +101,14 @@ export function WebClassroomPage() {
         )}
       </section>
 
-      {/* Teacher autoStart path — invisible side-effect component */}
+      {/* Teacher autoStart path — invisible side-effect component.
+          FIX-260703: 교사가 룸을 여는(bodaOpen) 동작이므로 PENDING 에서도 발화해야
+          한다. 종료(ENDED/CLOSED) 상태만 제외 — 기존엔 LIVE(OPEN/STARTED/PAUSED)만
+          허용해 신규 즉시강의(PENDING)의 자동 개설이 되지 않았다. */}
       {!demo && isTeacher && autoStart && (
         <AutoStartFx
           ctx={ctx}
-          live={status ? LIVE_STATUSES.includes(status) : true}
+          live={status ? !TERMINAL_STATUSES.includes(status) : true}
         />
       )}
     </main>
