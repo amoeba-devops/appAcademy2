@@ -80,7 +80,10 @@ describe('BodaReconcileService', () => {
         },
         {
           provide: BodaConfigService,
-          useValue: { findByEntId: cfgFindByEntId } as Partial<BodaConfigService>,
+          useValue: {
+            findByEntId: cfgFindByEntId,
+            getServerApiAuth: jest.fn().mockResolvedValue(null),
+          } as Partial<BodaConfigService>,
         },
         {
           provide: BODAEDU_SERVER_CLIENT,

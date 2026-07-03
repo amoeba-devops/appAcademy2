@@ -21,6 +21,7 @@ describe('BodaRoomService', () => {
   let del: jest.Mock;
   let closeMeet: jest.Mock;
   let cfgFindByEntId: jest.Mock;
+  let getServerApiAuth: jest.Mock;
 
   beforeEach(async () => {
     findOne = jest.fn();
@@ -32,6 +33,7 @@ describe('BodaRoomService', () => {
       isActive: true,
       defaultRoomCode: 'r-tpi-699',
     });
+    getServerApiAuth = jest.fn().mockResolvedValue(null);
 
     const mod = await Test.createTestingModule({
       providers: [
@@ -42,7 +44,10 @@ describe('BodaRoomService', () => {
         },
         {
           provide: BodaConfigService,
-          useValue: { findByEntId: cfgFindByEntId } as Partial<BodaConfigService>,
+          useValue: {
+            findByEntId: cfgFindByEntId,
+            getServerApiAuth,
+          } as Partial<BodaConfigService>,
         },
         {
           provide: BODAEDU_SERVER_CLIENT,
@@ -224,7 +229,9 @@ describe('BodaRoomService', () => {
       await svc.closeAndDelete('evt-1', 'e1');
       expect(closeMeet).toHaveBeenCalledWith(
         expect.objectContaining({ meetKey: 'tac-aaa', reason: 'event_deleted' }),
+        undefined,
       );
+      expect(getServerApiAuth).toHaveBeenCalledWith('e1');
       expect(del).toHaveBeenCalledWith({ id: 'r1' });
     });
 

@@ -18,6 +18,7 @@ import {
   BodaConfigResponseDto,
   UpdateBodaConfigDto,
 } from './dto/boda-config.dto';
+import type { BodaServerAuth } from '../../../infrastructure/external/bodaedu/interfaces/bodaedu-server-api.interface';
 
 /**
  * REQ-260526 v2 FR-BODA-CFG — 테넌트 BODA 연동 설정 CRUD.
@@ -162,6 +163,21 @@ export class BodaConfigService {
     const row = await this.repo.findOne({ where: { entId } });
     if (!row?.eventSecretEnc) return null;
     return decryptBodaCredential(row.eventSecretEnc, this.cryptoKey);
+  }
+
+  /**
+   * SERVER API 호출용 테넌트 인증 조립 (env 미사용 요구 — 설정 → BODA 연동
+   * 화면 입력값 사용). `svrUrl` + `Base64(companyCode:authKey)` 를 반환한다.
+   * 필수 값(svrUrl/companyCode/authKey) 중 하나라도 없거나 crypto key 미설정
+   * 이면 null → 호출자가 env fallback / BodaeduUnavailable 로 처리.
+   */
+  async getServerApiAuth(entId: string): Promise<BodaServerAuth | null> {
+    if (!this.cryptoKey) return null;
+    const row = await this.repo.findOne({ where: { entId } });
+    if (!row?.svrUrl || !row.companyCode || !row.authKeyEnc?.length) return null;
+    const authKey = decryptBodaCredential(row.authKeyEnc, this.cryptoKey);
+    const basicAuth = Buffer.from(`${row.companyCode}:${authKey}`).toString('base64');
+    return { baseUrl: row.svrUrl, basicAuth };
   }
 
   // -------------------------------------------------------------------------

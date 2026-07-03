@@ -122,7 +122,8 @@ export class BodaReconcileService {
   async reconcileRoom(
     room: BodaRoomTypeormEntity,
   ): Promise<{ inserted: number; updated: number }> {
-    const entries = await this.server.getJoinLog(room.meetKey);
+    const auth = (await this.cfg.getServerApiAuth(room.entId)) ?? undefined;
+    const entries = await this.server.getJoinLog(room.meetKey, auth);
 
     let inserted = 0;
     let updated = 0;

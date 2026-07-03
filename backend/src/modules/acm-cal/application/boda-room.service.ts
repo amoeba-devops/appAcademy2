@@ -139,7 +139,11 @@ export class BodaRoomService {
     if (!room) return; // nothing to do
     if (this.isLive(room.status)) {
       try {
-        await this.server.closeMeet({ meetKey: room.meetKey, reason: 'event_deleted' });
+        const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
+        await this.server.closeMeet(
+          { meetKey: room.meetKey, reason: 'event_deleted' },
+          auth,
+        );
       } catch (e) {
         if (e instanceof BodaeduUnavailableException) {
           this.logger.warn(
@@ -244,7 +248,11 @@ export class BodaRoomService {
     }
     if (this.isLive(room.status)) {
       try {
-        await this.server.closeMeet({ meetKey: room.meetKey, reason: `admin_force:${actorUserId}` });
+        const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
+        await this.server.closeMeet(
+          { meetKey: room.meetKey, reason: `admin_force:${actorUserId}` },
+          auth,
+        );
       } catch (e) {
         if (!(e instanceof BodaeduUnavailableException)) throw e;
         // SERVER API down — still mark CLOSED locally; vendor will reconcile.
