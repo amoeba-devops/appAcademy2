@@ -62,7 +62,7 @@
     "ENROLLMENT_COUNSELING": "4. 报名咨询",
     "PAYMENT": "5. 付款",
     "CLASS_STARTED": "6. 开始上课",
-    "DROPPED": "退出"
+    "DROPPED": "完成"
   },
   "inflow": {
     "HOMEPAGE": "홈페이지",
@@ -177,7 +177,7 @@
       }
     },
     "backToList": "返回列表",
-    "drop": "退出处理",
+    "drop": "完成处理",
     "reactivate": "重新激活",
     "mapTest": {
       "title": "水平测试 / MAP 分数",
@@ -307,8 +307,8 @@
       "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
     },
     "cancel": {
-      "title": "이탈 처리",
-      "subtitle": "이탈 사유를 선택하세요. 이력은 삭제할 수 없습니다.",
+      "title": "完成处理",
+      "subtitle": "请选择完成原因。历史记录无法删除。",
       "reasonCode": "사유 코드",
       "reasonOther": "상세 사유",
       "reasonOtherPlaceholder": "상세 사유를 입력하세요",

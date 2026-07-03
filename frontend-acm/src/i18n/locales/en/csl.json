@@ -64,7 +64,7 @@
     "ENROLLMENT_COUNSELING": "4. Enrollment",
     "PAYMENT": "5. Payment",
     "CLASS_STARTED": "6. Class Started",
-    "DROPPED": "Dropped"
+    "DROPPED": "Completed"
   },
   "inflow": {
     "HOMEPAGE": "Homepage",
@@ -179,7 +179,7 @@
       }
     },
     "backToList": "Back to list",
-    "drop": "Drop",
+    "drop": "Complete",
     "reactivate": "Reactivate",
     "mapTest": {
       "title": "Level Test / MAP scores",
@@ -309,8 +309,8 @@
       "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
     },
     "cancel": {
-      "title": "Drop inquiry",
-      "subtitle": "Choose a drop reason. The audit trail cannot be deleted.",
+      "title": "Complete inquiry",
+      "subtitle": "Choose a completion reason. The audit trail cannot be deleted.",
       "reasonCode": "Reason code",
       "reasonOther": "Reason detail",
       "reasonOtherPlaceholder": "Provide details",
