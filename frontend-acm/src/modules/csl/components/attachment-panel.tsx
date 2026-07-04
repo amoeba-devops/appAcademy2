@@ -61,14 +61,14 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
     filename: string;
   } | null>(null);
 
-  const listKey = ['csl', 'attachments', inqId, category];
+  const listKey = ['csl', 'attachments', inqId, category, refId ?? 'all'];
 
   const { data: rows = [] } = useQuery({
     queryKey: listKey,
     queryFn: async () => {
       const res = await apiClient.get<AttachmentRow[]>(
         `/acm/csl/inquiries/${inqId}/attachments`,
-        { params: { category } },
+        { params: { category, refId: refId ?? undefined } },
       );
       return res.data;
     },

@@ -4,13 +4,23 @@
     "create": "일정 등록",
     "today": "오늘",
     "prev": "이전",
-    "next": "다음"
+    "next": "다음",
+    "registerFeedback": "피드백으로 등록"
+  },
+  "view": {
+    "day": "일",
+    "week": "주",
+    "month": "월"
   },
   "category": {
     "CLASS": "수업",
     "MEETING": "미팅",
     "EVENT": "행사",
-    "PERSONAL": "개인"
+    "PERSONAL": "개인",
+    "LEVEL_TEST": "레벨테스트",
+    "DEMO_CLASS": "데모수업",
+    "REGULAR_CLASS": "정규수업",
+    "OTHER": "기타"
   },
   "provider": {
     "NONE": "없음",
@@ -26,16 +36,17 @@
     "endAt": "종료",
     "allDay": "종일",
     "locationText": "장소",
-    "meetingProvider": "화상 미팅",
-    "meetingUrl": "미팅 URL",
+    "meetingProvider": "화상수업",
+    "meetingUrl": "입장 링크",
     "creator": "작성자",
     "assignee": "담당자",
-    "assigneeNone": "미지정"
+    "assigneeNone": "미지정",
+    "materials": "수업 자료"
   },
   "form": {
     "titleCreate": "일정 등록",
     "titleEdit": "일정 수정",
-    "sectionMeeting": "화상 미팅",
+    "sectionMeeting": "화상수업",
     "sectionAttendees": "참석자"
   },
   "invitee": {
@@ -53,7 +64,9 @@
   },
   "hint": {
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",
-    "readOnlySource": "이 일정은 외부 소스에서 동기화되어 편집할 수 없습니다."
+    "readOnlySource": "이 일정은 외부 소스에서 동기화되어 편집할 수 없습니다.",
+    "bodaAuto": "데모수업과 정규수업은 저장 시 보다스쿨 링크가 자동 생성됩니다.",
+    "bodaPending": "저장 후 링크가 생성됩니다."
   },
   "error": {
     "titleRequired": "제목을 입력해 주세요.",

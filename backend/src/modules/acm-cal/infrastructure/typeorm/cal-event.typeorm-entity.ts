@@ -1,6 +1,14 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-export type CalCategory = 'CLASS' | 'MEETING' | 'EVENT' | 'PERSONAL';
+export type CalCategory =
+  | 'CLASS'
+  | 'MEETING'
+  | 'EVENT'
+  | 'PERSONAL'
+  | 'LEVEL_TEST'
+  | 'DEMO_CLASS'
+  | 'REGULAR_CLASS'
+  | 'OTHER';
 export type CalMeetingProvider = 'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 

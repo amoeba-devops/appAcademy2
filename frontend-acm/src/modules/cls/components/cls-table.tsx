@@ -45,7 +45,10 @@ export function ClsTable({ items, isLoading }: ClsTableProps) {
             >
               <td className="px-4 py-3 font-medium tabular-nums">{c.code}</td>
               <td className="px-4 py-3 text-secondary">
-                {t(`subjectType.${c.subjectType}`)}
+                <div>{c.subjectLabel || t(`subjectType.${c.subjectType}`)}</div>
+                {c.subjectLabel ? (
+                  <div className="text-xs text-secondary">{t(`subjectType.${c.subjectType}`)}</div>
+                ) : null}
               </td>
               <td className="px-4 py-3">
                 <ClsStatusBadge status={c.status} />

@@ -2,8 +2,10 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
+import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../infrastructure/typeorm/class-student.typeorm-entity';
 import { ClassTypeormEntity } from '../infrastructure/typeorm/class.typeorm-entity';
 import { RecurrenceTypeormEntity } from '../infrastructure/typeorm/recurrence.typeorm-entity';
@@ -27,6 +29,10 @@ export class ClassService {
     private readonly recRepo: Repository<RecurrenceTypeormEntity>,
     @InjectRepository(VideoConfigTypeormEntity, ACM_DS)
     private readonly vcfRepo: Repository<VideoConfigTypeormEntity>,
+    @InjectRepository(AcmUserTypeormEntity, ACM_DS)
+    private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    @InjectRepository(StudentTypeormEntity, ACM_DS)
+    private readonly stdRepo: Repository<StudentTypeormEntity>,
     private readonly events: EventEmitter2,
   ) {}
 
@@ -166,18 +172,49 @@ export class ClassService {
     }
     qb.orderBy('c.startedAt', 'DESC').take(limit).skip(offset);
     const [items, total] = await qb.getManyAndCount();
-    return { items, total };
+    return {
+      items: await this.hydrateSummaries(entId, items),
+      total,
+    };
   }
 
   async findOne(entId: string, id: string) {
     const c = await this.clsRepo.findOne({ where: { id, entId, deletedAt: IsNull() } });
     if (!c) throw new NotFoundException('Class not found');
-    const [students, recurrences, videoConfig] = await Promise.all([
+    const [students, recurrences, videoConfig, teacherMap] = await Promise.all([
       this.cstRepo.find({ where: { entId, clsId: id } }),
       this.recRepo.find({ where: { entId, clsId: id } }),
       this.vcfRepo.findOne({ where: { entId, clsId: id } }),
+      this.lookupTeacherNames(entId, [c.teacherUserId]),
     ]);
-    return { ...c, students, recurrences, videoConfig };
+    const studentMap = await this.lookupStudentNames(
+      entId,
+      students.map((row) => row.studentUserId),
+    );
+    const primaryStudent =
+      students.find((row) => row.capacityRole === 'PRIMARY') ?? students[0] ?? null;
+    const defaultMode = recurrences[0]?.defaultMode ?? (c.isInPersonDefault ? 'IN_PERSON' : 'ONLINE');
+    return {
+      ...c,
+      teacherName: teacherMap.get(c.teacherUserId) ?? null,
+      defaultMode,
+      hourlyRateKrw: primaryStudent?.hourlyRate ?? null,
+      students: students.map((row) => ({
+        id: row.id,
+        studentUserId: row.studentUserId,
+        studentName: studentMap.get(row.studentUserId) ?? null,
+        joinedAt: row.enrolledAt,
+        leftAt: row.leftAt ?? null,
+        capacityRole: row.capacityRole === 'PRIMARY' ? 'PRIMARY' : 'SECONDARY',
+      })),
+      recurrences,
+      videoConfig: videoConfig
+        ? {
+            provider: videoConfig.provider,
+            persistentLink: videoConfig.persistentLink ?? null,
+          }
+        : null,
+    };
   }
 
   async update(entId: string, id: string, dto: UpdateClassDto) {
@@ -212,5 +249,75 @@ export class ClassService {
       status: dto.status,
     });
     return saved;
+  }
+
+  private async hydrateSummaries(
+    entId: string,
+    classes: ClassTypeormEntity[],
+  ): Promise<Array<ClassTypeormEntity & {
+    teacherName: string | null;
+    defaultMode: 'IN_PERSON' | 'ONLINE' | 'TWO_PERSON_IN_PERSON';
+    hourlyRateKrw: string | null;
+  }>> {
+    if (classes.length === 0) return [];
+    const classIds = classes.map((row) => row.id);
+    const [teacherMap, recurrences, students] = await Promise.all([
+      this.lookupTeacherNames(entId, classes.map((row) => row.teacherUserId)),
+      this.recRepo.find({ where: { entId, clsId: In(classIds) } }),
+      this.cstRepo.find({ where: { entId, clsId: In(classIds) } }),
+    ]);
+
+    const defaultModeByClass = new Map<string, 'IN_PERSON' | 'ONLINE' | 'TWO_PERSON_IN_PERSON'>();
+    for (const recurrence of recurrences) {
+      if (!defaultModeByClass.has(recurrence.clsId)) {
+        defaultModeByClass.set(recurrence.clsId, recurrence.defaultMode);
+      }
+    }
+
+    const primaryRateByClass = new Map<string, string>();
+    for (const row of students) {
+      if (row.capacityRole === 'PRIMARY' && !primaryRateByClass.has(row.clsId)) {
+        primaryRateByClass.set(row.clsId, row.hourlyRate);
+      }
+      if (!primaryRateByClass.has(row.clsId)) {
+        primaryRateByClass.set(row.clsId, row.hourlyRate);
+      }
+    }
+
+    return classes.map((row) => ({
+      ...row,
+      teacherName: teacherMap.get(row.teacherUserId) ?? null,
+      defaultMode:
+        defaultModeByClass.get(row.id) ?? (row.isInPersonDefault ? 'IN_PERSON' : 'ONLINE'),
+      hourlyRateKrw: primaryRateByClass.get(row.id) ?? null,
+    }));
+  }
+
+  private async lookupTeacherNames(
+    entId: string,
+    userIds: Array<string | null | undefined>,
+  ): Promise<Map<string, string>> {
+    const ids = Array.from(
+      new Set(userIds.filter((value): value is string => typeof value === 'string' && value.length > 0)),
+    );
+    if (ids.length === 0) return new Map();
+    const rows = await this.userRepo.find({
+      where: { entId, id: In(ids) },
+      select: ['id', 'name'],
+    });
+    return new Map(rows.map((row) => [row.id, row.name]));
+  }
+
+  private async lookupStudentNames(
+    entId: string,
+    studentIds: string[],
+  ): Promise<Map<string, string>> {
+    const ids = Array.from(new Set(studentIds.filter(Boolean)));
+    if (ids.length === 0) return new Map();
+    const rows = await this.stdRepo.find({
+      where: { entId, id: In(ids), deletedAt: IsNull() },
+      select: ['id', 'name'],
+    });
+    return new Map(rows.map((row) => [row.id, row.name]));
   }
 }

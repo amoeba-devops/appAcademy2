@@ -681,10 +681,14 @@ export class InquiryController {
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Query('category') category?: 'TRANSCRIPT' | 'MATERIAL' | 'RESULT_PDF',
+    @Query('refId') refId?: string,
   ) {
     const rows = await this.attachments.list(user.entId, inqId, category);
     const role = (user.role as AcmRole | undefined) ?? 'STAFF';
-    return rows.filter((r) => AttachmentService.canView(r, role));
+    return rows.filter((row) => {
+      if (refId && row.refId !== refId) return false;
+      return AttachmentService.canView(row, role);
+    });
   }
 
   @Get(':inqId/attachments/:attId/download')

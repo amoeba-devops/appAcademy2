@@ -8,6 +8,9 @@ import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.
 import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
+import { AttachmentTypeormEntity } from '../acm-csl/infrastructure/typeorm/attachment.typeorm-entity';
+import { MapTestTypeormEntity } from '../acm-csl/infrastructure/typeorm/map-test.typeorm-entity';
+import { TrialClassTypeormEntity } from '../acm-csl/infrastructure/typeorm/trial-class.typeorm-entity';
 import { redisProvider } from '../../infrastructure/config/redis.provider';
 import { CalEventService } from './application/cal-event.service';
 import { CalInviteeService } from './application/cal-invitee.service';
@@ -57,6 +60,10 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
         // REQ-260610 — Instant classroom suggestions read from CLS tables.
         ClassTypeormEntity,
         ClassStudentTypeormEntity,
+        // REQ-260704 — expose linked CSL demo/level-test context in CAL detail.
+        TrialClassTypeormEntity,
+        MapTestTypeormEntity,
+        AttachmentTypeormEntity,
       ],
       ACM_DS,
     ),

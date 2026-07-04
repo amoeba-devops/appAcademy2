@@ -22,7 +22,16 @@ const toStringArray = ({ value }: { value: unknown }): string[] | undefined => {
   return [String(value)];
 };
 
-export const CAL_CATEGORIES = ['CLASS', 'MEETING', 'EVENT', 'PERSONAL'] as const;
+export const CAL_CATEGORIES = [
+  'CLASS',
+  'MEETING',
+  'EVENT',
+  'PERSONAL',
+  'LEVEL_TEST',
+  'DEMO_CLASS',
+  'REGULAR_CLASS',
+  'OTHER',
+] as const;
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
 export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
 

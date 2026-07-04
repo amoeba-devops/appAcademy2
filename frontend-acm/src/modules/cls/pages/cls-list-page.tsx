@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useClasses } from '../hooks/use-classes';
 import type { ClassSummary } from '../types';
 import { ClsFilters, type ClsFilterValue } from '../components/cls-filters';
 import { ClsTable } from '../components/cls-table';
+import { ClassCreateDialog } from '../components/class-create-dialog';
 
 const EMPTY: ClsFilterValue = {
   status: '',
@@ -16,30 +18,36 @@ const EMPTY: ClsFilterValue = {
 
 export function ClsListPage() {
   const { t } = useTranslation(['cls', 'common']);
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<ClsFilterValue>(EMPTY);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data, isLoading } = useClasses({
     status: filters.status || undefined,
     subjectType: filters.subjectType || undefined,
-    teacherUserId: filters.teacher || undefined,
   });
 
   const filtered = useMemo<ClassSummary[]>(() => {
     const items = data?.items ?? [];
     const q = filters.search.trim().toLowerCase();
-    if (!q) return items;
+    const teacherQuery = filters.teacher.trim().toLowerCase();
     return items.filter((c) => {
+      const matchesTeacher = !teacherQuery
+        ? true
+        : (c.teacherName ?? '').toLowerCase().includes(teacherQuery);
+      if (!q) return matchesTeacher;
       const codeHit = c.code.toLowerCase().includes(q);
       const teacherHit = (c.teacherName ?? '').toLowerCase().includes(q);
-      return codeHit || teacherHit;
+      const subjectHit = (c.subjectLabel ?? '').toLowerCase().includes(q);
+      return matchesTeacher && (codeHit || teacherHit || subjectHit);
     });
-  }, [data, filters.search]);
+  }, [data, filters.search, filters.teacher]);
 
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <Button disabled title={t('common:todo')}>
+        <Button onClick={() => setCreateOpen(true)}>
           <Plus size={16} className="mr-1" />
           {t('actions.createClass')}
         </Button>
@@ -52,6 +60,12 @@ export function ClsListPage() {
       ) : (
         <ClsTable items={filtered} isLoading={isLoading} />
       )}
+
+      <ClassCreateDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={(classId) => navigate(`/admin/cls/${classId}`)}
+      />
     </div>
   );
 }

@@ -49,14 +49,18 @@ export interface ClassSummary {
   id: string;
   code: string;
   subjectType: ClsSubjectType;
+  subjectLabel?: string | null;
   status: ClsStatus;
   startedFrom: ClsStartedFrom;
   teacherUserId: string | null;
   teacherName?: string | null;
+  isDemo?: boolean;
+  isGroup?: boolean;
   startedAt: string | null;
   endedAt: string | null;
   defaultMode: SesMode;
   hourlyRateKrw: string | null;
+  remark?: string | null;
 }
 
 export interface ClassStudent {
@@ -118,14 +122,18 @@ export interface AttendanceLine {
 export interface Feedback {
   id: string;
   sessionId: string;
+  studentUserId: string;
   status: FbkStatus;
   progress: string | null;
   feedback: string | null;
   homework: string | null;
   weaknessDev: string | null;
   academicPlan: string | null;
-  submittedAt: string | null;
-  deliveredAt: string | null;
+  writtenAt?: string | null;
+  submittedAt?: string | null;
+  deliveredAt?: string | null;
+  deliveredToParentAt?: string | null;
+  slaBreached?: boolean;
 }
 
 export interface Makeup {

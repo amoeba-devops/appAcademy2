@@ -233,6 +233,37 @@ export class CalInviteeService {
     return map;
   }
 
+  async primaryStudentNamesByEvent(
+    entId: string,
+    evtIds: string[],
+  ): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    const unique = Array.from(new Set(evtIds.filter(Boolean)));
+    if (unique.length === 0) return map;
+    const rows = await this.invitees
+      .createQueryBuilder('i')
+      .innerJoin(
+        StudentTypeormEntity,
+        's',
+        's.id = i.refId AND s.entId = :entId AND s.deletedAt IS NULL',
+        { entId },
+      )
+      .select('i.evtId', 'evtId')
+      .addSelect('s.name', 'name')
+      .where('i.entId = :entId', { entId })
+      .andWhere('i.kind = :kind', { kind: 'STUDENT' })
+      .andWhere('i.evtId IN (:...evtIds)', { evtIds: unique })
+      .orderBy('i.createdAt', 'ASC')
+      .getRawMany<{ evtId: string; name: string }>();
+
+    for (const row of rows) {
+      if (!map.has(row.evtId)) {
+        map.set(row.evtId, row.name);
+      }
+    }
+    return map;
+  }
+
   async listForEvent(entId: string, evtId: string): Promise<InviteeView[]> {
     const rows = await this.invitees.find({ where: { entId, evtId } });
     return this.hydrate(entId, rows);

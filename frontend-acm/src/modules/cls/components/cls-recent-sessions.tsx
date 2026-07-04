@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { useSessions } from '../hooks/use-sessions';
-import type { Session, SesStatus } from '../types';
+import type { ClassStudent, Session, SesStatus } from '../types';
+import { SessionFeedbackDialog } from './session-feedback-dialog';
 
 const STATUS_CLASS: Record<SesStatus, string> = {
   SCHEDULED: 'bg-accent-50 text-accent-700',
@@ -12,11 +14,18 @@ const STATUS_CLASS: Record<SesStatus, string> = {
   MAKEUP_REPLACEMENT: 'bg-violet-50 text-violet-700',
 };
 
-const LIMIT = 5;
+const LIMIT = 8;
 
-export function ClsRecentSessions({ classId }: { classId: string }) {
+export function ClsRecentSessions({
+  classId,
+  students,
+}: {
+  classId: string;
+  students: ClassStudent[];
+}) {
   const { t, i18n } = useTranslation(['cls', 'common']);
   const { data, isLoading } = useSessions({ classId });
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const localeMap: Record<string, string> = {
     ko: 'ko-KR',
     en: 'en-US',
@@ -25,10 +34,14 @@ export function ClsRecentSessions({ classId }: { classId: string }) {
   };
   const dateLocale = localeMap[i18n.language ?? 'ko'] ?? 'ko-KR';
 
-  const items = (data?.items ?? [])
-    .slice()
-    .sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt))
-    .slice(0, LIMIT);
+  const items = useMemo(
+    () =>
+      (data?.items ?? [])
+        .slice()
+        .sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt))
+        .slice(0, LIMIT),
+    [data],
+  );
 
   if (isLoading) {
     return (
@@ -55,46 +68,62 @@ export function ClsRecentSessions({ classId }: { classId: string }) {
     });
 
   return (
-    <div className="rounded-lg bg-surface border border-[var(--border-subtle)] overflow-hidden">
-      <header className="flex items-center justify-between bg-[var(--gray-100)] px-4 py-2 text-sm">
-        <span className="font-medium">{t('detail.sessions.title')}</span>
-        <span className="text-xs text-secondary">
-          {t('detail.sessions.limitNote', { count: LIMIT })}
-        </span>
-      </header>
-      <ul className="divide-y divide-[var(--border-subtle)]">
-        {items.map((s: Session) => (
-          <li
-            key={s.id}
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 text-sm"
-          >
-            <span className="font-mono">{fmt(s.scheduledAt)}</span>
-            <span
-              className={clsx(
-                'rounded px-2 py-0.5 text-xs font-medium',
-                STATUS_CLASS[s.status],
-              )}
+    <>
+      <div className="overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-surface">
+        <header className="flex items-center justify-between bg-[var(--gray-100)] px-4 py-2 text-sm">
+          <span className="font-medium">{t('detail.sessions.title')}</span>
+          <span className="text-xs text-secondary">
+            {t('detail.sessions.limitNote', { count: LIMIT })}
+          </span>
+        </header>
+        <ul className="divide-y divide-[var(--border-subtle)]">
+          {items.map((session: Session) => (
+            <li
+              key={session.id}
+              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 text-sm"
             >
-              {t(`session.statuses.${s.status}`)}
-            </span>
-            <span className="text-secondary">
-              {t(`session.modes.${s.mode}`)}
-            </span>
-            {s.cancelReason ? (
-              <span className="text-xs text-secondary">
-                {' · '}
-                {t(`session.cancelReasons.${s.cancelReason}`)}
+              <span className="font-mono">{fmt(session.scheduledAt)}</span>
+              <span
+                className={clsx(
+                  'rounded px-2 py-0.5 text-xs font-medium',
+                  STATUS_CLASS[session.status],
+                )}
+              >
+                {t(`session.statuses.${session.status}`)}
               </span>
-            ) : null}
-            {s.disposition ? (
-              <span className="text-xs text-secondary">
-                {' · '}
-                {t(`session.dispositions.${s.disposition}`)}
-              </span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </div>
+              <span className="text-secondary">{t(`session.modes.${session.mode}`)}</span>
+              {session.cancelReason ? (
+                <span className="text-xs text-secondary">
+                  {' · '}
+                  {t(`session.cancelReasons.${session.cancelReason}`)}
+                </span>
+              ) : null}
+              {session.disposition ? (
+                <span className="text-xs text-secondary">
+                  {' · '}
+                  {t(`session.dispositions.${session.disposition}`)}
+                </span>
+              ) : null}
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSession(session)}
+                  className="text-xs font-medium text-accent-700 hover:underline"
+                >
+                  {t('actions.writeFeedback')}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <SessionFeedbackDialog
+        open={!!selectedSession}
+        onOpenChange={(nextOpen) => !nextOpen && setSelectedSession(null)}
+        session={selectedSession}
+        students={students}
+      />
+    </>
   );
 }

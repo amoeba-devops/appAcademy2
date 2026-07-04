@@ -68,6 +68,8 @@ export class CslCalLinkerService {
       actorUserId,
       actorRole,
       title,
+      category: 'LEVEL_TEST',
+      meetingProvider: 'NONE',
       scheduledAt: mt.scheduledAt,
       scheduledTime: mt.scheduledTime,
       // REQ-260630 FR-A02 — surface the level-test teacher as the event's 담당자.
@@ -104,6 +106,8 @@ export class CslCalLinkerService {
       actorUserId,
       actorRole,
       title,
+      category: 'DEMO_CLASS',
+      meetingProvider: 'BODASCHOOL',
       scheduledAt: tcl.heldAt,
       scheduledTime: tcl.heldTime,
       // REQ-260630 FR-A02 — demo-class teacher → calendar 담당자.
@@ -131,6 +135,8 @@ export class CslCalLinkerService {
     actorUserId: string;
     actorRole: AcmRole;
     title: string;
+    category: 'LEVEL_TEST' | 'DEMO_CLASS';
+    meetingProvider: 'NONE' | 'BODASCHOOL';
     scheduledAt: string;
     scheduledTime: string;
     /** REQ-260630 — null when the source row has no teacher assigned. */
@@ -155,11 +161,8 @@ export class CslCalLinkerService {
           evtTitle: input.title,
           evtStartAt: startAt,
           evtEndAt: endAt,
-          // CAL_CATEGORIES = CLASS | MEETING | EVENT | PERSONAL — leveltest
-          // and demo class both surface on the operator calendar as EVENT
-          // (CLASS is reserved for ongoing enrollments, not one-offs).
-          evtCategory: 'EVENT',
-          evtMeetingProvider: 'NONE',
+          evtCategory: input.category,
+          evtMeetingProvider: input.meetingProvider,
           // REQ-260630 — teacher pre-set on the CSL row becomes the
           // calendar event's 담당자. Omit when null so service treats it
           // as "no assignee".

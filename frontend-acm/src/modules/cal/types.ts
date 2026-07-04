@@ -1,6 +1,15 @@
 // CAL module types — mirrors backend DTO.
 
-export const CAL_CATEGORIES = ['CLASS', 'MEETING', 'EVENT', 'PERSONAL'] as const;
+export const CAL_CATEGORIES = [
+  'CLASS',
+  'MEETING',
+  'EVENT',
+  'PERSONAL',
+  'LEVEL_TEST',
+  'DEMO_CLASS',
+  'REGULAR_CLASS',
+  'OTHER',
+] as const;
 export type CalCategory = (typeof CAL_CATEGORIES)[number];
 
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
@@ -48,6 +57,23 @@ export interface NotifySummary {
   failed: number;
 }
 
+export interface CalLinkedAttachment {
+  id: string;
+  refId: string | null;
+  filename: string;
+  mime: string;
+  sizeBytes: string;
+  createdAt: string;
+}
+
+export interface CalCslLink {
+  kind: 'DEMO_CLASS' | 'LEVEL_TEST';
+  inqId: string;
+  refId: string;
+  feedbackBody?: string | null;
+  attachments: CalLinkedAttachment[];
+}
+
 export interface CalEvent {
   id: string;
   entId: string;
@@ -73,7 +99,9 @@ export interface CalEvent {
   assigneeName?: string | null;
   assigneeEmail?: string | null;
   inviteeCount?: number;
+  primaryStudentName?: string | null;
   invitees?: CalInviteeView[];
+  cslLink?: CalCslLink | null;
   notifySummary?: NotifySummary | null;
 }
 

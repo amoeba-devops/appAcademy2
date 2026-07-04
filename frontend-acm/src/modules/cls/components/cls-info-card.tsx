@@ -24,6 +24,9 @@ export function ClsInfoCard({ cls }: { cls: ClassDetail }) {
 
   return (
     <dl className="grid grid-cols-1 gap-4 rounded-lg bg-surface border border-[var(--border-subtle)] p-5 sm:grid-cols-2">
+      <Row label={t('create.course', { defaultValue: '수업 강좌' })}>
+        {cls.subjectLabel || t(`subjectType.${cls.subjectType}`)}
+      </Row>
       <Row label={t('detail.info.startedFrom')}>
         {t(`startedFrom.${cls.startedFrom}`)}
       </Row>
@@ -32,6 +35,9 @@ export function ClsInfoCard({ cls }: { cls: ClassDetail }) {
       </Row>
       <Row label={t('detail.info.hourlyRate')}>{fmtMoney(cls.hourlyRateKrw)}</Row>
       <Row label={t('detail.info.video')}>{videoLine}</Row>
+      <Row label={t('create.textbook', { defaultValue: '교재 / 메모' })}>
+        {cls.remark || dash}
+      </Row>
     </dl>
   );
 }

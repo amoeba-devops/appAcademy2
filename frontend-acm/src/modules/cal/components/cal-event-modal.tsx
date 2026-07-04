@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
+import { FilePreviewDialog } from '@/modules/csl/components/file-preview-dialog';
 import {
   useCalEvent,
   useCreateCalEvent,
@@ -19,7 +21,6 @@ import {
   useUpdateCalEvent,
 } from '../hooks/use-cal-events';
 import {
-  CAL_CATEGORIES,
   CAL_PROVIDERS,
   type CalEvent,
   type CalInviteeView,
@@ -33,10 +34,7 @@ import {
 } from '../lib/date-utils';
 import { InviteePickerModal } from './invitee-picker-modal';
 import { useBodaRoomStatus } from '@/lib/boda-launch-api';
-import {
-  useBodaForceClose,
-  useBodaReconcile,
-} from '@/lib/boda-admin-api';
+import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
 
 interface Props {
   open: boolean;
@@ -45,17 +43,25 @@ interface Props {
   defaultDate?: Date;
 }
 
+const CAL_EDITOR_CATEGORIES = [
+  'LEVEL_TEST',
+  'DEMO_CLASS',
+  'REGULAR_CLASS',
+  'OTHER',
+] as const;
+
+type EditorCategory = (typeof CAL_EDITOR_CATEGORIES)[number];
+
 type FormValues = {
-  evtCategory: string;
+  evtCategory: EditorCategory;
   evtTitle: string;
   evtDescription: string;
-  evtStartAt: string; // datetime-local
+  evtStartAt: string;
   evtEndAt: string;
   evtAllDay: boolean;
   evtLocationText: string;
   evtMeetingProvider: string;
   evtMeetingUrl: string;
-  /** REQ-260630 — local teacher id (empty string = no assignee). */
   evtAssigneeTchId: string;
 };
 
@@ -67,21 +73,33 @@ interface TeacherOption {
 
 const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
-const labelClass = 'block text-xs text-secondary mb-1';
+const labelClass = 'mb-1 block text-xs text-secondary';
 
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t } = useTranslation('cal');
+  const toast = useToast();
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
   const [invitees, setInvitees] = useState<
-    Array<{ kind: 'STUDENT' | 'TEACHER' | 'PARENT'; refId: string; name: string; email: string | null; notifyStatus?: string | null }>
+    Array<{
+      kind: 'STUDENT' | 'TEACHER' | 'PARENT';
+      refId: string;
+      name: string;
+      email: string | null;
+      notifyStatus?: string | null;
+    }>
   >([]);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [notifySummary, setNotifySummary] = useState<NotifySummary | null>(null);
+  const [preview, setPreview] = useState<{
+    url: string;
+    mime: string;
+    filename: string;
+  } | null>(null);
 
   const { register, handleSubmit, reset, watch } = useForm<FormValues>({
     defaultValues: {
-      evtCategory: 'CLASS',
+      evtCategory: 'REGULAR_CLASS',
       evtTitle: '',
       evtDescription: '',
       evtStartAt: '',
@@ -94,7 +112,13 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     },
   });
 
-  // REQ-260630 — local teachers for the 담당자 select.
+  const editorCategory = watch('evtCategory');
+  const meetingProvider = watch('evtMeetingProvider');
+  const descriptionValue = watch('evtDescription');
+  const isLevelTest = editorCategory === 'LEVEL_TEST';
+  const isBodaCategory =
+    editorCategory === 'DEMO_CLASS' || editorCategory === 'REGULAR_CLASS';
+
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
     queryFn: async () => {
@@ -119,7 +143,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     setNotifySummary(null);
     if (initial) {
       reset({
-        evtCategory: initial.category,
+        evtCategory: normalizeEditorCategory(initial.category),
         evtTitle: initial.title,
         evtDescription: initial.description ?? '',
         evtStartAt: formatDateTimeLocal(initial.startAt),
@@ -131,18 +155,18 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtAssigneeTchId: initial.assigneeTchId ?? '',
       });
       setInvitees(
-        (initial.invitees ?? []).map((i: CalInviteeView) => ({
-          kind: i.kind,
-          refId: i.refId,
-          name: i.name,
-          email: i.email,
-          notifyStatus: i.notifyStatus,
+        (initial.invitees ?? []).map((invitee: CalInviteeView) => ({
+          kind: invitee.kind,
+          refId: invitee.refId,
+          name: invitee.name,
+          email: invitee.email,
+          notifyStatus: invitee.notifyStatus,
         })),
       );
     } else {
       const { start, end } = defaultEventTimes(defaultDate ?? new Date());
       reset({
-        evtCategory: 'CLASS',
+        evtCategory: 'REGULAR_CLASS',
         evtTitle: '',
         evtDescription: '',
         evtStartAt: formatDateTimeLocal(start.toISOString()),
@@ -162,34 +186,44 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const deleteMut = useDeleteCalEvent();
   const { data: detail } = useCalEvent(open && isEdit ? initial?.id : undefined);
   const isLoading = createMut.isPending || updateMut.isPending || deleteMut.isPending;
-  // Hydrate invitees + ownerName/Email from fresh detail fetch (list summary lacks them).
+
   useEffect(() => {
     if (!open || !detail) return;
     setInvitees(
-      (detail.invitees ?? []).map((i: CalInviteeView) => ({
-        kind: i.kind,
-        refId: i.refId,
-        name: i.name,
-        email: i.email,
-        notifyStatus: i.notifyStatus,
+      (detail.invitees ?? []).map((invitee: CalInviteeView) => ({
+        kind: invitee.kind,
+        refId: invitee.refId,
+        name: invitee.name,
+        email: invitee.email,
+        notifyStatus: invitee.notifyStatus,
       })),
     );
   }, [open, detail]);
 
-  const meetingProvider = watch('evtMeetingProvider');
   const isReadOnly = isEdit && initial?.source !== 'MANUAL';
+  const resolvedMeetingProvider =
+    isBodaCategory ? 'BODASCHOOL' : isLevelTest ? 'NONE' : meetingProvider;
+  const currentLink = detail?.meetingUrl ?? initial?.meetingUrl ?? '';
 
   const onSubmit = async (values: FormValues) => {
     setError(null);
-    if (!values.evtTitle.trim()) { setError(t('error.titleRequired')); return; }
-    if (!values.evtStartAt || !values.evtEndAt) { setError(t('error.timeRequired')); return; }
+    if (!values.evtTitle.trim()) {
+      setError(t('error.titleRequired'));
+      return;
+    }
+    if (!values.evtStartAt || !values.evtEndAt) {
+      setError(t('error.timeRequired'));
+      return;
+    }
+
     const startIso = localInputToIso(values.evtStartAt);
     const endIso = localInputToIso(values.evtEndAt);
     if (new Date(endIso) <= new Date(startIso)) {
       setError(t('error.endBeforeStart'));
       return;
     }
-    if (values.evtMeetingProvider !== 'NONE') {
+
+    if (!isLevelTest && !isBodaCategory && values.evtMeetingProvider !== 'NONE') {
       if (!values.evtMeetingUrl || !/^https?:\/\//i.test(values.evtMeetingUrl)) {
         setError(t('error.meetingUrlRequired'));
         return;
@@ -202,40 +236,43 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtStartAt: startIso,
       evtEndAt: endIso,
       evtAllDay: values.evtAllDay,
-      evtMeetingProvider: values.evtMeetingProvider,
+      evtMeetingProvider: resolvedMeetingProvider,
     };
+
     if (values.evtDescription) dto.evtDescription = values.evtDescription;
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
-    if (values.evtMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
+    if (!isLevelTest && !isBodaCategory && values.evtMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
       dto.evtMeetingUrl = values.evtMeetingUrl;
     }
-    // REQ-260630 — send teacher id when picked; explicit null on edit lets
-    // the operator clear an existing assignee. Create path sends `undefined`
-    // (omits the field) when empty.
     if (isEdit) {
       dto.evtAssigneeTchId = values.evtAssigneeTchId || null;
     } else if (values.evtAssigneeTchId) {
       dto.evtAssigneeTchId = values.evtAssigneeTchId;
     }
 
-    dto.evtInvitees = invitees.map((i) => ({ kind: i.kind, refId: i.refId }));
+    if (!isLevelTest) {
+      dto.evtInvitees = invitees.map((invitee) => ({
+        kind: invitee.kind,
+        refId: invitee.refId,
+      }));
+    } else {
+      dto.evtInvitees = [];
+    }
 
     try {
-      let saved: CalEvent;
-      if (isEdit) {
-        saved = await updateMut.mutateAsync(dto);
-      } else {
-        saved = await createMut.mutateAsync(dto);
-      }
+      const saved = isEdit
+        ? await updateMut.mutateAsync(dto)
+        : await createMut.mutateAsync(dto);
       if (saved.notifySummary) {
         setNotifySummary(saved.notifySummary);
-        // Keep modal open briefly to show summary; then close after 2s.
         setTimeout(() => onClose(), 2000);
       } else {
         onClose();
       }
-    } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    } catch (submissionError) {
+      const msg = (
+        submissionError as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
     }
   };
@@ -246,37 +283,99 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     try {
       await deleteMut.mutateAsync(initial.id);
       onClose();
-    } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    } catch (deleteError) {
+      const msg = (
+        deleteError as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
     }
   };
 
+  const onRegisterFeedback = async () => {
+    const demoLink =
+      detail?.cslLink?.kind === 'DEMO_CLASS' ? detail.cslLink : null;
+    if (!demoLink) return;
+    const body = descriptionValue.trim();
+    if (!body) {
+      toast.error('설명을 먼저 입력해 주세요.');
+      return;
+    }
+    try {
+      await apiClient.patch(
+        `/acm/csl/inquiries/${demoLink.inqId}/trial-classes/${demoLink.refId}/feedback`,
+        { body },
+      );
+      toast.success('강사 피드백으로 등록했습니다.');
+    } catch (feedbackError) {
+      const message = (
+        feedbackError as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
+      toast.error(message ?? '피드백 등록에 실패했습니다.');
+    }
+  };
+
+  const onPreviewAttachment = async (inqId: string, attId: string, filename: string, mime: string) => {
+    try {
+      if (preview?.url) URL.revokeObjectURL(preview.url);
+      const { url } = await fetchCslAttachmentBlob(inqId, attId, filename);
+      setPreview({ url, mime, filename });
+    } catch (previewError) {
+      const message = (
+        previewError as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
+      toast.error(message ?? '자료 미리보기에 실패했습니다.');
+    }
+  };
+
+  const onDownloadAttachment = async (inqId: string, attId: string, filename: string) => {
+    try {
+      const file = await fetchCslAttachmentBlob(inqId, attId, filename);
+      const anchor = document.createElement('a');
+      anchor.href = file.url;
+      anchor.download = file.filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(file.url);
+    } catch (downloadError) {
+      const message = (
+        downloadError as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
+      toast.error(message ?? '자료 다운로드에 실패했습니다.');
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           {isReadOnly && (
-            <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
               {t('hint.readOnlySource')}
             </div>
           )}
 
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3" disabled={isReadOnly}>
+          <fieldset
+            className="space-y-3 rounded-md border border-[var(--border-subtle)] p-4"
+            disabled={isReadOnly}
+          >
             <div>
               <label className={labelClass}>{t('field.title')} *</label>
               <input {...register('evtTitle', { required: true })} className={inputClass} />
             </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.category')}</label>
                 <select {...register('evtCategory')} className={inputClass}>
-                  {CAL_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{t(`category.${c}`)}</option>
+                  {CAL_EDITOR_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {t(`category.${category}`, category)}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -286,21 +385,20 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   {t('field.allDay')}
                 </label>
               </div>
-              {/* REQ-260630 — 담당자 (teacher assignee). Local teacher pool. */}
+
               <div className="col-span-2">
-                <label className={labelClass}>
-                  {t('field.assignee', '담당자')}
-                </label>
+                <label className={labelClass}>{t('field.assignee', '담당 강사')}</label>
                 <select {...register('evtAssigneeTchId')} className={inputClass}>
-                  <option value="">— {t('field.assigneeNone', '미지정')} —</option>
-                  {teachers.map((tt) => (
-                    <option key={tt.id} value={tt.id}>
-                      {tt.name}
-                      {tt.email ? ` (${tt.email})` : ''}
+                  <option value="">- {t('field.assigneeNone', '미지정')} -</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.name}
+                      {teacher.email ? ` (${teacher.email})` : ''}
                     </option>
                   ))}
                 </select>
               </div>
+
               <div>
                 <label className={labelClass}>{t('field.startAt')} *</label>
                 <input
@@ -318,58 +416,94 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 />
               </div>
             </div>
+
             <div>
               <label className={labelClass}>{t('field.locationText')}</label>
               <input {...register('evtLocationText')} className={inputClass} />
             </div>
-            <div>
+
+            <div className="space-y-2">
               <label className={labelClass}>{t('field.description')}</label>
               <textarea
                 {...register('evtDescription')}
-                rows={3}
-                className={inputClass + ' h-auto py-2'}
+                rows={4}
+                className={`${inputClass} h-auto py-2`}
               />
-            </div>
-          </fieldset>
-
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3" disabled={isReadOnly}>
-            <legend className="text-xs font-semibold text-secondary px-1">
-              {t('form.sectionMeeting')}
-            </legend>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>{t('field.meetingProvider')}</label>
-                <select {...register('evtMeetingProvider')} className={inputClass}>
-                  {CAL_PROVIDERS.map((p) => (
-                    <option key={p} value={p}>{t(`provider.${p}`)}</option>
-                  ))}
-                </select>
-              </div>
-              {meetingProvider !== 'NONE' && (
-                <div>
-                  <label className={labelClass}>{t('field.meetingUrl')} *</label>
-                  <input
-                    type="url"
-                    placeholder="https://…"
-                    {...register('evtMeetingUrl')}
-                    className={inputClass}
-                  />
+              {detail?.cslLink?.kind === 'DEMO_CLASS' && (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void onRegisterFeedback()}
+                  >
+                    {t('actions.registerFeedback', '피드백으로 등록')}
+                  </Button>
                 </div>
               )}
             </div>
-            {meetingProvider !== 'NONE' && (
-              <p className="text-xs text-secondary">{t('hint.meetingUrl')}</p>
-            )}
           </fieldset>
 
-          {/* BODA(보다에듀) 룸 상태 — REQ-260526 v2 T7 (admin only on edit) */}
-          {isEdit && meetingProvider === 'BODASCHOOL' && initial && (
+          {!isLevelTest && (
+            <fieldset className="space-y-3 rounded-md border border-[var(--border-subtle)] p-4">
+              <legend className="px-1 text-xs font-semibold text-secondary">
+                {t('form.sectionMeeting', '화상수업')}
+              </legend>
+
+              {isBodaCategory ? (
+                <div className="grid gap-3">
+                  <p className="text-xs text-secondary">
+                    {t(
+                      'hint.bodaAuto',
+                      '데모수업과 정규수업은 저장 시 보다스쿨 강의 입장 링크가 자동 생성됩니다.',
+                    )}
+                  </p>
+                  <div>
+                    <label className={labelClass}>
+                      {t('field.meetingUrl', '강의 입장 링크')}
+                    </label>
+                    <input
+                      value={currentLink}
+                      readOnly
+                      placeholder={t('hint.bodaPending', '저장 후 링크가 생성됩니다.')}
+                      className={`${inputClass} bg-[var(--gray-50)]`}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>{t('field.meetingProvider')}</label>
+                    <select {...register('evtMeetingProvider')} className={inputClass}>
+                      {CAL_PROVIDERS.map((provider) => (
+                        <option key={provider} value={provider}>
+                          {t(`provider.${provider}`)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {meetingProvider !== 'NONE' && (
+                    <div>
+                      <label className={labelClass}>{t('field.meetingUrl')} *</label>
+                      <input
+                        type="url"
+                        placeholder="https://..."
+                        {...register('evtMeetingUrl')}
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </fieldset>
+          )}
+
+          {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
             <BodaRoomPanel evtId={initial.id} />
           )}
 
-          {/* Creator + Assignee meta (edit mode only) */}
           {isEdit && (detail?.ownerName || initial?.ownerName) && (
-            <div className="rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] px-3 py-2 text-xs text-secondary space-y-1">
+            <div className="space-y-1 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-3 py-2 text-xs text-secondary">
               <div>
                 <span className="font-semibold text-primary">
                   {t('field.creator', '작성자')}:
@@ -381,11 +515,10 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   </span>
                 )}
               </div>
-              {/* REQ-260630 — 담당자 separately from 작성자 / 참석자. */}
               {(detail?.assigneeName ?? initial?.assigneeName) && (
                 <div>
                   <span className="font-semibold text-primary">
-                    {t('field.assignee', '담당자')}:
+                    {t('field.assignee', '담당 강사')}:
                   </span>{' '}
                   {detail?.assigneeName ?? initial?.assigneeName}
                   {(detail?.assigneeEmail ?? initial?.assigneeEmail) && (
@@ -398,85 +531,141 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </div>
           )}
 
-          {/* Attendees */}
-          <fieldset
-            className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2"
-            disabled={isReadOnly}
-          >
-            <legend className="text-xs font-semibold text-secondary px-1">
-              {t('form.sectionAttendees', '참석자')} ({invitees.length})
-            </legend>
-            {invitees.length === 0 && (
-              <p className="text-xs text-secondary">
-                {t('invitee.empty', '아직 참석자가 없습니다.')}
-              </p>
-            )}
-            <ul className="flex flex-wrap gap-1.5">
-              {invitees.map((inv) => {
-                const k = `${inv.kind}:${inv.refId}`;
-                const badgeColor =
-                  inv.notifyStatus === 'SENT'
-                    ? 'bg-green-100 text-green-700'
-                    : inv.notifyStatus === 'FAILED'
-                      ? 'bg-red-100 text-red-700'
-                      : inv.notifyStatus?.startsWith('SKIPPED')
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-gray-100 text-gray-700';
-                return (
-                  <li
-                    key={k}
-                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] text-xs"
-                  >
-                    <span
-                      className={`text-[9px] font-mono uppercase px-1 py-0.5 rounded ${
-                        inv.kind === 'STUDENT'
-                          ? 'bg-blue-100 text-blue-700'
-                          : inv.kind === 'TEACHER'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-amber-100 text-amber-700'
-                      }`}
+          {!isLevelTest && (
+            <fieldset
+              className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4"
+              disabled={isReadOnly}
+            >
+              <legend className="px-1 text-xs font-semibold text-secondary">
+                {t('form.sectionAttendees', '참석자')} ({invitees.length})
+              </legend>
+              {invitees.length === 0 && (
+                <p className="text-xs text-secondary">
+                  {t('invitee.empty', '아직 참석자가 없습니다.')}
+                </p>
+              )}
+              <ul className="flex flex-wrap gap-1.5">
+                {invitees.map((invitee) => {
+                  const key = `${invitee.kind}:${invitee.refId}`;
+                  const badgeColor =
+                    invitee.notifyStatus === 'SENT'
+                      ? 'bg-green-100 text-green-700'
+                      : invitee.notifyStatus === 'FAILED'
+                        ? 'bg-red-100 text-red-700'
+                        : invitee.notifyStatus?.startsWith('SKIPPED')
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-gray-100 text-gray-700';
+                  return (
+                    <li
+                      key={key}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-2 py-1 text-xs"
                     >
-                      {inv.kind[0]}
-                    </span>
-                    <span className="text-primary">{inv.name}</span>
-                    {inv.notifyStatus && (
-                      <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${badgeColor}`}>
-                        {inv.notifyStatus}
+                      <span
+                        className={`rounded px-1 py-0.5 text-[9px] font-mono uppercase ${
+                          invitee.kind === 'STUDENT'
+                            ? 'bg-blue-100 text-blue-700'
+                            : invitee.kind === 'TEACHER'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {invitee.kind[0]}
                       </span>
-                    )}
-                    {!isReadOnly && (
-                      <button
+                      <span className="text-primary">{invitee.name}</span>
+                      {invitee.notifyStatus && (
+                        <span
+                          className={`rounded px-1 py-0.5 text-[9px] font-medium ${badgeColor}`}
+                        >
+                          {invitee.notifyStatus}
+                        </span>
+                      )}
+                      {!isReadOnly && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setInvitees((current) =>
+                              current.filter((row) => `${row.kind}:${row.refId}` !== key),
+                            )
+                          }
+                          className="text-secondary hover:text-danger-600"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              {!isReadOnly && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPickerOpen(true)}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  {t('invitee.addBtn', '참석자 추가')}
+                </Button>
+              )}
+            </fieldset>
+          )}
+
+          {detail?.cslLink?.kind === 'DEMO_CLASS' && (
+            <fieldset className="space-y-3 rounded-md border border-[var(--border-subtle)] p-4">
+              <legend className="px-1 text-xs font-semibold text-secondary">
+                {t('field.materials', '데모수업 자료')}
+              </legend>
+              {detail.cslLink.attachments.length === 0 ? (
+                <p className="text-xs text-secondary">등록된 자료가 없습니다.</p>
+              ) : (
+                <ul className="grid gap-2">
+                  {detail.cslLink.attachments.map((attachment) => (
+                    <li
+                      key={attachment.id}
+                      className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{attachment.filename}</span>
+                      <span className="text-[11px] text-secondary">
+                        {(Number(attachment.sizeBytes) / 1024).toFixed(0)} KB
+                      </span>
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() =>
-                          setInvitees((prev) =>
-                            prev.filter((x) => `${x.kind}:${x.refId}` !== k),
+                          void onPreviewAttachment(
+                            detail.cslLink!.inqId,
+                            attachment.id,
+                            attachment.filename,
+                            attachment.mime,
                           )
                         }
-                        className="text-secondary hover:text-danger-600"
                       >
-                        <X className="h-3 w-3" />
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            {!isReadOnly && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setPickerOpen(true)}
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                {t('invitee.addBtn', '참석자 추가')}
-              </Button>
-            )}
-          </fieldset>
+                        보기
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          void onDownloadAttachment(
+                            detail.cslLink!.inqId,
+                            attachment.id,
+                            attachment.filename,
+                          )
+                        }
+                      >
+                        다운로드
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </fieldset>
+          )}
 
-          {/* Notify summary toast (after submit) */}
           {notifySummary && (
-            <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
+            <div className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
               {t('invitee.notifyResult', '알림 결과')}: SENT {notifySummary.sent} · SKIP_NO_EMAIL{' '}
               {notifySummary.skippedNoEmail} · SKIP_NO_SMTP {notifySummary.skippedNoSmtp} · FAIL{' '}
               {notifySummary.failed}
@@ -494,7 +683,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   size="sm"
                   onClick={onDelete}
                   disabled={isLoading}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  className="border-red-200 text-red-600 hover:bg-red-50"
                 >
                   {t('common:actions.delete')}
                 </Button>
@@ -518,17 +707,17 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         open={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onPick={(picked: InviteeCandidate[]) => {
-          setInvitees((prev) => {
-            const seen = new Set(prev.map((p) => `${p.kind}:${p.refId}`));
-            const merged = [...prev];
-            for (const c of picked) {
-              const k = `${c.kind}:${c.refId}`;
-              if (!seen.has(k)) {
+          setInvitees((current) => {
+            const seen = new Set(current.map((invitee) => `${invitee.kind}:${invitee.refId}`));
+            const merged = [...current];
+            for (const candidate of picked) {
+              const key = `${candidate.kind}:${candidate.refId}`;
+              if (!seen.has(key)) {
                 merged.push({
-                  kind: c.kind,
-                  refId: c.refId,
-                  name: c.name,
-                  email: c.email,
+                  kind: candidate.kind,
+                  refId: candidate.refId,
+                  name: candidate.name,
+                  email: candidate.email,
                   notifyStatus: null,
                 });
               }
@@ -536,15 +725,22 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             return merged;
           });
         }}
-        excludeKeys={new Set(invitees.map((i) => `${i.kind}:${i.refId}`))}
+        excludeKeys={new Set(invitees.map((invitee) => `${invitee.kind}:${invitee.refId}`))}
+      />
+
+      <FilePreviewDialog
+        open={!!preview}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen && preview?.url) URL.revokeObjectURL(preview.url);
+          if (!nextOpen) setPreview(null);
+        }}
+        title={preview?.filename ?? 'Preview'}
+        src={preview?.url ?? null}
+        mime={preview?.mime ?? null}
       />
     </Dialog>
   );
 }
-
-// ---------------------------------------------------------------------
-// BODA(보다에듀) room status panel — REQ-260526 v2 T7 admin
-// ---------------------------------------------------------------------
 
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
@@ -554,8 +750,8 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
 
   if (isLoading) {
     return (
-      <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2">
-        <legend className="text-xs font-semibold text-secondary px-1">
+      <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4">
+        <legend className="px-1 text-xs font-semibold text-secondary">
           {t('boda.sectionTitle', 'BODA 화상 강의실')}
         </legend>
         <p className="text-xs text-secondary">{t('common:status.loading')}</p>
@@ -563,16 +759,13 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
     );
   }
 
-  // 404 means the room row hasn't been provisioned yet (event was created
-  // before BODA was wired in, or the provider was just switched). Show a
-  // helpful note instead of crashing.
   const status404 =
     error &&
     (error as { response?: { status?: number } }).response?.status === 404;
   if (status404 || !data) {
     return (
-      <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-2">
-        <legend className="text-xs font-semibold text-secondary px-1">
+      <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4">
+        <legend className="px-1 text-xs font-semibold text-secondary">
           {t('boda.sectionTitle', 'BODA 화상 강의실')}
         </legend>
         <p className="text-xs text-secondary">
@@ -582,8 +775,8 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
     );
   }
 
-  const badgeFor = (s: string) => {
-    switch (s) {
+  const badgeFor = (status: string) => {
+    switch (status) {
       case 'OPEN':
       case 'STARTED':
         return 'bg-green-100 text-green-800 border-green-300';
@@ -602,20 +795,18 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
 
   const isClosed = data.status === 'CLOSED';
   const isLive =
-    data.status === 'OPEN' ||
-    data.status === 'STARTED' ||
-    data.status === 'PAUSED';
+    data.status === 'OPEN' || data.status === 'STARTED' || data.status === 'PAUSED';
 
   return (
-    <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
-      <legend className="text-xs font-semibold text-secondary px-1">
+    <fieldset className="space-y-3 rounded-md border border-[var(--border-subtle)] p-4">
+      <legend className="px-1 text-xs font-semibold text-secondary">
         {t('boda.sectionTitle', 'BODA 화상 강의실')}
       </legend>
 
       <div className="flex items-center gap-2 text-xs">
         <span className="text-secondary">{t('boda.status', '상태')}:</span>
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ${badgeFor(
+          className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${badgeFor(
             data.status,
           )}`}
         >
@@ -630,8 +821,7 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         </button>
       </div>
 
-      {/* Timestamps */}
-      <ul className="text-[11px] text-secondary space-y-0.5 grid grid-cols-2 gap-x-3">
+      <ul className="grid grid-cols-2 gap-x-3 space-y-0.5 text-[11px] text-secondary">
         {data.openedAt && (
           <li>
             <span className="font-mono">{t('boda.openedAt', '개설')}:</span>{' '}
@@ -658,7 +848,6 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         )}
       </ul>
 
-      {/* Admin actions */}
       <div className="flex gap-2 pt-1">
         <Button
           type="button"
@@ -678,12 +867,15 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
             size="sm"
             disabled={closeMut.isPending}
             onClick={() => {
-              if (isLive && !confirm(t('boda.confirmForceClose', '진행 중인 룸을 강제 폐쇄하시겠습니까?'))) {
+              if (
+                isLive &&
+                !confirm(t('boda.confirmForceClose', '진행 중인 룸을 강제 폐쇄하시겠습니까?'))
+              ) {
                 return;
               }
               closeMut.mutate();
             }}
-            className="text-red-600 border-red-200 hover:bg-red-50"
+            className="border-red-200 text-red-600 hover:bg-red-50"
           >
             {closeMut.isPending
               ? t('common:status.loading')
@@ -692,7 +884,6 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         )}
       </div>
 
-      {/* Result toasts */}
       {reconMut.data && (
         <p className="text-[11px] text-blue-700">
           {t('boda.reconcileResult', '재동기화 완료')}: +{reconMut.data.inserted} /
@@ -701,14 +892,61 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
       )}
       {closeMut.data && (
         <p className="text-[11px] text-red-700">
-          {t('boda.forceCloseResult', '폐쇄 완료')} → {closeMut.data.status}
+          {t('boda.forceCloseResult', '폐쇄 완료')} - {closeMut.data.status}
         </p>
       )}
       {(reconMut.error || closeMut.error) && (
         <p className="text-[11px] text-red-600">
-          {((reconMut.error || closeMut.error) as { response?: { data?: { message?: string } } })?.response?.data?.message ?? t('common:status.error')}
+          {(
+            (reconMut.error || closeMut.error) as {
+              response?: { data?: { message?: string } };
+            }
+          )?.response?.data?.message ?? t('common:status.error')}
         </p>
       )}
     </fieldset>
   );
+}
+
+function normalizeEditorCategory(category: string): EditorCategory {
+  switch (category) {
+    case 'LEVEL_TEST':
+      return 'LEVEL_TEST';
+    case 'DEMO_CLASS':
+      return 'DEMO_CLASS';
+    case 'REGULAR_CLASS':
+      return 'REGULAR_CLASS';
+    case 'OTHER':
+      return 'OTHER';
+    case 'MEETING':
+      return 'DEMO_CLASS';
+    case 'EVENT':
+      return 'LEVEL_TEST';
+    case 'PERSONAL':
+      return 'OTHER';
+    case 'CLASS':
+    default:
+      return 'REGULAR_CLASS';
+  }
+}
+
+async function fetchCslAttachmentBlob(
+  inqId: string,
+  attId: string,
+  fallbackName: string,
+): Promise<{ filename: string; url: string }> {
+  const res = await apiClient.get<Blob>(
+    `/acm/csl/inquiries/${inqId}/attachments/${attId}/download`,
+    { responseType: 'blob' },
+  );
+  const contentDisposition =
+    (res.headers as Record<string, string | undefined> | undefined)?.[
+      'content-disposition'
+    ] ?? '';
+  const match = /filename\*?=(?:UTF-8'')?([^";]+)/i.exec(contentDisposition);
+  const filename = match ? decodeURIComponent(match[1]) : fallbackName;
+  return {
+    filename,
+    url: URL.createObjectURL(res.data),
+  };
 }

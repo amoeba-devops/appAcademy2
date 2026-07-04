@@ -10,6 +10,9 @@ import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-
 import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ACM_DS } from '../../acm-common/datasource';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
+import { AttachmentTypeormEntity } from '../../acm-csl/infrastructure/typeorm/attachment.typeorm-entity';
+import { MapTestTypeormEntity } from '../../acm-csl/infrastructure/typeorm/map-test.typeorm-entity';
+import { TrialClassTypeormEntity } from '../../acm-csl/infrastructure/typeorm/trial-class.typeorm-entity';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeService } from './cal-invitee.service';
 import type {
@@ -23,6 +26,23 @@ import {
 } from './invitee-notifier.service';
 import { BodaRoomService } from './boda-room.service';
 
+export interface CslAttachmentSummary {
+  id: string;
+  refId: string | null;
+  filename: string;
+  mime: string;
+  sizeBytes: string;
+  createdAt: string;
+}
+
+export interface CslEventLinkSummary {
+  kind: 'DEMO_CLASS' | 'LEVEL_TEST';
+  inqId: string;
+  refId: string;
+  feedbackBody?: string | null;
+  attachments: CslAttachmentSummary[];
+}
+
 @Injectable()
 export class CalEventService {
   constructor(
@@ -32,6 +52,12 @@ export class CalEventService {
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     @InjectRepository(TeacherTypeormEntity, ACM_DS)
     private readonly tchRepo: Repository<TeacherTypeormEntity>,
+    @InjectRepository(TrialClassTypeormEntity, ACM_DS)
+    private readonly trialClassRepo: Repository<TrialClassTypeormEntity>,
+    @InjectRepository(MapTestTypeormEntity, ACM_DS)
+    private readonly mapTestRepo: Repository<MapTestTypeormEntity>,
+    @InjectRepository(AttachmentTypeormEntity, ACM_DS)
+    private readonly attachmentRepo: Repository<AttachmentTypeormEntity>,
     private readonly inviteeSvc: CalInviteeService,
     private readonly notifier: InviteeNotifierService,
     private readonly bodaRoomSvc: BodaRoomService,
@@ -107,6 +133,10 @@ export class CalEventService {
       items.map((i) => i.assigneeTchId),
     );
     const counts = await this.inviteeSvc.countsByEvent(entId, items.map((i) => i.id));
+    const primaryStudents = await this.inviteeSvc.primaryStudentNamesByEvent(
+      entId,
+      items.map((i) => i.id),
+    );
 
     return {
       items: items.map((e) => ({
@@ -120,6 +150,8 @@ export class CalEventService {
           ? assigneeMap.get(e.assigneeTchId)?.email ?? null
           : null,
         inviteeCount: counts.get(e.id) ?? 0,
+        primaryStudentName:
+          primaryStudents.get(e.id) ?? this.extractStudentNameFromTitle(e.title) ?? null,
       })),
     };
   }
@@ -132,6 +164,7 @@ export class CalEventService {
     const ownerMap = await this.lookupOwners(entId, [e.ownerUserId]);
     const assigneeMap = await this.lookupAssignees(entId, [e.assigneeTchId]);
     const invitees = await this.inviteeSvc.listForEvent(entId, e.id);
+    const cslLink = await this.lookupCslLink(entId, e.id);
 
     return {
       ...this.toDetail(e),
@@ -144,6 +177,11 @@ export class CalEventService {
         ? assigneeMap.get(e.assigneeTchId)?.email ?? null
         : null,
       invitees,
+      primaryStudentName:
+        invitees.find((invitee) => invitee.kind === 'STUDENT')?.name ??
+        this.extractStudentNameFromTitle(e.title) ??
+        null,
+      cslLink,
     };
   }
 
@@ -186,18 +224,7 @@ export class CalEventService {
     });
     const saved = await this.repo.save(entity);
 
-    // REQ-260526 v2 FR-ROOM-1/2/4 — BODASCHOOL 이면 룸 PENDING 생성 후
-    // 런처 URL 을 다시 evt_meeting_url 에 채워서 저장한다. update 는 별도
-    // round-trip 으로 처리 (save() 가 returning row 를 주지 않을 수 있음).
-    if (saved.meetingProvider === 'BODASCHOOL') {
-      const { launcherUrl } = await this.bodaRoomSvc.createPending({
-        evtId: saved.id,
-        entId,
-        sesId: null,
-      });
-      saved.meetingUrl = launcherUrl;
-      await this.repo.update({ id: saved.id }, { meetingUrl: launcherUrl });
-    }
+    await this.ensureBodaLauncher(entId, saved);
 
     let notifySummary: NotifySummary | null = null;
     if (dto.evtInvitees && dto.evtInvitees.length > 0) {
@@ -243,16 +270,25 @@ export class CalEventService {
     if (dto.evtEndAt !== undefined) e.endAt = new Date(dto.evtEndAt);
     if (dto.evtAllDay !== undefined) e.allDay = dto.evtAllDay;
     if (dto.evtLocationText !== undefined) e.locationText = dto.evtLocationText;
+    const prevMeetingProvider = e.meetingProvider;
     if (dto.evtMeetingProvider !== undefined) e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
     if (dto.evtAssigneeTchId !== undefined) e.assigneeTchId = dto.evtAssigneeTchId;
 
     if (e.endAt <= e.startAt) throw new BadRequestException('END_BEFORE_START');
-    this.validateMeeting(e.meetingProvider, e.meetingUrl ?? undefined);
+    if (e.meetingProvider !== 'BODASCHOOL') {
+      this.validateMeeting(e.meetingProvider, e.meetingUrl ?? undefined);
+    }
 
     e.updatedAt = new Date();
     const saved = await this.repo.save(e);
+    if (saved.meetingProvider === 'BODASCHOOL') {
+      const shouldProvision = !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
+      if (shouldProvision) {
+        await this.ensureBodaLauncher(entId, saved);
+      }
+    }
 
     let notifySummary: NotifySummary | null = null;
     if (dto.evtInvitees !== undefined) {
@@ -347,6 +383,74 @@ export class CalEventService {
         throw new BadRequestException('MEETING_URL_REQUIRED');
       }
     }
+  }
+
+  private async ensureBodaLauncher(
+    entId: string,
+    event: CalEventTypeormEntity,
+  ): Promise<void> {
+    if (event.meetingProvider !== 'BODASCHOOL') return;
+    const { launcherUrl } = await this.bodaRoomSvc.createPending({
+      evtId: event.id,
+      entId,
+      sesId: null,
+    });
+    event.meetingUrl = launcherUrl;
+    await this.repo.update({ id: event.id }, { meetingUrl: launcherUrl });
+  }
+
+  private async lookupCslLink(
+    entId: string,
+    evtId: string,
+  ): Promise<CslEventLinkSummary | null> {
+    const demo = await this.trialClassRepo.findOne({
+      where: { entId, calEventId: evtId },
+    });
+    if (demo) {
+      const attachments = await this.attachmentRepo
+        .createQueryBuilder('a')
+        .where('a.entId = :entId', { entId })
+        .andWhere('a.inqId = :inqId', { inqId: demo.inqId })
+        .andWhere('a.category = :category', { category: 'MATERIAL' })
+        .andWhere('a.refId = :refId', { refId: demo.id })
+        .andWhere('a.deletedAt IS NULL')
+        .andWhere('a.uploadedBy IS NOT NULL')
+        .orderBy('a.createdAt', 'DESC')
+        .getMany();
+      return {
+        kind: 'DEMO_CLASS',
+        inqId: demo.inqId,
+        refId: demo.id,
+        feedbackBody: demo.feedbackBody ?? null,
+        attachments: attachments.map((row) => ({
+          id: row.id,
+          refId: row.refId ?? null,
+          filename: row.filename,
+          mime: row.mime,
+          sizeBytes: row.sizeBytes,
+          createdAt: row.createdAt.toISOString(),
+        })),
+      };
+    }
+
+    const levelTest = await this.mapTestRepo.findOne({
+      where: { entId, calEventId: evtId },
+    });
+    if (!levelTest) return null;
+    return {
+      kind: 'LEVEL_TEST',
+      inqId: levelTest.inqId,
+      refId: levelTest.id,
+      attachments: [],
+    };
+  }
+
+  private extractStudentNameFromTitle(title: string): string | null {
+    const demo = /^Demo Class\s+[-—]\s+(.+)$/i.exec(title);
+    if (demo?.[1]) return demo[1].trim();
+    const level = /^Level Test(?:\s+\(.+\))?\s+[-—]\s+(.+)$/i.exec(title);
+    if (level?.[1]) return level[1].trim();
+    return null;
   }
 
   private assertCanView(e: CalEventTypeormEntity, actorUserId: string, role: AcmRole) {

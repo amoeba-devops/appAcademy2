@@ -26,6 +26,7 @@ import { SettlementController } from './presentation/settlement.controller';
 import { ClsEnrollmentTypeormEntity } from './infrastructure/typeorm/cls-enrollment.typeorm-entity';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { AcmUserTypeormEntity } from '../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.ty
         SettlementLineTypeormEntity,
         StudentTypeormEntity,
         ParentTypeormEntity,
+        AcmUserTypeormEntity,
       ],
       ACM_DS,
     ),

@@ -48,7 +48,7 @@ export function useFeedback(sessionId: string | undefined) {
     enabled: !!sessionId,
     queryKey: ['cls', 'feedback', sessionId],
     queryFn: async () =>
-      (await apiClient.get<Feedback | null>(`/acm/cls/sessions/${sessionId}/feedback`)).data,
+      (await apiClient.get<Feedback[]>(`/acm/cls/sessions/${sessionId}/feedback`)).data,
   });
 }
 

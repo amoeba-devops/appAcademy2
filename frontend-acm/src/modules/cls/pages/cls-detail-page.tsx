@@ -52,7 +52,7 @@ export function ClsDetailPage() {
   return (
     <div>
       <Link
-        to="/cls"
+        to="/admin/cls"
         className="mb-3 inline-block text-sm text-secondary hover:text-primary"
       >
         {t('detail.back')}
@@ -133,7 +133,7 @@ export function ClsDetailPage() {
       {tab === 'info' && <ClsInfoCard cls={cls} />}
       {tab === 'students' && <ClsStudentsList students={cls.students} />}
       {tab === 'schedule' && <ClsRecurrenceList recurrences={cls.recurrences} />}
-      {tab === 'sessions' && <ClsRecentSessions classId={cls.id} />}
+      {tab === 'sessions' && <ClsRecentSessions classId={cls.id} students={cls.students} />}
     </div>
   );
 }
