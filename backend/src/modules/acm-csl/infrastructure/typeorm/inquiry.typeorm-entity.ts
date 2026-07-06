@@ -127,6 +127,10 @@ export class InquiryTypeormEntity {
   channelLegacy?: string | null;
   @Column({ name: 'enrolled_at', type: 'timestamptz', nullable: true })
   enrolledAt?: Date | null;
+
+  /** PLN-260706 — STD student auto-registered on CLASS_STARTED (idempotency link). */
+  @Column({ name: 'inq_std_id', type: 'uuid', nullable: true })
+  stdId?: string | null;
   @Column({ name: 'closed_at', type: 'timestamptz', nullable: true })
   closedAt?: Date | null;
 

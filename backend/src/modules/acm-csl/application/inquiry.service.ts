@@ -34,6 +34,7 @@ import type {
 } from './dto/inquiry.dto';
 import { validateLevelTestScoreDetail } from './dto/level-test-score.validator';
 import { StdInheritanceService } from './std-inheritance.service';
+import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.service';
 
 /**
  * 6-stage CSL pipeline transition matrix (acm-req-csl-001 v2.1 §4.1, §4.4).
@@ -74,6 +75,7 @@ export class InquiryService {
     private readonly crypto: AesGcmService,
     private readonly events: EventEmitter2,
     private readonly stdInheritance: StdInheritanceService,
+    private readonly enrollmentRegistration: CslEnrollmentRegistrationService,
   ) {}
 
   // ──────────────────────────────────────────────────────────────────────
@@ -873,6 +875,21 @@ export class InquiryService {
         actorId,
         inqId: inq.id,
       });
+
+      // PLN-260706 — auto-register the student/parent into STD management and
+      // issue their portal login accounts. Runs BEFORE MAP inheritance so the
+      // student row exists when inheritance matches it. Best-effort: failures
+      // must NOT abort the transition (the inquiry is already saved above).
+      try {
+        await this.enrollmentRegistration.register(entId, inq.id);
+      } catch (e) {
+        this.events.emit('acm.csl.enrollment_registration_failed', {
+          entId,
+          inqId: inq.id,
+          occurredAt: new Date().toISOString(),
+          error: e instanceof Error ? e.message : String(e),
+        });
+      }
 
       // REQ-260626 T-19 / Q-CSL-102 — best-effort inherit MAP scores to
       // the matching STD student. Failures here must NOT abort the
