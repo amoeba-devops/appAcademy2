@@ -27,6 +27,7 @@ function isPortalEndpoint(url: string): boolean {
   return (
     url.startsWith('/portal/cal') ||
     url.startsWith('/portal/posts') ||
+    url.startsWith('/portal/materials') ||
     url === '/portal/auth/change-password'
   );
 }

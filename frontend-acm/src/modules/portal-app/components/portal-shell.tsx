@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CalendarRange, LogOut } from 'lucide-react';
+import { Bell, CalendarRange, FolderOpen, LogOut } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 
 /**
@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth.store';
 const NAV = [
   { to: '/portal/notices', icon: Bell, key: 'notices', end: false },
   { to: '/portal/calendar', icon: CalendarRange, key: 'calendar', end: false },
+  { to: '/portal/materials', icon: FolderOpen, key: 'materials', end: false },
 ];
 
 export function PortalShell() {

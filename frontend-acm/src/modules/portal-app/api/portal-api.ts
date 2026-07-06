@@ -63,4 +63,36 @@ export const portalApi = {
 
   notice: async (slug: string) =>
     (await apiClient.get<PortalNotice>(`/portal/news/${slug}`)).data,
+
+  materials: async () =>
+    (await apiClient.get<PortalMaterial[]>('/portal/materials')).data,
+
+  downloadMaterial: async (id: string, filename: string) => {
+    const res = await apiClient.get(`/portal/materials/${id}/download`, {
+      responseType: 'blob',
+    });
+    triggerDownload(res.data as Blob, filename);
+  },
 };
+
+export interface PortalMaterial {
+  id: string;
+  clsId: string;
+  className: string | null;
+  title: string;
+  filename: string;
+  mime: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
