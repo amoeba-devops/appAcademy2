@@ -22,6 +22,33 @@
     "copied": "Đã sao chép",
     "close": "Đóng"
   },
+  "portalApp": {
+    "title": "Cổng Học viện",
+    "logout": "Đăng xuất",
+    "role": { "STUDENT": "Học sinh", "PARENT": "Phụ huynh", "TEACHER": "Giáo viên" },
+    "nav": { "notices": "Thông báo", "calendar": "Lịch học" },
+    "login": {
+      "title": "Đăng nhập cổng học viện",
+      "subtitle": "Đăng nhập bằng ID và mật khẩu được cấp.",
+      "loginId": "ID",
+      "password": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "firstHint": "Bạn phải đổi mật khẩu khi đăng nhập lần đầu.",
+      "invalid": "ID hoặc mật khẩu không đúng."
+    },
+    "changePw": {
+      "title": "Đổi mật khẩu",
+      "subtitle": "Vui lòng đổi mật khẩu khi đăng nhập lần đầu.",
+      "current": "Mật khẩu hiện tại",
+      "new": "Mật khẩu mới",
+      "confirm": "Xác nhận mật khẩu mới",
+      "submit": "Đổi",
+      "mismatch": "Mật khẩu mới không khớp.",
+      "failed": "Đổi mật khẩu thất bại. Kiểm tra mật khẩu hiện tại."
+    },
+    "cal": { "today": "Hôm nay", "month": "Tháng", "week": "Tuần", "day": "Ngày", "empty": "Không có lịch." },
+    "notices": { "empty": "Không có thông báo.", "back": "Về danh sách" }
+  },
   "nav": {
     "dashboard": "Bảng điều khiển",
     "csl": "Tư vấn mới",

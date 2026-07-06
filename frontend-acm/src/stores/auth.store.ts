@@ -21,17 +21,33 @@ export interface ParentUser {
   role: 'PARENT';
 }
 
-export type AuthRole = 'admin' | 'parent';
+/** PLN-260706 — unified portal user (student/parent/teacher) from `/portal/auth/login`. */
+export interface PortalSession {
+  id: string; // pac_id
+  entId: string;
+  kind: 'STUDENT' | 'PARENT' | 'TEACHER';
+  refId: string;
+  loginId: string;
+  mustChangePassword: boolean;
+}
+
+export type AuthRole = 'admin' | 'parent' | 'portal';
 
 interface AuthState {
   // ── Admin slot (legacy field names kept for backward compatibility) ──
   token: string | null;
   user: AcmUser | null;
 
-  // ── Parent slot ─────────────────────────────────────────────────────
+  // ── Parent slot (legacy OTP portal) ─────────────────────────────────
   parent: {
     token: string | null;
     user: ParentUser | null;
+  };
+
+  // ── Portal slot (PLN-260706 unified student/parent/teacher) ─────────
+  portal: {
+    token: string | null;
+    user: PortalSession | null;
   };
 
   // ── Active session marker — set on most recent login ────────────────
@@ -46,9 +62,15 @@ interface AuthState {
   setParentAuth: (token: string, user: ParentUser) => void;
   clearAdmin: () => void;
   clearParent: () => void;
+
+  // ── Portal actions ──────────────────────────────────────────────────
+  setPortalAuth: (token: string, user: PortalSession) => void;
+  clearPortalMustChange: () => void;
+  clearPortal: () => void;
 }
 
 const initialParent = { token: null, user: null };
+const initialPortal = { token: null, user: null };
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -56,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       parent: initialParent,
+      portal: initialPortal,
       active: null,
 
       setAuth: (token, user) =>
@@ -66,6 +89,16 @@ export const useAuthStore = create<AuthState>()(
 
       setParentAuth: (token, user) =>
         set({ parent: { token, user }, active: 'parent' }),
+
+      setPortalAuth: (token, user) =>
+        set({ portal: { token, user }, active: 'portal' }),
+
+      clearPortalMustChange: () =>
+        set((s) =>
+          s.portal.user
+            ? { portal: { ...s.portal, user: { ...s.portal.user, mustChangePassword: false } } }
+            : {},
+        ),
 
       clearAdmin: () =>
         set((s) => ({
@@ -80,12 +113,24 @@ export const useAuthStore = create<AuthState>()(
           active: s.active === 'parent' ? (s.token ? 'admin' : null) : s.active,
         })),
 
+      clearPortal: () =>
+        set((s) => ({
+          portal: initialPortal,
+          active: s.active === 'portal' ? (s.token ? 'admin' : null) : s.active,
+        })),
+
       clear: () =>
-        set({ token: null, user: null, parent: initialParent, active: null }),
+        set({
+          token: null,
+          user: null,
+          parent: initialParent,
+          portal: initialPortal,
+          active: null,
+        }),
     }),
     {
       name: 'acm-auth',
-      version: 3,
+      version: 4,
       migrate: (persisted, version) => {
         const p = (persisted ?? {}) as Partial<AuthState>;
         if (!version || version < 2) {
@@ -93,6 +138,7 @@ export const useAuthStore = create<AuthState>()(
             token: p.token ?? null,
             user: p.user ?? null,
             parent: initialParent,
+            portal: initialPortal,
             active: p.token ? 'admin' : null,
           } as Partial<AuthState> as AuthState;
         }
@@ -101,10 +147,16 @@ export const useAuthStore = create<AuthState>()(
             token: p.token ?? null,
             user: p.user ?? null,
             parent: initialParent,
+            portal: initialPortal,
             active: p.token ? 'admin' : null,
           } as AuthState;
         }
-        return p as AuthState;
+        // v3 → v4: introduce the portal slot.
+        return {
+          ...p,
+          parent: p.parent ?? initialParent,
+          portal: p.portal ?? initialPortal,
+        } as AuthState;
       },
     },
   ),

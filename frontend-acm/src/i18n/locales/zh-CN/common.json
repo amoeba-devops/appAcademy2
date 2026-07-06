@@ -22,6 +22,33 @@
     "copied": "已复制",
     "close": "关闭"
   },
+  "portalApp": {
+    "title": "学院门户",
+    "logout": "退出",
+    "role": { "STUDENT": "学生", "PARENT": "家长", "TEACHER": "教师" },
+    "nav": { "notices": "公告", "calendar": "课程表" },
+    "login": {
+      "title": "学院门户登录",
+      "subtitle": "使用发放的账号和密码登录。",
+      "loginId": "账号",
+      "password": "密码",
+      "submit": "登录",
+      "firstHint": "首次登录须修改密码。",
+      "invalid": "账号或密码不正确。"
+    },
+    "changePw": {
+      "title": "修改密码",
+      "subtitle": "请在首次登录时修改密码。",
+      "current": "当前密码",
+      "new": "新密码",
+      "confirm": "确认新密码",
+      "submit": "修改",
+      "mismatch": "两次新密码不一致。",
+      "failed": "修改密码失败，请检查当前密码。"
+    },
+    "cal": { "today": "今天", "month": "月", "week": "周", "day": "日", "empty": "暂无日程。" },
+    "notices": { "empty": "暂无公告。", "back": "返回列表" }
+  },
   "nav": {
     "dashboard": "대시보드",
     "csl": "신규 상담",

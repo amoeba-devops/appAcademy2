@@ -31,6 +31,7 @@ import { InstantEventService } from './application/instant-event.service';
 import { InviteeSuggestionsService } from './application/invitee-suggestions.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
+import { PortalCalController } from './presentation/portal-cal.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
 import { BodaConfigController } from './presentation/boda-config.controller';
 import { BodaLaunchController } from './presentation/boda-launch.controller';
@@ -70,6 +71,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   ],
   controllers: [
     CalEventController,
+    PortalCalController,
     CalInviteeCandidateController,
     BodaConfigController,
     BodaLaunchController,

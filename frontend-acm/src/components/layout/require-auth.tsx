@@ -11,13 +11,24 @@ interface Props {
 export function RequireAuth({ children, required_role = 'admin' }: Props) {
   const adminToken = useAuthStore((s) => s.token);
   const parentToken = useAuthStore((s) => s.parent.token);
+  const portalToken = useAuthStore((s) => s.portal.token);
   const location = useLocation();
 
-  const token = required_role === 'parent' ? parentToken : adminToken;
+  const token =
+    required_role === 'parent'
+      ? parentToken
+      : required_role === 'portal'
+        ? portalToken
+        : adminToken;
   if (!token) {
     const returnTo = encodeURIComponent(location.pathname + location.search);
     // REQ-260520 FR-03 — group-based auth URLs.
-    const loginPath = required_role === 'parent' ? '/parent/login' : '/admin/login';
+    const loginPath =
+      required_role === 'parent'
+        ? '/parent/login'
+        : required_role === 'portal'
+          ? '/portal/login'
+          : '/admin/login';
     return <Navigate to={`${loginPath}?returnTo=${returnTo}`} replace />;
   }
   return <>{children}</>;

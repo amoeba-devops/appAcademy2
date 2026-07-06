@@ -18,10 +18,27 @@ function isParentEndpoint(url: string): boolean {
   return url.startsWith('/portal/my') || url.startsWith('/auth/parent');
 }
 
+/**
+ * PLN-260706 — the unified portal (student/parent/teacher) uses its own JWT for
+ * `/portal/cal`, `/portal/posts`, and the authenticated portal-auth calls.
+ * `/portal/my` + `/auth/parent` stay on the legacy parent OTP token.
+ */
+function isPortalEndpoint(url: string): boolean {
+  return (
+    url.startsWith('/portal/cal') ||
+    url.startsWith('/portal/posts') ||
+    url === '/portal/auth/change-password'
+  );
+}
+
 apiClient.interceptors.request.use((config) => {
   const url = config.url ?? '';
   const state = useAuthStore.getState();
-  const token = isParentEndpoint(url) ? state.parent.token : state.token;
+  const token = isPortalEndpoint(url)
+    ? state.portal.token
+    : isParentEndpoint(url)
+      ? state.parent.token
+      : state.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -45,14 +62,22 @@ apiClient.interceptors.response.use(
       const path = window.location.pathname;
       const reqUrl: string = err.config?.url ?? '';
       const isParent = isParentEndpoint(reqUrl);
+      const isPortal = isPortalEndpoint(reqUrl);
       const store = useAuthStore.getState();
       // REQ-260520 FR-03 — group-based auth URLs.
       const onLoginPage =
         path.startsWith('/admin/login') ||
         path.startsWith('/parent/login') ||
+        path.startsWith('/portal/login') ||
         path === '/login' ||
         path.startsWith('/login/');
-      if (isParent) {
+      if (isPortal) {
+        store.clearPortal();
+        if (!onLoginPage) {
+          const returnTo = encodeURIComponent(path + window.location.search);
+          window.location.assign(`/portal/login?returnTo=${returnTo}`);
+        }
+      } else if (isParent) {
         store.clearParent();
         if (!onLoginPage) {
           const returnTo = encodeURIComponent(path + window.location.search);

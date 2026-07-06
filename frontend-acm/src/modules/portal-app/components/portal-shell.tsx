@@ -1,0 +1,76 @@
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Bell, CalendarRange, LogOut } from 'lucide-react';
+import { useAuthStore } from '@/stores/auth.store';
+
+/**
+ * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
+ * Menus are the same three for every role (notices / schedule);
+ * 자료실(materials) arrives in Phase 3.
+ */
+const NAV = [
+  { to: '/portal/notices', icon: Bell, key: 'notices', end: false },
+  { to: '/portal/calendar', icon: CalendarRange, key: 'calendar', end: false },
+];
+
+export function PortalShell() {
+  const { t } = useTranslation('common');
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.portal.user);
+  const clearPortal = useAuthStore((s) => s.clearPortal);
+
+  const logout = () => {
+    clearPortal();
+    navigate('/portal/login', { replace: true });
+  };
+
+  const roleLabel = user ? t(`portalApp.role.${user.kind}`) : '';
+
+  return (
+    <div className="min-h-screen bg-canvas">
+      <header className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-surface px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-primary">{t('portalApp.title')}</span>
+          {user && (
+            <span className="rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
+              {roleLabel} · {user.loginId}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={logout}
+          className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary"
+        >
+          <LogOut size={14} /> {t('portalApp.logout')}
+        </button>
+      </header>
+
+      <div className="mx-auto flex max-w-4xl gap-4 px-3 py-4">
+        <nav className="w-40 shrink-0 space-y-1">
+          {NAV.map((n) => {
+            const Icon = n.icon;
+            return (
+              <NavLink
+                key={n.key}
+                to={n.to}
+                end={n.end}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
+                    isActive
+                      ? 'bg-accent-600 text-white'
+                      : 'text-secondary hover:bg-[var(--gray-100)]'
+                  }`
+                }
+              >
+                <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}
+              </NavLink>
+            );
+          })}
+        </nav>
+        <main className="min-w-0 flex-1">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}

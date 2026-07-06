@@ -22,6 +22,33 @@
     "copied": "복사됨",
     "close": "닫기"
   },
+  "portalApp": {
+    "title": "학원 포털",
+    "logout": "로그아웃",
+    "role": { "STUDENT": "학생", "PARENT": "학부모", "TEACHER": "강사" },
+    "nav": { "notices": "공지사항", "calendar": "수업일정" },
+    "login": {
+      "title": "학원 포털 로그인",
+      "subtitle": "발급받은 아이디와 비밀번호로 로그인하세요.",
+      "loginId": "아이디",
+      "password": "비밀번호",
+      "submit": "로그인",
+      "firstHint": "최초 로그인 시 비밀번호를 변경해야 합니다.",
+      "invalid": "아이디 또는 비밀번호가 올바르지 않습니다."
+    },
+    "changePw": {
+      "title": "비밀번호 변경",
+      "subtitle": "최초 로그인 시 비밀번호를 변경하세요.",
+      "current": "현재 비밀번호",
+      "new": "새 비밀번호",
+      "confirm": "새 비밀번호 확인",
+      "submit": "변경",
+      "mismatch": "새 비밀번호가 일치하지 않습니다.",
+      "failed": "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인하세요."
+    },
+    "cal": { "today": "오늘", "month": "월", "week": "주", "day": "일", "empty": "일정이 없습니다." },
+    "notices": { "empty": "공지사항이 없습니다.", "back": "목록으로" }
+  },
   "nav": {
     "dashboard": "대시보드",
     "csl": "신규 상담",
