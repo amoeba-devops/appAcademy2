@@ -9,6 +9,7 @@ import { useUpdateClassStatus } from '../hooks/use-class-mutations';
 import type { ClsStatus } from '../types';
 import { ClsStatusBadge } from '../components/cls-status-badge';
 import { ClsInfoCard } from '../components/cls-info-card';
+import { MaterialsPanel } from '@/modules/material/components/materials-panel';
 import { ClsStudentsList } from '../components/cls-students-list';
 import { ClsRecurrenceList } from '../components/cls-recurrence-list';
 import { ClsRecentSessions } from '../components/cls-recent-sessions';
@@ -130,7 +131,12 @@ export function ClsDetailPage() {
         </ul>
       </nav>
 
-      {tab === 'info' && <ClsInfoCard cls={cls} />}
+      {tab === 'info' && (
+        <div className="space-y-4">
+          <ClsInfoCard cls={cls} />
+          <MaterialsPanel clsId={cls.id} />
+        </div>
+      )}
       {tab === 'students' && <ClsStudentsList students={cls.students} />}
       {tab === 'schedule' && <ClsRecurrenceList recurrences={cls.recurrences} />}
       {tab === 'sessions' && <ClsRecentSessions classId={cls.id} students={cls.students} />}

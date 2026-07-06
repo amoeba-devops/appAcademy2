@@ -11,6 +11,7 @@ import { AcmStdModule } from './acm-std/acm-std.module';
 import { AcmTchModule } from './acm-tch/acm-tch.module';
 import { AcmStfModule } from './acm-stf/acm-stf.module';
 import { AcmCalModule } from './acm-cal/acm-cal.module';
+import { AcmMaterialModule } from './acm-material/acm-material.module';
 import { AcmMapModule } from './acm-map/acm-map.module';
 import { AcmSystemModule } from './acm-system/acm-system.module';
 import { AcmPostsModule } from './acm-posts/acm-posts.module';
@@ -25,6 +26,7 @@ import { AcmNotificationModule } from './acm-notification/acm-notification.modul
  */
 @Module({
   imports: [
+    AcmMaterialModule,
     AcmCommonModule,
     AcmAuthModule,
     AcmSchModule,

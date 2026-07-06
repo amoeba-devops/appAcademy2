@@ -26,7 +26,7 @@
     "title": "학원 포털",
     "logout": "로그아웃",
     "role": { "STUDENT": "학생", "PARENT": "학부모", "TEACHER": "강사" },
-    "nav": { "notices": "공지사항", "calendar": "수업일정" },
+    "nav": { "notices": "공지사항", "calendar": "수업일정", "materials": "자료실" },
     "login": {
       "title": "학원 포털 로그인",
       "subtitle": "발급받은 아이디와 비밀번호로 로그인하세요.",
@@ -47,7 +47,17 @@
       "failed": "비밀번호 변경에 실패했습니다. 현재 비밀번호를 확인하세요."
     },
     "cal": { "today": "오늘", "month": "월", "week": "주", "day": "일", "empty": "일정이 없습니다." },
-    "notices": { "empty": "공지사항이 없습니다.", "back": "목록으로" }
+    "notices": { "empty": "공지사항이 없습니다.", "back": "목록으로" },
+    "materials": { "empty": "등록된 자료가 없습니다.", "download": "다운로드" }
+  },
+  "material": {
+    "title": "수업자료",
+    "titlePlaceholder": "자료 제목(선택)",
+    "upload": "업로드",
+    "uploadHint": "최대 20MB. 강사·관리자만 업로드할 수 있습니다.",
+    "empty": "등록된 자료가 없습니다.",
+    "download": "다운로드",
+    "delete": "삭제"
   },
   "nav": {
     "dashboard": "대시보드",

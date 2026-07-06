@@ -38,6 +38,7 @@ import { PortalLoginPage } from '@/modules/portal-app/pages/portal-login-page';
 import { PortalChangePasswordPage } from '@/modules/portal-app/pages/portal-change-password-page';
 import { PortalShell } from '@/modules/portal-app/components/portal-shell';
 import { PortalCalendarPage } from '@/modules/portal-app/pages/portal-calendar-page';
+import { PortalMaterialsPage } from '@/modules/portal-app/pages/portal-materials-page';
 import {
   PortalNoticesPage,
   PortalNoticeDetailPage,
@@ -138,6 +139,7 @@ export const router = createBrowserRouter([
       { path: 'notices', element: <PortalNoticesPage /> },
       { path: 'notices/:slug', element: <PortalNoticeDetailPage /> },
       { path: 'calendar', element: <PortalCalendarPage /> },
+      { path: 'materials', element: <PortalMaterialsPage /> },
     ],
   },
 

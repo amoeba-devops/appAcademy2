@@ -26,7 +26,7 @@
     "title": "Cổng Học viện",
     "logout": "Đăng xuất",
     "role": { "STUDENT": "Học sinh", "PARENT": "Phụ huynh", "TEACHER": "Giáo viên" },
-    "nav": { "notices": "Thông báo", "calendar": "Lịch học" },
+    "nav": { "notices": "Thông báo", "calendar": "Lịch học", "materials": "Tài liệu" },
     "login": {
       "title": "Đăng nhập cổng học viện",
       "subtitle": "Đăng nhập bằng ID và mật khẩu được cấp.",
@@ -47,7 +47,17 @@
       "failed": "Đổi mật khẩu thất bại. Kiểm tra mật khẩu hiện tại."
     },
     "cal": { "today": "Hôm nay", "month": "Tháng", "week": "Tuần", "day": "Ngày", "empty": "Không có lịch." },
-    "notices": { "empty": "Không có thông báo.", "back": "Về danh sách" }
+    "notices": { "empty": "Không có thông báo.", "back": "Về danh sách" },
+    "materials": { "empty": "Chưa có tài liệu.", "download": "Tải xuống" }
+  },
+  "material": {
+    "title": "Tài liệu",
+    "titlePlaceholder": "Tiêu đề (tùy chọn)",
+    "upload": "Tải lên",
+    "uploadHint": "Tối đa 20MB. Chỉ giáo viên/quản trị.",
+    "empty": "Chưa có tài liệu.",
+    "download": "Tải xuống",
+    "delete": "Xóa"
   },
   "nav": {
     "dashboard": "Bảng điều khiển",

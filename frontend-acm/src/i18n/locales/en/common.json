@@ -26,7 +26,7 @@
     "title": "Academy Portal",
     "logout": "Log out",
     "role": { "STUDENT": "Student", "PARENT": "Parent", "TEACHER": "Teacher" },
-    "nav": { "notices": "Notices", "calendar": "Schedule" },
+    "nav": { "notices": "Notices", "calendar": "Schedule", "materials": "Materials" },
     "login": {
       "title": "Academy Portal Login",
       "subtitle": "Sign in with the ID and password you were given.",
@@ -47,7 +47,17 @@
       "failed": "Password change failed. Check your current password."
     },
     "cal": { "today": "Today", "month": "Month", "week": "Week", "day": "Day", "empty": "No events." },
-    "notices": { "empty": "No notices.", "back": "Back to list" }
+    "notices": { "empty": "No notices.", "back": "Back to list" },
+    "materials": { "empty": "No materials yet.", "download": "Download" }
+  },
+  "material": {
+    "title": "Materials",
+    "titlePlaceholder": "Title (optional)",
+    "upload": "Upload",
+    "uploadHint": "Up to 20MB. Teachers/admins only.",
+    "empty": "No materials yet.",
+    "download": "Download",
+    "delete": "Delete"
   },
   "nav": {
     "dashboard": "Dashboard",

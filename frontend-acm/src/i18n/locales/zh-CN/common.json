@@ -26,7 +26,7 @@
     "title": "学院门户",
     "logout": "退出",
     "role": { "STUDENT": "学生", "PARENT": "家长", "TEACHER": "教师" },
-    "nav": { "notices": "公告", "calendar": "课程表" },
+    "nav": { "notices": "公告", "calendar": "课程表", "materials": "资料室" },
     "login": {
       "title": "学院门户登录",
       "subtitle": "使用发放的账号和密码登录。",
@@ -47,7 +47,17 @@
       "failed": "修改密码失败，请检查当前密码。"
     },
     "cal": { "today": "今天", "month": "月", "week": "周", "day": "日", "empty": "暂无日程。" },
-    "notices": { "empty": "暂无公告。", "back": "返回列表" }
+    "notices": { "empty": "暂无公告。", "back": "返回列表" },
+    "materials": { "empty": "暂无资料。", "download": "下载" }
+  },
+  "material": {
+    "title": "课程资料",
+    "titlePlaceholder": "标题（可选）",
+    "upload": "上传",
+    "uploadHint": "最大20MB，仅教师/管理员可上传。",
+    "empty": "暂无资料。",
+    "download": "下载",
+    "delete": "删除"
   },
   "nav": {
     "dashboard": "대시보드",
