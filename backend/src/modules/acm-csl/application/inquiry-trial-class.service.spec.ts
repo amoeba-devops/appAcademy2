@@ -12,6 +12,7 @@ import { TransitionTypeormEntity } from '../infrastructure/typeorm/transition.ty
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
 import { InquiryService } from './inquiry.service';
 import { StdInheritanceService } from './std-inheritance.service';
+import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.service';
 
 /**
  * REQ-260626 FR-CSL-122~128 — demo class update + feedback workflow.
@@ -48,6 +49,10 @@ describe('InquiryService — demo class + feedback', () => {
         {
           provide: StdInheritanceService,
           useValue: { inheritMapScoresOnClassStart: jest.fn() },
+        },
+        {
+          provide: CslEnrollmentRegistrationService,
+          useValue: { register: jest.fn() },
         },
       ],
     }).compile();

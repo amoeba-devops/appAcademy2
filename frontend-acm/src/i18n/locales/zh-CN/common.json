@@ -3,6 +3,25 @@
     "name": "ACM v1.0a",
     "title": "Academy Management"
   },
+  "portalAccount": {
+    "title": "门户账号",
+    "loginId": "登录ID",
+    "status": "状态",
+    "statusActive": "已激活",
+    "statusLocked": "已锁定",
+    "lastLogin": "最近登录",
+    "never": "无",
+    "notIssued": "尚未发放门户账号。",
+    "issueBtn": "发放账号",
+    "resetBtn": "重置密码",
+    "mustChange": "首次登录需修改密码。",
+    "credTitle": "发放结果（仅显示一次）",
+    "tempPassword": "临时密码",
+    "credHint": "请立即转交给学生/家长，之后不再显示。",
+    "copy": "复制",
+    "copied": "已复制",
+    "close": "关闭"
+  },
   "nav": {
     "dashboard": "대시보드",
     "csl": "신규 상담",

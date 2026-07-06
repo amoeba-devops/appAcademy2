@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { AmaUserPicker } from '@/components/common/ama-user-picker';
+import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
 import type { AmaPlatformUser } from '@/lib/ama-user-api';
 import {
   uploadTeacherAttachment,
@@ -674,6 +675,15 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                 </Button>
               </div>
             </fieldset>
+          )}
+
+          {isEdit && initial && (
+            <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+              <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
+                {t('common:portalAccount.title')}
+              </h3>
+              <PortalAccountPanel kind="TEACHER" refId={initial.id} />
+            </div>
           )}
 
           {error && <p className="text-sm text-red-600">{error}</p>}

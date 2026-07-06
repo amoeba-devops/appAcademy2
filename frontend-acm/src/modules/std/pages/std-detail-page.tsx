@@ -11,6 +11,7 @@ import {
 import { StdStatusBadge } from '../components/std-status-badge';
 import { StdFormModal } from '../components/std-form-modal';
 import { ParentPickOrCreateDialog } from '../components/parent-pick-or-create-dialog';
+import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
 
 function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
   return (
@@ -147,6 +148,14 @@ export function StdDetailPage() {
         <InfoRow label={t('field.satisfactionNote')} value={student.satisfactionNote} />
         <InfoRow label={t('field.lastCounselDate')} value={student.lastCounselDate} />
       </Section>
+
+      {/* 포털 계정 (PLN-260706) */}
+      <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
+          {t('common:portalAccount.title')}
+        </h3>
+        <PortalAccountPanel kind="STUDENT" refId={id!} />
+      </div>
 
       {/* 학부모 */}
       <div className="rounded-lg border border-[var(--border-subtle)] p-4">

@@ -15,13 +15,20 @@ import { ParentAuthService } from './application/parent-auth.service';
 import { ParentPortalService } from './application/parent-portal.service';
 import { AcmJwtStrategy } from './jwt/acm-jwt.strategy';
 import { ParentJwtStrategy } from './jwt/parent-jwt.strategy';
+import { PortalJwtStrategy } from './jwt/portal-jwt.strategy';
 import { AcmJwtAuthGuard } from './guards/acm-jwt-auth.guard';
 import { ParentJwtAuthGuard } from './guards/parent-jwt-auth.guard';
+import { PortalJwtAuthGuard } from './guards/portal-jwt-auth.guard';
+import { RolesGuard } from '../acm-common/guards/roles.guard';
+import { PortalAccountService } from './application/portal-account.service';
 import { AcmAuthController } from './presentation/acm-auth.controller';
 import { AmaUserController } from './presentation/ama-user.controller';
 import { AmaConfigController } from './presentation/ama-config.controller';
 import { ParentAuthController } from './presentation/parent-auth.controller';
 import { PortalMyController } from './presentation/portal-my.controller';
+import { PortalAuthController } from './presentation/portal-auth.controller';
+import { PortalAccountAdminController } from './presentation/portal-account-admin.controller';
+import { PortalAccountTypeormEntity } from './infrastructure/typeorm/portal-account.typeorm-entity';
 import { AcmTenantTypeormEntity } from '../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 import { AcmUserTypeormEntity } from './infrastructure/typeorm/acm-user.typeorm-entity';
 import { AmaConfigTypeormEntity } from './infrastructure/typeorm/ama-config.typeorm-entity';
@@ -143,6 +150,7 @@ const amaOAuthProvider: Provider = {
         MapScoreTypeormEntity,
         PayOrderTypeormEntity,
         PayRefundPolicyTypeormEntity,
+        PortalAccountTypeormEntity,
       ],
       ACM_DS,
     ),
@@ -153,6 +161,8 @@ const amaOAuthProvider: Provider = {
     AmaConfigController,
     ParentAuthController,
     PortalMyController,
+    PortalAuthController,
+    PortalAccountAdminController,
   ],
   providers: [
     AcmAuthService,
@@ -172,15 +182,21 @@ const amaOAuthProvider: Provider = {
     amaOAuthProvider,
     AcmJwtStrategy,
     ParentJwtStrategy,
+    PortalJwtStrategy,
     AcmJwtAuthGuard,
     ParentJwtAuthGuard,
+    PortalJwtAuthGuard,
+    RolesGuard,
+    PortalAccountService,
     AmaTokenVerifier,
   ],
   exports: [
     AcmAuthService,
     ParentAuthService,
+    PortalAccountService,
     AcmJwtAuthGuard,
     ParentJwtAuthGuard,
+    PortalJwtAuthGuard,
   ],
 })
 export class AcmAuthModule {}

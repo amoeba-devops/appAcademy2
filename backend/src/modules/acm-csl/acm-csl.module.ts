@@ -24,7 +24,12 @@ import { TeacherAssignmentService } from './application/teacher-assignment.servi
 import { CourseService } from './application/course.service';
 // REQ-260626 T-19 — MAP→STD inheritance hook
 import { StdInheritanceService } from './application/std-inheritance.service';
+// PLN-260706 — CLASS_STARTED student/parent auto-registration + portal accounts
+import { CslEnrollmentRegistrationService } from './application/csl-enrollment-registration.service';
+import { AcmAuthModule } from '../acm-auth/acm-auth.module';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { StudentParentTypeormEntity } from '../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 // REQ-260630 PDF improvement — teacher lookup for the level-test report
 import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 // REQ-260626 T-13 — level-test result PDF
@@ -62,6 +67,9 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
         // REQ-260626 T-19 — read-only access to the STD student row from
         // the CSL module so we can copy MAP scores on CLASS_STARTED.
         StudentTypeormEntity,
+        // PLN-260706 — parent + link tables for CLASS_STARTED auto-registration.
+        ParentTypeormEntity,
+        StudentParentTypeormEntity,
         // REQ-260630 — read-only access for the level-test PDF teacher block.
         TeacherTypeormEntity,
       ],
@@ -69,6 +77,8 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     ),
     AcmCalModule,
     AcmAuditModule,
+    // PLN-260706 — PortalAccountService for auto-issuing portal login accounts.
+    AcmAuthModule,
   ],
   controllers: [InquiryController, WebInquiryController, CourseController],
   providers: [
@@ -77,6 +87,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     TeacherAssignmentService,
     CourseService,
     StdInheritanceService,
+    CslEnrollmentRegistrationService,
     LevelTestPdfService,
     CslCalLinkerService,
     AttachmentService,

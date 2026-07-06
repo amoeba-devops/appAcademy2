@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { Fragment, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
 import { useTranslation } from 'react-i18next';
 import { Search, Trash2, Pencil, BadgeCheck, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -163,7 +164,8 @@ export function ParentListPage() {
             )}
             {items.map((p) =>
               edit?.id === p.id ? (
-                <tr key={p.id} className="bg-[var(--canvas-subtle)]">
+                <Fragment key={p.id}>
+                <tr className="bg-[var(--canvas-subtle)]">
                   <td className="px-3 py-2">
                     <input
                       value={edit.parName}
@@ -208,6 +210,12 @@ export function ParentListPage() {
                     </Button>
                   </td>
                 </tr>
+                <tr className="bg-[var(--canvas-subtle)]">
+                  <td colSpan={7} className="px-3 pb-3">
+                    <PortalAccountPanel kind="PARENT" refId={p.id} />
+                  </td>
+                </tr>
+                </Fragment>
               ) : (
                 <tr key={p.id} className="hover:bg-[var(--canvas-subtle)]">
                   <td className="px-3 py-2 font-medium text-primary">{p.name}</td>
