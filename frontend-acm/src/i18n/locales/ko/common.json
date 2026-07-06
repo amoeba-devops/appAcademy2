@@ -3,6 +3,25 @@
     "name": "ACM v1.0a",
     "title": "Academy Management"
   },
+  "portalAccount": {
+    "title": "포털 계정",
+    "loginId": "로그인 ID",
+    "status": "상태",
+    "statusActive": "활성",
+    "statusLocked": "잠김",
+    "lastLogin": "마지막 로그인",
+    "never": "없음",
+    "notIssued": "아직 포털 계정이 발급되지 않았습니다.",
+    "issueBtn": "계정 발급",
+    "resetBtn": "비밀번호 재발급",
+    "mustChange": "최초 로그인 시 비밀번호 변경이 필요합니다.",
+    "credTitle": "발급 결과 (1회 표시)",
+    "tempPassword": "임시 비밀번호",
+    "credHint": "지금 학생·학부모에게 전달하세요. 이후 다시 표시되지 않습니다.",
+    "copy": "복사",
+    "copied": "복사됨",
+    "close": "닫기"
+  },
   "nav": {
     "dashboard": "대시보드",
     "csl": "신규 상담",

@@ -3,6 +3,25 @@
     "name": "ACM v1.0a",
     "title": "Quản lý Học viện"
   },
+  "portalAccount": {
+    "title": "Tài khoản cổng",
+    "loginId": "ID đăng nhập",
+    "status": "Trạng thái",
+    "statusActive": "Hoạt động",
+    "statusLocked": "Đã khóa",
+    "lastLogin": "Đăng nhập gần nhất",
+    "never": "Chưa từng",
+    "notIssued": "Chưa cấp tài khoản cổng.",
+    "issueBtn": "Cấp tài khoản",
+    "resetBtn": "Cấp lại mật khẩu",
+    "mustChange": "Cần đổi mật khẩu khi đăng nhập lần đầu.",
+    "credTitle": "Thông tin đăng nhập (hiển thị một lần)",
+    "tempPassword": "Mật khẩu tạm",
+    "credHint": "Hãy chuyển cho học sinh/phụ huynh ngay. Sẽ không hiển thị lại.",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "close": "Đóng"
+  },
   "nav": {
     "dashboard": "Bảng điều khiển",
     "csl": "Tư vấn mới",

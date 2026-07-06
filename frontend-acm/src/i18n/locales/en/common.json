@@ -3,6 +3,25 @@
     "name": "ACM v1.0a",
     "title": "Academy Management"
   },
+  "portalAccount": {
+    "title": "Portal account",
+    "loginId": "Login ID",
+    "status": "Status",
+    "statusActive": "Active",
+    "statusLocked": "Locked",
+    "lastLogin": "Last login",
+    "never": "Never",
+    "notIssued": "No portal account issued yet.",
+    "issueBtn": "Issue account",
+    "resetBtn": "Reset password",
+    "mustChange": "Password change required on first login.",
+    "credTitle": "Credentials (shown once)",
+    "tempPassword": "Temp password",
+    "credHint": "Hand this over now — it won't be shown again.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "close": "Close"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "csl": "New Counseling",
