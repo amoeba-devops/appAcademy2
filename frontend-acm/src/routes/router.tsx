@@ -34,6 +34,14 @@ import { ProgramsPage } from '@/modules/portal/pages/programs-page';
 import { ProgramDetailPage } from '@/modules/portal/pages/program-detail-page';
 import { NewsListPage } from '@/modules/portal/pages/news-list-page';
 import { NewsDetailPage } from '@/modules/portal/pages/news-detail-page';
+import { PortalLoginPage } from '@/modules/portal-app/pages/portal-login-page';
+import { PortalChangePasswordPage } from '@/modules/portal-app/pages/portal-change-password-page';
+import { PortalShell } from '@/modules/portal-app/components/portal-shell';
+import { PortalCalendarPage } from '@/modules/portal-app/pages/portal-calendar-page';
+import {
+  PortalNoticesPage,
+  PortalNoticeDetailPage,
+} from '@/modules/portal-app/pages/portal-notices-page';
 import { MyDashboardPage } from '@/modules/my/pages/dashboard-page';
 import { MyPaymentsPage } from '@/modules/my/pages/payments-page';
 import { MyScoresPage } from '@/modules/my/pages/scores-page';
@@ -105,6 +113,31 @@ export const router = createBrowserRouter([
       { path: 'payments', element: <MyPaymentsPage /> },
       { path: 'scores', element: <MyScoresPage /> },
       { path: 'timetable', element: <MyTimetablePage /> },
+    ],
+  },
+
+  // ── Unified portal (student/parent/teacher) — PLN-260706 Phase 2 ────
+  { path: '/portal/login', element: <PortalLoginPage /> },
+  {
+    path: '/portal/change-password',
+    element: (
+      <RequireAuth required_role="portal">
+        <PortalChangePasswordPage />
+      </RequireAuth>
+    ),
+  },
+  {
+    path: '/portal',
+    element: (
+      <RequireAuth required_role="portal">
+        <PortalShell />
+      </RequireAuth>
+    ),
+    children: [
+      { index: true, element: <Navigate to="/portal/notices" replace /> },
+      { path: 'notices', element: <PortalNoticesPage /> },
+      { path: 'notices/:slug', element: <PortalNoticeDetailPage /> },
+      { path: 'calendar', element: <PortalCalendarPage /> },
     ],
   },
 

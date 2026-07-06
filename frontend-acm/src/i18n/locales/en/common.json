@@ -22,6 +22,33 @@
     "copied": "Copied",
     "close": "Close"
   },
+  "portalApp": {
+    "title": "Academy Portal",
+    "logout": "Log out",
+    "role": { "STUDENT": "Student", "PARENT": "Parent", "TEACHER": "Teacher" },
+    "nav": { "notices": "Notices", "calendar": "Schedule" },
+    "login": {
+      "title": "Academy Portal Login",
+      "subtitle": "Sign in with the ID and password you were given.",
+      "loginId": "ID",
+      "password": "Password",
+      "submit": "Sign in",
+      "firstHint": "You must change your password on first login.",
+      "invalid": "Invalid ID or password."
+    },
+    "changePw": {
+      "title": "Change password",
+      "subtitle": "Please change your password on first login.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Change",
+      "mismatch": "New passwords do not match.",
+      "failed": "Password change failed. Check your current password."
+    },
+    "cal": { "today": "Today", "month": "Month", "week": "Week", "day": "Day", "empty": "No events." },
+    "notices": { "empty": "No notices.", "back": "Back to list" }
+  },
   "nav": {
     "dashboard": "Dashboard",
     "csl": "New Counseling",

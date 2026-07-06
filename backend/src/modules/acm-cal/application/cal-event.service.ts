@@ -126,7 +126,70 @@ export class CalEventService {
 
     qb.orderBy('e.startAt', 'ASC');
     const items = await qb.getMany();
+    return { items: await this.enrichItems(entId, items) };
+  }
 
+  /**
+   * PLN-260706 §4.4 — portal "my events" list (read-only). Filters to the
+   * events the caller is related to by role:
+   *   STUDENT → invitee(kind=STUDENT, refId=std_id)
+   *   TEACHER → assignee OR invitee(kind=TEACHER, refId=tch_id)
+   *   PARENT  → any child (std) is a STUDENT invitee
+   */
+  async listForPortal(
+    entId: string,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    q: { from: string; to: string; category?: string },
+  ) {
+    const from = new Date(q.from);
+    const to = new Date(q.to);
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from >= to) {
+      throw new BadRequestException('INVALID_RANGE');
+    }
+
+    const qb = this.repo
+      .createQueryBuilder('e')
+      .where('e.entId = :entId', { entId })
+      .andWhere('e.deletedAt IS NULL')
+      .andWhere('e.startAt < :to', { to })
+      .andWhere('e.endAt > :from', { from });
+    if (q.category) qb.andWhere('e.category = :category', { category: q.category });
+
+    if (kind === 'STUDENT') {
+      qb.andWhere(
+        `EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
+                  WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
+                    AND i.inv_kind = 'STUDENT' AND i.inv_ref_id = :ref)`,
+        { ref: refId },
+      );
+    } else if (kind === 'TEACHER') {
+      qb.andWhere(
+        `(e.evt_assignee_tch_id = :ref OR EXISTS (
+            SELECT 1 FROM amb_acm_cal_invitee i
+            WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
+              AND i.inv_kind = 'TEACHER' AND i.inv_ref_id = :ref))`,
+        { ref: refId },
+      );
+    } else {
+      // PARENT — events where any of the parent's children (STUDENT invitee) appears.
+      qb.andWhere(
+        `EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
+                  JOIN amb_acm_std_student_parent sp
+                    ON sp.std_id = i.inv_ref_id AND sp.ent_id = i.ent_id
+                  WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
+                    AND i.inv_kind = 'STUDENT' AND sp.par_id = :ref)`,
+        { ref: refId },
+      );
+    }
+
+    qb.orderBy('e.startAt', 'ASC');
+    const items = await qb.getMany();
+    return { items: await this.enrichItems(entId, items) };
+  }
+
+  /** Shared enrichment — owner/assignee names, invitee counts, primary student. */
+  private async enrichItems(entId: string, items: CalEventTypeormEntity[]) {
     const ownerMap = await this.lookupOwners(entId, items.map((i) => i.ownerUserId));
     const assigneeMap = await this.lookupAssignees(
       entId,
@@ -138,22 +201,20 @@ export class CalEventService {
       items.map((i) => i.id),
     );
 
-    return {
-      items: items.map((e) => ({
-        ...this.toDetail(e),
-        ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
-        ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
-        assigneeName: e.assigneeTchId
-          ? assigneeMap.get(e.assigneeTchId)?.name ?? null
-          : null,
-        assigneeEmail: e.assigneeTchId
-          ? assigneeMap.get(e.assigneeTchId)?.email ?? null
-          : null,
-        inviteeCount: counts.get(e.id) ?? 0,
-        primaryStudentName:
-          primaryStudents.get(e.id) ?? this.extractStudentNameFromTitle(e.title) ?? null,
-      })),
-    };
+    return items.map((e) => ({
+      ...this.toDetail(e),
+      ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
+      ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
+      assigneeName: e.assigneeTchId
+        ? assigneeMap.get(e.assigneeTchId)?.name ?? null
+        : null,
+      assigneeEmail: e.assigneeTchId
+        ? assigneeMap.get(e.assigneeTchId)?.email ?? null
+        : null,
+      inviteeCount: counts.get(e.id) ?? 0,
+      primaryStudentName:
+        primaryStudents.get(e.id) ?? this.extractStudentNameFromTitle(e.title) ?? null,
+    }));
   }
 
   async findOne(entId: string, actorUserId: string, actorRole: AcmRole, id: string) {
