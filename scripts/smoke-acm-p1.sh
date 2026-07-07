@@ -21,10 +21,12 @@ if [[ -z "${BASE_URL}" ]]; then
 fi
 
 # If no TOKEN provided, log in via /api/acm/auth/login using
-# ACM_SMOKE_EMAIL / ACM_SMOKE_PASSWORD (defaults match the seed admin).
+# ACM_SMOKE_EMAIL / ACM_SMOKE_PASSWORD.
+# NOTE: the old seed default password was rotated on staging + production
+# (2026-07-07), so ACM_SMOKE_PASSWORD is now REQUIRED — no hardcoded default.
 if [[ -z "${TOKEN}" ]]; then
   EMAIL="${ACM_SMOKE_EMAIL:-admin@tpi.co.kr}"
-  PASSWORD="${ACM_SMOKE_PASSWORD:-acm20261234}"
+  PASSWORD="${ACM_SMOKE_PASSWORD:?set ACM_SMOKE_PASSWORD (seed default was rotated) or pass TOKEN=...}"
   echo "Logging in as ${EMAIL} ..."
   login_resp="$(curl -s -X POST -H 'Content-Type: application/json' \
         --data "{\"email\":\"${EMAIL}\",\"password\":\"${PASSWORD}\"}" \
