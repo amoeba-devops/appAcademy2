@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api-client';
+import type { ClassCreatePrefill } from '@/modules/cls/types';
 
 interface InquiryDetail {
+  id: string;
+  stdId?: string | null;
   studentName: string;
   parentName: string | null;
   parentPhone: string | null;
@@ -55,6 +60,7 @@ interface Course {
 interface Teacher {
   id: string;
   name: string;
+  userId?: string | null;
 }
 
 interface TeacherAssignment {
@@ -68,7 +74,8 @@ type SectionKey = 'intake' | 'classInfo';
 const DEFAULT_OPEN: SectionKey[] = ['intake', 'classInfo'];
 
 export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
-  const { t } = useTranslation(['csl', 'common']);
+  const { t } = useTranslation(['csl', 'cls', 'common']);
+  const navigate = useNavigate();
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(
     () => new Set(DEFAULT_OPEN),
   );
@@ -146,6 +153,9 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
   });
 
   const teacherName = new Map(teachers.map((teacher) => [teacher.id, teacher.name]));
+  const teacherUserIdByTeacherId = new Map(
+    teachers.map((teacher) => [teacher.id, teacher.userId ?? null]),
+  );
   const courseName = new Map(
     courses.map((course) => [course.id, `${course.code} — ${course.name}`]),
   );
@@ -158,6 +168,21 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
       return `${role} ${name}`;
     })
     .join(', ');
+  const primaryAssignment = assignments.find((assignment) => assignment.role === 'PRIMARY') ?? assignments[0];
+  const createClassPrefill: ClassCreatePrefill = {
+    inquiryId: inq?.id,
+    courseId: enrollment?.courseId ?? undefined,
+    teacherUserId: primaryAssignment
+      ? (teacherUserIdByTeacherId.get(primaryAssignment.teacherId) ?? undefined)
+      : undefined,
+    startedAt: enrollment?.startDate ?? undefined,
+    endedAt: enrollment?.endDate ?? undefined,
+    // Assumes std.id and the class-student id space are the same (as the
+    // manual create flow selects from the std list into studentUserId). If
+    // those ids ever diverge, the prefilled student would not resolve.
+    studentIds: inq?.stdId ? [inq.stdId] : [],
+    primaryStudentId: inq?.stdId ?? undefined,
+  };
 
   function toggle(section: SectionKey): void {
     setOpenSections((current) => {
@@ -170,15 +195,27 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
 
   return (
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5 grid gap-3">
-      <div>
-        <h2 className="text-base font-semibold">
-          {t('detail.classStatus.title', { defaultValue: '6. 수강 현황' })}
-        </h2>
-        <p className="mt-1 text-[11px] text-secondary">
-          {t('detail.classStatus.subtitle', {
-            defaultValue: '접수 내용과 현재 운영 중인 수업 정보를 한 번에 확인합니다.',
-          })}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold">
+            {t('detail.classStatus.title', { defaultValue: '6. 수강 현황' })}
+          </h2>
+          <p className="mt-1 text-[11px] text-secondary">
+            {t('detail.classStatus.subtitle', {
+              defaultValue: '접수 내용과 현재 운영 중인 수업 정보를 한 번에 확인합니다.',
+            })}
+          </p>
+        </div>
+        <Button
+          type="button"
+          onClick={() =>
+            navigate('/admin/cls', {
+              state: { createClassPrefill },
+            })
+          }
+        >
+          {t('cls:actions.createClass', { defaultValue: '수업 생성' })}
+        </Button>
       </div>
 
       <AccordionSection

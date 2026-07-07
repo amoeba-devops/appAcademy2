@@ -5,6 +5,10 @@ export type ClsSubjectType =
   | 'MAP_TEST'
   | 'SSAT'
   | 'ISEE'
+  | 'ENGLISH_TEST'
+  | 'SAT'
+  | 'ACT'
+  | 'COMPETITION'
   | 'WRITING'
   | 'LANGUAGE_ARTS'
   | 'MATH'
@@ -37,6 +41,9 @@ export class ClassTypeormEntity {
 
   @Column({ name: 'cls_subject_label', type: 'varchar', length: 200, nullable: true })
   subjectLabel?: string | null;
+
+  @Column({ name: 'cls_course_id', type: 'uuid', nullable: true })
+  courseId?: string | null;
 
   @Column({ name: 'cls_ref_guideline_id', type: 'uuid', nullable: true })
   refGuidelineId?: string | null;

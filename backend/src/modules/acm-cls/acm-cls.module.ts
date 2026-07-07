@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CourseTypeormEntity } from '../acm-csl/infrastructure/typeorm/course.typeorm-entity';
 import { ACM_DS } from '../acm-common/datasource';
 import { AttendanceService } from './application/attendance.service';
 import { EnrollmentAdminService } from './application/enrollment-admin.service';
@@ -46,6 +47,7 @@ import { AcmUserTypeormEntity } from '../acm-auth/infrastructure/typeorm/acm-use
         StudentTypeormEntity,
         ParentTypeormEntity,
         AcmUserTypeormEntity,
+        CourseTypeormEntity,
       ],
       ACM_DS,
     ),

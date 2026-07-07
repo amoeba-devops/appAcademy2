@@ -1,18 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import type { ClsStatus, ClsSubjectType } from '../types';
+import { CLS_SUBJECT_TYPES, type ClsStatus, type ClsSubjectType } from '../types';
 
 const STATUS_OPTIONS: ClsStatus[] = ['PROPOSED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'];
-const SUBJECT_OPTIONS: ClsSubjectType[] = [
-  'MAP_TEST',
-  'SSAT',
-  'ISEE',
-  'WRITING',
-  'LANGUAGE_ARTS',
-  'MATH',
-  'INTL_PREP',
-  'DEMO',
-  'OTHER',
-];
 
 export interface ClsFilterValue {
   status: ClsStatus | '';
@@ -59,7 +48,7 @@ export function ClsFilters({ value, onChange }: ClsFiltersProps) {
         className={selectClass}
       >
         <option value="">{`${t('filter.labelSubject')}: ${t('filter.all')}`}</option>
-        {SUBJECT_OPTIONS.map((s) => (
+        {CLS_SUBJECT_TYPES.map((s) => (
           <option key={s} value={s}>
             {t(`subjectType.${s}`)}
           </option>

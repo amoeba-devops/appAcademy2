@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useClasses } from '../hooks/use-classes';
-import type { ClassSummary } from '../types';
+import type { ClassCreatePrefill, ClassSummary } from '../types';
 import { ClsFilters, type ClsFilterValue } from '../components/cls-filters';
 import { ClsTable } from '../components/cls-table';
 import { ClassCreateDialog } from '../components/class-create-dialog';
@@ -18,9 +18,28 @@ const EMPTY: ClsFilterValue = {
 
 export function ClsListPage() {
   const { t } = useTranslation(['cls', 'common']);
+  const location = useLocation();
   const navigate = useNavigate();
   const [filters, setFilters] = useState<ClsFilterValue>(EMPTY);
   const [createOpen, setCreateOpen] = useState(false);
+  // Snapshot the router-state prefill once on mount. We intentionally hold it
+  // in component state (not derived from `location`) so that clearing the
+  // router state below does not null it out before the dialog consumes it.
+  const [prefill, setPrefill] = useState<ClassCreatePrefill | null>(
+    () =>
+      (location.state as { createClassPrefill?: ClassCreatePrefill } | null)
+        ?.createClassPrefill ?? null,
+  );
+
+  useEffect(() => {
+    if (!prefill) return;
+    setCreateOpen(true);
+    // Clear the router state so a refresh / back navigation does not re-trigger
+    // the prefill; the snapshot above keeps it available for the dialog.
+    navigate(location.pathname, { replace: true, state: null });
+    // Run once on mount — `prefill` is a stable snapshot, not location-derived.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data, isLoading } = useClasses({
     status: filters.status || undefined,
@@ -63,8 +82,14 @@ export function ClsListPage() {
 
       <ClassCreateDialog
         open={createOpen}
-        onOpenChange={setCreateOpen}
+        onOpenChange={(next) => {
+          setCreateOpen(next);
+          // Drop the prefill snapshot once the dialog closes so a subsequent
+          // manual "+ Create" opens a clean form.
+          if (!next) setPrefill(null);
+        }}
         onCreated={(classId) => navigate(`/admin/cls/${classId}`)}
+        prefill={prefill}
       />
     </div>
   );

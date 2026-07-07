@@ -23,6 +23,10 @@ export const CLS_SUBJECT_TYPES = [
   'MAP_TEST',
   'SSAT',
   'ISEE',
+  'ENGLISH_TEST',
+  'SAT',
+  'ACT',
+  'COMPETITION',
   'WRITING',
   'LANGUAGE_ARTS',
   'MATH',
@@ -92,6 +96,9 @@ export class CreateClassDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
   subjectLabel?: string;
+
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  courseId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   refGuidelineId?: string;

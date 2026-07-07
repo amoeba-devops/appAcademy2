@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
+import { CourseTypeormEntity } from '../../acm-csl/infrastructure/typeorm/course.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../infrastructure/typeorm/class-student.typeorm-entity';
 import { ClassTypeormEntity } from '../infrastructure/typeorm/class.typeorm-entity';
@@ -31,6 +32,8 @@ export class ClassService {
     private readonly vcfRepo: Repository<VideoConfigTypeormEntity>,
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
+    @InjectRepository(CourseTypeormEntity, ACM_DS)
+    private readonly courseRepo: Repository<CourseTypeormEntity>,
     @InjectRepository(StudentTypeormEntity, ACM_DS)
     private readonly stdRepo: Repository<StudentTypeormEntity>,
     private readonly events: EventEmitter2,
@@ -56,6 +59,9 @@ export class ClassService {
     if (!dto.recurrences.length) {
       throw new BadRequestException('At least one recurrence is required');
     }
+    if (dto.courseId) {
+      await this.assertCourseExists(entId, dto.courseId);
+    }
 
     const code = await this.nextCode(entId);
     const now = new Date();
@@ -70,6 +76,7 @@ export class ClassService {
         startedFrom: dto.startedFrom ?? 'DIRECT_ENROLLMENT',
         subjectType: dto.subjectType,
         subjectLabel: dto.subjectLabel ?? null,
+        courseId: dto.courseId ?? null,
         refGuidelineId: dto.refGuidelineId ?? null,
         teacherUserId: dto.teacherUserId,
         isDemo: dto.isDemo ?? false,
@@ -222,6 +229,11 @@ export class ClassService {
     if (!c) throw new NotFoundException('Class not found');
     if (dto.subjectType !== undefined) c.subjectType = dto.subjectType;
     if (dto.subjectLabel !== undefined) c.subjectLabel = dto.subjectLabel ?? null;
+    if (dto.courseId !== undefined) {
+      // `null` clears the link; only validate when an actual id is supplied.
+      if (dto.courseId) await this.assertCourseExists(entId, dto.courseId);
+      c.courseId = dto.courseId ?? null;
+    }
     if (dto.teacherUserId !== undefined) c.teacherUserId = dto.teacherUserId;
     if (dto.isDemo !== undefined) c.isDemo = dto.isDemo;
     if (dto.isInPersonDefault !== undefined) c.isInPersonDefault = dto.isInPersonDefault;
@@ -319,5 +331,16 @@ export class ClassService {
       select: ['id', 'name'],
     });
     return new Map(rows.map((row) => [row.id, row.name]));
+  }
+
+  private async assertCourseExists(entId: string, courseId: string): Promise<void> {
+    // Only an active course in this tenant may be linked; inactive/unknown
+    // ids are rejected so classes cannot point at retired catalog entries.
+    const exists = await this.courseRepo.exist({
+      where: { entId, id: courseId, isActive: true },
+    });
+    if (!exists) {
+      throw new BadRequestException('VAL_COURSE_NOT_FOUND');
+    }
   }
 }

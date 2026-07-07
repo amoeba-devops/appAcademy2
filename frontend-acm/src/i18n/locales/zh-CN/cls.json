@@ -1,249 +1,253 @@
 {
-  "title": "수업 관리",
+  "title": "课程管理",
   "tabs": {
-    "list": "수업 목록",
-    "calendar": "달력",
-    "settlements": "정산"
+    "list": "课程列表",
+    "calendar": "日历",
+    "settlements": "结算"
   },
   "actions": {
-    "createClass": "수업 생성",
-    "editClass": "수업 수정",
-    "addSession": "세션 추가",
-    "reschedule": "일정 변경",
-    "cancel": "취소",
-    "hold": "수업 진행",
-    "recordAttendance": "출석 기록",
-    "writeFeedback": "피드백 작성",
-    "proposeMakeup": "보강 제안",
-    "approveMakeup": "보강 승인",
-    "rejectMakeup": "보강 반려",
-    "confirmSettlement": "정산 확정",
-    "recompute": "재계산",
-    "generate": "세션 생성"
+    "createClass": "创建班级",
+    "editClass": "编辑班级",
+    "addSession": "添加课节",
+    "reschedule": "调整日程",
+    "cancel": "取消",
+    "hold": "标记已上课",
+    "recordAttendance": "记录出勤",
+    "writeFeedback": "填写反馈",
+    "proposeMakeup": "申请补课",
+    "approveMakeup": "批准补课",
+    "rejectMakeup": "驳回补课",
+    "confirmSettlement": "确认结算",
+    "recompute": "重新计算",
+    "generate": "生成课节"
   },
   "table": {
-    "code": "수업 코드",
-    "subject": "과목",
-    "teacher": "강사",
-    "students": "학생",
-    "status": "상태",
-    "startedAt": "개강일",
-    "endedAt": "종강일",
-    "actions": "작업",
-    "empty": "수업이 없습니다."
+    "code": "课程编号",
+    "subject": "科目",
+    "teacher": "教师",
+    "students": "学生",
+    "status": "状态",
+    "startedAt": "开课日",
+    "endedAt": "结课日",
+    "actions": "操作",
+    "empty": "暂无课程。"
   },
   "subjectType": {
     "MAP_TEST": "MAP Test",
     "SSAT": "SSAT",
     "ISEE": "ISEE",
+    "ENGLISH_TEST": "英语考试",
+    "SAT": "SAT / PSAT",
+    "ACT": "ACT / PreACT",
+    "COMPETITION": "竞赛",
     "WRITING": "Writing",
     "LANGUAGE_ARTS": "Language Arts",
     "MATH": "Math",
-    "INTL_PREP": "유학 준비",
-    "DEMO": "데모 수업",
-    "OTHER": "기타"
+    "INTL_PREP": "留学准备",
+    "DEMO": "试听课",
+    "OTHER": "其他"
   },
   "status": {
-    "PROPOSED": "제안",
-    "ACTIVE": "진행 중",
-    "PAUSED": "보류",
-    "COMPLETED": "종료",
-    "CANCELLED": "취소"
+    "PROPOSED": "提议",
+    "ACTIVE": "进行中",
+    "PAUSED": "暂停",
+    "COMPLETED": "已结束",
+    "CANCELLED": "已取消"
   },
   "startedFrom": {
-    "CSL_PIPELINE": "상담 연계",
-    "DIRECT_ENROLLMENT": "직접 등록",
-    "MIGRATION": "이관"
+    "CSL_PIPELINE": "咨询关联",
+    "DIRECT_ENROLLMENT": "直接报名",
+    "MIGRATION": "迁移"
   },
   "session": {
-    "scheduledAt": "예정일시",
-    "duration": "수업 시간",
-    "mode": "수업 방식",
-    "status": "상태",
+    "scheduledAt": "预定时间",
+    "duration": "课时时长",
+    "mode": "上课方式",
+    "status": "状态",
     "modes": {
-      "IN_PERSON": "대면",
-      "ONLINE": "온라인",
-      "TWO_PERSON_IN_PERSON": "2인 대면",
-      "HYBRID": "혼합"
+      "IN_PERSON": "面授",
+      "ONLINE": "在线",
+      "TWO_PERSON_IN_PERSON": "双人面授",
+      "HYBRID": "混合"
     },
     "statuses": {
-      "SCHEDULED": "예정",
-      "HELD": "완료",
-      "CANCELLED": "취소",
-      "RESCHEDULED": "변경",
-      "NO_SHOW": "노쇼",
-      "MAKEUP_REPLACEMENT": "보강 대체"
+      "SCHEDULED": "已排课",
+      "HELD": "已上课",
+      "CANCELLED": "已取消",
+      "RESCHEDULED": "已改期",
+      "NO_SHOW": "缺席未到",
+      "MAKEUP_REPLACEMENT": "补课替代"
     },
     "cancelReasons": {
-      "STUDENT_ABSENCE": "학생 결석",
-      "STUDENT_ILLNESS": "학생 질병",
-      "TEACHER_ABSENCE": "강사 결석",
-      "TEACHER_BUSINESS_TRIP": "강사 출장",
-      "TEACHER_CONSULTING_PREP": "강사 상담 준비",
-      "STUDENT_DAY_OF_CANCEL": "학생 당일 취소",
-      "FAMILY_TRAVEL": "가족 여행",
-      "HOLIDAY": "공휴일",
-      "OTHER": "기타"
+      "STUDENT_ABSENCE": "学生缺席",
+      "STUDENT_ILLNESS": "学生生病",
+      "TEACHER_ABSENCE": "教师缺席",
+      "TEACHER_BUSINESS_TRIP": "教师出差",
+      "TEACHER_CONSULTING_PREP": "教师咨询准备",
+      "STUDENT_DAY_OF_CANCEL": "学生当天取消",
+      "FAMILY_TRAVEL": "家庭旅行",
+      "HOLIDAY": "公共假日",
+      "OTHER": "其他"
     },
     "dispositions": {
-      "MAKEUP_PLANNED": "보강 예정",
-      "CARRYOVER_TO_NEXT_MONTH": "차월 이월",
-      "NO_MAKEUP": "보강 없음"
+      "MAKEUP_PLANNED": "计划补课",
+      "CARRYOVER_TO_NEXT_MONTH": "结转次月",
+      "NO_MAKEUP": "不补课"
     }
   },
   "attendance": {
-    "title": "출석 기록",
+    "title": "出勤记录",
     "statuses": {
-      "PRESENT": "출석",
-      "ABSENT_EXCUSED": "사유 결석",
-      "ABSENT_UNEXCUSED": "무단 결석",
-      "LATE": "지각",
-      "LEFT_EARLY": "조퇴"
+      "PRESENT": "出勤",
+      "ABSENT_EXCUSED": "请假缺席",
+      "ABSENT_UNEXCUSED": "无故缺席",
+      "LATE": "迟到",
+      "LEFT_EARLY": "早退"
     },
-    "billableHours": "정산 시간",
-    "remark": "비고"
+    "billableHours": "计费课时",
+    "remark": "备注"
   },
   "feedback": {
-    "title": "피드백",
-    "progress": "진행 상황",
-    "feedback": "피드백",
-    "homework": "과제",
-    "weaknessDev": "약점 개발",
-    "academicPlan": "학습 계획",
+    "title": "反馈",
+    "progress": "进度",
+    "feedback": "反馈",
+    "homework": "作业",
+    "weaknessDev": "弱项提升",
+    "academicPlan": "学习计划",
     "statuses": {
-      "DRAFT": "작성 중",
-      "SUBMITTED": "제출",
-      "DELIVERED_TO_PARENT": "학부모 전달"
+      "DRAFT": "草稿",
+      "SUBMITTED": "已提交",
+      "DELIVERED_TO_PARENT": "已发送家长"
     },
-    "slaBreached": "SLA 초과"
+    "slaBreached": "超出 SLA"
   },
   "makeup": {
-    "title": "보강",
-    "originalSession": "원본 세션",
-    "makeupScheduledAt": "보강 일시",
-    "substituteTeacher": "대체 강사",
-    "substitutionApprover": "대체 승인자",
-    "remark": "비고",
+    "title": "补课",
+    "originalSession": "原课节",
+    "makeupScheduledAt": "补课时间",
+    "substituteTeacher": "代课教师",
+    "substitutionApprover": "代课审批人",
+    "remark": "备注",
     "statuses": {
-      "PROPOSED": "제안",
-      "APPROVED": "승인",
-      "COMPLETED": "완료",
-      "CARRIED_OVER": "이월",
-      "REJECTED": "반려"
+      "PROPOSED": "提议",
+      "APPROVED": "已批准",
+      "COMPLETED": "已完成",
+      "CARRIED_OVER": "已结转",
+      "REJECTED": "已驳回"
     }
   },
   "settlement": {
-    "title": "월별 정산",
-    "yearMonth": "정산월",
-    "teacher": "강사",
-    "hoursTotal": "총 시간",
-    "amountGross": "총액",
-    "withholdingRate": "원천세율",
-    "amountWithheld": "원천징수",
-    "amountAfterTax": "실지급",
+    "title": "月度结算",
+    "yearMonth": "结算月",
+    "teacher": "教师",
+    "hoursTotal": "总课时",
+    "amountGross": "总金额",
+    "withholdingRate": "预扣税率",
+    "amountWithheld": "预扣税额",
+    "amountAfterTax": "实发金额",
     "statuses": {
-      "DRAFT": "초안",
-      "CONFIRMED": "확정",
-      "EXPORTED_TO_PAYROLL": "급여 반영",
-      "PAID": "지급 완료"
+      "DRAFT": "草稿",
+      "CONFIRMED": "已确认",
+      "EXPORTED_TO_PAYROLL": "已计入工资",
+      "PAID": "已支付"
     },
     "lines": {
-      "title": "정산 내역",
-      "sessionDate": "수업일",
-      "billableHours": "시간",
-      "hourlyRate": "시급",
-      "amount": "금액"
+      "title": "结算明细",
+      "sessionDate": "上课日",
+      "billableHours": "课时",
+      "hourlyRate": "课时费",
+      "amount": "金额"
     }
   },
   "recurrence": {
-    "title": "반복 일정",
-    "dayOfWeek": "요일",
-    "startTime": "시작 시각",
-    "duration": "수업 시간(분)",
-    "defaultMode": "기본 수업 방식",
+    "title": "重复日程",
+    "dayOfWeek": "星期",
+    "startTime": "开始时间",
+    "duration": "课时时长（分钟）",
+    "defaultMode": "默认上课方式",
     "days": {
-      "MON": "월", "TUE": "화", "WED": "수", "THU": "목",
-      "FRI": "금", "SAT": "토", "SUN": "일"
+      "MON": "一", "TUE": "二", "WED": "三", "THU": "四",
+      "FRI": "五", "SAT": "六", "SUN": "日"
     }
   },
   "video": {
-    "provider": "영상 제공자",
+    "provider": "视频工具",
     "providers": {
       "GOOGLE_MEET": "Google Meet",
       "BODASCHOOL": "Bodaschool",
-      "NONE": "없음"
+      "NONE": "无"
     },
-    "persistentLink": "고정 링크"
+    "persistentLink": "固定链接"
   },
   "calendar": {
-    "today": "오늘",
-    "prev": "이전",
-    "next": "다음",
-    "noSessions": "세션이 없습니다."
+    "today": "今天",
+    "prev": "上一个",
+    "next": "下一个",
+    "noSessions": "暂无课节。"
   },
   "errors": {
-    "VAL_NO_PRIMARY_STUDENT": "최소 1명의 PRIMARY 학생이 필요합니다.",
-    "VAL_HOURS_RANGE": "정산 시간이 허용 범위를 벗어났습니다.",
-    "VAL_DEMO_FEEDBACK_FIELDS": "데모 피드백에는 약점 개발과 학습 계획이 필요합니다.",
-    "VAL_STANDARD_FEEDBACK_FIELDS": "피드백에는 과제 항목이 필요합니다.",
-    "VAL_SES_STATUS_TRANSITION": "허용되지 않은 세션 상태 전환입니다.",
-    "VAL_SETTLEMENT_FROZEN": "확정된 정산은 수정할 수 없습니다.",
-    "CLS_SESSION_CONFLICT": "강사 또는 학생의 다른 수업과 시간이 겹칩니다."
+    "VAL_NO_PRIMARY_STUDENT": "至少需要一名主学生（PRIMARY）。",
+    "VAL_HOURS_RANGE": "计费课时超出允许范围。",
+    "VAL_DEMO_FEEDBACK_FIELDS": "试听反馈需填写弱项提升与学习计划。",
+    "VAL_STANDARD_FEEDBACK_FIELDS": "反馈需填写作业项。",
+    "VAL_SES_STATUS_TRANSITION": "不允许的课节状态转换。",
+    "VAL_SETTLEMENT_FROZEN": "已确认的结算无法修改。",
+    "CLS_SESSION_CONFLICT": "与教师或学生的其他课程时间冲突。"
   },
   "validation": {
-    "required": "필수 입력 항목입니다."
+    "required": "此项为必填。"
   },
   "filter": {
-    "all": "전체",
-    "search": "코드·이름 검색…",
-    "labelStatus": "상태",
-    "labelSubject": "과목",
-    "labelTeacher": "강사"
+    "all": "全部",
+    "search": "搜索编号·名称…",
+    "labelStatus": "状态",
+    "labelSubject": "科目",
+    "labelTeacher": "教师"
   },
   "detail": {
-    "back": "← 수업 목록",
+    "back": "← 课程列表",
     "tabs": {
-      "info": "정보",
-      "students": "학생",
-      "schedule": "반복 일정",
-      "sessions": "세션"
+      "info": "信息",
+      "students": "学生",
+      "schedule": "重复日程",
+      "sessions": "课节"
     },
     "info": {
-      "title": "기본 정보",
-      "startedFrom": "유입 경로",
-      "defaultMode": "기본 수업 방식",
-      "hourlyRate": "시급",
-      "hourlyRateValue": "시간당 ₩{{amount}}",
-      "video": "영상 도구",
-      "videoNone": "설정되지 않음"
+      "title": "基本信息",
+      "startedFrom": "来源渠道",
+      "defaultMode": "默认上课方式",
+      "hourlyRate": "课时费",
+      "hourlyRateValue": "每小时 ₩{{amount}}",
+      "video": "视频工具",
+      "videoNone": "未设置"
     },
     "students": {
-      "title": "학생",
-      "count": "총 {{count}}명",
-      "empty": "등록된 학생이 없습니다.",
-      "joinedAt": "등록 {{date}}",
-      "leftAt": "탈퇴 {{date}}",
+      "title": "学生",
+      "count": "共 {{count}} 人",
+      "empty": "暂无报名学生。",
+      "joinedAt": "报名 {{date}}",
+      "leftAt": "退出 {{date}}",
       "primary": "PRIMARY",
       "secondary": "SECONDARY"
     },
     "schedule": {
-      "title": "반복 일정",
-      "empty": "반복 일정이 없습니다.",
-      "effectiveFrom": "{{date}}부터",
+      "title": "重复日程",
+      "empty": "暂无重复日程。",
+      "effectiveFrom": "自 {{date}}",
       "effectiveTo": " ~ {{date}}",
-      "durationMin": "{{minutes}}분"
+      "durationMin": "{{minutes}} 分钟"
     },
     "sessions": {
-      "title": "최근 세션",
-      "empty": "기록된 세션이 없습니다.",
-      "viewAll": "전체 세션 →",
-      "scheduledAt": "예정",
-      "heldAt": "완료",
-      "limitNote": "최근 {{count}}건 표시"
+      "title": "最近课节",
+      "empty": "暂无课节记录。",
+      "viewAll": "全部课节 →",
+      "scheduledAt": "预定",
+      "heldAt": "已上课",
+      "limitNote": "显示最近 {{count}} 条"
     },
     "statusChange": {
-      "label": "상태",
-      "pending": "변경 중…"
+      "label": "状态",
+      "pending": "变更中…"
     }
   }
 }
