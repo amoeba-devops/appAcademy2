@@ -4,13 +4,23 @@
     "create": "Add Event",
     "today": "Today",
     "prev": "Prev",
-    "next": "Next"
+    "next": "Next",
+    "registerFeedback": "Register as feedback"
+  },
+  "view": {
+    "day": "Day",
+    "week": "Week",
+    "month": "Month"
   },
   "category": {
     "CLASS": "Class",
     "MEETING": "Meeting",
     "EVENT": "Event",
-    "PERSONAL": "Personal"
+    "PERSONAL": "Personal",
+    "LEVEL_TEST": "Level Test",
+    "DEMO_CLASS": "Demo Class",
+    "REGULAR_CLASS": "Regular Class",
+    "OTHER": "Other"
   },
   "provider": {
     "NONE": "None",
@@ -30,7 +40,8 @@
     "meetingUrl": "Meeting URL",
     "creator": "Creator",
     "assignee": "Assignee",
-    "assigneeNone": "Unassigned"
+    "assigneeNone": "Unassigned",
+    "materials": "Class materials"
   },
   "form": {
     "titleCreate": "Add Event",
@@ -53,7 +64,9 @@
   },
   "hint": {
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
-    "readOnlySource": "This event is synced from an external source and cannot be edited."
+    "readOnlySource": "This event is synced from an external source and cannot be edited.",
+    "bodaAuto": "A Bodaschool link is generated automatically for demo and regular classes on save.",
+    "bodaPending": "The link will be generated after saving."
   },
   "error": {
     "titleRequired": "Please enter a title.",

@@ -4,13 +4,23 @@
     "create": "新增日程",
     "today": "今天",
     "prev": "上一月",
-    "next": "下一月"
+    "next": "下一月",
+    "registerFeedback": "登记为反馈"
+  },
+  "view": {
+    "day": "日",
+    "week": "周",
+    "month": "月"
   },
   "category": {
     "CLASS": "课程",
     "MEETING": "会议",
     "EVENT": "活动",
-    "PERSONAL": "个人"
+    "PERSONAL": "个人",
+    "LEVEL_TEST": "分级测试",
+    "DEMO_CLASS": "试听课",
+    "REGULAR_CLASS": "正式课",
+    "OTHER": "其他"
   },
   "provider": {
     "NONE": "无",
@@ -30,7 +40,8 @@
     "meetingUrl": "会议链接",
     "creator": "创建人",
     "assignee": "负责人",
-    "assigneeNone": "未指定"
+    "assigneeNone": "未指定",
+    "materials": "课程资料"
   },
   "form": {
     "titleCreate": "新增日程",
@@ -53,7 +64,9 @@
   },
   "hint": {
     "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",
-    "readOnlySource": "该日程从外部源同步,不可编辑。"
+    "readOnlySource": "该日程从外部源同步,不可编辑。",
+    "bodaAuto": "试听课和正式课在保存时会自动生成 Bodaschool 链接。",
+    "bodaPending": "保存后将生成链接。"
   },
   "error": {
     "titleRequired": "请输入标题。",

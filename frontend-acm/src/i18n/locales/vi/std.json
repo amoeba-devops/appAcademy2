@@ -4,7 +4,10 @@
     "create": "Thêm học sinh",
     "edit": "Chỉnh sửa",
     "import": "Nhập Excel",
-    "deactivate": "Vô hiệu hóa"
+    "deactivate": "Vô hiệu hóa",
+    "setPrimary": "Đặt làm chính",
+    "unlink": "Hủy liên kết",
+    "confirmUnlink": "Hủy liên kết phụ huynh này với học sinh?"
   },
   "filter": {
     "searchPlaceholder": "Tìm tên / trường",
@@ -91,7 +94,26 @@
     "updatedAt": "Cập nhật lần cuối",
     "confirmDeactivate": "Vô hiệu hóa học sinh này?"
   },
+  "parentPicker": {
+    "title": "Thêm phụ huynh",
+    "modeSearch": "Chọn phụ huynh có sẵn",
+    "modeCreate": "Tạo phụ huynh mới",
+    "searchPlaceholder": "Tên, số điện thoại hoặc email (≥2 ký tự)",
+    "linkAsPrimary": "Đặt làm liên hệ chính",
+    "noResults": "Không có phụ huynh phù hợp",
+    "startTyping": "Nhập ít nhất 2 ký tự để tìm kiếm",
+    "linkBtn": "Liên kết",
+    "linkedChildren": "{{count}} học sinh được liên kết",
+    "createAndLink": "Tạo & Liên kết"
+  },
   "parentList": {
+    "title": "Quản lý phụ huynh",
+    "searchPlaceholder": "Tên, số điện thoại hoặc email",
+    "empty": "Chưa có phụ huynh nào",
+    "childCount": "Học sinh được liên kết",
+    "orphan": "Chưa có học sinh",
+    "cannotDeleteLinked": "Không thể xóa: phụ huynh đang có học sinh liên kết",
+    "confirmDelete": "Xóa phụ huynh này?",
     "ama": {
       "column": "Khách hàng AMA",
       "register": "Đăng ký khách hàng AMA",
