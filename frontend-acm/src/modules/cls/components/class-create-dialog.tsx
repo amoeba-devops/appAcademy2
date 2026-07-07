@@ -18,6 +18,7 @@ import { useStudents } from '@/modules/std/hooks/use-students';
 import type { TeacherDetail } from '@/modules/tch/types';
 import type { StudentSummary } from '@/modules/std/types';
 import { useCreateClass } from '../hooks/use-class-mutations';
+import { deriveSubjectTypeFromCourseCode } from '../lib/derive-subject-type';
 import {
   CLS_SUBJECT_TYPES,
   type ClassCreatePrefill,
@@ -58,25 +59,6 @@ const selectClass =
   'h-9 w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 const textareaClass =
   'min-h-[88px] w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
-
-function deriveSubjectTypeFromCourseCode(code?: string): ClsSubjectType | null {
-  const normalized = code?.trim().toUpperCase();
-  if (!normalized) return null;
-  if (normalized.startsWith('MAP-')) return 'MAP_TEST';
-  if (normalized.startsWith('ISEE-')) return 'ISEE';
-  if (normalized.startsWith('SSAT-')) return 'SSAT';
-  if (
-    normalized.startsWith('DUOLINGO-')
-    || normalized.startsWith('TOEFL-')
-    || normalized.startsWith('IELTS-')
-  ) {
-    return 'ENGLISH_TEST';
-  }
-  if (normalized.startsWith('PSAT') || normalized.startsWith('SAT-')) return 'SAT';
-  if (normalized.startsWith('PREACT') || normalized.startsWith('ACT-')) return 'ACT';
-  if (normalized.startsWith('INTL-')) return 'INTL_PREP';
-  return null;
-}
 
 export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Props) {
   const { t } = useTranslation(['cls', 'common']);

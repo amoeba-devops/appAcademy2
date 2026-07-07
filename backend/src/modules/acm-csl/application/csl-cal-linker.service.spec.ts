@@ -105,7 +105,7 @@ describe('CslCalLinkerService', () => {
     expect(r).toBeNull();
   });
 
-  it('happy path — creates EVENT, stores id back on mpt', async () => {
+  it('happy path — creates LEVEL_TEST event, stores id back on mpt', async () => {
     const r = await svc.linkLevelTest(makeInq(), makeMt(), 'u1', 'STAFF');
     expect(r).toBe('evt-new');
     expect(calCreate).toHaveBeenCalledWith(
@@ -116,7 +116,7 @@ describe('CslCalLinkerService', () => {
         evtTitle: expect.stringContaining('홍길동'),
         evtStartAt: '2026-07-03T14:00:00',
         evtEndAt: '2026-07-03T15:00:00',
-        evtCategory: 'EVENT',
+        evtCategory: 'LEVEL_TEST',
         evtMeetingProvider: 'NONE',
       }),
     );
