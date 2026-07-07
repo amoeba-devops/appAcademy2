@@ -20,7 +20,7 @@ BEGIN;
 
 UPDATE amb_acm_cls_classes c
 SET cls_course_id = crs.crs_id,
-    updated_at = NOW()
+    cls_updated_at = NOW()
 FROM amb_acm_csl_course crs
 WHERE c.cls_course_id IS NULL
   AND c.cls_deleted_at IS NULL
