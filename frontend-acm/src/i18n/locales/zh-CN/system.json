@@ -100,7 +100,9 @@
     "fields": {
       "name": "名称",
       "entId": "ent_id",
-      "entIdHint": "租户 UUID，须与现有用户的 ent_id 一致。"
+      "entIdHint": "租户 UUID，须与现有用户的 ent_id 一致。",
+      "code": "学院代码（登录用）",
+      "codeHint": "用于门户登录 URL/表单的短代码。小写字母/数字/连字符，每个学院唯一。"
     },
     "info": {
       "title": "信息"

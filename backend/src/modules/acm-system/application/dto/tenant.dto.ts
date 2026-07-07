@@ -7,10 +7,14 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   MaxLength,
   MinLength,
   ValidateNested,
 } from 'class-validator';
+
+/** PLN-260708 — tenant login code (slug): lowercase letters/digits/hyphen. */
+const TENANT_CODE_RE = /^[a-z0-9][a-z0-9-]*$/;
 import { Type } from 'class-transformer';
 
 export const TENANT_STATUSES = ['ACTIVE', 'INACTIVE'] as const;
@@ -31,6 +35,13 @@ export class CreateTenantDto {
   @IsOptional()
   @IsIn(TENANT_STATUSES)
   status?: TenantStatus;
+
+  @ApiPropertyOptional({ example: 'trinity', description: '포털 로그인 학원 코드(slug)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  @Matches(TENANT_CODE_RE, { message: 'code must be lowercase letters/digits/hyphen' })
+  code?: string;
 }
 
 export class UpdateTenantDto {
@@ -45,6 +56,13 @@ export class UpdateTenantDto {
   @IsOptional()
   @IsIn(TENANT_STATUSES)
   status?: TenantStatus;
+
+  @ApiPropertyOptional({ example: 'trinity', description: '포털 로그인 학원 코드(slug)' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  @Matches(TENANT_CODE_RE, { message: 'code must be lowercase letters/digits/hyphen' })
+  code?: string;
 }
 
 export class MenuVisibilityItemDto {
@@ -70,6 +88,7 @@ export class UpdateTenantMenusDto {
 export interface TenantView {
   entId: string;
   name: string;
+  code: string | null;
   status: string;
   isSystem: boolean;
   userCount: number;

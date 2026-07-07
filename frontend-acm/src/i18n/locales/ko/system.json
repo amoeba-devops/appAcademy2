@@ -100,7 +100,9 @@
     "fields": {
       "name": "이름",
       "entId": "ent_id",
-      "entIdHint": "테넌트 UUID. 기존 사용자의 ent_id와 일치해야 합니다."
+      "entIdHint": "테넌트 UUID. 기존 사용자의 ent_id와 일치해야 합니다.",
+      "code": "학원 코드 (로그인용)",
+      "codeHint": "포털 로그인 URL/화면에 사용하는 짧은 코드. 소문자·숫자·하이픈, 학원별 고유."
     },
     "info": {
       "title": "정보"

@@ -11,6 +11,9 @@ export function PortalLoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const setPortalAuth = useAuthStore((s) => s.setPortalAuth);
+  // PLN-260708 — tenant code from `?t=` (login link) pre-fills + locks the field.
+  const tenantFromUrl = (params.get('t') ?? '').trim();
+  const [tenantCode, setTenantCode] = useState(tenantFromUrl);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +26,7 @@ export function PortalLoginPage() {
     setError(null);
     setBusy(true);
     try {
-      const res = await portalApi.login(loginId.trim(), password);
+      const res = await portalApi.login(tenantCode.trim(), loginId.trim(), password);
       setPortalAuth(res.accessToken, res.user);
       if (res.mustChangePassword) {
         navigate('/portal/change-password', { replace: true });
@@ -49,6 +52,19 @@ export function PortalLoginPage() {
         <p className="mt-1 text-sm text-secondary">{t('portalApp.login.subtitle')}</p>
 
         <label className="mt-5 block text-sm">
+          <span className="text-secondary">{t('portalApp.login.tenantCode')}</span>
+          <input
+            value={tenantCode}
+            onChange={(e) => setTenantCode(e.target.value)}
+            readOnly={!!tenantFromUrl}
+            autoComplete="organization"
+            placeholder={t('portalApp.login.tenantCodePlaceholder')}
+            className={`mt-1 w-full rounded-md border border-[var(--border-subtle)] px-3 py-2 font-mono ${
+              tenantFromUrl ? 'bg-[var(--gray-50)] text-secondary' : ''
+            }`}
+          />
+        </label>
+        <label className="mt-3 block text-sm">
           <span className="text-secondary">{t('portalApp.login.loginId')}</span>
           <input
             value={loginId}

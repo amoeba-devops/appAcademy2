@@ -15,6 +15,7 @@ import {
   PortalAccountTypeormEntity,
   type PortalKind,
 } from '../infrastructure/typeorm/portal-account.typeorm-entity';
+import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 import type { PortalAccountView } from './dto/portal-account.dto';
 
 /**
@@ -62,6 +63,8 @@ export class PortalAccountService {
   constructor(
     @InjectRepository(PortalAccountTypeormEntity, ACM_DS)
     private readonly repo: Repository<PortalAccountTypeormEntity>,
+    @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
+    private readonly tenants: Repository<AcmTenantTypeormEntity>,
     private readonly jwt: JwtService,
   ) {}
 
@@ -158,14 +161,20 @@ export class PortalAccountService {
   // ---------------------------------------------------------------------------
 
   /**
-   * Portal login by loginId + password. Login id is unique per tenant; like the
-   * admin email login it resolves the first ACTIVE match (single-tenant deploy).
+   * PLN-260708 — tenant-scoped portal login. Resolves the tenant by its login
+   * code (slug), then matches (entId, loginId) so per-tenant-unique loginIds
+   * don't collide across tenants. Unknown tenant code / loginId / password all
+   * return the same 401 so tenant/account existence isn't disclosed.
    */
   async login(
+    tenantCode: string,
     loginId: string,
     password: string,
   ): Promise<{ accessToken: string; mustChangePassword: boolean; user: PortalAuthUser }> {
-    const acc = await this.repo.findOne({ where: { loginId, status: 'ACTIVE' } });
+    const entId = await this.resolveEntIdByCode(tenantCode);
+    const acc = entId
+      ? await this.repo.findOne({ where: { entId, loginId, status: 'ACTIVE' } })
+      : null;
     const ok = !!acc && (await bcrypt.compare(password, acc.passwordHash));
     if (!acc || !ok) {
       throw new UnauthorizedException('INVALID_CREDENTIALS');
@@ -212,6 +221,17 @@ export class PortalAccountService {
   }
 
   // ---------------------------------------------------------------------------
+
+  /** Resolve an ACTIVE tenant's entId from its login code (slug). */
+  private async resolveEntIdByCode(tenantCode: string): Promise<string | null> {
+    const code = (tenantCode ?? '').trim().toLowerCase();
+    if (!code) return null;
+    const t = await this.tenants.findOne({
+      where: { code, status: 'ACTIVE' },
+      select: ['entId'],
+    });
+    return t?.entId ?? null;
+  }
 
   private sign(acc: PortalAccountTypeormEntity): string {
     const payload: PortalJwtPayload = {

@@ -34,9 +34,14 @@ export interface PortalNotice {
 }
 
 export const portalApi = {
-  login: async (loginId: string, password: string) =>
-    (await apiClient.post<PortalLoginResult>('/portal/auth/login', { loginId, password }))
-      .data,
+  login: async (tenantCode: string, loginId: string, password: string) =>
+    (
+      await apiClient.post<PortalLoginResult>('/portal/auth/login', {
+        tenantCode,
+        loginId,
+        password,
+      })
+    ).data,
 
   changePassword: async (currentPassword: string, newPassword: string) =>
     (

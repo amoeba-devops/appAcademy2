@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/api-client';
 export interface Tenant {
   entId: string;
   name: string;
+  /** PLN-260708 — portal login code (slug). */
+  code: string | null;
   status: 'ACTIVE' | 'INACTIVE';
   isSystem: boolean;
   userCount: number;
@@ -27,6 +29,7 @@ export interface CreateTenantInput {
 export interface UpdateTenantInput {
   name?: string;
   status?: 'ACTIVE' | 'INACTIVE';
+  code?: string;
 }
 
 const KEY = 'system-tenants';

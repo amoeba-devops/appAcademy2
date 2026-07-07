@@ -30,6 +30,8 @@
     "login": {
       "title": "Đăng nhập cổng học viện",
       "subtitle": "Đăng nhập bằng ID và mật khẩu được cấp.",
+      "tenantCode": "Mã học viện",
+      "tenantCodePlaceholder": "vd: trinity",
       "loginId": "ID",
       "password": "Mật khẩu",
       "submit": "Đăng nhập",

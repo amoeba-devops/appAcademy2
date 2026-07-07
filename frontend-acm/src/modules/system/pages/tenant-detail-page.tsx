@@ -39,7 +39,12 @@ export function TenantDetailPage() {
         <p className="mt-1 font-mono text-xs text-secondary">{tenant.entId}</p>
       </div>
 
-      <TenantInfoSection entId={tenant.entId} initialName={tenant.name} initialStatus={tenant.status} />
+      <TenantInfoSection
+        entId={tenant.entId}
+        initialName={tenant.name}
+        initialCode={tenant.code}
+        initialStatus={tenant.status}
+      />
       <TenantUsersSection entId={tenant.entId} />
       <TenantMenusSection entId={tenant.entId} />
     </div>
@@ -66,21 +71,27 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 function TenantInfoSection({
   entId,
   initialName,
+  initialCode,
   initialStatus,
 }: {
   entId: string;
   initialName: string;
+  initialCode: string | null;
   initialStatus: 'ACTIVE' | 'INACTIVE';
 }) {
   const { t } = useTranslation('system');
   const toast = useToast();
   const update = useUpdateTenant();
   const [name, setName] = useState(initialName);
+  const [code, setCode] = useState(initialCode ?? '');
   const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>(initialStatus);
 
   const onSave = async () => {
     try {
-      await update.mutateAsync({ entId, input: { name: name.trim(), status } });
+      await update.mutateAsync({
+        entId,
+        input: { name: name.trim(), status, code: code.trim().toLowerCase() },
+      });
       toast.success(t('tenants.saved'));
     } catch {
       toast.error(t('users.errors.saveFailed'));
@@ -94,6 +105,17 @@ function TenantInfoSection({
         <div className="space-y-1.5">
           <Label htmlFor="tnt-name">{t('tenants.fields.name')}</Label>
           <Input id="tnt-name" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="tnt-code">{t('tenants.fields.code')}</Label>
+          <Input
+            id="tnt-code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="trinity"
+            className="max-w-[16rem] font-mono"
+          />
+          <p className="text-xs text-secondary">{t('tenants.fields.codeHint')}</p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="tnt-status">{t('tenants.columns.status')}</Label>

@@ -30,6 +30,8 @@
     "login": {
       "title": "학원 포털 로그인",
       "subtitle": "발급받은 아이디와 비밀번호로 로그인하세요.",
+      "tenantCode": "학원 코드",
+      "tenantCodePlaceholder": "예: trinity",
       "loginId": "아이디",
       "password": "비밀번호",
       "submit": "로그인",

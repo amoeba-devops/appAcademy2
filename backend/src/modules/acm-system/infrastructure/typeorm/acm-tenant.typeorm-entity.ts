@@ -15,6 +15,10 @@ export class AcmTenantTypeormEntity {
   @Column({ name: 'tnt_name', type: 'varchar', length: 200 })
   name!: string;
 
+  /** PLN-260708 — short login code (slug) for portal tenant-scoped login. */
+  @Column({ name: 'tnt_code', type: 'varchar', length: 40, nullable: true })
+  code?: string | null;
+
   @Column({ name: 'tnt_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   status!: 'ACTIVE' | 'INACTIVE';
 
