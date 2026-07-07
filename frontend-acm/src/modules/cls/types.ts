@@ -1,15 +1,22 @@
 // CLS module shared types — mirrors backend DTOs.
 
-export type ClsSubjectType =
-  | 'MAP_TEST'
-  | 'SSAT'
-  | 'ISEE'
-  | 'WRITING'
-  | 'LANGUAGE_ARTS'
-  | 'MATH'
-  | 'INTL_PREP'
-  | 'DEMO'
-  | 'OTHER';
+export const CLS_SUBJECT_TYPES = [
+  'MAP_TEST',
+  'SSAT',
+  'ISEE',
+  'ENGLISH_TEST',
+  'SAT',
+  'ACT',
+  'COMPETITION',
+  'WRITING',
+  'LANGUAGE_ARTS',
+  'MATH',
+  'INTL_PREP',
+  'DEMO',
+  'OTHER',
+] as const;
+
+export type ClsSubjectType = (typeof CLS_SUBJECT_TYPES)[number];
 
 export type ClsStatus = 'PROPOSED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
 export type ClsStartedFrom = 'CSL_PIPELINE' | 'DIRECT_ENROLLMENT' | 'MIGRATION';
@@ -45,11 +52,23 @@ export type FbkStatus = 'DRAFT' | 'SUBMITTED' | 'DELIVERED_TO_PARENT';
 export type MkpStatus = 'PROPOSED' | 'APPROVED' | 'COMPLETED' | 'CARRIED_OVER' | 'REJECTED';
 export type RecDay = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
 
+export interface ClassCreatePrefill {
+  inquiryId?: string;
+  courseId?: string | null;
+  teacherUserId?: string | null;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  studentIds?: string[];
+  primaryStudentId?: string | null;
+  remark?: string | null;
+}
+
 export interface ClassSummary {
   id: string;
   code: string;
   subjectType: ClsSubjectType;
   subjectLabel?: string | null;
+  courseId?: string | null;
   status: ClsStatus;
   startedFrom: ClsStartedFrom;
   teacherUserId: string | null;

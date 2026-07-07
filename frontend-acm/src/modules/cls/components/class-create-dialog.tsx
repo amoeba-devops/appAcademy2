@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Plus, X } from 'lucide-react';
@@ -18,12 +18,18 @@ import { useStudents } from '@/modules/std/hooks/use-students';
 import type { TeacherDetail } from '@/modules/tch/types';
 import type { StudentSummary } from '@/modules/std/types';
 import { useCreateClass } from '../hooks/use-class-mutations';
-import type { ClsSubjectType, SesMode } from '../types';
+import {
+  CLS_SUBJECT_TYPES,
+  type ClassCreatePrefill,
+  type ClsSubjectType,
+  type SesMode,
+} from '../types';
 
 interface Props {
   open: boolean;
   onOpenChange: (next: boolean) => void;
   onCreated?: (classId: string) => void;
+  prefill?: ClassCreatePrefill | null;
 }
 
 interface CourseOption {
@@ -41,18 +47,6 @@ interface RecurrenceDraft {
   defaultMode: Exclude<SesMode, 'HYBRID'>;
 }
 
-const SUBJECT_OPTIONS: ClsSubjectType[] = [
-  'MAP_TEST',
-  'SSAT',
-  'ISEE',
-  'WRITING',
-  'LANGUAGE_ARTS',
-  'MATH',
-  'INTL_PREP',
-  'DEMO',
-  'OTHER',
-];
-
 const DAY_OPTIONS: RecurrenceDraft['dayOfWeek'][] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const MODE_OPTIONS: Array<Exclude<SesMode, 'HYBRID'>> = [
   'ONLINE',
@@ -65,10 +59,30 @@ const selectClass =
 const textareaClass =
   'min-h-[88px] w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 
-export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
+function deriveSubjectTypeFromCourseCode(code?: string): ClsSubjectType | null {
+  const normalized = code?.trim().toUpperCase();
+  if (!normalized) return null;
+  if (normalized.startsWith('MAP-')) return 'MAP_TEST';
+  if (normalized.startsWith('ISEE-')) return 'ISEE';
+  if (normalized.startsWith('SSAT-')) return 'SSAT';
+  if (
+    normalized.startsWith('DUOLINGO-')
+    || normalized.startsWith('TOEFL-')
+    || normalized.startsWith('IELTS-')
+  ) {
+    return 'ENGLISH_TEST';
+  }
+  if (normalized.startsWith('PSAT') || normalized.startsWith('SAT-')) return 'SAT';
+  if (normalized.startsWith('PREACT') || normalized.startsWith('ACT-')) return 'ACT';
+  if (normalized.startsWith('INTL-')) return 'INTL_PREP';
+  return null;
+}
+
+export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Props) {
   const { t } = useTranslation(['cls', 'common']);
   const toast = useToast();
   const createMut = useCreateClass();
+  const [linkedInquiryId, setLinkedInquiryId] = useState('');
   const [subjectType, setSubjectType] = useState<ClsSubjectType>('OTHER');
   const [courseId, setCourseId] = useState('');
   const [teacherUserId, setTeacherUserId] = useState('');
@@ -134,12 +148,24 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
     [courses],
   );
 
+  const courseMap = useMemo(
+    () => new Map(courses.map((course) => [course.id, course])),
+    [courses],
+  );
+
   const selectedStudents = useMemo(
     () => students.filter((student) => selectedStudentIds.includes(student.id)),
     [selectedStudentIds, students],
   );
 
+  // Set while a prefilled course still needs its subject type derived — used to
+  // finish the derivation once the course catalog finishes loading (the catalog
+  // may not be ready at prefill time).
+  const pendingCourseSubjectRef = useRef<string | null>(null);
+
   const resetForm = () => {
+    pendingCourseSubjectRef.current = null;
+    setLinkedInquiryId('');
     setSubjectType('OTHER');
     setCourseId('');
     setTeacherUserId('');
@@ -152,6 +178,44 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
     setPrimaryStudentId('');
     setRecurrences([createRecurrenceDraft()]);
   };
+
+  useEffect(() => {
+    if (!open || !prefill) return;
+
+    const prefetchedCourseId = prefill.courseId ?? '';
+    const nextStudentIds = Array.from(new Set(prefill.studentIds ?? []));
+
+    setLinkedInquiryId(prefill.inquiryId ?? '');
+    setCourseId(prefetchedCourseId);
+    // Best-effort immediate derivation; if the catalog is not loaded yet the
+    // resolver effect below fills it in once courses arrive.
+    setSubjectType(
+      deriveSubjectTypeFromCourseCode(courseMap.get(prefetchedCourseId)?.code) ?? 'OTHER',
+    );
+    pendingCourseSubjectRef.current = prefetchedCourseId || null;
+    setTeacherUserId(prefill.teacherUserId ?? '');
+    setStartedAt(prefill.startedAt ?? new Date().toISOString().slice(0, 10));
+    setEndedAt(prefill.endedAt ?? '');
+    setRemark(prefill.remark ?? '');
+    setSelectedStudentIds(nextStudentIds);
+    setPrimaryStudentId(prefill.primaryStudentId ?? nextStudentIds[0] ?? '');
+    setStudentSearch('');
+    // Intentionally excludes `courseMap`: re-running on catalog load would clobber
+    // any edits the user made in the meantime. Late derivation is handled below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prefill]);
+
+  // Once the course catalog loads, derive the subject type for a prefilled
+  // course exactly once (no-op when nothing is pending or already resolved).
+  useEffect(() => {
+    const pendingCourseId = pendingCourseSubjectRef.current;
+    if (!pendingCourseId) return;
+    const code = courseMap.get(pendingCourseId)?.code;
+    if (!code) return;
+    const derived = deriveSubjectTypeFromCourseCode(code);
+    if (derived) setSubjectType(derived);
+    pendingCourseSubjectRef.current = null;
+  }, [courseMap]);
 
   const toggleStudent = (student: StudentSummary) => {
     setSelectedStudentIds((current) => {
@@ -187,6 +251,15 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
     });
   };
 
+  const handleCourseChange = (nextCourseId: string) => {
+    setCourseId(nextCourseId);
+    if (!nextCourseId) return;
+    const derivedSubjectType = deriveSubjectTypeFromCourseCode(courseMap.get(nextCourseId)?.code);
+    if (derivedSubjectType) {
+      setSubjectType(derivedSubjectType);
+    }
+  };
+
   const onSubmit = async () => {
     if (!teacherUserId) {
       toast.error('강사를 선택해 주세요.');
@@ -220,8 +293,12 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
     }
 
     const body = {
-      startedFrom: 'DIRECT_ENROLLMENT',
+      startedFrom: linkedInquiryId ? 'CSL_PIPELINE' : 'DIRECT_ENROLLMENT',
+      inqId: linkedInquiryId || undefined,
       subjectType,
+      courseId: courseId || undefined,
+      // Keep a user-visible label snapshot on the class row while persisting
+      // the canonical FK separately via courseId.
       subjectLabel: courseId ? courseLabelMap.get(courseId) : undefined,
       teacherUserId,
       isDemo: subjectType === 'DEMO',
@@ -232,6 +309,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
         studentUserId: studentId,
         hourlyRate: rate,
         capacityRole: studentId === primaryStudentId ? 'PRIMARY' : 'GROUP_PEER',
+        inqId: linkedInquiryId || undefined,
       })),
       recurrences: validRecurrences.map((row) => ({
         dayOfWeek: row.dayOfWeek,
@@ -284,7 +362,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
                   onChange={(event) => setSubjectType(event.target.value as ClsSubjectType)}
                   className={selectClass}
                 >
-                  {SUBJECT_OPTIONS.map((option) => (
+                  {CLS_SUBJECT_TYPES.map((option) => (
                     <option key={option} value={option}>
                       {t(`subjectType.${option}`)}
                     </option>
@@ -296,7 +374,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated }: Props) {
                 <Label className="text-xs">{t('create.course', { defaultValue: '수업 강좌' })}</Label>
                 <select
                   value={courseId}
-                  onChange={(event) => setCourseId(event.target.value)}
+                  onChange={(event) => handleCourseChange(event.target.value)}
                   className={selectClass}
                 >
                   <option value="">{t('create.coursePlaceholder', { defaultValue: '강좌 선택' })}</option>

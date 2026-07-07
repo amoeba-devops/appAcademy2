@@ -954,6 +954,7 @@ export class InquiryService {
       schoolId: e.schoolId,
       schoolFreetext: e.schoolFreetext,
       grade: e.grade,
+      stdId: e.stdId ?? null,
       inflowType: e.inflowType,
       applyType: e.applyType,
       applyPurposes: e.applyPurpose ? e.applyPurpose.split(',').filter(Boolean) : [],
