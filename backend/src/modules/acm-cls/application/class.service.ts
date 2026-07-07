@@ -334,7 +334,11 @@ export class ClassService {
   }
 
   private async assertCourseExists(entId: string, courseId: string): Promise<void> {
-    const exists = await this.courseRepo.exist({ where: { entId, id: courseId } });
+    // Only an active course in this tenant may be linked; inactive/unknown
+    // ids are rejected so classes cannot point at retired catalog entries.
+    const exists = await this.courseRepo.exist({
+      where: { entId, id: courseId, isActive: true },
+    });
     if (!exists) {
       throw new BadRequestException('VAL_COURSE_NOT_FOUND');
     }

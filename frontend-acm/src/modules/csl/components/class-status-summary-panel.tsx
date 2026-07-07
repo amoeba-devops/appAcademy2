@@ -177,6 +177,9 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
       : undefined,
     startedAt: enrollment?.startDate ?? undefined,
     endedAt: enrollment?.endDate ?? undefined,
+    // Assumes std.id and the class-student id space are the same (as the
+    // manual create flow selects from the std list into studentUserId). If
+    // those ids ever diverge, the prefilled student would not resolve.
     studentIds: inq?.stdId ? [inq.stdId] : [],
     primaryStudentId: inq?.stdId ?? undefined,
   };

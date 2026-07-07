@@ -24,9 +24,12 @@ ALTER TABLE amb_acm_cls_classes
 
 DO $$
 BEGIN
+  -- ON DELETE SET NULL: removing a course must not block deletion; the
+  -- display snapshot (cls_subject_label) already preserves human context.
   ALTER TABLE amb_acm_cls_classes
     ADD CONSTRAINT fk_acm_cls_classes_course
-    FOREIGN KEY (cls_course_id) REFERENCES amb_acm_csl_course(crs_id);
+    FOREIGN KEY (cls_course_id) REFERENCES amb_acm_csl_course(crs_id)
+    ON DELETE SET NULL;
 EXCEPTION
   WHEN duplicate_object THEN NULL;
 END $$;
