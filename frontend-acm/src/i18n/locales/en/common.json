@@ -30,6 +30,8 @@
     "login": {
       "title": "Academy Portal Login",
       "subtitle": "Sign in with the ID and password you were given.",
+      "tenantCode": "Academy code",
+      "tenantCodePlaceholder": "e.g. trinity",
       "loginId": "ID",
       "password": "Password",
       "submit": "Sign in",

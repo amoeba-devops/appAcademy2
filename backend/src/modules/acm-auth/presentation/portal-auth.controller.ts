@@ -28,9 +28,9 @@ export class PortalAuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Portal login by loginId + password' })
+  @ApiOperation({ summary: 'Portal login by tenantCode + loginId + password' })
   login(@Body() dto: PortalLoginDto) {
-    return this.accounts.login(dto.loginId, dto.password);
+    return this.accounts.login(dto.tenantCode, dto.loginId, dto.password);
   }
 
   @Post('change-password')

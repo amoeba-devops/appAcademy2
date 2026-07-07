@@ -100,7 +100,9 @@
     "fields": {
       "name": "Tên",
       "entId": "ent_id",
-      "entIdHint": "UUID pháp nhân. Phải khớp ent_id của người dùng hiện có."
+      "entIdHint": "UUID pháp nhân. Phải khớp ent_id của người dùng hiện có.",
+      "code": "Mã học viện (đăng nhập)",
+      "codeHint": "Mã ngắn dùng trong URL/màn hình đăng nhập cổng. Chữ thường/số/gạch nối, duy nhất mỗi học viện."
     },
     "info": {
       "title": "Thông tin"

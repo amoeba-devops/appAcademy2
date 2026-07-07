@@ -53,10 +53,13 @@ export class TenantService {
         HttpStatus.CONFLICT,
       );
     }
+    const code = normalizeTenantCode(dto.code);
+    if (code) await this.assertCodeFree(code, dto.entId);
     const saved = await this.tenantRepo.save(
       this.tenantRepo.create({
         entId: dto.entId,
         name: dto.name.trim(),
+        code,
         status: dto.status ?? 'ACTIVE',
         isSystem: false,
       }),
@@ -68,6 +71,11 @@ export class TenantService {
     const t = await this.getEntityOrThrow(entId);
     if (dto.name !== undefined) t.name = dto.name.trim();
     if (dto.status !== undefined) t.status = dto.status;
+    if (dto.code !== undefined) {
+      const code = normalizeTenantCode(dto.code);
+      if (code) await this.assertCodeFree(code, entId);
+      t.code = code;
+    }
     await this.tenantRepo.save(t);
     const counts = await this.userCountsByTenant([entId]);
     return this.toView(t, counts.get(entId) ?? 0);
@@ -139,10 +147,22 @@ export class TenantService {
     return t;
   }
 
+  /** PLN-260708 — enforce login-code uniqueness across tenants. */
+  private async assertCodeFree(code: string, exceptEntId: string): Promise<void> {
+    const clash = await this.tenantRepo.findOne({ where: { code } });
+    if (clash && clash.entId !== exceptEntId) {
+      throw new HttpException(
+        { code: 'TENANT_CODE_DUPLICATE', message: 'Tenant code already in use' },
+        HttpStatus.CONFLICT,
+      );
+    }
+  }
+
   private toView(t: AcmTenantTypeormEntity, userCount: number): TenantView {
     return {
       entId: t.entId,
       name: t.name,
+      code: t.code ?? null,
       status: t.status,
       isSystem: t.isSystem,
       userCount,
@@ -150,4 +170,10 @@ export class TenantService {
       updatedAt: t.updatedAt.toISOString(),
     };
   }
+}
+
+/** Normalize a tenant login code → lowercase/trim, or null when blank. */
+function normalizeTenantCode(code: string | undefined | null): string | null {
+  const c = (code ?? '').trim().toLowerCase();
+  return c.length > 0 ? c : null;
 }

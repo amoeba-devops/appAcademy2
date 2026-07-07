@@ -30,6 +30,8 @@
     "login": {
       "title": "学院门户登录",
       "subtitle": "使用发放的账号和密码登录。",
+      "tenantCode": "学院代码",
+      "tenantCodePlaceholder": "如: trinity",
       "loginId": "账号",
       "password": "密码",
       "submit": "登录",

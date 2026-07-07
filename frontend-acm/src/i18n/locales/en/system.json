@@ -100,7 +100,9 @@
     "fields": {
       "name": "Name",
       "entId": "ent_id",
-      "entIdHint": "Tenant UUID. Must match existing users’ ent_id."
+      "entIdHint": "Tenant UUID. Must match existing users’ ent_id.",
+      "code": "Academy code (for login)",
+      "codeHint": "Short code used in the portal login URL/form. Lowercase letters/digits/hyphen, unique per academy."
     },
     "info": {
       "title": "Info"

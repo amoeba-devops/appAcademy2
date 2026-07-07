@@ -5,6 +5,10 @@ import type { PortalKind } from '../../infrastructure/typeorm/portal-account.typ
 /** PLN-260706 — portal account DTOs (login / change-password / admin issue). */
 
 export class PortalLoginDto {
+  @ApiProperty({ example: 'tpi', description: '학원 코드 (테넌트 slug) — PLN-260708' })
+  @IsString() @Length(1, 40)
+  tenantCode!: string;
+
   @ApiProperty({ example: 's7k3m9', description: '포털 로그인 아이디' })
   @IsString() @Length(3, 40)
   loginId!: string;
