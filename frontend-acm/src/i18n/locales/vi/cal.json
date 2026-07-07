@@ -4,13 +4,23 @@
     "create": "Thêm sự kiện",
     "today": "Hôm nay",
     "prev": "Trước",
-    "next": "Sau"
+    "next": "Sau",
+    "registerFeedback": "Đăng ký làm phản hồi"
+  },
+  "view": {
+    "day": "Ngày",
+    "week": "Tuần",
+    "month": "Tháng"
   },
   "category": {
     "CLASS": "Lớp học",
     "MEETING": "Họp",
     "EVENT": "Sự kiện",
-    "PERSONAL": "Cá nhân"
+    "PERSONAL": "Cá nhân",
+    "LEVEL_TEST": "Bài kiểm tra trình độ",
+    "DEMO_CLASS": "Lớp học thử",
+    "REGULAR_CLASS": "Lớp học chính thức",
+    "OTHER": "Khác"
   },
   "provider": {
     "NONE": "Không",
@@ -30,7 +40,8 @@
     "meetingUrl": "URL họp",
     "creator": "Người tạo",
     "assignee": "Người phụ trách",
-    "assigneeNone": "Chưa chỉ định"
+    "assigneeNone": "Chưa chỉ định",
+    "materials": "Tài liệu lớp học"
   },
   "form": {
     "titleCreate": "Thêm sự kiện",
@@ -53,7 +64,9 @@
   },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
-    "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa."
+    "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa.",
+    "bodaAuto": "Lớp học thử và lớp học chính thức sẽ tự động tạo liên kết Bodaschool khi lưu.",
+    "bodaPending": "Liên kết sẽ được tạo sau khi lưu."
   },
   "error": {
     "titleRequired": "Vui lòng nhập tiêu đề.",

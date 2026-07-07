@@ -64,6 +64,7 @@
     "csl": "Tư vấn mới",
     "cls": "Lớp học",
     "std": "Học sinh",
+    "parents": "Quản lý phụ huynh",
     "sch": "Trường học",
     "ref": "Tài liệu tham khảo",
     "qna": "Hỏi đáp",
@@ -94,7 +95,10 @@
     "loading": "Đang tải…",
     "submit": "Gửi",
     "submitting": "Đang gửi…",
-    "close": "Đóng"
+    "close": "Đóng",
+    "prev": "Trước",
+    "next": "Sau",
+    "actions": "Thao tác"
   },
   "status": {
     "loading": "Đang tải…",

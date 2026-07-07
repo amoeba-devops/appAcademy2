@@ -32,6 +32,8 @@
   "form": {
     "studentName": "Tên học sinh",
     "studentNamePlaceholder": "Hong Gildong",
+    "parentName": "Tên phụ huynh",
+    "parentNamePlaceholder": "Tùy chọn, được mã hóa khi lưu trữ",
     "isAnonymous": "Tư vấn ẩn danh",
     "parentPhone": "SĐT phụ huynh",
     "parentPhonePlaceholder": "010-1234-5678",

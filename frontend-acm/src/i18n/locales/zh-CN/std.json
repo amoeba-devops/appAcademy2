@@ -4,7 +4,10 @@
     "create": "添加学生",
     "edit": "编辑",
     "import": "导入Excel",
-    "deactivate": "停用"
+    "deactivate": "停用",
+    "setPrimary": "设为主联系人",
+    "unlink": "解除关联",
+    "confirmUnlink": "确定解除该家长与学生的关联吗？"
   },
   "filter": {
     "searchPlaceholder": "搜索姓名/学校",
@@ -91,7 +94,26 @@
     "updatedAt": "最后更新",
     "confirmDeactivate": "确认停用该学生？"
   },
+  "parentPicker": {
+    "title": "添加家长",
+    "modeSearch": "选择已有家长",
+    "modeCreate": "登记新家长",
+    "searchPlaceholder": "姓名、电话或邮箱（至少 2 个字符）",
+    "linkAsPrimary": "设为主联系人",
+    "noResults": "没有匹配的家长",
+    "startTyping": "请输入至少 2 个字符进行搜索",
+    "linkBtn": "关联",
+    "linkedChildren": "已关联子女 {{count}} 名",
+    "createAndLink": "登记并关联"
+  },
   "parentList": {
+    "title": "家长管理",
+    "searchPlaceholder": "姓名、电话或邮箱",
+    "empty": "暂无已登记的家长",
+    "childCount": "已关联子女",
+    "orphan": "无关联（无子女）",
+    "cannotDeleteLinked": "存在已关联子女，无法删除",
+    "confirmDelete": "确定删除该家长吗？",
     "ama": {
       "column": "AMA 客户",
       "register": "注册 AMA 客户",
