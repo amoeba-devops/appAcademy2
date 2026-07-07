@@ -60,12 +60,13 @@
     "delete": "删除"
   },
   "nav": {
-    "dashboard": "대시보드",
-    "csl": "신규 상담",
+    "dashboard": "仪表板",
+    "csl": "新咨询",
     "cls": "课程管理",
     "std": "学生管理",
+    "parents": "家长管理",
     "sch": "学校",
-    "ref": "참조 자료",
+    "ref": "参考资料",
     "qna": "Q&A",
     "tch": "教师管理",
     "stf": "员工管理",
@@ -90,11 +91,14 @@
     "delete": "删除",
     "add": "添加",
     "remove": "移除",
-    "search": "검색",
-    "loading": "불러오는 중…",
-    "submit": "제출",
-    "submitting": "제출 중…",
-    "close": "关闭"
+    "search": "搜索",
+    "loading": "加载中…",
+    "submit": "提交",
+    "submitting": "提交中…",
+    "close": "关闭",
+    "prev": "上一页",
+    "next": "下一页",
+    "actions": "操作"
   },
   "status": {
     "loading": "加载中…",
@@ -115,7 +119,7 @@
     "deleteTitle": "删除此项目？",
     "deleteDescription": "此操作无法撤销。"
   },
-  "todo": "TODO: 추후 구현 예정",
+  "todo": "TODO: 待实现",
   "dash": "—",
   "days-short": {
     "mon": "一",

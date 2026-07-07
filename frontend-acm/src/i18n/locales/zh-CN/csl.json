@@ -1,9 +1,9 @@
 {
-  "title": "상담 관리",
-  "newInquiry": "신규 상담 등록",
-  "newInquiryShort": "+ 신규 상담",
-  "subtitle": "INTAKE 단계 정보를 입력하세요. 이후 단계는 상담 상세에서 진행합니다.",
-  "anonymousInquiry": "익명 문의 #{{seqNo}}",
+  "title": "咨询管理",
+  "newInquiry": "新增咨询",
+  "newInquiryShort": "+ 新增咨询",
+  "subtitle": "请填写 INTAKE 阶段信息。后续阶段在咨询详情中进行。",
+  "anonymousInquiry": "匿名咨询 #{{seqNo}}",
   "view": {
     "list": "列表",
     "kanban": "看板"
@@ -18,44 +18,46 @@
   },
   "table": {
     "seqNo": "No.",
-    "student": "학생",
-    "schoolGrade": "학교 / 학년",
+    "student": "学生",
+    "schoolGrade": "学校 / 学年",
     "grade": "学年",
-    "stage": "단계",
-    "inflow": "유입",
-    "applyType": "신청",
+    "stage": "阶段",
+    "inflow": "来源",
+    "applyType": "申请",
     "applyPurpose": "申请目的",
-    "registered": "등록일",
-    "followup": "후속 일정",
-    "empty": "등록된 상담이 없습니다."
+    "registered": "登记日期",
+    "followup": "后续跟进",
+    "empty": "暂无咨询记录。"
   },
   "form": {
-    "studentName": "학생 이름",
-    "studentNamePlaceholder": "홍길동",
-    "isAnonymous": "익명 문의",
-    "parentPhone": "보호자 전화번호",
+    "studentName": "学生姓名",
+    "studentNamePlaceholder": "张三",
+    "isAnonymous": "匿名咨询",
+    "parentName": "家长姓名",
+    "parentNamePlaceholder": "选填，加密存储",
+    "parentPhone": "家长电话",
     "parentPhonePlaceholder": "010-1234-5678",
-    "phoneStatus": "전화번호 상태",
-    "school": "학교",
-    "schoolPlaceholder": "서울중학교 (자유 입력 가능)",
-    "grade": "학년",
-    "inflowType": "유입 경로",
-    "applyType": "신청 유형",
-    "applyPurpose": "신청 목적",
-    "applyPurposeOther": "기타 사유",
-    "applyPurposeOtherPlaceholder": "구체적인 사유를 입력하세요",
-    "consultDone": "상담 완료 여부",
-    "registeredAt": "등록일",
-    "followupAt": "후속 일정",
-    "followupMemo": "후속 메모",
+    "phoneStatus": "电话状态",
+    "school": "学校",
+    "schoolPlaceholder": "首尔中学（可自由输入）",
+    "grade": "学年",
+    "inflowType": "来源渠道",
+    "applyType": "申请类型",
+    "applyPurpose": "申请目的",
+    "applyPurposeOther": "其他原因",
+    "applyPurposeOtherPlaceholder": "请输入具体原因",
+    "consultDone": "咨询是否完成",
+    "registeredAt": "登记日期",
+    "followupAt": "后续跟进日期",
+    "followupMemo": "后续备注",
     "required": "*"
   },
   "validation": {
-    "phoneInvalid": "전화번호 형식이 올바르지 않습니다",
-    "schoolRequired": "학교명을 입력하세요",
-    "phoneRequiredForProvided": "전화번호 상태가 '제공'일 때 전화번호가 필요합니다",
-    "purposeOtherRequired": "기타를 선택한 경우 사유를 입력하세요",
-    "studentNameOrAnonymous": "익명이 아닌 경우 학생 이름을 입력하세요"
+    "phoneInvalid": "电话号码格式不正确",
+    "schoolRequired": "请输入学校名称",
+    "phoneRequiredForProvided": "电话状态为“已提供”时必须填写电话号码",
+    "purposeOtherRequired": "选择“其他”时请输入原因",
+    "studentNameOrAnonymous": "非匿名时请输入学生姓名"
   },
   "stage": {
     "INTAKE": "1. 接收",
@@ -67,14 +69,14 @@
     "DROPPED": "完成"
   },
   "inflow": {
-    "HOMEPAGE": "홈페이지",
-    "KAKAO_CHANNEL": "카카오 채널",
-    "PHONE": "전화"
+    "HOMEPAGE": "官网",
+    "KAKAO_CHANNEL": "KakaoTalk 频道",
+    "PHONE": "电话"
   },
   "applyType": {
-    "COUNSELING_ONLY": "상담만",
-    "EXAM_ONLY": "시험만",
-    "BOTH": "상담+시험"
+    "COUNSELING_ONLY": "仅咨询",
+    "EXAM_ONLY": "仅考试",
+    "BOTH": "咨询+考试"
   },
   "applyPurpose": {
     "MAP_TEST_TUTORING": "MAP TEST 补习",
@@ -84,13 +86,13 @@
     "ADVANCED_COURSES": "强化课程(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
   },
   "phoneStatus": {
-    "PROVIDED": "제공됨",
-    "DECLINED": "거부",
-    "UNKNOWN": "미확인"
+    "PROVIDED": "已提供",
+    "DECLINED": "已拒绝",
+    "UNKNOWN": "未确认"
   },
   "yesNo": {
-    "YES": "완료",
-    "NO": "미완료"
+    "YES": "已完成",
+    "NO": "未完成"
   },
   "grade": {
     "E1": "小学1年级", "E2": "小学2年级", "E3": "小学3年级", "E4": "小学4年级",
@@ -230,18 +232,18 @@
         "keyPlaceholder": "键名",
         "valuePlaceholder": "值"
       },
-      "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
+      "fee": { "PAID": "已缴费", "UNPAID": "未缴费", "WAIVED": "已免除" },
       "waiver": {
-        "RETAKE_WITHIN_90D": "90일 내 재응시",
-        "TRIAL_PROMOTION": "체험 프로모션",
-        "SISTER_ACADEMY_TRANSFER": "자매학원 이동",
-        "OTHER": "기타"
+        "RETAKE_WITHIN_90D": "90 天内重考",
+        "TRIAL_PROMOTION": "体验促销",
+        "SISTER_ACADEMY_TRANSFER": "姊妹校区转入",
+        "OTHER": "其他"
       },
       "schedule": {
-        "SCHEDULED": "예정",
-        "TAKEN": "응시 완료",
-        "NOT_TAKING": "미응시",
-        "RESCHEDULED": "재예약"
+        "SCHEDULED": "已预定",
+        "TAKEN": "已考试",
+        "NOT_TAKING": "未考试",
+        "RESCHEDULED": "已改期"
       }
     },
     "trial": {
@@ -272,16 +274,16 @@
     },
     "enrollment": {
       "title": "报名咨询",
-      "counselDone": "등록 상담 완료",
-      "paymentNoticeStatus": "수강료 안내 상태",
-      "applied": "수강 신청",
-      "paymentNoticeSent": "수강료 안내 발송",
+      "counselDone": "报名咨询完成",
+      "paymentNoticeStatus": "学费通知状态",
+      "applied": "已申请报名",
+      "paymentNoticeSent": "已发送学费通知",
       "classMinutes": "课时(分钟)",
       "classMinutesPresets": "预设",
       "classMinutesFreeInput": "自定义分钟",
       "classMinutesUnit": "分钟",
-      "tuitionAmount": "수강료",
-      "tuitionPaid": "수강료 납부 완료",
+      "tuitionAmount": "学费",
+      "tuitionPaid": "学费已缴清",
       "tuitionPaidHint": "※ 仅负责人(ADMIN)可确认付款。",
       "saveAndAdvance": "保存并进入付款阶段",
       "counselMemo": "咨询内容",
@@ -304,9 +306,9 @@
       "paymentMemo": "备注",
       "method": { "CARD": "刷卡", "BANK_TRANSFER": "转账" },
       "approvePayment": "批准付款",
-      "classStartedAt": "수강 시작일",
-      "classStarted": "수강 시작 여부",
-      "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
+      "classStartedAt": "开课日期",
+      "classStarted": "是否已开课",
+      "notice": { "SENT": "已发送", "PENDING": "待处理", "NA": "不适用" }
     },
     "classStatus": {
       "title": "6. 上课现况",
@@ -321,24 +323,24 @@
     "cancel": {
       "title": "完成处理",
       "subtitle": "请选择完成原因。历史记录无法删除。",
-      "reasonCode": "사유 코드",
-      "reasonOther": "상세 사유",
-      "reasonOtherPlaceholder": "상세 사유를 입력하세요",
+      "reasonCode": "原因代码",
+      "reasonOther": "详细原因",
+      "reasonOtherPlaceholder": "请输入详细原因",
       "reason": {
-        "ACADEMY_CANCELLED": "학원 사정으로 취소",
-        "STUDENT_ILLNESS": "학생 건강",
-        "STUDENT_SCHEDULE_CHANGE": "학생 일정 변경",
-        "PAYMENT_DECLINED": "결제 거절",
-        "LOST_TO_COMPETITOR": "타 학원 등록",
-        "OTHER": "기타"
+        "ACADEMY_CANCELLED": "因学院原因取消",
+        "STUDENT_ILLNESS": "学生健康原因",
+        "STUDENT_SCHEDULE_CHANGE": "学生日程变更",
+        "PAYMENT_DECLINED": "付款被拒绝",
+        "LOST_TO_COMPETITOR": "报名其他学院",
+        "OTHER": "其他"
       }
     },
     "timeline": {
-      "title": "기록 / 타임라인",
-      "empty": "기록이 없습니다.",
-      "transition": "단계 변경",
-      "add": "메모 추가",
-      "addPlaceholder": "메모 또는 후속 사항을 기록하세요"
+      "title": "记录 / 时间线",
+      "empty": "暂无记录。",
+      "transition": "阶段变更",
+      "add": "添加备注",
+      "addPlaceholder": "请记录备注或后续事项"
     }
   }
 }

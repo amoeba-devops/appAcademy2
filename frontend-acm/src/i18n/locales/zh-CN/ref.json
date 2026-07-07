@@ -1,47 +1,47 @@
 {
-  "title": "참조 자료",
+  "title": "参考资料",
   "tabs": {
-    "guidelines": "수업 지침",
-    "levelTests": "레벨 테스트 가이드",
-    "benchmarks": "점수 벤치마크"
+    "guidelines": "教学指南",
+    "levelTests": "分级测试指南",
+    "benchmarks": "分数基准"
   },
   "actions": {
-    "create": "신규 등록",
-    "edit": "수정",
-    "delete": "삭제",
-    "save": "저장",
-    "cancel": "취소",
-    "addStep": "+ 단계 추가",
-    "removeStep": "삭제",
-    "addGrade": "+ 학년 추가"
+    "create": "新建",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "addStep": "+ 添加步骤",
+    "removeStep": "删除",
+    "addGrade": "+ 添加年级"
   },
   "table": {
-    "code": "코드",
-    "examType": "시험 유형",
-    "label": "명칭",
-    "level": "레벨",
-    "version": "버전",
-    "status": "상태",
-    "effectiveFrom": "발효일",
-    "gradeBasis": "학년 기준",
-    "stepsCount": "단계 수",
-    "createdAt": "생성일"
+    "code": "代码",
+    "examType": "考试类型",
+    "label": "名称",
+    "level": "级别",
+    "version": "版本",
+    "status": "状态",
+    "effectiveFrom": "生效日期",
+    "gradeBasis": "年级基准",
+    "stepsCount": "步骤数",
+    "createdAt": "创建日期"
   },
   "examType": {
-    "MAP_TEST": "MAP 테스트",
+    "MAP_TEST": "MAP 测试",
     "SSAT": "SSAT",
     "ISEE": "ISEE",
     "WRITING_COMP": "Writing Comp",
-    "SUMMER_CAMP": "여름 캠프",
-    "JUNIOR_BOARDING": "주니어 보딩",
-    "BOARDING": "보딩스쿨",
-    "INTL_SCHOOL_APP": "국제학교 지원",
-    "OTHER": "기타"
+    "SUMMER_CAMP": "夏令营",
+    "JUNIOR_BOARDING": "初级寄宿",
+    "BOARDING": "寄宿学校",
+    "INTL_SCHOOL_APP": "国际学校申请",
+    "OTHER": "其他"
   },
   "lvlExamType": {
-    "ISEE_LEVEL_TEST": "ISEE 레벨 테스트",
-    "SSAT_LEVEL_TEST": "SSAT 레벨 테스트",
-    "OTHER": "기타"
+    "ISEE_LEVEL_TEST": "ISEE 分级测试",
+    "SSAT_LEVEL_TEST": "SSAT 分级测试",
+    "OTHER": "其他"
   },
   "sbmExamType": {
     "MAP": "MAP",
@@ -49,75 +49,75 @@
     "SSAT": "SSAT"
   },
   "dataStatus": {
-    "COMPLETE": "완료",
-    "PARTIAL": "부분",
-    "PLACEHOLDER": "초안",
-    "INHERITED_FROM": "상속"
+    "COMPLETE": "完成",
+    "PARTIAL": "部分",
+    "PLACEHOLDER": "草稿",
+    "INHERITED_FROM": "继承"
   },
   "stepRole": {
-    "ADVISOR": "어드바이저",
-    "TEAM_LEAD": "팀장",
-    "TEACHER": "강사",
-    "SENIOR_MANAGER": "수석 매니저",
-    "ADMIN": "관리자",
-    "OTHER": "기타"
+    "ADVISOR": "顾问",
+    "TEAM_LEAD": "组长",
+    "TEACHER": "讲师",
+    "SENIOR_MANAGER": "高级经理",
+    "ADMIN": "管理员",
+    "OTHER": "其他"
   },
   "gradeBasis": {
-    "TARGET_GRADE": "목표 학년",
-    "CURRENT_GRADE": "현재 학년"
+    "TARGET_GRADE": "目标年级",
+    "CURRENT_GRADE": "当前年级"
   },
   "resourceType": {
-    "DRIVE_FOLDER": "Drive 폴더",
-    "EXTERNAL_LINK": "외부 링크",
-    "INTERNAL_DOC": "내부 문서"
+    "DRIVE_FOLDER": "Drive 文件夹",
+    "EXTERNAL_LINK": "外部链接",
+    "INTERNAL_DOC": "内部文档"
   },
   "modifierType": {
-    "FOREIGN_SCHOOL": "외국인학교 보정",
-    "INTERNATIONAL_BOARDING": "국제 보딩 보정",
-    "OTHER": "기타"
+    "FOREIGN_SCHOOL": "外籍学校修正",
+    "INTERNATIONAL_BOARDING": "国际寄宿修正",
+    "OTHER": "其他"
   },
   "form": {
-    "code": "코드",
-    "examType": "시험 유형",
-    "labelKr": "명칭 (한)",
-    "labelEn": "명칭 (영)",
-    "workflowSteps": "수업 진행 단계",
-    "stepNum": "순번",
-    "role": "담당 역할",
-    "description": "설명",
-    "remark": "비고",
-    "dataStatus": "데이터 상태",
-    "effectiveFrom": "발효일",
-    "gradeBasis": "학년 기준",
-    "assignmentRuleText": "배정 규칙",
-    "resourceUrl": "리소스 URL",
-    "resourceType": "리소스 유형",
-    "resourceNote": "리소스 비고",
-    "procedureSteps": "진행 절차",
-    "defaultDurationMin": "기본 소요시간(분)",
-    "level": "레벨",
-    "mapReadingScore": "MAP Reading 점수",
-    "mapMathScore": "MAP Math 점수",
-    "mapNoUpperBound": "상한 없음",
-    "generalPct": "일반 (백분위)",
-    "premiumPrivatePct": "프리미엄 사립 (백분위)",
-    "topBoardingPct": "최상위 보딩 (백분위)",
+    "code": "代码",
+    "examType": "考试类型",
+    "labelKr": "名称（韩）",
+    "labelEn": "名称（英）",
+    "workflowSteps": "教学进行步骤",
+    "stepNum": "序号",
+    "role": "负责角色",
+    "description": "说明",
+    "remark": "备注",
+    "dataStatus": "数据状态",
+    "effectiveFrom": "生效日期",
+    "gradeBasis": "年级基准",
+    "assignmentRuleText": "分配规则",
+    "resourceUrl": "资源 URL",
+    "resourceType": "资源类型",
+    "resourceNote": "资源备注",
+    "procedureSteps": "进行流程",
+    "defaultDurationMin": "默认时长（分钟）",
+    "level": "级别",
+    "mapReadingScore": "MAP Reading 分数",
+    "mapMathScore": "MAP Math 分数",
+    "mapNoUpperBound": "无上限",
+    "generalPct": "普通（百分位）",
+    "premiumPrivatePct": "高端私立（百分位）",
+    "topBoardingPct": "顶尖寄宿（百分位）",
     "stanine": "Stanine",
-    "grades": "적용 학년",
-    "gradeLabel": "학년 표기",
-    "gradeMin": "학년 최소",
-    "gradeMax": "학년 최대"
+    "grades": "适用年级",
+    "gradeLabel": "年级标注",
+    "gradeMin": "年级最小值",
+    "gradeMax": "年级最大值"
   },
   "validation": {
-    "codeFormat": "코드는 대문자/숫자/_ 로 3-50자",
-    "stanineFormat": "Stanine은 단일(1) 또는 범위(1-3) 형식",
-    "mapScoreRange": "MAP 점수는 100-300 사이",
-    "pctRange": "백분위는 0-100 사이",
-    "required": "필수 입력"
+    "codeFormat": "代码须为大写字母/数字/_，3-50 个字符",
+    "stanineFormat": "Stanine 为单值（1）或范围（1-3）格式",
+    "mapScoreRange": "MAP 分数须在 100-300 之间",
+    "pctRange": "百分位须在 0-100 之间",
+    "required": "必填项"
   },
   "empty": {
-    "guidelines": "등록된 수업 지침이 없습니다",
-    "levelTests": "등록된 레벨 테스트 가이드가 없습니다",
-    "benchmarks": "등록된 점수 벤치마크가 없습니다"
+    "guidelines": "尚未登记教学指南",
+    "levelTests": "尚未登记分级测试指南",
+    "benchmarks": "尚未登记分数基准"
   }
 }

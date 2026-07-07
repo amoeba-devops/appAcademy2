@@ -11,70 +11,70 @@
   },
   "home": {
     "header": {
-      "menu-consult": "온라인 튜터링 상담 신청",
-      "menu-test": "온라인 MAP TEST 응시 신청",
+      "menu-consult": "在线辅导咨询申请",
+      "menu-test": "在线 MAP TEST 报名申请",
       "menu-map-test": "MAP TEST",
       "menu-isee": "ISEE",
-      "btn-test": "맵테스트 응시",
-      "btn-consult": "상담신청",
-      "menu-toggle": "메뉴 열기"
+      "btn-test": "参加 MAP 测试",
+      "btn-consult": "咨询申请",
+      "menu-toggle": "打开菜单"
     },
     "hero": {
-      "title": "NWEA MAP TEST 공식 기관 트리니티 프렙 인스티튜트",
-      "subtitle": "2017년 설립 이후 미국, 영국, 한국 등 전 세계 10개국 이상의 국제학교 학생들에게 MAP TEST 중심의 온라인 클래스와 체계적인 학습 관리를 종합적으로 제공합니다.",
-      "cta-consult": "온라인 튜터링 상담 신청",
-      "cta-test": "온라인 MAP TEST 응시 신청"
+      "title": "NWEA MAP TEST 官方机构 Trinity Prep Institute",
+      "subtitle": "自 2017 年成立以来，我们为美国、英国、韩国等全球 10 多个国家的国际学校学生，综合提供以 MAP TEST 为核心的在线课程和系统化学习管理。",
+      "cta-consult": "在线辅导咨询申请",
+      "cta-test": "在线 MAP TEST 报名申请"
     },
     "intro": {
-      "title": "MAP TEST란?",
-      "body": "MAP TEST는 \"Measures of Academic Progress\"의 약자로 미국의 교육 평가 및 학습 진단 솔루션 기관인 NWEA (Northwest Evaluation Association)에서 개발한 학업 성취도 측정 시험입니다."
+      "title": "什么是 MAP TEST？",
+      "body": "MAP TEST 是 \"Measures of Academic Progress\" 的缩写，是由美国教育评估与学习诊断机构 NWEA (Northwest Evaluation Association) 开发的学业成就测评考试。"
     },
     "importance": {
-      "title": "MAP TEST가 중요한 이유",
-      "i1": "미국 교과과정(Common Core State Standards) 기반의 학업 성취도 평가",
-      "i2": "국제학교의 입학 시험",
-      "i3": "학업 성취도의 핵심 지표",
-      "i4": "Standardized Test(SAT/ACT) 준비의 시작점"
+      "title": "MAP TEST 为何重要",
+      "i1": "基于美国教学大纲 (Common Core State Standards) 的学业成就评估",
+      "i2": "国际学校的入学考试",
+      "i3": "学业成就的核心指标",
+      "i4": "标准化考试 (SAT/ACT) 备考的起点"
     },
     "features": {
-      "title": "TPI만의 차별화된 강점",
-      "f1-title": "NWEA 공식 MAP TEST와 온라인 체험수업을 통한 정확한 학업 성취도 진단",
-      "f1-body": "세계적으로 공인된 NWEA MAP TEST를 기반으로, 학생의 학습 수준과 강점을 정밀하게 분석합니다. 온라인 체험수업(무료)를 통해 실제수업 적응도와 성취도를 객관적으로 진단합니다.",
-      "f2-title": "기출부터 자체제작까지, TPI만의 2000+문항 자료",
-      "f2-body": "수년간 축적된 기출 문제와 자체 연구 자료를 통해 시험 출제 경향을 완벽히 반영한 실전 중심의 커리큘럼을 제공합니다.",
-      "f3-title": "MAP TEST 전문 강사진과 국제학교 커리큘럼 전문 컨설턴트",
-      "f3-body": "국제학교 및 해외 교육 과정을 깊이 이해한 전문 강사진이 학생 개개인의 목표에 맞춘 맞춤형 학습 전략을 제시합니다.",
-      "f4-title": "학습 과정과 성취도를 정확하게 보여주는 체계적인 피드백 시스템",
-      "f4-body": "진단 결과와 학습 과정을 학부모와 학생이 한눈에 확인할 수 있는 체계적인 피드백 리포트를 제공합니다.",
-      "f5-title": "목표 점수 도달까지 확실하게 책임지는 1:1 맞춤 튜터링",
-      "f5-body": "각 학생의 수준과 목표 점수에 맞춰 개념부터 실전까지 단계별로 코칭하며, 꾸준한 관리로 목표 점수 달성을 이끌어냅니다."
+      "title": "TPI 独有的差异化优势",
+      "f1-title": "通过 NWEA 官方 MAP TEST 与在线体验课程实现精准的学业成就诊断",
+      "f1-body": "以全球公认的 NWEA MAP TEST 为基础，精准分析学生的学习水平与优势。通过免费在线体验课程，客观诊断学生对真实课堂的适应度与成就水平。",
+      "f2-title": "从历年真题到自主研发，TPI 独有的 2000+ 道题库资料",
+      "f2-body": "凭借多年积累的历年真题与自主研究资料，提供完全契合考试命题趋势、以实战为核心的课程体系。",
+      "f3-title": "MAP TEST 专业师资团队与国际学校课程专业顾问",
+      "f3-body": "深入了解国际学校及海外教学体系的专业师资团队，为每位学生量身定制符合其目标的学习策略。",
+      "f4-title": "精准呈现学习过程与成就的系统化反馈体系",
+      "f4-body": "提供家长与学生一目了然的系统化反馈报告，清晰展现诊断结果与学习过程。",
+      "f5-title": "全程负责助您达成目标分数的 1:1 定制辅导",
+      "f5-body": "根据每位学生的水平与目标分数，从概念到实战进行分阶段辅导，通过持续管理助力学生达成目标分数。"
     },
     "process": {
-      "title": "등록 프로세스",
+      "title": "报名流程",
       "s1-step": "Step 01",
-      "s1-title": "학생 기본 정보 등록 및 기초 상담",
+      "s1-title": "登记学生基本信息及基础咨询",
       "s2-step": "Step 02",
-      "s2-title": "공식 MAP Test 응시 & RIT 분석",
+      "s2-title": "参加官方 MAP Test 及 RIT 分析",
       "s3-step": "Step 03",
-      "s3-title": "무료 체험 수업 (Trial Class)",
+      "s3-title": "免费体验课 (Trial Class)",
       "s4-step": "Step 04",
-      "s4-title": "커리큘럼 컨설팅 및 강사 매칭",
+      "s4-title": "课程咨询及师资匹配",
       "s5-step": "Step 05",
-      "s5-title": "수업 진행 및 피드백 제공",
+      "s5-title": "课程实施及反馈提供",
       "group1-label": "学业诊断",
       "group2-label": "成长规划"
     },
     "reviews": {
-      "title": "디테일한 피드백은 확실한 학업 성취의 나침반입니다.",
-      "prev": "이전 후기",
-      "next": "다음 후기"
+      "title": "细致的反馈是通往确定学业成就的指南针。",
+      "prev": "上一条评价",
+      "next": "下一条评价"
     },
     "bottom-cta": {
-      "title": "TPI는 결과로 증명합니다.",
-      "subtitle": "TPI의 정밀한 학업 진단, 열정적인 튜터링, 그리고 디테일한 클래스 피드백은 확실한 목표 달성을 보장합니다.",
-      "cta-kakao": "카카오톡 상담",
-      "cta-phone": "전화 1555-2108",
-      "cta-consult": "상담 신청"
+      "title": "TPI 以结果证明实力。",
+      "subtitle": "TPI 精准的学业诊断、富有热情的辅导以及细致的课堂反馈，确保学生确定地达成目标。",
+      "cta-kakao": "KakaoTalk 咨询",
+      "cta-phone": "致电 1555-2108",
+      "cta-consult": "咨询申请"
     },
     "stats": {
       "title": "全球公认的 MAP TEST",
@@ -481,19 +481,19 @@
     "admin-login-link": "管理员登录 →"
   },
   "footer": {
-    "company-name": "트리니티 프렙 인스티튜트",
+    "company-name": "Trinity Prep Institute",
     "legal-name": "TRINITY PREP INSTITUTE",
-    "business-id-label": "사업자등록번호",
+    "business-id-label": "营业执照号",
     "business-id": "546-06-03432",
-    "address-label": "주소",
-    "address": "서울특별시 강남구 언주로 152길 15-4",
-    "phone-label": "전화",
+    "address-label": "地址",
+    "address": "首尔特别市江南区彦州路 152 街 15-4",
+    "phone-label": "电话",
     "phone": "1555-2108",
-    "email-label": "이메일",
+    "email-label": "邮箱",
     "email": "info@tpiglobal.network",
-    "kakao-label": "카카오톡 상담",
-    "consultation-hours": "상담시간",
-    "class-hours": "수업시간",
+    "kakao-label": "KakaoTalk 咨询",
+    "consultation-hours": "咨询时间",
+    "class-hours": "上课时间",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "copyright": "COPYRIGHT © Trinity Prep Institute ALL RIGHTS RESERVED."

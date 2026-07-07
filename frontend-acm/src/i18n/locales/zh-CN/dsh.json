@@ -1,6 +1,6 @@
 {
-  "title": "대시보드",
-  "loadFailed": "KPI를 불러오지 못했습니다.",
+  "title": "仪表盘",
+  "loadFailed": "无法加载KPI。",
   "actions": {
     "manualInput": "手动录入",
     "addComplaint": "添加投诉",
@@ -33,7 +33,7 @@
     }
   },
   "status": {
-    "populated": "{{count}}/{{total}}일 데이터 입력됨"
+    "populated": "已录入 {{count}}/{{total}} 天数据"
   },
   "category": {
     "MARKETING": "Marketing",
@@ -43,9 +43,9 @@
   },
   "grid": {
     "day": "Day",
-    "dow": "요일",
-    "sum": "합계",
-    "aver": "평균"
+    "dow": "星期",
+    "sum": "合计",
+    "aver": "平均"
   },
   "manualInput": {
     "title": "每日手动录入",
@@ -94,27 +94,27 @@
     }
   },
   "complaint": {
-    "title": "불만 사례 등록",
-    "date": "발생 일자",
-    "channel": "채널",
-    "severity": "심각도",
-    "subject": "제목",
-    "description": "내용",
-    "linkedQnaId": "연결 Q&A ID",
+    "title": "登记投诉",
+    "date": "发生日期",
+    "channel": "渠道",
+    "severity": "严重程度",
+    "subject": "主题",
+    "description": "内容",
+    "linkedQnaId": "关联 Q&A ID",
     "channels": {
-      "PHONE": "전화",
-      "EMAIL": "이메일",
-      "CHAT": "채팅",
-      "IN_PERSON": "방문",
-      "OTHER": "기타"
+      "PHONE": "电话",
+      "EMAIL": "邮箱",
+      "CHAT": "聊天",
+      "IN_PERSON": "到访",
+      "OTHER": "其他"
     },
     "severities": {
-      "LOW": "낮음",
-      "MEDIUM": "보통",
-      "HIGH": "높음"
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高"
     }
   },
   "empty": {
-    "noData": "해당 월에 데이터가 없습니다."
+    "noData": "该月份暂无数据。"
   }
 }
