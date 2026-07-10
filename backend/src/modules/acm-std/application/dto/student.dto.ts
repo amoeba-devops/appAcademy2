@@ -271,4 +271,8 @@ export class ListStudentsQueryDto {
   @ApiPropertyOptional({ default: 'name' })
   @IsOptional() @IsIn(['name', 'createdAt'])
   sort?: string;
+
+  @ApiPropertyOptional({ enum: ['asc', 'desc'] })
+  @IsOptional() @IsIn(['asc', 'desc'])
+  dir?: 'asc' | 'desc';
 }

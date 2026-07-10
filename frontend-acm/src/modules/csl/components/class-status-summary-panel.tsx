@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api-client';
-import type { ClassCreatePrefill } from '@/modules/cls/types';
+import type { StudentCreatePrefill } from '@/modules/std/types';
 
 interface InquiryDetail {
   id: string;
@@ -153,9 +153,6 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
   });
 
   const teacherName = new Map(teachers.map((teacher) => [teacher.id, teacher.name]));
-  const teacherUserIdByTeacherId = new Map(
-    teachers.map((teacher) => [teacher.id, teacher.userId ?? null]),
-  );
   const courseName = new Map(
     courses.map((course) => [course.id, `${course.code} — ${course.name}`]),
   );
@@ -168,20 +165,15 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
       return `${role} ${name}`;
     })
     .join(', ');
-  const primaryAssignment = assignments.find((assignment) => assignment.role === 'PRIMARY') ?? assignments[0];
-  const createClassPrefill: ClassCreatePrefill = {
-    inquiryId: inq?.id,
-    courseId: enrollment?.courseId ?? undefined,
-    teacherUserId: primaryAssignment
-      ? (teacherUserIdByTeacherId.get(primaryAssignment.teacherId) ?? undefined)
-      : undefined,
-    startedAt: enrollment?.startDate ?? undefined,
-    endedAt: enrollment?.endDate ?? undefined,
-    // Assumes std.id and the class-student id space are the same (as the
-    // manual create flow selects from the std list into studentUserId). If
-    // those ids ever diverge, the prefilled student would not resolve.
-    studentIds: inq?.stdId ? [inq.stdId] : [],
-    primaryStudentId: inq?.stdId ?? undefined,
+  // 상담 정보를 학생 등록 폼 프리필로 전달한다 (학생명 + 학부모 정보 + 학교/학년).
+  const studentCreatePrefill: StudentCreatePrefill = {
+    stdName: inq?.studentName ?? '',
+    stdSchool: inq?.schoolFreetext ?? '',
+    stdGrade: inq?.grade ?? '',
+    stdStartDate: enrollment?.startDate ?? '',
+    stdParents: inq?.parentName
+      ? [{ parName: inq.parentName, parPhone: inq.parentPhone ?? '', spIsPrimary: true }]
+      : [],
   };
 
   function toggle(section: SectionKey): void {
@@ -209,12 +201,12 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
         <Button
           type="button"
           onClick={() =>
-            navigate('/admin/cls', {
-              state: { createClassPrefill },
+            navigate('/admin/std', {
+              state: { studentCreatePrefill },
             })
           }
         >
-          {t('cls:actions.createClass', { defaultValue: '수업 생성' })}
+          {t('detail.classStatus.completeEnrollment', { defaultValue: '수강등록완료' })}
         </Button>
       </div>
 

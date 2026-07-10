@@ -32,6 +32,7 @@
     "grade": "Lớp",
     "teacher": "Giáo viên",
     "status": "Trạng thái",
+    "createdAt": "Ngày đăng ký",
     "total": "Tổng {{count}} học sinh",
     "empty": "Chưa có học sinh nào"
   },

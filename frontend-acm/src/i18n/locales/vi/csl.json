@@ -65,7 +65,7 @@
     "TRIAL_CLASS": "3. Lớp học thử",
     "ENROLLMENT_COUNSELING": "4. Tư vấn ghi danh",
     "PAYMENT": "5. Thanh toán",
-    "CLASS_STARTED": "6. Tình trạng lớp học",
+    "CLASS_STARTED": "6. Đăng ký học",
     "DROPPED": "Hoàn tất"
   },
   "inflow": {
@@ -311,8 +311,9 @@
       "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
     },
     "classStatus": {
-      "title": "6. Tình trạng lớp học",
+      "title": "6. Đăng ký học",
       "subtitle": "Xem nhanh nội dung tiếp nhận và thông tin lớp học hiện tại.",
+      "completeEnrollment": "Hoàn tất đăng ký",
       "sections": {
         "intake": "1. Nội dung tiếp nhận",
         "classInfo": "2. Thông tin lớp học",

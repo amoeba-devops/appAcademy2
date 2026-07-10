@@ -32,6 +32,7 @@
     "grade": "학년",
     "teacher": "담당강사",
     "status": "상태",
+    "createdAt": "등록일",
     "total": "총 {{count}}명",
     "empty": "등록된 학생이 없습니다"
   },

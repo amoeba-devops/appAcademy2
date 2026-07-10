@@ -60,6 +60,17 @@ export interface ParentInput {
   spIsPrimary?: boolean;
 }
 
+// 학생 등록 폼(StdFormModal) create 모드 프리필. 상담(CSL)에서 학생 등록으로
+// 넘어올 때 학생명·학부모 정보 등을 미리 채우기 위해 사용한다.
+export interface StudentCreatePrefill {
+  stdName?: string;
+  stdPhone?: string;
+  stdSchool?: string;
+  stdGrade?: string;
+  stdStartDate?: string;
+  stdParents?: ParentInput[];
+}
+
 export interface ListStudentsResponse {
   items: StudentSummary[];
   total: number;
@@ -82,4 +93,5 @@ export interface ListStudentsQuery {
   page?: number;
   limit?: number;
   sort?: 'name' | 'createdAt';
+  dir?: 'asc' | 'desc';
 }

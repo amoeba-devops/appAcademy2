@@ -65,7 +65,7 @@
     "TRIAL_CLASS": "3. Demo Class",
     "ENROLLMENT_COUNSELING": "4. Enrollment",
     "PAYMENT": "5. Payment",
-    "CLASS_STARTED": "6. Class Status",
+    "CLASS_STARTED": "6. Class Enrolled",
     "DROPPED": "Completed"
   },
   "inflow": {
@@ -311,8 +311,9 @@
       "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
     },
     "classStatus": {
-      "title": "6. Class Status",
+      "title": "6. Enrollment",
       "subtitle": "Review intake details and current class information at a glance.",
+      "completeEnrollment": "Complete Enrollment",
       "sections": {
         "intake": "1. Intake Details",
         "classInfo": "2. Class Information",

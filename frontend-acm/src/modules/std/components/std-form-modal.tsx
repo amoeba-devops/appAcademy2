@@ -9,13 +9,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useCreateStudent, useUpdateStudent } from '../hooks/use-students';
-import type { ParentInput, StudentDetail } from '../types';
+import type { ParentInput, StudentCreatePrefill, StudentDetail } from '../types';
 import { ParentSubform } from './parent-subform';
 
 interface StdFormModalProps {
   open: boolean;
   onClose: () => void;
   initial?: StudentDetail;
+  /** create 모드에서 폼을 미리 채우기 위한 값 (edit 모드에는 영향 없음) */
+  prefill?: StudentCreatePrefill;
 }
 
 type FormValues = {
@@ -47,21 +49,21 @@ const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 const labelClass = 'block text-xs text-secondary mb-1';
 
-export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
+export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalProps) {
   const { t } = useTranslation('std');
   const isEdit = !!initial;
 
   const { register, handleSubmit, reset, control } = useForm<FormValues>({
     defaultValues: {
-      stdName: initial?.name ?? '',
+      stdName: initial?.name ?? prefill?.stdName ?? '',
       stdEnglishName: initial?.englishName ?? '',
       stdGender: initial?.gender ?? '',
       stdBirthDate: initial?.birthDate ?? '',
-      stdPhone: initial?.phone ?? '',
+      stdPhone: initial?.phone ?? prefill?.stdPhone ?? '',
       stdEmail: initial?.email ?? '',
       stdResidence: initial?.residence ?? '',
-      stdSchool: initial?.school ?? '',
-      stdGrade: initial?.grade ?? '',
+      stdSchool: initial?.school ?? prefill?.stdSchool ?? '',
+      stdGrade: initial?.grade ?? prefill?.stdGrade ?? '',
       stdMapReading: initial?.mapReading != null ? String(initial.mapReading) : '',
       stdMapMath: initial?.mapMath != null ? String(initial.mapMath) : '',
       stdMapLanguage: initial?.mapLanguage != null ? String(initial.mapLanguage) : '',
@@ -73,7 +75,7 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
       stdGoalsNote: initial?.goalsNote ?? '',
       stdSpecialNote: initial?.specialNote ?? '',
       stdStatus: initial?.status ?? 'ACTIVE',
-      stdStartDate: initial?.startDate ?? '',
+      stdStartDate: initial?.startDate ?? prefill?.stdStartDate ?? '',
       stdParents:
         initial?.parents?.map((p) => ({
           parId: p.id,
@@ -82,7 +84,9 @@ export function StdFormModal({ open, onClose, initial }: StdFormModalProps) {
           parPhone: p.phone ?? '',
           parEmail: p.email ?? '',
           spIsPrimary: p.isPrimary,
-        })) ?? [],
+        })) ??
+        prefill?.stdParents ??
+        [],
     },
   });
 

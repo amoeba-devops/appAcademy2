@@ -65,7 +65,7 @@
     "TRIAL_CLASS": "3. 데모수업",
     "ENROLLMENT_COUNSELING": "4. 등록 상담",
     "PAYMENT": "5. 결제",
-    "CLASS_STARTED": "6. 수강현황",
+    "CLASS_STARTED": "6. 수강등록",
     "DROPPED": "완료"
   },
   "inflow": {
@@ -311,8 +311,9 @@
       "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
     },
     "classStatus": {
-      "title": "6. 수강 현황",
+      "title": "6. 수강 등록",
       "subtitle": "접수 내용과 현재 운영 중인 수업 정보를 한 번에 확인합니다.",
+      "completeEnrollment": "수강등록완료",
       "sections": {
         "intake": "1. 접수 내용",
         "classInfo": "2. 수업 정보",

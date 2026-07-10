@@ -32,6 +32,7 @@
     "grade": "年级",
     "teacher": "负责教师",
     "status": "状态",
+    "createdAt": "注册日",
     "total": "共 {{count}} 名学生",
     "empty": "暂无学生"
   },

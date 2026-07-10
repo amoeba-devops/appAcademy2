@@ -1,14 +1,29 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
 import type { StudentSummary } from '../types';
 import { StdStatusBadge } from './std-status-badge';
+
+export interface StdSort {
+  field: 'name' | 'createdAt';
+  dir: 'asc' | 'desc';
+}
 
 interface StdTableProps {
   items: StudentSummary[];
   isLoading: boolean;
+  sort: StdSort;
+  onSort: (field: StdSort['field']) => void;
 }
 
-export function StdTable({ items, isLoading }: StdTableProps) {
+const fmtDate = (s?: string | null) => {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return s;
+  return d.toISOString().slice(0, 10);
+};
+
+export function StdTable({ items, isLoading, sort, onSort }: StdTableProps) {
   const { t } = useTranslation('std');
   const navigate = useNavigate();
 
@@ -20,18 +35,38 @@ export function StdTable({ items, isLoading }: StdTableProps) {
     return <p className="text-secondary py-8 text-center">{t('table.empty')}</p>;
   }
 
+  const SortIcon = ({ field }: { field: StdSort['field'] }) => {
+    if (sort.field !== field) return <ChevronsUpDown size={12} className="opacity-40" />;
+    return sort.dir === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
+  };
+
+  const SortableTh = ({ field, label }: { field: StdSort['field']; label: string }) => (
+    <th className="px-4 py-3 text-left">
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-primary"
+        aria-sort={sort.field === field ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+      >
+        {label}
+        <SortIcon field={field} />
+      </button>
+    </th>
+  );
+
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
-      <table className="w-full min-w-[700px] text-sm">
+      <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-[var(--gray-50)] text-xs uppercase tracking-wide text-secondary">
           <tr>
             <th className="px-4 py-3 text-left">#</th>
-            <th className="px-4 py-3 text-left">{t('table.name')}</th>
+            <SortableTh field="name" label={t('table.name')} />
             <th className="px-4 py-3 text-left">{t('table.gender')}</th>
             <th className="px-4 py-3 text-left">{t('table.school')}</th>
             <th className="px-4 py-3 text-left">{t('table.grade')}</th>
             <th className="px-4 py-3 text-left">{t('table.teacher')}</th>
             <th className="px-4 py-3 text-left">{t('table.status')}</th>
+            <SortableTh field="createdAt" label={t('table.createdAt')} />
           </tr>
         </thead>
         <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -57,6 +92,7 @@ export function StdTable({ items, isLoading }: StdTableProps) {
               <td className="px-4 py-3">
                 <StdStatusBadge status={s.status} />
               </td>
+              <td className="px-4 py-3 text-secondary">{fmtDate(s.createdAt)}</td>
             </tr>
           ))}
         </tbody>

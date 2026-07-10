@@ -53,10 +53,11 @@ export class StudentService {
       qb.andWhere('s.teacher ILIKE :teacher', { teacher: `%${q.teacher}%` });
     }
 
+    // dir 미지정 시 기존 기본값 유지 (name ASC / createdAt DESC)
     if (q.sort === 'createdAt') {
-      qb.orderBy('s.createdAt', 'DESC');
+      qb.orderBy('s.createdAt', q.dir === 'asc' ? 'ASC' : 'DESC');
     } else {
-      qb.orderBy('s.name', 'ASC');
+      qb.orderBy('s.name', q.dir === 'desc' ? 'DESC' : 'ASC');
     }
 
     qb.skip(skip).take(limit);

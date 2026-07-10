@@ -32,6 +32,7 @@
     "grade": "Grade",
     "teacher": "Teacher",
     "status": "Status",
+    "createdAt": "Registered",
     "total": "Total {{count}} students",
     "empty": "No students registered"
   },
