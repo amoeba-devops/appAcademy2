@@ -79,3 +79,79 @@ describe('PortalAccountService.login (tenant scope)', () => {
     );
   });
 });
+
+describe('PortalAccountService issuance', () => {
+  const mk = (existing?: any) => {
+    const accounts = {
+      findOne: jest
+        .fn()
+        // 1st call = ref lookup (existing?), later = loginId clash check (none)
+        .mockResolvedValueOnce(existing ?? null)
+        .mockResolvedValue(null),
+      create: jest.fn((x: any) => x),
+      save: jest.fn(async (x: any) => ({ id: 'pac-new', ...x })),
+    };
+    const svc = new PortalAccountService(
+      accounts as any,
+      { findOne: jest.fn() } as any,
+      { sign: jest.fn() } as any,
+    );
+    return { svc, accounts };
+  };
+
+  beforeEach(() => (bcrypt.hash as jest.Mock).mockResolvedValue('hashed'));
+
+  it('issue() creates an account with a temp password + forced rotation', async () => {
+    const { svc, accounts } = mk(null);
+    const r = await svc.issue('e1', 'STUDENT', 'std-1');
+    expect(r.loginId).toMatch(/^s/); // STUDENT prefix
+    expect(r.tempPassword).toHaveLength(10);
+    expect(accounts.save).toHaveBeenCalledWith(
+      expect.objectContaining({ mustChangePassword: true, status: 'ACTIVE' }),
+    );
+  });
+
+  it('issue() 409s when an account already exists', async () => {
+    const { svc } = mk({ id: 'x' });
+    await expect(svc.issue('e1', 'STUDENT', 'std-1')).rejects.toMatchObject({
+      response: { code: 'PORTAL_ACCOUNT_EXISTS' },
+    });
+  });
+
+  it('ensureAccount() is idempotent — no new password when it exists', async () => {
+    const { svc, accounts } = mk({ id: 'x', loginId: 's1' });
+    const r = await svc.ensureAccount('e1', 'STUDENT', 'std-1');
+    expect(r.created).toBe(false);
+    expect(r.tempPassword).toBeUndefined();
+    expect(accounts.save).not.toHaveBeenCalled();
+  });
+
+  it('reissuePassword() resets to a temp password, forces rotation, clears lock', async () => {
+    const acc: any = { id: 'pac-1', loginId: 's1', mustChangePassword: false, lockedAt: new Date() };
+    const accounts = {
+      findOne: jest.fn().mockResolvedValue(acc),
+      save: jest.fn(async (x: any) => x),
+    };
+    const svc = new PortalAccountService(
+      accounts as any,
+      { findOne: jest.fn() } as any,
+      { sign: jest.fn() } as any,
+    );
+    const r = await svc.reissuePassword('e1', 'pac-1');
+    expect(r.tempPassword).toHaveLength(10);
+    expect(acc.mustChangePassword).toBe(true);
+    expect(acc.lockedAt).toBeNull();
+  });
+
+  it('reissuePassword() 404s for an unknown account', async () => {
+    const accounts = { findOne: jest.fn().mockResolvedValue(null), save: jest.fn() };
+    const svc = new PortalAccountService(
+      accounts as any,
+      { findOne: jest.fn() } as any,
+      { sign: jest.fn() } as any,
+    );
+    await expect(svc.reissuePassword('e1', 'nope')).rejects.toMatchObject({
+      response: { code: 'PORTAL_ACCOUNT_NOT_FOUND' },
+    });
+  });
+});
