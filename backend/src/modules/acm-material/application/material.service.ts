@@ -50,7 +50,7 @@ export class MaterialService {
     if (!file?.buffer?.length) throw new BadRequestException('EMPTY_FILE');
     if (file.size > MAX_BYTES) throw new BadRequestException('FILE_TOO_LARGE');
 
-    const safe = file.originalname.replace(/[^\w.\-]+/g, '_').slice(-120);
+    const safe = file.originalname.replace(/[^\w.-]+/g, '_').slice(-120);
     const key = `materials/${entId}/${clsId}/${randomUUID()}-${safe}`;
     await this.store.putObject({ key, body: file.buffer, mime: file.mimetype });
 
