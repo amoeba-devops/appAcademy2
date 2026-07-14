@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryColumn } from 'typeorm';
 
 export type CancellationReasonCode =
+  | 'SIMPLE_INQUIRY_END'
   | 'ACADEMY_CANCELLED'
   | 'STUDENT_ILLNESS'
   | 'STUDENT_SCHEDULE_CHANGE'

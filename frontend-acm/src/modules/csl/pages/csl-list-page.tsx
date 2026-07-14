@@ -107,7 +107,8 @@ export function CslListPage() {
 
   const stageBadgeClass = (stage: Inquiry['currentStage']) => {
     if (stage === 'DROPPED') return 'bg-[var(--gray-200)] text-secondary';
-    if (stage === 'CLASS_STARTED') return 'bg-emerald-50 text-emerald-700';
+    if (stage === 'CLASS_STARTED' || stage === 'ATTENDING')
+      return 'bg-emerald-50 text-emerald-700';
     if (stage === 'PAYMENT') return 'bg-amber-50 text-amber-700';
     return 'bg-accent-50 text-accent-700';
   };

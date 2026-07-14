@@ -43,7 +43,8 @@ import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.
  * TRIAL_CLASS → ENROLLMENT_COUNSELING | DROPPED
  * ENROLLMENT_COUNSELING → PAYMENT | DROPPED
  * PAYMENT → CLASS_STARTED | DROPPED
- * CLASS_STARTED → DROPPED (terminal otherwise; CLS module owns ongoing state)
+ * CLASS_STARTED → ATTENDING (수강중, PLN-260714) | DROPPED
+ * ATTENDING → DROPPED (수강중 상담을 상담종료로 마감)
  * DROPPED → previousStage (reactivation per C-14)
  */
 const FORWARD_TRANSITIONS: Record<CslStage, CslStage[]> = {
@@ -52,7 +53,8 @@ const FORWARD_TRANSITIONS: Record<CslStage, CslStage[]> = {
   TRIAL_CLASS: ['ENROLLMENT_COUNSELING', 'DROPPED'],
   ENROLLMENT_COUNSELING: ['PAYMENT', 'DROPPED'],
   PAYMENT: ['CLASS_STARTED', 'DROPPED'],
-  CLASS_STARTED: ['DROPPED'],
+  CLASS_STARTED: ['ATTENDING', 'DROPPED'],
+  ATTENDING: ['DROPPED'],
   DROPPED: [],
 };
 
@@ -824,6 +826,17 @@ export class InquiryService {
       const er = await this.enrollments.findOne({ where: { entId, inqId } });
       if (!er || er.tuitionPaid !== true) {
         throw new BadRequestException('CLASS_STARTED entry requires tuition paid');
+      }
+    }
+    // PLN-260714 — ATTENDING(수강중) requires the student to be registered into
+    // STD management first (auto-registration links inq.stdId on CLASS_STARTED).
+    if (toStage === 'ATTENDING') {
+      const row = await this.inq.findOne({
+        where: { id: inqId, entId },
+        select: { id: true, stdId: true },
+      });
+      if (!row?.stdId) {
+        throw new BadRequestException('ATTENDING entry requires the student to be registered');
       }
     }
   }

@@ -9,6 +9,7 @@ describe('PortalAccountService.login (tenant scope)', () => {
   const mkSvc = (opts: {
     tenant?: { entId: string } | null;
     account?: any;
+    student?: { id: string; email?: string | null } | null;
   }) => {
     const accounts = {
       findOne: jest.fn().mockResolvedValue(opts.account ?? null),
@@ -17,13 +18,17 @@ describe('PortalAccountService.login (tenant scope)', () => {
     const tenants = {
       findOne: jest.fn().mockResolvedValue(opts.tenant ?? null),
     };
+    const students = {
+      findOne: jest.fn().mockResolvedValue(opts.student ?? null),
+    };
     const jwt = { sign: jest.fn().mockReturnValue('signed.jwt') };
     const svc = new PortalAccountService(
       accounts as any,
       tenants as any,
+      students as any,
       jwt as any,
     );
-    return { svc, accounts, tenants, jwt };
+    return { svc, accounts, tenants, students, jwt };
   };
 
   it('unknown tenant code → 401, does not look up the account', async () => {
@@ -91,12 +96,17 @@ describe('PortalAccountService issuance', () => {
       create: jest.fn((x: any) => x),
       save: jest.fn(async (x: any) => ({ id: 'pac-new', ...x })),
     };
+    // STUDENT 발급 시 로그인ID = 학생 이메일. 기본 학생은 이메일 보유.
+    const students = {
+      findOne: jest.fn().mockResolvedValue({ id: 'std-1', email: 'stud@ent.com' }),
+    };
     const svc = new PortalAccountService(
       accounts as any,
       { findOne: jest.fn() } as any,
+      students as any,
       { sign: jest.fn() } as any,
     );
-    return { svc, accounts };
+    return { svc, accounts, students };
   };
 
   beforeEach(() => (bcrypt.hash as jest.Mock).mockResolvedValue('hashed'));
@@ -104,7 +114,7 @@ describe('PortalAccountService issuance', () => {
   it('issue() creates an account with a temp password + forced rotation', async () => {
     const { svc, accounts } = mk(null);
     const r = await svc.issue('e1', 'STUDENT', 'std-1');
-    expect(r.loginId).toMatch(/^s/); // STUDENT prefix
+    expect(r.loginId).toBe('stud@ent.com'); // STUDENT 로그인ID = 학생 이메일
     expect(r.tempPassword).toHaveLength(10);
     expect(accounts.save).toHaveBeenCalledWith(
       expect.objectContaining({ mustChangePassword: true, status: 'ACTIVE' }),
@@ -135,6 +145,7 @@ describe('PortalAccountService issuance', () => {
     const svc = new PortalAccountService(
       accounts as any,
       { findOne: jest.fn() } as any,
+      { findOne: jest.fn() } as any,
       { sign: jest.fn() } as any,
     );
     const r = await svc.reissuePassword('e1', 'pac-1');
@@ -147,6 +158,7 @@ describe('PortalAccountService issuance', () => {
     const accounts = { findOne: jest.fn().mockResolvedValue(null), save: jest.fn() };
     const svc = new PortalAccountService(
       accounts as any,
+      { findOne: jest.fn() } as any,
       { findOne: jest.fn() } as any,
       { sign: jest.fn() } as any,
     );

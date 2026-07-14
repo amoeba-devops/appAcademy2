@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS amb_acm_csl_inquiry (
   inq_current_stage            VARCHAR(32) NOT NULL DEFAULT 'INTAKE'
                                CHECK (inq_current_stage IN
                                  ('INTAKE','MAP_TEST','TRIAL_CLASS','ENROLLMENT_COUNSELING',
-                                  'PAYMENT','CLASS_STARTED','DROPPED')),
+                                  'PAYMENT','CLASS_STARTED','ATTENDING','DROPPED')),
   inq_previous_stage           VARCHAR(32),
   -- Ownership / lifecycle
   advisor_id                   UUID,
@@ -343,8 +343,8 @@ CREATE TABLE IF NOT EXISTS amb_acm_csl_cancellation (
   inq_id            UUID NOT NULL REFERENCES amb_acm_csl_inquiry(inq_id) ON DELETE CASCADE,
   cnc_reason_code   VARCHAR(40) NOT NULL
                     CHECK (cnc_reason_code IN
-                      ('ACADEMY_CANCELLED','STUDENT_ILLNESS','STUDENT_SCHEDULE_CHANGE',
-                       'PAYMENT_DECLINED','LOST_TO_COMPETITOR','OTHER')),
+                      ('SIMPLE_INQUIRY_END','ACADEMY_CANCELLED','STUDENT_ILLNESS',
+                       'STUDENT_SCHEDULE_CHANGE','PAYMENT_DECLINED','LOST_TO_COMPETITOR','OTHER')),
   cnc_reason_other  TEXT,
   cnc_actor_id      UUID,
   cnc_occurred_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),

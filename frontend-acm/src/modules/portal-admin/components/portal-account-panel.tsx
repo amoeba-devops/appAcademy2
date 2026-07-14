@@ -18,21 +18,33 @@ import {
 export function PortalAccountPanel({
   kind,
   refId,
+  issueDisabled = false,
+  issueDisabledNote,
 }: {
   kind: PortalKind;
   refId: string;
+  /** PLN-260714 — STUDENT 계정은 이메일이 있어야 발급 가능. */
+  issueDisabled?: boolean;
+  issueDisabledNote?: string;
 }) {
   const { t } = useTranslation('common');
   const { data: account, isLoading } = usePortalAccount(kind, refId);
   const issue = useIssuePortalAccount();
   const reset = useResetPortalAccount(kind, refId);
   const [cred, setCred] = useState<PortalCredential | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const busy = issue.isPending || reset.isPending;
 
   const onIssue = async () => {
-    const c = await issue.mutateAsync({ kind, refId });
-    setCred(c);
+    setError(null);
+    try {
+      const c = await issue.mutateAsync({ kind, refId });
+      setCred(c);
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setError(err.response?.data?.message ?? err.message ?? '발급에 실패했습니다.');
+    }
   };
   const onReset = async () => {
     if (!account) return;
@@ -84,17 +96,26 @@ export function PortalAccountPanel({
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-secondary">{t('portalAccount.notIssued')}</p>
-          <Button size="sm" onClick={onIssue} disabled={busy}>
-            {busy ? (
-              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <KeyRound className="mr-1 h-3.5 w-3.5" />
-            )}
-            {t('portalAccount.issueBtn')}
-          </Button>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-secondary">{t('portalAccount.notIssued')}</p>
+            <Button size="sm" onClick={onIssue} disabled={busy || issueDisabled}>
+              {busy ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <KeyRound className="mr-1 h-3.5 w-3.5" />
+              )}
+              {t('portalAccount.issueBtn')}
+            </Button>
+          </div>
+          {issueDisabled && issueDisabledNote && (
+            <p className="text-xs text-amber-600">{issueDisabledNote}</p>
+          )}
         </div>
+      )}
+
+      {error && (
+        <p className="text-xs text-red-600">{error}</p>
       )}
 
       {cred && <CredentialCard cred={cred} onClose={() => setCred(null)} />}

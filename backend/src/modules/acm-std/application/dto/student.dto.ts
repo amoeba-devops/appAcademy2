@@ -94,6 +94,10 @@ export class CreateStudentDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdTeacher?: string;
 
+  // PLN-260714 — 담당강사 정규화 FK (등록강사 리스트에서 선택)
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  stdTeacherId?: string;
+
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdSubject?: string;
 
@@ -186,6 +190,10 @@ export class UpdateStudentDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdTeacher?: string;
+
+  // PLN-260714 — 담당강사 정규화 FK (등록강사 리스트에서 선택)
+  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  stdTeacherId?: string;
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdSubject?: string;

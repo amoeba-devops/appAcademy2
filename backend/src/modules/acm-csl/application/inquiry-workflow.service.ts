@@ -27,6 +27,7 @@ const ALL_STAGES = new Set<CslStage>([
   'ENROLLMENT_COUNSELING',
   'PAYMENT',
   'CLASS_STARTED',
+  'ATTENDING',
   'DROPPED',
 ]);
 

@@ -66,7 +66,8 @@
     "ENROLLMENT_COUNSELING": "4. Tư vấn ghi danh",
     "PAYMENT": "5. Thanh toán",
     "CLASS_STARTED": "6. Đăng ký học",
-    "DROPPED": "Hoàn tất"
+    "DROPPED": "Hoàn tất",
+    "ATTENDING": "7. Đang học"
   },
   "inflow": {
     "HOMEPAGE": "Trang web",
@@ -95,10 +96,18 @@
     "NO": "Chưa"
   },
   "grade": {
-    "E1": "Lớp 1", "E2": "Lớp 2", "E3": "Lớp 3", "E4": "Lớp 4",
-    "E5": "Lớp 5", "E6": "Lớp 6",
-    "M1": "Lớp 7", "M2": "Lớp 8", "M3": "Lớp 9",
-    "H1": "Lớp 10", "H2": "Lớp 11", "H3": "Lớp 12",
+    "E1": "Lớp 1",
+    "E2": "Lớp 2",
+    "E3": "Lớp 3",
+    "E4": "Lớp 4",
+    "E5": "Lớp 5",
+    "E6": "Lớp 6",
+    "M1": "Lớp 7",
+    "M2": "Lớp 8",
+    "M3": "Lớp 9",
+    "H1": "Lớp 10",
+    "H2": "Lớp 11",
+    "H3": "Lớp 12",
     "OTHER": "Khác"
   },
   "stepper": {
@@ -181,7 +190,7 @@
       }
     },
     "backToList": "Quay lại danh sách",
-    "drop": "Hoàn tất",
+    "drop": "Kết thúc tư vấn",
     "reactivate": "Kích hoạt lại",
     "mapTest": {
       "title": "MAP Test",
@@ -221,18 +230,32 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "Ghi nhận kết quả (STAFF↑)",
       "resultEntered": "Đã ghi kết quả lúc {{when}}",
-      "isee": { "label": "ISEE — Scaled / Percentile / Stanine theo phần" },
-      "ssat": { "label": "SSAT — Score / Percentile theo phần + Tổng" },
-      "duolingo": { "label": "Duolingo — tổng + 4 phần chính + 4 phụ (mỗi 10~160)" },
-      "toefl": { "label": "TOEFL — tổng + 4 phần (mỗi 1~6, bước 0.5)" },
-      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "isee": {
+        "label": "ISEE — Scaled / Percentile / Stanine theo phần"
+      },
+      "ssat": {
+        "label": "SSAT — Score / Percentile theo phần + Tổng"
+      },
+      "duolingo": {
+        "label": "Duolingo — tổng + 4 phần chính + 4 phụ (mỗi 10~160)"
+      },
+      "toefl": {
+        "label": "TOEFL — tổng + 4 phần (mỗi 1~6, bước 0.5)"
+      },
+      "toeflJr": {
+        "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)"
+      },
       "other": {
         "label": "Khác — nhập tự do khóa/giá trị",
         "empty": "Chưa có mục nào.",
         "keyPlaceholder": "Tên mục",
         "valuePlaceholder": "Giá trị"
       },
-      "fee": { "PAID": "Đã trả", "UNPAID": "Chưa trả", "WAIVED": "Miễn" },
+      "fee": {
+        "PAID": "Đã trả",
+        "UNPAID": "Chưa trả",
+        "WAIVED": "Miễn"
+      },
       "waiver": {
         "RETAKE_WITHIN_90D": "Thi lại trong 90 ngày",
         "TRIAL_PROMOTION": "Khuyến mãi học thử",
@@ -270,7 +293,11 @@
       "authoredAt": "Viết lúc",
       "confirmedAt": "Xác nhận lúc",
       "deliveredAt": "Đã gửi",
-      "feedback": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
+      "feedback": {
+        "SENT": "Đã gửi",
+        "PENDING": "Chờ",
+        "NA": "N/A"
+      }
     },
     "enrollment": {
       "title": "Tư vấn ghi danh",
@@ -298,17 +325,27 @@
       "noAssignments": "Chưa có giáo viên nào được phân công.",
       "assignTeacher": "Chọn giáo viên",
       "assignRoleLabel": "Vai trò",
-      "assignRole": { "PRIMARY": "Chính", "SECONDARY": "Phụ" },
+      "assignRole": {
+        "PRIMARY": "Chính",
+        "SECONDARY": "Phụ"
+      },
       "paymentApproval": "Xác nhận thanh toán",
       "paymentApprovalHint": "※ Xác nhận giao dịch thẻ / chuyển khoản ngoài hệ thống, sau đó phê duyệt. Chỉ ADMIN/APP_ADMIN.",
       "paymentAlreadyApproved": "Thanh toán đã được phê duyệt.",
       "paymentMethod": "Phương thức",
       "paymentMemo": "Ghi chú",
-      "method": { "CARD": "Thẻ", "BANK_TRANSFER": "Chuyển khoản" },
+      "method": {
+        "CARD": "Thẻ",
+        "BANK_TRANSFER": "Chuyển khoản"
+      },
       "approvePayment": "Phê duyệt thanh toán",
       "classStartedAt": "Ngày bắt đầu học",
       "classStarted": "Đã bắt đầu học",
-      "notice": { "SENT": "Đã gửi", "PENDING": "Chờ", "NA": "N/A" }
+      "notice": {
+        "SENT": "Đã gửi",
+        "PENDING": "Chờ",
+        "NA": "N/A"
+      }
     },
     "classStatus": {
       "title": "6. Đăng ký học",
@@ -319,10 +356,14 @@
         "classInfo": "2. Thông tin lớp học",
         "levelTest": "Tóm tắt bài kiểm tra trình độ",
         "trial": "Lịch sử lớp học thử"
-      }
+      },
+      "attendingTitle": "7. Đang học",
+      "attendingBadge": "Đang học",
+      "viewStudent": "Xem trong quản lý học sinh",
+      "noStudentYet": "Đang chờ tự động đăng ký học sinh — chưa thể chuyển sang Đang học"
     },
     "cancel": {
-      "title": "Hoàn tất tư vấn",
+      "title": "Kết thúc tư vấn",
       "subtitle": "Chọn lý do hoàn tất. Lịch sử không thể xóa.",
       "reasonCode": "Mã lý do",
       "reasonOther": "Chi tiết",
@@ -333,7 +374,8 @@
         "STUDENT_SCHEDULE_CHANGE": "Đổi lịch học sinh",
         "PAYMENT_DECLINED": "Thanh toán bị từ chối",
         "LOST_TO_COMPETITOR": "Đăng ký nơi khác",
-        "OTHER": "Khác"
+        "OTHER": "Khác",
+        "SIMPLE_INQUIRY_END": "Kết thúc hỏi đáp đơn giản"
       }
     },
     "timeline": {

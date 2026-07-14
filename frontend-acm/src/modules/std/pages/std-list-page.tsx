@@ -27,7 +27,8 @@ export function StdListPage() {
     ?.studentCreatePrefill;
 
   const [filters, setFilters] = useState<StdFilterValue>(EMPTY);
-  const [sort, setSort] = useState<StdSort>({ field: 'name', dir: 'asc' });
+  // PLN-260714 — 기본 정렬은 최신등록일순(createdAt DESC).
+  const [sort, setSort] = useState<StdSort>({ field: 'createdAt', dir: 'desc' });
   const [prefill, setPrefill] = useState<StudentCreatePrefill | undefined>(navPrefill);
   const [showCreate, setShowCreate] = useState(!!navPrefill);
   const [showImport, setShowImport] = useState(false);

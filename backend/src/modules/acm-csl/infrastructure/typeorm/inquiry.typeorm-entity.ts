@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 
 /**
- * 6-stage CSL pipeline (acm-req-csl-001 v2.1 §4.1) + DROPPED.
+ * CSL pipeline (acm-req-csl-001 v2.1 §4.1) + ATTENDING(수강중, PLN-260714) + DROPPED.
  */
 export type CslStage =
   | 'INTAKE'
@@ -18,6 +18,7 @@ export type CslStage =
   | 'ENROLLMENT_COUNSELING'
   | 'PAYMENT'
   | 'CLASS_STARTED'
+  | 'ATTENDING'
   | 'DROPPED';
 
 export type InflowType = 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';

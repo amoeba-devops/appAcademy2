@@ -154,7 +154,14 @@ export function StdDetailPage() {
         <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
           {t('common:portalAccount.title')}
         </h3>
-        <PortalAccountPanel kind="STUDENT" refId={id!} />
+        <PortalAccountPanel
+          kind="STUDENT"
+          refId={id!}
+          issueDisabled={!student.email}
+          issueDisabledNote={t('common:portalAccount.emailRequired', {
+            defaultValue: '학생 이메일을 등록해야 포털계정을 발급할 수 있습니다.',
+          })}
+        />
       </div>
 
       {/* 학부모 */}

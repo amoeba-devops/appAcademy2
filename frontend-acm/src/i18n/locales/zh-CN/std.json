@@ -78,7 +78,14 @@
     "sectionMemo": "备注 / 状态",
     "sectionParents": "家长信息",
     "parentsEmpty": "尚未添加家长。点击 + 添加。",
-    "addParent": "添加家长"
+    "addParent": "添加家长",
+    "teacherSelect": "选择讲师",
+    "error": {
+      "emailRequired": "必须填写邮箱才能保存。",
+      "emailDuplicate": "该邮箱已被使用。",
+      "emailInvalid": "邮箱格式不正确。",
+      "save": "保存失败。"
+    }
   },
   "import": {
     "title": "Excel导入（批量）",

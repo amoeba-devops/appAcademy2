@@ -78,7 +78,14 @@
     "sectionMemo": "메모 / 상태",
     "sectionParents": "학부모 정보",
     "parentsEmpty": "등록된 학부모가 없습니다. + 버튼으로 추가하세요.",
-    "addParent": "학부모 추가"
+    "addParent": "학부모 추가",
+    "teacherSelect": "강사 선택",
+    "error": {
+      "emailRequired": "이메일을 입력해야 저장할 수 있습니다.",
+      "emailDuplicate": "이미 사용 중인 이메일입니다.",
+      "emailInvalid": "올바른 이메일 형식이 아닙니다.",
+      "save": "저장에 실패했습니다."
+    }
   },
   "import": {
     "title": "엑셀 업로드 (학생 일괄 등록)",

@@ -25,6 +25,7 @@ export const STAGES = [
   'ENROLLMENT_COUNSELING',
   'PAYMENT',
   'CLASS_STARTED',
+  'ATTENDING',
   'DROPPED',
 ] as const;
 

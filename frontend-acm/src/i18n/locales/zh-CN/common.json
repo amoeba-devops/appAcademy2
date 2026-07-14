@@ -20,13 +20,22 @@
     "credHint": "请立即转交给学生/家长，之后不再显示。",
     "copy": "复制",
     "copied": "已复制",
-    "close": "关闭"
+    "close": "关闭",
+    "emailRequired": "需要先登记学生邮箱才能开通门户账号。"
   },
   "portalApp": {
     "title": "学院门户",
     "logout": "退出",
-    "role": { "STUDENT": "学生", "PARENT": "家长", "TEACHER": "教师" },
-    "nav": { "notices": "公告", "calendar": "课程表", "materials": "资料室" },
+    "role": {
+      "STUDENT": "学生",
+      "PARENT": "家长",
+      "TEACHER": "教师"
+    },
+    "nav": {
+      "notices": "公告",
+      "calendar": "课程表",
+      "materials": "资料室"
+    },
     "login": {
       "title": "学院门户登录",
       "subtitle": "使用发放的账号和密码登录。",
@@ -48,9 +57,21 @@
       "mismatch": "两次新密码不一致。",
       "failed": "修改密码失败，请检查当前密码。"
     },
-    "cal": { "today": "今天", "month": "月", "week": "周", "day": "日", "empty": "暂无日程。" },
-    "notices": { "empty": "暂无公告。", "back": "返回列表" },
-    "materials": { "empty": "暂无资料。", "download": "下载" }
+    "cal": {
+      "today": "今天",
+      "month": "月",
+      "week": "周",
+      "day": "日",
+      "empty": "暂无日程。"
+    },
+    "notices": {
+      "empty": "暂无公告。",
+      "back": "返回列表"
+    },
+    "materials": {
+      "empty": "暂无资料。",
+      "download": "下载"
+    }
   },
   "material": {
     "title": "课程资料",

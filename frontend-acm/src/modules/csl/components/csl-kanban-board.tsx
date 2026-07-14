@@ -22,6 +22,7 @@ type Stage =
   | 'ENROLLMENT_COUNSELING'
   | 'PAYMENT'
   | 'CLASS_STARTED'
+  | 'ATTENDING'
   | 'DROPPED';
 
 export interface KanbanInquiry {
@@ -48,6 +49,8 @@ const ACTIVE_STAGES: Stage[] = [
 ];
 
 // Column accent — mirrors the list-view stageBadgeClass.
+// NOTE: ATTENDING(수강중)은 신규상담 칸반보드에서 노출하지 않으므로 ACTIVE_STAGES
+// 에 포함하지 않는다(컬럼 미생성). 타입 완결성만 위해 accent 를 정의한다.
 const COLUMN_ACCENT: Record<Stage, string> = {
   INTAKE: 'border-accent-200 bg-accent-50/40',
   MAP_TEST: 'border-accent-200 bg-accent-50/40',
@@ -55,6 +58,7 @@ const COLUMN_ACCENT: Record<Stage, string> = {
   ENROLLMENT_COUNSELING: 'border-accent-200 bg-accent-50/40',
   PAYMENT: 'border-amber-200 bg-amber-50/40',
   CLASS_STARTED: 'border-emerald-200 bg-emerald-50/40',
+  ATTENDING: 'border-emerald-200 bg-emerald-50/40',
   DROPPED: 'border-[var(--border-subtle)] bg-[var(--gray-100)]',
 };
 

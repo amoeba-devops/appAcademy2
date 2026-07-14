@@ -16,6 +16,7 @@ import {
   type PortalKind,
 } from '../infrastructure/typeorm/portal-account.typeorm-entity';
 import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
+import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
 import type { PortalAccountView } from './dto/portal-account.dto';
 
 /**
@@ -65,6 +66,8 @@ export class PortalAccountService {
     private readonly repo: Repository<PortalAccountTypeormEntity>,
     @InjectRepository(AcmTenantTypeormEntity, ACM_DS)
     private readonly tenants: Repository<AcmTenantTypeormEntity>,
+    @InjectRepository(StudentTypeormEntity, ACM_DS)
+    private readonly students: Repository<StudentTypeormEntity>,
     private readonly jwt: JwtService,
   ) {}
 
@@ -81,9 +84,19 @@ export class PortalAccountService {
     entId: string,
     kind: PortalKind,
     refId: string,
-  ): Promise<{ account: PortalAccountTypeormEntity; tempPassword?: string; created: boolean }> {
+  ): Promise<{
+    account: PortalAccountTypeormEntity | null;
+    tempPassword?: string;
+    created: boolean;
+  }> {
     const existing = await this.repo.findOne({ where: { entId, kind, refId } });
     if (existing) return { account: existing, created: false };
+    // PLN-260714 — STUDENT 로그인ID는 학생 이메일. 이메일이 없으면 자동발급을
+    // 조용히 건너뛴다 (관리자가 이메일 입력 후 발급). 전환 흐름을 막지 않음.
+    if (kind === 'STUDENT' && !(await this.studentEmail(entId, refId))) {
+      this.log.log(`ensureAccount skipped — student ${refId} has no email`);
+      return { account: null, created: false };
+    }
     const { account, tempPassword } = await this.create(entId, kind, refId);
     return { account, tempPassword, created: true };
   }
@@ -110,7 +123,7 @@ export class PortalAccountService {
     kind: PortalKind,
     refId: string,
   ): Promise<{ account: PortalAccountTypeormEntity; tempPassword: string }> {
-    const loginId = await this.generateUniqueLoginId(entId, kind);
+    const loginId = await this.resolveLoginId(entId, kind, refId);
     const tempPassword = generateTempPassword();
     const passwordHash = await bcrypt.hash(tempPassword, 12);
     const account = await this.repo.save(
@@ -243,6 +256,51 @@ export class PortalAccountService {
       mustChangePassword: acc.mustChangePassword,
     };
     return this.jwt.sign(payload);
+  }
+
+  /** Look up an active student's trimmed email, or null when absent. */
+  private async studentEmail(entId: string, refId: string): Promise<string | null> {
+    const s = await this.students.findOne({
+      where: { id: refId, entId },
+      select: { id: true, email: true },
+    });
+    return s?.email?.trim() || null;
+  }
+
+  /**
+   * PLN-260714 — STUDENT 포털계정 로그인ID = 학생 이메일(소문자). 이메일이 없으면
+   * 422, 동일 테넌트에 이미 쓰인 로그인ID면 409. STUDENT 외 종류는 기존
+   * 시스템 생성 로그인ID 를 사용한다.
+   */
+  private async resolveLoginId(
+    entId: string,
+    kind: PortalKind,
+    refId: string,
+  ): Promise<string> {
+    if (kind !== 'STUDENT') return this.generateUniqueLoginId(entId, kind);
+
+    const email = await this.studentEmail(entId, refId);
+    if (!email) {
+      throw new HttpException(
+        {
+          code: 'STUDENT_EMAIL_REQUIRED',
+          message: '학생 이메일 등록 후 포털계정을 발급할 수 있습니다.',
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    const loginId = email.toLowerCase();
+    const clash = await this.repo.findOne({
+      where: { entId, loginId },
+      select: ['id'],
+    });
+    if (clash) {
+      throw new HttpException(
+        { code: 'LOGIN_ID_TAKEN', message: '이미 사용 중인 로그인ID(이메일)입니다.' },
+        HttpStatus.CONFLICT,
+      );
+    }
+    return loginId;
   }
 
   private async generateUniqueLoginId(

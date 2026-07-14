@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS amb_acm_portal_account (
   ent_id                   UUID         NOT NULL,
   pac_kind                 VARCHAR(10)  NOT NULL,
   pac_ref_id               UUID         NOT NULL,
-  pac_login_id             VARCHAR(40)  NOT NULL,
+  pac_login_id             VARCHAR(200) NOT NULL,  -- PLN-260714: 이메일 로그인ID 수용
   pac_password_hash        VARCHAR(120) NOT NULL,
   pac_must_change_password BOOLEAN      NOT NULL DEFAULT TRUE,
   pac_status               VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',

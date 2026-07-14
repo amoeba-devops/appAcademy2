@@ -66,7 +66,8 @@
     "ENROLLMENT_COUNSELING": "4. 报名咨询",
     "PAYMENT": "5. 付款",
     "CLASS_STARTED": "6. 报名注册",
-    "DROPPED": "完成"
+    "DROPPED": "完成",
+    "ATTENDING": "7. 在读"
   },
   "inflow": {
     "HOMEPAGE": "官网",
@@ -95,10 +96,18 @@
     "NO": "未完成"
   },
   "grade": {
-    "E1": "小学1年级", "E2": "小学2年级", "E3": "小学3年级", "E4": "小学4年级",
-    "E5": "小学5年级", "E6": "小学6年级",
-    "M1": "初中1年级", "M2": "初中2年级", "M3": "初中3年级",
-    "H1": "高中1年级", "H2": "高中2年级", "H3": "高中3年级",
+    "E1": "小学1年级",
+    "E2": "小学2年级",
+    "E3": "小学3年级",
+    "E4": "小学4年级",
+    "E5": "小学5年级",
+    "E6": "小学6年级",
+    "M1": "初中1年级",
+    "M2": "初中2年级",
+    "M3": "初中3年级",
+    "H1": "高中1年级",
+    "H2": "高中2年级",
+    "H3": "高中3年级",
     "OTHER": "其他"
   },
   "stepper": {
@@ -181,7 +190,7 @@
       }
     },
     "backToList": "返回列表",
-    "drop": "完成处理",
+    "drop": "结束咨询",
     "reactivate": "重新激活",
     "mapTest": {
       "title": "水平测试 / MAP 分数",
@@ -221,18 +230,32 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "保存结果 (STAFF↑)",
       "resultEntered": "结果输入时间: {{when}}",
-      "isee": { "label": "ISEE — 各部分 Scaled / Percentile / Stanine" },
-      "ssat": { "label": "SSAT — 各部分 Score / Percentile + 总分" },
-      "duolingo": { "label": "Duolingo — 总分 + 4 主项 + 4 细项(各 10~160)" },
-      "toefl": { "label": "TOEFL — 总分 + 4 部分(各 1~6,0.5 单位)" },
-      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "isee": {
+        "label": "ISEE — 各部分 Scaled / Percentile / Stanine"
+      },
+      "ssat": {
+        "label": "SSAT — 各部分 Score / Percentile + 总分"
+      },
+      "duolingo": {
+        "label": "Duolingo — 总分 + 4 主项 + 4 细项(各 10~160)"
+      },
+      "toefl": {
+        "label": "TOEFL — 总分 + 4 部分(各 1~6,0.5 单位)"
+      },
+      "toeflJr": {
+        "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)"
+      },
       "other": {
         "label": "其他 — 自由键值输入",
         "empty": "尚未添加任何项。",
         "keyPlaceholder": "键名",
         "valuePlaceholder": "值"
       },
-      "fee": { "PAID": "已缴费", "UNPAID": "未缴费", "WAIVED": "已免除" },
+      "fee": {
+        "PAID": "已缴费",
+        "UNPAID": "未缴费",
+        "WAIVED": "已免除"
+      },
       "waiver": {
         "RETAKE_WITHIN_90D": "90 天内重考",
         "TRIAL_PROMOTION": "体验促销",
@@ -270,7 +293,11 @@
       "authoredAt": "撰写时间",
       "confirmedAt": "确认时间",
       "deliveredAt": "送达时间",
-      "feedback": { "SENT": "已发送", "PENDING": "待处理", "NA": "不适用" }
+      "feedback": {
+        "SENT": "已发送",
+        "PENDING": "待处理",
+        "NA": "不适用"
+      }
     },
     "enrollment": {
       "title": "报名咨询",
@@ -298,17 +325,27 @@
       "noAssignments": "尚未分配教师。",
       "assignTeacher": "选择教师",
       "assignRoleLabel": "角色",
-      "assignRole": { "PRIMARY": "主", "SECONDARY": "副" },
+      "assignRole": {
+        "PRIMARY": "主",
+        "SECONDARY": "副"
+      },
       "paymentApproval": "付款确认",
       "paymentApprovalHint": "※ 离线确认卡/转账后再批准。仅 ADMIN/APP_ADMIN 可操作。",
       "paymentAlreadyApproved": "付款已批准。",
       "paymentMethod": "支付方式",
       "paymentMemo": "备注",
-      "method": { "CARD": "刷卡", "BANK_TRANSFER": "转账" },
+      "method": {
+        "CARD": "刷卡",
+        "BANK_TRANSFER": "转账"
+      },
       "approvePayment": "批准付款",
       "classStartedAt": "开课日期",
       "classStarted": "是否已开课",
-      "notice": { "SENT": "已发送", "PENDING": "待处理", "NA": "不适用" }
+      "notice": {
+        "SENT": "已发送",
+        "PENDING": "待处理",
+        "NA": "不适用"
+      }
     },
     "classStatus": {
       "title": "6. 报名注册",
@@ -319,10 +356,14 @@
         "classInfo": "2. 课程信息",
         "levelTest": "水平测试摘要",
         "trial": "示范课记录"
-      }
+      },
+      "attendingTitle": "7. 在读",
+      "attendingBadge": "在读",
+      "viewStudent": "在学生管理中查看",
+      "noStudentYet": "等待学生自动注册 — 无法转为在读"
     },
     "cancel": {
-      "title": "完成处理",
+      "title": "结束咨询",
       "subtitle": "请选择完成原因。历史记录无法删除。",
       "reasonCode": "原因代码",
       "reasonOther": "详细原因",
@@ -333,7 +374,8 @@
         "STUDENT_SCHEDULE_CHANGE": "学生日程变更",
         "PAYMENT_DECLINED": "付款被拒绝",
         "LOST_TO_COMPETITOR": "报名其他学院",
-        "OTHER": "其他"
+        "OTHER": "其他",
+        "SIMPLE_INQUIRY_END": "简单咨询结束"
       }
     },
     "timeline": {

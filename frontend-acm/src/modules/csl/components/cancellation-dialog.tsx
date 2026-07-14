@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 
 const REASON_CODES = [
+  'SIMPLE_INQUIRY_END',
   'ACADEMY_CANCELLED',
   'STUDENT_ILLNESS',
   'STUDENT_SCHEDULE_CHANGE',
@@ -35,7 +36,7 @@ export function CancellationDialog({
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
   const [reasonCode, setReasonCode] =
-    useState<(typeof REASON_CODES)[number]>('LOST_TO_COMPETITOR');
+    useState<(typeof REASON_CODES)[number]>('SIMPLE_INQUIRY_END');
   const [reasonOther, setReasonOther] = useState('');
   const [error, setError] = useState<string | null>(null);
 

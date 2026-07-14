@@ -20,13 +20,22 @@
     "credHint": "Hãy chuyển cho học sinh/phụ huynh ngay. Sẽ không hiển thị lại.",
     "copy": "Sao chép",
     "copied": "Đã sao chép",
-    "close": "Đóng"
+    "close": "Đóng",
+    "emailRequired": "Cần có email học sinh để cấp tài khoản cổng."
   },
   "portalApp": {
     "title": "Cổng Học viện",
     "logout": "Đăng xuất",
-    "role": { "STUDENT": "Học sinh", "PARENT": "Phụ huynh", "TEACHER": "Giáo viên" },
-    "nav": { "notices": "Thông báo", "calendar": "Lịch học", "materials": "Tài liệu" },
+    "role": {
+      "STUDENT": "Học sinh",
+      "PARENT": "Phụ huynh",
+      "TEACHER": "Giáo viên"
+    },
+    "nav": {
+      "notices": "Thông báo",
+      "calendar": "Lịch học",
+      "materials": "Tài liệu"
+    },
     "login": {
       "title": "Đăng nhập cổng học viện",
       "subtitle": "Đăng nhập bằng ID và mật khẩu được cấp.",
@@ -48,9 +57,21 @@
       "mismatch": "Mật khẩu mới không khớp.",
       "failed": "Đổi mật khẩu thất bại. Kiểm tra mật khẩu hiện tại."
     },
-    "cal": { "today": "Hôm nay", "month": "Tháng", "week": "Tuần", "day": "Ngày", "empty": "Không có lịch." },
-    "notices": { "empty": "Không có thông báo.", "back": "Về danh sách" },
-    "materials": { "empty": "Chưa có tài liệu.", "download": "Tải xuống" }
+    "cal": {
+      "today": "Hôm nay",
+      "month": "Tháng",
+      "week": "Tuần",
+      "day": "Ngày",
+      "empty": "Không có lịch."
+    },
+    "notices": {
+      "empty": "Không có thông báo.",
+      "back": "Về danh sách"
+    },
+    "materials": {
+      "empty": "Chưa có tài liệu.",
+      "download": "Tải xuống"
+    }
   },
   "material": {
     "title": "Tài liệu",
