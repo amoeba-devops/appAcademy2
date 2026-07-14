@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTeachers } from '@/modules/tch/hooks/use-teachers';
 import { useCreateStudent, useUpdateStudent } from '../hooks/use-students';
 import type { ParentInput, StudentCreatePrefill, StudentDetail } from '../types';
 import { ParentSubform } from './parent-subform';
@@ -33,7 +35,7 @@ type FormValues = {
   stdMapReading: string;
   stdMapMath: string;
   stdMapLanguage: string;
-  stdTeacher: string;
+  stdTeacherId: string;
   stdSubject: string;
   stdCurriculum: string;
   stdMobility: string;
@@ -52,8 +54,17 @@ const labelClass = 'block text-xs text-secondary mb-1';
 export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalProps) {
   const { t } = useTranslation('std');
   const isEdit = !!initial;
+  const [serverError, setServerError] = useState<string | null>(null);
+  const { data: teacherData } = useTeachers({ status: 'ACTIVE', limit: 100 });
+  const teachers = teacherData?.items ?? [];
 
-  const { register, handleSubmit, reset, control } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<FormValues>({
     defaultValues: {
       stdName: initial?.name ?? prefill?.stdName ?? '',
       stdEnglishName: initial?.englishName ?? '',
@@ -67,7 +78,7 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
       stdMapReading: initial?.mapReading != null ? String(initial.mapReading) : '',
       stdMapMath: initial?.mapMath != null ? String(initial.mapMath) : '',
       stdMapLanguage: initial?.mapLanguage != null ? String(initial.mapLanguage) : '',
-      stdTeacher: initial?.teacher ?? '',
+      stdTeacherId: initial?.teacherId ?? '',
       stdSubject: initial?.subject ?? '',
       stdCurriculum: initial?.curriculum ?? '',
       stdMobility: initial?.mobility ?? '',
@@ -95,11 +106,15 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
   const isLoading = createMut.isPending || updateMut.isPending;
 
   const onSubmit = async (values: FormValues) => {
+    setServerError(null);
     const dto: Record<string, unknown> = {};
     Object.entries(values).forEach(([k, v]) => {
-      if (k === 'stdParents') return;
+      if (k === 'stdParents' || k === 'stdTeacherId') return;
       if (v !== '') dto[k] = v;
     });
+    // 담당강사 FK: 선택 시 전송, 편집 모드에서 비우면 null 로 해제.
+    if (values.stdTeacherId) dto.stdTeacherId = values.stdTeacherId;
+    else if (isEdit) dto.stdTeacherId = null;
     if (dto.stdMapReading) dto.stdMapReading = Number(dto.stdMapReading);
     if (dto.stdMapMath) dto.stdMapMath = Number(dto.stdMapMath);
     if (dto.stdMapLanguage) dto.stdMapLanguage = Number(dto.stdMapLanguage);
@@ -118,13 +133,28 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
       });
     dto.stdParents = cleanParents;
 
-    if (isEdit) {
-      await updateMut.mutateAsync(dto);
-    } else {
-      await createMut.mutateAsync(dto);
+    try {
+      if (isEdit) {
+        await updateMut.mutateAsync(dto);
+      } else {
+        await createMut.mutateAsync(dto);
+      }
+      reset();
+      onClose();
+    } catch (e) {
+      const err = e as {
+        response?: { data?: { error?: { code?: string }; message?: string } };
+        message?: string;
+      };
+      const code = err.response?.data?.error?.code;
+      setServerError(
+        code === 'EMAIL_DUPLICATE'
+          ? t('form.error.emailDuplicate', { defaultValue: '이미 사용 중인 이메일입니다.' })
+          : code === 'EMAIL_REQUIRED'
+            ? t('form.error.emailRequired', { defaultValue: '이메일을 입력해야 저장할 수 있습니다.' })
+            : err.response?.data?.message ?? err.message ?? t('form.error.save', { defaultValue: '저장에 실패했습니다.' }),
+      );
     }
-    reset();
-    onClose();
   };
 
   return (
@@ -164,8 +194,25 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
                 <input {...register('stdPhone')} className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>{t('field.email', '이메일')}</label>
-                <input type="email" {...register('stdEmail')} className={inputClass} />
+                <label className={labelClass}>{t('field.email', '이메일')} *</label>
+                <input
+                  type="email"
+                  {...register('stdEmail', {
+                    required: t('form.error.emailRequired', {
+                      defaultValue: '이메일을 입력해야 저장할 수 있습니다.',
+                    }) as string,
+                    pattern: {
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                      message: t('form.error.emailInvalid', {
+                        defaultValue: '올바른 이메일 형식이 아닙니다.',
+                      }),
+                    },
+                  })}
+                  className={inputClass}
+                />
+                {errors.stdEmail && (
+                  <p className="mt-1 text-xs text-red-600">{errors.stdEmail.message}</p>
+                )}
               </div>
               <div>
                 <label className={labelClass}>{t('field.residence')}</label>
@@ -213,7 +260,16 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.teacher')}</label>
-                <input {...register('stdTeacher')} className={inputClass} />
+                <select {...register('stdTeacherId')} className={inputClass}>
+                  <option value="">
+                    {t('form.teacherSelect', { defaultValue: '강사 선택' })}
+                  </option>
+                  {teachers.map((tch) => (
+                    <option key={tch.id} value={tch.id}>
+                      {tch.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className={labelClass}>{t('field.subject')}</label>
@@ -262,6 +318,12 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
               </div>
             </div>
           </fieldset>
+
+          {serverError && (
+            <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+              {serverError}
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>

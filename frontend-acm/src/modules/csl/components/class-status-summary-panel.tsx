@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/api-client';
-import type { StudentCreatePrefill } from '@/modules/std/types';
+import type { CslStage } from '@/modules/csl/pages/csl-detail-page';
 
 interface InquiryDetail {
   id: string;
@@ -73,9 +73,17 @@ type SectionKey = 'intake' | 'classInfo';
 
 const DEFAULT_OPEN: SectionKey[] = ['intake', 'classInfo'];
 
-export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
+export function ClassStatusSummaryPanel({
+  inqId,
+  currentStage,
+}: {
+  inqId: string;
+  currentStage?: CslStage;
+}) {
   const { t } = useTranslation(['csl', 'cls', 'common']);
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<SectionKey>>(
     () => new Set(DEFAULT_OPEN),
   );
@@ -165,16 +173,23 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
       return `${role} ${name}`;
     })
     .join(', ');
-  // 상담 정보를 학생 등록 폼 프리필로 전달한다 (학생명 + 학부모 정보 + 학교/학년).
-  const studentCreatePrefill: StudentCreatePrefill = {
-    stdName: inq?.studentName ?? '',
-    stdSchool: inq?.schoolFreetext ?? '',
-    stdGrade: inq?.grade ?? '',
-    stdStartDate: enrollment?.startDate ?? '',
-    stdParents: inq?.parentName
-      ? [{ parName: inq.parentName, parPhone: inq.parentPhone ?? '', spIsPrimary: true }]
-      : [],
-  };
+  const isAttending = currentStage === 'ATTENDING';
+
+  // PLN-260714 — [수강등록완료]: CLASS_STARTED 진입 시 학생은 이미 학생관리에
+  // 자동 등록(inq.stdId)되어 있으므로, 이 버튼은 상담을 7.수강중(ATTENDING)으로
+  // 전환한다. stdId 가 아직 없으면(익명/자동등록 실패) 전환 불가.
+  const completeEnrollment = useMutation({
+    mutationFn: async () => {
+      setError(null);
+      const res = await apiClient.post(`/acm/csl/inquiries/${inqId}/transitions`, {
+        toStage: 'ATTENDING',
+      });
+      return res.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
+    onError: (e: { response?: { data?: { message?: string } }; message?: string }) =>
+      setError(e.response?.data?.message ?? e.message ?? 'Transition failed'),
+  });
 
   function toggle(section: SectionKey): void {
     setOpenSections((current) => {
@@ -190,7 +205,9 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold">
-            {t('detail.classStatus.title', { defaultValue: '6. 수강 현황' })}
+            {isAttending
+              ? t('detail.classStatus.attendingTitle', { defaultValue: '7. 수강중' })
+              : t('detail.classStatus.title', { defaultValue: '6. 수강 등록' })}
           </h2>
           <p className="mt-1 text-[11px] text-secondary">
             {t('detail.classStatus.subtitle', {
@@ -198,17 +215,46 @@ export function ClassStatusSummaryPanel({ inqId }: { inqId: string }) {
             })}
           </p>
         </div>
-        <Button
-          type="button"
-          onClick={() =>
-            navigate('/admin/std', {
-              state: { studentCreatePrefill },
-            })
-          }
-        >
-          {t('detail.classStatus.completeEnrollment', { defaultValue: '수강등록완료' })}
-        </Button>
+        {isAttending ? (
+          <div className="flex flex-col items-end gap-1">
+            <span className="inline-flex items-center rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+              {t('detail.classStatus.attendingBadge', { defaultValue: '수강중' })}
+            </span>
+            {inq?.stdId && (
+              <button
+                type="button"
+                onClick={() => navigate(`/admin/std/${inq.stdId}`)}
+                className="text-[11px] text-accent-600 hover:underline"
+              >
+                {t('detail.classStatus.viewStudent', { defaultValue: '학생관리에서 보기' })}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              type="button"
+              disabled={!inq?.stdId || completeEnrollment.isPending}
+              onClick={() => completeEnrollment.mutate()}
+            >
+              {t('detail.classStatus.completeEnrollment', { defaultValue: '수강등록완료' })}
+            </Button>
+            {inq && !inq.stdId && (
+              <span className="text-[11px] text-amber-600">
+                {t('detail.classStatus.noStudentYet', {
+                  defaultValue: '학생 자동등록 대기 중 — 수강중 전환 불가',
+                })}
+              </span>
+            )}
+          </div>
+        )}
       </div>
+
+      {error && (
+        <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <AccordionSection
         open={openSections.has('intake')}

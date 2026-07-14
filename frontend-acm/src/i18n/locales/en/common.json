@@ -20,13 +20,22 @@
     "credHint": "Hand this over now — it won't be shown again.",
     "copy": "Copy",
     "copied": "Copied",
-    "close": "Close"
+    "close": "Close",
+    "emailRequired": "A student email is required to issue a portal account."
   },
   "portalApp": {
     "title": "Academy Portal",
     "logout": "Log out",
-    "role": { "STUDENT": "Student", "PARENT": "Parent", "TEACHER": "Teacher" },
-    "nav": { "notices": "Notices", "calendar": "Schedule", "materials": "Materials" },
+    "role": {
+      "STUDENT": "Student",
+      "PARENT": "Parent",
+      "TEACHER": "Teacher"
+    },
+    "nav": {
+      "notices": "Notices",
+      "calendar": "Schedule",
+      "materials": "Materials"
+    },
     "login": {
       "title": "Academy Portal Login",
       "subtitle": "Sign in with the ID and password you were given.",
@@ -48,9 +57,21 @@
       "mismatch": "New passwords do not match.",
       "failed": "Password change failed. Check your current password."
     },
-    "cal": { "today": "Today", "month": "Month", "week": "Week", "day": "Day", "empty": "No events." },
-    "notices": { "empty": "No notices.", "back": "Back to list" },
-    "materials": { "empty": "No materials yet.", "download": "Download" }
+    "cal": {
+      "today": "Today",
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "empty": "No events."
+    },
+    "notices": {
+      "empty": "No notices.",
+      "back": "Back to list"
+    },
+    "materials": {
+      "empty": "No materials yet.",
+      "download": "Download"
+    }
   },
   "material": {
     "title": "Materials",

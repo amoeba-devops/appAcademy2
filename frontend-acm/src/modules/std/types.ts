@@ -18,6 +18,7 @@ export interface StudentSummary {
 
 export interface StudentDetail extends StudentSummary {
   entId: string;
+  teacherId?: string | null;
   birthDate?: string | null;
   phone?: string | null;
   email?: string | null;

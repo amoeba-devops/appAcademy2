@@ -55,8 +55,13 @@ export class StudentTypeormEntity {
   mapNote?: string | null;
 
   // 수업 정보
+  // std_teacher(free-text)는 legacy 표시/검색 호환용. 정규화 FK는 std_teacher_id.
   @Column({ name: 'std_teacher', type: 'varchar', length: 100, nullable: true })
   teacher?: string | null;
+
+  // PLN-260714 — 담당강사 정규화 FK (amb_acm_tch_teacher.tch_id, migration 940)
+  @Column({ name: 'std_teacher_id', type: 'uuid', nullable: true })
+  teacherId?: string | null;
 
   @Column({ name: 'std_subject', type: 'varchar', length: 100, nullable: true })
   subject?: string | null;

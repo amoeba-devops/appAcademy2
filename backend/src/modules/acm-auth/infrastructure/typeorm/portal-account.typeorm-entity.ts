@@ -30,7 +30,8 @@ export class PortalAccountTypeormEntity {
   @Column({ name: 'pac_ref_id', type: 'uuid' })
   refId!: string;
 
-  @Column({ name: 'pac_login_id', type: 'varchar', length: 40 })
+  // PLN-260714 — STUDENT 로그인ID는 학생 이메일(최대 200)이므로 확장.
+  @Column({ name: 'pac_login_id', type: 'varchar', length: 200 })
   loginId!: string;
 
   @Column({ name: 'pac_password_hash', type: 'varchar', length: 120 })

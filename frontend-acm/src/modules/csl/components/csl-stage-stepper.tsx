@@ -8,6 +8,7 @@ const ORDER: CslStage[] = [
   'ENROLLMENT_COUNSELING',
   'PAYMENT',
   'CLASS_STARTED',
+  'ATTENDING',
 ];
 
 /**

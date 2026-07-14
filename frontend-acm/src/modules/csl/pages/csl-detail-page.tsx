@@ -20,6 +20,7 @@ export type CslStage =
   | 'ENROLLMENT_COUNSELING'
   | 'PAYMENT'
   | 'CLASS_STARTED'
+  | 'ATTENDING'
   | 'DROPPED';
 
 interface InquiryDetail {
@@ -43,6 +44,8 @@ interface InquiryDetail {
   followupMemo?: string | null;
 }
 
+// 헤더의 "→ 단계" 진행 버튼 맵. CLASS_STARTED→ATTENDING(수강중) 전환은 헤더
+// 버튼이 아니라 6단계 패널의 [수강등록완료] 버튼이 담당하므로 여기서는 비워둔다.
 const FORWARD: Record<CslStage, CslStage[]> = {
   INTAKE: ['MAP_TEST', 'TRIAL_CLASS'],
   MAP_TEST: ['TRIAL_CLASS'],
@@ -50,6 +53,7 @@ const FORWARD: Record<CslStage, CslStage[]> = {
   ENROLLMENT_COUNSELING: ['PAYMENT'],
   PAYMENT: ['CLASS_STARTED'],
   CLASS_STARTED: [],
+  ATTENDING: [],
   DROPPED: [],
 };
 
@@ -246,8 +250,12 @@ export function CslDetailBody({
               }
             />
           )}
-          {effectiveSelected === 'CLASS_STARTED' && (
-            <ClassStatusSummaryPanel inqId={inq.id} />
+          {(effectiveSelected === 'CLASS_STARTED' ||
+            effectiveSelected === 'ATTENDING') && (
+            <ClassStatusSummaryPanel
+              inqId={inq.id}
+              currentStage={inq.currentStage}
+            />
           )}
         </div>
         <RemarksPanel inqId={inq.id} />

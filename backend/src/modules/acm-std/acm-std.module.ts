@@ -9,6 +9,7 @@ import { StudentService } from './application/student.service';
 import { ParentTypeormEntity } from './infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from './infrastructure/typeorm/student-parent.typeorm-entity';
 import { StudentTypeormEntity } from './infrastructure/typeorm/student.typeorm-entity';
+import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ParentController } from './presentation/parent.controller';
 import { StudentController } from './presentation/student.controller';
 import { StudentParentController } from './presentation/student-parent.controller';
@@ -16,7 +17,12 @@ import { StudentParentController } from './presentation/student-parent.controlle
 @Module({
   imports: [
     TypeOrmModule.forFeature(
-      [StudentTypeormEntity, ParentTypeormEntity, StudentParentTypeormEntity],
+      [
+        StudentTypeormEntity,
+        ParentTypeormEntity,
+        StudentParentTypeormEntity,
+        TeacherTypeormEntity,
+      ],
       ACM_DS,
     ),
     AmaModule,

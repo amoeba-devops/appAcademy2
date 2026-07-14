@@ -66,7 +66,8 @@
     "ENROLLMENT_COUNSELING": "4. Enrollment",
     "PAYMENT": "5. Payment",
     "CLASS_STARTED": "6. Class Enrolled",
-    "DROPPED": "Completed"
+    "DROPPED": "Completed",
+    "ATTENDING": "7. Enrolled"
   },
   "inflow": {
     "HOMEPAGE": "Homepage",
@@ -95,10 +96,18 @@
     "NO": "Pending"
   },
   "grade": {
-    "E1": "G1", "E2": "G2", "E3": "G3", "E4": "G4",
-    "E5": "G5", "E6": "G6",
-    "M1": "G7", "M2": "G8", "M3": "G9",
-    "H1": "G10", "H2": "G11", "H3": "G12",
+    "E1": "G1",
+    "E2": "G2",
+    "E3": "G3",
+    "E4": "G4",
+    "E5": "G5",
+    "E6": "G6",
+    "M1": "G7",
+    "M2": "G8",
+    "M3": "G9",
+    "H1": "G10",
+    "H2": "G11",
+    "H3": "G12",
     "OTHER": "Other"
   },
   "stepper": {
@@ -181,7 +190,7 @@
       }
     },
     "backToList": "Back to list",
-    "drop": "Complete",
+    "drop": "End consultation",
     "reactivate": "Reactivate",
     "mapTest": {
       "title": "Level Test / MAP scores",
@@ -221,18 +230,32 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "Record result (STAFF↑)",
       "resultEntered": "Result entered at {{when}}",
-      "isee": { "label": "ISEE — per-section Scaled / Percentile / Stanine" },
-      "ssat": { "label": "SSAT — per-section Score / Percentile + Total row" },
-      "duolingo": { "label": "Duolingo — total + 4 main + 4 sub (each 10~160)" },
-      "toefl": { "label": "TOEFL — total + 4 sections (each 1~6 by 0.5)" },
-      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "isee": {
+        "label": "ISEE — per-section Scaled / Percentile / Stanine"
+      },
+      "ssat": {
+        "label": "SSAT — per-section Score / Percentile + Total row"
+      },
+      "duolingo": {
+        "label": "Duolingo — total + 4 main + 4 sub (each 10~160)"
+      },
+      "toefl": {
+        "label": "TOEFL — total + 4 sections (each 1~6 by 0.5)"
+      },
+      "toeflJr": {
+        "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)"
+      },
       "other": {
         "label": "Other — free key/value entries",
         "empty": "No entries yet.",
         "keyPlaceholder": "Key",
         "valuePlaceholder": "Value"
       },
-      "fee": { "PAID": "Paid", "UNPAID": "Unpaid", "WAIVED": "Waived" },
+      "fee": {
+        "PAID": "Paid",
+        "UNPAID": "Unpaid",
+        "WAIVED": "Waived"
+      },
       "waiver": {
         "RETAKE_WITHIN_90D": "Retake within 90d",
         "TRIAL_PROMOTION": "Trial promotion",
@@ -270,7 +293,11 @@
       "authoredAt": "Authored",
       "confirmedAt": "Confirmed",
       "deliveredAt": "Delivered",
-      "feedback": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
+      "feedback": {
+        "SENT": "Sent",
+        "PENDING": "Pending",
+        "NA": "N/A"
+      }
     },
     "enrollment": {
       "title": "Enrollment Counseling",
@@ -298,17 +325,27 @@
       "noAssignments": "No teachers assigned yet.",
       "assignTeacher": "Pick teacher",
       "assignRoleLabel": "Role",
-      "assignRole": { "PRIMARY": "Primary", "SECONDARY": "Secondary" },
+      "assignRole": {
+        "PRIMARY": "Primary",
+        "SECONDARY": "Secondary"
+      },
       "paymentApproval": "Payment approval",
       "paymentApprovalHint": "※ Confirm card/bank transfer offline, then approve. ADMIN/APP_ADMIN only.",
       "paymentAlreadyApproved": "Payment already approved.",
       "paymentMethod": "Method",
       "paymentMemo": "Memo",
-      "method": { "CARD": "Card", "BANK_TRANSFER": "Bank transfer" },
+      "method": {
+        "CARD": "Card",
+        "BANK_TRANSFER": "Bank transfer"
+      },
       "approvePayment": "Approve payment",
       "classStartedAt": "Class start date",
       "classStarted": "Class started",
-      "notice": { "SENT": "Sent", "PENDING": "Pending", "NA": "N/A" }
+      "notice": {
+        "SENT": "Sent",
+        "PENDING": "Pending",
+        "NA": "N/A"
+      }
     },
     "classStatus": {
       "title": "6. Enrollment",
@@ -319,10 +356,14 @@
         "classInfo": "2. Class Information",
         "levelTest": "Level test summary",
         "trial": "Demo class history"
-      }
+      },
+      "attendingTitle": "7. Enrolled",
+      "attendingBadge": "Enrolled",
+      "viewStudent": "View in student management",
+      "noStudentYet": "Awaiting student auto-registration — cannot mark as enrolled"
     },
     "cancel": {
-      "title": "Complete inquiry",
+      "title": "End consultation",
       "subtitle": "Choose a completion reason. The audit trail cannot be deleted.",
       "reasonCode": "Reason code",
       "reasonOther": "Reason detail",
@@ -333,7 +374,8 @@
         "STUDENT_SCHEDULE_CHANGE": "Student schedule change",
         "PAYMENT_DECLINED": "Payment declined",
         "LOST_TO_COMPETITOR": "Enrolled at competitor",
-        "OTHER": "Other"
+        "OTHER": "Other",
+        "SIMPLE_INQUIRY_END": "Simple inquiry closed"
       }
     },
     "timeline": {

@@ -66,7 +66,8 @@
     "ENROLLMENT_COUNSELING": "4. 등록 상담",
     "PAYMENT": "5. 결제",
     "CLASS_STARTED": "6. 수강등록",
-    "DROPPED": "완료"
+    "DROPPED": "완료",
+    "ATTENDING": "7. 수강중"
   },
   "inflow": {
     "HOMEPAGE": "홈페이지",
@@ -95,10 +96,18 @@
     "NO": "미완료"
   },
   "grade": {
-    "E1": "초1", "E2": "초2", "E3": "초3", "E4": "초4",
-    "E5": "초5", "E6": "초6",
-    "M1": "중1", "M2": "중2", "M3": "중3",
-    "H1": "고1", "H2": "고2", "H3": "고3",
+    "E1": "초1",
+    "E2": "초2",
+    "E3": "초3",
+    "E4": "초4",
+    "E5": "초5",
+    "E6": "초6",
+    "M1": "중1",
+    "M2": "중2",
+    "M3": "중3",
+    "H1": "고1",
+    "H2": "고2",
+    "H3": "고3",
     "OTHER": "기타"
   },
   "stepper": {
@@ -181,7 +190,7 @@
       }
     },
     "backToList": "상담 목록으로",
-    "drop": "완료 처리",
+    "drop": "상담종료",
     "reactivate": "재활성화",
     "mapTest": {
       "title": "레벨테스트 / MAP 점수",
@@ -221,18 +230,32 @@
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "recordResult": "결과 입력 저장 (STAFF↑)",
       "resultEntered": "결과 입력: {{when}}",
-      "isee": { "label": "ISEE — 영역별 Scaled / Percentile / Stanine" },
-      "ssat": { "label": "SSAT — 영역별 Score / Percentile + Total" },
-      "duolingo": { "label": "Duolingo — 총점 + 4 영역 + 4 세부 (각 10~160)" },
-      "toefl": { "label": "TOEFL — 총점 + 4 영역 (각 1~6, 0.5 단위)" },
-      "toeflJr": { "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)" },
+      "isee": {
+        "label": "ISEE — 영역별 Scaled / Percentile / Stanine"
+      },
+      "ssat": {
+        "label": "SSAT — 영역별 Score / Percentile + Total"
+      },
+      "duolingo": {
+        "label": "Duolingo — 총점 + 4 영역 + 4 세부 (각 10~160)"
+      },
+      "toefl": {
+        "label": "TOEFL — 총점 + 4 영역 (각 1~6, 0.5 단위)"
+      },
+      "toeflJr": {
+        "label": "TOEFL Jr — Total(0~5) + Listening/LFM/Reading(200~300)"
+      },
       "other": {
         "label": "기타 — 자유 키/값 입력",
         "empty": "아직 추가된 항목이 없습니다.",
         "keyPlaceholder": "항목명",
         "valuePlaceholder": "값"
       },
-      "fee": { "PAID": "납부", "UNPAID": "미납", "WAIVED": "면제" },
+      "fee": {
+        "PAID": "납부",
+        "UNPAID": "미납",
+        "WAIVED": "면제"
+      },
       "waiver": {
         "RETAKE_WITHIN_90D": "90일 내 재응시",
         "TRIAL_PROMOTION": "체험 프로모션",
@@ -270,7 +293,11 @@
       "authoredAt": "작성",
       "confirmedAt": "확인",
       "deliveredAt": "학부모 전달",
-      "feedback": { "SENT": "전송 완료", "PENDING": "대기", "NA": "해당 없음" }
+      "feedback": {
+        "SENT": "전송 완료",
+        "PENDING": "대기",
+        "NA": "해당 없음"
+      }
     },
     "enrollment": {
       "title": "등록상담",
@@ -298,17 +325,27 @@
       "noAssignments": "배정된 강사가 없습니다.",
       "assignTeacher": "강사 선택",
       "assignRoleLabel": "역할",
-      "assignRole": { "PRIMARY": "주", "SECONDARY": "부" },
+      "assignRole": {
+        "PRIMARY": "주",
+        "SECONDARY": "부"
+      },
       "paymentApproval": "결제 확인 승인",
       "paymentApprovalHint": "※ 학부모가 카드결제/계좌이체한 사실을 직접 확인 후 승인하세요. 책임자(ADMIN)만 가능합니다.",
       "paymentAlreadyApproved": "이미 결제 승인되었습니다.",
       "paymentMethod": "결제 수단",
       "paymentMemo": "메모",
-      "method": { "CARD": "카드", "BANK_TRANSFER": "계좌이체" },
+      "method": {
+        "CARD": "카드",
+        "BANK_TRANSFER": "계좌이체"
+      },
       "approvePayment": "결제확인 승인",
       "classStartedAt": "수강 시작일",
       "classStarted": "수강 시작 여부",
-      "notice": { "SENT": "발송", "PENDING": "대기", "NA": "해당 없음" }
+      "notice": {
+        "SENT": "발송",
+        "PENDING": "대기",
+        "NA": "해당 없음"
+      }
     },
     "classStatus": {
       "title": "6. 수강 등록",
@@ -319,10 +356,14 @@
         "classInfo": "2. 수업 정보",
         "levelTest": "레벨테스트 요약",
         "trial": "데모수업 이력"
-      }
+      },
+      "attendingTitle": "7. 수강중",
+      "attendingBadge": "수강중",
+      "viewStudent": "학생관리에서 보기",
+      "noStudentYet": "학생 자동등록 대기 중 — 수강중 전환 불가"
     },
     "cancel": {
-      "title": "완료 처리",
+      "title": "상담 종료",
       "subtitle": "완료 사유를 선택하세요. 이력은 삭제할 수 없습니다.",
       "reasonCode": "사유 코드",
       "reasonOther": "상세 사유",
@@ -333,7 +374,8 @@
         "STUDENT_SCHEDULE_CHANGE": "학생 일정 변경",
         "PAYMENT_DECLINED": "결제 거절",
         "LOST_TO_COMPETITOR": "타 학원 등록",
-        "OTHER": "기타"
+        "OTHER": "기타",
+        "SIMPLE_INQUIRY_END": "단순문의종료"
       }
     },
     "timeline": {

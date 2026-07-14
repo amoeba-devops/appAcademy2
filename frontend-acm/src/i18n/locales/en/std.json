@@ -78,7 +78,14 @@
     "sectionMemo": "Memo / Status",
     "sectionParents": "Parents",
     "parentsEmpty": "No parents linked. Use + to add.",
-    "addParent": "Add parent"
+    "addParent": "Add parent",
+    "teacherSelect": "Select teacher",
+    "error": {
+      "emailRequired": "Email is required to save.",
+      "emailDuplicate": "This email is already in use.",
+      "emailInvalid": "Invalid email format.",
+      "save": "Failed to save."
+    }
   },
   "import": {
     "title": "Excel Import (Bulk)",

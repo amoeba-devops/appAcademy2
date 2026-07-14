@@ -44,6 +44,7 @@ const STAGES: readonly CslStage[] = [
   'ENROLLMENT_COUNSELING',
   'PAYMENT',
   'CLASS_STARTED',
+  'ATTENDING',
   'DROPPED',
 ] as const;
 const INFLOW_TYPES: readonly InflowType[] = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
@@ -76,6 +77,7 @@ const FEEDBACK_STATUSES: readonly FeedbackStatus[] = ['SENT', 'PENDING', 'NA'] a
 const NOTICE_STATUSES: readonly NoticeStatus[] = ['SENT', 'PENDING', 'NA'] as const;
 const PAYMENT_METHODS: readonly PaymentMethod[] = ['BANK_TRANSFER', 'CARD', 'OTHER'] as const;
 const CANCELLATION_REASON_CODES: readonly CancellationReasonCode[] = [
+  'SIMPLE_INQUIRY_END',
   'ACADEMY_CANCELLED',
   'STUDENT_ILLNESS',
   'STUDENT_SCHEDULE_CHANGE',
