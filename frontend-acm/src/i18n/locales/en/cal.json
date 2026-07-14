@@ -5,7 +5,10 @@
     "today": "Today",
     "prev": "Prev",
     "next": "Next",
-    "registerFeedback": "Register as feedback"
+    "registerFeedback": "Register as feedback",
+    "enterLink": "Join",
+    "copyLink": "Copy link",
+    "copyLinkDone": "Link copied."
   },
   "view": {
     "day": "Day",
@@ -41,7 +44,8 @@
     "creator": "Creator",
     "assignee": "Assignee",
     "assigneeNone": "Unassigned",
-    "materials": "Class materials"
+    "materials": "Class materials",
+    "endDate": "End date"
   },
   "form": {
     "titleCreate": "Add Event",
@@ -66,7 +70,10 @@
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
     "readOnlySource": "This event is synced from an external source and cannot be edited.",
     "bodaAuto": "A Bodaschool link is generated automatically for demo and regular classes on save.",
-    "bodaPending": "The link will be generated after saving."
+    "bodaPending": "The link will be generated after saving.",
+    "durationHm": "{{h}}h {{m}}m",
+    "durationH": "{{h}}h",
+    "durationM": "{{m}}m"
   },
   "error": {
     "titleRequired": "Please enter a title.",

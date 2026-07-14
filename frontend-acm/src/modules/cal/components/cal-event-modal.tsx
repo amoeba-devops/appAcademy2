@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
-import { Plus, X } from 'lucide-react';
+import { Calendar, Clock, Copy, LogIn, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -74,9 +74,25 @@ interface TeacherOption {
 const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 const labelClass = 'mb-1 block text-xs text-secondary';
+const dtInputClass =
+  'h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
+
+/**
+ * PLN-260714 — 강사용 입장 URL. 런처(`/web/classroom/:evtId`)에 `autoStart=1` 을
+ * 붙이면 owner(강사)가 boda open 으로 자동 입장한다. (web-classroom-page AutoStartFx)
+ */
+export function teacherJoinUrl(launcherUrl: string): string {
+  return launcherUrl + (launcherUrl.includes('?') ? '&' : '?') + 'autoStart=1';
+}
+
+// PLN-260714 — datetime-local 문자열("YYYY-MM-DDTHH:MM")을 날짜/시간으로 분리·결합.
+const datePart = (s: string): string => (s ? s.slice(0, 10) : '');
+const timePart = (s: string): string => (s && s.includes('T') ? s.slice(11, 16) : '');
+const joinDateTime = (date: string, time: string): string =>
+  date ? `${date}T${time || '00:00'}` : '';
 
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
-  const { t } = useTranslation('cal');
+  const { t, i18n } = useTranslation('cal');
   const toast = useToast();
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +113,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     filename: string;
   } | null>(null);
 
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       evtCategory: 'REGULAR_CLASS',
       evtTitle: '',
@@ -115,6 +131,53 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const editorCategory = watch('evtCategory');
   const meetingProvider = watch('evtMeetingProvider');
   const descriptionValue = watch('evtDescription');
+  const startAtVal = watch('evtStartAt');
+  const endAtVal = watch('evtEndAt');
+  const allDayVal = watch('evtAllDay');
+
+  // PLN-260714 — 분리된 날짜/시간 입력을 evtStartAt/evtEndAt(datetime-local)에 반영.
+  const setStartDate = (d: string) =>
+    setValue('evtStartAt', joinDateTime(d, timePart(startAtVal) || '09:00'));
+  const setStartTime = (tm: string) =>
+    setValue('evtStartAt', joinDateTime(datePart(startAtVal), tm));
+  const setEndDate = (d: string) =>
+    setValue('evtEndAt', joinDateTime(d, timePart(endAtVal) || '10:00'));
+  const setEndTime = (tm: string) =>
+    setValue('evtEndAt', joinDateTime(datePart(endAtVal), tm));
+  const onAllDayToggle = (checked: boolean) => {
+    setValue('evtAllDay', checked);
+    if (checked) {
+      // 종일: 시작 00:00 / 종료 23:59 로 고정 (시간 입력 숨김)
+      if (datePart(startAtVal)) setValue('evtStartAt', joinDateTime(datePart(startAtVal), '00:00'));
+      if (datePart(endAtVal)) setValue('evtEndAt', joinDateTime(datePart(endAtVal), '23:59'));
+    }
+  };
+
+  // 소요시간 라벨 (종료-시작)
+  const durationLabel = (() => {
+    if (!startAtVal || !endAtVal) return '';
+    const ms = new Date(endAtVal).getTime() - new Date(startAtVal).getTime();
+    if (!Number.isFinite(ms) || ms <= 0) return '';
+    const mins = Math.round(ms / 60000);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h > 0 && m > 0) return t('hint.durationHm', { h, m, defaultValue: '{{h}}시간 {{m}}분' });
+    if (h > 0) return t('hint.durationH', { h, defaultValue: '{{h}}시간' });
+    return t('hint.durationM', { m, defaultValue: '{{m}}분' });
+  })();
+
+  // 요일/전체 날짜 라벨 (시작 기준)
+  const weekdayLabel = (() => {
+    if (!startAtVal) return '';
+    const d = new Date(startAtVal);
+    if (Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat(i18n.language, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      weekday: 'short',
+    }).format(d);
+  })();
   const isLevelTest = editorCategory === 'LEVEL_TEST';
   const isBodaCategory =
     editorCategory === 'DEMO_CLASS' || editorCategory === 'REGULAR_CLASS';
@@ -379,12 +442,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   ))}
                 </select>
               </div>
-              <div className="flex items-end">
-                <label className="inline-flex items-center gap-2 text-sm">
-                  <input type="checkbox" {...register('evtAllDay')} />
-                  {t('field.allDay')}
-                </label>
-              </div>
 
               <div className="col-span-2">
                 <label className={labelClass}>{t('field.assignee', '담당 강사')}</label>
@@ -399,21 +456,78 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 </select>
               </div>
 
-              <div>
-                <label className={labelClass}>{t('field.startAt')} *</label>
-                <input
-                  type="datetime-local"
-                  {...register('evtStartAt', { required: true })}
-                  className={inputClass}
-                />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.endAt')} *</label>
-                <input
-                  type="datetime-local"
-                  {...register('evtEndAt', { required: true })}
-                  className={inputClass}
-                />
+              <div className="col-span-2 space-y-2 rounded-md border border-[var(--border-subtle)] p-3">
+                {/* RHF 추적용 hidden 필드 — 분리 날짜/시간 입력이 setValue 로 갱신 */}
+                <input type="hidden" {...register('evtStartAt')} />
+                <input type="hidden" {...register('evtEndAt')} />
+
+                <label className="inline-flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={allDayVal}
+                    onChange={(e) => onAllDayToggle(e.target.checked)}
+                  />
+                  {t('field.allDay')}
+                </label>
+
+                {/* 시작 날짜/시간 */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Calendar size={16} className="shrink-0 text-secondary" />
+                  <input
+                    type="date"
+                    aria-label={t('field.startAt')}
+                    value={datePart(startAtVal)}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className={dtInputClass}
+                  />
+                  {!allDayVal && (
+                    <>
+                      <Clock size={16} className="shrink-0 text-secondary" />
+                      <input
+                        type="time"
+                        aria-label={t('field.startAt')}
+                        value={timePart(startAtVal)}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className={dtInputClass}
+                      />
+                    </>
+                  )}
+                </div>
+
+                {/* → 종료일 */}
+                <div className="flex items-center gap-1 text-xs text-secondary">
+                  <span aria-hidden>→</span>
+                  {t('field.endDate', '종료일')}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Calendar size={16} className="shrink-0 text-secondary" />
+                  <input
+                    type="date"
+                    aria-label={t('field.endAt')}
+                    value={datePart(endAtVal)}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className={dtInputClass}
+                  />
+                  {!allDayVal && (
+                    <>
+                      <Clock size={16} className="shrink-0 text-secondary" />
+                      <input
+                        type="time"
+                        aria-label={t('field.endAt')}
+                        value={timePart(endAtVal)}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        className={dtInputClass}
+                      />
+                      {durationLabel && (
+                        <span className="text-xs text-secondary">· {durationLabel}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {weekdayLabel && (
+                  <div className="text-xs text-secondary">{weekdayLabel}</div>
+                )}
               </div>
             </div>
 
@@ -468,6 +582,39 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       placeholder={t('hint.bodaPending', '저장 후 링크가 생성됩니다.')}
                       className={`${inputClass} bg-[var(--gray-50)]`}
                     />
+                    {currentLink && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() =>
+                            window.open(
+                              teacherJoinUrl(currentLink),
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
+                          }
+                        >
+                          <LogIn size={14} className="mr-1" />
+                          {t('actions.enterLink', '입장링크')}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            void navigator.clipboard
+                              ?.writeText(currentLink)
+                              .then(() =>
+                                toast.success(t('actions.copyLinkDone', '링크를 복사했습니다.')),
+                              );
+                          }}
+                        >
+                          <Copy size={14} className="mr-1" />
+                          {t('actions.copyLink', '링크 복사')}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
