@@ -14,13 +14,17 @@ PR #127 (PLN-260714) 은 `sql/acm/1000~1003` 4개 마이그레이션을 포함�
 
 | 파일 | 내용 | 미적용 시 증상 |
 |------|------|----------------|
+| `940-acm-std-student-extension.sql` | `std_teacher_id` 컬럼/FK (선행 — `1004` 로 대체 보장 가능) | 학생 생성/수정 500 (`column std_teacher_id does not exist`) |
+| `989-acm-tch-ama-user-id.sql` | `tch_ama_user_id` 컬럼 (선행) | 강사 목록 500 (`column tch_ama_user_id does not exist`) |
 | `995-acm-portal-account.sql` | 포털계정 테이블 (선행 조건) | `1003` 실패 (relation 없음) — 이미 있으면 skip |
 | `1000-acm-csl-attending-stage.sql` | `inq_current_stage` CHECK 에 `ATTENDING` | 6→7(수강중) 전환이 CHECK 위반 500 |
 | `1001-acm-csl-cancel-reason-simple.sql` | `cnc_reason_code` CHECK 에 `SIMPLE_INQUIRY_END` | 상담종료 기본사유 저장 실패 |
 | `1002-acm-std-email-unique.sql` | `uq_acm_std_ent_email` 부분 유니크 인덱스 | 이메일 중복 검사 DB 레벨 미보장 |
 | `1003-acm-portal-student-email-login.sql` | `pac_login_id` 200 확장 + STUDENT 로그인ID=이메일 백필 | 이메일 로그인ID 저장/백필 불가 |
+| `1004-acm-std-teacher-fk-ensure.sql` | `std_teacher_id` 컬럼/FK 보장(940 미적용 환경 대비) | 학생 생성/수정 500 |
 
-**적용 순서**: `995`(없을 때만) → `1000` → `1001` → `1002` → `1003`
+**적용 순서**: (`940`/`989`/`995` 미적용 환경이면 먼저) → `1000` → `1001` → `1002` → `1003` → `1004`
+> `1004` 는 `940` 의 `std_teacher_id` 부분을 idempotent 하게 재보장하므로, `940` 이 이미 적용됐으면 no-op. `989`(강사목록)·`995`(포털계정)·`940`(강사FK)은 이번 PR 이전 마이그레이션이지만 환경에 따라 미적용일 수 있어 함께 확인한다. (로컬 db_acm 은 940/989/995 가 미적용이라 이번에 함께 적용함)
 
 ## 2. Pre-flight — 이메일 중복 점검 (1002 전 필수)
 
@@ -42,7 +46,8 @@ HAVING COUNT(*) > 1;
 ```bash
 cd ~/app-academy   # repo 루트
 for f in 1000-acm-csl-attending-stage 1001-acm-csl-cancel-reason-simple \
-         1002-acm-std-email-unique 1003-acm-portal-student-email-login; do
+         1002-acm-std-email-unique 1003-acm-portal-student-email-login \
+         1004-acm-std-teacher-fk-ensure; do
   docker exec -i acm-postgres psql -U acm -d db_acm < sql/acm/$f.sql
 done
 # 995 가 없던 환경이면 위 루프 앞에 995-acm-portal-account.sql 먼저 적용
@@ -59,7 +64,8 @@ cd ~/app-academy && git pull               # PR 머지 후 최신 sql/acm 반영
 docker compose ps | grep -i postgres
 # 컨테이너/자격증명은 각 환경 compose 기준으로 대체
 for f in 1000-acm-csl-attending-stage 1001-acm-csl-cancel-reason-simple \
-         1002-acm-std-email-unique 1003-acm-portal-student-email-login; do
+         1002-acm-std-email-unique 1003-acm-portal-student-email-login \
+         1004-acm-std-teacher-fk-ensure; do
   docker exec -i <acm_pg_container> psql -U <acm_user> -d db_acm < sql/acm/$f.sql
 done
 ```

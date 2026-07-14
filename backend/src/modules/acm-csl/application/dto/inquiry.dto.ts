@@ -44,6 +44,7 @@ const STAGES: readonly CslStage[] = [
   'ENROLLMENT_COUNSELING',
   'PAYMENT',
   'CLASS_STARTED',
+  'ATTENDING',
   'DROPPED',
 ] as const;
 const INFLOW_TYPES: readonly InflowType[] = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
