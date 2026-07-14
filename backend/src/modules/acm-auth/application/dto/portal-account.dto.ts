@@ -9,8 +9,10 @@ export class PortalLoginDto {
   @IsString() @Length(1, 40)
   tenantCode!: string;
 
-  @ApiProperty({ example: 's7k3m9', description: '포털 로그인 아이디' })
-  @IsString() @Length(3, 40)
+  // 학생 계정의 로그인 아이디는 이메일(DB pac_login_id VARCHAR(200), PLN-260714)이므로
+  // 상한을 40 → 200 으로 맞춘다. 40자로 두면 긴 이메일 로그인이 거부된다.
+  @ApiProperty({ example: 's7k3m9', description: '포털 로그인 아이디 (학생=이메일)' })
+  @IsString() @Length(3, 200)
   loginId!: string;
 
   @ApiProperty({ example: 'Xk7m2Qp9aR' })
