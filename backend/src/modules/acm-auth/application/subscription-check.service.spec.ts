@@ -1,7 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { AcademyEntity } from '../../../infrastructure/database/entities/academy.entity';
+import { ACM_DS } from '../../acm-common/datasource';
+import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
+import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 import {
   IStgAppsSubscriptionClient,
   STG_APPS_SUBSCRIPTION_CLIENT,
@@ -13,18 +15,24 @@ describe('SubscriptionCheckService', () => {
   let svc: SubscriptionCheckService;
   let findOne: jest.Mock;
   let update: jest.Mock;
+  let amaConfigFindOne: jest.Mock;
   let check: jest.Mock;
 
   beforeEach(async () => {
     findOne = jest.fn();
     update = jest.fn().mockResolvedValue({});
+    amaConfigFindOne = jest.fn().mockResolvedValue(null);
     check = jest.fn();
     const mod = await Test.createTestingModule({
       providers: [
         SubscriptionCheckService,
         {
-          provide: getRepositoryToken(AcademyEntity),
+          provide: getRepositoryToken(AcmTenantTypeormEntity, ACM_DS),
           useValue: { findOne, update },
+        },
+        {
+          provide: getRepositoryToken(AmaConfigTypeormEntity, ACM_DS),
+          useValue: { findOne: amaConfigFindOne },
         },
         {
           provide: STG_APPS_SUBSCRIPTION_CLIENT,
@@ -35,16 +43,16 @@ describe('SubscriptionCheckService', () => {
     svc = mod.get(SubscriptionCheckService);
   });
 
-  const fakeAcademy = (
-    overrides: Partial<AcademyEntity> = {},
-  ): AcademyEntity =>
+  const fakeTenant = (
+    overrides: Partial<AcmTenantTypeormEntity> = {},
+  ): AcmTenantTypeormEntity =>
     ({
-      acdId: 1,
-      acdAmaTenantId: 'ama-ent-1',
-      acdSubscriptionStatus: 'ACTIVE',
-      acdUpdatedAt: new Date(),
+      entId: 'tenant-uuid-1',
+      amaEntityId: 'ama-ent-1',
+      subscriptionStatus: 'ACTIVE',
+      updatedAt: new Date(),
       ...overrides,
-    }) as unknown as AcademyEntity;
+    }) as unknown as AcmTenantTypeormEntity;
 
   const info = (overrides: Partial<SubscriptionInfo> = {}): SubscriptionInfo => ({
     status: 'ACTIVE',
@@ -56,11 +64,12 @@ describe('SubscriptionCheckService', () => {
   describe('happy path — live returns ACTIVE', () => {
     it('passes (not degraded) and refreshes cache', async () => {
       check.mockResolvedValue(info({ status: 'ACTIVE' }));
+      findOne.mockResolvedValue(fakeTenant());
       const result = await svc.ensureActive('ama-ent-1');
       expect(result).toEqual({ degraded: false, status: 'ACTIVE' });
       expect(update).toHaveBeenCalledWith(
-        { acdAmaTenantId: 'ama-ent-1' },
-        expect.objectContaining({ acdSubscriptionStatus: 'ACTIVE' }),
+        { entId: 'tenant-uuid-1' },
+        expect.objectContaining({ subscriptionStatus: 'ACTIVE' }),
       );
     });
 
@@ -112,9 +121,9 @@ describe('SubscriptionCheckService', () => {
     it('passes degraded when cache age ≤ 24h and ACTIVE', async () => {
       check.mockRejectedValue(new Error('stg-apps 5xx'));
       findOne.mockResolvedValue(
-        fakeAcademy({
-          acdSubscriptionStatus: 'ACTIVE',
-          acdUpdatedAt: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
+        fakeTenant({
+          subscriptionStatus: 'ACTIVE',
+          updatedAt: new Date(Date.now() - 60 * 60 * 1000), // 1h ago
         }),
       );
       const result = await svc.ensureActive('ama-ent-1');
@@ -124,9 +133,9 @@ describe('SubscriptionCheckService', () => {
     it('throws 503 AMA_UNAVAILABLE when cache is stale (> 24h)', async () => {
       check.mockRejectedValue(new Error('timeout'));
       findOne.mockResolvedValue(
-        fakeAcademy({
-          acdSubscriptionStatus: 'ACTIVE',
-          acdUpdatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000), // 48h ago
+        fakeTenant({
+          subscriptionStatus: 'ACTIVE',
+          updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000), // 48h ago
         }),
       );
       const err = await svc.ensureActive('ama-ent-1').catch((e) => e);
@@ -138,22 +147,22 @@ describe('SubscriptionCheckService', () => {
       });
     });
 
-    it('throws 403 NO_ACADEMY when no row + live failed', async () => {
+    it('throws 403 NO_TENANT when no row + live failed', async () => {
       check.mockRejectedValue(new Error('boom'));
       findOne.mockResolvedValue(null);
       const err = await svc.ensureActive('unknown-ent').catch((e) => e);
       expect((err as HttpException).getStatus()).toBe(HttpStatus.FORBIDDEN);
       expect((err as HttpException).getResponse()).toMatchObject({
-        code: 'NO_ACADEMY',
+        code: 'NO_TENANT',
       });
     });
 
     it('throws 403 SUBSCRIPTION_<status> when cache shows non-active', async () => {
       check.mockRejectedValue(new Error('boom'));
       findOne.mockResolvedValue(
-        fakeAcademy({
-          acdSubscriptionStatus: 'SUSPENDED',
-          acdUpdatedAt: new Date(Date.now() - 30 * 60 * 1000),
+        fakeTenant({
+          subscriptionStatus: 'SUSPENDED',
+          updatedAt: new Date(Date.now() - 30 * 60 * 1000),
         }),
       );
       const err = await svc.ensureActive('ama-ent-1').catch((e) => e);
@@ -166,6 +175,7 @@ describe('SubscriptionCheckService', () => {
   describe('cache refresh resilience', () => {
     it('does not fail login if cache update throws', async () => {
       check.mockResolvedValue(info({ status: 'ACTIVE' }));
+      findOne.mockResolvedValue(fakeTenant());
       update.mockRejectedValue(new Error('DB connection lost'));
       const result = await svc.ensureActive('ama-ent-1');
       expect(result.degraded).toBe(false);
