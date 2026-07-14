@@ -5,7 +5,10 @@
     "today": "Hôm nay",
     "prev": "Trước",
     "next": "Sau",
-    "registerFeedback": "Đăng ký làm phản hồi"
+    "registerFeedback": "Đăng ký làm phản hồi",
+    "enterLink": "Vào lớp",
+    "copyLink": "Sao chép liên kết",
+    "copyLinkDone": "Đã sao chép liên kết."
   },
   "view": {
     "day": "Ngày",
@@ -41,7 +44,8 @@
     "creator": "Người tạo",
     "assignee": "Người phụ trách",
     "assigneeNone": "Chưa chỉ định",
-    "materials": "Tài liệu lớp học"
+    "materials": "Tài liệu lớp học",
+    "endDate": "Ngày kết thúc"
   },
   "form": {
     "titleCreate": "Thêm sự kiện",
@@ -66,7 +70,10 @@
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
     "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa.",
     "bodaAuto": "Lớp học thử và lớp học chính thức sẽ tự động tạo liên kết Bodaschool khi lưu.",
-    "bodaPending": "Liên kết sẽ được tạo sau khi lưu."
+    "bodaPending": "Liên kết sẽ được tạo sau khi lưu.",
+    "durationHm": "{{h}} giờ {{m}} phút",
+    "durationH": "{{h}} giờ",
+    "durationM": "{{m}} phút"
   },
   "error": {
     "titleRequired": "Vui lòng nhập tiêu đề.",

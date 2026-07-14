@@ -157,10 +157,16 @@ export class CalEventService {
     if (q.category) qb.andWhere('e.category = :category', { category: q.category });
 
     if (kind === 'STUDENT') {
+      // PLN-260714 — 명시적 invitee 뿐 아니라 학생이 수강 중인 반(evt_cls_id)의
+      // 이벤트(정규수업 포함)도 노출한다. 탈퇴(cst_left_at)한 반은 제외.
       qb.andWhere(
-        `EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
+        `(EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
                   WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
-                    AND i.inv_kind = 'STUDENT' AND i.inv_ref_id = :ref)`,
+                    AND i.inv_kind = 'STUDENT' AND i.inv_ref_id = :ref)
+          OR (e.evt_cls_id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM amb_acm_cls_class_students cs
+                 WHERE cs.cls_id = e.evt_cls_id AND cs.ent_id = e.ent_id
+                   AND cs.cst_student_user_id = :ref AND cs.cst_left_at IS NULL)))`,
         { ref: refId },
       );
     } else if (kind === 'TEACHER') {
@@ -172,13 +178,21 @@ export class CalEventService {
         { ref: refId },
       );
     } else {
-      // PARENT — events where any of the parent's children (STUDENT invitee) appears.
+      // PARENT — events where any of the parent's children appears, either as
+      // an explicit STUDENT invitee OR via the child's class enrollment
+      // (evt_cls_id). PLN-260714. 탈퇴한 반은 제외.
       qb.andWhere(
-        `EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
+        `(EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
                   JOIN amb_acm_std_student_parent sp
                     ON sp.std_id = i.inv_ref_id AND sp.ent_id = i.ent_id
                   WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
-                    AND i.inv_kind = 'STUDENT' AND sp.par_id = :ref)`,
+                    AND i.inv_kind = 'STUDENT' AND sp.par_id = :ref)
+          OR (e.evt_cls_id IS NOT NULL AND EXISTS (
+                SELECT 1 FROM amb_acm_cls_class_students cs
+                  JOIN amb_acm_std_student_parent sp
+                    ON sp.std_id = cs.cst_student_user_id AND sp.ent_id = cs.ent_id
+                 WHERE cs.cls_id = e.evt_cls_id AND cs.ent_id = e.ent_id
+                   AND cs.cst_left_at IS NULL AND sp.par_id = :ref)))`,
         { ref: refId },
       );
     }

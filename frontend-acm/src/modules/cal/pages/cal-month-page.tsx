@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Plus, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogIn, Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
@@ -23,7 +23,7 @@ import {
   weekDays,
 } from '../lib/date-utils';
 import type { CalEvent, CalInviteeKind, InviteeCandidate, ListCalEventsQuery } from '../types';
-import { CalEventModal } from '../components/cal-event-modal';
+import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
 import { AttendeeFilter } from '../components/attendee-filter';
 import { TeacherMultiCombo } from '../components/teacher-multi-combo';
 
@@ -462,11 +462,14 @@ function CalendarEventCard({
   compact?: boolean;
   onClick: (event: React.MouseEvent) => void;
 }) {
+  const { t } = useTranslation('cal');
   const display = buildEventDisplayLine(event, locale);
+  // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
+  const canEnter = event.meetingProvider === 'BODASCHOOL' && !!event.meetingUrl;
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer rounded border px-2 py-1.5 text-left ${CATEGORY_COLOR[event.category]} ${
+      className={`group relative cursor-pointer rounded border px-2 py-1.5 text-left ${CATEGORY_COLOR[event.category]} ${
         compact ? 'text-[10px]' : 'text-xs'
       }`}
       title={display}
@@ -476,6 +479,24 @@ function CalendarEventCard({
         <div className="truncate text-[10px] opacity-80">
           {event.assigneeName ?? event.ownerName}
         </div>
+      )}
+      {canEnter && (
+        <button
+          type="button"
+          title={t('actions.enterLink', '입장링크')}
+          aria-label={t('actions.enterLink', '입장링크')}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(
+              teacherJoinUrl(event.meetingUrl as string),
+              '_blank',
+              'noopener,noreferrer',
+            );
+          }}
+          className="absolute right-1 top-1 rounded bg-white/70 p-0.5 text-primary opacity-0 transition group-hover:opacity-100 hover:bg-white"
+        >
+          <LogIn size={12} />
+        </button>
       )}
     </div>
   );

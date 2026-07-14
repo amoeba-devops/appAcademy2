@@ -5,7 +5,10 @@
     "today": "오늘",
     "prev": "이전",
     "next": "다음",
-    "registerFeedback": "피드백으로 등록"
+    "registerFeedback": "피드백으로 등록",
+    "enterLink": "입장링크",
+    "copyLink": "링크 복사",
+    "copyLinkDone": "링크를 복사했습니다."
   },
   "view": {
     "day": "일",
@@ -41,7 +44,8 @@
     "creator": "작성자",
     "assignee": "담당자",
     "assigneeNone": "미지정",
-    "materials": "수업 자료"
+    "materials": "수업 자료",
+    "endDate": "종료일"
   },
   "form": {
     "titleCreate": "일정 등록",
@@ -66,7 +70,10 @@
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",
     "readOnlySource": "이 일정은 외부 소스에서 동기화되어 편집할 수 없습니다.",
     "bodaAuto": "데모수업과 정규수업은 저장 시 보다스쿨 링크가 자동 생성됩니다.",
-    "bodaPending": "저장 후 링크가 생성됩니다."
+    "bodaPending": "저장 후 링크가 생성됩니다.",
+    "durationHm": "{{h}}시간 {{m}}분",
+    "durationH": "{{h}}시간",
+    "durationM": "{{m}}분"
   },
   "error": {
     "titleRequired": "제목을 입력해 주세요.",
