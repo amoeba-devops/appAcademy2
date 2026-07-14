@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>사용자 매뉴얼 · App Academy User Guides</title>
+<meta name="description" content="App Academy 학원관리 — 상담관리·사용자 등록·포털 이용 등 메뉴별 사용자 매뉴얼 모음" />
+<style>
+  :root{--navy:#1c2b4a;--navy-soft:#2b3f63;--gold:#b08a3e;--gold-soft:#c9a85f;--cream:#f7f4ec;--ink:#232730;--muted:#6b7280;--line:#e4e0d6;--bg:#fbfaf6;--card:#fff;--radius:14px;--shadow:0 1px 3px rgba(28,43,74,.06),0 10px 30px rgba(28,43,74,.07);}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  a{text-decoration:none;color:inherit;}
+  .container{max-width:1080px;margin:0 auto;padding:0 24px;}
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-soft));color:#fff;padding:56px 0 48px;border-bottom:3px solid var(--gold);}
+  .hero .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:12px;}
+  .hero h1{font-size:32px;margin:0 0 10px;font-weight:700;letter-spacing:-.01em;}
+  .hero p{margin:0;color:#cdd5e4;font-size:15.5px;max-width:640px;}
+  main{padding:44px 0 80px;}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr;}}
+  .card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px 22px;box-shadow:var(--shadow);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;height:100%;}
+  .card:hover{transform:translateY(-4px);box-shadow:0 6px 16px rgba(28,43,74,.12),0 18px 44px rgba(28,43,74,.12);border-color:var(--gold-soft);}
+  .card .ico{width:52px;height:52px;border-radius:14px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:16px;border:1px solid var(--line);}
+  .card h2{font-size:18.5px;margin:0 0 6px;color:var(--navy);font-weight:700;letter-spacing:-.01em;}
+  .card .desc{font-size:13.8px;color:var(--muted);margin:0 0 16px;flex:1;}
+  .card .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;}
+  .card .docid{font-family:"SFMono-Regular",Consolas,Menlo,monospace;font-size:11px;color:#9aa1ad;letter-spacing:.01em;}
+  .card .open{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;font-weight:700;color:var(--gold);}
+  .card:hover .open{color:var(--navy);}
+  .card .open .arrow{transition:transform .16s ease;}
+  .card:hover .open .arrow{transform:translateX(3px);}
+  .card .flag{position:absolute;top:18px;right:18px;font-size:11px;font-weight:700;color:#7a5410;background:#efe3c7;border:1px solid #e0cd9c;padding:2px 9px;border-radius:20px;letter-spacing:.02em;}
+  .sect-label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 18px;}
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center;padding:26px 0 40px;}
+  footer a{color:var(--navy);font-weight:600;}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">App Academy · User Guides</div>
+    <h1>사용자 매뉴얼</h1>
+    <p>학원 운영에 필요한 메뉴별 사용자 매뉴얼을 한 곳에서 확인하세요. 각 카드를 눌러 매뉴얼을 엽니다.</p>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+    <p class="sect-label">매뉴얼 목록</p>
+    <div class="grid">
+
+      <a class="card" href="manual-csl.html">
+        <div class="ico">📋</div>
+        <h2>상담관리 매뉴얼</h2>
+        <p class="desc">신규 상담 접수부터 수강 시작까지 6단계 파이프라인을 운영하는 방법. 단계별 입력 항목·진행 조건·이탈/재활성화.</p>
+        <div class="foot">
+          <span class="docid">MANUAL-CSL-260624</span>
+          <span class="open">열기 <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <a class="card" href="manual-users.html">
+        <span class="flag">NEW</span>
+        <div class="ico">👥</div>
+        <h2>사용자 등록·역할 매뉴얼</h2>
+        <p class="desc">웹 상담신청 → 수강등록 자동 등록(학생·학부모·포털계정) → 강사 등록·수업·강의 진행까지. 학생·학부모·강사 계정 생성과 역할.</p>
+        <div class="foot">
+          <span class="docid">MANUAL-USERS-260714</span>
+          <span class="open">열기 <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <a class="card" href="manual-portal.html">
+        <div class="ico">🔑</div>
+        <h2>학원 포털 사용자 매뉴얼</h2>
+        <p class="desc">학생·학부모·강사가 학원 포털에 로그인해 공지·수업일정·자료실을 이용하는 방법과, 운영자의 포털 계정 발급·수업자료 업로드.</p>
+        <div class="foot">
+          <span class="docid">MANUAL-PORTAL-260707</span>
+          <span class="open">열기 <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  App Academy · 사용자 매뉴얼 · <a href="/web/">홈으로</a>
+</footer>
+</body>
+</html>
