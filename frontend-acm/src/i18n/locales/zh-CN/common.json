@@ -77,7 +77,9 @@
       "back": "返回日程",
       "bodaLink": "BODA链接",
       "copy": "复制",
-      "copied": "已复制"
+      "copied": "已复制",
+      "notOpenYet": "老师开启教室后即可进入。(课程开始前)",
+      "ended": "该课程已结束。"
     },
     "notices": {
       "empty": "暂无公告。",
