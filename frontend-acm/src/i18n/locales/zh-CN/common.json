@@ -62,7 +62,17 @@
       "month": "月",
       "week": "周",
       "day": "日",
-      "empty": "暂无日程。"
+      "empty": "暂无日程。",
+      "when": "时间",
+      "teacher": "任课老师",
+      "location": "地点",
+      "join": "进入BODA教室",
+      "joining": "准备中…",
+      "joinUnavailable": "教室链接尚未准备好。",
+      "notAttendee": "您不是本课程的参加者。",
+      "outOfWindow": "尚未到进入时间。",
+      "joinError": "无法进入教室。",
+      "openLink": "打开课程链接"
     },
     "notices": {
       "empty": "暂无公告。",

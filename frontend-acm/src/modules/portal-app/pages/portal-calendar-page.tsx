@@ -1,7 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Video } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Video, LogIn } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { portalApi, type PortalCalEvent } from '../api/portal-api';
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -42,6 +48,7 @@ export function PortalCalendarPage() {
   const { t, i18n } = useTranslation('common');
   const [mode, setMode] = useState<ViewMode>('month');
   const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
+  const [selected, setSelected] = useState<PortalCalEvent | null>(null);
 
   const { from, to } = useMemo(() => rangeFor(mode, anchor), [mode, anchor]);
   const { data: events = [], isLoading } = useQuery({
@@ -95,15 +102,23 @@ export function PortalCalendarPage() {
       {isLoading ? (
         <p className="py-10 text-center text-sm text-secondary">…</p>
       ) : mode === 'month' ? (
-        <MonthGrid from={from} anchorMonth={anchor.getMonth()} events={events} />
+        <MonthGrid
+          from={from}
+          anchorMonth={anchor.getMonth()}
+          events={events}
+          onSelect={setSelected}
+        />
       ) : (
         <Agenda
           days={mode === 'week' ? 7 : 1}
           from={from}
           events={events}
           emptyLabel={t('portalApp.cal.empty')}
+          onSelect={setSelected}
         />
       )}
+
+      <EventDetailModal event={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }
@@ -127,10 +142,12 @@ function MonthGrid({
   from,
   anchorMonth,
   events,
+  onSelect,
 }: {
   from: Date;
   anchorMonth: number;
   events: PortalCalEvent[];
+  onSelect: (e: PortalCalEvent) => void;
 }) {
   const weeks = Math.ceil(
     (new Date(from.getFullYear(), anchorMonth + 1, 0).getDate() +
@@ -160,9 +177,17 @@ function MonthGrid({
               {d.getDate()}
             </div>
             {dayEvents.slice(0, 3).map((e) => (
-              <div key={e.id} className="mt-0.5 truncate rounded bg-accent-50 px-1 text-accent-800">
-                {timeLabel(e)} {e.title}
-              </div>
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => onSelect(e)}
+                className="mt-0.5 flex w-full items-center gap-0.5 truncate rounded bg-accent-50 px-1 text-left text-accent-800 hover:bg-accent-100"
+              >
+                {e.meetingProvider === 'BODASCHOOL' && <Video size={10} className="shrink-0" />}
+                <span className="truncate">
+                  {timeLabel(e)} {e.title}
+                </span>
+              </button>
             ))}
             {dayEvents.length > 3 && (
               <div className="text-secondary">+{dayEvents.length - 3}</div>
@@ -179,11 +204,13 @@ function Agenda({
   from,
   events,
   emptyLabel,
+  onSelect,
 }: {
   days: number;
   from: Date;
   events: PortalCalEvent[];
   emptyLabel: string;
+  onSelect: (e: PortalCalEvent) => void;
 }) {
   const cols = Array.from({ length: days }, (_, i) => addDays(from, i));
   return (
@@ -198,7 +225,7 @@ function Agenda({
             {dayEvents.length === 0 ? (
               <p className="px-3 py-3 text-sm text-secondary">{emptyLabel}</p>
             ) : (
-              dayEvents.map((e) => <EventRow key={e.id} e={e} />)
+              dayEvents.map((e) => <EventRow key={e.id} e={e} onSelect={onSelect} />)
             )}
           </div>
         );
@@ -207,22 +234,138 @@ function Agenda({
   );
 }
 
-function EventRow({ e }: { e: PortalCalEvent }) {
+function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalEvent) => void }) {
   return (
-    <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] px-3 py-2 last:border-b-0">
+    <button
+      type="button"
+      onClick={() => onSelect(e)}
+      className="flex w-full items-center gap-3 border-b border-[var(--border-subtle)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--gray-50)]"
+    >
       <span className="w-16 shrink-0 text-sm text-secondary">{timeLabel(e) || '—'}</span>
       <span className="min-w-0 flex-1 truncate text-sm text-primary">{e.title}</span>
       {e.assigneeName && <span className="text-xs text-secondary">{e.assigneeName}</span>}
-      {e.meetingUrl && (
-        <a
-          href={e.meetingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
-        >
-          <Video size={12} />
-        </a>
+      {e.meetingProvider === 'BODASCHOOL' && (
+        <Video size={14} className="shrink-0 text-accent-700" />
       )}
-    </div>
+    </button>
+  );
+}
+
+// PLN-260715 — event detail + BODA classroom entry (browser mode).
+function EventDetailModal({
+  event,
+  onClose,
+}: {
+  event: PortalCalEvent | null;
+  onClose: () => void;
+}) {
+  const { t, i18n } = useTranslation('common');
+  const [joining, setJoining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isBoda = event?.meetingProvider === 'BODASCHOOL';
+
+  const when = event
+    ? new Intl.DateTimeFormat(i18n.language, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        weekday: 'short',
+        ...(event.allDay ? {} : { hour: '2-digit', minute: '2-digit' }),
+      }).format(new Date(event.startAt))
+    : '';
+  const endTime =
+    event && !event.allDay
+      ? new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '';
+
+  const join = async () => {
+    if (!event) return;
+    setError(null);
+    setJoining(true);
+    try {
+      const ctx = await portalApi.bodaLaunch(event.id, i18n.language.startsWith('ko') ? 'ko' : 'en');
+      if (!ctx.webBrowserUrl) {
+        setError(t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'));
+        return;
+      }
+      window.open(ctx.webBrowserUrl, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      const code = (e as { response?: { data?: { code?: string } } }).response?.data?.code;
+      const map: Record<string, string> = {
+        NOT_AN_ATTENDEE: t('portalApp.cal.notAttendee', '이 수업의 참석자가 아닙니다.'),
+        BODA_LAUNCH_OUT_OF_WINDOW: t('portalApp.cal.outOfWindow', '아직 입장 가능한 시간이 아닙니다.'),
+        BODA_ROOM_NOT_PROVISIONED: t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'),
+        BODA_NOT_BODASCHOOL: t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'),
+      };
+      setError((code && map[code]) || t('portalApp.cal.joinError', '강의실에 입장할 수 없습니다.'));
+    } finally {
+      setJoining(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!event} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        {event && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{event.title}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-2 text-sm">
+              <div>
+                <span className="text-secondary">{t('portalApp.cal.when', '일시')}</span>{' '}
+                {when}
+                {endTime && ` ~ ${endTime}`}
+              </div>
+              {event.assigneeName && (
+                <div>
+                  <span className="text-secondary">{t('portalApp.cal.teacher', '담당 강사')}</span>{' '}
+                  {event.assigneeName}
+                </div>
+              )}
+              {event.locationText && (
+                <div>
+                  <span className="text-secondary">{t('portalApp.cal.location', '장소')}</span>{' '}
+                  {event.locationText}
+                </div>
+              )}
+              {event.description && (
+                <p className="whitespace-pre-wrap text-primary">{event.description}</p>
+              )}
+
+              {isBoda ? (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={join}
+                    disabled={joining}
+                    className="inline-flex items-center gap-2 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60"
+                  >
+                    <LogIn size={16} />
+                    {joining
+                      ? t('portalApp.cal.joining', '입장 준비 중…')
+                      : t('portalApp.cal.join', '보다스쿨 강의실 입장')}
+                  </button>
+                  {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+                </div>
+              ) : (
+                event.meetingUrl && (
+                  <a
+                    href={event.meetingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-2 text-sm text-accent-700 hover:underline"
+                  >
+                    <Video size={16} />
+                    {t('portalApp.cal.openLink', '수업 링크 열기')}
+                  </a>
+                )
+              )}
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

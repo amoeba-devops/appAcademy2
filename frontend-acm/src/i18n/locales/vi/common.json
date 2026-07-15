@@ -62,7 +62,17 @@
       "month": "Tháng",
       "week": "Tuần",
       "day": "Ngày",
-      "empty": "Không có lịch."
+      "empty": "Không có lịch.",
+      "when": "Thời gian",
+      "teacher": "Giáo viên",
+      "location": "Địa điểm",
+      "join": "Vào lớp BODA",
+      "joining": "Đang chuẩn bị…",
+      "joinUnavailable": "Liên kết lớp học chưa sẵn sàng.",
+      "notAttendee": "Bạn không phải là người tham dự lớp này.",
+      "outOfWindow": "Chưa đến giờ vào lớp.",
+      "joinError": "Không thể vào lớp học.",
+      "openLink": "Mở liên kết lớp"
     },
     "notices": {
       "empty": "Không có thông báo.",

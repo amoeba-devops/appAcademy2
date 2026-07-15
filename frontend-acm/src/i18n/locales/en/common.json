@@ -62,7 +62,17 @@
       "month": "Month",
       "week": "Week",
       "day": "Day",
-      "empty": "No events."
+      "empty": "No events.",
+      "when": "When",
+      "teacher": "Teacher",
+      "location": "Location",
+      "join": "Enter BODA classroom",
+      "joining": "Preparing…",
+      "joinUnavailable": "The classroom link is not ready yet.",
+      "notAttendee": "You are not an attendee of this class.",
+      "outOfWindow": "It is not time to enter yet.",
+      "joinError": "Cannot enter the classroom.",
+      "openLink": "Open class link"
     },
     "notices": {
       "empty": "No notices.",

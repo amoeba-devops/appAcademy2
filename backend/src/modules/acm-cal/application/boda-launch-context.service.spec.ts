@@ -7,6 +7,9 @@ import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeo
 import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
+import { ClassStudentTypeormEntity } from '../../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
 import { BodaLaunchContextService } from './boda-launch-context.service';
 import { BodaRoomService } from './boda-room.service';
 import { BodaConfigService } from './boda-config.service';
@@ -16,8 +19,11 @@ describe('BodaLaunchContextService', () => {
   let svc: BodaLaunchContextService;
   let evtFindOne: jest.Mock;
   let inviteeFind: jest.Mock;
+  let inviteeFindOne: jest.Mock;
   let userFindOne: jest.Mock;
   let stdFind: jest.Mock;
+  let stdFindOne: jest.Mock;
+  let cstFindOne: jest.Mock;
   let roomFindByEvtId: jest.Mock;
   let cfgFindByEntId: jest.Mock;
   let inviteeListForEvent: jest.Mock;
@@ -26,6 +32,7 @@ describe('BodaLaunchContextService', () => {
   beforeEach(async () => {
     evtFindOne = jest.fn();
     inviteeFind = jest.fn().mockResolvedValue([]);
+    inviteeFindOne = jest.fn().mockResolvedValue(null);
     userFindOne = jest
       .fn()
       .mockImplementation(({ where }: { where: { id: string } }) => {
@@ -33,6 +40,8 @@ describe('BodaLaunchContextService', () => {
         return Promise.resolve({ id: where.id, name: 'User' });
       });
     stdFind = jest.fn().mockResolvedValue([]);
+    stdFindOne = jest.fn().mockResolvedValue({ id: 'std-1', name: '학생일' });
+    cstFindOne = jest.fn().mockResolvedValue(null);
     roomFindByEvtId = jest.fn();
     cfgFindByEntId = jest.fn().mockResolvedValue({
       bodaWebUrl: 'https://bodaedu.kr',
@@ -54,7 +63,7 @@ describe('BodaLaunchContextService', () => {
         },
         {
           provide: getRepositoryToken(CalInviteeTypeormEntity, ACM_DS),
-          useValue: { find: inviteeFind },
+          useValue: { find: inviteeFind, findOne: inviteeFindOne },
         },
         {
           provide: getRepositoryToken(AcmUserTypeormEntity, ACM_DS),
@@ -62,7 +71,19 @@ describe('BodaLaunchContextService', () => {
         },
         {
           provide: getRepositoryToken(StudentTypeormEntity, ACM_DS),
-          useValue: { find: stdFind },
+          useValue: { find: stdFind, findOne: stdFindOne },
+        },
+        {
+          provide: getRepositoryToken(ParentTypeormEntity, ACM_DS),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(StudentParentTypeormEntity, ACM_DS),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
+        },
+        {
+          provide: getRepositoryToken(ClassStudentTypeormEntity, ACM_DS),
+          useValue: { findOne: cstFindOne },
         },
         {
           provide: BodaRoomService,
@@ -365,6 +386,47 @@ describe('BodaLaunchContextService', () => {
         'TEACHER',
       );
       expect(ctx.embedUrl).toMatch(/^https:\/\/bodaedu\.kr\/webrtc\?/);
+    });
+  });
+
+  // PLN-260715 — portal (student/parent) entry: identity + enrollment aware.
+  describe('buildForPortal', () => {
+    const EVT = '11111111-2222-3333-4444-555555555555';
+
+    it('enrolled student (no invitee row) → userType 12 + browser url', async () => {
+      evtFindOne.mockResolvedValue(evt({ clsId: 'cls-1' }));
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeFindOne.mockResolvedValue(null); // not an explicit invitee
+      cstFindOne.mockResolvedValue({ cstId: 'x' }); // but enrolled in the class
+      stdFindOne.mockResolvedValue({ id: 'std-9', name: '수강생' });
+
+      const ctx = await svc.buildForPortal(EVT, 'e1', 'STUDENT', 'std-9', 'ko');
+      expect(ctx.userType).toBe(12);
+      expect(ctx.uname).toBe('수강생');
+      expect(ctx.uid).toBe('std9');
+      expect(ctx.webBrowserUrl).toContain('UTy=12');
+      expect(ctx.invitees).toEqual([]);
+    });
+
+    it('student neither invitee nor enrolled → 403 NOT_AN_ATTENDEE', async () => {
+      evtFindOne.mockResolvedValue(evt({ clsId: 'cls-1' }));
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeFindOne.mockResolvedValue(null);
+      cstFindOne.mockResolvedValue(null);
+
+      await expect(
+        svc.buildForPortal(EVT, 'e1', 'STUDENT', 'std-x', 'ko'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('explicit student invitee → userType 12 (no enrollment lookup needed)', async () => {
+      evtFindOne.mockResolvedValue(evt({ clsId: null }));
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeFindOne.mockResolvedValue({ kind: 'STUDENT', refId: 'std-9' });
+
+      const ctx = await svc.buildForPortal(EVT, 'e1', 'STUDENT', 'std-9', 'en');
+      expect(ctx.userType).toBe(12);
+      expect(ctx.lang).toBe('en');
     });
   });
 

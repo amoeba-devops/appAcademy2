@@ -17,10 +17,21 @@ export interface PortalCalEvent {
   endAt: string;
   allDay: boolean;
   locationText?: string | null;
+  description?: string | null;
   meetingProvider?: string | null;
   meetingUrl?: string | null;
   ownerName?: string | null;
   assigneeName?: string | null;
+}
+
+/** PLN-260715 — portal BODA launch context (browser mode uses webBrowserUrl). */
+export interface PortalBodaLaunch {
+  status: string;
+  userType: number;
+  webBrowserUrl: string | null;
+  evtTitle: string;
+  evtStartAt: string;
+  evtEndAt: string;
 }
 
 export interface PortalNotice {
@@ -68,6 +79,14 @@ export const portalApi = {
 
   notice: async (slug: string) =>
     (await apiClient.get<PortalNotice>(`/portal/news/${slug}`)).data,
+
+  // PLN-260715 — BODA classroom entry (browser mode). Returns webBrowserUrl to open.
+  bodaLaunch: async (evtId: string, lang?: string) =>
+    (
+      await apiClient.get<PortalBodaLaunch>('/portal/cal/boda/launch-context', {
+        params: { evtId, lang },
+      })
+    ).data,
 
   materials: async () =>
     (await apiClient.get<PortalMaterial[]>('/portal/materials')).data,
