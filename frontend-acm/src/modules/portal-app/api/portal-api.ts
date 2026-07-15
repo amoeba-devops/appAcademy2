@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import type { PortalSession } from '@/stores/auth.store';
+import type { BodaLaunchContext } from '@/lib/boda-launch-api';
 
 /** PLN-260706 Phase 2 — unified portal (student/parent/teacher) API. */
 
@@ -24,15 +25,6 @@ export interface PortalCalEvent {
   assigneeName?: string | null;
 }
 
-/** PLN-260715 — portal BODA launch context (browser mode uses webBrowserUrl). */
-export interface PortalBodaLaunch {
-  status: string;
-  userType: number;
-  webBrowserUrl: string | null;
-  evtTitle: string;
-  evtStartAt: string;
-  evtEndAt: string;
-}
 
 export interface PortalNotice {
   id?: string;
@@ -80,10 +72,15 @@ export const portalApi = {
   notice: async (slug: string) =>
     (await apiClient.get<PortalNotice>(`/portal/news/${slug}`)).data,
 
-  // PLN-260715 — BODA classroom entry (browser mode). Returns webBrowserUrl to open.
+  // PLN-260715 — single event detail (scoped) for the full-content page.
+  calEvent: async (id: string) =>
+    (await apiClient.get<PortalCalEvent>(`/portal/cal/events/${id}`)).data,
+
+  // PLN-260715 — BODA classroom launch context (app mode + RTC). Returns the
+  // full context so DesktopAppCard can drive bodaJoin / browser fallback.
   bodaLaunch: async (evtId: string, lang?: string) =>
     (
-      await apiClient.get<PortalBodaLaunch>('/portal/cal/boda/launch-context', {
+      await apiClient.get<BodaLaunchContext>('/portal/cal/boda/launch-context', {
         params: { evtId, lang },
       })
     ).data,

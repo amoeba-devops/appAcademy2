@@ -72,7 +72,12 @@
       "notAttendee": "You are not an attendee of this class.",
       "outOfWindow": "It is not time to enter yet.",
       "joinError": "Cannot enter the classroom.",
-      "openLink": "Open class link"
+      "openLink": "Open class link",
+      "viewFull": "View full details",
+      "back": "Back to calendar",
+      "bodaLink": "BODA link",
+      "copy": "Copy",
+      "copied": "Copied"
     },
     "notices": {
       "empty": "No notices.",

@@ -72,7 +72,12 @@
       "notAttendee": "이 수업의 참석자가 아닙니다.",
       "outOfWindow": "아직 입장 가능한 시간이 아닙니다.",
       "joinError": "강의실에 입장할 수 없습니다.",
-      "openLink": "수업 링크 열기"
+      "openLink": "수업 링크 열기",
+      "viewFull": "전체내용보기",
+      "back": "일정으로",
+      "bodaLink": "보다스쿨 링크",
+      "copy": "복사",
+      "copied": "복사됨"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

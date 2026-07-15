@@ -72,7 +72,12 @@
       "notAttendee": "Bạn không phải là người tham dự lớp này.",
       "outOfWindow": "Chưa đến giờ vào lớp.",
       "joinError": "Không thể vào lớp học.",
-      "openLink": "Mở liên kết lớp"
+      "openLink": "Mở liên kết lớp",
+      "viewFull": "Xem chi tiết",
+      "back": "Về lịch",
+      "bodaLink": "Liên kết BODA",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép"
     },
     "notices": {
       "empty": "Không có thông báo.",

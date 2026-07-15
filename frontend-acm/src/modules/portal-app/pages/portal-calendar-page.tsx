@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Video, LogIn } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Video } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -251,7 +252,8 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
   );
 }
 
-// PLN-260715 — event detail + BODA classroom entry (browser mode).
+// PLN-260715 — quick summary modal. Full content + BODA entry live on the
+// dedicated detail page (/portal/calendar/:evtId).
 function EventDetailModal({
   event,
   onClose,
@@ -260,9 +262,7 @@ function EventDetailModal({
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation('common');
-  const [joining, setJoining] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   const isBoda = event?.meetingProvider === 'BODASCHOOL';
 
   const when = event
@@ -278,31 +278,6 @@ function EventDetailModal({
     event && !event.allDay
       ? new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       : '';
-
-  const join = async () => {
-    if (!event) return;
-    setError(null);
-    setJoining(true);
-    try {
-      const ctx = await portalApi.bodaLaunch(event.id, i18n.language.startsWith('ko') ? 'ko' : 'en');
-      if (!ctx.webBrowserUrl) {
-        setError(t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'));
-        return;
-      }
-      window.open(ctx.webBrowserUrl, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      const code = (e as { response?: { data?: { code?: string } } }).response?.data?.code;
-      const map: Record<string, string> = {
-        NOT_AN_ATTENDEE: t('portalApp.cal.notAttendee', '이 수업의 참석자가 아닙니다.'),
-        BODA_LAUNCH_OUT_OF_WINDOW: t('portalApp.cal.outOfWindow', '아직 입장 가능한 시간이 아닙니다.'),
-        BODA_ROOM_NOT_PROVISIONED: t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'),
-        BODA_NOT_BODASCHOOL: t('portalApp.cal.joinUnavailable', '입장 링크가 아직 준비되지 않았습니다.'),
-      };
-      setError((code && map[code]) || t('portalApp.cal.joinError', '강의실에 입장할 수 없습니다.'));
-    } finally {
-      setJoining(false);
-    }
-  };
 
   return (
     <Dialog open={!!event} onOpenChange={(o) => !o && onClose()}>
@@ -331,37 +306,21 @@ function EventDetailModal({
                 </div>
               )}
               {event.description && (
-                <p className="whitespace-pre-wrap text-primary">{event.description}</p>
+                <p className="line-clamp-3 whitespace-pre-wrap text-primary">
+                  {event.description}
+                </p>
               )}
 
-              {isBoda ? (
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={join}
-                    disabled={joining}
-                    className="inline-flex items-center gap-2 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60"
-                  >
-                    <LogIn size={16} />
-                    {joining
-                      ? t('portalApp.cal.joining', '입장 준비 중…')
-                      : t('portalApp.cal.join', '보다스쿨 강의실 입장')}
-                  </button>
-                  {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
-                </div>
-              ) : (
-                event.meetingUrl && (
-                  <a
-                    href={event.meetingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-2 text-sm text-accent-700 hover:underline"
-                  >
-                    <Video size={16} />
-                    {t('portalApp.cal.openLink', '수업 링크 열기')}
-                  </a>
-                )
-              )}
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/portal/calendar/${event.id}`)}
+                  className="inline-flex items-center gap-2 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+                >
+                  {isBoda && <Video size={16} />}
+                  {t('portalApp.cal.viewFull', '전체내용보기')}
+                </button>
+              </div>
             </div>
           </>
         )}

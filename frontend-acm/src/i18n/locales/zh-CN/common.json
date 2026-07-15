@@ -72,7 +72,12 @@
       "notAttendee": "您不是本课程的参加者。",
       "outOfWindow": "尚未到进入时间。",
       "joinError": "无法进入教室。",
-      "openLink": "打开课程链接"
+      "openLink": "打开课程链接",
+      "viewFull": "查看全部",
+      "back": "返回日程",
+      "bodaLink": "BODA链接",
+      "copy": "复制",
+      "copied": "已复制"
     },
     "notices": {
       "empty": "暂无公告。",
