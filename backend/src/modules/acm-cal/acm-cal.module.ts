@@ -5,6 +5,7 @@ import { AcmUserTypeormEntity } from '../acm-auth/infrastructure/typeorm/acm-use
 import { ACM_DS } from '../acm-common/datasource';
 import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { StudentParentTypeormEntity } from '../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
@@ -32,6 +33,7 @@ import { InviteeSuggestionsService } from './application/invitee-suggestions.ser
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
 import { PortalCalController } from './presentation/portal-cal.controller';
+import { PortalBodaLaunchController } from './presentation/portal-boda-launch.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
 import { BodaConfigController } from './presentation/boda-config.controller';
 import { BodaLaunchController } from './presentation/boda-launch.controller';
@@ -61,6 +63,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
         // REQ-260610 — Instant classroom suggestions read from CLS tables.
         ClassTypeormEntity,
         ClassStudentTypeormEntity,
+        StudentParentTypeormEntity, // PLN-260715 — portal BODA parent→child scoping
         // REQ-260704 — expose linked CSL demo/level-test context in CAL detail.
         TrialClassTypeormEntity,
         MapTestTypeormEntity,
@@ -72,6 +75,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   controllers: [
     CalEventController,
     PortalCalController,
+    PortalBodaLaunchController,
     CalInviteeCandidateController,
     BodaConfigController,
     BodaLaunchController,

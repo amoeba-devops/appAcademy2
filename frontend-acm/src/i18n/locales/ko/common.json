@@ -62,7 +62,17 @@
       "month": "월",
       "week": "주",
       "day": "일",
-      "empty": "일정이 없습니다."
+      "empty": "일정이 없습니다.",
+      "when": "일시",
+      "teacher": "담당 강사",
+      "location": "장소",
+      "join": "보다스쿨 강의실 입장",
+      "joining": "입장 준비 중…",
+      "joinUnavailable": "입장 링크가 아직 준비되지 않았습니다.",
+      "notAttendee": "이 수업의 참석자가 아닙니다.",
+      "outOfWindow": "아직 입장 가능한 시간이 아닙니다.",
+      "joinError": "강의실에 입장할 수 없습니다.",
+      "openLink": "수업 링크 열기"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

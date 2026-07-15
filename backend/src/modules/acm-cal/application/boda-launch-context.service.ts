@@ -18,6 +18,9 @@ import {
 } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
+import { ClassStudentTypeormEntity } from '../../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
 import { BodaConfigService } from './boda-config.service';
 import { BodaRoomService } from './boda-room.service';
 import { CalInviteeService } from './cal-invitee.service';
@@ -53,6 +56,12 @@ export class BodaLaunchContextService {
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     @InjectRepository(StudentTypeormEntity, ACM_DS)
     private readonly stdRepo: Repository<StudentTypeormEntity>,
+    @InjectRepository(ParentTypeormEntity, ACM_DS)
+    private readonly parentRepo: Repository<ParentTypeormEntity>,
+    @InjectRepository(StudentParentTypeormEntity, ACM_DS)
+    private readonly spRepo: Repository<StudentParentTypeormEntity>,
+    @InjectRepository(ClassStudentTypeormEntity, ACM_DS)
+    private readonly cstRepo: Repository<ClassStudentTypeormEntity>,
     private readonly rooms: BodaRoomService,
     private readonly cfg: BodaConfigService,
     private readonly inviteeSvc: CalInviteeService,
@@ -165,6 +174,167 @@ export class BodaLaunchContextService {
       embedUrl,
       webBrowserUrl,
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // PLN-260715 — Portal (student/parent) launch context. Browser mode only:
+  // the portal client opens `webBrowserUrl` in a new tab (no BodaAppApi.js /
+  // desktop app). Authorized by portal identity (std_id/par_id) + class
+  // enrollment, mirroring cal-event.service.listForPortal scoping.
+  // -------------------------------------------------------------------------
+
+  async buildForPortal(
+    evtId: string,
+    entId: string,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    lang?: string,
+  ): Promise<BodaLaunchContextResponseDto> {
+    const event = await this.evtRepo.findOne({
+      where: { id: evtId, entId, deletedAt: IsNull() },
+    });
+    if (!event) throw new NotFoundException({ code: 'EVENT_NOT_FOUND' });
+    if (event.meetingProvider !== 'BODASCHOOL') {
+      throw new HttpException(
+        { code: 'BODA_NOT_BODASCHOOL', message: 'Event provider is not BODASCHOOL' },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    const room = await this.rooms.findByEvtId(evtId, entId);
+    if (!room) {
+      throw new HttpException(
+        { code: 'BODA_ROOM_NOT_PROVISIONED' },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const userType = await this.resolvePortalUserType(event, kind, refId, entId);
+    await this.assertTimeWindow(event, entId);
+
+    const uname = await this.resolvePortalName(kind, refId, entId);
+    const uid = this.toBodaUid(refId);
+    const owner = await this.userRepo.findOne({
+      where: { id: event.ownerUserId, entId },
+      select: ['id', 'name'],
+    });
+    const cfg = await this.cfg.findByEntId(entId);
+    const bodaWeb = this.bodaWebBase(cfg?.bodaWebUrl);
+    const appApiUrl =
+      this.config.get<string>('BODA_APP_API_URL') ??
+      '/web/BODA_APP/build/BodaAppApi.js';
+    const lang2: 'ko' | 'en' = lang === 'en' ? 'en' : 'ko';
+    const embedUrl = this.buildEmbedUrl({ cfg, room, userType, uid, uname, lang: lang2 });
+    const webBrowserUrl = this.buildBrowserUrl({
+      cfg,
+      room,
+      userType,
+      uid,
+      uname,
+      lang: lang2,
+    });
+
+    return {
+      meetKey: room.meetKey,
+      roomCode: room.roomCode,
+      meetIdx: room.meetIdx ?? null,
+      status: room.status,
+      userType,
+      uid,
+      uname,
+      lang: lang2,
+      appApiUrl,
+      bodaWeb,
+      companyId: cfg?.companyId || null,
+      companyCode: cfg?.companyCode || null,
+      evtTitle: event.title,
+      evtStartAt: event.startAt.toISOString(),
+      evtEndAt: event.endAt.toISOString(),
+      ownerName: owner?.name ?? 'Teacher',
+      evtSource: event.source,
+      invitees: [], // 학생/학부모 화면 — 다른 참석자 명단 미노출 (NFR-LX-2)
+      embedUrl,
+      webBrowserUrl,
+    };
+  }
+
+  /**
+   * Portal attendee resolution — always STUDENT seat (12). Grants access when
+   * the caller is an explicit invitee OR (student) enrolled in the event's
+   * class / (parent) has a child so enrolled. Mirrors listForPortal scoping.
+   */
+  private async resolvePortalUserType(
+    event: CalEventTypeormEntity,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    entId: string,
+  ): Promise<12> {
+    if (kind === 'STUDENT') {
+      const inv = await this.inviteeRepo.findOne({
+        where: { entId, evtId: event.id, kind: 'STUDENT', refId },
+      });
+      if (inv) return 12;
+      if (
+        event.clsId &&
+        (await this.cstRepo.findOne({
+          where: { entId, clsId: event.clsId, studentUserId: refId, leftAt: IsNull() },
+        }))
+      ) {
+        return 12;
+      }
+      throw new ForbiddenException({ code: 'NOT_AN_ATTENDEE' });
+    }
+
+    if (kind === 'PARENT') {
+      const childRows = await this.spRepo.find({
+        where: { entId, parId: refId },
+        select: ['stdId'],
+      });
+      const childIds = childRows.map((r) => r.stdId);
+      if (childIds.length > 0) {
+        const inv = await this.inviteeRepo.findOne({
+          where: { entId, evtId: event.id, kind: 'STUDENT', refId: In(childIds) },
+        });
+        if (inv) return 12;
+        if (
+          event.clsId &&
+          (await this.cstRepo.findOne({
+            where: {
+              entId,
+              clsId: event.clsId,
+              studentUserId: In(childIds),
+              leftAt: IsNull(),
+            },
+          }))
+        ) {
+          return 12;
+        }
+      }
+      throw new ForbiddenException({ code: 'NOT_AN_ATTENDEE' });
+    }
+
+    throw new ForbiddenException({ code: 'NOT_AN_ATTENDEE' });
+  }
+
+  private async resolvePortalName(
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    entId: string,
+  ): Promise<string> {
+    if (kind === 'STUDENT') {
+      const s = await this.stdRepo.findOne({
+        where: { id: refId, entId },
+        select: ['id', 'name'],
+      });
+      return s?.name ?? 'Student';
+    }
+    if (kind === 'PARENT') {
+      const p = await this.parentRepo.findOne({
+        where: { id: refId, entId },
+        select: ['id', 'name'],
+      });
+      return p?.name ?? 'Parent';
+    }
+    return 'User';
   }
 
   // -------------------------------------------------------------------------
