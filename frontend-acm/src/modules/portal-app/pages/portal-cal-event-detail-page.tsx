@@ -133,8 +133,10 @@ function BodaEntry({ evtId }: { evtId: string }) {
   }
   if (!ctx) return null;
 
-  // PLN-260715 — 방 상태 게이트. 강사가 방을 연(OPEN/STARTED/PAUSED) 뒤에만 입장 가능.
-  // meetIdx 도 그때 생성되므로 그 전에는 벤더가 InvalidMeetIdx 로 거부한다.
+  // PLN-260715 — 강사(userType 11)는 강의실을 "개설"하므로 상태 게이트를 적용하지
+  // 않는다(PENDING 이어도 bodaOpen 으로 연다). 학생(12)은 강사가 방을 연
+  // (OPEN/STARTED/PAUSED) 뒤에만 입장 가능 — 그 전엔 meetIdx 가 없어 벤더가 거부.
+  const isTeacher = ctx.userType === 11;
   const ready = ctx.status === 'OPEN' || ctx.status === 'STARTED' || ctx.status === 'PAUSED';
   if (ctx.status === 'ENDED' || ctx.status === 'CLOSED') {
     return (
@@ -143,7 +145,7 @@ function BodaEntry({ evtId }: { evtId: string }) {
       </p>
     );
   }
-  if (!ready) {
+  if (!isTeacher && !ready) {
     return (
       <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
         {t('portalApp.cal.notOpenYet', '강사가 강의실을 열면 입장할 수 있어요. (수업 시작 전)')}
@@ -161,7 +163,7 @@ function BodaEntry({ evtId }: { evtId: string }) {
 
   return (
     <div className="space-y-3">
-      <DesktopAppCard ctx={ctx} isTeacher={false} />
+      <DesktopAppCard ctx={ctx} isTeacher={isTeacher} />
       {ctx.webBrowserUrl && (
         <div>
           <label className="mb-1 block text-xs text-secondary">

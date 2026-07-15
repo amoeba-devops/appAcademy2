@@ -10,6 +10,7 @@ import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/stude
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { BodaLaunchContextService } from './boda-launch-context.service';
 import { BodaRoomService } from './boda-room.service';
 import { BodaConfigService } from './boda-config.service';
@@ -84,6 +85,10 @@ describe('BodaLaunchContextService', () => {
         {
           provide: getRepositoryToken(ClassStudentTypeormEntity, ACM_DS),
           useValue: { findOne: cstFindOne },
+        },
+        {
+          provide: getRepositoryToken(TeacherTypeormEntity, ACM_DS),
+          useValue: { findOne: jest.fn().mockResolvedValue({ id: 'tch-9', name: '김강사' }) },
         },
         {
           provide: BodaRoomService,
@@ -427,6 +432,26 @@ describe('BodaLaunchContextService', () => {
       const ctx = await svc.buildForPortal(EVT, 'e1', 'STUDENT', 'std-9', 'en');
       expect(ctx.userType).toBe(12);
       expect(ctx.lang).toBe('en');
+    });
+
+    it('assigned teacher → userType 11 (can open room even while PENDING)', async () => {
+      evtFindOne.mockResolvedValue(evt({ assigneeTchId: 'tch-9' }));
+      roomFindByEvtId.mockResolvedValue(room({ status: 'PENDING', meetIdx: null }));
+
+      const ctx = await svc.buildForPortal(EVT, 'e1', 'TEACHER', 'tch-9', 'ko');
+      expect(ctx.userType).toBe(11);
+      expect(ctx.uname).toBe('김강사');
+      expect(ctx.roomCode).toBe('699');
+    });
+
+    it('non-assigned teacher (not invitee) → 403 NOT_AN_ATTENDEE', async () => {
+      evtFindOne.mockResolvedValue(evt({ assigneeTchId: 'other-tch' }));
+      roomFindByEvtId.mockResolvedValue(room());
+      inviteeFindOne.mockResolvedValue(null);
+
+      await expect(
+        svc.buildForPortal(EVT, 'e1', 'TEACHER', 'tch-9', 'ko'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
