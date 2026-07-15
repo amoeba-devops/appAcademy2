@@ -62,6 +62,17 @@ apiClient.interceptors.response.use(
     if (err.response?.status === 401) {
       const path = window.location.pathname;
       const reqUrl: string = err.config?.url ?? '';
+      // Auth-form endpoints return 401 for *credential* errors (wrong password,
+      // wrong current password during forced rotation) — NOT session expiry.
+      // Let the page surface the error inline instead of wiping the session and
+      // hard-redirecting to login (which stranded first-login password changes).
+      if (
+        reqUrl === '/portal/auth/change-password' ||
+        reqUrl === '/portal/auth/login' ||
+        reqUrl === '/acm/auth/change-password'
+      ) {
+        return Promise.reject(err);
+      }
       const isParent = isParentEndpoint(reqUrl);
       const isPortal = isPortalEndpoint(reqUrl);
       const store = useAuthStore.getState();

@@ -28,8 +28,16 @@ export function PortalChangePasswordPage() {
       await portalApi.changePassword(currentPassword, newPassword);
       clearMustChange();
       navigate('/portal', { replace: true });
-    } catch {
-      setError(t('portalApp.changePw.failed'));
+    } catch (e) {
+      const code = (e as { response?: { data?: { code?: string; message?: string } } })
+        .response?.data?.code;
+      if (code === 'CURRENT_PASSWORD_INVALID') {
+        setError(t('portalApp.changePw.currentInvalid', '현재 비밀번호가 올바르지 않습니다.'));
+      } else if (code === 'PASSWORD_LENGTH' || code === 'PASSWORD_COMPLEXITY') {
+        setError(t('portalApp.changePw.weak', '비밀번호는 영문+숫자 포함 8자 이상이어야 합니다.'));
+      } else {
+        setError(t('portalApp.changePw.failed'));
+      }
     } finally {
       setBusy(false);
     }
