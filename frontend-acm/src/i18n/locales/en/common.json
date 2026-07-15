@@ -55,7 +55,9 @@
       "confirm": "Confirm new password",
       "submit": "Change",
       "mismatch": "New passwords do not match.",
-      "failed": "Password change failed. Check your current password."
+      "failed": "Password change failed. Check your current password.",
+      "currentInvalid": "Current password is incorrect.",
+      "weak": "Password must be 8+ chars with letters and digits."
     },
     "cal": {
       "today": "Today",

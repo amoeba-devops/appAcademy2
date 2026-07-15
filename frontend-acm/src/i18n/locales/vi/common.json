@@ -55,7 +55,9 @@
       "confirm": "Xác nhận mật khẩu mới",
       "submit": "Đổi",
       "mismatch": "Mật khẩu mới không khớp.",
-      "failed": "Đổi mật khẩu thất bại. Kiểm tra mật khẩu hiện tại."
+      "failed": "Đổi mật khẩu thất bại. Kiểm tra mật khẩu hiện tại.",
+      "currentInvalid": "Mật khẩu hiện tại không đúng.",
+      "weak": "Mật khẩu phải từ 8 ký tự trở lên, gồm chữ và số."
     },
     "cal": {
       "today": "Hôm nay",
