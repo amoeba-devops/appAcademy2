@@ -21,6 +21,7 @@ import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/stude
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { BodaConfigService } from './boda-config.service';
 import { BodaRoomService } from './boda-room.service';
 import { CalInviteeService } from './cal-invitee.service';
@@ -62,6 +63,8 @@ export class BodaLaunchContextService {
     private readonly spRepo: Repository<StudentParentTypeormEntity>,
     @InjectRepository(ClassStudentTypeormEntity, ACM_DS)
     private readonly cstRepo: Repository<ClassStudentTypeormEntity>,
+    @InjectRepository(TeacherTypeormEntity, ACM_DS)
+    private readonly teacherRepo: Repository<TeacherTypeormEntity>,
     private readonly rooms: BodaRoomService,
     private readonly cfg: BodaConfigService,
     private readonly inviteeSvc: CalInviteeService,
@@ -267,7 +270,18 @@ export class BodaLaunchContextService {
     kind: 'STUDENT' | 'PARENT' | 'TEACHER',
     refId: string,
     entId: string,
-  ): Promise<12> {
+  ): Promise<11 | 12> {
+    // PLN-260715 — 포털 강사(담당강사)는 강의실을 개설(bodaOpen)할 수 있는
+    // TEACHER 좌석(11). 이벤트 담당강사(assignee) 또는 TEACHER invitee 매칭.
+    if (kind === 'TEACHER') {
+      if (event.assigneeTchId && event.assigneeTchId === refId) return 11;
+      const inv = await this.inviteeRepo.findOne({
+        where: { entId, evtId: event.id, kind: 'TEACHER', refId },
+      });
+      if (inv) return 11;
+      throw new ForbiddenException({ code: 'NOT_AN_ATTENDEE' });
+    }
+
     if (kind === 'STUDENT') {
       const inv = await this.inviteeRepo.findOne({
         where: { entId, evtId: event.id, kind: 'STUDENT', refId },
@@ -333,6 +347,13 @@ export class BodaLaunchContextService {
         select: ['id', 'name'],
       });
       return p?.name ?? 'Parent';
+    }
+    if (kind === 'TEACHER') {
+      const tch = await this.teacherRepo.findOne({
+        where: { id: refId, entId },
+        select: ['id', 'name'],
+      });
+      return tch?.name ?? 'Teacher';
     }
     return 'User';
   }
