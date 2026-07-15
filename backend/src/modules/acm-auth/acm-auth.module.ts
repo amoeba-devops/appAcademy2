@@ -35,6 +35,7 @@ import { AmaConfigTypeormEntity } from './infrastructure/typeorm/ama-config.type
 import { ParentTypeormEntity } from '../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from '../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { StudentTypeormEntity } from '../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ClassStudentTypeormEntity } from '../acm-cls/infrastructure/typeorm/class-student.typeorm-entity';
 import { ClassTypeormEntity } from '../acm-cls/infrastructure/typeorm/class.typeorm-entity';
 import { SessionTypeormEntity } from '../acm-cls/infrastructure/typeorm/session.typeorm-entity';
@@ -142,6 +143,7 @@ const amaOAuthProvider: Provider = {
         ParentTypeormEntity,
         StudentParentTypeormEntity,
         StudentTypeormEntity,
+        TeacherTypeormEntity,
         ClassStudentTypeormEntity,
         ClassTypeormEntity,
         SessionTypeormEntity,

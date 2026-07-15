@@ -21,7 +21,9 @@
     "copy": "Sao chép",
     "copied": "Đã sao chép",
     "close": "Đóng",
-    "emailRequired": "Cần có email học sinh để cấp tài khoản cổng."
+    "emailRequired": "Cần có email học sinh để cấp tài khoản cổng.",
+    "passwordPlaceholder": "Mật khẩu (để trống = tự tạo)",
+    "resetLoginIdBtn": "ID đăng nhập → email"
   },
   "portalApp": {
     "title": "Cổng Học viện",

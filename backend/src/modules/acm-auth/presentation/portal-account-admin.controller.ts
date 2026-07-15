@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PortalAccountService } from '../application/portal-account.service';
-import { IssuePortalAccountDto } from '../application/dto/portal-account.dto';
+import {
+  IssuePortalAccountDto,
+  ResetPortalPasswordDto,
+} from '../application/dto/portal-account.dto';
 import { AcmJwtAuthGuard } from '../guards/acm-jwt-auth.guard';
 import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { Roles } from '../../acm-common/decorators/roles.decorator';
@@ -43,20 +46,30 @@ export class PortalAccountAdminController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Issue a portal account (returns temp password once)' })
+  @ApiOperation({ summary: 'Issue a portal account (admin may set the password)' })
   issue(
     @CurrentUser() user: AcmCurrentUser,
     @Body() dto: IssuePortalAccountDto,
   ) {
-    return this.accounts.issue(user.entId, dto.kind, dto.refId);
+    return this.accounts.issue(user.entId, dto.kind, dto.refId, dto.password);
   }
 
   @Post(':id/reset')
-  @ApiOperation({ summary: 'Reset the portal password (returns temp password once)' })
+  @ApiOperation({ summary: 'Reset the portal password (admin may set the password)' })
   reset(
     @CurrentUser() user: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ResetPortalPasswordDto,
   ) {
-    return this.accounts.reissuePassword(user.entId, id);
+    return this.accounts.reissuePassword(user.entId, id, dto.password);
+  }
+
+  @Post(':id/login-id-to-email')
+  @ApiOperation({ summary: 'Reset the portal login id to the subject email (PLN-260716)' })
+  resetLoginId(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.accounts.resetLoginIdToEmail(user.entId, id);
   }
 }
