@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString, IsUUID, Length } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsOptional, IsString, IsUUID, Length } from 'class-validator';
 import type { PortalKind } from '../../infrastructure/typeorm/portal-account.typeorm-entity';
 
 /** PLN-260706 — portal account DTOs (login / change-password / admin issue). */
@@ -38,6 +38,19 @@ export class IssuePortalAccountDto {
   @ApiProperty({ description: 'std_id | par_id | tch_id (kind에 대응)' })
   @IsUUID()
   refId!: string;
+
+  // PLN-260716 — 관리자가 비밀번호를 직접 지정(비우면 자동 생성). 포털은 수업일정
+  // 조회용 저보안이라 복잡도 강제 없이 4~120자만 허용, 강제 변경도 없음.
+  @ApiPropertyOptional({ description: '관리자 지정 비밀번호(비우면 자동생성), 4~120자' })
+  @IsOptional() @IsString() @Length(4, 120)
+  password?: string;
+}
+
+/** PLN-260716 — admin password reset with an optional operator-set password. */
+export class ResetPortalPasswordDto {
+  @ApiPropertyOptional({ description: '관리자 지정 비밀번호(비우면 자동생성), 4~120자' })
+  @IsOptional() @IsString() @Length(4, 120)
+  password?: string;
 }
 
 /** Response after issue/reset — the temp password is shown ONCE. */

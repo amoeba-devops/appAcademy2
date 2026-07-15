@@ -21,14 +21,18 @@ describe('PortalAccountService.login (tenant scope)', () => {
     const students = {
       findOne: jest.fn().mockResolvedValue(opts.student ?? null),
     };
+    const parents = { findOne: jest.fn().mockResolvedValue(null) };
+    const teachers = { findOne: jest.fn().mockResolvedValue(null) };
     const jwt = { sign: jest.fn().mockReturnValue('signed.jwt') };
     const svc = new PortalAccountService(
       accounts as any,
       tenants as any,
       students as any,
+      parents as any,
+      teachers as any,
       jwt as any,
     );
-    return { svc, accounts, tenants, students, jwt };
+    return { svc, accounts, tenants, students, parents, teachers, jwt };
   };
 
   it('unknown tenant code → 401, does not look up the account', async () => {
@@ -104,6 +108,8 @@ describe('PortalAccountService issuance', () => {
       accounts as any,
       { findOne: jest.fn() } as any,
       students as any,
+      { findOne: jest.fn() } as any,
+      { findOne: jest.fn() } as any,
       { sign: jest.fn() } as any,
     );
     return { svc, accounts, students };
@@ -111,14 +117,20 @@ describe('PortalAccountService issuance', () => {
 
   beforeEach(() => (bcrypt.hash as jest.Mock).mockResolvedValue('hashed'));
 
-  it('issue() creates an account with a temp password + forced rotation', async () => {
+  it('issue() creates an account with a temp password, no forced rotation (PLN-260716)', async () => {
     const { svc, accounts } = mk(null);
     const r = await svc.issue('e1', 'STUDENT', 'std-1');
     expect(r.loginId).toBe('stud@ent.com'); // STUDENT 로그인ID = 학생 이메일
     expect(r.tempPassword).toHaveLength(10);
     expect(accounts.save).toHaveBeenCalledWith(
-      expect.objectContaining({ mustChangePassword: true, status: 'ACTIVE' }),
+      expect.objectContaining({ mustChangePassword: false, status: 'ACTIVE' }),
     );
+  });
+
+  it('issue() honors an admin-supplied password (PLN-260716)', async () => {
+    const { svc } = mk(null);
+    const r = await svc.issue('e1', 'STUDENT', 'std-1', 'myPass123');
+    expect(r.tempPassword).toBe('myPass123');
   });
 
   it('issue() 409s when an account already exists', async () => {
@@ -136,8 +148,8 @@ describe('PortalAccountService issuance', () => {
     expect(accounts.save).not.toHaveBeenCalled();
   });
 
-  it('reissuePassword() resets to a temp password, forces rotation, clears lock', async () => {
-    const acc: any = { id: 'pac-1', loginId: 's1', mustChangePassword: false, lockedAt: new Date() };
+  it('reissuePassword() resets to a temp password, no forced rotation, clears lock', async () => {
+    const acc: any = { id: 'pac-1', loginId: 's1', mustChangePassword: true, lockedAt: new Date() };
     const accounts = {
       findOne: jest.fn().mockResolvedValue(acc),
       save: jest.fn(async (x: any) => x),
@@ -146,11 +158,13 @@ describe('PortalAccountService issuance', () => {
       accounts as any,
       { findOne: jest.fn() } as any,
       { findOne: jest.fn() } as any,
+      { findOne: jest.fn() } as any,
+      { findOne: jest.fn() } as any,
       { sign: jest.fn() } as any,
     );
     const r = await svc.reissuePassword('e1', 'pac-1');
     expect(r.tempPassword).toHaveLength(10);
-    expect(acc.mustChangePassword).toBe(true);
+    expect(acc.mustChangePassword).toBe(false);
     expect(acc.lockedAt).toBeNull();
   });
 
@@ -158,6 +172,8 @@ describe('PortalAccountService issuance', () => {
     const accounts = { findOne: jest.fn().mockResolvedValue(null), save: jest.fn() };
     const svc = new PortalAccountService(
       accounts as any,
+      { findOne: jest.fn() } as any,
+      { findOne: jest.fn() } as any,
       { findOne: jest.fn() } as any,
       { findOne: jest.fn() } as any,
       { sign: jest.fn() } as any,

@@ -17,6 +17,8 @@ import {
 } from '../infrastructure/typeorm/portal-account.typeorm-entity';
 import { AcmTenantTypeormEntity } from '../../acm-system/infrastructure/typeorm/acm-tenant.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
+import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import type { PortalAccountView } from './dto/portal-account.dto';
 
 /**
@@ -68,6 +70,10 @@ export class PortalAccountService {
     private readonly tenants: Repository<AcmTenantTypeormEntity>,
     @InjectRepository(StudentTypeormEntity, ACM_DS)
     private readonly students: Repository<StudentTypeormEntity>,
+    @InjectRepository(ParentTypeormEntity, ACM_DS)
+    private readonly parents: Repository<ParentTypeormEntity>,
+    @InjectRepository(TeacherTypeormEntity, ACM_DS)
+    private readonly teachers: Repository<TeacherTypeormEntity>,
     private readonly jwt: JwtService,
   ) {}
 
@@ -106,6 +112,7 @@ export class PortalAccountService {
     entId: string,
     kind: PortalKind,
     refId: string,
+    password?: string,
   ): Promise<{ id: string; loginId: string; tempPassword: string }> {
     const existing = await this.repo.findOne({ where: { entId, kind, refId } });
     if (existing) {
@@ -114,7 +121,7 @@ export class PortalAccountService {
         HttpStatus.CONFLICT,
       );
     }
-    const { account, tempPassword } = await this.create(entId, kind, refId);
+    const { account, tempPassword } = await this.create(entId, kind, refId, password);
     return { id: account.id, loginId: account.loginId, tempPassword };
   }
 
@@ -122,9 +129,11 @@ export class PortalAccountService {
     entId: string,
     kind: PortalKind,
     refId: string,
+    password?: string,
   ): Promise<{ account: PortalAccountTypeormEntity; tempPassword: string }> {
     const loginId = await this.resolveLoginId(entId, kind, refId);
-    const tempPassword = generateTempPassword();
+    // PLN-260716 — 관리자 지정 비번(있으면) 또는 자동생성. 강제 변경 없음(단순 로그인).
+    const tempPassword = password && password.length > 0 ? password : generateTempPassword();
     const passwordHash = await bcrypt.hash(tempPassword, 12);
     const account = await this.repo.save(
       this.repo.create({
@@ -133,7 +142,7 @@ export class PortalAccountService {
         refId,
         loginId,
         passwordHash,
-        mustChangePassword: true,
+        mustChangePassword: false,
         status: 'ACTIVE',
       }),
     );
@@ -141,23 +150,66 @@ export class PortalAccountService {
     return { account, tempPassword };
   }
 
-  /** Admin password reset → new temp password, forces rotation, clears lock. */
+  /**
+   * Admin password reset. PLN-260716 — optional operator-set password; no forced
+   * rotation (portal is a low-security schedule viewer). Clears lock.
+   */
   async reissuePassword(
     entId: string,
     pacId: string,
+    password?: string,
   ): Promise<{ id: string; loginId: string; tempPassword: string }> {
     const acc = await this.repo.findOne({ where: { id: pacId, entId } });
     if (!acc) {
       throw new HttpException({ code: 'PORTAL_ACCOUNT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
-    const tempPassword = generateTempPassword();
+    const tempPassword = password && password.length > 0 ? password : generateTempPassword();
     acc.passwordHash = await bcrypt.hash(tempPassword, 12);
-    acc.mustChangePassword = true;
+    acc.mustChangePassword = false;
     acc.lockedAt = null;
     acc.updatedAt = new Date();
     await this.repo.save(acc);
     this.log.log(`portal account password reset loginId=${acc.loginId}`);
     return { id: acc.id, loginId: acc.loginId, tempPassword };
+  }
+
+  /**
+   * PLN-260716 — reset the account's login id to the linked subject's email
+   * (student/teacher/parent). Lowercased; 409 on collision, 422 if no email.
+   */
+  async resetLoginIdToEmail(
+    entId: string,
+    pacId: string,
+  ): Promise<{ id: string; loginId: string }> {
+    const acc = await this.repo.findOne({ where: { id: pacId, entId } });
+    if (!acc) {
+      throw new HttpException({ code: 'PORTAL_ACCOUNT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    const email = await this.subjectEmail(entId, acc.kind, acc.refId);
+    if (!email) {
+      throw new HttpException(
+        { code: 'EMAIL_REQUIRED', message: '대상자 이메일이 없어 로그인ID로 설정할 수 없습니다.' },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    const loginId = email.toLowerCase();
+    if (loginId !== acc.loginId) {
+      const clash = await this.repo.findOne({
+        where: { entId, loginId },
+        select: ['id'],
+      });
+      if (clash) {
+        throw new HttpException(
+          { code: 'LOGIN_ID_TAKEN', message: '이미 사용 중인 로그인ID(이메일)입니다.' },
+          HttpStatus.CONFLICT,
+        );
+      }
+      acc.loginId = loginId;
+      acc.updatedAt = new Date();
+      await this.repo.save(acc);
+      this.log.log(`portal loginId reset to email kind=${acc.kind} ref=${acc.refId}`);
+    }
+    return { id: acc.id, loginId: acc.loginId };
   }
 
   async getByRef(
@@ -265,6 +317,27 @@ export class PortalAccountService {
       select: { id: true, email: true },
     });
     return s?.email?.trim() || null;
+  }
+
+  /** PLN-260716 — linked subject email by kind (student/teacher/parent). */
+  private async subjectEmail(
+    entId: string,
+    kind: PortalKind,
+    refId: string,
+  ): Promise<string | null> {
+    if (kind === 'STUDENT') return this.studentEmail(entId, refId);
+    if (kind === 'TEACHER') {
+      const tch = await this.teachers.findOne({
+        where: { id: refId, entId },
+        select: { id: true, email: true },
+      });
+      return tch?.email?.trim() || null;
+    }
+    const par = await this.parents.findOne({
+      where: { id: refId, entId },
+      select: { id: true, email: true },
+    });
+    return par?.email?.trim() || null;
   }
 
   /**

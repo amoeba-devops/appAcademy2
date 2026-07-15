@@ -21,7 +21,9 @@
     "copy": "Copy",
     "copied": "Copied",
     "close": "Close",
-    "emailRequired": "A student email is required to issue a portal account."
+    "emailRequired": "A student email is required to issue a portal account.",
+    "passwordPlaceholder": "Password (blank = auto-generate)",
+    "resetLoginIdBtn": "Login ID → email"
   },
   "portalApp": {
     "title": "Academy Portal",

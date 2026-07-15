@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Copy, Check, KeyRound, Loader2 } from 'lucide-react';
+import { Copy, Check, KeyRound, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   usePortalAccount,
   useIssuePortalAccount,
   useResetPortalAccount,
+  useResetPortalLoginId,
   type PortalCredential,
   type PortalKind,
 } from '../hooks/use-portal-account';
@@ -31,16 +32,20 @@ export function PortalAccountPanel({
   const { data: account, isLoading } = usePortalAccount(kind, refId);
   const issue = useIssuePortalAccount();
   const reset = useResetPortalAccount(kind, refId);
+  const resetLoginId = useResetPortalLoginId(kind, refId);
   const [cred, setCred] = useState<PortalCredential | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // PLN-260716 — 관리자가 비밀번호를 직접 지정(비우면 자동 생성).
+  const [pw, setPw] = useState('');
 
-  const busy = issue.isPending || reset.isPending;
+  const busy = issue.isPending || reset.isPending || resetLoginId.isPending;
 
   const onIssue = async () => {
     setError(null);
     try {
-      const c = await issue.mutateAsync({ kind, refId });
+      const c = await issue.mutateAsync({ kind, refId, password: pw || undefined });
       setCred(c);
+      setPw('');
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } }; message?: string };
       setError(err.response?.data?.message ?? err.message ?? '발급에 실패했습니다.');
@@ -48,9 +53,36 @@ export function PortalAccountPanel({
   };
   const onReset = async () => {
     if (!account) return;
-    const c = await reset.mutateAsync(account.id);
-    setCred(c);
+    setError(null);
+    try {
+      const c = await reset.mutateAsync({ id: account.id, password: pw || undefined });
+      setCred(c);
+      setPw('');
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setError(err.response?.data?.message ?? err.message ?? '재설정에 실패했습니다.');
+    }
   };
+  const onResetLoginId = async () => {
+    if (!account) return;
+    setError(null);
+    try {
+      await resetLoginId.mutateAsync(account.id);
+    } catch (e) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setError(err.response?.data?.message ?? err.message ?? '로그인ID 변경에 실패했습니다.');
+    }
+  };
+
+  const pwInput = (
+    <input
+      type="text"
+      value={pw}
+      onChange={(e) => setPw(e.target.value)}
+      placeholder={t('portalAccount.passwordPlaceholder', '비밀번호 (비우면 자동생성)')}
+      className="h-8 w-56 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
+    />
+  );
 
   return (
     <div className="space-y-3">
@@ -79,12 +111,8 @@ export function PortalAccountPanel({
                 : t('portalAccount.never')
             }
           />
-          {account.mustChangePassword && (
-            <p className="col-span-full text-xs text-amber-600">
-              {t('portalAccount.mustChange')}
-            </p>
-          )}
-          <div className="col-span-full">
+          <div className="col-span-full flex flex-wrap items-center gap-2">
+            {pwInput}
             <Button size="sm" variant="outline" onClick={onReset} disabled={busy}>
               {busy ? (
                 <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -93,20 +121,27 @@ export function PortalAccountPanel({
               )}
               {t('portalAccount.resetBtn')}
             </Button>
+            <Button size="sm" variant="outline" onClick={onResetLoginId} disabled={busy}>
+              <Mail className="mr-1 h-3.5 w-3.5" />
+              {t('portalAccount.resetLoginIdBtn', '로그인ID를 이메일로')}
+            </Button>
           </div>
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-secondary">{t('portalAccount.notIssued')}</p>
-            <Button size="sm" onClick={onIssue} disabled={busy || issueDisabled}>
-              {busy ? (
-                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <KeyRound className="mr-1 h-3.5 w-3.5" />
-              )}
-              {t('portalAccount.issueBtn')}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {pwInput}
+              <Button size="sm" onClick={onIssue} disabled={busy || issueDisabled}>
+                {busy ? (
+                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <KeyRound className="mr-1 h-3.5 w-3.5" />
+                )}
+                {t('portalAccount.issueBtn')}
+              </Button>
+            </div>
           </div>
           {issueDisabled && issueDisabledNote && (
             <p className="text-xs text-amber-600">{issueDisabledNote}</p>

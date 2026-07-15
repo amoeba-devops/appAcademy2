@@ -21,7 +21,9 @@
     "copy": "복사",
     "copied": "복사됨",
     "close": "닫기",
-    "emailRequired": "학생 이메일을 등록해야 포털계정을 발급할 수 있습니다."
+    "emailRequired": "학생 이메일을 등록해야 포털계정을 발급할 수 있습니다.",
+    "passwordPlaceholder": "비밀번호 (비우면 자동생성)",
+    "resetLoginIdBtn": "로그인ID를 이메일로"
   },
   "portalApp": {
     "title": "학원 포털",

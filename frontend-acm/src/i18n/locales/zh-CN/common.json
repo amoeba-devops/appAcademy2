@@ -21,7 +21,9 @@
     "copy": "复制",
     "copied": "已复制",
     "close": "关闭",
-    "emailRequired": "需要先登记学生邮箱才能开通门户账号。"
+    "emailRequired": "需要先登记学生邮箱才能开通门户账号。",
+    "passwordPlaceholder": "密码（留空则自动生成）",
+    "resetLoginIdBtn": "登录ID设为邮箱"
   },
   "portalApp": {
     "title": "学院门户",

@@ -40,7 +40,8 @@ export function usePortalAccount(kind: PortalKind, refId: string | undefined) {
 export function useIssuePortalAccount() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: { kind: PortalKind; refId: string }) =>
+    // PLN-260716 — password optional (admin may set it; blank → auto-generate).
+    mutationFn: async (v: { kind: PortalKind; refId: string; password?: string }) =>
       (await apiClient.post<PortalCredential>('/acm/portal-accounts', v)).data,
     onSuccess: (_d, v) =>
       qc.invalidateQueries({ queryKey: [KEY, v.kind, v.refId] }),
@@ -50,9 +51,27 @@ export function useIssuePortalAccount() {
 export function useResetPortalAccount(kind: PortalKind, refId: string) {
   const qc = useQueryClient();
   return useMutation({
+    mutationFn: async (v: { id: string; password?: string }) =>
+      (
+        await apiClient.post<PortalCredential>(`/acm/portal-accounts/${v.id}/reset`, {
+          password: v.password,
+        })
+      ).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, kind, refId] }),
+  });
+}
+
+// PLN-260716 — reset the portal login id to the subject's email.
+export function useResetPortalLoginId(kind: PortalKind, refId: string) {
+  const qc = useQueryClient();
+  return useMutation({
     mutationFn: async (id: string) =>
-      (await apiClient.post<PortalCredential>(`/acm/portal-accounts/${id}/reset`, {}))
-        .data,
+      (
+        await apiClient.post<{ id: string; loginId: string }>(
+          `/acm/portal-accounts/${id}/login-id-to-email`,
+          {},
+        )
+      ).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, kind, refId] }),
   });
 }
