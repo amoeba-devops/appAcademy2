@@ -108,6 +108,10 @@ function BodaEntry({ evtId }: { evtId: string }) {
     queryKey: ['portal-boda', evtId],
     queryFn: () => portalApi.bodaLaunch(evtId, i18n.language.startsWith('ko') ? 'ko' : 'en'),
     retry: false,
+    // PLN-260715 — 방이 PENDING(강사 미개설)이면 주기적으로 재조회해 강사가 열면
+    // 자동으로 입장 UI로 전환한다.
+    refetchInterval: (query) =>
+      query.state.data?.status === 'PENDING' ? 15000 : false,
   });
 
   if (isLoading) {
@@ -128,6 +132,24 @@ function BodaEntry({ evtId }: { evtId: string }) {
     );
   }
   if (!ctx) return null;
+
+  // PLN-260715 — 방 상태 게이트. 강사가 방을 연(OPEN/STARTED/PAUSED) 뒤에만 입장 가능.
+  // meetIdx 도 그때 생성되므로 그 전에는 벤더가 InvalidMeetIdx 로 거부한다.
+  const ready = ctx.status === 'OPEN' || ctx.status === 'STARTED' || ctx.status === 'PAUSED';
+  if (ctx.status === 'ENDED' || ctx.status === 'CLOSED') {
+    return (
+      <p className="rounded-md border border-[var(--border-subtle)] bg-[var(--gray-50)] px-3 py-2 text-sm text-secondary">
+        {t('portalApp.cal.ended', '종료된 수업입니다.')}
+      </p>
+    );
+  }
+  if (!ready) {
+    return (
+      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        {t('portalApp.cal.notOpenYet', '강사가 강의실을 열면 입장할 수 있어요. (수업 시작 전)')}
+      </p>
+    );
+  }
 
   const copy = () => {
     if (!ctx.webBrowserUrl) return;

@@ -385,7 +385,7 @@ export class BodaLaunchContextService {
    */
   private buildEmbedUrl(input: {
     cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
-    room: { meetKey: string; roomCode: string };
+    room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
     uname: string;
@@ -402,7 +402,7 @@ export class BodaLaunchContextService {
    */
   private buildBrowserUrl(input: {
     cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
-    room: { meetKey: string; roomCode: string };
+    room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
     uname: string;
@@ -413,7 +413,7 @@ export class BodaLaunchContextService {
 
   private buildVendorWebUrl(input: {
     cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
-    room: { meetKey: string; roomCode: string };
+    room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
     uname: string;
@@ -431,6 +431,9 @@ export class BodaLaunchContextService {
       UNm: input.uname,
       lang: input.lang,
     });
+    // PLN-260715 — 학생(비교사) 웹 조인은 meetIdx 로 방을 지목해야 한다(JOIN_IDX).
+    // meetIdx 는 강사가 방을 연(ROOM_OPENED) 이후에만 존재한다.
+    if (input.room.meetIdx) params.set('meetIdx', input.room.meetIdx);
     const sep = webrtcUrl.includes('?') ? '&' : '?';
     return `${webrtcUrl.replace(/\/$/, '')}${sep}${params.toString()}`;
   }
