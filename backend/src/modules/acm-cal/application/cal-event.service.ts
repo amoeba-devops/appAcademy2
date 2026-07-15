@@ -156,9 +156,45 @@ export class CalEventService {
       .andWhere('e.endAt > :from', { from });
     if (q.category) qb.andWhere('e.category = :category', { category: q.category });
 
+    this.applyPortalScope(qb, kind, refId);
+
+    qb.orderBy('e.startAt', 'ASC');
+    const items = await qb.getMany();
+    return { items: await this.enrichItems(entId, items) };
+  }
+
+  /**
+   * PLN-260715 — single event detail for a portal user, scoped identically to
+   * listForPortal. 404 when the caller is not related to the event.
+   */
+  async getForPortal(
+    entId: string,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    evtId: string,
+  ) {
+    const qb = this.repo
+      .createQueryBuilder('e')
+      .where('e.entId = :entId', { entId })
+      .andWhere('e.id = :evtId', { evtId })
+      .andWhere('e.deletedAt IS NULL');
+    this.applyPortalScope(qb, kind, refId);
+    const event = await qb.getOne();
+    if (!event) throw new NotFoundException('EVENT_NOT_FOUND');
+    const [enriched] = await this.enrichItems(entId, [event]);
+    return enriched;
+  }
+
+  /**
+   * Restricts a query to events the portal caller (student/parent/teacher) is
+   * related to — explicit invitee OR class enrollment (evt_cls_id). PLN-260714/715.
+   */
+  private applyPortalScope(
+    qb: import('typeorm').SelectQueryBuilder<CalEventTypeormEntity>,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+  ): void {
     if (kind === 'STUDENT') {
-      // PLN-260714 — 명시적 invitee 뿐 아니라 학생이 수강 중인 반(evt_cls_id)의
-      // 이벤트(정규수업 포함)도 노출한다. 탈퇴(cst_left_at)한 반은 제외.
       qb.andWhere(
         `(EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
                   WHERE i.evt_id = e.evt_id AND i.ent_id = e.ent_id
@@ -178,9 +214,6 @@ export class CalEventService {
         { ref: refId },
       );
     } else {
-      // PARENT — events where any of the parent's children appears, either as
-      // an explicit STUDENT invitee OR via the child's class enrollment
-      // (evt_cls_id). PLN-260714. 탈퇴한 반은 제외.
       qb.andWhere(
         `(EXISTS (SELECT 1 FROM amb_acm_cal_invitee i
                   JOIN amb_acm_std_student_parent sp
@@ -196,10 +229,6 @@ export class CalEventService {
         { ref: refId },
       );
     }
-
-    qb.orderBy('e.startAt', 'ASC');
-    const items = await qb.getMany();
-    return { items: await this.enrichItems(entId, items) };
   }
 
   /** Shared enrichment — owner/assignee names, invitee counts, primary student. */

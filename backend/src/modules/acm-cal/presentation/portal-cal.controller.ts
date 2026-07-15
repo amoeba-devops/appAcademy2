@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PortalJwtAuthGuard } from '../../acm-auth/guards/portal-jwt-auth.guard';
 import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
@@ -21,5 +21,11 @@ export class PortalCalController {
   @ApiOperation({ summary: 'List my related calendar events (month/week/day range)' })
   list(@PortalUser() u: PortalAuthUser, @Query() q: ListCalEventsQueryDto) {
     return this.svc.listForPortal(u.entId, u.kind, u.refId, q);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Single related calendar event detail (PLN-260715)' })
+  detail(@PortalUser() u: PortalAuthUser, @Param('id') id: string) {
+    return this.svc.getForPortal(u.entId, u.kind, u.refId, id);
   }
 }
