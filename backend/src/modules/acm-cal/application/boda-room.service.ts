@@ -282,7 +282,7 @@ export class BodaRoomService {
    */
   private buildLauncherUrl(evtId: string): string {
     const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(/\/$/, '');
-    return `${base}/web/classroom/${evtId}`;
+    return `${base}/portal/classroom/${evtId}`;
   }
 }
 

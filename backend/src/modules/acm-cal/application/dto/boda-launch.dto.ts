@@ -3,7 +3,7 @@ import { IsString, IsUUID } from 'class-validator';
 import type { BodaRoomStatus } from '../../infrastructure/typeorm/boda-room.typeorm-entity';
 
 /**
- * BODA 입장 런처 페이지 (`/web/classroom/:evtId`) 가 백엔드에서 받아오는
+ * BODA 입장 런처 페이지 (`/portal/classroom/:evtId`) 가 백엔드에서 받아오는
  * 모든 정보. 비밀값 (`authKey` · webhook secret) 은 절대 포함하지 않는다
  * (FR-LAUNCH-8 / AC-LAUNCH-7).
  *

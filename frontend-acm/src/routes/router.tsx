@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate, useLocation, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
 import { PortalLayout } from '@/components/layout/portal-layout';
 import { ParentShell } from '@/components/layout/parent-shell';
@@ -64,6 +64,13 @@ function RedirectWithSearch({ to }: { to: string }) {
   return <Navigate to={`${to}${search}`} replace />;
 }
 
+/** PLN-260716 — legacy /web/classroom/:evtId → /portal/classroom/:evtId (keep query). */
+function WebClassroomRedirect() {
+  const { evtId } = useParams<{ evtId: string }>();
+  const { search } = useLocation();
+  return <Navigate to={`/portal/classroom/${evtId}${search}`} replace />;
+}
+
 export const router = createBrowserRouter([
   // ── Public auth pages (group-based) — REQ-260520 FR-03 ──────────────
   { path: '/admin/login', element: <LoginPage /> },
@@ -85,8 +92,11 @@ export const router = createBrowserRouter([
   // ── Public web forms (legacy paths, kept) ───────────────────────────
   { path: '/web/contact', element: <WebContactPage /> },
   { path: '/web/test', element: <WebTestPage /> },
-  // ── BODA(보다에듀) 화상 강의실 런처 — REQ-260526 v2 T5 ────────────────
-  { path: '/web/classroom/:evtId', element: <WebClassroomPage /> },
+  // ── BODA(보다에듀) 화상 강의실 런처 — REQ-260526 v2 T5 / PLN-260716 ──
+  // 정식 경로는 /portal/classroom (포털·콘솔 세션 겸용). /web/classroom 은
+  // 기존 링크 호환용 리다이렉트.
+  { path: '/portal/classroom/:evtId', element: <WebClassroomPage /> },
+  { path: '/web/classroom/:evtId', element: <WebClassroomRedirect /> },
 
   // ── Public portal pages (Phase 1 stubs → Phase 3 implementation) ────
   {

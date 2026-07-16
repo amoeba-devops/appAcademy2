@@ -97,7 +97,7 @@ describe('BodaRoomService', () => {
       );
       expect(room.status).toBe('PENDING');
       expect(launcherUrl).toBe(
-        'https://acm.amoeba.site/web/classroom/11111111-2222-3333-4444-555555555555',
+        'https://acm.amoeba.site/portal/classroom/11111111-2222-3333-4444-555555555555',
       );
     });
 

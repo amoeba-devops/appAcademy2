@@ -100,7 +100,7 @@ export class InstantEventService {
     );
 
     // 5) Build response. launcherUrl returned by CalEventService.create
-    //    is `${FRONTEND_URL}/web/classroom/{evtId}` — append ?autoStart=1.
+    //    is `${FRONTEND_URL}/portal/classroom/{evtId}` — append ?autoStart=1.
     const persisted = await this.evtRepo.findOneOrFail({
       where: { id: saved.id },
     });
@@ -132,7 +132,7 @@ export class InstantEventService {
 
   private buildLauncherUrl(evtId: string): string {
     const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(/\/$/, '');
-    return `${base}/web/classroom/${evtId}`;
+    return `${base}/portal/classroom/${evtId}`;
   }
 
   private appendAutoStart(url: string): string {

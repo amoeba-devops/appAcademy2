@@ -99,7 +99,7 @@ describe('InstantEventService', () => {
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
       meetingProvider: 'BODASCHOOL',
-      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/web/classroom/${SAVED_ID}`,
+      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
       invitees: opts.invitees ?? [],
       notifySummary: opts.notifySummary ?? null,
     });
@@ -107,7 +107,7 @@ describe('InstantEventService', () => {
       id: SAVED_ID,
       entId: 'ent-1',
       ownerUserId: 'u-teacher',
-      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/web/classroom/${SAVED_ID}`,
+      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
       startAt,
       endAt,
     });
@@ -167,11 +167,11 @@ describe('InstantEventService', () => {
 
   it('launcherUrl always carries ?autoStart=1 (and merges existing query)', async () => {
     arrangeSuccessfulCreate({
-      meetingUrl: `https://acm.amoeba.site/web/classroom/${SAVED_ID}?foo=bar`,
+      meetingUrl: `https://acm.amoeba.site/portal/classroom/${SAVED_ID}?foo=bar`,
     });
     const r = await svc.create('ent-1', 'u-teacher', 'TEACHER', { durationMin: 60 });
     expect(r.launcherUrl).toBe(
-      `https://acm.amoeba.site/web/classroom/${SAVED_ID}?foo=bar&autoStart=1`,
+      `https://acm.amoeba.site/portal/classroom/${SAVED_ID}?foo=bar&autoStart=1`,
     );
   });
 
@@ -183,7 +183,7 @@ describe('InstantEventService', () => {
       entId: 'ent-1',
       startAt: new Date('2026-06-10T05:00:00Z'),
       endAt: new Date('2026-06-10T06:30:00Z'),
-      meetingUrl: `https://acm.amoeba.site/web/classroom/${SAVED_ID}`,
+      meetingUrl: `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
     });
     inviteeListForEvent.mockResolvedValue([
       { kind: 'STUDENT', refId: 'std-1' },

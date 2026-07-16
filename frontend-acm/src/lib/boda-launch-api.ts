@@ -65,21 +65,29 @@ export interface BodaRoomStatusInfo {
 export function useBodaLaunchContext(
   evtId: string | undefined,
   lang: 'ko' | 'en' | undefined,
-  opts: { enabled?: boolean } = {},
+  opts: { enabled?: boolean; portal?: boolean; pollWhilePending?: boolean } = {},
 ) {
+  // PLN-260716 — portal(학생/강사) 세션이면 포털 가드 엔드포인트를 쓴다.
+  const base = opts.portal
+    ? '/portal/cal/boda/launch-context'
+    : '/cal/boda/launch-context';
   return useQuery({
-    queryKey: ['boda', 'launch-context', evtId, lang],
+    queryKey: ['boda', 'launch-context', opts.portal ? 'portal' : 'console', evtId, lang],
     enabled: opts.enabled !== false && !!evtId,
     queryFn: async () => {
-      const res = await apiClient.get<BodaLaunchContext>(
-        '/cal/boda/launch-context',
-        { params: { evtId, lang } },
-      );
+      const res = await apiClient.get<BodaLaunchContext>(base, {
+        params: { evtId, lang },
+      });
       return res.data;
     },
     // Time-window failures are 403 — surface immediately, no retry storm.
     retry: false,
     staleTime: 30_000,
+    // 포털엔 별도 status 폴링 엔드포인트가 없어, PENDING 동안 컨텍스트를 재조회해
+    // 강사가 방을 열면 자동 반영한다.
+    refetchInterval: opts.pollWhilePending
+      ? (q) => (q.state.data?.status === 'PENDING' ? 10_000 : false)
+      : false,
   });
 }
 
