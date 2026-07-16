@@ -126,7 +126,7 @@ describe('BodaLaunchContextService', () => {
       startAt: new Date(Date.now() - 5 * 60_000), // started 5 min ago (in window)
       endAt: new Date(Date.now() + 55 * 60_000),
       meetingProvider: 'BODASCHOOL',
-      meetingUrl: 'https://acm.amoeba.site/web/classroom/...',
+      meetingUrl: 'https://acm.amoeba.site/portal/classroom/...',
       deletedAt: null,
       source: 'MANUAL',
       ...overrides,

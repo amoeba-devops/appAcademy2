@@ -23,7 +23,7 @@ import { ClassroomEmbed } from '../components/classroom-embed';
 const TERMINAL_STATUSES: BodaRoomStatus[] = ['ENDED', 'CLOSED'];
 
 /**
- * `/web/classroom/:evtId` — BODA(보다에듀) 화상 강의실 입장 런처.
+ * `/portal/classroom/:evtId` — BODA(보다에듀) 화상 강의실 입장 런처.
  *
  * REQ-260526 v2 (T5) + REQ-260610 (instant + demo) + REQ-260619 (UX 강화).
  *
@@ -39,16 +39,31 @@ export function WebClassroomPage() {
   const { t, i18n } = useTranslation('classroom');
   const params = useParams<{ evtId: string }>();
   const evtId = params.evtId;
+  // PLN-260716 — 강의실 런처는 포털 세션(학생/강사) 또는 콘솔 세션(관리자/강사)
+  // 어느 쪽으로도 진입 가능. 포털 세션 우선.
+  const portalUser = useAuthStore((s) => s.portal.user);
   const acmUser = useAuthStore((s) => s.user);
+  const mode: 'portal' | 'console' | null = portalUser
+    ? 'portal'
+    : acmUser
+      ? 'console'
+      : null;
   // Rules of Hooks: this must run on every render, before any early return
   // below — otherwise the hook count changes between renders (React #310).
   const [search] = useSearchParamsCompat();
 
   const lang: 'ko' | 'en' = i18n.language === 'en' ? 'en' : 'ko';
-  const ctxQuery = useBodaLaunchContext(evtId, lang, { enabled: !!acmUser });
+  const ctxQuery = useBodaLaunchContext(evtId, lang, {
+    enabled: !!mode,
+    portal: mode === 'portal',
+    pollWhilePending: mode === 'portal',
+  });
 
+  // 콘솔 모드는 전용 status 폴링 엔드포인트 사용. 포털 모드는 위 컨텍스트 재조회로 대체.
   const shouldPoll =
-    ctxQuery.data?.status === 'PENDING' && ctxQuery.data.userType !== 11;
+    mode === 'console' &&
+    ctxQuery.data?.status === 'PENDING' &&
+    ctxQuery.data.userType !== 11;
   const statusQuery = useBodaRoomStatus(evtId, {
     enabled: shouldPoll,
     refetchInterval: shouldPoll ? 10_000 : false,
@@ -57,7 +72,7 @@ export function WebClassroomPage() {
   const status: BodaRoomStatus | undefined =
     statusQuery.data?.status ?? ctxQuery.data?.status;
 
-  if (!acmUser) {
+  if (!mode) {
     return <CenteredCard>{t('signinRequired')}</CenteredCard>;
   }
 

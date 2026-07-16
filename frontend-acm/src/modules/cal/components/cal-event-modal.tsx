@@ -78,7 +78,7 @@ const dtInputClass =
   'h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 
 /**
- * PLN-260714 — 강사용 입장 URL. 런처(`/web/classroom/:evtId`)에 `autoStart=1` 을
+ * PLN-260714 — 강사용 입장 URL. 런처(`/portal/classroom/:evtId`)에 `autoStart=1` 을
  * 붙이면 owner(강사)가 boda open 으로 자동 입장한다. (web-classroom-page AutoStartFx)
  */
 export function teacherJoinUrl(launcherUrl: string): string {
