@@ -145,5 +145,18 @@
     "maxSelected": "최대 {{n}}명까지 선택할 수 있습니다.",
     "studentLabel": "학생",
     "allView": "전체보기"
+  },
+  "attach": {
+    "section": "첨부자료",
+    "dropHint": "파일을 끌어다 놓거나 클릭하여 첨부 (≤20MB)",
+    "afterSaveHint": "일정을 저장한 뒤 첨부자료를 추가할 수 있습니다.",
+    "empty": "첨부된 자료가 없습니다.",
+    "download": "다운로드",
+    "confirmDelete": "이 첨부를 삭제할까요?",
+    "error": {
+      "empty": "빈 파일은 업로드할 수 없습니다.",
+      "size": "파일은 20MB 이하만 가능합니다.",
+      "count": "최대 {{max}}개까지 첨부할 수 있습니다."
+    }
   }
 }

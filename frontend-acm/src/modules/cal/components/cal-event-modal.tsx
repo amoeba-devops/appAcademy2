@@ -33,6 +33,7 @@ import {
   localInputToIso,
 } from '../lib/date-utils';
 import { InviteePickerModal } from './invitee-picker-modal';
+import { CalEventAttachmentPanel } from './cal-event-attachment-panel';
 import { useBodaRoomStatus } from '@/lib/boda-launch-api';
 import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
 
@@ -577,6 +578,15 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
               )}
             </div>
           </fieldset>
+
+          {/* PLN-260718 P2 — 첨부자료(장소/설명 아래). 저장된 이벤트에만 표시. */}
+          {isEdit && initial ? (
+            <CalEventAttachmentPanel evtId={initial.id} readOnly={isReadOnly} />
+          ) : (
+            <p className="rounded-md border border-dashed border-[var(--border-subtle)] px-3 py-3 text-xs text-secondary">
+              {t('attach.afterSaveHint', '일정을 저장한 뒤 첨부자료를 추가할 수 있습니다.')}
+            </p>
+          )}
 
           {!isLevelTest && (
             <fieldset className="space-y-3 rounded-md border border-[var(--border-subtle)] p-4">

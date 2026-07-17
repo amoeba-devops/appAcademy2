@@ -87,6 +87,36 @@ export function PortalCalEventDetailPage() {
             </div>
           )}
 
+          {event.attachments && event.attachments.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-1 text-xs text-secondary">
+                {t('portalApp.cal.materials', '첨부자료')}
+              </div>
+              <ul className="grid gap-1">
+                {event.attachments.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
+                  >
+                    <span className="min-w-0 flex-1 truncate">{a.filename}</span>
+                    <span className="shrink-0 text-[11px] text-secondary">
+                      {(Number(a.sizeBytes) / 1024).toFixed(0)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void portalApi.downloadCalAttachment(event.id, a.id, a.filename)
+                      }
+                      className="shrink-0 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-100)]"
+                    >
+                      {t('portalApp.cal.download', '다운로드')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {isBoda ? (
             <div className="mt-5">
               <BodaEntry evtId={event.id} />

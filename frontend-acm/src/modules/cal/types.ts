@@ -74,6 +74,15 @@ export interface CalCslLink {
   attachments: CalLinkedAttachment[];
 }
 
+/** PLN-260718 P2 — file attachment on a calendar event. */
+export interface CalEventAttachment {
+  id: string;
+  filename: string;
+  mime: string;
+  sizeBytes: string;
+  createdAt: string;
+}
+
 export interface CalEvent {
   id: string;
   entId: string;
@@ -102,6 +111,8 @@ export interface CalEvent {
   primaryStudentName?: string | null;
   invitees?: CalInviteeView[];
   cslLink?: CalCslLink | null;
+  /** PLN-260718 P2 — 이벤트 자체 첨부자료 (findOne 상세에서만 채워짐). */
+  attachments?: CalEventAttachment[];
   notifySummary?: NotifySummary | null;
 }
 

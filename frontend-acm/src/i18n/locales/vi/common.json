@@ -89,7 +89,9 @@
       "ended": "Lớp học đã kết thúc.",
       "memo": "Ghi chú",
       "list": "Danh sách",
-      "attendees": "Liên quan"
+      "attendees": "Liên quan",
+      "materials": "Tệp đính kèm",
+      "download": "Tải xuống"
     },
     "notices": {
       "empty": "Không có thông báo.",

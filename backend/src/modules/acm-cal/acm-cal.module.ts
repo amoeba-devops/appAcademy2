@@ -13,10 +13,13 @@ import { AttachmentTypeormEntity } from '../acm-csl/infrastructure/typeorm/attac
 import { MapTestTypeormEntity } from '../acm-csl/infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../acm-csl/infrastructure/typeorm/trial-class.typeorm-entity';
 import { redisProvider } from '../../infrastructure/config/redis.provider';
+import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-store.client';
 import { CalEventService } from './application/cal-event.service';
+import { CalEventAttachmentService } from './application/cal-event-attachment.service';
 import { CalInviteeService } from './application/cal-invitee.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
+import { CalEventAttachmentTypeormEntity } from './infrastructure/typeorm/cal-event-attachment.typeorm-entity';
 import { CalInviteeTypeormEntity } from './infrastructure/typeorm/cal-invitee.typeorm-entity';
 // REQ-260526 v2 — BODA 화상 강의실 연동.
 import { BodaConfigTypeormEntity } from './infrastructure/typeorm/boda-config.typeorm-entity';
@@ -32,6 +35,7 @@ import { InstantEventService } from './application/instant-event.service';
 import { InviteeSuggestionsService } from './application/invitee-suggestions.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
+import { CalEventAttachmentController } from './presentation/cal-event-attachment.controller';
 import { PortalCalController } from './presentation/portal-cal.controller';
 import { PortalBodaLaunchController } from './presentation/portal-boda-launch.controller';
 import { CalInviteeCandidateController } from './presentation/cal-invitee-candidate.controller';
@@ -68,12 +72,14 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
         TrialClassTypeormEntity,
         MapTestTypeormEntity,
         AttachmentTypeormEntity,
+        CalEventAttachmentTypeormEntity,
       ],
       ACM_DS,
     ),
   ],
   controllers: [
     CalEventController,
+    CalEventAttachmentController,
     PortalCalController,
     PortalBodaLaunchController,
     CalInviteeCandidateController,
@@ -87,6 +93,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   ],
   providers: [
     CalEventService,
+    CalEventAttachmentService,
+    ObjectStoreClient,
     CalInviteeService,
     InviteeNotifierService,
     BodaConfigService,

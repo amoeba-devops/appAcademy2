@@ -89,7 +89,9 @@
       "ended": "This class has ended.",
       "memo": "Memo",
       "list": "List",
-      "attendees": "People"
+      "attendees": "People",
+      "materials": "Attachments",
+      "download": "Download"
     },
     "notices": {
       "empty": "No notices.",

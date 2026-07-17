@@ -145,5 +145,18 @@
     "maxSelected": "最多可选择 {{n}} 个。",
     "studentLabel": "学生",
     "allView": "全部"
+  },
+  "attach": {
+    "section": "附件",
+    "dropHint": "拖放或点击以添加文件（≤20MB）",
+    "afterSaveHint": "保存日程后即可添加附件。",
+    "empty": "暂无附件。",
+    "download": "下载",
+    "confirmDelete": "删除此附件？",
+    "error": {
+      "empty": "无法上传空文件。",
+      "size": "文件必须小于或等于20MB。",
+      "count": "最多可添加 {{max}} 个附件。"
+    }
   }
 }

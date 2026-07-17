@@ -89,7 +89,9 @@
       "ended": "종료된 수업입니다.",
       "memo": "메모",
       "list": "리스트",
-      "attendees": "관련자"
+      "attendees": "관련자",
+      "materials": "첨부자료",
+      "download": "다운로드"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

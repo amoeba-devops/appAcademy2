@@ -15,6 +15,7 @@ import { MapTestTypeormEntity } from '../../acm-csl/infrastructure/typeorm/map-t
 import { TrialClassTypeormEntity } from '../../acm-csl/infrastructure/typeorm/trial-class.typeorm-entity';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeService } from './cal-invitee.service';
+import { CalEventAttachmentService } from './cal-event-attachment.service';
 import type {
   CreateCalEventDto,
   ListCalEventsQueryDto,
@@ -61,6 +62,7 @@ export class CalEventService {
     private readonly inviteeSvc: CalInviteeService,
     private readonly notifier: InviteeNotifierService,
     private readonly bodaRoomSvc: BodaRoomService,
+    private readonly eventAttachmentSvc: CalEventAttachmentService,
   ) {}
 
   async list(
@@ -185,10 +187,34 @@ export class CalEventService {
     // PLN-260718 — 상세 화면 "관련자" 표시용 참석자 목록. 개인정보 최소화를 위해
     // 이름·종류만 노출(이메일 제외).
     const invitees = await this.inviteeSvc.listForEvent(entId, event.id);
+    // PLN-260718 P2 — 상세 화면 "첨부자료" 표시용 파일 목록.
+    const attachments = await this.eventAttachmentSvc.list(entId, event.id);
     return {
       ...enriched,
       invitees: invitees.map((i) => ({ kind: i.kind, name: i.name })),
+      attachments,
     };
+  }
+
+  /**
+   * PLN-260718 P2 — assert the portal caller is related to the event before
+   * streaming an attachment. Reuses the same scope as getForPortal; throws
+   * 404 when unrelated so attachment existence isn't leaked.
+   */
+  async ensurePortalEventAccess(
+    entId: string,
+    kind: 'STUDENT' | 'PARENT' | 'TEACHER',
+    refId: string,
+    evtId: string,
+  ): Promise<void> {
+    const qb = this.repo
+      .createQueryBuilder('e')
+      .where('e.entId = :entId', { entId })
+      .andWhere('e.id = :evtId', { evtId })
+      .andWhere('e.deletedAt IS NULL');
+    this.applyPortalScope(qb, kind, refId);
+    const exists = await qb.getOne();
+    if (!exists) throw new NotFoundException('EVENT_NOT_FOUND');
   }
 
   /**
@@ -275,6 +301,7 @@ export class CalEventService {
     const assigneeMap = await this.lookupAssignees(entId, [e.assigneeTchId]);
     const invitees = await this.inviteeSvc.listForEvent(entId, e.id);
     const cslLink = await this.lookupCslLink(entId, e.id);
+    const attachments = await this.eventAttachmentSvc.list(entId, e.id);
 
     return {
       ...this.toDetail(e),
@@ -292,6 +319,7 @@ export class CalEventService {
         this.extractStudentNameFromTitle(e.title) ??
         null,
       cslLink,
+      attachments,
     };
   }
 
