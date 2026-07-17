@@ -18,7 +18,7 @@ export type PortalKind = 'STUDENT' | 'PARENT' | 'TEACHER';
 
 export interface MaterialView {
   id: string;
-  clsId: string;
+  clsId: string | null;
   className: string | null;
   title: string;
   filename: string;
@@ -44,7 +44,12 @@ export class MaterialService {
     entId: string,
     clsId: string,
     uploadedBy: string | null,
-    file: { originalname: string; mimetype: string; buffer: Buffer; size: number },
+    file: {
+      originalname: string;
+      mimetype: string;
+      buffer: Buffer;
+      size: number;
+    },
     title?: string,
   ): Promise<MaterialView> {
     if (!file?.buffer?.length) throw new BadRequestException('EMPTY_FILE');
@@ -100,7 +105,9 @@ export class MaterialService {
     id: string,
     viewer: { isAdmin?: boolean; portal?: { kind: PortalKind; refId: string } },
   ): Promise<{ stream: Readable; mime: string; filename: string }> {
-    const mat = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const mat = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!mat) throw new NotFoundException('MATERIAL_NOT_FOUND');
     if (!viewer.isAdmin) {
       if (!viewer.portal) throw new ForbiddenException('NO_ACCESS');
@@ -109,14 +116,18 @@ export class MaterialService {
         viewer.portal.kind,
         viewer.portal.refId,
       );
-      if (!clsIds.includes(mat.clsId)) throw new ForbiddenException('NO_ACCESS');
+      if (!mat.clsId || !clsIds.includes(mat.clsId)) {
+        throw new ForbiddenException('NO_ACCESS');
+      }
     }
     const obj = await this.store.getObjectStream(mat.s3Key);
     return { stream: obj.stream, mime: mat.mime, filename: mat.filename };
   }
 
   async remove(entId: string, id: string): Promise<void> {
-    const mat = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const mat = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!mat) throw new NotFoundException('MATERIAL_NOT_FOUND');
     mat.deletedAt = new Date();
     await this.repo.save(mat);
@@ -179,8 +190,8 @@ export class MaterialService {
   ): MaterialView {
     return {
       id: m.id,
-      clsId: m.clsId,
-      className: labels.get(m.clsId) ?? null,
+      clsId: m.clsId ?? null,
+      className: m.clsId ? (labels.get(m.clsId) ?? null) : null,
       title: m.title,
       filename: m.filename,
       mime: m.mime,

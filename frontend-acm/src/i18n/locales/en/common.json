@@ -99,7 +99,24 @@
     },
     "materials": {
       "empty": "No materials yet.",
-      "download": "Download"
+      "download": "Download",
+      "tabShared": "Shared with me",
+      "tabOwn": "My posts",
+      "newPost": "New post",
+      "pickFile": "Choose a file (≤20MB)",
+      "titlePlaceholder": "Title (defaults to filename)",
+      "shareToStudents": "Share with students",
+      "shareToTeacher": "Submit to teacher",
+      "shareBtn": "Share with students",
+      "submitBtn": "Submit to teacher",
+      "noCandidates": "No one to share with.",
+      "submission": "Submission",
+      "sharedWith": "Shared with",
+      "author": "Author",
+      "comments": "Comments",
+      "noComments": "No comments yet.",
+      "commentPlaceholder": "Write a comment…",
+      "confirmDelete": "Delete this post?"
     }
   },
   "material": {

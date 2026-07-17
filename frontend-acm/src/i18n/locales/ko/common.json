@@ -99,7 +99,24 @@
     },
     "materials": {
       "empty": "등록된 자료가 없습니다.",
-      "download": "다운로드"
+      "download": "다운로드",
+      "tabShared": "공유받은 게시물",
+      "tabOwn": "내 게시물",
+      "newPost": "새 게시물",
+      "pickFile": "파일 선택 (≤20MB)",
+      "titlePlaceholder": "제목 (생략 시 파일명)",
+      "shareToStudents": "공유할 학생",
+      "shareToTeacher": "제출할 강사",
+      "shareBtn": "학생에게 공유",
+      "submitBtn": "강사에게 제출",
+      "noCandidates": "공유 대상이 없습니다.",
+      "submission": "제출",
+      "sharedWith": "공유 대상",
+      "author": "작성자",
+      "comments": "댓글",
+      "noComments": "아직 댓글이 없습니다.",
+      "commentPlaceholder": "댓글 입력…",
+      "confirmDelete": "이 게시물을 삭제할까요?"
     }
   },
   "material": {

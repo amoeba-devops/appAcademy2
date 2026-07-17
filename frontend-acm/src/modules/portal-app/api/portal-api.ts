@@ -97,8 +97,46 @@ export const portalApi = {
       })
     ).data,
 
-  materials: async () =>
-    (await apiClient.get<PortalMaterial[]>('/portal/materials')).data,
+  // PLN-260718 P3 — 자료실 게시물 (scope: 'own' 내 게시물 / 'shared' 공유받은).
+  materials: async (scope: 'own' | 'shared') =>
+    (
+      await apiClient.get<PortalMaterialPost[]>('/portal/materials', {
+        params: { scope },
+      })
+    ).data,
+
+  materialShareCandidates: async () =>
+    (
+      await apiClient.get<MaterialShareCandidate[]>(
+        '/portal/materials/share-candidates',
+      )
+    ).data,
+
+  createMaterial: async (file: File, title: string, shareRefIds: string[]) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (title) form.append('title', title);
+    shareRefIds.forEach((id) => form.append('shareRefIds', id));
+    return (
+      await apiClient.post<PortalMaterialPost>('/portal/materials', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    ).data;
+  },
+
+  deleteMaterial: async (id: string) => {
+    await apiClient.delete(`/portal/materials/${id}`);
+  },
+
+  materialComments: async (id: string) =>
+    (await apiClient.get<MaterialComment[]>(`/portal/materials/${id}/comments`)).data,
+
+  addMaterialComment: async (id: string, body: string) =>
+    (
+      await apiClient.post<MaterialComment>(`/portal/materials/${id}/comments`, {
+        body,
+      })
+    ).data,
 
   downloadMaterial: async (id: string, filename: string) => {
     const res = await apiClient.get(`/portal/materials/${id}/download`, {
@@ -117,15 +155,39 @@ export const portalApi = {
   },
 };
 
-export interface PortalMaterial {
+export interface MaterialShareTarget {
+  kind: 'STUDENT' | 'TEACHER';
+  refId: string;
+  name: string;
+}
+
+export interface PortalMaterialPost {
   id: string;
-  clsId: string;
-  className: string | null;
   title: string;
   filename: string;
   mime: string;
   sizeBytes: number;
   createdAt: string;
+  authorKind: string | null;
+  authorName: string | null;
+  shareTargets: MaterialShareTarget[];
+  commentCount: number;
+  mine: boolean;
+  isSubmission: boolean;
+}
+
+export interface MaterialShareCandidate {
+  refId: string;
+  name: string;
+}
+
+export interface MaterialComment {
+  id: string;
+  authorKind: string;
+  authorName: string;
+  body: string;
+  createdAt: string;
+  mine: boolean;
 }
 
 function triggerDownload(blob: Blob, filename: string) {
