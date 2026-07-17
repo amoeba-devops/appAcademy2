@@ -64,6 +64,10 @@ export class BodaLaunchContextResponseDto {
   @ApiProperty({ description: '이벤트 종료 (ISO 8601)' })
   evtEndAt!: string;
 
+  // PLN-260716 — 일정에 등록된 메모(설명). 강의실/상세 화면 표시용.
+  @ApiProperty({ nullable: true, description: '이벤트 설명(메모)' })
+  evtDescription!: string | null;
+
   // REQ-260619 FR-LX-4 — 헤더 컨텍스트 (강사 이름, 즉시 강의 여부, 수강생 명단).
   @ApiProperty({ description: '강사(이벤트 owner) 이름' })
   ownerName!: string;

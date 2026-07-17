@@ -79,11 +79,12 @@
       "openLink": "Mở liên kết lớp",
       "viewFull": "Xem chi tiết",
       "back": "Về lịch",
-      "bodaLink": "Liên kết BODA",
+      "bodaLink": "Liên kết lớp BODA",
       "copy": "Sao chép",
       "copied": "Đã sao chép",
       "notOpenYet": "Bạn có thể vào khi giáo viên mở lớp. (trước giờ học)",
-      "ended": "Lớp học đã kết thúc."
+      "ended": "Lớp học đã kết thúc.",
+      "memo": "Ghi chú"
     },
     "notices": {
       "empty": "Không có thông báo.",

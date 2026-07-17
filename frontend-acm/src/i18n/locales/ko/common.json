@@ -79,11 +79,12 @@
       "openLink": "수업 링크 열기",
       "viewFull": "전체내용보기",
       "back": "일정으로",
-      "bodaLink": "보다스쿨 링크",
+      "bodaLink": "보다스쿨 강의실 링크",
       "copy": "복사",
       "copied": "복사됨",
       "notOpenYet": "강사가 강의실을 열면 입장할 수 있어요. (수업 시작 전)",
-      "ended": "종료된 수업입니다."
+      "ended": "종료된 수업입니다.",
+      "memo": "메모"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

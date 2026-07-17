@@ -71,8 +71,13 @@ export function PortalCalEventDetailPage() {
           </div>
 
           {event.description && (
-            <div className="mt-4 whitespace-pre-wrap text-sm text-primary">
-              {event.description}
+            <div className="mt-4">
+              <div className="mb-1 text-xs text-secondary">
+                {t('portalApp.cal.memo', '메모')}
+              </div>
+              <div className="whitespace-pre-wrap rounded-md bg-[var(--gray-50)] px-3 py-2 text-sm text-primary">
+                {event.description}
+              </div>
             </div>
           )}
 
@@ -145,17 +150,16 @@ function BodaEntry({ evtId }: { evtId: string }) {
       </p>
     );
   }
-  if (!isTeacher && !ready) {
-    return (
-      <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-        {t('portalApp.cal.notOpenYet', '강사가 강의실을 열면 입장할 수 있어요. (수업 시작 전)')}
-      </p>
-    );
-  }
+  // PLN-260716 — 벤더 webhook 미연동으로 방 상태가 PENDING 으로 고정될 수 있어,
+  // 학생도 앱(meetKey) 조인을 시도할 수 있게 하드 게이트를 제거한다. PENDING 이면
+  // 안내만 소프트하게 표시하고 입장 카드는 노출한다.
+  const notOpenHint = !isTeacher && !ready;
 
+  // 공유용 링크는 사용자별 webrtc URL(UTy/UId 고정)이 아니라, 앱 진입을 처리하는
+  // 런처 URL 이다(수신자별로 서버가 역할을 판별). = "보다스쿨앱 주소".
+  const launcherUrl = `${window.location.origin}/portal/classroom/${evtId}`;
   const copy = () => {
-    if (!ctx.webBrowserUrl) return;
-    void navigator.clipboard?.writeText(ctx.webBrowserUrl).then(() => {
+    void navigator.clipboard?.writeText(launcherUrl).then(() => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     });
@@ -163,30 +167,33 @@ function BodaEntry({ evtId }: { evtId: string }) {
 
   return (
     <div className="space-y-3">
-      <DesktopAppCard ctx={ctx} isTeacher={isTeacher} />
-      {ctx.webBrowserUrl && (
-        <div>
-          <label className="mb-1 block text-xs text-secondary">
-            {t('portalApp.cal.bodaLink', '보다스쿨 링크')}
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              readOnly
-              value={ctx.webBrowserUrl}
-              onFocus={(e) => e.currentTarget.select()}
-              className="h-9 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--gray-50)] px-2 text-xs text-primary"
-            />
-            <button
-              type="button"
-              onClick={copy}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-secondary hover:bg-[var(--gray-100)]"
-            >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? t('portalApp.cal.copied', '복사됨') : t('portalApp.cal.copy', '복사')}
-            </button>
-          </div>
-        </div>
+      {notOpenHint && (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {t('portalApp.cal.notOpenYet', '강사가 강의실을 열면 입장할 수 있어요. (수업 시작 전)')}
+        </p>
       )}
+      <DesktopAppCard ctx={ctx} isTeacher={isTeacher} />
+      <div>
+        <label className="mb-1 block text-xs text-secondary">
+          {t('portalApp.cal.bodaLink', '보다스쿨 강의실 링크')}
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            readOnly
+            value={launcherUrl}
+            onFocus={(e) => e.currentTarget.select()}
+            className="h-9 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--gray-50)] px-2 text-xs text-primary"
+          />
+          <button
+            type="button"
+            onClick={copy}
+            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-secondary hover:bg-[var(--gray-100)]"
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? t('portalApp.cal.copied', '복사됨') : t('portalApp.cal.copy', '복사')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

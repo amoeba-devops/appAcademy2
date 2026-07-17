@@ -79,11 +79,12 @@
       "openLink": "Open class link",
       "viewFull": "View full details",
       "back": "Back to calendar",
-      "bodaLink": "BODA link",
+      "bodaLink": "BODA classroom link",
       "copy": "Copy",
       "copied": "Copied",
       "notOpenYet": "You can enter once the teacher opens the classroom. (before class)",
-      "ended": "This class has ended."
+      "ended": "This class has ended.",
+      "memo": "Memo"
     },
     "notices": {
       "empty": "No notices.",
