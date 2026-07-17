@@ -182,7 +182,13 @@ export class CalEventService {
     const event = await qb.getOne();
     if (!event) throw new NotFoundException('EVENT_NOT_FOUND');
     const [enriched] = await this.enrichItems(entId, [event]);
-    return enriched;
+    // PLN-260718 — 상세 화면 "관련자" 표시용 참석자 목록. 개인정보 최소화를 위해
+    // 이름·종류만 노출(이메일 제외).
+    const invitees = await this.inviteeSvc.listForEvent(entId, event.id);
+    return {
+      ...enriched,
+      invitees: invitees.map((i) => ({ kind: i.kind, name: i.name })),
+    };
   }
 
   /**

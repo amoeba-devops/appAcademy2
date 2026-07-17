@@ -42,7 +42,7 @@
     "meetingProvider": "화상수업",
     "meetingUrl": "입장 링크",
     "creator": "작성자",
-    "assignee": "담당자",
+    "assignee": "담당자/강사",
     "assigneeNone": "미지정",
     "materials": "수업 자료",
     "endDate": "종료일"
@@ -64,7 +64,8 @@
     "noEmail": "(이메일 없음)",
     "add": "추가",
     "addBtn": "참석자 추가",
-    "notifyResult": "알림 결과"
+    "notifyResult": "알림 결과",
+    "pickerHint": "수업에 참여할 학생을 추가하세요. 다른 강사도 추가 가능합니다."
   },
   "hint": {
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",
@@ -139,8 +140,10 @@
     "kindParent": "학부모",
     "searchTeacher": "강사 이름 검색",
     "searchAttendee": "이름·이메일 검색",
-    "addTeacher": "강사 추가",
+    "addTeacher": "강사 선택",
     "addAttendee": "참석자 추가",
-    "maxSelected": "최대 {{n}}명까지 선택할 수 있습니다."
+    "maxSelected": "최대 {{n}}명까지 선택할 수 있습니다.",
+    "studentLabel": "학생",
+    "allView": "전체보기"
   }
 }

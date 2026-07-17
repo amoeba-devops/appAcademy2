@@ -47,11 +47,14 @@
       "password": "密码",
       "submit": "登录",
       "firstHint": "首次登录须修改密码。",
-      "invalid": "账号或密码不正确。"
+      "invalid": "账号或密码不正确。",
+      "remember": "记住学院代码和ID",
+      "showPw": "显示密码",
+      "hidePw": "隐藏密码"
     },
     "changePw": {
       "title": "修改密码",
-      "subtitle": "请在首次登录时修改密码。",
+      "subtitle": "修改您的密码。",
       "current": "当前密码",
       "new": "新密码",
       "confirm": "确认新密码",
@@ -84,7 +87,9 @@
       "copied": "已复制",
       "notOpenYet": "老师开启教室后即可进入。(课程开始前)",
       "ended": "该课程已结束。",
-      "memo": "备注"
+      "memo": "备注",
+      "list": "列表",
+      "attendees": "相关人员"
     },
     "notices": {
       "empty": "暂无公告。",

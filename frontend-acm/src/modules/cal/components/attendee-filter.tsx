@@ -10,6 +10,8 @@ interface Props {
   value: InviteeCandidate[];
   onChange: (next: InviteeCandidate[]) => void;
   max?: number;
+  // PLN-260718 — 종류를 고정하면 세그먼트 컨트롤을 숨기고 전용 필터로 사용.
+  lockedKind?: CalInviteeKind;
 }
 
 const KIND_LABEL_KEY: Record<CalInviteeKind, string> = {
@@ -24,7 +26,8 @@ const KIND_LABEL_DEFAULT: Record<CalInviteeKind, string> = {
 };
 
 /** Multi-select attendee filter with kind tabs (STUDENT/TEACHER/PARENT). */
-export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10 }: Props) {
+export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, lockedKind }: Props) {
+  const effKind = lockedKind ?? kind;
   const { t } = useTranslation('cal');
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,7 +49,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10 }
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  const { data: candidates = [], isLoading } = useInviteeCandidates(debounced, kind, open);
+  const { data: candidates = [], isLoading } = useInviteeCandidates(debounced, effKind, open);
 
   const selectedKey = (c: InviteeCandidate) => `${c.kind}:${c.refId}`;
   const selectedSet = new Set(value.map(selectedKey));
@@ -75,23 +78,25 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10 }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {/* Kind segmented control */}
-      <div className="inline-flex h-7 overflow-hidden rounded-md border border-[var(--border-subtle)] text-xs">
-        {(['STUDENT', 'TEACHER', 'PARENT'] as CalInviteeKind[]).map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => switchKind(k)}
-            className={`px-2 ${
-              kind === k
-                ? 'bg-accent-600 text-white'
-                : 'bg-canvas text-secondary hover:bg-[var(--gray-50)]'
-            }`}
-          >
-            {t(KIND_LABEL_KEY[k], KIND_LABEL_DEFAULT[k])}
-          </button>
-        ))}
-      </div>
+      {/* Kind segmented control (숨김 when lockedKind) */}
+      {!lockedKind && (
+        <div className="inline-flex h-7 overflow-hidden rounded-md border border-[var(--border-subtle)] text-xs">
+          {(['STUDENT', 'TEACHER', 'PARENT'] as CalInviteeKind[]).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => switchKind(k)}
+              className={`px-2 ${
+                kind === k
+                  ? 'bg-accent-600 text-white'
+                  : 'bg-canvas text-secondary hover:bg-[var(--gray-50)]'
+              }`}
+            >
+              {t(KIND_LABEL_KEY[k], KIND_LABEL_DEFAULT[k])}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Chips + add button */}
       <div ref={ref} className="relative flex flex-wrap items-center gap-1">

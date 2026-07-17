@@ -109,10 +109,24 @@ export function localInputToIso(localStr: string): string {
   return new Date(localStr).toISOString();
 }
 
+// PLN-260718 — 기본 시작 시각 = 현재 이후(다음 30분 슬롯), 종료 = +1시간.
+// 지정된 date 가 오늘이 아니면 09:00 기본. (30분 슬롯 정렬)
 export function defaultEventTimes(date: Date): { start: Date; end: Date } {
+  const now = new Date();
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
   const start = new Date(date);
-  start.setHours(9, 0, 0, 0);
-  const end = new Date(date);
-  end.setHours(10, 0, 0, 0);
+  if (isToday) {
+    // 다음 30분 슬롯으로 반올림
+    const mins = now.getMinutes();
+    const slot = mins === 0 ? 0 : mins <= 30 ? 30 : 60;
+    start.setHours(now.getHours(), 0, 0, 0);
+    start.setMinutes(slot);
+  } else {
+    start.setHours(9, 0, 0, 0);
+  }
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
   return { start, end };
 }

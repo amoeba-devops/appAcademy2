@@ -47,11 +47,14 @@
       "password": "Password",
       "submit": "Sign in",
       "firstHint": "You must change your password on first login.",
-      "invalid": "Invalid ID or password."
+      "invalid": "Invalid ID or password.",
+      "remember": "Remember academy code & ID",
+      "showPw": "Show password",
+      "hidePw": "Hide password"
     },
     "changePw": {
       "title": "Change password",
-      "subtitle": "Please change your password on first login.",
+      "subtitle": "Change your password.",
       "current": "Current password",
       "new": "New password",
       "confirm": "Confirm new password",
@@ -84,7 +87,9 @@
       "copied": "Copied",
       "notOpenYet": "You can enter once the teacher opens the classroom. (before class)",
       "ended": "This class has ended.",
-      "memo": "Memo"
+      "memo": "Memo",
+      "list": "List",
+      "attendees": "People"
     },
     "notices": {
       "empty": "No notices.",

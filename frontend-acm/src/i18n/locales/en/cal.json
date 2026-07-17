@@ -42,7 +42,7 @@
     "meetingProvider": "Meeting provider",
     "meetingUrl": "Meeting URL",
     "creator": "Creator",
-    "assignee": "Assignee",
+    "assignee": "In charge / Teacher",
     "assigneeNone": "Unassigned",
     "materials": "Class materials",
     "endDate": "End date"
@@ -64,7 +64,8 @@
     "noEmail": "(no email)",
     "add": "Add",
     "addBtn": "Add attendee",
-    "notifyResult": "Notification result"
+    "notifyResult": "Notification result",
+    "pickerHint": "Add students for this class. Other teachers can also be added."
   },
   "hint": {
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
@@ -139,8 +140,10 @@
     "kindParent": "Parent",
     "searchTeacher": "Search teacher",
     "searchAttendee": "Search by name or email",
-    "addTeacher": "Add teacher",
+    "addTeacher": "Select teacher",
     "addAttendee": "Add attendee",
-    "maxSelected": "You can select up to {{n}} entries."
+    "maxSelected": "You can select up to {{n}} entries.",
+    "studentLabel": "Student",
+    "allView": "All"
   }
 }

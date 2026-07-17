@@ -241,17 +241,24 @@ export function CalMonthPage() {
               {t('filter.ownerLabel', '강사')}:
             </span>
             <TeacherMultiCombo value={selectedTeachers} onChange={setSelectedTeachers} />
+            {selectedTeachers.length === 0 && (
+              <span className="text-xs text-secondary">{t('filter.allView', '전체보기')}</span>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-secondary">
-              {t('filter.kindLabel', '참석자 종류')}:
+              {t('filter.studentLabel', '학생')}:
             </span>
             <AttendeeFilter
+              lockedKind="STUDENT"
               kind={attendeeKind}
               onKindChange={setAttendeeKind}
               value={selectedAttendees}
               onChange={setSelectedAttendees}
             />
+            {selectedAttendees.length === 0 && (
+              <span className="text-xs text-secondary">{t('filter.allView', '전체보기')}</span>
+            )}
           </div>
           {(selectedTeachers.length > 0 || selectedAttendees.length > 0) && (
             <button

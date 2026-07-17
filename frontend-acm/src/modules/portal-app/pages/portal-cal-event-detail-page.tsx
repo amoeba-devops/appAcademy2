@@ -68,6 +68,12 @@ export function PortalCalEventDetailPage() {
                 {event.locationText}
               </div>
             )}
+            {event.invitees && event.invitees.length > 0 && (
+              <div>
+                <span className="text-secondary">{t('portalApp.cal.attendees', '관련자')}</span>{' '}
+                {event.invitees.map((i) => i.name).join(', ')}
+              </div>
+            )}
           </div>
 
           {event.description && (

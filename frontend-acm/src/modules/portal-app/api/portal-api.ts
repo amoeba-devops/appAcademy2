@@ -23,6 +23,8 @@ export interface PortalCalEvent {
   meetingUrl?: string | null;
   ownerName?: string | null;
   assigneeName?: string | null;
+  // PLN-260718 — 상세 "관련자" (참석자 이름·종류만).
+  invitees?: { kind: string; name: string }[];
 }
 
 

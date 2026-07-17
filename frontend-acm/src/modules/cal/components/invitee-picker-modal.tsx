@@ -21,7 +21,8 @@ interface Props {
 export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props) {
   const { t } = useTranslation('cal');
   const [q, setQ] = useState('');
-  const [kind, setKind] = useState<'ALL' | CalInviteeKind>('ALL');
+  // PLN-260718 — 종류는 학생/강사/학부모만(ALL 제거), 기본 학생.
+  const [kind, setKind] = useState<CalInviteeKind>('STUDENT');
   const [picked, setPicked] = useState<Map<string, InviteeCandidate>>(new Map());
 
   const { data: candidates = [], isFetching } = useInviteeCandidates(q, kind, open);
@@ -54,18 +55,21 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
         }
       }}
     >
-      <DialogContent className="max-w-xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="top-[8vh] max-w-xl max-h-[85vh] translate-y-0 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{t('invitee.pickerTitle', '참석자 선택')}</DialogTitle>
         </DialogHeader>
 
+        <p className="mb-2 text-xs text-secondary">
+          {t('invitee.pickerHint', '수업에 참여할 학생을 추가하세요. 다른 강사도 추가 가능합니다.')}
+        </p>
+
         <div className="flex gap-2 mb-3">
           <select
             value={kind}
-            onChange={(e) => setKind(e.target.value as 'ALL' | CalInviteeKind)}
+            onChange={(e) => setKind(e.target.value as CalInviteeKind)}
             className="h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
           >
-            <option value="ALL">{t('invitee.kindAll', '전체')}</option>
             <option value="STUDENT">{t('invitee.kindStudent', '학생')}</option>
             <option value="TEACHER">{t('invitee.kindTeacher', '강사')}</option>
             <option value="PARENT">{t('invitee.kindParent', '학부모')}</option>

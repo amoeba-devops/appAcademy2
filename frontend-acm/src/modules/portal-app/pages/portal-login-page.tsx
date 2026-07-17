@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import { portalApi } from '../api/portal-api';
+
+// PLN-260718 — "학원코드/아이디 저장" (remember-me). 비밀번호는 저장하지 않는다.
+const REMEMBER_KEY = 'acm-portal-remember';
+function loadRemember(): { tenantCode: string; loginId: string } | null {
+  try {
+    const raw = localStorage.getItem(REMEMBER_KEY);
+    return raw ? (JSON.parse(raw) as { tenantCode: string; loginId: string }) : null;
+  } catch {
+    return null;
+  }
+}
 
 export function PortalLoginPage() {
   const { t } = useTranslation('common');
@@ -13,9 +24,12 @@ export function PortalLoginPage() {
   const setPortalAuth = useAuthStore((s) => s.setPortalAuth);
   // PLN-260708 — tenant code from `?t=` (login link) pre-fills + locks the field.
   const tenantFromUrl = (params.get('t') ?? '').trim();
-  const [tenantCode, setTenantCode] = useState(tenantFromUrl);
-  const [loginId, setLoginId] = useState('');
+  const remembered = loadRemember();
+  const [tenantCode, setTenantCode] = useState(tenantFromUrl || remembered?.tenantCode || '');
+  const [loginId, setLoginId] = useState(remembered?.loginId ?? '');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [remember, setRemember] = useState(!!remembered);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -27,12 +41,22 @@ export function PortalLoginPage() {
     setBusy(true);
     try {
       const res = await portalApi.login(tenantCode.trim(), loginId.trim(), password);
-      setPortalAuth(res.accessToken, res.user);
-      if (res.mustChangePassword) {
-        navigate('/portal/change-password', { replace: true });
-      } else {
-        navigate(returnTo ?? '/portal', { replace: true });
+      // 학원코드/아이디 저장 — 체크 시 유지, 해제 시 삭제.
+      try {
+        if (remember) {
+          localStorage.setItem(
+            REMEMBER_KEY,
+            JSON.stringify({ tenantCode: tenantCode.trim(), loginId: loginId.trim() }),
+          );
+        } else {
+          localStorage.removeItem(REMEMBER_KEY);
+        }
+      } catch {
+        /* ignore storage errors */
       }
+      setPortalAuth(res.accessToken, res.user);
+      // PLN-260716 — 강제 비번변경 폐지: 항상 원래 목적지로 이동.
+      navigate(returnTo ?? '/portal', { replace: true });
     } catch {
       setError(t('portalApp.login.invalid'));
     } finally {
@@ -75,13 +99,36 @@ export function PortalLoginPage() {
         </label>
         <label className="mt-3 block text-sm">
           <span className="text-secondary">{t('portalApp.login.password')}</span>
+          <div className="relative mt-1">
+            <input
+              type={showPw ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              className="w-full rounded-md border border-[var(--border-subtle)] px-3 py-2 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPw((v) => !v)}
+              aria-label={
+                showPw
+                  ? t('portalApp.login.hidePw', '비밀번호 숨기기')
+                  : t('portalApp.login.showPw', '비밀번호 보기')
+              }
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-secondary hover:text-primary"
+            >
+              {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </label>
+
+        <label className="mt-3 flex items-center gap-2 text-sm text-secondary">
           <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            className="mt-1 w-full rounded-md border border-[var(--border-subtle)] px-3 py-2"
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
           />
+          {t('portalApp.login.remember', '학원코드·아이디 저장')}
         </label>
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
@@ -90,8 +137,6 @@ export function PortalLoginPage() {
           {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {t('portalApp.login.submit')}
         </Button>
-
-        <p className="mt-4 text-xs text-secondary">{t('portalApp.login.firstHint')}</p>
       </form>
     </main>
   );
