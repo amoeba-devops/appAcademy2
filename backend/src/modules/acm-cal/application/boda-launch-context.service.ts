@@ -171,6 +171,7 @@ export class BodaLaunchContextService {
       evtTitle: event.title,
       evtStartAt: event.startAt.toISOString(),
       evtEndAt: event.endAt.toISOString(),
+      evtDescription: event.description ?? null,
       ownerName,
       evtSource: event.source,
       invitees: inviteesPublic,
@@ -252,6 +253,7 @@ export class BodaLaunchContextService {
       evtTitle: event.title,
       evtStartAt: event.startAt.toISOString(),
       evtEndAt: event.endAt.toISOString(),
+      evtDescription: event.description ?? null,
       ownerName: owner?.name ?? 'Teacher',
       evtSource: event.source,
       invitees: [], // 학생/학부모 화면 — 다른 참석자 명단 미노출 (NFR-LX-2)

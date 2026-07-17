@@ -88,6 +88,13 @@ export function ClassroomHeader({
         </span>
       </div>
 
+      {/* PLN-260716 — 일정 메모(설명) */}
+      {ctx.evtDescription && (
+        <p className="mt-2 whitespace-pre-wrap rounded-md bg-[var(--canvas-subtle)] px-3 py-2 text-xs text-primary">
+          {ctx.evtDescription}
+        </p>
+      )}
+
       {/* Line 3 — attendees (teacher/admin view only — students see []) */}
       {hasAttendees && (
         <div className="mt-2 flex items-start gap-2 flex-wrap">

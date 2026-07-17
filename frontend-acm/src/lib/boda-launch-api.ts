@@ -40,6 +40,8 @@ export interface BodaLaunchContext {
   evtTitle: string;
   evtStartAt: string;
   evtEndAt: string;
+  // PLN-260716 — 일정 메모(설명)
+  evtDescription?: string | null;
   // REQ-260619 FR-LX-4 — 헤더 컨텍스트 + 임베디드 강의실 URL
   ownerName: string;
   evtSource: 'MANUAL' | 'INSTANT' | 'CLS_SESSION';

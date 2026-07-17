@@ -79,11 +79,12 @@
       "openLink": "打开课程链接",
       "viewFull": "查看全部",
       "back": "返回日程",
-      "bodaLink": "BODA链接",
+      "bodaLink": "BODA教室链接",
       "copy": "复制",
       "copied": "已复制",
       "notOpenYet": "老师开启教室后即可进入。(课程开始前)",
-      "ended": "该课程已结束。"
+      "ended": "该课程已结束。",
+      "memo": "备注"
     },
     "notices": {
       "empty": "暂无公告。",
