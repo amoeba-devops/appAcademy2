@@ -145,5 +145,18 @@
     "maxSelected": "You can select up to {{n}} entries.",
     "studentLabel": "Student",
     "allView": "All"
+  },
+  "attach": {
+    "section": "Attachments",
+    "dropHint": "Drag & drop or click to attach a file (≤20MB)",
+    "afterSaveHint": "You can add attachments after saving the event.",
+    "empty": "No attachments yet.",
+    "download": "Download",
+    "confirmDelete": "Delete this attachment?",
+    "error": {
+      "empty": "Empty files cannot be uploaded.",
+      "size": "Files must be 20MB or smaller.",
+      "count": "Up to {{max}} attachments allowed."
+    }
   }
 }

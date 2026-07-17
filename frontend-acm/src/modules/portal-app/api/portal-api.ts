@@ -25,6 +25,16 @@ export interface PortalCalEvent {
   assigneeName?: string | null;
   // PLN-260718 — 상세 "관련자" (참석자 이름·종류만).
   invitees?: { kind: string; name: string }[];
+  // PLN-260718 P2 — 이벤트 첨부자료.
+  attachments?: PortalCalAttachment[];
+}
+
+export interface PortalCalAttachment {
+  id: string;
+  filename: string;
+  mime: string;
+  sizeBytes: string;
+  createdAt: string;
 }
 
 
@@ -94,6 +104,15 @@ export const portalApi = {
     const res = await apiClient.get(`/portal/materials/${id}/download`, {
       responseType: 'blob',
     });
+    triggerDownload(res.data as Blob, filename);
+  },
+
+  // PLN-260718 P2 — download an event attachment (scoped to related events).
+  downloadCalAttachment: async (evtId: string, attId: string, filename: string) => {
+    const res = await apiClient.get(
+      `/portal/cal/events/${evtId}/attachments/${attId}/download`,
+      { responseType: 'blob' },
+    );
     triggerDownload(res.data as Blob, filename);
   },
 };

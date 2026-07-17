@@ -62,7 +62,10 @@ created: 2026-07-18
 
 ---
 
-## 2. Phase 2 — 이벤트 파일첨부 (S3)
+## 2. Phase 2 — 이벤트 파일첨부 (S3)  ✅ 구현 완료 (PR pending)
+
+> 구현: `amb_acm_cal_event_attachment`(sql/acm/999c) + `CalEventAttachmentService`(isConfigured→503, MIME allow-list, 20MB×20/이벤트, 한글파일명 latin1→utf8) + 관리자 컨트롤러(`/acm/cal/events/:id/attachments` CRUD·download) + 포털 다운로드(`/portal/cal/events/:id/attachments/:attId/download`, `ensurePortalEventAccess` 스코프). findOne·getForPortal 에 `attachments` 포함. 관리자 모달 `CalEventAttachmentPanel`(장소/설명 하단), 포털 상세 첨부 링크. i18n 4locale. be tsc/eslint clean, acm-cal 96 tests pass, fe tsc/build clean.
+> **배포 후 수동 마이그레이션 필요**(sql/acm 는 init-only): `sql/acm/999c-acm-cal-event-attachment.sql` 를 staging/prod `db_acm` 에 psql 적용.
 
 - **백엔드**: 신규 `amb_acm_cal_event_attachment`(evt_id FK, s3_key, filename, mime, size, uploaded_by, created_at, deleted_at) + 업로드(`POST /acm/cal/events/:id/attachments`, multipart)·목록·다운로드(`GET .../:attId/download`) + **포털 다운로드**(`GET /portal/cal/events/:id/attachments/:attId/download`, 스코프 검증). `AttachmentService` 패턴 채택(isConfigured()→503, MIME allow-list, size cap, 한글파일명 처리).
 - **프론트**: 관리자 모달 장소/설명 하단 파일첨부 UI. 상세(관리자 모달 + 포털 상세)에 자료 링크. `getForPortal` 에 attachments 포함.

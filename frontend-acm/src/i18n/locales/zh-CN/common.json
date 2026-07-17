@@ -89,7 +89,9 @@
       "ended": "该课程已结束。",
       "memo": "备注",
       "list": "列表",
-      "attendees": "相关人员"
+      "attendees": "相关人员",
+      "materials": "附件",
+      "download": "下载"
     },
     "notices": {
       "empty": "暂无公告。",
