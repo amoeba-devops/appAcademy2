@@ -42,7 +42,7 @@
     "meetingProvider": "Họp trực tuyến",
     "meetingUrl": "URL họp",
     "creator": "Người tạo",
-    "assignee": "Người phụ trách",
+    "assignee": "Phụ trách / Giáo viên",
     "assigneeNone": "Chưa chỉ định",
     "materials": "Tài liệu lớp học",
     "endDate": "Ngày kết thúc"
@@ -64,7 +64,8 @@
     "noEmail": "(không có email)",
     "add": "Thêm",
     "addBtn": "Thêm người tham dự",
-    "notifyResult": "Kết quả gửi thông báo"
+    "notifyResult": "Kết quả gửi thông báo",
+    "pickerHint": "Thêm học sinh tham gia lớp. Có thể thêm giáo viên khác."
   },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
@@ -139,8 +140,10 @@
     "kindParent": "Phụ huynh",
     "searchTeacher": "Tìm giáo viên",
     "searchAttendee": "Tìm theo tên hoặc email",
-    "addTeacher": "Thêm giáo viên",
+    "addTeacher": "Chọn giáo viên",
     "addAttendee": "Thêm người tham dự",
-    "maxSelected": "Chỉ được chọn tối đa {{n}} mục."
+    "maxSelected": "Chỉ được chọn tối đa {{n}} mục.",
+    "studentLabel": "Học sinh",
+    "allView": "Tất cả"
   }
 }

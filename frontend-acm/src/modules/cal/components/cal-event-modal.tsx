@@ -91,6 +91,20 @@ const timePart = (s: string): string => (s && s.includes('T') ? s.slice(11, 16) 
 const joinDateTime = (date: string, time: string): string =>
   date ? `${date}T${time || '00:00'}` : '';
 
+// PLN-260718 — 시간은 셀렉트 리스트(06:00~23:30, 30분 간격)로 선택.
+const TIME_OPTIONS: string[] = (() => {
+  const out: string[] = [];
+  for (let h = 6; h <= 23; h++) {
+    for (const m of [0, 30]) {
+      out.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    }
+  }
+  return out;
+})();
+// 저장된 값이 30분 슬롯이 아니면(기존 이벤트) 그 값도 옵션에 포함.
+const timeOpts = (cur: string): string[] =>
+  cur && !TIME_OPTIONS.includes(cur) ? [cur, ...TIME_OPTIONS] : TIME_OPTIONS;
+
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t, i18n } = useTranslation('cal');
   const toast = useToast();
@@ -483,13 +497,16 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   {!allDayVal && (
                     <>
                       <Clock size={16} className="shrink-0 text-secondary" />
-                      <input
-                        type="time"
+                      <select
                         aria-label={t('field.startAt')}
                         value={timePart(startAtVal)}
                         onChange={(e) => setStartTime(e.target.value)}
                         className={dtInputClass}
-                      />
+                      >
+                        {timeOpts(timePart(startAtVal)).map((tm) => (
+                          <option key={tm} value={tm}>{tm}</option>
+                        ))}
+                      </select>
                     </>
                   )}
                 </div>
@@ -511,13 +528,16 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   {!allDayVal && (
                     <>
                       <Clock size={16} className="shrink-0 text-secondary" />
-                      <input
-                        type="time"
+                      <select
                         aria-label={t('field.endAt')}
                         value={timePart(endAtVal)}
                         onChange={(e) => setEndTime(e.target.value)}
                         className={dtInputClass}
-                      />
+                      >
+                        {timeOpts(timePart(endAtVal)).map((tm) => (
+                          <option key={tm} value={tm}>{tm}</option>
+                        ))}
+                      </select>
                       {durationLabel && (
                         <span className="text-xs text-secondary">· {durationLabel}</span>
                       )}
@@ -645,10 +665,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </fieldset>
           )}
 
-          {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
-            <BodaRoomPanel evtId={initial.id} />
-          )}
-
           {isEdit && (detail?.ownerName || initial?.ownerName) && (
             <div className="space-y-1 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-3 py-2 text-xs text-secondary">
               <div>
@@ -755,6 +771,11 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 </Button>
               )}
             </fieldset>
+          )}
+
+          {/* PLN-260718 — BODA 화상강의실 박스는 참석자 아래로 이동 */}
+          {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
+            <BodaRoomPanel evtId={initial.id} />
           )}
 
           {detail?.cslLink?.kind === 'DEMO_CLASS' && (

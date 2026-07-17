@@ -42,7 +42,7 @@
     "meetingProvider": "在线会议",
     "meetingUrl": "会议链接",
     "creator": "创建人",
-    "assignee": "负责人",
+    "assignee": "负责人/讲师",
     "assigneeNone": "未指定",
     "materials": "课程资料",
     "endDate": "结束日期"
@@ -64,7 +64,8 @@
     "noEmail": "(无邮箱)",
     "add": "添加",
     "addBtn": "添加参会人",
-    "notifyResult": "通知结果"
+    "notifyResult": "通知结果",
+    "pickerHint": "添加参加本课的学生。也可添加其他讲师。"
   },
   "hint": {
     "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",
@@ -139,8 +140,10 @@
     "kindParent": "家长",
     "searchTeacher": "搜索讲师",
     "searchAttendee": "按姓名或邮箱搜索",
-    "addTeacher": "添加讲师",
+    "addTeacher": "选择讲师",
     "addAttendee": "添加参与人",
-    "maxSelected": "最多可选择 {{n}} 个。"
+    "maxSelected": "最多可选择 {{n}} 个。",
+    "studentLabel": "学生",
+    "allView": "全部"
   }
 }

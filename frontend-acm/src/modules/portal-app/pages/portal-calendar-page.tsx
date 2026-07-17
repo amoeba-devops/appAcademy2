@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { portalApi, type PortalCalEvent } from '../api/portal-api';
 
-type ViewMode = 'month' | 'week' | 'day';
+type ViewMode = 'month' | 'week' | 'day' | 'list';
 
 function startOfDay(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -66,7 +66,7 @@ export function PortalCalendarPage() {
   const heading = new Intl.DateTimeFormat(i18n.language, {
     year: 'numeric',
     month: 'long',
-    ...(mode !== 'month' ? { day: 'numeric' } : {}),
+    ...(mode === 'week' || mode === 'day' ? { day: 'numeric' } : {}),
   }).format(anchor);
 
   return (
@@ -88,7 +88,7 @@ export function PortalCalendarPage() {
           </button>
         </div>
         <div className="flex rounded-md border border-[var(--border-subtle)] text-xs">
-          {(['month', 'week', 'day'] as ViewMode[]).map((m) => (
+          {(['month', 'week', 'day', 'list'] as ViewMode[]).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
@@ -107,6 +107,13 @@ export function PortalCalendarPage() {
           from={from}
           anchorMonth={anchor.getMonth()}
           events={events}
+          onSelect={setSelected}
+        />
+      ) : mode === 'list' ? (
+        <ListView
+          events={events}
+          locale={i18n.language}
+          emptyLabel={t('portalApp.cal.empty')}
           onSelect={setSelected}
         />
       ) : (
@@ -249,6 +256,60 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
         <Video size={14} className="shrink-0 text-accent-700" />
       )}
     </button>
+  );
+}
+
+// PLN-260718 — 리스트 보기: 기간 내 이벤트를 날짜별로 묶어 평면 리스트로 표시.
+function ListView({
+  events,
+  locale,
+  emptyLabel,
+  onSelect,
+}: {
+  events: PortalCalEvent[];
+  locale: string;
+  emptyLabel: string;
+  onSelect: (e: PortalCalEvent) => void;
+}) {
+  const sorted = [...events].sort(
+    (a, b) => +new Date(a.startAt) - +new Date(b.startAt),
+  );
+  if (sorted.length === 0) {
+    return <p className="py-10 text-center text-sm text-secondary">{emptyLabel}</p>;
+  }
+  // 날짜별 그룹 (이벤트가 있는 날만)
+  const groups: { key: string; label: string; items: PortalCalEvent[] }[] = [];
+  for (const e of sorted) {
+    const d = new Date(e.startAt);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    let g = groups.find((x) => x.key === key);
+    if (!g) {
+      g = {
+        key,
+        label: d.toLocaleDateString(locale, {
+          month: 'long',
+          day: 'numeric',
+          weekday: 'short',
+        }),
+        items: [],
+      };
+      groups.push(g);
+    }
+    g.items.push(e);
+  }
+  return (
+    <div className="space-y-3">
+      {groups.map((g) => (
+        <div key={g.key} className="rounded-md border border-[var(--border-subtle)]">
+          <div className="border-b border-[var(--border-subtle)] bg-[var(--gray-50)] px-3 py-1.5 text-sm font-medium text-primary">
+            {g.label}
+          </div>
+          {g.items.map((e) => (
+            <EventRow key={e.id} e={e} onSelect={onSelect} />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
