@@ -99,7 +99,24 @@
     },
     "materials": {
       "empty": "Chưa có tài liệu.",
-      "download": "Tải xuống"
+      "download": "Tải xuống",
+      "tabShared": "Được chia sẻ với tôi",
+      "tabOwn": "Bài của tôi",
+      "newPost": "Bài mới",
+      "pickFile": "Chọn tệp (≤20MB)",
+      "titlePlaceholder": "Tiêu đề (mặc định tên tệp)",
+      "shareToStudents": "Chia sẻ với học sinh",
+      "shareToTeacher": "Nộp cho giáo viên",
+      "shareBtn": "Chia sẻ với học sinh",
+      "submitBtn": "Nộp cho giáo viên",
+      "noCandidates": "Không có đối tượng để chia sẻ.",
+      "submission": "Bài nộp",
+      "sharedWith": "Chia sẻ với",
+      "author": "Tác giả",
+      "comments": "Bình luận",
+      "noComments": "Chưa có bình luận.",
+      "commentPlaceholder": "Viết bình luận…",
+      "confirmDelete": "Xóa bài này?"
     }
   },
   "material": {

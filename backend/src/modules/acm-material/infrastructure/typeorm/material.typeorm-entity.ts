@@ -2,7 +2,9 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 /** PLN-260706 Phase 3 — a class material file (자료실 / 수업자료). */
 @Entity('amb_acm_material')
-@Index('idx_acm_material_cls', ['entId', 'clsId'], { where: 'deleted_at IS NULL' })
+@Index('idx_acm_material_cls', ['entId', 'clsId'], {
+  where: 'deleted_at IS NULL',
+})
 export class MaterialTypeormEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'mat_id' })
   id!: string;
@@ -10,8 +12,22 @@ export class MaterialTypeormEntity {
   @Column({ name: 'ent_id', type: 'uuid' })
   entId!: string;
 
-  @Column({ name: 'cls_id', type: 'uuid' })
-  clsId!: string;
+  /** PLN-260718 P3 — nullable: portal teacher/student posts aren't class-bound. */
+  @Column({ name: 'cls_id', type: 'uuid', nullable: true })
+  clsId?: string | null;
+
+  /**
+   * PLN-260718 P3 — who authored the post. null for legacy class materials
+   * uploaded from the admin console; STUDENT|TEACHER for portal posts;
+   * ADMIN|STAFF for console posts that opt into the new model.
+   */
+  @Column({
+    name: 'mat_author_kind',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  authorKind?: string | null;
 
   @Column({ name: 'mat_title', type: 'varchar', length: 200 })
   title!: string;

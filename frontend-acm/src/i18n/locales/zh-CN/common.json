@@ -99,7 +99,24 @@
     },
     "materials": {
       "empty": "暂无资料。",
-      "download": "下载"
+      "download": "下载",
+      "tabShared": "共享给我",
+      "tabOwn": "我的帖子",
+      "newPost": "新帖子",
+      "pickFile": "选择文件（≤20MB）",
+      "titlePlaceholder": "标题（默认文件名）",
+      "shareToStudents": "共享给学生",
+      "shareToTeacher": "提交给老师",
+      "shareBtn": "共享给学生",
+      "submitBtn": "提交给老师",
+      "noCandidates": "没有可共享的对象。",
+      "submission": "提交",
+      "sharedWith": "共享对象",
+      "author": "作者",
+      "comments": "评论",
+      "noComments": "暂无评论。",
+      "commentPlaceholder": "输入评论…",
+      "confirmDelete": "删除此帖子？"
     }
   },
   "material": {

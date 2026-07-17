@@ -73,7 +73,10 @@ created: 2026-07-18
 
 ---
 
-## 3. Phase 3–4 — 자료실 작성/공유/댓글 (S3 + 데이터모델 신설)
+## 3. Phase 3–4 — 자료실 작성/공유/댓글 (S3 + 데이터모델 신설)  ✅ 구현 완료 (PR pending)
+
+> 구현: `amb_acm_material`(mat_author_kind 추가 + cls_id nullable) + 신규 `amb_acm_material_share`·`amb_acm_material_comment`(sql/acm/999d). `PortalMaterialService`(create 역할 게이트: 강사→학생 다중/학생→강사 제출, 공유대상 존재검증, own/shared 뷰, 접근제어=작성자|공유대상|반소속|학부모-자녀, 댓글, 작성자 삭제, 공유후보 `listShareCandidates`) + 포털 컨트롤러(scope=own|shared, share-candidates, create, download, delete, comments). 프론트: 탭(내 게시물/공유받은) + 작성폼(파일·제목·공유대상 칩 피커) + 게시물카드(다운로드·삭제·댓글 스레드). i18n 4locale. be tsc/eslint clean, acm-material 19 tests pass, fe tsc/build clean.
+> **배포 후 수동 마이그레이션 필요**: `sql/acm/999d-acm-material-share-comment.sql` 를 staging/prod `db_acm` 에 psql 적용.
 
 ### 데이터 모델 (신설)
 - `amb_acm_material` 확장: `mat_author_kind`(STAFF/TEACHER/STUDENT), `cls_id` **nullable화**(학생 제출은 반 비종속 가능), `mat_uploaded_by`(기존).
