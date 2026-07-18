@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   Download,
+  FilePen,
   FileText,
   Loader2,
   MessageSquare,
@@ -59,7 +61,18 @@ export function PortalMaterialsPage() {
         )}
       </div>
 
-      {tab === 'own' && canAuthor && <CreateForm kind={kind} />}
+      {tab === 'own' && canAuthor && (
+        <div className="mb-4 flex flex-wrap items-start gap-2">
+          {/* PLN-260719 B — 리치에디터 문서 작성 */}
+          <Link
+            to="/portal/materials/docs/new"
+            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-accent-700 hover:bg-[var(--gray-50)]"
+          >
+            <FilePen size={14} /> {t('portalApp.materials.newDoc', '새 문서')}
+          </Link>
+          <CreateForm kind={kind} />
+        </div>
+      )}
       <MaterialList scope={tab} />
     </div>
   );
@@ -122,15 +135,15 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-accent-700 hover:bg-[var(--gray-50)]"
+        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-accent-700 hover:bg-[var(--gray-50)]"
       >
-        <Plus size={14} /> {t('portalApp.materials.newPost', '새 게시물')}
+        <Plus size={14} /> {t('portalApp.materials.newFile', '파일 업로드')}
       </button>
     );
   }
 
   return (
-    <div className="mb-4 space-y-3 rounded-md border border-[var(--border-subtle)] p-4">
+    <div className="w-full space-y-3 rounded-md border border-[var(--border-subtle)] p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-primary">
           {t('portalApp.materials.newPost', '새 게시물')}
@@ -240,8 +253,10 @@ function MaterialList({ scope }: { scope: Tab }) {
 function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab }) {
   const { t, i18n } = useTranslation('common');
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const isDoc = post.kind === 'DOC';
 
   const del = useMutation({
     mutationFn: () => portalApi.deleteMaterial(post.id),
@@ -249,6 +264,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
   });
 
   const onDownload = async () => {
+    if (!post.filename) return;
     setDownloading(true);
     try {
       await portalApi.downloadMaterial(post.id, post.filename);
@@ -262,10 +278,30 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
   return (
     <div className="rounded-md border border-[var(--border-subtle)] p-3">
       <div className="flex items-start gap-3">
-        <FileText size={18} className="mt-0.5 shrink-0 text-secondary" />
+        {isDoc ? (
+          <FilePen size={18} className="mt-0.5 shrink-0 text-accent-600" />
+        ) : (
+          <FileText size={18} className="mt-0.5 shrink-0 text-secondary" />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-sm font-medium text-primary">{post.title}</span>
+            {isDoc ? (
+              // PLN-260719 B — 문서는 클릭 시 뷰/편집 페이지로 이동.
+              <button
+                type="button"
+                onClick={() => navigate(`/portal/materials/docs/${post.id}`)}
+                className="truncate text-sm font-medium text-accent-700 hover:underline"
+              >
+                {post.title}
+              </button>
+            ) : (
+              <span className="truncate text-sm font-medium text-primary">{post.title}</span>
+            )}
+            {isDoc && (
+              <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-[10px] font-medium text-accent-700">
+                {t('portalApp.materials.docBadge', '문서')}
+              </span>
+            )}
             {post.isSubmission && (
               <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
                 {t('portalApp.materials.submission', '제출')}
@@ -273,7 +309,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
             )}
           </div>
           <div className="mt-0.5 text-xs text-secondary">
-            {post.filename} · {fmtSize(post.sizeBytes)} ·{' '}
+            {!isDoc && post.filename && `${post.filename} · ${fmtSize(post.sizeBytes ?? 0)} · `}
             {new Date(post.createdAt).toLocaleDateString(i18n.language)}
           </div>
           <div className="mt-0.5 text-xs text-secondary">
@@ -287,14 +323,16 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <button
-            onClick={onDownload}
-            disabled={downloading}
-            className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
-          >
-            {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
-            {t('portalApp.materials.download')}
-          </button>
+          {!isDoc && (
+            <button
+              onClick={onDownload}
+              disabled={downloading}
+              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+            >
+              {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+              {t('portalApp.materials.download')}
+            </button>
+          )}
           {post.mine && (
             <button
               onClick={() => {
@@ -324,7 +362,8 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
   );
 }
 
-function CommentThread({ matId }: { matId: string }) {
+// PLN-260719 B — 문서 상세 페이지에서도 재사용 (export).
+export function CommentThread({ matId }: { matId: string }) {
   const { t, i18n } = useTranslation('common');
   const qc = useQueryClient();
   const [body, setBody] = useState('');

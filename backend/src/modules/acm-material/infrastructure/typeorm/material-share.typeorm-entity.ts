@@ -14,6 +14,8 @@ import {
  * target). tgt_ref_id is std_id / tch_id depending on tgt_kind.
  */
 export type MaterialShareTargetKind = 'STUDENT' | 'TEACHER';
+/** PLN-260719 B — 공유대상 권한 (뷰어=열람+댓글, 편집자=+본문 수정). */
+export type MaterialShareRole = 'VIEWER' | 'EDITOR';
 
 @Entity('amb_acm_material_share')
 @Index('idx_acm_material_share_mat', ['entId', 'matId'])
@@ -33,6 +35,9 @@ export class MaterialShareTypeormEntity {
 
   @Column({ name: 'msh_tgt_ref_id', type: 'uuid' })
   tgtRefId!: string;
+
+  @Column({ name: 'msh_role', type: 'varchar', length: 10, default: 'VIEWER' })
+  role!: MaterialShareRole;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

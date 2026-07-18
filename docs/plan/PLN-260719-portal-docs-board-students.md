@@ -41,7 +41,10 @@ change_log:
 └────────────────────────────────────────┘
 ```
 
-## 2. Phase B — 문서/자료실 게시판 (리치에디터 + 공유권한)
+## 2. Phase B — 문서/자료실 게시판 (리치에디터 + 공유권한)  ✅ 구현 완료 (PR pending)
+
+> 결정(2026-07-19): 에디터=tiptap, 공유후보=포털 사용자 전체(강사+학생, 본인 제외).
+> 구현: sql/acm/999e(mat_kind/mat_content/file-cols nullable + msh_role) · PortalMaterialService{createDoc,getDoc,updateDoc(작성자|EDITOR),updateShares(작성자),listAllPortalUsers} · 컨트롤러 /portal/materials/docs* + share-candidates?scope=all · 프론트 PortalDocPage(tiptap 툴바+DOMPurify 렌더+SharePanel 뷰어/편집자) · 목록 DOC 카드/새 문서 버튼 · 메뉴명 "문서/자료실" · doc-prose CSS · i18n 4locale. be 25 tests/tsc/eslint clean, fe tsc/build clean. 마이그레이션은 CD 자동 적용.
 
 ### 데이터 모델 (기존 material 인프라 확장)
 - `amb_acm_material` + `mat_kind VARCHAR(10) DEFAULT 'FILE'` (`FILE`|`DOC`) + `mat_content TEXT`(문서 본문 HTML), DOC 은 s3/filename 컬럼 미사용(빈값 허용 위해 `mat_s3_key`/`mat_filename`/`mat_mime` nullable 화).

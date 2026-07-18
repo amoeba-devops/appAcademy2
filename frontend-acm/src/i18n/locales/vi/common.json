@@ -117,7 +117,23 @@
       "comments": "Bình luận",
       "noComments": "Chưa có bình luận.",
       "commentPlaceholder": "Viết bình luận…",
-      "confirmDelete": "Xóa bài này?"
+      "confirmDelete": "Xóa bài này?",
+      "newDoc": "Tài liệu mới",
+      "newFile": "Tải tệp lên",
+      "docBadge": "Tài liệu"
+    },
+    "docs": {
+      "back": "Về Tài liệu",
+      "titlePlaceholder": "Tiêu đề tài liệu",
+      "shareTitle": "Chia sẻ với (người xem/biên tập)",
+      "shareEmpty": "Chưa có đối tượng chia sẻ. Thêm bên dưới.",
+      "viewer": "Người xem",
+      "editor": "Biên tập",
+      "kindTeacher": "Giáo viên",
+      "kindStudent": "Học sinh",
+      "searchUser": "Tìm theo tên (giáo viên/học sinh)",
+      "noResult": "Không có kết quả.",
+      "noPermission": "Bạn không có quyền tạo tài liệu."
     }
   },
   "material": {

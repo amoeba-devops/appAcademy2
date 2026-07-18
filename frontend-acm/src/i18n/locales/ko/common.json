@@ -36,7 +36,7 @@
     "nav": {
       "notices": "공지사항",
       "calendar": "수업일정",
-      "materials": "자료실"
+      "materials": "문서/자료실"
     },
     "login": {
       "title": "학원 포털 로그인",
@@ -117,7 +117,23 @@
       "comments": "댓글",
       "noComments": "아직 댓글이 없습니다.",
       "commentPlaceholder": "댓글 입력…",
-      "confirmDelete": "이 게시물을 삭제할까요?"
+      "confirmDelete": "이 게시물을 삭제할까요?",
+      "newDoc": "새 문서",
+      "newFile": "파일 업로드",
+      "docBadge": "문서"
+    },
+    "docs": {
+      "back": "문서/자료실로",
+      "titlePlaceholder": "문서 제목",
+      "shareTitle": "공유 대상 (뷰어/편집자)",
+      "shareEmpty": "아직 공유 대상이 없습니다. 아래에서 추가하세요.",
+      "viewer": "뷰어",
+      "editor": "편집자",
+      "kindTeacher": "강사",
+      "kindStudent": "학생",
+      "searchUser": "이름 검색 (강사/학생)",
+      "noResult": "결과가 없습니다.",
+      "noPermission": "문서를 작성할 권한이 없습니다."
     }
   },
   "material": {

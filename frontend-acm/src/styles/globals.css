@@ -10,3 +10,14 @@
     letter-spacing: -0.01em;
   }
 }
+
+/* PLN-260719 B — 문서 게시판(tiptap) 본문 타이포그래피 (typography 플러그인 대체) */
+.doc-prose h1 { font-size: 1.35rem; font-weight: 700; margin: 0.8em 0 0.4em; }
+.doc-prose h2 { font-size: 1.15rem; font-weight: 600; margin: 0.7em 0 0.35em; }
+.doc-prose p { margin: 0.4em 0; line-height: 1.65; }
+.doc-prose ul { list-style: disc; padding-left: 1.4em; margin: 0.4em 0; }
+.doc-prose ol { list-style: decimal; padding-left: 1.4em; margin: 0.4em 0; }
+.doc-prose blockquote { border-left: 3px solid var(--border-subtle); padding-left: 0.8em; color: var(--text-secondary, #666); margin: 0.6em 0; }
+.doc-prose strong { font-weight: 700; }
+.doc-prose s { text-decoration: line-through; }
+.doc-prose .ProseMirror:focus, .doc-prose:focus { outline: none; }

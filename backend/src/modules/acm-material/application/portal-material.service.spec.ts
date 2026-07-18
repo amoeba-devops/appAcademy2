@@ -195,6 +195,148 @@ describe('PortalMaterialService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
+  // ── Doc board (PLN-260719 B) ──────────────────────────────────────────
+
+  it('createDoc rejects a parent author', async () => {
+    const { svc } = build();
+    await expect(
+      svc.createDoc(
+        'e1',
+        { kind: 'PARENT', refId: 'p1' },
+        '제목',
+        '<p>x</p>',
+        [],
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('createDoc requires a title', async () => {
+    const { svc } = build();
+    await expect(
+      svc.createDoc(
+        'e1',
+        { kind: 'TEACHER', refId: 't1' },
+        '  ',
+        '<p>x</p>',
+        [],
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('createDoc saves DOC row + shares with roles (self excluded, dupes removed)', async () => {
+    const saved: any = {
+      id: 'm',
+      kind: 'DOC',
+      content: '<p>hi</p>',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: '문서',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, repo, shareRepo } = build({
+      material: saved,
+      dsRows: (sql) =>
+        sql.includes('amb_acm_std_student')
+          ? [{ id: 's1', name: '홍길동' }]
+          : [],
+    });
+    await svc.createDoc(
+      'e1',
+      { kind: 'TEACHER', refId: 't1' },
+      '문서',
+      '<p>hi</p>',
+      [
+        { kind: 'STUDENT', refId: 's1', role: 'EDITOR' },
+        { kind: 'STUDENT', refId: 's1', role: 'VIEWER' }, // dupe
+        { kind: 'TEACHER', refId: 't1', role: 'EDITOR' }, // self
+      ],
+    );
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'DOC',
+        content: '<p>hi</p>',
+        s3Key: null,
+      }),
+    );
+    expect(shareRepo.save).toHaveBeenCalledWith([
+      expect.objectContaining({
+        tgtKind: 'STUDENT',
+        tgtRefId: 's1',
+        role: 'EDITOR',
+      }),
+    ]);
+  });
+
+  it('updateDoc allows an EDITOR share target', async () => {
+    const doc: any = {
+      id: 'm',
+      kind: 'DOC',
+      content: '<p>old</p>',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'T',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, repo } = build({
+      material: doc,
+      shares: [
+        { matId: 'm', tgtKind: 'STUDENT', tgtRefId: 's1', role: 'EDITOR' },
+      ],
+    });
+    await svc.updateDoc(
+      'e1',
+      'm',
+      { kind: 'STUDENT', refId: 's1' },
+      {
+        content: '<p>new</p>',
+      },
+    );
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ content: '<p>new</p>' }),
+    );
+  });
+
+  it('updateDoc forbids a VIEWER share target', async () => {
+    const doc: any = {
+      id: 'm',
+      kind: 'DOC',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'T',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, shareRepo } = build({ material: doc });
+    // VIEWER only → canEdit 의 EDITOR 조회(findOne where role:'EDITOR')는 miss.
+    shareRepo.findOne.mockResolvedValue(null);
+    await expect(
+      svc.updateDoc(
+        'e1',
+        'm',
+        { kind: 'STUDENT', refId: 's1' },
+        { content: 'x' },
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('updateShares is author-only', async () => {
+    const doc: any = {
+      id: 'm',
+      kind: 'DOC',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'T',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc } = build({ material: doc });
+    await expect(
+      svc.updateShares('e1', 'm', { kind: 'STUDENT', refId: 's1' }, []),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
   it('only the author can delete', async () => {
     const { svc } = build({
       material: {

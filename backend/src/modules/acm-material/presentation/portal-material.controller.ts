@@ -6,6 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Res,
   StreamableFile,
@@ -24,7 +25,10 @@ import type { Response } from 'express';
 import { PortalJwtAuthGuard } from '../../acm-auth/guards/portal-jwt-auth.guard';
 import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
 import type { PortalAuthUser } from '../../acm-auth/application/portal-account.service';
-import { PortalMaterialService } from '../application/portal-material.service';
+import {
+  PortalMaterialService,
+  type ShareInput,
+} from '../application/portal-material.service';
 
 /**
  * PLN-260718 P3 — portal 자료실. Teachers/students author posts and share them
@@ -49,9 +53,79 @@ export class PortalMaterialController {
   }
 
   @Get('share-candidates')
-  @ApiOperation({ summary: 'List who I can share with (teacher→students, student→teachers)' })
-  shareCandidates(@PortalUser() u: PortalAuthUser) {
+  @ApiOperation({
+    summary:
+      'List who I can share with (default: class-based; scope=all → 포털 사용자 전체)',
+  })
+  shareCandidates(
+    @PortalUser() u: PortalAuthUser,
+    @Query('scope') scope?: string,
+  ) {
+    if (scope === 'all') {
+      return this.svc.listAllPortalUsers(u.entId, {
+        kind: u.kind,
+        refId: u.refId,
+      });
+    }
     return this.svc.listShareCandidates(u.entId, u.kind, u.refId);
+  }
+
+  // ── Doc board (PLN-260719 B) ──────────────────────────────────────────
+
+  @Post('docs')
+  @ApiOperation({
+    summary: 'Create a rich-text doc post + share targets/roles',
+  })
+  createDoc(
+    @PortalUser() u: PortalAuthUser,
+    @Body() body: { title: string; content: string; shares?: ShareInput[] },
+  ) {
+    return this.svc.createDoc(
+      u.entId,
+      { kind: u.kind, refId: u.refId },
+      body.title,
+      body.content,
+      body.shares ?? [],
+    );
+  }
+
+  @Get('docs/:id')
+  @ApiOperation({ summary: 'Get a doc post (content + shares + canEdit)' })
+  getDoc(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.getDoc(u.entId, id, { kind: u.kind, refId: u.refId });
+  }
+
+  @Put('docs/:id')
+  @ApiOperation({ summary: 'Update doc title/content (author or EDITOR)' })
+  updateDoc(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { title?: string; content?: string },
+  ) {
+    return this.svc.updateDoc(
+      u.entId,
+      id,
+      { kind: u.kind, refId: u.refId },
+      body,
+    );
+  }
+
+  @Put('docs/:id/shares')
+  @ApiOperation({ summary: 'Replace share targets/roles (author only)' })
+  updateShares(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { shares: ShareInput[] },
+  ) {
+    return this.svc.updateShares(
+      u.entId,
+      id,
+      { kind: u.kind, refId: u.refId },
+      body.shares ?? [],
+    );
   }
 
   @Post()

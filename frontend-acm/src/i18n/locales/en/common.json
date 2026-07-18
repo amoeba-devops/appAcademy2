@@ -36,7 +36,7 @@
     "nav": {
       "notices": "Notices",
       "calendar": "Schedule",
-      "materials": "Materials"
+      "materials": "Docs & Files"
     },
     "login": {
       "title": "Academy Portal Login",
@@ -117,7 +117,23 @@
       "comments": "Comments",
       "noComments": "No comments yet.",
       "commentPlaceholder": "Write a comment…",
-      "confirmDelete": "Delete this post?"
+      "confirmDelete": "Delete this post?",
+      "newDoc": "New document",
+      "newFile": "Upload file",
+      "docBadge": "Doc"
+    },
+    "docs": {
+      "back": "Back to Docs & Files",
+      "titlePlaceholder": "Document title",
+      "shareTitle": "Share with (viewer/editor)",
+      "shareEmpty": "No share targets yet. Add below.",
+      "viewer": "Viewer",
+      "editor": "Editor",
+      "kindTeacher": "Teacher",
+      "kindStudent": "Student",
+      "searchUser": "Search by name (teacher/student)",
+      "noResult": "No results.",
+      "noPermission": "You do not have permission to create documents."
     }
   },
   "material": {

@@ -12,6 +12,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { ObjectStoreClient } from '../../acm-csl/infrastructure/external/object-store.client';
 import { MaterialTypeormEntity } from '../infrastructure/typeorm/material.typeorm-entity';
 import {
+  MaterialShareRole,
   MaterialShareTargetKind,
   MaterialShareTypeormEntity,
 } from '../infrastructure/typeorm/material-share.typeorm-entity';
@@ -61,22 +62,39 @@ export interface ShareTargetView {
   kind: MaterialShareTargetKind;
   refId: string;
   name: string;
+  role: MaterialShareRole;
+}
+
+/** PLN-260719 B — doc share input (Google-Docs-like per-target role). */
+export interface ShareInput {
+  kind: MaterialShareTargetKind;
+  refId: string;
+  role: MaterialShareRole;
 }
 
 export interface PortalMaterialView {
   id: string;
+  kind: 'FILE' | 'DOC';
   title: string;
-  filename: string;
-  mime: string;
-  sizeBytes: number;
+  filename: string | null;
+  mime: string | null;
+  sizeBytes: number | null;
   createdAt: string;
   authorKind: string | null;
   authorName: string | null;
   shareTargets: ShareTargetView[];
   commentCount: number;
   mine: boolean;
+  canEdit: boolean;
   isSubmission: boolean;
 }
+
+export interface PortalDocView extends PortalMaterialView {
+  content: string;
+}
+
+// DOC 본문 HTML 최대 크기 (렌더 시 프론트에서 DOMPurify sanitize).
+const MAX_DOC_CONTENT = 200 * 1024;
 
 export interface MaterialCommentView {
   id: string;
@@ -151,6 +169,228 @@ export class PortalMaterialService {
       return rows.map((r) => ({ refId: r.ref_id, name: r.name }));
     }
     return [];
+  }
+
+  /**
+   * PLN-260719 B — 문서 게시판 공유후보: 포털 사용자 전체(모든 강사 + 모든 학생).
+   * 본인은 제외. (파일 자료의 반-기반 후보와 별개)
+   */
+  async listAllPortalUsers(
+    entId: string,
+    self: PortalAuthor,
+  ): Promise<
+    Array<{ kind: MaterialShareTargetKind; refId: string; name: string }>
+  > {
+    const teachers: Array<{ ref_id: string; name: string }> =
+      await this.ds.query(
+        `SELECT tch_id AS ref_id, tch_name AS name FROM amb_acm_tch_teacher
+        WHERE ent_id = $1 AND deleted_at IS NULL ORDER BY tch_name`,
+        [entId],
+      );
+    const students: Array<{ ref_id: string; name: string }> =
+      await this.ds.query(
+        `SELECT std_id AS ref_id, std_name AS name FROM amb_acm_std_student
+        WHERE ent_id = $1 AND deleted_at IS NULL AND std_status = 'ACTIVE'
+        ORDER BY std_name`,
+        [entId],
+      );
+    return [
+      ...teachers.map((r) => ({
+        kind: 'TEACHER' as const,
+        refId: r.ref_id,
+        name: r.name,
+      })),
+      ...students.map((r) => ({
+        kind: 'STUDENT' as const,
+        refId: r.ref_id,
+        name: r.name,
+      })),
+    ].filter((c) => !(c.kind === self.kind && c.refId === self.refId));
+  }
+
+  // ── Doc board (PLN-260719 B) ──────────────────────────────────────────
+
+  async createDoc(
+    entId: string,
+    author: PortalAuthor,
+    title: string,
+    content: string,
+    shares: ShareInput[],
+  ): Promise<PortalDocView> {
+    if (author.kind !== 'TEACHER' && author.kind !== 'STUDENT') {
+      throw new ForbiddenException('ONLY_TEACHER_OR_STUDENT_CAN_POST');
+    }
+    const cleanTitle = (title ?? '').trim();
+    if (!cleanTitle) throw new BadRequestException('TITLE_REQUIRED');
+    if ((content ?? '').length > MAX_DOC_CONTENT) {
+      throw new BadRequestException('CONTENT_TOO_LONG');
+    }
+    const cleanShares = this.dedupeShares(shares, author);
+    await this.assertShareInputsValid(entId, cleanShares);
+
+    const mat = await this.repo.save(
+      this.repo.create({
+        entId,
+        clsId: null,
+        kind: 'DOC',
+        content: content ?? '',
+        authorKind: author.kind,
+        title: cleanTitle,
+        s3Key: null,
+        filename: null,
+        mime: null,
+        sizeBytes: null,
+        uploadedBy: author.refId,
+      }),
+    );
+    if (cleanShares.length > 0) {
+      await this.shareRepo.save(
+        cleanShares.map((s) =>
+          this.shareRepo.create({
+            entId,
+            matId: mat.id,
+            tgtKind: s.kind,
+            tgtRefId: s.refId,
+            role: s.role,
+          }),
+        ),
+      );
+    }
+    return this.getDoc(entId, mat.id, author);
+  }
+
+  async getDoc(
+    entId: string,
+    matId: string,
+    viewer: PortalAuthor,
+  ): Promise<PortalDocView> {
+    const mat = await this.getViewableOrThrow(entId, matId, viewer);
+    if (mat.kind !== 'DOC') throw new NotFoundException('NOT_A_DOC');
+    const [view] = await this.enrich(entId, [mat], viewer);
+    return { ...view, content: mat.content ?? '' };
+  }
+
+  /** 본문/제목 수정 — 작성자 또는 EDITOR 공유대상만. */
+  async updateDoc(
+    entId: string,
+    matId: string,
+    editor: PortalAuthor,
+    patch: { title?: string; content?: string },
+  ): Promise<PortalDocView> {
+    const mat = await this.repo.findOne({
+      where: { id: matId, entId, deletedAt: IsNull() },
+    });
+    if (!mat || mat.kind !== 'DOC')
+      throw new NotFoundException('DOC_NOT_FOUND');
+    if (!(await this.canEdit(entId, mat, editor))) {
+      throw new ForbiddenException('NOT_EDITOR');
+    }
+    if (patch.title !== undefined) {
+      const cleanTitle = patch.title.trim();
+      if (!cleanTitle) throw new BadRequestException('TITLE_REQUIRED');
+      mat.title = cleanTitle;
+    }
+    if (patch.content !== undefined) {
+      if (patch.content.length > MAX_DOC_CONTENT) {
+        throw new BadRequestException('CONTENT_TOO_LONG');
+      }
+      mat.content = patch.content;
+    }
+    await this.repo.save(mat);
+    return this.getDoc(entId, matId, editor);
+  }
+
+  /** 공유대상/권한 전체 교체 — 작성자만. */
+  async updateShares(
+    entId: string,
+    matId: string,
+    author: PortalAuthor,
+    shares: ShareInput[],
+  ): Promise<PortalDocView> {
+    const mat = await this.repo.findOne({
+      where: { id: matId, entId, deletedAt: IsNull() },
+    });
+    if (!mat || mat.kind !== 'DOC')
+      throw new NotFoundException('DOC_NOT_FOUND');
+    if (mat.authorKind !== author.kind || mat.uploadedBy !== author.refId) {
+      throw new ForbiddenException('NOT_AUTHOR');
+    }
+    const cleanShares = this.dedupeShares(shares, author);
+    await this.assertShareInputsValid(entId, cleanShares);
+    await this.shareRepo.delete({ entId, matId });
+    if (cleanShares.length > 0) {
+      await this.shareRepo.save(
+        cleanShares.map((s) =>
+          this.shareRepo.create({
+            entId,
+            matId,
+            tgtKind: s.kind,
+            tgtRefId: s.refId,
+            role: s.role,
+          }),
+        ),
+      );
+    }
+    return this.getDoc(entId, matId, author);
+  }
+
+  private dedupeShares(
+    shares: ShareInput[],
+    author: PortalAuthor,
+  ): ShareInput[] {
+    const seen = new Set<string>();
+    const out: ShareInput[] = [];
+    for (const s of shares ?? []) {
+      if (!s?.refId || (s.kind !== 'STUDENT' && s.kind !== 'TEACHER')) continue;
+      if (s.kind === author.kind && s.refId === author.refId) continue; // 본인 제외
+      const key = `${s.kind}:${s.refId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        kind: s.kind,
+        refId: s.refId,
+        role: s.role === 'EDITOR' ? 'EDITOR' : 'VIEWER',
+      });
+    }
+    return out;
+  }
+
+  private async assertShareInputsValid(
+    entId: string,
+    shares: ShareInput[],
+  ): Promise<void> {
+    const byKind: Record<MaterialShareTargetKind, string[]> = {
+      STUDENT: [],
+      TEACHER: [],
+    };
+    for (const s of shares) byKind[s.kind].push(s.refId);
+    for (const kind of ['STUDENT', 'TEACHER'] as const) {
+      if (byKind[kind].length > 0) {
+        await this.assertTargetsExist(entId, kind, byKind[kind]);
+      }
+    }
+  }
+
+  /** 편집 권한 = 작성자 또는 EDITOR 공유대상. */
+  private async canEdit(
+    entId: string,
+    mat: MaterialTypeormEntity,
+    viewer: PortalAuthor,
+  ): Promise<boolean> {
+    if (mat.authorKind === viewer.kind && mat.uploadedBy === viewer.refId) {
+      return true;
+    }
+    if (viewer.kind !== 'STUDENT' && viewer.kind !== 'TEACHER') return false;
+    const share = await this.shareRepo.findOne({
+      where: {
+        entId,
+        matId: mat.id,
+        tgtKind: viewer.kind,
+        tgtRefId: viewer.refId,
+        role: 'EDITOR',
+      },
+    });
+    return !!share;
   }
 
   // ── Create ────────────────────────────────────────────────────────────
@@ -299,8 +539,13 @@ export class PortalMaterialService {
     viewer: PortalAuthor,
   ): Promise<{ stream: Readable; mime: string; filename: string }> {
     const mat = await this.getViewableOrThrow(entId, matId, viewer);
+    if (!mat.s3Key || !mat.filename) throw new NotFoundException('NOT_A_FILE');
     const obj = await this.store.getObjectStream(mat.s3Key);
-    return { stream: obj.stream, mime: mat.mime, filename: mat.filename };
+    return {
+      stream: obj.stream,
+      mime: mat.mime ?? 'application/octet-stream',
+      filename: mat.filename,
+    };
   }
 
   // ── Comments ──────────────────────────────────────────────────────────
@@ -485,12 +730,15 @@ export class PortalMaterialService {
         m.authorKind && m.uploadedBy
           ? (nameMap.get(`${m.authorKind}:${m.uploadedBy}`) ?? null)
           : null;
+      const mine =
+        m.authorKind === viewer.kind && m.uploadedBy === viewer.refId;
       return {
         id: m.id,
+        kind: m.kind ?? 'FILE',
         title: m.title,
-        filename: m.filename,
-        mime: m.mime,
-        sizeBytes: Number(m.sizeBytes),
+        filename: m.filename ?? null,
+        mime: m.mime ?? null,
+        sizeBytes: m.sizeBytes != null ? Number(m.sizeBytes) : null,
         createdAt: m.createdAt.toISOString(),
         authorKind: m.authorKind ?? null,
         authorName,
@@ -498,9 +746,19 @@ export class PortalMaterialService {
           kind: s.tgtKind,
           refId: s.tgtRefId,
           name: nameMap.get(`${s.tgtKind}:${s.tgtRefId}`) ?? '-',
+          role: s.role ?? 'VIEWER',
         })),
         commentCount: countByMat.get(m.id) ?? 0,
-        mine: m.authorKind === viewer.kind && m.uploadedBy === viewer.refId,
+        mine,
+        // PLN-260719 B — 편집 가능 = 작성자 또는 EDITOR 공유대상.
+        canEdit:
+          mine ||
+          tgts.some(
+            (s) =>
+              s.tgtKind === viewer.kind &&
+              s.tgtRefId === viewer.refId &&
+              s.role === 'EDITOR',
+          ),
         isSubmission:
           m.authorKind === 'STUDENT' &&
           tgts.some((s) => s.tgtKind === 'TEACHER'),
