@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
@@ -111,6 +112,46 @@ export class PortalMaterialController {
       { kind: u.kind, refId: u.refId },
       body,
     );
+  }
+
+  @Get('docs/:id/revisions')
+  @ApiOperation({ summary: 'Doc revision history (viewer/editor/author)' })
+  revisions(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.listRevisions(u.entId, id, {
+      kind: u.kind,
+      refId: u.refId,
+    });
+  }
+
+  @Get('docs/:id/revisions/:seq')
+  @ApiOperation({ summary: 'View a doc revision snapshot' })
+  revision(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('seq', ParseIntPipe) seq: number,
+  ) {
+    return this.svc.getRevision(u.entId, id, seq, {
+      kind: u.kind,
+      refId: u.refId,
+    });
+  }
+
+  @Post('docs/:id/revisions/:seq/restore')
+  @ApiOperation({
+    summary: 'Restore a revision (author/EDITOR; records a new revision)',
+  })
+  restore(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('seq', ParseIntPipe) seq: number,
+  ) {
+    return this.svc.restoreRevision(u.entId, id, seq, {
+      kind: u.kind,
+      refId: u.refId,
+    });
   }
 
   @Put('docs/:id/shares')

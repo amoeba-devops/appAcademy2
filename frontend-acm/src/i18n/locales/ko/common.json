@@ -134,7 +134,13 @@
       "kindStudent": "학생",
       "searchUser": "이름 검색 (강사/학생)",
       "noResult": "결과가 없습니다.",
-      "noPermission": "문서를 작성할 권한이 없습니다."
+      "noPermission": "문서를 작성할 권한이 없습니다.",
+      "history": "수정 히스토리",
+      "noHistory": "기록이 없습니다.",
+      "current": "현재",
+      "viewVersion": "보기",
+      "restore": "이 버전으로 복원",
+      "confirmRestore": "이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)"
     },
     "students": {
       "teacherOnly": "강사 전용 메뉴입니다.",

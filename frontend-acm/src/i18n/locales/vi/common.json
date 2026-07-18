@@ -134,7 +134,13 @@
       "kindStudent": "Học sinh",
       "searchUser": "Tìm theo tên (giáo viên/học sinh)",
       "noResult": "Không có kết quả.",
-      "noPermission": "Bạn không có quyền tạo tài liệu."
+      "noPermission": "Bạn không có quyền tạo tài liệu.",
+      "history": "Lịch sử chỉnh sửa",
+      "noHistory": "Không có lịch sử.",
+      "current": "Hiện tại",
+      "viewVersion": "Xem",
+      "restore": "Khôi phục phiên bản này",
+      "confirmRestore": "Khôi phục phiên bản này? (Khôi phục cũng được ghi thành phiên bản mới)"
     },
     "students": {
       "teacherOnly": "Menu chỉ dành cho giáo viên.",
