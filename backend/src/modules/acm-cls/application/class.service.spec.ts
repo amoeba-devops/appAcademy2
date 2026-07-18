@@ -17,6 +17,8 @@ function makeService() {
 
   const ds = {
     transaction: jest.fn(async (cb: (m: typeof em) => unknown) => cb(em)),
+    // PLN-260719 D — resolveTeacherRef 의 tch 역조회 (legacy teacherUserId 경로).
+    query: jest.fn().mockResolvedValue([]),
   } as any;
 
   const clsQb = {
@@ -50,7 +52,9 @@ function makeService() {
   return { svc, clsRepo, courseRepo, events };
 }
 
-function baseCreateDto(overrides: Partial<CreateClassDto> = {}): CreateClassDto {
+function baseCreateDto(
+  overrides: Partial<CreateClassDto> = {},
+): CreateClassDto {
   return {
     subjectType: 'MAP_TEST',
     teacherUserId: 't-1',
@@ -60,7 +64,7 @@ function baseCreateDto(overrides: Partial<CreateClassDto> = {}): CreateClassDto 
     ],
     recurrences: [{ dayOfWeek: 'MON', startTime: '10:00', durationMin: 60 }],
     ...overrides,
-  } as CreateClassDto;
+  };
 }
 
 describe('ClassService — course link validation', () => {
@@ -86,7 +90,10 @@ describe('ClassService — course link validation', () => {
       const { svc, courseRepo } = makeService();
       courseRepo.exist.mockResolvedValue(true);
 
-      const res: any = await svc.create(ENT, baseCreateDto({ courseId: 'c-1' }));
+      const res: any = await svc.create(
+        ENT,
+        baseCreateDto({ courseId: 'c-1' }),
+      );
 
       expect(courseRepo.exist).toHaveBeenCalledTimes(1);
       expect(res.courseId).toBe('c-1');
@@ -108,7 +115,11 @@ describe('ClassService — course link validation', () => {
           ENT,
           baseCreateDto({
             students: [
-              { studentUserId: 's-1', hourlyRate: 50000, capacityRole: 'GROUP_PEER' },
+              {
+                studentUserId: 's-1',
+                hourlyRate: 50000,
+                capacityRole: 'GROUP_PEER',
+              },
             ],
           }),
         ),

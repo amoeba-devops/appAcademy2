@@ -166,8 +166,13 @@
     "duration": "课时时长（分钟）",
     "defaultMode": "默认上课方式",
     "days": {
-      "MON": "一", "TUE": "二", "WED": "三", "THU": "四",
-      "FRI": "五", "SAT": "六", "SUN": "日"
+      "MON": "一",
+      "TUE": "二",
+      "WED": "三",
+      "THU": "四",
+      "FRI": "五",
+      "SAT": "六",
+      "SUN": "日"
     }
   },
   "video": {
@@ -249,5 +254,12 @@
       "label": "状态",
       "pending": "变更中…"
     }
+  },
+  "create": {
+    "scheduleDates": "指定日期（默认）",
+    "scheduleRecurring": "重复日程（可选）",
+    "scheduleDatesHint": "每个所选日期/时间将创建一节课。",
+    "addDate": "添加日期",
+    "sessionDate": "日期"
   }
 }

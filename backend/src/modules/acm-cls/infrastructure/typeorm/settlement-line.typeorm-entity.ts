@@ -24,10 +24,20 @@ export class SettlementLineTypeormEntity {
   @Column({ name: 'stl_line_session_date', type: 'date' })
   sessionDate!: string;
 
-  @Column({ name: 'stl_line_billable_hours', type: 'numeric', precision: 3, scale: 1 })
+  @Column({
+    name: 'stl_line_billable_hours',
+    type: 'numeric',
+    precision: 3,
+    scale: 1,
+  })
   billableHours!: string;
 
-  @Column({ name: 'stl_line_hourly_rate', type: 'numeric', precision: 10, scale: 0 })
+  @Column({
+    name: 'stl_line_hourly_rate',
+    type: 'numeric',
+    precision: 10,
+    scale: 0,
+  })
   hourlyRate!: string;
 
   @Column({ name: 'stl_line_amount', type: 'numeric', precision: 12, scale: 0 })

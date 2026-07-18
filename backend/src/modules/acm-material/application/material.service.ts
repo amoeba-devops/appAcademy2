@@ -167,7 +167,9 @@ export class MaterialService {
       rows = await this.ds.query(
         `SELECT c.cls_id FROM amb_acm_cls_classes c
            JOIN amb_acm_tch_teacher t
-             ON t.tch_user_id = c.cls_teacher_user_id AND t.ent_id = c.ent_id
+             ON (c.cls_teacher_tch_id = t.tch_id
+                 OR t.tch_user_id = c.cls_teacher_user_id)
+            AND t.ent_id = c.ent_id
           WHERE c.ent_id = $1 AND t.tch_id = $2`,
         [entId, refId],
       );

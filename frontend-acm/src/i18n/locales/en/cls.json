@@ -166,8 +166,13 @@
     "duration": "Duration (min)",
     "defaultMode": "Default Mode",
     "days": {
-      "MON": "Mon", "TUE": "Tue", "WED": "Wed", "THU": "Thu",
-      "FRI": "Fri", "SAT": "Sat", "SUN": "Sun"
+      "MON": "Mon",
+      "TUE": "Tue",
+      "WED": "Wed",
+      "THU": "Thu",
+      "FRI": "Fri",
+      "SAT": "Sat",
+      "SUN": "Sun"
     }
   },
   "video": {
@@ -249,5 +254,12 @@
       "label": "Status",
       "pending": "Updating…"
     }
+  },
+  "create": {
+    "scheduleDates": "Specific dates (default)",
+    "scheduleRecurring": "Recurring (optional)",
+    "scheduleDatesHint": "A session is created for each selected date/time.",
+    "addDate": "Add date",
+    "sessionDate": "Date"
   }
 }

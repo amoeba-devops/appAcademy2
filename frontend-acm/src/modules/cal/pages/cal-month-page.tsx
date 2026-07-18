@@ -84,14 +84,14 @@ export function CalMonthPage() {
   }, [anchor, view, visibleDays]);
 
   const query: ListCalEventsQuery = useMemo(() => {
-    const ownerIds = selectedTeachers
-      .map((teacher) => teacher.userId)
-      .filter((userId): userId is string => !!userId);
+    // PLN-260719 D — 강사 필터는 /admin/tch 마스터(tch_id) 기준
+    // (담당강사 OR 강사 참석자 OR 소유자 매칭은 서버에서 처리).
+    const tchIds = selectedTeachers.map((teacher) => teacher.id);
     const attendeeIds = selectedAttendees.map((attendee) => attendee.refId);
     return {
       from: range.from,
       to: range.to,
-      ...(isAdmin && ownerIds.length > 0 ? { ownerUserIds: ownerIds } : {}),
+      ...(isAdmin && tchIds.length > 0 ? { assigneeTchIds: tchIds } : {}),
       ...(isAdmin && attendeeIds.length > 0
         ? { attendeeKind, attendeeRefIds: attendeeIds }
         : {}),

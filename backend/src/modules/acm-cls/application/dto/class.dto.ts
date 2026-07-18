@@ -34,11 +34,33 @@ export const CLS_SUBJECT_TYPES = [
   'DEMO',
   'OTHER',
 ] as const;
-export const CLS_STATUSES = ['PROPOSED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'] as const;
-export const CLS_STARTED_FROMS = ['CSL_PIPELINE', 'DIRECT_ENROLLMENT', 'MIGRATION'] as const;
+export const CLS_STATUSES = [
+  'PROPOSED',
+  'ACTIVE',
+  'PAUSED',
+  'COMPLETED',
+  'CANCELLED',
+] as const;
+export const CLS_STARTED_FROMS = [
+  'CSL_PIPELINE',
+  'DIRECT_ENROLLMENT',
+  'MIGRATION',
+] as const;
 export const CST_CAPACITY_ROLES = ['PRIMARY', 'GROUP_PEER'] as const;
-export const REC_DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'] as const;
-export const REC_MODES = ['IN_PERSON', 'ONLINE', 'TWO_PERSON_IN_PERSON'] as const;
+export const REC_DAYS = [
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+  'SUN',
+] as const;
+export const REC_MODES = [
+  'IN_PERSON',
+  'ONLINE',
+  'TWO_PERSON_IN_PERSON',
+] as const;
 export const VCF_PROVIDERS = ['GOOGLE_MEET', 'BODASCHOOL'] as const;
 
 // ============================================================================
@@ -48,123 +70,188 @@ export class CreateClassStudentDto {
   @ApiProperty() @IsUUID() studentUserId!: string;
 
   @ApiProperty({ description: 'KRW per hour' })
-  @IsInt() @Min(1) @Max(500000)
-  hourlyRate!: number;
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(500000)
+  hourlyRate?: number;
 
   @ApiPropertyOptional({ enum: CST_CAPACITY_ROLES, default: 'PRIMARY' })
-  @IsOptional() @IsEnum(CST_CAPACITY_ROLES)
-  capacityRole?: typeof CST_CAPACITY_ROLES[number];
+  @IsOptional()
+  @IsEnum(CST_CAPACITY_ROLES)
+  capacityRole?: (typeof CST_CAPACITY_ROLES)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   inqId?: string;
 }
 
 export class CreateRecurrenceDto {
-  @ApiProperty({ enum: REC_DAYS }) @IsEnum(REC_DAYS)
-  dayOfWeek!: typeof REC_DAYS[number];
+  @ApiProperty({ enum: REC_DAYS })
+  @IsEnum(REC_DAYS)
+  dayOfWeek!: (typeof REC_DAYS)[number];
 
   @ApiProperty({ description: 'HH:mm:ss' })
   @Matches(/^\d{2}:\d{2}(:\d{2})?$/)
   startTime!: string;
 
-  @ApiProperty() @IsInt() @Min(30) @Max(480)
+  @ApiProperty()
+  @IsInt()
+  @Min(30)
+  @Max(480)
   durationMin!: number;
 
   @ApiPropertyOptional({ enum: REC_MODES, default: 'ONLINE' })
-  @IsOptional() @IsEnum(REC_MODES)
-  defaultMode?: typeof REC_MODES[number];
+  @IsOptional()
+  @IsEnum(REC_MODES)
+  defaultMode?: (typeof REC_MODES)[number];
 
   @ApiPropertyOptional({ description: 'YYYY-MM-DD' })
-  @IsOptional() @IsDateString()
+  @IsOptional()
+  @IsDateString()
   effectiveFrom?: string;
 
   @ApiPropertyOptional({ type: [String] })
-  @IsOptional() @IsArray() @IsString({ each: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   exceptions?: string[];
 }
 
 export class CreateClassDto {
-  @ApiPropertyOptional({ enum: CLS_STARTED_FROMS, default: 'DIRECT_ENROLLMENT' })
-  @IsOptional() @IsEnum(CLS_STARTED_FROMS)
-  startedFrom?: typeof CLS_STARTED_FROMS[number];
+  @ApiPropertyOptional({
+    enum: CLS_STARTED_FROMS,
+    default: 'DIRECT_ENROLLMENT',
+  })
+  @IsOptional()
+  @IsEnum(CLS_STARTED_FROMS)
+  startedFrom?: (typeof CLS_STARTED_FROMS)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   inqId?: string;
 
-  @ApiProperty({ enum: CLS_SUBJECT_TYPES }) @IsEnum(CLS_SUBJECT_TYPES)
-  subjectType!: typeof CLS_SUBJECT_TYPES[number];
+  @ApiProperty({ enum: CLS_SUBJECT_TYPES })
+  @IsEnum(CLS_SUBJECT_TYPES)
+  subjectType!: (typeof CLS_SUBJECT_TYPES)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   subjectLabel?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   courseId?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   refGuidelineId?: string;
 
-  @ApiProperty() @IsUUID()
-  teacherUserId!: string;
+  // PLN-260719 D — 강사 마스터(tch_id) 참조가 표준. 둘 중 하나 필수(서비스 검증).
+  @ApiPropertyOptional({ description: '강사 마스터 tch_id (권장)' })
+  @IsOptional()
+  @IsUUID()
+  teacherTchId?: string;
 
-  @ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean()
+  @ApiPropertyOptional({ description: 'legacy: 강사 콘솔계정 usr_id' })
+  @IsOptional()
+  @IsUUID()
+  teacherUserId?: string;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
   isDemo?: boolean;
 
-  @ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean()
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
   isInPersonDefault?: boolean;
 
-  @ApiProperty({ description: 'YYYY-MM-DD' }) @IsDateString()
+  @ApiProperty({ description: 'YYYY-MM-DD' })
+  @IsDateString()
   startedAt!: string;
 
   @ApiPropertyOptional({ description: 'YYYY-MM-DD' })
-  @IsOptional() @IsDateString()
+  @IsOptional()
+  @IsDateString()
   endedAt?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   remark?: string;
 
   @ApiProperty({ type: [CreateClassStudentDto] })
-  @IsArray() @ArrayMinSize(1)
+  @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateClassStudentDto)
   students!: CreateClassStudentDto[];
 
-  @ApiProperty({ type: [CreateRecurrenceDto] })
-  @IsArray() @ArrayMinSize(1)
+  // PLN-260719 D — 날짜 지정 생성이 기본이 되어 반복 일정은 옵션.
+  @ApiPropertyOptional({ type: [CreateRecurrenceDto] })
+  @IsOptional()
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateRecurrenceDto)
-  recurrences!: CreateRecurrenceDto[];
+  recurrences?: CreateRecurrenceDto[];
 
   @ApiPropertyOptional({ enum: VCF_PROVIDERS, default: 'GOOGLE_MEET' })
-  @IsOptional() @IsEnum(VCF_PROVIDERS)
-  videoProvider?: typeof VCF_PROVIDERS[number];
+  @IsOptional()
+  @IsEnum(VCF_PROVIDERS)
+  videoProvider?: (typeof VCF_PROVIDERS)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   videoPersistentLink?: string;
 }
 
 export class UpdateClassDto extends PartialType(CreateClassDto) {}
 
 export class ChangeClassStatusDto {
-  @ApiProperty({ enum: CLS_STATUSES }) @IsEnum(CLS_STATUSES)
-  status!: typeof CLS_STATUSES[number];
+  @ApiProperty({ enum: CLS_STATUSES })
+  @IsEnum(CLS_STATUSES)
+  status!: (typeof CLS_STATUSES)[number];
 }
 
 export class ListClassesQueryDto {
-  @ApiPropertyOptional() @IsOptional() @IsEnum(CLS_STATUSES)
-  status?: typeof CLS_STATUSES[number];
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(CLS_STATUSES)
+  status?: (typeof CLS_STATUSES)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsEnum(CLS_SUBJECT_TYPES)
-  subjectType?: typeof CLS_SUBJECT_TYPES[number];
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(CLS_SUBJECT_TYPES)
+  subjectType?: (typeof CLS_SUBJECT_TYPES)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   teacherUserId?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   studentUserId?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   limit?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   offset?: string;
 }

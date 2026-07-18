@@ -1,9 +1,24 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
-import { ConfirmSettlementDto, SettlementQueryDto } from '../application/dto/session.dto';
+import {
+  ConfirmSettlementDto,
+  SettlementQueryDto,
+} from '../application/dto/session.dto';
 import { SettlementService } from '../application/settlement.service';
 
 @ApiTags('acm-cls')
@@ -20,7 +35,10 @@ export class SettlementController {
   }
 
   @Get(':id')
-  findOne(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.service.findOne(u.entId, id);
   }
 
@@ -31,7 +49,11 @@ export class SettlementController {
     @Body() body: { yearMonth: string; teacherUserId?: string },
   ) {
     if (body.teacherUserId) {
-      return this.service.recomputeOne(u.entId, body.teacherUserId, body.yearMonth);
+      return this.service.recomputeOne(
+        u.entId,
+        body.teacherUserId,
+        body.yearMonth,
+      );
     }
     return this.service.recomputeMonth(u.entId, body.yearMonth);
   }

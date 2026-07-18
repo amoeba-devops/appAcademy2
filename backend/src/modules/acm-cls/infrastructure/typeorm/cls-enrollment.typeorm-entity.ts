@@ -26,7 +26,9 @@ export type ClsEnrollmentStatus =
  * Tenant guard: ent_id required on every query (OwnEntityGuard pattern).
  */
 @Entity('amb_acm_cls_enrollment')
-@Index('uq_acm_cls_enrollment_cls_std', ['classId', 'studentId'], { unique: true })
+@Index('uq_acm_cls_enrollment_cls_std', ['classId', 'studentId'], {
+  unique: true,
+})
 @Index('idx_acm_cls_enrollment_ent_status', ['entId', 'status'])
 @Index('idx_acm_cls_enrollment_std_status', ['studentId', 'status'])
 @Index('idx_acm_cls_enrollment_cls_status', ['classId', 'status'])
@@ -50,7 +52,12 @@ export class ClsEnrollmentTypeormEntity {
   @Column({ name: 'ce_applied_prt_id', type: 'uuid' })
   appliedParentId!: string;
 
-  @Column({ name: 'ce_status', type: 'varchar', length: 20, default: 'PENDING' })
+  @Column({
+    name: 'ce_status',
+    type: 'varchar',
+    length: 20,
+    default: 'PENDING',
+  })
   status!: ClsEnrollmentStatus;
 
   @Column({ name: 'ce_applied_at', type: 'timestamptz' })

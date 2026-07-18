@@ -1,7 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsUUID } from 'class-validator';
 
-const ENROLLMENT_STATUSES = ['PENDING', 'CONFIRMED', 'CANCELED', 'EXPIRED'] as const;
+const ENROLLMENT_STATUSES = [
+  'PENDING',
+  'CONFIRMED',
+  'CANCELED',
+  'EXPIRED',
+] as const;
 
 export class ListEnrollmentsQueryDto {
   @ApiPropertyOptional({ enum: ENROLLMENT_STATUSES })

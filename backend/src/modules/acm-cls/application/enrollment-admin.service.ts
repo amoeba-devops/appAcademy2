@@ -24,9 +24,21 @@ export class EnrollmentAdminService {
   ) {
     const qb = this.enrollmentRepo
       .createQueryBuilder('ce')
-      .innerJoin(StudentTypeormEntity, 's', 's.std_id = ce.std_id AND s.deleted_at IS NULL')
-      .innerJoin(ParentTypeormEntity, 'p', 'p.par_id = ce.ce_applied_prt_id AND p.deleted_at IS NULL')
-      .innerJoin(ClassTypeormEntity, 'cls', 'cls.cls_id = ce.cls_id AND cls.cls_deleted_at IS NULL')
+      .innerJoin(
+        StudentTypeormEntity,
+        's',
+        's.std_id = ce.std_id AND s.deleted_at IS NULL',
+      )
+      .innerJoin(
+        ParentTypeormEntity,
+        'p',
+        'p.par_id = ce.ce_applied_prt_id AND p.deleted_at IS NULL',
+      )
+      .innerJoin(
+        ClassTypeormEntity,
+        'cls',
+        'cls.cls_id = ce.cls_id AND cls.cls_deleted_at IS NULL',
+      )
       .where('ce.ent_id = :entId', { entId });
 
     if (filters.status) {

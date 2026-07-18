@@ -1,6 +1,19 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { AttendanceService } from '../application/attendance.service';
@@ -33,18 +46,29 @@ export class SessionController {
 
   // ── Sessions ──
   @Post('sessions')
-  @ApiOperation({ summary: 'Create one-off session (BR-CLS-011/012 conflict-checked)' })
-  createSession(@CurrentUser() u: AcmCurrentUser, @Body() dto: CreateSessionDto) {
+  @ApiOperation({
+    summary: 'Create one-off session (BR-CLS-011/012 conflict-checked)',
+  })
+  createSession(
+    @CurrentUser() u: AcmCurrentUser,
+    @Body() dto: CreateSessionDto,
+  ) {
     return this.sessions.createOne(u.entId, dto, u.id);
   }
 
   @Get('sessions')
-  listSessions(@CurrentUser() u: AcmCurrentUser, @Query() q: ListSessionsQueryDto) {
+  listSessions(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: ListSessionsQueryDto,
+  ) {
     return this.sessions.list(u.entId, q);
   }
 
   @Get('sessions/:id')
-  findSession(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  findSession(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.sessions.findOne(u.entId, id);
   }
 
@@ -77,7 +101,10 @@ export class SessionController {
 
   // ── Attendance ──
   @Get('sessions/:id/attendance')
-  listAttendance(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  listAttendance(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.attendance.listForSession(u.entId, id);
   }
 
@@ -92,7 +119,10 @@ export class SessionController {
 
   // ── Feedback ──
   @Get('sessions/:id/feedback')
-  listFeedback(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  listFeedback(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.feedback.listForSession(u.entId, id);
   }
 
@@ -107,12 +137,18 @@ export class SessionController {
 
   // ── Makeup ──
   @Get('makeups')
-  listMakeups(@CurrentUser() u: AcmCurrentUser, @Query('status') status?: string) {
+  listMakeups(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query('status') status?: string,
+  ) {
     return this.makeup.list(u.entId, status);
   }
 
   @Post('makeups')
-  proposeMakeup(@CurrentUser() u: AcmCurrentUser, @Body() dto: ProposeMakeupDto) {
+  proposeMakeup(
+    @CurrentUser() u: AcmCurrentUser,
+    @Body() dto: ProposeMakeupDto,
+  ) {
     return this.makeup.propose(u.entId, dto, u.id);
   }
 

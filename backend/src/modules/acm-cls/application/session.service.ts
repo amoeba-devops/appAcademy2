@@ -12,8 +12,14 @@ import { Between, DataSource, In, IsNull, Not, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { ClassStudentTypeormEntity } from '../infrastructure/typeorm/class-student.typeorm-entity';
 import { ClassTypeormEntity } from '../infrastructure/typeorm/class.typeorm-entity';
-import { RecurrenceTypeormEntity, type RecDayOfWeek } from '../infrastructure/typeorm/recurrence.typeorm-entity';
-import { SessionTypeormEntity, type SesStatus } from '../infrastructure/typeorm/session.typeorm-entity';
+import {
+  RecurrenceTypeormEntity,
+  type RecDayOfWeek,
+} from '../infrastructure/typeorm/recurrence.typeorm-entity';
+import {
+  SessionTypeormEntity,
+  type SesStatus,
+} from '../infrastructure/typeorm/session.typeorm-entity';
 import type {
   CancelSessionDto,
   CreateSessionDto,
@@ -23,7 +29,13 @@ import type {
 } from './dto/session.dto';
 
 const DOW_INDEX: Record<RecDayOfWeek, number> = {
-  SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6,
+  SUN: 0,
+  MON: 1,
+  TUE: 2,
+  WED: 3,
+  THU: 4,
+  FRI: 5,
+  SAT: 6,
 };
 
 interface ConflictDetail {
@@ -66,9 +78,7 @@ export class SessionService {
     if (!cls) throw new NotFoundException('Class not found');
 
     const teacherUserId = cls.teacherUserId;
-    const studentIds = (
-      await this.cstRepo.find({ where: { entId, clsId } })
-    )
+    const studentIds = (await this.cstRepo.find({ where: { entId, clsId } }))
       .filter((s) => !s.leftAt)
       .map((s) => s.studentUserId);
 
@@ -89,10 +99,20 @@ export class SessionService {
                         s.ses_scheduled_at + (s.ses_duration_min || ' minutes')::interval,
                         '[)')
               && tstzrange($4::timestamptz, $5::timestamptz, '[)')`,
-      [entId, teacherUserId, excludeSesId ?? null, start.toISOString(), end.toISOString()],
+      [
+        entId,
+        teacherUserId,
+        excludeSesId ?? null,
+        start.toISOString(),
+        end.toISOString(),
+      ],
     );
     for (const r of teacherRows) {
-      conflicts.push({ scope: 'TEACHER', conflictingSessionId: r.ses_id, clsId: r.cls_id });
+      conflicts.push({
+        scope: 'TEACHER',
+        conflictingSessionId: r.ses_id,
+        clsId: r.cls_id,
+      });
     }
 
     // Student conflict (BR-CLS-012)
@@ -113,10 +133,20 @@ export class SessionService {
                           s.ses_scheduled_at + (s.ses_duration_min || ' minutes')::interval,
                           '[)')
                 && tstzrange($4::timestamptz, $5::timestamptz, '[)')`,
-        [entId, studentIds, excludeSesId ?? null, start.toISOString(), end.toISOString()],
+        [
+          entId,
+          studentIds,
+          excludeSesId ?? null,
+          start.toISOString(),
+          end.toISOString(),
+        ],
       );
       for (const r of studentRows) {
-        conflicts.push({ scope: 'STUDENT', conflictingSessionId: r.ses_id, clsId: r.cls_id });
+        conflicts.push({
+          scope: 'STUDENT',
+          conflictingSessionId: r.ses_id,
+          clsId: r.cls_id,
+        });
       }
     }
 
@@ -131,9 +161,12 @@ export class SessionService {
     clsId: string,
     horizonDays = 35,
   ): Promise<{ generated: number; skipped: number }> {
-    const cls = await this.clsRepo.findOne({ where: { id: clsId, entId, deletedAt: IsNull() } });
+    const cls = await this.clsRepo.findOne({
+      where: { id: clsId, entId, deletedAt: IsNull() },
+    });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.status === 'CANCELLED' || cls.status === 'COMPLETED') return { generated: 0, skipped: 0 };
+    if (cls.status === 'CANCELLED' || cls.status === 'COMPLETED')
+      return { generated: 0, skipped: 0 };
 
     const recs = await this.recRepo.find({ where: { entId, clsId } });
     if (!recs.length) return { generated: 0, skipped: 0 };
@@ -166,7 +199,11 @@ export class SessionService {
       const effTo = rec.effectiveTo ? new Date(rec.effectiveTo) : null;
       const [hh, mm] = rec.startTime.split(':').map((x) => parseInt(x, 10));
 
-      for (const cursor = new Date(today); cursor < horizon; cursor.setDate(cursor.getDate() + 1)) {
+      for (
+        const cursor = new Date(today);
+        cursor < horizon;
+        cursor.setDate(cursor.getDate() + 1)
+      ) {
         if (cursor.getDay() !== dow) continue;
         if (cursor < startBound || cursor < effFrom) continue;
         if (endBound && cursor > endBound) continue;
@@ -192,9 +229,12 @@ export class SessionService {
           heldAt: null,
           actualMinutes: null,
           status: 'SCHEDULED',
-          mode: rec.defaultMode === 'IN_PERSON' ? 'IN_PERSON'
-            : rec.defaultMode === 'TWO_PERSON_IN_PERSON' ? 'TWO_PERSON_IN_PERSON'
-            : 'ONLINE',
+          mode:
+            rec.defaultMode === 'IN_PERSON'
+              ? 'IN_PERSON'
+              : rec.defaultMode === 'TWO_PERSON_IN_PERSON'
+                ? 'TWO_PERSON_IN_PERSON'
+                : 'ONLINE',
           cancelReason: null,
           cancelNote: null,
           cancelledBy: null,
@@ -241,11 +281,19 @@ export class SessionService {
   // CRUD-ish session ops
   // ──────────────────────────────────────────────────────────────────
   async createOne(entId: string, dto: CreateSessionDto, actorId?: string) {
-    const cls = await this.clsRepo.findOne({ where: { id: dto.clsId, entId, deletedAt: IsNull() } });
+    const cls = await this.clsRepo.findOne({
+      where: { id: dto.clsId, entId, deletedAt: IsNull() },
+    });
     if (!cls) throw new NotFoundException('Class not found');
     const scheduled = new Date(dto.scheduledAt);
-    const conflicts = await this.detectConflicts(entId, dto.clsId, scheduled, dto.durationMin);
-    if (conflicts.length) throw new ConflictException({ code: 'CLS_SESSION_CONFLICT', conflicts });
+    const conflicts = await this.detectConflicts(
+      entId,
+      dto.clsId,
+      scheduled,
+      dto.durationMin,
+    );
+    if (conflicts.length)
+      throw new ConflictException({ code: 'CLS_SESSION_CONFLICT', conflicts });
 
     const max = await this.sesRepo
       .createQueryBuilder('s')
@@ -273,7 +321,11 @@ export class SessionService {
       }),
     );
     this.events.emit('acm.cls.session.created', {
-      entId, occurredAt: now.toISOString(), actorId, sesId: inserted.id, clsId: dto.clsId,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      sesId: inserted.id,
+      clsId: dto.clsId,
     });
     return inserted;
   }
@@ -298,20 +350,34 @@ export class SessionService {
   }
 
   async findOne(entId: string, id: string) {
-    const s = await this.sesRepo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const s = await this.sesRepo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!s) throw new NotFoundException('Session not found');
     return s;
   }
 
-  async reschedule(entId: string, id: string, dto: RescheduleSessionDto, actorId?: string) {
+  async reschedule(
+    entId: string,
+    id: string,
+    dto: RescheduleSessionDto,
+    actorId?: string,
+  ) {
     const s = await this.findOne(entId, id);
     if (s.status === 'HELD' || s.status === 'CANCELLED') {
       throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
     }
     const scheduled = new Date(dto.scheduledAt);
     const dur = dto.durationMin ?? s.durationMin;
-    const conflicts = await this.detectConflicts(entId, s.clsId, scheduled, dur, id);
-    if (conflicts.length) throw new ConflictException({ code: 'CLS_SESSION_CONFLICT', conflicts });
+    const conflicts = await this.detectConflicts(
+      entId,
+      s.clsId,
+      scheduled,
+      dur,
+      id,
+    );
+    if (conflicts.length)
+      throw new ConflictException({ code: 'CLS_SESSION_CONFLICT', conflicts });
 
     s.scheduledAt = scheduled;
     if (dto.durationMin !== undefined) s.durationMin = dto.durationMin;
@@ -322,12 +388,20 @@ export class SessionService {
     s.updatedAt = new Date();
     const saved = await this.sesRepo.save(s);
     this.events.emit('acm.cls.session.rescheduled', {
-      entId, occurredAt: new Date().toISOString(), actorId, sesId: id,
+      entId,
+      occurredAt: new Date().toISOString(),
+      actorId,
+      sesId: id,
     });
     return saved;
   }
 
-  async cancel(entId: string, id: string, dto: CancelSessionDto, actorId?: string) {
+  async cancel(
+    entId: string,
+    id: string,
+    dto: CancelSessionDto,
+    actorId?: string,
+  ) {
     const s = await this.findOne(entId, id);
     if (s.status === 'CANCELLED' || s.status === 'HELD') {
       throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
@@ -347,16 +421,26 @@ export class SessionService {
     s.updatedAt = now;
     const saved = await this.sesRepo.save(s);
     this.events.emit('acm.cls.session.cancelled', {
-      entId, occurredAt: now.toISOString(), actorId, sesId: id,
-      cancelReason: dto.cancelReason, disposition: s.cancelDisposition,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      sesId: id,
+      cancelReason: dto.cancelReason,
+      disposition: s.cancelDisposition,
     });
     return saved;
   }
 
   /** Mark session HELD (after attendance is recorded). */
-  async markHeld(entId: string, id: string, dto: HoldSessionDto, actorId?: string) {
+  async markHeld(
+    entId: string,
+    id: string,
+    dto: HoldSessionDto,
+    actorId?: string,
+  ) {
     const s = await this.findOne(entId, id);
-    if (s.status === 'CANCELLED') throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
+    if (s.status === 'CANCELLED')
+      throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
     const now = new Date();
     s.heldAt = dto.heldAt ? new Date(dto.heldAt) : now;
     s.actualMinutes = dto.actualMinutes ?? s.durationMin;
@@ -364,7 +448,11 @@ export class SessionService {
     s.updatedAt = now;
     const saved = await this.sesRepo.save(s);
     this.events.emit('acm.cls.session.held', {
-      entId, occurredAt: now.toISOString(), actorId, sesId: id, clsId: s.clsId,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      sesId: id,
+      clsId: s.clsId,
     });
     return saved;
   }

@@ -1,6 +1,20 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { ClassService } from '../application/class.service';
@@ -34,7 +48,10 @@ export class ClassController {
   }
 
   @Get(':id')
-  findOne(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.service.findOne(u.entId, id);
   }
 
@@ -57,12 +74,18 @@ export class ClassController {
   }
 
   @Post(':id/sessions/generate')
-  @ApiOperation({ summary: 'Generate sessions from recurrence (manual trigger)' })
+  @ApiOperation({
+    summary: 'Generate sessions from recurrence (manual trigger)',
+  })
   generate(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Query('horizonDays') horizonDays?: string,
   ) {
-    return this.sessions.generateForClass(u.entId, id, horizonDays ? Number(horizonDays) : 35);
+    return this.sessions.generateForClass(
+      u.entId,
+      id,
+      horizonDays ? Number(horizonDays) : 35,
+    );
   }
 }

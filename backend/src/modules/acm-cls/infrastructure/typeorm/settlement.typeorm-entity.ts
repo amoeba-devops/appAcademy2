@@ -17,19 +17,49 @@ export class SettlementTypeormEntity {
   @Column({ name: 'stl_year_month', type: 'varchar', length: 7 })
   yearMonth!: string;
 
-  @Column({ name: 'stl_hours_total', type: 'numeric', precision: 6, scale: 1, default: 0 })
+  @Column({
+    name: 'stl_hours_total',
+    type: 'numeric',
+    precision: 6,
+    scale: 1,
+    default: 0,
+  })
   hoursTotal!: string;
 
-  @Column({ name: 'stl_amount_gross', type: 'numeric', precision: 12, scale: 0, default: 0 })
+  @Column({
+    name: 'stl_amount_gross',
+    type: 'numeric',
+    precision: 12,
+    scale: 0,
+    default: 0,
+  })
   amountGross!: string;
 
-  @Column({ name: 'stl_withholding_rate', type: 'numeric', precision: 5, scale: 4, default: 0.033 })
+  @Column({
+    name: 'stl_withholding_rate',
+    type: 'numeric',
+    precision: 5,
+    scale: 4,
+    default: 0.033,
+  })
   withholdingRate!: string;
 
-  @Column({ name: 'stl_amount_withheld', type: 'numeric', precision: 12, scale: 0, default: 0 })
+  @Column({
+    name: 'stl_amount_withheld',
+    type: 'numeric',
+    precision: 12,
+    scale: 0,
+    default: 0,
+  })
   amountWithheld!: string;
 
-  @Column({ name: 'stl_amount_after_tax', type: 'numeric', precision: 12, scale: 0, default: 0 })
+  @Column({
+    name: 'stl_amount_after_tax',
+    type: 'numeric',
+    precision: 12,
+    scale: 0,
+    default: 0,
+  })
   amountAfterTax!: string;
 
   @Column({ name: 'stl_status', type: 'varchar', length: 25, default: 'DRAFT' })

@@ -125,6 +125,8 @@ export interface ListCalEventsQuery {
   to: string;
   ownerUserId?: string;
   ownerUserIds?: string[];
+  /** PLN-260719 D — 강사 마스터(tch_id) 필터 (담당강사∨참석∨소유자). */
+  assigneeTchIds?: string[];
   category?: CalCategory;
   attendeeKind?: CalInviteeKind;
   attendeeRefId?: string;
