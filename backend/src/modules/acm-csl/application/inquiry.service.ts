@@ -85,7 +85,9 @@ export class InquiryService {
   // ──────────────────────────────────────────────────────────────────────
   async create(entId: string, dto: CreateInquiryDto, actorId?: string) {
     if (!dto.schoolId && !dto.schoolFreetext) {
-      throw new BadRequestException('schoolId or schoolFreetext required (C-105)');
+      throw new BadRequestException(
+        'schoolId or schoolFreetext required (C-105)',
+      );
     }
 
     // Allocate per-tenant sequential number
@@ -97,12 +99,15 @@ export class InquiryService {
 
     // Encrypt PII
     const nameEnc = this.crypto.encrypt(dto.studentName);
-    const phoneStatus = dto.phoneStatus ?? (dto.parentPhone ? 'PROVIDED' : 'UNKNOWN');
+    const phoneStatus =
+      dto.phoneStatus ?? (dto.parentPhone ? 'PROVIDED' : 'UNKNOWN');
     const phoneEnc =
       phoneStatus === 'PROVIDED' && dto.parentPhone
         ? this.crypto.encrypt(dto.parentPhone)
         : null;
-    const parentNameEnc = dto.parentName ? this.crypto.encrypt(dto.parentName) : null;
+    const parentNameEnc = dto.parentName
+      ? this.crypto.encrypt(dto.parentName)
+      : null;
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -126,7 +131,9 @@ export class InquiryService {
       parentNameAuthTag: parentNameEnc?.authTag ?? null,
       inflowType: dto.inflowType,
       applyType: dto.applyType,
-      applyPurpose: dto.applyPurposes?.length ? dto.applyPurposes.join(',') : null,
+      applyPurpose: dto.applyPurposes?.length
+        ? dto.applyPurposes.join(',')
+        : null,
       applyPurposeOther: null,
       consultDone: dto.consultDone ?? null,
       schoolId: dto.schoolId ?? null,
@@ -198,7 +205,9 @@ export class InquiryService {
       });
     }
     if (registeredFrom) {
-      qb.andWhere('inq.inq_registered_at >= :registeredFrom', { registeredFrom });
+      qb.andWhere('inq.inq_registered_at >= :registeredFrom', {
+        registeredFrom,
+      });
     }
     if (registeredTo) {
       qb.andWhere('inq.inq_registered_at <= :registeredTo', { registeredTo });
@@ -223,18 +232,79 @@ export class InquiryService {
           return student.includes(needle) || parent.includes(needle);
         });
       return {
-        items: filtered.slice(offset, offset + limit),
+        items: await this.attachLinkedStudents(
+          entId,
+          filtered.slice(offset, offset + limit),
+        ),
         total: filtered.length,
       };
     }
 
-    const [items, total] = await qb.clone().skip(offset).take(limit).getManyAndCount();
-    return { items: items.map((e) => this.toView(e)), total };
+    const [items, total] = await qb
+      .clone()
+      .skip(offset)
+      .take(limit)
+      .getManyAndCount();
+    return {
+      items: await this.attachLinkedStudents(
+        entId,
+        items.map((e) => this.toView(e)),
+      ),
+      total,
+    };
   }
 
   async findOne(entId: string, id: string) {
     const e = await this.getOrThrow(entId, id);
-    return this.toView(e);
+    const [view] = await this.attachLinkedStudents(entId, [this.toView(e)]);
+    return view;
+  }
+
+  /**
+   * PLN-260718 요구3 — 신규상담이 수강등록으로 이어져 STD 학생이 생성된 경우
+   * 연결된 학생(이름·상태·id)을 뷰에 붙인다. inq_std_id 기반 배치 조회.
+   */
+  private async lookupLinkedStudents(
+    entId: string,
+    stdIds: Array<string | null | undefined>,
+  ): Promise<Map<string, { id: string; name: string; status: string }>> {
+    const ids = Array.from(
+      new Set(
+        stdIds.filter(
+          (x): x is string => typeof x === 'string' && x.length > 0,
+        ),
+      ),
+    );
+    const map = new Map<string, { id: string; name: string; status: string }>();
+    if (ids.length === 0) return map;
+    const rows: Array<{ id: string; name: string; status: string }> =
+      await this.ds.query(
+        `SELECT std_id AS id, std_name AS name, std_status AS status
+           FROM amb_acm_std_student
+          WHERE ent_id = $1 AND std_id = ANY($2::uuid[]) AND deleted_at IS NULL`,
+        [entId, ids],
+      );
+    for (const r of rows)
+      map.set(r.id, { id: r.id, name: r.name, status: r.status });
+    return map;
+  }
+
+  private async attachLinkedStudents<T extends { stdId: string | null }>(
+    entId: string,
+    views: T[],
+  ): Promise<
+    Array<
+      T & { linkedStudent: { id: string; name: string; status: string } | null }
+    >
+  > {
+    const map = await this.lookupLinkedStudents(
+      entId,
+      views.map((v) => v.stdId),
+    );
+    return views.map((v) => ({
+      ...v,
+      linkedStudent: v.stdId ? (map.get(v.stdId) ?? null) : null,
+    }));
   }
 
   async update(entId: string, id: string, dto: UpdateInquiryDto) {
@@ -274,16 +344,20 @@ export class InquiryService {
       }
     }
     if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
-    if (dto.schoolFreetext !== undefined) e.schoolFreetext = dto.schoolFreetext ?? null;
+    if (dto.schoolFreetext !== undefined)
+      e.schoolFreetext = dto.schoolFreetext ?? null;
     if (dto.grade !== undefined) e.grade = dto.grade ?? null;
     if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
     if (dto.applyType !== undefined) e.applyType = dto.applyType;
     if (dto.applyPurposes !== undefined)
-      e.applyPurpose = dto.applyPurposes?.length ? dto.applyPurposes.join(',') : null;
+      e.applyPurpose = dto.applyPurposes?.length
+        ? dto.applyPurposes.join(',')
+        : null;
     if (dto.consultDone !== undefined) e.consultDone = dto.consultDone ?? null;
     if (dto.registeredAt !== undefined) e.registeredAt = dto.registeredAt;
     if (dto.followupAt !== undefined) e.followupAt = dto.followupAt ?? null;
-    if (dto.followupMemo !== undefined) e.followupMemo = dto.followupMemo ?? null;
+    if (dto.followupMemo !== undefined)
+      e.followupMemo = dto.followupMemo ?? null;
 
     return this.toView(await this.inq.save(e));
   }
@@ -299,7 +373,9 @@ export class InquiryService {
   async upsertMapTest(entId: string, inqId: string, dto: UpsertMapTestDto) {
     await this.getOrThrow(entId, inqId);
     if (dto.feeStatus === 'WAIVED' && !dto.waiverReason) {
-      throw new BadRequestException('waiverReason required when feeStatus=WAIVED');
+      throw new BadRequestException(
+        'waiverReason required when feeStatus=WAIVED',
+      );
     }
     let mt = await this.mapTests.findOne({ where: { inqId, entId } });
     if (!mt) {
@@ -308,10 +384,14 @@ export class InquiryService {
 
     // REQ-260626 — when scoreDetail is provided, validate against the
     // schema for the *effective* testType (incoming dto override else stored).
-    let normalizedDetail: Record<string, unknown> | null | undefined = undefined;
+    let normalizedDetail: Record<string, unknown> | null | undefined =
+      undefined;
     if (dto.scoreDetail !== undefined) {
       const effectiveType = dto.testType ?? mt.testType ?? 'MAP';
-      normalizedDetail = validateLevelTestScoreDetail(effectiveType, dto.scoreDetail);
+      normalizedDetail = validateLevelTestScoreDetail(
+        effectiveType,
+        dto.scoreDetail,
+      );
     }
 
     Object.assign(mt, {
@@ -328,7 +408,9 @@ export class InquiryService {
       testType: dto.testType ?? mt.testType ?? 'MAP',
       testTypeOther: dto.testTypeOther ?? mt.testTypeOther ?? null,
       scheduledTime: dto.scheduledTime ?? mt.scheduledTime ?? null,
-      ...(normalizedDetail !== undefined ? { scoreDetail: normalizedDetail } : {}),
+      ...(normalizedDetail !== undefined
+        ? { scoreDetail: normalizedDetail }
+        : {}),
       // DSN-260629 — INTAKE prior scores. Pass-through (no per-key validation v1).
       ...(dto.priorScoresDetail !== undefined
         ? {
@@ -361,7 +443,10 @@ export class InquiryService {
       );
     }
 
-    const normalizedDetail = validateLevelTestScoreDetail(dto.testType, dto.scoreDetail);
+    const normalizedDetail = validateLevelTestScoreDetail(
+      dto.testType,
+      dto.scoreDetail,
+    );
 
     if (dto.testType === 'MAP') {
       // MAP path: dedicated columns; reject scoreDetail (validator already
@@ -408,7 +493,10 @@ export class InquiryService {
   // stay for back-compat with already-deployed clients.
   // ──────────────────────────────────────────────────────────────────────
 
-  listLevelTests(entId: string, inqId: string): Promise<MapTestTypeormEntity[]> {
+  listLevelTests(
+    entId: string,
+    inqId: string,
+  ): Promise<MapTestTypeormEntity[]> {
     return this.mapTests.find({
       where: { entId, inqId },
       order: { testType: 'ASC' },
@@ -421,7 +509,11 @@ export class InquiryService {
     testType: string,
   ): Promise<MapTestTypeormEntity | null> {
     return this.mapTests.findOne({
-      where: { entId, inqId, testType: testType as MapTestTypeormEntity['testType'] },
+      where: {
+        entId,
+        inqId,
+        testType: testType as MapTestTypeormEntity['testType'],
+      },
     });
   }
 
@@ -448,7 +540,8 @@ export class InquiryService {
       });
     }
     if (dto.scheduledAt !== undefined) mt.scheduledAt = dto.scheduledAt ?? null;
-    if (dto.scheduledTime !== undefined) mt.scheduledTime = dto.scheduledTime ?? null;
+    if (dto.scheduledTime !== undefined)
+      mt.scheduledTime = dto.scheduledTime ?? null;
     if (dto.teacherId !== undefined) mt.teacherId = dto.teacherId ?? null;
     if (dto.status !== undefined) mt.scheduledStatus = dto.status ?? null;
     if (dto.testTypeOther !== undefined) {
@@ -475,13 +568,18 @@ export class InquiryService {
     actorId: string,
   ): Promise<MapTestTypeormEntity> {
     await this.getOrThrow(entId, inqId);
-    const mt = await this.mapTests.findOne({ where: { entId, inqId, testType } });
+    const mt = await this.mapTests.findOne({
+      where: { entId, inqId, testType },
+    });
     if (!mt) {
       throw new NotFoundException(
         `Level-test row (testType=${testType}) not found — schedule it first`,
       );
     }
-    const normalizedDetail = validateLevelTestScoreDetail(testType, dto.scoreDetail);
+    const normalizedDetail = validateLevelTestScoreDetail(
+      testType,
+      dto.scoreDetail,
+    );
     if (testType === 'MAP') {
       Object.assign(mt, {
         scoreReading: dto.scoreReading ?? mt.scoreReading ?? null,
@@ -548,14 +646,18 @@ export class InquiryService {
       calEventId?: string;
     },
   ): Promise<TrialClassTypeormEntity> {
-    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
-    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    const tc = await this.trialClasses.findOne({
+      where: { entId, inqId, id: tclId },
+    });
+    if (!tc)
+      throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
     if (patch.heldAt !== undefined) tc.heldAt = patch.heldAt;
     if (patch.heldTime !== undefined) tc.heldTime = patch.heldTime ?? null;
     if (patch.teacherId !== undefined) tc.teacherId = patch.teacherId ?? null;
     if (patch.completed !== undefined) tc.completed = patch.completed;
     if (patch.note !== undefined) tc.note = patch.note ?? null;
-    if (patch.calEventId !== undefined) tc.calEventId = patch.calEventId ?? null;
+    if (patch.calEventId !== undefined)
+      tc.calEventId = patch.calEventId ?? null;
     return this.trialClasses.save(tc);
   }
 
@@ -576,8 +678,11 @@ export class InquiryService {
     body: string,
     actorId: string,
   ): Promise<TrialClassTypeormEntity> {
-    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
-    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    const tc = await this.trialClasses.findOne({
+      where: { entId, inqId, id: tclId },
+    });
+    if (!tc)
+      throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
     tc.feedbackBody = body;
     tc.feedbackAuthoredBy = actorId;
     tc.feedbackAuthoredAt = new Date();
@@ -591,10 +696,15 @@ export class InquiryService {
     tclId: string,
     actorId: string,
   ): Promise<TrialClassTypeormEntity> {
-    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
-    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    const tc = await this.trialClasses.findOne({
+      where: { entId, inqId, id: tclId },
+    });
+    if (!tc)
+      throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
     if (!tc.feedbackBody) {
-      throw new BadRequestException('Cannot confirm — teacher feedback body is empty');
+      throw new BadRequestException(
+        'Cannot confirm — teacher feedback body is empty',
+      );
     }
     tc.feedbackConfirmedBy = actorId;
     tc.feedbackConfirmedAt = new Date();
@@ -606,10 +716,15 @@ export class InquiryService {
     inqId: string,
     tclId: string,
   ): Promise<TrialClassTypeormEntity> {
-    const tc = await this.trialClasses.findOne({ where: { entId, inqId, id: tclId } });
-    if (!tc) throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
+    const tc = await this.trialClasses.findOne({
+      where: { entId, inqId, id: tclId },
+    });
+    if (!tc)
+      throw new NotFoundException({ code: 'TRIAL_CLASS_NOT_FOUND', tclId });
     if (!tc.feedbackConfirmedAt) {
-      throw new BadRequestException('Cannot mark delivered — feedback not yet confirmed');
+      throw new BadRequestException(
+        'Cannot mark delivered — feedback not yet confirmed',
+      );
     }
     tc.feedbackDeliveredAt = new Date();
     return this.trialClasses.save(tc);
@@ -631,7 +746,9 @@ export class InquiryService {
     }
     if (dto.tuitionPaid !== undefined && dto.tuitionPaid !== er.tuitionPaid) {
       if (!actor.isSeniorManager) {
-        throw new ForbiddenException('BR-CSL-012: only senior manager can mark tuition paid');
+        throw new ForbiddenException(
+          'BR-CSL-012: only senior manager can mark tuition paid',
+        );
       }
       er.tuitionPaid = dto.tuitionPaid;
       er.tuitionPaidActorId = actor.id ?? null;
@@ -644,19 +761,25 @@ export class InquiryService {
     if (dto.paymentNoticeSent !== undefined)
       er.paymentNoticeSent = dto.paymentNoticeSent ?? null;
     if (dto.classMinutes !== undefined) er.classMinutes = dto.classMinutes;
-    if (dto.tuitionAmount !== undefined) er.tuitionAmount = String(dto.tuitionAmount);
+    if (dto.tuitionAmount !== undefined)
+      er.tuitionAmount = String(dto.tuitionAmount);
     if (dto.paymentDate !== undefined) er.paymentDate = dto.paymentDate ?? null;
-    if (dto.paymentMethod !== undefined) er.paymentMethod = dto.paymentMethod ?? null;
-    if (dto.paymentAmount !== undefined) er.paymentAmount = String(dto.paymentAmount);
+    if (dto.paymentMethod !== undefined)
+      er.paymentMethod = dto.paymentMethod ?? null;
+    if (dto.paymentAmount !== undefined)
+      er.paymentAmount = String(dto.paymentAmount);
     if (dto.paymentMemo !== undefined) er.paymentMemo = dto.paymentMemo ?? null;
-    if (dto.classStartedAt !== undefined) er.classStartedAt = dto.classStartedAt;
+    if (dto.classStartedAt !== undefined)
+      er.classStartedAt = dto.classStartedAt;
     if (dto.classStarted !== undefined) er.classStarted = dto.classStarted;
 
     // REQ-260626 (FR-CSL-131~135)
     if (dto.counselMemo !== undefined) er.counselMemo = dto.counselMemo ?? null;
     if (dto.courseId !== undefined) er.courseId = dto.courseId ?? null;
-    if (dto.courseFreetext !== undefined) er.courseFreetext = dto.courseFreetext ?? null;
-    if (dto.sessionCount !== undefined) er.sessionCount = dto.sessionCount ?? null;
+    if (dto.courseFreetext !== undefined)
+      er.courseFreetext = dto.courseFreetext ?? null;
+    if (dto.sessionCount !== undefined)
+      er.sessionCount = dto.sessionCount ?? null;
     if (dto.startDate !== undefined) er.startDate = dto.startDate ?? null;
     if (dto.endDate !== undefined) er.endDate = dto.endDate ?? null;
     return this.enrollments.save(er);
@@ -676,7 +799,9 @@ export class InquiryService {
     actor: { id: string; isSeniorManager: boolean },
   ) {
     if (!actor.isSeniorManager) {
-      throw new ForbiddenException('BR-CSL-012: only senior manager can approve payment');
+      throw new ForbiddenException(
+        'BR-CSL-012: only senior manager can approve payment',
+      );
     }
     await this.getOrThrow(entId, inqId);
     let er = await this.enrollments.findOne({ where: { inqId, entId } });
@@ -715,7 +840,9 @@ export class InquiryService {
   ) {
     await this.getOrThrow(entId, inqId);
     if (dto.reasonCode === 'OTHER' && !dto.reasonOther) {
-      throw new BadRequestException('reasonOther required when reasonCode=OTHER');
+      throw new BadRequestException(
+        'reasonOther required when reasonCode=OTHER',
+      );
     }
     return this.cancellations.save(
       this.cancellations.create({
@@ -749,7 +876,9 @@ export class InquiryService {
     const e = await this.getOrThrow(entId, inqId);
     const allowed = FORWARD_TRANSITIONS[e.currentStage];
     if (!allowed.includes(toStage)) {
-      throw new BadRequestException(`Cannot transition ${e.currentStage} → ${toStage}`);
+      throw new BadRequestException(
+        `Cannot transition ${e.currentStage} → ${toStage}`,
+      );
     }
     // Anonymous inquiries cannot progress past INTAKE
     if (e.isAnonymous && toStage !== 'DROPPED') {
@@ -760,7 +889,15 @@ export class InquiryService {
     // Stage entry gates
     await this.assertEntryGate(entId, inqId, e.currentStage, toStage);
 
-    return this.applyTransition(entId, e, toStage, 'FORWARD', undefined, note, actorId);
+    return this.applyTransition(
+      entId,
+      e,
+      toStage,
+      'FORWARD',
+      undefined,
+      note,
+      actorId,
+    );
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -813,19 +950,25 @@ export class InquiryService {
     if (toStage === 'ENROLLMENT_COUNSELING') {
       const cnt = await this.trialClasses.count({ where: { entId, inqId } });
       if (cnt === 0) {
-        throw new BadRequestException('ENROLLMENT_COUNSELING requires at least one trial class');
+        throw new BadRequestException(
+          'ENROLLMENT_COUNSELING requires at least one trial class',
+        );
       }
     }
     if (toStage === 'PAYMENT') {
       const er = await this.enrollments.findOne({ where: { entId, inqId } });
       if (!er || er.counselDone !== 'YES') {
-        throw new BadRequestException('PAYMENT entry requires enrollment counseling completed');
+        throw new BadRequestException(
+          'PAYMENT entry requires enrollment counseling completed',
+        );
       }
     }
     if (toStage === 'CLASS_STARTED') {
       const er = await this.enrollments.findOne({ where: { entId, inqId } });
       if (!er || er.tuitionPaid !== true) {
-        throw new BadRequestException('CLASS_STARTED entry requires tuition paid');
+        throw new BadRequestException(
+          'CLASS_STARTED entry requires tuition paid',
+        );
       }
     }
     // PLN-260714 — ATTENDING(수강중) requires the student to be registered into
@@ -836,7 +979,9 @@ export class InquiryService {
         select: { id: true, stdId: true },
       });
       if (!row?.stdId) {
-        throw new BadRequestException('ATTENDING entry requires the student to be registered');
+        throw new BadRequestException(
+          'ATTENDING entry requires the student to be registered',
+        );
       }
     }
   }
@@ -924,7 +1069,12 @@ export class InquiryService {
         });
       }
     }
-    return { id: saved.id, fromStage, toStage, currentStage: saved.currentStage };
+    return {
+      id: saved.id,
+      fromStage,
+      toStage,
+      currentStage: saved.currentStage,
+    };
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -970,7 +1120,9 @@ export class InquiryService {
       stdId: e.stdId ?? null,
       inflowType: e.inflowType,
       applyType: e.applyType,
-      applyPurposes: e.applyPurpose ? e.applyPurpose.split(',').filter(Boolean) : [],
+      applyPurposes: e.applyPurpose
+        ? e.applyPurpose.split(',').filter(Boolean)
+        : [],
       consultDone: e.consultDone,
       currentStage: e.currentStage,
       previousStage: e.previousStage,

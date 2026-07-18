@@ -37,6 +37,8 @@ export interface KanbanInquiry {
   currentStage: Stage;
   registeredAt: string;
   followupAt?: string | null;
+  // PLN-260718 요구3 — 수강등록으로 연결된 STD 학생 (있으면).
+  linkedStudent?: { id: string; name: string; status: string } | null;
 }
 
 const ACTIVE_STAGES: Stage[] = [
@@ -222,6 +224,11 @@ function KanbanCard({
         <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
           {t(`applyType.${inq.applyType}`)}
         </span>
+        {inq.linkedStudent && (
+          <span className="rounded border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[9px] text-accent-700">
+            🎓 {t('kanban.enrolled', '수강등록')}
+          </span>
+        )}
       </div>
       {(registered || followup) && (
         <p className="text-[10px] text-secondary mt-1.5">

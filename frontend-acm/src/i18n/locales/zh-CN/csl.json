@@ -14,7 +14,8 @@
       "label": "状态筛选",
       "reset": "全选",
       "noneSelected": "请至少选择一个阶段进行显示。"
-    }
+    },
+    "enrolled": "已报名"
   },
   "table": {
     "seqNo": "No.",
@@ -384,6 +385,7 @@
       "transition": "阶段变更",
       "add": "添加备注",
       "addPlaceholder": "请记录备注或后续事项"
-    }
+    },
+    "linkedStudent": "报名学生"
   }
 }

@@ -34,7 +34,8 @@
     "status": "状态",
     "createdAt": "注册日",
     "total": "共 {{count}} 名学生",
-    "empty": "暂无学生"
+    "empty": "暂无学生",
+    "fromInquiry": "来自咨询"
   },
   "field": {
     "name": "姓名（韩语）",
@@ -100,7 +101,8 @@
     "back": "返回列表",
     "notFound": "未找到学生",
     "updatedAt": "最后更新",
-    "confirmDeactivate": "确认停用该学生？"
+    "confirmDeactivate": "确认停用该学生？",
+    "sourceInquiry": "来自咨询"
   },
   "parentPicker": {
     "title": "添加家长",

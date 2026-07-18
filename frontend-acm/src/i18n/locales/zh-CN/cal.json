@@ -13,7 +13,8 @@
   "view": {
     "day": "日",
     "week": "周",
-    "month": "月"
+    "month": "月",
+    "list": "列表"
   },
   "category": {
     "CLASS": "课程",

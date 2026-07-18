@@ -27,7 +27,7 @@ import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
 import { AttendeeFilter } from '../components/attendee-filter';
 import { TeacherMultiCombo } from '../components/teacher-multi-combo';
 
-type CalendarView = 'day' | 'week' | 'month';
+type CalendarView = 'day' | 'week' | 'month' | 'list';
 
 const CATEGORY_COLOR: Record<CalEvent['category'], string> = {
   CLASS: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -40,7 +40,7 @@ const CATEGORY_COLOR: Record<CalEvent['category'], string> = {
   OTHER: 'bg-emerald-100 text-emerald-800 border-emerald-200',
 };
 
-const VIEW_OPTIONS: CalendarView[] = ['day', 'week', 'month'];
+const VIEW_OPTIONS: CalendarView[] = ['day', 'week', 'month', 'list'];
 
 export function CalMonthPage() {
   const { t, i18n } = useTranslation('cal');
@@ -57,6 +57,7 @@ export function CalMonthPage() {
   const [attendeeKind, setAttendeeKind] = useState<CalInviteeKind>('STUDENT');
   const [selectedAttendees, setSelectedAttendees] = useState<InviteeCandidate[]>([]);
 
+  // PLN-260718 — 'list' 뷰는 'month' 와 동일한 범위(해당 월)를 대상으로 한다.
   const visibleDays = useMemo(() => {
     if (view === 'day') return [startOfDay(anchor)];
     if (view === 'week') return weekDays(anchor);
@@ -285,6 +286,12 @@ export function CalMonthPage() {
           onDayClick={onDayClick}
           onEventClick={onEventClick}
         />
+      ) : view === 'list' ? (
+        <ListView
+          events={events}
+          locale={i18n.language}
+          onEventClick={onEventClick}
+        />
       ) : (
         <AgendaView
           days={visibleDays}
@@ -452,6 +459,66 @@ function AgendaView({
               )}
             </div>
           </section>
+        );
+      })}
+    </div>
+  );
+}
+
+// PLN-260718 — admin 리스트 보기: 해당 월의 일정을 날짜별로 그룹핑해 나열.
+// 필터(강사/학생)는 상위 query 에서 이미 적용되어 events 로 전달된다.
+function ListView({
+  events,
+  locale,
+  onEventClick,
+}: {
+  events: CalEvent[];
+  locale: string;
+  onEventClick: (event: React.MouseEvent, calEvent: CalEvent) => void;
+}) {
+  const groups = useMemo(() => {
+    const map = new Map<string, { day: Date; items: CalEvent[] }>();
+    for (const event of events) {
+      const day = startOfDay(new Date(event.startAt));
+      const key = day.toDateString();
+      const bucket = map.get(key) ?? { day, items: [] };
+      bucket.items.push(event);
+      map.set(key, bucket);
+    }
+    return Array.from(map.values()).sort((a, b) => +a.day - +b.day);
+  }, [events]);
+
+  if (groups.length === 0) {
+    return (
+      <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
+        등록된 일정이 없습니다.
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface">
+      {groups.map(({ day, items }) => {
+        const isToday = isSameDay(day, new Date());
+        return (
+          <div key={day.toDateString()} className="border-b border-[var(--border-subtle)] last:border-b-0">
+            <div className="flex items-baseline gap-2 border-b border-[var(--border-subtle)] bg-[var(--gray-50)] px-3 py-2">
+              <span className={`text-sm font-semibold ${isToday ? 'text-accent-700' : 'text-primary'}`}>
+                {formatFullDate(day, locale)}
+              </span>
+              <span className="text-xs text-secondary">{items.length}</span>
+            </div>
+            <div className="grid gap-2 p-3">
+              {items.map((calEvent) => (
+                <CalendarEventCard
+                  key={calEvent.id}
+                  event={calEvent}
+                  locale={locale}
+                  onClick={(clickEvent) => onEventClick(clickEvent, calEvent)}
+                />
+              ))}
+            </div>
+          </div>
         );
       })}
     </div>

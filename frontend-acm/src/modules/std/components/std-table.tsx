@@ -82,6 +82,14 @@ export function StdTable({ items, isLoading, sort, onSort }: StdTableProps) {
                 {s.englishName && (
                   <span className="ml-1 text-secondary text-xs">({s.englishName})</span>
                 )}
+                {s.sourceInquiry && (
+                  <span
+                    className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[10px] font-normal text-accent-700"
+                    title={t('table.fromInquiry', '신규상담 연결')}
+                  >
+                    {t('table.fromInquiry', '신규상담 연결')} #{s.sourceInquiry.seqNo}
+                  </span>
+                )}
               </td>
               <td className="px-4 py-3 text-secondary">
                 {s.gender === 'M' ? t('gender.M') : s.gender === 'F' ? t('gender.F') : '—'}

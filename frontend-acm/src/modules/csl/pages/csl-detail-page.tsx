@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -42,6 +42,8 @@ interface InquiryDetail {
   registeredAt: string;
   followupAt?: string | null;
   followupMemo?: string | null;
+  // PLN-260718 요구3 — 수강등록으로 연결된 STD 학생 (없으면 null).
+  linkedStudent?: { id: string; name: string; status: string } | null;
 }
 
 // 헤더의 "→ 단계" 진행 버튼 맵. CLASS_STARTED→ATTENDING(수강중) 전환은 헤더
@@ -181,6 +183,22 @@ export function CslDetailBody({
             <p className="text-sm text-secondary mt-1">
               👪 {inq.parentName ?? '—'}
               {inq.parentPhone && ` · ☎ ️ ${inq.parentPhone}`}
+            </p>
+          )}
+          {inq.linkedStudent && (
+            <p className="mt-1 text-sm">
+              <span className="text-secondary">
+                🎓 {t('detail.linkedStudent', '수강등록 연결')}:{' '}
+              </span>
+              <Link
+                to={`/admin/std/${inq.linkedStudent.id}`}
+                className="font-medium text-accent-700 hover:underline"
+              >
+                {inq.linkedStudent.name}
+              </Link>
+              <span className="ml-1 text-xs text-secondary">
+                ({t(`std:status.${inq.linkedStudent.status}`, inq.linkedStudent.status)})
+              </span>
             </p>
           )}
         </div>

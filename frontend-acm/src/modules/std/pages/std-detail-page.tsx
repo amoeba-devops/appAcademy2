@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Pencil, UserX, Plus, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -74,8 +74,18 @@ export function StdDetailPage() {
               <span className="ml-2 text-lg text-secondary">({student.englishName})</span>
             )}
           </h1>
-          <div className="mt-1">
+          <div className="mt-1 flex items-center gap-2">
             <StdStatusBadge status={student.status} />
+            {student.sourceInquiry && (
+              <Link
+                to={`/admin/csl/${student.sourceInquiry.id}`}
+                className="inline-flex items-center gap-1 rounded-full border border-accent-200 bg-accent-50 px-2 py-0.5 text-xs text-accent-700 hover:bg-accent-100"
+              >
+                {t('detail.sourceInquiry', '신규상담 연결')} #{student.sourceInquiry.seqNo}
+                {' · '}
+                {t(`csl:stage.${student.sourceInquiry.currentStage}`, student.sourceInquiry.currentStage)}
+              </Link>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
