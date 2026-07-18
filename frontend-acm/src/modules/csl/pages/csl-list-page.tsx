@@ -300,6 +300,14 @@ export function CslListPage() {
                     {c.isAnonymous
                       ? t('anonymousInquiry', { seqNo: c.seqNo })
                       : c.studentName}
+                    {c.linkedStudent && (
+                      <span
+                        className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[10px] font-normal text-accent-700"
+                        title={c.linkedStudent.name}
+                      >
+                        🎓 {t('kanban.enrolled', '수강등록')}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-secondary">
                     {c.grade ? t(`grade.${c.grade}`, c.grade) : dash}

@@ -34,7 +34,8 @@
     "status": "상태",
     "createdAt": "등록일",
     "total": "총 {{count}}명",
-    "empty": "등록된 학생이 없습니다"
+    "empty": "등록된 학생이 없습니다",
+    "fromInquiry": "신규상담 연결"
   },
   "field": {
     "name": "이름(한글)",
@@ -100,7 +101,8 @@
     "back": "목록으로",
     "notFound": "학생을 찾을 수 없습니다",
     "updatedAt": "최종 수정",
-    "confirmDeactivate": "이 학생을 비활성화하시겠습니까?"
+    "confirmDeactivate": "이 학생을 비활성화하시겠습니까?",
+    "sourceInquiry": "신규상담 연결"
   },
   "parentPicker": {
     "title": "학부모 추가",

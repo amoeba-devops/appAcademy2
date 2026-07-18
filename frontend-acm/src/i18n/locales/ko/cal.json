@@ -13,7 +13,8 @@
   "view": {
     "day": "일",
     "week": "주",
-    "month": "월"
+    "month": "월",
+    "list": "리스트"
   },
   "category": {
     "CLASS": "수업",

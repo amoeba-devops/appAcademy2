@@ -34,7 +34,8 @@
     "status": "Trạng thái",
     "createdAt": "Ngày đăng ký",
     "total": "Tổng {{count}} học sinh",
-    "empty": "Chưa có học sinh nào"
+    "empty": "Chưa có học sinh nào",
+    "fromInquiry": "Từ tư vấn"
   },
   "field": {
     "name": "Tên (Hàn)",
@@ -100,7 +101,8 @@
     "back": "Về danh sách",
     "notFound": "Không tìm thấy học sinh",
     "updatedAt": "Cập nhật lần cuối",
-    "confirmDeactivate": "Vô hiệu hóa học sinh này?"
+    "confirmDeactivate": "Vô hiệu hóa học sinh này?",
+    "sourceInquiry": "Từ tư vấn"
   },
   "parentPicker": {
     "title": "Thêm phụ huynh",

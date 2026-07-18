@@ -13,7 +13,8 @@
   "view": {
     "day": "Ngày",
     "week": "Tuần",
-    "month": "Tháng"
+    "month": "Tháng",
+    "list": "Danh sách"
   },
   "category": {
     "CLASS": "Lớp học",

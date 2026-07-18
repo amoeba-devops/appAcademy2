@@ -13,7 +13,8 @@
   "view": {
     "day": "Day",
     "week": "Week",
-    "month": "Month"
+    "month": "Month",
+    "list": "List"
   },
   "category": {
     "CLASS": "Class",

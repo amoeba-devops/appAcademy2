@@ -14,7 +14,8 @@
       "label": "Bộ lọc trạng thái",
       "reset": "Chọn tất cả",
       "noneSelected": "Vui lòng chọn ít nhất một trạng thái để hiển thị."
-    }
+    },
+    "enrolled": "Đã ghi danh"
   },
   "table": {
     "seqNo": "STT",
@@ -384,6 +385,7 @@
       "transition": "Đổi giai đoạn",
       "add": "Thêm ghi chú",
       "addPlaceholder": "Ghi chú hoặc theo dõi"
-    }
+    },
+    "linkedStudent": "Học sinh đã ghi danh"
   }
 }

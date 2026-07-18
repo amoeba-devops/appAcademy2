@@ -14,7 +14,8 @@
       "label": "Status filter",
       "reset": "Select all",
       "noneSelected": "Choose at least one stage to display."
-    }
+    },
+    "enrolled": "Enrolled"
   },
   "table": {
     "seqNo": "No.",
@@ -384,6 +385,7 @@
       "transition": "Stage change",
       "add": "Add note",
       "addPlaceholder": "Add a note or follow-up"
-    }
+    },
+    "linkedStudent": "Enrolled student"
   }
 }

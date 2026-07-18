@@ -3,6 +3,13 @@
 export type StdStatus = 'ACTIVE' | 'INACTIVE' | 'WITHDRAWN';
 export type StdGender = 'M' | 'F';
 
+/** PLN-260718 요구4 — 이 학생을 만든 원본 신규상담(있으면). */
+export interface SourceInquiryLink {
+  id: string;
+  seqNo: number;
+  currentStage: string;
+}
+
 export interface StudentSummary {
   id: string;
   name: string;
@@ -14,6 +21,7 @@ export interface StudentSummary {
   status: StdStatus;
   startDate?: string | null;
   createdAt: string;
+  sourceInquiry?: SourceInquiryLink | null;
 }
 
 export interface StudentDetail extends StudentSummary {

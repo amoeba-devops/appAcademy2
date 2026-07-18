@@ -34,7 +34,8 @@
     "status": "Status",
     "createdAt": "Registered",
     "total": "Total {{count}} students",
-    "empty": "No students registered"
+    "empty": "No students registered",
+    "fromInquiry": "From inquiry"
   },
   "field": {
     "name": "Name (Korean)",
@@ -100,7 +101,8 @@
     "back": "Back to list",
     "notFound": "Student not found",
     "updatedAt": "Last updated",
-    "confirmDeactivate": "Deactivate this student?"
+    "confirmDeactivate": "Deactivate this student?",
+    "sourceInquiry": "From inquiry"
   },
   "parentPicker": {
     "title": "Add Parent",

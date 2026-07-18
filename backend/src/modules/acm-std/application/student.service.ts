@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { StudentTypeormEntity } from '../infrastructure/typeorm/student.typeorm-entity';
 import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
@@ -24,8 +24,49 @@ export class StudentService {
     private readonly repo: Repository<StudentTypeormEntity>,
     @InjectRepository(TeacherTypeormEntity, ACM_DS)
     private readonly teacherRepo: Repository<TeacherTypeormEntity>,
+    @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly parentService: ParentService,
   ) {}
+
+  /**
+   * PLN-260718 요구4 — 상담(신규상담)에서 수강등록으로 이어져 생성된 학생의 경우,
+   * 원본 상담(inq_std_id 로 연결) 정보를 역조회한다. 학생당 최신 상담 1건.
+   */
+  private async lookupSourceInquiries(
+    entId: string,
+    stdIds: string[],
+  ): Promise<Map<string, { id: string; seqNo: number; currentStage: string }>> {
+    const ids = Array.from(new Set(stdIds.filter(Boolean)));
+    const map = new Map<
+      string,
+      { id: string; seqNo: number; currentStage: string }
+    >();
+    if (ids.length === 0) return map;
+    const rows: Array<{
+      id: string;
+      std_id: string;
+      seq_no: number;
+      current_stage: string;
+    }> = await this.ds.query(
+      `SELECT inq_id AS id, inq_std_id AS std_id, inq_seq_no AS seq_no,
+              inq_current_stage AS current_stage
+         FROM amb_acm_csl_inquiry
+        WHERE ent_id = $1 AND inq_std_id = ANY($2::uuid[]) AND deleted_at IS NULL
+        ORDER BY inq_seq_no DESC`,
+      [entId, ids],
+    );
+    for (const r of rows) {
+      // 최신(seq_no DESC) 1건만 유지 — 이미 존재하면 스킵.
+      if (!map.has(r.std_id)) {
+        map.set(r.std_id, {
+          id: r.id,
+          seqNo: Number(r.seq_no),
+          currentStage: r.current_stage,
+        });
+      }
+    }
+    return map;
+  }
 
   /**
    * PLN-260714 — 학생 이메일은 필수(포털계정 로그인ID) + 테넌트 내 중복 불가.
@@ -49,7 +90,10 @@ export class StudentService {
    * PLN-260714 — 담당강사 FK(std_teacher_id) 로 등록강사를 검증하고, 표시/검색
    * 호환을 위해 강사명을 free-text std_teacher 에 미러링할 값을 반환한다.
    */
-  private async resolveTeacherName(entId: string, teacherId: string): Promise<string> {
+  private async resolveTeacherName(
+    entId: string,
+    teacherId: string,
+  ): Promise<string> {
     const teacher = await this.teacherRepo.findOne({
       where: { id: teacherId, entId },
       select: { id: true, name: true },
@@ -75,9 +119,12 @@ export class StudentService {
     }
 
     if (q.q) {
-      qb.andWhere('(s.name ILIKE :q OR s.englishName ILIKE :q OR s.school ILIKE :q)', {
-        q: `%${q.q}%`,
-      });
+      qb.andWhere(
+        '(s.name ILIKE :q OR s.englishName ILIKE :q OR s.school ILIKE :q)',
+        {
+          q: `%${q.q}%`,
+        },
+      );
     }
 
     if (q.school) {
@@ -102,7 +149,17 @@ export class StudentService {
     qb.skip(skip).take(limit);
 
     const [items, total] = await qb.getManyAndCount();
-    return { items: items.map(this.toSummary), total, page, limit };
+    const summaries = items.map(this.toSummary);
+    // 요구4 — 목록 배지용: 상담 연결 여부.
+    const srcMap = await this.lookupSourceInquiries(
+      entId,
+      summaries.map((s) => s.id),
+    );
+    const withSource = summaries.map((s) => ({
+      ...s,
+      sourceInquiry: srcMap.get(s.id) ?? null,
+    }));
+    return { items: withSource, total, page, limit };
   }
 
   async findOne(entId: string, id: string) {
@@ -111,7 +168,9 @@ export class StudentService {
     });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
     const parents = await this.parentService.listForStudent(entId, id);
-    return { ...this.toDetail(entity), parents };
+    const sourceInquiry =
+      (await this.lookupSourceInquiries(entId, [id])).get(id) ?? null;
+    return { ...this.toDetail(entity), parents, sourceInquiry };
   }
 
   async create(entId: string, dto: CreateStudentDto) {
@@ -163,11 +222,14 @@ export class StudentService {
   }
 
   async update(entId: string, id: string, dto: UpdateStudentDto) {
-    const entity = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const entity = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
 
     if (dto.stdName !== undefined) entity.name = dto.stdName;
-    if (dto.stdEnglishName !== undefined) entity.englishName = dto.stdEnglishName;
+    if (dto.stdEnglishName !== undefined)
+      entity.englishName = dto.stdEnglishName;
     if (dto.stdGender !== undefined) entity.gender = dto.stdGender;
     if (dto.stdBirthDate !== undefined) entity.birthDate = dto.stdBirthDate;
     if (dto.stdPhone !== undefined) entity.phone = dto.stdPhone;
@@ -185,7 +247,8 @@ export class StudentService {
     if (dto.stdGrade !== undefined) entity.grade = dto.stdGrade;
     if (dto.stdMapReading !== undefined) entity.mapReading = dto.stdMapReading;
     if (dto.stdMapMath !== undefined) entity.mapMath = dto.stdMapMath;
-    if (dto.stdMapLanguage !== undefined) entity.mapLanguage = dto.stdMapLanguage;
+    if (dto.stdMapLanguage !== undefined)
+      entity.mapLanguage = dto.stdMapLanguage;
     if (dto.stdMapNote !== undefined) entity.mapNote = dto.stdMapNote;
     // 담당강사: FK 우선. 지정되면 강사명을 free-text 에 미러링, 해제(빈 값)면 둘 다 초기화.
     if (dto.stdTeacherId !== undefined) {
@@ -201,11 +264,15 @@ export class StudentService {
     if (dto.stdMaterials !== undefined) entity.materials = dto.stdMaterials;
     if (dto.stdMobility !== undefined) entity.mobility = dto.stdMobility;
     if (dto.stdGpa !== undefined) entity.gpa = dto.stdGpa;
-    if (dto.stdSsatIseeNote !== undefined) entity.ssatIseeNote = dto.stdSsatIseeNote;
-    if (dto.stdSpecialNote !== undefined) entity.specialNote = dto.stdSpecialNote;
+    if (dto.stdSsatIseeNote !== undefined)
+      entity.ssatIseeNote = dto.stdSsatIseeNote;
+    if (dto.stdSpecialNote !== undefined)
+      entity.specialNote = dto.stdSpecialNote;
     if (dto.stdGoalsNote !== undefined) entity.goalsNote = dto.stdGoalsNote;
-    if (dto.stdSatisfactionNote !== undefined) entity.satisfactionNote = dto.stdSatisfactionNote;
-    if (dto.stdLastCounselDate !== undefined) entity.lastCounselDate = dto.stdLastCounselDate;
+    if (dto.stdSatisfactionNote !== undefined)
+      entity.satisfactionNote = dto.stdSatisfactionNote;
+    if (dto.stdLastCounselDate !== undefined)
+      entity.lastCounselDate = dto.stdLastCounselDate;
     if (dto.stdStartDate !== undefined) entity.startDate = dto.stdStartDate;
     if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
 
@@ -219,7 +286,9 @@ export class StudentService {
   }
 
   async changeStatus(entId: string, id: string, dto: ChangeStudentStatusDto) {
-    const entity = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const entity = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
     entity.status = dto.stdStatus;
     entity.updatedAt = new Date();
@@ -228,7 +297,9 @@ export class StudentService {
   }
 
   async remove(entId: string, id: string) {
-    const entity = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const entity = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
     entity.deletedAt = new Date();
     entity.updatedAt = new Date();
