@@ -36,7 +36,8 @@
     "nav": {
       "notices": "公告",
       "calendar": "课程表",
-      "materials": "文档/资料"
+      "materials": "文档/资料",
+      "students": "学生管理"
     },
     "login": {
       "title": "学院门户登录",
@@ -134,6 +135,23 @@
       "searchUser": "按姓名搜索（老师/学生）",
       "noResult": "没有结果。",
       "noPermission": "您没有创建文档的权限。"
+    },
+    "students": {
+      "teacherOnly": "此菜单仅供老师使用。",
+      "empty": "暂无分配的学生。",
+      "back": "返回学生列表",
+      "school": "学校/年级",
+      "subject": "科目",
+      "email": "邮箱",
+      "phone": "电话",
+      "startDate": "开始日期",
+      "inquiry": "关联咨询",
+      "specialNote": "备注",
+      "goalsNote": "学习目标",
+      "remarks": "咨询记录",
+      "noRemarks": "暂无咨询记录。",
+      "classes": "课程记录（最近10条）",
+      "noClasses": "暂无课程记录。"
     }
   },
   "material": {

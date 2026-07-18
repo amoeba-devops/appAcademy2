@@ -36,7 +36,8 @@
     "nav": {
       "notices": "Notices",
       "calendar": "Schedule",
-      "materials": "Docs & Files"
+      "materials": "Docs & Files",
+      "students": "My Students"
     },
     "login": {
       "title": "Academy Portal Login",
@@ -134,6 +135,23 @@
       "searchUser": "Search by name (teacher/student)",
       "noResult": "No results.",
       "noPermission": "You do not have permission to create documents."
+    },
+    "students": {
+      "teacherOnly": "This menu is for teachers only.",
+      "empty": "No students assigned.",
+      "back": "Back to students",
+      "school": "School/Grade",
+      "subject": "Subject",
+      "email": "Email",
+      "phone": "Phone",
+      "startDate": "Start date",
+      "inquiry": "Linked inquiry",
+      "specialNote": "Notes",
+      "goalsNote": "Learning goals",
+      "remarks": "Consultation records",
+      "noRemarks": "No consultation records.",
+      "classes": "Class records (last 10)",
+      "noClasses": "No class records."
     }
   },
   "material": {

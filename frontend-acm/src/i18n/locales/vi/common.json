@@ -36,7 +36,8 @@
     "nav": {
       "notices": "Thông báo",
       "calendar": "Lịch học",
-      "materials": "Tài liệu"
+      "materials": "Tài liệu",
+      "students": "Học sinh của tôi"
     },
     "login": {
       "title": "Đăng nhập cổng học viện",
@@ -134,6 +135,23 @@
       "searchUser": "Tìm theo tên (giáo viên/học sinh)",
       "noResult": "Không có kết quả.",
       "noPermission": "Bạn không có quyền tạo tài liệu."
+    },
+    "students": {
+      "teacherOnly": "Menu chỉ dành cho giáo viên.",
+      "empty": "Chưa có học sinh được phân công.",
+      "back": "Về danh sách học sinh",
+      "school": "Trường/Lớp",
+      "subject": "Môn học",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "startDate": "Ngày bắt đầu",
+      "inquiry": "Tư vấn liên kết",
+      "specialNote": "Ghi chú",
+      "goalsNote": "Mục tiêu học tập",
+      "remarks": "Hồ sơ tư vấn",
+      "noRemarks": "Không có hồ sơ tư vấn.",
+      "classes": "Lịch sử lớp học (10 gần nhất)",
+      "noClasses": "Không có lịch sử lớp học."
     }
   },
   "material": {
