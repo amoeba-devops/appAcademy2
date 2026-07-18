@@ -36,7 +36,8 @@
     "nav": {
       "notices": "공지사항",
       "calendar": "수업일정",
-      "materials": "문서/자료실"
+      "materials": "문서/자료실",
+      "students": "수강생관리"
     },
     "login": {
       "title": "학원 포털 로그인",
@@ -134,6 +135,23 @@
       "searchUser": "이름 검색 (강사/학생)",
       "noResult": "결과가 없습니다.",
       "noPermission": "문서를 작성할 권한이 없습니다."
+    },
+    "students": {
+      "teacherOnly": "강사 전용 메뉴입니다.",
+      "empty": "배정된 학생이 없습니다.",
+      "back": "수강생 목록으로",
+      "school": "학교/학년",
+      "subject": "과목",
+      "email": "이메일",
+      "phone": "연락처",
+      "startDate": "수강 시작",
+      "inquiry": "연결 상담",
+      "specialNote": "특이사항",
+      "goalsNote": "학습 목표",
+      "remarks": "상담 기록",
+      "noRemarks": "상담 기록이 없습니다.",
+      "classes": "수업 기록 (최근 10건)",
+      "noClasses": "수업 기록이 없습니다."
     }
   },
   "material": {

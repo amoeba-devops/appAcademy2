@@ -86,7 +86,9 @@ change_log:
 ```
 - RTE: **tiptap** (`@tiptap/react` + `starter-kit`, npm 번들 — CDN 불필요). XSS: 저장 HTML 은 렌더 시 sanitize(DOMPurify).
 
-## 3. Phase C — 강사 수강생관리
+## 3. Phase C — 강사 수강생관리  ✅ 구현 완료 (PR pending)
+
+> 구현: `PortalTeacherStudentsService`(FK ∪ 반 소속, 상세=기본정보+연결상담·리마크 5건+최근 수업 이벤트 10건, 타 학생 403) + `GET /portal/teacher/students(/:stdId)` (TEACHER 게이트). 프론트 `/portal/students(/:stdId)` 폴더 그리드+상세, 수업일정 아래 TEACHER 전용 메뉴. DB 변경 없음. i18n 4locale. be 3 tests/tsc clean, fe tsc/build clean.
 
 ### 대상 학생 = 담당강사 FK(`std_teacher_id`) ∪ 내 수업(반) 소속 학생
 ### 기록 = 상담(CSL: 연결 inquiry 단계·최근 리마크) + 수업(CAL: 최근 일정/출석 대상 이벤트)

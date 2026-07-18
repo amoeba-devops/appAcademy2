@@ -1,16 +1,16 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CalendarRange, FolderOpen, LogOut } from 'lucide-react';
+import { Bell, CalendarRange, FolderOpen, LogOut, Users } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 
 /**
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
- * Menus are the same three for every role (notices / schedule);
- * 자료실(materials) arrives in Phase 3.
+ * PLN-260719 C — 강사(TEACHER)에게는 수업일정 아래 "수강생관리" 메뉴 추가.
  */
 const NAV = [
   { to: '/portal/notices', icon: Bell, key: 'notices', end: false },
   { to: '/portal/calendar', icon: CalendarRange, key: 'calendar', end: false },
+  { to: '/portal/students', icon: Users, key: 'students', end: false, teacherOnly: true },
   { to: '/portal/materials', icon: FolderOpen, key: 'materials', end: false },
 ];
 
@@ -49,7 +49,7 @@ export function PortalShell() {
       {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
       <div className="flex max-w-5xl gap-4 px-3 py-4">
         <nav className="w-40 shrink-0 space-y-1">
-          {NAV.map((n) => {
+          {NAV.filter((n) => !n.teacherOnly || user?.kind === 'TEACHER').map((n) => {
             const Icon = n.icon;
             return (
               <NavLink

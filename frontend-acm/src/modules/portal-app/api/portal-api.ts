@@ -177,6 +177,17 @@ export const portalApi = {
     triggerDownload(res.data as Blob, filename);
   },
 
+  // PLN-260719 C — 강사 수강생관리.
+  teacherStudents: async () =>
+    (await apiClient.get<TeacherStudent[]>('/portal/teacher/students')).data,
+
+  teacherStudent: async (stdId: string) =>
+    (
+      await apiClient.get<TeacherStudentDetail>(
+        `/portal/teacher/students/${stdId}`,
+      )
+    ).data,
+
   // PLN-260718 P2 — download an event attachment (scoped to related events).
   downloadCalAttachment: async (evtId: string, attId: string, filename: string) => {
     const res = await apiClient.get(
@@ -232,6 +243,34 @@ export interface DocShareInput {
   kind: 'STUDENT' | 'TEACHER';
   refId: string;
   role: MaterialShareRole;
+}
+
+// PLN-260719 C — 강사 수강생관리.
+export interface TeacherStudent {
+  id: string;
+  name: string;
+  englishName: string | null;
+  school: string | null;
+  grade: string | null;
+  subject: string | null;
+  status: string;
+  email: string | null;
+}
+
+export interface TeacherStudentDetail extends TeacherStudent {
+  phone: string | null;
+  startDate: string | null;
+  specialNote: string | null;
+  goalsNote: string | null;
+  sourceInquiry: { id: string; seqNo: number; currentStage: string } | null;
+  remarks: Array<{ body: string; createdAt: string }>;
+  recentEvents: Array<{
+    id: string;
+    title: string;
+    category: string;
+    startAt: string;
+    endAt: string;
+  }>;
 }
 
 export interface MaterialComment {

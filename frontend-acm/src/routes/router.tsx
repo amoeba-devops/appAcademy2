@@ -41,6 +41,7 @@ import { PortalCalendarPage } from '@/modules/portal-app/pages/portal-calendar-p
 import { PortalCalEventDetailPage } from '@/modules/portal-app/pages/portal-cal-event-detail-page';
 import { PortalMaterialsPage } from '@/modules/portal-app/pages/portal-materials-page';
 import { PortalDocPage } from '@/modules/portal-app/pages/portal-doc-page';
+import { PortalTeacherStudentsPage } from '@/modules/portal-app/pages/portal-teacher-students-page';
 import {
   PortalNoticesPage,
   PortalNoticeDetailPage,
@@ -153,6 +154,9 @@ export const router = createBrowserRouter([
       { path: 'calendar', element: <PortalCalendarPage /> },
       { path: 'calendar/:evtId', element: <PortalCalEventDetailPage /> },
       { path: 'materials', element: <PortalMaterialsPage /> },
+      // PLN-260719 C — 강사 수강생관리
+      { path: 'students', element: <PortalTeacherStudentsPage /> },
+      { path: 'students/:stdId', element: <PortalTeacherStudentsPage /> },
       // PLN-260719 B — 문서 게시판 (작성/뷰/편집)
       { path: 'materials/docs/new', element: <PortalDocPage /> },
       { path: 'materials/docs/:docId', element: <PortalDocPage /> },
