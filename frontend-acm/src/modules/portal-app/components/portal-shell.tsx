@@ -46,7 +46,8 @@ export function PortalShell() {
         </button>
       </header>
 
-      <div className="mx-auto flex max-w-4xl gap-4 px-3 py-4">
+      {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
+      <div className="flex max-w-5xl gap-4 px-3 py-4">
         <nav className="w-40 shrink-0 space-y-1">
           {NAV.map((n) => {
             const Icon = n.icon;

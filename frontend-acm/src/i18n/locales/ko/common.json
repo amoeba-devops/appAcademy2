@@ -91,7 +91,8 @@
       "list": "리스트",
       "attendees": "관련자",
       "materials": "첨부자료",
-      "download": "다운로드"
+      "download": "다운로드",
+      "owner": "작성자"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

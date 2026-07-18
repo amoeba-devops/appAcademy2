@@ -12,7 +12,8 @@ import { portalApi } from '../api/portal-api';
  * app/RTC entry card (DesktopAppCard) + a copyable classroom link.
  */
 export function PortalCalEventDetailPage() {
-  const { t, i18n } = useTranslation('common');
+  // PLN-260719 R2 — 강사/학생 모두 일정의 모든 정보 노출 (cal 네임스페이스 병용).
+  const { t, i18n } = useTranslation(['common', 'cal']);
   const { evtId } = useParams<{ evtId: string }>();
 
   const { data: event, isLoading } = useQuery({
@@ -22,19 +23,35 @@ export function PortalCalEventDetailPage() {
   });
 
   const isBoda = event?.meetingProvider === 'BODASCHOOL';
-  const when = event
-    ? new Intl.DateTimeFormat(i18n.language, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        weekday: 'short',
-        ...(event.allDay ? {} : { hour: '2-digit', minute: '2-digit' }),
-      }).format(new Date(event.startAt))
+  const fmtFull = (iso: string, withTime: boolean) =>
+    new Intl.DateTimeFormat(i18n.language, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      weekday: 'short',
+      ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+    }).format(new Date(iso));
+  const when = event ? fmtFull(event.startAt, !event.allDay) : '';
+  const sameDay =
+    event &&
+    new Date(event.startAt).toDateString() === new Date(event.endAt).toDateString();
+  const endLabel = event
+    ? event.allDay
+      ? sameDay
+        ? ''
+        : fmtFull(event.endAt, false)
+      : sameDay
+        ? new Date(event.endAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : fmtFull(event.endAt, true)
     : '';
-  const endTime =
-    event && !event.allDay
-      ? new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '';
+  const KIND_BADGE: Record<string, string> = {
+    STUDENT: 'bg-blue-100 text-blue-700',
+    TEACHER: 'bg-purple-100 text-purple-700',
+    PARENT: 'bg-amber-100 text-amber-700',
+  };
 
   return (
     <div>
@@ -49,13 +66,25 @@ export function PortalCalEventDetailPage() {
         <p className="py-6 text-center text-sm text-secondary">…</p>
       ) : (
         <article className="rounded-md border border-[var(--border-subtle)] p-5">
-          <h1 className="text-lg font-semibold text-primary">{event.title}</h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-lg font-semibold text-primary">{event.title}</h1>
+            <span className="shrink-0 rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
+              {t(`cal:category.${event.category}`, event.category)}
+            </span>
+          </div>
           <div className="mt-2 grid gap-1 text-sm">
             <div>
               <span className="text-secondary">{t('portalApp.cal.when', '일시')}</span>{' '}
               {when}
-              {endTime && ` ~ ${endTime}`}
+              {event.allDay && ` (${t('cal:field.allDay', '종일')})`}
+              {endLabel && ` ~ ${endLabel}`}
             </div>
+            {event.ownerName && (
+              <div>
+                <span className="text-secondary">{t('portalApp.cal.owner', '작성자')}</span>{' '}
+                {event.ownerName}
+              </div>
+            )}
             {event.assigneeName && (
               <div>
                 <span className="text-secondary">{t('portalApp.cal.teacher', '담당 강사')}</span>{' '}
@@ -69,9 +98,21 @@ export function PortalCalEventDetailPage() {
               </div>
             )}
             {event.invitees && event.invitees.length > 0 && (
-              <div>
+              <div className="flex flex-wrap items-center gap-1">
                 <span className="text-secondary">{t('portalApp.cal.attendees', '관련자')}</span>{' '}
-                {event.invitees.map((i) => i.name).join(', ')}
+                {event.invitees.map((i, idx) => (
+                  <span
+                    key={`${i.kind}-${i.name}-${idx}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-xs"
+                  >
+                    <span
+                      className={`rounded px-1 py-0.5 text-[9px] font-medium ${KIND_BADGE[i.kind] ?? 'bg-gray-100 text-gray-700'}`}
+                    >
+                      {t(`cal:invitee.kind${i.kind.charAt(0)}${i.kind.slice(1).toLowerCase()}`, i.kind)}
+                    </span>
+                    {i.name}
+                  </span>
+                ))}
               </div>
             )}
           </div>

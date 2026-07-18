@@ -91,7 +91,8 @@
       "list": "Danh sách",
       "attendees": "Liên quan",
       "materials": "Tệp đính kèm",
-      "download": "Tải xuống"
+      "download": "Tải xuống",
+      "owner": "Người tạo"
     },
     "notices": {
       "empty": "Không có thông báo.",
