@@ -9,6 +9,10 @@ updates:
       timezone: Asia/Seoul
     open-pull-requests-limit: 5
     labels: [dependencies, backend]
+    ignore:
+      # FIX-260719 — typeorm 1.0/TS 6.0 자동머지로 main CI 파손. major 는 수동 검토.
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       nestjs:
         patterns:
@@ -26,6 +30,9 @@ updates:
       timezone: Asia/Seoul
     open-pull-requests-limit: 5
     labels: [dependencies, frontend]
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       next:
         patterns:
