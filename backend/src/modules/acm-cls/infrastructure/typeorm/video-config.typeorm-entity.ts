@@ -13,16 +13,36 @@ export class VideoConfigTypeormEntity {
   @Column({ name: 'cls_id', type: 'uuid' })
   clsId!: string;
 
-  @Column({ name: 'vcf_provider', type: 'varchar', length: 15, default: 'GOOGLE_MEET' })
+  @Column({
+    name: 'vcf_provider',
+    type: 'varchar',
+    length: 15,
+    default: 'GOOGLE_MEET',
+  })
   provider!: VcfProvider;
 
-  @Column({ name: 'vcf_persistent_link', type: 'varchar', length: 500, nullable: true })
+  @Column({
+    name: 'vcf_persistent_link',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
   persistentLink?: string | null;
 
-  @Column({ name: 'vcf_bodaschool_room_id', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'vcf_bodaschool_room_id',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   bodaschoolRoomId?: string | null;
 
-  @Column({ name: 'vcf_gmeet_event_id', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'vcf_gmeet_event_id',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   gmeetEventId?: string | null;
 
   @Column({ name: 'vcf_changed_at', type: 'timestamptz' })

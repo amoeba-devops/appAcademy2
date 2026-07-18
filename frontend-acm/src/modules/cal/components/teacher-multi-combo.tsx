@@ -37,7 +37,8 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
     q: debounced || undefined,
     limit: 50,
   });
-  const candidates = (tchData?.items ?? []).filter((tch) => tch.hasAccount && !!tch.userId);
+  // PLN-260719 D — /admin/tch 전체 강사 (콘솔계정 미연결 포털 강사 포함).
+  const candidates = tchData?.items ?? [];
 
   const selectedIds = new Set(value.map((v) => v.id));
 

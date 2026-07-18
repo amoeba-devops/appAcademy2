@@ -15,7 +15,12 @@ export type ClsSubjectType =
   | 'INTL_PREP'
   | 'DEMO'
   | 'OTHER';
-export type ClsStatus = 'PROPOSED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+export type ClsStatus =
+  | 'PROPOSED'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'CANCELLED';
 export type ClsVisibility = 'ENTITY' | 'CELL' | 'PRIVATE';
 
 @Entity('amb_acm_cls_classes')
@@ -33,13 +38,23 @@ export class ClassTypeormEntity {
   @Column({ name: 'cls_inq_id', type: 'uuid', nullable: true })
   inqId?: string | null;
 
-  @Column({ name: 'cls_started_from', type: 'varchar', length: 20, default: 'DIRECT_ENROLLMENT' })
+  @Column({
+    name: 'cls_started_from',
+    type: 'varchar',
+    length: 20,
+    default: 'DIRECT_ENROLLMENT',
+  })
   startedFrom!: ClsStartedFrom;
 
   @Column({ name: 'cls_subject_type', type: 'varchar', length: 20 })
   subjectType!: ClsSubjectType;
 
-  @Column({ name: 'cls_subject_label', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'cls_subject_label',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   subjectLabel?: string | null;
 
   @Column({ name: 'cls_course_id', type: 'uuid', nullable: true })
@@ -48,8 +63,13 @@ export class ClassTypeormEntity {
   @Column({ name: 'cls_ref_guideline_id', type: 'uuid', nullable: true })
   refGuidelineId?: string | null;
 
-  @Column({ name: 'cls_teacher_user_id', type: 'uuid' })
-  teacherUserId!: string;
+  /** 콘솔계정(usr) 참조 — PLN-260719 D 부터 nullable (콘솔 미연결 강사 허용). */
+  @Column({ name: 'cls_teacher_user_id', type: 'uuid', nullable: true })
+  teacherUserId?: string | null;
+
+  /** PLN-260719 D — 강사 마스터(tch_id) 정규 참조 (999g, dual-write). */
+  @Column({ name: 'cls_teacher_tch_id', type: 'uuid', nullable: true })
+  teacherTchId?: string | null;
 
   @Column({ name: 'cls_is_demo', type: 'boolean', default: false })
   isDemo!: boolean;
@@ -60,7 +80,12 @@ export class ClassTypeormEntity {
   @Column({ name: 'cls_is_in_person_default', type: 'boolean', default: false })
   isInPersonDefault!: boolean;
 
-  @Column({ name: 'cls_status', type: 'varchar', length: 20, default: 'PROPOSED' })
+  @Column({
+    name: 'cls_status',
+    type: 'varchar',
+    length: 20,
+    default: 'PROPOSED',
+  })
   status!: ClsStatus;
 
   @Column({ name: 'cls_started_at', type: 'date' })
@@ -72,7 +97,12 @@ export class ClassTypeormEntity {
   @Column({ name: 'cls_completed_at', type: 'date', nullable: true })
   completedAt?: string | null;
 
-  @Column({ name: 'cls_visibility', type: 'varchar', length: 20, default: 'ENTITY' })
+  @Column({
+    name: 'cls_visibility',
+    type: 'varchar',
+    length: 20,
+    default: 'ENTITY',
+  })
   visibility!: ClsVisibility;
 
   @Column({ name: 'cls_remark', type: 'text', nullable: true })

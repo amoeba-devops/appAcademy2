@@ -40,6 +40,15 @@ interface CourseOption {
   isActive: boolean;
 }
 
+// PLN-260719 D — 날짜 지정(기본) 세션 행.
+interface DateSessionDraft {
+  id: string;
+  date: string;
+  startTime: string;
+  durationMin: string;
+  mode: Exclude<SesMode, 'HYBRID'>;
+}
+
 interface RecurrenceDraft {
   id: string;
   dayOfWeek: 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
@@ -67,10 +76,13 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
   const [linkedInquiryId, setLinkedInquiryId] = useState('');
   const [subjectType, setSubjectType] = useState<ClsSubjectType>('OTHER');
   const [courseId, setCourseId] = useState('');
-  const [teacherUserId, setTeacherUserId] = useState('');
+  // PLN-260719 D — 강사는 /admin/tch 마스터(tch_id) 기준 (포털 강사 포함).
+  const [teacherTchId, setTeacherTchId] = useState('');
   const [startedAt, setStartedAt] = useState(() => new Date().toISOString().slice(0, 10));
   const [endedAt, setEndedAt] = useState('');
-  const [hourlyRate, setHourlyRate] = useState('50000');
+  // PLN-260719 D — 일정: 날짜 지정(기본) / 반복(옵션).
+  const [scheduleMode, setScheduleMode] = useState<'DATES' | 'RECURRING'>('DATES');
+  const [dateRows, setDateRows] = useState<DateSessionDraft[]>([createDateDraft()]);
   const [remark, setRemark] = useState('');
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
@@ -97,7 +109,8 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
       );
       const body = res.data;
       const rows = Array.isArray(body) ? body : (body?.items ?? []);
-      return rows.filter((teacher) => teacher.userId);
+      // PLN-260719 D — 콘솔계정 미연결(포털 등록) 강사도 선택 가능.
+      return rows;
     },
     enabled: open,
     staleTime: 60_000,
@@ -144,16 +157,19 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
   // finish the derivation once the course catalog finishes loading (the catalog
   // may not be ready at prefill time).
   const pendingCourseSubjectRef = useRef<string | null>(null);
+  // prefill 의 legacy teacherUserId → 강사 목록 로드 후 tch_id 매핑.
+  const pendingTeacherUserRef = useRef<string | null>(null);
 
   const resetForm = () => {
     pendingCourseSubjectRef.current = null;
     setLinkedInquiryId('');
     setSubjectType('OTHER');
     setCourseId('');
-    setTeacherUserId('');
+    setTeacherTchId('');
     setStartedAt(new Date().toISOString().slice(0, 10));
     setEndedAt('');
-    setHourlyRate('50000');
+    setScheduleMode('DATES');
+    setDateRows([createDateDraft()]);
     setRemark('');
     setStudentSearch('');
     setSelectedStudentIds([]);
@@ -175,7 +191,8 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
       deriveSubjectTypeFromCourseCode(courseMap.get(prefetchedCourseId)?.code) ?? 'OTHER',
     );
     pendingCourseSubjectRef.current = prefetchedCourseId || null;
-    setTeacherUserId(prefill.teacherUserId ?? '');
+    // prefill 은 legacy userId — 강사 목록 로드 후 tch_id 로 매핑 (아래 effect).
+    pendingTeacherUserRef.current = prefill.teacherUserId ?? null;
     setStartedAt(prefill.startedAt ?? new Date().toISOString().slice(0, 10));
     setEndedAt(prefill.endedAt ?? '');
     setRemark(prefill.remark ?? '');
@@ -186,6 +203,14 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
     // any edits the user made in the meantime. Late derivation is handled below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, prefill]);
+
+  useEffect(() => {
+    const pendingUserId = pendingTeacherUserRef.current;
+    if (!pendingUserId || teachers.length === 0) return;
+    const match = teachers.find((teacher) => teacher.userId === pendingUserId);
+    if (match) setTeacherTchId(match.id);
+    pendingTeacherUserRef.current = null;
+  }, [teachers]);
 
   // Once the course catalog loads, derive the subject type for a prefilled
   // course exactly once (no-op when nothing is pending or already resolved).
@@ -216,6 +241,23 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
     });
   };
 
+  const updateDateRow = <K extends keyof DateSessionDraft>(
+    id: string,
+    key: K,
+    value: DateSessionDraft[K],
+  ) => {
+    setDateRows((current) =>
+      current.map((row) => (row.id === id ? { ...row, [key]: value } : row)),
+    );
+  };
+
+  const removeDateRow = (id: string) => {
+    setDateRows((current) => {
+      const next = current.filter((row) => row.id !== id);
+      return next.length > 0 ? next : [createDateDraft()];
+    });
+  };
+
   const updateRecurrence = <K extends keyof RecurrenceDraft>(
     id: string,
     key: K,
@@ -243,7 +285,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
   };
 
   const onSubmit = async () => {
-    if (!teacherUserId) {
+    if (!teacherTchId) {
       toast.error('강사를 선택해 주세요.');
       return;
     }
@@ -260,17 +302,25 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
       return;
     }
 
-    const validRecurrences = recurrences.filter(
-      (row) => row.startTime && row.durationMin && Number(row.durationMin) > 0,
-    );
-    if (validRecurrences.length === 0) {
-      toast.error('일정을 한 건 이상 입력해 주세요.');
+    const validRecurrences =
+      scheduleMode === 'RECURRING'
+        ? recurrences.filter(
+            (row) => row.startTime && row.durationMin && Number(row.durationMin) > 0,
+          )
+        : [];
+    const validDates =
+      scheduleMode === 'DATES'
+        ? dateRows.filter(
+            (row) =>
+              row.date && row.startTime && row.durationMin && Number(row.durationMin) > 0,
+          )
+        : [];
+    if (scheduleMode === 'RECURRING' && validRecurrences.length === 0) {
+      toast.error('반복 일정을 한 건 이상 입력해 주세요.');
       return;
     }
-
-    const rate = Number(hourlyRate);
-    if (!Number.isFinite(rate) || rate < 1) {
-      toast.error('시급을 올바르게 입력해 주세요.');
+    if (scheduleMode === 'DATES' && validDates.length === 0) {
+      toast.error('수업 날짜를 한 건 이상 입력해 주세요.');
       return;
     }
 
@@ -282,14 +332,14 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
       // Keep a user-visible label snapshot on the class row while persisting
       // the canonical FK separately via courseId.
       subjectLabel: courseId ? courseLabelMap.get(courseId) : undefined,
-      teacherUserId,
+      teacherTchId,
       isDemo: subjectType === 'DEMO',
       startedAt,
       endedAt: endedAt || undefined,
       remark: remark.trim() || undefined,
+      // PLN-260719 D — 시급 항목 제거(미입력 허용).
       students: selectedStudentIds.map((studentId) => ({
         studentUserId: studentId,
-        hourlyRate: rate,
         capacityRole: studentId === primaryStudentId ? 'PRIMARY' : 'GROUP_PEER',
         inqId: linkedInquiryId || undefined,
       })),
@@ -304,7 +354,19 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
 
     try {
       const created = await createMut.mutateAsync(body);
-      await apiClient.post(`/acm/cls/classes/${created.id}/sessions/generate`);
+      if (scheduleMode === 'RECURRING') {
+        await apiClient.post(`/acm/cls/classes/${created.id}/sessions/generate`);
+      } else {
+        // 날짜 지정 — 각 날짜를 개별 세션으로 생성.
+        for (const row of validDates) {
+          await apiClient.post('/acm/cls/sessions', {
+            clsId: created.id,
+            scheduledAt: new Date(`${row.date}T${row.startTime}`).toISOString(),
+            durationMin: Number(row.durationMin),
+            mode: row.mode,
+          });
+        }
+      }
       toast.success('수업을 생성했습니다.');
       onOpenChange(false);
       resetForm();
@@ -373,27 +435,18 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
               <div className="grid gap-1">
                 <Label className="text-xs">{t('create.teacher', { defaultValue: '강사' })}</Label>
                 <select
-                  value={teacherUserId}
-                  onChange={(event) => setTeacherUserId(event.target.value)}
+                  value={teacherTchId}
+                  onChange={(event) => setTeacherTchId(event.target.value)}
                   className={selectClass}
                 >
                   <option value="">{t('create.teacherPlaceholder', { defaultValue: '강사 선택' })}</option>
                   {teachers.map((teacher) => (
-                    <option key={teacher.id} value={teacher.userId ?? ''}>
+                    <option key={teacher.id} value={teacher.id}>
                       {teacher.name}
+                      {teacher.email ? ` (${teacher.email})` : ''}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div className="grid gap-1">
-                <Label className="text-xs">{t('create.hourlyRate', { defaultValue: '시급(원)' })}</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={hourlyRate}
-                  onChange={(event) => setHourlyRate(event.target.value)}
-                />
               </div>
 
               <div className="grid gap-1">
@@ -507,28 +560,132 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
           </section>
 
           <section className="grid gap-3 rounded-md border border-[var(--border-subtle)] p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-semibold">
                   {t('create.schedule', { defaultValue: '일정 선택' })}
                 </h3>
-                <p className="text-xs text-secondary">
-                  {t('create.scheduleHint', {
-                    defaultValue: '반복 일정을 등록하면 세션이 자동 생성됩니다.',
-                  })}
+                {/* PLN-260719 D — 날짜 지정(기본) / 반복(옵션) 토글 */}
+                <div className="mt-1 flex gap-3 text-xs">
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="schedule-mode"
+                      checked={scheduleMode === 'DATES'}
+                      onChange={() => setScheduleMode('DATES')}
+                    />
+                    {t('create.scheduleDates', { defaultValue: '날짜 지정 (기본)' })}
+                  </label>
+                  <label className="inline-flex items-center gap-1">
+                    <input
+                      type="radio"
+                      name="schedule-mode"
+                      checked={scheduleMode === 'RECURRING'}
+                      onChange={() => setScheduleMode('RECURRING')}
+                    />
+                    {t('create.scheduleRecurring', { defaultValue: '반복 일정 (옵션)' })}
+                  </label>
+                </div>
+                <p className="mt-1 text-xs text-secondary">
+                  {scheduleMode === 'DATES'
+                    ? t('create.scheduleDatesHint', {
+                        defaultValue: '선택한 날짜/시간마다 수업 세션이 생성됩니다.',
+                      })
+                    : t('create.scheduleHint', {
+                        defaultValue: '반복 일정을 등록하면 세션이 자동 생성됩니다.',
+                      })}
                 </p>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setRecurrences((current) => [...current, createRecurrenceDraft()])}
+                onClick={() =>
+                  scheduleMode === 'DATES'
+                    ? setDateRows((current) => [...current, createDateDraft()])
+                    : setRecurrences((current) => [...current, createRecurrenceDraft()])
+                }
               >
                 <Plus className="mr-1 h-3.5 w-3.5" />
-                {t('create.addSchedule', { defaultValue: '일정 추가' })}
+                {scheduleMode === 'DATES'
+                  ? t('create.addDate', { defaultValue: '날짜 추가' })
+                  : t('create.addSchedule', { defaultValue: '일정 추가' })}
               </Button>
             </div>
 
+            {scheduleMode === 'DATES' && (
+              <div className="grid gap-3">
+                {dateRows.map((row, index) => (
+                  <div
+                    key={row.id}
+                    className="grid gap-3 rounded-md border border-[var(--border-subtle)] p-3 md:grid-cols-[150px_130px_110px_1fr_auto]"
+                  >
+                    <div className="grid gap-1">
+                      <Label className="text-xs">{t('create.sessionDate', { defaultValue: '날짜' })}</Label>
+                      <Input
+                        type="date"
+                        value={row.date}
+                        onChange={(event) => updateDateRow(row.id, 'date', event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label className="text-xs">{t('recurrence.startTime', { defaultValue: '시작 시각' })}</Label>
+                      <Input
+                        type="time"
+                        step={1800}
+                        value={row.startTime}
+                        onChange={(event) => updateDateRow(row.id, 'startTime', event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label className="text-xs">{t('recurrence.duration', { defaultValue: '수업 시간' })}</Label>
+                      <Input
+                        type="number"
+                        min={30}
+                        step={30}
+                        value={row.durationMin}
+                        onChange={(event) => updateDateRow(row.id, 'durationMin', event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label className="text-xs">{t('recurrence.defaultMode', { defaultValue: '수업 방식' })}</Label>
+                      <select
+                        value={row.mode}
+                        onChange={(event) =>
+                          updateDateRow(row.id, 'mode', event.target.value as DateSessionDraft['mode'])
+                        }
+                        className={selectClass}
+                      >
+                        {MODE_OPTIONS.map((mode) => (
+                          <option key={mode} value={mode}>
+                            {t(`session.modes.${mode}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-end justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeDateRow(row.id)}
+                        disabled={dateRows.length === 1}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="md:col-span-5 text-[11px] text-secondary">
+                      {t('create.scheduleRowLabel', {
+                        defaultValue: '{{index}}번째 일정',
+                        index: index + 1,
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {scheduleMode === 'RECURRING' && (
             <div className="grid gap-3">
               {recurrences.map((row, index) => (
                 <div
@@ -615,6 +772,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
                 </div>
               ))}
             </div>
+            )}
           </section>
         </div>
 
@@ -631,6 +789,16 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
       </DialogContent>
     </Dialog>
   );
+}
+
+function createDateDraft(): DateSessionDraft {
+  return {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    date: new Date().toISOString().slice(0, 10),
+    startTime: '15:00',
+    durationMin: '60',
+    mode: 'ONLINE',
+  };
 }
 
 function createRecurrenceDraft(): RecurrenceDraft {

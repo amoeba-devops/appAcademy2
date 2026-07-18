@@ -32,7 +32,12 @@ export const CAL_CATEGORIES = [
   'REGULAR_CLASS',
   'OTHER',
 ] as const;
-export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
+export const CAL_PROVIDERS = [
+  'NONE',
+  'GOOGLE_MEET',
+  'BODASCHOOL',
+  'OTHER',
+] as const;
 export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
 
 // ============================================================================
@@ -41,61 +46,85 @@ export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
 export class CalInviteeInputDto {
   @ApiProperty({ enum: CAL_INVITEE_KINDS })
   @IsIn(CAL_INVITEE_KINDS)
-  kind!: typeof CAL_INVITEE_KINDS[number];
+  kind!: (typeof CAL_INVITEE_KINDS)[number];
 
-  @ApiProperty() @IsUUID()
+  @ApiProperty()
+  @IsUUID()
   refId!: string;
 }
 
 export class CreateCalEventDto {
   @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'CLASS' })
-  @IsOptional() @IsEnum(CAL_CATEGORIES)
-  evtCategory?: typeof CAL_CATEGORIES[number];
+  @IsOptional()
+  @IsEnum(CAL_CATEGORIES)
+  evtCategory?: (typeof CAL_CATEGORIES)[number];
 
-  @ApiProperty() @IsString() @MaxLength(200)
+  @ApiProperty()
+  @IsString()
+  @MaxLength(200)
   evtTitle!: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   evtDescription?: string;
 
-  @ApiProperty({ description: 'ISO-8601 datetime' }) @IsDateString()
+  @ApiProperty({ description: 'ISO-8601 datetime' })
+  @IsDateString()
   evtStartAt!: string;
 
-  @ApiProperty({ description: 'ISO-8601 datetime' }) @IsDateString()
+  @ApiProperty({ description: 'ISO-8601 datetime' })
+  @IsDateString()
   evtEndAt!: string;
 
-  @ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean()
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
   evtAllDay?: boolean;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   evtLocationText?: string;
 
   @ApiPropertyOptional({ enum: CAL_PROVIDERS, default: 'NONE' })
-  @IsOptional() @IsEnum(CAL_PROVIDERS)
-  evtMeetingProvider?: typeof CAL_PROVIDERS[number];
+  @IsOptional()
+  @IsEnum(CAL_PROVIDERS)
+  evtMeetingProvider?: (typeof CAL_PROVIDERS)[number];
 
-  @ApiPropertyOptional() @IsOptional()
+  @ApiPropertyOptional()
+  @IsOptional()
   @ValidateIf((o) => o.evtMeetingProvider && o.evtMeetingProvider !== 'NONE')
-  @IsString() @MaxLength(500)
+  @IsString()
+  @MaxLength(500)
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   evtClsId?: string;
 
   /** Optional override (admin only — controller enforces). Default = current user. */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   evtOwnerUserId?: string;
 
   /**
    * REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher.tch_id). Separate
    * from owner/invitee — surfaces in /admin/cal card + detail modal.
    */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   evtAssigneeTchId?: string;
 
   @ApiPropertyOptional({ type: [CalInviteeInputDto] })
-  @IsOptional() @IsArray() @ArrayMaxSize(200)
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(200)
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
@@ -103,36 +132,57 @@ export class CreateCalEventDto {
 
 export class UpdateCalEventDto {
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
-  @IsOptional() @IsEnum(CAL_CATEGORIES)
-  evtCategory?: typeof CAL_CATEGORIES[number];
+  @IsOptional()
+  @IsEnum(CAL_CATEGORIES)
+  evtCategory?: (typeof CAL_CATEGORIES)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   evtTitle?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   evtDescription?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   evtStartAt?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   evtEndAt?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   evtAllDay?: boolean;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   evtLocationText?: string;
 
   @ApiPropertyOptional({ enum: CAL_PROVIDERS })
-  @IsOptional() @IsEnum(CAL_PROVIDERS)
-  evtMeetingProvider?: typeof CAL_PROVIDERS[number];
+  @IsOptional()
+  @IsEnum(CAL_PROVIDERS)
+  evtMeetingProvider?: (typeof CAL_PROVIDERS)[number];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   evtClsId?: string;
 
   /**
@@ -153,18 +203,23 @@ export class UpdateCalEventDto {
   evtAssigneeTchId?: string | null;
 
   @ApiPropertyOptional({ type: [CalInviteeInputDto] })
-  @IsOptional() @IsArray() @ArrayMaxSize(200)
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(200)
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
 }
 
 export class ListInviteeCandidatesQueryDto {
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   q?: string;
 
   @ApiPropertyOptional({ enum: [...CAL_INVITEE_KINDS, 'ALL'], default: 'ALL' })
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   kind?: string;
 }
 
@@ -177,11 +232,18 @@ export class ListCalEventsQueryDto {
   @IsDateString()
   to!: string;
 
-  @ApiPropertyOptional({ description: 'Filter by owner user id (admin can pass any; teacher restricted server-side). Deprecated: use ownerUserIds.' })
-  @IsOptional() @IsUUID()
+  @ApiPropertyOptional({
+    description:
+      'Filter by owner user id (admin can pass any; teacher restricted server-side). Deprecated: use ownerUserIds.',
+  })
+  @IsOptional()
+  @IsUUID()
   ownerUserId?: string;
 
-  @ApiPropertyOptional({ description: 'Filter by multiple owner user ids (admin only).', type: [String] })
+  @ApiPropertyOptional({
+    description: 'Filter by multiple owner user ids (admin only).',
+    type: [String],
+  })
   @IsOptional()
   @Transform(toStringArray)
   @IsArray()
@@ -189,19 +251,45 @@ export class ListCalEventsQueryDto {
   @IsUUID('all', { each: true })
   ownerUserIds?: string[];
 
+  // PLN-260719 D — 강사 필터를 /admin/tch 마스터(tch_id) 기준으로.
+  // 매칭: 담당강사(evt_assignee_tch_id) OR 강사 참석자 OR 소유자(연결 콘솔계정).
+  @ApiPropertyOptional({
+    description: '강사 마스터 tch_id 복수 필터 (admin only).',
+    type: [String],
+  })
+  @IsOptional()
+  @Transform(toStringArray)
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsUUID('all', { each: true })
+  assigneeTchIds?: string[];
+
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
-  @IsOptional() @IsEnum(CAL_CATEGORIES)
-  category?: typeof CAL_CATEGORIES[number];
+  @IsOptional()
+  @IsEnum(CAL_CATEGORIES)
+  category?: (typeof CAL_CATEGORIES)[number];
 
-  @ApiPropertyOptional({ enum: CAL_INVITEE_KINDS, description: 'Filter events that include an invitee of this kind (admin only). Requires attendeeRefId(s).' })
-  @IsOptional() @IsIn(CAL_INVITEE_KINDS)
-  attendeeKind?: typeof CAL_INVITEE_KINDS[number];
+  @ApiPropertyOptional({
+    enum: CAL_INVITEE_KINDS,
+    description:
+      'Filter events that include an invitee of this kind (admin only). Requires attendeeRefId(s).',
+  })
+  @IsOptional()
+  @IsIn(CAL_INVITEE_KINDS)
+  attendeeKind?: (typeof CAL_INVITEE_KINDS)[number];
 
-  @ApiPropertyOptional({ description: 'Invitee ref id (UUID). Requires attendeeKind. Deprecated: use attendeeRefIds.' })
-  @IsOptional() @IsUUID()
+  @ApiPropertyOptional({
+    description:
+      'Invitee ref id (UUID). Requires attendeeKind. Deprecated: use attendeeRefIds.',
+  })
+  @IsOptional()
+  @IsUUID()
   attendeeRefId?: string;
 
-  @ApiPropertyOptional({ description: 'Multiple invitee ref ids (UUID). Requires attendeeKind.', type: [String] })
+  @ApiPropertyOptional({
+    description: 'Multiple invitee ref ids (UUID). Requires attendeeKind.',
+    type: [String],
+  })
   @IsOptional()
   @Transform(toStringArray)
   @IsArray()

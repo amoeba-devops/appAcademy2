@@ -44,7 +44,11 @@ export class FeedbackTypeormEntity {
   @Column({ name: 'fbk_sla_breached', type: 'boolean', default: false })
   slaBreached!: boolean;
 
-  @Column({ name: 'fbk_delivered_to_parent_at', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'fbk_delivered_to_parent_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   deliveredToParentAt?: Date | null;
 
   @Column({ name: 'fbk_gcal_synced_at', type: 'timestamptz', nullable: true })

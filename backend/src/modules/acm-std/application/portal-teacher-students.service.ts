@@ -74,7 +74,9 @@ export class PortalTeacherStudentsService {
                 JOIN amb_acm_cls_classes c
                   ON c.cls_id = cs.cls_id AND c.ent_id = cs.ent_id
                 JOIN amb_acm_tch_teacher t
-                  ON t.tch_user_id = c.cls_teacher_user_id AND t.ent_id = c.ent_id
+                  ON (c.cls_teacher_tch_id = t.tch_id
+                      OR t.tch_user_id = c.cls_teacher_user_id)
+                 AND t.ent_id = c.ent_id
                WHERE cs.ent_id = $1 AND t.tch_id = $2 AND cs.cst_left_at IS NULL
             )
           )

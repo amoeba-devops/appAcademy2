@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import {
   ListEnrollmentsQueryDto,
   UpdateEnrollmentStatusDto,

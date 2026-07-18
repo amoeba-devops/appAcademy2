@@ -22,10 +22,21 @@ export class AttendanceTypeormEntity {
   @Column({ name: 'cst_id', type: 'uuid' })
   cstId!: string;
 
-  @Column({ name: 'att_status', type: 'varchar', length: 20, default: 'PRESENT' })
+  @Column({
+    name: 'att_status',
+    type: 'varchar',
+    length: 20,
+    default: 'PRESENT',
+  })
   status!: AttStatus;
 
-  @Column({ name: 'att_billable_hours', type: 'numeric', precision: 3, scale: 1, default: 0 })
+  @Column({
+    name: 'att_billable_hours',
+    type: 'numeric',
+    precision: 3,
+    scale: 1,
+    default: 0,
+  })
   billableHours!: string;
 
   @Column({ name: 'att_recorded_by', type: 'uuid', nullable: true })

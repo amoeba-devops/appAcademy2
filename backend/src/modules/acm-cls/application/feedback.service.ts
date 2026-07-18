@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
@@ -25,10 +29,19 @@ export class FeedbackService {
     return this.fbkRepo.find({ where: { entId, sesId, deletedAt: IsNull() } });
   }
 
-  async upsert(entId: string, sesId: string, dto: UpsertFeedbackDto, actorId?: string) {
-    const ses = await this.sesRepo.findOne({ where: { id: sesId, entId, deletedAt: IsNull() } });
+  async upsert(
+    entId: string,
+    sesId: string,
+    dto: UpsertFeedbackDto,
+    actorId?: string,
+  ) {
+    const ses = await this.sesRepo.findOne({
+      where: { id: sesId, entId, deletedAt: IsNull() },
+    });
     if (!ses) throw new NotFoundException('Session not found');
-    const cls = await this.clsRepo.findOne({ where: { id: ses.clsId, entId, deletedAt: IsNull() } });
+    const cls = await this.clsRepo.findOne({
+      where: { id: ses.clsId, entId, deletedAt: IsNull() },
+    });
     if (!cls) throw new NotFoundException('Class not found');
 
     const status = dto.status ?? 'DRAFT';
@@ -47,7 +60,12 @@ export class FeedbackService {
 
     const now = new Date();
     let row = await this.fbkRepo.findOne({
-      where: { entId, sesId, studentUserId: dto.studentUserId, deletedAt: IsNull() },
+      where: {
+        entId,
+        sesId,
+        studentUserId: dto.studentUserId,
+        deletedAt: IsNull(),
+      },
     });
     if (!row) {
       row = this.fbkRepo.create({
@@ -75,7 +93,12 @@ export class FeedbackService {
     row.updatedAt = now;
     const saved = await this.fbkRepo.save(row);
     this.events.emit('acm.cls.feedback.upserted', {
-      entId, occurredAt: now.toISOString(), actorId, sesId, fbkId: saved.id, status,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      sesId,
+      fbkId: saved.id,
+      status,
     });
     return saved;
   }
@@ -104,7 +127,10 @@ export class FeedbackService {
       .execute();
     for (const s of stale) {
       this.events.emit('acm.cls.feedback.sla_breached', {
-        entId: s.entId, occurredAt: new Date().toISOString(), fbkId: s.id, sesId: s.sesId,
+        entId: s.entId,
+        occurredAt: new Date().toISOString(),
+        fbkId: s.id,
+        sesId: s.sesId,
       });
     }
     return { flagged: stale.length };

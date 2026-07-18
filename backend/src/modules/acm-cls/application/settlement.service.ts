@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
@@ -53,7 +58,7 @@ export class SettlementService {
       `SELECT c.cls_id, s.ses_id, a.cst_id,
               to_char(s.ses_scheduled_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS ses_date,
               a.att_billable_hours::text AS hours,
-              cst.cst_hourly_rate::text AS rate,
+              COALESCE(cst.cst_hourly_rate, 0)::text AS rate,
               c.cls_teacher_user_id AS teacher_user_id
          FROM amb_acm_cls_sessions s
          JOIN amb_acm_cls_classes c ON c.cls_id = s.cls_id AND c.cls_deleted_at IS NULL
@@ -88,9 +93,7 @@ export class SettlementService {
       };
     });
 
-    const withholdingRate = existing
-      ? Number(existing.withholdingRate)
-      : 0.033;
+    const withholdingRate = existing ? Number(existing.withholdingRate) : 0.033;
     const amountWithheld = Math.round(amountGross * withholdingRate);
     const amountAfterTax = amountGross - amountWithheld;
     const now = new Date();
@@ -123,7 +126,9 @@ export class SettlementService {
       stl.amountAfterTax = amountAfterTax.toFixed(0);
       stl.computedAt = now;
       stl.updatedAt = now;
-      const savedStl = await em.getRepository(SettlementTypeormEntity).save(stl);
+      const savedStl = await em
+        .getRepository(SettlementTypeormEntity)
+        .save(stl);
 
       // Replace lines
       await em
@@ -179,14 +184,23 @@ export class SettlementService {
   async findOne(entId: string, id: string) {
     const stl = await this.stlRepo.findOne({ where: { id, entId } });
     if (!stl) throw new NotFoundException('Settlement not found');
-    const lines = await this.lineRepo.find({ where: { entId, stlId: id }, order: { sessionDate: 'ASC' } });
+    const lines = await this.lineRepo.find({
+      where: { entId, stlId: id },
+      order: { sessionDate: 'ASC' },
+    });
     return { ...stl, lines };
   }
 
-  async confirm(entId: string, id: string, dto: ConfirmSettlementDto, actorId?: string) {
+  async confirm(
+    entId: string,
+    id: string,
+    dto: ConfirmSettlementDto,
+    actorId?: string,
+  ) {
     const stl = await this.stlRepo.findOne({ where: { id, entId } });
     if (!stl) throw new NotFoundException('Settlement not found');
-    if (stl.status !== 'DRAFT') throw new BadRequestException('VAL_SETTLEMENT_FROZEN');
+    if (stl.status !== 'DRAFT')
+      throw new BadRequestException('VAL_SETTLEMENT_FROZEN');
 
     const now = new Date();
     if (dto.withholdingRate !== undefined) {
@@ -202,8 +216,12 @@ export class SettlementService {
     stl.updatedAt = now;
     const saved = await this.stlRepo.save(stl);
     this.events.emit('acm.cls.settlement.confirmed', {
-      entId, occurredAt: now.toISOString(), actorId, stlId: id,
-      teacherUserId: stl.teacherUserId, yearMonth: stl.yearMonth,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      stlId: id,
+      teacherUserId: stl.teacherUserId,
+      yearMonth: stl.yearMonth,
     });
     return saved;
   }
@@ -215,7 +233,9 @@ export class SettlementService {
     const now = new Date();
     const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const yearMonth = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
-    const drafts = await this.stlRepo.find({ where: { yearMonth, status: 'DRAFT' } });
+    const drafts = await this.stlRepo.find({
+      where: { yearMonth, status: 'DRAFT' },
+    });
     let count = 0;
     for (const d of drafts) {
       d.status = 'CONFIRMED';
@@ -224,8 +244,13 @@ export class SettlementService {
       d.updatedAt = now;
       await this.stlRepo.save(d);
       this.events.emit('acm.cls.settlement.confirmed', {
-        entId: d.entId, occurredAt: now.toISOString(), actorId: 'SYSTEM',
-        stlId: d.id, teacherUserId: d.teacherUserId, yearMonth: d.yearMonth, auto: true,
+        entId: d.entId,
+        occurredAt: now.toISOString(),
+        actorId: 'SYSTEM',
+        stlId: d.id,
+        teacherUserId: d.teacherUserId,
+        yearMonth: d.yearMonth,
+        auto: true,
       });
       count += 1;
     }

@@ -1,6 +1,13 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
-export type RecDayOfWeek = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI' | 'SAT' | 'SUN';
+export type RecDayOfWeek =
+  | 'MON'
+  | 'TUE'
+  | 'WED'
+  | 'THU'
+  | 'FRI'
+  | 'SAT'
+  | 'SUN';
 export type RecDefaultMode = 'IN_PERSON' | 'ONLINE' | 'TWO_PERSON_IN_PERSON';
 
 @Entity('amb_acm_cls_recurrence')
@@ -24,7 +31,12 @@ export class RecurrenceTypeormEntity {
   @Column({ name: 'rec_duration_min', type: 'int' })
   durationMin!: number;
 
-  @Column({ name: 'rec_default_mode', type: 'varchar', length: 25, default: 'ONLINE' })
+  @Column({
+    name: 'rec_default_mode',
+    type: 'varchar',
+    length: 25,
+    default: 'ONLINE',
+  })
   defaultMode!: RecDefaultMode;
 
   @Column({ name: 'rec_effective_from', type: 'date' })

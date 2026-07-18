@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
@@ -36,11 +40,16 @@ export class AttendanceService {
     dto: RecordAttendanceDto,
     actorId?: string,
   ) {
-    const ses = await this.sesRepo.findOne({ where: { id: sesId, entId, deletedAt: IsNull() } });
+    const ses = await this.sesRepo.findOne({
+      where: { id: sesId, entId, deletedAt: IsNull() },
+    });
     if (!ses) throw new NotFoundException('Session not found');
-    if (ses.status === 'CANCELLED') throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
+    if (ses.status === 'CANCELLED')
+      throw new BadRequestException('VAL_SES_STATUS_TRANSITION');
 
-    const validCsts = await this.cstRepo.find({ where: { entId, clsId: ses.clsId } });
+    const validCsts = await this.cstRepo.find({
+      where: { entId, clsId: ses.clsId },
+    });
     const validIds = new Set(validCsts.map((c) => c.id));
     const maxHours = ses.durationMin / 60 + 0.5;
     const now = new Date();
@@ -53,9 +62,11 @@ export class AttendanceService {
         if (line.billableHours < 0 || line.billableHours > maxHours) {
           throw new BadRequestException('VAL_HOURS_RANGE');
         }
-        const existing = await em.getRepository(AttendanceTypeormEntity).findOne({
-          where: { entId, sesId, cstId: line.cstId },
-        });
+        const existing = await em
+          .getRepository(AttendanceTypeormEntity)
+          .findOne({
+            where: { entId, sesId, cstId: line.cstId },
+          });
         if (existing) {
           existing.status = line.status;
           existing.billableHours = line.billableHours.toFixed(1);
@@ -92,7 +103,11 @@ export class AttendanceService {
     });
 
     this.events.emit('acm.cls.attendance.recorded', {
-      entId, occurredAt: now.toISOString(), actorId, sesId, clsId: ses.clsId,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      sesId,
+      clsId: ses.clsId,
     });
     return this.listForSession(entId, sesId);
   }

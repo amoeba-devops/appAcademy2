@@ -25,7 +25,11 @@ export class MakeupTypeormEntity {
   @Column({ name: 'mkp_substitute_teacher_id', type: 'uuid', nullable: true })
   substituteTeacherId?: string | null;
 
-  @Column({ name: 'mkp_substitution_approver_id', type: 'uuid', nullable: true })
+  @Column({
+    name: 'mkp_substitution_approver_id',
+    type: 'uuid',
+    nullable: true,
+  })
   substitutionApproverId?: string | null;
 
   @Column({ name: 'mkp_proposed_at', type: 'timestamptz' })
@@ -34,7 +38,12 @@ export class MakeupTypeormEntity {
   @Column({ name: 'mkp_proposed_by', type: 'uuid', nullable: true })
   proposedBy?: string | null;
 
-  @Column({ name: 'mkp_status', type: 'varchar', length: 15, default: 'PROPOSED' })
+  @Column({
+    name: 'mkp_status',
+    type: 'varchar',
+    length: 15,
+    default: 'PROPOSED',
+  })
   status!: MakeupStatus;
 
   @Column({ name: 'mkp_advisor_id', type: 'uuid', nullable: true })

@@ -166,8 +166,13 @@
     "duration": "수업 시간(분)",
     "defaultMode": "기본 수업 방식",
     "days": {
-      "MON": "월", "TUE": "화", "WED": "수", "THU": "목",
-      "FRI": "금", "SAT": "토", "SUN": "일"
+      "MON": "월",
+      "TUE": "화",
+      "WED": "수",
+      "THU": "목",
+      "FRI": "금",
+      "SAT": "토",
+      "SUN": "일"
     }
   },
   "video": {
@@ -249,5 +254,12 @@
       "label": "상태",
       "pending": "변경 중…"
     }
+  },
+  "create": {
+    "scheduleDates": "날짜 지정 (기본)",
+    "scheduleRecurring": "반복 일정 (옵션)",
+    "scheduleDatesHint": "선택한 날짜/시간마다 수업 세션이 생성됩니다.",
+    "addDate": "날짜 추가",
+    "sessionDate": "날짜"
   }
 }

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
@@ -23,14 +27,22 @@ export class MakeupService {
   async list(entId: string, status?: string) {
     const where: Record<string, unknown> = { entId };
     if (status) where.status = status;
-    return this.mkpRepo.find({ where, order: { createdAt: 'DESC' }, take: 200 });
+    return this.mkpRepo.find({
+      where,
+      order: { createdAt: 'DESC' },
+      take: 200,
+    });
   }
 
   async propose(entId: string, dto: ProposeMakeupDto, actorId?: string) {
-    const original = await this.sesRepo.findOne({ where: { id: dto.originalSesId, entId } });
+    const original = await this.sesRepo.findOne({
+      where: { id: dto.originalSesId, entId },
+    });
     if (!original) throw new NotFoundException('Original session not found');
     if (original.status !== 'CANCELLED' && original.status !== 'NO_SHOW') {
-      throw new BadRequestException('Makeup requires a cancelled/no-show original session');
+      throw new BadRequestException(
+        'Makeup requires a cancelled/no-show original session',
+      );
     }
     if (dto.substituteTeacherId && !dto.substitutionApproverId) {
       throw new BadRequestException('VAL_SUBSTITUTE_APPROVAL');
@@ -54,9 +66,17 @@ export class MakeupService {
       }),
     );
     this.events.emit('acm.cls.makeup.proposed', {
-      entId, occurredAt: now.toISOString(), actorId, mkpId: saved.id, originalSesId: dto.originalSesId,
+      entId,
+      occurredAt: now.toISOString(),
+      actorId,
+      mkpId: saved.id,
+      originalSesId: dto.originalSesId,
     });
-    return { proposal: saved, proposedScheduledAt: dto.makeupScheduledAt, durationMin: dto.durationMin };
+    return {
+      proposal: saved,
+      proposedScheduledAt: dto.makeupScheduledAt,
+      durationMin: dto.durationMin,
+    };
   }
 
   /**
@@ -85,7 +105,9 @@ export class MakeupService {
     }
 
     if (dto.status === 'APPROVED' || dto.status === 'COMPLETED') {
-      const original = await this.sesRepo.findOne({ where: { id: m.originalSesId, entId } });
+      const original = await this.sesRepo.findOne({
+        where: { id: m.originalSesId, entId },
+      });
       if (!original) throw new NotFoundException('Original session not found');
       const sched = makeupSchedule?.scheduledAt
         ? new Date(makeupSchedule.scheduledAt)
@@ -95,7 +117,12 @@ export class MakeupService {
       // Use SessionService.createOne for conflict check + sequence
       const created = await this.sessionService.createOne(
         entId,
-        { clsId: original.clsId, scheduledAt: sched.toISOString(), durationMin: dur, mode: original.mode },
+        {
+          clsId: original.clsId,
+          scheduledAt: sched.toISOString(),
+          durationMin: dur,
+          mode: original.mode,
+        },
         actorId,
       );
       // Mark as makeup replacement
@@ -110,7 +137,11 @@ export class MakeupService {
       m.updatedAt = now;
       const saved = await this.mkpRepo.save(m);
       this.events.emit('acm.cls.makeup.approved', {
-        entId, occurredAt: now.toISOString(), actorId, mkpId: id, makeupSesId: created.id,
+        entId,
+        occurredAt: now.toISOString(),
+        actorId,
+        mkpId: id,
+        makeupSesId: created.id,
       });
       return saved;
     }

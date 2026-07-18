@@ -17,10 +17,22 @@ export class ClassStudentTypeormEntity {
   @Column({ name: 'cst_student_user_id', type: 'uuid' })
   studentUserId!: string;
 
-  @Column({ name: 'cst_hourly_rate', type: 'numeric', precision: 10, scale: 0 })
-  hourlyRate!: string;
+  /** PLN-260719 D — 시급 옵션화 (수업생성 폼에서 제거, 정산 NULL→0). */
+  @Column({
+    name: 'cst_hourly_rate',
+    type: 'numeric',
+    precision: 10,
+    scale: 0,
+    nullable: true,
+  })
+  hourlyRate?: string | null;
 
-  @Column({ name: 'cst_capacity_role', type: 'varchar', length: 15, default: 'PRIMARY' })
+  @Column({
+    name: 'cst_capacity_role',
+    type: 'varchar',
+    length: 15,
+    default: 'PRIMARY',
+  })
   capacityRole!: CstCapacityRole;
 
   @Column({ name: 'cst_enrolled_at', type: 'date' })

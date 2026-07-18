@@ -21,7 +21,9 @@ export class ClsJobs {
     this.logger.log('Session generation batch starting');
     try {
       const result = await this.sessions.generateAll();
-      this.logger.log(`Session generation done: ${result.classes} classes / ${result.generated} generated`);
+      this.logger.log(
+        `Session generation done: ${result.classes} classes / ${result.generated} generated`,
+      );
     } catch (err) {
       this.logger.error('Session generation failed', err as Error);
     }
@@ -45,7 +47,9 @@ export class ClsJobs {
     this.logger.log('Settlement auto-confirm starting');
     try {
       const result = await this.settlements.autoConfirmPrevMonth();
-      this.logger.log(`Settlement auto-confirm done: ${result.confirmed} confirmed`);
+      this.logger.log(
+        `Settlement auto-confirm done: ${result.confirmed} confirmed`,
+      );
     } catch (err) {
       this.logger.error('Settlement auto-confirm failed', err as Error);
     }
@@ -57,6 +61,8 @@ export class ClsJobs {
    */
   @OnEvent('acm.csl.class_started')
   onCslClassStarted(payload: { entId: string; inqId: string }): void {
-    this.logger.log(`CSL.class_started ent=${payload.entId} inq=${payload.inqId} → CLS prompt`);
+    this.logger.log(
+      `CSL.class_started ent=${payload.entId} inq=${payload.inqId} → CLS prompt`,
+    );
   }
 }

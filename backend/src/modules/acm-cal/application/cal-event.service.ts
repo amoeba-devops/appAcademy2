@@ -73,7 +73,11 @@ export class CalEventService {
   ) {
     const from = new Date(q.from);
     const to = new Date(q.to);
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from >= to) {
+    if (
+      Number.isNaN(from.getTime()) ||
+      Number.isNaN(to.getTime()) ||
+      from >= to
+    ) {
       throw new BadRequestException('INVALID_RANGE');
     }
 
@@ -84,7 +88,8 @@ export class CalEventService {
       .andWhere('e.startAt < :to', { to })
       .andWhere('e.endAt > :from', { from });
 
-    if (q.category) qb.andWhere('e.category = :category', { category: q.category });
+    if (q.category)
+      qb.andWhere('e.category = :category', { category: q.category });
 
     if (actorRole === 'ADMIN') {
       const ownerIds = Array.from(
@@ -97,6 +102,24 @@ export class CalEventService {
         qb.andWhere('e.ownerUserId = :owner', { owner: ownerIds[0] });
       } else if (ownerIds.length > 1) {
         qb.andWhere('e.ownerUserId IN (:...ownerIds)', { ownerIds });
+      }
+
+      // PLN-260719 D — 강사(tch_id) 필터: 담당강사 OR 강사 참석자 OR
+      // 소유자(해당 강사의 연결 콘솔계정이 만든 일정).
+      const tchIds = q.assigneeTchIds ?? [];
+      if (tchIds.length > 0) {
+        qb.andWhere(
+          `(e.evt_assignee_tch_id IN (:...tchIds)
+            OR EXISTS (
+              SELECT 1 FROM amb_acm_cal_invitee ti
+              WHERE ti.evt_id = e.evt_id AND ti.ent_id = e.ent_id
+                AND ti.inv_kind = 'TEACHER' AND ti.inv_ref_id IN (:...tchIds))
+            OR e.evt_owner_user_id IN (
+              SELECT t.tch_user_id FROM amb_acm_tch_teacher t
+              WHERE t.ent_id = e.ent_id AND t.tch_id IN (:...tchIds)
+                AND t.tch_user_id IS NOT NULL))`,
+          { tchIds },
+        );
       }
 
       const attendeeIds = Array.from(
@@ -146,7 +169,11 @@ export class CalEventService {
   ) {
     const from = new Date(q.from);
     const to = new Date(q.to);
-    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from >= to) {
+    if (
+      Number.isNaN(from.getTime()) ||
+      Number.isNaN(to.getTime()) ||
+      from >= to
+    ) {
       throw new BadRequestException('INVALID_RANGE');
     }
 
@@ -156,7 +183,8 @@ export class CalEventService {
       .andWhere('e.deletedAt IS NULL')
       .andWhere('e.startAt < :to', { to })
       .andWhere('e.endAt > :from', { from });
-    if (q.category) qb.andWhere('e.category = :category', { category: q.category });
+    if (q.category)
+      qb.andWhere('e.category = :category', { category: q.category });
 
     this.applyPortalScope(qb, kind, refId);
 
@@ -265,12 +293,18 @@ export class CalEventService {
 
   /** Shared enrichment — owner/assignee names, invitee counts, primary student. */
   private async enrichItems(entId: string, items: CalEventTypeormEntity[]) {
-    const ownerMap = await this.lookupOwners(entId, items.map((i) => i.ownerUserId));
+    const ownerMap = await this.lookupOwners(
+      entId,
+      items.map((i) => i.ownerUserId),
+    );
     const assigneeMap = await this.lookupAssignees(
       entId,
       items.map((i) => i.assigneeTchId),
     );
-    const counts = await this.inviteeSvc.countsByEvent(entId, items.map((i) => i.id));
+    const counts = await this.inviteeSvc.countsByEvent(
+      entId,
+      items.map((i) => i.id),
+    );
     const primaryStudents = await this.inviteeSvc.primaryStudentNamesByEvent(
       entId,
       items.map((i) => i.id),
@@ -281,19 +315,28 @@ export class CalEventService {
       ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
       assigneeName: e.assigneeTchId
-        ? assigneeMap.get(e.assigneeTchId)?.name ?? null
+        ? (assigneeMap.get(e.assigneeTchId)?.name ?? null)
         : null,
       assigneeEmail: e.assigneeTchId
-        ? assigneeMap.get(e.assigneeTchId)?.email ?? null
+        ? (assigneeMap.get(e.assigneeTchId)?.email ?? null)
         : null,
       inviteeCount: counts.get(e.id) ?? 0,
       primaryStudentName:
-        primaryStudents.get(e.id) ?? this.extractStudentNameFromTitle(e.title) ?? null,
+        primaryStudents.get(e.id) ??
+        this.extractStudentNameFromTitle(e.title) ??
+        null,
     }));
   }
 
-  async findOne(entId: string, actorUserId: string, actorRole: AcmRole, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+  async findOne(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    id: string,
+  ) {
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanView(e, actorUserId, actorRole);
 
@@ -308,10 +351,10 @@ export class CalEventService {
       ownerName: ownerMap.get(e.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(e.ownerUserId)?.email ?? null,
       assigneeName: e.assigneeTchId
-        ? assigneeMap.get(e.assigneeTchId)?.name ?? null
+        ? (assigneeMap.get(e.assigneeTchId)?.name ?? null)
         : null,
       assigneeEmail: e.assigneeTchId
-        ? assigneeMap.get(e.assigneeTchId)?.email ?? null
+        ? (assigneeMap.get(e.assigneeTchId)?.email ?? null)
         : null,
       invitees,
       primaryStudentName:
@@ -373,17 +416,19 @@ export class CalEventService {
     }
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
-    const assigneeMap = await this.lookupAssignees(entId, [saved.assigneeTchId]);
+    const assigneeMap = await this.lookupAssignees(entId, [
+      saved.assigneeTchId,
+    ]);
     const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
     return {
       ...this.toDetail(saved),
       ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
       assigneeName: saved.assigneeTchId
-        ? assigneeMap.get(saved.assigneeTchId)?.name ?? null
+        ? (assigneeMap.get(saved.assigneeTchId)?.name ?? null)
         : null,
       assigneeEmail: saved.assigneeTchId
-        ? assigneeMap.get(saved.assigneeTchId)?.email ?? null
+        ? (assigneeMap.get(saved.assigneeTchId)?.email ?? null)
         : null,
       invitees,
       notifySummary,
@@ -397,7 +442,9 @@ export class CalEventService {
     id: string,
     dto: UpdateCalEventDto,
   ) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanMutate(e, actorUserId, actorRole);
 
@@ -409,10 +456,12 @@ export class CalEventService {
     if (dto.evtAllDay !== undefined) e.allDay = dto.evtAllDay;
     if (dto.evtLocationText !== undefined) e.locationText = dto.evtLocationText;
     const prevMeetingProvider = e.meetingProvider;
-    if (dto.evtMeetingProvider !== undefined) e.meetingProvider = dto.evtMeetingProvider;
+    if (dto.evtMeetingProvider !== undefined)
+      e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
-    if (dto.evtAssigneeTchId !== undefined) e.assigneeTchId = dto.evtAssigneeTchId;
+    if (dto.evtAssigneeTchId !== undefined)
+      e.assigneeTchId = dto.evtAssigneeTchId;
 
     if (e.endAt <= e.startAt) throw new BadRequestException('END_BEFORE_START');
     if (e.meetingProvider !== 'BODASCHOOL') {
@@ -422,7 +471,8 @@ export class CalEventService {
     e.updatedAt = new Date();
     const saved = await this.repo.save(e);
     if (saved.meetingProvider === 'BODASCHOOL') {
-      const shouldProvision = !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
+      const shouldProvision =
+        !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
       if (shouldProvision) {
         await this.ensureBodaLauncher(entId, saved);
       }
@@ -437,25 +487,34 @@ export class CalEventService {
     }
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
-    const assigneeMap = await this.lookupAssignees(entId, [saved.assigneeTchId]);
+    const assigneeMap = await this.lookupAssignees(entId, [
+      saved.assigneeTchId,
+    ]);
     const invitees = await this.inviteeSvc.listForEvent(entId, saved.id);
     return {
       ...this.toDetail(saved),
       ownerName: ownerMap.get(saved.ownerUserId)?.name ?? null,
       ownerEmail: ownerMap.get(saved.ownerUserId)?.email ?? null,
       assigneeName: saved.assigneeTchId
-        ? assigneeMap.get(saved.assigneeTchId)?.name ?? null
+        ? (assigneeMap.get(saved.assigneeTchId)?.name ?? null)
         : null,
       assigneeEmail: saved.assigneeTchId
-        ? assigneeMap.get(saved.assigneeTchId)?.email ?? null
+        ? (assigneeMap.get(saved.assigneeTchId)?.email ?? null)
         : null,
       invitees,
       notifySummary,
     };
   }
 
-  async remove(entId: string, actorUserId: string, actorRole: AcmRole, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+  async remove(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    id: string,
+  ) {
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanMutate(e, actorUserId, actorRole);
     // REQ-260526 v2 FR-ROOM-7 — BODASCHOOL 이벤트면 SERVER API /close 호출
@@ -495,7 +554,9 @@ export class CalEventService {
   ): Promise<Map<string, { name: string; email: string }>> {
     const map = new Map<string, { name: string; email: string }>();
     const unique = Array.from(
-      new Set(ids.filter((x): x is string => typeof x === 'string' && x.length > 0)),
+      new Set(
+        ids.filter((x): x is string => typeof x === 'string' && x.length > 0),
+      ),
     );
     if (unique.length === 0) return map;
     const rows = await this.tchRepo.find({
@@ -591,14 +652,24 @@ export class CalEventService {
     return null;
   }
 
-  private assertCanView(e: CalEventTypeormEntity, actorUserId: string, role: AcmRole) {
+  private assertCanView(
+    e: CalEventTypeormEntity,
+    actorUserId: string,
+    role: AcmRole,
+  ) {
     if (role === 'ADMIN') return;
-    if (e.ownerUserId !== actorUserId) throw new ForbiddenException('NOT_OWNER');
+    if (e.ownerUserId !== actorUserId)
+      throw new ForbiddenException('NOT_OWNER');
   }
 
-  private assertCanMutate(e: CalEventTypeormEntity, actorUserId: string, role: AcmRole) {
+  private assertCanMutate(
+    e: CalEventTypeormEntity,
+    actorUserId: string,
+    role: AcmRole,
+  ) {
     if (role === 'ADMIN') return;
-    if (e.ownerUserId !== actorUserId) throw new ForbiddenException('NOT_OWNER');
+    if (e.ownerUserId !== actorUserId)
+      throw new ForbiddenException('NOT_OWNER');
     if (e.source !== 'MANUAL') throw new ForbiddenException('READ_ONLY_SOURCE');
   }
 
