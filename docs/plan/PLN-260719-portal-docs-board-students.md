@@ -86,6 +86,12 @@ change_log:
 ```
 - RTE: **tiptap** (`@tiptap/react` + `starter-kit`, npm 번들 — CDN 불필요). XSS: 저장 HTML 은 렌더 시 sanitize(DOMPurify).
 
+## 2b. Phase B+ — 문서 리비전 (수정자 히스토리/버전보기/복원)  ✅ 구현 완료
+
+> 요구(2026-07-19 추가): 저장 단위 수정자 히스토리 + 해당 버전보기 + 복원.
+> 구현: `amb_acm_material_revision`(sql/acm/999f, 기존 DOC v1 백필 포함) — 생성=v1, 저장/복원마다 스냅샷(제목/본문)+수정자 append(무변경 저장은 기록 안 함). API `GET docs/:id/revisions(/:seq)` + `POST .../restore`(canEdit, 복원도 새 버전). 프론트 문서 뷰에 "수정 히스토리" 토글 → 버전 목록(v·수정자·시각) → [보기] 스냅샷 렌더 + [이 버전으로 복원]. i18n 4locale. be 28 tests/tsc clean, fe tsc/build clean.
+> 참고: 실시간 공동편집(동시편집)은 별도 과제(웹소켓/CRDT) — 현재는 저장 단위 + 히스토리.
+
 ## 3. Phase C — 강사 수강생관리  ✅ 구현 완료 (PR pending)
 
 > 구현: `PortalTeacherStudentsService`(FK ∪ 반 소속, 상세=기본정보+연결상담·리마크 5건+최근 수업 이벤트 10건, 타 학생 403) + `GET /portal/teacher/students(/:stdId)` (TEACHER 게이트). 프론트 `/portal/students(/:stdId)` 폴더 그리드+상세, 수업일정 아래 TEACHER 전용 메뉴. DB 변경 없음. i18n 4locale. be 3 tests/tsc clean, fe tsc/build clean.

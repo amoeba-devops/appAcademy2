@@ -134,7 +134,13 @@
       "kindStudent": "Student",
       "searchUser": "Search by name (teacher/student)",
       "noResult": "No results.",
-      "noPermission": "You do not have permission to create documents."
+      "noPermission": "You do not have permission to create documents.",
+      "history": "Edit history",
+      "noHistory": "No history.",
+      "current": "Current",
+      "viewVersion": "View",
+      "restore": "Restore this version",
+      "confirmRestore": "Restore this version? (The restore is also recorded as a new version)"
     },
     "students": {
       "teacherOnly": "This menu is for teachers only.",

@@ -137,6 +137,28 @@ export const portalApi = {
     (await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}`, patch))
       .data,
 
+  // PLN-260719 B+ — 저장 단위 리비전 (히스토리/버전보기/복원).
+  docRevisions: async (id: string) =>
+    (
+      await apiClient.get<DocRevisionMeta[]>(
+        `/portal/materials/docs/${id}/revisions`,
+      )
+    ).data,
+
+  docRevision: async (id: string, seq: number) =>
+    (
+      await apiClient.get<DocRevision>(
+        `/portal/materials/docs/${id}/revisions/${seq}`,
+      )
+    ).data,
+
+  restoreDocRevision: async (id: string, seq: number) =>
+    (
+      await apiClient.post<PortalDocPost>(
+        `/portal/materials/docs/${id}/revisions/${seq}/restore`,
+      )
+    ).data,
+
   updateDocShares: async (id: string, shares: DocShareInput[]) =>
     (
       await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}/shares`, {
@@ -243,6 +265,19 @@ export interface DocShareInput {
   kind: 'STUDENT' | 'TEACHER';
   refId: string;
   role: MaterialShareRole;
+}
+
+// PLN-260719 B+ — 문서 리비전.
+export interface DocRevisionMeta {
+  seq: number;
+  editorKind: string;
+  editorName: string;
+  createdAt: string;
+}
+
+export interface DocRevision extends DocRevisionMeta {
+  title: string;
+  content: string;
 }
 
 // PLN-260719 C — 강사 수강생관리.

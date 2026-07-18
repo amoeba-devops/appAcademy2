@@ -8,6 +8,7 @@ import { PortalMaterialService } from './application/portal-material.service';
 import { MaterialTypeormEntity } from './infrastructure/typeorm/material.typeorm-entity';
 import { MaterialShareTypeormEntity } from './infrastructure/typeorm/material-share.typeorm-entity';
 import { MaterialCommentTypeormEntity } from './infrastructure/typeorm/material-comment.typeorm-entity';
+import { MaterialRevisionTypeormEntity } from './infrastructure/typeorm/material-revision.typeorm-entity';
 import { MaterialAdminController } from './presentation/material-admin.controller';
 import { PortalMaterialController } from './presentation/portal-material.controller';
 
@@ -24,6 +25,7 @@ import { PortalMaterialController } from './presentation/portal-material.control
         MaterialTypeormEntity,
         MaterialShareTypeormEntity,
         MaterialCommentTypeormEntity,
+        MaterialRevisionTypeormEntity,
       ],
       ACM_DS,
     ),

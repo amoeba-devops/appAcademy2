@@ -8,6 +8,7 @@ import StarterKit from '@tiptap/starter-kit';
 import {
   Bold,
   ChevronLeft,
+  History,
   Italic,
   List,
   ListOrdered,
@@ -15,6 +16,7 @@ import {
   Pencil,
   Quote,
   Redo2,
+  RotateCcw,
   Search,
   Strikethrough,
   Trash2,
@@ -283,6 +285,9 @@ export function PortalDocPage() {
               dangerouslySetInnerHTML={{ __html: sanitized }}
             />
 
+            {/* PLN-260719 B+ — 저장 단위 수정 히스토리 / 버전보기 / 복원 */}
+            <RevisionHistory docId={doc.id} canEdit={doc.canEdit} />
+
             <div className="mt-5 border-t border-[var(--border-subtle)] pt-3">
               <div className="mb-1 text-xs font-medium text-secondary">
                 {t('portalApp.materials.comments', '댓글')} ({doc.commentCount})
@@ -298,6 +303,149 @@ export function PortalDocPage() {
 
 function toShareInput(s: ShareDraft): DocShareInput {
   return { kind: s.kind, refId: s.refId, role: s.role };
+}
+
+// ── 수정 히스토리 (저장 단위 리비전) ─────────────────────────────────────
+function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }) {
+  const { t, i18n } = useTranslation('common');
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [viewSeq, setViewSeq] = useState<number | null>(null);
+
+  const { data: revisions = [] } = useQuery({
+    enabled: open,
+    queryKey: ['portal-doc-revisions', docId],
+    queryFn: () => portalApi.docRevisions(docId),
+  });
+
+  const { data: snapshot } = useQuery({
+    enabled: viewSeq !== null,
+    queryKey: ['portal-doc-revision', docId, viewSeq],
+    queryFn: () => portalApi.docRevision(docId, viewSeq!),
+  });
+
+  const restoreMut = useMutation({
+    mutationFn: (seq: number) => portalApi.restoreDocRevision(docId, seq),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portal-doc', docId] });
+      qc.invalidateQueries({ queryKey: ['portal-doc-revisions', docId] });
+      setViewSeq(null);
+    },
+  });
+
+  const latestSeq = revisions[0]?.seq ?? null;
+  const snapshotHtml = useMemo(
+    () => (snapshot?.content ? DOMPurify.sanitize(snapshot.content) : ''),
+    [snapshot?.content],
+  );
+
+  const fmtDT = (iso: string) =>
+    new Intl.DateTimeFormat(i18n.language, {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(iso));
+
+  return (
+    <div className="mt-5 border-t border-[var(--border-subtle)] pt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-secondary hover:text-accent-700"
+      >
+        <History size={12} />
+        {t('portalApp.docs.history', '수정 히스토리')}
+        {open && revisions.length > 0 && ` (${revisions.length})`}
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-2">
+          {revisions.length === 0 ? (
+            <p className="text-xs text-secondary">
+              {t('portalApp.docs.noHistory', '기록이 없습니다.')}
+            </p>
+          ) : (
+            <ul className="divide-y divide-[var(--border-subtle)] rounded-md border border-[var(--border-subtle)]">
+              {revisions.map((r) => {
+                const isLatest = r.seq === latestSeq;
+                return (
+                  <li key={r.seq} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+                    <span className="w-10 shrink-0 font-mono font-medium text-primary">
+                      v{r.seq}
+                    </span>
+                    {isLatest && (
+                      <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-[10px] text-accent-700">
+                        {t('portalApp.docs.current', '현재')}
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-primary">
+                      {r.editorName}
+                    </span>
+                    <span className="shrink-0 text-secondary">{fmtDT(r.createdAt)}</span>
+                    {!isLatest && (
+                      <button
+                        type="button"
+                        onClick={() => setViewSeq(viewSeq === r.seq ? null : r.seq)}
+                        className={`shrink-0 rounded border px-1.5 py-0.5 text-[11px] ${
+                          viewSeq === r.seq
+                            ? 'border-accent-600 bg-accent-600 text-white'
+                            : 'border-[var(--border-subtle)] text-accent-700 hover:bg-[var(--gray-50)]'
+                        }`}
+                      >
+                        {t('portalApp.docs.viewVersion', '보기')}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+
+          {/* 선택 버전 스냅샷 */}
+          {viewSeq !== null && snapshot && (
+            <div className="rounded-md border border-amber-200 bg-amber-50/40 p-3">
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-amber-800">
+                  v{snapshot.seq} · {snapshot.title} · {snapshot.editorName} ·{' '}
+                  {fmtDT(snapshot.createdAt)}
+                </span>
+                {canEdit && (
+                  <button
+                    type="button"
+                    disabled={restoreMut.isPending}
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          t(
+                            'portalApp.docs.confirmRestore',
+                            '이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)',
+                          ),
+                        )
+                      )
+                        restoreMut.mutate(snapshot.seq);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                  >
+                    {restoreMut.isPending ? (
+                      <Loader2 size={11} className="animate-spin" />
+                    ) : (
+                      <RotateCcw size={11} />
+                    )}
+                    {t('portalApp.docs.restore', '이 버전으로 복원')}
+                  </button>
+                )}
+              </div>
+              <div
+                className="doc-prose max-w-none rounded bg-white px-3 py-2 text-sm text-primary"
+                dangerouslySetInnerHTML={{ __html: snapshotHtml }}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function errMsg(e: unknown): string {

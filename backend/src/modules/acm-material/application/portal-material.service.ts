@@ -17,6 +17,7 @@ import {
   MaterialShareTypeormEntity,
 } from '../infrastructure/typeorm/material-share.typeorm-entity';
 import { MaterialCommentTypeormEntity } from '../infrastructure/typeorm/material-comment.typeorm-entity';
+import { MaterialRevisionTypeormEntity } from '../infrastructure/typeorm/material-revision.typeorm-entity';
 
 /**
  * PLN-260718 P3 — portal materials (자료실) authoring + sharing + comments.
@@ -121,6 +122,8 @@ export class PortalMaterialService {
     private readonly shareRepo: Repository<MaterialShareTypeormEntity>,
     @InjectRepository(MaterialCommentTypeormEntity, ACM_DS)
     private readonly commentRepo: Repository<MaterialCommentTypeormEntity>,
+    @InjectRepository(MaterialRevisionTypeormEntity, ACM_DS)
+    private readonly revisionRepo: Repository<MaterialRevisionTypeormEntity>,
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly store: ObjectStoreClient,
   ) {}
@@ -256,6 +259,8 @@ export class PortalMaterialService {
         ),
       );
     }
+    // 리비전 v1 — 생성도 히스토리로 기록.
+    await this.recordRevision(entId, mat, author);
     return this.getDoc(entId, mat.id, author);
   }
 
@@ -285,19 +290,125 @@ export class PortalMaterialService {
     if (!(await this.canEdit(entId, mat, editor))) {
       throw new ForbiddenException('NOT_EDITOR');
     }
+    let changed = false;
     if (patch.title !== undefined) {
       const cleanTitle = patch.title.trim();
       if (!cleanTitle) throw new BadRequestException('TITLE_REQUIRED');
+      if (cleanTitle !== mat.title) changed = true;
       mat.title = cleanTitle;
     }
     if (patch.content !== undefined) {
       if (patch.content.length > MAX_DOC_CONTENT) {
         throw new BadRequestException('CONTENT_TOO_LONG');
       }
+      if (patch.content !== (mat.content ?? '')) changed = true;
       mat.content = patch.content;
     }
     await this.repo.save(mat);
+    // 저장 단위 리비전 — 실제 변경이 있을 때만 새 버전 기록.
+    if (changed) await this.recordRevision(entId, mat, editor);
     return this.getDoc(entId, matId, editor);
+  }
+
+  // ── Revisions (수정 히스토리 / 버전보기 / 복원) ──────────────────────
+
+  /** 히스토리 목록 — 열람 권한자(canView) 누구나. 최신순. */
+  async listRevisions(
+    entId: string,
+    matId: string,
+    viewer: PortalAuthor,
+  ): Promise<
+    Array<{
+      seq: number;
+      editorKind: string;
+      editorName: string;
+      createdAt: string;
+    }>
+  > {
+    const mat = await this.getViewableOrThrow(entId, matId, viewer);
+    if (mat.kind !== 'DOC') throw new NotFoundException('NOT_A_DOC');
+    const rows = await this.revisionRepo.find({
+      where: { entId, matId },
+      order: { seq: 'DESC' },
+    });
+    return rows.map((r) => ({
+      seq: r.seq,
+      editorKind: r.editorKind,
+      editorName: r.editorName,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }
+
+  /** 특정 버전 스냅샷 (제목+본문) — 열람 권한자 누구나. */
+  async getRevision(
+    entId: string,
+    matId: string,
+    seq: number,
+    viewer: PortalAuthor,
+  ): Promise<{
+    seq: number;
+    title: string;
+    content: string;
+    editorKind: string;
+    editorName: string;
+    createdAt: string;
+  }> {
+    const mat = await this.getViewableOrThrow(entId, matId, viewer);
+    if (mat.kind !== 'DOC') throw new NotFoundException('NOT_A_DOC');
+    const row = await this.revisionRepo.findOne({
+      where: { entId, matId, seq },
+    });
+    if (!row) throw new NotFoundException('REVISION_NOT_FOUND');
+    return {
+      seq: row.seq,
+      title: row.title,
+      content: row.content,
+      editorKind: row.editorKind,
+      editorName: row.editorName,
+      createdAt: row.createdAt.toISOString(),
+    };
+  }
+
+  /** 해당 버전으로 복원 — 편집 권한자. 복원 결과도 새 리비전으로 기록. */
+  async restoreRevision(
+    entId: string,
+    matId: string,
+    seq: number,
+    editor: PortalAuthor,
+  ): Promise<PortalDocView> {
+    const row = await this.revisionRepo.findOne({
+      where: { entId, matId, seq },
+    });
+    if (!row) throw new NotFoundException('REVISION_NOT_FOUND');
+    return this.updateDoc(entId, matId, editor, {
+      title: row.title,
+      content: row.content,
+    });
+  }
+
+  /** 스냅샷 + 수정자 append (seq = max+1). */
+  private async recordRevision(
+    entId: string,
+    mat: MaterialTypeormEntity,
+    editor: PortalAuthor,
+  ): Promise<void> {
+    const last = await this.revisionRepo.findOne({
+      where: { entId, matId: mat.id },
+      order: { seq: 'DESC' },
+    });
+    const name = await this.resolveName(entId, editor.kind, editor.refId);
+    await this.revisionRepo.save(
+      this.revisionRepo.create({
+        entId,
+        matId: mat.id,
+        seq: (last?.seq ?? 0) + 1,
+        title: mat.title,
+        content: mat.content ?? '',
+        editorKind: editor.kind,
+        editorRefId: editor.refId,
+        editorName: name ?? '-',
+      }),
+    );
   }
 
   /** 공유대상/권한 전체 교체 — 작성자만. */

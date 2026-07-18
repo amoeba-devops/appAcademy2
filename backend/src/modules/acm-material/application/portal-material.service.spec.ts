@@ -40,6 +40,16 @@ describe('PortalMaterialService', () => {
         ...x,
       })),
     };
+    const revisionRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+      create: jest.fn((x: any) => x),
+      save: jest.fn(async (x: any) => ({
+        id: 'rv1',
+        createdAt: new Date(),
+        ...x,
+      })),
+    };
     const ds = {
       query: jest.fn(async (sql: string) =>
         opts.dsRows ? opts.dsRows(sql) : [],
@@ -55,10 +65,20 @@ describe('PortalMaterialService', () => {
       repo as any,
       shareRepo as any,
       commentRepo as any,
+      revisionRepo as any,
       ds as any,
       store as any,
     );
-    return { svc, repo, shareRepo, commentRepo, ds, store, saved };
+    return {
+      svc,
+      repo,
+      shareRepo,
+      commentRepo,
+      revisionRepo,
+      ds,
+      store,
+      saved,
+    };
   }
 
   const file = (
@@ -319,6 +339,103 @@ describe('PortalMaterialService', () => {
         { content: 'x' },
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('createDoc records revision v1 with author identity', async () => {
+    const doc: any = {
+      id: 'mat-1',
+      kind: 'DOC',
+      content: '<p>hi</p>',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: '문서',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, revisionRepo } = build({
+      material: doc,
+      dsRows: (sql) =>
+        sql.includes('amb_acm_tch_teacher')
+          ? [{ id: 't1', name: '김강사' }]
+          : [],
+    });
+    await svc.createDoc(
+      'e1',
+      { kind: 'TEACHER', refId: 't1' },
+      '문서',
+      '<p>hi</p>',
+      [],
+    );
+    expect(revisionRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        seq: 1,
+        editorKind: 'TEACHER',
+        editorName: '김강사',
+      }),
+    );
+  });
+
+  it('updateDoc records a new revision only when content changed', async () => {
+    const doc: any = {
+      id: 'm',
+      kind: 'DOC',
+      content: '<p>old</p>',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'T',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, revisionRepo } = build({ material: doc });
+    // findOne 순서: canEdit 은 작성자 매치로 통과 → recordRevision 의 last 조회.
+    revisionRepo.findOne.mockResolvedValue({ seq: 3 });
+    await svc.updateDoc(
+      'e1',
+      'm',
+      { kind: 'TEACHER', refId: 't1' },
+      {
+        content: '<p>new</p>',
+      },
+    );
+    expect(revisionRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ seq: 4, content: '<p>new</p>' }),
+    );
+    // 변경 없음 → 리비전 기록 없음.
+    (revisionRepo.save as jest.Mock).mockClear();
+    doc.content = '<p>same</p>';
+    await svc.updateDoc(
+      'e1',
+      'm',
+      { kind: 'TEACHER', refId: 't1' },
+      {
+        content: '<p>same</p>',
+      },
+    );
+    expect(revisionRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('restoreRevision applies the snapshot via updateDoc (new revision)', async () => {
+    const doc: any = {
+      id: 'm',
+      kind: 'DOC',
+      content: '<p>v3</p>',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'T',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, repo, revisionRepo } = build({ material: doc });
+    revisionRepo.findOne.mockResolvedValue({
+      seq: 1,
+      title: 'T',
+      content: '<p>v1</p>',
+    });
+    await svc.restoreRevision('e1', 'm', 1, { kind: 'TEACHER', refId: 't1' });
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ content: '<p>v1</p>' }),
+    );
+    expect(revisionRepo.save).toHaveBeenCalled();
   });
 
   it('updateShares is author-only', async () => {

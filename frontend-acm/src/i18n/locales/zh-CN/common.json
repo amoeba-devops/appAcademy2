@@ -134,7 +134,13 @@
       "kindStudent": "学生",
       "searchUser": "按姓名搜索（老师/学生）",
       "noResult": "没有结果。",
-      "noPermission": "您没有创建文档的权限。"
+      "noPermission": "您没有创建文档的权限。",
+      "history": "修改历史",
+      "noHistory": "暂无记录。",
+      "current": "当前",
+      "viewVersion": "查看",
+      "restore": "恢复此版本",
+      "confirmRestore": "恢复此版本？（恢复也会记录为新版本）"
     },
     "students": {
       "teacherOnly": "此菜单仅供老师使用。",
