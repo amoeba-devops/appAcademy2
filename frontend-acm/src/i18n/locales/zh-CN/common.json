@@ -36,7 +36,7 @@
     "nav": {
       "notices": "公告",
       "calendar": "课程表",
-      "materials": "资料室"
+      "materials": "文档/资料"
     },
     "login": {
       "title": "学院门户登录",
@@ -117,7 +117,23 @@
       "comments": "评论",
       "noComments": "暂无评论。",
       "commentPlaceholder": "输入评论…",
-      "confirmDelete": "删除此帖子？"
+      "confirmDelete": "删除此帖子？",
+      "newDoc": "新建文档",
+      "newFile": "上传文件",
+      "docBadge": "文档"
+    },
+    "docs": {
+      "back": "返回文档/资料",
+      "titlePlaceholder": "文档标题",
+      "shareTitle": "共享对象（查看者/编辑者）",
+      "shareEmpty": "暂无共享对象，请在下方添加。",
+      "viewer": "查看者",
+      "editor": "编辑者",
+      "kindTeacher": "老师",
+      "kindStudent": "学生",
+      "searchUser": "按姓名搜索（老师/学生）",
+      "noResult": "没有结果。",
+      "noPermission": "您没有创建文档的权限。"
     }
   },
   "material": {

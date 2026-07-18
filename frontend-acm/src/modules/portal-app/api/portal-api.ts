@@ -112,6 +112,38 @@ export const portalApi = {
       )
     ).data,
 
+  // PLN-260719 B — 문서 게시판: 공유후보 = 포털 사용자 전체(강사+학생).
+  allPortalUsers: async () =>
+    (
+      await apiClient.get<PortalUserCandidate[]>(
+        '/portal/materials/share-candidates',
+        { params: { scope: 'all' } },
+      )
+    ).data,
+
+  createDoc: async (title: string, content: string, shares: DocShareInput[]) =>
+    (
+      await apiClient.post<PortalDocPost>('/portal/materials/docs', {
+        title,
+        content,
+        shares,
+      })
+    ).data,
+
+  getDoc: async (id: string) =>
+    (await apiClient.get<PortalDocPost>(`/portal/materials/docs/${id}`)).data,
+
+  updateDoc: async (id: string, patch: { title?: string; content?: string }) =>
+    (await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}`, patch))
+      .data,
+
+  updateDocShares: async (id: string, shares: DocShareInput[]) =>
+    (
+      await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}/shares`, {
+        shares,
+      })
+    ).data,
+
   createMaterial: async (file: File, title: string, shareRefIds: string[]) => {
     const form = new FormData();
     form.append('file', file);
@@ -155,30 +187,51 @@ export const portalApi = {
   },
 };
 
+export type MaterialShareRole = 'VIEWER' | 'EDITOR';
+
 export interface MaterialShareTarget {
   kind: 'STUDENT' | 'TEACHER';
   refId: string;
   name: string;
+  role: MaterialShareRole;
 }
 
 export interface PortalMaterialPost {
   id: string;
+  kind: 'FILE' | 'DOC';
   title: string;
-  filename: string;
-  mime: string;
-  sizeBytes: number;
+  filename: string | null;
+  mime: string | null;
+  sizeBytes: number | null;
   createdAt: string;
   authorKind: string | null;
   authorName: string | null;
   shareTargets: MaterialShareTarget[];
   commentCount: number;
   mine: boolean;
+  canEdit: boolean;
   isSubmission: boolean;
+}
+
+export interface PortalDocPost extends PortalMaterialPost {
+  content: string;
 }
 
 export interface MaterialShareCandidate {
   refId: string;
   name: string;
+}
+
+export interface PortalUserCandidate {
+  kind: 'STUDENT' | 'TEACHER';
+  refId: string;
+  name: string;
+}
+
+export interface DocShareInput {
+  kind: 'STUDENT' | 'TEACHER';
+  refId: string;
+  role: MaterialShareRole;
 }
 
 export interface MaterialComment {

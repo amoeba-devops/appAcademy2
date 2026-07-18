@@ -40,6 +40,7 @@ import { PortalShell } from '@/modules/portal-app/components/portal-shell';
 import { PortalCalendarPage } from '@/modules/portal-app/pages/portal-calendar-page';
 import { PortalCalEventDetailPage } from '@/modules/portal-app/pages/portal-cal-event-detail-page';
 import { PortalMaterialsPage } from '@/modules/portal-app/pages/portal-materials-page';
+import { PortalDocPage } from '@/modules/portal-app/pages/portal-doc-page';
 import {
   PortalNoticesPage,
   PortalNoticeDetailPage,
@@ -152,6 +153,9 @@ export const router = createBrowserRouter([
       { path: 'calendar', element: <PortalCalendarPage /> },
       { path: 'calendar/:evtId', element: <PortalCalEventDetailPage /> },
       { path: 'materials', element: <PortalMaterialsPage /> },
+      // PLN-260719 B — 문서 게시판 (작성/뷰/편집)
+      { path: 'materials/docs/new', element: <PortalDocPage /> },
+      { path: 'materials/docs/:docId', element: <PortalDocPage /> },
     ],
   },
 

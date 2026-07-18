@@ -120,8 +120,14 @@ export class MaterialService {
         throw new ForbiddenException('NO_ACCESS');
       }
     }
+    // PLN-260719 B — DOC 게시글(파일 메타 없음)은 다운로드 대상이 아님.
+    if (!mat.s3Key || !mat.filename) throw new NotFoundException('NOT_A_FILE');
     const obj = await this.store.getObjectStream(mat.s3Key);
-    return { stream: obj.stream, mime: mat.mime, filename: mat.filename };
+    return {
+      stream: obj.stream,
+      mime: mat.mime ?? 'application/octet-stream',
+      filename: mat.filename,
+    };
   }
 
   async remove(entId: string, id: string): Promise<void> {
@@ -193,9 +199,10 @@ export class MaterialService {
       clsId: m.clsId ?? null,
       className: m.clsId ? (labels.get(m.clsId) ?? null) : null,
       title: m.title,
-      filename: m.filename,
-      mime: m.mime,
-      sizeBytes: Number(m.sizeBytes),
+      // admin 반 자료는 항상 FILE — DOC 게시글은 이 경로로 오지 않음.
+      filename: m.filename ?? '',
+      mime: m.mime ?? '',
+      sizeBytes: Number(m.sizeBytes ?? 0),
       createdAt: m.createdAt.toISOString(),
     };
   }

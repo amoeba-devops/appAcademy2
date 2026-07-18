@@ -14,7 +14,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import type { Response } from 'express';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
@@ -80,7 +85,10 @@ export class MaterialAdminController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a material (soft)' })
-  remove(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.svc.remove(u.entId, id);
   }
 }

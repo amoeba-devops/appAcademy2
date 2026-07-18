@@ -29,20 +29,34 @@ export class MaterialTypeormEntity {
   })
   authorKind?: string | null;
 
+  /** PLN-260719 B — 'FILE'(파일 자료) | 'DOC'(리치에디터 문서 게시글). */
+  @Column({ name: 'mat_kind', type: 'varchar', length: 10, default: 'FILE' })
+  kind!: 'FILE' | 'DOC';
+
+  /** PLN-260719 B — DOC 본문 HTML (렌더 시 sanitize). FILE 은 null. */
+  @Column({ name: 'mat_content', type: 'text', nullable: true })
+  content?: string | null;
+
   @Column({ name: 'mat_title', type: 'varchar', length: 200 })
   title!: string;
 
-  @Column({ name: 'mat_s3_key', type: 'varchar', length: 300 })
-  s3Key!: string;
+  // PLN-260719 B — DOC 행은 파일 메타가 없으므로 nullable (999e).
+  @Column({ name: 'mat_s3_key', type: 'varchar', length: 300, nullable: true })
+  s3Key?: string | null;
 
-  @Column({ name: 'mat_filename', type: 'varchar', length: 255 })
-  filename!: string;
+  @Column({
+    name: 'mat_filename',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  filename?: string | null;
 
-  @Column({ name: 'mat_mime', type: 'varchar', length: 120 })
-  mime!: string;
+  @Column({ name: 'mat_mime', type: 'varchar', length: 120, nullable: true })
+  mime?: string | null;
 
-  @Column({ name: 'mat_size_bytes', type: 'bigint' })
-  sizeBytes!: string;
+  @Column({ name: 'mat_size_bytes', type: 'bigint', nullable: true })
+  sizeBytes?: string | null;
 
   @Column({ name: 'mat_uploaded_by', type: 'uuid', nullable: true })
   uploadedBy?: string | null;

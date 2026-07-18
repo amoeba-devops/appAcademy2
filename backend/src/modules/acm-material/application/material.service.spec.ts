@@ -12,13 +12,15 @@ describe('MaterialService', () => {
   function build(opts: { material?: any; scopeClsIds?: string[] } = {}) {
     const saved: any[] = [];
     const repo = {
-      find: jest.fn().mockResolvedValue(
-        opts.material ? [opts.material] : [],
-      ),
+      find: jest.fn().mockResolvedValue(opts.material ? [opts.material] : []),
       findOne: jest.fn().mockResolvedValue(opts.material ?? null),
       create: jest.fn((x: any) => x),
       save: jest.fn(async (x: any) => {
-        const row = { id: `mat-${saved.length + 1}`, createdAt: new Date(), ...x };
+        const row = {
+          id: `mat-${saved.length + 1}`,
+          createdAt: new Date(),
+          ...x,
+        };
         saved.push(row);
         return row;
       }),
@@ -34,7 +36,9 @@ describe('MaterialService', () => {
     };
     const store = {
       putObject: jest.fn().mockResolvedValue(undefined),
-      getObjectStream: jest.fn().mockResolvedValue({ stream: 'STREAM', mime: 'text/plain' }),
+      getObjectStream: jest
+        .fn()
+        .mockResolvedValue({ stream: 'STREAM', mime: 'text/plain' }),
     };
     const svc = new MaterialService(repo as any, ds as any, store as any);
     return { svc, repo, ds, store, saved };
@@ -72,7 +76,11 @@ describe('MaterialService', () => {
       }),
     );
     expect(repo.save).toHaveBeenCalled();
-    expect(view).toMatchObject({ title: '1주차', className: '중등수학 A', sizeBytes: 5 });
+    expect(view).toMatchObject({
+      title: '1주차',
+      className: '중등수학 A',
+      sizeBytes: 5,
+    });
   });
 
   // ---- download scope -------------------------------------------------------
@@ -84,23 +92,45 @@ describe('MaterialService', () => {
   });
 
   it('admin can download any material', async () => {
-    const { svc } = build({ material: { id: 'm', clsId: CLS, s3Key: 'k', mime: 'text/plain', filename: 'f' } });
+    const { svc } = build({
+      material: {
+        id: 'm',
+        clsId: CLS,
+        s3Key: 'k',
+        mime: 'text/plain',
+        filename: 'f',
+      },
+    });
     const r = await svc.download('e1', 'm', { isAdmin: true });
     expect(r.stream).toBe('STREAM');
   });
 
   it('portal user in the class can download', async () => {
     const { svc } = build({
-      material: { id: 'm', clsId: CLS, s3Key: 'k', mime: 'text/plain', filename: 'f' },
+      material: {
+        id: 'm',
+        clsId: CLS,
+        s3Key: 'k',
+        mime: 'text/plain',
+        filename: 'f',
+      },
       scopeClsIds: [CLS],
     });
-    const r = await svc.download('e1', 'm', { portal: { kind: 'STUDENT', refId: 'std-1' } });
+    const r = await svc.download('e1', 'm', {
+      portal: { kind: 'STUDENT', refId: 'std-1' },
+    });
     expect(r.stream).toBe('STREAM');
   });
 
   it('portal user NOT in the class is forbidden', async () => {
     const { svc } = build({
-      material: { id: 'm', clsId: CLS, s3Key: 'k', mime: 'text/plain', filename: 'f' },
+      material: {
+        id: 'm',
+        clsId: CLS,
+        s3Key: 'k',
+        mime: 'text/plain',
+        filename: 'f',
+      },
       scopeClsIds: ['other-class'],
     });
     await expect(
@@ -118,7 +148,15 @@ describe('MaterialService', () => {
 
   it('listForPortal returns materials for the user’s classes', async () => {
     const { svc } = build({
-      material: { id: 'm', clsId: CLS, title: 'T', filename: 'f', mime: 'x', sizeBytes: '3', createdAt: new Date() },
+      material: {
+        id: 'm',
+        clsId: CLS,
+        title: 'T',
+        filename: 'f',
+        mime: 'x',
+        sizeBytes: '3',
+        createdAt: new Date(),
+      },
       scopeClsIds: [CLS],
     });
     const r = await svc.listForPortal('e1', 'TEACHER', 'tch-1');
