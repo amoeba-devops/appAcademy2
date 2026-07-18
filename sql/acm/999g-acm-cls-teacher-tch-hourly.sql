@@ -23,9 +23,10 @@ UPDATE amb_acm_cls_classes c
 ALTER TABLE amb_acm_cls_classes
   ALTER COLUMN cls_teacher_user_id DROP NOT NULL;
 
+-- ⚠ amb_acm_cls_* 는 접두어형 soft-delete 컬럼(cls_deleted_at) 사용 (999b 사고 참조).
 CREATE INDEX IF NOT EXISTS idx_acm_cls_teacher_tch
   ON amb_acm_cls_classes (ent_id, cls_teacher_tch_id)
-  WHERE deleted_at IS NULL;
+  WHERE cls_deleted_at IS NULL;
 
 -- 시급 옵션화.
 ALTER TABLE amb_acm_cls_class_students
