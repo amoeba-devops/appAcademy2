@@ -175,17 +175,35 @@ export interface BodaAppApiGlobal {
   setErrorCallback?: (cb: (code: string, message?: string) => void) => void;
 }
 
+// SPEC_823 v823.002 room-metadata caps: roomTitle ≤100, roomPwd ≤8. The vendor
+// truncates roomTitle itself, but we clamp client-side so what we send is
+// explicit and never trips the length guard.
+const ROOM_TITLE_MAX = 100;
+const ROOM_PWD_MAX = 8;
+
 /**
  * Build the 5 positional args and invoke `bodaOpen` (teacher) / `bodaJoin`
  * (student) per SPEC_823 v823.002. Centralizes the mapping so the two call
  * sites (autoStart side-effect + desktop card) can't drift.
+ *
+ * REQ-260722:
+ *   - FR-2: teacher open carries `roomTitle = evtTitle` so the vendor client
+ *     shows the class name instead of a default title.
+ *   - FR-5: optional `roomPwd` (≤8) for password-protected rooms.
+ *   - FR-6: `appOpt` is now caller-supplied instead of a hard-coded `{}` so
+ *     attendance/material features (AO_ScCap, agendaAdd, …) can be layered in.
  *
  * @returns false if the vendor function is missing (client not installed).
  */
 export function enterBodaRoom(
   api: BodaAppApiGlobal,
   ctx: BodaLaunchContext,
-  opts: { isTeacher: boolean; hide?: boolean },
+  opts: {
+    isTeacher: boolean;
+    hide?: boolean;
+    roomPwd?: string;
+    appOpt?: Record<string, unknown>;
+  },
 ): boolean {
   const fn = opts.isTeacher ? api.bodaOpen : api.bodaJoin;
   if (!fn) return false;
@@ -204,14 +222,22 @@ export function enterBodaRoom(
   if (opts.isTeacher) {
     roomOpt.roomCode = ctx.roomCode;
     roomOpt.dup = 1;
+    // FR-2 — room title = class title (bodaOpen only).
+    const title = ctx.evtTitle?.trim();
+    if (title) roomOpt.roomTitle = title.slice(0, ROOM_TITLE_MAX);
+    // FR-5 — optional room password (bodaOpen only).
+    if (opts.roomPwd) roomOpt.roomPwd = opts.roomPwd.slice(0, ROOM_PWD_MAX);
   } else if (ctx.meetIdx) {
+    // Student join: meetKey (sent above) takes priority over meetIdx per SPEC
+    // §2.2.2; meetIdx is added only when the room has already been opened.
     roomOpt.meetIdx = ctx.meetIdx;
   }
 
   const joinOpt: BodaJoinOpt = { lang: ctx.lang };
   if (opts.hide) joinOpt.hide = true;
 
-  fn(ctx.bodaWeb, joinUser, roomOpt, {}, joinOpt);
+  // FR-6 — appOpt is caller-supplied; empty object preserves prior behavior.
+  fn(ctx.bodaWeb, joinUser, roomOpt, opts.appOpt ?? {}, joinOpt);
   return true;
 }
 
@@ -219,6 +245,44 @@ declare global {
   interface Window {
     BodaAppApi?: BodaAppApiGlobal;
   }
+}
+
+/**
+ * Platform bucket for BODA entry UX (REQ-260722 FR-4). SPEC_823 §1.3: the app
+ * install can be self-detected on Windows but NOT on Mac/Mobile, so those
+ * platforms must be offered the browser-entry path with equal prominence.
+ * `ua` is injectable for tests; defaults to navigator.userAgent.
+ */
+export type BodaPlatform = 'windows' | 'mac' | 'mobile' | 'other';
+
+export function detectBodaPlatform(ua?: string): BodaPlatform {
+  const s =
+    (ua ?? (typeof navigator !== 'undefined' ? navigator.userAgent : '')) || '';
+  if (/Android|iPhone|iPad|iPod/i.test(s)) return 'mobile';
+  if (/Windows|Win64|Win32/i.test(s)) return 'windows';
+  if (/Macintosh|Mac OS X/i.test(s)) return 'mac';
+  return 'other';
+}
+
+/**
+ * True when the client can't self-verify app install (Mac/Mobile) — the browser
+ * entry button should then be shown with equal prominence (FR-4).
+ */
+export function bodaInstallUndetectable(platform: BodaPlatform): boolean {
+  return platform === 'mac' || platform === 'mobile';
+}
+
+/**
+ * Log a BODA entry error for diagnostics (REQ-260722 FR-3). Captures the vendor
+ * error code plus the optional `reason` (SPEC error-callback 2nd arg) and WB-*
+ * WAS codes. No PII — kept centralized so the error callback and the catch path
+ * report identically.
+ */
+export function logBodaError(code: string, reason?: string): void {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[BODA] entry error code=${code}${reason ? ` reason=${reason}` : ''}`,
+  );
 }
 
 /**

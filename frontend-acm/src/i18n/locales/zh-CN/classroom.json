@@ -28,7 +28,8 @@
     "installGuide": "安装 BODA 应用",
     "iframeFallbackToast": "无法嵌入 — 改用桌面应用 / 新标签页进入。",
     "iframeTitle": "BODA 教室",
-    "iframeLoading": "正在加载教室…"
+    "iframeLoading": "正在加载教室…",
+    "macMobileHint": "在 Mac 和移动设备上无法自动检测是否已安装应用。如果无法打开，请使用‘在浏览器中打开’或按照安装指引操作。"
   },
   "closeReason": {
     "UNKNOWN": "教室已结束。",
@@ -108,6 +109,18 @@
     "BODA-SCRIPT_TIMEOUT": {
       "title": "BODA 脚本响应超时",
       "body": "请稍后再试。"
+    },
+    "BODA-ALREADY_EXECUTE_PROGRAM": {
+      "title": "BODA 应用已在运行",
+      "body": "请查看已打开的教室窗口，或退出应用后重新进入。"
+    },
+    "BODA-UPDATE_PROGRAM": {
+      "title": "BODA 应用正在更新",
+      "body": "请等待更新完成后重试。"
+    },
+    "BODA-NOT_SUPPORTED_DEVICE": {
+      "title": "不支持的设备",
+      "body": "请使用‘在浏览器中打开’或在受支持的设备上重试。"
     }
   }
 }

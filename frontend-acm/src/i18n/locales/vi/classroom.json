@@ -28,7 +28,8 @@
     "installGuide": "Cài đặt ứng dụng BODA",
     "iframeFallbackToast": "Không thể nhúng — chuyển sang ứng dụng máy tính / tab mới.",
     "iframeTitle": "Phòng học BODA",
-    "iframeLoading": "Đang tải phòng học…"
+    "iframeLoading": "Đang tải phòng học…",
+    "macMobileHint": "Trên Mac và di động, không thể tự động kiểm tra ứng dụng đã cài đặt hay chưa. Nếu không mở được, hãy dùng ‘Mở bằng trình duyệt’ hoặc làm theo hướng dẫn cài đặt."
   },
   "closeReason": {
     "UNKNOWN": "Phòng học đã kết thúc.",
@@ -108,6 +109,18 @@
     "BODA-SCRIPT_TIMEOUT": {
       "title": "Script BODA phản hồi quá lâu",
       "body": "Vui lòng thử lại sau giây lát."
+    },
+    "BODA-ALREADY_EXECUTE_PROGRAM": {
+      "title": "Ứng dụng BODA đang chạy",
+      "body": "Kiểm tra cửa sổ phòng học hiện có, hoặc thoát ứng dụng rồi vào lại."
+    },
+    "BODA-UPDATE_PROGRAM": {
+      "title": "Ứng dụng BODA đang cập nhật",
+      "body": "Vui lòng đợi cập nhật xong rồi thử lại."
+    },
+    "BODA-NOT_SUPPORTED_DEVICE": {
+      "title": "Thiết bị không được hỗ trợ",
+      "body": "Hãy dùng ‘Mở bằng trình duyệt’ hoặc thử lại trên thiết bị được hỗ trợ."
     }
   }
 }
