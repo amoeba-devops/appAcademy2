@@ -45,6 +45,9 @@
   .role.admin{background:#e7edf7;color:#26467e;} .role.teacher{background:#efe7f7;color:#5b3a86;} .role.student{background:#e7f2ec;color:#245c3c;}
   footer{border-top:1px solid var(--line);margin-top:50px;padding-top:22px;color:var(--muted);font-size:13px;text-align:center;}
   @media(max-width:900px){.toc{display:none;}.container{padding:0 20px;}}
+  figure.shot{margin:18px 0;padding:0;}
+  figure.shot img{width:100%;display:block;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);}
+  figure.shot figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;text-align:center;}
 </style>
 </head>
 <body>
@@ -102,6 +105,11 @@
           <li><strong>[학원코드/아이디 저장]</strong>을 체크하면 다음 로그인 때 자동으로 채워집니다 (비밀번호는 저장되지 않음)</li>
           <li>[로그인] → 포털 홈으로 이동</li>
         </ol>
+
+        <figure class="shot">
+          <img src="img/t-login.png" alt="포털 로그인 — 학원코드·아이디 입력, [학원코드/아이디 저장] 체크, 👁 아이콘으로 비밀번호 확인" loading="lazy" />
+          <figcaption>포털 로그인 — 학원코드·아이디 입력, [학원코드/아이디 저장] 체크, 👁 아이콘으로 비밀번호 확인</figcaption>
+        </figure>
         <div class="note tip">브라우저 즐겨찾기에 <code>/portal</code> 을 등록해 두면 편리합니다. 화면은 좌측 정렬 레이아웃으로, 모바일에서도 동일하게 동작합니다.</div>
       </section>
 
@@ -113,6 +121,15 @@
           <li>상단 토글로 <strong>주/일/리스트</strong> 전환 — 리스트는 날짜별로 일정을 목록으로 보여줍니다</li>
           <li>일정을 클릭하면 요약 팝업, <strong>[전체내용보기]</strong>를 누르면 상세 페이지로 이동</li>
         </ol>
+
+        <figure class="shot">
+          <img src="img/t-cal-month.png" alt="수업일정 — 월 보기 (우측 상단에서 월/주/일/리스트 전환)" loading="lazy" />
+          <figcaption>수업일정 — 월 보기 (우측 상단에서 월/주/일/리스트 전환)</figcaption>
+        </figure>
+        <figure class="shot">
+          <img src="img/t-cal-list.png" alt="리스트 보기 — 날짜별 일정 목록" loading="lazy" />
+          <figcaption>리스트 보기 — 날짜별 일정 목록</figcaption>
+        </figure>
         <h3 id="cal-detail">일정 상세 — 모든 정보 표시</h3>
         <div class="tbl-wrap"><table>
           <thead><tr><th>항목</th><th>내용</th></tr></thead>
@@ -125,6 +142,10 @@
             <tr><td>첨부자료</td><td>관리자가 일정에 첨부한 파일 — <strong>[다운로드]</strong> 클릭</td></tr>
           </tbody>
         </table></div>
+        <figure class="shot">
+          <img src="img/t-cal-detail.png" alt="일정 상세 — 구분·일시·작성자·담당 강사·장소·메모 전체 표시" loading="lazy" />
+          <figcaption>일정 상세 — 구분·일시·작성자·담당 강사·장소·메모 전체 표시</figcaption>
+        </figure>
       </section>
 
       <section id="class">
@@ -146,6 +167,11 @@
           <li>수강생관리 진입 → 학생 <strong>📁 폴더 그리드</strong> (이름·학교·학년·과목)</li>
           <li>폴더 클릭 → 학생 상세</li>
         </ol>
+
+        <figure class="shot">
+          <img src="img/t-students.png" alt="수강생관리 — 배정 학생 폴더 그리드" loading="lazy" />
+          <figcaption>수강생관리 — 배정 학생 폴더 그리드</figcaption>
+        </figure>
         <h3>학생 상세에서 볼 수 있는 정보</h3>
         <div class="tbl-wrap"><table>
           <thead><tr><th>구역</th><th>내용</th></tr></thead>
@@ -156,6 +182,11 @@
             <tr><td>수업 기록</td><td>최근 수업 일정 10건 — 클릭하면 일정 상세로 이동</td></tr>
           </tbody>
         </table></div>
+
+        <figure class="shot">
+          <img src="img/t-student-detail.png" alt="학생 상세 — 기본정보·특이사항·학습 목표·상담/수업 기록" loading="lazy" />
+          <figcaption>학생 상세 — 기본정보·특이사항·학습 목표·상담/수업 기록</figcaption>
+        </figure>
         <div class="note warn">목록이 비어 있으면 관리자에게 ① 학생정보(<code>/admin/std</code>)의 <strong>담당강사</strong> 지정 또는 ② 수업(반) 배정을 요청하세요.</div>
       </section>
 
@@ -163,6 +194,11 @@
         <h2 class="sec"><span class="num">5</span> 문서/자료실</h2>
         <p class="lead">탭 2개로 구성됩니다 — <strong>공유받은 게시물</strong>(다른 사람이 나에게 공유/제출한 자료)과 <strong>내 게시물</strong>(내가 올린 자료·문서). 내 게시물 탭에서 <strong>[새 문서]</strong> 와 <strong>[파일 업로드]</strong>로 새 글을 만듭니다.</p>
 
+
+        <figure class="shot">
+          <img src="img/t-materials.png" alt="문서/자료실 — 내 게시물 탭, [새 문서]·[파일 업로드] 버튼" loading="lazy" />
+          <figcaption>문서/자료실 — 내 게시물 탭, [새 문서]·[파일 업로드] 버튼</figcaption>
+        </figure>
         <h3 id="docs-file">파일 업로드 — 학생에게 자료 배포</h3>
         <ol class="steps">
           <li>내 게시물 탭 → <strong>[파일 업로드]</strong></li>
@@ -195,6 +231,11 @@
           <li>공유대상 변경은 <strong>작성자만</strong> 가능합니다</li>
         </ol>
 
+
+        <figure class="shot">
+          <img src="img/t-doc-edit.png" alt="문서 편집 — 서식 툴바 + 공유 대상 패널(대상별 뷰어/편집자 지정, 이름 검색)" loading="lazy" />
+          <figcaption>문서 편집 — 서식 툴바 + 공유 대상 패널(대상별 뷰어/편집자 지정, 이름 검색)</figcaption>
+        </figure>
         <h3 id="docs-history">수정 히스토리 · 버전보기 · 복원</h3>
         <p>문서는 <strong>저장할 때마다 버전이 기록</strong>됩니다(작성=v1). 문서 하단 <strong>🕘 수정 히스토리</strong>에서:</p>
         <ol class="steps">
@@ -203,6 +244,11 @@
           <li>편집 권한이 있으면 <strong>[이 버전으로 복원]</strong> — 복원도 새 버전으로 기록되어 이력이 사라지지 않습니다</li>
         </ol>
 
+
+        <figure class="shot">
+          <img src="img/t-doc-view.png" alt="문서 보기 — 공유대상 배지(편집자/뷰어), 수정 히스토리(v2 현재·v1 보기), 댓글" loading="lazy" />
+          <figcaption>문서 보기 — 공유대상 배지(편집자/뷰어), 수정 히스토리(v2 현재·v1 보기), 댓글</figcaption>
+        </figure>
         <h3 id="docs-comment">댓글</h3>
         <p>게시물을 볼 수 있는 사람(작성자·공유대상)은 누구나 댓글을 남길 수 있습니다. 목록 카드의 <strong>댓글</strong> 버튼 또는 문서 하단 댓글 입력창을 이용하세요.</p>
       </section>
