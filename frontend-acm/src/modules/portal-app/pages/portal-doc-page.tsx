@@ -40,7 +40,7 @@ import { CommentThread } from './portal-materials-page';
  * 본문 HTML 은 렌더 시 DOMPurify sanitize.
  */
 
-interface ShareDraft {
+export interface ShareDraft {
   kind: 'STUDENT' | 'TEACHER';
   refId: string;
   name: string;
@@ -537,12 +537,15 @@ function Toolbar({ editor }: { editor: NonNullable<ReturnType<typeof useEditor>>
 }
 
 // ── 공유 관리 패널 (포털 사용자 전체 검색 + 뷰어/편집자 지정) ────────────
-function SharePanel({
+// PLN-260724 — 파일 게시물 후공유에서도 재사용 (showRoles=false 면 권한 드롭다운 숨김).
+export function SharePanel({
   shares,
   onChange,
+  showRoles = true,
 }: {
   shares: ShareDraft[];
   onChange: (next: ShareDraft[]) => void;
+  showRoles?: boolean;
 }) {
   const { t } = useTranslation('common');
   const [q, setQ] = useState('');
@@ -600,14 +603,16 @@ function SharePanel({
                     : t('portalApp.docs.kindStudent', '학생')}
                 </span>
                 {s.name}
-                <select
-                  value={s.role}
-                  onChange={(e) => setRole(key, e.target.value as MaterialShareRole)}
-                  className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-[11px]"
-                >
-                  <option value="VIEWER">{t('portalApp.docs.viewer', '뷰어')}</option>
-                  <option value="EDITOR">{t('portalApp.docs.editor', '편집자')}</option>
-                </select>
+                {showRoles && (
+                  <select
+                    value={s.role}
+                    onChange={(e) => setRole(key, e.target.value as MaterialShareRole)}
+                    className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-[11px]"
+                  >
+                    <option value="VIEWER">{t('portalApp.docs.viewer', '뷰어')}</option>
+                    <option value="EDITOR">{t('portalApp.docs.editor', '편집자')}</option>
+                  </select>
+                )}
                 <button
                   type="button"
                   onClick={() => remove(key)}

@@ -121,7 +121,11 @@
       "confirmDelete": "이 게시물을 삭제할까요?",
       "newDoc": "새 문서",
       "newFile": "파일 업로드",
-      "docBadge": "문서"
+      "docBadge": "문서",
+      "shareAfterHint": "공유 대상은 업로드 후 게시물의 [공유] 버튼에서 지정합니다. (문서 게시판과 동일)",
+      "uploadBtn": "업로드",
+      "shareBtn2": "공유",
+      "shareSave": "공유 저장"
     },
     "docs": {
       "back": "문서/자료실로",

@@ -121,7 +121,11 @@
       "confirmDelete": "Delete this post?",
       "newDoc": "New document",
       "newFile": "Upload file",
-      "docBadge": "Doc"
+      "docBadge": "Doc",
+      "shareAfterHint": "Assign share targets after upload via the [Share] button on the post (same as the docs board).",
+      "uploadBtn": "Upload",
+      "shareBtn2": "Share",
+      "shareSave": "Save sharing"
     },
     "docs": {
       "back": "Back to Docs & Files",

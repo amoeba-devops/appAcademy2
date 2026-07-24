@@ -121,7 +121,11 @@
       "confirmDelete": "Xóa bài này?",
       "newDoc": "Tài liệu mới",
       "newFile": "Tải tệp lên",
-      "docBadge": "Tài liệu"
+      "docBadge": "Tài liệu",
+      "shareAfterHint": "Chỉ định đối tượng chia sẻ sau khi tải lên bằng nút [Chia sẻ] trên bài đăng (giống bảng tài liệu).",
+      "uploadBtn": "Tải lên",
+      "shareBtn2": "Chia sẻ",
+      "shareSave": "Lưu chia sẻ"
     },
     "docs": {
       "back": "Về Tài liệu",
