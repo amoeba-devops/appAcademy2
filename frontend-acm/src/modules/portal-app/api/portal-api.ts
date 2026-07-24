@@ -159,6 +159,15 @@ export const portalApi = {
       )
     ).data,
 
+  // PLN-260724 — FILE 포함 모든 내 게시물의 공유대상 교체.
+  updateMaterialShares: async (id: string, shares: DocShareInput[]) =>
+    (
+      await apiClient.put<PortalMaterialPost>(
+        `/portal/materials/${id}/shares`,
+        { shares },
+      )
+    ).data,
+
   updateDocShares: async (id: string, shares: DocShareInput[]) =>
     (
       await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}/shares`, {
@@ -166,11 +175,11 @@ export const portalApi = {
       })
     ).data,
 
-  createMaterial: async (file: File, title: string, shareRefIds: string[]) => {
+  // PLN-260724 — 선업로드·후공유: 공유대상 없이 업로드.
+  createMaterial: async (file: File, title: string) => {
     const form = new FormData();
     form.append('file', file);
     if (title) form.append('title', title);
-    shareRefIds.forEach((id) => form.append('shareRefIds', id));
     return (
       await apiClient.post<PortalMaterialPost>('/portal/materials', form, {
         headers: { 'Content-Type': 'multipart/form-data' },

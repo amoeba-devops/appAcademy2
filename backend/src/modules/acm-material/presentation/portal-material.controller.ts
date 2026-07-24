@@ -169,6 +169,24 @@ export class PortalMaterialController {
     );
   }
 
+  @Put(':id/shares')
+  @ApiOperation({
+    summary:
+      'Replace share targets/roles for any own post — FILE included (PLN-260724)',
+  })
+  updateMaterialShares(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { shares: ShareInput[] },
+  ) {
+    return this.svc.updateShares(
+      u.entId,
+      id,
+      { kind: u.kind, refId: u.refId },
+      body.shares ?? [],
+    );
+  }
+
   @Post()
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Create a material post + share targets (≤20MB)' })

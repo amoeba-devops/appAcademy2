@@ -121,7 +121,11 @@
       "confirmDelete": "删除此帖子？",
       "newDoc": "新建文档",
       "newFile": "上传文件",
-      "docBadge": "文档"
+      "docBadge": "文档",
+      "shareAfterHint": "上传后通过帖子的[共享]按钮指定共享对象（与文档板相同）。",
+      "uploadBtn": "上传",
+      "shareBtn2": "共享",
+      "shareSave": "保存共享"
     },
     "docs": {
       "back": "返回文档/资料",

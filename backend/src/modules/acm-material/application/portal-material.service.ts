@@ -153,7 +153,7 @@ export class PortalMaterialService {
              ON cs.cls_id = c.cls_id AND cs.ent_id = c.ent_id AND cs.cst_left_at IS NULL
            JOIN amb_acm_std_student s
              ON s.std_id = cs.cst_student_user_id AND s.ent_id = cs.ent_id
-          WHERE c.ent_id = $1 AND t.tch_id = $2
+          WHERE c.ent_id = $1 AND t.tch_id = $2 AND c.cls_deleted_at IS NULL
           ORDER BY s.std_name`,
         [entId, refId],
       );
@@ -169,7 +169,8 @@ export class PortalMaterialService {
              ON (c.cls_teacher_tch_id = t.tch_id
                  OR t.tch_user_id = c.cls_teacher_user_id)
             AND t.ent_id = c.ent_id
-          WHERE cs.ent_id = $1 AND cs.cst_student_user_id = $2 AND cs.cst_left_at IS NULL
+          WHERE cs.ent_id = $1 AND cs.cst_student_user_id = $2
+            AND cs.cst_left_at IS NULL AND c.cls_deleted_at IS NULL
           ORDER BY t.tch_name`,
         [entId, refId],
       );
@@ -415,18 +416,17 @@ export class PortalMaterialService {
     );
   }
 
-  /** 공유대상/권한 전체 교체 — 작성자만. */
+  /** 공유대상/권한 전체 교체 — 작성자만. PLN-260724 부터 FILE 게시물도 동일 지원. */
   async updateShares(
     entId: string,
     matId: string,
     author: PortalAuthor,
     shares: ShareInput[],
-  ): Promise<PortalDocView> {
+  ): Promise<PortalMaterialView> {
     const mat = await this.repo.findOne({
       where: { id: matId, entId, deletedAt: IsNull() },
     });
-    if (!mat || mat.kind !== 'DOC')
-      throw new NotFoundException('DOC_NOT_FOUND');
+    if (!mat) throw new NotFoundException('MATERIAL_NOT_FOUND');
     if (mat.authorKind !== author.kind || mat.uploadedBy !== author.refId) {
       throw new ForbiddenException('NOT_AUTHOR');
     }
@@ -446,7 +446,9 @@ export class PortalMaterialService {
         ),
       );
     }
-    return this.getDoc(entId, matId, author);
+    if (mat.kind === 'DOC') return this.getDoc(entId, matId, author);
+    const [view] = await this.enrich(entId, [mat], author);
+    return view;
   }
 
   private dedupeShares(
@@ -526,16 +528,14 @@ export class PortalMaterialService {
       throw new BadRequestException('MIME_NOT_ALLOWED');
     }
 
-    // Target kind is implied by the author's role.
+    // PLN-260724 — 공유대상 없이도 업로드 가능(선업로드·후공유, 문서게시판과 동일).
+    // shareRefIds 는 legacy 호환용(작성자 역할로 대상 kind 유추) — 새 UI는 미전송.
     const tgtKind: MaterialShareTargetKind =
       author.kind === 'TEACHER' ? 'STUDENT' : 'TEACHER';
     const refIds = Array.from(new Set(shareRefIds.filter(Boolean)));
-    if (refIds.length === 0) {
-      throw new BadRequestException(
-        author.kind === 'TEACHER' ? 'SELECT_STUDENTS' : 'SELECT_TEACHER',
-      );
+    if (refIds.length > 0) {
+      await this.assertTargetsExist(entId, tgtKind, refIds);
     }
-    await this.assertTargetsExist(entId, tgtKind, refIds);
 
     // multer decodes originalname as latin1; re-encode to UTF-8.
     const filename = Buffer.from(file.originalname, 'latin1').toString('utf8');
@@ -557,16 +557,18 @@ export class PortalMaterialService {
       }),
     );
 
-    await this.shareRepo.save(
-      refIds.map((refId) =>
-        this.shareRepo.create({
-          entId,
-          matId: mat.id,
-          tgtKind,
-          tgtRefId: refId,
-        }),
-      ),
-    );
+    if (refIds.length > 0) {
+      await this.shareRepo.save(
+        refIds.map((refId) =>
+          this.shareRepo.create({
+            entId,
+            matId: mat.id,
+            tgtKind,
+            tgtRefId: refId,
+          }),
+        ),
+      );
+    }
 
     const [view] = await this.enrich(entId, [mat], author);
     return view;
@@ -996,7 +998,7 @@ export class PortalMaterialService {
              ON (c.cls_teacher_tch_id = t.tch_id
                  OR t.tch_user_id = c.cls_teacher_user_id)
             AND t.ent_id = c.ent_id
-          WHERE c.ent_id = $1 AND t.tch_id = $2`,
+          WHERE c.ent_id = $1 AND t.tch_id = $2 AND c.cls_deleted_at IS NULL`,
         [entId, refId],
       );
     }

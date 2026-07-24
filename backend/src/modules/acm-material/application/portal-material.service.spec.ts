@@ -30,6 +30,7 @@ describe('PortalMaterialService', () => {
       findOne: jest.fn().mockResolvedValue((opts.shares ?? [])[0] ?? null),
       create: jest.fn((x: any) => x),
       save: jest.fn(async (x: any) => x),
+      delete: jest.fn().mockResolvedValue(undefined),
     };
     const commentRepo = {
       find: jest.fn().mockResolvedValue([]),
@@ -99,17 +100,47 @@ describe('PortalMaterialService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  it('rejects an empty share list', async () => {
-    const { svc } = build();
-    await expect(
-      svc.create(
-        'e1',
-        { kind: 'TEACHER', refId: 't1' },
-        file() as any,
-        't',
-        [],
-      ),
-    ).rejects.toBeInstanceOf(BadRequestException);
+  it('uploads without share targets (선업로드·후공유, PLN-260724)', async () => {
+    const { svc, store, shareRepo } = build();
+    const view = await svc.create(
+      'e1',
+      { kind: 'TEACHER', refId: 't1' },
+      file(),
+      '대상 없이 업로드',
+      [],
+    );
+    expect(store.putObject).toHaveBeenCalled();
+    expect(shareRepo.save).not.toHaveBeenCalled();
+    expect(view).toMatchObject({ title: '대상 없이 업로드', mine: true });
+  });
+
+  it('updateShares works for FILE posts too (후공유)', async () => {
+    const filePost: any = {
+      id: 'm',
+      kind: 'FILE',
+      authorKind: 'TEACHER',
+      uploadedBy: 't1',
+      title: 'F',
+      filename: 'f.pdf',
+      mime: 'application/pdf',
+      sizeBytes: '3',
+      createdAt: new Date(),
+      deletedAt: null,
+    };
+    const { svc, shareRepo } = build({
+      material: filePost,
+      dsRows: (sql) =>
+        sql.includes('amb_acm_std_student')
+          ? [{ id: 's1', name: '홍길동' }]
+          : [],
+    });
+    await svc.updateShares('e1', 'm', { kind: 'TEACHER', refId: 't1' }, [
+      { kind: 'STUDENT', refId: 's1', role: 'VIEWER' },
+    ]);
+    expect(shareRepo.delete).toHaveBeenCalledWith({ entId: 'e1', matId: 'm' });
+    expect(shareRepo.save).toHaveBeenCalledWith([
+      expect.objectContaining({ tgtKind: 'STUDENT', tgtRefId: 's1' }),
+    ]);
   });
 
   it('rejects a disallowed mime', async () => {
