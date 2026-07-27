@@ -267,7 +267,8 @@ function BackLink() {
   const { t } = useTranslation('classroom');
   return (
     <a
-      href="/"
+      // 요구사항 260728C — '수업일정으로 돌아가기' 는 포털 로그인으로 이동.
+      href="/portal/login"
       className="text-xs text-accent-600 hover:underline mt-2 inline-flex items-center gap-1"
     >
       <ChevronLeft size={12} aria-hidden /> {t('backToCalendar')}
