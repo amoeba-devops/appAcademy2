@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Bell, CalendarRange, FolderOpen, LogOut, Users } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 
 /**
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
@@ -38,12 +39,16 @@ export function PortalShell() {
             </span>
           )}
         </div>
-        <button
-          onClick={logout}
-          className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary"
-        >
-          <LogOut size={14} /> {t('portalApp.logout')}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* REQ-260728B FR-6 — 포털 앱에서도 언어 선택 (ko/en/vi/zh-CN) */}
+          <LanguageSwitcher />
+          <button
+            onClick={logout}
+            className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary"
+          >
+            <LogOut size={14} /> {t('portalApp.logout')}
+          </button>
+        </div>
       </header>
 
       {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}

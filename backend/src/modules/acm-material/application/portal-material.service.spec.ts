@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { PortalMaterialService } from './portal-material.service';
 
@@ -17,6 +18,11 @@ describe('PortalMaterialService', () => {
     const saved: any[] = [];
     const repo = {
       find: jest.fn().mockResolvedValue(opts.material ? [opts.material] : []),
+      findAndCount: jest
+        .fn()
+        .mockResolvedValue(
+          opts.material ? [[opts.material], 1] : [[], 0],
+        ),
       findOne: jest.fn().mockResolvedValue(opts.material ?? null),
       create: jest.fn((x: any) => x),
       save: jest.fn(async (x: any) => {
@@ -51,6 +57,17 @@ describe('PortalMaterialService', () => {
         ...x,
       })),
     };
+    const attachmentRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+      count: jest.fn().mockResolvedValue(0),
+      create: jest.fn((x: any) => x),
+      save: jest.fn(async (x: any) => ({
+        id: 'a1',
+        createdAt: new Date(),
+        ...x,
+      })),
+    };
     const ds = {
       query: jest.fn(async (sql: string) =>
         opts.dsRows ? opts.dsRows(sql) : [],
@@ -67,6 +84,7 @@ describe('PortalMaterialService', () => {
       shareRepo as any,
       commentRepo as any,
       revisionRepo as any,
+      attachmentRepo as any,
       ds as any,
       store as any,
     );
@@ -76,6 +94,7 @@ describe('PortalMaterialService', () => {
       shareRepo,
       commentRepo,
       revisionRepo,
+      attachmentRepo,
       ds,
       store,
       saved,
@@ -95,23 +114,61 @@ describe('PortalMaterialService', () => {
     const { svc } = build();
     await expect(
       svc.create('e1', { kind: 'PARENT', refId: 'p1' }, file() as any, 't', [
-        's1',
+        { kind: 'STUDENT', refId: 's1', role: 'VIEWER' },
       ]),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  it('uploads without share targets (선업로드·후공유, PLN-260724)', async () => {
-    const { svc, store, shareRepo } = build();
-    const view = await svc.create(
-      'e1',
-      { kind: 'TEACHER', refId: 't1' },
-      file(),
-      '대상 없이 업로드',
-      [],
-    );
-    expect(store.putObject).toHaveBeenCalled();
-    expect(shareRepo.save).not.toHaveBeenCalled();
-    expect(view).toMatchObject({ title: '대상 없이 업로드', mine: true });
+  it('rejects an upload without share targets (REQ-260728B FR-3)', async () => {
+    const { svc, store } = build();
+    await expect(
+      svc.create(
+        'e1',
+        { kind: 'TEACHER', refId: 't1' },
+        file(),
+        '대상 없이 업로드',
+        [],
+      ),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+    expect(store.putObject).not.toHaveBeenCalled();
+  });
+
+  it('student can only share to teachers (REQ-260728B FR-1) — file upload', async () => {
+    const { svc } = build();
+    await expect(
+      svc.create('e1', { kind: 'STUDENT', refId: 's1' }, file(), '제출', [
+        { kind: 'STUDENT', refId: 's2', role: 'VIEWER' },
+      ]),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
+  it('student can only share to teachers (REQ-260728B FR-1) — doc', async () => {
+    const { svc } = build();
+    await expect(
+      svc.createDoc('e1', { kind: 'STUDENT', refId: 's1' }, '문서', '<p></p>', [
+        { kind: 'STUDENT', refId: 's2', role: 'VIEWER' },
+      ]),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
+  it('listAllPortalUsers returns teachers only for a student caller (FR-1)', async () => {
+    const { svc, ds } = build({
+      dsRows: (sql) =>
+        sql.includes('amb_acm_tch_teacher')
+          ? [{ ref_id: 't1', name: '김강사' }]
+          : [{ ref_id: 's9', name: '학생' }],
+    });
+    const out = await svc.listAllPortalUsers('e1', {
+      kind: 'STUDENT',
+      refId: 's1',
+    });
+    expect(out).toEqual([{ kind: 'TEACHER', refId: 't1', name: '김강사' }]);
+    // 학생 목록 쿼리는 아예 실행되지 않는다.
+    expect(
+      (ds.query as jest.Mock).mock.calls.some(([sql]) =>
+        String(sql).includes('amb_acm_std_student'),
+      ),
+    ).toBe(false);
   });
 
   it('updateShares works for FILE posts too (후공유)', async () => {
@@ -151,12 +208,12 @@ describe('PortalMaterialService', () => {
         { kind: 'TEACHER', refId: 't1' },
         file({ mimetype: 'application/x-msdownload' }) as any,
         't',
-        ['s1'],
+        [{ kind: 'STUDENT', refId: 's1', role: 'VIEWER' }],
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('teacher creates → shares to students (target kind STUDENT, existence checked)', async () => {
+  it('teacher creates → shares to students (VIEWER 강제, existence checked)', async () => {
     // ds returns the student rows for assertTargetsExist + name resolution.
     const { svc, store, shareRepo } = build({
       dsRows: (sql) =>
@@ -169,11 +226,16 @@ describe('PortalMaterialService', () => {
       { kind: 'TEACHER', refId: 't1' },
       file(),
       '1주차 과제',
-      ['s1'],
+      // EDITOR 를 보내도 FILE 공유는 VIEWER 로 강제된다.
+      [{ kind: 'STUDENT', refId: 's1', role: 'EDITOR' }],
     );
     expect(store.putObject).toHaveBeenCalled();
     expect(shareRepo.save).toHaveBeenCalledWith([
-      expect.objectContaining({ tgtKind: 'STUDENT', tgtRefId: 's1' }),
+      expect.objectContaining({
+        tgtKind: 'STUDENT',
+        tgtRefId: 's1',
+        role: 'VIEWER',
+      }),
     ]);
     expect(view).toMatchObject({
       title: '1주차 과제',
@@ -186,7 +248,7 @@ describe('PortalMaterialService', () => {
     const { svc } = build({ dsRows: () => [] }); // no matching rows
     await expect(
       svc.create('e1', { kind: 'STUDENT', refId: 's1' }, file() as any, 't', [
-        'tX',
+        { kind: 'TEACHER', refId: 'tX', role: 'VIEWER' },
       ]),
     ).rejects.toBeInstanceOf(BadRequestException);
   });
@@ -497,5 +559,111 @@ describe('PortalMaterialService', () => {
     await expect(
       svc.remove('e1', 'm', { kind: 'STUDENT', refId: 's1' }),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  // ── Doc attachments (REQ-260728B FR-2) ───────────────────────────────
+
+  const docRow = (): any => ({
+    id: 'm',
+    kind: 'DOC',
+    content: '<p>x</p>',
+    authorKind: 'TEACHER',
+    uploadedBy: 't1',
+    title: 'T',
+    createdAt: new Date(),
+    deletedAt: null,
+  });
+
+  it('addAttachment stores the file and returns its meta', async () => {
+    const { svc, store, attachmentRepo } = build({ material: docRow() });
+    const out = await svc.addAttachment(
+      'e1',
+      'm',
+      { kind: 'TEACHER', refId: 't1' },
+      file() as any,
+    );
+    expect(store.putObject).toHaveBeenCalled();
+    expect(attachmentRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ matId: 'm', filename: '자료.pdf' }),
+    );
+    expect(out).toMatchObject({ id: 'a1', filename: '자료.pdf' });
+  });
+
+  it('addAttachment enforces the per-doc cap (≤5)', async () => {
+    const { svc, attachmentRepo } = build({ material: docRow() });
+    attachmentRepo.count.mockResolvedValue(5);
+    await expect(
+      svc.addAttachment(
+        'e1',
+        'm',
+        { kind: 'TEACHER', refId: 't1' },
+        file() as any,
+      ),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException);
+  });
+
+  it('addAttachment forbids a non-editor', async () => {
+    const { svc, shareRepo } = build({ material: docRow() });
+    shareRepo.findOne.mockResolvedValue(null); // no EDITOR share
+    await expect(
+      svc.addAttachment(
+        'e1',
+        'm',
+        { kind: 'STUDENT', refId: 's1' },
+        file() as any,
+      ),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  // ── List pagination (REQ-260728B FR-4) ───────────────────────────────
+
+  it('listOwn pages with take/skip and returns meta', async () => {
+    const { svc, repo } = build();
+    const out = await svc.listOwn('e1', 'TEACHER', 't1', {
+      page: 2,
+      limit: 10,
+    });
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({ take: 10, skip: 10 }),
+    );
+    expect(out.meta).toEqual({ page: 2, limit: 10, total: 0 });
+  });
+
+  it('listShared filters by matKind and pages in memory', async () => {
+    const now = Date.now();
+    const mats: any[] = [
+      {
+        id: 'd1',
+        kind: 'DOC',
+        authorKind: 'TEACHER',
+        uploadedBy: 't1',
+        title: 'D',
+        createdAt: new Date(now),
+        deletedAt: null,
+      },
+      {
+        id: 'f1',
+        kind: 'FILE',
+        authorKind: 'TEACHER',
+        uploadedBy: 't1',
+        title: 'F',
+        filename: 'f.pdf',
+        createdAt: new Date(now - 1000),
+        deletedAt: null,
+      },
+    ];
+    const { svc, repo, shareRepo } = build();
+    shareRepo.find.mockResolvedValue([
+      { matId: 'd1', tgtKind: 'STUDENT', tgtRefId: 's1' },
+      { matId: 'f1', tgtKind: 'STUDENT', tgtRefId: 's1' },
+    ]);
+    repo.find.mockResolvedValue(mats);
+    const out = await svc.listShared('e1', 'STUDENT', 's1', {
+      matKind: 'DOC',
+      page: 1,
+      limit: 10,
+    });
+    expect(out.meta.total).toBe(1);
+    expect(out.data.map((m) => m.id)).toEqual(['d1']);
   });
 });

@@ -28,7 +28,7 @@ server {
     # FIX-260512: allow file uploads up to 20MB (teacher attachments are
     # capped at 10MB by the backend; leave headroom for multipart overhead).
     # nginx default of 1MB caused 413 on resume PDFs >1MB.
-    client_max_body_size 20M;
+    client_max_body_size 55M;
 
     # Static assets — long cache, immutable hash filenames from Vite.
     location ~* \.(?:js|css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|avif)$ {

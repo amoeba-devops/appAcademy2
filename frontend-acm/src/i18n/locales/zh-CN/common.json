@@ -105,7 +105,7 @@
       "tabShared": "共享给我",
       "tabOwn": "我的帖子",
       "newPost": "新帖子",
-      "pickFile": "选择文件（≤20MB）",
+      "pickFile": "选择文件（≤50MB）",
       "titlePlaceholder": "标题（默认文件名）",
       "shareToStudents": "共享给学生",
       "shareToTeacher": "提交给老师",
@@ -122,10 +122,13 @@
       "newDoc": "新建文档",
       "newFile": "上传文件",
       "docBadge": "文档",
-      "shareAfterHint": "上传后通过帖子的[共享]按钮指定共享对象（与文档板相同）。",
       "uploadBtn": "上传",
       "shareBtn2": "共享",
-      "shareSave": "保存共享"
+      "shareSave": "保存共享",
+      "shareRequiredHint": "需至少选择 1 名共享对象才能上传。",
+      "filterAll": "全部",
+      "filterDoc": "文档",
+      "filterFile": "资料"
     },
     "docs": {
       "back": "返回文档/资料",
@@ -144,7 +147,11 @@
       "current": "当前",
       "viewVersion": "查看",
       "restore": "恢复此版本",
-      "confirmRestore": "恢复此版本？（恢复也会记录为新版本）"
+      "confirmRestore": "恢复此版本？（恢复也会记录为新版本）",
+      "attachments": "附件",
+      "addAttachment": "添加文件",
+      "attachmentLimitHint": "单个文件 50MB · 最多 5 个",
+      "attachUploadFailed": "部分附件上传失败，请在文档中重试。"
     },
     "students": {
       "teacherOnly": "此菜单仅供老师使用。",

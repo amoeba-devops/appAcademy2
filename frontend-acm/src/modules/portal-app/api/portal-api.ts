@@ -98,10 +98,14 @@ export const portalApi = {
     ).data,
 
   // PLN-260718 P3 — 자료실 게시물 (scope: 'own' 내 게시물 / 'shared' 공유받은).
-  materials: async (scope: 'own' | 'shared') =>
+  // REQ-260728B FR-4 — 종류필터(kind) + 서버 페이징 ({ data, meta }).
+  materials: async (
+    scope: 'own' | 'shared',
+    opts: { kind?: 'DOC' | 'FILE'; page: number; limit: number },
+  ) =>
     (
-      await apiClient.get<PortalMaterialPost[]>('/portal/materials', {
-        params: { scope },
+      await apiClient.get<PagedMaterials>('/portal/materials', {
+        params: { scope, kind: opts.kind, page: opts.page, limit: opts.limit },
       })
     ).data,
 
@@ -175,16 +179,42 @@ export const portalApi = {
       })
     ).data,
 
-  // PLN-260724 — 선업로드·후공유: 공유대상 없이 업로드.
-  createMaterial: async (file: File, title: string) => {
+  // REQ-260728B FR-3 — 업로드 시 공유대상 필수 (multipart 텍스트 필드라 JSON 직렬화).
+  createMaterial: async (file: File, title: string, shares: DocShareInput[]) => {
     const form = new FormData();
     form.append('file', file);
     if (title) form.append('title', title);
+    form.append('shares', JSON.stringify(shares));
     return (
       await apiClient.post<PortalMaterialPost>('/portal/materials', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
     ).data;
+  },
+
+  // REQ-260728B FR-2 — 문서 첨부파일.
+  addDocAttachment: async (docId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return (
+      await apiClient.post<MaterialAttachment>(
+        `/portal/materials/docs/${docId}/attachments`,
+        form,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+    ).data;
+  },
+
+  downloadDocAttachment: async (attId: string, filename: string) => {
+    const res = await apiClient.get(
+      `/portal/materials/attachments/${attId}/download`,
+      { responseType: 'blob' },
+    );
+    triggerDownload(res.data as Blob, filename);
+  },
+
+  deleteDocAttachment: async (attId: string) => {
+    await apiClient.delete(`/portal/materials/attachments/${attId}`);
   },
 
   deleteMaterial: async (id: string) => {
@@ -257,6 +287,22 @@ export interface PortalMaterialPost {
 
 export interface PortalDocPost extends PortalMaterialPost {
   content: string;
+  // REQ-260728B FR-2 — 문서 첨부파일.
+  attachments: MaterialAttachment[];
+}
+
+export interface MaterialAttachment {
+  id: string;
+  filename: string;
+  mime: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+}
+
+// REQ-260728B FR-4 — 목록 표준 페이징 응답 (§6.2).
+export interface PagedMaterials {
+  data: PortalMaterialPost[];
+  meta: { page: number; limit: number; total: number };
 }
 
 export interface MaterialShareCandidate {
