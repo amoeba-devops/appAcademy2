@@ -53,6 +53,46 @@
     "ONE_TO_ONE": "Lớp 1:1 (giáo viên + 1 học viên)",
     "ONE_TO_MANY": "Lớp nhóm 1:N (nhiều học viên)"
   },
+  "delete": {
+    "title": "Xóa lịch học",
+    "hint": "Lịch đã xóa sẽ bị ẩn khỏi lịch và có thể xem trong ‘Xem lịch học đã xóa’.",
+    "reasonPlaceholder": "Lý do xóa (bắt buộc)",
+    "reasonRequired": "Vui lòng nhập lý do xóa.",
+    "confirm": "Xóa"
+  },
+  "edit": {
+    "reasonLabel": "Lý do chỉnh sửa",
+    "reasonPlaceholder": "Nhập lý do thay đổi (được ghi vào lịch sử chỉnh sửa)",
+    "reasonRequired": "Vui lòng nhập lý do chỉnh sửa."
+  },
+  "revision": {
+    "title": "Lịch sử chỉnh sửa",
+    "reason": "Lý do",
+    "yes": "Có",
+    "no": "Không",
+    "field": {
+      "category": "Phân loại",
+      "title": "Tiêu đề",
+      "description": "Mô tả",
+      "startAt": "Bắt đầu",
+      "endAt": "Kết thúc",
+      "allDay": "Cả ngày",
+      "locationText": "Địa điểm",
+      "meetingProvider": "Học trực tuyến",
+      "bodaRoomType": "Loại lớp học",
+      "assigneeTchId": "Giáo viên phụ trách"
+    }
+  },
+  "deleted": {
+    "btnLabel": "Xem lịch học đã xóa",
+    "btnTitle": "Hiển thị lịch học đã xóa",
+    "empty": "Không có lịch học nào bị xóa trong khoảng thời gian này.",
+    "colTitle": "Tiêu đề",
+    "colPeriod": "Thời gian",
+    "colReason": "Lý do xóa",
+    "colBy": "Người xóa",
+    "colAt": "Thời điểm xóa"
+  },
   "form": {
     "titleCreate": "Thêm sự kiện",
     "titleEdit": "Sửa sự kiện",

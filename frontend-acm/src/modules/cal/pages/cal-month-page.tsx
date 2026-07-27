@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, LogIn, Plus, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
@@ -99,6 +99,14 @@ export function CalMonthPage() {
   }, [range, isAdmin, selectedTeachers, attendeeKind, selectedAttendees]);
 
   const { data, isLoading } = useCalEvents(query);
+
+  // REQ-260728 — '삭제한 수업일정 보기' 토글 + 삭제 목록(같은 기간).
+  const [showDeleted, setShowDeleted] = useState(false);
+  const { data: deletedData } = useCalEvents(
+    { from: range.from, to: range.to, deletedOnly: true },
+    showDeleted,
+  );
+  const deletedEvents = deletedData?.items ?? [];
   const events = useMemo(
     () =>
       [...(data?.items ?? [])].sort(
@@ -170,6 +178,15 @@ export function CalMonthPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={showDeleted ? 'default' : 'outline'}
+            onClick={() => setShowDeleted((v) => !v)}
+            title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
+          >
+            <Trash2 size={14} className="mr-1" />
+            {t('deleted.btnLabel', '삭제한 수업일정 보기')}
+          </Button>
           {canCreateInstant && (
             <Button
               size="sm"
@@ -276,7 +293,9 @@ export function CalMonthPage() {
         </div>
       )}
 
-      {view === 'month' ? (
+      {showDeleted ? (
+        <DeletedEventsList events={deletedEvents} locale={i18n.language} />
+      ) : view === 'month' ? (
         <MonthView
           anchor={anchor}
           days={visibleDays}
@@ -606,4 +625,66 @@ function splitEventTitle(event: CalEvent): {
   if (event.category === 'LEVEL_TEST') return { className: '레벨테스트', studentName: null };
   if (event.category === 'REGULAR_CLASS') return { className: event.title, studentName: null };
   return { className: event.title, studentName: null };
+}
+
+/**
+ * REQ-260728 — 삭제한 수업일정 목록('삭제 보기' 토글 시 표시). 열람 전용.
+ */
+function DeletedEventsList({
+  events,
+  locale,
+}: {
+  events: CalEvent[];
+  locale: string;
+}) {
+  const { t } = useTranslation('cal');
+  const fmt = (iso?: string | null) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime())
+      ? '—'
+      : new Intl.DateTimeFormat(locale, {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(d);
+  };
+
+  if (events.length === 0) {
+    return (
+      <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+        {t('deleted.empty', '이 기간에 삭제한 수업일정이 없습니다.')}
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-md border border-[var(--border-subtle)]">
+      <table className="w-full text-sm">
+        <thead className="bg-[var(--canvas-subtle)] text-left text-xs text-secondary">
+          <tr>
+            <th className="px-3 py-2">{t('deleted.colTitle', '제목')}</th>
+            <th className="px-3 py-2">{t('deleted.colPeriod', '기간')}</th>
+            <th className="px-3 py-2">{t('deleted.colReason', '삭제 사유')}</th>
+            <th className="px-3 py-2">{t('deleted.colBy', '삭제자')}</th>
+            <th className="px-3 py-2">{t('deleted.colAt', '삭제 시각')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {events.map((e) => (
+            <tr key={e.id} className="border-t border-[var(--border-subtle)]">
+              <td className="px-3 py-2 text-primary">{e.title}</td>
+              <td className="px-3 py-2 text-secondary">
+                {fmt(e.startAt)} ~ {fmt(e.endAt)}
+              </td>
+              <td className="px-3 py-2 text-secondary">{e.deleteReason ?? '—'}</td>
+              <td className="px-3 py-2 text-secondary">{e.deletedByName ?? '—'}</td>
+              <td className="px-3 py-2 text-secondary">{fmt(e.deletedAt)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

@@ -53,6 +53,46 @@
     "ONE_TO_ONE": "1:1 课程（教师 + 1 名学生）",
     "ONE_TO_MANY": "1:N 团体课（多名学生）"
   },
+  "delete": {
+    "title": "删除课程安排",
+    "hint": "删除的安排会从日历中隐藏，可在‘查看已删除的课程安排’中找到。",
+    "reasonPlaceholder": "删除原因（必填）",
+    "reasonRequired": "请输入删除原因。",
+    "confirm": "删除"
+  },
+  "edit": {
+    "reasonLabel": "修改原因",
+    "reasonPlaceholder": "请输入修改原因（将记录到修改历史）",
+    "reasonRequired": "请输入修改原因。"
+  },
+  "revision": {
+    "title": "修改历史",
+    "reason": "原因",
+    "yes": "是",
+    "no": "否",
+    "field": {
+      "category": "分类",
+      "title": "标题",
+      "description": "说明",
+      "startAt": "开始",
+      "endAt": "结束",
+      "allDay": "全天",
+      "locationText": "地点",
+      "meetingProvider": "在线授课",
+      "bodaRoomType": "课程类型",
+      "assigneeTchId": "负责教师"
+    }
+  },
+  "deleted": {
+    "btnLabel": "查看已删除的课程安排",
+    "btnTitle": "显示已删除的课程安排",
+    "empty": "此期间没有已删除的课程安排。",
+    "colTitle": "标题",
+    "colPeriod": "时间段",
+    "colReason": "删除原因",
+    "colBy": "删除人",
+    "colAt": "删除时间"
+  },
   "form": {
     "titleCreate": "新增日程",
     "titleEdit": "编辑日程",

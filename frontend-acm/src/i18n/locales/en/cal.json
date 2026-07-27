@@ -53,6 +53,46 @@
     "ONE_TO_ONE": "1:1 class (teacher + 1 student)",
     "ONE_TO_MANY": "1:N group class (multiple students)"
   },
+  "delete": {
+    "title": "Delete class schedule",
+    "hint": "Deleted schedules are hidden from the calendar and can be found under ‘View deleted schedules’.",
+    "reasonPlaceholder": "Deletion reason (required)",
+    "reasonRequired": "Please enter a deletion reason.",
+    "confirm": "Delete"
+  },
+  "edit": {
+    "reasonLabel": "Edit reason",
+    "reasonPlaceholder": "Enter why you changed this (recorded in the edit history)",
+    "reasonRequired": "Please enter an edit reason."
+  },
+  "revision": {
+    "title": "Edit history",
+    "reason": "Reason",
+    "yes": "Yes",
+    "no": "No",
+    "field": {
+      "category": "Category",
+      "title": "Title",
+      "description": "Description",
+      "startAt": "Start",
+      "endAt": "End",
+      "allDay": "All day",
+      "locationText": "Location",
+      "meetingProvider": "Meeting",
+      "bodaRoomType": "Class type",
+      "assigneeTchId": "Assigned teacher"
+    }
+  },
+  "deleted": {
+    "btnLabel": "View deleted schedules",
+    "btnTitle": "Show deleted class schedules",
+    "empty": "No class schedules were deleted in this period.",
+    "colTitle": "Title",
+    "colPeriod": "Period",
+    "colReason": "Deletion reason",
+    "colBy": "Deleted by",
+    "colAt": "Deleted at"
+  },
   "form": {
     "titleCreate": "Add Event",
     "titleEdit": "Edit Event",
