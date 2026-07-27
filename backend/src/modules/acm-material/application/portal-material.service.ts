@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
@@ -18,6 +19,7 @@ import {
 } from '../infrastructure/typeorm/material-share.typeorm-entity';
 import { MaterialCommentTypeormEntity } from '../infrastructure/typeorm/material-comment.typeorm-entity';
 import { MaterialRevisionTypeormEntity } from '../infrastructure/typeorm/material-revision.typeorm-entity';
+import { MaterialAttachmentTypeormEntity } from '../infrastructure/typeorm/material-attachment.typeorm-entity';
 
 /**
  * PLN-260718 P3 — portal materials (자료실) authoring + sharing + comments.
@@ -30,7 +32,10 @@ import { MaterialRevisionTypeormEntity } from '../infrastructure/typeorm/materia
  *   • listShared → posts shared to the caller (+ legacy class materials)
  * Each post has a flat comment thread visible to anyone who can view the post.
  */
-const MAX_BYTES = 20 * 1024 * 1024; // 20MB
+// REQ-260728B — 50MB 로 상향 (nginx client_max_body_size 도 함께 상향됨).
+const MAX_BYTES = 50 * 1024 * 1024; // 50MB
+// REQ-260728B FR-2 — DOC 첨부파일 문서당 최대 개수.
+const MAX_DOC_ATTACHMENTS = 5;
 const ALLOWED_MIMES = [
   'application/pdf',
   'image/jpeg',
@@ -92,6 +97,29 @@ export interface PortalMaterialView {
 
 export interface PortalDocView extends PortalMaterialView {
   content: string;
+  /** REQ-260728B FR-2 — 문서 첨부파일. */
+  attachments: MaterialAttachmentView[];
+}
+
+/** REQ-260728B FR-2 — 문서 첨부파일 메타. */
+export interface MaterialAttachmentView {
+  id: string;
+  filename: string;
+  mime: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+}
+
+/** REQ-260728B FR-4 — 목록 페이징/종류필터 옵션 + 표준 응답(§6.2). */
+export interface MaterialListOpts {
+  matKind?: 'DOC' | 'FILE';
+  page: number;
+  limit: number;
+}
+
+export interface PagedMaterials {
+  data: PortalMaterialView[];
+  meta: { page: number; limit: number; total: number };
 }
 
 // DOC 본문 HTML 최대 크기 (렌더 시 프론트에서 DOMPurify sanitize).
@@ -124,6 +152,8 @@ export class PortalMaterialService {
     private readonly commentRepo: Repository<MaterialCommentTypeormEntity>,
     @InjectRepository(MaterialRevisionTypeormEntity, ACM_DS)
     private readonly revisionRepo: Repository<MaterialRevisionTypeormEntity>,
+    @InjectRepository(MaterialAttachmentTypeormEntity, ACM_DS)
+    private readonly attachmentRepo: Repository<MaterialAttachmentTypeormEntity>,
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly store: ObjectStoreClient,
   ) {}
@@ -182,6 +212,7 @@ export class PortalMaterialService {
   /**
    * PLN-260719 B — 문서 게시판 공유후보: 포털 사용자 전체(모든 강사 + 모든 학생).
    * 본인은 제외. (파일 자료의 반-기반 후보와 별개)
+   * REQ-260728B FR-1 — STUDENT 작성자는 강사만 공유 가능하므로 후보도 강사만.
    */
   async listAllPortalUsers(
     entId: string,
@@ -196,12 +227,14 @@ export class PortalMaterialService {
         [entId],
       );
     const students: Array<{ ref_id: string; name: string }> =
-      await this.ds.query(
-        `SELECT std_id AS ref_id, std_name AS name FROM amb_acm_std_student
+      self.kind === 'STUDENT'
+        ? []
+        : await this.ds.query(
+            `SELECT std_id AS ref_id, std_name AS name FROM amb_acm_std_student
         WHERE ent_id = $1 AND deleted_at IS NULL AND std_status = 'ACTIVE'
         ORDER BY std_name`,
-        [entId],
-      );
+            [entId],
+          );
     return [
       ...teachers.map((r) => ({
         kind: 'TEACHER' as const,
@@ -234,7 +267,7 @@ export class PortalMaterialService {
       throw new BadRequestException('CONTENT_TOO_LONG');
     }
     const cleanShares = this.dedupeShares(shares, author);
-    await this.assertShareInputsValid(entId, cleanShares);
+    await this.assertShareInputsValid(entId, cleanShares, author);
 
     const mat = await this.repo.save(
       this.repo.create({
@@ -277,7 +310,123 @@ export class PortalMaterialService {
     const mat = await this.getViewableOrThrow(entId, matId, viewer);
     if (mat.kind !== 'DOC') throw new NotFoundException('NOT_A_DOC');
     const [view] = await this.enrich(entId, [mat], viewer);
-    return { ...view, content: mat.content ?? '' };
+    return {
+      ...view,
+      content: mat.content ?? '',
+      attachments: await this.listAttachments(entId, matId),
+    };
+  }
+
+  // ── Doc attachments (REQ-260728B FR-2) ───────────────────────────────
+
+  private async listAttachments(
+    entId: string,
+    matId: string,
+  ): Promise<MaterialAttachmentView[]> {
+    const rows = await this.attachmentRepo.find({
+      where: { entId, matId, deletedAt: IsNull() },
+      order: { createdAt: 'ASC' },
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      filename: a.filename,
+      mime: a.mime ?? null,
+      sizeBytes: a.sizeBytes != null ? Number(a.sizeBytes) : null,
+      createdAt: a.createdAt.toISOString(),
+    }));
+  }
+
+  /** 첨부 추가 — 문서 편집 권한자(작성자·EDITOR). ≤50MB × 문서당 ≤5개. */
+  async addAttachment(
+    entId: string,
+    matId: string,
+    editor: PortalAuthor,
+    file: UploadFile | undefined,
+  ): Promise<MaterialAttachmentView> {
+    const mat = await this.repo.findOne({
+      where: { id: matId, entId, deletedAt: IsNull() },
+    });
+    if (!mat || mat.kind !== 'DOC')
+      throw new NotFoundException('DOC_NOT_FOUND');
+    if (!(await this.canEdit(entId, mat, editor))) {
+      throw new ForbiddenException('NOT_EDITOR');
+    }
+    if (!file?.buffer?.length) throw new BadRequestException('EMPTY_FILE');
+    if (file.size > MAX_BYTES) throw new BadRequestException('FILE_TOO_LARGE');
+    if (!ALLOWED_MIMES.includes(file.mimetype)) {
+      throw new BadRequestException('MIME_NOT_ALLOWED');
+    }
+    const count = await this.attachmentRepo.count({
+      where: { entId, matId, deletedAt: IsNull() },
+    });
+    if (count >= MAX_DOC_ATTACHMENTS) {
+      throw new UnprocessableEntityException('ATTACHMENT_LIMIT');
+    }
+
+    // multer decodes originalname as latin1; re-encode to UTF-8.
+    const filename = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    const safe = filename.replace(/[^\w.-]+/g, '_').slice(-120);
+    const key = `materials/${entId}/attach/${randomUUID()}-${safe}`;
+    await this.store.putObject({ key, body: file.buffer, mime: file.mimetype });
+
+    const saved = await this.attachmentRepo.save(
+      this.attachmentRepo.create({
+        entId,
+        matId,
+        s3Key: key,
+        filename,
+        mime: file.mimetype,
+        sizeBytes: String(file.size),
+        uploadedBy: editor.refId,
+      }),
+    );
+    return {
+      id: saved.id,
+      filename: saved.filename,
+      mime: saved.mime ?? null,
+      sizeBytes: saved.sizeBytes != null ? Number(saved.sizeBytes) : null,
+      createdAt: saved.createdAt.toISOString(),
+    };
+  }
+
+  /** 첨부 다운로드 — 게시글 열람 권한(canView) 상속. */
+  async downloadAttachment(
+    entId: string,
+    attId: string,
+    viewer: PortalAuthor,
+  ): Promise<{ stream: Readable; mime: string; filename: string }> {
+    const att = await this.attachmentRepo.findOne({
+      where: { id: attId, entId, deletedAt: IsNull() },
+    });
+    if (!att) throw new NotFoundException('ATTACHMENT_NOT_FOUND');
+    await this.getViewableOrThrow(entId, att.matId, viewer);
+    const obj = await this.store.getObjectStream(att.s3Key);
+    return {
+      stream: obj.stream,
+      mime: att.mime ?? 'application/octet-stream',
+      filename: att.filename,
+    };
+  }
+
+  /** 첨부 삭제 — 문서 편집 권한자(작성자·EDITOR). soft delete. */
+  async removeAttachment(
+    entId: string,
+    attId: string,
+    editor: PortalAuthor,
+  ): Promise<void> {
+    const att = await this.attachmentRepo.findOne({
+      where: { id: attId, entId, deletedAt: IsNull() },
+    });
+    if (!att) throw new NotFoundException('ATTACHMENT_NOT_FOUND');
+    const mat = await this.repo.findOne({
+      where: { id: att.matId, entId, deletedAt: IsNull() },
+    });
+    if (!mat) throw new NotFoundException('MATERIAL_NOT_FOUND');
+    if (!(await this.canEdit(entId, mat, editor))) {
+      throw new ForbiddenException('NOT_EDITOR');
+    }
+    att.deletedAt = new Date();
+    await this.attachmentRepo.save(att);
   }
 
   /** 본문/제목 수정 — 작성자 또는 EDITOR 공유대상만. */
@@ -431,7 +580,7 @@ export class PortalMaterialService {
       throw new ForbiddenException('NOT_AUTHOR');
     }
     const cleanShares = this.dedupeShares(shares, author);
-    await this.assertShareInputsValid(entId, cleanShares);
+    await this.assertShareInputsValid(entId, cleanShares, author);
     await this.shareRepo.delete({ entId, matId });
     if (cleanShares.length > 0) {
       await this.shareRepo.save(
@@ -475,7 +624,12 @@ export class PortalMaterialService {
   private async assertShareInputsValid(
     entId: string,
     shares: ShareInput[],
+    author: PortalAuthor,
   ): Promise<void> {
+    // REQ-260728B FR-1 — 학생 작성자는 강사에게만 공유 가능.
+    if (author.kind === 'STUDENT' && shares.some((s) => s.kind !== 'TEACHER')) {
+      throw new UnprocessableEntityException('STUDENT_CAN_SHARE_TEACHER_ONLY');
+    }
     const byKind: Record<MaterialShareTargetKind, string[]> = {
       STUDENT: [],
       TEACHER: [],
@@ -517,7 +671,7 @@ export class PortalMaterialService {
     author: PortalAuthor,
     file: UploadFile | undefined,
     title: string | undefined,
-    shareRefIds: string[],
+    shares: ShareInput[],
   ): Promise<PortalMaterialView> {
     if (author.kind !== 'TEACHER' && author.kind !== 'STUDENT') {
       throw new ForbiddenException('ONLY_TEACHER_OR_STUDENT_CAN_POST');
@@ -528,14 +682,17 @@ export class PortalMaterialService {
       throw new BadRequestException('MIME_NOT_ALLOWED');
     }
 
-    // PLN-260724 — 공유대상 없이도 업로드 가능(선업로드·후공유, 문서게시판과 동일).
-    // shareRefIds 는 legacy 호환용(작성자 역할로 대상 kind 유추) — 새 UI는 미전송.
-    const tgtKind: MaterialShareTargetKind =
-      author.kind === 'TEACHER' ? 'STUDENT' : 'TEACHER';
-    const refIds = Array.from(new Set(shareRefIds.filter(Boolean)));
-    if (refIds.length > 0) {
-      await this.assertTargetsExist(entId, tgtKind, refIds);
+    // REQ-260728B FR-3 — 파일 업로드도 공유대상 1명 이상 필수 (문서와 동일한
+    // 구조화 shares 입력, 역할 제한은 assertShareInputsValid 가 보장).
+    // FILE 공유는 항상 VIEWER (다운로드/댓글) — EDITOR 개념 없음.
+    const cleanShares = this.dedupeShares(shares, author).map((s) => ({
+      ...s,
+      role: 'VIEWER' as const,
+    }));
+    if (cleanShares.length === 0) {
+      throw new UnprocessableEntityException('SHARE_TARGET_REQUIRED');
     }
+    await this.assertShareInputsValid(entId, cleanShares, author);
 
     // multer decodes originalname as latin1; re-encode to UTF-8.
     const filename = Buffer.from(file.originalname, 'latin1').toString('utf8');
@@ -557,18 +714,17 @@ export class PortalMaterialService {
       }),
     );
 
-    if (refIds.length > 0) {
-      await this.shareRepo.save(
-        refIds.map((refId) =>
-          this.shareRepo.create({
-            entId,
-            matId: mat.id,
-            tgtKind,
-            tgtRefId: refId,
-          }),
-        ),
-      );
-    }
+    await this.shareRepo.save(
+      cleanShares.map((s) =>
+        this.shareRepo.create({
+          entId,
+          matId: mat.id,
+          tgtKind: s.kind,
+          tgtRefId: s.refId,
+          role: s.role,
+        }),
+      ),
+    );
 
     const [view] = await this.enrich(entId, [mat], author);
     return view;
@@ -581,18 +737,26 @@ export class PortalMaterialService {
     entId: string,
     kind: PortalKind,
     refId: string,
-  ): Promise<PortalMaterialView[]> {
-    if (kind !== 'TEACHER' && kind !== 'STUDENT') return [];
-    const rows = await this.repo.find({
+    opts: MaterialListOpts,
+  ): Promise<PagedMaterials> {
+    const meta = { page: opts.page, limit: opts.limit, total: 0 };
+    if (kind !== 'TEACHER' && kind !== 'STUDENT') return { data: [], meta };
+    const [rows, total] = await this.repo.findAndCount({
       where: {
         entId,
         authorKind: kind,
         uploadedBy: refId,
         deletedAt: IsNull(),
+        ...(opts.matKind ? { kind: opts.matKind } : {}),
       },
       order: { createdAt: 'DESC' },
+      take: opts.limit,
+      skip: (opts.page - 1) * opts.limit,
     });
-    return this.enrich(entId, rows, { kind, refId });
+    return {
+      data: await this.enrich(entId, rows, { kind, refId }),
+      meta: { ...meta, total },
+    };
   }
 
   /** Posts shared to the caller + legacy class materials for their classes. */
@@ -600,7 +764,8 @@ export class PortalMaterialService {
     entId: string,
     kind: PortalKind,
     refId: string,
-  ): Promise<PortalMaterialView[]> {
+    opts: MaterialListOpts,
+  ): Promise<PagedMaterials> {
     const matIds = new Set<string>();
 
     // Direct shares.
@@ -642,10 +807,19 @@ export class PortalMaterialService {
       if (m.authorKind === kind && m.uploadedBy === refId) continue;
       byId.set(m.id, m);
     }
-    const rows = Array.from(byId.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    // REQ-260728B FR-4 — 직접공유+legacy 반자료 병합 소스라 DB 페이징 불가;
+    // 병합·정렬 후 메모리 페이징 (개인 단위 공유 목록 규모라 허용).
+    const rows = Array.from(byId.values())
+      .filter((m) => !opts.matKind || (m.kind ?? 'FILE') === opts.matKind)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const pageRows = rows.slice(
+      (opts.page - 1) * opts.limit,
+      opts.page * opts.limit,
     );
-    return this.enrich(entId, rows, { kind, refId });
+    return {
+      data: await this.enrich(entId, pageRows, { kind, refId }),
+      meta: { page: opts.page, limit: opts.limit, total: rows.length },
+    };
   }
 
   // ── Download ──────────────────────────────────────────────────────────

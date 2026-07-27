@@ -105,7 +105,7 @@
       "tabShared": "Được chia sẻ với tôi",
       "tabOwn": "Bài của tôi",
       "newPost": "Bài mới",
-      "pickFile": "Chọn tệp (≤20MB)",
+      "pickFile": "Chọn tệp (≤50MB)",
       "titlePlaceholder": "Tiêu đề (mặc định tên tệp)",
       "shareToStudents": "Chia sẻ với học sinh",
       "shareToTeacher": "Nộp cho giáo viên",
@@ -122,10 +122,13 @@
       "newDoc": "Tài liệu mới",
       "newFile": "Tải tệp lên",
       "docBadge": "Tài liệu",
-      "shareAfterHint": "Chỉ định đối tượng chia sẻ sau khi tải lên bằng nút [Chia sẻ] trên bài đăng (giống bảng tài liệu).",
       "uploadBtn": "Tải lên",
       "shareBtn2": "Chia sẻ",
-      "shareSave": "Lưu chia sẻ"
+      "shareSave": "Lưu chia sẻ",
+      "shareRequiredHint": "Cần chọn ít nhất 1 người để chia sẻ trước khi tải lên.",
+      "filterAll": "Tất cả",
+      "filterDoc": "Tài liệu",
+      "filterFile": "Tệp"
     },
     "docs": {
       "back": "Về Tài liệu",
@@ -144,7 +147,11 @@
       "current": "Hiện tại",
       "viewVersion": "Xem",
       "restore": "Khôi phục phiên bản này",
-      "confirmRestore": "Khôi phục phiên bản này? (Khôi phục cũng được ghi thành phiên bản mới)"
+      "confirmRestore": "Khôi phục phiên bản này? (Khôi phục cũng được ghi thành phiên bản mới)",
+      "attachments": "Tệp đính kèm",
+      "addAttachment": "Thêm tệp",
+      "attachmentLimitHint": "Mỗi tệp 50MB · tối đa 5 tệp",
+      "attachUploadFailed": "Một số tệp đính kèm tải lên thất bại. Vui lòng thử lại trong tài liệu."
     },
     "students": {
       "teacherOnly": "Menu chỉ dành cho giáo viên.",

@@ -105,7 +105,7 @@
       "tabShared": "Shared with me",
       "tabOwn": "My posts",
       "newPost": "New post",
-      "pickFile": "Choose a file (≤20MB)",
+      "pickFile": "Choose a file (≤50MB)",
       "titlePlaceholder": "Title (defaults to filename)",
       "shareToStudents": "Share with students",
       "shareToTeacher": "Submit to teacher",
@@ -122,10 +122,13 @@
       "newDoc": "New document",
       "newFile": "Upload file",
       "docBadge": "Doc",
-      "shareAfterHint": "Assign share targets after upload via the [Share] button on the post (same as the docs board).",
       "uploadBtn": "Upload",
       "shareBtn2": "Share",
-      "shareSave": "Save sharing"
+      "shareSave": "Save sharing",
+      "shareRequiredHint": "Select at least one person to share with before uploading.",
+      "filterAll": "All",
+      "filterDoc": "Docs",
+      "filterFile": "Files"
     },
     "docs": {
       "back": "Back to Docs & Files",
@@ -144,7 +147,11 @@
       "current": "Current",
       "viewVersion": "View",
       "restore": "Restore this version",
-      "confirmRestore": "Restore this version? (The restore is also recorded as a new version)"
+      "confirmRestore": "Restore this version? (The restore is also recorded as a new version)",
+      "attachments": "Attachments",
+      "addAttachment": "Add file",
+      "attachmentLimitHint": "Up to 5 files · 50MB each",
+      "attachUploadFailed": "Some attachments failed to upload. Please retry from the document."
     },
     "students": {
       "teacherOnly": "This menu is for teachers only.",

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   AlertTriangle,
@@ -73,7 +73,12 @@ export function WebClassroomPage() {
     statusQuery.data?.status ?? ctxQuery.data?.status;
 
   if (!mode) {
-    return <CenteredCard>{t('signinRequired')}</CenteredCard>;
+    // REQ-260728B FR-5 — 비로그인(포털·콘솔 세션 모두 없음) 접속은 포털 로그인으로
+    // 보내고, 로그인 후 returnTo 규약으로 이 강의실 URL 로 복귀한다.
+    const returnTo = encodeURIComponent(
+      window.location.pathname + window.location.search,
+    );
+    return <Navigate to={`/portal/login?returnTo=${returnTo}`} replace />;
   }
 
   if (ctxQuery.isLoading) {
