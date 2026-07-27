@@ -399,6 +399,7 @@ export class CalEventService {
       locationText: dto.evtLocationText ?? null,
       meetingProvider: dto.evtMeetingProvider ?? 'NONE',
       meetingUrl: dto.evtMeetingUrl ?? null,
+      bodaRoomType: dto.evtBodaRoomType ?? 'ONE_TO_ONE',
       clsId: dto.evtClsId ?? null,
       assigneeTchId: dto.evtAssigneeTchId ?? null,
       source: 'MANUAL',
@@ -459,6 +460,8 @@ export class CalEventService {
     if (dto.evtMeetingProvider !== undefined)
       e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
+    const prevBodaRoomType = e.bodaRoomType;
+    if (dto.evtBodaRoomType !== undefined) e.bodaRoomType = dto.evtBodaRoomType;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
     if (dto.evtAssigneeTchId !== undefined)
       e.assigneeTchId = dto.evtAssigneeTchId;
@@ -475,6 +478,13 @@ export class CalEventService {
         !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
       if (shouldProvision) {
         await this.ensureBodaLauncher(entId, saved);
+      } else if (saved.bodaRoomType !== prevBodaRoomType) {
+        // 룸 유형 토글(1:1↔1:N) — 아직 개설 전(PENDING)이면 roomCode 교체.
+        await this.bodaRoomSvc.applyRoomTypeIfPending(
+          saved.id,
+          entId,
+          saved.bodaRoomType,
+        );
       }
     }
 
@@ -593,6 +603,7 @@ export class CalEventService {
       evtId: event.id,
       entId,
       sesId: null,
+      roomType: event.bodaRoomType,
     });
     event.meetingUrl = launcherUrl;
     await this.repo.update({ id: event.id }, { meetingUrl: launcherUrl });
@@ -686,6 +697,7 @@ export class CalEventService {
     locationText: e.locationText,
     meetingProvider: e.meetingProvider,
     meetingUrl: e.meetingUrl,
+    bodaRoomType: e.bodaRoomType,
     clsId: e.clsId,
     assigneeTchId: e.assigneeTchId ?? null,
     source: e.source,

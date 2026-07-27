@@ -14,6 +14,9 @@ export type CalCategory = (typeof CAL_CATEGORIES)[number];
 
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
 export type CalMeetingProvider = (typeof CAL_PROVIDERS)[number];
+/** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
+export const CAL_BODA_ROOM_TYPES = ['ONE_TO_ONE', 'ONE_TO_MANY'] as const;
+export type CalBodaRoomType = (typeof CAL_BODA_ROOM_TYPES)[number];
 
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 
@@ -96,6 +99,8 @@ export interface CalEvent {
   locationText?: string | null;
   meetingProvider: CalMeetingProvider;
   meetingUrl?: string | null;
+  /** BODASCHOOL 룸 유형 (1:1 / 1:N). @see FIX-260724 */
+  bodaRoomType?: CalBodaRoomType;
   clsId?: string | null;
   /** REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher). Separate from owner/invitee. */
   assigneeTchId?: string | null;

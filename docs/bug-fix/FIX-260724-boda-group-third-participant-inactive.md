@@ -1,7 +1,7 @@
 ---
 document_id: FIX-260724-boda-group-third-participant-inactive
-version: 1.0.0
-status: diagnosis
+version: 2.0.0
+status: fixed
 created: 2026-07-24
 authors:
   - Claude (Opus 4.8)
@@ -89,10 +89,32 @@ related:
 
 ---
 
-## 7. 다음 단계 (Next)
-1. (본 문서) 원인 보고 — **완료**.
-2. §4 벤더 확인 회신 → 방향 A/B 확정.
-3. 확정 후 별도 REQ/PLN 또는 FIX 구현.
+## 7. 해결 (Resolution — 2026-07-27, 방향 A 확정)
 
-_수정은 착수하지 않음(원인 보고 우선 요청)._
+벤더가 **1:N(그룹) 전용 roomCode `881`** 발급 → 방향 A 로 구현. 운영자가 **수업일정 등록 시 1:1/1:N 을 선택**하고, 룸 발급 시 유형에 맞는 roomCode 를 사용한다.
+
+### 구현 내역
+| 계층 | 변경 |
+|---|---|
+| **DB** | `sql/acm/999h-acm-cal-boda-group-room-code.sql` — `bdc_group_room_code`(config) + `evt_boda_room_type`(event, CHECK ONE_TO_ONE\|ONE_TO_MANY, 기본 ONE_TO_ONE) + TPI 1:N=881 시드(멱등) |
+| **BE config** | `boda-config` 엔티티/DTO/서비스 `groupRoomCode` 추가 |
+| **BE event** | `cal-event` 엔티티/DTO `bodaRoomType` + 응답 노출. create/update 반영 |
+| **BE room** | `boda-room.service.resolveRoomCode()` — 1:1→`defaultRoomCode`(699) / 1:N→`groupRoomCode`(881). 미설정 시 **422 BODA_GROUP_ROOM_CODE_MISSING**(1:1로 조용히 대체하지 않음). `createPending(roomType)` + `applyRoomTypeIfPending()`(개설 전 PENDING 이면 토글 반영) |
+| **FE 모달** | `cal-event-modal` — BODASCHOOL(데모/정규수업)에 **수업 유형 1:1/1:N 선택** 드롭다운(기본 1:1) + 안내문. 저장 시 `evtBodaRoomType` 전송 |
+| **FE config** | `/admin/config/boda` 에 1:N Room Code(881) 입력 필드 |
+| **i18n** | cal(수업 유형/1:1/1:N/안내) + common(groupRoomCode 라벨) ×4 locale |
+
+### 동작
+- **1:1 선택** → roomCode 699 (기존과 동일).
+- **1:N 선택** → roomCode 881 → 그룹 정원 룸으로 개설되어 **3번째 참가자(2번째 학생) 화면 활성**.
+- 언어 기본값 **ko**(joinOpt.lang, 기존 동작 유지).
+- 개설 전(PENDING) 유형 변경 시 roomCode 자동 교체. 개설 후(OPEN 이상)에는 세션 중 변경하지 않음.
+
+### 검증
+- BE `tsc`/`nest build` clean, FE `tsc`/`vite build` clean, JSON 4 locale 유효.
+- 마이그레이션은 CD(step4)가 staging/prod 자동 적용(멱등) — [[project_deploy_auto_migrations]].
+
+### 남은 확인 (운영)
+- 실제 1:N 수업 개설 → 학생 2명 이상 **동시 활성** 확인(벤더 881 정원 실측).
+- 기존에 1:1(699)로 개설돼 버린 그룹 이벤트는 **유형을 1:N 으로 수정**(개설 전이면 roomCode 자동 교체, 이미 열렸다면 재개설).
 </content>

@@ -325,6 +325,7 @@
         "companyCode": "Company Code (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "기본 Room Code",
+        "groupRoomCode": "1:N 그룹 Room Code",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "Webhook 허용 IP / CIDR",

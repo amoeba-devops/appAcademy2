@@ -16,6 +16,7 @@ export interface BodaConfig {
   companyCode: string;
   companyId: string;
   defaultRoomCode: string;
+  groupRoomCode?: string | null;
   authKeyIsSet: boolean;
   eventSecretIsSet: boolean;
   webhookAllowCidrs: string | null;
@@ -34,6 +35,7 @@ export interface UpdateBodaConfigInput {
   companyCode?: string;
   companyId?: string;
   defaultRoomCode?: string;
+  groupRoomCode?: string;
   /** Send only to set/rotate; omit to keep existing. */
   authKey?: string;
   /** Send only to set/rotate; omit to keep existing. */
