@@ -42,11 +42,16 @@
     "locationText": "Location",
     "meetingProvider": "Meeting provider",
     "meetingUrl": "Meeting URL",
+    "bodaRoomType": "Class type",
     "creator": "Creator",
     "assignee": "In charge / Teacher",
     "assigneeNone": "Unassigned",
     "materials": "Class materials",
     "endDate": "End date"
+  },
+  "bodaRoomType": {
+    "ONE_TO_ONE": "1:1 class (teacher + 1 student)",
+    "ONE_TO_MANY": "1:N group class (multiple students)"
   },
   "form": {
     "titleCreate": "Add Event",
@@ -72,6 +77,7 @@
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
     "readOnlySource": "This event is synced from an external source and cannot be edited.",
     "bodaAuto": "A Bodaschool link is generated automatically for demo and regular classes on save.",
+    "bodaRoomType": "Choose 1:N for group classes that invite two or more students.",
     "bodaPending": "The link will be generated after saving.",
     "durationHm": "{{h}}h {{m}}m",
     "durationH": "{{h}}h",

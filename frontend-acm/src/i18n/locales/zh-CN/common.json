@@ -325,6 +325,7 @@
         "companyCode": "公司代码 (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "默认教室代码",
+        "groupRoomCode": "1:N 团体教室代码",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "Webhook 允许 IP / CIDR",

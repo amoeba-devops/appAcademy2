@@ -325,6 +325,7 @@
         "companyCode": "Mã công ty (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "Mã phòng mặc định",
+        "groupRoomCode": "Mã phòng nhóm 1:N",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "IP / CIDR cho phép Webhook",

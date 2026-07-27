@@ -42,11 +42,16 @@
     "locationText": "Địa điểm",
     "meetingProvider": "Họp trực tuyến",
     "meetingUrl": "URL họp",
+    "bodaRoomType": "Loại lớp học",
     "creator": "Người tạo",
     "assignee": "Phụ trách / Giáo viên",
     "assigneeNone": "Chưa chỉ định",
     "materials": "Tài liệu lớp học",
     "endDate": "Ngày kết thúc"
+  },
+  "bodaRoomType": {
+    "ONE_TO_ONE": "Lớp 1:1 (giáo viên + 1 học viên)",
+    "ONE_TO_MANY": "Lớp nhóm 1:N (nhiều học viên)"
   },
   "form": {
     "titleCreate": "Thêm sự kiện",
@@ -72,6 +77,7 @@
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
     "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa.",
     "bodaAuto": "Lớp học thử và lớp học chính thức sẽ tự động tạo liên kết Bodaschool khi lưu.",
+    "bodaRoomType": "Chọn 1:N cho lớp nhóm mời từ hai học viên trở lên.",
     "bodaPending": "Liên kết sẽ được tạo sau khi lưu.",
     "durationHm": "{{h}} giờ {{m}} phút",
     "durationH": "{{h}} giờ",

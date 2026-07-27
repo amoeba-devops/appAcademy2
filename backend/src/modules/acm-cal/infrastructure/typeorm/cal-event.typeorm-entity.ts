@@ -11,6 +11,8 @@ export type CalCategory =
   | 'OTHER';
 export type CalMeetingProvider = 'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
+/** BODA 룸 유형 — 1:1 수업(699) vs 1:N 그룹 수업(881). @see FIX-260724 */
+export type CalBodaRoomType = 'ONE_TO_ONE' | 'ONE_TO_MANY';
 
 @Entity('amb_acm_cal_event')
 @Index('idx_acm_cal_evt_ent_range', ['entId', 'startAt'], { where: 'deleted_at IS NULL' })
@@ -51,6 +53,14 @@ export class CalEventTypeormEntity {
 
   @Column({ name: 'evt_meeting_url', type: 'varchar', length: 500, nullable: true })
   meetingUrl?: string | null;
+
+  /**
+   * BODASCHOOL 룸 유형 — 운영자가 수업일정 등록 시 1:1 / 1:N 선택. 룸 발급 시
+   * 이 값으로 roomCode(1:1=defaultRoomCode / 1:N=groupRoomCode)를 고른다.
+   * @see FIX-260724
+   */
+  @Column({ name: 'evt_boda_room_type', type: 'varchar', length: 12, default: 'ONE_TO_ONE' })
+  bodaRoomType!: CalBodaRoomType;
 
   @Column({ name: 'evt_cls_id', type: 'uuid', nullable: true })
   clsId?: string | null;

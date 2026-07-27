@@ -39,6 +39,8 @@ export const CAL_PROVIDERS = [
   'OTHER',
 ] as const;
 export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
+/** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
+export const CAL_BODA_ROOM_TYPES = ['ONE_TO_ONE', 'ONE_TO_MANY'] as const;
 
 // ============================================================================
 // Invitee sub-DTO
@@ -100,6 +102,11 @@ export class CreateCalEventDto {
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
+
+  @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES, default: 'ONE_TO_ONE' })
+  @IsOptional()
+  @IsIn(CAL_BODA_ROOM_TYPES)
+  evtBodaRoomType?: (typeof CAL_BODA_ROOM_TYPES)[number];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -179,6 +186,11 @@ export class UpdateCalEventDto {
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
+
+  @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES })
+  @IsOptional()
+  @IsIn(CAL_BODA_ROOM_TYPES)
+  evtBodaRoomType?: (typeof CAL_BODA_ROOM_TYPES)[number];
 
   @ApiPropertyOptional()
   @IsOptional()

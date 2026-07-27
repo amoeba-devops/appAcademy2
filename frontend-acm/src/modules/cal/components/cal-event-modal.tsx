@@ -22,6 +22,7 @@ import {
 } from '../hooks/use-cal-events';
 import {
   CAL_PROVIDERS,
+  type CalBodaRoomType,
   type CalEvent,
   type CalInviteeView,
   type InviteeCandidate,
@@ -63,6 +64,7 @@ type FormValues = {
   evtLocationText: string;
   evtMeetingProvider: string;
   evtMeetingUrl: string;
+  evtBodaRoomType: CalBodaRoomType;
   evtAssigneeTchId: string;
 };
 
@@ -139,6 +141,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtLocationText: '',
       evtMeetingProvider: 'NONE',
       evtMeetingUrl: '',
+      evtBodaRoomType: 'ONE_TO_ONE',
       evtAssigneeTchId: '',
     },
   });
@@ -230,6 +233,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: initial.locationText ?? '',
         evtMeetingProvider: initial.meetingProvider,
         evtMeetingUrl: initial.meetingUrl ?? '',
+        evtBodaRoomType: initial.bodaRoomType ?? 'ONE_TO_ONE',
         evtAssigneeTchId: initial.assigneeTchId ?? '',
       });
       setInvitees(
@@ -253,6 +257,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: '',
         evtMeetingProvider: 'NONE',
         evtMeetingUrl: '',
+        evtBodaRoomType: 'ONE_TO_ONE',
         evtAssigneeTchId: '',
       });
       setInvitees([]);
@@ -316,6 +321,11 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtAllDay: values.evtAllDay,
       evtMeetingProvider: resolvedMeetingProvider,
     };
+
+    // FIX-260724 — BODASCHOOL 이벤트만 룸 유형(1:1/1:N) 전송.
+    if (resolvedMeetingProvider === 'BODASCHOOL') {
+      dto.evtBodaRoomType = values.evtBodaRoomType;
+    }
 
     if (values.evtDescription) dto.evtDescription = values.evtDescription;
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
@@ -602,6 +612,29 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       '데모수업과 정규수업은 저장 시 보다스쿨 강의 입장 링크가 자동 생성됩니다.',
                     )}
                   </p>
+                  <div>
+                    <label className={labelClass}>
+                      {t('field.bodaRoomType', '수업 유형')}
+                    </label>
+                    <select
+                      {...register('evtBodaRoomType')}
+                      className={inputClass}
+                      disabled={isReadOnly}
+                    >
+                      <option value="ONE_TO_ONE">
+                        {t('bodaRoomType.ONE_TO_ONE', '1:1 수업 (강사+학생 1명)')}
+                      </option>
+                      <option value="ONE_TO_MANY">
+                        {t('bodaRoomType.ONE_TO_MANY', '1:N 그룹 수업 (학생 여러 명)')}
+                      </option>
+                    </select>
+                    <p className="mt-1 text-[11px] text-secondary">
+                      {t(
+                        'hint.bodaRoomType',
+                        '학생을 2명 이상 초대하는 그룹 수업은 1:N 을 선택하세요.',
+                      )}
+                    </p>
+                  </div>
                   <div>
                     <label className={labelClass}>
                       {t('field.meetingUrl', '강의 입장 링크')}

@@ -46,6 +46,10 @@ export class UpdateBodaConfigDto {
   @IsOptional() @IsString() @MaxLength(30)
   defaultRoomCode?: string;
 
+  @ApiPropertyOptional({ description: '1:N(그룹) roomCode (TPI = 881). @see FIX-260724' })
+  @IsOptional() @IsString() @MaxLength(30)
+  groupRoomCode?: string;
+
   // 비밀 — 새 값을 보낼 때만 채움. 빈 문자열은 "지우기" 가 아니라 변경 없음 의미
   // (BODA 측 키 회전 시점에만 PUT). 명시적 삭제는 별건 endpoint 가 필요.
   @ApiPropertyOptional({ description: '신규 authKey (보내면 즉시 AES-GCM 으로 저장)' })
@@ -95,6 +99,7 @@ export class BodaConfigResponseDto {
   @ApiProperty()  companyCode!: string;
   @ApiProperty()  companyId!: string;
   @ApiProperty()  defaultRoomCode!: string;
+  @ApiPropertyOptional({ nullable: true })  groupRoomCode?: string | null;
 
   /** 비밀이 저장되어 있는지 여부만 (값은 미노출). */
   @ApiProperty()  authKeyIsSet!: boolean;

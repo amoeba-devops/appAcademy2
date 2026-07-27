@@ -32,6 +32,7 @@ export function BodaConfigSection() {
   const [companyCode, setCompanyCode] = useState('');
   const [companyId, setCompanyId] = useState('');
   const [defaultRoomCode, setDefaultRoomCode] = useState('');
+  const [groupRoomCode, setGroupRoomCode] = useState('');
   // Secrets — write-only
   const [authKey, setAuthKey] = useState('');
   const [eventSecret, setEventSecret] = useState('');
@@ -50,6 +51,7 @@ export function BodaConfigSection() {
       setCompanyCode(data.companyCode ?? '');
       setCompanyId(data.companyId ?? '');
       setDefaultRoomCode(data.defaultRoomCode ?? '');
+      setGroupRoomCode(data.groupRoomCode ?? '');
       setAuthKey(''); // never prefilled
       setEventSecret(''); // never prefilled
       setWebhookAllowCidrs(data.webhookAllowCidrs ?? '');
@@ -67,6 +69,7 @@ export function BodaConfigSection() {
     setCompanyCode(data?.companyCode ?? '');
     setCompanyId(data?.companyId ?? '');
     setDefaultRoomCode(data?.defaultRoomCode ?? '');
+    setGroupRoomCode(data?.groupRoomCode ?? '');
     setAuthKey('');
     setEventSecret('');
     setWebhookAllowCidrs(data?.webhookAllowCidrs ?? '');
@@ -85,6 +88,7 @@ export function BodaConfigSection() {
         companyCode: companyCode.trim() || undefined,
         companyId: companyId.trim() || undefined,
         defaultRoomCode: defaultRoomCode.trim() || undefined,
+        groupRoomCode: groupRoomCode.trim() || undefined,
         ...(authKey.trim() ? { authKey: authKey.trim() } : {}),
         ...(eventSecret.trim() ? { eventSecret: eventSecret.trim() } : {}),
         webhookAllowCidrs: webhookAllowCidrs.trim() || undefined,
@@ -182,6 +186,18 @@ export function BodaConfigSection() {
                 value={defaultRoomCode}
                 onChange={(e) => setDefaultRoomCode(e.target.value)}
                 placeholder="699"
+                autoComplete="off"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="groupRoomCode">
+                {t('config.boda.fields.groupRoomCode', '1:N 그룹 roomCode')}
+              </Label>
+              <Input
+                id="groupRoomCode"
+                value={groupRoomCode}
+                onChange={(e) => setGroupRoomCode(e.target.value)}
+                placeholder="881"
                 autoComplete="off"
               />
             </div>

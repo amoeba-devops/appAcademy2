@@ -23,6 +23,9 @@ import { BodaConfigService } from './boda-config.service';
  * meetKey 포맷 (REQ FR-ROOM-2): `tac-{evtId hex 32}`.
  * UUID 의 dash 를 제거한 32 hex 문자열을 그대로 사용 — 전역 유일 + 불변.
  */
+/** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
+export type BodaRoomType = 'ONE_TO_ONE' | 'ONE_TO_MANY';
+
 const MEET_KEY_PREFIX = 'tac-';
 function makeMeetKey(evtId: string): string {
   const hex = evtId.replace(/-/g, '').toLowerCase();
@@ -81,12 +84,8 @@ export class BodaRoomService {
     evtId: string;
     entId: string;
     sesId?: string | null;
+    roomType?: BodaRoomType;
   }): Promise<{ room: BodaRoomTypeormEntity; launcherUrl: string }> {
-    const existing = await this.repo.findOne({ where: { evtId: input.evtId } });
-    if (existing) {
-      return { room: existing, launcherUrl: this.buildLauncherUrl(input.evtId) };
-    }
-
     const cfg = await this.cfg.findByEntId(input.entId);
     if (cfg && !cfg.isActive) {
       // Tenant disabled BODA branch — caller (cal-event.service) should fall
@@ -97,21 +96,26 @@ export class BodaRoomService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
-    const roomCode =
-      cfg?.defaultRoomCode ??
-      this.config.get<string>('BODA_DEFAULT_ROOM_CODE') ??
-      '';
-    if (!roomCode) {
-      throw new HttpException(
-        {
-          code: 'BODA_DEFAULT_ROOM_CODE_MISSING',
-          message:
-            'No default_room_code on config and BODA_DEFAULT_ROOM_CODE env unset',
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+    const roomType = input.roomType ?? 'ONE_TO_ONE';
+
+    const existing = await this.repo.findOne({ where: { evtId: input.evtId } });
+    if (existing) {
+      // 룸 유형 변경(1:1↔1:N)이 아직 개설 전(PENDING)이면 roomCode 를 교체한다.
+      // 이미 개설된 방(OPEN 이상)은 세션 중 코드 변경을 하지 않는다.
+      if (existing.status === 'PENDING') {
+        const desired = this.resolveRoomCode(cfg, roomType);
+        if (existing.roomCode !== desired) {
+          existing.roomCode = desired;
+          await this.repo.save(existing);
+          this.logger.log(
+            `BODA room roomCode updated evtId=${input.evtId} → ${desired} (${roomType})`,
+          );
+        }
+      }
+      return { room: existing, launcherUrl: this.buildLauncherUrl(input.evtId) };
     }
 
+    const roomCode = this.resolveRoomCode(cfg, roomType);
     const meetKey = makeMeetKey(input.evtId);
     const created = this.repo.create({
       entId: input.entId,
@@ -123,9 +127,73 @@ export class BodaRoomService {
     });
     const saved = await this.repo.save(created);
     this.logger.log(
-      `BODA room PENDING evtId=${input.evtId} entId=${input.entId} meetKey=${meetKey}`,
+      `BODA room PENDING evtId=${input.evtId} entId=${input.entId} meetKey=${meetKey} roomCode=${roomCode} (${roomType})`,
     );
     return { room: saved, launcherUrl: this.buildLauncherUrl(input.evtId) };
+  }
+
+  /**
+   * 룸 유형에 맞는 roomCode 를 고른다 — 1:1=defaultRoomCode(699) / 1:N=groupRoomCode(881).
+   * 미설정 시 422 로 명시적 실패(1:1 룸으로 조용히 대체하면 FIX-260724 재발). env fallback 지원.
+   */
+  private resolveRoomCode(
+    cfg: { defaultRoomCode?: string; groupRoomCode?: string | null } | null,
+    roomType: BodaRoomType,
+  ): string {
+    if (roomType === 'ONE_TO_MANY') {
+      const code =
+        cfg?.groupRoomCode ??
+        this.config.get<string>('BODA_GROUP_ROOM_CODE') ??
+        '';
+      if (!code) {
+        throw new HttpException(
+          {
+            code: 'BODA_GROUP_ROOM_CODE_MISSING',
+            message:
+              '1:N(그룹) roomCode 미설정 — /admin/config/boda 의 groupRoomCode 또는 BODA_GROUP_ROOM_CODE 설정 필요',
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+      return code;
+    }
+    const code =
+      cfg?.defaultRoomCode ??
+      this.config.get<string>('BODA_DEFAULT_ROOM_CODE') ??
+      '';
+    if (!code) {
+      throw new HttpException(
+        {
+          code: 'BODA_DEFAULT_ROOM_CODE_MISSING',
+          message:
+            'No default_room_code on config and BODA_DEFAULT_ROOM_CODE env unset',
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return code;
+  }
+
+  /**
+   * 이벤트의 룸 유형이 바뀌었을 때(수정 시) 아직 개설 전(PENDING)인 방의 roomCode 를
+   * 새 유형에 맞게 교체한다. 이미 개설된 방은 변경하지 않는다.
+   */
+  async applyRoomTypeIfPending(
+    evtId: string,
+    entId: string,
+    roomType: BodaRoomType,
+  ): Promise<void> {
+    const room = await this.repo.findOne({ where: { evtId, entId } });
+    if (!room || room.status !== 'PENDING') return;
+    const cfg = await this.cfg.findByEntId(entId);
+    const desired = this.resolveRoomCode(cfg, roomType);
+    if (room.roomCode !== desired) {
+      room.roomCode = desired;
+      await this.repo.save(room);
+      this.logger.log(
+        `BODA room roomCode updated evtId=${evtId} → ${desired} (${roomType})`,
+      );
+    }
   }
 
   /**
