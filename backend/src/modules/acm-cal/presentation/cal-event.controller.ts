@@ -17,6 +17,7 @@ import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { CalEventService } from '../application/cal-event.service';
 import {
   CreateCalEventDto,
+  DeleteCalEventDto,
   ListCalEventsQueryDto,
   UpdateCalEventDto,
 } from '../application/dto/cal-event.dto';
@@ -56,9 +57,22 @@ export class CalEventController {
     return this.svc.update(u.entId, u.id, u.role ?? 'ADMIN', id, dto);
   }
 
+  @Get(':id/revisions')
+  @ApiOperation({ summary: '수정 히스토리 조회 (REQ-260728)' })
+  revisions(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.getRevisions(u.entId, u.id, u.role ?? 'ADMIN', id);
+  }
+
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete event (FR-CAL-005)' })
-  remove(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.svc.remove(u.entId, u.id, u.role ?? 'ADMIN', id);
+  @ApiOperation({ summary: 'Soft-delete event — 삭제 사유 필수 (FR-CAL-005 / REQ-260728)' })
+  remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: DeleteCalEventDto,
+  ) {
+    return this.svc.remove(u.entId, u.id, u.role ?? 'ADMIN', id, dto.reason);
   }
 }

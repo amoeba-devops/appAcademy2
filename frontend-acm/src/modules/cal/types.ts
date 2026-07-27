@@ -107,6 +107,11 @@ export interface CalEvent {
   source: CalSource;
   createdAt: string;
   updatedAt: string;
+  /** REQ-260728 — soft-delete 메타('삭제 보기' 목록에서 사용). */
+  deletedAt?: string | null;
+  deleteReason?: string | null;
+  deletedBy?: string | null;
+  deletedByName?: string | null;
   ownerName?: string | null;
   ownerEmail?: string | null;
   /** REQ-260630 — resolved teacher name for the assignee column. */
@@ -136,4 +141,26 @@ export interface ListCalEventsQuery {
   attendeeKind?: CalInviteeKind;
   attendeeRefId?: string;
   attendeeRefIds?: string[];
+  /** REQ-260728 — true 면 삭제된 일정만 조회('삭제한 수업일정 보기'). */
+  deletedOnly?: boolean;
+}
+
+/** REQ-260728 — 수정 히스토리 1건의 변경 요약. */
+export interface CalEventChange {
+  field: string;
+  before: string | null;
+  after: string | null;
+}
+
+export interface CalEventRevision {
+  id: string;
+  editorUserId: string | null;
+  editorName: string | null;
+  reason: string | null;
+  changes: CalEventChange[];
+  createdAt: string;
+}
+
+export interface CalEventRevisionList {
+  items: CalEventRevision[];
 }

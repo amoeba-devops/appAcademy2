@@ -83,4 +83,11 @@ export class CalEventTypeormEntity {
 
   @Column({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt?: Date | null;
+
+  /** REQ-260728 — 삭제 사유(필수 입력) + 삭제자. soft-delete 시 채움. */
+  @Column({ name: 'evt_delete_reason', type: 'varchar', length: 500, nullable: true })
+  deleteReason?: string | null;
+
+  @Column({ name: 'evt_deleted_by', type: 'uuid', nullable: true })
+  deletedBy?: string | null;
 }

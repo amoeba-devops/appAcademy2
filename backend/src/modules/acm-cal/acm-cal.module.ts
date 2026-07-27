@@ -19,6 +19,7 @@ import { CalEventAttachmentService } from './application/cal-event-attachment.se
 import { CalInviteeService } from './application/cal-invitee.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
+import { CalEventRevisionTypeormEntity } from './infrastructure/typeorm/cal-event-revision.typeorm-entity';
 import { CalEventAttachmentTypeormEntity } from './infrastructure/typeorm/cal-event-attachment.typeorm-entity';
 import { CalInviteeTypeormEntity } from './infrastructure/typeorm/cal-invitee.typeorm-entity';
 // REQ-260526 v2 — BODA 화상 강의실 연동.
@@ -54,6 +55,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     TypeOrmModule.forFeature(
       [
         CalEventTypeormEntity,
+        CalEventRevisionTypeormEntity,
         CalInviteeTypeormEntity,
         AcmUserTypeormEntity,
         StudentTypeormEntity,

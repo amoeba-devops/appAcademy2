@@ -12,6 +12,7 @@ import {
   IsUUID,
   IsUrl,
   MaxLength,
+  MinLength,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
@@ -221,6 +222,22 @@ export class UpdateCalEventDto {
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
+
+  /** REQ-260728 — 수정 사유(필수). 수정 히스토리에 기록된다. */
+  @ApiProperty({ description: '수정 사유 (필수, 2~500자)' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(500)
+  evtEditReason!: string;
+}
+
+/** REQ-260728 — 삭제 시 삭제 사유(필수). */
+export class DeleteCalEventDto {
+  @ApiProperty({ description: '삭제 사유 (필수, 2~500자)' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(500)
+  reason!: string;
 }
 
 export class ListInviteeCandidatesQueryDto {
@@ -280,6 +297,13 @@ export class ListCalEventsQueryDto {
   @IsOptional()
   @IsEnum(CAL_CATEGORIES)
   category?: (typeof CAL_CATEGORIES)[number];
+
+  /** REQ-260728 — true 면 삭제된 일정만 조회('삭제한 수업일정 보기'). */
+  @ApiPropertyOptional({ description: '삭제된 일정만 조회', default: false })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  deletedOnly?: boolean;
 
   @ApiPropertyOptional({
     enum: CAL_INVITEE_KINDS,
