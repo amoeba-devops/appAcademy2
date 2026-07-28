@@ -133,6 +133,7 @@
       "success": "已注册为 AMA 客户",
       "alreadyRegistered": "该家长已注册",
       "error": "AMA 注册失败，请稍后重试。"
-    }
+    },
+    "editTitle": "编辑家长信息"
   }
 }

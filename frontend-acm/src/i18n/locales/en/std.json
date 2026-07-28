@@ -133,6 +133,7 @@
       "success": "Registered as AMA client",
       "alreadyRegistered": "Parent is already registered",
       "error": "Failed to register with AMA. Please try again later."
-    }
+    },
+    "editTitle": "Edit parent info"
   }
 }

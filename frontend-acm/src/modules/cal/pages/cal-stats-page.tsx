@@ -7,10 +7,12 @@ import { apiClient } from '@/lib/api-client';
 import {
   addDays,
   addMonths,
+  endOfDay,
   endOfMonth,
   endOfWeek,
   formatShortDate,
   formatYearMonth,
+  startOfDay,
   startOfMonth,
   startOfWeek,
 } from '../lib/date-utils';
@@ -33,28 +35,79 @@ interface StatsResponse {
 
 const CATS = ['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const;
 
+export type StatsUnit = 'week' | 'month' | '7d' | '28d' | '90d' | 'custom';
+const RECENT_DAYS: Record<'7d' | '28d' | '90d', number> = {
+  '7d': 7,
+  '28d': 28,
+  '90d': 90,
+};
+
+/**
+ * 로컬(사용자 브라우저 타임존) 기준 yyyy-mm-dd. toISOString() 은 UTC 변환이라
+ * KST 자정 앵커가 전날(전월 말일)로 밀려 월 이동이 -2/-0 이 되는 버그가 있었다
+ * (REQ-260729-3).
+ */
+const toLocalYmd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
+const parseYmd = (raw: string | null): Date | null => {
+  if (!raw) return null;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  if (!m) return null;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return Number.isNaN(d.getTime()) ? null : d;
+};
+
 export function useStatsPeriod() {
   const [params, setParams] = useSearchParams();
-  const unit = (params.get('unit') === 'week' ? 'week' : 'month') as
-    | 'week'
-    | 'month';
-  const anchor = useMemo(() => {
-    const raw = params.get('anchor');
-    const d = raw ? new Date(raw) : new Date();
-    return Number.isNaN(d.getTime()) ? new Date() : d;
-  }, [params]);
-  const range = useMemo(
-    () =>
-      unit === 'week'
-        ? { from: startOfWeek(anchor), to: endOfWeek(anchor) }
-        : { from: startOfMonth(anchor), to: endOfMonth(anchor) },
-    [unit, anchor],
+  const rawUnit = params.get('unit');
+  const unit: StatsUnit = (
+    ['week', 'month', '7d', '28d', '90d', 'custom'] as const
+  ).includes(rawUnit as StatsUnit)
+    ? (rawUnit as StatsUnit)
+    : 'month';
+  const anchor = useMemo(
+    () => parseYmd(params.get('anchor')) ?? new Date(),
+    [params],
   );
-  const set = (nextUnit: 'week' | 'month', nextAnchor: Date) =>
-    setParams(
-      { unit: nextUnit, anchor: nextAnchor.toISOString().slice(0, 10) },
-      { replace: true },
-    );
+  const customFrom = useMemo(() => parseYmd(params.get('from')), [params]);
+  const customTo = useMemo(() => parseYmd(params.get('to')), [params]);
+
+  const range = useMemo(() => {
+    if (unit === 'week') {
+      return { from: startOfWeek(anchor), to: endOfWeek(anchor) };
+    }
+    if (unit === 'month') {
+      return { from: startOfMonth(anchor), to: endOfMonth(anchor) };
+    }
+    if (unit === 'custom') {
+      const from = customFrom ?? startOfMonth(new Date());
+      const to = customTo ?? new Date();
+      return { from: startOfDay(from), to: endOfDay(to) };
+    }
+    const today = new Date();
+    return {
+      from: startOfDay(addDays(today, -(RECENT_DAYS[unit] - 1))),
+      to: endOfDay(today),
+    };
+  }, [unit, anchor, customFrom, customTo]);
+
+  const set = (
+    nextUnit: StatsUnit,
+    opts?: { anchor?: Date; from?: Date; to?: Date },
+  ) => {
+    const next: Record<string, string> = { unit: nextUnit };
+    if (nextUnit === 'week' || nextUnit === 'month') {
+      next.anchor = toLocalYmd(opts?.anchor ?? anchor);
+    } else if (nextUnit === 'custom') {
+      next.from = toLocalYmd(opts?.from ?? customFrom ?? startOfMonth(new Date()));
+      next.to = toLocalYmd(opts?.to ?? customTo ?? new Date());
+    }
+    const view = params.get('view');
+    if (view) next.view = view;
+    setParams(next, { replace: true });
+  };
   return { unit, anchor, range, set };
 }
 
@@ -62,37 +115,75 @@ export function PeriodControls() {
   const { t, i18n } = useTranslation('cal');
   const { unit, anchor, range, set } = useStatsPeriod();
   const shift = (dir: -1 | 1) =>
-    set(unit, unit === 'week' ? addDays(anchor, dir * 7) : addMonths(anchor, dir));
+    set(unit, {
+      anchor: unit === 'week' ? addDays(anchor, dir * 7) : addMonths(anchor, dir),
+    });
   const label =
-    unit === 'week'
-      ? `${formatShortDate(range.from, i18n.language)} - ${formatShortDate(range.to, i18n.language)}`
-      : formatYearMonth(anchor, i18n.language);
+    unit === 'month'
+      ? formatYearMonth(anchor, i18n.language)
+      : `${formatShortDate(range.from, i18n.language)} - ${formatShortDate(range.to, i18n.language)}`;
+  const dateInputClass =
+    'h-8 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs';
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        onClick={() => shift(-1)}
-        className="rounded p-1 hover:bg-[var(--gray-100)]"
-      >
-        <ChevronLeft size={16} />
-      </button>
-      <span className="min-w-[10rem] text-center text-sm font-semibold">{label}</span>
-      <button
-        type="button"
-        onClick={() => shift(1)}
-        className="rounded p-1 hover:bg-[var(--gray-100)]"
-      >
-        <ChevronRight size={16} />
-      </button>
-      <div className="ml-1 inline-flex rounded-md border border-[var(--border-subtle)] p-0.5 text-xs">
-        {(['week', 'month'] as const).map((u) => (
+      {(unit === 'week' || unit === 'month') && (
+        <>
+          <button
+            type="button"
+            onClick={() => shift(-1)}
+            className="rounded p-1 hover:bg-[var(--gray-100)]"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <span className="min-w-[10rem] text-center text-sm font-semibold">{label}</span>
+          <button
+            type="button"
+            onClick={() => shift(1)}
+            className="rounded p-1 hover:bg-[var(--gray-100)]"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </>
+      )}
+      {unit !== 'week' && unit !== 'month' && unit !== 'custom' && (
+        <span className="text-sm font-semibold">{label}</span>
+      )}
+      {unit === 'custom' && (
+        <span className="flex items-center gap-1">
+          <input
+            type="date"
+            value={toLocalYmd(range.from)}
+            max={toLocalYmd(range.to)}
+            onChange={(e) => {
+              const d = parseYmd(e.target.value);
+              if (d) set('custom', { from: d, to: range.to });
+            }}
+            className={dateInputClass}
+          />
+          <span className="text-xs text-secondary">~</span>
+          <input
+            type="date"
+            value={toLocalYmd(range.to)}
+            min={toLocalYmd(range.from)}
+            onChange={(e) => {
+              const d = parseYmd(e.target.value);
+              if (d) set('custom', { from: range.from, to: d });
+            }}
+            className={dateInputClass}
+          />
+        </span>
+      )}
+      <div className="ml-1 inline-flex flex-wrap rounded-md border border-[var(--border-subtle)] p-0.5 text-xs">
+        {(['week', 'month', '7d', '28d', '90d', 'custom'] as const).map((u) => (
           <button
             key={u}
             type="button"
-            onClick={() => set(u, anchor)}
-            className={`rounded px-3 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+            onClick={() => set(u)}
+            className={`rounded px-2.5 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
           >
-            {t(`view.${u}`, u === 'week' ? '주' : '월')}
+            {u === 'week' || u === 'month'
+              ? t(`view.${u}`, u === 'week' ? '주' : '월')
+              : t(`stats.unit.${u}`, u)}
           </button>
         ))}
       </div>

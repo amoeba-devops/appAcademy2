@@ -7,6 +7,7 @@ import {
 } from '../interfaces/bodaedu-server-api.interface';
 import {
   BODA_ROOM_STATUSES,
+  bodaDatetimeToIso,
   type BodaCloseRequest,
   type BodaJoinLogEntry,
   type BodaMeetInfo,
@@ -254,14 +255,28 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
   ): BodaJoinLogEntry | null {
     if (!raw || typeof raw !== 'object') return null;
     const r = raw as Record<string, unknown>;
-    if (typeof r.userId !== 'string' || typeof r.joinedAt !== 'string') {
-      return null;
-    }
+    // 공식 문서 필드는 joinDatetime/quitDatetime(YYYYMMDDhhmmss, KST) — 일부
+    // 배포본은 joinedAt/leftAt 로 온다. 둘 다 수용해 UTC ISO 로 정규화한다.
+    const userId = typeof r.userId === 'string' ? r.userId : null;
+    const joinedRaw =
+      typeof r.joinedAt === 'string'
+        ? r.joinedAt
+        : typeof r.joinDatetime === 'string'
+          ? r.joinDatetime
+          : null;
+    const joinedAt = bodaDatetimeToIso(joinedRaw);
+    if (!userId || !joinedAt) return null;
+    const leftRaw =
+      typeof r.leftAt === 'string'
+        ? r.leftAt
+        : typeof r.quitDatetime === 'string'
+          ? r.quitDatetime
+          : null;
     return {
       meetKey: typeof r.meetKey === 'string' ? r.meetKey : fallbackKey,
-      userId: r.userId,
-      joinedAt: r.joinedAt,
-      leftAt: typeof r.leftAt === 'string' ? r.leftAt : null,
+      userId,
+      joinedAt,
+      leftAt: bodaDatetimeToIso(leftRaw),
       totalSeconds: typeof r.totalSeconds === 'number' ? r.totalSeconds : null,
       clientType: typeof r.clientType === 'string' ? r.clientType : null,
     };
