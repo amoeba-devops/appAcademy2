@@ -497,10 +497,9 @@ export class BodaLaunchContextService {
 
   /**
    * Decides who the actor is in BODA's eyes:
-   *   - event owner(등록자) → 요구사항 260728C: 담당 강사(assignee) 또는 강사
-   *     참석자가 있으면 OPERATOR (13) — 운영자 참관(방 개설은 담당 강사가 포털
-   *     로그인으로 수행). 단 즉시강의(INSTANT) 또는 개설 주체(강사)가 없으면
-   *     등록자가 직접 방을 열 수 있도록 TEACHER (11) 유지(락아웃 방지).
+   *   - event owner(등록자) → TEACHER (11) — 등록자가 직접 강의실을 즉시 개설
+   *     (bodaOpen)할 수 있어야 하므로 강사 좌석. (260728C 의 운영자(13) 참관
+   *     전환은 즉시개설 흐름을 막아 원복함.)
    *   - listed invitee (STUDENT/PARENT) → STUDENT (12)
    *   - ACM ADMIN (not owner, not invitee) → OPERATOR (13) — silent monitoring
    *   - else → 403 NOT_AN_ATTENDEE
@@ -511,6 +510,8 @@ export class BodaLaunchContextService {
     actorRole: AcmRole,
     entId: string,
   ): Promise<11 | 12 | 13> {
+    if (event.ownerUserId === actorUserId) return 11;
+
     const invitees = await this.inviteeRepo.find({
       where: { entId, evtId: event.id },
       select: ['kind', 'refId'],
@@ -518,14 +519,6 @@ export class BodaLaunchContextService {
 
     const matches = (kind: CalInviteeKind) =>
       invitees.some((inv) => inv.kind === kind && inv.refId === actorUserId);
-
-    if (event.ownerUserId === actorUserId) {
-      // 개설 주체(담당 강사)가 별도로 존재하면 등록자는 운영자(13) 참관.
-      const hasTeacher =
-        !!event.assigneeTchId || invitees.some((inv) => inv.kind === 'TEACHER');
-      if (event.source === 'INSTANT' || !hasTeacher) return 11;
-      return 13;
-    }
 
     if (matches('STUDENT') || matches('PARENT')) return 12;
 
