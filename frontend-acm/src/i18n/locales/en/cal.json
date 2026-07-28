@@ -162,7 +162,8 @@
       "STUDENT": "Student",
       "OPERATOR": "Operator",
       "UNKNOWN": "Unknown"
-    }
+    },
+    "recordTitle": "Classroom log"
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -184,7 +185,11 @@
       "BODA_DISABLED_FOR_TENANT": "BODA integration is disabled. Enable it under Settings → BODA integration and try again."
     },
     "assigneeLabel": "Assigned teacher (can open)",
-    "assigneeNone": "- None (creator opens) -"
+    "assigneeNone": "- None (creator opens) -",
+    "searchPlaceholder": "Search students by name/email",
+    "searchNoResult": "No results found.",
+    "searchAdd": "Add",
+    "searchRemove": "Remove"
   },
   "filter": {
     "label": "Filter",
@@ -241,6 +246,17 @@
     "classes": "",
     "done": "Done",
     "empty": "No classes in this period.",
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "classes2": "Total classes",
+    "hours": "Class hours",
+    "notDone": "Not done",
+    "byCategory": "By category",
+    "cardView": "Card view",
+    "listView": "List view",
+    "teacher": "Teacher",
+    "back": "Back to stats"
+  },
+  "detail": {
+    "backToCal": "Back to schedule"
   }
 }

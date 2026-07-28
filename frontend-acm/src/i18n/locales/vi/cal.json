@@ -162,7 +162,8 @@
       "STUDENT": "HS",
       "OPERATOR": "QTV",
       "UNKNOWN": "Không rõ"
-    }
+    },
+    "recordTitle": "Nhật ký lớp học"
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -184,7 +185,11 @@
       "BODA_DISABLED_FOR_TENANT": "Tích hợp BODA đang bị tắt. Vui lòng bật tại Cài đặt → Tích hợp BODA rồi thử lại."
     },
     "assigneeLabel": "GV phụ trách (mở phòng)",
-    "assigneeNone": "- Không (người tạo mở) -"
+    "assigneeNone": "- Không (người tạo mở) -",
+    "searchPlaceholder": "Tìm học sinh theo tên/email",
+    "searchNoResult": "Không có kết quả.",
+    "searchAdd": "Thêm",
+    "searchRemove": "Bỏ"
   },
   "filter": {
     "label": "Bộ lọc",
@@ -241,6 +246,17 @@
     "classes": "buổi",
     "done": "Hoàn thành",
     "empty": "Không có lớp trong kỳ này.",
-    "unassigned": "Chưa gán"
+    "unassigned": "Chưa gán",
+    "classes2": "Tổng số lớp",
+    "hours": "Giờ học",
+    "notDone": "Chưa hoàn thành",
+    "byCategory": "Theo loại lớp",
+    "cardView": "Dạng thẻ",
+    "listView": "Dạng danh sách",
+    "teacher": "Giáo viên",
+    "back": "Về thống kê"
+  },
+  "detail": {
+    "backToCal": "Về lịch học"
   }
 }

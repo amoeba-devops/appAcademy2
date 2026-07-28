@@ -162,7 +162,8 @@
       "STUDENT": "学生",
       "OPERATOR": "管理员",
       "UNKNOWN": "未知"
-    }
+    },
+    "recordTitle": "教室记录"
   },
   "instant": {
     "btnLabel": "立即开课",
@@ -184,7 +185,11 @@
       "BODA_DISABLED_FOR_TENANT": "BODA 集成已禁用。请在 设置 → BODA 集成 中启用后重试。"
     },
     "assigneeLabel": "负责老师（可开设）",
-    "assigneeNone": "- 未指定（创建者开设）-"
+    "assigneeNone": "- 未指定（创建者开设）-",
+    "searchPlaceholder": "按姓名/邮箱搜索学生",
+    "searchNoResult": "没有搜索结果。",
+    "searchAdd": "添加",
+    "searchRemove": "移除"
   },
   "filter": {
     "label": "筛选",
@@ -241,6 +246,17 @@
     "classes": "节",
     "done": "课程完成",
     "empty": "该期间没有课程。",
-    "unassigned": "未指定"
+    "unassigned": "未指定",
+    "classes2": "全部课程",
+    "hours": "课时",
+    "notDone": "未完成",
+    "byCategory": "按课程类型",
+    "cardView": "卡片视图",
+    "listView": "列表视图",
+    "teacher": "教师",
+    "back": "返回统计"
+  },
+  "detail": {
+    "backToCal": "返回课程日程"
   }
 }

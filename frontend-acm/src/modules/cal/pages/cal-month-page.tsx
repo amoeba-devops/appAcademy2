@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,6 @@ import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
 import { InstantClassModal } from '../components/instant-class-modal';
-import { CalStatsModal } from '../components/cal-stats-modal';
 import {
   addDays,
   addMonths,
@@ -57,7 +57,7 @@ export function CalMonthPage() {
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const [instantOpen, setInstantOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(false);
+  const navigate = useNavigate();
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
   const canCreateInstant = role === 'ADMIN' || role === 'TEACHER';
@@ -173,6 +173,12 @@ export function CalMonthPage() {
     setModalOpen(true);
   };
 
+  // PLN-260729-2 — 일/주/리스트(및 일자 모달)에서는 모달 없이 바로 상세 페이지.
+  const onEventOpenDetail = (event: React.MouseEvent, calEvent: CalEvent) => {
+    event.stopPropagation();
+    navigate(`/admin/cal/${calEvent.id}`);
+  };
+
   const shiftAnchor = (step: -1 | 1) => {
     if (view === 'day') {
       setAnchor((current) => addDays(current, step));
@@ -190,14 +196,6 @@ export function CalMonthPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setStatsOpen(true)}
-            title={t('stats.btnTitle', '기간별 전체/강사별 수업통계')}
-          >
-            {t('stats.btnLabel', '수업통계')}
-          </Button>
           <Button
             size="sm"
             variant={showDeleted ? 'default' : 'outline'}
@@ -227,7 +225,6 @@ export function CalMonthPage() {
       </div>
 
       <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />
-      <CalStatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
         <div className="flex items-center gap-2">
@@ -350,14 +347,14 @@ export function CalMonthPage() {
         <ListView
           events={events}
           locale={i18n.language}
-          onEventClick={onEventClick}
+          onEventClick={onEventOpenDetail}
         />
       ) : (
         /* PLN-260729 1.1 — 일/주 보기는 포털 리스트뷰 UI 참조: 날짜 그룹 목록형 */
         <ListView
           events={events}
           locale={i18n.language}
-          onEventClick={onEventClick}
+          onEventClick={onEventOpenDetail}
         />
       )}
 
@@ -375,7 +372,7 @@ export function CalMonthPage() {
         onClose={() => setDayModal(null)}
         onSelect={(clickEvent, calEvent) => {
           setDayModal(null);
-          onEventClick(clickEvent, calEvent);
+          onEventOpenDetail(clickEvent, calEvent);
         }}
       />
 
@@ -434,7 +431,7 @@ function MonthView({
             key={dayKey}
             type="button"
             onClick={() => onDayClick(day)}
-            className={`relative min-h-[140px] bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
+            className={`relative flex min-h-[140px] flex-col items-stretch justify-start bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
               inMonth ? '' : 'opacity-40'
             }`}
           >
