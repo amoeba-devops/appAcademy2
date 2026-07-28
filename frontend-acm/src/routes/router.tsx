@@ -27,6 +27,9 @@ import { WebClassroomPage } from '@/modules/web/pages/web-classroom-page';
 import { TchListPage } from '@/modules/tch/pages/tch-list-page';
 import { StfListPage } from '@/modules/stf/pages/stf-list-page';
 import { CalMonthPage } from '@/modules/cal/pages/cal-month-page';
+import { CalEventDetailPage } from '@/modules/cal/pages/cal-event-detail-page';
+import { CalStatsPage } from '@/modules/cal/pages/cal-stats-page';
+import { CalTeacherStatsPage } from '@/modules/cal/pages/cal-teacher-stats-page';
 import { MpqListPage } from '@/modules/map/pages/mpq-list-page';
 import { PortalHomePage } from '@/modules/portal/pages/home-page';
 import { AboutPage } from '@/modules/portal/pages/about-page';
@@ -189,6 +192,10 @@ export const router = createBrowserRouter([
       { path: 'tch', element: <TchListPage /> },
       { path: 'stf', element: <StfListPage /> },
       { path: 'cal', element: <CalMonthPage /> },
+      // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
+      { path: 'cal-stats', element: <CalStatsPage /> },
+      { path: 'cal-stats/:tchId', element: <CalTeacherStatsPage /> },
+      { path: 'cal/:evtId', element: <CalEventDetailPage /> },
       { path: 'map', element: <MpqListPage /> },
       { path: 'sch', element: <SchoolListPage /> },
       { path: 'ref', element: <ReferenceListPage /> },

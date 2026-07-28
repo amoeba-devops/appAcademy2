@@ -16,6 +16,7 @@ import {
   UserCog,
   Briefcase,
   CalendarDays,
+  BarChart3,
   Settings,
   ShieldCheck,
   LogOut,
@@ -35,6 +36,8 @@ const NAV = [
   { to: '/admin/tch', icon: UserCog, key: 'tch' },
   { to: '/admin/stf', icon: Briefcase, key: 'stf' },
   { to: '/admin/cal', icon: CalendarDays, key: 'cal' },
+  // PLN-260729-2 — 수업통계 대시보드
+  { to: '/admin/cal-stats', icon: BarChart3, key: 'calStats' },
   { to: '/admin/sch', icon: School, key: 'sch' },
   { to: '/admin/ref', icon: BookOpen, key: 'ref' },
   { to: '/admin/posts', icon: Newspaper, key: 'posts' },
