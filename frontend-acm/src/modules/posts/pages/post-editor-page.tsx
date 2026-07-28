@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/ui/toast';
@@ -7,18 +7,21 @@ import { Label } from '@/components/ui/label';
 import { usePost } from '../hooks/use-post';
 import { useCreatePost, useDeletePost, useUpdatePost } from '../hooks/use-post-mutations';
 import type { CreatePostPayload, UpdatePostPayload } from '../types';
+import { isValidSlug, slugFromTitle, slugify } from '../lib/slugify';
 
-const STATUS_OPTIONS = [
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'PUBLISHED', label: 'Published' },
-  { value: 'ARCHIVED', label: 'Archived' },
-] as const;
+const STATUS_VALUES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'] as const;
+const CATEGORY_VALUES = ['NOTICE', 'EVENT', 'RESULT'] as const;
 
-const CATEGORY_OPTIONS = [
-  { value: 'NOTICE', label: 'Notice' },
-  { value: 'EVENT', label: 'Event' },
-  { value: 'RESULT', label: 'Result' },
-] as const;
+/** 서버 메시지(class-validator 배열/문자열)를 사용자 노출용으로 추출. */
+function extractApiMessage(error: unknown): string | null {
+  const data = (error as { response?: { data?: { message?: unknown; code?: string } } })
+    ?.response?.data;
+  if (!data) return null;
+  if (Array.isArray(data.message)) return data.message.join(', ');
+  if (typeof data.message === 'string') return data.message;
+  if (typeof data.code === 'string') return data.code;
+  return null;
+}
 
 export function PostEditorPage() {
   const { t } = useTranslation('admin');
@@ -48,9 +51,12 @@ export function PostEditorPage() {
     status: 'DRAFT',
     publishedAt: '',
   });
+  // PLN-260728D — slug 를 사용자가 직접 수정했는지(자동생성 중지 플래그).
+  const [slugTouched, setSlugTouched] = useState(false);
 
   useEffect(() => {
     if (!postQuery.data || isNew) return;
+    setSlugTouched(true); // 기존 글의 slug 는 유지(제목 편집이 덮어쓰지 않음).
     const normalizedStatus =
       postQuery.data.status === 'DRAFT' ||
       postQuery.data.status === 'PUBLISHED' ||
@@ -69,11 +75,6 @@ export function PostEditorPage() {
     });
   }, [postQuery.data, isNew]);
 
-  const statusLabel = useMemo(
-    () => (isNew ? 'Create post' : `Edit post #${postId}`),
-    [isNew, postId],
-  );
-
   const isBusy = createPost.isPending || updatePost.isPending || deletePost.isPending;
 
   const handleChange =
@@ -82,15 +83,50 @@ export function PostEditorPage() {
       setForm((prev) => ({ ...prev, [key]: event.target.value }));
     };
 
+  // PLN-260728D — 제목 입력 시 slug 자동생성(사용자가 slug 를 직접 수정하기 전까지).
+  const handleTitleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const title = event.target.value;
+    setForm((prev) => ({
+      ...prev,
+      title,
+      slug: slugTouched ? prev.slug : slugify(title),
+    }));
+  };
+
+  const handleSlugChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSlugTouched(true);
+    setForm((prev) => ({ ...prev, slug: event.target.value }));
+  };
+
+  // 입력을 벗어날 때 slug 를 서버 규칙에 맞게 정규화.
+  const handleSlugBlur = () => {
+    setForm((prev) => ({ ...prev, slug: slugify(prev.slug) }));
+  };
+
+  const slugInvalid = form.slug.trim().length > 0 && !isValidSlug(form.slug.trim());
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // PLN-260728D — slug 자동보정: 비었으면 제목으로 생성(한글 전용이면 fallback).
+    const effectiveSlug = form.slug.trim() || slugFromTitle(form.title, new Date());
+    if (!isValidSlug(effectiveSlug)) {
+      toast.error(t('posts.editor.slugInvalid'));
+      return;
+    }
+    const cover = form.coverImageUrl.trim();
+    if (cover && !/^https?:\/\/.+/i.test(cover)) {
+      toast.error(t('posts.editor.coverInvalid'));
+      return;
+    }
+
     try {
       if (isNew) {
         const payload: CreatePostPayload = {
           title: form.title.trim(),
-          slug: form.slug.trim(),
+          slug: effectiveSlug,
           bodyMd: form.bodyMd.trim(),
-          coverImageUrl: form.coverImageUrl.trim() || undefined,
+          coverImageUrl: cover || undefined,
           category: form.category || 'NOTICE',
         };
         const created = await createPost.mutateAsync(payload);
@@ -99,9 +135,9 @@ export function PostEditorPage() {
       } else {
         const payload: UpdatePostPayload = {
           title: form.title.trim(),
-          slug: form.slug.trim(),
+          slug: effectiveSlug,
           bodyMd: form.bodyMd.trim(),
-          coverImageUrl: form.coverImageUrl.trim() || undefined,
+          coverImageUrl: cover || undefined,
           category: form.category || 'NOTICE',
           status: form.status,
           publishedAt: form.publishedAt || null,
@@ -110,7 +146,8 @@ export function PostEditorPage() {
         toast.success(t('posts.editor.updated', 'Post updated successfully.'));
       }
     } catch (error) {
-      toast.error((error as Error).message || t('toast.error', 'Something went wrong.'));
+      // 서버 검증 메시지(있으면)를 노출해 원인 파악을 돕는다.
+      toast.error(extractApiMessage(error) ?? t('toast.error', 'Something went wrong.'));
     }
   };
 
@@ -148,7 +185,9 @@ export function PostEditorPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-primary">{t('posts.editor.title', statusLabel)}</h1>
+          <h1 className="text-2xl font-semibold text-primary">
+            {isNew ? t('posts.editor.createTitle') : t('posts.editor.editTitle')}
+          </h1>
           <p className="text-secondary text-sm">
             {t(
               isNew ? 'posts.editor.createLead' : 'posts.editor.editLead',
@@ -179,7 +218,7 @@ export function PostEditorPage() {
                 id="title"
                 className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
                 value={form.title}
-                onChange={handleChange('title')}
+                onChange={handleTitleChange}
                 required
               />
             </div>
@@ -187,11 +226,19 @@ export function PostEditorPage() {
               <Label htmlFor="slug">{t('posts.editor.field.slug', 'URL slug')}</Label>
               <input
                 id="slug"
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
+                className={`w-full rounded-md border bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700 ${
+                  slugInvalid ? 'border-red-300' : 'border-[var(--border-subtle)]'
+                }`}
                 value={form.slug}
-                onChange={handleChange('slug')}
-                required
+                onChange={handleSlugChange}
+                onBlur={handleSlugBlur}
+                placeholder="notice-2026-07"
               />
+              <p className={`text-xs ${slugInvalid ? 'text-red-600' : 'text-secondary'}`}>
+                {slugInvalid
+                  ? t('posts.editor.slugInvalid')
+                  : t('posts.editor.slugHint')}
+              </p>
             </div>
             <div className="space-y-3">
               <Label htmlFor="coverImageUrl">{t('posts.editor.field.coverImageUrl', 'Cover image URL')}</Label>
@@ -224,9 +271,9 @@ export function PostEditorPage() {
                 value={form.category}
                 onChange={handleChange('category')}
               >
-                {CATEGORY_OPTIONS.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
+                {CATEGORY_VALUES.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`posts.category.${value}`)}
                   </option>
                 ))}
               </select>
@@ -241,9 +288,9 @@ export function PostEditorPage() {
                   value={form.status}
                   onChange={handleChange('status')}
                 >
-                  {STATUS_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value}>
-                      {item.label}
+                  {STATUS_VALUES.map((value) => (
+                    <option key={value} value={value}>
+                      {t(`posts.status.${value}`)}
                     </option>
                   ))}
                 </select>

@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "create": "Tạo",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "action": "Thao tác"
+  },
+  "filters": {
+    "title": "Bộ lọc"
+  },
+  "toast": {
+    "error": "Đã xảy ra lỗi."
+  },
+  "posts": {
+    "title": "Tin tức & Bài viết",
+    "empty": "Không có bài viết nào phù hợp với bộ lọc đã chọn.",
+    "listSummary": "Tìm thấy {{count}} bài viết",
+    "filter": {
+      "status": "Trạng thái",
+      "category": "Phân loại"
+    },
+    "table": {
+      "title": "Tiêu đề",
+      "category": "Phân loại",
+      "status": "Trạng thái",
+      "publishedAt": "Ngày đăng",
+      "createdAt": "Ngày tạo"
+    },
+    "status": {
+      "all": "Tất cả",
+      "DRAFT": "Bản nháp",
+      "PUBLISHED": "Đã đăng",
+      "ARCHIVED": "Đã lưu trữ"
+    },
+    "category": {
+      "all": "Tất cả",
+      "NOTICE": "Thông báo",
+      "EVENT": "Sự kiện",
+      "RESULT": "Kết quả"
+    },
+    "editor": {
+      "createTitle": "Tạo bài viết",
+      "editTitle": "Sửa bài viết",
+      "createLead": "Tạo bài đăng tin tức cho cổng thông tin và quản lý trạng thái đăng.",
+      "editLead": "Chỉnh sửa nội dung, phân loại và cài đặt đăng của bài viết.",
+      "created": "Đã tạo bài viết.",
+      "updated": "Đã cập nhật bài viết.",
+      "deleted": "Đã xóa bài viết.",
+      "deleteConfirm": "Xóa bài viết này? Không thể hoàn tác.",
+      "loading": "Đang tải...",
+      "fetchError": "Không tải được bài viết.",
+      "sideNote": "Bài viết đã đăng sẽ hiển thị trên bảng tin của cổng thông tin.",
+      "field": {
+        "title": "Tiêu đề",
+        "slug": "URL slug",
+        "coverImageUrl": "URL ảnh bìa",
+        "bodyMd": "Nội dung (Markdown)",
+        "category": "Phân loại",
+        "status": "Trạng thái",
+        "publishedAt": "Thời điểm đăng"
+      },
+      "slugHint": "Chỉ chữ thường, số và dấu gạch ngang (-). Tự động tạo từ tiêu đề; bạn có thể chỉnh sửa.",
+      "slugInvalid": "Định dạng URL slug không hợp lệ (ví dụ: notice-2026-07).",
+      "coverInvalid": "URL ảnh bìa không hợp lệ.",
+      "saveFailed": "Lưu thất bại"
+    }
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "empty": "Không tìm thấy thông báo nào phù hợp với bộ lọc đã chọn.",
+    "totalCount": "{{count}} bản ghi",
+    "resendSuccess": "Đã gửi yêu cầu gửi lại.",
+    "filter": {
+      "status": "Trạng thái"
+    },
+    "table": {
+      "event": "Sự kiện",
+      "channel": "Kênh",
+      "recipient": "Người nhận",
+      "status": "Trạng thái",
+      "sentAt": "Đã gửi",
+      "createdAt": "Đã tạo"
+    },
+    "actions": {
+      "resend": "Gửi lại"
+    }
+  }
+}
