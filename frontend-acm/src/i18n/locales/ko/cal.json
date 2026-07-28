@@ -14,7 +14,9 @@
     "day": "일",
     "week": "주",
     "month": "월",
-    "list": "리스트"
+    "list": "리스트",
+    "showAll": "모두보기",
+    "countSuffix": "건"
   },
   "category": {
     "CLASS": "수업",
@@ -199,7 +201,8 @@
     "addAttendee": "참석자 추가",
     "maxSelected": "최대 {{n}}명까지 선택할 수 있습니다.",
     "studentLabel": "학생",
-    "allView": "전체보기"
+    "allView": "전체보기",
+    "categoryLabel": "수업종류"
   },
   "attach": {
     "section": "첨부자료",
@@ -223,6 +226,8 @@
     "sectionTitle": "수업 피드백·과제 (강사 작성)",
     "feedbackLabel": "피드백",
     "homeworkLabel": "과제",
-    "noFeedbackYet": "피드백 미작성"
+    "noFeedbackYet": "피드백 미작성",
+    "textFeedback": "피드백",
+    "textHomework": "과제제출"
   }
 }

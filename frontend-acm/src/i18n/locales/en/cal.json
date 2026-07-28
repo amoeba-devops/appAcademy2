@@ -14,7 +14,9 @@
     "day": "Day",
     "week": "Week",
     "month": "Month",
-    "list": "List"
+    "list": "List",
+    "showAll": "View all",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Class",
@@ -199,7 +201,8 @@
     "addAttendee": "Add attendee",
     "maxSelected": "You can select up to {{n}} entries.",
     "studentLabel": "Student",
-    "allView": "All"
+    "allView": "All",
+    "categoryLabel": "Class type"
   },
   "attach": {
     "section": "Attachments",
@@ -223,6 +226,8 @@
     "sectionTitle": "Class feedback & homework (by teacher)",
     "feedbackLabel": "Feedback",
     "homeworkLabel": "Homework",
-    "noFeedbackYet": "No feedback yet"
+    "noFeedbackYet": "No feedback yet",
+    "textFeedback": "Feedback",
+    "textHomework": "Homework"
   }
 }

@@ -14,7 +14,9 @@
     "day": "日",
     "week": "周",
     "month": "月",
-    "list": "列表"
+    "list": "列表",
+    "showAll": "查看全部",
+    "countSuffix": "项"
   },
   "category": {
     "CLASS": "课程",
@@ -199,7 +201,8 @@
     "addAttendee": "添加参与人",
     "maxSelected": "最多可选择 {{n}} 个。",
     "studentLabel": "学生",
-    "allView": "全部"
+    "allView": "全部",
+    "categoryLabel": "课程类型"
   },
   "attach": {
     "section": "附件",
@@ -223,6 +226,8 @@
     "sectionTitle": "课程反馈·作业（老师撰写）",
     "feedbackLabel": "反馈",
     "homeworkLabel": "作业",
-    "noFeedbackYet": "尚无反馈"
+    "noFeedbackYet": "尚无反馈",
+    "textFeedback": "反馈",
+    "textHomework": "作业"
   }
 }

@@ -94,7 +94,10 @@
       "attendees": "People",
       "materials": "Attachments",
       "download": "Download",
-      "owner": "Created by"
+      "owner": "Created by",
+      "filterStudent": "Student",
+      "filterCategory": "Class type",
+      "all": "All"
     },
     "notices": {
       "empty": "No notices.",
@@ -199,7 +202,9 @@
       "saveHomework": "Save homework",
       "noHomework": "No homework",
       "noHomeworkYet": "No homework info yet.",
-      "attachFile": "Attach file"
+      "attachFile": "Attach file",
+      "textFeedback": "Feedback",
+      "textHomework": "Homework"
     },
     "recordings": {
       "title": "Class recordings",

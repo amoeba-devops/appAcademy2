@@ -14,7 +14,9 @@
     "day": "Ngày",
     "week": "Tuần",
     "month": "Tháng",
-    "list": "Danh sách"
+    "list": "Danh sách",
+    "showAll": "Xem tất cả",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Lớp học",
@@ -199,7 +201,8 @@
     "addAttendee": "Thêm người tham dự",
     "maxSelected": "Chỉ được chọn tối đa {{n}} mục.",
     "studentLabel": "Học sinh",
-    "allView": "Tất cả"
+    "allView": "Tất cả",
+    "categoryLabel": "Loại lớp"
   },
   "attach": {
     "section": "Tệp đính kèm",
@@ -223,6 +226,8 @@
     "sectionTitle": "Phản hồi & bài tập (GV viết)",
     "feedbackLabel": "Phản hồi",
     "homeworkLabel": "Bài tập",
-    "noFeedbackYet": "Chưa có phản hồi"
+    "noFeedbackYet": "Chưa có phản hồi",
+    "textFeedback": "Phản hồi",
+    "textHomework": "Bài tập"
   }
 }
