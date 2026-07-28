@@ -184,6 +184,22 @@
       "kindSTUDENT": "학생",
       "kindOPERATOR": "운영자",
       "kindUNKNOWN": "미확인"
+    },
+    "review": {
+      "done": "수업완료",
+      "feedback": "수업 피드백",
+      "forAdmin": "관리자 확인용",
+      "writeFeedback": "피드백 작성",
+      "editFeedback": "피드백 수정",
+      "noFeedback": "아직 작성된 피드백이 없습니다.",
+      "homework": "과제",
+      "assignHomework": "과제 등록",
+      "editHomework": "과제 수정",
+      "noHomeworkBtn": "과제 없음",
+      "saveHomework": "과제 저장",
+      "noHomework": "과제 없음",
+      "noHomeworkYet": "아직 과제 정보가 없습니다.",
+      "attachFile": "파일 첨부"
     }
   },
   "material": {

@@ -44,6 +44,7 @@ const ALLOWED_MIMES = [
 
 export interface CalEventAttachmentView {
   id: string;
+  kind: 'GENERAL' | 'HOMEWORK';
   filename: string;
   mime: string;
   sizeBytes: string;
@@ -63,6 +64,7 @@ export class CalEventAttachmentService {
     evtId: string,
     file: Express.Multer.File | undefined,
     actorId: string,
+    kind: 'GENERAL' | 'HOMEWORK' = 'GENERAL',
   ): Promise<CalEventAttachmentView> {
     if (!this.store.isConfigured()) {
       throw new ServiceUnavailableException({
@@ -118,6 +120,7 @@ export class CalEventAttachmentService {
       this.repo.create({
         entId,
         evtId,
+        kind,
         s3Key: key,
         filename,
         mime: file.mimetype,
@@ -172,6 +175,7 @@ export class CalEventAttachmentService {
   private toView(r: CalEventAttachmentTypeormEntity): CalEventAttachmentView {
     return {
       id: r.id,
+      kind: r.kind ?? 'GENERAL',
       filename: r.filename,
       mime: r.mime,
       sizeBytes: r.sizeBytes,

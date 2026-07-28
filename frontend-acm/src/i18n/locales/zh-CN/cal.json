@@ -213,5 +213,16 @@
       "size": "文件必须小于或等于20MB。",
       "count": "最多可添加 {{max}} 个附件。"
     }
+  },
+  "review": {
+    "done": "完成",
+    "doneFull": "课程完成",
+    "feedback": "已写反馈",
+    "homework": "已布置作业",
+    "noHomework": "无作业",
+    "sectionTitle": "课程反馈·作业（老师撰写）",
+    "feedbackLabel": "反馈",
+    "homeworkLabel": "作业",
+    "noFeedbackYet": "尚无反馈"
   }
 }

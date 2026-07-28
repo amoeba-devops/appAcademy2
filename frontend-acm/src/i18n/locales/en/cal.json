@@ -213,5 +213,16 @@
       "size": "Files must be 20MB or smaller.",
       "count": "Up to {{max}} attachments allowed."
     }
+  },
+  "review": {
+    "done": "Done",
+    "doneFull": "Class done",
+    "feedback": "Feedback written",
+    "homework": "Homework assigned",
+    "noHomework": "No homework",
+    "sectionTitle": "Class feedback & homework (by teacher)",
+    "feedbackLabel": "Feedback",
+    "homeworkLabel": "Homework",
+    "noFeedbackYet": "No feedback yet"
   }
 }

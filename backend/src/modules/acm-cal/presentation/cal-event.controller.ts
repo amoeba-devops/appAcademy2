@@ -16,6 +16,7 @@ import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/cu
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { CalEventService } from '../application/cal-event.service';
 import { BodaRecordService } from '../application/boda-record.service';
+import { CalEventReviewService } from '../application/cal-event-review.service';
 import {
   CreateCalEventDto,
   DeleteCalEventDto,
@@ -31,7 +32,14 @@ export class CalEventController {
   constructor(
     private readonly svc: CalEventService,
     private readonly recordSvc: BodaRecordService,
+    private readonly reviewSvc: CalEventReviewService,
   ) {}
+
+  @Get(':id/review')
+  @ApiOperation({ summary: '수업 피드백·과제 조회 — 관리자 확인용 (PLN-260728F B)' })
+  review(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.reviewSvc.get(u.entId, id);
+  }
 
   @Get(':id/class-record')
   @ApiOperation({

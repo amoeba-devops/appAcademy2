@@ -567,7 +567,35 @@ function CalendarEventCard({
       }`}
       title={display}
     >
-      <div className="truncate font-medium">{display}</div>
+      <div className="truncate font-medium">
+        {display}
+        {/* PLN-260728F B — 캘린더 칸엔 수업완료만 표시 */}
+        {event.classDone && (
+          <span className="ml-1 rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+            ✓{t('review.done', '완료')}
+          </span>
+        )}
+      </div>
+      {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
+        <div className="mt-0.5 flex items-center gap-1 text-[10px]">
+          {event.hasFeedback && (
+            <span title={t('review.feedback', '피드백 작성됨')}>📝</span>
+          )}
+          {event.homeworkStatus === 'ASSIGNED' && (
+            <span title={t('review.homework', '과제 등록됨')}>📚</span>
+          )}
+          {event.homeworkStatus === 'NONE' && (
+            <span className="text-secondary">
+              {t('review.noHomework', '과제 없음')}
+            </span>
+          )}
+          {event.classDone && (
+            <span className="rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+              {t('review.doneFull', '수업완료')}
+            </span>
+          )}
+        </div>
+      )}
       {(event.assigneeName || event.ownerName) && (
         <div className="truncate text-[10px] opacity-80">
           {event.assigneeName ?? event.ownerName}

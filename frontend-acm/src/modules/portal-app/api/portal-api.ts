@@ -27,6 +27,18 @@ export interface PortalCalEvent {
   invitees?: { kind: string; name: string }[];
   // PLN-260718 P2 — 이벤트 첨부자료.
   attachments?: PortalCalAttachment[];
+  // PLN-260728F B — 담당강사 tch_id(작성 권한 판단) + 수업완료 플래그.
+  assigneeTchId?: string | null;
+  hasFeedback?: boolean;
+  homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
+  classDone?: boolean;
+}
+
+export interface CalReview {
+  feedbackHtml: string | null;
+  homeworkStatus: 'ASSIGNED' | 'NONE' | null;
+  homeworkHtml: string | null;
+  updatedAt: string | null;
 }
 
 export interface ClassRecordParticipant {
@@ -49,6 +61,7 @@ export interface ClassRecord {
 
 export interface PortalCalAttachment {
   id: string;
+  kind?: 'GENERAL' | 'HOMEWORK';
   filename: string;
   mime: string;
   sizeBytes: string;
@@ -266,6 +279,37 @@ export const portalApi = {
         `/portal/teacher/students/${stdId}`,
       )
     ).data,
+
+  // PLN-260728F B — 수업 피드백·과제.
+  calReview: async (evtId: string) =>
+    (await apiClient.get<CalReview>(`/portal/cal/events/${evtId}/review`)).data,
+
+  saveCalReview: async (
+    evtId: string,
+    patch: {
+      feedbackHtml?: string;
+      homeworkStatus?: 'ASSIGNED' | 'NONE';
+      homeworkHtml?: string;
+    },
+  ) =>
+    (await apiClient.put<CalReview>(`/portal/cal/events/${evtId}/review`, patch))
+      .data,
+
+  uploadHomeworkFile: async (evtId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return (
+      await apiClient.post<PortalCalAttachment>(
+        `/portal/cal/events/${evtId}/attachments`,
+        form,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+    ).data;
+  },
+
+  deleteHomeworkFile: async (evtId: string, attId: string) => {
+    await apiClient.delete(`/portal/cal/events/${evtId}/attachments/${attId}`);
+  },
 
   // PLN-260728F A — 강의실 실적 기록 (개설/시작/종료 + 입·퇴실).
   classRecord: async (evtId: string) =>

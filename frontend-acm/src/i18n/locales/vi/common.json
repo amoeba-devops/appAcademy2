@@ -184,6 +184,22 @@
       "kindSTUDENT": "HS",
       "kindOPERATOR": "QTV",
       "kindUNKNOWN": "Không rõ"
+    },
+    "review": {
+      "done": "Hoàn thành",
+      "feedback": "Phản hồi buổi học",
+      "forAdmin": "để quản trị xem",
+      "writeFeedback": "Viết phản hồi",
+      "editFeedback": "Sửa phản hồi",
+      "noFeedback": "Chưa có phản hồi.",
+      "homework": "Bài tập",
+      "assignHomework": "Giao bài tập",
+      "editHomework": "Sửa bài tập",
+      "noHomeworkBtn": "Không có bài tập",
+      "saveHomework": "Lưu bài tập",
+      "noHomework": "Không có bài tập",
+      "noHomeworkYet": "Chưa có thông tin bài tập.",
+      "attachFile": "Đính kèm tệp"
     }
   },
   "material": {
