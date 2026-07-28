@@ -1048,9 +1048,27 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   );
 }
 
+interface ClassRecordRow {
+  kind: string;
+  name: string | null;
+  joinedAt: string;
+  leftAt: string | null;
+  totalSeconds: number | null;
+}
+
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
   const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
+  // PLN-260728F A — 참석자 입·퇴실 기록.
+  const { data: record } = useQuery({
+    queryKey: ['cal', 'class-record', evtId],
+    queryFn: async () =>
+      (
+        await apiClient.get<{ participants: ClassRecordRow[] } | null>(
+          `/acm/cal/events/${evtId}/class-record`,
+        )
+      ).data,
+  });
   const closeMut = useBodaForceClose(evtId);
   const reconMut = useBodaReconcile(evtId);
 
@@ -1153,6 +1171,40 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
           </li>
         )}
       </ul>
+
+      {record && record.participants.length > 0 && (
+        <div className="rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-2">
+          <div className="mb-1 text-[11px] font-semibold text-secondary">
+            {t('boda.attendance', '참석자 입·퇴실 기록')}
+          </div>
+          <ul className="space-y-0.5 text-[11px]">
+            {record.participants.map((p, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                    p.kind === 'TEACHER'
+                      ? 'bg-purple-100 text-purple-700'
+                      : p.kind === 'STUDENT'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {t(`boda.kind.${p.kind}`, p.kind)}
+                </span>
+                <span className="font-medium text-primary">{p.name ?? '-'}</span>
+                <span className="text-secondary">
+                  {new Date(p.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {' → '}
+                  {p.leftAt
+                    ? new Date(p.leftAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : t('boda.stillIn', '접속 중')}
+                  {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex gap-2 pt-1">
         <Button

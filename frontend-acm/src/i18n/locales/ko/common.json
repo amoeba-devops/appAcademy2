@@ -170,6 +170,20 @@
       "noRemarks": "상담 기록이 없습니다.",
       "classes": "수업 기록 (최근 10건)",
       "noClasses": "수업 기록이 없습니다."
+    },
+    "record": {
+      "title": "강의실 기록",
+      "opened": "개설",
+      "started": "수업 시작",
+      "ended": "수업 종료",
+      "closed": "폐쇄",
+      "join": "입실",
+      "leave": "퇴실",
+      "min": "분",
+      "kindTEACHER": "강사",
+      "kindSTUDENT": "학생",
+      "kindOPERATOR": "운영자",
+      "kindUNKNOWN": "미확인"
     }
   },
   "material": {

@@ -170,6 +170,20 @@
       "noRemarks": "No consultation records.",
       "classes": "Class records (last 10)",
       "noClasses": "No class records."
+    },
+    "record": {
+      "title": "Classroom record",
+      "opened": "Opened",
+      "started": "Started",
+      "ended": "Ended",
+      "closed": "Closed",
+      "join": "In",
+      "leave": "Out",
+      "min": "min",
+      "kindTEACHER": "Teacher",
+      "kindSTUDENT": "Student",
+      "kindOPERATOR": "Operator",
+      "kindUNKNOWN": "Unknown"
     }
   },
   "material": {

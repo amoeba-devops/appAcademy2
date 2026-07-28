@@ -152,7 +152,15 @@
     "confirmForceClose": "Buộc đóng phòng đang hoạt động?",
     "reconcileResult": "Đồng bộ xong",
     "forceCloseResult": "Đã đóng",
-    "notProvisioned": "Chưa tạo phòng BODA."
+    "notProvisioned": "Chưa tạo phòng BODA.",
+    "attendance": "Ghi nhận vào/ra",
+    "stillIn": "đang trong phòng",
+    "kind": {
+      "TEACHER": "GV",
+      "STUDENT": "HS",
+      "OPERATOR": "QTV",
+      "UNKNOWN": "Không rõ"
+    }
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",

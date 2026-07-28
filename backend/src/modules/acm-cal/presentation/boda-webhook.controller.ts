@@ -115,9 +115,21 @@ export class BodaWebhookController {
     const result = await this.svc.handle({
       entId: cfg.entId,
       eventCode,
-      meetIdx: typeof body?.meetIdx === 'string' ? body.meetIdx : null,
+      // SPEC_823 — meetIdx 는 Integer 로 전송됨 (문자열도 하위호환 수용).
+      meetIdx:
+        typeof body?.meetIdx === 'string'
+          ? body.meetIdx
+          : typeof body?.meetIdx === 'number'
+            ? String(body.meetIdx)
+            : null,
       meetKey: typeof body?.meetKey === 'string' ? body.meetKey : null,
-      eventAt: this.parseEventAt(body?.eventAt ?? body?.occurredAt),
+      // SPEC_823 — 공식 필드는 eventDatetime(unix 초). 벤더 발생시각을 우선 사용.
+      eventAt: this.parseEventAt(
+        (body?.eventDatetime ?? body?.eventAt ?? body?.occurredAt) as
+          | string
+          | number
+          | undefined,
+      ),
       userId: typeof body?.userId === 'string'
         ? body.userId
         : typeof body?.UId === 'string'
@@ -129,9 +141,12 @@ export class BodaWebhookController {
     return result.deduped ? { ok: true, deduped: true } : { ok: true };
   }
 
-  private parseEventAt(raw: string | undefined): Date {
-    if (!raw) return new Date();
-    const d = new Date(raw);
+  private parseEventAt(raw: string | number | undefined): Date {
+    if (raw === undefined || raw === null || raw === '') return new Date();
+    // unix 초(정수 또는 숫자 문자열) — SPEC_823 eventDatetime.
+    const n = typeof raw === 'number' ? raw : /^\d{10}$/.test(raw) ? Number(raw) : NaN;
+    if (Number.isFinite(n)) return new Date(n * 1000);
+    const d = new Date(raw as string);
     return Number.isNaN(d.getTime()) ? new Date() : d;
   }
 

@@ -128,6 +128,8 @@ export function PortalCalEventDetailPage() {
             </div>
           )}
 
+          <ClassRecordSection evtId={event.id} isBoda={isBoda} />
+
           {event.attachments && event.attachments.length > 0 && (
             <div className="mt-4">
               <div className="mb-1 text-xs text-secondary">
@@ -176,6 +178,82 @@ export function PortalCalEventDetailPage() {
           )}
         </article>
       )}
+    </div>
+  );
+}
+
+// PLN-260728F A — 강의실 실적 기록 (개설/시작/종료 + 입·퇴실).
+function ClassRecordSection({ evtId, isBoda }: { evtId: string; isBoda: boolean }) {
+  const { t, i18n } = useTranslation('common');
+  const { data: rec } = useQuery({
+    enabled: isBoda,
+    queryKey: ['portal-class-record', evtId],
+    queryFn: () => portalApi.classRecord(evtId),
+  });
+  if (!isBoda || !rec || (!rec.openedAt && rec.participants.length === 0)) {
+    return null;
+  }
+  const fmt = (iso: string | null) =>
+    iso
+      ? new Intl.DateTimeFormat(i18n.language, {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(iso))
+      : '—';
+  const dur = (sec: number | null) =>
+    sec != null ? ` (${Math.round(sec / 60)}${t('portalApp.record.min', '분')})` : '';
+  return (
+    <div className="mt-4">
+      <div className="mb-1 text-xs text-secondary">
+        🕐 {t('portalApp.record.title', '강의실 기록')}
+      </div>
+      <div className="rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-4">
+          <span>
+            <span className="text-xs text-secondary">{t('portalApp.record.opened', '개설')}</span>{' '}
+            {fmt(rec.openedAt)}
+          </span>
+          <span>
+            <span className="text-xs text-secondary">{t('portalApp.record.started', '수업 시작')}</span>{' '}
+            {fmt(rec.startedAt)}
+          </span>
+          <span>
+            <span className="text-xs text-secondary">{t('portalApp.record.ended', '수업 종료')}</span>{' '}
+            {fmt(rec.endedAt)}
+          </span>
+          <span>
+            <span className="text-xs text-secondary">{t('portalApp.record.closed', '폐쇄')}</span>{' '}
+            {fmt(rec.closedAt)}
+          </span>
+        </div>
+        {rec.participants.length > 0 && (
+          <ul className="mt-2 space-y-0.5 border-t border-[var(--border-subtle)] pt-2 text-xs">
+            {rec.participants.map((p, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                    p.kind === 'TEACHER'
+                      ? 'bg-purple-100 text-purple-700'
+                      : p.kind === 'STUDENT'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {t(`portalApp.record.kind${p.kind}`, p.kind)}
+                </span>
+                <span className="font-medium text-primary">{p.name ?? '-'}</span>
+                <span className="text-secondary">
+                  {t('portalApp.record.join', '입실')} {fmt(p.joinedAt)} →{' '}
+                  {t('portalApp.record.leave', '퇴실')} {fmt(p.leftAt)}
+                  {dur(p.totalSeconds)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

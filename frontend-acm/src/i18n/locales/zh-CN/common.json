@@ -170,6 +170,20 @@
       "noRemarks": "暂无咨询记录。",
       "classes": "课程记录（最近10条）",
       "noClasses": "暂无课程记录。"
+    },
+    "record": {
+      "title": "教室记录",
+      "opened": "开设",
+      "started": "开始",
+      "ended": "结束",
+      "closed": "关闭",
+      "join": "进入",
+      "leave": "离开",
+      "min": "分钟",
+      "kindTEACHER": "老师",
+      "kindSTUDENT": "学生",
+      "kindOPERATOR": "管理员",
+      "kindUNKNOWN": "未知"
     }
   },
   "material": {

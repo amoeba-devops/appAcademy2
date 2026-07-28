@@ -152,7 +152,15 @@
     "confirmForceClose": "진행 중인 룸을 강제 폐쇄하시겠습니까?",
     "reconcileResult": "재동기화 완료",
     "forceCloseResult": "폐쇄 완료",
-    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다."
+    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다.",
+    "attendance": "참석자 입·퇴실 기록",
+    "stillIn": "접속 중",
+    "kind": {
+      "TEACHER": "강사",
+      "STUDENT": "학생",
+      "OPERATOR": "운영자",
+      "UNKNOWN": "미확인"
+    }
   },
   "instant": {
     "btnLabel": "즉시 강의 개설",

@@ -15,6 +15,7 @@ import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
 import type { PortalAuthUser } from '../../acm-auth/application/portal-account.service';
 import { CalEventService } from '../application/cal-event.service';
 import { CalEventAttachmentService } from '../application/cal-event-attachment.service';
+import { BodaRecordService } from '../application/boda-record.service';
 import { ListCalEventsQueryDto } from '../application/dto/cal-event.dto';
 
 /**
@@ -29,7 +30,24 @@ export class PortalCalController {
   constructor(
     private readonly svc: CalEventService,
     private readonly attachmentSvc: CalEventAttachmentService,
+    private readonly recordSvc: BodaRecordService,
   ) {}
+
+  @Get(':id/class-record')
+  @ApiOperation({
+    summary:
+      '강의실 실적 기록 — 강사=전체 참석자, 학생=본인, 학부모=자녀 (PLN-260728F)',
+  })
+  async classRecord(@PortalUser() u: PortalAuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
+    const viewer =
+      u.kind === 'TEACHER'
+        ? ({ scope: 'ALL' } as const)
+        : u.kind === 'PARENT'
+          ? ({ scope: 'PARENT', refId: u.refId } as const)
+          : ({ scope: 'STUDENT', refId: u.refId } as const);
+    return this.recordSvc.getClassRecord(u.entId, id, viewer);
+  }
 
   @Get()
   @ApiOperation({

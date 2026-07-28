@@ -29,6 +29,24 @@ export interface PortalCalEvent {
   attachments?: PortalCalAttachment[];
 }
 
+export interface ClassRecordParticipant {
+  kind: string;
+  refId: string | null;
+  name: string | null;
+  joinedAt: string;
+  leftAt: string | null;
+  totalSeconds: number | null;
+}
+
+export interface ClassRecord {
+  status: string;
+  openedAt: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  closedAt: string | null;
+  participants: ClassRecordParticipant[];
+}
+
 export interface PortalCalAttachment {
   id: string;
   filename: string;
@@ -246,6 +264,14 @@ export const portalApi = {
     (
       await apiClient.get<TeacherStudentDetail>(
         `/portal/teacher/students/${stdId}`,
+      )
+    ).data,
+
+  // PLN-260728F A — 강의실 실적 기록 (개설/시작/종료 + 입·퇴실).
+  classRecord: async (evtId: string) =>
+    (
+      await apiClient.get<ClassRecord | null>(
+        `/portal/cal/events/${evtId}/class-record`,
       )
     ).data,
 

@@ -170,6 +170,20 @@
       "noRemarks": "Không có hồ sơ tư vấn.",
       "classes": "Lịch sử lớp học (10 gần nhất)",
       "noClasses": "Không có lịch sử lớp học."
+    },
+    "record": {
+      "title": "Nhật ký lớp học",
+      "opened": "Mở phòng",
+      "started": "Bắt đầu",
+      "ended": "Kết thúc",
+      "closed": "Đóng",
+      "join": "Vào",
+      "leave": "Ra",
+      "min": "phút",
+      "kindTEACHER": "GV",
+      "kindSTUDENT": "HS",
+      "kindOPERATOR": "QTV",
+      "kindUNKNOWN": "Không rõ"
     }
   },
   "material": {

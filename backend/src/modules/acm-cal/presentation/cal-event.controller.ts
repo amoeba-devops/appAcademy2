@@ -15,6 +15,7 @@ import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { CalEventService } from '../application/cal-event.service';
+import { BodaRecordService } from '../application/boda-record.service';
 import {
   CreateCalEventDto,
   DeleteCalEventDto,
@@ -27,7 +28,21 @@ import {
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/cal/events')
 export class CalEventController {
-  constructor(private readonly svc: CalEventService) {}
+  constructor(
+    private readonly svc: CalEventService,
+    private readonly recordSvc: BodaRecordService,
+  ) {}
+
+  @Get(':id/class-record')
+  @ApiOperation({
+    summary: '보다 강의실 실적 기록 — 개설/시작/종료 시각 + 참석자 입·퇴실 (PLN-260728F)',
+  })
+  classRecord(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.recordSvc.getClassRecord(u.entId, id, { scope: 'ALL' });
+  }
 
   @Get()
   @ApiOperation({ summary: 'List calendar events in range (FR-CAL-001)' })
