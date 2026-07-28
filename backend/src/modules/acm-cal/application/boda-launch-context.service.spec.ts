@@ -1,7 +1,12 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ForbiddenException, HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { ACM_DS } from '../../acm-common/datasource';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
@@ -37,7 +42,8 @@ describe('BodaLaunchContextService', () => {
     userFindOne = jest
       .fn()
       .mockImplementation(({ where }: { where: { id: string } }) => {
-        if (where.id === 'teacher-1') return Promise.resolve({ id: 'teacher-1', name: '김교사' });
+        if (where.id === 'teacher-1')
+          return Promise.resolve({ id: 'teacher-1', name: '김교사' });
         return Promise.resolve({ id: where.id, name: 'User' });
       });
     stdFind = jest.fn().mockResolvedValue([]);
@@ -88,15 +94,23 @@ describe('BodaLaunchContextService', () => {
         },
         {
           provide: getRepositoryToken(TeacherTypeormEntity, ACM_DS),
-          useValue: { findOne: jest.fn().mockResolvedValue({ id: 'tch-9', name: '김강사' }) },
+          useValue: {
+            findOne: jest
+              .fn()
+              .mockResolvedValue({ id: 'tch-9', name: '김강사' }),
+          },
         },
         {
           provide: BodaRoomService,
-          useValue: { findByEvtId: roomFindByEvtId } as Partial<BodaRoomService>,
+          useValue: {
+            findByEvtId: roomFindByEvtId,
+          } as Partial<BodaRoomService>,
         },
         {
           provide: BodaConfigService,
-          useValue: { findByEntId: cfgFindByEntId } as Partial<BodaConfigService>,
+          useValue: {
+            findByEntId: cfgFindByEntId,
+          } as Partial<BodaConfigService>,
         },
         {
           provide: CalInviteeService,
@@ -108,7 +122,7 @@ describe('BodaLaunchContextService', () => {
           provide: ConfigService,
           useValue: {
             get: (k: string) => cfgEnv[k],
-          } as unknown as ConfigService,
+          },
         },
       ],
     }).compile();
@@ -142,14 +156,19 @@ describe('BodaLaunchContextService', () => {
       meetIdx: 'm-1',
       openedAt: new Date(),
       ...overrides,
-    } as any);
+    }) as any;
 
   describe('build (launch-context)', () => {
     it('teacher (owner) → userType 11 + valid payload', async () => {
       evtFindOne.mockResolvedValue(evt());
       roomFindByEvtId.mockResolvedValue(room());
 
-      const ctx = await svc.build('11111111-2222-3333-4444-555555555555', 'e1', 'teacher-1', 'TEACHER');
+      const ctx = await svc.build(
+        '11111111-2222-3333-4444-555555555555',
+        'e1',
+        'teacher-1',
+        'TEACHER',
+      );
       expect(ctx.userType).toBe(11);
       expect(ctx.meetKey).toBe('tac-11111111222233334444555555555555');
       expect(ctx.roomCode).toBe('699');
@@ -213,7 +232,12 @@ describe('BodaLaunchContextService', () => {
       roomFindByEvtId.mockResolvedValue(room());
       inviteeFind.mockResolvedValue([]);
       const err = await svc
-        .build('11111111-2222-3333-4444-555555555555', 'e1', 'random', 'STUDENT' as any)
+        .build(
+          '11111111-2222-3333-4444-555555555555',
+          'e1',
+          'random',
+          'STUDENT' as any,
+        )
         .catch((e) => e);
       expect(err).toBeInstanceOf(ForbiddenException);
       expect((err as ForbiddenException).getResponse()).toMatchObject({
@@ -232,10 +256,17 @@ describe('BodaLaunchContextService', () => {
     it('event provider != BODASCHOOL → 422', async () => {
       evtFindOne.mockResolvedValue(evt({ meetingProvider: 'GOOGLE_MEET' }));
       const err = await svc
-        .build('11111111-2222-3333-4444-555555555555', 'e1', 'teacher-1', 'TEACHER')
+        .build(
+          '11111111-2222-3333-4444-555555555555',
+          'e1',
+          'teacher-1',
+          'TEACHER',
+        )
         .catch((e) => e);
       expect(err).toBeInstanceOf(HttpException);
-      expect((err as HttpException).getStatus()).toBe(HttpStatus.UNPROCESSABLE_ENTITY);
+      expect((err as HttpException).getStatus()).toBe(
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
       expect((err as HttpException).getResponse()).toMatchObject({
         code: 'BODA_NOT_BODASCHOOL',
       });
@@ -245,7 +276,12 @@ describe('BodaLaunchContextService', () => {
       evtFindOne.mockResolvedValue(evt());
       roomFindByEvtId.mockResolvedValue(null);
       const err = await svc
-        .build('11111111-2222-3333-4444-555555555555', 'e1', 'teacher-1', 'TEACHER')
+        .build(
+          '11111111-2222-3333-4444-555555555555',
+          'e1',
+          'teacher-1',
+          'TEACHER',
+        )
         .catch((e) => e);
       expect((err as HttpException).getResponse()).toMatchObject({
         code: 'BODA_ROOM_NOT_PROVISIONED',
@@ -261,7 +297,12 @@ describe('BodaLaunchContextService', () => {
       );
       roomFindByEvtId.mockResolvedValue(room());
       const err = await svc
-        .build('11111111-2222-3333-4444-555555555555', 'e1', 'teacher-1', 'TEACHER')
+        .build(
+          '11111111-2222-3333-4444-555555555555',
+          'e1',
+          'teacher-1',
+          'TEACHER',
+        )
         .catch((e) => e);
       expect((err as HttpException).getStatus()).toBe(HttpStatus.FORBIDDEN);
       expect((err as HttpException).getResponse()).toMatchObject({
@@ -278,7 +319,12 @@ describe('BodaLaunchContextService', () => {
       );
       roomFindByEvtId.mockResolvedValue(room());
       const err = await svc
-        .build('11111111-2222-3333-4444-555555555555', 'e1', 'teacher-1', 'TEACHER')
+        .build(
+          '11111111-2222-3333-4444-555555555555',
+          'e1',
+          'teacher-1',
+          'TEACHER',
+        )
         .catch((e) => e);
       expect((err as HttpException).getStatus()).toBe(HttpStatus.FORBIDDEN);
     });
@@ -317,8 +363,26 @@ describe('BodaLaunchContextService', () => {
       evtFindOne.mockResolvedValue(evt());
       roomFindByEvtId.mockResolvedValue(room());
       inviteeListForEvent.mockResolvedValue([
-        { id: 'i1', kind: 'STUDENT', refId: 'std-1', name: '박학생', email: null, notifyStatus: 'SENT', notifiedAt: new Date(), notifyError: null },
-        { id: 'i2', kind: 'STUDENT', refId: 'std-2', name: '이학생', email: null, notifyStatus: 'SKIPPED', notifiedAt: null, notifyError: null },
+        {
+          id: 'i1',
+          kind: 'STUDENT',
+          refId: 'std-1',
+          name: '박학생',
+          email: null,
+          notifyStatus: 'SENT',
+          notifiedAt: new Date(),
+          notifyError: null,
+        },
+        {
+          id: 'i2',
+          kind: 'STUDENT',
+          refId: 'std-2',
+          name: '이학생',
+          email: null,
+          notifyStatus: 'SKIPPED',
+          notifiedAt: null,
+          notifyError: null,
+        },
       ]);
       stdFind.mockResolvedValue([
         { id: 'std-1', school: '중학교A', grade: '3' },
@@ -351,7 +415,16 @@ describe('BodaLaunchContextService', () => {
       inviteeFind.mockResolvedValue([{ kind: 'STUDENT', refId: 'student-1' }]);
       // Even if listForEvent would return rows, viewer masking returns empty array.
       inviteeListForEvent.mockResolvedValue([
-        { id: 'i1', kind: 'STUDENT', refId: 'classmate-1', name: '다른학생', email: null, notifyStatus: 'SENT', notifiedAt: new Date(), notifyError: null },
+        {
+          id: 'i1',
+          kind: 'STUDENT',
+          refId: 'classmate-1',
+          name: '다른학생',
+          email: null,
+          notifyStatus: 'SENT',
+          notifiedAt: new Date(),
+          notifyError: null,
+        },
       ]);
 
       const ctx = await svc.build(
@@ -436,7 +509,9 @@ describe('BodaLaunchContextService', () => {
 
     it('assigned teacher → userType 11 (can open room even while PENDING)', async () => {
       evtFindOne.mockResolvedValue(evt({ assigneeTchId: 'tch-9' }));
-      roomFindByEvtId.mockResolvedValue(room({ status: 'PENDING', meetIdx: null }));
+      roomFindByEvtId.mockResolvedValue(
+        room({ status: 'PENDING', meetIdx: null }),
+      );
 
       const ctx = await svc.buildForPortal(EVT, 'e1', 'TEACHER', 'tch-9', 'ko');
       expect(ctx.userType).toBe(11);
@@ -458,7 +533,7 @@ describe('BodaLaunchContextService', () => {
   describe('getStatus', () => {
     it('returns status timestamps but no leak of meetKey/UId', async () => {
       evtFindOne.mockResolvedValue(evt());
-      roomFindByEvtId.mockResolvedValue(room({ status: 'STARTED' as any }));
+      roomFindByEvtId.mockResolvedValue(room({ status: 'STARTED' }));
       const status = await svc.getStatus(
         '11111111-2222-3333-4444-555555555555',
         'e1',
@@ -467,7 +542,13 @@ describe('BodaLaunchContextService', () => {
       );
       expect(status.status).toBe('STARTED');
       expect(Object.keys(status)).toEqual(
-        expect.arrayContaining(['status', 'openedAt', 'startedAt', 'endedAt', 'closedAt']),
+        expect.arrayContaining([
+          'status',
+          'openedAt',
+          'startedAt',
+          'endedAt',
+          'closedAt',
+        ]),
       );
       expect(JSON.stringify(status)).not.toContain('meetKey');
     });
@@ -479,7 +560,7 @@ describe('BodaLaunchContextService', () => {
           endAt: new Date(Date.now() + 90 * 60_000),
         }),
       );
-      roomFindByEvtId.mockResolvedValue(room({ status: 'PENDING' as any }));
+      roomFindByEvtId.mockResolvedValue(room({ status: 'PENDING' }));
       const status = await svc.getStatus(
         '11111111-2222-3333-4444-555555555555',
         'e1',

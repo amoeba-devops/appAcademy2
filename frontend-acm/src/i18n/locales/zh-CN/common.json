@@ -170,6 +170,40 @@
       "noRemarks": "暂无咨询记录。",
       "classes": "课程记录（最近10条）",
       "noClasses": "暂无课程记录。"
+    },
+    "record": {
+      "title": "教室记录",
+      "opened": "开设",
+      "started": "开始",
+      "ended": "结束",
+      "closed": "关闭",
+      "join": "进入",
+      "leave": "离开",
+      "min": "分钟",
+      "kindTEACHER": "老师",
+      "kindSTUDENT": "学生",
+      "kindOPERATOR": "管理员",
+      "kindUNKNOWN": "未知"
+    },
+    "review": {
+      "done": "课程完成",
+      "feedback": "课程反馈",
+      "forAdmin": "供管理员查看",
+      "writeFeedback": "撰写反馈",
+      "editFeedback": "修改反馈",
+      "noFeedback": "尚未撰写反馈。",
+      "homework": "作业",
+      "assignHomework": "布置作业",
+      "editHomework": "修改作业",
+      "noHomeworkBtn": "无作业",
+      "saveHomework": "保存作业",
+      "noHomework": "无作业",
+      "noHomeworkYet": "暂无作业信息。",
+      "attachFile": "附加文件"
+    },
+    "recordings": {
+      "title": "课程录像",
+      "file": "录像"
     }
   },
   "material": {

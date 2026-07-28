@@ -152,7 +152,15 @@
     "confirmForceClose": "Buộc đóng phòng đang hoạt động?",
     "reconcileResult": "Đồng bộ xong",
     "forceCloseResult": "Đã đóng",
-    "notProvisioned": "Chưa tạo phòng BODA."
+    "notProvisioned": "Chưa tạo phòng BODA.",
+    "attendance": "Ghi nhận vào/ra",
+    "stillIn": "đang trong phòng",
+    "kind": {
+      "TEACHER": "GV",
+      "STUDENT": "HS",
+      "OPERATOR": "QTV",
+      "UNKNOWN": "Không rõ"
+    }
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -205,5 +213,16 @@
       "size": "Tệp phải nhỏ hơn hoặc bằng 20MB.",
       "count": "Tối đa {{max}} tệp đính kèm."
     }
+  },
+  "review": {
+    "done": "Xong",
+    "doneFull": "Hoàn thành",
+    "feedback": "Đã có phản hồi",
+    "homework": "Đã giao bài tập",
+    "noHomework": "Không có bài tập",
+    "sectionTitle": "Phản hồi & bài tập (GV viết)",
+    "feedbackLabel": "Phản hồi",
+    "homeworkLabel": "Bài tập",
+    "noFeedbackYet": "Chưa có phản hồi"
   }
 }

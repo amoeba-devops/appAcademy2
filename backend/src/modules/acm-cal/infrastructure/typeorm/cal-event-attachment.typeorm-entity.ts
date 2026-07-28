@@ -27,6 +27,10 @@ export class CalEventAttachmentTypeormEntity {
   @Column({ name: 'evt_id', type: 'uuid' })
   evtId!: string;
 
+  /** PLN-260728F B — GENERAL(일반 자료) | HOMEWORK(과제 파일). */
+  @Column({ name: 'cea_kind', type: 'varchar', length: 10, default: 'GENERAL' })
+  kind!: 'GENERAL' | 'HOMEWORK';
+
   @Column({ name: 'cea_s3_key', type: 'varchar', length: 500 })
   s3Key!: string;
 

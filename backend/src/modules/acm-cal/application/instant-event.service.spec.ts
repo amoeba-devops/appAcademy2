@@ -74,7 +74,7 @@ describe('InstantEventService', () => {
           useValue: {
             get: (k: string) =>
               k === 'FRONTEND_URL' ? 'https://acm.amoeba.site' : undefined,
-          } as unknown as ConfigService,
+          },
         },
         { provide: REDIS_CLIENT, useValue: { get: redisGet, set: redisSet } },
       ],
@@ -83,11 +83,13 @@ describe('InstantEventService', () => {
     svc = mod.get(InstantEventService);
   });
 
-  function arrangeSuccessfulCreate(opts: {
-    meetingUrl?: string;
-    invitees?: unknown[];
-    notifySummary?: unknown;
-  } = {}) {
+  function arrangeSuccessfulCreate(
+    opts: {
+      meetingUrl?: string;
+      invitees?: unknown[];
+      notifySummary?: unknown;
+    } = {},
+  ) {
     const startAt = new Date('2026-06-10T05:00:00Z');
     const endAt = new Date('2026-06-10T06:30:00Z');
     calCreate.mockResolvedValue({
@@ -99,7 +101,9 @@ describe('InstantEventService', () => {
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
       meetingProvider: 'BODASCHOOL',
-      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
+      meetingUrl:
+        opts.meetingUrl ??
+        `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
       invitees: opts.invitees ?? [],
       notifySummary: opts.notifySummary ?? null,
     });
@@ -107,7 +111,9 @@ describe('InstantEventService', () => {
       id: SAVED_ID,
       entId: 'ent-1',
       ownerUserId: 'u-teacher',
-      meetingUrl: opts.meetingUrl ?? `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
+      meetingUrl:
+        opts.meetingUrl ??
+        `https://acm.amoeba.site/portal/classroom/${SAVED_ID}`,
       startAt,
       endAt,
     });
@@ -129,7 +135,10 @@ describe('InstantEventService', () => {
       evtAllDay: false,
     });
     // After cal create, evt_source forced to INSTANT.
-    expect(evtUpdate).toHaveBeenCalledWith({ id: SAVED_ID }, { source: 'INSTANT' });
+    expect(evtUpdate).toHaveBeenCalledWith(
+      { id: SAVED_ID },
+      { source: 'INSTANT' },
+    );
   });
 
   it('autogenerates title when omitted', async () => {
@@ -169,7 +178,9 @@ describe('InstantEventService', () => {
     arrangeSuccessfulCreate({
       meetingUrl: `https://acm.amoeba.site/portal/classroom/${SAVED_ID}?foo=bar`,
     });
-    const r = await svc.create('ent-1', 'u-teacher', 'TEACHER', { durationMin: 60 });
+    const r = await svc.create('ent-1', 'u-teacher', 'TEACHER', {
+      durationMin: 60,
+    });
     expect(r.launcherUrl).toBe(
       `https://acm.amoeba.site/portal/classroom/${SAVED_ID}?foo=bar&autoStart=1`,
     );
@@ -225,7 +236,10 @@ describe('InstantEventService', () => {
   it('forwards invitee count + notify summary in the response', async () => {
     const summary = { sent: 2, failed: 0, skipped: 1 };
     arrangeSuccessfulCreate({
-      invitees: [{ kind: 'STUDENT', refId: 'a' }, { kind: 'STUDENT', refId: 'b' }],
+      invitees: [
+        { kind: 'STUDENT', refId: 'a' },
+        { kind: 'STUDENT', refId: 'b' },
+      ],
       notifySummary: summary,
     });
 
@@ -244,7 +258,9 @@ describe('InstantEventService', () => {
 
   it('meetKey is tac-{evtId hex 32}', async () => {
     arrangeSuccessfulCreate();
-    const r = await svc.create('ent-1', 'u-teacher', 'TEACHER', { durationMin: 60 });
+    const r = await svc.create('ent-1', 'u-teacher', 'TEACHER', {
+      durationMin: 60,
+    });
     expect(r.meetKey).toBe(`tac-${SAVED_ID.replace(/-/g, '')}`);
   });
 });

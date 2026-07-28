@@ -63,7 +63,9 @@ export class BodaeduServerMockClient implements IBodaeduServerClient {
     if (req.meetKey.endsWith('f')) {
       throw new Error(`MOCK_FAIL: simulated 5xx on closeMeet ${req.meetKey}`);
     }
-    this.logger.debug(`mock closeMeet ${req.meetKey} reason=${req.reason ?? 'unspecified'}`);
+    this.logger.debug(
+      `mock closeMeet ${req.meetKey} reason=${req.reason ?? 'unspecified'}`,
+    );
   }
 
   async getJoinLog(meetKey: string): Promise<BodaJoinLogEntry[]> {
@@ -89,5 +91,20 @@ export class BodaeduServerMockClient implements IBodaeduServerClient {
         clientType: 'native',
       },
     ];
+  }
+
+  // PLN-260728F C — mock: 녹화 없음.
+  async listRecordings(): Promise<
+    import('../bodaedu.types').BodaRecordingEntry[]
+  > {
+    return [];
+  }
+
+  async downloadRecording(): Promise<{
+    stream: NodeJS.ReadableStream;
+    contentType: string | null;
+    contentLength: number | null;
+  }> {
+    throw new Error('MOCK_NO_RECORDING');
   }
 }

@@ -41,7 +41,8 @@ export const BODA_EVENT_CODES = {
   USER_LEFT: 12,
   USER_SCORE: 13, // P1
 } as const;
-export type BodaEventCode = (typeof BODA_EVENT_CODES)[keyof typeof BODA_EVENT_CODES];
+export type BodaEventCode =
+  (typeof BODA_EVENT_CODES)[keyof typeof BODA_EVENT_CODES];
 
 /**
  * SERVER API GET /svr/meet/info?meetKey= 응답 일부.
@@ -82,4 +83,13 @@ export interface BodaCloseRequest {
   meetKey: string;
   /** 폐쇄 사유 (audit). vendor 가 받지 않으면 무시. */
   reason?: string;
+}
+
+/** PLN-260728F C — SERVER API GET /svr/record/log/video 응답 항목. */
+export interface BodaRecordingEntry {
+  recordIdx: number;
+  recordTitle: string | null;
+  startDatetime: string | null; // YYYYMMDDhhmmss
+  endDatetime: string | null;
+  fileExist: boolean;
 }

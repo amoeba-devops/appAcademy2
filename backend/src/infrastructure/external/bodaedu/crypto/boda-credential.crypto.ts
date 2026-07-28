@@ -49,10 +49,7 @@ export function encryptBodaCredential(plaintext: string, key: Buffer): Buffer {
   }
   const iv = randomBytes(IV_LEN);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
-  const ct = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ]);
+  const ct = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return Buffer.concat([Buffer.from([VERSION]), iv, tag, ct]);
 }

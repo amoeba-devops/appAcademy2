@@ -57,7 +57,10 @@ export class InstantEventService {
           where: { id: cached, entId },
         });
         if (prior) {
-          const priorInvitees = await this.inviteeSvc.listForEvent(entId, prior.id);
+          const priorInvitees = await this.inviteeSvc.listForEvent(
+            entId,
+            prior.id,
+          );
           return this.buildResponse(prior, priorInvitees.length, null, true);
         }
         // stored evtId no longer exists → fall through and recreate
@@ -122,7 +125,10 @@ export class InstantEventService {
     return `즉시 강의 - ${ownerName} ${hh}:${mm}`;
   }
 
-  private async lookupOwnerName(entId: string, userId: string): Promise<string> {
+  private async lookupOwnerName(
+    entId: string,
+    userId: string,
+  ): Promise<string> {
     const u = await this.userRepo.findOne({
       where: { id: userId, entId },
       select: ['name'],
@@ -131,7 +137,10 @@ export class InstantEventService {
   }
 
   private buildLauncherUrl(evtId: string): string {
-    const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(/\/$/, '');
+    const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(
+      /\/$/,
+      '',
+    );
     return `${base}/portal/classroom/${evtId}`;
   }
 

@@ -123,6 +123,10 @@ export interface CalEvent {
   cslLink?: CalCslLink | null;
   /** PLN-260718 P2 — 이벤트 자체 첨부자료 (findOne 상세에서만 채워짐). */
   attachments?: CalEventAttachment[];
+  /** PLN-260728F B — 수업완료 플래그 (목록 enrich). */
+  hasFeedback?: boolean;
+  homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
+  classDone?: boolean;
   notifySummary?: NotifySummary | null;
 }
 

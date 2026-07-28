@@ -170,6 +170,40 @@
       "noRemarks": "Không có hồ sơ tư vấn.",
       "classes": "Lịch sử lớp học (10 gần nhất)",
       "noClasses": "Không có lịch sử lớp học."
+    },
+    "record": {
+      "title": "Nhật ký lớp học",
+      "opened": "Mở phòng",
+      "started": "Bắt đầu",
+      "ended": "Kết thúc",
+      "closed": "Đóng",
+      "join": "Vào",
+      "leave": "Ra",
+      "min": "phút",
+      "kindTEACHER": "GV",
+      "kindSTUDENT": "HS",
+      "kindOPERATOR": "QTV",
+      "kindUNKNOWN": "Không rõ"
+    },
+    "review": {
+      "done": "Hoàn thành",
+      "feedback": "Phản hồi buổi học",
+      "forAdmin": "để quản trị xem",
+      "writeFeedback": "Viết phản hồi",
+      "editFeedback": "Sửa phản hồi",
+      "noFeedback": "Chưa có phản hồi.",
+      "homework": "Bài tập",
+      "assignHomework": "Giao bài tập",
+      "editHomework": "Sửa bài tập",
+      "noHomeworkBtn": "Không có bài tập",
+      "saveHomework": "Lưu bài tập",
+      "noHomework": "Không có bài tập",
+      "noHomeworkYet": "Chưa có thông tin bài tập.",
+      "attachFile": "Đính kèm tệp"
+    },
+    "recordings": {
+      "title": "Bản ghi buổi học",
+      "file": "Bản ghi"
     }
   },
   "material": {

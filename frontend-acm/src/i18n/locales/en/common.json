@@ -170,6 +170,40 @@
       "noRemarks": "No consultation records.",
       "classes": "Class records (last 10)",
       "noClasses": "No class records."
+    },
+    "record": {
+      "title": "Classroom record",
+      "opened": "Opened",
+      "started": "Started",
+      "ended": "Ended",
+      "closed": "Closed",
+      "join": "In",
+      "leave": "Out",
+      "min": "min",
+      "kindTEACHER": "Teacher",
+      "kindSTUDENT": "Student",
+      "kindOPERATOR": "Operator",
+      "kindUNKNOWN": "Unknown"
+    },
+    "review": {
+      "done": "Class done",
+      "feedback": "Class feedback",
+      "forAdmin": "for admin review",
+      "writeFeedback": "Write feedback",
+      "editFeedback": "Edit feedback",
+      "noFeedback": "No feedback written yet.",
+      "homework": "Homework",
+      "assignHomework": "Assign homework",
+      "editHomework": "Edit homework",
+      "noHomeworkBtn": "No homework",
+      "saveHomework": "Save homework",
+      "noHomework": "No homework",
+      "noHomeworkYet": "No homework info yet.",
+      "attachFile": "Attach file"
+    },
+    "recordings": {
+      "title": "Class recordings",
+      "file": "Recording"
     }
   },
   "material": {

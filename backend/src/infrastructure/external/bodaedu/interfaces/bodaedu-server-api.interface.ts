@@ -2,6 +2,7 @@ import type {
   BodaCloseRequest,
   BodaJoinLogEntry,
   BodaMeetInfo,
+  BodaRecordingEntry,
 } from '../bodaedu.types';
 
 /**
@@ -36,7 +37,26 @@ export interface BodaServerAuth {
  */
 export interface IBodaeduServerClient {
   /** 404 → null. 5xx/timeout → BodaeduUnavailableException. */
-  getMeetInfo(meetKey: string, auth?: BodaServerAuth): Promise<BodaMeetInfo | null>;
+  getMeetInfo(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaMeetInfo | null>;
+
+  /** PLN-260728F C — 녹화 이력 조회 (searchType=ROOM, meetKey). */
+  listRecordings(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaRecordingEntry[]>;
+
+  /** PLN-260728F C — 녹화 파일 스트리밍 다운로드 (Basic 인증 프록시). */
+  downloadRecording(
+    recordIdx: number,
+    auth?: BodaServerAuth,
+  ): Promise<{
+    stream: NodeJS.ReadableStream;
+    contentType: string | null;
+    contentLength: number | null;
+  }>;
 
   /**
    * 강제 폐쇄. BODA 가 idempotent 보장하지 않으면 호출 측이 룸 상태로 가드.
@@ -45,7 +65,10 @@ export interface IBodaeduServerClient {
   closeMeet(req: BodaCloseRequest, auth?: BodaServerAuth): Promise<void>;
 
   /** 비어있는 결과는 빈 배열. 5xx/timeout → BodaeduUnavailableException. */
-  getJoinLog(meetKey: string, auth?: BodaServerAuth): Promise<BodaJoinLogEntry[]>;
+  getJoinLog(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaJoinLogEntry[]>;
 }
 
 export const BODAEDU_SERVER_CLIENT = Symbol('BODAEDU_SERVER_CLIENT');

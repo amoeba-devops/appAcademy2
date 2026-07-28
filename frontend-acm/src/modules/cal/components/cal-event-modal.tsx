@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
+import DOMPurify from 'dompurify';
 import { FilePreviewDialog } from '@/modules/csl/components/file-preview-dialog';
 import {
   useCalEvent,
@@ -840,6 +841,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </fieldset>
           )}
 
+          {/* PLN-260728F B — 강사 피드백·과제 (관리자 확인용, 읽기전용) */}
+          {isEdit && initial && <AdminReviewView evtId={initial.id} />}
+
           {/* PLN-260718 — BODA 화상강의실 박스는 참석자 아래로 이동 */}
           {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
             <BodaRoomPanel evtId={initial.id} />
@@ -1048,9 +1052,86 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   );
 }
 
+interface ClassRecordRow {
+  kind: string;
+  name: string | null;
+  joinedAt: string;
+  leftAt: string | null;
+  totalSeconds: number | null;
+}
+
+// PLN-260728F B — 강사가 포털에서 작성한 피드백/과제를 관리자 모달에서 확인.
+function AdminReviewView({ evtId }: { evtId: string }) {
+  const { t } = useTranslation('cal');
+  const { data: review } = useQuery({
+    queryKey: ['cal', 'review', evtId],
+    queryFn: async () =>
+      (
+        await apiClient.get<{
+          feedbackHtml: string | null;
+          homeworkStatus: 'ASSIGNED' | 'NONE' | null;
+          homeworkHtml: string | null;
+          updatedAt: string | null;
+        }>(`/acm/cal/events/${evtId}/review`)
+      ).data,
+  });
+  if (!review || (!review.feedbackHtml && review.homeworkStatus == null)) {
+    return null;
+  }
+  const classDone = !!review.feedbackHtml?.trim() && review.homeworkStatus != null;
+  return (
+    <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4">
+      <legend className="px-1 text-xs font-semibold text-secondary">
+        {t('review.sectionTitle', '수업 피드백·과제 (강사 작성)')}
+        {classDone && (
+          <span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+            ✓ {t('review.doneFull', '수업완료')}
+          </span>
+        )}
+      </legend>
+      {review.feedbackHtml ? (
+        <div>
+          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+            📝 {t('review.feedbackLabel', '피드백')}
+          </div>
+          <div
+            className="doc-prose max-w-none rounded bg-[var(--canvas-subtle)] px-3 py-2 text-sm"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(review.feedbackHtml) }}
+          />
+        </div>
+      ) : (
+        <p className="text-[11px] text-secondary">{t('review.noFeedbackYet', '피드백 미작성')}</p>
+      )}
+      {review.homeworkStatus === 'NONE' ? (
+        <p className="text-sm text-secondary">📚 {t('review.noHomework', '과제 없음')}</p>
+      ) : review.homeworkStatus === 'ASSIGNED' && review.homeworkHtml ? (
+        <div>
+          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+            📚 {t('review.homeworkLabel', '과제')}
+          </div>
+          <div
+            className="doc-prose max-w-none rounded bg-[var(--canvas-subtle)] px-3 py-2 text-sm"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(review.homeworkHtml) }}
+          />
+        </div>
+      ) : null}
+    </fieldset>
+  );
+}
+
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
   const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
+  // PLN-260728F A — 참석자 입·퇴실 기록.
+  const { data: record } = useQuery({
+    queryKey: ['cal', 'class-record', evtId],
+    queryFn: async () =>
+      (
+        await apiClient.get<{ participants: ClassRecordRow[] } | null>(
+          `/acm/cal/events/${evtId}/class-record`,
+        )
+      ).data,
+  });
   const closeMut = useBodaForceClose(evtId);
   const reconMut = useBodaReconcile(evtId);
 
@@ -1153,6 +1234,40 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
           </li>
         )}
       </ul>
+
+      {record && record.participants.length > 0 && (
+        <div className="rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-2">
+          <div className="mb-1 text-[11px] font-semibold text-secondary">
+            {t('boda.attendance', '참석자 입·퇴실 기록')}
+          </div>
+          <ul className="space-y-0.5 text-[11px]">
+            {record.participants.map((p, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                    p.kind === 'TEACHER'
+                      ? 'bg-purple-100 text-purple-700'
+                      : p.kind === 'STUDENT'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {t(`boda.kind.${p.kind}`, p.kind)}
+                </span>
+                <span className="font-medium text-primary">{p.name ?? '-'}</span>
+                <span className="text-secondary">
+                  {new Date(p.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {' → '}
+                  {p.leftAt
+                    ? new Date(p.leftAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : t('boda.stillIn', '접속 중')}
+                  {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex gap-2 pt-1">
         <Button

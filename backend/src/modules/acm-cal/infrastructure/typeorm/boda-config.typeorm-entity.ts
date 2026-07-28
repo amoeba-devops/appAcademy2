@@ -49,7 +49,12 @@ export class BodaConfigTypeormEntity {
    * 1:N(그룹) 수업용 roomCode. 벤더 발급값(TPI = 881). null 이면 1:N 개설 불가
    * (createPending 이 422 BODA_GROUP_ROOM_CODE_MISSING). @see FIX-260724
    */
-  @Column({ name: 'bdc_group_room_code', type: 'varchar', length: 30, nullable: true })
+  @Column({
+    name: 'bdc_group_room_code',
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
   groupRoomCode?: string | null;
 
   // ── 비밀 (BYTEA, AES-GCM 암호화) ───────────────────────────────────

@@ -3,7 +3,9 @@ import { isIpInBodaAllowlist } from './bodaedu-webhook-allowlist.util';
 describe('isIpInBodaAllowlist', () => {
   describe('exact IP match', () => {
     it('allows exact match', () => {
-      expect(isIpInBodaAllowlist('1.2.3.4', '1.2.3.4')).toEqual({ allowed: true });
+      expect(isIpInBodaAllowlist('1.2.3.4', '1.2.3.4')).toEqual({
+        allowed: true,
+      });
     });
 
     it('denies a different IP', () => {
@@ -16,7 +18,9 @@ describe('isIpInBodaAllowlist', () => {
 
   describe('CIDR match', () => {
     it('allows IP within /24', () => {
-      expect(isIpInBodaAllowlist('10.0.0.123', '10.0.0.0/24')).toEqual({ allowed: true });
+      expect(isIpInBodaAllowlist('10.0.0.123', '10.0.0.0/24')).toEqual({
+        allowed: true,
+      });
     });
 
     it('denies IP outside /24', () => {
@@ -27,11 +31,15 @@ describe('isIpInBodaAllowlist', () => {
     });
 
     it('allows IP within /16', () => {
-      expect(isIpInBodaAllowlist('192.168.50.99', '192.168.0.0/16')).toEqual({ allowed: true });
+      expect(isIpInBodaAllowlist('192.168.50.99', '192.168.0.0/16')).toEqual({
+        allowed: true,
+      });
     });
 
     it('0.0.0.0/0 lets everything through', () => {
-      expect(isIpInBodaAllowlist('203.0.113.7', '0.0.0.0/0')).toEqual({ allowed: true });
+      expect(isIpInBodaAllowlist('203.0.113.7', '0.0.0.0/0')).toEqual({
+        allowed: true,
+      });
     });
 
     it('rejects malformed CIDR silently (no match, no throw)', () => {
@@ -55,7 +63,9 @@ describe('isIpInBodaAllowlist', () => {
     });
 
     it('ignores blank entries', () => {
-      expect(isIpInBodaAllowlist('1.2.3.4', '  , 1.2.3.4,, ')).toEqual({ allowed: true });
+      expect(isIpInBodaAllowlist('1.2.3.4', '  , 1.2.3.4,, ')).toEqual({
+        allowed: true,
+      });
     });
   });
 

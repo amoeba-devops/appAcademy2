@@ -152,7 +152,15 @@
     "confirmForceClose": "确定强制关闭进行中的教室?",
     "reconcileResult": "同步完成",
     "forceCloseResult": "已关闭",
-    "notProvisioned": "尚未创建 BODA 教室。"
+    "notProvisioned": "尚未创建 BODA 教室。",
+    "attendance": "出入教室记录",
+    "stillIn": "在教室中",
+    "kind": {
+      "TEACHER": "老师",
+      "STUDENT": "学生",
+      "OPERATOR": "管理员",
+      "UNKNOWN": "未知"
+    }
   },
   "instant": {
     "btnLabel": "立即开课",
@@ -205,5 +213,16 @@
       "size": "文件必须小于或等于20MB。",
       "count": "最多可添加 {{max}} 个附件。"
     }
+  },
+  "review": {
+    "done": "完成",
+    "doneFull": "课程完成",
+    "feedback": "已写反馈",
+    "homework": "已布置作业",
+    "noHomework": "无作业",
+    "sectionTitle": "课程反馈·作业（老师撰写）",
+    "feedbackLabel": "反馈",
+    "homeworkLabel": "作业",
+    "noFeedbackYet": "尚无反馈"
   }
 }

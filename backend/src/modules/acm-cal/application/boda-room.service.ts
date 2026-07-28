@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,7 +17,10 @@ import {
   type IBodaeduServerClient,
 } from '../../../infrastructure/external/bodaedu/interfaces/bodaedu-server-api.interface';
 import { BODA_EVENT_CODES } from '../../../infrastructure/external/bodaedu/bodaedu.types';
-import { BodaRoomTypeormEntity, type BodaRoomStatus } from '../infrastructure/typeorm/boda-room.typeorm-entity';
+import {
+  BodaRoomTypeormEntity,
+  type BodaRoomStatus,
+} from '../infrastructure/typeorm/boda-room.typeorm-entity';
 import { BodaConfigService } from './boda-config.service';
 
 /**
@@ -30,7 +34,9 @@ const MEET_KEY_PREFIX = 'tac-';
 function makeMeetKey(evtId: string): string {
   const hex = evtId.replace(/-/g, '').toLowerCase();
   if (!/^[0-9a-f]{32}$/.test(hex)) {
-    throw new BadRequestException(`Invalid evtId UUID — cannot build meetKey: ${evtId}`);
+    throw new BadRequestException(
+      `Invalid evtId UUID — cannot build meetKey: ${evtId}`,
+    );
   }
   return `${MEET_KEY_PREFIX}${hex}`;
 }
@@ -92,7 +98,10 @@ export class BodaRoomService {
       // back to manual URL. We surface this as 422 so the controller picks it
       // up and shows a meaningful error to the operator.
       throw new HttpException(
-        { code: 'BODA_DISABLED_FOR_TENANT', message: 'BODA integration is disabled' },
+        {
+          code: 'BODA_DISABLED_FOR_TENANT',
+          message: 'BODA integration is disabled',
+        },
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
@@ -112,7 +121,10 @@ export class BodaRoomService {
           );
         }
       }
-      return { room: existing, launcherUrl: this.buildLauncherUrl(input.evtId) };
+      return {
+        room: existing,
+        launcherUrl: this.buildLauncherUrl(input.evtId),
+      };
     }
 
     const roomCode = this.resolveRoomCode(cfg, roomType);
@@ -202,6 +214,26 @@ export class BodaRoomService {
    * SERVER API failure we still proceed to delete the row (FK CASCADE handles
    * participant cleanup). T6 / vendor reconcile catches any drift.
    */
+  /** PLN-260728F C — 이벤트의 녹화 목록 (종료된 강의). */
+  async listRecordings(evtId: string, entId: string) {
+    const room = await this.repo.findOne({ where: { evtId, entId } });
+    if (!room?.meetKey) return [];
+    const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
+    return this.server.listRecordings(room.meetKey, auth);
+  }
+
+  /** PLN-260728F C — 녹화 파일 스트리밍 (권한검증은 컨트롤러, 타 방 녹화 차단). */
+  async downloadRecording(evtId: string, entId: string, recordIdx: number) {
+    const room = await this.repo.findOne({ where: { evtId, entId } });
+    if (!room?.meetKey) throw new NotFoundException('ROOM_NOT_FOUND');
+    const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
+    const list = await this.server.listRecordings(room.meetKey, auth);
+    if (!list.some((r) => r.recordIdx === recordIdx)) {
+      throw new NotFoundException('RECORDING_NOT_FOUND');
+    }
+    return this.server.downloadRecording(recordIdx, auth);
+  }
+
   async closeAndDelete(evtId: string, entId: string): Promise<void> {
     const room = await this.repo.findOne({ where: { evtId, entId } });
     if (!room) return; // nothing to do
@@ -227,7 +259,10 @@ export class BodaRoomService {
   // Lookups (controllers)
   // -------------------------------------------------------------------------
 
-  findByEvtId(evtId: string, entId: string): Promise<BodaRoomTypeormEntity | null> {
+  findByEvtId(
+    evtId: string,
+    entId: string,
+  ): Promise<BodaRoomTypeormEntity | null> {
     return this.repo.findOne({ where: { evtId, entId } });
   }
 
@@ -242,14 +277,20 @@ export class BodaRoomService {
   async applyEvent(
     meetKey: string,
     eventCode: number,
-    payload: { meetIdx?: string | null; eventAt?: Date; closeType?: string | null },
+    payload: {
+      meetIdx?: string | null;
+      eventAt?: Date;
+      closeType?: string | null;
+    },
   ): Promise<BodaRoomTypeormEntity | null> {
     const room = await this.repo.findOne({ where: { meetKey } });
     if (!room) {
       // event arrived before our row exists — possible if BODA fired before
       // ACM finished saving (race) or for a meetKey we don't own. Caller
       // (webhook handler) should still log payload to event_log for audit.
-      this.logger.warn(`BODA event for unknown meetKey=${meetKey} code=${eventCode}`);
+      this.logger.warn(
+        `BODA event for unknown meetKey=${meetKey} code=${eventCode}`,
+      );
       return null;
     }
     const at = payload.eventAt ?? new Date();
@@ -306,7 +347,11 @@ export class BodaRoomService {
   // Admin force close — bypasses the webhook path (FR-ADMIN-1)
   // -------------------------------------------------------------------------
 
-  async forceClose(evtId: string, entId: string, actorUserId: string): Promise<BodaRoomTypeormEntity> {
+  async forceClose(
+    evtId: string,
+    entId: string,
+    actorUserId: string,
+  ): Promise<BodaRoomTypeormEntity> {
     const room = await this.repo.findOne({ where: { evtId, entId } });
     if (!room) {
       throw new HttpException(
@@ -349,7 +394,10 @@ export class BodaRoomService {
    * the launch page at this path; nginx + Vite handle the route.
    */
   private buildLauncherUrl(evtId: string): string {
-    const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(/\/$/, '');
+    const base = (this.config.get<string>('FRONTEND_URL') ?? '').replace(
+      /\/$/,
+      '',
+    );
     return `${base}/portal/classroom/${evtId}`;
   }
 }

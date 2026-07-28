@@ -195,6 +195,12 @@ function MonthGrid({
                 <span className="truncate">
                   {timeLabel(e)} {e.title}
                 </span>
+                {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
+                {e.classDone && (
+                  <span className="shrink-0 rounded bg-emerald-100 px-0.5 text-[8px] font-semibold text-emerald-800">
+                    ✓
+                  </span>
+                )}
               </button>
             ))}
             {dayEvents.length > 3 && (
@@ -251,6 +257,14 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
     >
       <span className="w-16 shrink-0 text-sm text-secondary">{timeLabel(e) || '—'}</span>
       <span className="min-w-0 flex-1 truncate text-sm text-primary">{e.title}</span>
+      {/* PLN-260728F B — 피드백/과제 아이콘 + 수업완료 */}
+      {e.hasFeedback && <span className="shrink-0 text-xs">📝</span>}
+      {e.homeworkStatus === 'ASSIGNED' && <span className="shrink-0 text-xs">📚</span>}
+      {e.classDone && (
+        <span className="shrink-0 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+          ✓
+        </span>
+      )}
       {e.assigneeName && <span className="text-xs text-secondary">{e.assigneeName}</span>}
       {e.meetingProvider === 'BODASCHOOL' && (
         <Video size={14} className="shrink-0 text-accent-700" />

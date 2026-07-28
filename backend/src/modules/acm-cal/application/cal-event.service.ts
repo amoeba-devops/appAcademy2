@@ -20,6 +20,7 @@ import {
 } from '../infrastructure/typeorm/cal-event-revision.typeorm-entity';
 import { CalInviteeService } from './cal-invitee.service';
 import { CalEventAttachmentService } from './cal-event-attachment.service';
+import { CalEventReviewService } from './cal-event-review.service';
 import type {
   CreateCalEventDto,
   ListCalEventsQueryDto,
@@ -69,6 +70,7 @@ export class CalEventService {
     private readonly notifier: InviteeNotifierService,
     private readonly bodaRoomSvc: BodaRoomService,
     private readonly eventAttachmentSvc: CalEventAttachmentService,
+    private readonly reviewSvc: CalEventReviewService,
   ) {}
 
   async list(
@@ -233,6 +235,19 @@ export class CalEventService {
     };
   }
 
+  /** PLN-260728F B — 담당강사 검증용 경량 메타. */
+  async getEventMeta(
+    entId: string,
+    evtId: string,
+  ): Promise<{ assigneeTchId: string | null }> {
+    const e = await this.repo.findOne({
+      where: { id: evtId, entId, deletedAt: IsNull() },
+      select: { id: true, assigneeTchId: true },
+    });
+    if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
+    return { assigneeTchId: e.assigneeTchId ?? null };
+  }
+
   /**
    * PLN-260718 P2 — assert the portal caller is related to the event before
    * streaming an attachment. Reuses the same scope as getForPortal; throws
@@ -315,6 +330,11 @@ export class CalEventService {
       entId,
       items.map((i) => i.id),
     );
+    // PLN-260728F B — 수업완료 배지용 플래그.
+    const reviewFlags = await this.reviewSvc.flagsForEvents(
+      entId,
+      items.map((i) => i.id),
+    );
     const primaryStudents = await this.inviteeSvc.primaryStudentNamesByEvent(
       entId,
       items.map((i) => i.id),
@@ -331,6 +351,9 @@ export class CalEventService {
         ? (assigneeMap.get(e.assigneeTchId)?.email ?? null)
         : null,
       inviteeCount: counts.get(e.id) ?? 0,
+      hasFeedback: reviewFlags.get(e.id)?.hasFeedback ?? false,
+      homeworkStatus: reviewFlags.get(e.id)?.homeworkStatus ?? null,
+      classDone: reviewFlags.get(e.id)?.classDone ?? false,
       primaryStudentName:
         primaryStudents.get(e.id) ??
         this.extractStudentNameFromTitle(e.title) ??

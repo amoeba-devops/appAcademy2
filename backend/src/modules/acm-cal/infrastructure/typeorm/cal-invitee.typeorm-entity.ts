@@ -30,10 +30,20 @@ export class CalInviteeTypeormEntity {
   @Column({ name: 'inv_notified_at', type: 'timestamptz', nullable: true })
   notifiedAt?: Date | null;
 
-  @Column({ name: 'inv_notify_status', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'inv_notify_status',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   notifyStatus?: CalInviteeNotifyStatus | null;
 
-  @Column({ name: 'inv_notify_error', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'inv_notify_error',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   notifyError?: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })

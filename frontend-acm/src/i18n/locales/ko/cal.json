@@ -152,7 +152,15 @@
     "confirmForceClose": "진행 중인 룸을 강제 폐쇄하시겠습니까?",
     "reconcileResult": "재동기화 완료",
     "forceCloseResult": "폐쇄 완료",
-    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다."
+    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다.",
+    "attendance": "참석자 입·퇴실 기록",
+    "stillIn": "접속 중",
+    "kind": {
+      "TEACHER": "강사",
+      "STUDENT": "학생",
+      "OPERATOR": "운영자",
+      "UNKNOWN": "미확인"
+    }
   },
   "instant": {
     "btnLabel": "즉시 강의 개설",
@@ -205,5 +213,16 @@
       "size": "파일은 20MB 이하만 가능합니다.",
       "count": "최대 {{max}}개까지 첨부할 수 있습니다."
     }
+  },
+  "review": {
+    "done": "완료",
+    "doneFull": "수업완료",
+    "feedback": "피드백 작성됨",
+    "homework": "과제 등록됨",
+    "noHomework": "과제 없음",
+    "sectionTitle": "수업 피드백·과제 (강사 작성)",
+    "feedbackLabel": "피드백",
+    "homeworkLabel": "과제",
+    "noFeedbackYet": "피드백 미작성"
   }
 }

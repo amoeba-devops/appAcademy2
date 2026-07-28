@@ -12,9 +12,15 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { CalEventService } from '../application/cal-event.service';
+import { BodaRecordService } from '../application/boda-record.service';
+import { CalEventReviewService } from '../application/cal-event-review.service';
+import { BodaRoomService } from '../application/boda-room.service';
 import {
   CreateCalEventDto,
   DeleteCalEventDto,
@@ -27,7 +33,44 @@ import {
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
 @Controller('acm/cal/events')
 export class CalEventController {
-  constructor(private readonly svc: CalEventService) {}
+  constructor(
+    private readonly svc: CalEventService,
+    private readonly recordSvc: BodaRecordService,
+    private readonly reviewSvc: CalEventReviewService,
+    private readonly roomSvc: BodaRoomService,
+  ) {}
+
+  @Get(':id/recordings')
+  @ApiOperation({ summary: '녹화 목록 — 관리자/강사 콘솔 (PLN-260728F C)' })
+  recordings(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.roomSvc.listRecordings(id, u.entId);
+  }
+
+  @Get(':id/review')
+  @ApiOperation({
+    summary: '수업 피드백·과제 조회 — 관리자 확인용 (PLN-260728F B)',
+  })
+  review(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.reviewSvc.get(u.entId, id);
+  }
+
+  @Get(':id/class-record')
+  @ApiOperation({
+    summary:
+      '보다 강의실 실적 기록 — 개설/시작/종료 시각 + 참석자 입·퇴실 (PLN-260728F)',
+  })
+  classRecord(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.recordSvc.getClassRecord(u.entId, id, { scope: 'ALL' });
+  }
 
   @Get()
   @ApiOperation({ summary: 'List calendar events in range (FR-CAL-001)' })
@@ -37,7 +80,10 @@ export class CalEventController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get event detail (FR-CAL-002)' })
-  findOne(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+  findOne(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.svc.findOne(u.entId, u.id, u.role ?? 'ADMIN', id);
   }
 
@@ -67,7 +113,9 @@ export class CalEventController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete event — 삭제 사유 필수 (FR-CAL-005 / REQ-260728)' })
+  @ApiOperation({
+    summary: 'Soft-delete event — 삭제 사유 필수 (FR-CAL-005 / REQ-260728)',
+  })
   remove(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,

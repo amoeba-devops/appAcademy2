@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -84,11 +79,11 @@ export class BodaConfigService {
     const authKeyEnc =
       dto.authKey !== undefined
         ? this.encryptOr503('authKey', dto.authKey)
-        : existing?.authKeyEnc ?? null;
+        : (existing?.authKeyEnc ?? null);
     const eventSecretEnc =
       dto.eventSecret !== undefined
         ? this.encryptOr503('eventSecret', dto.eventSecret)
-        : existing?.eventSecretEnc ?? null;
+        : (existing?.eventSecretEnc ?? null);
 
     if (!existing) {
       // First creation requires the public URL fields + companyCode/Id/roomCode.
@@ -177,9 +172,12 @@ export class BodaConfigService {
   async getServerApiAuth(entId: string): Promise<BodaServerAuth | null> {
     if (!this.cryptoKey) return null;
     const row = await this.repo.findOne({ where: { entId } });
-    if (!row?.svrUrl || !row.companyCode || !row.authKeyEnc?.length) return null;
+    if (!row?.svrUrl || !row.companyCode || !row.authKeyEnc?.length)
+      return null;
     const authKey = decryptBodaCredential(row.authKeyEnc, this.cryptoKey);
-    const basicAuth = Buffer.from(`${row.companyCode}:${authKey}`).toString('base64');
+    const basicAuth = Buffer.from(`${row.companyCode}:${authKey}`).toString(
+      'base64',
+    );
     return { baseUrl: row.svrUrl, basicAuth };
   }
 

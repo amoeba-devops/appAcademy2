@@ -152,7 +152,15 @@
     "confirmForceClose": "Force-close the live room?",
     "reconcileResult": "Resync done",
     "forceCloseResult": "Closed",
-    "notProvisioned": "BODA room not provisioned yet."
+    "notProvisioned": "BODA room not provisioned yet.",
+    "attendance": "Attendance (join/leave)",
+    "stillIn": "in room",
+    "kind": {
+      "TEACHER": "Teacher",
+      "STUDENT": "Student",
+      "OPERATOR": "Operator",
+      "UNKNOWN": "Unknown"
+    }
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -205,5 +213,16 @@
       "size": "Files must be 20MB or smaller.",
       "count": "Up to {{max}} attachments allowed."
     }
+  },
+  "review": {
+    "done": "Done",
+    "doneFull": "Class done",
+    "feedback": "Feedback written",
+    "homework": "Homework assigned",
+    "noHomework": "No homework",
+    "sectionTitle": "Class feedback & homework (by teacher)",
+    "feedbackLabel": "Feedback",
+    "homeworkLabel": "Homework",
+    "noFeedbackYet": "No feedback yet"
   }
 }
