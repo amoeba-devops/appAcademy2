@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "create": "작성",
+    "save": "저장",
+    "delete": "삭제",
+    "action": "작업"
+  },
+  "filters": {
+    "title": "필터"
+  },
+  "toast": {
+    "error": "문제가 발생했습니다."
+  },
+  "posts": {
+    "title": "공지 · 게시글",
+    "empty": "선택한 필터에 해당하는 게시글이 없습니다.",
+    "listSummary": "게시글 {{count}}건",
+    "filter": {
+      "status": "상태",
+      "category": "분류"
+    },
+    "table": {
+      "title": "제목",
+      "category": "분류",
+      "status": "상태",
+      "publishedAt": "게시일",
+      "createdAt": "작성일"
+    },
+    "status": {
+      "all": "전체",
+      "DRAFT": "임시저장",
+      "PUBLISHED": "게시됨",
+      "ARCHIVED": "보관됨"
+    },
+    "category": {
+      "all": "전체",
+      "NOTICE": "공지",
+      "EVENT": "이벤트",
+      "RESULT": "결과"
+    },
+    "editor": {
+      "createTitle": "공지 작성",
+      "editTitle": "공지 수정",
+      "createLead": "포털에 노출할 공지·게시글을 작성하고 게시 상태를 관리합니다.",
+      "editLead": "게시글 내용·분류·게시 설정을 수정합니다.",
+      "created": "공지를 작성했습니다.",
+      "updated": "공지를 수정했습니다.",
+      "deleted": "공지를 삭제했습니다.",
+      "deleteConfirm": "이 공지를 삭제할까요? 되돌릴 수 없습니다.",
+      "loading": "불러오는 중…",
+      "fetchError": "공지를 불러오지 못했습니다.",
+      "sideNote": "게시된 공지는 포털 뉴스 목록에 노출됩니다.",
+      "field": {
+        "title": "제목",
+        "slug": "URL 슬러그",
+        "coverImageUrl": "표지 이미지 URL",
+        "bodyMd": "본문 (마크다운)",
+        "category": "분류",
+        "status": "상태",
+        "publishedAt": "게시일시"
+      },
+      "slugHint": "영소문자·숫자·하이픈(-)만 가능합니다. 제목 입력 시 자동 생성되며 수정할 수 있어요.",
+      "slugInvalid": "URL 슬러그 형식이 올바르지 않습니다 (예: notice-2026-07).",
+      "coverInvalid": "표지 이미지 URL 형식이 올바르지 않습니다.",
+      "saveFailed": "저장 실패"
+    }
+  },
+  "notifications": {
+    "title": "알림 내역",
+    "empty": "선택한 필터에 해당하는 알림이 없습니다.",
+    "totalCount": "총 {{count}}건",
+    "resendSuccess": "재발송을 요청했습니다.",
+    "filter": {
+      "status": "상태"
+    },
+    "table": {
+      "event": "이벤트",
+      "channel": "채널",
+      "recipient": "수신자",
+      "status": "상태",
+      "sentAt": "발송",
+      "createdAt": "생성"
+    },
+    "actions": {
+      "resend": "재발송"
+    }
+  }
+}
