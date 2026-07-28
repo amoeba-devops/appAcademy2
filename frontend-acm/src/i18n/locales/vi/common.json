@@ -37,7 +37,8 @@
       "notices": "Thông báo",
       "calendar": "Lịch học",
       "materials": "Tài liệu",
-      "students": "Học sinh của tôi"
+      "students": "Học sinh của tôi",
+      "chat": "Trò chuyện sảnh"
     },
     "login": {
       "title": "Đăng nhập cổng học viện",
@@ -194,7 +195,8 @@
     "cal": "Lịch học",
     "map": "Câu hỏi MAP cũ",
     "config": "Cấu hình",
-    "systemAdmin": "Quản trị hệ thống"
+    "systemAdmin": "Quản trị hệ thống",
+    "chat": "Trò chuyện sảnh"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -358,5 +360,27 @@
         "description": "Cài đặt tích hợp lớp học trực tuyến BODA"
       }
     }
+  },
+  "talk": {
+    "newChannel": "Kênh mới",
+    "newDm": "DM mới",
+    "create": "Tạo",
+    "startDm": "Bắt đầu",
+    "channelNamePlaceholder": "Tên phòng",
+    "searchMember": "Tìm theo tên (vận hành/giáo viên)",
+    "noResult": "Không có kết quả.",
+    "noChannels": "Chưa có phòng trò chuyện.",
+    "selectChannel": "Chọn một phòng trò chuyện.",
+    "noMessages": "Chưa có tin nhắn.",
+    "members": "Thành viên",
+    "manageMembers": "Quản lý thành viên",
+    "loadOlder": "Xem tin nhắn cũ hơn",
+    "inputPlaceholder": "Nhập tin nhắn…",
+    "attachFile": "Gửi tệp (≤50MB)",
+    "confirmDeleteMessage": "Xóa tin nhắn này?",
+    "dmReuseHint": "Nếu đã có DM với người này, bạn sẽ được chuyển đến phòng đó.",
+    "kindOperator": "Vận hành",
+    "kindTeacher": "Giáo viên",
+    "teacherOnly": "Chỉ dành cho giáo viên."
   }
 }

@@ -41,6 +41,9 @@ import { PortalCalendarPage } from '@/modules/portal-app/pages/portal-calendar-p
 import { PortalCalEventDetailPage } from '@/modules/portal-app/pages/portal-cal-event-detail-page';
 import { PortalMaterialsPage } from '@/modules/portal-app/pages/portal-materials-page';
 import { PortalDocPage } from '@/modules/portal-app/pages/portal-doc-page';
+// REQ-260728C — 로비채팅
+import { AdminChatPage } from '@/modules/talk/pages/admin-chat-page';
+import { PortalChatPage } from '@/modules/talk/pages/portal-chat-page';
 import { PortalTeacherStudentsPage } from '@/modules/portal-app/pages/portal-teacher-students-page';
 import {
   PortalNoticesPage,
@@ -160,6 +163,8 @@ export const router = createBrowserRouter([
       // PLN-260719 B — 문서 게시판 (작성/뷰/편집)
       { path: 'materials/docs/new', element: <PortalDocPage /> },
       { path: 'materials/docs/:docId', element: <PortalDocPage /> },
+      // REQ-260728C — 로비채팅 (강사 전용)
+      { path: 'chat', element: <PortalChatPage /> },
     ],
   },
 
@@ -194,6 +199,8 @@ export const router = createBrowserRouter([
       { path: 'enrollments', element: <EnrollmentsListPage /> },
       { path: 'qna', element: <QnaListPage /> },
       { path: 'qna/categories', element: <QnaCategoriesPage /> },
+      // REQ-260728C — 로비채팅 (운영자)
+      { path: 'chat', element: <AdminChatPage /> },
       // REQ-260621 — Configuration: landing card menu + per-integration pages.
       { path: 'config', element: <ConfigLandingPage /> },
       { path: 'config/ama', element: <AmaConfigPage /> },

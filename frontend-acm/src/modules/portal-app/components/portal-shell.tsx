@@ -1,6 +1,13 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CalendarRange, FolderOpen, LogOut, Users } from 'lucide-react';
+import {
+  Bell,
+  CalendarRange,
+  FolderOpen,
+  LogOut,
+  MessagesSquare,
+  Users,
+} from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 
@@ -13,6 +20,8 @@ const NAV = [
   { to: '/portal/calendar', icon: CalendarRange, key: 'calendar', end: false },
   { to: '/portal/students', icon: Users, key: 'students', end: false, teacherOnly: true },
   { to: '/portal/materials', icon: FolderOpen, key: 'materials', end: false },
+  // REQ-260728C — 로비채팅 (강사 전용)
+  { to: '/portal/chat', icon: MessagesSquare, key: 'chat', end: false, teacherOnly: true },
 ];
 
 export function PortalShell() {

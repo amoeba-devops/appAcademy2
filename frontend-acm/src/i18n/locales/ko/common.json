@@ -37,7 +37,8 @@
       "notices": "공지사항",
       "calendar": "수업일정",
       "materials": "문서/자료실",
-      "students": "수강생관리"
+      "students": "수강생관리",
+      "chat": "로비채팅"
     },
     "login": {
       "title": "학원 포털 로그인",
@@ -194,7 +195,8 @@
     "cal": "수업일정",
     "map": "MAP 기출문제",
     "config": "설정",
-    "systemAdmin": "시스템 관리"
+    "systemAdmin": "시스템 관리",
+    "chat": "로비채팅"
   },
   "lang": {
     "label": "언어",
@@ -358,5 +360,27 @@
         "description": "BODA(보다에듀) 화상 강의실 연동 설정"
       }
     }
+  },
+  "talk": {
+    "newChannel": "새 채널",
+    "newDm": "새 DM",
+    "create": "개설",
+    "startDm": "시작",
+    "channelNamePlaceholder": "방 이름",
+    "searchMember": "이름 검색 (운영자/강사)",
+    "noResult": "결과가 없습니다.",
+    "noChannels": "대화방이 없습니다.",
+    "selectChannel": "대화방을 선택하세요.",
+    "noMessages": "아직 메시지가 없습니다.",
+    "members": "참여자",
+    "manageMembers": "멤버관리",
+    "loadOlder": "이전 메시지 보기",
+    "inputPlaceholder": "메시지 입력…",
+    "attachFile": "파일 전송 (≤50MB)",
+    "confirmDeleteMessage": "이 메시지를 삭제할까요?",
+    "dmReuseHint": "같은 상대와의 기존 DM이 있으면 그 방으로 이동합니다.",
+    "kindOperator": "운영자",
+    "kindTeacher": "강사",
+    "teacherOnly": "강사만 이용할 수 있습니다."
   }
 }

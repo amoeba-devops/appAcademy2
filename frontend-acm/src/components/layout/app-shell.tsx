@@ -7,6 +7,7 @@ import {
   BookOpen,
   BookOpenCheck,
   MessageCircleQuestion,
+  MessagesSquare,
   Newspaper,
   Bell,
   ClipboardList,
@@ -41,6 +42,8 @@ const NAV = [
   { to: '/admin/enrollments', icon: ClipboardList, key: 'enrollments' },
   { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
+  // REQ-260728C — 로비채팅 (운영자↔강사)
+  { to: '/admin/chat', icon: MessagesSquare, key: 'chat' },
   { to: '/admin/config', icon: Settings, key: 'config' },
 ] as const;
 

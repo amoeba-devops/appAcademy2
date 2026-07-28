@@ -21,6 +21,11 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<TransformedResponse<T>> {
+    // REQ-260728C: @Sse 핸들러는 이벤트 스트림(MessageEvent) 을 emit 한다 —
+    // 각 이벤트를 { success, data } 로 감싸면 SSE payload 형식이 깨진다.
+    if (Reflect.getMetadata('__sse__', context.getHandler())) {
+      return next.handle() as Observable<TransformedResponse<T>>;
+    }
     return next.handle().pipe(
       map((data) => {
         // FIX-260512: pass binary/stream responses through unwrapped so Nest's
