@@ -200,6 +200,10 @@
       "noHomework": "Không có bài tập",
       "noHomeworkYet": "Chưa có thông tin bài tập.",
       "attachFile": "Đính kèm tệp"
+    },
+    "recordings": {
+      "title": "Bản ghi buổi học",
+      "file": "Bản ghi"
     }
   },
   "material": {

@@ -130,12 +130,13 @@ export class BodaWebhookController {
           | number
           | undefined,
       ),
-      userId: typeof body?.userId === 'string'
-        ? body.userId
-        : typeof body?.UId === 'string'
-          ? body.UId
-          : null,
-      payload: (body ?? {}) as Record<string, unknown>,
+      userId:
+        typeof body?.userId === 'string'
+          ? body.userId
+          : typeof body?.UId === 'string'
+            ? body.UId
+            : null,
+      payload: body ?? {},
       srcIp,
     });
     return result.deduped ? { ok: true, deduped: true } : { ok: true };
@@ -144,9 +145,10 @@ export class BodaWebhookController {
   private parseEventAt(raw: string | number | undefined): Date {
     if (raw === undefined || raw === null || raw === '') return new Date();
     // unix 초(정수 또는 숫자 문자열) — SPEC_823 eventDatetime.
-    const n = typeof raw === 'number' ? raw : /^\d{10}$/.test(raw) ? Number(raw) : NaN;
+    const n =
+      typeof raw === 'number' ? raw : /^\d{10}$/.test(raw) ? Number(raw) : NaN;
     if (Number.isFinite(n)) return new Date(n * 1000);
-    const d = new Date(raw as string);
+    const d = new Date(raw);
     return Number.isNaN(d.getTime()) ? new Date() : d;
   }
 

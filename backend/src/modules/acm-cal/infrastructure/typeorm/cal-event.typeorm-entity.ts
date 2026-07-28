@@ -9,14 +9,22 @@ export type CalCategory =
   | 'DEMO_CLASS'
   | 'REGULAR_CLASS'
   | 'OTHER';
-export type CalMeetingProvider = 'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
+export type CalMeetingProvider =
+  | 'NONE'
+  | 'GOOGLE_MEET'
+  | 'BODASCHOOL'
+  | 'OTHER';
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 /** BODA 룸 유형 — 1:1 수업(699) vs 1:N 그룹 수업(881). @see FIX-260724 */
 export type CalBodaRoomType = 'ONE_TO_ONE' | 'ONE_TO_MANY';
 
 @Entity('amb_acm_cal_event')
-@Index('idx_acm_cal_evt_ent_range', ['entId', 'startAt'], { where: 'deleted_at IS NULL' })
-@Index('idx_acm_cal_evt_owner_range', ['entId', 'ownerUserId', 'startAt'], { where: 'deleted_at IS NULL' })
+@Index('idx_acm_cal_evt_ent_range', ['entId', 'startAt'], {
+  where: 'deleted_at IS NULL',
+})
+@Index('idx_acm_cal_evt_owner_range', ['entId', 'ownerUserId', 'startAt'], {
+  where: 'deleted_at IS NULL',
+})
 export class CalEventTypeormEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'evt_id' })
   id!: string;
@@ -27,7 +35,12 @@ export class CalEventTypeormEntity {
   @Column({ name: 'evt_owner_user_id', type: 'uuid' })
   ownerUserId!: string;
 
-  @Column({ name: 'evt_category', type: 'varchar', length: 20, default: 'CLASS' })
+  @Column({
+    name: 'evt_category',
+    type: 'varchar',
+    length: 20,
+    default: 'CLASS',
+  })
   category!: CalCategory;
 
   @Column({ name: 'evt_title', type: 'varchar', length: 200 })
@@ -45,13 +58,28 @@ export class CalEventTypeormEntity {
   @Column({ name: 'evt_all_day', type: 'boolean', default: false })
   allDay!: boolean;
 
-  @Column({ name: 'evt_location_text', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'evt_location_text',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   locationText?: string | null;
 
-  @Column({ name: 'evt_meeting_provider', type: 'varchar', length: 20, default: 'NONE' })
+  @Column({
+    name: 'evt_meeting_provider',
+    type: 'varchar',
+    length: 20,
+    default: 'NONE',
+  })
   meetingProvider!: CalMeetingProvider;
 
-  @Column({ name: 'evt_meeting_url', type: 'varchar', length: 500, nullable: true })
+  @Column({
+    name: 'evt_meeting_url',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
   meetingUrl?: string | null;
 
   /**
@@ -59,7 +87,12 @@ export class CalEventTypeormEntity {
    * 이 값으로 roomCode(1:1=defaultRoomCode / 1:N=groupRoomCode)를 고른다.
    * @see FIX-260724
    */
-  @Column({ name: 'evt_boda_room_type', type: 'varchar', length: 12, default: 'ONE_TO_ONE' })
+  @Column({
+    name: 'evt_boda_room_type',
+    type: 'varchar',
+    length: 12,
+    default: 'ONE_TO_ONE',
+  })
   bodaRoomType!: CalBodaRoomType;
 
   @Column({ name: 'evt_cls_id', type: 'uuid', nullable: true })
@@ -72,7 +105,12 @@ export class CalEventTypeormEntity {
   @Column({ name: 'evt_assignee_tch_id', type: 'uuid', nullable: true })
   assigneeTchId?: string | null;
 
-  @Column({ name: 'evt_source', type: 'varchar', length: 20, default: 'MANUAL' })
+  @Column({
+    name: 'evt_source',
+    type: 'varchar',
+    length: 20,
+    default: 'MANUAL',
+  })
   source!: CalSource;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
@@ -85,7 +123,12 @@ export class CalEventTypeormEntity {
   deletedAt?: Date | null;
 
   /** REQ-260728 — 삭제 사유(필수 입력) + 삭제자. soft-delete 시 채움. */
-  @Column({ name: 'evt_delete_reason', type: 'varchar', length: 500, nullable: true })
+  @Column({
+    name: 'evt_delete_reason',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
   deleteReason?: string | null;
 
   @Column({ name: 'evt_deleted_by', type: 'uuid', nullable: true })

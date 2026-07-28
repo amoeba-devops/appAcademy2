@@ -29,9 +29,8 @@ import type { PortalAuthUser } from '../../acm-auth/application/portal-account.s
 import { CalEventService } from '../application/cal-event.service';
 import { CalEventAttachmentService } from '../application/cal-event-attachment.service';
 import { BodaRecordService } from '../application/boda-record.service';
-import {
-  CalEventReviewService,
-} from '../application/cal-event-review.service';
+import { BodaRoomService } from '../application/boda-room.service';
+import { CalEventReviewService } from '../application/cal-event-review.service';
 import type { CalHomeworkStatus } from '../infrastructure/typeorm/cal-event-review.typeorm-entity';
 import { ListCalEventsQueryDto } from '../application/dto/cal-event.dto';
 
@@ -49,7 +48,40 @@ export class PortalCalController {
     private readonly attachmentSvc: CalEventAttachmentService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
+    private readonly roomSvc: BodaRoomService,
   ) {}
+
+  // ── 녹화본 (PLN-260728F C) ──────────────────────────────────────────
+
+  @Get(':id/recordings')
+  @ApiOperation({ summary: '종료된 보다 강의 녹화 목록 (관련자)' })
+  async recordings(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
+    return this.roomSvc.listRecordings(id, u.entId);
+  }
+
+  @Get(':id/recordings/:recordIdx/download')
+  @ApiOperation({ summary: '녹화 파일 다운로드 (백엔드 프록시 스트리밍)' })
+  async downloadRecording(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('recordIdx') recordIdxRaw: string,
+    @Res() res: Response,
+  ) {
+    await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
+    const recordIdx = Number(recordIdxRaw);
+    const dl = await this.roomSvc.downloadRecording(id, u.entId, recordIdx);
+    res.setHeader('Content-Type', dl.contentType ?? 'video/mp4');
+    if (dl.contentLength) res.setHeader('Content-Length', dl.contentLength);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="recording-${recordIdx}.mp4"`,
+    );
+    dl.stream.pipe(res);
+  }
 
   // ── 피드백·과제 (PLN-260728F B) ─────────────────────────────────────
 
@@ -117,7 +149,10 @@ export class PortalCalController {
     summary:
       '강의실 실적 기록 — 강사=전체 참석자, 학생=본인, 학부모=자녀 (PLN-260728F)',
   })
-  async classRecord(@PortalUser() u: PortalAuthUser, @Param('id', ParseUUIDPipe) id: string) {
+  async classRecord(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
     const viewer =
       u.kind === 'TEACHER'

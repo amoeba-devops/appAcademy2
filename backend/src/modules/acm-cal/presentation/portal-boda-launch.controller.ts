@@ -18,7 +18,9 @@ export class PortalBodaLaunchController {
   constructor(private readonly svc: BodaLaunchContextService) {}
 
   @Get('launch-context')
-  @ApiOperation({ summary: 'BODA launch context for my (student/parent) class event' })
+  @ApiOperation({
+    summary: 'BODA launch context for my (student/parent) class event',
+  })
   launch(
     @PortalUser() u: PortalAuthUser,
     @Query('evtId') evtId: string,

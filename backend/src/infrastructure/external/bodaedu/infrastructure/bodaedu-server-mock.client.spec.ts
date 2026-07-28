@@ -9,20 +9,26 @@ describe('BodaeduServerMockClient', () => {
 
   describe('getMeetInfo', () => {
     it('returns STARTED by default (most meetKeys)', async () => {
-      const info = await client.getMeetInfo('tac-0123456789abcdef0123456789abcde0');
+      const info = await client.getMeetInfo(
+        'tac-0123456789abcdef0123456789abcde0',
+      );
       expect(info?.status).toBe('STARTED');
       expect(info?.meetIdx).toMatch(/^m-/);
       expect(info?.currentUserCount).toBe(2);
     });
 
     it('returns PENDING when meetKey ends in "2"', async () => {
-      const info = await client.getMeetInfo('tac-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2');
+      const info = await client.getMeetInfo(
+        'tac-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2',
+      );
       expect(info?.status).toBe('PENDING');
       expect(info?.meetIdx).toBeNull();
     });
 
     it('returns ENDED when meetKey ends in "1"', async () => {
-      const info = await client.getMeetInfo('tac-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1');
+      const info = await client.getMeetInfo(
+        'tac-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb1',
+      );
       expect(info?.status).toBe('ENDED');
       expect(info?.openedAt).toBeTruthy();
       expect(info?.endedAt).toBeTruthy();
@@ -43,9 +49,9 @@ describe('BodaeduServerMockClient', () => {
     });
 
     it('throws when meetKey ends in "f"', async () => {
-      await expect(
-        client.closeMeet({ meetKey: 'tac-xxxxf' }),
-      ).rejects.toThrow(/MOCK_FAIL/);
+      await expect(client.closeMeet({ meetKey: 'tac-xxxxf' })).rejects.toThrow(
+        /MOCK_FAIL/,
+      );
     });
   });
 

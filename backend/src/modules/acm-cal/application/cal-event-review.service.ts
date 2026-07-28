@@ -107,7 +107,10 @@ export class CalEventReviewService {
   }
 
   /** 담당강사 검증 — 이벤트의 assigneeTchId 와 포털 강사 refId 일치 필요. */
-  assertAssignee(assigneeTchId: string | null | undefined, tchId: string): void {
+  assertAssignee(
+    assigneeTchId: string | null | undefined,
+    tchId: string,
+  ): void {
     if (!assigneeTchId || assigneeTchId !== tchId) {
       throw new ForbiddenException('NOT_ASSIGNEE_TEACHER');
     }

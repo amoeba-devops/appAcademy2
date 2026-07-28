@@ -55,7 +55,11 @@ export class BodaReconcileService {
   // -------------------------------------------------------------------------
 
   @Cron('*/5 * * * *', { name: 'boda-reconcile-sweep' })
-  async sweep(): Promise<{ scanned: number; reconciled: number; closed: number }> {
+  async sweep(): Promise<{
+    scanned: number;
+    reconciled: number;
+    closed: number;
+  }> {
     // ENDED rooms that haven't been reconciled yet, ordered by oldest endedAt
     // so we don't starve in case of a backlog.
     const candidates = await this.roomRepo.find({
@@ -149,7 +153,8 @@ export class BodaReconcileService {
             refUserId: this.resolveRefUserId(entry.userId),
             joinedAt,
             leftAt,
-            totalSeconds: entry.totalSeconds ?? this.computeSeconds(joinedAt, leftAt),
+            totalSeconds:
+              entry.totalSeconds ?? this.computeSeconds(joinedAt, leftAt),
             clientType: entry.clientType ?? null,
           }),
         );
@@ -159,7 +164,8 @@ export class BodaReconcileService {
           { id: existing.id },
           {
             leftAt,
-            totalSeconds: entry.totalSeconds ?? this.computeSeconds(joinedAt, leftAt),
+            totalSeconds:
+              entry.totalSeconds ?? this.computeSeconds(joinedAt, leftAt),
             clientType: entry.clientType ?? existing.clientType ?? null,
           },
         );

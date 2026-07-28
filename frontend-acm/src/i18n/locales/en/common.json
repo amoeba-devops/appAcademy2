@@ -200,6 +200,10 @@
       "noHomework": "No homework",
       "noHomeworkYet": "No homework info yet.",
       "attachFile": "Attach file"
+    },
+    "recordings": {
+      "title": "Class recordings",
+      "file": "Recording"
     }
   },
   "material": {

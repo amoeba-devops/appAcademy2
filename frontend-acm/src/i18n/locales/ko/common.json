@@ -200,6 +200,10 @@
       "noHomework": "과제 없음",
       "noHomeworkYet": "아직 과제 정보가 없습니다.",
       "attachFile": "파일 첨부"
+    },
+    "recordings": {
+      "title": "수업 녹화본",
+      "file": "녹화"
     }
   },
   "material": {

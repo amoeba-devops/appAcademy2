@@ -97,7 +97,10 @@ export class BodaWebhookService {
     // Token gate — only enforced when a secret is configured.
     if (tokenConfigured) {
       if (receivedToken) {
-        const tok: VerifyResult = verifyBodaWebhookToken(sharedSecret, receivedToken);
+        const tok: VerifyResult = verifyBodaWebhookToken(
+          sharedSecret,
+          receivedToken,
+        );
         if (!tok.ok) return { ok: false, reason: tok.reason };
       } else if (!ipConfigured) {
         // Secret is the only configured factor and BODA sent no token.
@@ -162,7 +165,9 @@ export class BodaWebhookService {
       if (!input.meetKey) {
         // Some events arrive with meet_idx only. Try resolving via room repo
         // is not implemented at this layer — caller passes meetKey when present.
-        this.logger.warn(`webhook no meetKey, skipping room mutation: ${stamp}`);
+        this.logger.warn(
+          `webhook no meetKey, skipping room mutation: ${stamp}`,
+        );
         await this.markProcessed(input);
         return { deduped: false };
       }
@@ -190,7 +195,11 @@ export class BodaWebhookService {
       );
       // Persist the error for operator triage. The audit row already exists.
       await this.logRepo.update(
-        { entId: input.entId, eventCode: Number(input.eventCode), eventAt: input.eventAt },
+        {
+          entId: input.entId,
+          eventCode: Number(input.eventCode),
+          eventAt: input.eventAt,
+        },
         {
           error: (e instanceof Error ? e.message : String(e)).slice(0, 500),
         },
@@ -215,7 +224,9 @@ export class BodaWebhookService {
     if (!input.meetKey || !input.userId) return;
     const room = await this.rooms.findByMeetKey(input.meetKey);
     if (!room) {
-      this.logger.warn(`join for unknown meetKey=${input.meetKey} — skipping participant`);
+      this.logger.warn(
+        `join for unknown meetKey=${input.meetKey} — skipping participant`,
+      );
       return;
     }
 
@@ -232,7 +243,9 @@ export class BodaWebhookService {
     if (open) {
       const totalSeconds = Math.max(
         0,
-        Math.round((input.eventAt.getTime() - new Date(open.joinedAt).getTime()) / 1000),
+        Math.round(
+          (input.eventAt.getTime() - new Date(open.joinedAt).getTime()) / 1000,
+        ),
       );
       await this.partRepo.update(
         { id: open.id },
@@ -292,7 +305,9 @@ export class BodaWebhookService {
     }
     const totalSeconds = Math.max(
       0,
-      Math.round((input.eventAt.getTime() - new Date(open.joinedAt).getTime()) / 1000),
+      Math.round(
+        (input.eventAt.getTime() - new Date(open.joinedAt).getTime()) / 1000,
+      ),
     );
     await this.partRepo.update(
       { id: open.id },

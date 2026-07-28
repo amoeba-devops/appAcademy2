@@ -194,8 +194,10 @@ describe('BodaWebhookService', () => {
   });
 
   it('returns {deduped:true} on PG 23505 unique violation, no domain mutation', async () => {
-    const dup = new QueryFailedError('insert', [], new Error('dup') as unknown as Error);
-    (dup as unknown as { driverError: { code: string } }).driverError = { code: '23505' };
+    const dup = new QueryFailedError('insert', [], new Error('dup'));
+    (dup as unknown as { driverError: { code: string } }).driverError = {
+      code: '23505',
+    };
     logSave.mockRejectedValueOnce(dup);
 
     const r = await svc.handle({
@@ -214,8 +216,10 @@ describe('BodaWebhookService', () => {
   });
 
   it('rethrows non-unique DB errors so caller returns 5xx and BODA retries', async () => {
-    const other = new QueryFailedError('insert', [], new Error('boom') as unknown as Error);
-    (other as unknown as { driverError: { code: string } }).driverError = { code: '42P01' };
+    const other = new QueryFailedError('insert', [], new Error('boom'));
+    (other as unknown as { driverError: { code: string } }).driverError = {
+      code: '42P01',
+    };
     logSave.mockRejectedValueOnce(other);
 
     await expect(

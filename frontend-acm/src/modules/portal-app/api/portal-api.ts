@@ -41,6 +41,14 @@ export interface CalReview {
   updatedAt: string | null;
 }
 
+export interface BodaRecording {
+  recordIdx: number;
+  recordTitle: string | null;
+  startDatetime: string | null;
+  endDatetime: string | null;
+  fileExist: boolean;
+}
+
 export interface ClassRecordParticipant {
   kind: string;
   refId: string | null;
@@ -309,6 +317,29 @@ export const portalApi = {
 
   deleteHomeworkFile: async (evtId: string, attId: string) => {
     await apiClient.delete(`/portal/cal/events/${evtId}/attachments/${attId}`);
+  },
+
+  // PLN-260728F C — 녹화본.
+  recordings: async (evtId: string) =>
+    (
+      await apiClient.get<BodaRecording[]>(
+        `/portal/cal/events/${evtId}/recordings`,
+      )
+    ).data,
+
+  downloadRecording: async (evtId: string, recordIdx: number) => {
+    const res = await apiClient.get(
+      `/portal/cal/events/${evtId}/recordings/${recordIdx}/download`,
+      { responseType: 'blob', timeout: 0 },
+    );
+    const url = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recording-${recordIdx}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   },
 
   // PLN-260728F A — 강의실 실적 기록 (개설/시작/종료 + 입·퇴실).

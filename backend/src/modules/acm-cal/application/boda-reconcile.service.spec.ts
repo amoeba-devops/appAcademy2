@@ -32,7 +32,9 @@ describe('BodaReconcileService', () => {
   let cfgFindByEntId: jest.Mock;
   let getJoinLog: jest.Mock;
 
-  const makeRoom = (overrides: Partial<BodaRoomTypeormEntity> = {}): BodaRoomTypeormEntity => ({
+  const makeRoom = (
+    overrides: Partial<BodaRoomTypeormEntity> = {},
+  ): BodaRoomTypeormEntity => ({
     id: 'r-1',
     entId: 'ent-1',
     evtId: 'e-1',
@@ -50,7 +52,7 @@ describe('BodaReconcileService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  } as BodaRoomTypeormEntity);
+  });
 
   beforeEach(async () => {
     roomFind = jest.fn();

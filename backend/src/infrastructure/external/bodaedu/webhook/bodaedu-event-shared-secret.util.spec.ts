@@ -2,7 +2,10 @@ import { verifyBodaWebhookToken } from './bodaedu-event-shared-secret.util';
 
 describe('verifyBodaWebhookToken', () => {
   it('returns ok when tokens match exactly', () => {
-    const res = verifyBodaWebhookToken('shared-secret-12345', 'shared-secret-12345');
+    const res = verifyBodaWebhookToken(
+      'shared-secret-12345',
+      'shared-secret-12345',
+    );
     expect(res).toEqual({ ok: true });
   });
 
@@ -39,7 +42,9 @@ describe('verifyBodaWebhookToken', () => {
   });
 
   it('handles unicode tokens correctly', () => {
-    expect(verifyBodaWebhookToken('한글토큰xyz', '한글토큰xyz')).toEqual({ ok: true });
+    expect(verifyBodaWebhookToken('한글토큰xyz', '한글토큰xyz')).toEqual({
+      ok: true,
+    });
     expect(verifyBodaWebhookToken('한글토큰xyz', '한글토큰abc')).toEqual({
       ok: false,
       reason: 'INVALID_TOKEN',

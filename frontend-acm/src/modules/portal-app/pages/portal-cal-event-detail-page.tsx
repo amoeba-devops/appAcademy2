@@ -141,6 +141,8 @@ export function PortalCalEventDetailPage() {
 
           <ClassRecordSection evtId={event.id} isBoda={isBoda} />
 
+          <RecordingsSection evtId={event.id} isBoda={isBoda} />
+
           <ReviewSection
             evtId={event.id}
             assigneeTchId={event.assigneeTchId ?? null}
@@ -201,6 +203,67 @@ export function PortalCalEventDetailPage() {
           )}
         </article>
       )}
+    </div>
+  );
+}
+
+// PLN-260728F C — 종료된 보다 강의 녹화본 다운로드.
+function RecordingsSection({ evtId, isBoda }: { evtId: string; isBoda: boolean }) {
+  const { t } = useTranslation('common');
+  const [downloading, setDownloading] = useState<number | null>(null);
+  const { data: recs = [] } = useQuery({
+    enabled: isBoda,
+    queryKey: ['portal-recordings', evtId],
+    queryFn: () => portalApi.recordings(evtId),
+  });
+  const files = recs.filter((r) => r.fileExist);
+  if (!isBoda || files.length === 0) return null;
+
+  const fmtDT = (v: string | null) =>
+    v && v.length >= 12
+      ? `${v.slice(4, 6)}/${v.slice(6, 8)} ${v.slice(8, 10)}:${v.slice(10, 12)}`
+      : '';
+
+  return (
+    <div className="mt-4">
+      <div className="mb-1 text-xs text-secondary">
+        🎬 {t('portalApp.recordings.title', '수업 녹화본')}
+      </div>
+      <ul className="grid gap-1">
+        {files.map((r) => (
+          <li
+            key={r.recordIdx}
+            className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
+          >
+            <span className="min-w-0 flex-1 truncate">
+              {r.recordTitle || `${t('portalApp.recordings.file', '녹화')} #${r.recordIdx}`}
+            </span>
+            <span className="shrink-0 text-[11px] text-secondary">
+              {fmtDT(r.startDatetime)}
+              {r.endDatetime ? ` ~ ${fmtDT(r.endDatetime)}` : ''}
+            </span>
+            <button
+              type="button"
+              disabled={downloading === r.recordIdx}
+              onClick={async () => {
+                setDownloading(r.recordIdx);
+                try {
+                  await portalApi.downloadRecording(evtId, r.recordIdx);
+                } finally {
+                  setDownloading(null);
+                }
+              }}
+              className="shrink-0 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-100)] disabled:opacity-50"
+            >
+              {downloading === r.recordIdx ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                t('portalApp.cal.download', '다운로드')
+              )}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

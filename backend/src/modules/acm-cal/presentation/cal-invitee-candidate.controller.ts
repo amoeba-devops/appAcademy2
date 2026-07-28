@@ -17,7 +17,9 @@ export class CalInviteeCandidateController {
   constructor(private readonly svc: CalInviteeService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Search candidate invitees (students/teachers/parents)' })
+  @ApiOperation({
+    summary: 'Search candidate invitees (students/teachers/parents)',
+  })
   search(
     @CurrentUser() u: AcmCurrentUser,
     @Query() q: ListInviteeCandidatesQueryDto,

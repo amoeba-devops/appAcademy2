@@ -52,9 +52,15 @@ export class CalInviteeService {
   ): Promise<void> {
     if (inputs.length === 0) return;
 
-    const stdIds = inputs.filter((i) => i.kind === 'STUDENT').map((i) => i.refId);
-    const tchIds = inputs.filter((i) => i.kind === 'TEACHER').map((i) => i.refId);
-    const parIds = inputs.filter((i) => i.kind === 'PARENT').map((i) => i.refId);
+    const stdIds = inputs
+      .filter((i) => i.kind === 'STUDENT')
+      .map((i) => i.refId);
+    const tchIds = inputs
+      .filter((i) => i.kind === 'TEACHER')
+      .map((i) => i.refId);
+    const parIds = inputs
+      .filter((i) => i.kind === 'PARENT')
+      .map((i) => i.refId);
 
     const checks: Promise<unknown>[] = [];
     if (stdIds.length > 0) {
@@ -178,18 +184,48 @@ export class CalInviteeService {
       stdIds.length > 0
         ? this.students
             .find({ where: { id: In(stdIds), entId } })
-            .then((s) => new Map(s.map((x) => [x.id, { name: x.name, email: x.email ?? null }])))
-        : Promise.resolve(new Map<string, { name: string; email: string | null }>()),
+            .then(
+              (s) =>
+                new Map(
+                  s.map((x) => [
+                    x.id,
+                    { name: x.name, email: x.email ?? null },
+                  ]),
+                ),
+            )
+        : Promise.resolve(
+            new Map<string, { name: string; email: string | null }>(),
+          ),
       tchIds.length > 0
         ? this.teachers
             .find({ where: { id: In(tchIds), entId } })
-            .then((t) => new Map(t.map((x) => [x.id, { name: x.name, email: x.email ?? null }])))
-        : Promise.resolve(new Map<string, { name: string; email: string | null }>()),
+            .then(
+              (t) =>
+                new Map(
+                  t.map((x) => [
+                    x.id,
+                    { name: x.name, email: x.email ?? null },
+                  ]),
+                ),
+            )
+        : Promise.resolve(
+            new Map<string, { name: string; email: string | null }>(),
+          ),
       parIds.length > 0
         ? this.parents
             .find({ where: { id: In(parIds), entId } })
-            .then((p) => new Map(p.map((x) => [x.id, { name: x.name, email: x.email ?? null }])))
-        : Promise.resolve(new Map<string, { name: string; email: string | null }>()),
+            .then(
+              (p) =>
+                new Map(
+                  p.map((x) => [
+                    x.id,
+                    { name: x.name, email: x.email ?? null },
+                  ]),
+                ),
+            )
+        : Promise.resolve(
+            new Map<string, { name: string; email: string | null }>(),
+          ),
     ]);
 
     return rows.map((r) => {
@@ -328,9 +364,12 @@ export class CalInviteeService {
         .where('t.entId = :entId', { entId })
         .andWhere('t.deletedAt IS NULL');
       if (like) {
-        qb.andWhere('(t.name ILIKE :q OR t.englishName ILIKE :q OR t.email ILIKE :q)', {
-          q: like,
-        });
+        qb.andWhere(
+          '(t.name ILIKE :q OR t.englishName ILIKE :q OR t.email ILIKE :q)',
+          {
+            q: like,
+          },
+        );
       }
       const rows = await qb.orderBy('t.name', 'ASC').take(limit).getMany();
       for (const r of rows) {
@@ -350,9 +389,12 @@ export class CalInviteeService {
         .where('p.entId = :entId', { entId })
         .andWhere('p.deletedAt IS NULL');
       if (like) {
-        qb.andWhere('(p.name ILIKE :q OR p.phone ILIKE :q OR p.email ILIKE :q)', {
-          q: like,
-        });
+        qb.andWhere(
+          '(p.name ILIKE :q OR p.phone ILIKE :q OR p.email ILIKE :q)',
+          {
+            q: like,
+          },
+        );
       }
       const rows = await qb.orderBy('p.name', 'ASC').take(limit).getMany();
       for (const r of rows) {
@@ -366,7 +408,9 @@ export class CalInviteeService {
       }
     }
 
-    LOG.debug?.(`searchCandidates ent=${entId} kind=${kind ?? 'ALL'} q=${q ?? ''} → ${out.length}`);
+    LOG.debug?.(
+      `searchCandidates ent=${entId} kind=${kind ?? 'ALL'} q=${q ?? ''} → ${out.length}`,
+    );
     return out;
   }
 }
