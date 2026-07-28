@@ -82,17 +82,33 @@ export class BodaRecordService {
       left_at: string | null;
       total_seconds: number | null;
     }> = await this.ds.query(
-      `SELECT p.bdp_user_kind AS kind, p.bdp_ref_user_id AS ref_id,
+      // PLN-260729 1.2 — ref 매칭 실패 시 undashed uuid 직접 매칭 + kind 보정.
+      `SELECT
+              CASE
+                WHEN p.bdp_user_kind <> 'UNKNOWN' THEN p.bdp_user_kind
+                WHEN t.tch_id IS NOT NULL THEN 'TEACHER'
+                WHEN s.std_id IS NOT NULL THEN 'STUDENT'
+                WHEN u.usr_id IS NOT NULL THEN 'OPERATOR'
+                ELSE 'UNKNOWN'
+              END AS kind,
+              p.bdp_ref_user_id AS ref_id,
               COALESCE(s.std_name, t.tch_name, u.usr_name) AS name,
               p.bdp_joined_at AS joined_at, p.bdp_left_at AS left_at,
               p.bdp_total_seconds AS total_seconds
          FROM amb_acm_cal_boda_participant p
          LEFT JOIN amb_acm_std_student s
-           ON s.std_id = p.bdp_ref_user_id AND s.ent_id = p.ent_id
+           ON (s.std_id = p.bdp_ref_user_id
+               OR REPLACE(s.std_id::text, '-', '') = p.bdp_boda_user_id)
+          AND s.ent_id = p.ent_id
          LEFT JOIN amb_acm_tch_teacher t
-           ON t.tch_id = p.bdp_ref_user_id AND t.ent_id = p.ent_id
+           ON (t.tch_id = p.bdp_ref_user_id
+               OR REPLACE(t.tch_id::text, '-', '') = p.bdp_boda_user_id
+               OR t.tch_user_id = p.bdp_ref_user_id)
+          AND t.ent_id = p.ent_id
          LEFT JOIN amb_acm_user u
-           ON u.usr_id = p.bdp_ref_user_id AND u.ent_id = p.ent_id
+           ON (u.usr_id = p.bdp_ref_user_id
+               OR REPLACE(u.usr_id::text, '-', '') = p.bdp_boda_user_id)
+          AND u.ent_id = p.ent_id
         WHERE p.ent_id = $1 AND p.bdr_id = $2 ${scopeSql}
         ORDER BY p.bdp_joined_at ASC`,
       params,

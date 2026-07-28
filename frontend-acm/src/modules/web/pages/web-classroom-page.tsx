@@ -1,4 +1,8 @@
-import { useEffect, useRef } from 'react';
+import DOMPurify from 'dompurify';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
+import { portalApi } from '@/modules/portal-app/api/portal-api';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -43,11 +47,16 @@ export function WebClassroomPage() {
   // 어느 쪽으로도 진입 가능. 포털 세션 우선.
   const portalUser = useAuthStore((s) => s.portal.user);
   const acmUser = useAuthStore((s) => s.user);
-  const mode: 'portal' | 'console' | null = portalUser
-    ? 'portal'
-    : acmUser
+  // PLN-260729 1.3 — 포털 세션이 참석자가 아니면(운영자 등) 콘솔 세션으로 폴백.
+  const [forceConsole, setForceConsole] = useState(false);
+  const mode: 'portal' | 'console' | null =
+    forceConsole && acmUser
       ? 'console'
-      : null;
+      : portalUser
+        ? 'portal'
+        : acmUser
+          ? 'console'
+          : null;
   // Rules of Hooks: this must run on every render, before any early return
   // below — otherwise the hook count changes between renders (React #310).
   const [search] = useSearchParamsCompat();
@@ -58,6 +67,14 @@ export function WebClassroomPage() {
     portal: mode === 'portal',
     pollWhilePending: mode === 'portal',
   });
+
+  useEffect(() => {
+    if (forceConsole || mode !== 'portal' || !acmUser) return;
+    const code = (
+      ctxQuery.error as { response?: { data?: { code?: string } } } | null
+    )?.response?.data?.code;
+    if (code === 'NOT_AN_ATTENDEE') setForceConsole(true);
+  }, [ctxQuery.error, forceConsole, mode, acmUser]);
 
   // 콘솔 모드는 전용 status 폴링 엔드포인트 사용. 포털 모드는 위 컨텍스트 재조회로 대체.
   const shouldPoll =
@@ -121,6 +138,11 @@ export function WebClassroomPage() {
         )}
       </section>
 
+      {/* PLN-260729 1.2 — 강사 등록 피드백·과제 (피드백은 강사/운영자만 — 서버 규칙) */}
+      <section className="px-4 pb-8">
+        <ClassroomReview evtId={evtId!} mode={mode} />
+      </section>
+
       {/* Teacher autoStart path — invisible side-effect component.
           FIX-260703: 교사가 룸을 여는(bodaOpen) 동작이므로 PENDING 에서도 발화해야
           한다. 종료(ENDED/CLOSED) 상태만 제외 — 기존엔 LIVE(OPEN/STARTED/PAUSED)만
@@ -132,6 +154,69 @@ export function WebClassroomPage() {
         />
       )}
     </main>
+  );
+}
+
+// PLN-260729 1.2 — 강의실 페이지에 피드백(강사·운영자)·과제(전원) 노출.
+function ClassroomReview({
+  evtId,
+  mode,
+}: {
+  evtId: string;
+  mode: 'portal' | 'console' | null;
+}) {
+  const { t } = useTranslation('common');
+  const { data: review } = useQuery({
+    enabled: !!mode,
+    queryKey: ['classroom-review', mode, evtId],
+    queryFn: async () =>
+      mode === 'portal'
+        ? portalApi.calReview(evtId)
+        : (
+            await apiClient.get<{
+              feedbackHtml: string | null;
+              homeworkStatus: 'ASSIGNED' | 'NONE' | null;
+              homeworkHtml: string | null;
+            }>(`/acm/cal/events/${evtId}/review`)
+          ).data,
+  });
+  if (!review || (!review.feedbackHtml && review.homeworkStatus == null)) {
+    return null;
+  }
+  return (
+    <div className="mx-auto max-w-3xl space-y-3">
+      {review.feedbackHtml && (
+        <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3">
+          <div className="mb-1 text-xs font-semibold text-secondary">
+            📝 {t('portalApp.review.feedback', '수업 피드백')}
+          </div>
+          <div
+            className="doc-prose max-w-none text-sm text-primary"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(review.feedbackHtml),
+            }}
+          />
+        </div>
+      )}
+      {review.homeworkStatus === 'NONE' && (
+        <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-sm text-secondary">
+          📚 {t('portalApp.review.noHomework', '과제 없음')}
+        </div>
+      )}
+      {review.homeworkStatus === 'ASSIGNED' && review.homeworkHtml && (
+        <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3">
+          <div className="mb-1 text-xs font-semibold text-secondary">
+            📚 {t('portalApp.review.homework', '과제')}
+          </div>
+          <div
+            className="doc-prose max-w-none text-sm text-primary"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(review.homeworkHtml),
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

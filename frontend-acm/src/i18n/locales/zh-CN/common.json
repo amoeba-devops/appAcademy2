@@ -94,7 +94,10 @@
       "attendees": "相关人员",
       "materials": "附件",
       "download": "下载",
-      "owner": "创建人"
+      "owner": "创建人",
+      "filterStudent": "学生",
+      "filterCategory": "课程类型",
+      "all": "全部"
     },
     "notices": {
       "empty": "暂无公告。",
@@ -199,7 +202,9 @@
       "saveHomework": "保存作业",
       "noHomework": "无作业",
       "noHomeworkYet": "暂无作业信息。",
-      "attachFile": "附加文件"
+      "attachFile": "附加文件",
+      "textFeedback": "反馈",
+      "textHomework": "作业"
     },
     "recordings": {
       "title": "课程录像",

@@ -94,7 +94,10 @@
       "attendees": "Liên quan",
       "materials": "Tệp đính kèm",
       "download": "Tải xuống",
-      "owner": "Người tạo"
+      "owner": "Người tạo",
+      "filterStudent": "Học sinh",
+      "filterCategory": "Loại lớp",
+      "all": "Tất cả"
     },
     "notices": {
       "empty": "Không có thông báo.",
@@ -199,7 +202,9 @@
       "saveHomework": "Lưu bài tập",
       "noHomework": "Không có bài tập",
       "noHomeworkYet": "Chưa có thông tin bài tập.",
-      "attachFile": "Đính kèm tệp"
+      "attachFile": "Đính kèm tệp",
+      "textFeedback": "Phản hồi",
+      "textHomework": "Bài tập"
     },
     "recordings": {
       "title": "Bản ghi buổi học",

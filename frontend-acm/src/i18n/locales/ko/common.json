@@ -94,7 +94,10 @@
       "attendees": "관련자",
       "materials": "첨부자료",
       "download": "다운로드",
-      "owner": "작성자"
+      "owner": "작성자",
+      "filterStudent": "학생",
+      "filterCategory": "수업종류",
+      "all": "전체"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",
@@ -199,7 +202,9 @@
       "saveHomework": "과제 저장",
       "noHomework": "과제 없음",
       "noHomeworkYet": "아직 과제 정보가 없습니다.",
-      "attachFile": "파일 첨부"
+      "attachFile": "파일 첨부",
+      "textFeedback": "피드백",
+      "textHomework": "과제제출"
     },
     "recordings": {
       "title": "수업 녹화본",

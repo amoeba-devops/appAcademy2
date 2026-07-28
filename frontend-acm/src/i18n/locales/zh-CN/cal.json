@@ -14,7 +14,9 @@
     "day": "日",
     "week": "周",
     "month": "月",
-    "list": "列表"
+    "list": "列表",
+    "showAll": "查看全部",
+    "countSuffix": "项"
   },
   "category": {
     "CLASS": "课程",
@@ -180,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "尚未设置 BODA 默认房间代码。请在 设置 → BODA 集成 中填写后重试。",
       "BODA_DISABLED_FOR_TENANT": "BODA 集成已禁用。请在 设置 → BODA 集成 中启用后重试。"
-    }
+    },
+    "assigneeLabel": "负责老师（可开设）",
+    "assigneeNone": "- 未指定（创建者开设）-"
   },
   "filter": {
     "label": "筛选",
@@ -199,7 +203,8 @@
     "addAttendee": "添加参与人",
     "maxSelected": "最多可选择 {{n}} 个。",
     "studentLabel": "学生",
-    "allView": "全部"
+    "allView": "全部",
+    "categoryLabel": "课程类型"
   },
   "attach": {
     "section": "附件",
@@ -223,6 +228,19 @@
     "sectionTitle": "课程反馈·作业（老师撰写）",
     "feedbackLabel": "反馈",
     "homeworkLabel": "作业",
-    "noFeedbackYet": "尚无反馈"
+    "noFeedbackYet": "尚无反馈",
+    "textFeedback": "反馈",
+    "textHomework": "作业"
+  },
+  "stats": {
+    "title": "课程统计",
+    "btnLabel": "课程统计",
+    "btnTitle": "按期间/老师的课程统计",
+    "total": "总体统计",
+    "byTeacher": "按老师统计",
+    "classes": "节",
+    "done": "课程完成",
+    "empty": "该期间没有课程。",
+    "unassigned": "未指定"
   }
 }

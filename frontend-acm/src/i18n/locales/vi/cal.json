@@ -14,7 +14,9 @@
     "day": "Ngày",
     "week": "Tuần",
     "month": "Tháng",
-    "list": "Danh sách"
+    "list": "Danh sách",
+    "showAll": "Xem tất cả",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Lớp học",
@@ -180,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "Chưa thiết lập mã phòng mặc định của BODA. Vui lòng nhập tại Cài đặt → Tích hợp BODA rồi thử lại.",
       "BODA_DISABLED_FOR_TENANT": "Tích hợp BODA đang bị tắt. Vui lòng bật tại Cài đặt → Tích hợp BODA rồi thử lại."
-    }
+    },
+    "assigneeLabel": "GV phụ trách (mở phòng)",
+    "assigneeNone": "- Không (người tạo mở) -"
   },
   "filter": {
     "label": "Bộ lọc",
@@ -199,7 +203,8 @@
     "addAttendee": "Thêm người tham dự",
     "maxSelected": "Chỉ được chọn tối đa {{n}} mục.",
     "studentLabel": "Học sinh",
-    "allView": "Tất cả"
+    "allView": "Tất cả",
+    "categoryLabel": "Loại lớp"
   },
   "attach": {
     "section": "Tệp đính kèm",
@@ -223,6 +228,19 @@
     "sectionTitle": "Phản hồi & bài tập (GV viết)",
     "feedbackLabel": "Phản hồi",
     "homeworkLabel": "Bài tập",
-    "noFeedbackYet": "Chưa có phản hồi"
+    "noFeedbackYet": "Chưa có phản hồi",
+    "textFeedback": "Phản hồi",
+    "textHomework": "Bài tập"
+  },
+  "stats": {
+    "title": "Thống kê lớp học",
+    "btnLabel": "Thống kê",
+    "btnTitle": "Thống kê theo kỳ/giáo viên",
+    "total": "Tổng quan",
+    "byTeacher": "Theo giáo viên",
+    "classes": "buổi",
+    "done": "Hoàn thành",
+    "empty": "Không có lớp trong kỳ này.",
+    "unassigned": "Chưa gán"
   }
 }

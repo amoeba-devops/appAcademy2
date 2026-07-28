@@ -14,7 +14,9 @@
     "day": "Day",
     "week": "Week",
     "month": "Month",
-    "list": "List"
+    "list": "List",
+    "showAll": "View all",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Class",
@@ -180,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA default room code is not set. Enter it under Settings → BODA integration and try again.",
       "BODA_DISABLED_FOR_TENANT": "BODA integration is disabled. Enable it under Settings → BODA integration and try again."
-    }
+    },
+    "assigneeLabel": "Assigned teacher (can open)",
+    "assigneeNone": "- None (creator opens) -"
   },
   "filter": {
     "label": "Filter",
@@ -199,7 +203,8 @@
     "addAttendee": "Add attendee",
     "maxSelected": "You can select up to {{n}} entries.",
     "studentLabel": "Student",
-    "allView": "All"
+    "allView": "All",
+    "categoryLabel": "Class type"
   },
   "attach": {
     "section": "Attachments",
@@ -223,6 +228,19 @@
     "sectionTitle": "Class feedback & homework (by teacher)",
     "feedbackLabel": "Feedback",
     "homeworkLabel": "Homework",
-    "noFeedbackYet": "No feedback yet"
+    "noFeedbackYet": "No feedback yet",
+    "textFeedback": "Feedback",
+    "textHomework": "Homework"
+  },
+  "stats": {
+    "title": "Class stats",
+    "btnLabel": "Stats",
+    "btnTitle": "Class statistics by period/teacher",
+    "total": "Overall",
+    "byTeacher": "By teacher",
+    "classes": "",
+    "done": "Done",
+    "empty": "No classes in this period.",
+    "unassigned": "Unassigned"
   }
 }

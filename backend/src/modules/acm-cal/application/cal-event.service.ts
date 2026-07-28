@@ -41,6 +41,14 @@ export interface CslAttachmentSummary {
   createdAt: string;
 }
 
+/** PLN-260729 P3 — 수업통계 버킷. */
+export interface CalStatsBucket {
+  count: number;
+  minutes: number;
+  done: number;
+  byCategory: Record<string, number>;
+}
+
 export interface CslEventLinkSummary {
   kind: 'DEMO_CLASS' | 'LEVEL_TEST';
   inqId: string;
@@ -232,6 +240,77 @@ export class CalEventService {
       ...enriched,
       invitees: invitees.map((i) => ({ kind: i.kind, name: i.name })),
       attachments,
+    };
+  }
+
+  /** PLN-260729 P3 — 기간 수업통계 (전체 + 강사별). */
+  async stats(entId: string, from: string, to: string) {
+    const events = await this.repo
+      .createQueryBuilder('e')
+      .where('e.entId = :entId', { entId })
+      .andWhere('e.deletedAt IS NULL')
+      .andWhere('e.startAt < :to', { to: new Date(to) })
+      .andWhere('e.endAt > :from', { from: new Date(from) })
+      .getMany();
+    const flags = await this.reviewSvc.flagsForEvents(
+      entId,
+      events.map((e) => e.id),
+    );
+    const teacherMap = await this.lookupAssignees(
+      entId,
+      events.map((e) => e.assigneeTchId),
+    );
+
+    const minutesOf = (e: CalEventTypeormEntity) =>
+      e.allDay
+        ? 0
+        : Math.max(
+            0,
+            Math.round((e.endAt.getTime() - e.startAt.getTime()) / 60000),
+          );
+
+    const newBucket = (): CalStatsBucket => ({
+      count: 0,
+      minutes: 0,
+      done: 0,
+      byCategory: {},
+    });
+    const add = (b: CalStatsBucket, e: CalEventTypeormEntity) => {
+      b.count += 1;
+      b.minutes += minutesOf(e);
+      if (flags.get(e.id)?.classDone) b.done += 1;
+      b.byCategory[e.category] = (b.byCategory[e.category] ?? 0) + 1;
+    };
+
+    const total = newBucket();
+    const byTeacher = new Map<
+      string,
+      CalStatsBucket & { tchId: string | null; name: string }
+    >();
+    for (const e of events) {
+      add(total, e);
+      const key = e.assigneeTchId ?? '__none__';
+      let bucket = byTeacher.get(key);
+      if (!bucket) {
+        bucket = {
+          ...newBucket(),
+          tchId: e.assigneeTchId ?? null,
+          name: e.assigneeTchId
+            ? (teacherMap.get(e.assigneeTchId)?.name ?? '-')
+            : '미지정',
+        };
+        byTeacher.set(key, bucket);
+      }
+      add(bucket, e);
+    }
+
+    return {
+      from,
+      to,
+      total,
+      teachers: Array.from(byTeacher.values()).sort(
+        (a, b) => b.count - a.count,
+      ),
     };
   }
 
