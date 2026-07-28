@@ -14,6 +14,8 @@ import {
   useInviteeSuggestions,
   type InviteeSuggestion,
 } from '../hooks/use-instant-event';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
 import { useDemoSeedBodaConfig } from '@/lib/boda-demo-api';
 
 interface Props {
@@ -37,6 +39,19 @@ export function InstantClassModal({ open, onClose }: Props) {
   const { t } = useTranslation('cal');
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState<Duration>(90);
+  // PLN-260729 1.3 — 담당강사 지정(개설 권한). 미지정 시 등록자(운영자)만 개설 가능.
+  const [assigneeTchId, setAssigneeTchId] = useState('');
+  const { data: instTeachers = [] } = useQuery({
+    queryKey: ['acm', 'teachers'],
+    queryFn: async () => {
+      const res = await apiClient.get<
+        Array<{ id: string; name: string; email?: string }> | { items: Array<{ id: string; name: string; email?: string }> }
+      >('/acm/tch/teachers', { params: { status: 'ACTIVE', limit: 200 } });
+      const body = res.data;
+      return Array.isArray(body) ? body : (body?.items ?? []);
+    },
+    staleTime: 60_000,
+  });
   const [selectedRefIds, setSelectedRefIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +101,7 @@ export function InstantClassModal({ open, onClose }: Props) {
     setError(null);
     try {
       const result = await createMut.mutateAsync({
+        assigneeTchId: assigneeTchId || undefined,
         title: title.trim() || undefined,
         durationMin: duration,
         invitees: Array.from(selectedRefIds).map((refId) => ({
@@ -158,6 +174,26 @@ export function InstantClassModal({ open, onClose }: Props) {
               maxLength={200}
               disabled={isPending}
             />
+          </div>
+
+          {/* PLN-260729 1.3 — 담당강사 지정 (개설 권한) */}
+          <div>
+            <label className="block text-xs text-secondary mb-1">
+              {t('instant.assigneeLabel', '담당강사 (개설 권한)')}
+            </label>
+            <select
+              value={assigneeTchId}
+              onChange={(e) => setAssigneeTchId(e.target.value)}
+              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
+            >
+              <option value="">{t('instant.assigneeNone', '- 미지정 (등록자가 개설) -')}</option>
+              {instTeachers.map((tch) => (
+                <option key={tch.id} value={tch.id}>
+                  {tch.name}
+                  {tch.email ? ` (${tch.email})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Duration radio */}

@@ -182,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA default room code is not set. Enter it under Settings → BODA integration and try again.",
       "BODA_DISABLED_FOR_TENANT": "BODA integration is disabled. Enable it under Settings → BODA integration and try again."
-    }
+    },
+    "assigneeLabel": "Assigned teacher (can open)",
+    "assigneeNone": "- None (creator opens) -"
   },
   "filter": {
     "label": "Filter",

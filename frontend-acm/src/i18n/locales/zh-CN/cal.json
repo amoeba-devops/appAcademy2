@@ -182,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "尚未设置 BODA 默认房间代码。请在 设置 → BODA 集成 中填写后重试。",
       "BODA_DISABLED_FOR_TENANT": "BODA 集成已禁用。请在 设置 → BODA 集成 中启用后重试。"
-    }
+    },
+    "assigneeLabel": "负责老师（可开设）",
+    "assigneeNone": "- 未指定（创建者开设）-"
   },
   "filter": {
     "label": "筛选",

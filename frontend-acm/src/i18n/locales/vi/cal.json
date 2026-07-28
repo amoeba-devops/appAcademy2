@@ -182,7 +182,9 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "Chưa thiết lập mã phòng mặc định của BODA. Vui lòng nhập tại Cài đặt → Tích hợp BODA rồi thử lại.",
       "BODA_DISABLED_FOR_TENANT": "Tích hợp BODA đang bị tắt. Vui lòng bật tại Cài đặt → Tích hợp BODA rồi thử lại."
-    }
+    },
+    "assigneeLabel": "GV phụ trách (mở phòng)",
+    "assigneeNone": "- Không (người tạo mở) -"
   },
   "filter": {
     "label": "Bộ lọc",
