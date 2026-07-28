@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/components/ui/toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -93,17 +94,6 @@ export function PostEditorPage() {
     }));
   };
 
-  const handleSlugChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setSlugTouched(true);
-    setForm((prev) => ({ ...prev, slug: event.target.value }));
-  };
-
-  // 입력을 벗어날 때 slug 를 서버 규칙에 맞게 정규화.
-  const handleSlugBlur = () => {
-    setForm((prev) => ({ ...prev, slug: slugify(prev.slug) }));
-  };
-
-  const slugInvalid = form.slug.trim().length > 0 && !isValidSlug(form.slug.trim());
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -130,6 +120,13 @@ export function PostEditorPage() {
           category: form.category || 'NOTICE',
         };
         const created = await createPost.mutateAsync(payload);
+        // PLN-260728E P-1 — 신규작성에서도 상태·게시일 저장(create API 미수신 → 후속 PATCH).
+        if (form.status !== 'DRAFT' || form.publishedAt) {
+          await apiClient.patch(`/admin/posts/${created.id}`, {
+            status: form.status,
+            publishedAt: form.publishedAt || null,
+          });
+        }
         toast.success(t('posts.editor.created', 'Post created successfully.'));
         navigate(`/admin/posts/${created.id}`);
       } else {
@@ -197,73 +194,27 @@ export function PostEditorPage() {
             )}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {!isNew && (
-            <Button variant="outline" onClick={handleDelete} disabled={isBusy}>
-              {t('actions.delete', 'Delete')}
-            </Button>
-          )}
-          <Button type="submit" form="post-editor-form" disabled={isBusy}>
-            {isNew ? t('actions.create', 'Create Post') : t('actions.save', 'Save Changes')}
-          </Button>
-        </div>
       </div>
 
-      <form id="post-editor-form" className="space-y-6" onSubmit={handleSubmit}>
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_0.8fr]">
-          <div className="space-y-6 rounded-3xl border border-[var(--border-subtle)] bg-surface p-6 shadow-sm">
-            <div className="space-y-3">
-              <Label htmlFor="title">{t('posts.editor.field.title', 'Title')}</Label>
-              <input
-                id="title"
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
-                value={form.title}
-                onChange={handleTitleChange}
-                required
-              />
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="slug">{t('posts.editor.field.slug', 'URL slug')}</Label>
-              <input
-                id="slug"
-                className={`w-full rounded-md border bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700 ${
-                  slugInvalid ? 'border-red-300' : 'border-[var(--border-subtle)]'
-                }`}
-                value={form.slug}
-                onChange={handleSlugChange}
-                onBlur={handleSlugBlur}
-                placeholder="notice-2026-07"
-              />
-              <p className={`text-xs ${slugInvalid ? 'text-red-600' : 'text-secondary'}`}>
-                {slugInvalid
-                  ? t('posts.editor.slugInvalid')
-                  : t('posts.editor.slugHint')}
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="coverImageUrl">{t('posts.editor.field.coverImageUrl', 'Cover image URL')}</Label>
-              <input
-                id="coverImageUrl"
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
-                value={form.coverImageUrl}
-                onChange={handleChange('coverImageUrl')}
-              />
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="bodyMd">{t('posts.editor.field.bodyMd', 'Body (Markdown)')}</Label>
-              <textarea
-                id="bodyMd"
-                rows={12}
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
-                value={form.bodyMd}
-                onChange={handleChange('bodyMd')}
-                required
-              />
-            </div>
+      {/* PLN-260728E — 요구 레이아웃: 제목 → (슬러그·표지 숨김) → 분류·상태·게시일 → 본문 → 삭제·저장 */}
+      <form id="post-editor-form" className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-5 rounded-3xl border border-[var(--border-subtle)] bg-surface p-6 shadow-sm">
+          {/* 제목 */}
+          <div className="space-y-2">
+            <Label htmlFor="title">{t('posts.editor.field.title', 'Title')}</Label>
+            <input
+              id="title"
+              className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
+              value={form.title}
+              onChange={handleTitleChange}
+              required
+            />
+            {/* URL 슬러그·표지 이미지 URL 은 숨김(슬러그는 제목에서 자동 생성). */}
           </div>
 
-          <div className="space-y-6 rounded-3xl border border-[var(--border-subtle)] bg-surface p-6 shadow-sm">
-            <div className="space-y-3">
+          {/* 분류 · 상태 · 게시일 (한 행) */}
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
               <Label htmlFor="category">{t('posts.editor.field.category', 'Category')}</Label>
               <select
                 id="category"
@@ -278,41 +229,60 @@ export function PostEditorPage() {
                 ))}
               </select>
             </div>
-
-            {!isNew && (
-              <div className="space-y-3">
-                <Label htmlFor="status">{t('posts.editor.field.status', 'Status')}</Label>
-                <select
-                  id="status"
-                  className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
-                  value={form.status}
-                  onChange={handleChange('status')}
-                >
-                  {STATUS_VALUES.map((value) => (
-                    <option key={value} value={value}>
-                      {t(`posts.status.${value}`)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {!isNew && (
-              <div className="space-y-3">
-                <Label htmlFor="publishedAt">{t('posts.editor.field.publishedAt', 'Published At')}</Label>
-                <input
-                  id="publishedAt"
-                  type="datetime-local"
-                  className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
-                  value={form.publishedAt}
-                  onChange={handleChange('publishedAt')}
-                />
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--gray-50)] p-4 text-sm text-secondary">
-              <p>{t('posts.editor.sideNote', 'Published posts become visible in the public portal news feed.')}</p>
+            <div className="space-y-2">
+              <Label htmlFor="status">{t('posts.editor.field.status', 'Status')}</Label>
+              <select
+                id="status"
+                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
+                value={form.status}
+                onChange={handleChange('status')}
+              >
+                {STATUS_VALUES.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`posts.status.${value}`)}
+                  </option>
+                ))}
+              </select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="publishedAt">{t('posts.editor.field.publishedAt', 'Published At')}</Label>
+              <input
+                id="publishedAt"
+                type="datetime-local"
+                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
+                value={form.publishedAt}
+                onChange={handleChange('publishedAt')}
+              />
+            </div>
+          </div>
+
+          {/* 본문 */}
+          <div className="space-y-2">
+            <Label htmlFor="bodyMd">{t('posts.editor.field.bodyMd', 'Body (Markdown)')}</Label>
+            <textarea
+              id="bodyMd"
+              rows={14}
+              className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary outline-none focus:border-accent-700"
+              value={form.bodyMd}
+              onChange={handleChange('bodyMd')}
+              required
+            />
+          </div>
+
+          <p className="text-xs text-secondary">
+            {t('posts.editor.sideNote', 'Published posts become visible in the public portal news feed.')}
+          </p>
+
+          {/* 삭제 · 저장 */}
+          <div className="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-4">
+            {!isNew && (
+              <Button variant="outline" onClick={handleDelete} disabled={isBusy}>
+                {t('actions.delete', 'Delete')}
+              </Button>
+            )}
+            <Button type="submit" disabled={isBusy}>
+              {isNew ? t('actions.create', 'Create Post') : t('actions.save', 'Save Changes')}
+            </Button>
           </div>
         </div>
       </form>

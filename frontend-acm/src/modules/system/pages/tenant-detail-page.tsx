@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -217,9 +217,22 @@ function TenantMenusSection({ entId }: { entId: string }) {
       prev.map((it) => (it.key === key && !it.alwaysOn ? { ...it, visible: !it.visible } : it)),
     );
 
+  // PLN-260728E — 순서 이동(↑/↓).
+  const move = (index: number, dir: -1 | 1) =>
+    setItems((prev) => {
+      const j = index + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[j]] = [next[j], next[index]];
+      return next;
+    });
+
   const onSave = async () => {
     try {
-      await update.mutateAsync(items.map(({ key, visible }) => ({ key, visible })));
+      // 현재 리스트 순서를 order(0-기반)로 저장.
+      await update.mutateAsync(
+        items.map(({ key, visible }, i) => ({ key, visible, order: i })),
+      );
       toast.success(t('tenants.menus.saved'));
     } catch {
       toast.error(t('users.errors.saveFailed'));
@@ -234,14 +247,32 @@ function TenantMenusSection({ entId }: { entId: string }) {
         <p className="text-sm text-secondary">{t('users.loading')}</p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {items.map((it) => (
-              <label
+          <ul className="space-y-1">
+            {items.map((it, index) => (
+              <li
                 key={it.key}
-                className={`flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm ${
-                  it.alwaysOn ? 'opacity-60' : 'cursor-pointer hover:bg-[var(--gray-50)]'
-                }`}
+                className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
               >
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => move(index, -1)}
+                    disabled={index === 0}
+                    className="text-secondary hover:text-primary disabled:opacity-30"
+                    aria-label={t('tenants.menus.moveUp', '위로')}
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(index, 1)}
+                    disabled={index === items.length - 1}
+                    className="text-secondary hover:text-primary disabled:opacity-30"
+                    aria-label={t('tenants.menus.moveDown', '아래로')}
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
                 <input
                   type="checkbox"
                   checked={it.visible}
@@ -250,14 +281,15 @@ function TenantMenusSection({ entId }: { entId: string }) {
                   className="h-4 w-4 rounded border-[var(--border-subtle)]"
                 />
                 <span className="text-primary">{tc(`nav.${it.key}`)}</span>
+                <span className="ml-2 text-[10px] text-secondary">{it.key}</span>
                 {it.alwaysOn && (
                   <span className="ml-auto text-[10px] uppercase text-secondary">
                     {t('tenants.menus.alwaysOn')}
                   </span>
                 )}
-              </label>
+              </li>
             ))}
-          </div>
+          </ul>
           <div className="mt-5 flex justify-end">
             <Button onClick={onSave} disabled={update.isPending}>
               {update.isPending ? t('actions.saving') : t('actions.save')}
