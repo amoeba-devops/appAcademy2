@@ -86,13 +86,21 @@ export class PortalCalController {
   // ── 피드백·과제 (PLN-260728F B) ─────────────────────────────────────
 
   @Get(':id/review')
-  @ApiOperation({ summary: '수업 피드백·과제 조회 (관련자 열람)' })
+  @ApiOperation({
+    summary:
+      '수업 피드백·과제 조회 — 피드백은 강사·관리자용(학생/학부모에겐 미노출), 과제는 전원',
+  })
   async getReview(
     @PortalUser() u: PortalAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
-    return this.reviewSvc.get(u.entId, id);
+    const review = await this.reviewSvc.get(u.entId, id);
+    // 요구(2026-07-28) — 피드백은 관리자 확인용: 학생/학부모 포털엔 노출하지 않음.
+    if (u.kind !== 'TEACHER') {
+      return { ...review, feedbackHtml: null };
+    }
+    return review;
   }
 
   @Put(':id/review')
