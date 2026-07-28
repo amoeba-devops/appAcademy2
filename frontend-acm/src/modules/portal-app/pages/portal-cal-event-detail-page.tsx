@@ -358,7 +358,8 @@ function ReviewSection({
         </span>
       )}
 
-      {/* ── 피드백 ── */}
+      {/* ── 피드백 — 강사만 (관리자 확인용, 학생/학부모 미노출) ── */}
+      {user?.kind === 'TEACHER' && (
       <div className="rounded-md border border-[var(--border-subtle)] p-3">
         <div className="mb-2 flex items-center justify-between">
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
@@ -415,6 +416,7 @@ function ReviewSection({
           </p>
         )}
       </div>
+      )}
 
       {/* ── 과제 ── */}
       <div className="rounded-md border border-[var(--border-subtle)] p-3">
