@@ -81,14 +81,29 @@ export class TenantService {
     return this.toView(t, counts.get(entId) ?? 0);
   }
 
-  /** Full menu config for the admin UI — every key with its visible + alwaysOn. */
+  /**
+   * Full menu config for the admin UI — every key with visible/alwaysOn/order.
+   * PLN-260728E: order 저장분 우선, 없으면 표준 순서(ALL_MENU_KEYS 인덱스). 정렬 후 반환.
+   */
   async getMenuConfig(entId: string): Promise<MenuConfigItem[]> {
-    const hidden = await this.hiddenKeySet(entId);
-    return ALL_MENU_KEYS.map((key) => ({
-      key,
-      alwaysOn: isAlwaysOn(key),
-      visible: isAlwaysOn(key) ? true : !hidden.has(key),
-    }));
+    const rows = await this.menuRepo.find({ where: { entId } });
+    const byKey = new Map(rows.map((r) => [r.menuKey, r]));
+    const items = ALL_MENU_KEYS.map((key, idx) => {
+      const row = byKey.get(key);
+      return {
+        key,
+        alwaysOn: isAlwaysOn(key),
+        visible: isAlwaysOn(key) ? true : (row?.visible ?? true),
+        order: row?.order ?? idx,
+      };
+    });
+    items.sort(
+      (a, b) =>
+        a.order - b.order ||
+        ALL_MENU_KEYS.indexOf(a.key as never) -
+          ALL_MENU_KEYS.indexOf(b.key as never),
+    );
+    return items;
   }
 
   /** Compact list of hidden keys for the caller's own tenant (admin shell). */
@@ -98,19 +113,35 @@ export class TenantService {
     return [...hidden].filter((k) => !isAlwaysOn(k));
   }
 
+  /**
+   * PLN-260728E — admin shell 용: 숨김 키 + 표시 순서(전체 키의 순서 리스트).
+   */
+  async getMenuNav(
+    entId: string,
+  ): Promise<{ hidden: string[]; order: string[] }> {
+    const items = await this.getMenuConfig(entId);
+    return {
+      hidden: items.filter((i) => !i.visible && !i.alwaysOn).map((i) => i.key),
+      order: items.map((i) => i.key),
+    };
+  }
+
   async setMenuConfig(
     entId: string,
     items: MenuVisibilityItemDto[],
   ): Promise<MenuConfigItem[]> {
     await this.getEntityOrThrow(entId); // 404 if tenant unknown
     for (const item of items) {
-      if (!isAdminMenuKey(item.key) || isAlwaysOn(item.key)) continue; // ignore unknown / always-on
-      if (item.visible) {
-        // visible = default → remove any override row
+      if (!isAdminMenuKey(item.key)) continue; // ignore unknown
+      const canonicalIdx = ALL_MENU_KEYS.indexOf(item.key as never);
+      const visible = isAlwaysOn(item.key) ? true : item.visible;
+      const order = item.order ?? canonicalIdx;
+      // 기본값(표시 + 표준순서)이면 override 행 제거, 아니면 upsert.
+      if (visible === true && order === canonicalIdx) {
         await this.menuRepo.delete({ entId, menuKey: item.key });
       } else {
         await this.menuRepo.save(
-          this.menuRepo.create({ entId, menuKey: item.key, visible: false }),
+          this.menuRepo.create({ entId, menuKey: item.key, visible, order }),
         );
       }
     }

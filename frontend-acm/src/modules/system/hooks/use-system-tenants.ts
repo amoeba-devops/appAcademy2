@@ -18,6 +18,8 @@ export interface MenuConfigItem {
   key: string;
   visible: boolean;
   alwaysOn: boolean;
+  /** PLN-260728E — 표시 순서(0-기반). */
+  order: number;
 }
 
 export interface CreateTenantInput {
@@ -80,8 +82,9 @@ export function useTenantMenus(entId: string | undefined) {
 export function useUpdateTenantMenus(entId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (items: { key: string; visible: boolean }[]) =>
-      (await apiClient.put<MenuConfigItem[]>(`${BASE}/${entId}/menus`, { items })).data,
+    mutationFn: async (
+      items: { key: string; visible: boolean; order?: number }[],
+    ) => (await apiClient.put<MenuConfigItem[]>(`${BASE}/${entId}/menus`, { items })).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, entId, 'menus'] }),
   });
 }

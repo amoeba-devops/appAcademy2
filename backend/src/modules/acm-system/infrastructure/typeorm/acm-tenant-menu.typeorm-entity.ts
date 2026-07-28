@@ -23,6 +23,10 @@ export class AcmTenantMenuTypeormEntity {
   @Column({ name: 'tnm_visible', type: 'boolean', default: true })
   visible!: boolean;
 
+  /** PLN-260728E — admin 사이드바 표시 순서(기본=ALL_MENU_KEYS 인덱스). null=기본. */
+  @Column({ name: 'tnm_order', type: 'smallint', nullable: true })
+  order?: number | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

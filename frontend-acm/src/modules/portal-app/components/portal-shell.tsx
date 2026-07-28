@@ -83,7 +83,8 @@ export function PortalShell() {
             );
           })}
         </nav>
-        <main className="min-w-0 flex-1">
+        {/* PLN-260728E — 우측 컨텐츠 영역 흰 배경(채팅 페이지 참조). */}
+        <main className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
           <Outlet />
         </main>
       </div>

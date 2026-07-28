@@ -195,6 +195,9 @@
     "cal": "课程表",
     "map": "MAP 历年真题",
     "config": "配置",
+    "posts": "公告 · 文章",
+    "notifications": "通知",
+    "enrollments": "报名",
     "systemAdmin": "系统管理",
     "chat": "大厅聊天"
   },

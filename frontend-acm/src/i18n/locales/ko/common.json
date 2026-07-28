@@ -195,6 +195,9 @@
     "cal": "수업일정",
     "map": "MAP 기출문제",
     "config": "설정",
+    "posts": "공지·게시글",
+    "notifications": "알림",
+    "enrollments": "수강신청",
     "systemAdmin": "시스템 관리",
     "chat": "로비채팅"
   },
