@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useTeachers } from '../hooks/use-teachers';
 import { TchTable } from '../components/tch-table';
 import { TchFormModal } from '../components/tch-form-modal';
-import { AmaDirectorySection } from '../components/ama-directory-section';
 import type { TeacherDetail } from '../types';
-import type { AmaPlatformUser } from '@/lib/ama-user-api';
 
 export function TchListPage() {
   const { t } = useTranslation('tch');
@@ -15,7 +13,6 @@ export function TchListPage() {
   const [status, setStatus] = useState<string>('ACTIVE');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<TeacherDetail | undefined>(undefined);
-  const [prefillFromAma, setPrefillFromAma] = useState<AmaPlatformUser | null>(null);
 
   const { data, isLoading } = useTeachers({
     q: q || undefined,
@@ -30,21 +27,6 @@ export function TchListPage() {
   const onClose = () => {
     setShowForm(false);
     setEditing(undefined);
-    setPrefillFromAma(null);
-  };
-
-  const onPickAmaUser = (user: AmaPlatformUser) => {
-    setEditing(undefined);
-    setPrefillFromAma(user);
-    setShowForm(true);
-  };
-
-  const onPickExistingTeacher = (teacher: TeacherDetail, amaUser: AmaPlatformUser) => {
-    // Pass amaUser through so the modal can backfill amaUserId on update
-    // when the local row had it empty (email-match branch).
-    setPrefillFromAma(teacher.amaUserId ? null : amaUser);
-    setEditing(teacher);
-    setShowForm(true);
   };
 
   return (
@@ -56,11 +38,6 @@ export function TchListPage() {
           {t('actions.create')}
         </Button>
       </div>
-
-      <AmaDirectorySection
-        onPickAmaUser={onPickAmaUser}
-        onPickExistingTeacher={onPickExistingTeacher}
-      />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <div className="relative">
@@ -92,12 +69,7 @@ export function TchListPage() {
 
       <TchTable items={data?.items ?? []} isLoading={isLoading} onRowClick={onEdit} />
 
-      <TchFormModal
-        open={showForm}
-        onClose={onClose}
-        initial={editing}
-        prefillFromAma={prefillFromAma}
-      />
+      <TchFormModal open={showForm} onClose={onClose} initial={editing} />
     </div>
   );
 }

@@ -163,7 +163,12 @@
       "OPERATOR": "管理员",
       "UNKNOWN": "未知"
     },
-    "recordTitle": "教室记录"
+    "recordTitle": "教室记录",
+    "reservedRow": "预约",
+    "actualRow": "实际",
+    "reservedStart": "预约开始",
+    "reservedEnd": "预约结束",
+    "joinListTitle": "实际进入教室时间"
   },
   "instant": {
     "btnLabel": "立即开课",
@@ -254,9 +259,16 @@
     "cardView": "卡片视图",
     "listView": "列表视图",
     "teacher": "教师",
-    "back": "返回统计"
+    "back": "返回统计",
+    "unit": {
+      "7d": "最近7天",
+      "28d": "最近28天",
+      "90d": "最近90天",
+      "custom": "自定义区间"
+    }
   },
   "detail": {
-    "backToCal": "返回课程日程"
+    "backToCal": "返回课程日程",
+    "backHistory": "返回"
   }
 }

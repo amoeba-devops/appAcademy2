@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -20,7 +20,14 @@ interface Transition {
   reasonCode: string | null;
 }
 
-export function RemarksPanel({ inqId }: { inqId: string }) {
+export function RemarksPanel({
+  inqId,
+  headerAction,
+}: {
+  inqId: string;
+  /** REQ-260729-3 — 제목 라인 우측 끝 액션 슬롯 (상담종료 버튼). */
+  headerAction?: ReactNode;
+}) {
   const { t, i18n } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
   const [body, setBody] = useState('');
@@ -79,7 +86,10 @@ export function RemarksPanel({ inqId }: { inqId: string }) {
 
   return (
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5">
-      <h2 className="text-base font-semibold mb-4">{t('detail.timeline.title')}</h2>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">{t('detail.timeline.title')}</h2>
+        {headerAction}
+      </div>
 
       <div className="grid gap-2 mb-4 max-h-64 overflow-y-auto pr-1">
         {timeline.length === 0 && (

@@ -255,7 +255,25 @@ export function CalEventDetailPage() {
             <div className="mb-1 text-xs font-semibold text-secondary">
               🕐 {t('boda.recordTitle', '강의실 기록')}
             </div>
+            {/* REQ-260729-3 — 예약(일정) 시간과 실제(강의실) 시간을 구분 표기.
+                모든 시각은 UTC instant 를 사용자 브라우저 타임존으로 렌더한다. */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
+              <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
+                {t('boda.reservedRow', '예약')}
+              </span>
+              <span>
+                <span className="text-xs text-secondary">{t('boda.reservedStart', '예약시작')}</span>{' '}
+                {fmtShort(event.startAt)}
+              </span>
+              <span>
+                <span className="text-xs text-secondary">{t('boda.reservedEnd', '예약종료')}</span>{' '}
+                {fmtShort(event.endAt)}
+              </span>
+            </div>
+            <div className="mt-1.5 grid grid-cols-2 gap-x-6 gap-y-1 border-t border-[var(--border-subtle)] pt-1.5 text-sm sm:grid-cols-4">
+              <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
+                {t('boda.actualRow', '실제')}
+              </span>
               <span>
                 <span className="text-xs text-secondary">{t('boda.openedAt', '개설')}</span>{' '}
                 {fmtShort(record.openedAt)}
@@ -274,7 +292,12 @@ export function CalEventDetailPage() {
               </span>
             </div>
             {record.participants.length > 0 && (
-              <ul className="mt-2 space-y-0.5 border-t border-[var(--border-subtle)] pt-2 text-xs">
+              <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[11px] font-semibold text-secondary">
+                {t('boda.joinListTitle', '실제 수업 입장시간')}
+              </div>
+            )}
+            {record.participants.length > 0 && (
+              <ul className="mt-1 space-y-0.5 text-xs">
                 {record.participants.map((p, i) => (
                   <li key={i} className="flex flex-wrap items-center gap-1.5">
                     <span
@@ -333,6 +356,15 @@ export function CalEventDetailPage() {
           </div>
         )}
       </article>
+
+      {/* REQ-260729-3 — 하단 뒤로가기 (진입 경로로 history back) */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        className="mt-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
+      >
+        <ChevronLeft size={12} /> {t('detail.backHistory', '뒤로가기')}
+      </button>
 
       <CalEventModal
         open={editOpen}

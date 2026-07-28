@@ -69,10 +69,37 @@ export interface BodaJoinLogEntry {
   meetKey: string;
   /** BODA 측 userId — `UId` (= 앱 사용자 uuid 32 hex). */
   userId: string;
+  /** UTC ISO 문자열로 정규화된 입장일시 — {@link bodaDatetimeToIso} 적용 후. */
   joinedAt: string;
   leftAt?: string | null;
   totalSeconds?: number | null;
   clientType?: string | null;
+}
+
+/**
+ * BODA SERVER API 는 일시를 KST(Asia/Seoul) 벽시계 문자열로 반환한다
+ * (`YYYYMMDDhhmmss` 또는 `YYYY-MM-DD hh:mm:ss`, TZ 표기 없음). 서버 컨테이너는
+ * UTC 로 돌기 때문에 `new Date(raw)` 로 파싱하면 9시간 밀리거나(공백 포맷)
+ * Invalid Date(YYYYMMDDhhmmss)가 된다. TZ 표기가 없는 값은 +09:00 으로
+ * 고정 해석해 UTC ISO 로 정규화한다. 이미 오프셋/Z 가 붙은 값은 그대로 파싱.
+ */
+export function bodaDatetimeToIso(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  // YYYYMMDDhhmmss
+  const compact = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(s);
+  if (compact) {
+    const [, y, mo, d, h, mi, se] = compact;
+    return new Date(`${y}-${mo}-${d}T${h}:${mi}:${se}+09:00`).toISOString();
+  }
+  // YYYY-MM-DD hh:mm:ss (또는 T 구분자) — TZ 없음
+  const plain = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2})?)$/.exec(s);
+  if (plain) {
+    const sec = plain[2].length === 5 ? `${plain[2]}:00` : plain[2];
+    return new Date(`${plain[1]}T${sec}+09:00`).toISOString();
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 /**

@@ -163,7 +163,12 @@
       "OPERATOR": "QTV",
       "UNKNOWN": "Không rõ"
     },
-    "recordTitle": "Nhật ký lớp học"
+    "recordTitle": "Nhật ký lớp học",
+    "reservedRow": "Đặt lịch",
+    "actualRow": "Thực tế",
+    "reservedStart": "Giờ bắt đầu đặt",
+    "reservedEnd": "Giờ kết thúc đặt",
+    "joinListTitle": "Giờ vào lớp thực tế"
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -254,9 +259,16 @@
     "cardView": "Dạng thẻ",
     "listView": "Dạng danh sách",
     "teacher": "Giáo viên",
-    "back": "Về thống kê"
+    "back": "Về thống kê",
+    "unit": {
+      "7d": "7 ngày qua",
+      "28d": "28 ngày qua",
+      "90d": "90 ngày qua",
+      "custom": "Chọn khoảng"
+    }
   },
   "detail": {
-    "backToCal": "Về lịch học"
+    "backToCal": "Về lịch học",
+    "backHistory": "Quay lại"
   }
 }

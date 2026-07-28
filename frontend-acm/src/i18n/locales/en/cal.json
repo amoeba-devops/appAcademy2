@@ -163,7 +163,12 @@
       "OPERATOR": "Operator",
       "UNKNOWN": "Unknown"
     },
-    "recordTitle": "Classroom log"
+    "recordTitle": "Classroom log",
+    "reservedRow": "Reserved",
+    "actualRow": "Actual",
+    "reservedStart": "Scheduled start",
+    "reservedEnd": "Scheduled end",
+    "joinListTitle": "Actual join times"
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -254,9 +259,16 @@
     "cardView": "Card view",
     "listView": "List view",
     "teacher": "Teacher",
-    "back": "Back to stats"
+    "back": "Back to stats",
+    "unit": {
+      "7d": "Last 7 days",
+      "28d": "Last 28 days",
+      "90d": "Last 90 days",
+      "custom": "Custom range"
+    }
   },
   "detail": {
-    "backToCal": "Back to schedule"
+    "backToCal": "Back to schedule",
+    "backHistory": "Back"
   }
 }

@@ -133,6 +133,7 @@
       "success": "AMA 고객사로 등록되었습니다",
       "alreadyRegistered": "이미 등록된 학부모입니다",
       "error": "AMA 등록에 실패했습니다. 잠시 후 다시 시도하세요."
-    }
+    },
+    "editTitle": "학부모 정보 수정"
   }
 }
