@@ -231,5 +231,16 @@
     "noFeedbackYet": "尚无反馈",
     "textFeedback": "反馈",
     "textHomework": "作业"
+  },
+  "stats": {
+    "title": "课程统计",
+    "btnLabel": "课程统计",
+    "btnTitle": "按期间/老师的课程统计",
+    "total": "总体统计",
+    "byTeacher": "按老师统计",
+    "classes": "节",
+    "done": "课程完成",
+    "empty": "该期间没有课程。",
+    "unassigned": "未指定"
   }
 }

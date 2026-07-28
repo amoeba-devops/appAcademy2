@@ -231,5 +231,16 @@
     "noFeedbackYet": "No feedback yet",
     "textFeedback": "Feedback",
     "textHomework": "Homework"
+  },
+  "stats": {
+    "title": "Class stats",
+    "btnLabel": "Stats",
+    "btnTitle": "Class statistics by period/teacher",
+    "total": "Overall",
+    "byTeacher": "By teacher",
+    "classes": "",
+    "done": "Done",
+    "empty": "No classes in this period.",
+    "unassigned": "Unassigned"
   }
 }

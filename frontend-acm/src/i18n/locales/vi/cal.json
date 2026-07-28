@@ -231,5 +231,16 @@
     "noFeedbackYet": "Chưa có phản hồi",
     "textFeedback": "Phản hồi",
     "textHomework": "Bài tập"
+  },
+  "stats": {
+    "title": "Thống kê lớp học",
+    "btnLabel": "Thống kê",
+    "btnTitle": "Thống kê theo kỳ/giáo viên",
+    "total": "Tổng quan",
+    "byTeacher": "Theo giáo viên",
+    "classes": "buổi",
+    "done": "Hoàn thành",
+    "empty": "Không có lớp trong kỳ này.",
+    "unassigned": "Chưa gán"
   }
 }

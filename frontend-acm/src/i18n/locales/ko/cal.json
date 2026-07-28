@@ -231,5 +231,16 @@
     "noFeedbackYet": "피드백 미작성",
     "textFeedback": "피드백",
     "textHomework": "과제제출"
+  },
+  "stats": {
+    "title": "수업통계",
+    "btnLabel": "수업통계",
+    "btnTitle": "기간별 전체/강사별 수업통계",
+    "total": "전체 수업통계",
+    "byTeacher": "강사별 수업통계",
+    "classes": "건",
+    "done": "수업완료",
+    "empty": "해당 기간 수업이 없습니다.",
+    "unassigned": "미지정"
   }
 }

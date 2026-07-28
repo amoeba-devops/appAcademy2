@@ -60,6 +60,16 @@ export class CalEventController {
     return this.reviewSvc.get(u.entId, id);
   }
 
+  @Get('stats')
+  @ApiOperation({ summary: '기간 수업통계 — 전체+강사별 (PLN-260729 P3)' })
+  stats(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    return this.svc.stats(u.entId, from, to);
+  }
+
   @Get(':id/class-record')
   @ApiOperation({
     summary:

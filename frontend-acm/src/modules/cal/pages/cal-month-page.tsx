@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
 import { InstantClassModal } from '../components/instant-class-modal';
+import { CalStatsModal } from '../components/cal-stats-modal';
 import {
   addDays,
   addMonths,
@@ -56,6 +57,7 @@ export function CalMonthPage() {
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const [instantOpen, setInstantOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
   const canCreateInstant = role === 'ADMIN' || role === 'TEACHER';
@@ -190,6 +192,14 @@ export function CalMonthPage() {
         <div className="flex items-center gap-2">
           <Button
             size="sm"
+            variant="outline"
+            onClick={() => setStatsOpen(true)}
+            title={t('stats.btnTitle', '기간별 전체/강사별 수업통계')}
+          >
+            {t('stats.btnLabel', '수업통계')}
+          </Button>
+          <Button
+            size="sm"
             variant={showDeleted ? 'default' : 'outline'}
             onClick={() => setShowDeleted((v) => !v)}
             title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
@@ -217,6 +227,7 @@ export function CalMonthPage() {
       </div>
 
       <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />
+      <CalStatsModal open={statsOpen} onClose={() => setStatsOpen(false)} />
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
         <div className="flex items-center gap-2">
