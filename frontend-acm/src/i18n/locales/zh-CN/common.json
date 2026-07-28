@@ -37,7 +37,8 @@
       "notices": "公告",
       "calendar": "课程表",
       "materials": "文档/资料",
-      "students": "学生管理"
+      "students": "学生管理",
+      "chat": "大厅聊天"
     },
     "login": {
       "title": "学院门户登录",
@@ -194,7 +195,8 @@
     "cal": "课程表",
     "map": "MAP 历年真题",
     "config": "配置",
-    "systemAdmin": "系统管理"
+    "systemAdmin": "系统管理",
+    "chat": "大厅聊天"
   },
   "lang": {
     "label": "语言",
@@ -358,5 +360,27 @@
         "description": "BODA 视频课堂集成设置"
       }
     }
+  },
+  "talk": {
+    "newChannel": "新频道",
+    "newDm": "新私聊",
+    "create": "创建",
+    "startDm": "开始",
+    "channelNamePlaceholder": "房间名称",
+    "searchMember": "按姓名搜索（运营者/教师）",
+    "noResult": "没有结果。",
+    "noChannels": "暂无会话。",
+    "selectChannel": "请选择一个会话。",
+    "noMessages": "暂无消息。",
+    "members": "成员",
+    "manageMembers": "成员管理",
+    "loadOlder": "查看更早的消息",
+    "inputPlaceholder": "输入消息…",
+    "attachFile": "发送文件（≤50MB）",
+    "confirmDeleteMessage": "删除这条消息吗？",
+    "dmReuseHint": "若已存在与该对象的私聊，将直接进入该房间。",
+    "kindOperator": "运营者",
+    "kindTeacher": "教师",
+    "teacherOnly": "仅限教师使用。"
   }
 }

@@ -37,7 +37,8 @@
       "notices": "Notices",
       "calendar": "Schedule",
       "materials": "Docs & Files",
-      "students": "My Students"
+      "students": "My Students",
+      "chat": "Lobby Chat"
     },
     "login": {
       "title": "Academy Portal Login",
@@ -194,7 +195,8 @@
     "cal": "Schedule",
     "map": "MAP Past Questions",
     "config": "Configuration",
-    "systemAdmin": "System Admin"
+    "systemAdmin": "System Admin",
+    "chat": "Lobby Chat"
   },
   "lang": {
     "label": "Language",
@@ -358,5 +360,27 @@
         "description": "BODA video classroom integration settings"
       }
     }
+  },
+  "talk": {
+    "newChannel": "New channel",
+    "newDm": "New DM",
+    "create": "Create",
+    "startDm": "Start",
+    "channelNamePlaceholder": "Channel name",
+    "searchMember": "Search by name (operator/teacher)",
+    "noResult": "No results.",
+    "noChannels": "No conversations yet.",
+    "selectChannel": "Select a conversation.",
+    "noMessages": "No messages yet.",
+    "members": "Members",
+    "manageMembers": "Manage members",
+    "loadOlder": "Load older messages",
+    "inputPlaceholder": "Type a message…",
+    "attachFile": "Send a file (≤50MB)",
+    "confirmDeleteMessage": "Delete this message?",
+    "dmReuseHint": "If a DM with this person already exists, you will be taken to it.",
+    "kindOperator": "Operator",
+    "kindTeacher": "Teacher",
+    "teacherOnly": "Available to teachers only."
   }
 }

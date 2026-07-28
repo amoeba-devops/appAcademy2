@@ -31,6 +31,8 @@ function isPortalEndpoint(url: string): boolean {
     // FIX-260719 — 강사 수강생관리(/portal/teacher/*)가 누락되어 포털 JWT 없이
     // 호출 → 401 → 로그인 리다이렉트. 포털 신규 API 경로는 반드시 여기 추가.
     url.startsWith('/portal/teacher') ||
+    // REQ-260728C — 로비채팅 (강사 포털).
+    url.startsWith('/portal/talk') ||
     url === '/portal/auth/change-password'
   );
 }
