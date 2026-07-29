@@ -28,7 +28,8 @@
     "installGuide": "Install the BODA app",
     "iframeFallbackToast": "Embed not allowed — falling back to the desktop app / new tab.",
     "iframeTitle": "BODA Classroom",
-    "iframeLoading": "Loading the classroom…"
+    "iframeLoading": "Loading the classroom…",
+    "macMobileHint": "On Mac and mobile we can't automatically detect whether the app is installed. If it doesn't open, use ‘Open in browser’ or follow the install guide."
   },
   "closeReason": {
     "UNKNOWN": "The classroom has ended.",
@@ -108,6 +109,18 @@
     "BODA-SCRIPT_TIMEOUT": {
       "title": "BODA script timed out",
       "body": "Please retry in a moment."
+    },
+    "BODA-ALREADY_EXECUTE_PROGRAM": {
+      "title": "The BODA app is already running",
+      "body": "Check the existing classroom window, or quit the app and enter again."
+    },
+    "BODA-UPDATE_PROGRAM": {
+      "title": "The BODA app is updating",
+      "body": "Please wait for the update to finish and try again."
+    },
+    "BODA-NOT_SUPPORTED_DEVICE": {
+      "title": "Unsupported device",
+      "body": "Use ‘Open in browser’ or try again on a supported device."
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Download,
@@ -9,8 +9,11 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
+  bodaInstallUndetectable,
+  detectBodaPlatform,
   enterBodaRoom,
   loadBodaAppApi,
+  logBodaError,
   type BodaLaunchContext,
 } from '@/lib/boda-launch-api';
 
@@ -34,18 +37,30 @@ export function DesktopAppCard({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // FR-4 — Mac/Mobile can't self-detect app install (SPEC §1.3), so the browser
+  // entry is promoted to equal prominence there.
+  const platform = useMemo(() => detectBodaPlatform(), []);
+  const emphasizeBrowser = bodaInstallUndetectable(platform);
+
   const onEnterDesktop = async () => {
     setError(null);
     setSubmitting(true);
     try {
       const api = await loadBodaAppApi(ctx.appApiUrl);
       // bodaOpen/Join report install/launch failures asynchronously via the
-      // error callback rather than throwing (823.001.4) — surface those too.
-      api.setErrorCallback?.((code) => setError(code || 'BODA-ERROR'));
+      // error callback rather than throwing (823.001.4) — surface + log those
+      // (FR-3: capture the SPEC 2nd `reason` arg too, incl. WB-* WAS codes).
+      api.setErrorCallback?.((code, reason) => {
+        const c = code || 'BODA-ERROR';
+        logBodaError(c, reason);
+        setError(c);
+      });
       const launched = enterBodaRoom(api, ctx, { isTeacher });
       if (!launched) throw new Error('BODA-NOT_INSTALLED');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'BODA-ERROR');
+      const code = e instanceof Error ? e.message : 'BODA-ERROR';
+      logBodaError(code);
+      setError(code);
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +86,11 @@ export function DesktopAppCard({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-center w-full">
+        <div
+          className={`flex flex-wrap gap-2 justify-center w-full${
+            emphasizeBrowser ? ' flex-col-reverse sm:flex-row-reverse' : ''
+          }`}
+        >
           <Button
             size="lg"
             onClick={onEnterDesktop}
@@ -87,7 +106,7 @@ export function DesktopAppCard({
           </Button>
           <Button
             size="lg"
-            variant="outline"
+            variant={emphasizeBrowser ? 'default' : 'outline'}
             onClick={onOpenInBrowser}
             disabled={browserDisabled}
             title={browserDisabled ? t('embed.openInBrowserUnavailable') : undefined}
@@ -98,12 +117,26 @@ export function DesktopAppCard({
           </Button>
         </div>
 
-        {error && (
-          <p className="text-xs text-red-600 mt-1">
-            {t(`error.${error}.title`, {
-              defaultValue: t('error.unknown.title'),
-            })}
+        {emphasizeBrowser && (
+          <p className="text-xs text-secondary max-w-md">
+            {t('embed.macMobileHint')}
           </p>
+        )}
+
+        {error && (
+          <div className="text-xs text-red-600 mt-1 space-y-0.5">
+            <p className="font-semibold">
+              {t(`error.${error}.title`, {
+                defaultValue: t('error.unknown.title'),
+              })}
+            </p>
+            <p className="text-red-500">
+              {t(`error.${error}.body`, {
+                defaultValue: t('error.unknown.body'),
+              })}
+            </p>
+            <p className="text-[10px] text-secondary">({error})</p>
+          </div>
         )}
 
         <a
