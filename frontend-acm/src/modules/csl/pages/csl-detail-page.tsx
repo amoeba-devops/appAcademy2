@@ -213,11 +213,6 @@ export function CslDetailBody({
                 → {t(`stage.${s}`)}
               </Button>
             ))}
-          {!isDropped && (
-            <Button variant="outline" onClick={() => setCancelOpen(true)}>
-              {t('detail.drop')}
-            </Button>
-          )}
           {isDropped && (
             <Button onClick={() => reactivate.mutate()} disabled={reactivate.isPending}>
               {t('detail.reactivate')}
@@ -276,7 +271,16 @@ export function CslDetailBody({
             />
           )}
         </div>
-        <RemarksPanel inqId={inq.id} />
+        <RemarksPanel
+          inqId={inq.id}
+          headerAction={
+            !isDropped ? (
+              <Button size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
+                {t('detail.drop')}
+              </Button>
+            ) : undefined
+          }
+        />
       </div>
 
       <CancellationDialog

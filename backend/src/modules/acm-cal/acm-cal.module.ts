@@ -16,9 +16,13 @@ import { redisProvider } from '../../infrastructure/config/redis.provider';
 import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-store.client';
 import { CalEventService } from './application/cal-event.service';
 import { CalEventAttachmentService } from './application/cal-event-attachment.service';
+import { BodaRecordService } from './application/boda-record.service';
+import { CalEventReviewService } from './application/cal-event-review.service';
+import { CalEventReviewTypeormEntity } from './infrastructure/typeorm/cal-event-review.typeorm-entity';
 import { CalInviteeService } from './application/cal-invitee.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
+import { CalEventRevisionTypeormEntity } from './infrastructure/typeorm/cal-event-revision.typeorm-entity';
 import { CalEventAttachmentTypeormEntity } from './infrastructure/typeorm/cal-event-attachment.typeorm-entity';
 import { CalInviteeTypeormEntity } from './infrastructure/typeorm/cal-invitee.typeorm-entity';
 // REQ-260526 v2 — BODA 화상 강의실 연동.
@@ -54,6 +58,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     TypeOrmModule.forFeature(
       [
         CalEventTypeormEntity,
+        CalEventRevisionTypeormEntity,
         CalInviteeTypeormEntity,
         AcmUserTypeormEntity,
         StudentTypeormEntity,
@@ -73,6 +78,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
         MapTestTypeormEntity,
         AttachmentTypeormEntity,
         CalEventAttachmentTypeormEntity,
+        CalEventReviewTypeormEntity,
       ],
       ACM_DS,
     ),
@@ -94,6 +100,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   providers: [
     CalEventService,
     CalEventAttachmentService,
+    BodaRecordService,
+    CalEventReviewService,
     ObjectStoreClient,
     CalInviteeService,
     InviteeNotifierService,

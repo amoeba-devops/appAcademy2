@@ -62,7 +62,7 @@ describe('BodaRoomService', () => {
                 : k === 'BODA_DEFAULT_ROOM_CODE'
                   ? 'r-env-fallback'
                   : undefined,
-          } as unknown as ConfigService,
+          },
         },
       ],
     }).compile();
@@ -116,7 +116,10 @@ describe('BodaRoomService', () => {
 
     it('refuses when tenant config is inactive (422)', async () => {
       findOne.mockResolvedValue(null);
-      cfgFindByEntId.mockResolvedValue({ isActive: false, defaultRoomCode: 'r' });
+      cfgFindByEntId.mockResolvedValue({
+        isActive: false,
+        defaultRoomCode: 'r',
+      });
       const err = await svc
         .createPending({
           evtId: '11111111-2222-3333-4444-555555555555',
@@ -158,62 +161,102 @@ describe('BodaRoomService', () => {
 
     it('PENDING + ROOM_OPENED → OPEN + meetIdx saved', async () => {
       findOne.mockResolvedValue(room());
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_OPENED, {
-        meetIdx: 'm-123',
-      });
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_OPENED,
+        {
+          meetIdx: 'm-123',
+        },
+      );
       expect(updated?.status).toBe('OPEN');
       expect(updated?.meetIdx).toBe('m-123');
     });
 
     it('OPEN + ROOM_STARTED → STARTED', async () => {
       findOne.mockResolvedValue(room({ status: 'OPEN', openedAt: new Date() }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_STARTED, {});
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_STARTED,
+        {},
+      );
       expect(updated?.status).toBe('STARTED');
     });
 
     it('STARTED + ROOM_PAUSED → PAUSED', async () => {
-      findOne.mockResolvedValue(room({ status: 'STARTED', startedAt: new Date() }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_PAUSED, {});
+      findOne.mockResolvedValue(
+        room({ status: 'STARTED', startedAt: new Date() }),
+      );
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_PAUSED,
+        {},
+      );
       expect(updated?.status).toBe('PAUSED');
     });
 
     it('PAUSED + ROOM_STARTED → STARTED (resume)', async () => {
-      findOne.mockResolvedValue(room({ status: 'PAUSED', startedAt: new Date() }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_STARTED, {});
+      findOne.mockResolvedValue(
+        room({ status: 'PAUSED', startedAt: new Date() }),
+      );
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_STARTED,
+        {},
+      );
       expect(updated?.status).toBe('STARTED');
     });
 
     it('STARTED + ROOM_ENDED → ENDED', async () => {
       findOne.mockResolvedValue(room({ status: 'STARTED' }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_ENDED, {});
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_ENDED,
+        {},
+      );
       expect(updated?.status).toBe('ENDED');
       expect(updated?.endedAt).toBeDefined();
     });
 
     it('ENDED + ROOM_CLOSED → CLOSED + closeType', async () => {
       findOne.mockResolvedValue(room({ status: 'ENDED' }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_CLOSED, {
-        closeType: 'normal',
-      });
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_CLOSED,
+        {
+          closeType: 'normal',
+        },
+      );
       expect(updated?.status).toBe('CLOSED');
       expect(updated?.closeType).toBe('normal');
     });
 
     it('ROOM_ALL_CLOSED collapses to CLOSED from any live state', async () => {
       findOne.mockResolvedValue(room({ status: 'STARTED' }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.ROOM_ALL_CLOSED, {});
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.ROOM_ALL_CLOSED,
+        {},
+      );
       expect(updated?.status).toBe('CLOSED');
     });
 
     it('unknown meetKey → null (caller still logs payload)', async () => {
       findOne.mockResolvedValue(null);
-      const updated = await svc.applyEvent('tac-zzz', BODA_EVENT_CODES.ROOM_OPENED, {});
+      const updated = await svc.applyEvent(
+        'tac-zzz',
+        BODA_EVENT_CODES.ROOM_OPENED,
+        {},
+      );
       expect(updated).toBeNull();
     });
 
     it('non-domain event code (e.g. 13 score) → no mutation, returns row as-is', async () => {
       findOne.mockResolvedValue(room({ status: 'STARTED' }));
-      const updated = await svc.applyEvent('tac-aaa', BODA_EVENT_CODES.USER_SCORE, {});
+      const updated = await svc.applyEvent(
+        'tac-aaa',
+        BODA_EVENT_CODES.USER_SCORE,
+        {},
+      );
       expect(updated?.status).toBe('STARTED');
       expect(save).not.toHaveBeenCalled();
     });
@@ -228,7 +271,10 @@ describe('BodaRoomService', () => {
       });
       await svc.closeAndDelete('evt-1', 'e1');
       expect(closeMeet).toHaveBeenCalledWith(
-        expect.objectContaining({ meetKey: 'tac-aaa', reason: 'event_deleted' }),
+        expect.objectContaining({
+          meetKey: 'tac-aaa',
+          reason: 'event_deleted',
+        }),
         undefined,
       );
       expect(getServerApiAuth).toHaveBeenCalledWith('e1');
@@ -236,14 +282,22 @@ describe('BodaRoomService', () => {
     });
 
     it('skips SERVER API call when already closed', async () => {
-      findOne.mockResolvedValue({ id: 'r1', meetKey: 'tac-aaa', status: 'CLOSED' });
+      findOne.mockResolvedValue({
+        id: 'r1',
+        meetKey: 'tac-aaa',
+        status: 'CLOSED',
+      });
       await svc.closeAndDelete('evt-1', 'e1');
       expect(closeMeet).not.toHaveBeenCalled();
       expect(del).toHaveBeenCalled();
     });
 
     it('does NOT block deletion if SERVER API is unavailable', async () => {
-      findOne.mockResolvedValue({ id: 'r1', meetKey: 'tac-aaa', status: 'STARTED' });
+      findOne.mockResolvedValue({
+        id: 'r1',
+        meetKey: 'tac-aaa',
+        status: 'STARTED',
+      });
       closeMeet.mockRejectedValue(new BodaeduUnavailableException('5xx'));
       await expect(svc.closeAndDelete('evt-1', 'e1')).resolves.toBeUndefined();
       expect(del).toHaveBeenCalled();
@@ -272,7 +326,9 @@ describe('BodaRoomService', () => {
 
     it('throws 404 when room not found', async () => {
       findOne.mockResolvedValue(null);
-      const err = await svc.forceClose('evt-1', 'e1', 'admin-1').catch((e) => e);
+      const err = await svc
+        .forceClose('evt-1', 'e1', 'admin-1')
+        .catch((e) => e);
       expect(err).toBeInstanceOf(HttpException);
       expect((err as HttpException).getStatus()).toBe(HttpStatus.NOT_FOUND);
     });

@@ -14,7 +14,9 @@
     "day": "일",
     "week": "주",
     "month": "월",
-    "list": "리스트"
+    "list": "리스트",
+    "showAll": "모두보기",
+    "countSuffix": "건"
   },
   "category": {
     "CLASS": "수업",
@@ -42,11 +44,56 @@
     "locationText": "장소",
     "meetingProvider": "화상수업",
     "meetingUrl": "입장 링크",
+    "bodaRoomType": "수업 유형",
     "creator": "작성자",
     "assignee": "담당자/강사",
     "assigneeNone": "미지정",
     "materials": "수업 자료",
     "endDate": "종료일"
+  },
+  "bodaRoomType": {
+    "ONE_TO_ONE": "1:1 수업 (강사+학생 1명)",
+    "ONE_TO_MANY": "1:N 그룹 수업 (학생 여러 명)"
+  },
+  "delete": {
+    "title": "수업일정 삭제",
+    "hint": "삭제된 일정은 캘린더에서 숨겨지며 ‘삭제한 수업일정 보기’에서 확인할 수 있어요.",
+    "reasonPlaceholder": "삭제 사유 (필수)",
+    "reasonRequired": "삭제 사유를 입력하세요.",
+    "confirm": "삭제하기"
+  },
+  "edit": {
+    "reasonLabel": "수정 사유",
+    "reasonPlaceholder": "변경한 이유를 입력하세요 (수정 히스토리에 기록됩니다)",
+    "reasonRequired": "수정 사유를 입력하세요."
+  },
+  "revision": {
+    "title": "수정 히스토리",
+    "reason": "사유",
+    "yes": "예",
+    "no": "아니오",
+    "field": {
+      "category": "분류",
+      "title": "제목",
+      "description": "설명",
+      "startAt": "시작",
+      "endAt": "종료",
+      "allDay": "종일",
+      "locationText": "장소",
+      "meetingProvider": "화상수업",
+      "bodaRoomType": "수업 유형",
+      "assigneeTchId": "담당 강사"
+    }
+  },
+  "deleted": {
+    "btnLabel": "삭제한 수업일정 보기",
+    "btnTitle": "삭제한 수업일정을 조회합니다",
+    "empty": "이 기간에 삭제한 수업일정이 없습니다.",
+    "colTitle": "제목",
+    "colPeriod": "기간",
+    "colReason": "삭제 사유",
+    "colBy": "삭제자",
+    "colAt": "삭제 시각"
   },
   "form": {
     "titleCreate": "일정 등록",
@@ -72,6 +119,7 @@
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",
     "readOnlySource": "이 일정은 외부 소스에서 동기화되어 편집할 수 없습니다.",
     "bodaAuto": "데모수업과 정규수업은 저장 시 보다스쿨 링크가 자동 생성됩니다.",
+    "bodaRoomType": "학생을 2명 이상 초대하는 그룹 수업은 1:N 을 선택하세요.",
     "bodaPending": "저장 후 링크가 생성됩니다.",
     "durationHm": "{{h}}시간 {{m}}분",
     "durationH": "{{h}}시간",
@@ -106,7 +154,21 @@
     "confirmForceClose": "진행 중인 룸을 강제 폐쇄하시겠습니까?",
     "reconcileResult": "재동기화 완료",
     "forceCloseResult": "폐쇄 완료",
-    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다."
+    "notProvisioned": "아직 BODA 룸이 생성되지 않았습니다.",
+    "attendance": "참석자 입·퇴실 기록",
+    "stillIn": "접속 중",
+    "kind": {
+      "TEACHER": "강사",
+      "STUDENT": "학생",
+      "OPERATOR": "운영자",
+      "UNKNOWN": "미확인"
+    },
+    "recordTitle": "강의실 기록",
+    "reservedRow": "예약",
+    "actualRow": "실제",
+    "reservedStart": "예약시작",
+    "reservedEnd": "예약종료",
+    "joinListTitle": "실제 수업 입장시간"
   },
   "instant": {
     "btnLabel": "즉시 강의 개설",
@@ -126,7 +188,13 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA 기본 룸코드가 설정되지 않았습니다. 설정 → BODA 연동에서 기본 룸코드를 입력한 뒤 다시 시도해 주세요.",
       "BODA_DISABLED_FOR_TENANT": "BODA 연동이 비활성화되어 있습니다. 설정 → BODA 연동에서 활성화한 뒤 다시 시도해 주세요."
-    }
+    },
+    "assigneeLabel": "담당강사 (개설 권한)",
+    "assigneeNone": "- 미지정 (등록자가 개설) -",
+    "searchPlaceholder": "학생 이름/이메일 검색",
+    "searchNoResult": "검색 결과가 없습니다.",
+    "searchAdd": "추가",
+    "searchRemove": "해제"
   },
   "filter": {
     "label": "필터",
@@ -145,7 +213,8 @@
     "addAttendee": "참석자 추가",
     "maxSelected": "최대 {{n}}명까지 선택할 수 있습니다.",
     "studentLabel": "학생",
-    "allView": "전체보기"
+    "allView": "전체보기",
+    "categoryLabel": "수업종류"
   },
   "attach": {
     "section": "첨부자료",
@@ -159,5 +228,47 @@
       "size": "파일은 20MB 이하만 가능합니다.",
       "count": "최대 {{max}}개까지 첨부할 수 있습니다."
     }
+  },
+  "review": {
+    "done": "완료",
+    "doneFull": "수업완료",
+    "feedback": "피드백 작성됨",
+    "homework": "과제 등록됨",
+    "noHomework": "과제 없음",
+    "sectionTitle": "수업 피드백·과제 (강사 작성)",
+    "feedbackLabel": "피드백",
+    "homeworkLabel": "과제",
+    "noFeedbackYet": "피드백 미작성",
+    "textFeedback": "피드백",
+    "textHomework": "과제제출"
+  },
+  "stats": {
+    "title": "수업통계",
+    "btnLabel": "수업통계",
+    "btnTitle": "기간별 전체/강사별 수업통계",
+    "total": "전체 수업통계",
+    "byTeacher": "강사별 수업통계",
+    "classes": "건",
+    "done": "수업완료",
+    "empty": "해당 기간 수업이 없습니다.",
+    "unassigned": "미지정",
+    "classes2": "전체 수업",
+    "hours": "수업시간",
+    "notDone": "미완료",
+    "byCategory": "수업종류별",
+    "cardView": "카드뷰",
+    "listView": "리스트보기",
+    "teacher": "강사",
+    "back": "수업통계로",
+    "unit": {
+      "7d": "최근 1주일",
+      "28d": "최근 28일",
+      "90d": "최근 90일",
+      "custom": "기간지정"
+    }
+  },
+  "detail": {
+    "backToCal": "수업일정으로",
+    "backHistory": "뒤로가기"
   }
 }

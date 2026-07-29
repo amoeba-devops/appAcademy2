@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -8,12 +8,15 @@ import StarterKit from '@tiptap/starter-kit';
 import {
   Bold,
   ChevronLeft,
+  Download,
   History,
   Italic,
   List,
   ListOrdered,
   Loader2,
+  Paperclip,
   Pencil,
+  Plus,
   Quote,
   Redo2,
   RotateCcw,
@@ -27,10 +30,11 @@ import { useAuthStore } from '@/stores/auth.store';
 import {
   portalApi,
   type DocShareInput,
+  type MaterialAttachment,
   type MaterialShareRole,
   type PortalUserCandidate,
 } from '../api/portal-api';
-import { CommentThread } from './portal-materials-page';
+import { CommentThread, fmtSize } from './portal-materials-page';
 
 /**
  * PLN-260719 B — 문서 게시글 뷰/편집 (Google-Docs-like).
@@ -40,7 +44,7 @@ import { CommentThread } from './portal-materials-page';
  * 본문 HTML 은 렌더 시 DOMPurify sanitize.
  */
 
-interface ShareDraft {
+export interface ShareDraft {
   kind: 'STUDENT' | 'TEACHER';
   refId: string;
   name: string;
@@ -63,6 +67,8 @@ export function PortalDocPage() {
   const [editing, setEditing] = useState(isNew);
   const [title, setTitle] = useState('');
   const [shares, setShares] = useState<ShareDraft[]>([]);
+  // REQ-260728B FR-2 — 새 문서: 저장 전 첨부 대기열 (저장 성공 후 업로드).
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const { data: doc, isLoading } = useQuery({
@@ -104,13 +110,32 @@ export function PortalDocPage() {
   }, [editing, editor]);
 
   const createMut = useMutation({
-    mutationFn: () =>
-      portalApi.createDoc(
+    mutationFn: async () => {
+      const created = await portalApi.createDoc(
         title,
         editor?.getHTML() ?? '',
         shares.map(toShareInput),
-      ),
-    onSuccess: (created) => {
+      );
+      // 문서 id 확보 후 대기 첨부를 순차 업로드. 실패해도 문서는 저장된 상태.
+      let failed = 0;
+      for (const f of pendingFiles) {
+        try {
+          await portalApi.addDocAttachment(created.id, f);
+        } catch {
+          failed += 1;
+        }
+      }
+      return { created, failed };
+    },
+    onSuccess: ({ created, failed }) => {
+      if (failed > 0) {
+        window.alert(
+          t(
+            'portalApp.docs.attachUploadFailed',
+            '일부 첨부파일 업로드에 실패했습니다. 문서에서 다시 시도하세요.',
+          ),
+        );
+      }
       qc.invalidateQueries({ queryKey: ['portal-materials'] });
       navigate(`/portal/materials/docs/${created.id}`, { replace: true });
     },
@@ -183,6 +208,22 @@ export function PortalDocPage() {
 
           {editor && <Toolbar editor={editor} />}
           <EditorContent editor={editor} />
+
+          {/* REQ-260728B FR-2 — 첨부파일 (새 문서=대기열, 기존 문서=즉시 업로드) */}
+          {isNew ? (
+            <PendingAttachmentPicker
+              files={pendingFiles}
+              onChange={setPendingFiles}
+            />
+          ) : (
+            doc && (
+              <DocAttachments
+                docId={doc.id}
+                attachments={doc.attachments ?? []}
+                canManage
+              />
+            )
+          )}
 
           {/* 공유 관리 — 작성자(또는 신규 작성)만 */}
           {(isNew || doc?.mine) && (
@@ -285,6 +326,15 @@ export function PortalDocPage() {
               dangerouslySetInnerHTML={{ __html: sanitized }}
             />
 
+            {/* REQ-260728B FR-2 — 첨부파일 (열람자는 다운로드만) */}
+            {(doc.attachments?.length ?? 0) > 0 && (
+              <DocAttachments
+                docId={doc.id}
+                attachments={doc.attachments ?? []}
+                canManage={false}
+              />
+            )}
+
             {/* PLN-260719 B+ — 저장 단위 수정 히스토리 / 버전보기 / 복원 */}
             <RevisionHistory docId={doc.id} canEdit={doc.canEdit} />
 
@@ -303,6 +353,183 @@ export function PortalDocPage() {
 
 function toShareInput(s: ShareDraft): DocShareInput {
   return { kind: s.kind, refId: s.refId, role: s.role };
+}
+
+// ── 문서 첨부파일 (REQ-260728B FR-2) ────────────────────────────────────
+const MAX_ATTACHMENTS = 5;
+
+/** 새 문서: 저장 전 로컬 대기열 (저장 성공 후 순차 업로드). */
+function PendingAttachmentPicker({
+  files,
+  onChange,
+}: {
+  files: File[];
+  onChange: (next: File[]) => void;
+}) {
+  const { t } = useTranslation('common');
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <div className="space-y-1.5 rounded-md border border-[var(--border-subtle)] p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-secondary">
+          {t('portalApp.docs.attachments', '첨부파일')}
+        </span>
+        <span className="text-[11px] text-secondary">
+          {t('portalApp.docs.attachmentLimitHint', '파일당 50MB · 최대 5개')}
+        </span>
+      </div>
+      {files.map((f, i) => (
+        <div
+          key={`${f.name}-${i}`}
+          className="flex items-center gap-2 text-xs text-primary"
+        >
+          <Paperclip size={12} className="shrink-0 opacity-60" />
+          <span className="min-w-0 flex-1 truncate">
+            {f.name} ({fmtSize(f.size)})
+          </span>
+          <button
+            type="button"
+            onClick={() => onChange(files.filter((_, j) => j !== i))}
+            className="opacity-60 hover:opacity-100"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ))}
+      {files.length < MAX_ATTACHMENTS && (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+        >
+          <Plus size={12} /> {t('portalApp.docs.addAttachment', '파일 추가')}
+        </button>
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onChange([...files, f]);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
+/** 기존 문서: 즉시 업로드/삭제(canManage=편집 화면), 열람자는 다운로드만. */
+function DocAttachments({
+  docId,
+  attachments,
+  canManage,
+}: {
+  docId: string;
+  attachments: MaterialAttachment[];
+  canManage: boolean;
+}) {
+  const { t } = useTranslation('common');
+  const qc = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const upload = useMutation({
+    mutationFn: (f: File) => portalApi.addDocAttachment(docId, f),
+    onSuccess: () => {
+      setError(null);
+      qc.invalidateQueries({ queryKey: ['portal-doc', docId] });
+    },
+    onError: (e) => setError(errMsg(e)),
+  });
+
+  const del = useMutation({
+    mutationFn: (attId: string) => portalApi.deleteDocAttachment(attId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['portal-doc', docId] }),
+  });
+
+  const onDownload = async (a: MaterialAttachment) => {
+    setDownloadingId(a.id);
+    try {
+      await portalApi.downloadDocAttachment(a.id, a.filename);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  return (
+    <div className="mt-4 space-y-1.5 rounded-md border border-[var(--border-subtle)] p-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium text-secondary">
+          {t('portalApp.docs.attachments', '첨부파일')} ({attachments.length})
+        </span>
+        {canManage && (
+          <span className="text-[11px] text-secondary">
+            {t('portalApp.docs.attachmentLimitHint', '파일당 50MB · 최대 5개')}
+          </span>
+        )}
+      </div>
+      {attachments.map((a) => (
+        <div key={a.id} className="flex items-center gap-2 text-xs text-primary">
+          <Paperclip size={12} className="shrink-0 opacity-60" />
+          <span className="min-w-0 flex-1 truncate">
+            {a.filename}
+            {a.sizeBytes != null && ` (${fmtSize(a.sizeBytes)})`}
+          </span>
+          <button
+            type="button"
+            disabled={downloadingId === a.id}
+            onClick={() => void onDownload(a)}
+            className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-1.5 py-0.5 text-[11px] text-accent-700 hover:bg-[var(--gray-50)]"
+          >
+            {downloadingId === a.id ? (
+              <Loader2 size={11} className="animate-spin" />
+            ) : (
+              <Download size={11} />
+            )}
+            {t('portalApp.materials.download', '다운로드')}
+          </button>
+          {canManage && (
+            <button
+              type="button"
+              disabled={del.isPending}
+              onClick={() => del.mutate(a.id)}
+              className="rounded border border-[var(--border-subtle)] p-0.5 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      ))}
+      {canManage && attachments.length < MAX_ATTACHMENTS && (
+        <button
+          type="button"
+          disabled={upload.isPending}
+          onClick={() => inputRef.current?.click()}
+          className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)] disabled:opacity-50"
+        >
+          {upload.isPending ? (
+            <Loader2 size={12} className="animate-spin" />
+          ) : (
+            <Plus size={12} />
+          )}
+          {t('portalApp.docs.addAttachment', '파일 추가')}
+        </button>
+      )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
+      <input
+        ref={inputRef}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) upload.mutate(f);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
 }
 
 // ── 수정 히스토리 (저장 단위 리비전) ─────────────────────────────────────
@@ -537,18 +764,24 @@ function Toolbar({ editor }: { editor: NonNullable<ReturnType<typeof useEditor>>
 }
 
 // ── 공유 관리 패널 (포털 사용자 전체 검색 + 뷰어/편집자 지정) ────────────
-function SharePanel({
+// PLN-260724 — 파일 게시물 후공유에서도 재사용 (showRoles=false 면 권한 드롭다운 숨김).
+export function SharePanel({
   shares,
   onChange,
+  showRoles = true,
 }: {
   shares: ShareDraft[];
   onChange: (next: ShareDraft[]) => void;
+  showRoles?: boolean;
 }) {
   const { t } = useTranslation('common');
   const [q, setQ] = useState('');
+  // REQ-260728B FR-1 — 후보는 서버가 역할별 필터(학생→강사만). 세션 역할이
+  // 바뀌어도 캐시가 섞이지 않도록 쿼리키에 역할 포함.
+  const myKind = useAuthStore((s) => s.portal.user?.kind);
 
   const { data: candidates = [] } = useQuery({
-    queryKey: ['portal-all-users'],
+    queryKey: ['portal-all-users', myKind],
     queryFn: portalApi.allPortalUsers,
   });
 
@@ -600,14 +833,16 @@ function SharePanel({
                     : t('portalApp.docs.kindStudent', '학생')}
                 </span>
                 {s.name}
-                <select
-                  value={s.role}
-                  onChange={(e) => setRole(key, e.target.value as MaterialShareRole)}
-                  className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-[11px]"
-                >
-                  <option value="VIEWER">{t('portalApp.docs.viewer', '뷰어')}</option>
-                  <option value="EDITOR">{t('portalApp.docs.editor', '편집자')}</option>
-                </select>
+                {showRoles && (
+                  <select
+                    value={s.role}
+                    onChange={(e) => setRole(key, e.target.value as MaterialShareRole)}
+                    className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-[11px]"
+                  >
+                    <option value="VIEWER">{t('portalApp.docs.viewer', '뷰어')}</option>
+                    <option value="EDITOR">{t('portalApp.docs.editor', '편집자')}</option>
+                  </select>
+                )}
                 <button
                   type="button"
                   onClick={() => remove(key)}

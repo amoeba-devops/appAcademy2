@@ -27,10 +27,50 @@ export interface PortalCalEvent {
   invitees?: { kind: string; name: string }[];
   // PLN-260718 P2 — 이벤트 첨부자료.
   attachments?: PortalCalAttachment[];
+  // PLN-260728F B — 담당강사 tch_id(작성 권한 판단) + 수업완료 플래그.
+  assigneeTchId?: string | null;
+  primaryStudentName?: string | null;
+  hasFeedback?: boolean;
+  homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
+  classDone?: boolean;
+}
+
+export interface CalReview {
+  feedbackHtml: string | null;
+  homeworkStatus: 'ASSIGNED' | 'NONE' | null;
+  homeworkHtml: string | null;
+  updatedAt: string | null;
+}
+
+export interface BodaRecording {
+  recordIdx: number;
+  recordTitle: string | null;
+  startDatetime: string | null;
+  endDatetime: string | null;
+  fileExist: boolean;
+}
+
+export interface ClassRecordParticipant {
+  kind: string;
+  refId: string | null;
+  name: string | null;
+  joinedAt: string;
+  leftAt: string | null;
+  totalSeconds: number | null;
+}
+
+export interface ClassRecord {
+  status: string;
+  openedAt: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  closedAt: string | null;
+  participants: ClassRecordParticipant[];
 }
 
 export interface PortalCalAttachment {
   id: string;
+  kind?: 'GENERAL' | 'HOMEWORK';
   filename: string;
   mime: string;
   sizeBytes: string;
@@ -98,10 +138,14 @@ export const portalApi = {
     ).data,
 
   // PLN-260718 P3 — 자료실 게시물 (scope: 'own' 내 게시물 / 'shared' 공유받은).
-  materials: async (scope: 'own' | 'shared') =>
+  // REQ-260728B FR-4 — 종류필터(kind) + 서버 페이징 ({ data, meta }).
+  materials: async (
+    scope: 'own' | 'shared',
+    opts: { kind?: 'DOC' | 'FILE'; page: number; limit: number },
+  ) =>
     (
-      await apiClient.get<PortalMaterialPost[]>('/portal/materials', {
-        params: { scope },
+      await apiClient.get<PagedMaterials>('/portal/materials', {
+        params: { scope, kind: opts.kind, page: opts.page, limit: opts.limit },
       })
     ).data,
 
@@ -159,6 +203,15 @@ export const portalApi = {
       )
     ).data,
 
+  // PLN-260724 — FILE 포함 모든 내 게시물의 공유대상 교체.
+  updateMaterialShares: async (id: string, shares: DocShareInput[]) =>
+    (
+      await apiClient.put<PortalMaterialPost>(
+        `/portal/materials/${id}/shares`,
+        { shares },
+      )
+    ).data,
+
   updateDocShares: async (id: string, shares: DocShareInput[]) =>
     (
       await apiClient.put<PortalDocPost>(`/portal/materials/docs/${id}/shares`, {
@@ -166,16 +219,42 @@ export const portalApi = {
       })
     ).data,
 
-  createMaterial: async (file: File, title: string, shareRefIds: string[]) => {
+  // REQ-260728B FR-3 — 업로드 시 공유대상 필수 (multipart 텍스트 필드라 JSON 직렬화).
+  createMaterial: async (file: File, title: string, shares: DocShareInput[]) => {
     const form = new FormData();
     form.append('file', file);
     if (title) form.append('title', title);
-    shareRefIds.forEach((id) => form.append('shareRefIds', id));
+    form.append('shares', JSON.stringify(shares));
     return (
       await apiClient.post<PortalMaterialPost>('/portal/materials', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
     ).data;
+  },
+
+  // REQ-260728B FR-2 — 문서 첨부파일.
+  addDocAttachment: async (docId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return (
+      await apiClient.post<MaterialAttachment>(
+        `/portal/materials/docs/${docId}/attachments`,
+        form,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+    ).data;
+  },
+
+  downloadDocAttachment: async (attId: string, filename: string) => {
+    const res = await apiClient.get(
+      `/portal/materials/attachments/${attId}/download`,
+      { responseType: 'blob' },
+    );
+    triggerDownload(res.data as Blob, filename);
+  },
+
+  deleteDocAttachment: async (attId: string) => {
+    await apiClient.delete(`/portal/materials/attachments/${attId}`);
   },
 
   deleteMaterial: async (id: string) => {
@@ -207,6 +286,68 @@ export const portalApi = {
     (
       await apiClient.get<TeacherStudentDetail>(
         `/portal/teacher/students/${stdId}`,
+      )
+    ).data,
+
+  // PLN-260728F B — 수업 피드백·과제.
+  calReview: async (evtId: string) =>
+    (await apiClient.get<CalReview>(`/portal/cal/events/${evtId}/review`)).data,
+
+  saveCalReview: async (
+    evtId: string,
+    patch: {
+      feedbackHtml?: string;
+      homeworkStatus?: 'ASSIGNED' | 'NONE';
+      homeworkHtml?: string;
+    },
+  ) =>
+    (await apiClient.put<CalReview>(`/portal/cal/events/${evtId}/review`, patch))
+      .data,
+
+  uploadHomeworkFile: async (evtId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return (
+      await apiClient.post<PortalCalAttachment>(
+        `/portal/cal/events/${evtId}/attachments`,
+        form,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      )
+    ).data;
+  },
+
+  deleteHomeworkFile: async (evtId: string, attId: string) => {
+    await apiClient.delete(`/portal/cal/events/${evtId}/attachments/${attId}`);
+  },
+
+  // PLN-260728F C — 녹화본.
+  recordings: async (evtId: string) =>
+    (
+      await apiClient.get<BodaRecording[]>(
+        `/portal/cal/events/${evtId}/recordings`,
+      )
+    ).data,
+
+  downloadRecording: async (evtId: string, recordIdx: number) => {
+    const res = await apiClient.get(
+      `/portal/cal/events/${evtId}/recordings/${recordIdx}/download`,
+      { responseType: 'blob', timeout: 0 },
+    );
+    const url = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `recording-${recordIdx}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
+
+  // PLN-260728F A — 강의실 실적 기록 (개설/시작/종료 + 입·퇴실).
+  classRecord: async (evtId: string) =>
+    (
+      await apiClient.get<ClassRecord | null>(
+        `/portal/cal/events/${evtId}/class-record`,
       )
     ).data,
 
@@ -248,6 +389,22 @@ export interface PortalMaterialPost {
 
 export interface PortalDocPost extends PortalMaterialPost {
   content: string;
+  // REQ-260728B FR-2 — 문서 첨부파일.
+  attachments: MaterialAttachment[];
+}
+
+export interface MaterialAttachment {
+  id: string;
+  filename: string;
+  mime: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+}
+
+// REQ-260728B FR-4 — 목록 표준 페이징 응답 (§6.2).
+export interface PagedMaterials {
+  data: PortalMaterialPost[];
+  meta: { page: number; limit: number; total: number };
 }
 
 export interface MaterialShareCandidate {

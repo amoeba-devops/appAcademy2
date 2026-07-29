@@ -105,7 +105,9 @@ export class InviteeSuggestionsService {
     });
     if (memberships.length === 0) return [];
 
-    const studentIds = Array.from(new Set(memberships.map((m) => m.studentUserId)));
+    const studentIds = Array.from(
+      new Set(memberships.map((m) => m.studentUserId)),
+    );
     const students = await this.stdRepo.find({
       where: studentIds.map((sid) => ({ entId, id: sid })),
       select: ['id', 'name'],

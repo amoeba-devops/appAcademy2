@@ -7,6 +7,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -35,6 +36,12 @@ export class InstantInviteeDto {
  * invitees 는 0 명도 허용 (강사 단독 시연 가능).
  */
 export class CreateInstantEventDto {
+  /** PLN-260729 1.3 — 담당강사(tch_id). 지정 시 해당 강사가 포털에서 개설 가능. */
+  @ApiPropertyOptional({ description: '담당강사 tch_id' })
+  @IsOptional()
+  @IsUUID()
+  assigneeTchId?: string;
+
   @ApiPropertyOptional({ maxLength: 200 })
   @IsString()
   @IsOptional()

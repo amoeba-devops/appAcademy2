@@ -14,7 +14,9 @@
     "day": "Day",
     "week": "Week",
     "month": "Month",
-    "list": "List"
+    "list": "List",
+    "showAll": "View all",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Class",
@@ -42,11 +44,56 @@
     "locationText": "Location",
     "meetingProvider": "Meeting provider",
     "meetingUrl": "Meeting URL",
+    "bodaRoomType": "Class type",
     "creator": "Creator",
     "assignee": "In charge / Teacher",
     "assigneeNone": "Unassigned",
     "materials": "Class materials",
     "endDate": "End date"
+  },
+  "bodaRoomType": {
+    "ONE_TO_ONE": "1:1 class (teacher + 1 student)",
+    "ONE_TO_MANY": "1:N group class (multiple students)"
+  },
+  "delete": {
+    "title": "Delete class schedule",
+    "hint": "Deleted schedules are hidden from the calendar and can be found under ‘View deleted schedules’.",
+    "reasonPlaceholder": "Deletion reason (required)",
+    "reasonRequired": "Please enter a deletion reason.",
+    "confirm": "Delete"
+  },
+  "edit": {
+    "reasonLabel": "Edit reason",
+    "reasonPlaceholder": "Enter why you changed this (recorded in the edit history)",
+    "reasonRequired": "Please enter an edit reason."
+  },
+  "revision": {
+    "title": "Edit history",
+    "reason": "Reason",
+    "yes": "Yes",
+    "no": "No",
+    "field": {
+      "category": "Category",
+      "title": "Title",
+      "description": "Description",
+      "startAt": "Start",
+      "endAt": "End",
+      "allDay": "All day",
+      "locationText": "Location",
+      "meetingProvider": "Meeting",
+      "bodaRoomType": "Class type",
+      "assigneeTchId": "Assigned teacher"
+    }
+  },
+  "deleted": {
+    "btnLabel": "View deleted schedules",
+    "btnTitle": "Show deleted class schedules",
+    "empty": "No class schedules were deleted in this period.",
+    "colTitle": "Title",
+    "colPeriod": "Period",
+    "colReason": "Deletion reason",
+    "colBy": "Deleted by",
+    "colAt": "Deleted at"
   },
   "form": {
     "titleCreate": "Add Event",
@@ -72,6 +119,7 @@
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",
     "readOnlySource": "This event is synced from an external source and cannot be edited.",
     "bodaAuto": "A Bodaschool link is generated automatically for demo and regular classes on save.",
+    "bodaRoomType": "Choose 1:N for group classes that invite two or more students.",
     "bodaPending": "The link will be generated after saving.",
     "durationHm": "{{h}}h {{m}}m",
     "durationH": "{{h}}h",
@@ -106,7 +154,21 @@
     "confirmForceClose": "Force-close the live room?",
     "reconcileResult": "Resync done",
     "forceCloseResult": "Closed",
-    "notProvisioned": "BODA room not provisioned yet."
+    "notProvisioned": "BODA room not provisioned yet.",
+    "attendance": "Attendance (join/leave)",
+    "stillIn": "in room",
+    "kind": {
+      "TEACHER": "Teacher",
+      "STUDENT": "Student",
+      "OPERATOR": "Operator",
+      "UNKNOWN": "Unknown"
+    },
+    "recordTitle": "Classroom log",
+    "reservedRow": "Reserved",
+    "actualRow": "Actual",
+    "reservedStart": "Scheduled start",
+    "reservedEnd": "Scheduled end",
+    "joinListTitle": "Actual join times"
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -126,7 +188,13 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "BODA default room code is not set. Enter it under Settings → BODA integration and try again.",
       "BODA_DISABLED_FOR_TENANT": "BODA integration is disabled. Enable it under Settings → BODA integration and try again."
-    }
+    },
+    "assigneeLabel": "Assigned teacher (can open)",
+    "assigneeNone": "- None (creator opens) -",
+    "searchPlaceholder": "Search students by name/email",
+    "searchNoResult": "No results found.",
+    "searchAdd": "Add",
+    "searchRemove": "Remove"
   },
   "filter": {
     "label": "Filter",
@@ -145,7 +213,8 @@
     "addAttendee": "Add attendee",
     "maxSelected": "You can select up to {{n}} entries.",
     "studentLabel": "Student",
-    "allView": "All"
+    "allView": "All",
+    "categoryLabel": "Class type"
   },
   "attach": {
     "section": "Attachments",
@@ -159,5 +228,47 @@
       "size": "Files must be 20MB or smaller.",
       "count": "Up to {{max}} attachments allowed."
     }
+  },
+  "review": {
+    "done": "Done",
+    "doneFull": "Class done",
+    "feedback": "Feedback written",
+    "homework": "Homework assigned",
+    "noHomework": "No homework",
+    "sectionTitle": "Class feedback & homework (by teacher)",
+    "feedbackLabel": "Feedback",
+    "homeworkLabel": "Homework",
+    "noFeedbackYet": "No feedback yet",
+    "textFeedback": "Feedback",
+    "textHomework": "Homework"
+  },
+  "stats": {
+    "title": "Class stats",
+    "btnLabel": "Stats",
+    "btnTitle": "Class statistics by period/teacher",
+    "total": "Overall",
+    "byTeacher": "By teacher",
+    "classes": "",
+    "done": "Done",
+    "empty": "No classes in this period.",
+    "unassigned": "Unassigned",
+    "classes2": "Total classes",
+    "hours": "Class hours",
+    "notDone": "Not done",
+    "byCategory": "By category",
+    "cardView": "Card view",
+    "listView": "List view",
+    "teacher": "Teacher",
+    "back": "Back to stats",
+    "unit": {
+      "7d": "Last 7 days",
+      "28d": "Last 28 days",
+      "90d": "Last 90 days",
+      "custom": "Custom range"
+    }
+  },
+  "detail": {
+    "backToCal": "Back to schedule",
+    "backHistory": "Back"
   }
 }

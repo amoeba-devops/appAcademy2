@@ -10,11 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import {
@@ -128,7 +124,8 @@ export class BodaDemoController {
     // the actor's own UUID-without-dashes (same convention as launcher).
     const userId =
       body?.userId ??
-      (code === BODA_EVENT_CODES.USER_JOINED || code === BODA_EVENT_CODES.USER_LEFT
+      (code === BODA_EVENT_CODES.USER_JOINED ||
+      code === BODA_EVENT_CODES.USER_LEFT
         ? u.id.replace(/-/g, '')
         : null);
 

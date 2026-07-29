@@ -18,10 +18,25 @@ import { InviteeSuggestionsService } from './invitee-suggestions.service';
 describe('InviteeSuggestionsService', () => {
   let svc: InviteeSuggestionsService;
   let stdFind: jest.Mock;
-  let clsQb: { getMany: jest.Mock; where: jest.Mock; andWhere: jest.Mock; select: jest.Mock };
+  let clsQb: {
+    getMany: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    select: jest.Mock;
+  };
   let cstFind: jest.Mock;
-  let evtQb: { getMany: jest.Mock; where: jest.Mock; andWhere: jest.Mock; select: jest.Mock };
-  let invQb: { getMany: jest.Mock; where: jest.Mock; andWhere: jest.Mock; select: jest.Mock };
+  let evtQb: {
+    getMany: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    select: jest.Mock;
+  };
+  let invQb: {
+    getMany: jest.Mock;
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    select: jest.Mock;
+  };
 
   beforeEach(async () => {
     stdFind = jest.fn();

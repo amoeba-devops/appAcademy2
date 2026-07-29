@@ -14,6 +14,9 @@ export type CalCategory = (typeof CAL_CATEGORIES)[number];
 
 export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
 export type CalMeetingProvider = (typeof CAL_PROVIDERS)[number];
+/** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
+export const CAL_BODA_ROOM_TYPES = ['ONE_TO_ONE', 'ONE_TO_MANY'] as const;
+export type CalBodaRoomType = (typeof CAL_BODA_ROOM_TYPES)[number];
 
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
 
@@ -96,12 +99,19 @@ export interface CalEvent {
   locationText?: string | null;
   meetingProvider: CalMeetingProvider;
   meetingUrl?: string | null;
+  /** BODASCHOOL 룸 유형 (1:1 / 1:N). @see FIX-260724 */
+  bodaRoomType?: CalBodaRoomType;
   clsId?: string | null;
   /** REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher). Separate from owner/invitee. */
   assigneeTchId?: string | null;
   source: CalSource;
   createdAt: string;
   updatedAt: string;
+  /** REQ-260728 — soft-delete 메타('삭제 보기' 목록에서 사용). */
+  deletedAt?: string | null;
+  deleteReason?: string | null;
+  deletedBy?: string | null;
+  deletedByName?: string | null;
   ownerName?: string | null;
   ownerEmail?: string | null;
   /** REQ-260630 — resolved teacher name for the assignee column. */
@@ -113,6 +123,10 @@ export interface CalEvent {
   cslLink?: CalCslLink | null;
   /** PLN-260718 P2 — 이벤트 자체 첨부자료 (findOne 상세에서만 채워짐). */
   attachments?: CalEventAttachment[];
+  /** PLN-260728F B — 수업완료 플래그 (목록 enrich). */
+  hasFeedback?: boolean;
+  homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
+  classDone?: boolean;
   notifySummary?: NotifySummary | null;
 }
 
@@ -131,4 +145,26 @@ export interface ListCalEventsQuery {
   attendeeKind?: CalInviteeKind;
   attendeeRefId?: string;
   attendeeRefIds?: string[];
+  /** REQ-260728 — true 면 삭제된 일정만 조회('삭제한 수업일정 보기'). */
+  deletedOnly?: boolean;
+}
+
+/** REQ-260728 — 수정 히스토리 1건의 변경 요약. */
+export interface CalEventChange {
+  field: string;
+  before: string | null;
+  after: string | null;
+}
+
+export interface CalEventRevision {
+  id: string;
+  editorUserId: string | null;
+  editorName: string | null;
+  reason: string | null;
+  changes: CalEventChange[];
+  createdAt: string;
+}
+
+export interface CalEventRevisionList {
+  items: CalEventRevision[];
 }

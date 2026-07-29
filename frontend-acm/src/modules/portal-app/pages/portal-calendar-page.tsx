@@ -46,16 +46,42 @@ function rangeFor(mode: ViewMode, anchor: Date): { from: Date; to: Date } {
 }
 
 export function PortalCalendarPage() {
-  const { t, i18n } = useTranslation('common');
+  const { t, i18n } = useTranslation(['common', 'cal']);
   const [mode, setMode] = useState<ViewMode>('month');
   const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
   const [selected, setSelected] = useState<PortalCalEvent | null>(null);
+  const navigate = useNavigate();
+  // PLN-260729 3 — 일/주/리스트: 학생/수업종류 필터 + 모달 없이 바로 상세.
+  const [studentFilter, setStudentFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const openDirect = (e: PortalCalEvent) => navigate(`/portal/calendar/${e.id}`);
 
   const { from, to } = useMemo(() => rangeFor(mode, anchor), [mode, anchor]);
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['portal-cal', mode, from.toISOString(), to.toISOString()],
     queryFn: () => portalApi.calEvents(iso(from), iso(to)),
   });
+
+  const studentOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          events
+            .map((e) => e.primaryStudentName)
+            .filter((n): n is string => !!n),
+        ),
+      ).sort(),
+    [events],
+  );
+  const filteredEvents = useMemo(
+    () =>
+      events.filter(
+        (e) =>
+          (!studentFilter || e.primaryStudentName === studentFilter) &&
+          (!categoryFilter || e.category === categoryFilter),
+      ),
+    [events, studentFilter, categoryFilter],
+  );
 
   const step = (dir: number) => {
     if (mode === 'day') setAnchor((a) => addDays(a, dir));
@@ -100,6 +126,33 @@ export function PortalCalendarPage() {
         </div>
       </div>
 
+      {mode !== 'month' && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-secondary">{t('portalApp.cal.filterStudent', '학생')}:</span>
+          <select
+            value={studentFilter}
+            onChange={(e) => setStudentFilter(e.target.value)}
+            className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
+          >
+            <option value="">{t('portalApp.cal.all', '전체')}</option>
+            {studentOptions.map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
+          <span className="text-secondary">{t('portalApp.cal.filterCategory', '수업종류')}:</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
+          >
+            <option value="">{t('portalApp.cal.all', '전체')}</option>
+            {['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'].map((c) => (
+              <option key={c} value={c}>{t(`cal:category.${c}`, c)}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {isLoading ? (
         <p className="py-10 text-center text-sm text-secondary">…</p>
       ) : mode === 'month' ? (
@@ -111,18 +164,18 @@ export function PortalCalendarPage() {
         />
       ) : mode === 'list' ? (
         <ListView
-          events={events}
+          events={filteredEvents}
           locale={i18n.language}
           emptyLabel={t('portalApp.cal.empty')}
-          onSelect={setSelected}
+          onSelect={openDirect}
         />
       ) : (
         <Agenda
           days={mode === 'week' ? 7 : 1}
           from={from}
-          events={events}
+          events={filteredEvents}
           emptyLabel={t('portalApp.cal.empty')}
-          onSelect={setSelected}
+          onSelect={openDirect}
         />
       )}
 
@@ -195,6 +248,12 @@ function MonthGrid({
                 <span className="truncate">
                   {timeLabel(e)} {e.title}
                 </span>
+                {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
+                {e.classDone && (
+                  <span className="shrink-0 rounded bg-emerald-100 px-0.5 text-[8px] font-semibold text-emerald-800">
+                    ✓
+                  </span>
+                )}
               </button>
             ))}
             {dayEvents.length > 3 && (
@@ -243,6 +302,7 @@ function Agenda({
 }
 
 function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalEvent) => void }) {
+  const { t } = useTranslation('common');
   return (
     <button
       type="button"
@@ -250,7 +310,30 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
       className="flex w-full items-center gap-3 border-b border-[var(--border-subtle)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--gray-50)]"
     >
       <span className="w-16 shrink-0 text-sm text-secondary">{timeLabel(e) || '—'}</span>
-      <span className="min-w-0 flex-1 truncate text-sm text-primary">{e.title}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-primary">
+        {e.title}
+        {/* PLN-260729 3 — 제목 옆 학생명 */}
+        {e.primaryStudentName && (
+          <span className="ml-1.5 text-secondary">· {e.primaryStudentName}</span>
+        )}
+      </span>
+      {/* PLN-260729 3 — 피드백/과제 텍스트 표기 (아이콘은 월간뷰만) */}
+      <span className="flex shrink-0 items-center gap-1.5 text-[11px]">
+        {e.hasFeedback && (
+          <span className="text-accent-700">{t('portalApp.review.textFeedback', '피드백')}</span>
+        )}
+        {e.homeworkStatus === 'ASSIGNED' && (
+          <span className="text-accent-700">{t('portalApp.review.textHomework', '과제제출')}</span>
+        )}
+        {e.homeworkStatus === 'NONE' && (
+          <span className="text-secondary">{t('portalApp.review.noHomework', '과제없음')}</span>
+        )}
+        {e.classDone && (
+          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+            {t('portalApp.review.done', '수업완료')}
+          </span>
+        )}
+      </span>
       {e.assigneeName && <span className="text-xs text-secondary">{e.assigneeName}</span>}
       {e.meetingProvider === 'BODASCHOOL' && (
         <Video size={14} className="shrink-0 text-accent-700" />

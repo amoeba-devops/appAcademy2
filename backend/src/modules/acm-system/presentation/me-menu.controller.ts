@@ -20,8 +20,12 @@ export class MeMenuController {
   constructor(private readonly svc: TenantService) {}
 
   @Get('menus')
-  @ApiOperation({ summary: "Hidden admin-menu keys for the caller's tenant" })
-  async menus(@CurrentUser() user: AcmCurrentUser): Promise<{ hidden: string[] }> {
-    return { hidden: await this.svc.getHiddenKeys(user.entId) };
+  @ApiOperation({
+    summary: "Hidden + ordered admin-menu keys for the caller's tenant",
+  })
+  async menus(
+    @CurrentUser() user: AcmCurrentUser,
+  ): Promise<{ hidden: string[]; order: string[] }> {
+    return this.svc.getMenuNav(user.entId);
   }
 }

@@ -1,8 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
+  ChevronLeft,
+  ChevronRight,
   Download,
   FilePen,
   FileText,
@@ -11,6 +13,7 @@ import {
   Paperclip,
   Plus,
   Send,
+  Share2,
   Trash2,
   X,
 } from 'lucide-react';
@@ -20,8 +23,10 @@ import {
   type MaterialComment,
   type PortalMaterialPost,
 } from '../api/portal-api';
+import { SharePanel, type ShareDraft } from './portal-doc-page';
 
-function fmtSize(bytes: number): string {
+// REQ-260728B — 문서 첨부 UI(portal-doc-page)에서도 재사용 (export).
+export function fmtSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -79,29 +84,29 @@ export function PortalMaterialsPage() {
 }
 
 function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
+  void kind; // 공유후보는 서버가 역할별로 필터 (REQ-260728B FR-1: 학생→강사만).
   const { t } = useTranslation('common');
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // REQ-260728B FR-3 — 업로드 시점에 공유대상 필수 선택.
+  const [shares, setShares] = useState<ShareDraft[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  const { data: candidates = [] } = useQuery({
-    queryKey: ['portal-material-candidates'],
-    queryFn: portalApi.materialShareCandidates,
-    enabled: open,
-  });
 
   const create = useMutation({
     mutationFn: () =>
-      portalApi.createMaterial(file!, title, Array.from(selected)),
+      portalApi.createMaterial(
+        file!,
+        title,
+        shares.map((s) => ({ kind: s.kind, refId: s.refId, role: s.role })),
+      ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['portal-materials', 'own'] });
       setFile(null);
       setTitle('');
-      setSelected(new Set());
+      setShares([]);
       setOpen(false);
       setError(null);
     },
@@ -111,24 +116,7 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
     },
   });
 
-  const shareLabel =
-    kind === 'TEACHER'
-      ? t('portalApp.materials.shareToStudents', '공유할 학생')
-      : t('portalApp.materials.shareToTeacher', '제출할 강사');
-  const submitLabel =
-    kind === 'TEACHER'
-      ? t('portalApp.materials.shareBtn', '학생에게 공유')
-      : t('portalApp.materials.submitBtn', '강사에게 제출');
-
-  const toggle = (refId: string) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(refId)) next.delete(refId);
-      else next.add(refId);
-      return next;
-    });
-
-  const canSubmit = !!file && selected.size > 0 && !create.isPending;
+  const canSubmit = !!file && shares.length > 0 && !create.isPending;
 
   if (!open) {
     return (
@@ -164,7 +152,7 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
             {file.name} ({fmtSize(file.size)})
           </span>
         ) : (
-          t('portalApp.materials.pickFile', '파일 선택 (≤20MB)')
+          t('portalApp.materials.pickFile', '파일 선택 (≤50MB)')
         )}
         <input
           ref={fileRef}
@@ -182,32 +170,16 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
         className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
       />
 
-      {/* Share targets */}
-      <div>
-        <div className="mb-1 text-xs text-secondary">{shareLabel}</div>
-        {candidates.length === 0 ? (
-          <p className="text-xs text-secondary">
-            {t('portalApp.materials.noCandidates', '공유 대상이 없습니다.')}
-          </p>
-        ) : (
-          <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
-            {candidates.map((c) => (
-              <button
-                key={c.refId}
-                type="button"
-                onClick={() => toggle(c.refId)}
-                className={`rounded-full border px-2.5 py-1 text-xs ${
-                  selected.has(c.refId)
-                    ? 'border-accent-600 bg-accent-600 text-white'
-                    : 'border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)]'
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* REQ-260728B FR-3 — 공유대상 1명 이상 선택해야 업로드 가능 */}
+      <SharePanel shares={shares} onChange={setShares} showRoles={false} />
+      {shares.length === 0 && (
+        <p className="rounded-md bg-[var(--gray-50)] px-3 py-2 text-xs text-secondary">
+          {t(
+            'portalApp.materials.shareRequiredHint',
+            '공유 대상을 1명 이상 선택해야 업로드할 수 있습니다.',
+          )}
+        </p>
+      )}
 
       {error && <p className="text-xs text-red-600">{error}</p>}
 
@@ -219,33 +191,129 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
           className="inline-flex items-center gap-1.5 rounded-md bg-accent-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {create.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-          {submitLabel}
+          {t('portalApp.materials.uploadBtn', '업로드')}
         </button>
       </div>
     </div>
   );
 }
 
+const PAGE_SIZE = 10;
+type KindFilter = 'ALL' | 'DOC' | 'FILE';
+
 function MaterialList({ scope }: { scope: Tab }) {
   const { t } = useTranslation('common');
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ['portal-materials', scope],
-    queryFn: () => portalApi.materials(scope),
-  });
+  // REQ-260728B FR-4 — 문서/자료 구분 필터 + 서버 페이징.
+  const [kindFilter, setKindFilter] = useState<KindFilter>('ALL');
+  const [page, setPage] = useState(1);
+  useEffect(() => setPage(1), [scope, kindFilter]);
 
-  if (isLoading) return <p className="py-6 text-center text-sm text-secondary">…</p>;
-  if (posts.length === 0) {
-    return (
-      <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
-        {t('portalApp.materials.empty')}
-      </p>
-    );
-  }
+  const { data, isLoading } = useQuery({
+    queryKey: ['portal-materials', scope, kindFilter, page],
+    queryFn: () =>
+      portalApi.materials(scope, {
+        kind: kindFilter === 'ALL' ? undefined : kindFilter,
+        page,
+        limit: PAGE_SIZE,
+      }),
+  });
+  const posts = data?.data ?? [];
+  const total = data?.meta.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const filters: Array<{ key: KindFilter; label: string }> = [
+    { key: 'ALL', label: t('portalApp.materials.filterAll', '전체') },
+    { key: 'DOC', label: t('portalApp.materials.filterDoc', '문서') },
+    { key: 'FILE', label: t('portalApp.materials.filterFile', '자료') },
+  ];
+
   return (
-    <div className="space-y-3">
-      {posts.map((p) => (
-        <MaterialCard key={p.id} post={p} scope={scope} />
+    <div>
+      <div className="mb-3 inline-flex rounded-md border border-[var(--border-subtle)] p-0.5 text-xs">
+        {filters.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setKindFilter(f.key)}
+            className={`rounded px-2.5 py-1 ${
+              kindFilter === f.key ? 'bg-accent-600 text-white' : 'text-secondary'
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <p className="py-6 text-center text-sm text-secondary">…</p>
+      ) : posts.length === 0 ? (
+        <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+          {t('portalApp.materials.empty')}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {posts.map((p) => (
+            <MaterialCard key={p.id} post={p} scope={scope} />
+          ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      )}
+    </div>
+  );
+}
+
+function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (p: number) => void;
+}) {
+  // 현재 페이지 주변 최대 5개 번호만 노출.
+  const start = Math.max(1, Math.min(page - 2, totalPages - 4));
+  const nums = Array.from(
+    { length: Math.min(5, totalPages) },
+    (_, i) => start + i,
+  );
+  const navBtn =
+    'inline-flex h-7 w-7 items-center justify-center rounded border border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)] disabled:opacity-40';
+  return (
+    <div className="mt-4 flex items-center justify-center gap-1 text-xs">
+      <button
+        type="button"
+        disabled={page <= 1}
+        onClick={() => onChange(page - 1)}
+        className={navBtn}
+      >
+        <ChevronLeft size={13} />
+      </button>
+      {nums.map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange(n)}
+          className={`inline-flex h-7 w-7 items-center justify-center rounded ${
+            n === page
+              ? 'bg-accent-600 font-medium text-white'
+              : 'border border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)]'
+          }`}
+        >
+          {n}
+        </button>
       ))}
+      <button
+        type="button"
+        disabled={page >= totalPages}
+        onClick={() => onChange(page + 1)}
+        className={navBtn}
+      >
+        <ChevronRight size={13} />
+      </button>
     </div>
   );
 }
@@ -256,7 +324,34 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  // PLN-260724 — 파일도 문서와 동일하게 업로드 후 공유대상 지정.
+  const [showShare, setShowShare] = useState(false);
+  const [shareDraft, setShareDraft] = useState<ShareDraft[]>([]);
   const isDoc = post.kind === 'DOC';
+
+  const sharesMut = useMutation({
+    mutationFn: () =>
+      portalApi.updateMaterialShares(
+        post.id,
+        shareDraft.map((s) => ({ kind: s.kind, refId: s.refId, role: s.role })),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['portal-materials'] });
+      setShowShare(false);
+    },
+  });
+
+  const openShare = () => {
+    setShareDraft(
+      post.shareTargets.map((s) => ({
+        kind: s.kind,
+        refId: s.refId,
+        name: s.name,
+        role: s.role,
+      })),
+    );
+    setShowShare(true);
+  };
 
   const del = useMutation({
     mutationFn: () => portalApi.deleteMaterial(post.id),
@@ -335,6 +430,15 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
           )}
           {post.mine && (
             <button
+              onClick={openShare}
+              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+            >
+              <Share2 size={12} />
+              {t('portalApp.materials.shareBtn2', '공유')}
+            </button>
+          )}
+          {post.mine && (
+            <button
               onClick={() => {
                 if (window.confirm(t('portalApp.materials.confirmDelete', '이 게시물을 삭제할까요?')))
                   del.mutate();
@@ -347,6 +451,34 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
           )}
         </div>
       </div>
+
+      {showShare && (
+        <div className="mt-3 space-y-2">
+          <SharePanel
+            shares={shareDraft}
+            onChange={setShareDraft}
+            showRoles={isDoc}
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setShowShare(false)}
+              className="rounded-md border border-[var(--border-subtle)] px-3 py-1 text-xs text-secondary"
+            >
+              {t('actions.cancel', '취소')}
+            </button>
+            <button
+              type="button"
+              disabled={sharesMut.isPending}
+              onClick={() => sharesMut.mutate()}
+              className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+            >
+              {sharesMut.isPending && <Loader2 size={12} className="animate-spin" />}
+              {t('portalApp.materials.shareSave', '공유 저장')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <button
         type="button"

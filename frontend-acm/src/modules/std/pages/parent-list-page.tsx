@@ -1,29 +1,17 @@
-import { Fragment, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
 import { useTranslation } from 'react-i18next';
-import { Search, Trash2, Pencil, BadgeCheck, UserPlus } from 'lucide-react';
+import { Search, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/toast';
-import { useAuthStore } from '@/stores/auth.store';
+import { ParentEditModal } from '../components/parent-edit-modal';
 import {
   useParents,
   useDeleteParent,
-  useUpdateParent,
-  useRegisterParentAsAmaClient,
   type ParentSummary,
 } from '../hooks/use-parents';
 
 const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
-
-interface InlineEditState {
-  id: string;
-  parName: string;
-  parRelation: string;
-  parPhone: string;
-  parEmail: string;
-}
 
 export function ParentListPage() {
   const { t } = useTranslation('std');
@@ -32,43 +20,15 @@ export function ParentListPage() {
   const [page, setPage] = useState(1);
   const limit = 20;
 
-  const toast = useToast();
-  const role = useAuthStore((s) => s.user?.role);
-  const canRegisterAma = role === 'ADMIN' || role === 'STAFF';
-
   const { data, isLoading } = useParents({ q: q.length >= 2 ? q : undefined, page, limit });
   const deleteMut = useDeleteParent();
-  const registerAmaMut = useRegisterParentAsAmaClient();
-
-  const handleRegisterAma = async (p: ParentSummary) => {
-    try {
-      const res = await registerAmaMut.mutateAsync(p.id);
-      toast.success(
-        res.alreadyRegistered
-          ? t('parentList.ama.alreadyRegistered', '이미 등록된 학부모입니다')
-          : t('parentList.ama.success', 'AMA 고객사로 등록되었습니다'),
-      );
-    } catch {
-      toast.error(t('parentList.ama.error', 'AMA 등록에 실패했습니다. 잠시 후 다시 시도하세요.'));
-    }
-  };
 
   const items = useMemo<ParentSummary[]>(() => data?.items ?? [], [data]);
   const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
-  const [edit, setEdit] = useState<InlineEditState | null>(null);
-  const updateMut = useUpdateParent(edit?.id ?? '');
-
-  const handleSaveEdit = async () => {
-    if (!edit) return;
-    await updateMut.mutateAsync({
-      parName: edit.parName,
-      parRelation: edit.parRelation || undefined,
-      parPhone: edit.parPhone || undefined,
-      parEmail: edit.parEmail || undefined,
-    });
-    setEdit(null);
-  };
+  // REQ-260729-3 — 수정은 인라인 행 편집 대신 모달로 처리.
+  const [editing, setEditing] = useState<ParentSummary | null>(null);
 
   // REQ-260619 — render linked student names (ACTIVE highlighted, others dimmed);
   // each name links to the student detail page. Falls back to count for the
@@ -108,6 +68,15 @@ export function ParentListPage() {
     );
   };
 
+  // 페이지 번호 윈도우 (현재 페이지 중심 최대 5개)
+  const pageNumbers = useMemo(() => {
+    const window = 5;
+    let start = Math.max(1, page - Math.floor(window / 2));
+    const end = Math.min(totalPages, start + window - 1);
+    start = Math.max(1, end - window + 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [page, totalPages]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -143,180 +112,89 @@ export function ParentListPage() {
               <th className="px-3 py-2 text-left">{t('field.parentPhone', '전화번호')}</th>
               <th className="px-3 py-2 text-left">{t('field.parentEmail', '이메일')}</th>
               <th className="px-3 py-2 text-left">{t('parentList.childCount', '연결 자녀')}</th>
-              <th className="px-3 py-2 text-left">{t('parentList.ama.column', 'AMA 고객사')}</th>
               <th className="px-3 py-2 text-right">{t('common:actions.actions', '작업')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {isLoading && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-secondary">
+                <td colSpan={6} className="p-6 text-center text-secondary">
                   {t('common:status.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-6 text-center text-secondary">
+                <td colSpan={6} className="p-6 text-center text-secondary">
                   {t('parentList.empty', '등록된 학부모가 없습니다')}
                 </td>
               </tr>
             )}
-            {items.map((p) =>
-              edit?.id === p.id ? (
-                <Fragment key={p.id}>
-                <tr className="bg-[var(--canvas-subtle)]">
-                  <td className="px-3 py-2">
-                    <input
-                      value={edit.parName}
-                      onChange={(e) => setEdit({ ...edit, parName: e.target.value })}
-                      className={inputClass}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      value={edit.parRelation}
-                      onChange={(e) => setEdit({ ...edit, parRelation: e.target.value })}
-                      className={inputClass}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      value={edit.parPhone}
-                      onChange={(e) => setEdit({ ...edit, parPhone: e.target.value })}
-                      className={inputClass}
-                    />
-                  </td>
-                  <td className="px-3 py-2">
-                    <input
-                      value={edit.parEmail}
-                      onChange={(e) => setEdit({ ...edit, parEmail: e.target.value })}
-                      className={inputClass}
-                    />
-                  </td>
-                  <td className="px-3 py-2">{renderChildren(p)}</td>
-                  <td className="px-3 py-2 text-secondary">—</td>
-                  <td className="px-3 py-2 text-right">
-                    <Button size="sm" onClick={handleSaveEdit} disabled={updateMut.isPending}>
-                      {t('common:actions.save', '저장')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="ml-1"
-                      onClick={() => setEdit(null)}
-                    >
-                      {t('common:actions.cancel', '취소')}
-                    </Button>
-                  </td>
-                </tr>
-                <tr className="bg-[var(--canvas-subtle)]">
-                  <td colSpan={7} className="px-3 pb-3">
-                    <PortalAccountPanel kind="PARENT" refId={p.id} />
-                  </td>
-                </tr>
-                </Fragment>
-              ) : (
-                <tr key={p.id} className="hover:bg-[var(--canvas-subtle)]">
-                  <td className="px-3 py-2 font-medium text-primary">{p.name}</td>
-                  <td className="px-3 py-2 text-secondary">{p.relation ?? '—'}</td>
-                  <td className="px-3 py-2 text-secondary">{p.phone ?? '—'}</td>
-                  <td className="px-3 py-2 text-secondary">{p.email ?? '—'}</td>
-                  <td className="px-3 py-2">{renderChildren(p)}</td>
-                  <td className="px-3 py-2">
-                    {p.amaClientId ? (
-                      <span
-                        className="inline-flex items-center gap-1 rounded-full bg-status-active-bg px-2 py-0.5 text-[10px] font-semibold text-status-active-fg"
-                        title={p.amaClientId}
-                      >
-                        <BadgeCheck className="h-3 w-3" />
-                        {t('parentList.ama.registered', '등록됨')}
-                      </span>
-                    ) : !p.amaEligible ? (
-                      <span
-                        className="text-[11px] text-secondary"
-                        title={t(
-                          'parentList.ama.eligibleHint',
-                          'ACTIVE 상태 학생을 보유한 학부모만 등록할 수 있습니다.',
-                        )}
-                      >
-                        {t('parentList.ama.notEligible', 'ACTIVE 학생 없음')}
-                      </span>
-                    ) : canRegisterAma ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={registerAmaMut.isPending}
-                        onClick={() => handleRegisterAma(p)}
-                      >
-                        <UserPlus className="mr-1 h-3 w-3" />
-                        {t('parentList.ama.register', 'AMA 고객사 등록')}
-                      </Button>
-                    ) : (
-                      <span className="text-[11px] text-secondary">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setEdit({
-                          id: p.id,
-                          parName: p.name,
-                          parRelation: p.relation ?? '',
-                          parPhone: p.phone ?? '',
-                          parEmail: p.email ?? '',
-                        })
+            {items.map((p) => (
+              <tr key={p.id} className="hover:bg-[var(--canvas-subtle)]">
+                <td className="px-3 py-2 font-medium text-primary">{p.name}</td>
+                <td className="px-3 py-2 text-secondary">{p.relation ?? '—'}</td>
+                <td className="px-3 py-2 text-secondary">{p.phone ?? '—'}</td>
+                <td className="px-3 py-2 text-secondary">{p.email ?? '—'}</td>
+                <td className="px-3 py-2">{renderChildren(p)}</td>
+                <td className="px-3 py-2 text-right">
+                  <Button size="sm" variant="outline" onClick={() => setEditing(p)}>
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-1"
+                    disabled={(p.childCount ?? 0) > 0 || deleteMut.isPending}
+                    title={
+                      (p.childCount ?? 0) > 0
+                        ? t('parentList.cannotDeleteLinked', '연결된 자녀가 있어 삭제할 수 없습니다')
+                        : ''
+                    }
+                    onClick={() => {
+                      if (confirm(t('parentList.confirmDelete', '학부모를 삭제하시겠습니까?'))) {
+                        deleteMut.mutate(p.id);
                       }
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="ml-1"
-                      disabled={(p.childCount ?? 0) > 0 || deleteMut.isPending}
-                      title={
-                        (p.childCount ?? 0) > 0
-                          ? t('parentList.cannotDeleteLinked', '연결된 자녀가 있어 삭제할 수 없습니다')
-                          : ''
-                      }
-                      onClick={() => {
-                        if (confirm(t('parentList.confirmDelete', '학부모를 삭제하시겠습니까?'))) {
-                          deleteMut.mutate(p.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </td>
-                </tr>
-              ),
-            )}
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      {total > limit && (
-        <div className="flex items-center justify-end gap-2">
+      {/* Pagination — REQ-260729-3: 번호형 페이저 상시 노출 */}
+      {total > 0 && (
+        <div className="flex items-center justify-end gap-1">
           <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>
             {t('common:actions.prev', '이전')}
           </Button>
-          <span className="text-xs text-secondary">
-            {page} / {Math.ceil(total / limit)}
-          </span>
+          {pageNumbers.map((n) => (
+            <Button
+              key={n}
+              size="sm"
+              variant={n === page ? 'default' : 'outline'}
+              className="min-w-9 px-2"
+              onClick={() => setPage(n)}
+            >
+              {n}
+            </Button>
+          ))}
           <Button
             size="sm"
             variant="outline"
-            disabled={page * limit >= total}
+            disabled={page >= totalPages}
             onClick={() => setPage(page + 1)}
           >
             {t('common:actions.next', '다음')}
           </Button>
         </div>
       )}
+
+      <ParentEditModal parent={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }

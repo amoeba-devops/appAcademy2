@@ -12,6 +12,7 @@ import {
   IsUUID,
   IsUrl,
   MaxLength,
+  MinLength,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
@@ -39,6 +40,8 @@ export const CAL_PROVIDERS = [
   'OTHER',
 ] as const;
 export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
+/** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
+export const CAL_BODA_ROOM_TYPES = ['ONE_TO_ONE', 'ONE_TO_MANY'] as const;
 
 // ============================================================================
 // Invitee sub-DTO
@@ -100,6 +103,11 @@ export class CreateCalEventDto {
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
+
+  @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES, default: 'ONE_TO_ONE' })
+  @IsOptional()
+  @IsIn(CAL_BODA_ROOM_TYPES)
+  evtBodaRoomType?: (typeof CAL_BODA_ROOM_TYPES)[number];
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -180,6 +188,11 @@ export class UpdateCalEventDto {
   @IsUrl({ require_protocol: true })
   evtMeetingUrl?: string;
 
+  @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES })
+  @IsOptional()
+  @IsIn(CAL_BODA_ROOM_TYPES)
+  evtBodaRoomType?: (typeof CAL_BODA_ROOM_TYPES)[number];
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsUUID()
@@ -209,6 +222,22 @@ export class UpdateCalEventDto {
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
+
+  /** REQ-260728 — 수정 사유(필수). 수정 히스토리에 기록된다. */
+  @ApiProperty({ description: '수정 사유 (필수, 2~500자)' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(500)
+  evtEditReason!: string;
+}
+
+/** REQ-260728 — 삭제 시 삭제 사유(필수). */
+export class DeleteCalEventDto {
+  @ApiProperty({ description: '삭제 사유 (필수, 2~500자)' })
+  @IsString()
+  @MinLength(2)
+  @MaxLength(500)
+  reason!: string;
 }
 
 export class ListInviteeCandidatesQueryDto {
@@ -268,6 +297,13 @@ export class ListCalEventsQueryDto {
   @IsOptional()
   @IsEnum(CAL_CATEGORIES)
   category?: (typeof CAL_CATEGORIES)[number];
+
+  /** REQ-260728 — true 면 삭제된 일정만 조회('삭제한 수업일정 보기'). */
+  @ApiPropertyOptional({ description: '삭제된 일정만 조회', default: false })
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  deletedOnly?: boolean;
 
   @ApiPropertyOptional({
     enum: CAL_INVITEE_KINDS,

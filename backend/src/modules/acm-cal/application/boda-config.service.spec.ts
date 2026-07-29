@@ -29,7 +29,7 @@ describe('BodaConfigService', () => {
           provide: ConfigService,
           useValue: {
             get: (k: string) => (k === 'BODA_CRYPTO_KEY' ? DEV_KEY : undefined),
-          } as unknown as ConfigService,
+          },
         },
       ],
     }).compile();
@@ -111,26 +111,25 @@ describe('BodaConfigService', () => {
   });
 
   describe('upsertByEntId — update', () => {
-    const existing = (): BodaConfigTypeormEntity =>
-      ({
-        id: 'cfg-1',
-        entId: 'e1',
-        bodaWebUrl: 'old-web',
-        svrUrl: 'old-svr',
-        webrtcUrl: 'old-rtc',
-        companyCode: 'OC',
-        companyId: 'OI',
-        defaultRoomCode: 'OR',
-        authKeyEnc: Buffer.from('PRE-EXISTING-ENC'),
-        eventSecretEnc: null,
-        webhookAllowCidrs: null,
-        graceBeforeMin: 10,
-        graceAfterMin: 15,
-        reconcileDelayMin: 10,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }) as unknown as BodaConfigTypeormEntity;
+    const existing = (): BodaConfigTypeormEntity => ({
+      id: 'cfg-1',
+      entId: 'e1',
+      bodaWebUrl: 'old-web',
+      svrUrl: 'old-svr',
+      webrtcUrl: 'old-rtc',
+      companyCode: 'OC',
+      companyId: 'OI',
+      defaultRoomCode: 'OR',
+      authKeyEnc: Buffer.from('PRE-EXISTING-ENC'),
+      eventSecretEnc: null,
+      webhookAllowCidrs: null,
+      graceBeforeMin: 10,
+      graceAfterMin: 15,
+      reconcileDelayMin: 10,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
     it('omitted authKey keeps existing encrypted blob', async () => {
       findOne.mockResolvedValue(existing());
@@ -145,7 +144,9 @@ describe('BodaConfigService', () => {
       await svc.upsertByEntId('e1', { authKey: 'rotated-key' });
       const saved = save.mock.calls[0][0] as BodaConfigTypeormEntity;
       expect(saved.authKeyEnc).toBeInstanceOf(Buffer);
-      expect(saved.authKeyEnc?.toString('utf8')).not.toContain('PRE-EXISTING-ENC');
+      expect(saved.authKeyEnc?.toString('utf8')).not.toContain(
+        'PRE-EXISTING-ENC',
+      );
       expect(saved.authKeyEnc?.toString('utf8')).not.toContain('rotated-key');
     });
   });
@@ -162,7 +163,7 @@ describe('BodaConfigService', () => {
           },
           {
             provide: ConfigService,
-            useValue: { get: () => undefined } as unknown as ConfigService,
+            useValue: { get: () => undefined },
           },
         ],
       }).compile();
@@ -193,7 +194,7 @@ describe('BodaConfigService', () => {
     it('getDecrypted* returns null when key missing', async () => {
       findOne.mockResolvedValue({
         authKeyEnc: Buffer.from('blob'),
-      } as unknown as BodaConfigTypeormEntity);
+      });
       expect(await svcNoKey.getDecryptedAuthKey('e1')).toBeNull();
     });
   });

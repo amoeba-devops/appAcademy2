@@ -79,7 +79,12 @@ export class BodaLaunchContextService {
     actorUserId: string,
     actorRole: AcmRole,
   ): Promise<BodaRoomStatusResponseDto> {
-    const { room } = await this.loadAndAuthorize(evtId, entId, actorUserId, actorRole);
+    const { room } = await this.loadAndAuthorize(
+      evtId,
+      entId,
+      actorUserId,
+      actorRole,
+    );
     return {
       status: room.status,
       openedAt: room.openedAt?.toISOString() ?? null,
@@ -200,7 +205,10 @@ export class BodaLaunchContextService {
     if (!event) throw new NotFoundException({ code: 'EVENT_NOT_FOUND' });
     if (event.meetingProvider !== 'BODASCHOOL') {
       throw new HttpException(
-        { code: 'BODA_NOT_BODASCHOOL', message: 'Event provider is not BODASCHOOL' },
+        {
+          code: 'BODA_NOT_BODASCHOOL',
+          message: 'Event provider is not BODASCHOOL',
+        },
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
@@ -212,7 +220,12 @@ export class BodaLaunchContextService {
       );
     }
 
-    const userType = await this.resolvePortalUserType(event, kind, refId, entId);
+    const userType = await this.resolvePortalUserType(
+      event,
+      kind,
+      refId,
+      entId,
+    );
     await this.assertTimeWindow(event, entId);
 
     const uname = await this.resolvePortalName(kind, refId, entId);
@@ -227,7 +240,14 @@ export class BodaLaunchContextService {
       this.config.get<string>('BODA_APP_API_URL') ??
       '/web/BODA_APP/build/BodaAppApi.js';
     const lang2: 'ko' | 'en' = lang === 'en' ? 'en' : 'ko';
-    const embedUrl = this.buildEmbedUrl({ cfg, room, userType, uid, uname, lang: lang2 });
+    const embedUrl = this.buildEmbedUrl({
+      cfg,
+      room,
+      userType,
+      uid,
+      uname,
+      lang: lang2,
+    });
     const webBrowserUrl = this.buildBrowserUrl({
       cfg,
       room,
@@ -292,7 +312,12 @@ export class BodaLaunchContextService {
       if (
         event.clsId &&
         (await this.cstRepo.findOne({
-          where: { entId, clsId: event.clsId, studentUserId: refId, leftAt: IsNull() },
+          where: {
+            entId,
+            clsId: event.clsId,
+            studentUserId: refId,
+            leftAt: IsNull(),
+          },
         }))
       ) {
         return 12;
@@ -308,7 +333,12 @@ export class BodaLaunchContextService {
       const childIds = childRows.map((r) => r.stdId);
       if (childIds.length > 0) {
         const inv = await this.inviteeRepo.findOne({
-          where: { entId, evtId: event.id, kind: 'STUDENT', refId: In(childIds) },
+          where: {
+            entId,
+            evtId: event.id,
+            kind: 'STUDENT',
+            refId: In(childIds),
+          },
         });
         if (inv) return 12;
         if (
@@ -390,10 +420,10 @@ export class BodaLaunchContextService {
     }
 
     return list.map((i) => ({
-      kind: i.kind as 'STUDENT' | 'TEACHER' | 'PARENT',
+      kind: i.kind,
       refId: i.refId,
       name: i.name,
-      subLabel: i.kind === 'STUDENT' ? schoolMap.get(i.refId) ?? null : null,
+      subLabel: i.kind === 'STUDENT' ? (schoolMap.get(i.refId) ?? null) : null,
       notified: i.notifyStatus === 'SENT',
     }));
   }
@@ -407,7 +437,11 @@ export class BodaLaunchContextService {
    * Q-LX-1 (iframe 임베드 허용 여부) 회신 전에는 항상 false → null 반환.
    */
   private buildEmbedUrl(input: {
-    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    cfg: {
+      webrtcUrl?: string;
+      companyCode?: string;
+      companyId?: string;
+    } | null;
     room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
@@ -424,7 +458,11 @@ export class BodaLaunchContextService {
    * cfg.webrtcUrl 이 있으면 항상 채움. cfg 미입력 시 null → FE 가 버튼 disabled.
    */
   private buildBrowserUrl(input: {
-    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    cfg: {
+      webrtcUrl?: string;
+      companyCode?: string;
+      companyId?: string;
+    } | null;
     room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
@@ -435,14 +473,19 @@ export class BodaLaunchContextService {
   }
 
   private buildVendorWebUrl(input: {
-    cfg: { webrtcUrl?: string; companyCode?: string; companyId?: string } | null;
+    cfg: {
+      webrtcUrl?: string;
+      companyCode?: string;
+      companyId?: string;
+    } | null;
     room: { meetKey: string; roomCode: string; meetIdx?: string | null };
     userType: number;
     uid: string;
     uname: string;
     lang: 'ko' | 'en';
   }): string | null {
-    const webrtcUrl = input.cfg?.webrtcUrl ?? this.config.get<string>('BODA_WEBRTC_URL');
+    const webrtcUrl =
+      input.cfg?.webrtcUrl ?? this.config.get<string>('BODA_WEBRTC_URL');
     if (!webrtcUrl) return null;
     const params = new URLSearchParams({
       CCd: String(input.cfg?.companyCode ?? ''),
@@ -477,7 +520,10 @@ export class BodaLaunchContextService {
     }
     if (event.meetingProvider !== 'BODASCHOOL') {
       throw new HttpException(
-        { code: 'BODA_NOT_BODASCHOOL', message: 'Event provider is not BODASCHOOL' },
+        {
+          code: 'BODA_NOT_BODASCHOOL',
+          message: 'Event provider is not BODASCHOOL',
+        },
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
@@ -491,15 +537,20 @@ export class BodaLaunchContextService {
       );
     }
 
-    const userType = await this.resolveUserType(event, actorUserId, actorRole, entId);
+    const userType = await this.resolveUserType(
+      event,
+      actorUserId,
+      actorRole,
+      entId,
+    );
     return { event, room, userType };
   }
 
   /**
    * Decides who the actor is in BODA's eyes:
-   *   - event owner → TEACHER (11) — regardless of ACM role; the cal_event
-   *     model lets ADMINs own classes too, in which case they get the teacher
-   *     seat.
+   *   - event owner(등록자) → TEACHER (11) — 등록자가 직접 강의실을 즉시 개설
+   *     (bodaOpen)할 수 있어야 하므로 강사 좌석. (260728C 의 운영자(13) 참관
+   *     전환은 즉시개설 흐름을 막아 원복함.)
    *   - listed invitee (STUDENT/PARENT) → STUDENT (12)
    *   - ACM ADMIN (not owner, not invitee) → OPERATOR (13) — silent monitoring
    *   - else → 403 NOT_AN_ATTENDEE

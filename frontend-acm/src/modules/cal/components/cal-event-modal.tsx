@@ -13,15 +13,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
+import DOMPurify from 'dompurify';
 import { FilePreviewDialog } from '@/modules/csl/components/file-preview-dialog';
 import {
   useCalEvent,
+  useCalEventRevisions,
   useCreateCalEvent,
   useDeleteCalEvent,
   useUpdateCalEvent,
 } from '../hooks/use-cal-events';
 import {
   CAL_PROVIDERS,
+  type CalBodaRoomType,
   type CalEvent,
   type CalInviteeView,
   type InviteeCandidate,
@@ -63,7 +66,10 @@ type FormValues = {
   evtLocationText: string;
   evtMeetingProvider: string;
   evtMeetingUrl: string;
+  evtBodaRoomType: CalBodaRoomType;
   evtAssigneeTchId: string;
+  /** REQ-260728 — 수정 사유(수정 시 필수). 이벤트에 저장되지 않고 히스토리로만 기록. */
+  evtEditReason: string;
 };
 
 interface TeacherOption {
@@ -111,6 +117,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const toast = useToast();
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
+  // REQ-260728 — 삭제 사유 입력 프롬프트.
+  const [deletePrompt, setDeletePrompt] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
   const [invitees, setInvitees] = useState<
     Array<{
       kind: 'STUDENT' | 'TEACHER' | 'PARENT';
@@ -139,7 +148,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtLocationText: '',
       evtMeetingProvider: 'NONE',
       evtMeetingUrl: '',
+      evtBodaRoomType: 'ONE_TO_ONE',
       evtAssigneeTchId: '',
+      evtEditReason: '',
     },
   });
 
@@ -230,7 +241,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: initial.locationText ?? '',
         evtMeetingProvider: initial.meetingProvider,
         evtMeetingUrl: initial.meetingUrl ?? '',
+        evtBodaRoomType: initial.bodaRoomType ?? 'ONE_TO_ONE',
         evtAssigneeTchId: initial.assigneeTchId ?? '',
+        evtEditReason: '',
       });
       setInvitees(
         (initial.invitees ?? []).map((invitee: CalInviteeView) => ({
@@ -253,7 +266,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtLocationText: '',
         evtMeetingProvider: 'NONE',
         evtMeetingUrl: '',
+        evtBodaRoomType: 'ONE_TO_ONE',
         evtAssigneeTchId: '',
+        evtEditReason: '',
       });
       setInvitees([]);
     }
@@ -308,6 +323,12 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       }
     }
 
+    // REQ-260728 — 수정 시 수정 사유 필수(2자 이상).
+    if (isEdit && values.evtEditReason.trim().length < 2) {
+      setError(t('edit.reasonRequired', '수정 사유를 입력하세요.'));
+      return;
+    }
+
     const dto: Record<string, unknown> = {
       evtCategory: values.evtCategory,
       evtTitle: values.evtTitle,
@@ -316,6 +337,16 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       evtAllDay: values.evtAllDay,
       evtMeetingProvider: resolvedMeetingProvider,
     };
+
+    // REQ-260728 — 수정 사유(수정 시에만).
+    if (isEdit) {
+      dto.evtEditReason = values.evtEditReason.trim();
+    }
+
+    // FIX-260724 — BODASCHOOL 이벤트만 룸 유형(1:1/1:N) 전송.
+    if (resolvedMeetingProvider === 'BODASCHOOL') {
+      dto.evtBodaRoomType = values.evtBodaRoomType;
+    }
 
     if (values.evtDescription) dto.evtDescription = values.evtDescription;
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
@@ -357,9 +388,13 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
 
   const onDelete = async () => {
     if (!initial) return;
-    if (!confirm(t('confirm.delete'))) return;
+    // REQ-260728 — 삭제 사유 필수(2자 이상).
+    if (deleteReason.trim().length < 2) {
+      setError(t('delete.reasonRequired', '삭제 사유를 입력하세요.'));
+      return;
+    }
     try {
-      await deleteMut.mutateAsync(initial.id);
+      await deleteMut.mutateAsync({ id: initial.id, reason: deleteReason.trim() });
       onClose();
     } catch (deleteError) {
       const msg = (
@@ -604,6 +639,29 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   </p>
                   <div>
                     <label className={labelClass}>
+                      {t('field.bodaRoomType', '수업 유형')}
+                    </label>
+                    <select
+                      {...register('evtBodaRoomType')}
+                      className={inputClass}
+                      disabled={isReadOnly}
+                    >
+                      <option value="ONE_TO_ONE">
+                        {t('bodaRoomType.ONE_TO_ONE', '1:1 수업 (강사+학생 1명)')}
+                      </option>
+                      <option value="ONE_TO_MANY">
+                        {t('bodaRoomType.ONE_TO_MANY', '1:N 그룹 수업 (학생 여러 명)')}
+                      </option>
+                    </select>
+                    <p className="mt-1 text-[11px] text-secondary">
+                      {t(
+                        'hint.bodaRoomType',
+                        '학생을 2명 이상 초대하는 그룹 수업은 1:N 을 선택하세요.',
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <label className={labelClass}>
                       {t('field.meetingUrl', '강의 입장 링크')}
                     </label>
                     <input
@@ -783,6 +841,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </fieldset>
           )}
 
+          {/* PLN-260728F B — 강사 피드백·과제 (관리자 확인용, 읽기전용) */}
+          {isEdit && initial && <AdminReviewView evtId={initial.id} />}
+
           {/* PLN-260718 — BODA 화상강의실 박스는 참석자 아래로 이동 */}
           {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
             <BodaRoomPanel evtId={initial.id} />
@@ -850,16 +911,87 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </div>
           )}
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {/* REQ-260728 — 수정 사유(필수, 수정 시) */}
+          {isEdit && !isReadOnly && (
+            <div className="space-y-1.5 rounded-md border border-[var(--border-subtle)] p-3">
+              <label className={labelClass}>
+                {t('edit.reasonLabel', '수정 사유')} *
+              </label>
+              <textarea
+                {...register('evtEditReason')}
+                rows={2}
+                className={inputClass}
+                placeholder={t(
+                  'edit.reasonPlaceholder',
+                  '변경한 이유를 입력하세요 (수정 히스토리에 기록됩니다)',
+                )}
+              />
+            </div>
+          )}
 
-          <DialogFooter className="flex justify-between">
-            <div>
-              {isEdit && !isReadOnly && (
+          {/* REQ-260728 — 수정 히스토리 */}
+          {isEdit && initial && (
+            <CalEventHistoryPanel evtId={initial.id} enabled={open} />
+          )}
+
+          {/* REQ-260728 — 삭제 사유 프롬프트 */}
+          {deletePrompt && (
+            <div className="space-y-2 rounded-md border border-red-200 bg-red-50 p-3">
+              <p className="text-sm font-semibold text-red-700">
+                {t('delete.title', '수업일정 삭제')}
+              </p>
+              <p className="text-xs text-red-600">
+                {t(
+                  'delete.hint',
+                  '삭제된 일정은 캘린더에서 숨겨지며 ‘삭제한 수업일정 보기’에서 확인할 수 있어요.',
+                )}
+              </p>
+              <textarea
+                value={deleteReason}
+                onChange={(e) => setDeleteReason(e.target.value)}
+                rows={2}
+                className={inputClass}
+                placeholder={t('delete.reasonPlaceholder', '삭제 사유 (필수)')}
+              />
+              <div className="flex justify-end gap-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
+                  onClick={() => {
+                    setDeletePrompt(false);
+                    setDeleteReason('');
+                    setError(null);
+                  }}
+                >
+                  {t('common:actions.cancel')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={isLoading || deleteReason.trim().length < 2}
                   onClick={onDelete}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  {t('delete.confirm', '삭제하기')}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <DialogFooter className="flex justify-between">
+            <div>
+              {isEdit && !isReadOnly && !deletePrompt && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setError(null);
+                    setDeletePrompt(true);
+                  }}
                   disabled={isLoading}
                   className="border-red-200 text-red-600 hover:bg-red-50"
                 >
@@ -920,9 +1052,86 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   );
 }
 
+interface ClassRecordRow {
+  kind: string;
+  name: string | null;
+  joinedAt: string;
+  leftAt: string | null;
+  totalSeconds: number | null;
+}
+
+// PLN-260728F B — 강사가 포털에서 작성한 피드백/과제를 관리자 모달에서 확인.
+function AdminReviewView({ evtId }: { evtId: string }) {
+  const { t } = useTranslation('cal');
+  const { data: review } = useQuery({
+    queryKey: ['cal', 'review', evtId],
+    queryFn: async () =>
+      (
+        await apiClient.get<{
+          feedbackHtml: string | null;
+          homeworkStatus: 'ASSIGNED' | 'NONE' | null;
+          homeworkHtml: string | null;
+          updatedAt: string | null;
+        }>(`/acm/cal/events/${evtId}/review`)
+      ).data,
+  });
+  if (!review || (!review.feedbackHtml && review.homeworkStatus == null)) {
+    return null;
+  }
+  const classDone = !!review.feedbackHtml?.trim() && review.homeworkStatus != null;
+  return (
+    <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4">
+      <legend className="px-1 text-xs font-semibold text-secondary">
+        {t('review.sectionTitle', '수업 피드백·과제 (강사 작성)')}
+        {classDone && (
+          <span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+            ✓ {t('review.doneFull', '수업완료')}
+          </span>
+        )}
+      </legend>
+      {review.feedbackHtml ? (
+        <div>
+          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+            📝 {t('review.feedbackLabel', '피드백')}
+          </div>
+          <div
+            className="doc-prose max-w-none rounded bg-[var(--canvas-subtle)] px-3 py-2 text-sm"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(review.feedbackHtml) }}
+          />
+        </div>
+      ) : (
+        <p className="text-[11px] text-secondary">{t('review.noFeedbackYet', '피드백 미작성')}</p>
+      )}
+      {review.homeworkStatus === 'NONE' ? (
+        <p className="text-sm text-secondary">📚 {t('review.noHomework', '과제 없음')}</p>
+      ) : review.homeworkStatus === 'ASSIGNED' && review.homeworkHtml ? (
+        <div>
+          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+            📚 {t('review.homeworkLabel', '과제')}
+          </div>
+          <div
+            className="doc-prose max-w-none rounded bg-[var(--canvas-subtle)] px-3 py-2 text-sm"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(review.homeworkHtml) }}
+          />
+        </div>
+      ) : null}
+    </fieldset>
+  );
+}
+
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
   const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
+  // PLN-260728F A — 참석자 입·퇴실 기록.
+  const { data: record } = useQuery({
+    queryKey: ['cal', 'class-record', evtId],
+    queryFn: async () =>
+      (
+        await apiClient.get<{ participants: ClassRecordRow[] } | null>(
+          `/acm/cal/events/${evtId}/class-record`,
+        )
+      ).data,
+  });
   const closeMut = useBodaForceClose(evtId);
   const reconMut = useBodaReconcile(evtId);
 
@@ -1026,6 +1235,40 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         )}
       </ul>
 
+      {record && record.participants.length > 0 && (
+        <div className="rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-2">
+          <div className="mb-1 text-[11px] font-semibold text-secondary">
+            {t('boda.attendance', '참석자 입·퇴실 기록')}
+          </div>
+          <ul className="space-y-0.5 text-[11px]">
+            {record.participants.map((p, i) => (
+              <li key={i} className="flex flex-wrap items-center gap-1.5">
+                <span
+                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                    p.kind === 'TEACHER'
+                      ? 'bg-purple-100 text-purple-700'
+                      : p.kind === 'STUDENT'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {t(`boda.kind.${p.kind}`, p.kind)}
+                </span>
+                <span className="font-medium text-primary">{p.name ?? '-'}</span>
+                <span className="text-secondary">
+                  {new Date(p.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {' → '}
+                  {p.leftAt
+                    ? new Date(p.leftAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : t('boda.stillIn', '접속 중')}
+                  {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="flex gap-2 pt-1">
         <Button
           type="button"
@@ -1127,4 +1370,71 @@ async function fetchCslAttachmentBlob(
     filename,
     url: URL.createObjectURL(res.data),
   };
+}
+
+/**
+ * REQ-260728 — 수정 히스토리 패널. 상세(수정) 모달 하단에 시간역순 표시.
+ */
+function CalEventHistoryPanel({
+  evtId,
+  enabled,
+}: {
+  evtId: string;
+  enabled: boolean;
+}) {
+  const { t } = useTranslation('cal');
+  const { data } = useCalEventRevisions(evtId, enabled);
+  const items = data?.items ?? [];
+  if (items.length === 0) return null;
+
+  const fmt = (field: string, v: string | null): string => {
+    if (v === null || v === '') return '—';
+    if (field === 'startAt' || field === 'endAt') {
+      const d = new Date(v);
+      return Number.isNaN(d.getTime()) ? v : d.toLocaleString();
+    }
+    if (field === 'bodaRoomType') return t(`bodaRoomType.${v}`, v);
+    if (field === 'meetingProvider') return t(`provider.${v}`, v);
+    if (field === 'allDay')
+      return v === 'true' ? t('revision.yes', '예') : t('revision.no', '아니오');
+    return v;
+  };
+
+  return (
+    <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-3">
+      <legend className="px-1 text-xs font-semibold text-secondary">
+        {t('revision.title', '수정 히스토리')}
+      </legend>
+      <ul className="max-h-48 space-y-2 overflow-y-auto">
+        {items.map((r) => (
+          <li
+            key={r.id}
+            className="border-b border-[var(--border-subtle)] pb-2 text-xs last:border-0"
+          >
+            <div className="flex justify-between">
+              <span className="font-medium text-primary">{r.editorName ?? '—'}</span>
+              <span className="text-secondary">
+                {new Date(r.createdAt).toLocaleString()}
+              </span>
+            </div>
+            {r.reason && (
+              <div className="text-secondary">
+                {t('revision.reason', '사유')}: {r.reason}
+              </div>
+            )}
+            {r.changes.length > 0 && (
+              <ul className="mt-1 space-y-0.5 text-secondary">
+                {r.changes.map((c, i) => (
+                  <li key={i}>
+                    {t(`revision.field.${c.field}`, c.field)}: {fmt(c.field, c.before)} →{' '}
+                    {fmt(c.field, c.after)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </fieldset>
+  );
 }

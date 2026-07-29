@@ -7,9 +7,11 @@ import {
 } from '../interfaces/bodaedu-server-api.interface';
 import {
   BODA_ROOM_STATUSES,
+  bodaDatetimeToIso,
   type BodaCloseRequest,
   type BodaJoinLogEntry,
   type BodaMeetInfo,
+  BodaRecordingEntry,
   type BodaRoomStatus,
 } from '../bodaedu.types';
 
@@ -36,15 +38,25 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
   private readonly timeoutMs: number;
 
   constructor(config: ConfigService) {
-    this.envBaseUrl = (config.get<string>('BODA_SERVER_URL') ?? '').replace(/\/$/, '');
+    this.envBaseUrl = (config.get<string>('BODA_SERVER_URL') ?? '').replace(
+      /\/$/,
+      '',
+    );
     this.envBasicAuth = config.get<string>('BODA_BASIC_AUTH') ?? '';
     this.timeoutMs = Number(config.get('BODA_TIMEOUT_MS', 5000));
   }
 
-  async getMeetInfo(meetKey: string, auth?: BodaServerAuth): Promise<BodaMeetInfo | null> {
+  async getMeetInfo(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaMeetInfo | null> {
     const eff = this.resolveAuth(auth);
     const qs = new URLSearchParams({ meetKey });
-    const res = await this.fetchJson('GET', `/svr/meet/info?${qs.toString()}`, eff);
+    const res = await this.fetchJson(
+      'GET',
+      `/svr/meet/info?${qs.toString()}`,
+      eff,
+    );
     if (res === null) return null;
     return this.toMeetInfo(res, meetKey);
   }
@@ -54,7 +66,66 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
     await this.fetchJson('POST', '/svr/meet/close', eff, JSON.stringify(req));
   }
 
-  async getJoinLog(meetKey: string, auth?: BodaServerAuth): Promise<BodaJoinLogEntry[]> {
+  // PLN-260728F C — 녹화 이력 (searchType=ROOM).
+  async listRecordings(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaRecordingEntry[]> {
+    const eff = this.resolveAuth(auth);
+    const qs = new URLSearchParams({
+      searchType: 'ROOM',
+      meetKey,
+      size: '100',
+    });
+    const res = await this.fetchJson(
+      'GET',
+      `/svr/record/log/video?${qs.toString()}`,
+      eff,
+    );
+    const content = (res as { content?: unknown[] })?.content ?? [];
+    return (content as Array<Record<string, unknown>>).map((r) => ({
+      recordIdx: Number(r['recordIdx']),
+      recordTitle:
+        typeof r['recordTitle'] === 'string' ? r['recordTitle'] : null,
+      startDatetime:
+        typeof r['startDatetime'] === 'string' ? r['startDatetime'] : null,
+      endDatetime:
+        typeof r['endDatetime'] === 'string' ? r['endDatetime'] : null,
+      fileExist: r['fileExist'] === true,
+    }));
+  }
+
+  // PLN-260728F C — 녹화 파일 스트리밍 (Basic 인증 프록시).
+  async downloadRecording(
+    recordIdx: number,
+    auth?: BodaServerAuth,
+  ): Promise<{
+    stream: NodeJS.ReadableStream;
+    contentType: string | null;
+    contentLength: number | null;
+  }> {
+    const eff = this.resolveAuth(auth);
+    const res = await fetch(
+      `${eff.baseUrl}/svr/record/log/video/${recordIdx}/download`,
+      { headers: { Authorization: `Basic ${eff.basicAuth}` } },
+    );
+    if (!res.ok || !res.body) {
+      throw new Error(`RECORDING_DOWNLOAD_FAILED_${res.status}`);
+    }
+    const { Readable } = await import('stream');
+    return {
+      stream: Readable.fromWeb(res.body as import('stream/web').ReadableStream),
+      contentType: res.headers.get('content-type'),
+      contentLength: res.headers.get('content-length')
+        ? Number(res.headers.get('content-length'))
+        : null,
+    };
+  }
+
+  async getJoinLog(
+    meetKey: string,
+    auth?: BodaServerAuth,
+  ): Promise<BodaJoinLogEntry[]> {
     const eff = this.resolveAuth(auth);
     const qs = new URLSearchParams({ meetKey });
     const res = await this.fetchJson(
@@ -62,12 +133,17 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       `/svr/meet/log/user/join?${qs.toString()}`,
       eff,
     );
-    if (!res || !Array.isArray((res as { entries?: unknown[] }).entries ?? res)) {
+    if (
+      !res ||
+      !Array.isArray((res as { entries?: unknown[] }).entries ?? res)
+    ) {
       // Vendor docs are inconsistent — accept either { entries: [...] } or [...]
       this.logger.warn(`bodaedu getJoinLog returned non-array for ${meetKey}`);
       return [];
     }
-    const raw = (Array.isArray(res) ? res : (res as { entries: unknown[] }).entries) as unknown[];
+    const raw = (
+      Array.isArray(res) ? res : (res as { entries: unknown[] }).entries
+    ) as unknown[];
     return raw
       .map((r) => this.toJoinLogEntry(r, meetKey))
       .filter((e): e is BodaJoinLogEntry => e !== null);
@@ -173,19 +249,35 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
     };
   }
 
-  private toJoinLogEntry(raw: unknown, fallbackKey: string): BodaJoinLogEntry | null {
+  private toJoinLogEntry(
+    raw: unknown,
+    fallbackKey: string,
+  ): BodaJoinLogEntry | null {
     if (!raw || typeof raw !== 'object') return null;
     const r = raw as Record<string, unknown>;
-    if (typeof r.userId !== 'string' || typeof r.joinedAt !== 'string') {
-      return null;
-    }
+    // 공식 문서 필드는 joinDatetime/quitDatetime(YYYYMMDDhhmmss, KST) — 일부
+    // 배포본은 joinedAt/leftAt 로 온다. 둘 다 수용해 UTC ISO 로 정규화한다.
+    const userId = typeof r.userId === 'string' ? r.userId : null;
+    const joinedRaw =
+      typeof r.joinedAt === 'string'
+        ? r.joinedAt
+        : typeof r.joinDatetime === 'string'
+          ? r.joinDatetime
+          : null;
+    const joinedAt = bodaDatetimeToIso(joinedRaw);
+    if (!userId || !joinedAt) return null;
+    const leftRaw =
+      typeof r.leftAt === 'string'
+        ? r.leftAt
+        : typeof r.quitDatetime === 'string'
+          ? r.quitDatetime
+          : null;
     return {
       meetKey: typeof r.meetKey === 'string' ? r.meetKey : fallbackKey,
-      userId: r.userId,
-      joinedAt: r.joinedAt,
-      leftAt: typeof r.leftAt === 'string' ? r.leftAt : null,
-      totalSeconds:
-        typeof r.totalSeconds === 'number' ? r.totalSeconds : null,
+      userId,
+      joinedAt,
+      leftAt: bodaDatetimeToIso(leftRaw),
+      totalSeconds: typeof r.totalSeconds === 'number' ? r.totalSeconds : null,
       clientType: typeof r.clientType === 'string' ? r.clientType : null,
     };
   }

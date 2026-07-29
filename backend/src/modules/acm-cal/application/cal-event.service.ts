@@ -14,8 +14,13 @@ import { AttachmentTypeormEntity } from '../../acm-csl/infrastructure/typeorm/at
 import { MapTestTypeormEntity } from '../../acm-csl/infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../../acm-csl/infrastructure/typeorm/trial-class.typeorm-entity';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
+import {
+  CalEventRevisionTypeormEntity,
+  type CalEventChange,
+} from '../infrastructure/typeorm/cal-event-revision.typeorm-entity';
 import { CalInviteeService } from './cal-invitee.service';
 import { CalEventAttachmentService } from './cal-event-attachment.service';
+import { CalEventReviewService } from './cal-event-review.service';
 import type {
   CreateCalEventDto,
   ListCalEventsQueryDto,
@@ -36,6 +41,14 @@ export interface CslAttachmentSummary {
   createdAt: string;
 }
 
+/** PLN-260729 P3 — 수업통계 버킷. */
+export interface CalStatsBucket {
+  count: number;
+  minutes: number;
+  done: number;
+  byCategory: Record<string, number>;
+}
+
 export interface CslEventLinkSummary {
   kind: 'DEMO_CLASS' | 'LEVEL_TEST';
   inqId: string;
@@ -49,6 +62,8 @@ export class CalEventService {
   constructor(
     @InjectRepository(CalEventTypeormEntity, ACM_DS)
     private readonly repo: Repository<CalEventTypeormEntity>,
+    @InjectRepository(CalEventRevisionTypeormEntity, ACM_DS)
+    private readonly revisionRepo: Repository<CalEventRevisionTypeormEntity>,
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
     private readonly userRepo: Repository<AcmUserTypeormEntity>,
     @InjectRepository(TeacherTypeormEntity, ACM_DS)
@@ -63,6 +78,7 @@ export class CalEventService {
     private readonly notifier: InviteeNotifierService,
     private readonly bodaRoomSvc: BodaRoomService,
     private readonly eventAttachmentSvc: CalEventAttachmentService,
+    private readonly reviewSvc: CalEventReviewService,
   ) {}
 
   async list(
@@ -84,7 +100,10 @@ export class CalEventService {
     const qb = this.repo
       .createQueryBuilder('e')
       .where('e.entId = :entId', { entId })
-      .andWhere('e.deletedAt IS NULL')
+      // REQ-260728 — 기본은 미삭제만(캘린더), deletedOnly 면 삭제된 일정만('삭제 보기').
+      .andWhere(
+        q.deletedOnly ? 'e.deletedAt IS NOT NULL' : 'e.deletedAt IS NULL',
+      )
       .andWhere('e.startAt < :to', { to })
       .andWhere('e.endAt > :from', { from });
 
@@ -224,6 +243,90 @@ export class CalEventService {
     };
   }
 
+  /** PLN-260729 P3 — 기간 수업통계 (전체 + 강사별). */
+  async stats(entId: string, from: string, to: string) {
+    const events = await this.repo
+      .createQueryBuilder('e')
+      .where('e.entId = :entId', { entId })
+      .andWhere('e.deletedAt IS NULL')
+      .andWhere('e.startAt < :to', { to: new Date(to) })
+      .andWhere('e.endAt > :from', { from: new Date(from) })
+      .getMany();
+    const flags = await this.reviewSvc.flagsForEvents(
+      entId,
+      events.map((e) => e.id),
+    );
+    const teacherMap = await this.lookupAssignees(
+      entId,
+      events.map((e) => e.assigneeTchId),
+    );
+
+    const minutesOf = (e: CalEventTypeormEntity) =>
+      e.allDay
+        ? 0
+        : Math.max(
+            0,
+            Math.round((e.endAt.getTime() - e.startAt.getTime()) / 60000),
+          );
+
+    const newBucket = (): CalStatsBucket => ({
+      count: 0,
+      minutes: 0,
+      done: 0,
+      byCategory: {},
+    });
+    const add = (b: CalStatsBucket, e: CalEventTypeormEntity) => {
+      b.count += 1;
+      b.minutes += minutesOf(e);
+      if (flags.get(e.id)?.classDone) b.done += 1;
+      b.byCategory[e.category] = (b.byCategory[e.category] ?? 0) + 1;
+    };
+
+    const total = newBucket();
+    const byTeacher = new Map<
+      string,
+      CalStatsBucket & { tchId: string | null; name: string }
+    >();
+    for (const e of events) {
+      add(total, e);
+      const key = e.assigneeTchId ?? '__none__';
+      let bucket = byTeacher.get(key);
+      if (!bucket) {
+        bucket = {
+          ...newBucket(),
+          tchId: e.assigneeTchId ?? null,
+          name: e.assigneeTchId
+            ? (teacherMap.get(e.assigneeTchId)?.name ?? '-')
+            : '미지정',
+        };
+        byTeacher.set(key, bucket);
+      }
+      add(bucket, e);
+    }
+
+    return {
+      from,
+      to,
+      total,
+      teachers: Array.from(byTeacher.values()).sort(
+        (a, b) => b.count - a.count,
+      ),
+    };
+  }
+
+  /** PLN-260728F B — 담당강사 검증용 경량 메타. */
+  async getEventMeta(
+    entId: string,
+    evtId: string,
+  ): Promise<{ assigneeTchId: string | null }> {
+    const e = await this.repo.findOne({
+      where: { id: evtId, entId, deletedAt: IsNull() },
+      select: { id: true, assigneeTchId: true },
+    });
+    if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
+    return { assigneeTchId: e.assigneeTchId ?? null };
+  }
+
   /**
    * PLN-260718 P2 — assert the portal caller is related to the event before
    * streaming an attachment. Reuses the same scope as getForPortal; throws
@@ -293,15 +396,21 @@ export class CalEventService {
 
   /** Shared enrichment — owner/assignee names, invitee counts, primary student. */
   private async enrichItems(entId: string, items: CalEventTypeormEntity[]) {
-    const ownerMap = await this.lookupOwners(
-      entId,
-      items.map((i) => i.ownerUserId),
-    );
+    const ownerMap = await this.lookupOwners(entId, [
+      ...items.map((i) => i.ownerUserId),
+      // REQ-260728 — 삭제자 이름도 같은 조회로 resolve('삭제 보기').
+      ...items.map((i) => i.deletedBy ?? ''),
+    ]);
     const assigneeMap = await this.lookupAssignees(
       entId,
       items.map((i) => i.assigneeTchId),
     );
     const counts = await this.inviteeSvc.countsByEvent(
+      entId,
+      items.map((i) => i.id),
+    );
+    // PLN-260728F B — 수업완료 배지용 플래그.
+    const reviewFlags = await this.reviewSvc.flagsForEvents(
       entId,
       items.map((i) => i.id),
     );
@@ -321,10 +430,16 @@ export class CalEventService {
         ? (assigneeMap.get(e.assigneeTchId)?.email ?? null)
         : null,
       inviteeCount: counts.get(e.id) ?? 0,
+      hasFeedback: reviewFlags.get(e.id)?.hasFeedback ?? false,
+      homeworkStatus: reviewFlags.get(e.id)?.homeworkStatus ?? null,
+      classDone: reviewFlags.get(e.id)?.classDone ?? false,
       primaryStudentName:
         primaryStudents.get(e.id) ??
         this.extractStudentNameFromTitle(e.title) ??
         null,
+      deletedByName: e.deletedBy
+        ? (ownerMap.get(e.deletedBy)?.name ?? null)
+        : null,
     }));
   }
 
@@ -399,6 +514,7 @@ export class CalEventService {
       locationText: dto.evtLocationText ?? null,
       meetingProvider: dto.evtMeetingProvider ?? 'NONE',
       meetingUrl: dto.evtMeetingUrl ?? null,
+      bodaRoomType: dto.evtBodaRoomType ?? 'ONE_TO_ONE',
       clsId: dto.evtClsId ?? null,
       assigneeTchId: dto.evtAssigneeTchId ?? null,
       source: 'MANUAL',
@@ -448,6 +564,9 @@ export class CalEventService {
     if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
     this.assertCanMutate(e, actorUserId, actorRole);
 
+    // REQ-260728 — 변경 diff 계산용 이전 스냅샷.
+    const beforeSnapshot = this.snapshotForRevision(e);
+
     if (dto.evtCategory !== undefined) e.category = dto.evtCategory;
     if (dto.evtTitle !== undefined) e.title = dto.evtTitle;
     if (dto.evtDescription !== undefined) e.description = dto.evtDescription;
@@ -459,6 +578,8 @@ export class CalEventService {
     if (dto.evtMeetingProvider !== undefined)
       e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
+    const prevBodaRoomType = e.bodaRoomType;
+    if (dto.evtBodaRoomType !== undefined) e.bodaRoomType = dto.evtBodaRoomType;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
     if (dto.evtAssigneeTchId !== undefined)
       e.assigneeTchId = dto.evtAssigneeTchId;
@@ -470,11 +591,36 @@ export class CalEventService {
 
     e.updatedAt = new Date();
     const saved = await this.repo.save(e);
+
+    // REQ-260728 — 사용자 수정 히스토리(변경 필드가 있을 때만 1건).
+    const changes = this.diffRevision(
+      beforeSnapshot,
+      this.snapshotForRevision(saved),
+    );
+    if (changes.length > 0) {
+      await this.revisionRepo.save(
+        this.revisionRepo.create({
+          entId,
+          evtId: saved.id,
+          editorUserId: actorUserId,
+          reason: dto.evtEditReason,
+          changes,
+        }),
+      );
+    }
+
     if (saved.meetingProvider === 'BODASCHOOL') {
       const shouldProvision =
         !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
       if (shouldProvision) {
         await this.ensureBodaLauncher(entId, saved);
+      } else if (saved.bodaRoomType !== prevBodaRoomType) {
+        // 룸 유형 토글(1:1↔1:N) — 아직 개설 전(PENDING)이면 roomCode 교체.
+        await this.bodaRoomSvc.applyRoomTypeIfPending(
+          saved.id,
+          entId,
+          saved.bodaRoomType,
+        );
       }
     }
 
@@ -511,6 +657,7 @@ export class CalEventService {
     actorUserId: string,
     actorRole: AcmRole,
     id: string,
+    reason: string,
   ) {
     const e = await this.repo.findOne({
       where: { id, entId, deletedAt: IsNull() },
@@ -522,10 +669,82 @@ export class CalEventService {
     if (e.meetingProvider === 'BODASCHOOL') {
       await this.bodaRoomSvc.closeAndDelete(e.id, entId);
     }
+    // REQ-260728 — soft-delete + 삭제 사유·삭제자 기록.
     e.deletedAt = new Date();
+    e.deleteReason = reason;
+    e.deletedBy = actorUserId;
     e.updatedAt = new Date();
     await this.repo.save(e);
     return { id };
+  }
+
+  /**
+   * REQ-260728 — 이벤트 수정 히스토리(시간역순). 수정자 이름 resolve.
+   */
+  async getRevisions(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    id: string,
+  ) {
+    const e = await this.repo.findOne({ where: { id, entId } });
+    if (!e) throw new NotFoundException('EVENT_NOT_FOUND');
+    this.assertCanView(e, actorUserId, actorRole);
+    const rows = await this.revisionRepo.find({
+      where: { entId, evtId: id },
+      order: { createdAt: 'DESC' },
+    });
+    const editorMap = await this.lookupOwners(
+      entId,
+      rows.map((r) => r.editorUserId ?? ''),
+    );
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        editorUserId: r.editorUserId ?? null,
+        editorName: r.editorUserId
+          ? (editorMap.get(r.editorUserId)?.name ?? null)
+          : null,
+        reason: r.reason ?? null,
+        changes: r.changes ?? [],
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  /** REQ-260728 — 수정 diff 대상 필드의 스냅샷(문자열 정규화). */
+  private snapshotForRevision(
+    e: CalEventTypeormEntity,
+  ): Record<string, string | null> {
+    return {
+      category: e.category ?? null,
+      title: e.title ?? null,
+      description: e.description ?? null,
+      startAt: e.startAt ? e.startAt.toISOString() : null,
+      endAt: e.endAt ? e.endAt.toISOString() : null,
+      allDay: e.allDay ? 'true' : 'false',
+      locationText: e.locationText ?? null,
+      meetingProvider: e.meetingProvider ?? null,
+      bodaRoomType: e.bodaRoomType ?? null,
+      assigneeTchId: e.assigneeTchId ?? null,
+    };
+  }
+
+  private diffRevision(
+    before: Record<string, string | null>,
+    after: Record<string, string | null>,
+  ): CalEventChange[] {
+    const out: CalEventChange[] = [];
+    for (const field of Object.keys(after)) {
+      if ((before[field] ?? null) !== (after[field] ?? null)) {
+        out.push({
+          field,
+          before: before[field] ?? null,
+          after: after[field] ?? null,
+        });
+      }
+    }
+    return out;
   }
 
   private async lookupOwners(
@@ -593,6 +812,7 @@ export class CalEventService {
       evtId: event.id,
       entId,
       sesId: null,
+      roomType: event.bodaRoomType,
     });
     event.meetingUrl = launcherUrl;
     await this.repo.update({ id: event.id }, { meetingUrl: launcherUrl });
@@ -686,9 +906,14 @@ export class CalEventService {
     locationText: e.locationText,
     meetingProvider: e.meetingProvider,
     meetingUrl: e.meetingUrl,
+    bodaRoomType: e.bodaRoomType,
     clsId: e.clsId,
     assigneeTchId: e.assigneeTchId ?? null,
     source: e.source,
+    // REQ-260728 — 삭제 메타(삭제 보기 목록에서 사용).
+    deletedAt: e.deletedAt ? e.deletedAt.toISOString() : null,
+    deleteReason: e.deleteReason ?? null,
+    deletedBy: e.deletedBy ?? null,
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });

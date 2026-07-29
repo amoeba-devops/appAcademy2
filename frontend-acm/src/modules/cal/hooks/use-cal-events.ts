@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type {
   CalEvent,
+  CalEventRevisionList,
   InviteeCandidate,
   ListCalEventsQuery,
   ListCalEventsResponse,
@@ -9,8 +10,9 @@ import type {
 
 const KEY = 'cal';
 
-export function useCalEvents(params: ListCalEventsQuery) {
+export function useCalEvents(params: ListCalEventsQuery, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: [KEY, 'events', params],
     queryFn: async () => {
       const res = await apiClient.get<ListCalEventsResponse>('/acm/cal/events', { params });
@@ -52,10 +54,22 @@ export function useUpdateCalEvent(id: string) {
 export function useDeleteCalEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      await apiClient.delete(`/acm/cal/events/${id}`);
+    // REQ-260728 — 삭제 사유 필수. axios delete 는 body 를 `data` 로 전달.
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      await apiClient.delete(`/acm/cal/events/${id}`, { data: { reason } });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'events'] }),
+  });
+}
+
+/** REQ-260728 — 이벤트 수정 히스토리(시간역순). */
+export function useCalEventRevisions(id: string | undefined, enabled = true) {
+  return useQuery({
+    enabled: enabled && !!id,
+    queryKey: [KEY, 'revisions', id],
+    queryFn: async () =>
+      (await apiClient.get<CalEventRevisionList>(`/acm/cal/events/${id}/revisions`))
+        .data,
   });
 }
 

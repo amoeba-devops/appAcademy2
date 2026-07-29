@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiHeader,
@@ -65,6 +59,12 @@ export class InstantEventController {
     @Body() dto: CreateInstantEventDto,
     @Headers('x-idempotency-key') idempotencyKey?: string,
   ): Promise<CreateInstantEventResponseDto> {
-    return this.svc.create(u.entId, u.id, u.role ?? 'TEACHER', dto, idempotencyKey);
+    return this.svc.create(
+      u.entId,
+      u.id,
+      u.role ?? 'TEACHER',
+      dto,
+      idempotencyKey,
+    );
   }
 }

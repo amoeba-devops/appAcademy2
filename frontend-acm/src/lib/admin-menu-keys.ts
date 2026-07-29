@@ -13,6 +13,7 @@ export const TOGGLEABLE_MENU_KEYS = [
   'tch',
   'stf',
   'cal',
+  'calStats',
   'sch',
   'ref',
   'posts',
@@ -20,6 +21,7 @@ export const TOGGLEABLE_MENU_KEYS = [
   'enrollments',
   'map',
   'qna',
+  'chat',
   'config',
 ] as const;
 

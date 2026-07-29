@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "create": "创建",
+    "save": "保存",
+    "delete": "删除",
+    "action": "操作"
+  },
+  "filters": {
+    "title": "筛选"
+  },
+  "toast": {
+    "error": "出现问题。"
+  },
+  "posts": {
+    "title": "公告 · 文章",
+    "empty": "没有符合所选筛选条件的文章。",
+    "listSummary": "共找到 {{count}} 篇文章",
+    "filter": {
+      "status": "状态",
+      "category": "分类"
+    },
+    "table": {
+      "title": "标题",
+      "category": "分类",
+      "status": "状态",
+      "publishedAt": "发布日期",
+      "createdAt": "创建日期"
+    },
+    "status": {
+      "all": "全部",
+      "DRAFT": "草稿",
+      "PUBLISHED": "已发布",
+      "ARCHIVED": "已归档"
+    },
+    "category": {
+      "all": "全部",
+      "NOTICE": "公告",
+      "EVENT": "活动",
+      "RESULT": "结果"
+    },
+    "editor": {
+      "createTitle": "撰写公告",
+      "editTitle": "编辑公告",
+      "createLead": "为门户创建新闻文章并管理其发布状态。",
+      "editLead": "编辑文章内容、分类和发布设置。",
+      "created": "已创建公告。",
+      "updated": "已更新公告。",
+      "deleted": "已删除公告。",
+      "deleteConfirm": "删除此公告？此操作无法撤销。",
+      "loading": "加载中…",
+      "fetchError": "加载文章失败。",
+      "sideNote": "已发布的公告会显示在门户新闻列表中。",
+      "field": {
+        "title": "标题",
+        "slug": "URL 短链接",
+        "coverImageUrl": "封面图片 URL",
+        "bodyMd": "正文（Markdown）",
+        "category": "分类",
+        "status": "状态",
+        "publishedAt": "发布时间"
+      },
+      "slugHint": "仅限小写字母、数字和连字符（-）。根据标题自动生成，可修改。",
+      "slugInvalid": "URL 短链接格式无效（例如：notice-2026-07）。",
+      "coverInvalid": "封面图片 URL 无效。",
+      "saveFailed": "保存失败"
+    }
+  },
+  "notifications": {
+    "title": "通知记录",
+    "empty": "没有符合所选筛选条件的通知。",
+    "totalCount": "共 {{count}} 条",
+    "resendSuccess": "已提交重新发送请求。",
+    "filter": {
+      "status": "状态"
+    },
+    "table": {
+      "event": "事件",
+      "channel": "渠道",
+      "recipient": "接收人",
+      "status": "状态",
+      "sentAt": "已发送",
+      "createdAt": "已创建"
+    },
+    "actions": {
+      "resend": "重新发送"
+    }
+  }
+}

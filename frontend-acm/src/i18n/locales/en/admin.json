@@ -1,0 +1,88 @@
+{
+  "actions": {
+    "create": "Create",
+    "save": "Save",
+    "delete": "Delete",
+    "action": "Action"
+  },
+  "filters": {
+    "title": "Filters"
+  },
+  "toast": {
+    "error": "Something went wrong."
+  },
+  "posts": {
+    "title": "News & Posts",
+    "empty": "No posts found for the selected filters.",
+    "listSummary": "{{count}} posts found",
+    "filter": {
+      "status": "Status",
+      "category": "Category"
+    },
+    "table": {
+      "title": "Title",
+      "category": "Category",
+      "status": "Status",
+      "publishedAt": "Published",
+      "createdAt": "Created"
+    },
+    "status": {
+      "all": "All",
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "ARCHIVED": "Archived"
+    },
+    "category": {
+      "all": "All",
+      "NOTICE": "Notice",
+      "EVENT": "Event",
+      "RESULT": "Result"
+    },
+    "editor": {
+      "createTitle": "Create post",
+      "editTitle": "Edit post",
+      "createLead": "Create a news post for the portal and manage its publication status.",
+      "editLead": "Edit the post content, category, and publication settings.",
+      "created": "Post created successfully.",
+      "updated": "Post updated successfully.",
+      "deleted": "Post deleted.",
+      "deleteConfirm": "Delete this post? This action cannot be undone.",
+      "loading": "Loading...",
+      "fetchError": "Failed to load post.",
+      "sideNote": "Published posts become visible in the public portal news feed.",
+      "field": {
+        "title": "Title",
+        "slug": "URL slug",
+        "coverImageUrl": "Cover image URL",
+        "bodyMd": "Body (Markdown)",
+        "category": "Category",
+        "status": "Status",
+        "publishedAt": "Published At"
+      },
+      "slugHint": "Lowercase letters, digits, and hyphens (-) only. Auto-generated from the title; you can edit it.",
+      "slugInvalid": "Invalid URL slug format (e.g., notice-2026-07).",
+      "coverInvalid": "Invalid cover image URL.",
+      "saveFailed": "Save failed"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications were found for the selected filters.",
+    "totalCount": "{{count}} records",
+    "resendSuccess": "Resend request submitted.",
+    "filter": {
+      "status": "Status"
+    },
+    "table": {
+      "event": "Event",
+      "channel": "Channel",
+      "recipient": "Recipient",
+      "status": "Status",
+      "sentAt": "Sent",
+      "createdAt": "Created"
+    },
+    "actions": {
+      "resend": "Resend"
+    }
+  }
+}

@@ -133,6 +133,7 @@
       "success": "Đã đăng ký làm khách hàng AMA",
       "alreadyRegistered": "Phụ huynh đã được đăng ký",
       "error": "Đăng ký AMA thất bại. Vui lòng thử lại sau."
-    }
+    },
+    "editTitle": "Sửa thông tin phụ huynh"
   }
 }

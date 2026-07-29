@@ -17,7 +17,9 @@ export class BodaLaunchContextResponseDto {
   @ApiProperty({ description: 'BODA roomCode (기본값은 vendor 발급)' })
   roomCode!: string;
 
-  @ApiPropertyOptional({ description: '개설 후에만 채워짐 (학생 입장 시 활용)' })
+  @ApiPropertyOptional({
+    description: '개설 후에만 채워짐 (학생 입장 시 활용)',
+  })
   meetIdx?: string | null;
 
   @ApiProperty({
@@ -26,10 +28,15 @@ export class BodaLaunchContextResponseDto {
   })
   status!: BodaRoomStatus;
 
-  @ApiProperty({ description: '11=강사 / 12=학생 / 13=운영자', enum: [11, 12, 13] })
+  @ApiProperty({
+    description: '11=강사 / 12=학생 / 13=운영자',
+    enum: [11, 12, 13],
+  })
   userType!: 11 | 12 | 13;
 
-  @ApiProperty({ description: 'BODA 측에 보낼 사용자 식별자 (= ACM user UUID, 32 hex)' })
+  @ApiProperty({
+    description: 'BODA 측에 보낼 사용자 식별자 (= ACM user UUID, 32 hex)',
+  })
   uid!: string;
 
   @ApiProperty({ description: '표시명' })
@@ -38,7 +45,9 @@ export class BodaLaunchContextResponseDto {
   @ApiProperty({ description: 'BODA UI 언어 (ko | en)', enum: ['ko', 'en'] })
   lang!: 'ko' | 'en';
 
-  @ApiProperty({ description: 'BodaAppApi.js 절대 URL — 페이지가 <script> 로 로드' })
+  @ApiProperty({
+    description: 'BodaAppApi.js 절대 URL — 페이지가 <script> 로 로드',
+  })
   appApiUrl!: string;
 
   @ApiProperty({
@@ -51,7 +60,8 @@ export class BodaLaunchContextResponseDto {
   companyId?: string | null;
 
   @ApiPropertyOptional({
-    description: 'joinUser.CCd — 회사 인덱스 (숫자 문자열, FE 가 Number 로 변환)',
+    description:
+      'joinUser.CCd — 회사 인덱스 (숫자 문자열, FE 가 Number 로 변환)',
   })
   companyCode?: string | null;
 
@@ -139,6 +149,7 @@ export class BodaRoomStatusResponseDto {
 
 export class LaunchContextQueryDto {
   @ApiProperty({ description: 'cal_event.evt_id' })
-  @IsString() @IsUUID()
+  @IsString()
+  @IsUUID()
   evtId!: string;
 }

@@ -37,7 +37,8 @@
       "notices": "公告",
       "calendar": "课程表",
       "materials": "文档/资料",
-      "students": "学生管理"
+      "students": "学生管理",
+      "chat": "大厅聊天"
     },
     "login": {
       "title": "学院门户登录",
@@ -93,7 +94,10 @@
       "attendees": "相关人员",
       "materials": "附件",
       "download": "下载",
-      "owner": "创建人"
+      "owner": "创建人",
+      "filterStudent": "学生",
+      "filterCategory": "课程类型",
+      "all": "全部"
     },
     "notices": {
       "empty": "暂无公告。",
@@ -105,7 +109,7 @@
       "tabShared": "共享给我",
       "tabOwn": "我的帖子",
       "newPost": "新帖子",
-      "pickFile": "选择文件（≤20MB）",
+      "pickFile": "选择文件（≤50MB）",
       "titlePlaceholder": "标题（默认文件名）",
       "shareToStudents": "共享给学生",
       "shareToTeacher": "提交给老师",
@@ -121,7 +125,14 @@
       "confirmDelete": "删除此帖子？",
       "newDoc": "新建文档",
       "newFile": "上传文件",
-      "docBadge": "文档"
+      "docBadge": "文档",
+      "uploadBtn": "上传",
+      "shareBtn2": "共享",
+      "shareSave": "保存共享",
+      "shareRequiredHint": "需至少选择 1 名共享对象才能上传。",
+      "filterAll": "全部",
+      "filterDoc": "文档",
+      "filterFile": "资料"
     },
     "docs": {
       "back": "返回文档/资料",
@@ -140,7 +151,11 @@
       "current": "当前",
       "viewVersion": "查看",
       "restore": "恢复此版本",
-      "confirmRestore": "恢复此版本？（恢复也会记录为新版本）"
+      "confirmRestore": "恢复此版本？（恢复也会记录为新版本）",
+      "attachments": "附件",
+      "addAttachment": "添加文件",
+      "attachmentLimitHint": "单个文件 50MB · 最多 5 个",
+      "attachUploadFailed": "部分附件上传失败，请在文档中重试。"
     },
     "students": {
       "teacherOnly": "此菜单仅供老师使用。",
@@ -158,6 +173,42 @@
       "noRemarks": "暂无咨询记录。",
       "classes": "课程记录（最近10条）",
       "noClasses": "暂无课程记录。"
+    },
+    "record": {
+      "title": "教室记录",
+      "opened": "开设",
+      "started": "开始",
+      "ended": "结束",
+      "closed": "关闭",
+      "join": "进入",
+      "leave": "离开",
+      "min": "分钟",
+      "kindTEACHER": "老师",
+      "kindSTUDENT": "学生",
+      "kindOPERATOR": "管理员",
+      "kindUNKNOWN": "未知"
+    },
+    "review": {
+      "done": "课程完成",
+      "feedback": "课程反馈",
+      "forAdmin": "供管理员查看",
+      "writeFeedback": "撰写反馈",
+      "editFeedback": "修改反馈",
+      "noFeedback": "尚未撰写反馈。",
+      "homework": "作业",
+      "assignHomework": "布置作业",
+      "editHomework": "修改作业",
+      "noHomeworkBtn": "无作业",
+      "saveHomework": "保存作业",
+      "noHomework": "无作业",
+      "noHomeworkYet": "暂无作业信息。",
+      "attachFile": "附加文件",
+      "textFeedback": "反馈",
+      "textHomework": "作业"
+    },
+    "recordings": {
+      "title": "课程录像",
+      "file": "录像"
     }
   },
   "material": {
@@ -181,9 +232,14 @@
     "tch": "教师管理",
     "stf": "员工管理",
     "cal": "课程表",
+    "calStats": "课程统计",
     "map": "MAP 历年真题",
     "config": "配置",
-    "systemAdmin": "系统管理"
+    "posts": "公告 · 文章",
+    "notifications": "通知",
+    "enrollments": "报名",
+    "systemAdmin": "系统管理",
+    "chat": "大厅聊天"
   },
   "lang": {
     "label": "语言",
@@ -321,6 +377,7 @@
         "companyCode": "公司代码 (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "默认教室代码",
+        "groupRoomCode": "1:N 团体教室代码",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "Webhook 允许 IP / CIDR",
@@ -346,5 +403,27 @@
         "description": "BODA 视频课堂集成设置"
       }
     }
+  },
+  "talk": {
+    "newChannel": "新频道",
+    "newDm": "新私聊",
+    "create": "创建",
+    "startDm": "开始",
+    "channelNamePlaceholder": "房间名称",
+    "searchMember": "按姓名搜索（运营者/教师）",
+    "noResult": "没有结果。",
+    "noChannels": "暂无会话。",
+    "selectChannel": "请选择一个会话。",
+    "noMessages": "暂无消息。",
+    "members": "成员",
+    "manageMembers": "成员管理",
+    "loadOlder": "查看更早的消息",
+    "inputPlaceholder": "输入消息…",
+    "attachFile": "发送文件（≤50MB）",
+    "confirmDeleteMessage": "删除这条消息吗？",
+    "dmReuseHint": "若已存在与该对象的私聊，将直接进入该房间。",
+    "kindOperator": "运营者",
+    "kindTeacher": "教师",
+    "teacherOnly": "仅限教师使用。"
   }
 }

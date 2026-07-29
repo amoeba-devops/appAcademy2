@@ -7,6 +7,7 @@ import {
   BookOpen,
   BookOpenCheck,
   MessageCircleQuestion,
+  MessagesSquare,
   Newspaper,
   Bell,
   ClipboardList,
@@ -15,6 +16,7 @@ import {
   UserCog,
   Briefcase,
   CalendarDays,
+  BarChart3,
   Settings,
   ShieldCheck,
   LogOut,
@@ -23,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
-import { useMyHiddenMenus } from '@/modules/system/hooks/use-my-menus';
+import { useMyMenus } from '@/modules/system/hooks/use-my-menus';
 
 const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
@@ -34,6 +36,8 @@ const NAV = [
   { to: '/admin/tch', icon: UserCog, key: 'tch' },
   { to: '/admin/stf', icon: Briefcase, key: 'stf' },
   { to: '/admin/cal', icon: CalendarDays, key: 'cal' },
+  // PLN-260729-2 — 수업통계 대시보드
+  { to: '/admin/cal-stats', icon: BarChart3, key: 'calStats' },
   { to: '/admin/sch', icon: School, key: 'sch' },
   { to: '/admin/ref', icon: BookOpen, key: 'ref' },
   { to: '/admin/posts', icon: Newspaper, key: 'posts' },
@@ -41,6 +45,8 @@ const NAV = [
   { to: '/admin/enrollments', icon: ClipboardList, key: 'enrollments' },
   { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
+  // REQ-260728C — 로비채팅 (운영자↔강사)
+  { to: '/admin/chat', icon: MessagesSquare, key: 'chat' },
   { to: '/admin/config', icon: Settings, key: 'config' },
 ] as const;
 
@@ -51,11 +57,29 @@ export function AppShell() {
   const clear = useAuthStore((s) => s.clear);
   const navigate = useNavigate();
 
-  // REQ-260621 v1.1 — per-tenant menu visibility (UI-only). Fail-open: while
-  // loading or on error, `hidden` is undefined → all menus shown.
-  const { data: hidden } = useMyHiddenMenus();
-  const hiddenSet = new Set(hidden ?? []);
-  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key));
+  // REQ-260621 v1.1 / PLN-260728E — per-tenant 메뉴 가시성 + 순서(UI-only).
+  // Fail-open: 로딩/오류 시 전체 표시·기본(NAV) 순서.
+  const { data: menus } = useMyMenus();
+  const hiddenSet = new Set(menus?.hidden ?? []);
+  // 표시 순서: 백엔드 order(관리 키) 기준, NAV 에만 있는 키(예: chat)는
+  // 원래 NAV 이웃 뒤에 삽입해 위치 보존.
+  const orderedKeys: string[] = (() => {
+    const base = menus?.order ?? [];
+    if (base.length === 0) return NAV.map((n) => n.key);
+    const keys = [...base];
+    NAV.forEach((n, i) => {
+      if (keys.includes(n.key)) return;
+      const prev = NAV[i - 1]?.key;
+      const at = prev ? keys.indexOf(prev) : -1;
+      if (at >= 0) keys.splice(at + 1, 0, n.key);
+      else keys.push(n.key);
+    });
+    return keys;
+  })();
+  const rank = new Map(orderedKeys.map((k, i) => [k, i]));
+  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key))
+    .slice()
+    .sort((a, b) => (rank.get(a.key) ?? 999) - (rank.get(b.key) ?? 999));
 
   const onLogout = () => {
     clear();

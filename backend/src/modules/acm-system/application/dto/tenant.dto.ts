@@ -4,11 +4,13 @@ import {
   IsArray,
   IsBoolean,
   IsIn,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   Matches,
   MaxLength,
+  Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
@@ -74,6 +76,13 @@ export class MenuVisibilityItemDto {
   @ApiProperty()
   @IsBoolean()
   visible!: boolean;
+
+  /** PLL-260728E — 표시 순서(0-기반). 생략 시 기본 순서 사용. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  order?: number;
 }
 
 export class UpdateTenantMenusDto {
@@ -100,4 +109,6 @@ export interface MenuConfigItem {
   key: string;
   visible: boolean;
   alwaysOn: boolean;
+  /** PLN-260728E — 표시 순서(0-기반). */
+  order: number;
 }

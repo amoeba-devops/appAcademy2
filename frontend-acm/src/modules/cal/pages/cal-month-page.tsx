@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, LogIn, Plus, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuthStore } from '@/stores/auth.store';
 import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
@@ -50,10 +57,14 @@ export function CalMonthPage() {
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
   const [instantOpen, setInstantOpen] = useState(false);
+  const navigate = useNavigate();
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
   const canCreateInstant = role === 'ADMIN' || role === 'TEACHER';
   const [selectedTeachers, setSelectedTeachers] = useState<TeacherDetail[]>([]);
+  // PLN-260729 1.1 — 수업종류 필터 + 월간 '모두보기' 일자 모달.
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [dayModal, setDayModal] = useState<Date | null>(null);
   const [attendeeKind, setAttendeeKind] = useState<CalInviteeKind>('STUDENT');
   const [selectedAttendees, setSelectedAttendees] = useState<InviteeCandidate[]>([]);
 
@@ -91,14 +102,23 @@ export function CalMonthPage() {
     return {
       from: range.from,
       to: range.to,
+      ...(categoryFilter ? { category: categoryFilter as CalEvent['category'] } : {}),
       ...(isAdmin && tchIds.length > 0 ? { assigneeTchIds: tchIds } : {}),
       ...(isAdmin && attendeeIds.length > 0
         ? { attendeeKind, attendeeRefIds: attendeeIds }
         : {}),
     };
-  }, [range, isAdmin, selectedTeachers, attendeeKind, selectedAttendees]);
+  }, [range, isAdmin, selectedTeachers, attendeeKind, selectedAttendees, categoryFilter]);
 
   const { data, isLoading } = useCalEvents(query);
+
+  // REQ-260728 — '삭제한 수업일정 보기' 토글 + 삭제 목록(같은 기간).
+  const [showDeleted, setShowDeleted] = useState(false);
+  const { data: deletedData } = useCalEvents(
+    { from: range.from, to: range.to, deletedOnly: true },
+    showDeleted,
+  );
+  const deletedEvents = deletedData?.items ?? [];
   const events = useMemo(
     () =>
       [...(data?.items ?? [])].sort(
@@ -153,6 +173,12 @@ export function CalMonthPage() {
     setModalOpen(true);
   };
 
+  // PLN-260729-2 — 일/주/리스트(및 일자 모달)에서는 모달 없이 바로 상세 페이지.
+  const onEventOpenDetail = (event: React.MouseEvent, calEvent: CalEvent) => {
+    event.stopPropagation();
+    navigate(`/admin/cal/${calEvent.id}`);
+  };
+
   const shiftAnchor = (step: -1 | 1) => {
     if (view === 'day') {
       setAnchor((current) => addDays(current, step));
@@ -170,6 +196,15 @@ export function CalMonthPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant={showDeleted ? 'default' : 'outline'}
+            onClick={() => setShowDeleted((v) => !v)}
+            title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
+          >
+            <Trash2 size={14} className="mr-1" />
+            {t('deleted.btnLabel', '삭제한 수업일정 보기')}
+          </Button>
           {canCreateInstant && (
             <Button
               size="sm"
@@ -239,6 +274,25 @@ export function CalMonthPage() {
         <div className="mb-3 flex flex-wrap items-start gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-secondary">
+              {t('filter.categoryLabel', '수업종류')}:
+            </span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
+            >
+              <option value="">{t('filter.allView', '전체보기')}</option>
+              {(['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const).map(
+                (c) => (
+                  <option key={c} value={c}>
+                    {t(`category.${c}`, c)}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-secondary">
               {t('filter.ownerLabel', '강사')}:
             </span>
             <TeacherMultiCombo value={selectedTeachers} onChange={setSelectedTeachers} />
@@ -276,7 +330,9 @@ export function CalMonthPage() {
         </div>
       )}
 
-      {view === 'month' ? (
+      {showDeleted ? (
+        <DeletedEventsList events={deletedEvents} locale={i18n.language} />
+      ) : view === 'month' ? (
         <MonthView
           anchor={anchor}
           days={visibleDays}
@@ -285,21 +341,20 @@ export function CalMonthPage() {
           locale={i18n.language}
           onDayClick={onDayClick}
           onEventClick={onEventClick}
+          onShowAll={(d) => setDayModal(d)}
         />
       ) : view === 'list' ? (
         <ListView
           events={events}
           locale={i18n.language}
-          onEventClick={onEventClick}
+          onEventClick={onEventOpenDetail}
         />
       ) : (
-        <AgendaView
-          days={visibleDays}
-          eventsByDay={eventsByDay}
-          view={view}
+        /* PLN-260729 1.1 — 일/주 보기는 포털 리스트뷰 UI 참조: 날짜 그룹 목록형 */
+        <ListView
+          events={events}
           locale={i18n.language}
-          onDayClick={onDayClick}
-          onEventClick={onEventClick}
+          onEventClick={onEventOpenDetail}
         />
       )}
 
@@ -308,6 +363,18 @@ export function CalMonthPage() {
           {t('common:status.loading')}
         </p>
       )}
+
+      {/* PLN-260729 1.1 — 월간뷰 '+N 모두보기' 일자별 전체 일정 모달 */}
+      <DayEventsModal
+        day={dayModal}
+        events={dayModal ? (eventsByDay.get(startOfDay(dayModal).toDateString()) ?? []) : []}
+        locale={i18n.language}
+        onClose={() => setDayModal(null)}
+        onSelect={(clickEvent, calEvent) => {
+          setDayModal(null);
+          onEventOpenDetail(clickEvent, calEvent);
+        }}
+      />
 
       <CalEventModal
         open={modalOpen}
@@ -331,6 +398,7 @@ function MonthView({
   locale,
   onDayClick,
   onEventClick,
+  onShowAll,
 }: {
   anchor: Date;
   days: Date[];
@@ -339,7 +407,9 @@ function MonthView({
   locale: string;
   onDayClick: (date: Date) => void;
   onEventClick: (event: React.MouseEvent, calEvent: CalEvent) => void;
+  onShowAll: (date: Date) => void;
 }) {
+  const { t } = useTranslation('cal');
   return (
     <div className="grid grid-cols-7 gap-px overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--border-subtle)]">
       {weekdayLabels.map((label, index) => (
@@ -361,7 +431,7 @@ function MonthView({
             key={dayKey}
             type="button"
             onClick={() => onDayClick(day)}
-            className={`relative min-h-[140px] bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
+            className={`relative flex min-h-[140px] flex-col items-stretch justify-start bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
               inMonth ? '' : 'opacity-40'
             }`}
           >
@@ -387,7 +457,16 @@ function MonthView({
                 />
               ))}
               {dayEvents.length > 4 && (
-                <div className="text-[10px] text-secondary">+{dayEvents.length - 4}</div>
+                <button
+                  type="button"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onShowAll(day);
+                  }}
+                  className="rounded bg-[var(--gray-100)] px-1 py-0.5 text-[10px] font-medium text-accent-700 hover:bg-accent-50"
+                >
+                  +{dayEvents.length - 4} {t('view.showAll', '모두보기')}
+                </button>
               )}
             </div>
           </button>
@@ -397,71 +476,101 @@ function MonthView({
   );
 }
 
-function AgendaView({
-  days,
-  eventsByDay,
-  view,
+// PLN-260729 1.1 — 월간뷰 '+N 모두보기' → 그날 전체 일정 모달.
+function DayEventsModal({
+  day,
+  events,
   locale,
-  onDayClick,
-  onEventClick,
+  onClose,
+  onSelect,
 }: {
-  days: Date[];
-  eventsByDay: Map<string, CalEvent[]>;
-  view: Exclude<CalendarView, 'month'>;
+  day: Date | null;
+  events: CalEvent[];
   locale: string;
-  onDayClick: (date: Date) => void;
-  onEventClick: (event: React.MouseEvent, calEvent: CalEvent) => void;
+  onClose: () => void;
+  onSelect: (event: React.MouseEvent, calEvent: CalEvent) => void;
 }) {
-  const emptyMessage =
-    view === 'day' ? '등록된 일정이 없습니다.' : '이 주에는 등록된 일정이 없습니다.';
-
+  const { t } = useTranslation('cal');
   return (
-    <div
-      className={`grid gap-3 ${
-        view === 'week' ? 'md:grid-cols-7 md:items-start md:gap-2' : 'grid-cols-1'
-      }`}
-    >
-      {days.map((day) => {
-        const dayKey = day.toDateString();
-        const dayEvents = eventsByDay.get(dayKey) ?? [];
-        const isToday = isSameDay(day, new Date());
-        return (
-          <section
-            key={dayKey}
-            className="min-w-0 rounded-md border border-[var(--border-subtle)] bg-surface"
-          >
-            <button
-              type="button"
-              onClick={() => onDayClick(day)}
-              className="flex w-full items-center justify-between border-b border-[var(--border-subtle)] px-3 py-3 text-left hover:bg-[var(--gray-50)]"
-            >
-              <div>
-                <div className="text-xs text-secondary">{formatShortDate(day, locale)}</div>
-                <div className={`text-sm font-semibold ${isToday ? 'text-accent-700' : 'text-primary'}`}>
-                  {formatFullDate(day, locale)}
-                </div>
-              </div>
-              <Plus size={14} className="text-secondary" />
-            </button>
+    <Dialog open={!!day} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[80vh] max-w-lg overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {day ? formatFullDate(day, locale) : ''}{' '}
+            <span className="text-sm font-normal text-secondary">
+              ({events.length}{t('view.countSuffix', '건')})
+            </span>
+          </DialogTitle>
+        </DialogHeader>
+        <div className="mt-2 divide-y divide-[var(--border-subtle)] rounded-md border border-[var(--border-subtle)]">
+          {events.map((calEvent) => (
+            <ListRow
+              key={calEvent.id}
+              event={calEvent}
+              locale={locale}
+              onClick={(clickEvent) => onSelect(clickEvent, calEvent)}
+            />
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-            <div className="grid gap-2 p-3">
-              {dayEvents.length === 0 ? (
-                <p className="text-sm text-secondary">{emptyMessage}</p>
-              ) : (
-                dayEvents.map((calEvent) => (
-                  <CalendarEventCard
-                    key={calEvent.id}
-                    event={calEvent}
-                    locale={locale}
-                    onClick={(clickEvent) => onEventClick(clickEvent, calEvent)}
-                  />
-                ))
-              )}
-            </div>
-          </section>
-        );
-      })}
-    </div>
+// PLN-260729 1.1 — 목록형 행 (포털 리스트뷰 UI 참조): 시간·제목·학생명 +
+// 피드백/과제 텍스트 한 줄 + 담당강사.
+function ListRow({
+  event,
+  locale,
+  onClick,
+}: {
+  event: CalEvent;
+  locale: string;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const { t } = useTranslation('cal');
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-left hover:bg-[var(--gray-50)]"
+    >
+      <span className="w-14 shrink-0 text-sm tabular-nums text-secondary">
+        {formatTime(event.startAt, locale)}
+      </span>
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary">
+        {event.title}
+        {event.primaryStudentName && (
+          <span className="ml-1.5 font-normal text-secondary">
+            · {event.primaryStudentName}
+          </span>
+        )}
+      </span>
+      <span className="flex shrink-0 items-center gap-1.5 text-[11px]">
+        {event.hasFeedback && (
+          <span className="text-accent-700">{t('review.textFeedback', '피드백')}</span>
+        )}
+        {event.homeworkStatus === 'ASSIGNED' && (
+          <span className="text-accent-700">{t('review.textHomework', '과제제출')}</span>
+        )}
+        {event.homeworkStatus === 'NONE' && (
+          <span className="text-secondary">{t('review.noHomework', '과제없음')}</span>
+        )}
+        {event.classDone && (
+          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+            {t('review.doneFull', '수업완료')}
+          </span>
+        )}
+      </span>
+      <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[10px] text-secondary">
+        {t(`category.${event.category}`, event.category)}
+      </span>
+      {(event.assigneeName || event.ownerName) && (
+        <span className="shrink-0 text-xs text-secondary">
+          {event.assigneeName ?? event.ownerName}
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -508,9 +617,9 @@ function ListView({
               </span>
               <span className="text-xs text-secondary">{items.length}</span>
             </div>
-            <div className="grid gap-2 p-3">
+            <div className="divide-y divide-[var(--border-subtle)]">
               {items.map((calEvent) => (
-                <CalendarEventCard
+                <ListRow
                   key={calEvent.id}
                   event={calEvent}
                   locale={locale}
@@ -548,7 +657,35 @@ function CalendarEventCard({
       }`}
       title={display}
     >
-      <div className="truncate font-medium">{display}</div>
+      <div className="truncate font-medium">
+        {display}
+        {/* PLN-260728F B — 캘린더 칸엔 수업완료만 표시 */}
+        {event.classDone && (
+          <span className="ml-1 rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+            ✓{t('review.done', '완료')}
+          </span>
+        )}
+      </div>
+      {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
+        <div className="mt-0.5 flex items-center gap-1 text-[10px]">
+          {event.hasFeedback && (
+            <span title={t('review.feedback', '피드백 작성됨')}>📝</span>
+          )}
+          {event.homeworkStatus === 'ASSIGNED' && (
+            <span title={t('review.homework', '과제 등록됨')}>📚</span>
+          )}
+          {event.homeworkStatus === 'NONE' && (
+            <span className="text-secondary">
+              {t('review.noHomework', '과제 없음')}
+            </span>
+          )}
+          {event.classDone && (
+            <span className="rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+              {t('review.doneFull', '수업완료')}
+            </span>
+          )}
+        </div>
+      )}
       {(event.assigneeName || event.ownerName) && (
         <div className="truncate text-[10px] opacity-80">
           {event.assigneeName ?? event.ownerName}
@@ -606,4 +743,66 @@ function splitEventTitle(event: CalEvent): {
   if (event.category === 'LEVEL_TEST') return { className: '레벨테스트', studentName: null };
   if (event.category === 'REGULAR_CLASS') return { className: event.title, studentName: null };
   return { className: event.title, studentName: null };
+}
+
+/**
+ * REQ-260728 — 삭제한 수업일정 목록('삭제 보기' 토글 시 표시). 열람 전용.
+ */
+function DeletedEventsList({
+  events,
+  locale,
+}: {
+  events: CalEvent[];
+  locale: string;
+}) {
+  const { t } = useTranslation('cal');
+  const fmt = (iso?: string | null) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime())
+      ? '—'
+      : new Intl.DateTimeFormat(locale, {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(d);
+  };
+
+  if (events.length === 0) {
+    return (
+      <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+        {t('deleted.empty', '이 기간에 삭제한 수업일정이 없습니다.')}
+      </p>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-md border border-[var(--border-subtle)]">
+      <table className="w-full text-sm">
+        <thead className="bg-[var(--canvas-subtle)] text-left text-xs text-secondary">
+          <tr>
+            <th className="px-3 py-2">{t('deleted.colTitle', '제목')}</th>
+            <th className="px-3 py-2">{t('deleted.colPeriod', '기간')}</th>
+            <th className="px-3 py-2">{t('deleted.colReason', '삭제 사유')}</th>
+            <th className="px-3 py-2">{t('deleted.colBy', '삭제자')}</th>
+            <th className="px-3 py-2">{t('deleted.colAt', '삭제 시각')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {events.map((e) => (
+            <tr key={e.id} className="border-t border-[var(--border-subtle)]">
+              <td className="px-3 py-2 text-primary">{e.title}</td>
+              <td className="px-3 py-2 text-secondary">
+                {fmt(e.startAt)} ~ {fmt(e.endAt)}
+              </td>
+              <td className="px-3 py-2 text-secondary">{e.deleteReason ?? '—'}</td>
+              <td className="px-3 py-2 text-secondary">{e.deletedByName ?? '—'}</td>
+              <td className="px-3 py-2 text-secondary">{fmt(e.deletedAt)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }

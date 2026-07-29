@@ -37,7 +37,8 @@
       "notices": "공지사항",
       "calendar": "수업일정",
       "materials": "문서/자료실",
-      "students": "수강생관리"
+      "students": "수강생관리",
+      "chat": "로비채팅"
     },
     "login": {
       "title": "학원 포털 로그인",
@@ -93,7 +94,10 @@
       "attendees": "관련자",
       "materials": "첨부자료",
       "download": "다운로드",
-      "owner": "작성자"
+      "owner": "작성자",
+      "filterStudent": "학생",
+      "filterCategory": "수업종류",
+      "all": "전체"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",
@@ -105,7 +109,7 @@
       "tabShared": "공유받은 게시물",
       "tabOwn": "내 게시물",
       "newPost": "새 게시물",
-      "pickFile": "파일 선택 (≤20MB)",
+      "pickFile": "파일 선택 (≤50MB)",
       "titlePlaceholder": "제목 (생략 시 파일명)",
       "shareToStudents": "공유할 학생",
       "shareToTeacher": "제출할 강사",
@@ -121,7 +125,14 @@
       "confirmDelete": "이 게시물을 삭제할까요?",
       "newDoc": "새 문서",
       "newFile": "파일 업로드",
-      "docBadge": "문서"
+      "docBadge": "문서",
+      "uploadBtn": "업로드",
+      "shareBtn2": "공유",
+      "shareSave": "공유 저장",
+      "shareRequiredHint": "공유 대상을 1명 이상 선택해야 업로드할 수 있습니다.",
+      "filterAll": "전체",
+      "filterDoc": "문서",
+      "filterFile": "자료"
     },
     "docs": {
       "back": "문서/자료실로",
@@ -140,7 +151,11 @@
       "current": "현재",
       "viewVersion": "보기",
       "restore": "이 버전으로 복원",
-      "confirmRestore": "이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)"
+      "confirmRestore": "이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)",
+      "attachments": "첨부파일",
+      "addAttachment": "파일 추가",
+      "attachmentLimitHint": "파일당 50MB · 최대 5개",
+      "attachUploadFailed": "일부 첨부파일 업로드에 실패했습니다. 문서에서 다시 시도하세요."
     },
     "students": {
       "teacherOnly": "강사 전용 메뉴입니다.",
@@ -158,6 +173,42 @@
       "noRemarks": "상담 기록이 없습니다.",
       "classes": "수업 기록 (최근 10건)",
       "noClasses": "수업 기록이 없습니다."
+    },
+    "record": {
+      "title": "강의실 기록",
+      "opened": "개설",
+      "started": "수업 시작",
+      "ended": "수업 종료",
+      "closed": "폐쇄",
+      "join": "입실",
+      "leave": "퇴실",
+      "min": "분",
+      "kindTEACHER": "강사",
+      "kindSTUDENT": "학생",
+      "kindOPERATOR": "운영자",
+      "kindUNKNOWN": "미확인"
+    },
+    "review": {
+      "done": "수업완료",
+      "feedback": "수업 피드백",
+      "forAdmin": "관리자 확인용",
+      "writeFeedback": "피드백 작성",
+      "editFeedback": "피드백 수정",
+      "noFeedback": "아직 작성된 피드백이 없습니다.",
+      "homework": "과제",
+      "assignHomework": "과제 등록",
+      "editHomework": "과제 수정",
+      "noHomeworkBtn": "과제 없음",
+      "saveHomework": "과제 저장",
+      "noHomework": "과제 없음",
+      "noHomeworkYet": "아직 과제 정보가 없습니다.",
+      "attachFile": "파일 첨부",
+      "textFeedback": "피드백",
+      "textHomework": "과제제출"
+    },
+    "recordings": {
+      "title": "수업 녹화본",
+      "file": "녹화"
     }
   },
   "material": {
@@ -181,9 +232,14 @@
     "tch": "교사 관리",
     "stf": "직원 관리",
     "cal": "수업일정",
+    "calStats": "수업통계",
     "map": "MAP 기출문제",
     "config": "설정",
-    "systemAdmin": "시스템 관리"
+    "posts": "공지·게시글",
+    "notifications": "알림",
+    "enrollments": "수강신청",
+    "systemAdmin": "시스템 관리",
+    "chat": "로비채팅"
   },
   "lang": {
     "label": "언어",
@@ -321,6 +377,7 @@
         "companyCode": "Company Code (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "기본 Room Code",
+        "groupRoomCode": "1:N 그룹 Room Code",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "Webhook 허용 IP / CIDR",
@@ -346,5 +403,27 @@
         "description": "BODA(보다에듀) 화상 강의실 연동 설정"
       }
     }
+  },
+  "talk": {
+    "newChannel": "새 채널",
+    "newDm": "새 DM",
+    "create": "개설",
+    "startDm": "시작",
+    "channelNamePlaceholder": "방 이름",
+    "searchMember": "이름 검색 (운영자/강사)",
+    "noResult": "결과가 없습니다.",
+    "noChannels": "대화방이 없습니다.",
+    "selectChannel": "대화방을 선택하세요.",
+    "noMessages": "아직 메시지가 없습니다.",
+    "members": "참여자",
+    "manageMembers": "멤버관리",
+    "loadOlder": "이전 메시지 보기",
+    "inputPlaceholder": "메시지 입력…",
+    "attachFile": "파일 전송 (≤50MB)",
+    "confirmDeleteMessage": "이 메시지를 삭제할까요?",
+    "dmReuseHint": "같은 상대와의 기존 DM이 있으면 그 방으로 이동합니다.",
+    "kindOperator": "운영자",
+    "kindTeacher": "강사",
+    "teacherOnly": "강사만 이용할 수 있습니다."
   }
 }

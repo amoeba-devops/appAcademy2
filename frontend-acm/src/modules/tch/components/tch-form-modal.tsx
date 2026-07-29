@@ -103,7 +103,10 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
   // AMA is unreachable (AC-3-5). Only relevant on create — edit reuses
   // existing teacher.name/email.
   const [amaUser, setAmaUser] = useState<AmaPlatformUser | null>(null);
-  const [manualMode, setManualMode] = useState(false);
+  // REQ-260729-3 — AMA directory 박스 가리기: 픽커를 렌더하지 않고 항상
+  // 수동입력 모드로 동작한다 (요구 시 렌더 조건만 되돌리면 복구).
+  const HIDE_AMA_PICKER = true;
+  const [manualMode, setManualMode] = useState(HIDE_AMA_PICKER);
 
   // Sync defaults when opening for edit/create.
   useEffect(() => {
@@ -113,7 +116,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     // REQ-260629 — when opened with a prefill from the list-page AMA section,
     // seed the picker so the operator just clicks "save".
     setAmaUser(prefillFromAma ?? null);
-    setManualMode(false);
+    setManualMode(HIDE_AMA_PICKER);
     if (initial) {
       reset({
         tchName: initial.name,
@@ -319,7 +322,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
               picker auto-fills tchName + tchEmail when a member is selected;
               if AMA is unreachable the operator clicks "manual mode" and the
               original inputs are shown unchanged. */}
-          {!isEdit && !manualMode && (
+          {!HIDE_AMA_PICKER && !isEdit && !manualMode && (
             <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
               <legend className="text-xs font-semibold text-secondary px-1">
                 {t('form.sectionAmaPicker', { defaultValue: 'AMA directory' })}

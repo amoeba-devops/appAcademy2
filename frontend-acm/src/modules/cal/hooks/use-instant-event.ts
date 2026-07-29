@@ -15,6 +15,8 @@ export interface InstantInviteeInput {
 }
 
 export interface CreateInstantEventInput {
+  /** PLN-260729 1.3 — 담당강사(tch_id): 지정 강사가 포털에서 개설 가능. */
+  assigneeTchId?: string;
   title?: string;
   durationMin: 30 | 60 | 90 | 120;
   invitees?: InstantInviteeInput[];

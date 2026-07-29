@@ -14,7 +14,9 @@
     "day": "Ngày",
     "week": "Tuần",
     "month": "Tháng",
-    "list": "Danh sách"
+    "list": "Danh sách",
+    "showAll": "Xem tất cả",
+    "countSuffix": ""
   },
   "category": {
     "CLASS": "Lớp học",
@@ -42,11 +44,56 @@
     "locationText": "Địa điểm",
     "meetingProvider": "Họp trực tuyến",
     "meetingUrl": "URL họp",
+    "bodaRoomType": "Loại lớp học",
     "creator": "Người tạo",
     "assignee": "Phụ trách / Giáo viên",
     "assigneeNone": "Chưa chỉ định",
     "materials": "Tài liệu lớp học",
     "endDate": "Ngày kết thúc"
+  },
+  "bodaRoomType": {
+    "ONE_TO_ONE": "Lớp 1:1 (giáo viên + 1 học viên)",
+    "ONE_TO_MANY": "Lớp nhóm 1:N (nhiều học viên)"
+  },
+  "delete": {
+    "title": "Xóa lịch học",
+    "hint": "Lịch đã xóa sẽ bị ẩn khỏi lịch và có thể xem trong ‘Xem lịch học đã xóa’.",
+    "reasonPlaceholder": "Lý do xóa (bắt buộc)",
+    "reasonRequired": "Vui lòng nhập lý do xóa.",
+    "confirm": "Xóa"
+  },
+  "edit": {
+    "reasonLabel": "Lý do chỉnh sửa",
+    "reasonPlaceholder": "Nhập lý do thay đổi (được ghi vào lịch sử chỉnh sửa)",
+    "reasonRequired": "Vui lòng nhập lý do chỉnh sửa."
+  },
+  "revision": {
+    "title": "Lịch sử chỉnh sửa",
+    "reason": "Lý do",
+    "yes": "Có",
+    "no": "Không",
+    "field": {
+      "category": "Phân loại",
+      "title": "Tiêu đề",
+      "description": "Mô tả",
+      "startAt": "Bắt đầu",
+      "endAt": "Kết thúc",
+      "allDay": "Cả ngày",
+      "locationText": "Địa điểm",
+      "meetingProvider": "Học trực tuyến",
+      "bodaRoomType": "Loại lớp học",
+      "assigneeTchId": "Giáo viên phụ trách"
+    }
+  },
+  "deleted": {
+    "btnLabel": "Xem lịch học đã xóa",
+    "btnTitle": "Hiển thị lịch học đã xóa",
+    "empty": "Không có lịch học nào bị xóa trong khoảng thời gian này.",
+    "colTitle": "Tiêu đề",
+    "colPeriod": "Thời gian",
+    "colReason": "Lý do xóa",
+    "colBy": "Người xóa",
+    "colAt": "Thời điểm xóa"
   },
   "form": {
     "titleCreate": "Thêm sự kiện",
@@ -72,6 +119,7 @@
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",
     "readOnlySource": "Sự kiện đồng bộ từ nguồn ngoài, không thể sửa.",
     "bodaAuto": "Lớp học thử và lớp học chính thức sẽ tự động tạo liên kết Bodaschool khi lưu.",
+    "bodaRoomType": "Chọn 1:N cho lớp nhóm mời từ hai học viên trở lên.",
     "bodaPending": "Liên kết sẽ được tạo sau khi lưu.",
     "durationHm": "{{h}} giờ {{m}} phút",
     "durationH": "{{h}} giờ",
@@ -106,7 +154,21 @@
     "confirmForceClose": "Buộc đóng phòng đang hoạt động?",
     "reconcileResult": "Đồng bộ xong",
     "forceCloseResult": "Đã đóng",
-    "notProvisioned": "Chưa tạo phòng BODA."
+    "notProvisioned": "Chưa tạo phòng BODA.",
+    "attendance": "Ghi nhận vào/ra",
+    "stillIn": "đang trong phòng",
+    "kind": {
+      "TEACHER": "GV",
+      "STUDENT": "HS",
+      "OPERATOR": "QTV",
+      "UNKNOWN": "Không rõ"
+    },
+    "recordTitle": "Nhật ký lớp học",
+    "reservedRow": "Đặt lịch",
+    "actualRow": "Thực tế",
+    "reservedStart": "Giờ bắt đầu đặt",
+    "reservedEnd": "Giờ kết thúc đặt",
+    "joinListTitle": "Giờ vào lớp thực tế"
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -126,7 +188,13 @@
     "errors": {
       "BODA_DEFAULT_ROOM_CODE_MISSING": "Chưa thiết lập mã phòng mặc định của BODA. Vui lòng nhập tại Cài đặt → Tích hợp BODA rồi thử lại.",
       "BODA_DISABLED_FOR_TENANT": "Tích hợp BODA đang bị tắt. Vui lòng bật tại Cài đặt → Tích hợp BODA rồi thử lại."
-    }
+    },
+    "assigneeLabel": "GV phụ trách (mở phòng)",
+    "assigneeNone": "- Không (người tạo mở) -",
+    "searchPlaceholder": "Tìm học sinh theo tên/email",
+    "searchNoResult": "Không có kết quả.",
+    "searchAdd": "Thêm",
+    "searchRemove": "Bỏ"
   },
   "filter": {
     "label": "Bộ lọc",
@@ -145,7 +213,8 @@
     "addAttendee": "Thêm người tham dự",
     "maxSelected": "Chỉ được chọn tối đa {{n}} mục.",
     "studentLabel": "Học sinh",
-    "allView": "Tất cả"
+    "allView": "Tất cả",
+    "categoryLabel": "Loại lớp"
   },
   "attach": {
     "section": "Tệp đính kèm",
@@ -159,5 +228,47 @@
       "size": "Tệp phải nhỏ hơn hoặc bằng 20MB.",
       "count": "Tối đa {{max}} tệp đính kèm."
     }
+  },
+  "review": {
+    "done": "Xong",
+    "doneFull": "Hoàn thành",
+    "feedback": "Đã có phản hồi",
+    "homework": "Đã giao bài tập",
+    "noHomework": "Không có bài tập",
+    "sectionTitle": "Phản hồi & bài tập (GV viết)",
+    "feedbackLabel": "Phản hồi",
+    "homeworkLabel": "Bài tập",
+    "noFeedbackYet": "Chưa có phản hồi",
+    "textFeedback": "Phản hồi",
+    "textHomework": "Bài tập"
+  },
+  "stats": {
+    "title": "Thống kê lớp học",
+    "btnLabel": "Thống kê",
+    "btnTitle": "Thống kê theo kỳ/giáo viên",
+    "total": "Tổng quan",
+    "byTeacher": "Theo giáo viên",
+    "classes": "buổi",
+    "done": "Hoàn thành",
+    "empty": "Không có lớp trong kỳ này.",
+    "unassigned": "Chưa gán",
+    "classes2": "Tổng số lớp",
+    "hours": "Giờ học",
+    "notDone": "Chưa hoàn thành",
+    "byCategory": "Theo loại lớp",
+    "cardView": "Dạng thẻ",
+    "listView": "Dạng danh sách",
+    "teacher": "Giáo viên",
+    "back": "Về thống kê",
+    "unit": {
+      "7d": "7 ngày qua",
+      "28d": "28 ngày qua",
+      "90d": "90 ngày qua",
+      "custom": "Chọn khoảng"
+    }
+  },
+  "detail": {
+    "backToCal": "Về lịch học",
+    "backHistory": "Quay lại"
   }
 }

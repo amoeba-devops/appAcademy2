@@ -45,6 +45,18 @@ export class BodaConfigTypeormEntity {
   @Column({ name: 'bdc_default_room_code', type: 'varchar', length: 30 })
   defaultRoomCode!: string;
 
+  /**
+   * 1:N(그룹) 수업용 roomCode. 벤더 발급값(TPI = 881). null 이면 1:N 개설 불가
+   * (createPending 이 422 BODA_GROUP_ROOM_CODE_MISSING). @see FIX-260724
+   */
+  @Column({
+    name: 'bdc_group_room_code',
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
+  groupRoomCode?: string | null;
+
   // ── 비밀 (BYTEA, AES-GCM 암호화) ───────────────────────────────────
   // Direct DB column reads return Buffer; service layer decrypts before use.
   @Column({ name: 'bdc_auth_key_enc', type: 'bytea', nullable: true })

@@ -14,6 +14,9 @@ import {
   useInviteeSuggestions,
   type InviteeSuggestion,
 } from '../hooks/use-instant-event';
+import { useInviteeCandidates } from '../hooks/use-cal-events';
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
 import { useDemoSeedBodaConfig } from '@/lib/boda-demo-api';
 
 interface Props {
@@ -37,7 +40,23 @@ export function InstantClassModal({ open, onClose }: Props) {
   const { t } = useTranslation('cal');
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState<Duration>(90);
+  // PLN-260729 1.3 — 담당강사 지정(개설 권한). 미지정 시 등록자(운영자)만 개설 가능.
+  const [assigneeTchId, setAssigneeTchId] = useState('');
+  const { data: instTeachers = [] } = useQuery({
+    queryKey: ['acm', 'teachers'],
+    queryFn: async () => {
+      const res = await apiClient.get<
+        Array<{ id: string; name: string; email?: string }> | { items: Array<{ id: string; name: string; email?: string }> }
+      >('/acm/tch/teachers', { params: { status: 'ACTIVE', limit: 200 } });
+      const body = res.data;
+      return Array.isArray(body) ? body : (body?.items ?? []);
+    },
+    staleTime: 60_000,
+  });
   const [selectedRefIds, setSelectedRefIds] = useState<Set<string>>(new Set());
+  // PLN-260729-2 — /admin/std 학생 검색으로 추천 그리드 밖의 학생도 초대.
+  const [studentQuery, setStudentQuery] = useState('');
+  const [pickedNames, setPickedNames] = useState<Map<string, string>>(new Map());
   const [error, setError] = useState<string | null>(null);
 
   const suggestions = useInviteeSuggestions({ enabled: open, limit: 12 });
@@ -51,10 +70,22 @@ export function InstantClassModal({ open, onClose }: Props) {
     setTitle('');
     setDuration(90);
     setSelectedRefIds(new Set());
+    setStudentQuery('');
+    setPickedNames(new Map());
     setError(null);
   }, [open]);
 
   const items: InviteeSuggestion[] = suggestions.data ?? [];
+  const searchQ = studentQuery.trim();
+  const candidates = useInviteeCandidates(searchQ, 'STUDENT', open && searchQ.length >= 1);
+  const suggestionIds = useMemo(
+    () => new Set(items.map((s) => s.refId)),
+    [items],
+  );
+  // 추천 그리드에 없는 선택 학생 → 칩으로 표시.
+  const pickedChips = Array.from(selectedRefIds)
+    .filter((id) => !suggestionIds.has(id))
+    .map((id) => ({ refId: id, name: pickedNames.get(id) ?? id }));
 
   const toggleStudent = (refId: string) => {
     setSelectedRefIds((prev) => {
@@ -86,6 +117,7 @@ export function InstantClassModal({ open, onClose }: Props) {
     setError(null);
     try {
       const result = await createMut.mutateAsync({
+        assigneeTchId: assigneeTchId || undefined,
         title: title.trim() || undefined,
         durationMin: duration,
         invitees: Array.from(selectedRefIds).map((refId) => ({
@@ -158,6 +190,26 @@ export function InstantClassModal({ open, onClose }: Props) {
               maxLength={200}
               disabled={isPending}
             />
+          </div>
+
+          {/* PLN-260729 1.3 — 담당강사 지정 (개설 권한) */}
+          <div>
+            <label className="block text-xs text-secondary mb-1">
+              {t('instant.assigneeLabel', '담당강사 (개설 권한)')}
+            </label>
+            <select
+              value={assigneeTchId}
+              onChange={(e) => setAssigneeTchId(e.target.value)}
+              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
+            >
+              <option value="">{t('instant.assigneeNone', '- 미지정 (등록자가 개설) -')}</option>
+              {instTeachers.map((tch) => (
+                <option key={tch.id} value={tch.id}>
+                  {tch.name}
+                  {tch.email ? ` (${tch.email})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Duration radio */}
@@ -241,9 +293,76 @@ export function InstantClassModal({ open, onClose }: Props) {
                 })}
               </div>
             )}
-            <p className="text-[11px] text-secondary mt-1.5 flex items-center gap-1">
-              <Search size={11} /> {t('instant.searchHint')}
-            </p>
+            {/* PLN-260729-2 — 학생 검색 (/admin/std 학생 대상) */}
+            <div className="relative mt-2">
+              <Search
+                size={13}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary"
+              />
+              <input
+                type="text"
+                value={studentQuery}
+                onChange={(e) => setStudentQuery(e.target.value)}
+                placeholder={t('instant.searchPlaceholder', '학생 이름/이메일 검색')}
+                className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40"
+                disabled={isPending}
+              />
+            </div>
+            {searchQ.length >= 1 && (
+              <div className="mt-1 max-h-36 overflow-y-auto rounded-md border border-[var(--border-subtle)]">
+                {candidates.isLoading ? (
+                  <p className="px-3 py-2 text-xs text-secondary">
+                    {t('common:status.loading')}
+                  </p>
+                ) : (candidates.data ?? []).length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-secondary">
+                    {t('instant.searchNoResult', '검색 결과가 없습니다.')}
+                  </p>
+                ) : (
+                  (candidates.data ?? []).map((c) => {
+                    const checked = selectedRefIds.has(c.refId);
+                    return (
+                      <button
+                        key={c.refId}
+                        type="button"
+                        onClick={() => {
+                          setPickedNames((prev) => new Map(prev).set(c.refId, c.name));
+                          toggleStudent(c.refId);
+                        }}
+                        className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-xs hover:bg-[var(--canvas-subtle)] ${
+                          checked ? 'bg-accent-50' : ''
+                        }`}
+                      >
+                        <span className="text-primary">
+                          {c.name}
+                          {c.email && (
+                            <span className="ml-1.5 text-[10px] text-secondary">{c.email}</span>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-accent-600">
+                          {checked ? t('instant.searchRemove', '해제') : t('instant.searchAdd', '추가')}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            )}
+            {pickedChips.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {pickedChips.map((c) => (
+                  <button
+                    key={c.refId}
+                    type="button"
+                    onClick={() => toggleStudent(c.refId)}
+                    title={t('instant.searchRemove', '해제')}
+                    className="inline-flex items-center gap-1 rounded-full border border-accent-200 bg-accent-50 px-2 py-0.5 text-[11px] text-accent-700 hover:bg-accent-100"
+                  >
+                    {c.name} ×
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Info banner */}

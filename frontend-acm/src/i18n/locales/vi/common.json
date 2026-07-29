@@ -37,7 +37,8 @@
       "notices": "Thông báo",
       "calendar": "Lịch học",
       "materials": "Tài liệu",
-      "students": "Học sinh của tôi"
+      "students": "Học sinh của tôi",
+      "chat": "Trò chuyện sảnh"
     },
     "login": {
       "title": "Đăng nhập cổng học viện",
@@ -93,7 +94,10 @@
       "attendees": "Liên quan",
       "materials": "Tệp đính kèm",
       "download": "Tải xuống",
-      "owner": "Người tạo"
+      "owner": "Người tạo",
+      "filterStudent": "Học sinh",
+      "filterCategory": "Loại lớp",
+      "all": "Tất cả"
     },
     "notices": {
       "empty": "Không có thông báo.",
@@ -105,7 +109,7 @@
       "tabShared": "Được chia sẻ với tôi",
       "tabOwn": "Bài của tôi",
       "newPost": "Bài mới",
-      "pickFile": "Chọn tệp (≤20MB)",
+      "pickFile": "Chọn tệp (≤50MB)",
       "titlePlaceholder": "Tiêu đề (mặc định tên tệp)",
       "shareToStudents": "Chia sẻ với học sinh",
       "shareToTeacher": "Nộp cho giáo viên",
@@ -121,7 +125,14 @@
       "confirmDelete": "Xóa bài này?",
       "newDoc": "Tài liệu mới",
       "newFile": "Tải tệp lên",
-      "docBadge": "Tài liệu"
+      "docBadge": "Tài liệu",
+      "uploadBtn": "Tải lên",
+      "shareBtn2": "Chia sẻ",
+      "shareSave": "Lưu chia sẻ",
+      "shareRequiredHint": "Cần chọn ít nhất 1 người để chia sẻ trước khi tải lên.",
+      "filterAll": "Tất cả",
+      "filterDoc": "Tài liệu",
+      "filterFile": "Tệp"
     },
     "docs": {
       "back": "Về Tài liệu",
@@ -140,7 +151,11 @@
       "current": "Hiện tại",
       "viewVersion": "Xem",
       "restore": "Khôi phục phiên bản này",
-      "confirmRestore": "Khôi phục phiên bản này? (Khôi phục cũng được ghi thành phiên bản mới)"
+      "confirmRestore": "Khôi phục phiên bản này? (Khôi phục cũng được ghi thành phiên bản mới)",
+      "attachments": "Tệp đính kèm",
+      "addAttachment": "Thêm tệp",
+      "attachmentLimitHint": "Mỗi tệp 50MB · tối đa 5 tệp",
+      "attachUploadFailed": "Một số tệp đính kèm tải lên thất bại. Vui lòng thử lại trong tài liệu."
     },
     "students": {
       "teacherOnly": "Menu chỉ dành cho giáo viên.",
@@ -158,6 +173,42 @@
       "noRemarks": "Không có hồ sơ tư vấn.",
       "classes": "Lịch sử lớp học (10 gần nhất)",
       "noClasses": "Không có lịch sử lớp học."
+    },
+    "record": {
+      "title": "Nhật ký lớp học",
+      "opened": "Mở phòng",
+      "started": "Bắt đầu",
+      "ended": "Kết thúc",
+      "closed": "Đóng",
+      "join": "Vào",
+      "leave": "Ra",
+      "min": "phút",
+      "kindTEACHER": "GV",
+      "kindSTUDENT": "HS",
+      "kindOPERATOR": "QTV",
+      "kindUNKNOWN": "Không rõ"
+    },
+    "review": {
+      "done": "Hoàn thành",
+      "feedback": "Phản hồi buổi học",
+      "forAdmin": "để quản trị xem",
+      "writeFeedback": "Viết phản hồi",
+      "editFeedback": "Sửa phản hồi",
+      "noFeedback": "Chưa có phản hồi.",
+      "homework": "Bài tập",
+      "assignHomework": "Giao bài tập",
+      "editHomework": "Sửa bài tập",
+      "noHomeworkBtn": "Không có bài tập",
+      "saveHomework": "Lưu bài tập",
+      "noHomework": "Không có bài tập",
+      "noHomeworkYet": "Chưa có thông tin bài tập.",
+      "attachFile": "Đính kèm tệp",
+      "textFeedback": "Phản hồi",
+      "textHomework": "Bài tập"
+    },
+    "recordings": {
+      "title": "Bản ghi buổi học",
+      "file": "Bản ghi"
     }
   },
   "material": {
@@ -181,9 +232,14 @@
     "tch": "Giáo viên",
     "stf": "Nhân viên",
     "cal": "Lịch học",
+    "calStats": "Thống kê lớp học",
     "map": "Câu hỏi MAP cũ",
     "config": "Cấu hình",
-    "systemAdmin": "Quản trị hệ thống"
+    "posts": "Tin tức & Bài viết",
+    "notifications": "Thông báo",
+    "enrollments": "Đăng ký học",
+    "systemAdmin": "Quản trị hệ thống",
+    "chat": "Trò chuyện sảnh"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -321,6 +377,7 @@
         "companyCode": "Mã công ty (Ccd)",
         "companyId": "Company ID (Cid)",
         "defaultRoomCode": "Mã phòng mặc định",
+        "groupRoomCode": "Mã phòng nhóm 1:N",
         "authKey": "Auth Key (AuCd)",
         "eventSecret": "Webhook Event Secret",
         "webhookAllowCidrs": "IP / CIDR cho phép Webhook",
@@ -346,5 +403,27 @@
         "description": "Cài đặt tích hợp lớp học trực tuyến BODA"
       }
     }
+  },
+  "talk": {
+    "newChannel": "Kênh mới",
+    "newDm": "DM mới",
+    "create": "Tạo",
+    "startDm": "Bắt đầu",
+    "channelNamePlaceholder": "Tên phòng",
+    "searchMember": "Tìm theo tên (vận hành/giáo viên)",
+    "noResult": "Không có kết quả.",
+    "noChannels": "Chưa có phòng trò chuyện.",
+    "selectChannel": "Chọn một phòng trò chuyện.",
+    "noMessages": "Chưa có tin nhắn.",
+    "members": "Thành viên",
+    "manageMembers": "Quản lý thành viên",
+    "loadOlder": "Xem tin nhắn cũ hơn",
+    "inputPlaceholder": "Nhập tin nhắn…",
+    "attachFile": "Gửi tệp (≤50MB)",
+    "confirmDeleteMessage": "Xóa tin nhắn này?",
+    "dmReuseHint": "Nếu đã có DM với người này, bạn sẽ được chuyển đến phòng đó.",
+    "kindOperator": "Vận hành",
+    "kindTeacher": "Giáo viên",
+    "teacherOnly": "Chỉ dành cho giáo viên."
   }
 }
