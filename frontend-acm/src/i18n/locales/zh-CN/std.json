@@ -85,7 +85,8 @@
       "emailRequired": "必须填写邮箱才能保存。",
       "emailDuplicate": "该邮箱已被使用。",
       "emailInvalid": "邮箱格式不正确。",
-      "save": "保存失败。"
+      "save": "保存失败。",
+      "mapRange": "MAP 分数必须在 100~350 之间。"
     }
   },
   "import": {

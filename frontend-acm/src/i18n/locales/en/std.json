@@ -85,7 +85,8 @@
       "emailRequired": "Email is required to save.",
       "emailDuplicate": "This email is already in use.",
       "emailInvalid": "Invalid email format.",
-      "save": "Failed to save."
+      "save": "Failed to save.",
+      "mapRange": "MAP score must be between 100 and 350."
     }
   },
   "import": {

@@ -85,7 +85,8 @@
       "emailRequired": "이메일을 입력해야 저장할 수 있습니다.",
       "emailDuplicate": "이미 사용 중인 이메일입니다.",
       "emailInvalid": "올바른 이메일 형식이 아닙니다.",
-      "save": "저장에 실패했습니다."
+      "save": "저장에 실패했습니다.",
+      "mapRange": "MAP 점수는 100~350 사이여야 합니다."
     }
   },
   "import": {

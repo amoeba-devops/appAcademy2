@@ -85,7 +85,8 @@
       "emailRequired": "Cần nhập email để lưu.",
       "emailDuplicate": "Email này đã được sử dụng.",
       "emailInvalid": "Định dạng email không hợp lệ.",
-      "save": "Lưu thất bại."
+      "save": "Lưu thất bại.",
+      "mapRange": "Điểm MAP phải nằm trong khoảng 100~350."
     }
   },
   "import": {
