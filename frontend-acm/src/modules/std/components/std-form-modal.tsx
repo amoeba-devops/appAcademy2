@@ -143,16 +143,26 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
       onClose();
     } catch (e) {
       const err = e as {
-        response?: { data?: { error?: { code?: string }; message?: string } };
+        response?: {
+          data?: { error?: { code?: string; message?: string | string[] }; message?: string };
+        };
         message?: string;
       };
-      const code = err.response?.data?.error?.code;
+      // GlobalExceptionFilter 응답 shape: { error: { code, message } } —
+      // 도메인 코드(EMAIL_*)는 message 자리에 오므로 code/message 둘 다 매칭한다.
+      const apiErr = err.response?.data?.error;
+      const rawMsg = Array.isArray(apiErr?.message)
+        ? apiErr.message.join('\n')
+        : apiErr?.message;
+      const code = apiErr?.code === 'HTTP_400' || apiErr?.code === 'HTTP_409'
+        ? rawMsg
+        : apiErr?.code ?? rawMsg;
       setServerError(
         code === 'EMAIL_DUPLICATE'
           ? t('form.error.emailDuplicate', { defaultValue: '이미 사용 중인 이메일입니다.' })
           : code === 'EMAIL_REQUIRED'
             ? t('form.error.emailRequired', { defaultValue: '이메일을 입력해야 저장할 수 있습니다.' })
-            : err.response?.data?.message ?? err.message ?? t('form.error.save', { defaultValue: '저장에 실패했습니다.' }),
+            : rawMsg ?? err.response?.data?.message ?? err.message ?? t('form.error.save', { defaultValue: '저장에 실패했습니다.' }),
       );
     }
   };
@@ -235,22 +245,34 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
             register={register as unknown as import('react-hook-form').UseFormRegister<import('react-hook-form').FieldValues>}
           />
 
-          {/* MAP 점수 */}
+          {/* MAP 점수 — 서버 DTO(@Min 100/@Max 350)와 동일 범위를 폼에서 선검증.
+              범위 밖 레거시 값이 있으면 어떤 필드를 고쳐도 저장 전체가 400 나므로
+              해당 필드에 구체적 오류를 표시해 운영자가 바로잡을 수 있게 한다. */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">{t('form.sectionMap')}</legend>
             <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className={labelClass}>{t('field.mapReading')}</label>
-                <input type="number" {...register('stdMapReading')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.mapMath')}</label>
-                <input type="number" {...register('stdMapMath')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.mapLanguage')}</label>
-                <input type="number" {...register('stdMapLanguage')} className={inputClass} />
-              </div>
+              {(['stdMapReading', 'stdMapMath', 'stdMapLanguage'] as const).map((name, i) => (
+                <div key={name}>
+                  <label className={labelClass}>
+                    {t(['field.mapReading', 'field.mapMath', 'field.mapLanguage'][i])}
+                  </label>
+                  <input
+                    type="number"
+                    {...register(name, {
+                      validate: (v) =>
+                        v === '' ||
+                        (Number(v) >= 100 && Number(v) <= 350) ||
+                        (t('form.error.mapRange', {
+                          defaultValue: 'MAP 점수는 100~350 사이여야 합니다.',
+                        }) as string),
+                    })}
+                    className={inputClass}
+                  />
+                  {errors[name] && (
+                    <p className="mt-1 text-xs text-red-600">{errors[name]?.message}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </fieldset>
 
