@@ -24,6 +24,7 @@ import {
   type TalkMode,
 } from '../api/talk-api';
 import { useTalkEvents } from '../hooks/use-talk-events';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 
 /**
  * REQ-260728C — 로비채팅 공용 UI (AMA amoeba-talk 레이아웃 참조).
@@ -206,6 +207,7 @@ function ChatPane({
   onManageMembers?: () => void;
 }) {
   const { t, i18n } = useTranslation('common');
+  const confirm = useConfirm();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -381,13 +383,12 @@ function ChatPane({
                 {m.mine && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t('talk.confirmDeleteMessage', '이 메시지를 삭제할까요?'),
-                        )
-                      )
-                        delMsg.mutate(m.id);
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: t('talk.confirmDeleteMessage', '이 메시지를 삭제할까요?'),
+                        variant: 'destructive',
+                      });
+                      if (ok) delMsg.mutate(m.id);
                     }}
                     className="opacity-50 hover:opacity-100"
                   >

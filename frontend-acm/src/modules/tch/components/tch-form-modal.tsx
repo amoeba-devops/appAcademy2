@@ -10,6 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import { AmaUserPicker } from '@/components/common/ama-user-picker';
 import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
 import type { AmaPlatformUser } from '@/lib/ama-user-api';
@@ -71,6 +73,10 @@ const labelClass = 'block text-xs text-secondary mb-1';
 
 export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) {
   const { t } = useTranslation('tch');
+  // AMA iframe 임베드 환경에서는 window.confirm/alert 네이티브 다이얼로그가
+  // 표시되지 않으므로 반드시 인앱 모달/토스트를 사용한다 (REQ-260831).
+  const confirm = useConfirm();
+  const toast = useToast();
   const isEdit = !!initial;
 
   const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
@@ -291,7 +297,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     try {
       await resetPwMut.mutateAsync(v.tchPassword);
       reset({ ...v, tchPassword: '', tchPasswordConfirm: '' });
-      alert(t('toast.passwordReset'));
+      toast.success(t('toast.passwordReset'));
     } catch (e) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
@@ -300,7 +306,12 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
 
   const onDelete = async () => {
     if (!initial) return;
-    if (!confirm(t('confirm.delete'))) return;
+    const ok = await confirm({
+      title: t('confirm.delete'),
+      description: t('common:confirm.deleteDescription'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       await deleteMut.mutateAsync(initial.id);
       onClose();
@@ -536,7 +547,12 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                     disabled={isLoading}
                     className="border-rose-200 text-rose-700 hover:bg-rose-50"
                     onClick={async () => {
-                      if (!confirm(t('confirm.lock'))) return;
+                      const ok = await confirm({
+                        title: t('actions.lock'),
+                        description: t('confirm.lock'),
+                        variant: 'destructive',
+                      });
+                      if (!ok) return;
                       try {
                         await lockMut.mutateAsync(initial.id);
                       } catch (e) {

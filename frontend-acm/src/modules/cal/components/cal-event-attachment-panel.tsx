@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Paperclip } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import type { CalEventAttachment } from '../types';
 
 /**
@@ -40,6 +42,8 @@ interface Props {
 
 export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
   const { t } = useTranslation(['cal', 'common']);
+  const confirm = useConfirm();
+  const toast = useToast();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -129,7 +133,7 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
       URL.revokeObjectURL(url);
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
-      window.alert(err.response?.data?.message ?? 'Download failed');
+      toast.error(err.response?.data?.message ?? t('common:status.error'));
     }
   }
 
@@ -212,10 +216,13 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    if (window.confirm(t('attach.confirmDelete', '이 첨부를 삭제할까요?'))) {
-                      delMut.mutate(r.id);
-                    }
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: t('attach.confirmDelete', '이 첨부를 삭제할까요?'),
+                      description: t('common:confirm.deleteDescription'),
+                      variant: 'destructive',
+                    });
+                    if (ok) delMut.mutate(r.id);
                   }}
                   className="h-7 px-2 text-xs"
                   disabled={delMut.isPending}

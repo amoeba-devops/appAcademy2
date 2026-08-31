@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import DOMPurify from 'dompurify';
 import { FilePreviewDialog } from '@/modules/csl/components/file-preview-dialog';
 import {
@@ -1121,6 +1122,7 @@ function AdminReviewView({ evtId }: { evtId: string }) {
 
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
+  const confirm = useConfirm();
   const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
   // PLN-260728F A — 참석자 입·퇴실 기록.
   const { data: record } = useQuery({
@@ -1287,12 +1289,13 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
             variant="outline"
             size="sm"
             disabled={closeMut.isPending}
-            onClick={() => {
-              if (
-                isLive &&
-                !confirm(t('boda.confirmForceClose', '진행 중인 룸을 강제 폐쇄하시겠습니까?'))
-              ) {
-                return;
+            onClick={async () => {
+              if (isLive) {
+                const ok = await confirm({
+                  title: t('boda.confirmForceClose', '진행 중인 룸을 강제 폐쇄하시겠습니까?'),
+                  variant: 'destructive',
+                });
+                if (!ok) return;
               }
               closeMut.mutate();
             }}

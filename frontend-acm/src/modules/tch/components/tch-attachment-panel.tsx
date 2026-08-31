@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   downloadTeacherAttachment,
   useDeleteTeacherAttachment,
@@ -24,6 +25,8 @@ interface Props {
 
 export function TchAttachmentPanel({ teacherId }: Props) {
   const { t } = useTranslation('tch');
+  // AMA iframe 임베드에서는 window.confirm이 표시되지 않음 — 인앱 모달 사용 (REQ-260831)
+  const confirm = useConfirm();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { data: items, isLoading } = useTeacherAttachments(teacherId);
@@ -55,7 +58,12 @@ export function TchAttachmentPanel({ teacherId }: Props) {
   };
 
   const onDelete = async (attId: string) => {
-    if (!confirm(t('attachment.confirm.delete'))) return;
+    const ok = await confirm({
+      title: t('attachment.confirm.delete'),
+      description: t('common:confirm.deleteDescription'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       await deleteMut.mutateAsync(attId);
     } catch (err) {

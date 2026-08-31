@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   portalApi,
   type MaterialComment,
@@ -320,6 +321,7 @@ function Pagination({
 
 function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab }) {
   const { t, i18n } = useTranslation('common');
+  const confirm = useConfirm();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
@@ -439,9 +441,13 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
           )}
           {post.mine && (
             <button
-              onClick={() => {
-                if (window.confirm(t('portalApp.materials.confirmDelete', '이 게시물을 삭제할까요?')))
-                  del.mutate();
+              onClick={async () => {
+                const ok = await confirm({
+                  title: t('portalApp.materials.confirmDelete', '이 게시물을 삭제할까요?'),
+                  description: t('confirm.deleteDescription'),
+                  variant: 'destructive',
+                });
+                if (ok) del.mutate();
               }}
               disabled={del.isPending}
               className="rounded border border-[var(--border-subtle)] p-1 text-red-600 hover:bg-red-50"

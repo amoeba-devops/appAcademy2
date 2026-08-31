@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/toast';
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,7 @@ const STATUSES = ['PENDING', 'COMPLETED', 'NOT_HELD'] as const;
 
 export function LevelTestPanel({ inqId }: { inqId: string }) {
   const { t, i18n } = useTranslation(['csl', 'common']);
+  const toast = useToast();
   const qc = useQueryClient();
   const [dialogRow, setDialogRow] = useState<LevelTest | null>(null);
   const [expandedScoreType, setExpandedScoreType] = useState<LevelTestType | null>(
@@ -179,7 +181,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
       URL.revokeObjectURL(url);
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
-      window.alert(err.response?.data?.message ?? 'PDF download failed');
+      toast.error(err.response?.data?.message ?? t('common:status.error'));
     }
   }
 
@@ -197,7 +199,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
       });
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
-      window.alert(err.response?.data?.message ?? 'PDF preview failed');
+      toast.error(err.response?.data?.message ?? t('common:status.error'));
     }
   }
 
