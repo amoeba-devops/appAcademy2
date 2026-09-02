@@ -402,6 +402,54 @@
       "boda": {
         "title": "BODA 화상강의",
         "description": "BODA(보다에듀) 화상 강의실 연동 설정"
+      },
+      "mail": {
+        "title": "메일(SMTP)",
+        "description": "Gmail SMTP 발송 설정 — 피드백·초대 메일"
+      }
+    },
+    "mail": {
+      "title": "메일(SMTP) 설정",
+      "description": "Gmail SMTP로 학부모 피드백 메일·일정 초대 메일을 발송합니다. Google 계정에 2단계 인증을 켠 뒤 앱 비밀번호(16자리)를 발급해 입력하세요.",
+      "errors": {
+        "invalid": "호스트와 포트를 올바르게 입력하세요."
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP 호스트"
+        },
+        "port": {
+          "label": "포트"
+        },
+        "secure": {
+          "label": "SSL 사용 (465 포트)"
+        },
+        "username": {
+          "label": "Gmail 주소 (SMTP 사용자)",
+          "hint": "발신에 사용할 Google 계정 이메일 주소"
+        },
+        "password": {
+          "label": "앱 비밀번호",
+          "hint": "Google 계정 → 보안 → 2단계 인증 → 앱 비밀번호에서 발급 (일반 비밀번호 불가)"
+        },
+        "fromName": {
+          "label": "발신자 이름"
+        },
+        "fromAddress": {
+          "label": "발신 주소",
+          "placeholder": "비우면 Gmail 주소 사용"
+        },
+        "isActive": {
+          "label": "사용 (발송 활성화)"
+        }
+      },
+      "test": {
+        "title": "테스트 발송",
+        "hint": "저장된 설정으로 테스트 메일을 보냅니다. 변경사항이 있으면 먼저 저장하세요.",
+        "send": "테스트 발송",
+        "ok": "발송 성공 — 수신함을 확인하세요.",
+        "notSet": "설정이 저장되지 않았거나 비활성입니다. 먼저 저장하세요.",
+        "failed": "발송 실패:"
       }
     }
   },

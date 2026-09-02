@@ -23,6 +23,7 @@ import { CalInviteeService } from './application/cal-invitee.service';
 import { FeedbackMailerService } from './application/feedback-mailer.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
 import { AcmNotificationModule } from '../acm-notification/acm-notification.module';
+import { AcmSystemModule } from '../acm-system/acm-system.module';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalEventRevisionTypeormEntity } from './infrastructure/typeorm/cal-event-revision.typeorm-entity';
 import { CalEventAttachmentTypeormEntity } from './infrastructure/typeorm/cal-event-attachment.typeorm-entity';
@@ -58,6 +59,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     ConfigModule,
     BodaeduModule, // BODAEDU_SERVER_CLIENT 주입
     AcmNotificationModule, // REQ-260902 — 피드백 메일 발송 이력 기록
+    AcmSystemModule, // REQ-260902B — TenantMailerService (테넌트 SMTP 설정 우선)
     TypeOrmModule.forFeature(
       [
         CalEventTypeormEntity,

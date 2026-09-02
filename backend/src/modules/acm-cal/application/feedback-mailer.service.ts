@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
-import { MailerService } from '../../../infrastructure/mailer/mailer.service';
 import { ACM_DS } from '../../acm-common/datasource';
+import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
 import { NotificationService } from '../../acm-notification/application/notification.service';
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
@@ -72,7 +72,7 @@ export class FeedbackMailerService {
     private readonly studentParents: Repository<StudentParentTypeormEntity>,
     @InjectRepository(ParentTypeormEntity, ACM_DS)
     private readonly parents: Repository<ParentTypeormEntity>,
-    private readonly mailer: MailerService,
+    private readonly mailer: TenantMailerService,
     private readonly notifications: NotificationService,
   ) {}
 
@@ -85,7 +85,7 @@ export class FeedbackMailerService {
       where: { entId, evtId: event.id },
     });
     return {
-      smtpConfigured: this.mailer.isConfigured(),
+      smtpConfigured: await this.mailer.isConfigured(entId),
       hasFeedback: !!review?.feedbackHtml?.trim(),
       students: await this.resolveStudents(entId, event.id),
     };
@@ -107,7 +107,7 @@ export class FeedbackMailerService {
     if (!feedbackHtml) {
       throw new UnprocessableEntityException('NO_FEEDBACK');
     }
-    if (!this.mailer.isConfigured()) {
+    if (!(await this.mailer.isConfigured(entId))) {
       throw new ServiceUnavailableException('SMTP_NOT_CONFIGURED');
     }
 
@@ -176,7 +176,7 @@ export class FeedbackMailerService {
       return { stdId, parId: parent.parId, status: 'NO_EMAIL' };
     }
     try {
-      await this.mailer.send({
+      await this.mailer.send(entId, {
         to: parent.email,
         subject,
         html: this.renderBody(event, stdName, parent.name, feedbackHtml),
