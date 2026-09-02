@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MailerService } from '../../../infrastructure/mailer/mailer.service';
+import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { CalInviteeService, InviteeView } from './cal-invitee.service';
@@ -17,7 +17,7 @@ export class InviteeNotifierService {
   private readonly log = new Logger(InviteeNotifierService.name);
 
   constructor(
-    private readonly mailer: MailerService,
+    private readonly mailer: TenantMailerService,
     private readonly inviteeSvc: CalInviteeService,
     private readonly config: ConfigService,
   ) {}
@@ -37,7 +37,7 @@ export class InviteeNotifierService {
     if (addedRows.length === 0) return summary;
 
     const hydrated = await this.inviteeSvc.hydrate(entId, addedRows);
-    const smtpReady = this.mailer.isConfigured();
+    const smtpReady = await this.mailer.isConfigured(entId);
 
     await Promise.allSettled(
       hydrated.map(async (inv) => {
@@ -52,7 +52,7 @@ export class InviteeNotifierService {
           return;
         }
         try {
-          await this.mailer.send(this.renderInvite(event, inv));
+          await this.mailer.send(entId, this.renderInvite(event, inv));
           await this.inviteeSvc.updateNotifyStatus(inv.id, 'SENT');
           summary.sent++;
         } catch (e: unknown) {

@@ -402,6 +402,54 @@
       "boda": {
         "title": "Lớp học BODA",
         "description": "Cài đặt tích hợp lớp học trực tuyến BODA"
+      },
+      "mail": {
+        "title": "Mail (SMTP)",
+        "description": "Cấu hình Gmail SMTP — email phản hồi & lời mời"
+      }
+    },
+    "mail": {
+      "title": "Cấu hình Mail (SMTP)",
+      "description": "Gửi email phản hồi cho phụ huynh và lời mời lịch qua Gmail SMTP. Bật xác minh 2 bước trên tài khoản Google rồi tạo Mật khẩu ứng dụng (16 ký tự).",
+      "errors": {
+        "invalid": "Nhập host và cổng hợp lệ."
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP host"
+        },
+        "port": {
+          "label": "Cổng"
+        },
+        "secure": {
+          "label": "Dùng SSL (cổng 465)"
+        },
+        "username": {
+          "label": "Địa chỉ Gmail (người dùng SMTP)",
+          "hint": "Email tài khoản Google dùng để gửi"
+        },
+        "password": {
+          "label": "Mật khẩu ứng dụng",
+          "hint": "Tài khoản Google → Bảo mật → Xác minh 2 bước → Mật khẩu ứng dụng (mật khẩu thường không dùng được)"
+        },
+        "fromName": {
+          "label": "Tên người gửi"
+        },
+        "fromAddress": {
+          "label": "Địa chỉ gửi",
+          "placeholder": "Để trống để dùng địa chỉ Gmail"
+        },
+        "isActive": {
+          "label": "Kích hoạt (cho phép gửi)"
+        }
+      },
+      "test": {
+        "title": "Gửi thử",
+        "hint": "Gửi email thử bằng cấu hình đã lưu. Hãy lưu thay đổi trước.",
+        "send": "Gửi thử",
+        "ok": "Đã gửi — kiểm tra hộp thư.",
+        "notSet": "Cấu hình chưa được lưu hoặc đang tắt. Hãy lưu trước.",
+        "failed": "Gửi thất bại:"
       }
     }
   },

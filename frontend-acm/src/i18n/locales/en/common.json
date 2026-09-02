@@ -402,6 +402,54 @@
       "boda": {
         "title": "BODA Classroom",
         "description": "BODA video classroom integration settings"
+      },
+      "mail": {
+        "title": "Mail (SMTP)",
+        "description": "Gmail SMTP settings — feedback & invite emails"
+      }
+    },
+    "mail": {
+      "title": "Mail (SMTP) settings",
+      "description": "Send parent feedback and calendar invite emails via Gmail SMTP. Enable 2-Step Verification on the Google account, then create a 16-character App Password.",
+      "errors": {
+        "invalid": "Enter a valid host and port."
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP host"
+        },
+        "port": {
+          "label": "Port"
+        },
+        "secure": {
+          "label": "Use SSL (port 465)"
+        },
+        "username": {
+          "label": "Gmail address (SMTP user)",
+          "hint": "Google account email used as the sender"
+        },
+        "password": {
+          "label": "App password",
+          "hint": "Google Account → Security → 2-Step Verification → App passwords (regular password will not work)"
+        },
+        "fromName": {
+          "label": "Sender name"
+        },
+        "fromAddress": {
+          "label": "From address",
+          "placeholder": "Leave blank to use the Gmail address"
+        },
+        "isActive": {
+          "label": "Enabled (allow sending)"
+        }
+      },
+      "test": {
+        "title": "Test send",
+        "hint": "Sends a test email using the saved settings. Save changes first.",
+        "send": "Send test",
+        "ok": "Sent — check the inbox.",
+        "notSet": "Settings are not saved or inactive. Save first.",
+        "failed": "Send failed:"
       }
     }
   },

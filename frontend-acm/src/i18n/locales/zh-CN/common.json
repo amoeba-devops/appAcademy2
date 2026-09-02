@@ -402,6 +402,54 @@
       "boda": {
         "title": "BODA 视频课堂",
         "description": "BODA 视频课堂集成设置"
+      },
+      "mail": {
+        "title": "邮件(SMTP)",
+        "description": "Gmail SMTP 发送设置 — 反馈·邀请邮件"
+      }
+    },
+    "mail": {
+      "title": "邮件(SMTP)设置",
+      "description": "通过 Gmail SMTP 发送家长反馈邮件和日程邀请邮件。请先在 Google 账号开启两步验证，然后创建 16 位应用专用密码。",
+      "errors": {
+        "invalid": "请输入有效的主机和端口。"
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP 主机"
+        },
+        "port": {
+          "label": "端口"
+        },
+        "secure": {
+          "label": "使用 SSL（465 端口）"
+        },
+        "username": {
+          "label": "Gmail 地址（SMTP 用户）",
+          "hint": "用于发信的 Google 账号邮箱"
+        },
+        "password": {
+          "label": "应用专用密码",
+          "hint": "Google 账号 → 安全 → 两步验证 → 应用专用密码（普通密码无效）"
+        },
+        "fromName": {
+          "label": "发件人名称"
+        },
+        "fromAddress": {
+          "label": "发件地址",
+          "placeholder": "留空则使用 Gmail 地址"
+        },
+        "isActive": {
+          "label": "启用（允许发送）"
+        }
+      },
+      "test": {
+        "title": "测试发送",
+        "hint": "使用已保存的设置发送测试邮件。有改动请先保存。",
+        "send": "发送测试",
+        "ok": "发送成功 — 请查收。",
+        "notSet": "设置未保存或已停用，请先保存。",
+        "failed": "发送失败:"
       }
     }
   },

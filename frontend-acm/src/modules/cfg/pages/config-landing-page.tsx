@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Settings, Video, ChevronRight } from 'lucide-react';
+import { Mail, Settings, Video, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
@@ -19,6 +19,7 @@ interface ConfigCard {
 const CARDS: ConfigCard[] = [
   { to: '/admin/config/ama', icon: Settings, titleKey: 'config.cards.ama.title', descKey: 'config.cards.ama.description' },
   { to: '/admin/config/boda', icon: Video, titleKey: 'config.cards.boda.title', descKey: 'config.cards.boda.description' },
+  { to: '/admin/config/mail', icon: Mail, titleKey: 'config.cards.mail.title', descKey: 'config.cards.mail.description' },
 ];
 
 export function ConfigLandingPage() {
