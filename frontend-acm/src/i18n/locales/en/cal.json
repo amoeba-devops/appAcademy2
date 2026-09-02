@@ -270,5 +270,38 @@
   "detail": {
     "backToCal": "Back to schedule",
     "backHistory": "Back"
+  },
+  "feedbackEmail": {
+    "copyBtn": "Copy content",
+    "copied": "Feedback copied to clipboard.",
+    "copyFailed": "Copy failed.",
+    "sendBtn": "Email parents",
+    "title": "Send feedback email",
+    "recipientsTitle": "Recipients — linked parents of attending students",
+    "noParent": "No linked parent",
+    "findParent": "Find & link parent",
+    "noEmail": "No email",
+    "primaryBadge": "Primary",
+    "subjectLabel": "Subject",
+    "subjectTemplate": "[Class feedback] {{title}} — {{date}}",
+    "send": "Send ({{count}})",
+    "sending": "Sending…",
+    "noStudents": "No attending students.",
+    "noFeedback": "No feedback written yet.",
+    "smtpNotConfigured": "Mail server (SMTP) is not configured; cannot send.",
+    "sendFailed": "Failed to send.",
+    "sentToast": "Sent to {{count}} recipient(s).",
+    "partialFailToast": "{{failed}} message(s) failed to send.",
+    "result": {
+      "SENT": "Sent",
+      "NO_EMAIL": "No email",
+      "FAILED": "Failed"
+    },
+    "relation": {
+      "FATHER": "Father",
+      "MOTHER": "Mother",
+      "GUARDIAN": "Guardian",
+      "OTHER": "Other"
+    }
   }
 }

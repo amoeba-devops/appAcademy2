@@ -204,7 +204,8 @@
       "noHomeworkYet": "暂无作业信息。",
       "attachFile": "附加文件",
       "textFeedback": "反馈",
-      "textHomework": "作业"
+      "textHomework": "作业",
+      "mayShareToParent": "您撰写的反馈经管理员确认后可能会转发给家长。"
     },
     "recordings": {
       "title": "课程录像",

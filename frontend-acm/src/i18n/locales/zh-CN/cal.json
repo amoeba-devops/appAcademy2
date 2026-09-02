@@ -270,5 +270,38 @@
   "detail": {
     "backToCal": "返回课程日程",
     "backHistory": "返回"
+  },
+  "feedbackEmail": {
+    "copyBtn": "复制内容",
+    "copied": "已复制反馈内容。",
+    "copyFailed": "复制失败。",
+    "sendBtn": "发送家长邮件",
+    "title": "发送反馈邮件",
+    "recipientsTitle": "收件人 — 参与学生的关联家长",
+    "noParent": "未关联家长",
+    "findParent": "查找并关联家长",
+    "noEmail": "无邮箱",
+    "primaryBadge": "主要",
+    "subjectLabel": "主题",
+    "subjectTemplate": "[课程反馈] {{title}} — {{date}}",
+    "send": "发送 ({{count}}人)",
+    "sending": "发送中…",
+    "noStudents": "没有参与学生。",
+    "noFeedback": "尚未撰写反馈。",
+    "smtpNotConfigured": "邮件服务器(SMTP)未配置，无法发送。",
+    "sendFailed": "发送请求失败。",
+    "sentToast": "已发送给 {{count}} 位收件人。",
+    "partialFailToast": "{{failed}} 封邮件发送失败。",
+    "result": {
+      "SENT": "已发送",
+      "NO_EMAIL": "无邮箱",
+      "FAILED": "失败"
+    },
+    "relation": {
+      "FATHER": "父亲",
+      "MOTHER": "母亲",
+      "GUARDIAN": "监护人",
+      "OTHER": "其他"
+    }
   }
 }

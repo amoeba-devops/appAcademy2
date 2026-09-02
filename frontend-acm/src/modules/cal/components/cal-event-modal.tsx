@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
-import { Calendar, Clock, Copy, LogIn, Plus, X } from 'lucide-react';
+import { Calendar, Clock, ClipboardCopy, Copy, LogIn, Mail, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -37,6 +37,8 @@ import {
 } from '../lib/date-utils';
 import { InviteePickerModal } from './invitee-picker-modal';
 import { CalEventAttachmentPanel } from './cal-event-attachment-panel';
+import { FeedbackEmailDialog } from './feedback-email-dialog';
+import { copyHtmlToClipboard } from '../lib/copy-html';
 import { useBodaRoomStatus } from '@/lib/boda-launch-api';
 import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
 
@@ -842,7 +844,13 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
           )}
 
           {/* PLN-260728F B — 강사 피드백·과제 (관리자 확인용, 읽기전용) */}
-          {isEdit && initial && <AdminReviewView evtId={initial.id} />}
+          {isEdit && initial && (
+            <AdminReviewView
+              evtId={initial.id}
+              eventTitle={initial.title}
+              eventStartAt={initial.startAt}
+            />
+          )}
 
           {/* PLN-260718 — BODA 화상강의실 박스는 참석자 아래로 이동 */}
           {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
@@ -1061,8 +1069,19 @@ interface ClassRecordRow {
 }
 
 // PLN-260728F B — 강사가 포털에서 작성한 피드백/과제를 관리자 모달에서 확인.
-function AdminReviewView({ evtId }: { evtId: string }) {
+// REQ-260902 — 피드백 복사·학부모 메일 발송 액션 추가.
+function AdminReviewView({
+  evtId,
+  eventTitle,
+  eventStartAt,
+}: {
+  evtId: string;
+  eventTitle: string;
+  eventStartAt: string;
+}) {
   const { t } = useTranslation('cal');
+  const toast = useToast();
+  const [emailOpen, setEmailOpen] = useState(false);
   const { data: review } = useQuery({
     queryKey: ['cal', 'review', evtId],
     queryFn: async () =>
@@ -1115,6 +1134,37 @@ function AdminReviewView({ evtId }: { evtId: string }) {
           />
         </div>
       ) : null}
+      {review.feedbackHtml && (
+        <div className="flex justify-end gap-2 pt-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              try {
+                await copyHtmlToClipboard(DOMPurify.sanitize(review.feedbackHtml!));
+                toast.success(t('feedbackEmail.copied', '피드백 내용을 복사했습니다.'));
+              } catch {
+                toast.error(t('feedbackEmail.copyFailed', '복사에 실패했습니다.'));
+              }
+            }}
+          >
+            <ClipboardCopy size={13} className="mr-1" />
+            {t('feedbackEmail.copyBtn', '내용 복사')}
+          </Button>
+          <Button type="button" size="sm" onClick={() => setEmailOpen(true)}>
+            <Mail size={13} className="mr-1" />
+            {t('feedbackEmail.sendBtn', '학부모 메일 발송')}
+          </Button>
+        </div>
+      )}
+      <FeedbackEmailDialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        evtId={evtId}
+        eventTitle={eventTitle}
+        eventStartAt={eventStartAt}
+      />
     </fieldset>
   );
 }
