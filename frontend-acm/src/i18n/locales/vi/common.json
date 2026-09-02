@@ -204,7 +204,8 @@
       "noHomeworkYet": "Chưa có thông tin bài tập.",
       "attachFile": "Đính kèm tệp",
       "textFeedback": "Phản hồi",
-      "textHomework": "Bài tập"
+      "textHomework": "Bài tập",
+      "mayShareToParent": "Phản hồi bạn viết có thể được gửi tới phụ huynh sau khi quản trị viên xác nhận."
     },
     "recordings": {
       "title": "Bản ghi buổi học",

@@ -383,6 +383,15 @@ function ReviewSection({
             </button>
           )}
         </div>
+        {canWrite && (
+          <p className="mb-2 text-[11px] text-secondary">
+            ℹ️{' '}
+            {t(
+              'portalApp.review.mayShareToParent',
+              '작성한 피드백은 관리자가 확인 후 학부모에게 전달될 수 있습니다.',
+            )}
+          </p>
+        )}
         {editingFeedback ? (
           <div className="space-y-2">
             <MiniRichEditor value={feedbackDraft} onChange={setFeedbackDraft} />

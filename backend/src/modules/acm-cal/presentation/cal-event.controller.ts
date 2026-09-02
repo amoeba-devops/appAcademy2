@@ -16,10 +16,13 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
+import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { CalEventService } from '../application/cal-event.service';
 import { BodaRecordService } from '../application/boda-record.service';
 import { CalEventReviewService } from '../application/cal-event-review.service';
+import { FeedbackMailerService } from '../application/feedback-mailer.service';
 import { BodaRoomService } from '../application/boda-room.service';
 import {
   CreateCalEventDto,
@@ -27,6 +30,7 @@ import {
   ListCalEventsQueryDto,
   UpdateCalEventDto,
 } from '../application/dto/cal-event.dto';
+import { SendFeedbackEmailDto } from '../application/dto/feedback-email.dto';
 
 @ApiTags('acm-cal')
 @ApiBearerAuth()
@@ -38,6 +42,7 @@ export class CalEventController {
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
     private readonly roomSvc: BodaRoomService,
+    private readonly feedbackMailer: FeedbackMailerService,
   ) {}
 
   @Get(':id/recordings')
@@ -58,6 +63,31 @@ export class CalEventController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.reviewSvc.get(u.entId, id);
+  }
+
+  @Get(':id/review/recipients')
+  @ApiOperation({
+    summary: '피드백 메일 수신 대상 — 참여 학생의 연결 학부모 (REQ-260902)',
+  })
+  feedbackRecipients(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.feedbackMailer.listRecipients(u.entId, id);
+  }
+
+  @Post(':id/review/send-email')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'STAFF')
+  @ApiOperation({
+    summary: '피드백 학부모 메일 발송 — 수신자별 결과 반환 (REQ-260902)',
+  })
+  sendFeedbackEmail(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SendFeedbackEmailDto,
+  ) {
+    return this.feedbackMailer.sendFeedbackEmail(u.entId, id, dto);
   }
 
   @Get('stats')

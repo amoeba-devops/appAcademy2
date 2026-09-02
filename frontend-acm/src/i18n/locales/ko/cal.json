@@ -270,5 +270,38 @@
   "detail": {
     "backToCal": "수업일정으로",
     "backHistory": "뒤로가기"
+  },
+  "feedbackEmail": {
+    "copyBtn": "내용 복사",
+    "copied": "피드백 내용을 복사했습니다.",
+    "copyFailed": "복사에 실패했습니다.",
+    "sendBtn": "학부모 메일 발송",
+    "title": "피드백 메일 발송",
+    "recipientsTitle": "수신 대상 — 참여 학생의 연결 학부모",
+    "noParent": "연결된 학부모 없음",
+    "findParent": "학부모 찾기·연결",
+    "noEmail": "이메일 없음",
+    "primaryBadge": "대표",
+    "subjectLabel": "제목",
+    "subjectTemplate": "[수업 피드백] {{title}} — {{date}}",
+    "send": "발송 ({{count}}명)",
+    "sending": "발송 중…",
+    "noStudents": "참여 학생이 없습니다.",
+    "noFeedback": "작성된 피드백이 없습니다.",
+    "smtpNotConfigured": "메일 서버(SMTP)가 설정되지 않아 발송할 수 없습니다.",
+    "sendFailed": "발송 요청에 실패했습니다.",
+    "sentToast": "{{count}}명에게 발송했습니다.",
+    "partialFailToast": "{{failed}}건 발송에 실패했습니다.",
+    "result": {
+      "SENT": "발송됨",
+      "NO_EMAIL": "이메일 없음",
+      "FAILED": "실패"
+    },
+    "relation": {
+      "FATHER": "부",
+      "MOTHER": "모",
+      "GUARDIAN": "보호자",
+      "OTHER": "기타"
+    }
   }
 }

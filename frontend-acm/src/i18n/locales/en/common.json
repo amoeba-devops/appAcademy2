@@ -204,7 +204,8 @@
       "noHomeworkYet": "No homework info yet.",
       "attachFile": "Attach file",
       "textFeedback": "Feedback",
-      "textHomework": "Homework"
+      "textHomework": "Homework",
+      "mayShareToParent": "Feedback you write may be shared with parents after admin review."
     },
     "recordings": {
       "title": "Class recordings",
