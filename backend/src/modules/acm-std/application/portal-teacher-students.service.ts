@@ -68,6 +68,10 @@ export class PortalTeacherStudentsService {
         WHERE s.ent_id = $1 AND s.deleted_at IS NULL
           AND (
             s.std_teacher_id = $2
+            OR EXISTS (
+              SELECT 1 FROM amb_acm_std_student_teacher st
+               WHERE st.std_id = s.std_id AND st.tch_id = $2
+            )
             OR s.std_id IN (
               SELECT cs.cst_student_user_id
                 FROM amb_acm_cls_class_students cs

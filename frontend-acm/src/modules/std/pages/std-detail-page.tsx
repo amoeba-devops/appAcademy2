@@ -136,7 +136,14 @@ export function StdDetailPage() {
 
       {/* 수업 정보 */}
       <Section title={t('form.sectionClass')}>
-        <InfoRow label={t('field.teacher')} value={student.teacher} />
+        <InfoRow
+            label={t('field.teacher')}
+            value={
+              student.teachers?.length
+                ? student.teachers.map((x) => x.name).join(', ')
+                : student.teacher
+            }
+          />
         <InfoRow label={t('field.subject')} value={student.subject} />
         <InfoRow label={t('field.curriculum')} value={student.curriculum} />
         <InfoRow label={t('field.materials')} value={student.materials} />
