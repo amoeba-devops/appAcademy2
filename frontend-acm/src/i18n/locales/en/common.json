@@ -489,5 +489,12 @@
     "kindOperator": "Operator",
     "kindTeacher": "Teacher",
     "teacherOnly": "Available to teachers only."
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "Open chat",
+    "filePreview": "File",
+    "newInquiry": "🔔 New consultation inquiry #{{seqNo}}",
+    "openInquiries": "Open inquiries"
   }
 }

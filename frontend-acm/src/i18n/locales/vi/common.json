@@ -489,5 +489,12 @@
     "kindOperator": "Vận hành",
     "kindTeacher": "Giáo viên",
     "teacherOnly": "Chỉ dành cho giáo viên."
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "Mở chat",
+    "filePreview": "Tệp",
+    "newInquiry": "🔔 Yêu cầu tư vấn mới #{{seqNo}}",
+    "openInquiries": "Mở danh sách tư vấn"
   }
 }

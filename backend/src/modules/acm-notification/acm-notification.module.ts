@@ -13,7 +13,10 @@ import { NotificationTemplateTypeormEntity } from './infrastructure/typeorm/noti
  * Import into app.module.ts when notification dispatch is enabled.
  */
 import { NotificationService } from './application/notification.service';
+import { AdminEventsSseService } from './application/admin-events-sse.service';
+import { CslCreatedListener } from './application/csl-created.listener';
 import { NotificationLogController } from './presentation/notification-log.controller';
+import { AdminEventsController } from './presentation/admin-events.controller';
 
 @Module({
   imports: [
@@ -22,8 +25,8 @@ import { NotificationLogController } from './presentation/notification-log.contr
       ACM_DS,
     ),
   ],
-  controllers: [NotificationLogController],
-  providers: [NotificationService],
-  exports: [NotificationService],
+  controllers: [NotificationLogController, AdminEventsController],
+  providers: [NotificationService, AdminEventsSseService, CslCreatedListener],
+  exports: [NotificationService, AdminEventsSseService],
 })
 export class AcmNotificationModule {}

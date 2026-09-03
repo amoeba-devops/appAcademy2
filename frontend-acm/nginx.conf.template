@@ -53,6 +53,9 @@ server {
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
         proxy_read_timeout 60s;
+        # REQ-260903C — SSE(text/event-stream) 즉시 전달. 백엔드가
+        # X-Accel-Buffering: no 를 보내지만 명시적으로도 버퍼링을 끈다.
+        proxy_buffering off;
     }
 
     # SPA fallback — every other route renders index.html so React Router

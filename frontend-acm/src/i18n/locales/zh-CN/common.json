@@ -489,5 +489,12 @@
     "kindOperator": "运营者",
     "kindTeacher": "教师",
     "teacherOnly": "仅限教师使用。"
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "打开聊天",
+    "filePreview": "文件",
+    "newInquiry": "🔔 新咨询接收 #{{seqNo}}",
+    "openInquiries": "打开咨询列表"
   }
 }
