@@ -406,6 +406,10 @@
       "mail": {
         "title": "Mail (SMTP)",
         "description": "Cấu hình Gmail SMTP — email phản hồi & lời mời"
+      },
+      "general": {
+        "title": "Chung",
+        "description": "Múi giờ và cài đặt cơ bản"
       }
     },
     "mail": {
@@ -451,6 +455,17 @@
         "notSet": "Cấu hình chưa được lưu hoặc đang tắt. Hãy lưu trước.",
         "failed": "Gửi thất bại:"
       }
+    },
+    "general": {
+      "title": "Cài đặt chung",
+      "description": "Mọi thời gian (lịch học, v.v.) được hiển thị và nhập theo múi giờ bên dưới. Quốc gia dịch vụ: Hàn Quốc (mặc định Asia/Seoul).",
+      "fields": {
+        "timezone": {
+          "label": "Múi giờ",
+          "hint": "Hiển thị lịch và giờ đăng ký lịch sẽ theo múi giờ này."
+        }
+      },
+      "preview": "Xem trước giờ hiện tại: {{now}}"
     }
   },
   "talk": {

@@ -12,6 +12,7 @@ import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
 import { FeedbackEmailDialog } from '../components/feedback-email-dialog';
 import { copyHtmlToClipboard } from '../lib/copy-html';
 import { formatTime } from '../lib/date-utils';
+import { useTenantTz } from '@/lib/tz';
 
 /**
  * PLN-260729-2 — 관리자 수업일정 상세 "페이지" (/admin/cal/:evtId).
@@ -31,6 +32,7 @@ export function CalEventDetailPage() {
   const { t, i18n } = useTranslation(['cal', 'common']);
   const navigate = useNavigate();
   const toast = useToast();
+  const tz = useTenantTz(); // REQ-260903 — 테넌트 TZ 기준 표시
   const [editOpen, setEditOpen] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
 
@@ -72,6 +74,7 @@ export function CalEventDetailPage() {
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: tz,
     }).format(new Date(iso));
   const fmtShort = (iso: string | null) =>
     iso
@@ -80,6 +83,7 @@ export function CalEventDetailPage() {
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: tz,
         }).format(new Date(iso))
       : '—';
 
@@ -318,8 +322,8 @@ export function CalEventDetailPage() {
                     </span>
                     <span className="font-medium">{p.name ?? '-'}</span>
                     <span className="text-secondary">
-                      {formatTime(p.joinedAt, i18n.language)} →{' '}
-                      {p.leftAt ? formatTime(p.leftAt, i18n.language) : t('boda.stillIn', '접속 중')}
+                      {formatTime(p.joinedAt, i18n.language, tz)} →{' '}
+                      {p.leftAt ? formatTime(p.leftAt, i18n.language, tz) : t('boda.stillIn', '접속 중')}
                       {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
                     </span>
                   </li>

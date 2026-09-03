@@ -31,10 +31,12 @@ import {
   type NotifySummary,
 } from '../types';
 import {
+  dateToLocalInput,
   defaultEventTimes,
   formatDateTimeLocal,
   localInputToIso,
 } from '../lib/date-utils';
+import { toZonedShift, useTenantTz } from '@/lib/tz';
 import { InviteePickerModal } from './invitee-picker-modal';
 import { CalEventAttachmentPanel } from './cal-event-attachment-panel';
 import { FeedbackEmailDialog } from './feedback-email-dialog';
@@ -117,6 +119,8 @@ const timeOpts = (cur: string): string[] =>
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t, i18n } = useTranslation('cal');
   const toast = useToast();
+  // REQ-260903 — 폼의 날짜·시간 문자열은 테넌트 TZ 벽시계 기준.
+  const tz = useTenantTz();
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
   // REQ-260728 — 삭제 사유 입력 프롬프트.
@@ -237,8 +241,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         evtCategory: normalizeEditorCategory(initial.category),
         evtTitle: initial.title,
         evtDescription: initial.description ?? '',
-        evtStartAt: formatDateTimeLocal(initial.startAt),
-        evtEndAt: formatDateTimeLocal(initial.endAt),
+        evtStartAt: formatDateTimeLocal(initial.startAt, tz),
+        evtEndAt: formatDateTimeLocal(initial.endAt, tz),
         evtAllDay: initial.allDay,
         evtLocationText: initial.locationText ?? '',
         evtMeetingProvider: initial.meetingProvider,
@@ -257,13 +261,15 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         })),
       );
     } else {
-      const { start, end } = defaultEventTimes(defaultDate ?? new Date());
+      // defaultDate 는 시프트 공간(테넌트 TZ 벽시계) Date — now 도 같은 공간으로.
+      const nowShifted = toZonedShift(new Date(), tz);
+      const { start, end } = defaultEventTimes(defaultDate ?? nowShifted, nowShifted);
       reset({
         evtCategory: 'REGULAR_CLASS',
         evtTitle: '',
         evtDescription: '',
-        evtStartAt: formatDateTimeLocal(start.toISOString()),
-        evtEndAt: formatDateTimeLocal(end.toISOString()),
+        evtStartAt: dateToLocalInput(start),
+        evtEndAt: dateToLocalInput(end),
         evtAllDay: false,
         evtLocationText: '',
         evtMeetingProvider: 'NONE',
@@ -274,7 +280,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       });
       setInvitees([]);
     }
-  }, [open, initial, defaultDate, reset]);
+  }, [open, initial, defaultDate, reset, tz]);
 
   const createMut = useCreateCalEvent();
   const updateMut = useUpdateCalEvent(initial?.id ?? '');
@@ -311,8 +317,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       return;
     }
 
-    const startIso = localInputToIso(values.evtStartAt);
-    const endIso = localInputToIso(values.evtEndAt);
+    const startIso = localInputToIso(values.evtStartAt, tz);
+    const endIso = localInputToIso(values.evtEndAt, tz);
     if (new Date(endIso) <= new Date(startIso)) {
       setError(t('error.endBeforeStart'));
       return;
@@ -1171,6 +1177,7 @@ function AdminReviewView({
 
 function BodaRoomPanel({ evtId }: { evtId: string }) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
   const { data, isLoading, error, refetch } = useBodaRoomStatus(evtId);
   // PLN-260728F A — 참석자 입·퇴실 기록.
   const { data: record } = useQuery({
@@ -1262,25 +1269,25 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         {data.openedAt && (
           <li>
             <span className="font-mono">{t('boda.openedAt', '개설')}:</span>{' '}
-            {new Date(data.openedAt).toLocaleString()}
+            {new Date(data.openedAt).toLocaleString(undefined, { timeZone: tz })}
           </li>
         )}
         {data.startedAt && (
           <li>
             <span className="font-mono">{t('boda.startedAt', '시작')}:</span>{' '}
-            {new Date(data.startedAt).toLocaleString()}
+            {new Date(data.startedAt).toLocaleString(undefined, { timeZone: tz })}
           </li>
         )}
         {data.endedAt && (
           <li>
             <span className="font-mono">{t('boda.endedAt', '종료')}:</span>{' '}
-            {new Date(data.endedAt).toLocaleString()}
+            {new Date(data.endedAt).toLocaleString(undefined, { timeZone: tz })}
           </li>
         )}
         {data.closedAt && (
           <li>
             <span className="font-mono">{t('boda.closedAt', '폐쇄')}:</span>{' '}
-            {new Date(data.closedAt).toLocaleString()}
+            {new Date(data.closedAt).toLocaleString(undefined, { timeZone: tz })}
           </li>
         )}
       </ul>
@@ -1306,10 +1313,10 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
                 </span>
                 <span className="font-medium text-primary">{p.name ?? '-'}</span>
                 <span className="text-secondary">
-                  {new Date(p.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(p.joinedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: tz })}
                   {' → '}
                   {p.leftAt
-                    ? new Date(p.leftAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    ? new Date(p.leftAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: tz })
                     : t('boda.stillIn', '접속 중')}
                   {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
                 </span>
@@ -1433,6 +1440,7 @@ function CalEventHistoryPanel({
   enabled: boolean;
 }) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
   const { data } = useCalEventRevisions(evtId, enabled);
   const items = data?.items ?? [];
   if (items.length === 0) return null;
@@ -1441,7 +1449,9 @@ function CalEventHistoryPanel({
     if (v === null || v === '') return '—';
     if (field === 'startAt' || field === 'endAt') {
       const d = new Date(v);
-      return Number.isNaN(d.getTime()) ? v : d.toLocaleString();
+      return Number.isNaN(d.getTime())
+        ? v
+        : d.toLocaleString(undefined, { timeZone: tz });
     }
     if (field === 'bodaRoomType') return t(`bodaRoomType.${v}`, v);
     if (field === 'meetingProvider') return t(`provider.${v}`, v);
@@ -1464,7 +1474,7 @@ function CalEventHistoryPanel({
             <div className="flex justify-between">
               <span className="font-medium text-primary">{r.editorName ?? '—'}</span>
               <span className="text-secondary">
-                {new Date(r.createdAt).toLocaleString()}
+                {new Date(r.createdAt).toLocaleString(undefined, { timeZone: tz })}
               </span>
             </div>
             {r.reason && (

@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
+import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import { NotificationService } from '../../acm-notification/application/notification.service';
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
@@ -73,6 +74,7 @@ export class FeedbackMailerService {
     @InjectRepository(ParentTypeormEntity, ACM_DS)
     private readonly parents: Repository<ParentTypeormEntity>,
     private readonly mailer: TenantMailerService,
+    private readonly tenantSettings: TenantSettingsService,
     private readonly notifications: NotificationService,
   ) {}
 
@@ -127,9 +129,10 @@ export class FeedbackMailerService {
       }
     }
 
+    const tz = await this.tenantSettings.getTimezone(entId);
     const subject =
       input.subject?.trim() ||
-      `[수업 피드백] ${event.title} — ${this.formatKst(event.startAt)}`;
+      `[수업 피드백] ${event.title} — ${this.formatInTz(event.startAt, tz)}`;
     const bodySummary = this.htmlToSummary(feedbackHtml);
 
     const results: FeedbackSendResult[] = [];
@@ -145,6 +148,7 @@ export class FeedbackMailerService {
         stdName,
         r.stdId,
         parent,
+        tz,
       );
       results.push(result);
     }
@@ -160,6 +164,7 @@ export class FeedbackMailerService {
     stdName: string,
     stdId: string,
     parent: FeedbackRecipientParent,
+    tz: string,
   ): Promise<FeedbackSendResult> {
     const base = {
       entId,
@@ -179,7 +184,7 @@ export class FeedbackMailerService {
       await this.mailer.send(entId, {
         to: parent.email,
         subject,
-        html: this.renderBody(event, stdName, parent.name, feedbackHtml),
+        html: this.renderBody(event, stdName, parent.name, feedbackHtml, tz),
       });
       await this.safeLog({ ...base, status: 'SENT', sentAt: new Date() });
       return { stdId, parId: parent.parId, status: 'SENT' };
@@ -269,8 +274,9 @@ export class FeedbackMailerService {
     stdName: string,
     parentName: string,
     feedbackHtml: string,
+    tz: string,
   ): string {
-    const when = this.formatKst(event.startAt);
+    const when = this.formatInTz(event.startAt, tz);
     return [
       `<div style="font-family:'Apple SD Gothic Neo',Pretendard,sans-serif;max-width:640px;margin:0 auto;color:#1f2937;">`,
       `<p>${this.escape(parentName)}님, 안녕하세요.</p>`,
@@ -287,9 +293,9 @@ export class FeedbackMailerService {
     ].join('\n');
   }
 
-  private formatKst(d: Date): string {
+  private formatInTz(d: Date, tz: string): string {
     return new Intl.DateTimeFormat('ko-KR', {
-      timeZone: 'Asia/Seoul',
+      timeZone: tz,
       year: 'numeric',
       month: 'numeric',
       day: 'numeric',

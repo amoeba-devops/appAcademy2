@@ -1,3 +1,4 @@
+import { fromZonedShift, todayYmd, useTenantTz } from '@/lib/tz';
 import { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,14 +23,15 @@ export function CalTeacherStatsPage() {
   const { t, i18n } = useTranslation('cal');
   const { tchId } = useParams<{ tchId: string }>();
   const navigate = useNavigate();
+  const tz = useTenantTz(); // REQ-260903
   const { range } = useStatsPeriod();
   const { data: stats } = useCalStats(range.from, range.to);
   const teacher = stats?.teachers.find((x) => x.tchId === tchId);
 
   const { data: eventsData } = useCalEvents(
     {
-      from: range.from.toISOString(),
-      to: range.to.toISOString(),
+      from: fromZonedShift(range.from, tz).toISOString(),
+      to: fromZonedShift(range.to, tz).toISOString(),
       assigneeTchIds: tchId ? [tchId] : undefined,
     },
     !!tchId,
@@ -39,13 +41,13 @@ export function CalTeacherStatsPage() {
   const byDate = useMemo(() => {
     const map = new Map<string, CalEvent[]>();
     for (const ev of events ?? []) {
-      const key = ev.startAt.slice(0, 10);
+      const key = todayYmd(tz, new Date(ev.startAt));
       const arr = map.get(key) ?? [];
       arr.push(ev);
       map.set(key, arr);
     }
     return [...map.entries()].sort(([a], [b]) => a.localeCompare(b));
-  }, [events]);
+  }, [events, tz]);
 
   return (
     <div className="max-w-4xl">
@@ -112,7 +114,7 @@ export function CalTeacherStatsPage() {
                     className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-[var(--gray-50)]"
                   >
                     <span className="w-28 shrink-0 tabular-nums text-secondary">
-                      {formatTime(ev.startAt, i18n.language)} - {formatTime(ev.endAt, i18n.language)}
+                      {formatTime(ev.startAt, i18n.language, tz)} - {formatTime(ev.endAt, i18n.language, tz)}
                     </span>
                     <span className="min-w-0 flex-1 truncate font-medium text-primary">
                       {ev.title}

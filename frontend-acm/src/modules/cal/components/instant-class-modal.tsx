@@ -1,3 +1,4 @@
+import { toZonedShift, useTenantTz } from '@/lib/tz';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, Sparkles, Zap } from 'lucide-react';
@@ -38,6 +39,7 @@ type Duration = 30 | 60 | 90 | 120;
  */
 export function InstantClassModal({ open, onClose }: Props) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState<Duration>(90);
   // PLN-260729 1.3 — 담당강사 지정(개설 권한). 미지정 시 등록자(운영자)만 개설 가능.
@@ -153,11 +155,11 @@ export function InstantClassModal({ open, onClose }: Props) {
   const isPending = createMut.isPending;
 
   const placeholderTitle = useMemo(() => {
-    const now = new Date();
+    const now = toZonedShift(new Date(), tz); // REQ-260903 — 테넌트 TZ 벽시계
     const hh = String(now.getHours()).padStart(2, '0');
     const mm = String(now.getMinutes()).padStart(2, '0');
     return t('instant.titlePlaceholder', { time: `${hh}:${mm}` });
-  }, [t, open]);
+  }, [t, open, tz]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && !isPending && onClose()}>

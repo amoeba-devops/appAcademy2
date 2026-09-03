@@ -406,6 +406,10 @@
       "mail": {
         "title": "Mail (SMTP)",
         "description": "Gmail SMTP settings — feedback & invite emails"
+      },
+      "general": {
+        "title": "General",
+        "description": "Timezone and basic settings"
       }
     },
     "mail": {
@@ -451,6 +455,17 @@
         "notSet": "Settings are not saved or inactive. Save first.",
         "failed": "Send failed:"
       }
+    },
+    "general": {
+      "title": "General settings",
+      "description": "All times (class schedule, etc.) are displayed and entered in the timezone below. Service country: Korea (default Asia/Seoul).",
+      "fields": {
+        "timezone": {
+          "label": "Timezone",
+          "hint": "Calendar display and event input times follow this timezone."
+        }
+      },
+      "preview": "Current time preview: {{now}}"
     }
   },
   "talk": {

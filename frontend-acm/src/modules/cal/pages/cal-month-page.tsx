@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAuthStore } from '@/stores/auth.store';
+import { DEFAULT_TZ, fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
 import type { TeacherDetail } from '@/modules/tch/types';
 import { useCalEvents } from '../hooks/use-cal-events';
 import { InstantClassModal } from '../components/instant-class-modal';
@@ -51,7 +52,16 @@ const VIEW_OPTIONS: CalendarView[] = ['day', 'week', 'month', 'list'];
 
 export function CalMonthPage() {
   const { t, i18n } = useTranslation('cal');
-  const [anchor, setAnchor] = useState(() => new Date());
+  // REQ-260903 — 모든 날짜 산술은 테넌트 TZ 벽시계(시프트 공간) 기준.
+  const tz = useTenantTz();
+  const [anchor, setAnchor] = useState(() => toZonedShift(new Date(), DEFAULT_TZ));
+  const tzRef = useRef(tz);
+  useEffect(() => {
+    if (tzRef.current !== tz) {
+      tzRef.current = tz;
+      setAnchor(toZonedShift(new Date(), tz)); // TZ 변경 시 '오늘'로 재정렬
+    }
+  }, [tz]);
   const [view, setView] = useState<CalendarView>('month');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
@@ -76,23 +86,19 @@ export function CalMonthPage() {
   }, [anchor, view]);
 
   const range = useMemo(() => {
+    // 시프트 공간 경계 → 실제 UTC instant 로 변환해 서버 조회 (REQ-260903)
+    const iso = (d: Date) => fromZonedShift(d, tz).toISOString();
     if (view === 'day') {
-      return {
-        from: startOfDay(anchor).toISOString(),
-        to: endOfDay(anchor).toISOString(),
-      };
+      return { from: iso(startOfDay(anchor)), to: iso(endOfDay(anchor)) };
     }
     if (view === 'week') {
-      return {
-        from: startOfWeek(anchor).toISOString(),
-        to: endOfWeek(anchor).toISOString(),
-      };
+      return { from: iso(startOfWeek(anchor)), to: iso(endOfWeek(anchor)) };
     }
     return {
-      from: startOfDay(visibleDays[0]).toISOString(),
-      to: endOfDay(visibleDays[visibleDays.length - 1]).toISOString(),
+      from: iso(startOfDay(visibleDays[0])),
+      to: iso(endOfDay(visibleDays[visibleDays.length - 1])),
     };
-  }, [anchor, view, visibleDays]);
+  }, [anchor, view, visibleDays, tz]);
 
   const query: ListCalEventsQuery = useMemo(() => {
     // PLN-260719 D — 강사 필터는 /admin/tch 마스터(tch_id) 기준
@@ -130,13 +136,13 @@ export function CalMonthPage() {
   const eventsByDay = useMemo(() => {
     const map = new Map<string, CalEvent[]>();
     for (const event of events) {
-      const key = startOfDay(new Date(event.startAt)).toDateString();
+      const key = startOfDay(toZonedShift(new Date(event.startAt), tz)).toDateString();
       const bucket = map.get(key) ?? [];
       bucket.push(event);
       map.set(key, bucket);
     }
     return map;
-  }, [events]);
+  }, [events, tz]);
 
   const weekdayLabels = useMemo(() => {
     const fmt = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' });
@@ -217,7 +223,7 @@ export function CalMonthPage() {
               {t('instant.btnLabel')}
             </Button>
           )}
-          <Button size="sm" onClick={() => onDayClick(new Date())}>
+          <Button size="sm" onClick={() => onDayClick(toZonedShift(new Date(), tz))}>
             <Plus size={14} className="mr-1" />
             {t('actions.create')}
           </Button>
@@ -264,7 +270,11 @@ export function CalMonthPage() {
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setAnchor(new Date())}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAnchor(toZonedShift(new Date(), tz))}
+          >
             {t('actions.today')}
           </Button>
         </div>
@@ -410,6 +420,8 @@ function MonthView({
   onShowAll: (date: Date) => void;
 }) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
+  const todayShifted = toZonedShift(new Date(), tz);
   return (
     <div className="grid grid-cols-7 gap-px overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--border-subtle)]">
       {weekdayLabels.map((label, index) => (
@@ -422,7 +434,7 @@ function MonthView({
       ))}
       {days.map((day) => {
         const inMonth = isSameMonth(day, anchor);
-        const isToday = isSameDay(day, new Date());
+        const isToday = isSameDay(day, todayShifted);
         const dayKey = day.toDateString();
         const dayEvents = eventsByDay.get(dayKey) ?? [];
 
@@ -529,6 +541,7 @@ function ListRow({
   onClick: (e: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
   return (
     <button
       type="button"
@@ -536,7 +549,7 @@ function ListRow({
       className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-left hover:bg-[var(--gray-50)]"
     >
       <span className="w-14 shrink-0 text-sm tabular-nums text-secondary">
-        {formatTime(event.startAt, locale)}
+        {formatTime(event.startAt, locale, tz)}
       </span>
       <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary">
         {event.title}
@@ -585,17 +598,18 @@ function ListView({
   locale: string;
   onEventClick: (event: React.MouseEvent, calEvent: CalEvent) => void;
 }) {
+  const tz = useTenantTz();
   const groups = useMemo(() => {
     const map = new Map<string, { day: Date; items: CalEvent[] }>();
     for (const event of events) {
-      const day = startOfDay(new Date(event.startAt));
+      const day = startOfDay(toZonedShift(new Date(event.startAt), tz));
       const key = day.toDateString();
       const bucket = map.get(key) ?? { day, items: [] };
       bucket.items.push(event);
       map.set(key, bucket);
     }
     return Array.from(map.values()).sort((a, b) => +a.day - +b.day);
-  }, [events]);
+  }, [events, tz]);
 
   if (groups.length === 0) {
     return (
@@ -608,7 +622,7 @@ function ListView({
   return (
     <div className="overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface">
       {groups.map(({ day, items }) => {
-        const isToday = isSameDay(day, new Date());
+        const isToday = isSameDay(day, toZonedShift(new Date(), tz));
         return (
           <div key={day.toDateString()} className="border-b border-[var(--border-subtle)] last:border-b-0">
             <div className="flex items-baseline gap-2 border-b border-[var(--border-subtle)] bg-[var(--gray-50)] px-3 py-2">
@@ -646,7 +660,8 @@ function CalendarEventCard({
   onClick: (event: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation('cal');
-  const display = buildEventDisplayLine(event, locale);
+  const tz = useTenantTz();
+  const display = buildEventDisplayLine(event, locale, tz);
   // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
   const canEnter = event.meetingProvider === 'BODASCHOOL' && !!event.meetingUrl;
   return (
@@ -713,11 +728,11 @@ function CalendarEventCard({
   );
 }
 
-function buildEventDisplayLine(event: CalEvent, locale: string): string {
+function buildEventDisplayLine(event: CalEvent, locale: string, tz?: string): string {
   const parsed = splitEventTitle(event);
   const student = event.primaryStudentName ?? parsed.studentName ?? '학생 미지정';
   const className = parsed.className ?? event.title;
-  return `${formatTime(event.startAt, locale)} | ${student} | ${className}`;
+  return `${formatTime(event.startAt, locale, tz)} | ${student} | ${className}`;
 }
 
 function splitEventTitle(event: CalEvent): {
@@ -756,6 +771,7 @@ function DeletedEventsList({
   locale: string;
 }) {
   const { t } = useTranslation('cal');
+  const tz = useTenantTz();
   const fmt = (iso?: string | null) => {
     if (!iso) return '—';
     const d = new Date(iso);
@@ -766,6 +782,7 @@ function DeletedEventsList({
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: tz,
         }).format(d);
   };
 
