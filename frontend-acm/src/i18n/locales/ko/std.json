@@ -35,7 +35,8 @@
     "createdAt": "등록일",
     "total": "총 {{count}}명",
     "empty": "등록된 학생이 없습니다",
-    "fromInquiry": "신규상담 연결"
+    "fromInquiry": "신규상담 연결",
+    "teacherMore": "{{name}} 외 {{count}}명"
   },
   "field": {
     "name": "이름(한글)",
@@ -87,7 +88,8 @@
       "emailInvalid": "올바른 이메일 형식이 아닙니다.",
       "save": "저장에 실패했습니다.",
       "mapRange": "MAP 점수는 100~350 사이여야 합니다."
-    }
+    },
+    "teachersHint": "최대 {{max}}명 · 첫 번째가 대표 강사"
   },
   "import": {
     "title": "엑셀 업로드 (학생 일괄 등록)",

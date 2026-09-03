@@ -18,6 +18,8 @@ export interface StudentSummary {
   school?: string | null;
   grade?: string | null;
   teacher?: string | null;
+  /** REQ-260903B — 담당강사 복수 (sort 순, 첫번째 = 대표) */
+  teachers?: Array<{ tchId: string; name: string }>;
   status: StdStatus;
   startDate?: string | null;
   createdAt: string;

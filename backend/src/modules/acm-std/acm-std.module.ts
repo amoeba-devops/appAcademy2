@@ -9,6 +9,7 @@ import { StudentService } from './application/student.service';
 import { PortalTeacherStudentsService } from './application/portal-teacher-students.service';
 import { ParentTypeormEntity } from './infrastructure/typeorm/parent.typeorm-entity';
 import { StudentParentTypeormEntity } from './infrastructure/typeorm/student-parent.typeorm-entity';
+import { StudentTeacherTypeormEntity } from './infrastructure/typeorm/student-teacher.typeorm-entity';
 import { StudentTypeormEntity } from './infrastructure/typeorm/student.typeorm-entity';
 import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { ParentController } from './presentation/parent.controller';
@@ -23,6 +24,7 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
         StudentTypeormEntity,
         ParentTypeormEntity,
         StudentParentTypeormEntity,
+        StudentTeacherTypeormEntity,
         TeacherTypeormEntity,
       ],
       ACM_DS,

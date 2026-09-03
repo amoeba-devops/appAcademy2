@@ -35,7 +35,8 @@
     "createdAt": "Registered",
     "total": "Total {{count}} students",
     "empty": "No students registered",
-    "fromInquiry": "From inquiry"
+    "fromInquiry": "From inquiry",
+    "teacherMore": "{{name}} +{{count}} more"
   },
   "field": {
     "name": "Name (Korean)",
@@ -87,7 +88,8 @@
       "emailInvalid": "Invalid email format.",
       "save": "Failed to save.",
       "mapRange": "MAP score must be between 100 and 350."
-    }
+    },
+    "teachersHint": "Up to {{max}} · the first is the primary teacher"
   },
   "import": {
     "title": "Excel Import (Bulk)",

@@ -35,7 +35,8 @@
     "createdAt": "Ngày đăng ký",
     "total": "Tổng {{count}} học sinh",
     "empty": "Chưa có học sinh nào",
-    "fromInquiry": "Từ tư vấn"
+    "fromInquiry": "Từ tư vấn",
+    "teacherMore": "{{name}} và {{count}} người khác"
   },
   "field": {
     "name": "Tên (Hàn)",
@@ -87,7 +88,8 @@
       "emailInvalid": "Định dạng email không hợp lệ.",
       "save": "Lưu thất bại.",
       "mapRange": "Điểm MAP phải nằm trong khoảng 100~350."
-    }
+    },
+    "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính"
   },
   "import": {
     "title": "Nhập Excel (Hàng loạt)",
