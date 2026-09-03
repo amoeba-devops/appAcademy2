@@ -133,7 +133,7 @@
     },
     "levelTest": {
       "title": "2. Bài kiểm tra trình độ",
-      "skipHint": "※ Trường hợp đã nhập điểm trước ở bước 1 có thể bỏ qua bước này.",
+      "skipHint": "※ Có thể chuyển sang buổi học thử mà không cần nhập điểm (kể cả khi không tổ chức). Điểm MAP đã nhập cũng hiển thị ở phần điểm trước của bước tiếp nhận.",
       "empty": "Chưa có kỳ thi nào. Chọn mục đích ở bước 1.",
       "col": {
         "test": "Kỳ thi",
