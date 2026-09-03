@@ -11,10 +11,12 @@ import { SystemUserService } from './application/system-user.service';
 import { TenantService } from './application/tenant.service';
 import { MailConfigService } from './application/mail-config.service';
 import { TenantMailerService } from './application/tenant-mailer.service';
+import { TenantSettingsService } from './application/tenant-settings.service';
 import { SystemUserController } from './presentation/system-user.controller';
 import { SystemTenantController } from './presentation/system-tenant.controller';
 import { MeMenuController } from './presentation/me-menu.controller';
 import { MailConfigController } from './presentation/mail-config.controller';
+import { TenantSettingsController } from './presentation/tenant-settings.controller';
 
 /**
  * REQ-260621 — System administration module (APP_ADMIN, cross-tenant) +
@@ -40,6 +42,7 @@ import { MailConfigController } from './presentation/mail-config.controller';
     SystemTenantController,
     MeMenuController,
     MailConfigController,
+    TenantSettingsController,
   ],
   providers: [
     SystemUserService,
@@ -47,7 +50,8 @@ import { MailConfigController } from './presentation/mail-config.controller';
     AesGcmService,
     MailConfigService,
     TenantMailerService,
+    TenantSettingsService,
   ],
-  exports: [TenantMailerService],
+  exports: [TenantMailerService, TenantSettingsService],
 })
 export class AcmSystemModule {}

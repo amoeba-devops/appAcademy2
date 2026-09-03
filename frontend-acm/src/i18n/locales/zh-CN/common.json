@@ -406,6 +406,10 @@
       "mail": {
         "title": "邮件(SMTP)",
         "description": "Gmail SMTP 发送设置 — 反馈·邀请邮件"
+      },
+      "general": {
+        "title": "常规",
+        "description": "时区及基本设置"
       }
     },
     "mail": {
@@ -451,6 +455,17 @@
         "notSet": "设置未保存或已停用，请先保存。",
         "failed": "发送失败:"
       }
+    },
+    "general": {
+      "title": "常规设置",
+      "description": "所有时间（课程日程等）均按以下时区显示和输入。服务国家：韩国（默认 Asia/Seoul）。",
+      "fields": {
+        "timezone": {
+          "label": "时区",
+          "hint": "日历显示与日程录入时间将按此时区处理。"
+        }
+      },
+      "preview": "当前时间预览: {{now}}"
     }
   },
   "talk": {

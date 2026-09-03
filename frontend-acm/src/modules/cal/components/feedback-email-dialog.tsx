@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 import { ParentPickOrCreateDialog } from '@/modules/std/components/parent-pick-or-create-dialog';
+import { useTenantTz } from '@/lib/tz';
 
 /**
  * REQ-260902 — 피드백 학부모 메일 발송 모달.
@@ -68,6 +69,7 @@ export function FeedbackEmailDialog({
 }: Props) {
   const { t, i18n } = useTranslation(['cal', 'common']);
   const toast = useToast();
+  const tz = useTenantTz(); // REQ-260903 — 제목 일시는 테넌트 TZ 기준
   const queryClient = useQueryClient();
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -94,12 +96,13 @@ export function FeedbackEmailDialog({
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: tz,
     }).format(new Date(eventStartAt));
     return t('cal:feedbackEmail.subjectTemplate', {
       title: eventTitle,
       date,
     });
-  }, [t, i18n.language, eventTitle, eventStartAt]);
+  }, [t, i18n.language, eventTitle, eventStartAt, tz]);
 
   // 열 때 초기화 — 이메일 보유 학부모 전원 기본 체크 (Q-D 확정).
   useEffect(() => {
