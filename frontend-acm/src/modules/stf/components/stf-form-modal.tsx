@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,8 @@ const labelClass = 'block text-xs text-secondary mb-1';
 
 export function StfFormModal({ open, onClose, initial }: Props) {
   const { t } = useTranslation('stf');
+  const confirm = useConfirm();
+  const toast = useToast();
   const isEdit = !!initial;
   const [error, setError] = useState<string | null>(null);
   // REQ-260604 FR-4 — see TchFormModal for the rationale on amaUser + manualMode.
@@ -157,7 +161,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
     try {
       await resetPwMut.mutateAsync(v.stfPassword);
       reset({ ...v, stfPassword: '', stfPasswordConfirm: '' });
-      alert(t('toast.passwordReset'));
+      toast.success(t('toast.passwordReset'));
     } catch (e) {
       const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
@@ -166,7 +170,12 @@ export function StfFormModal({ open, onClose, initial }: Props) {
 
   const onDelete = async () => {
     if (!initial) return;
-    if (!confirm(t('confirm.delete'))) return;
+    const ok = await confirm({
+      title: t('confirm.delete'),
+      description: t('common:confirm.deleteDescription'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       await deleteMut.mutateAsync(initial.id);
       onClose();

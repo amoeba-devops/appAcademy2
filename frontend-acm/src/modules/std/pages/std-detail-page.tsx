@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Pencil, UserX, Plus, Star, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useStudent, useChangeStudentStatus } from '../hooks/use-students';
 import {
   useUnlinkParentFromStudent,
@@ -35,6 +36,7 @@ export function StdDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation('std');
+  const confirm = useConfirm();
   const [showEdit, setShowEdit] = useState(false);
   const [showParentPicker, setShowParentPicker] = useState(false);
 
@@ -52,7 +54,8 @@ export function StdDetailPage() {
   }
 
   const handleDeactivate = async () => {
-    if (!confirm(t('detail.confirmDeactivate'))) return;
+    const ok = await confirm({ title: t('detail.confirmDeactivate'), variant: 'destructive' });
+    if (!ok) return;
     await statusMut.mutateAsync('INACTIVE');
   };
 
@@ -233,10 +236,12 @@ export function StdDetailPage() {
                   variant="outline"
                   size="sm"
                   disabled={unlinkMut.isPending}
-                  onClick={() => {
-                    if (confirm(t('actions.confirmUnlink', '이 학부모 연결을 해제하시겠습니까?'))) {
-                      unlinkMut.mutate(p.id);
-                    }
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: t('actions.confirmUnlink', '이 학부모 연결을 해제하시겠습니까?'),
+                      variant: 'destructive',
+                    });
+                    if (ok) unlinkMut.mutate(p.id);
                   }}
                 >
                   <Trash2 className="h-3 w-3 mr-1" />

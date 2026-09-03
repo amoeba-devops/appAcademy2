@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Search, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { ParentEditModal } from '../components/parent-edit-modal';
 import {
   useParents,
@@ -15,6 +16,7 @@ const inputClass =
 
 export function ParentListPage() {
   const { t } = useTranslation('std');
+  const confirm = useConfirm();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
@@ -151,10 +153,13 @@ export function ParentListPage() {
                         ? t('parentList.cannotDeleteLinked', '연결된 자녀가 있어 삭제할 수 없습니다')
                         : ''
                     }
-                    onClick={() => {
-                      if (confirm(t('parentList.confirmDelete', '학부모를 삭제하시겠습니까?'))) {
-                        deleteMut.mutate(p.id);
-                      }
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: t('parentList.confirmDelete', '학부모를 삭제하시겠습니까?'),
+                        description: t('common:confirm.deleteDescription'),
+                        variant: 'destructive',
+                      });
+                      if (ok) deleteMut.mutate(p.id);
                     }}
                   >
                     <Trash2 className="h-3 w-3" />

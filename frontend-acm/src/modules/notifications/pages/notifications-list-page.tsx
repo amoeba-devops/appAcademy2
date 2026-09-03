@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/toast';
 import { apiClient } from '@/lib/api-client';
 import { useNotificationLogs } from '../hooks/use-notification-logs';
 import type { NotificationLog } from '../types';
@@ -16,6 +17,7 @@ const STATUSES = [
 
 export function NotificationsListPage() {
   const { t, i18n } = useTranslation('admin');
+  const toast = useToast();
   const [status, setStatus] = useState('');
   const qc = useQueryClient();
   const { data, isLoading } = useNotificationLogs({
@@ -31,7 +33,7 @@ export function NotificationsListPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notifications', 'logs'] });
-      window.alert(t('notifications.resendSuccess', 'Resend request submitted.'));
+      toast.success(t('notifications.resendSuccess', 'Resend request submitted.'));
     },
   });
 

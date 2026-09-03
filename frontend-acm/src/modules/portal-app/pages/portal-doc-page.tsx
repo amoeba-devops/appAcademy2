@@ -27,6 +27,8 @@ import {
   X,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/auth.store';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import {
   portalApi,
   type DocShareInput,
@@ -59,6 +61,8 @@ export function PortalDocPage() {
   const { docId } = useParams<{ docId: string }>();
   const isNew = !docId;
   const { t } = useTranslation('common');
+  const confirm = useConfirm();
+  const toast = useToast();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const kind = useAuthStore((s) => s.portal.user?.kind);
@@ -129,7 +133,7 @@ export function PortalDocPage() {
     },
     onSuccess: ({ created, failed }) => {
       if (failed > 0) {
-        window.alert(
+        toast.error(
           t(
             'portalApp.docs.attachUploadFailed',
             '일부 첨부파일 업로드에 실패했습니다. 문서에서 다시 시도하세요.',
@@ -276,13 +280,13 @@ export function PortalDocPage() {
                 {doc.mine && (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t('portalApp.materials.confirmDelete', '이 게시물을 삭제할까요?'),
-                        )
-                      )
-                        delMut.mutate();
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: t('portalApp.materials.confirmDelete', '이 게시물을 삭제할까요?'),
+                        description: t('confirm.deleteDescription'),
+                        variant: 'destructive',
+                      });
+                      if (ok) delMut.mutate();
                     }}
                     className="rounded border border-[var(--border-subtle)] p-1 text-red-600 hover:bg-red-50"
                   >
@@ -535,6 +539,7 @@ function DocAttachments({
 // ── 수정 히스토리 (저장 단위 리비전) ─────────────────────────────────────
 function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }) {
   const { t, i18n } = useTranslation('common');
+  const confirm = useConfirm();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [viewSeq, setViewSeq] = useState<number | null>(null);
@@ -641,16 +646,14 @@ function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }
                   <button
                     type="button"
                     disabled={restoreMut.isPending}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          t(
-                            'portalApp.docs.confirmRestore',
-                            '이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)',
-                          ),
-                        )
-                      )
-                        restoreMut.mutate(snapshot.seq);
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: t(
+                          'portalApp.docs.confirmRestore',
+                          '이 버전으로 복원할까요? (복원도 새 버전으로 기록됩니다)',
+                        ),
+                      });
+                      if (ok) restoreMut.mutate(snapshot.seq);
                     }}
                     className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] text-amber-800 hover:bg-amber-100 disabled:opacity-50"
                   >

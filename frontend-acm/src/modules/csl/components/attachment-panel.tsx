@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import { FilePreviewDialog } from './file-preview-dialog';
 
 /**
@@ -50,6 +52,8 @@ interface Props {
 
 export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
   const { t } = useTranslation(['csl', 'common']);
+  const confirm = useConfirm();
+  const toast = useToast();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -153,7 +157,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
       URL.revokeObjectURL(url);
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
-      window.alert(err.response?.data?.message ?? 'Download failed');
+      toast.error(err.response?.data?.message ?? t('common:status.error'));
     }
   }
 
@@ -168,7 +172,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
       });
     } catch (e) {
       const err = e as { response?: { data?: { message?: string } } };
-      window.alert(err.response?.data?.message ?? 'Preview failed');
+      toast.error(err.response?.data?.message ?? t('common:status.error'));
     }
   }
 
@@ -274,10 +278,13 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      if (window.confirm(t('detail.attachment.confirmDelete'))) {
-                        delMut.mutate(r.id);
-                      }
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: t('detail.attachment.confirmDelete'),
+                        description: t('common:confirm.deleteDescription'),
+                        variant: 'destructive',
+                      });
+                      if (ok) delMut.mutate(r.id);
                     }}
                     className="h-7 text-xs px-2"
                     disabled={delMut.isPending}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/components/ui/toast';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { usePost } from '../hooks/use-post';
@@ -28,6 +29,7 @@ export function PostEditorPage() {
   const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
   const { id } = useParams();
   const postId = id || undefined;
   const isNew = !postId;
@@ -150,9 +152,11 @@ export function PostEditorPage() {
 
   const handleDelete = async () => {
     if (!postId) return;
-    if (!window.confirm(t('posts.editor.deleteConfirm', 'Delete this post? This action cannot be undone.'))) {
-      return;
-    }
+    const ok = await confirm({
+      title: t('posts.editor.deleteConfirm', 'Delete this post? This action cannot be undone.'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
     try {
       await deletePost.mutateAsync();
       toast.success(t('posts.editor.deleted', 'Post deleted.'));
