@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "Trang web",
     "KAKAO_CHANNEL": "Kênh KakaoTalk",
-    "PHONE": "Điện thoại"
+    "PHONE": "Điện thoại",
+    "WEB_EXTERNAL": "Web bên ngoài"
   },
   "applyType": {
     "COUNSELING_ONLY": "Chỉ tư vấn",
@@ -387,5 +388,10 @@
       "addPlaceholder": "Ghi chú hoặc theo dõi"
     },
     "linkedStudent": "Học sinh đã ghi danh"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "Trinity",
+    "SANTACROCE": "Santa Croce"
   }
 }

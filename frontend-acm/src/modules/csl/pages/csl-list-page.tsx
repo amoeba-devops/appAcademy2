@@ -312,7 +312,10 @@ export function CslListPage() {
                   <td className="px-4 py-3 text-secondary">
                     {c.grade ? t(`grade.${c.grade}`, c.grade) : dash}
                   </td>
-                  <td className="px-4 py-3 text-secondary">{t(`inflow.${c.inflowType}`)}</td>
+                  <td className="px-4 py-3 text-secondary">
+                    {t(`inflow.${c.inflowType}`)}
+                    {c.sourceSite && ` (${t(`sourceSite.${c.sourceSite}`)})`}
+                  </td>
                   <td className="px-4 py-3 text-secondary">{t(`applyType.${c.applyType}`)}</td>
                   <td className="px-4 py-3 text-secondary">
                     {c.applyPurposes?.length

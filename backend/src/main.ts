@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './presentation/filters/global-exception.filter';
 import { TransformInterceptor } from './presentation/interceptors/transform.interceptor';
+import { externalIntakeOrigins } from './modules/acm-csl/presentation/external-intake.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -15,9 +16,12 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api');
 
-  // CORS — frontend (React) 허용
+  // CORS — frontend (React) + 외부 접수 폼(imweb, REQ-260903G) 허용
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3009',
+    origin: [
+      process.env.FRONTEND_URL ?? 'http://localhost:3009',
+      ...externalIntakeOrigins(),
+    ],
     credentials: true,
   });
 

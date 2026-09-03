@@ -21,7 +21,10 @@ export type CslStage =
   | 'ATTENDING'
   | 'DROPPED';
 
-export type InflowType = 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
+export type InflowType = 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
+
+/** REQ-260903G — external intake source sites (imweb). */
+export type SourceSite = 'TPI' | 'TRINITY' | 'SANTACROCE';
 export type ApplyType = 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
 export type ApplyPurpose =
   | 'MAP_TEST_TUTORING'
@@ -92,6 +95,10 @@ export class InquiryTypeormEntity {
   /** F-06 */
   @Column({ name: 'inq_inflow_type', type: 'varchar', length: 20 })
   inflowType!: InflowType;
+
+  /** REQ-260903G — external intake source site code (WEB_EXTERNAL only) */
+  @Column({ name: 'inq_source_site', type: 'varchar', length: 20, nullable: true })
+  sourceSite?: SourceSite | null;
 
   /** F-07 — Q-CSL-009 */
   @Column({ name: 'inq_apply_type', type: 'varchar', length: 20 })
