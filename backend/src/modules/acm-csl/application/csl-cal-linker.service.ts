@@ -1,10 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
 import { CalEventService } from '../../acm-cal/application/cal-event.service';
+import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
+import { zonedDateTimeToUtc } from '../../acm-common/time/zoned-time.util';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
@@ -18,13 +21,14 @@ import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.t
  *   - Best-effort: any cal failure is logged but does NOT block the
  *     primary write. The cal_event_id column stays null and the
  *     operator can re-trigger by re-saving the row.
- *   - Idempotent: when the linked row already has cal_event_id set,
- *     skip. Re-scheduling re-runs the link (operator can clear the
- *     column manually if they need a fresh event).
+ *   - Sync (REQ-260903F): when the linked row already has cal_event_id,
+ *     the event's start/end are UPDATED on re-schedule; a deleted linked
+ *     event clears the id and a fresh one is created (self-heal).
  *   - Time math: the panel sends `scheduledAt` (date) + `scheduledTime`
- *     (HH:MM, 30-min). We assume **60-minute default duration** for
- *     both leveltest and demo. Operators can edit the CAL event
- *     directly for non-default durations.
+ *     (HH:MM, 30-min) as tenant-timezone wall clock; we convert to a real
+ *     UTC instant via TenantSettingsService (REQ-260903F — the old naive
+ *     string was parsed in server TZ and drifted +9h on UTC prod).
+ *     **60-minute default duration** for both leveltest and demo.
  *   - Title: short human-readable string with the decrypted student
  *     name when available.
  */
@@ -34,6 +38,7 @@ export class CslCalLinkerService {
 
   constructor(
     private readonly calEvents: CalEventService,
+    private readonly tenantSettings: TenantSettingsService,
     private readonly crypto: AesGcmService,
     @InjectRepository(MapTestTypeormEntity, ACM_DS)
     private readonly mapTests: Repository<MapTestTypeormEntity>,
@@ -52,10 +57,6 @@ export class CslCalLinkerService {
     actorUserId: string,
     actorRole: AcmRole,
   ): Promise<string | null> {
-    if (mt.calEventId) {
-      this.log.debug(`mpt ${mt.id} already linked → ${mt.calEventId}`);
-      return null;
-    }
     if (!mt.scheduledAt || !mt.scheduledTime) {
       this.log.debug(`mpt ${mt.id} schedule incomplete — skip cal link`);
       return null;
@@ -63,7 +64,11 @@ export class CslCalLinkerService {
 
     const studentName = this.decryptName(inq) ?? '학생';
     const title = `Level Test (${mt.testType ?? 'MAP'}) — ${studentName}`;
-    return this.createAndStore({
+    return this.createOrSync({
+      existingCalEventId: mt.calEventId ?? null,
+      clearFn: async () => {
+        await this.mapTests.update({ id: mt.id }, { calEventId: null });
+      },
       entId: inq.entId,
       actorUserId,
       actorRole,
@@ -90,10 +95,6 @@ export class CslCalLinkerService {
     actorUserId: string,
     actorRole: AcmRole,
   ): Promise<string | null> {
-    if (tcl.calEventId) {
-      this.log.debug(`tcl ${tcl.id} already linked → ${tcl.calEventId}`);
-      return null;
-    }
     if (!tcl.heldAt || !tcl.heldTime) {
       this.log.debug(`tcl ${tcl.id} schedule incomplete — skip cal link`);
       return null;
@@ -101,7 +102,11 @@ export class CslCalLinkerService {
 
     const studentName = this.decryptName(inq) ?? '학생';
     const title = `Demo Class — ${studentName}`;
-    return this.createAndStore({
+    return this.createOrSync({
+      existingCalEventId: tcl.calEventId ?? null,
+      clearFn: async () => {
+        await this.trialClasses.update({ id: tcl.id }, { calEventId: null });
+      },
       entId: inq.entId,
       actorUserId,
       actorRole,
@@ -130,7 +135,17 @@ export class CslCalLinkerService {
     });
   }
 
-  private async createAndStore(input: {
+  /**
+   * REQ-260903F — 생성/동기화 통합.
+   *  - 미연동: CAL 이벤트 생성 후 id 저장.
+   *  - 연동됨: 시작/종료를 update (시간 변경이 캘린더에 반영).
+   *  - 연동 id 가 있으나 이벤트가 삭제/부재: id 초기화 후 재생성 (자가 복구).
+   * 시각은 테넌트 타임존 벽시계 → UTC 로 변환 (기존 naive 문자열이 서버 TZ 로
+   * 해석되어 프로덕션(UTC)에서 +9h 어긋나던 버그 수정).
+   */
+  private async createOrSync(input: {
+    existingCalEventId: string | null;
+    clearFn: () => Promise<void>;
     entId: string;
     actorUserId: string;
     actorRole: AcmRole;
@@ -145,13 +160,44 @@ export class CslCalLinkerService {
     logTag: string;
   }): Promise<string | null> {
     try {
-      // scheduledAt is YYYY-MM-DD; scheduledTime is HH:MM[:SS]. Compose to
-      // an ISO 8601 string in Asia/Seoul. We send local naive ISO and let
-      // the server-side validator + DB store as TIMESTAMPTZ assuming UTC
-      // is intended (operator-facing labels render in local time anyway).
-      const time = input.scheduledTime.slice(0, 5);
-      const startAt = `${input.scheduledAt}T${time}:00`;
-      const endAt = addOneHour(startAt);
+      const tz = await this.tenantSettings.getTimezone(input.entId);
+      const start = zonedDateTimeToUtc(input.scheduledAt, input.scheduledTime, tz);
+      if (!start) {
+        this.log.warn(`invalid schedule for ${input.logTag} — skip cal link`);
+        return null;
+      }
+      const startAt = start.toISOString();
+      const endAt = new Date(start.getTime() + 60 * 60 * 1000).toISOString();
+
+      if (input.existingCalEventId) {
+        try {
+          await this.calEvents.update(
+            input.entId,
+            input.actorUserId,
+            input.actorRole,
+            input.existingCalEventId,
+            {
+              evtStartAt: startAt,
+              evtEndAt: endAt,
+              ...(input.assigneeTchId
+                ? { evtAssigneeTchId: input.assigneeTchId }
+                : {}),
+              evtEditReason: 'CSL 일정 변경 자동 동기화 (REQ-260903F)',
+            },
+          );
+          this.log.log(
+            `synced ${input.logTag} → cal ${input.existingCalEventId} (@ ${startAt})`,
+          );
+          return input.existingCalEventId;
+        } catch (e) {
+          if (!(e instanceof NotFoundException)) throw e;
+          // 연동 이벤트가 삭제됨 — id 초기화 후 아래에서 재생성.
+          this.log.warn(
+            `linked event ${input.existingCalEventId} missing for ${input.logTag} — relinking`,
+          );
+          await input.clearFn();
+        }
+      }
 
       const event = await this.calEvents.create(
         input.entId,
@@ -183,16 +229,4 @@ export class CslCalLinkerService {
       return null;
     }
   }
-}
-
-/** Add 60 minutes to a 'YYYY-MM-DDTHH:MM:SS' string and return the same shape. */
-function addOneHour(iso: string): string {
-  const d = new Date(iso);
-  d.setMinutes(d.getMinutes() + 60);
-  // Re-serialize without timezone suffix to match the input form.
-  const pad = (n: number): string => String(n).padStart(2, '0');
-  return (
-    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
-    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
-  );
 }
