@@ -11,6 +11,7 @@ import { In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
 import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
+import { SolapiAlimtalkService } from '../../acm-system/application/solapi-alimtalk.service';
 import { NotificationService } from '../../acm-notification/application/notification.service';
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
@@ -32,6 +33,7 @@ export interface FeedbackRecipientParent {
   name: string;
   relation: string | null;
   email: string | null;
+  phone: string | null;
   isPrimary: boolean;
 }
 
@@ -43,11 +45,12 @@ export interface FeedbackRecipientStudent {
 
 export interface FeedbackRecipientsView {
   smtpConfigured: boolean;
+  alimtalkConfigured: boolean;
   hasFeedback: boolean;
   students: FeedbackRecipientStudent[];
 }
 
-export type FeedbackSendStatus = 'SENT' | 'NO_EMAIL' | 'FAILED';
+export type FeedbackSendStatus = 'SENT' | 'NO_EMAIL' | 'NO_PHONE' | 'FAILED';
 
 export interface FeedbackSendResult {
   stdId: string;
@@ -75,6 +78,7 @@ export class FeedbackMailerService {
     private readonly parents: Repository<ParentTypeormEntity>,
     private readonly mailer: TenantMailerService,
     private readonly tenantSettings: TenantSettingsService,
+    private readonly alimtalk: SolapiAlimtalkService,
     private readonly notifications: NotificationService,
   ) {}
 
@@ -88,6 +92,7 @@ export class FeedbackMailerService {
     });
     return {
       smtpConfigured: await this.mailer.isConfigured(entId),
+      alimtalkConfigured: await this.alimtalk.isConfigured(entId),
       hasFeedback: !!review?.feedbackHtml?.trim(),
       students: await this.resolveStudents(entId, event.id),
     };
@@ -151,6 +156,88 @@ export class FeedbackMailerService {
         tz,
       );
       results.push(result);
+    }
+    return { results };
+  }
+
+  /**
+   * REQ-260903E — 카카오 알림톡 발송 (Solapi). 승인 템플릿 고정 변수:
+   * #{학원명} #{학생명} #{수업명} #{일시}. 전문은 이메일로, 알림톡은 도착 안내.
+   */
+  async sendFeedbackAlimtalk(
+    entId: string,
+    evtId: string,
+    input: { recipients: Array<{ stdId: string; parId: string }> },
+  ): Promise<{ results: FeedbackSendResult[] }> {
+    const event = await this.getEvent(entId, evtId);
+    const review = await this.reviews.findOne({
+      where: { entId, evtId: event.id },
+    });
+    if (!review?.feedbackHtml?.trim()) {
+      throw new UnprocessableEntityException('NO_FEEDBACK');
+    }
+    if (!(await this.alimtalk.isConfigured(entId))) {
+      throw new ServiceUnavailableException('ALIMTALK_NOT_CONFIGURED');
+    }
+
+    const studentsView = await this.resolveStudents(entId, event.id);
+    const validPairs = new Map<string, FeedbackRecipientParent>();
+    const studentNames = new Map<string, string>();
+    for (const s of studentsView) {
+      studentNames.set(s.stdId, s.stdName);
+      for (const p of s.parents) validPairs.set(`${s.stdId}:${p.parId}`, p);
+    }
+    for (const r of input.recipients) {
+      if (!validPairs.has(`${r.stdId}:${r.parId}`)) {
+        throw new BadRequestException('INVALID_RECIPIENT');
+      }
+    }
+
+    const tz = await this.tenantSettings.getTimezone(entId);
+    const academyName = await this.tenantSettings.getTenantName(entId);
+    const when = this.formatInTz(event.startAt, tz);
+
+    const results: FeedbackSendResult[] = [];
+    for (const r of input.recipients) {
+      const parent = validPairs.get(`${r.stdId}:${r.parId}`)!;
+      const stdName = studentNames.get(r.stdId) ?? '';
+      const base = {
+        entId,
+        templateCode: 'CAL_FEEDBACK_ALIMTALK',
+        channel: 'ALIMTALK',
+        recipientKind: 'PARENT' as const,
+        recipientId: parent.parId,
+        toAddress: parent.phone ?? null,
+        subject: `${event.title} 피드백 알림톡`,
+        bodySummary: `${stdName} / ${when}`,
+      };
+      if (!parent.phone) {
+        await this.safeLog({ ...base, status: 'SKIPPED' });
+        results.push({ stdId: r.stdId, parId: parent.parId, status: 'NO_PHONE' });
+        continue;
+      }
+      try {
+        await this.alimtalk.send(entId, parent.phone, {
+          '#{학원명}': academyName,
+          '#{학생명}': stdName,
+          '#{수업명}': event.title,
+          '#{일시}': when,
+        });
+        await this.safeLog({ ...base, status: 'SENT', sentAt: new Date() });
+        results.push({ stdId: r.stdId, parId: parent.parId, status: 'SENT' });
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        this.log.error(
+          `feedback alimtalk failed evt=${event.id} par=${parent.parId} err=${msg}`,
+        );
+        await this.safeLog({ ...base, status: 'FAILED', error: msg.slice(0, 500) });
+        results.push({
+          stdId: r.stdId,
+          parId: parent.parId,
+          status: 'FAILED',
+          error: msg,
+        });
+      }
     }
     return { results };
   }
@@ -260,6 +347,7 @@ export class FeedbackMailerService {
               name: p.name,
               relation: p.relation ?? null,
               email: p.email?.trim() || null,
+              phone: p.phone?.trim() || null,
               isPrimary: l.isPrimary,
             };
           })

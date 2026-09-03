@@ -34,6 +34,16 @@ export class TenantSettingsService {
     }
   }
 
+  /** REQ-260903E — 알림톡 #{학원명} 용. 행 없으면 fail-open '학원'. */
+  async getTenantName(entId: string): Promise<string> {
+    try {
+      const row = await this.tenants.findOne({ where: { entId } });
+      return row?.name?.trim() || '학원';
+    } catch {
+      return '학원';
+    }
+  }
+
   async setTimezone(entId: string, timezone: string): Promise<{ timezone: string }> {
     const tz = timezone.trim();
     // IANA 유효성 — 미지원 TZ면 Intl이 throw

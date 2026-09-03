@@ -410,6 +410,10 @@
       "general": {
         "title": "常规",
         "description": "时区及基本设置"
+      },
+      "kakao": {
+        "title": "Kakao AlimTalk",
+        "description": "Solapi 发送设置 — 反馈 AlimTalk"
       }
     },
     "mail": {
@@ -466,6 +470,43 @@
         }
       },
       "preview": "当前时间预览: {{now}}"
+    },
+    "kakao": {
+      "title": "Kakao AlimTalk 设置 (Solapi)",
+      "description": "通过 Kakao AlimTalk 发送课程反馈到达通知。需要 Solapi API 凭证、Kakao 频道发送人档案及已审核通过的模板。",
+      "templateHint": "请使用以下变量名注册并通过 AlimTalk 模板审核:",
+      "fields": {
+        "apiKey": {
+          "label": "Solapi API Key"
+        },
+        "apiSecret": {
+          "label": "Solapi API Secret"
+        },
+        "pfId": {
+          "label": "发送人档案密钥 (pfId)"
+        },
+        "templateId": {
+          "label": "模板 ID"
+        },
+        "senderPhone": {
+          "label": "备用发送号码",
+          "hint": "用于 SMS 备用发送的已登记号码（仅数字）"
+        },
+        "smsFallback": {
+          "label": "失败时 SMS 备用发送"
+        },
+        "isActive": {
+          "label": "启用（允许发送）"
+        }
+      },
+      "test": {
+        "title": "测试发送",
+        "hint": "使用已保存设置和示例变量发送 AlimTalk。有改动请先保存。",
+        "send": "发送测试",
+        "ok": "发送成功 — 请查看 KakaoTalk。",
+        "notSet": "设置未保存或已停用，请先保存。",
+        "failed": "发送失败:"
+      }
     }
   },
   "talk": {

@@ -295,13 +295,17 @@
     "result": {
       "SENT": "Sent",
       "NO_EMAIL": "No email",
-      "FAILED": "Failed"
+      "FAILED": "Failed",
+      "NO_PHONE": "No phone"
     },
     "relation": {
       "FATHER": "Father",
       "MOTHER": "Mother",
       "GUARDIAN": "Guardian",
       "OTHER": "Other"
-    }
+    },
+    "sendAlimtalk": "💬 Send AlimTalk ({{count}})",
+    "alimtalkSentToast": "Sent {{count}} AlimTalk message(s).",
+    "alimtalkNotConfigured": "AlimTalk (Solapi) is not configured or inactive."
   }
 }

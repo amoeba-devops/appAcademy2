@@ -410,6 +410,10 @@
       "general": {
         "title": "General",
         "description": "Timezone and basic settings"
+      },
+      "kakao": {
+        "title": "Kakao AlimTalk",
+        "description": "Solapi delivery settings — feedback AlimTalk"
       }
     },
     "mail": {
@@ -466,6 +470,43 @@
         }
       },
       "preview": "Current time preview: {{now}}"
+    },
+    "kakao": {
+      "title": "Kakao AlimTalk settings (Solapi)",
+      "description": "Sends class-feedback arrival notices via Kakao AlimTalk. Requires Solapi API credentials, a Kakao channel sender profile, and an approved template.",
+      "templateHint": "Register and get the AlimTalk template approved using exactly these variable names:",
+      "fields": {
+        "apiKey": {
+          "label": "Solapi API Key"
+        },
+        "apiSecret": {
+          "label": "Solapi API Secret"
+        },
+        "pfId": {
+          "label": "Sender profile key (pfId)"
+        },
+        "templateId": {
+          "label": "Template ID"
+        },
+        "senderPhone": {
+          "label": "Fallback sender number",
+          "hint": "Pre-registered sender number used for SMS fallback (digits only)"
+        },
+        "smsFallback": {
+          "label": "SMS fallback on failure"
+        },
+        "isActive": {
+          "label": "Enabled (allow sending)"
+        }
+      },
+      "test": {
+        "title": "Test send",
+        "hint": "Sends an AlimTalk with sample variables using saved settings. Save changes first.",
+        "send": "Send test",
+        "ok": "Sent — check KakaoTalk.",
+        "notSet": "Settings are not saved or inactive. Save first.",
+        "failed": "Send failed:"
+      }
     }
   },
   "talk": {

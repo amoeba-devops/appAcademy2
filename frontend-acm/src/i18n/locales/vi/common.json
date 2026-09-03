@@ -410,6 +410,10 @@
       "general": {
         "title": "Chung",
         "description": "Múi giờ và cài đặt cơ bản"
+      },
+      "kakao": {
+        "title": "Kakao AlimTalk",
+        "description": "Cấu hình gửi Solapi — AlimTalk phản hồi"
       }
     },
     "mail": {
@@ -466,6 +470,43 @@
         }
       },
       "preview": "Xem trước giờ hiện tại: {{now}}"
+    },
+    "kakao": {
+      "title": "Cấu hình Kakao AlimTalk (Solapi)",
+      "description": "Gửi thông báo phản hồi buổi học qua Kakao AlimTalk. Cần thông tin API Solapi, sender profile của kênh Kakao và mẫu tin đã được duyệt.",
+      "templateHint": "Đăng ký và duyệt mẫu AlimTalk với đúng các tên biến sau:",
+      "fields": {
+        "apiKey": {
+          "label": "Solapi API Key"
+        },
+        "apiSecret": {
+          "label": "Solapi API Secret"
+        },
+        "pfId": {
+          "label": "Khóa sender profile (pfId)"
+        },
+        "templateId": {
+          "label": "ID mẫu tin"
+        },
+        "senderPhone": {
+          "label": "Số gửi dự phòng",
+          "hint": "Số đã đăng ký trước dùng cho SMS dự phòng (chỉ số)"
+        },
+        "smsFallback": {
+          "label": "Gửi SMS khi thất bại"
+        },
+        "isActive": {
+          "label": "Kích hoạt (cho phép gửi)"
+        }
+      },
+      "test": {
+        "title": "Gửi thử",
+        "hint": "Gửi AlimTalk với biến mẫu bằng cấu hình đã lưu. Hãy lưu thay đổi trước.",
+        "send": "Gửi thử",
+        "ok": "Đã gửi — kiểm tra KakaoTalk.",
+        "notSet": "Cấu hình chưa lưu hoặc đang tắt. Hãy lưu trước.",
+        "failed": "Gửi thất bại:"
+      }
     }
   },
   "talk": {
