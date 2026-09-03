@@ -295,13 +295,17 @@
     "result": {
       "SENT": "已发送",
       "NO_EMAIL": "无邮箱",
-      "FAILED": "失败"
+      "FAILED": "失败",
+      "NO_PHONE": "无电话"
     },
     "relation": {
       "FATHER": "父亲",
       "MOTHER": "母亲",
       "GUARDIAN": "监护人",
       "OTHER": "其他"
-    }
+    },
+    "sendAlimtalk": "💬 发送 AlimTalk ({{count}}人)",
+    "alimtalkSentToast": "已发送 {{count}} 条 AlimTalk。",
+    "alimtalkNotConfigured": "AlimTalk (Solapi) 未配置或已停用。"
   }
 }

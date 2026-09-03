@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "홈페이지",
     "KAKAO_CHANNEL": "카카오 채널",
-    "PHONE": "전화"
+    "PHONE": "전화",
+    "WEB_EXTERNAL": "외부 웹"
   },
   "applyType": {
     "COUNSELING_ONLY": "상담만",
@@ -387,5 +388,10 @@
       "addPlaceholder": "메모 또는 후속 사항을 기록하세요"
     },
     "linkedStudent": "수강등록 연결"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "트리니티",
+    "SANTACROCE": "산타크로체"
   }
 }

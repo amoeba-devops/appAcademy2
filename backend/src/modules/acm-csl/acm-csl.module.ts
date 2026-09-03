@@ -15,6 +15,7 @@ import { TeacherAssignmentTypeormEntity } from './infrastructure/typeorm/teacher
 import { CourseTypeormEntity } from './infrastructure/typeorm/course.typeorm-entity';
 import { InquiryController } from './presentation/inquiry.controller';
 import { WebInquiryController } from './presentation/web-inquiry.controller';
+import { ExternalIntakeController } from './presentation/external-intake.controller';
 // REQ-260626 P2B — course master CRUD endpoints (under /acm/csl/courses)
 import { CourseController } from './presentation/course.controller';
 import { InquiryService } from './application/inquiry.service';
@@ -82,7 +83,12 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     // PLN-260706 — PortalAccountService for auto-issuing portal login accounts.
     AcmAuthModule,
   ],
-  controllers: [InquiryController, WebInquiryController, CourseController],
+  controllers: [
+    InquiryController,
+    WebInquiryController,
+    ExternalIntakeController,
+    CourseController,
+  ],
   providers: [
     InquiryService,
     InquiryWorkflowService,

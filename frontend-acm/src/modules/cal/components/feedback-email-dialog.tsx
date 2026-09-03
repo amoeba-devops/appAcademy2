@@ -26,6 +26,7 @@ interface RecipientParent {
   name: string;
   relation: string | null;
   email: string | null;
+  phone: string | null;
   isPrimary: boolean;
 }
 
@@ -37,11 +38,12 @@ interface RecipientStudent {
 
 interface RecipientsView {
   smtpConfigured: boolean;
+  alimtalkConfigured: boolean;
   hasFeedback: boolean;
   students: RecipientStudent[];
 }
 
-type SendStatus = 'SENT' | 'NO_EMAIL' | 'FAILED';
+type SendStatus = 'SENT' | 'NO_EMAIL' | 'NO_PHONE' | 'FAILED';
 
 interface SendResult {
   stdId: string;
@@ -49,6 +51,8 @@ interface SendResult {
   status: SendStatus;
   error?: string;
 }
+
+type ChannelResult = SendResult & { channel: 'EMAIL' | 'ALIMTALK' };
 
 interface Props {
   open: boolean;
@@ -74,7 +78,7 @@ export function FeedbackEmailDialog({
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [subject, setSubject] = useState('');
-  const [results, setResults] = useState<Map<string, SendResult> | null>(null);
+  const [results, setResults] = useState<Map<string, ChannelResult> | null>(null);
   const [matchingStdId, setMatchingStdId] = useState<string | null>(null);
 
   const recipientsKey = ['cal', 'feedback-recipients', evtId];
@@ -117,7 +121,7 @@ export function FeedbackEmailDialog({
     const next = new Set<string>();
     for (const s of data.students) {
       for (const p of s.parents) {
-        if (p.email) next.add(pairKey(s.stdId, p.parId));
+        if (p.email || p.phone) next.add(pairKey(s.stdId, p.parId));
       }
     }
     setChecked(next);
@@ -132,11 +136,11 @@ export function FeedbackEmailDialog({
         )
       ).data,
     onSuccess: (res) => {
-      const map = new Map<string, SendResult>();
+      const map = new Map<string, ChannelResult>();
       let sent = 0;
       let failed = 0;
       for (const r of res.results) {
-        map.set(pairKey(r.stdId, r.parId), r);
+        map.set(pairKey(r.stdId, r.parId), { ...r, channel: 'EMAIL' });
         if (r.status === 'SENT') sent++;
         else if (r.status === 'FAILED') failed++;
       }
@@ -159,6 +163,43 @@ export function FeedbackEmailDialog({
     },
   });
 
+  // REQ-260903E — 카카오 알림톡 발송 (Solapi)
+  const sendAlimMut = useMutation({
+    mutationFn: async (recipients: Array<{ stdId: string; parId: string }>) =>
+      (
+        await apiClient.post<{ results: SendResult[] }>(
+          `/acm/cal/events/${evtId}/review/send-alimtalk`,
+          { recipients },
+        )
+      ).data,
+    onSuccess: (res) => {
+      const map = new Map<string, ChannelResult>(results ?? []);
+      let sent = 0;
+      let failed = 0;
+      for (const r of res.results) {
+        map.set(pairKey(r.stdId, r.parId), { ...r, channel: 'ALIMTALK' });
+        if (r.status === 'SENT') sent++;
+        else if (r.status === 'FAILED') failed++;
+      }
+      setResults(map);
+      if (failed === 0) {
+        toast.success(t('cal:feedbackEmail.alimtalkSentToast', { count: sent }));
+      } else {
+        toast.error(t('cal:feedbackEmail.partialFailToast', { failed }));
+      }
+    },
+    onError: (e: unknown) => {
+      const body = (e as { response?: { data?: { error?: { message?: string } } } })
+        .response?.data;
+      const msg = body?.error?.message;
+      toast.error(
+        msg === 'ALIMTALK_NOT_CONFIGURED'
+          ? t('cal:feedbackEmail.alimtalkNotConfigured')
+          : t('cal:feedbackEmail.sendFailed'),
+      );
+    },
+  });
+
   const toggle = (key: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
@@ -168,17 +209,22 @@ export function FeedbackEmailDialog({
     });
   };
 
-  const selectedRecipients = useMemo(() => {
-    const out: Array<{ stdId: string; parId: string }> = [];
+  const selected = useMemo(() => {
+    const all: Array<{ stdId: string; parId: string }> = [];
+    let withEmail = 0;
+    let withPhone = 0;
     for (const s of data?.students ?? []) {
       for (const p of s.parents) {
         if (checked.has(pairKey(s.stdId, p.parId))) {
-          out.push({ stdId: s.stdId, parId: p.parId });
+          all.push({ stdId: s.stdId, parId: p.parId });
+          if (p.email) withEmail++;
+          if (p.phone) withPhone++;
         }
       }
     }
-    return out;
+    return { all, withEmail, withPhone };
   }, [data, checked]);
+  const selectedRecipients = selected.all;
 
   const relationLabel = (rel: string | null) =>
     rel ? t(`cal:feedbackEmail.relation.${rel}`, rel) : '';
@@ -246,13 +292,17 @@ export function FeedbackEmailDialog({
                       <label
                         key={key}
                         className={`flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-[var(--canvas-subtle)] ${
-                          p.email ? 'cursor-pointer' : 'opacity-70'
+                          p.email || p.phone ? 'cursor-pointer' : 'opacity-70'
                         }`}
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           <input
                             type="checkbox"
-                            disabled={!p.email || sendMut.isPending}
+                            disabled={
+                              (!p.email && !p.phone) ||
+                              sendMut.isPending ||
+                              sendAlimMut.isPending
+                            }
                             checked={checked.has(key)}
                             onChange={() => toggle(key)}
                           />
@@ -284,10 +334,11 @@ export function FeedbackEmailDialog({
                               }
                               title={result.error}
                             >
+                              {result.channel === 'ALIMTALK' ? '💬 ' : '✉️ '}
                               {t(`cal:feedbackEmail.result.${result.status}`)}
                             </span>
                           ) : (
-                            (p.email ?? t('cal:feedbackEmail.noEmail', '이메일 없음'))
+                            `${p.email ?? '—'} · ${p.phone ?? '—'}`
                           )}
                         </span>
                       </label>
@@ -328,13 +379,39 @@ export function FeedbackEmailDialog({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={onClose} disabled={sendMut.isPending}>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={sendMut.isPending || sendAlimMut.isPending}
+            >
               {t('common:actions.cancel', '취소')}
             </Button>
+            {data?.alimtalkConfigured && (
+              <Button
+                variant="outline"
+                onClick={() => sendAlimMut.mutate(selectedRecipients)}
+                disabled={
+                  sendAlimMut.isPending ||
+                  sendMut.isPending ||
+                  selected.withPhone === 0 ||
+                  !data?.hasFeedback
+                }
+              >
+                {sendAlimMut.isPending && (
+                  <Loader2 size={13} className="mr-1 animate-spin" />
+                )}
+                {sendAlimMut.isPending
+                  ? t('cal:feedbackEmail.sending', '발송 중…')
+                  : t('cal:feedbackEmail.sendAlimtalk', {
+                      count: selected.withPhone,
+                    })}
+              </Button>
+            )}
             <Button
               onClick={() => sendMut.mutate(selectedRecipients)}
               disabled={
                 sendMut.isPending ||
+                sendAlimMut.isPending ||
                 selectedRecipients.length === 0 ||
                 smtpBlocked ||
                 !data?.hasFeedback

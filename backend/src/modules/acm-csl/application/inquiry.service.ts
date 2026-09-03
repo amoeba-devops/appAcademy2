@@ -130,11 +130,12 @@ export class InquiryService {
       parentNameIv: parentNameEnc?.iv ?? null,
       parentNameAuthTag: parentNameEnc?.authTag ?? null,
       inflowType: dto.inflowType,
+      sourceSite: dto.sourceSite ?? null,
       applyType: dto.applyType,
       applyPurpose: dto.applyPurposes?.length
         ? dto.applyPurposes.join(',')
         : null,
-      applyPurposeOther: null,
+      applyPurposeOther: dto.applyPurposeOther ?? null,
       consultDone: dto.consultDone ?? null,
       schoolId: dto.schoolId ?? null,
       schoolFreetext: dto.schoolFreetext ?? null,
@@ -1129,10 +1130,12 @@ export class InquiryService {
       grade: e.grade,
       stdId: e.stdId ?? null,
       inflowType: e.inflowType,
+      sourceSite: e.sourceSite ?? null,
       applyType: e.applyType,
       applyPurposes: e.applyPurpose
         ? e.applyPurpose.split(',').filter(Boolean)
         : [],
+      applyPurposeOther: e.applyPurposeOther ?? null,
       consultDone: e.consultDone,
       currentStage: e.currentStage,
       previousStage: e.previousStage,

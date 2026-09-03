@@ -295,13 +295,17 @@
     "result": {
       "SENT": "Đã gửi",
       "NO_EMAIL": "Không có email",
-      "FAILED": "Thất bại"
+      "FAILED": "Thất bại",
+      "NO_PHONE": "Không có SĐT"
     },
     "relation": {
       "FATHER": "Bố",
       "MOTHER": "Mẹ",
       "GUARDIAN": "Người giám hộ",
       "OTHER": "Khác"
-    }
+    },
+    "sendAlimtalk": "💬 Gửi AlimTalk ({{count}})",
+    "alimtalkSentToast": "Đã gửi {{count}} tin AlimTalk.",
+    "alimtalkNotConfigured": "AlimTalk (Solapi) chưa được cấu hình hoặc đang tắt."
   }
 }

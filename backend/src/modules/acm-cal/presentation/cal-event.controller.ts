@@ -76,6 +76,20 @@ export class CalEventController {
     return this.feedbackMailer.listRecipients(u.entId, id);
   }
 
+  @Post(':id/review/send-alimtalk')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'STAFF')
+  @ApiOperation({
+    summary: '피드백 카카오 알림톡 발송 — Solapi (REQ-260903E)',
+  })
+  sendFeedbackAlimtalk(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SendFeedbackEmailDto,
+  ) {
+    return this.feedbackMailer.sendFeedbackAlimtalk(u.entId, id, dto);
+  }
+
   @Post(':id/review/send-email')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'STAFF')

@@ -295,13 +295,17 @@
     "result": {
       "SENT": "발송됨",
       "NO_EMAIL": "이메일 없음",
-      "FAILED": "실패"
+      "FAILED": "실패",
+      "NO_PHONE": "전화 없음"
     },
     "relation": {
       "FATHER": "부",
       "MOTHER": "모",
       "GUARDIAN": "보호자",
       "OTHER": "기타"
-    }
+    },
+    "sendAlimtalk": "💬 알림톡 발송 ({{count}}명)",
+    "alimtalkSentToast": "알림톡 {{count}}건을 발송했습니다.",
+    "alimtalkNotConfigured": "알림톡(Solapi) 설정이 없거나 비활성입니다. 설정에서 등록하세요."
   }
 }

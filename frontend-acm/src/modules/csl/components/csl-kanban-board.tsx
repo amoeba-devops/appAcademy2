@@ -32,7 +32,8 @@ export interface KanbanInquiry {
   isAnonymous: boolean;
   schoolFreetext?: string | null;
   grade?: string | null;
-  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
+  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
+  sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
   currentStage: Stage;
   registeredAt: string;
@@ -220,6 +221,7 @@ function KanbanCard({
       <div className="flex flex-wrap gap-1 mt-1.5">
         <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
           {t(`inflow.${inq.inflowType}`)}
+          {inq.sourceSite && ` · ${t(`sourceSite.${inq.sourceSite}`)}`}
         </span>
         <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
           {t(`applyType.${inq.applyType}`)}

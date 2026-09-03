@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "Homepage",
     "KAKAO_CHANNEL": "KakaoTalk Channel",
-    "PHONE": "Phone"
+    "PHONE": "Phone",
+    "WEB_EXTERNAL": "External Web"
   },
   "applyType": {
     "COUNSELING_ONLY": "Counseling only",
@@ -387,5 +388,10 @@
       "addPlaceholder": "Add a note or follow-up"
     },
     "linkedStudent": "Enrolled student"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "Trinity",
+    "SANTACROCE": "Santa Croce"
   }
 }

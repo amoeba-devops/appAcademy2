@@ -29,7 +29,7 @@ export const STAGES = [
   'DROPPED',
 ] as const;
 
-export const INFLOW_TYPES = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
+export const INFLOW_TYPES = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE', 'WEB_EXTERNAL'] as const;
 export const APPLY_TYPES = ['COUNSELING_ONLY', 'EXAM_ONLY', 'BOTH'] as const;
 export const APPLY_PURPOSES = [
   'MAP_TEST_TUTORING',

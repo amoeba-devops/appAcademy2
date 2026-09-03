@@ -45,6 +45,7 @@ interface Inquiry {
   schoolFreetext: string | null;
   grade: string | null;
   inflowType: string;
+  sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: string;
   applyPurposes: ApplyPurpose[];
   consultDone: 'YES' | 'NO' | null;
@@ -598,7 +599,11 @@ function IntakeReadOnlyBox({
         <Row label={t('detail.intake.field.school')} value={inq.schoolFreetext ?? '—'} />
         <Row
           label={t('detail.intake.field.inflowType')}
-          value={t(`inflow.${inq.inflowType}`)}
+          value={
+            inq.sourceSite
+              ? `${t(`inflow.${inq.inflowType}`)} (${t(`sourceSite.${inq.sourceSite}`)})`
+              : t(`inflow.${inq.inflowType}`)
+          }
         />
         <Row
           label={t('detail.intake.field.applyType')}

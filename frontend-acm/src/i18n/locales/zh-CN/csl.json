@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "官网",
     "KAKAO_CHANNEL": "KakaoTalk 频道",
-    "PHONE": "电话"
+    "PHONE": "电话",
+    "WEB_EXTERNAL": "外部网站"
   },
   "applyType": {
     "COUNSELING_ONLY": "仅咨询",
@@ -387,5 +388,10 @@
       "addPlaceholder": "请记录备注或后续事项"
     },
     "linkedStudent": "报名学生"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "Trinity",
+    "SANTACROCE": "Santa Croce"
   }
 }
