@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -209,9 +209,17 @@ function DemoClassRow({
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const [feedbackDraft, setFeedbackDraft] = useState(tcl.feedbackBody ?? '');
-  const [editingTime, setEditingTime] = useState(tcl.heldTime ?? '');
+  // REQ-260903F — 서버는 time 컬럼을 "HH:MM:SS" 로 반환하는데 옵션 값은
+  // "HH:MM" 이라 select 가 빈 값으로 보이던 문제: 정규화 + props 재동기화.
+  const [editingTime, setEditingTime] = useState((tcl.heldTime ?? '').slice(0, 5));
+  const [editingDate, setEditingDate] = useState(tcl.heldAt ?? '');
   // REQ-260629 v0.2 — local strict select. Source is the parent's teachers query.
   const [editingTeacherId, setEditingTeacherId] = useState(tcl.teacherId ?? '');
+  useEffect(() => {
+    setEditingTime((tcl.heldTime ?? '').slice(0, 5));
+    setEditingDate(tcl.heldAt ?? '');
+    setEditingTeacherId(tcl.teacherId ?? '');
+  }, [tcl.heldTime, tcl.heldAt, tcl.teacherId]);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
   const patch = useMutation({
@@ -285,8 +293,17 @@ function DemoClassRow({
         </label>
       </div>
 
-      {/* Edit row — time + teacher (date is fixed at creation; CAL link deferred) */}
-      <div className="grid grid-cols-[140px_1fr_auto] gap-2 items-end mb-3">
+      {/* Edit row — date + time + teacher. REQ-260903F: 날짜 수정 허용 +
+          변경 시 연동 캘린더 일정이 자동 동기화된다. */}
+      <div className="grid grid-cols-[150px_120px_1fr_auto] gap-2 items-end mb-3">
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('detail.trial.heldAt')}</Label>
+          <Input
+            type="date"
+            value={editingDate}
+            onChange={(e) => setEditingDate(e.target.value)}
+          />
+        </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t('detail.trial.heldTime')}</Label>
           <Select value={editingTime} onChange={(e) => setEditingTime(e.target.value)}>
@@ -316,6 +333,7 @@ function DemoClassRow({
           variant="outline"
           onClick={() =>
             patch.mutate({
+              ...(editingDate ? { heldAt: editingDate } : {}),
               heldTime: editingTime || undefined,
               teacherId: editingTeacherId || undefined,
             })

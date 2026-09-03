@@ -1,21 +1,25 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { CalEventService } from '../../acm-cal/application/cal-event.service';
+import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
 import { CslCalLinkerService } from './csl-cal-linker.service';
 
 /**
- * REQ-260626 T-08 — CSL→CAL linkage. Tests cover the conservative skip
- * rules (already linked / schedule incomplete / cal failure) and the
- * happy path that persists the new evt_id back onto the source row.
+ * REQ-260626 T-08 / REQ-260903F — CSL→CAL linkage.
+ * 시각은 테넌트 TZ(Asia/Seoul) 벽시계 → UTC instant 로 변환된다.
+ * 이미 연동된 행은 skip 이 아니라 이벤트 시각을 update(동기화)하고,
+ * 연동 이벤트가 삭제된 경우 id 를 비우고 재생성한다.
  */
 describe('CslCalLinkerService', () => {
   let svc: CslCalLinkerService;
   let calCreate: jest.Mock;
+  let calUpdate: jest.Mock;
   let mtUpdate: jest.Mock;
   let tclUpdate: jest.Mock;
   let decrypt: jest.Mock;
@@ -56,6 +60,7 @@ describe('CslCalLinkerService', () => {
 
   beforeEach(async () => {
     calCreate = jest.fn().mockResolvedValue({ id: 'evt-new' });
+    calUpdate = jest.fn().mockResolvedValue({ id: 'existing' });
     mtUpdate = jest.fn().mockResolvedValue({ affected: 1 });
     tclUpdate = jest.fn().mockResolvedValue({ affected: 1 });
     decrypt = jest.fn().mockReturnValue('홍길동');
@@ -63,7 +68,11 @@ describe('CslCalLinkerService', () => {
     const mod = await Test.createTestingModule({
       providers: [
         CslCalLinkerService,
-        { provide: CalEventService, useValue: { create: calCreate } },
+        { provide: CalEventService, useValue: { create: calCreate, update: calUpdate } },
+        {
+          provide: TenantSettingsService,
+          useValue: { getTimezone: jest.fn().mockResolvedValue('Asia/Seoul') },
+        },
         { provide: AesGcmService, useValue: { decrypt } },
         { provide: getRepositoryToken(MapTestTypeormEntity, ACM_DS), useValue: { update: mtUpdate } },
         { provide: getRepositoryToken(TrialClassTypeormEntity, ACM_DS), useValue: { update: tclUpdate } },
@@ -74,15 +83,40 @@ describe('CslCalLinkerService', () => {
 
   // ── linkLevelTest ──────────────────────────────────────────────────
 
-  it('skips when calEventId already set (idempotent)', async () => {
+  it('REQ-260903F: already linked → updates event times (sync, not skip)', async () => {
     const r = await svc.linkLevelTest(
       makeInq(),
       makeMt({ calEventId: 'existing' }),
       'u1',
       'STAFF',
     );
-    expect(r).toBeNull();
+    expect(r).toBe('existing');
     expect(calCreate).not.toHaveBeenCalled();
+    expect(calUpdate).toHaveBeenCalledWith(
+      'e1',
+      'u1',
+      'STAFF',
+      'existing',
+      expect.objectContaining({
+        evtStartAt: '2026-07-03T05:00:00.000Z', // 14:00 KST
+        evtEndAt: '2026-07-03T06:00:00.000Z',
+        evtEditReason: expect.any(String),
+      }),
+    );
+  });
+
+  it('REQ-260903F: linked event deleted → clears id and recreates', async () => {
+    calUpdate.mockRejectedValueOnce(new NotFoundException('EVENT_NOT_FOUND'));
+    const r = await svc.linkLevelTest(
+      makeInq(),
+      makeMt({ calEventId: 'gone' }),
+      'u1',
+      'STAFF',
+    );
+    expect(r).toBe('evt-new');
+    expect(mtUpdate).toHaveBeenCalledWith({ id: 'mt-1' }, { calEventId: null });
+    expect(calCreate).toHaveBeenCalled();
+    expect(mtUpdate).toHaveBeenCalledWith({ id: 'mt-1' }, { calEventId: 'evt-new' });
   });
 
   it('skips when scheduledAt missing', async () => {
@@ -105,7 +139,7 @@ describe('CslCalLinkerService', () => {
     expect(r).toBeNull();
   });
 
-  it('happy path — creates LEVEL_TEST event, stores id back on mpt', async () => {
+  it('happy path — creates LEVEL_TEST event in UTC (KST wall clock), stores id back on mpt', async () => {
     const r = await svc.linkLevelTest(makeInq(), makeMt(), 'u1', 'STAFF');
     expect(r).toBe('evt-new');
     expect(calCreate).toHaveBeenCalledWith(
@@ -114,8 +148,8 @@ describe('CslCalLinkerService', () => {
       'STAFF',
       expect.objectContaining({
         evtTitle: expect.stringContaining('홍길동'),
-        evtStartAt: '2026-07-03T14:00:00',
-        evtEndAt: '2026-07-03T15:00:00',
+        evtStartAt: '2026-07-03T05:00:00.000Z', // 14:00 KST
+        evtEndAt: '2026-07-03T06:00:00.000Z',
         evtCategory: 'LEVEL_TEST',
         evtMeetingProvider: 'NONE',
       }),
@@ -132,7 +166,7 @@ describe('CslCalLinkerService', () => {
 
   // ── linkDemoClass ──────────────────────────────────────────────────
 
-  it('demo class happy path — stores id back on tcl', async () => {
+  it('demo class happy path — stores id back on tcl (UTC instants)', async () => {
     const r = await svc.linkDemoClass(makeInq(), makeTcl(), 'u1', 'STAFF');
     expect(r).toBe('evt-new');
     expect(calCreate).toHaveBeenCalledWith(
@@ -141,8 +175,8 @@ describe('CslCalLinkerService', () => {
       'STAFF',
       expect.objectContaining({
         evtTitle: expect.stringContaining('Demo Class'),
-        evtStartAt: '2026-07-08T16:30:00',
-        evtEndAt: '2026-07-08T17:30:00',
+        evtStartAt: '2026-07-08T07:30:00.000Z', // 16:30 KST
+        evtEndAt: '2026-07-08T08:30:00.000Z',
       }),
     );
     expect(tclUpdate).toHaveBeenCalledWith({ id: 'tcl-1' }, { calEventId: 'evt-new' });
@@ -204,7 +238,7 @@ describe('CslCalLinkerService', () => {
     );
   });
 
-  it('hour rollover across midnight (HH:MM end > 23:00) — still constructs valid ISO', async () => {
+  it('hour rollover across KST midnight — UTC instants stay consistent', async () => {
     await svc.linkLevelTest(
       makeInq(),
       makeMt({ scheduledAt: '2026-07-03', scheduledTime: '23:30:00' }),
@@ -216,8 +250,8 @@ describe('CslCalLinkerService', () => {
       'u1',
       'STAFF',
       expect.objectContaining({
-        evtStartAt: '2026-07-03T23:30:00',
-        evtEndAt: '2026-07-04T00:30:00',
+        evtStartAt: '2026-07-03T14:30:00.000Z', // 23:30 KST
+        evtEndAt: '2026-07-03T15:30:00.000Z', // 00:30 KST 익일
       }),
     );
   });
