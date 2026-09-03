@@ -23,6 +23,7 @@ import type {
   CslStage,
   InflowType,
   PhoneStatus,
+  SourceSite,
   YesNo,
 } from '../../infrastructure/typeorm/inquiry.typeorm-entity';
 import type {
@@ -47,7 +48,13 @@ const STAGES: readonly CslStage[] = [
   'ATTENDING',
   'DROPPED',
 ] as const;
-const INFLOW_TYPES: readonly InflowType[] = ['HOMEPAGE', 'KAKAO_CHANNEL', 'PHONE'] as const;
+const INFLOW_TYPES: readonly InflowType[] = [
+  'HOMEPAGE',
+  'KAKAO_CHANNEL',
+  'PHONE',
+  'WEB_EXTERNAL',
+] as const;
+const SOURCE_SITES: readonly SourceSite[] = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 const APPLY_TYPES: readonly ApplyType[] = ['COUNSELING_ONLY', 'EXAM_ONLY', 'BOTH'] as const;
 const APPLY_PURPOSES = [
   'MAP_TEST_TUTORING',
@@ -136,6 +143,12 @@ export class CreateInquiryDto {
   @ApiProperty({ enum: INFLOW_TYPES }) @IsEnum(INFLOW_TYPES)
   inflowType!: InflowType;
 
+  /** REQ-260903G — source site code (WEB_EXTERNAL intake only) */
+  @ApiPropertyOptional({ enum: SOURCE_SITES })
+  @IsOptional()
+  @IsEnum(SOURCE_SITES)
+  sourceSite?: SourceSite;
+
   /** F-07 */
   @ApiProperty({ enum: APPLY_TYPES }) @IsEnum(APPLY_TYPES)
   applyType!: ApplyType;
@@ -146,6 +159,13 @@ export class CreateInquiryDto {
   @IsArray()
   @IsIn([...APPLY_PURPOSES], { each: true })
   applyPurposes?: string[];
+
+  /** REQ-260903G — freetext purposes that don't map to a standard code */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  applyPurposeOther?: string;
 
   /** F-09 */
   @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
@@ -564,6 +584,7 @@ export class ChangeStageDto {
 export {
   STAGES,
   INFLOW_TYPES,
+  SOURCE_SITES,
   APPLY_TYPES,
   APPLY_PURPOSES,
   PHONE_STATUSES,

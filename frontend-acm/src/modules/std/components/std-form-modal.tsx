@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useTeachers } from '@/modules/tch/hooks/use-teachers';
+import type { TeacherDetail } from '@/modules/tch/types';
+import { TeacherMultiCombo } from '@/modules/cal/components/teacher-multi-combo';
 import { useCreateStudent, useUpdateStudent } from '../hooks/use-students';
 import type { ParentInput, StudentCreatePrefill, StudentDetail } from '../types';
 import { ParentSubform } from './parent-subform';
@@ -35,7 +36,6 @@ type FormValues = {
   stdMapReading: string;
   stdMapMath: string;
   stdMapLanguage: string;
-  stdTeacherId: string;
   stdSubject: string;
   stdCurriculum: string;
   stdMobility: string;
@@ -55,8 +55,17 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
   const { t } = useTranslation('std');
   const isEdit = !!initial;
   const [serverError, setServerError] = useState<string | null>(null);
-  const { data: teacherData } = useTeachers({ status: 'ACTIVE', limit: 100 });
-  const teachers = teacherData?.items ?? [];
+  // REQ-260903B — 담당강사 복수선택 (첫번째 = 대표, 최대 5명)
+  const initialTeachers = (): TeacherDetail[] =>
+    (initial?.teachers ?? []).map(
+      (x) => ({ id: x.tchId, name: x.name }) as TeacherDetail,
+    );
+  const [selectedTeachers, setSelectedTeachers] =
+    useState<TeacherDetail[]>(initialTeachers);
+  useEffect(() => {
+    if (open) setSelectedTeachers(initialTeachers());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initial?.id]);
 
   const {
     register,
@@ -78,7 +87,6 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
       stdMapReading: initial?.mapReading != null ? String(initial.mapReading) : '',
       stdMapMath: initial?.mapMath != null ? String(initial.mapMath) : '',
       stdMapLanguage: initial?.mapLanguage != null ? String(initial.mapLanguage) : '',
-      stdTeacherId: initial?.teacherId ?? '',
       stdSubject: initial?.subject ?? '',
       stdCurriculum: initial?.curriculum ?? '',
       stdMobility: initial?.mobility ?? '',
@@ -109,12 +117,11 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
     setServerError(null);
     const dto: Record<string, unknown> = {};
     Object.entries(values).forEach(([k, v]) => {
-      if (k === 'stdParents' || k === 'stdTeacherId') return;
+      if (k === 'stdParents') return;
       if (v !== '') dto[k] = v;
     });
-    // 담당강사 FK: 선택 시 전송, 편집 모드에서 비우면 null 로 해제.
-    if (values.stdTeacherId) dto.stdTeacherId = values.stdTeacherId;
-    else if (isEdit) dto.stdTeacherId = null;
+    // REQ-260903B — 담당강사 복수: 전체 목록 동기화(빈 배열 = 전부 해제).
+    dto.stdTeacherIds = selectedTeachers.map((tch) => tch.id);
     if (dto.stdMapReading) dto.stdMapReading = Number(dto.stdMapReading);
     if (dto.stdMapMath) dto.stdMapMath = Number(dto.stdMapMath);
     if (dto.stdMapLanguage) dto.stdMapLanguage = Number(dto.stdMapLanguage);
@@ -140,19 +147,30 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
         await createMut.mutateAsync(dto);
       }
       reset();
+      setSelectedTeachers([]);
       onClose();
     } catch (e) {
       const err = e as {
-        response?: { data?: { error?: { code?: string }; message?: string } };
+        response?: {
+          data?: { error?: { code?: string; message?: string | string[] }; message?: string };
+        };
         message?: string;
       };
-      const code = err.response?.data?.error?.code;
+      // GlobalExceptionFilter 응답 shape: { error: { code, message } } —
+      // 도메인 코드(EMAIL_*)는 message 자리에 오므로 code/message 둘 다 매칭한다.
+      const apiErr = err.response?.data?.error;
+      const rawMsg = Array.isArray(apiErr?.message)
+        ? apiErr.message.join('\n')
+        : apiErr?.message;
+      const code = apiErr?.code === 'HTTP_400' || apiErr?.code === 'HTTP_409'
+        ? rawMsg
+        : apiErr?.code ?? rawMsg;
       setServerError(
         code === 'EMAIL_DUPLICATE'
           ? t('form.error.emailDuplicate', { defaultValue: '이미 사용 중인 이메일입니다.' })
           : code === 'EMAIL_REQUIRED'
             ? t('form.error.emailRequired', { defaultValue: '이메일을 입력해야 저장할 수 있습니다.' })
-            : err.response?.data?.message ?? err.message ?? t('form.error.save', { defaultValue: '저장에 실패했습니다.' }),
+            : rawMsg ?? err.response?.data?.message ?? err.message ?? t('form.error.save', { defaultValue: '저장에 실패했습니다.' }),
       );
     }
   };
@@ -235,22 +253,34 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
             register={register as unknown as import('react-hook-form').UseFormRegister<import('react-hook-form').FieldValues>}
           />
 
-          {/* MAP 점수 */}
+          {/* MAP 점수 — 서버 DTO(@Min 100/@Max 350)와 동일 범위를 폼에서 선검증.
+              범위 밖 레거시 값이 있으면 어떤 필드를 고쳐도 저장 전체가 400 나므로
+              해당 필드에 구체적 오류를 표시해 운영자가 바로잡을 수 있게 한다. */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">{t('form.sectionMap')}</legend>
             <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className={labelClass}>{t('field.mapReading')}</label>
-                <input type="number" {...register('stdMapReading')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.mapMath')}</label>
-                <input type="number" {...register('stdMapMath')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.mapLanguage')}</label>
-                <input type="number" {...register('stdMapLanguage')} className={inputClass} />
-              </div>
+              {(['stdMapReading', 'stdMapMath', 'stdMapLanguage'] as const).map((name, i) => (
+                <div key={name}>
+                  <label className={labelClass}>
+                    {t(['field.mapReading', 'field.mapMath', 'field.mapLanguage'][i])}
+                  </label>
+                  <input
+                    type="number"
+                    {...register(name, {
+                      validate: (v) =>
+                        v === '' ||
+                        (Number(v) >= 100 && Number(v) <= 350) ||
+                        (t('form.error.mapRange', {
+                          defaultValue: 'MAP 점수는 100~350 사이여야 합니다.',
+                        }) as string),
+                    })}
+                    className={inputClass}
+                  />
+                  {errors[name] && (
+                    <p className="mt-1 text-xs text-red-600">{errors[name]?.message}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </fieldset>
 
@@ -258,18 +288,19 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">{t('form.sectionClass')}</legend>
             <div className="grid grid-cols-2 gap-3">
-              <div>
+              <div className="col-span-2">
                 <label className={labelClass}>{t('field.teacher')}</label>
-                <select {...register('stdTeacherId')} className={inputClass}>
-                  <option value="">
-                    {t('form.teacherSelect', { defaultValue: '강사 선택' })}
-                  </option>
-                  {teachers.map((tch) => (
-                    <option key={tch.id} value={tch.id}>
-                      {tch.name}
-                    </option>
-                  ))}
-                </select>
+                <TeacherMultiCombo
+                  value={selectedTeachers}
+                  onChange={setSelectedTeachers}
+                  max={5}
+                />
+                <p className="mt-1 text-[11px] text-secondary">
+                  {t('form.teachersHint', {
+                    defaultValue: '최대 {{max}}명 · 첫 번째가 대표 강사',
+                    max: 5,
+                  })}
+                </p>
               </div>
               <div>
                 <label className={labelClass}>{t('field.subject')}</label>

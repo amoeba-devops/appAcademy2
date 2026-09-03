@@ -204,7 +204,8 @@
       "noHomeworkYet": "暂无作业信息。",
       "attachFile": "附加文件",
       "textFeedback": "反馈",
-      "textHomework": "作业"
+      "textHomework": "作业",
+      "mayShareToParent": "您撰写的反馈经管理员确认后可能会转发给家长。"
     },
     "recordings": {
       "title": "课程录像",
@@ -401,6 +402,110 @@
       "boda": {
         "title": "BODA 视频课堂",
         "description": "BODA 视频课堂集成设置"
+      },
+      "mail": {
+        "title": "邮件(SMTP)",
+        "description": "Gmail SMTP 发送设置 — 反馈·邀请邮件"
+      },
+      "general": {
+        "title": "常规",
+        "description": "时区及基本设置"
+      },
+      "kakao": {
+        "title": "Kakao AlimTalk",
+        "description": "Solapi 发送设置 — 反馈 AlimTalk"
+      }
+    },
+    "mail": {
+      "title": "邮件(SMTP)设置",
+      "description": "通过 Gmail SMTP 发送家长反馈邮件和日程邀请邮件。请先在 Google 账号开启两步验证，然后创建 16 位应用专用密码。",
+      "errors": {
+        "invalid": "请输入有效的主机和端口。"
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP 主机"
+        },
+        "port": {
+          "label": "端口"
+        },
+        "secure": {
+          "label": "使用 SSL（465 端口）"
+        },
+        "username": {
+          "label": "Gmail 地址（SMTP 用户）",
+          "hint": "用于发信的 Google 账号邮箱"
+        },
+        "password": {
+          "label": "应用专用密码",
+          "hint": "Google 账号 → 安全 → 两步验证 → 应用专用密码（普通密码无效）"
+        },
+        "fromName": {
+          "label": "发件人名称"
+        },
+        "fromAddress": {
+          "label": "发件地址",
+          "placeholder": "留空则使用 Gmail 地址"
+        },
+        "isActive": {
+          "label": "启用（允许发送）"
+        }
+      },
+      "test": {
+        "title": "测试发送",
+        "hint": "使用已保存的设置发送测试邮件。有改动请先保存。",
+        "send": "发送测试",
+        "ok": "发送成功 — 请查收。",
+        "notSet": "设置未保存或已停用，请先保存。",
+        "failed": "发送失败:"
+      }
+    },
+    "general": {
+      "title": "常规设置",
+      "description": "所有时间（课程日程等）均按以下时区显示和输入。服务国家：韩国（默认 Asia/Seoul）。",
+      "fields": {
+        "timezone": {
+          "label": "时区",
+          "hint": "日历显示与日程录入时间将按此时区处理。"
+        }
+      },
+      "preview": "当前时间预览: {{now}}"
+    },
+    "kakao": {
+      "title": "Kakao AlimTalk 设置 (Solapi)",
+      "description": "通过 Kakao AlimTalk 发送课程反馈到达通知。需要 Solapi API 凭证、Kakao 频道发送人档案及已审核通过的模板。",
+      "templateHint": "请使用以下变量名注册并通过 AlimTalk 模板审核:",
+      "fields": {
+        "apiKey": {
+          "label": "Solapi API Key"
+        },
+        "apiSecret": {
+          "label": "Solapi API Secret"
+        },
+        "pfId": {
+          "label": "发送人档案密钥 (pfId)"
+        },
+        "templateId": {
+          "label": "模板 ID"
+        },
+        "senderPhone": {
+          "label": "备用发送号码",
+          "hint": "用于 SMS 备用发送的已登记号码（仅数字）"
+        },
+        "smsFallback": {
+          "label": "失败时 SMS 备用发送"
+        },
+        "isActive": {
+          "label": "启用（允许发送）"
+        }
+      },
+      "test": {
+        "title": "测试发送",
+        "hint": "使用已保存设置和示例变量发送 AlimTalk。有改动请先保存。",
+        "send": "发送测试",
+        "ok": "发送成功 — 请查看 KakaoTalk。",
+        "notSet": "设置未保存或已停用，请先保存。",
+        "failed": "发送失败:"
       }
     }
   },
@@ -425,5 +530,12 @@
     "kindOperator": "运营者",
     "kindTeacher": "教师",
     "teacherOnly": "仅限教师使用。"
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "打开聊天",
+    "filePreview": "文件",
+    "newInquiry": "🔔 新咨询接收 #{{seqNo}}",
+    "openInquiries": "打开咨询列表"
   }
 }

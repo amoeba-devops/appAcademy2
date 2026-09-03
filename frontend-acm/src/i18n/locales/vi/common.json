@@ -204,7 +204,8 @@
       "noHomeworkYet": "Chưa có thông tin bài tập.",
       "attachFile": "Đính kèm tệp",
       "textFeedback": "Phản hồi",
-      "textHomework": "Bài tập"
+      "textHomework": "Bài tập",
+      "mayShareToParent": "Phản hồi bạn viết có thể được gửi tới phụ huynh sau khi quản trị viên xác nhận."
     },
     "recordings": {
       "title": "Bản ghi buổi học",
@@ -401,6 +402,110 @@
       "boda": {
         "title": "Lớp học BODA",
         "description": "Cài đặt tích hợp lớp học trực tuyến BODA"
+      },
+      "mail": {
+        "title": "Mail (SMTP)",
+        "description": "Cấu hình Gmail SMTP — email phản hồi & lời mời"
+      },
+      "general": {
+        "title": "Chung",
+        "description": "Múi giờ và cài đặt cơ bản"
+      },
+      "kakao": {
+        "title": "Kakao AlimTalk",
+        "description": "Cấu hình gửi Solapi — AlimTalk phản hồi"
+      }
+    },
+    "mail": {
+      "title": "Cấu hình Mail (SMTP)",
+      "description": "Gửi email phản hồi cho phụ huynh và lời mời lịch qua Gmail SMTP. Bật xác minh 2 bước trên tài khoản Google rồi tạo Mật khẩu ứng dụng (16 ký tự).",
+      "errors": {
+        "invalid": "Nhập host và cổng hợp lệ."
+      },
+      "fields": {
+        "host": {
+          "label": "SMTP host"
+        },
+        "port": {
+          "label": "Cổng"
+        },
+        "secure": {
+          "label": "Dùng SSL (cổng 465)"
+        },
+        "username": {
+          "label": "Địa chỉ Gmail (người dùng SMTP)",
+          "hint": "Email tài khoản Google dùng để gửi"
+        },
+        "password": {
+          "label": "Mật khẩu ứng dụng",
+          "hint": "Tài khoản Google → Bảo mật → Xác minh 2 bước → Mật khẩu ứng dụng (mật khẩu thường không dùng được)"
+        },
+        "fromName": {
+          "label": "Tên người gửi"
+        },
+        "fromAddress": {
+          "label": "Địa chỉ gửi",
+          "placeholder": "Để trống để dùng địa chỉ Gmail"
+        },
+        "isActive": {
+          "label": "Kích hoạt (cho phép gửi)"
+        }
+      },
+      "test": {
+        "title": "Gửi thử",
+        "hint": "Gửi email thử bằng cấu hình đã lưu. Hãy lưu thay đổi trước.",
+        "send": "Gửi thử",
+        "ok": "Đã gửi — kiểm tra hộp thư.",
+        "notSet": "Cấu hình chưa được lưu hoặc đang tắt. Hãy lưu trước.",
+        "failed": "Gửi thất bại:"
+      }
+    },
+    "general": {
+      "title": "Cài đặt chung",
+      "description": "Mọi thời gian (lịch học, v.v.) được hiển thị và nhập theo múi giờ bên dưới. Quốc gia dịch vụ: Hàn Quốc (mặc định Asia/Seoul).",
+      "fields": {
+        "timezone": {
+          "label": "Múi giờ",
+          "hint": "Hiển thị lịch và giờ đăng ký lịch sẽ theo múi giờ này."
+        }
+      },
+      "preview": "Xem trước giờ hiện tại: {{now}}"
+    },
+    "kakao": {
+      "title": "Cấu hình Kakao AlimTalk (Solapi)",
+      "description": "Gửi thông báo phản hồi buổi học qua Kakao AlimTalk. Cần thông tin API Solapi, sender profile của kênh Kakao và mẫu tin đã được duyệt.",
+      "templateHint": "Đăng ký và duyệt mẫu AlimTalk với đúng các tên biến sau:",
+      "fields": {
+        "apiKey": {
+          "label": "Solapi API Key"
+        },
+        "apiSecret": {
+          "label": "Solapi API Secret"
+        },
+        "pfId": {
+          "label": "Khóa sender profile (pfId)"
+        },
+        "templateId": {
+          "label": "ID mẫu tin"
+        },
+        "senderPhone": {
+          "label": "Số gửi dự phòng",
+          "hint": "Số đã đăng ký trước dùng cho SMS dự phòng (chỉ số)"
+        },
+        "smsFallback": {
+          "label": "Gửi SMS khi thất bại"
+        },
+        "isActive": {
+          "label": "Kích hoạt (cho phép gửi)"
+        }
+      },
+      "test": {
+        "title": "Gửi thử",
+        "hint": "Gửi AlimTalk với biến mẫu bằng cấu hình đã lưu. Hãy lưu thay đổi trước.",
+        "send": "Gửi thử",
+        "ok": "Đã gửi — kiểm tra KakaoTalk.",
+        "notSet": "Cấu hình chưa lưu hoặc đang tắt. Hãy lưu trước.",
+        "failed": "Gửi thất bại:"
       }
     }
   },
@@ -425,5 +530,12 @@
     "kindOperator": "Vận hành",
     "kindTeacher": "Giáo viên",
     "teacherOnly": "Chỉ dành cho giáo viên."
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "Mở chat",
+    "filePreview": "Tệp",
+    "newInquiry": "🔔 Yêu cầu tư vấn mới #{{seqNo}}",
+    "openInquiries": "Mở danh sách tư vấn"
   }
 }

@@ -1,0 +1,113 @@
+<!--
+  ============================================================
+  TRINITY — ACM 외부 상담접수 폼 (REQ-260903G)
+  아임웹 적용 방법:
+    1. 아임웹 관리자 → 사이트 편집 → 새 페이지(/contact2) 생성
+    2. "코드 위젯" 추가 → 이 파일 전체를 붙여넣기 → 저장/게시
+  주의:
+    - SITE_KEY 는 백엔드 ACM_INTAKE_SITE_KEYS 환경변수와 반드시 일치해야 함
+    - API_URL 은 운영 백엔드 주소 (스테이징 테스트 시 acm-stg 로 교체)
+  ============================================================
+-->
+<div id="acm-intake">
+  <style>
+    #acm-intake { max-width: 560px; margin: 0 auto; font-family: Pretendard, -apple-system, sans-serif; }
+    #acm-intake .ai-label { display: block; margin: 14px 0 4px; font-size: 14px; font-weight: 600; }
+    #acm-intake .ai-req { color: #c0392b; }
+    #acm-intake .ai-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; }
+    #acm-intake .ai-check { display: block; margin: 6px 0; font-size: 14px; }
+    #acm-intake .ai-check input { margin-right: 6px; }
+    #acm-intake .ai-consent { margin-top: 16px; font-size: 13px; }
+    #acm-intake .ai-btn { width: 100%; margin-top: 18px; padding: 12px; border: 0; border-radius: 6px; background: #1f2d4d; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+    #acm-intake .ai-btn:disabled { opacity: .5; cursor: default; }
+    #acm-intake .ai-msg { margin-top: 12px; font-size: 14px; display: none; }
+    #acm-intake .ai-msg.ok { color: #1e7e34; display: block; }
+    #acm-intake .ai-msg.err { color: #c0392b; display: block; }
+    #acm-intake .ai-hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+  </style>
+
+  <h3>상담 신청</h3>
+
+  <label class="ai-label">어떤 상담을 원하시나요? (복수선택 가능)</label>
+        <label class="ai-check"><input type="checkbox" name="ai-purpose" value="인가 국제학교 입학 준비"> 인가 국제학교 입학 준비</label>
+        <label class="ai-check"><input type="checkbox" name="ai-purpose" value="비인가 국제학교 입학 준비"> 비인가 국제학교 입학 준비</label>
+        <label class="ai-check"><input type="checkbox" name="ai-purpose" value="외국인학교 입학 준비"> 외국인학교 입학 준비</label>
+        <label class="ai-check"><input type="checkbox" name="ai-purpose" value="해외 주니어 보딩스쿨 / 하이 보딩스쿨 입학 준비"> 해외 주니어 보딩스쿨 / 하이 보딩스쿨 입학 준비</label>
+        <label class="ai-check"><input type="checkbox" name="ai-purpose" value="All in One 입학 준비 컨설팅(수업+포트폴리오+원서 지원+GPA관리)"> All in One 입학 준비 컨설팅(수업+포트폴리오+원서 지원+GPA관리)</label>
+
+      <label class="ai-label">학생 이름 <span class="ai-req">*</span></label>
+      <input class="ai-input" id="ai-student" maxlength="50" autocomplete="name">
+      <label class="ai-label">학년</label>
+      <input class="ai-input" id="ai-grade" maxlength="10" placeholder="예: 중2">
+      <label class="ai-label">연락처 <span class="ai-req">*</span></label>
+      <input class="ai-input" id="ai-phone" maxlength="20" inputmode="tel" placeholder="010-0000-0000" autocomplete="tel">
+      <label class="ai-label">문의 내용</label>
+      <textarea class="ai-input" id="ai-message" rows="4" maxlength="2000" placeholder="궁금하신 부분을 말씀해 주세요."></textarea>
+
+  <!-- honeypot: 사람은 보지 못하는 필드 — 채워지면 서버가 조용히 무시 -->
+  <div class="ai-hp"><input id="ai-website" tabindex="-1" autocomplete="off"></div>
+
+  <label class="ai-consent">
+    <input type="checkbox" id="ai-consent"> 개인정보 수집 및 이용에 동의합니다. <span class="ai-req">*</span>
+  </label>
+
+  <button class="ai-btn" id="ai-submit" type="button">신청하기</button>
+  <p class="ai-msg" id="ai-result"></p>
+</div>
+
+<script>
+(function () {
+  var API_URL = 'https://acm.amoeba.site/api/web/external-intake';
+  var SITE_KEY = 'trinity-51c0c40bd70ba964';
+
+  function get(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  document.getElementById('ai-submit').addEventListener('click', function () {
+    var btn = this;
+    var result = document.getElementById('ai-result');
+    result.className = 'ai-msg';
+
+    var purposes = [];
+    var checks = document.querySelectorAll('#acm-intake input[name="ai-purpose"]:checked');
+    for (var i = 0; i < checks.length; i++) purposes.push(checks[i].value);
+
+    var message = get('ai-message');
+    
+
+    if (!get('ai-student')) { result.textContent = '이름을 입력해 주세요.'; result.className = 'ai-msg err'; return; }
+    if (!/^[0-9+\-() ]{7,20}$/.test(get('ai-phone'))) { result.textContent = '연락처를 확인해 주세요.'; result.className = 'ai-msg err'; return; }
+    if (!document.getElementById('ai-consent').checked) { result.textContent = '개인정보 수집·이용 동의가 필요합니다.'; result.className = 'ai-msg err'; return; }
+
+    var payload = {
+      studentName: get('ai-student'),
+      parentPhone: get('ai-phone'),
+      applyPurposeLabels: purposes,
+      message: message || undefined,
+      consent: true,
+      website: get('ai-website') || undefined
+    };
+    
+    payload.grade = get('ai-grade') || undefined;
+
+    btn.disabled = true;
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-acm-site-key': SITE_KEY },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function () {
+        result.textContent = '접수되었습니다. 확인 후 연락드리겠습니다.';
+        result.className = 'ai-msg ok';
+      })
+      .catch(function () {
+        result.textContent = '접수 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+        result.className = 'ai-msg err';
+        btn.disabled = false;
+      });
+  });
+})();
+</script>

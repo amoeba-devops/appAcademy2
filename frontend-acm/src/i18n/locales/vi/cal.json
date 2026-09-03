@@ -270,5 +270,42 @@
   "detail": {
     "backToCal": "Về lịch học",
     "backHistory": "Quay lại"
+  },
+  "feedbackEmail": {
+    "copyBtn": "Sao chép nội dung",
+    "copied": "Đã sao chép nội dung phản hồi.",
+    "copyFailed": "Sao chép thất bại.",
+    "sendBtn": "Gửi email phụ huynh",
+    "title": "Gửi email phản hồi",
+    "recipientsTitle": "Người nhận — phụ huynh liên kết của học sinh tham gia",
+    "noParent": "Chưa liên kết phụ huynh",
+    "findParent": "Tìm & liên kết phụ huynh",
+    "noEmail": "Không có email",
+    "primaryBadge": "Đại diện",
+    "subjectLabel": "Tiêu đề",
+    "subjectTemplate": "[Phản hồi buổi học] {{title}} — {{date}}",
+    "send": "Gửi ({{count}})",
+    "sending": "Đang gửi…",
+    "noStudents": "Không có học sinh tham gia.",
+    "noFeedback": "Chưa có phản hồi nào được viết.",
+    "smtpNotConfigured": "Máy chủ mail (SMTP) chưa được cấu hình nên không thể gửi.",
+    "sendFailed": "Gửi thất bại.",
+    "sentToast": "Đã gửi cho {{count}} người nhận.",
+    "partialFailToast": "{{failed}} email gửi thất bại.",
+    "result": {
+      "SENT": "Đã gửi",
+      "NO_EMAIL": "Không có email",
+      "FAILED": "Thất bại",
+      "NO_PHONE": "Không có SĐT"
+    },
+    "relation": {
+      "FATHER": "Bố",
+      "MOTHER": "Mẹ",
+      "GUARDIAN": "Người giám hộ",
+      "OTHER": "Khác"
+    },
+    "sendAlimtalk": "💬 Gửi AlimTalk ({{count}})",
+    "alimtalkSentToast": "Đã gửi {{count}} tin AlimTalk.",
+    "alimtalkNotConfigured": "AlimTalk (Solapi) chưa được cấu hình hoặc đang tắt."
   }
 }

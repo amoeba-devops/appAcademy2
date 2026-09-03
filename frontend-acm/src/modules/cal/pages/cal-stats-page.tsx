@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
 import {
   addDays,
   addMonths,
@@ -43,8 +44,8 @@ const RECENT_DAYS: Record<'7d' | '28d' | '90d', number> = {
 };
 
 /**
- * 로컬(사용자 브라우저 타임존) 기준 yyyy-mm-dd. toISOString() 은 UTC 변환이라
- * KST 자정 앵커가 전날(전월 말일)로 밀려 월 이동이 -2/-0 이 되는 버그가 있었다
+ * 시프트 공간(테넌트 TZ 벽시계, REQ-260903) Date 의 yyyy-mm-dd.
+ * toISOString() 은 UTC 변환이라 자정 앵커가 전날로 밀리는 버그가 있었다
  * (REQ-260729-3).
  */
 const toLocalYmd = (d: Date) =>
@@ -60,6 +61,8 @@ const parseYmd = (raw: string | null): Date | null => {
 };
 
 export function useStatsPeriod() {
+  // REQ-260903 — 기간 산술은 테넌트 TZ 벽시계(시프트 공간) 기준.
+  const tz = useTenantTz();
   const [params, setParams] = useSearchParams();
   const rawUnit = params.get('unit');
   const unit: StatsUnit = (
@@ -68,8 +71,8 @@ export function useStatsPeriod() {
     ? (rawUnit as StatsUnit)
     : 'month';
   const anchor = useMemo(
-    () => parseYmd(params.get('anchor')) ?? new Date(),
-    [params],
+    () => parseYmd(params.get('anchor')) ?? toZonedShift(new Date(), tz),
+    [params, tz],
   );
   const customFrom = useMemo(() => parseYmd(params.get('from')), [params]);
   const customTo = useMemo(() => parseYmd(params.get('to')), [params]);
@@ -82,16 +85,16 @@ export function useStatsPeriod() {
       return { from: startOfMonth(anchor), to: endOfMonth(anchor) };
     }
     if (unit === 'custom') {
-      const from = customFrom ?? startOfMonth(new Date());
-      const to = customTo ?? new Date();
+      const from = customFrom ?? startOfMonth(toZonedShift(new Date(), tz));
+      const to = customTo ?? toZonedShift(new Date(), tz);
       return { from: startOfDay(from), to: endOfDay(to) };
     }
-    const today = new Date();
+    const today = toZonedShift(new Date(), tz);
     return {
       from: startOfDay(addDays(today, -(RECENT_DAYS[unit] - 1))),
       to: endOfDay(today),
     };
-  }, [unit, anchor, customFrom, customTo]);
+  }, [unit, anchor, customFrom, customTo, tz]);
 
   const set = (
     nextUnit: StatsUnit,
@@ -101,8 +104,10 @@ export function useStatsPeriod() {
     if (nextUnit === 'week' || nextUnit === 'month') {
       next.anchor = toLocalYmd(opts?.anchor ?? anchor);
     } else if (nextUnit === 'custom') {
-      next.from = toLocalYmd(opts?.from ?? customFrom ?? startOfMonth(new Date()));
-      next.to = toLocalYmd(opts?.to ?? customTo ?? new Date());
+      next.from = toLocalYmd(
+        opts?.from ?? customFrom ?? startOfMonth(toZonedShift(new Date(), tz)),
+      );
+      next.to = toLocalYmd(opts?.to ?? customTo ?? toZonedShift(new Date(), tz));
     }
     const view = params.get('view');
     if (view) next.view = view;
@@ -192,12 +197,16 @@ export function PeriodControls() {
 }
 
 export function useCalStats(from: Date, to: Date) {
+  // from/to 는 시프트 공간(테넌트 TZ 벽시계) Date — 실제 UTC 로 변환해 조회.
+  const tz = useTenantTz();
+  const fromIso = fromZonedShift(from, tz).toISOString();
+  const toIso = fromZonedShift(to, tz).toISOString();
   return useQuery({
-    queryKey: ['cal', 'stats', from.toISOString(), to.toISOString()],
+    queryKey: ['cal', 'stats', fromIso, toIso],
     queryFn: async () =>
       (
         await apiClient.get<StatsResponse>('/acm/cal/events/stats', {
-          params: { from: from.toISOString(), to: to.toISOString() },
+          params: { from: fromIso, to: toIso },
         })
       ).data,
   });

@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "Homepage",
     "KAKAO_CHANNEL": "KakaoTalk Channel",
-    "PHONE": "Phone"
+    "PHONE": "Phone",
+    "WEB_EXTERNAL": "External Web"
   },
   "applyType": {
     "COUNSELING_ONLY": "Counseling only",
@@ -133,7 +134,7 @@
     },
     "levelTest": {
       "title": "2. Level Test",
-      "skipHint": "※ Inquiries with prior scores entered at intake can skip this stage and move to Demo Class.",
+      "skipHint": "※ You can move to Demo Class without a score (including Not held). Entered MAP scores also appear in the intake prior-scores.",
       "empty": "No applied tests. Pick an apply purpose at stage 1.",
       "col": {
         "test": "Test",
@@ -387,5 +388,10 @@
       "addPlaceholder": "Add a note or follow-up"
     },
     "linkedStudent": "Enrolled student"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "Trinity",
+    "SANTACROCE": "Santa Croce"
   }
 }

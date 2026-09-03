@@ -60,6 +60,9 @@ import { PostEditorPage } from '@/modules/posts/pages/post-editor-page';
 import { ConfigLandingPage } from '@/modules/cfg/pages/config-landing-page';
 import { AmaConfigPage } from '@/modules/cfg/pages/ama-config-page';
 import { BodaConfigPage } from '@/modules/cfg/pages/boda-config-page';
+import { MailConfigPage } from '@/modules/cfg/pages/mail-config-page';
+import { GeneralConfigPage } from '@/modules/cfg/pages/general-config-page';
+import { KakaoConfigPage } from '@/modules/cfg/pages/kakao-config-page';
 import { SystemShell } from '@/components/layout/system-shell';
 import { RequireAppAdmin } from '@/components/layout/require-app-admin';
 import { SystemAdminPage } from '@/modules/system/pages/system-admin-page';
@@ -212,6 +215,9 @@ export const router = createBrowserRouter([
       { path: 'config', element: <ConfigLandingPage /> },
       { path: 'config/ama', element: <AmaConfigPage /> },
       { path: 'config/boda', element: <BodaConfigPage /> },
+      { path: 'config/mail', element: <MailConfigPage /> },
+      { path: 'config/general', element: <GeneralConfigPage /> },
+      { path: 'config/kakao', element: <KakaoConfigPage /> },
     ],
   },
 

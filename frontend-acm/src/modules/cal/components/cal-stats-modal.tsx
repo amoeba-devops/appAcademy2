@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { DEFAULT_TZ, fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
 import {
   Dialog,
   DialogContent,
@@ -46,8 +47,9 @@ export function CalStatsModal({
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation('cal');
+  const tz = useTenantTz(); // REQ-260903 — 테넌트 TZ 벽시계 기준
   const [unit, setUnit] = useState<'week' | 'month'>('month');
-  const [anchor, setAnchor] = useState(() => new Date());
+  const [anchor, setAnchor] = useState(() => toZonedShift(new Date(), DEFAULT_TZ));
 
   const range = useMemo(() => {
     if (unit === 'week') {
@@ -58,13 +60,18 @@ export function CalStatsModal({
 
   const { data, isLoading } = useQuery({
     enabled: open,
-    queryKey: ['cal', 'stats', range.from.toISOString(), range.to.toISOString()],
+    queryKey: [
+      'cal',
+      'stats',
+      fromZonedShift(range.from, tz).toISOString(),
+      fromZonedShift(range.to, tz).toISOString(),
+    ],
     queryFn: async () =>
       (
         await apiClient.get<StatsResponse>('/acm/cal/events/stats', {
           params: {
-            from: range.from.toISOString(),
-            to: range.to.toISOString(),
+            from: fromZonedShift(range.from, tz).toISOString(),
+            to: fromZonedShift(range.to, tz).toISOString(),
           },
         })
       ).data,

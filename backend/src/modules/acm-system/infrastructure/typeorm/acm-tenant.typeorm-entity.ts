@@ -22,6 +22,10 @@ export class AcmTenantTypeormEntity {
   @Column({ name: 'tnt_status', type: 'varchar', length: 20, default: 'ACTIVE' })
   status!: 'ACTIVE' | 'INACTIVE';
 
+  /** REQ-260903 — 테넌트 타임존 (IANA). 모든 일정 표시·입력 기준. */
+  @Column({ name: 'tnt_timezone', type: 'varchar', length: 64, default: 'Asia/Seoul' })
+  timezone!: string;
+
   @Column({ name: 'tnt_is_system', type: 'boolean', default: false })
   isSystem!: boolean;
 

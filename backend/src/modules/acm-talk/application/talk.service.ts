@@ -85,6 +85,8 @@ export interface TalkMessageView {
   filename: string | null;
   sizeBytes: number | null;
   senderKind: TalkMemberKind;
+  /** REQ-260903C — SSE 수신측에서 mine 재계산용 발신자 refId. */
+  senderRefId: string;
   senderName: string;
   mine: boolean;
   createdAt: string;
@@ -636,6 +638,7 @@ export class TalkService {
       filename: m.filename ?? null,
       sizeBytes: m.sizeBytes != null ? Number(m.sizeBytes) : null,
       senderKind: m.senderKind,
+      senderRefId: m.senderRef,
       senderName:
         nameMap.get(actorKey({ kind: m.senderKind, refId: m.senderRef })) ?? '-',
       mine: m.senderKind === viewer.kind && m.senderRef === viewer.refId,

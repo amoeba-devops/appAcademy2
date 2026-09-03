@@ -33,7 +33,8 @@ interface InquiryDetail {
   phoneStatus: 'PROVIDED' | 'DECLINED' | 'UNKNOWN';
   schoolFreetext?: string | null;
   grade?: string | null;
-  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE';
+  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
+  sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
   applyPurposes?: string[];
   consultDone?: 'YES' | 'NO' | null;
@@ -175,7 +176,9 @@ export function CslDetailBody({
           )}
           <h1 className="text-2xl font-semibold">{displayName}</h1>
           <p className="text-sm text-secondary mt-1">
-            #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)} · {t(`applyType.${inq.applyType}`)}
+            #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)}
+            {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{' '}
+            {t(`applyType.${inq.applyType}`)}
             {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
             {inq.grade && ` (${t(`grade.${inq.grade}`, inq.grade)})`}
           </p>

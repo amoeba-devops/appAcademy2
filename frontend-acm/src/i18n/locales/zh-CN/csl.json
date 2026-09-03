@@ -73,7 +73,8 @@
   "inflow": {
     "HOMEPAGE": "官网",
     "KAKAO_CHANNEL": "KakaoTalk 频道",
-    "PHONE": "电话"
+    "PHONE": "电话",
+    "WEB_EXTERNAL": "外部网站"
   },
   "applyType": {
     "COUNSELING_ONLY": "仅咨询",
@@ -133,7 +134,7 @@
     },
     "levelTest": {
       "title": "2. 分级测试",
-      "skipHint": "※ 第1阶段已填写既有成绩的咨询可跳过本阶段，直接进入示范课。",
+      "skipHint": "※ 未录入成绩（含未进行）也可进入示范课。录入的 MAP 成绩会同步显示在接收阶段的既有成绩中。",
       "empty": "无申请考试。请先在第1阶段选择申请目的。",
       "col": {
         "test": "考试",
@@ -387,5 +388,10 @@
       "addPlaceholder": "请记录备注或后续事项"
     },
     "linkedStudent": "报名学生"
+  },
+  "sourceSite": {
+    "TPI": "TPI",
+    "TRINITY": "Trinity",
+    "SANTACROCE": "Santa Croce"
   }
 }

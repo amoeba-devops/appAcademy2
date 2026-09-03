@@ -23,9 +23,12 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
+import { useQuery } from '@tanstack/react-query';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { AdminRealtime } from '@/components/layout/admin-realtime';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyMenus } from '@/modules/system/hooks/use-my-menus';
+import { talkApi } from '@/modules/talk/api/talk-api';
 
 const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
@@ -86,6 +89,20 @@ export function AppShell() {
     navigate('/login', { replace: true });
   };
 
+  // REQ-260903C — 사이드바 채팅 미읽음 배지 (전역, 이벤트 시 invalidate 로 갱신).
+  const isTalkRole = user?.role === 'ADMIN' || user?.role === 'APP_ADMIN';
+  const { data: talkChannels } = useQuery({
+    queryKey: ['talk-channels', 'admin'],
+    queryFn: () => talkApi.channels('admin'),
+    enabled: isTalkRole,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: true,
+  });
+  const chatUnread = (talkChannels ?? []).reduce(
+    (sum, c) => sum + (c.unreadCount ?? 0),
+    0,
+  );
+
   // REQ-260621 — force seeded/admin-reset accounts to rotate before any use.
   if (user?.mustChangePassword) {
     return <Navigate to="/admin/change-password" replace />;
@@ -93,6 +110,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen bg-canvas text-primary">
+      <AdminRealtime />
       <header className="fixed inset-x-0 top-0 z-10 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-6">
         {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
         <Link to="/admin" className="font-semibold text-lg text-accent-700">
@@ -119,7 +137,12 @@ export function AppShell() {
               }
             >
               <Icon size={18} />
-              {t(`nav.${key}`)}
+              <span className="flex-1">{t(`nav.${key}`)}</span>
+              {key === 'chat' && chatUnread > 0 && (
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                  {chatUnread > 99 ? '99+' : chatUnread}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

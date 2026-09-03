@@ -130,11 +130,12 @@ export class InquiryService {
       parentNameIv: parentNameEnc?.iv ?? null,
       parentNameAuthTag: parentNameEnc?.authTag ?? null,
       inflowType: dto.inflowType,
+      sourceSite: dto.sourceSite ?? null,
       applyType: dto.applyType,
       applyPurpose: dto.applyPurposes?.length
         ? dto.applyPurposes.join(',')
         : null,
-      applyPurposeOther: null,
+      applyPurposeOther: dto.applyPurposeOther ?? null,
       consultDone: dto.consultDone ?? null,
       schoolId: dto.schoolId ?? null,
       schoolFreetext: dto.schoolFreetext ?? null,
@@ -377,9 +378,18 @@ export class InquiryService {
         'waiverReason required when feeStatus=WAIVED',
       );
     }
-    let mt = await this.mapTests.findOne({ where: { inqId, entId } });
+    // REQ-260903D — 접수 경로는 MAP 행 고정 (1:N 전환 후 비결정적 findOne 이
+    // 접수 이전점수를 다른 시험 행에 붙이거나 엉뚱한 행을 읽던 문제).
+    let mt = await this.mapTests.findOne({
+      where: { inqId, entId, testType: 'MAP' },
+    });
     if (!mt) {
-      mt = this.mapTests.create({ id: randomUUID(), entId, inqId });
+      mt = this.mapTests.create({
+        id: randomUUID(),
+        entId,
+        inqId,
+        testType: 'MAP',
+      });
     }
 
     // REQ-260626 — when scoreDetail is provided, validate against the
@@ -436,7 +446,10 @@ export class InquiryService {
     actorId: string,
   ) {
     await this.getOrThrow(entId, inqId);
-    const mt = await this.mapTests.findOne({ where: { inqId, entId } });
+    // REQ-260903D — 결과는 해당 testType 행에만 기록 (비결정적 findOne 제거).
+    const mt = await this.mapTests.findOne({
+      where: { inqId, entId, testType: dto.testType },
+    });
     if (!mt) {
       throw new NotFoundException(
         'Level-test row not found — operator must schedule before recording a result',
@@ -459,12 +472,11 @@ export class InquiryService {
         scoreDetail: null,
       });
     } else {
-      // Non-MAP path: clear dedicated columns, persist JSONB.
+      // Non-MAP path: persist JSONB. REQ-260903D — MAP 전용 컬럼(접수
+      // 이전점수와 공유)은 건드리지 않는다 (null 덮어쓰기로 이전점수가
+      // 소실되던 문제).
       Object.assign(mt, {
         testType: dto.testType,
-        scoreReading: null,
-        scoreMath: null,
-        scoreLanguage: null,
         scoreDetail: normalizedDetail,
       });
     }
@@ -475,10 +487,9 @@ export class InquiryService {
   }
 
   getMapTest(entId: string, inqId: string) {
-    // Legacy 1:1 accessor — returns the first row matching (entId, inqId).
-    // DSN-260629 §6 moved to 1:N per testType; new callers should use
-    // listLevelTests + filtered access.
-    return this.mapTests.findOne({ where: { inqId, entId } });
+    // REQ-260903D — 접수(이전점수) 경로는 MAP 행 고정. 1:N 전환 후
+    // 무필터 findOne 이 임의 행을 반환해 이전점수 표시가 비결정적이던 문제.
+    return this.mapTests.findOne({ where: { inqId, entId, testType: 'MAP' } });
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -588,10 +599,8 @@ export class InquiryService {
         scoreDetail: null,
       });
     } else {
+      // REQ-260903D — MAP 전용 컬럼(접수 이전점수와 공유)은 유지.
       Object.assign(mt, {
-        scoreReading: null,
-        scoreMath: null,
-        scoreLanguage: null,
         scoreDetail: normalizedDetail,
       });
     }
@@ -927,24 +936,26 @@ export class InquiryService {
     toStage: CslStage,
   ): Promise<void> {
     if (toStage === 'TRIAL_CLASS') {
-      const mt = await this.mapTests.findOne({ where: { entId, inqId } });
-      const passed =
-        !!mt &&
-        (mt.hasPriorScore === true ||
-          mt.feeStatus === 'PAID' ||
-          mt.feeStatus === 'WAIVED' ||
-          mt.scoreReading != null ||
-          mt.scoreMath != null ||
-          mt.scoreLanguage != null);
-      if (fromStage === 'INTAKE' && !passed) {
-        throw new BadRequestException(
-          'Skip-to-TRIAL_CLASS requires prior MAP score or paid/waived fee (Q-CSL-003)',
-        );
-      }
-      if (fromStage === 'MAP_TEST' && !passed) {
-        throw new BadRequestException(
-          'TRIAL_CLASS entry requires recorded MAP score or paid/waived fee',
-        );
+      // REQ-260903D — MAP_TEST → TRIAL_CLASS 는 항상 허용(미진행 포함 운영자
+      // 판단). 점수 게이트는 INTAKE 에서 레벨테스트 단계를 통째로 건너뛰는
+      // 경우(Q-CSL-003)에만 유지하며, 조회는 MAP 행 고정.
+      if (fromStage === 'INTAKE') {
+        const mt = await this.mapTests.findOne({
+          where: { entId, inqId, testType: 'MAP' },
+        });
+        const passed =
+          !!mt &&
+          (mt.hasPriorScore === true ||
+            mt.feeStatus === 'PAID' ||
+            mt.feeStatus === 'WAIVED' ||
+            mt.scoreReading != null ||
+            mt.scoreMath != null ||
+            mt.scoreLanguage != null);
+        if (!passed) {
+          throw new BadRequestException(
+            'Skip-to-TRIAL_CLASS requires prior MAP score or paid/waived fee (Q-CSL-003)',
+          );
+        }
       }
     }
     if (toStage === 'ENROLLMENT_COUNSELING') {
@@ -1119,10 +1130,12 @@ export class InquiryService {
       grade: e.grade,
       stdId: e.stdId ?? null,
       inflowType: e.inflowType,
+      sourceSite: e.sourceSite ?? null,
       applyType: e.applyType,
       applyPurposes: e.applyPurpose
         ? e.applyPurpose.split(',').filter(Boolean)
         : [],
+      applyPurposeOther: e.applyPurposeOther ?? null,
       consultDone: e.consultDone,
       currentStage: e.currentStage,
       previousStage: e.previousStage,

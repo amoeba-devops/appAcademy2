@@ -94,9 +94,17 @@ export class CreateStudentDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdTeacher?: string;
 
-  // PLN-260714 — 담당강사 정규화 FK (등록강사 리스트에서 선택)
+  // PLN-260714 — 담당강사 정규화 FK (하위호환 — stdTeacherIds 미제공 시 단일값)
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   stdTeacherId?: string;
+
+  // REQ-260903B — 담당강사 복수 (입력 순서 = 표시 순서, 첫번째 = 대표)
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsUUID(undefined, { each: true })
+  stdTeacherIds?: string[];
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdSubject?: string;
@@ -191,9 +199,17 @@ export class UpdateStudentDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdTeacher?: string;
 
-  // PLN-260714 — 담당강사 정규화 FK (등록강사 리스트에서 선택)
+  // PLN-260714 — 담당강사 정규화 FK (하위호환 — stdTeacherIds 미제공 시 단일값)
   @ApiPropertyOptional() @IsOptional() @IsUUID()
   stdTeacherId?: string;
+
+  // REQ-260903B — 담당강사 복수 (입력 순서 = 표시 순서, 첫번째 = 대표)
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(5)
+  @IsUUID(undefined, { each: true })
+  stdTeacherIds?: string[];
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
   stdSubject?: string;

@@ -3,12 +3,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
-import { ChevronLeft, Download, LogIn, Pencil } from 'lucide-react';
+import { ChevronLeft, ClipboardCopy, Download, LogIn, Mail, Pencil } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/toast';
 import { useCalEvent } from '../hooks/use-cal-events';
 import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
+import { FeedbackEmailDialog } from '../components/feedback-email-dialog';
+import { copyHtmlToClipboard } from '../lib/copy-html';
 import { formatTime } from '../lib/date-utils';
+import { useTenantTz } from '@/lib/tz';
 
 /**
  * PLN-260729-2 — 관리자 수업일정 상세 "페이지" (/admin/cal/:evtId).
@@ -27,7 +31,10 @@ export function CalEventDetailPage() {
   const { evtId } = useParams<{ evtId: string }>();
   const { t, i18n } = useTranslation(['cal', 'common']);
   const navigate = useNavigate();
+  const toast = useToast();
+  const tz = useTenantTz(); // REQ-260903 — 테넌트 TZ 기준 표시
   const [editOpen, setEditOpen] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
 
   const { data: event, isLoading } = useCalEvent(evtId);
 
@@ -67,6 +74,7 @@ export function CalEventDetailPage() {
       weekday: 'short',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: tz,
     }).format(new Date(iso));
   const fmtShort = (iso: string | null) =>
     iso
@@ -75,6 +83,7 @@ export function CalEventDetailPage() {
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
+          timeZone: tz,
         }).format(new Date(iso))
       : '—';
 
@@ -313,8 +322,8 @@ export function CalEventDetailPage() {
                     </span>
                     <span className="font-medium">{p.name ?? '-'}</span>
                     <span className="text-secondary">
-                      {formatTime(p.joinedAt, i18n.language)} →{' '}
-                      {p.leftAt ? formatTime(p.leftAt, i18n.language) : t('boda.stillIn', '접속 중')}
+                      {formatTime(p.joinedAt, i18n.language, tz)} →{' '}
+                      {p.leftAt ? formatTime(p.leftAt, i18n.language, tz) : t('boda.stillIn', '접속 중')}
                       {p.totalSeconds != null && ` (${Math.round(p.totalSeconds / 60)}분)`}
                     </span>
                   </li>
@@ -336,6 +345,31 @@ export function CalEventDetailPage() {
                   className="doc-prose max-w-none text-sm"
                   dangerouslySetInnerHTML={{ __html: sanitizedFeedback }}
                 />
+                {/* REQ-260902 — 복사·학부모 메일 발송 */}
+                <div className="mt-2 flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        await copyHtmlToClipboard(sanitizedFeedback);
+                        toast.success(
+                          t('feedbackEmail.copied', '피드백 내용을 복사했습니다.'),
+                        );
+                      } catch {
+                        toast.error(t('feedbackEmail.copyFailed', '복사에 실패했습니다.'));
+                      }
+                    }}
+                  >
+                    <ClipboardCopy size={13} className="mr-1" />
+                    {t('feedbackEmail.copyBtn', '내용 복사')}
+                  </Button>
+                  <Button type="button" size="sm" onClick={() => setEmailOpen(true)}>
+                    <Mail size={13} className="mr-1" />
+                    {t('feedbackEmail.sendBtn', '학부모 메일 발송')}
+                  </Button>
+                </div>
               </div>
             )}
             {review.homeworkStatus === 'NONE' ? (
@@ -373,6 +407,14 @@ export function CalEventDetailPage() {
           navigate(0); // 편집 후 상세 최신화
         }}
         initial={event}
+      />
+
+      <FeedbackEmailDialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        evtId={event.id}
+        eventTitle={event.title}
+        eventStartAt={event.startAt}
       />
     </div>
   );

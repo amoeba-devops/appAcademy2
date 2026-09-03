@@ -35,7 +35,8 @@
     "createdAt": "注册日",
     "total": "共 {{count}} 名学生",
     "empty": "暂无学生",
-    "fromInquiry": "来自咨询"
+    "fromInquiry": "来自咨询",
+    "teacherMore": "{{name}} 等 {{count}} 人"
   },
   "field": {
     "name": "姓名（韩语）",
@@ -85,8 +86,10 @@
       "emailRequired": "必须填写邮箱才能保存。",
       "emailDuplicate": "该邮箱已被使用。",
       "emailInvalid": "邮箱格式不正确。",
-      "save": "保存失败。"
-    }
+      "save": "保存失败。",
+      "mapRange": "MAP 分数必须在 100~350 之间。"
+    },
+    "teachersHint": "最多 {{max}} 名 · 第一位为主要负责教师"
   },
   "import": {
     "title": "Excel导入（批量）",
