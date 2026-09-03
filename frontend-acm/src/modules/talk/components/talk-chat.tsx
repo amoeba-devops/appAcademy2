@@ -64,16 +64,23 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
     queryKey: ['talk-channels', mode],
     queryFn: () => talkApi.channels(mode),
     refetchInterval: 30_000, // SSE 백스톱
+    refetchIntervalInBackground: true, // REQ-260903C — 백그라운드 탭 유지
   });
 
-  useTalkEvents(mode, (e) => {
-    void qc.invalidateQueries({ queryKey: ['talk-channels', mode] });
-    if (e.channelId) {
-      void qc.invalidateQueries({
-        queryKey: ['talk-messages', mode, e.channelId],
-      });
-    }
-  });
+  // REQ-260903C — admin 은 AppShell 의 AdminRealtime 이 전역 구독(캐시 반영 포함)
+  // 하므로 portal 모드에서만 로컬 구독한다.
+  useTalkEvents(
+    mode,
+    (e) => {
+      void qc.invalidateQueries({ queryKey: ['talk-channels', mode] });
+      if (e.channelId) {
+        void qc.invalidateQueries({
+          queryKey: ['talk-messages', mode, e.channelId],
+        });
+      }
+    },
+    mode === 'portal',
+  );
 
   const active = channels.find((c) => c.id === activeId) ?? null;
 
@@ -218,6 +225,7 @@ function ChatPane({
     queryKey: ['talk-messages', mode, channel.id],
     queryFn: () => talkApi.messages(mode, channel.id),
     refetchInterval: 30_000, // SSE 백스톱
+    refetchIntervalInBackground: true, // REQ-260903C — 백그라운드 탭 유지
   });
 
   // 첫 페이지 로드 시 커서 초기화 (older 는 별도 유지, id 로 dedupe).

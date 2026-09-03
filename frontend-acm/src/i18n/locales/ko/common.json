@@ -489,5 +489,12 @@
     "kindOperator": "운영자",
     "kindTeacher": "강사",
     "teacherOnly": "강사만 이용할 수 있습니다."
+  },
+  "realtime": {
+    "newChat": "💬 {{name}}: {{preview}}",
+    "openChat": "채팅 열기",
+    "filePreview": "파일",
+    "newInquiry": "🔔 신규상담 접수 #{{seqNo}}",
+    "openInquiries": "상담 목록 열기"
   }
 }

@@ -36,6 +36,8 @@ export interface TalkMessage {
   filename: string | null;
   sizeBytes: number | null;
   senderKind: TalkMemberKind;
+  /** REQ-260903C — SSE 수신측 mine 재계산용. */
+  senderRefId: string;
   senderName: string;
   mine: boolean;
   createdAt: string;
