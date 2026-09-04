@@ -145,6 +145,11 @@ services:
       AMA_DEPROVISION_GRACE_DAYS: ${AMA_DEPROVISION_GRACE_DAYS:-90}
       FRONTEND_URL: ${FRONTEND_URL:-https://acm.amoeba.site}
       BACKEND_URL: ${BACKEND_URL:-https://acm.amoeba.site}
+      # REQ-260903G — external intake (imweb forms): site keys must match the
+      # SITE_KEY embedded in docs/implementation/snippets/*.html; empty falls
+      # back to dev default keys (snippet keys would 401)
+      ACM_INTAKE_SITE_KEYS: ${ACM_INTAKE_SITE_KEYS:-}
+      ACM_INTAKE_ORIGINS: ${ACM_INTAKE_ORIGINS:-}
       # ACM file uploads
       ACM_UPLOAD_DIR: /app/uploads
       # REQ-260626 T-06 / ADR-008 — CSL attachment object store (MinIO)
