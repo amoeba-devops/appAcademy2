@@ -31,6 +31,7 @@ const SITES: readonly ExternalIntakeSite[] = [
       'ISEE 튜터링': 'ISEE_TUTORING',
       '국제학교/외국인학교 입학 준비': 'INTL_SCHOOL_PREP',
       '맞춤형 GPA 관리': 'GPA_MGMT',
+      '심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)': 'ADVANCED_COURSES',
     },
   },
   {
