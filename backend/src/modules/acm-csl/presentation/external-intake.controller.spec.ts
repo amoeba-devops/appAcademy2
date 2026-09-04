@@ -82,13 +82,14 @@ describe('ExternalIntakeController', () => {
     dto.applyPurposeLabels = [
       'MAP TEST 튜터링',
       '맞춤형 GPA 관리',
+      '심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)',
       '해외 주니어 보딩스쿨 입학 준비', // not in TPI map
     ];
     await controller.submit(dto, 'dev-intake-tpi', 'https://www.tpi.co.kr');
     expect(create).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        applyPurposes: ['MAP_TEST_TUTORING', 'GPA_MGMT'],
+        applyPurposes: ['MAP_TEST_TUTORING', 'GPA_MGMT', 'ADVANCED_COURSES'],
         applyPurposeOther: '해외 주니어 보딩스쿨 입학 준비',
       }),
     );
