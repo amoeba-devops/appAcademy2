@@ -2,13 +2,24 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
-import { DailyKpiTypeormEntity, type DkpDayOfWeek } from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
+import {
+  DailyKpiTypeormEntity,
+  type DkpDayOfWeek,
+} from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
 import { ManualInputTypeormEntity } from '../infrastructure/typeorm/manual-input.typeorm-entity';
 import { ComplaintTypeormEntity } from '../infrastructure/typeorm/complaint.typeorm-entity';
 import { Between } from 'typeorm';
 import type { UpsertDailyKpiManualDto } from './dto/daily-kpi-manual.dto';
 
-const DOW_EN: DkpDayOfWeek[] = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const DOW_EN: DkpDayOfWeek[] = [
+  'SUN',
+  'MON',
+  'TUE',
+  'WED',
+  'THU',
+  'FRI',
+  'SAT',
+];
 const DOW_KR = ['일', '월', '화', '수', '목', '금', '토'];
 
 export interface MonthGridResult {
@@ -26,6 +37,12 @@ export interface RangeGridResult {
   sums: Record<string, number>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
+  /** PLN-260912 — GA4 per-site visitors: { [date]: { TPI: n, TRINITY: n, SANTACROCE: n } } */
+  siteVisits: Record<string, Record<string, number>>;
+  /** Dates whose marketingVisitor comes from manual input (override) */
+  manualVisitorDates: string[];
+  /** Last successful/failed GA4 sync timestamp of the active config, if any */
+  ga4LastSyncAt: string | null;
 }
 
 /** Override mkt_effect = cs_counseling + cs_apply on the in-memory row. */
@@ -39,11 +56,12 @@ function applyEffectOverride(rows: DailyKpiTypeormEntity[]): void {
 export class DailyKpiService {
   private readonly logger = new Logger(DailyKpiService.name);
 
-  constructor(
-    @InjectDataSource(ACM_DS) private readonly ds: DataSource,
-  ) {}
+  constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
 
-  async getMonthGrid(entId: string, yearMonth: string): Promise<MonthGridResult> {
+  async getMonthGrid(
+    entId: string,
+    yearMonth: string,
+  ): Promise<MonthGridResult> {
     const repo = this.ds.getRepository(DailyKpiTypeormEntity);
     const rows = await repo.find({
       where: { entId, yearMonth },
@@ -52,11 +70,25 @@ export class DailyKpiService {
     applyEffectOverride(rows);
 
     const sums: Record<string, number> = {
-      mkt_visitor: 0, mkt_cost: 0, mkt_effect: 0,
-      cs_counseling: 0, cs_apply: 0, cs_beginning: 0, cs_missing: 0, cs_trial_class: 0, cs_complain: 0,
-      ops_new_st: 0, ops_out_st: 0, ops_count_st: 0,
-      ops_new_tc: 0, ops_out_tc: 0, ops_count_tc: 0,
-      cls_map_test: 0, cls_tt_class: 0, cls_student: 0, cls_teacher: 0,
+      mkt_visitor: 0,
+      mkt_cost: 0,
+      mkt_effect: 0,
+      cs_counseling: 0,
+      cs_apply: 0,
+      cs_beginning: 0,
+      cs_missing: 0,
+      cs_trial_class: 0,
+      cs_complain: 0,
+      ops_new_st: 0,
+      ops_out_st: 0,
+      ops_count_st: 0,
+      ops_new_tc: 0,
+      ops_out_tc: 0,
+      ops_count_tc: 0,
+      cls_map_test: 0,
+      cls_tt_class: 0,
+      cls_student: 0,
+      cls_teacher: 0,
     };
 
     let populatedDayCount = 0;
@@ -118,14 +150,24 @@ export class DailyKpiService {
       cls_teacher: sums.cls_teacher / dayCount,
     };
 
-    return { yearMonth, rows, sums, averages: averagesNumeric, populatedDayCount };
+    return {
+      yearMonth,
+      rows,
+      sums,
+      averages: averagesNumeric,
+      populatedDayCount,
+    };
   }
 
   /**
    * Range grid — same shape as monthly grid but for any [from, to] window.
    * Caller validates from <= to and (to - from) <= 365 days.
    */
-  async getRange(entId: string, from: string, to: string): Promise<RangeGridResult> {
+  async getRange(
+    entId: string,
+    from: string,
+    to: string,
+  ): Promise<RangeGridResult> {
     const repo = this.ds.getRepository(DailyKpiTypeormEntity);
     const rows = await repo.find({
       where: { entId, date: Between(from, to) },
@@ -134,19 +176,36 @@ export class DailyKpiService {
     applyEffectOverride(rows);
 
     const sums: Record<string, number> = {
-      mkt_visitor: 0, mkt_cost: 0, mkt_effect: 0,
-      cs_counseling: 0, cs_apply: 0, cs_beginning: 0, cs_missing: 0, cs_trial_class: 0, cs_complain: 0,
-      ops_new_st: 0, ops_out_st: 0, ops_count_st: 0,
-      ops_new_tc: 0, ops_out_tc: 0, ops_count_tc: 0,
-      cls_map_test: 0, cls_tt_class: 0, cls_student: 0, cls_teacher: 0,
+      mkt_visitor: 0,
+      mkt_cost: 0,
+      mkt_effect: 0,
+      cs_counseling: 0,
+      cs_apply: 0,
+      cs_beginning: 0,
+      cs_missing: 0,
+      cs_trial_class: 0,
+      cs_complain: 0,
+      ops_new_st: 0,
+      ops_out_st: 0,
+      ops_count_st: 0,
+      ops_new_tc: 0,
+      ops_out_tc: 0,
+      ops_count_tc: 0,
+      cls_map_test: 0,
+      cls_tt_class: 0,
+      cls_student: 0,
+      cls_teacher: 0,
     };
 
     let populatedDayCount = 0;
     for (const r of rows) {
       const populated =
         (r.marketingVisitor ?? 0) > 0 ||
-        r.csCounseling > 0 || r.csApply > 0 || r.csBeginning > 0 ||
-        r.csTrialClass > 0 || r.classMapTest > 0;
+        r.csCounseling > 0 ||
+        r.csApply > 0 ||
+        r.csBeginning > 0 ||
+        r.csTrialClass > 0 ||
+        r.classMapTest > 0;
       if (populated) populatedDayCount += 1;
       sums.mkt_visitor += r.marketingVisitor ?? 0;
       sums.mkt_cost += Number(r.marketingCost ?? 0);
@@ -193,7 +252,46 @@ export class DailyKpiService {
       cls_teacher: sums.cls_teacher / dayCount,
     };
 
-    return { from, to, rows, sums, averages, populatedDayCount };
+    // PLN-260912 — per-site GA4 breakdown + manual-override dates for the same window
+    const svtRows = await this.ds.query<
+      { d: string; site: string; v: string }[]
+    >(
+      `SELECT svt_date::text AS d, svt_site AS site, svt_visitors::text AS v
+         FROM amb_acm_dsh_site_visit
+        WHERE ent_id = $1 AND svt_date BETWEEN $2 AND $3
+        ORDER BY svt_date, svt_site`,
+      [entId, from, to],
+    );
+    const siteVisits: Record<string, Record<string, number>> = {};
+    for (const r of svtRows) {
+      siteVisits[r.d] ??= {};
+      siteVisits[r.d][r.site] = Number(r.v);
+    }
+    const manualRows = await this.ds.query<{ d: string }[]>(
+      `SELECT min_date::text AS d FROM amb_acm_dsh_manual_inputs
+        WHERE ent_id = $1 AND min_date BETWEEN $2 AND $3
+          AND min_marketing_visitor IS NOT NULL AND min_deleted_at IS NULL`,
+      [entId, from, to],
+    );
+    const manualVisitorDates = manualRows.map((r) => r.d);
+    const gacRows = await this.ds.query<{ at: string | null }[]>(
+      `SELECT gac_last_sync_at::text AS at FROM amb_acm_ga4_config
+        WHERE ent_id = $1 AND gac_is_active = TRUE`,
+      [entId],
+    );
+    const ga4LastSyncAt = gacRows[0]?.at ?? null;
+
+    return {
+      from,
+      to,
+      rows,
+      sums,
+      averages,
+      populatedDayCount,
+      siteVisits,
+      manualVisitorDates,
+      ga4LastSyncAt,
+    };
   }
 
   /**
@@ -214,13 +312,28 @@ export class DailyKpiService {
 
     const existing = await repo.findOne({ where: { entId, date: isoDate } });
     const base: Partial<DailyKpiTypeormEntity> = existing ?? {
-      entId, date: isoDate, yearMonth, dayOfMonth,
-      dayOfWeek: DOW_EN[dow], dayOfWeekKr: DOW_KR[dow],
-      csCounseling: 0, csApply: 0, csBeginning: 0, csMissing: 0,
-      csTrialClass: 0, csComplain: 0,
-      opsNewSt: 0, opsOutSt: 0, opsCountSt: 0,
-      opsNewTc: 0, opsOutTc: 0, opsCountTc: 0,
-      classMapTest: 0, classTtClass: '0', classStudent: 0, classTeacher: 0,
+      entId,
+      date: isoDate,
+      yearMonth,
+      dayOfMonth,
+      dayOfWeek: DOW_EN[dow],
+      dayOfWeekKr: DOW_KR[dow],
+      csCounseling: 0,
+      csApply: 0,
+      csBeginning: 0,
+      csMissing: 0,
+      csTrialClass: 0,
+      csComplain: 0,
+      opsNewSt: 0,
+      opsOutSt: 0,
+      opsCountSt: 0,
+      opsNewTc: 0,
+      opsOutTc: 0,
+      opsCountTc: 0,
+      classMapTest: 0,
+      classTtClass: '0',
+      classStudent: 0,
+      classTeacher: 0,
       computationStatus: 'FRESH',
       dataCompleteness: 'COMPLETE',
       createdAt: now,
@@ -230,7 +343,8 @@ export class DailyKpiService {
       if (v !== undefined && v !== null) (base as any)[k] = v;
     };
     apply('marketingVisitor', dto.marketingVisitor ?? null);
-    if (dto.marketingCost !== undefined) (base as any).marketingCost = String(dto.marketingCost);
+    if (dto.marketingCost !== undefined)
+      (base as any).marketingCost = String(dto.marketingCost);
     apply('csCounseling', dto.csCounseling);
     apply('csApply', dto.csApply);
     apply('csBeginning', dto.csBeginning);
@@ -244,11 +358,13 @@ export class DailyKpiService {
     apply('opsOutTc', dto.opsOutTc);
     apply('opsCountTc', dto.opsCountTc);
     apply('classMapTest', dto.classMapTest);
-    if (dto.classTtClass !== undefined) (base as any).classTtClass = dto.classTtClass.toFixed(1);
+    if (dto.classTtClass !== undefined)
+      (base as any).classTtClass = dto.classTtClass.toFixed(1);
     apply('classStudent', dto.classStudent);
     apply('classTeacher', dto.classTeacher);
     // derived effect
-    (base as any).marketingEffect = ((base as any).csCounseling ?? 0) + ((base as any).csApply ?? 0);
+    (base as any).marketingEffect =
+      ((base as any).csCounseling ?? 0) + ((base as any).csApply ?? 0);
     (base as any).manuallyOverridden = true;
     (base as any).computationStatus = 'FRESH';
     (base as any).dataCompleteness = 'COMPLETE';
@@ -269,7 +385,11 @@ export class DailyKpiService {
    * Idempotent: deletes/inserts (ent_id, date) row.
    * In v1.0a: CSL-sourced metrics + manual inputs only. CLS metrics remain 0.
    */
-  async recomputeDay(entId: string, isoDate: string, reason = 'manual_recompute'): Promise<void> {
+  async recomputeDay(
+    entId: string,
+    isoDate: string,
+    reason = 'manual_recompute',
+  ): Promise<void> {
     const dkpRepo = this.ds.getRepository(DailyKpiTypeormEntity);
     const minRepo = this.ds.getRepository(ManualInputTypeormEntity);
     const cmpRepo = this.ds.getRepository(ComplaintTypeormEntity);
@@ -277,7 +397,9 @@ export class DailyKpiService {
     // Skip if this row was full-overridden via manual upsert
     const existing = await dkpRepo.findOne({ where: { entId, date: isoDate } });
     if (existing?.manuallyOverridden) {
-      this.logger.log(`recomputeDay SKIP (manually_overridden) ent=${entId} date=${isoDate}`);
+      this.logger.log(
+        `recomputeDay SKIP (manually_overridden) ent=${entId} date=${isoDate}`,
+      );
       return;
     }
 
@@ -316,7 +438,7 @@ export class DailyKpiService {
     const missQ = await this.ds.query<CountRow[]>(
       `SELECT COUNT(*)::text AS c FROM amb_acm_csl_transition
         WHERE ent_id = $1 AND to_status = 'DROPPED'
-          AND DATE(created_at AT TIME ZONE 'Asia/Seoul') = $2`,
+          AND DATE(occurred_at AT TIME ZONE 'Asia/Seoul') = $2`,
       [entId, isoDate],
     );
     const cs_missing = Number(missQ[0]?.c ?? 0);
@@ -385,12 +507,25 @@ export class DailyKpiService {
     // manual input
     const manual = await minRepo.findOne({ where: { entId, date: isoDate } });
 
+    // PLN-260912 — GA4 site visits (sum over sites); manual input wins when present
+    const svtQ = await this.ds.query<{ s: string; c: string }[]>(
+      `SELECT COALESCE(SUM(svt_visitors),0)::text AS s, COUNT(*)::text AS c
+         FROM amb_acm_dsh_site_visit
+        WHERE ent_id = $1 AND svt_date = $2`,
+      [entId, isoDate],
+    );
+    const ga4Visitor =
+      Number(svtQ[0]?.c ?? 0) > 0 ? Number(svtQ[0]?.s ?? 0) : null;
+
     // upsert daily_kpi row
     await this.ds.transaction(async (em) => {
-      const r = await em.getRepository(DailyKpiTypeormEntity).findOne({ where: { entId, date: isoDate } });
-      const completeness = manual && manual.status === 'COMPLETE'
-        ? 'COMPLETE'
-        : 'PARTIAL_PENDING_MANUAL';
+      const r = await em
+        .getRepository(DailyKpiTypeormEntity)
+        .findOne({ where: { entId, date: isoDate } });
+      const completeness: 'COMPLETE' | 'PARTIAL_PENDING_MANUAL' =
+        manual && manual.status === 'COMPLETE'
+          ? 'COMPLETE'
+          : 'PARTIAL_PENDING_MANUAL';
       const now = new Date();
       const payload = {
         entId,
@@ -399,7 +534,7 @@ export class DailyKpiService {
         dayOfMonth,
         dayOfWeek: DOW_EN[dow],
         dayOfWeekKr: DOW_KR[dow],
-        marketingVisitor: manual?.marketingVisitor ?? null,
+        marketingVisitor: manual?.marketingVisitor ?? ga4Visitor,
         marketingCost: manual?.marketingCost ?? null,
         marketingEffect: manual?.marketingEffect ?? null,
         csCounseling: cs_counseling,
@@ -408,19 +543,26 @@ export class DailyKpiService {
         csMissing: cs_missing,
         csTrialClass: cs_trial_class,
         csComplain: (manual?.csComplain ?? 0) + cmpCnt,
-        opsNewSt: 0, opsOutSt: 0, opsCountSt: ops_count_st,
-        opsNewTc: 0, opsOutTc: 0, opsCountTc: ops_count_tc,
+        opsNewSt: 0,
+        opsOutSt: 0,
+        opsCountSt: ops_count_st,
+        opsNewTc: 0,
+        opsOutTc: 0,
+        opsCountTc: ops_count_tc,
         classMapTest: cls_map_test,
         classTtClass: cls_tt_class,
-        classStudent: cls_student_active, classTeacher: cls_teacher_active,
+        classStudent: cls_student_active,
+        classTeacher: cls_teacher_active,
         computedAt: now,
         computationStatus: 'FRESH' as const,
-        dataCompleteness: completeness as 'COMPLETE' | 'PARTIAL_PENDING_MANUAL',
+        dataCompleteness: completeness,
         lastRecomputeReason: reason,
         updatedAt: now,
       };
       if (r) {
-        await em.getRepository(DailyKpiTypeormEntity).update({ id: r.id }, payload);
+        await em
+          .getRepository(DailyKpiTypeormEntity)
+          .update({ id: r.id }, payload);
       } else {
         await em.getRepository(DailyKpiTypeormEntity).insert({
           ...payload,
@@ -429,16 +571,25 @@ export class DailyKpiService {
       }
     });
 
-    this.logger.log(`recomputeDay ent=${entId} date=${isoDate} reason=${reason}`);
+    this.logger.log(
+      `recomputeDay ent=${entId} date=${isoDate} reason=${reason}`,
+    );
   }
 
   /**
    * Mark a day's row STALE so the next batch will recompute it.
    */
-  async markStale(entId: string, isoDate: string, reason: string): Promise<void> {
+  async markStale(
+    entId: string,
+    isoDate: string,
+    reason: string,
+  ): Promise<void> {
     await this.ds
       .getRepository(DailyKpiTypeormEntity)
-      .update({ entId, date: isoDate }, { computationStatus: 'STALE', lastRecomputeReason: reason });
+      .update(
+        { entId, date: isoDate },
+        { computationStatus: 'STALE', lastRecomputeReason: reason },
+      );
   }
 
   /**

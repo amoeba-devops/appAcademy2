@@ -414,6 +414,10 @@
       "kakao": {
         "title": "Kakao AlimTalk",
         "description": "Solapi delivery settings — feedback AlimTalk"
+      },
+      "ga4": {
+        "title": "GA4 Visitors",
+        "description": "Auto-collect daily visitors from Google Analytics 4 — Dashboard Marketing · Visitor"
       }
     },
     "mail": {
@@ -506,6 +510,57 @@
         "ok": "Sent — check KakaoTalk.",
         "notSet": "Settings are not saved or inactive. Save first.",
         "failed": "Send failed:"
+      }
+    },
+    "ga4": {
+      "title": "GA4 Visitor Sync",
+      "description": "Pulls daily visitors from the GA4 property connected to the three imweb sites every day at 04:00 and feeds the Dashboard Marketing · Visitor metric. Manual input wins on days where it exists.",
+      "setupHint": "Prerequisites: ① create a GA4 property with one web data stream per site ② connect the measurement ID in imweb Settings › Marketing channels › Google Analytics ③ enable the Google Analytics Data API in GCP and issue a service-account JSON key ④ add the service-account email as Viewer under GA4 property access management.",
+      "fields": {
+        "propertyId": {
+          "label": "GA4 property ID",
+          "hint": "Numeric ID from GA4 Admin › Property settings (not the G-… measurement ID)"
+        },
+        "streamMap": {
+          "label": "Data stream ID per site",
+          "hint": "Numeric stream ID from GA4 Admin › Data streams. Leave empty to skip a site."
+        },
+        "saKey": {
+          "label": "Service-account key (JSON)",
+          "choose": "Choose JSON file",
+          "pending": "Selected: {{name}} (replaced on save)",
+          "set": "Set — {{email}}",
+          "unset": "Not set",
+          "hint": "Stored encrypted and never shown again. Choose a file only to replace it."
+        },
+        "metric": {
+          "label": "Visitor metric",
+          "options": {
+            "activeUsers": "Active users (activeUsers)",
+            "totalUsers": "Total users (totalUsers)",
+            "sessions": "Sessions (sessions)"
+          }
+        },
+        "isActive": {
+          "label": "Enabled (nightly auto-sync)"
+        }
+      },
+      "test": {
+        "title": "Connection test · Sync",
+        "hint": "Calls the GA4 Data API with the saved settings. Save first if you changed anything.",
+        "run": "Test connection",
+        "ok": "Connected — {{rows}} rows in the last 7 days, stream IDs: {{streams}}",
+        "notSet": "Configuration incomplete (property ID · streams · key).",
+        "failed": "Connection failed:"
+      },
+      "sync": {
+        "run": "Sync now (last 7 days)",
+        "ok": "Synced — {{from}}~{{to}}, {{rows}} rows applied (unmapped streams: {{unmapped}})",
+        "failed": "Sync failed:",
+        "last": "Last sync: {{at}} · {{status}}"
+      },
+      "errors": {
+        "invalidKey": "Invalid service-account key JSON (client_email · private_key required)."
       }
     }
   },

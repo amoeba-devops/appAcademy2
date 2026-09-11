@@ -63,6 +63,7 @@ import { BodaConfigPage } from '@/modules/cfg/pages/boda-config-page';
 import { MailConfigPage } from '@/modules/cfg/pages/mail-config-page';
 import { GeneralConfigPage } from '@/modules/cfg/pages/general-config-page';
 import { KakaoConfigPage } from '@/modules/cfg/pages/kakao-config-page';
+import { Ga4ConfigPage } from '@/modules/cfg/pages/ga4-config-page';
 import { SystemShell } from '@/components/layout/system-shell';
 import { RequireAppAdmin } from '@/components/layout/require-app-admin';
 import { SystemAdminPage } from '@/modules/system/pages/system-admin-page';
@@ -218,6 +219,8 @@ export const router = createBrowserRouter([
       { path: 'config/mail', element: <MailConfigPage /> },
       { path: 'config/general', element: <GeneralConfigPage /> },
       { path: 'config/kakao', element: <KakaoConfigPage /> },
+      // PLN-260912 — GA4 방문자 동기화
+      { path: 'config/ga4', element: <Ga4ConfigPage /> },
     ],
   },
 

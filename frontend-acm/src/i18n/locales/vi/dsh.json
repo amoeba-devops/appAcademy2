@@ -116,5 +116,15 @@
   },
   "empty": {
     "noData": "Không có dữ liệu cho tháng này."
+  },
+  "visitor": {
+    "sourceBadge": "Nguồn GA4 · đồng bộ {{at}}",
+    "bySite": "Theo site",
+    "manualDays": "thủ công {{count}} ngày",
+    "cellTooltip": "GA4 theo site",
+    "manualMark": "Nhập thủ công",
+    "syncNow": "Đồng bộ GA4",
+    "syncDone": "Đã đồng bộ GA4 ({{rows}} dòng)",
+    "syncFailed": "Đồng bộ GA4 thất bại"
   }
 }
