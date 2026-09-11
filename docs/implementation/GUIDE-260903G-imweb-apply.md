@@ -1,10 +1,11 @@
 ---
 document_id: CSL-GUIDE-260903G
-version: 1.0.0
+version: 1.1.0
 status: CONFIRMED
-date: 2026-09-03
+date: 2026-09-11
 depends_on: docs/plan/PLN-260903G-external-intake-api.md
 change_log:
+  - 2026-09-11 v1.1.0 TPI /contact2 게시 완료 기록, 운영 401 원인(빈 env) · TRINITY 실도메인(trinityacademy.kr) · 사이트별 admin 로그인 반영 — FIX-260911 (Claude Code)
   - 2026-09-03 v1.0.0 최초 작성 — 3사이트 확정 상담희망 항목 반영 (Claude Code)
 ---
 
@@ -33,15 +34,19 @@ change_log:
 ## 2. Prerequisites (선행 조건 — 개발/운영측)
 
 1. PR #193 배포 완료 (backend + frontend-acm). `sql/acm/1010`은 CD가 자동 적용.
-2. 운영 env 설정 (배포 시):
-   `ACM_INTAKE_SITE_KEYS=TPI:tpi-8c094fefd4fd2314,TRINITY:trinity-51c0c40bd70ba964,SANTACROCE:santacroce-93d05af5a571f33a`
-   (스니펫 내 `SITE_KEY`와 일치. 키 회전 시 양쪽 동시 교체)
+2. 사이트 키: [FIX-260911](../bug-fix/FIX-260911-external-intake-site-key-empty-env.md) 배포 후에는 스니펫 키 3종이 **코드 기본값**이라 env 없이 동작한다. 키 회전 시에만
+   `ACM_INTAKE_SITE_KEYS=TPI:<key>,TRINITY:<key>,SANTACROCE:<key>` 를 운영 `.env.production` 에 설정하고 스니펫도 동시 교체.
+   ⚠ FIX-260911 배포 전 상태에서는 env 를 설정해도 compose 의 `${ACM_INTAKE_SITE_KEYS:-}` 가 빈 값을 넘길 때 전건 401 이 난다 — 반드시 배포 후 진행.
 3. 스니펫 3식 준비: `docs/implementation/snippets/external-intake-form-{tpi,trinity,santacroce}.html`
+4. Origin allowlist 가 **실제 서비스 도메인**을 포함하는지 확인 — TRINITY 는 `trinityacademy.kr` 로 서비스 중 (`trinityacademy.imweb.me` 아님). `ACM_INTAKE_ORIGINS` env 는 CORS 헤더만 넓히고 컨트롤러의 사이트별 origin 검사는 `external-intake.config.ts` 상수이므로 도메인 추가는 코드 수정이 필요하다.
 
 ## 3. imweb Work Order (아임웹에서 해야 할 작업 순서 — 사이트 관리자)
 
 > 로그인: https://imweb.me/mysite — `trinityprep103@gmail.com` (3사이트 공통 관리자)
+> ⚠ 계정은 공통이지만 **admin 세션은 사이트(서브도메인)별로 따로 로그인**해야 한다. "사이트 관리" 버튼도 SSO 되지 않고 해당 사이트 로그인 화면으로 간다.
 > 아래 절차를 **사이트마다 1회씩, 총 3회** 반복한다.
+>
+> 진행 현황 (2026-09-11): **TPI 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w20260912d54fe06e20578`) 삽입, 라이브 반영 확인. **TRINITY 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w202609124eeb037ab4ece`), `trinityacademy.kr/contact2` · `trinityacademy.imweb.me/contact2` 양쪽 라이브 확인. **SANTACROCE 완료** — 페이지 "컨설팅 신청" `/consult` 게시, 코드 위젯(위젯 ID `w202609125037d2515723d`), `santacroce.co.kr/consult` 라이브 확인. 3사이트 제출 테스트(3.3절)는 FIX-260911 배포 후 재실행.
 
 ### 3.1 페이지 생성
 1. imweb.me/mysite → 대상 사이트 선택 → **사이트 편집** 진입
@@ -76,7 +81,9 @@ change_log:
 
 | 증상 | 원인/조치 |
 |---|---|
-| 제출 시 "오류가 발생했습니다" + 콘솔 401 | SITE_KEY ↔ `ACM_INTAKE_SITE_KEYS` 불일치 — env/스니펫 대조 |
-| 브라우저 콘솔 CORS 에러 | 사이트 도메인이 허용 목록에 없음 — `ACM_INTAKE_ORIGINS` env에 추가 (커스텀 도메인 변경 시) |
+| 제출 시 "오류가 발생했습니다" + 콘솔 401 | SITE_KEY ↔ `ACM_INTAKE_SITE_KEYS` 불일치 — env/스니펫 대조. **dev 키(`dev-intake-tpi`)까지 401이면 env 가 빈 문자열로 주입된 상태** ([FIX-260911](../bug-fix/FIX-260911-external-intake-site-key-empty-env.md)) |
+| 제출 시 "오류가 발생했습니다" + 콘솔 403 | 페이지 Origin 이 사이트 allowlist 에 없음 — 커스텀 도메인(예: trinityacademy.kr) 또는 `http://` 진입. `external-intake.config.ts` origins 수정 + 배포, 아임웹 도메인/SSL 에서 HTTPS 강제 ON 권장 |
+| 브라우저 콘솔 CORS 에러 | 사이트 도메인이 CORS 허용 목록에 없음 — `ACM_INTAKE_ORIGINS` env 추가 (단, 403 은 위 행 참조) |
+| 행 생성 없이 키/오리진 단계만 진단 | 유효 키 + `Origin: https://not-allowed.example` 로 POST → 403 이면 키 정상, 401 이면 키 문제 (검사 순서: DTO → honeypot → key → origin → 저장) |
 | 접수는 되는데 상담희망이 전부 '기타'로 감 | 폼 라벨 문구 변경됨 — config 매핑·스니펫 라벨 동기화 |
 | 연속 제출 차단 | 분당 10건 스로틀 정상 동작 — 1분 후 재시도 |
