@@ -1,7 +1,7 @@
 ---
 document_id: CSL-FIX-260911
 version: 1.0.0
-status: OPEN (fix on branch `fix/csl-intake-site-keys-prod-default`, not yet deployed)
+status: RESOLVED — PR #205 (2b698f6) merged, cd-staging + cd-production deployed 2026-09-11; production probes (3 keys → 403, dev key → 401) and real submissions from all 3 imweb pages verified
 date: 2026-09-11
 related: docs/implementation/GUIDE-260903G-imweb-apply.md, docs/plan/PLN-260903G-external-intake-api.md, PR #193
 ---
