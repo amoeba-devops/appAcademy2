@@ -531,7 +531,10 @@
           "pending": "Selected: {{name}} (replaced on save)",
           "set": "Set — {{email}}",
           "unset": "Not set",
-          "hint": "Stored encrypted and never shown again. Choose a file only to replace it."
+          "hint": "Stored encrypted and never shown again. Choose a file only to replace it.",
+          "pasteLabel": "Paste service-account key JSON",
+          "pastePlaceholder": "…or paste the JSON file contents here ({\"type\":\"service_account\", ...})",
+          "pasteHint": "If choosing a file is inconvenient, paste the JSON contents instead. It is encrypted on save exactly like a file."
         },
         "metric": {
           "label": "Visitor metric",

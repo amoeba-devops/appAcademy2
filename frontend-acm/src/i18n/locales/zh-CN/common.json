@@ -531,7 +531,10 @@
           "pending": "已选择：{{name}}（保存时替换）",
           "set": "已设置 — {{email}}",
           "unset": "未设置",
-          "hint": "加密保存且不再显示。仅在需要替换时选择文件。"
+          "hint": "加密保存且不再显示。仅在需要替换时选择文件。",
+          "pasteLabel": "粘贴服务账号密钥 JSON",
+          "pastePlaceholder": "…或将 JSON 文件内容粘贴到此处 ({\"type\":\"service_account\", ...})",
+          "pasteHint": "如不便选择文件，可直接粘贴 JSON 内容。保存时与文件同样加密。"
         },
         "metric": {
           "label": "访客指标",

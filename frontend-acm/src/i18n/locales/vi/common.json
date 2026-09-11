@@ -531,7 +531,10 @@
           "pending": "Đã chọn: {{name}} (thay khi lưu)",
           "set": "Đã thiết lập — {{email}}",
           "unset": "Chưa thiết lập",
-          "hint": "Được mã hóa lưu trữ và không hiển thị lại. Chỉ chọn tệp khi cần thay."
+          "hint": "Được mã hóa lưu trữ và không hiển thị lại. Chỉ chọn tệp khi cần thay.",
+          "pasteLabel": "Dán JSON khóa service account",
+          "pastePlaceholder": "…hoặc dán nội dung tệp JSON vào đây ({\"type\":\"service_account\", ...})",
+          "pasteHint": "Nếu khó chọn tệp, có thể dán nội dung JSON. Khi lưu sẽ được mã hóa như tệp."
         },
         "metric": {
           "label": "Chỉ số khách truy cập",
