@@ -1,7 +1,7 @@
 ---
 document_id: DSH-PLN-260912
 version: 1.0.0
-status: IMPLEMENTED (코드 완료 — 배포·실GA4 검증 대기)
+status: DEPLOYED (PR #208 dab76b0 — cd-staging·cd-production 2026-09-11 17:4xZ 완료; 실GA4 검증은 사전 작업 P-1~P-4 후)
 date: 2026-09-12
 depends_on: docs/analysis/REQ-260912-dsh-imweb-visitor-import.md
 change_log:
