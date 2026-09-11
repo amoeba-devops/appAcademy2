@@ -18,15 +18,17 @@ change_log:
 
 | 항목 | 어디서 | 형식 | 값 |
 |---|---|---|---|
-| GA4 속성 ID | GA4 관리 › 속성 설정 › 속성 세부정보 | 숫자 9자리 (예: 512345678) | |
-| TPI 스트림 ID | GA4 관리 › 데이터 스트림 › `www.tpi.co.kr` 상세 | 숫자 10자리 | |
-| TPI 측정 ID | 같은 화면 | `G-XXXXXXXXXX` | |
-| TRINITY 스트림 ID | 데이터 스트림 › `trinityacademy.kr` 상세 | 숫자 | |
-| TRINITY 측정 ID | 같은 화면 | `G-…` | |
-| SANTACROCE 스트림 ID | 데이터 스트림 › `santacroce.co.kr` 상세 | 숫자 | |
-| SANTACROCE 측정 ID | 같은 화면 | `G-…` | |
-| 서비스계정 이메일 | GCP IAM › 서비스 계정 | `acm-ga4@<프로젝트>.iam.gserviceaccount.com` | |
-| 서비스계정 JSON 키 파일 | GCP 서비스 계정 › 키 | `*.json` 다운로드 파일 | |
+| GA4 속성 ID | GA4 관리 › 속성 설정 › 속성 세부정보 | 숫자 9자리 (예: 512345678) | **553818421** (계정 `Trinity Academy` 407665736, 속성 `Trinity Sites`) — 2026-09-12 생성 |
+| TPI 스트림 ID | GA4 관리 › 데이터 스트림 › `www.tpi.co.kr` 상세 | 숫자 10자리 | **15762037074** |
+| TPI 측정 ID | 같은 화면 | `G-XXXXXXXXXX` | **G-QVDVBTC7JC** |
+| TRINITY 스트림 ID | 데이터 스트림 › `trinityacademy.kr` 상세 | 숫자 | **15762045823** |
+| TRINITY 측정 ID | 같은 화면 | `G-…` | **G-BM7QE6ZGSE** |
+| SANTACROCE 스트림 ID | 데이터 스트림 › `santacroce.co.kr` 상세 | 숫자 | **15761907393** |
+| SANTACROCE 측정 ID | 같은 화면 | `G-…` | **G-4EFHZC0077** |
+| 서비스계정 이메일 | GCP IAM › 서비스 계정 | `acm-ga4@<프로젝트>.iam.gserviceaccount.com` | **acm-ga4@acm-ga4.iam.gserviceaccount.com** (GCP 프로젝트 `acm-ga4`, Data API 사용 설정 완료 2026-09-12) |
+| 서비스계정 JSON 키 파일 | GCP 서비스 계정 › 키 | `*.json` 다운로드 파일 | `~/Downloads/acm-ga4-48261a572202.json` (ACM 업로드 후 삭제 예정 — 저장소에 커밋 금지) |
+
+> **진행 현황 (2026-09-12, Claude Code 대행)**: 1절 GA4 계정/속성/스트림 3개 ✅ · 2절 GCP 프로젝트 `acm-ga4`·Data API·서비스계정·JSON 키 ✅ · 3절 속성 뷰어 권한 ✅ · 4절 아임웹 3사이트 측정 ID 연결 ✅(각 "저장에 성공했습니다") · **5절 ACM 설정 ⏸** — 운영 콘솔의 fremdung@gmail.com 계정이 테넌트 ADMIN 역할이 아니어서 `/admin/config/*` API 가 403("Failed to load the config", 카카오 설정 페이지도 동일). 테넌트 ADMIN 계정으로 로그인해 5절을 진행해야 한다.
 
 ⚠ **측정 ID(G-…)는 아임웹에, 스트림 ID(숫자)는 ACM에** 넣는다. 둘을 바꿔 넣으면 ACM 연결 테스트는 성공하지만 사이트 매핑이 안 돼 "미매핑 스트림"으로 표시된다.
 

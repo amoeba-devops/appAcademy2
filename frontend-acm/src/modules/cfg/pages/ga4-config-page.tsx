@@ -229,6 +229,20 @@ export function Ga4ConfigPage() {
                 </span>
               </div>
               <p className="text-xs text-secondary">{t('config.ga4.fields.saKey.hint')}</p>
+              <textarea
+                value={saKeyJson}
+                onChange={(e) => {
+                  setSaKeyJson(e.target.value);
+                  setSaKeyFileName('');
+                }}
+                placeholder={t('config.ga4.fields.saKey.pastePlaceholder')}
+                rows={4}
+                spellCheck={false}
+                autoComplete="off"
+                className="w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 py-2 font-mono text-xs text-primary"
+                aria-label={t('config.ga4.fields.saKey.pasteLabel')}
+              />
+              <p className="text-xs text-secondary">{t('config.ga4.fields.saKey.pasteHint')}</p>
             </div>
 
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
