@@ -27,9 +27,20 @@ export interface CategorySummary {
   metrics?: MetricSummary[];
 }
 
+/** PLN-260912 — GA4 visitor breakdown shown under the MARKETING card. */
+export interface VisitorBreakdown {
+  /** site code → visitors summed over the range (GA4 rows only) */
+  bySite: Record<string, number>;
+  /** ISO timestamp of the last successful GA4 sync, if any */
+  lastSyncAt: string | null;
+  /** number of days in the range whose visitor value is a manual override */
+  manualDays: number;
+}
+
 interface KpiSummaryCardsProps {
   categories: CategorySummary[];
   isLoading?: boolean;
+  visitorBreakdown?: VisitorBreakdown | null;
 }
 
 const ACCENT: Record<DshCategory, string> = {
@@ -57,7 +68,7 @@ function DeltaCell({ delta }: { delta: number | null }) {
   );
 }
 
-export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps) {
+export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: KpiSummaryCardsProps) {
   const { t, i18n } = useTranslation(['dsh', 'common']);
   const isKr = i18n.language?.startsWith('ko');
 
@@ -73,6 +84,8 @@ export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps)
       </div>
     );
   }
+
+  const sites = visitorBreakdown ? Object.keys(visitorBreakdown.bySite) : [];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -105,6 +118,27 @@ export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps)
               >
                 {t(`category.${c.category}`)}
               </span>
+              {c.category === 'MARKETING' && visitorBreakdown && (
+                <span
+                  className="text-[10px] text-secondary"
+                  title={
+                    visitorBreakdown.lastSyncAt
+                      ? new Date(visitorBreakdown.lastSyncAt).toLocaleString()
+                      : undefined
+                  }
+                >
+                  {t('visitor.sourceBadge', {
+                    at: visitorBreakdown.lastSyncAt
+                      ? new Date(visitorBreakdown.lastSyncAt).toLocaleString(undefined, {
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '—',
+                  })}
+                </span>
+              )}
             </div>
 
             <table className="w-full text-[11px] tabular-nums">
@@ -129,6 +163,24 @@ export function KpiSummaryCards({ categories, isLoading }: KpiSummaryCardsProps)
                 ))}
               </tbody>
             </table>
+
+            {c.category === 'MARKETING' && visitorBreakdown && sites.length > 0 && (
+              <div className="text-[10px] text-secondary leading-4" data-testid="visitor-breakdown">
+                <span className="mr-1">{t('visitor.bySite')}:</span>
+                {sites.map((s, i) => (
+                  <span key={s}>
+                    {i > 0 && ' · '}
+                    <span className="font-medium text-primary">{s}</span>{' '}
+                    {fmtNum(visitorBreakdown.bySite[s])}
+                  </span>
+                ))}
+                {visitorBreakdown.manualDays > 0 && (
+                  <span className="ml-1">
+                    ({t('visitor.manualDays', { count: visitorBreakdown.manualDays })})
+                  </span>
+                )}
+              </div>
+            )}
 
             <div style={{ color: accent }}>
               <Sparkline data={c.series} />

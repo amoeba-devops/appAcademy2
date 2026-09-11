@@ -116,5 +116,15 @@
   },
   "empty": {
     "noData": "该月份暂无数据。"
+  },
+  "visitor": {
+    "sourceBadge": "来源 GA4 · 同步 {{at}}",
+    "bySite": "按站点",
+    "manualDays": "手动 {{count}} 天",
+    "cellTooltip": "GA4 按站点",
+    "manualMark": "手动录入",
+    "syncNow": "同步 GA4",
+    "syncDone": "GA4 同步完成（{{rows}} 行）",
+    "syncFailed": "GA4 同步失败"
   }
 }

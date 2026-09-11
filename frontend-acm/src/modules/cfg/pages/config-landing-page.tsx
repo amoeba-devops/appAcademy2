@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Globe, Mail, MessageCircle, Settings, Video, ChevronRight } from 'lucide-react';
+import { BarChart3, Globe, Mail, MessageCircle, Settings, Video, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
@@ -22,6 +22,7 @@ const CARDS: ConfigCard[] = [
   { to: '/admin/config/mail', icon: Mail, titleKey: 'config.cards.mail.title', descKey: 'config.cards.mail.description' },
   { to: '/admin/config/general', icon: Globe, titleKey: 'config.cards.general.title', descKey: 'config.cards.general.description' },
   { to: '/admin/config/kakao', icon: MessageCircle, titleKey: 'config.cards.kakao.title', descKey: 'config.cards.kakao.description' },
+  { to: '/admin/config/ga4', icon: BarChart3, titleKey: 'config.cards.ga4.title', descKey: 'config.cards.ga4.description' },
 ];
 
 export function ConfigLandingPage() {

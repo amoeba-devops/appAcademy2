@@ -116,5 +116,15 @@
   },
   "empty": {
     "noData": "No data for this month."
+  },
+  "visitor": {
+    "sourceBadge": "Source GA4 · synced {{at}}",
+    "bySite": "By site",
+    "manualDays": "manual {{count}}d",
+    "cellTooltip": "GA4 by site",
+    "manualMark": "Manual input",
+    "syncNow": "Sync GA4",
+    "syncDone": "GA4 synced ({{rows}} rows)",
+    "syncFailed": "GA4 sync failed"
   }
 }

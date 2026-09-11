@@ -414,6 +414,10 @@
       "kakao": {
         "title": "Kakao AlimTalk",
         "description": "Solapi 发送设置 — 反馈 AlimTalk"
+      },
+      "ga4": {
+        "title": "GA4 访客",
+        "description": "自动采集 Google Analytics 4 每日访客 — 仪表盘 Marketing · 访客"
       }
     },
     "mail": {
@@ -506,6 +510,57 @@
         "ok": "发送成功 — 请查看 KakaoTalk。",
         "notSet": "设置未保存或已停用，请先保存。",
         "failed": "发送失败:"
+      }
+    },
+    "ga4": {
+      "title": "GA4 访客同步",
+      "description": "每天 04:00 从连接到 3 个 imweb 站点的 GA4 媒体资源拉取每日访客数，并写入仪表盘 Marketing · 访客指标。已手动录入的日期以手动值优先。",
+      "setupHint": "前置准备：① 创建 GA4 媒体资源并为每个站点建立网站数据流 ② 在 imweb 设置 › 营销渠道集成 › Google Analytics 中填入衡量 ID ③ 在 GCP 启用 Google Analytics Data API 并生成服务账号 JSON 密钥 ④ 在 GA4 媒体资源访问权限管理中将服务账号邮箱添加为查看者。",
+      "fields": {
+        "propertyId": {
+          "label": "GA4 媒体资源 ID",
+          "hint": "GA4 管理 › 媒体资源设置中的数字 ID（不是 G-… 衡量 ID）"
+        },
+        "streamMap": {
+          "label": "各站点数据流 ID",
+          "hint": "GA4 管理 › 数据流中的数字数据流 ID。留空则不采集该站点。"
+        },
+        "saKey": {
+          "label": "服务账号密钥 (JSON)",
+          "choose": "选择 JSON 文件",
+          "pending": "已选择：{{name}}（保存时替换）",
+          "set": "已设置 — {{email}}",
+          "unset": "未设置",
+          "hint": "加密保存且不再显示。仅在需要替换时选择文件。"
+        },
+        "metric": {
+          "label": "访客指标",
+          "options": {
+            "activeUsers": "活跃用户 (activeUsers)",
+            "totalUsers": "总用户 (totalUsers)",
+            "sessions": "会话 (sessions)"
+          }
+        },
+        "isActive": {
+          "label": "启用（每晚自动同步）"
+        }
+      },
+      "test": {
+        "title": "连接测试 · 同步",
+        "hint": "使用已保存设置调用 GA4 Data API。如有改动请先保存。",
+        "run": "测试连接",
+        "ok": "连接成功 — 最近 7 天 {{rows}} 行，数据流 ID：{{streams}}",
+        "notSet": "配置不完整（媒体资源 ID · 数据流 · 密钥）。",
+        "failed": "连接失败："
+      },
+      "sync": {
+        "run": "立即同步（最近 7 天）",
+        "ok": "同步完成 — {{from}}~{{to}} 共 {{rows}} 行（未映射数据流：{{unmapped}}）",
+        "failed": "同步失败：",
+        "last": "上次同步：{{at}} · {{status}}"
+      },
+      "errors": {
+        "invalidKey": "服务账号密钥 JSON 无效（需要 client_email · private_key）。"
       }
     }
   },

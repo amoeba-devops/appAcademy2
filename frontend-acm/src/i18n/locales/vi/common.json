@@ -414,6 +414,10 @@
       "kakao": {
         "title": "Kakao AlimTalk",
         "description": "Cấu hình gửi Solapi — AlimTalk phản hồi"
+      },
+      "ga4": {
+        "title": "Khách truy cập GA4",
+        "description": "Tự động thu thập khách truy cập hằng ngày từ Google Analytics 4 — Dashboard Marketing · Visitor"
       }
     },
     "mail": {
@@ -506,6 +510,57 @@
         "ok": "Đã gửi — kiểm tra KakaoTalk.",
         "notSet": "Cấu hình chưa lưu hoặc đang tắt. Hãy lưu trước.",
         "failed": "Gửi thất bại:"
+      }
+    },
+    "ga4": {
+      "title": "Đồng bộ khách truy cập GA4",
+      "description": "Lấy số khách truy cập hằng ngày từ thuộc tính GA4 gắn với 3 site imweb vào 04:00 mỗi ngày và cập nhật chỉ số Marketing · Visitor trên dashboard. Ngày có nhập thủ công thì giá trị thủ công được ưu tiên.",
+      "setupHint": "Chuẩn bị: ① tạo thuộc tính GA4 với một data stream web cho mỗi site ② kết nối measurement ID trong imweb Cài đặt › Kênh marketing › Google Analytics ③ bật Google Analytics Data API trên GCP và cấp khóa JSON service account ④ thêm email service account làm Viewer trong quản lý quyền truy cập thuộc tính GA4.",
+      "fields": {
+        "propertyId": {
+          "label": "ID thuộc tính GA4",
+          "hint": "ID dạng số trong GA4 Admin › Property settings (không phải measurement ID G-…)"
+        },
+        "streamMap": {
+          "label": "ID data stream theo site",
+          "hint": "ID dạng số trong GA4 Admin › Data streams. Bỏ trống để không thu thập site đó."
+        },
+        "saKey": {
+          "label": "Khóa service account (JSON)",
+          "choose": "Chọn tệp JSON",
+          "pending": "Đã chọn: {{name}} (thay khi lưu)",
+          "set": "Đã thiết lập — {{email}}",
+          "unset": "Chưa thiết lập",
+          "hint": "Được mã hóa lưu trữ và không hiển thị lại. Chỉ chọn tệp khi cần thay."
+        },
+        "metric": {
+          "label": "Chỉ số khách truy cập",
+          "options": {
+            "activeUsers": "Người dùng hoạt động (activeUsers)",
+            "totalUsers": "Tổng người dùng (totalUsers)",
+            "sessions": "Phiên (sessions)"
+          }
+        },
+        "isActive": {
+          "label": "Bật (tự động đồng bộ hằng đêm)"
+        }
+      },
+      "test": {
+        "title": "Kiểm tra kết nối · Đồng bộ",
+        "hint": "Gọi GA4 Data API bằng cấu hình đã lưu. Hãy lưu trước nếu có thay đổi.",
+        "run": "Kiểm tra kết nối",
+        "ok": "Kết nối thành công — {{rows}} dòng trong 7 ngày gần nhất, stream ID: {{streams}}",
+        "notSet": "Cấu hình chưa đầy đủ (ID thuộc tính · stream · khóa).",
+        "failed": "Kết nối thất bại:"
+      },
+      "sync": {
+        "run": "Đồng bộ ngay (7 ngày gần nhất)",
+        "ok": "Đã đồng bộ — {{from}}~{{to}}, {{rows}} dòng (stream chưa ánh xạ: {{unmapped}})",
+        "failed": "Đồng bộ thất bại:",
+        "last": "Đồng bộ gần nhất: {{at}} · {{status}}"
+      },
+      "errors": {
+        "invalidKey": "JSON khóa service account không hợp lệ (cần client_email · private_key)."
       }
     }
   },

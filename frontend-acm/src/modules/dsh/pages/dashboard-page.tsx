@@ -7,8 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ManualInputDialog } from '@/modules/dsh/components/manual-input-dialog';
 import { ComplaintDialog } from '@/modules/dsh/components/complaint-dialog';
-import { KpiSummaryCards, type CategorySummary } from '@/modules/dsh/components/kpi-summary-cards';
+import {
+  KpiSummaryCards,
+  type CategorySummary,
+  type VisitorBreakdown,
+} from '@/modules/dsh/components/kpi-summary-cards';
 import { toCsv, downloadCsv } from '@/modules/dsh/lib/export-csv';
+import { useGa4SyncNow } from '@/modules/cfg/hooks/use-ga4-config';
+import { useAuthStore } from '@/stores/auth.store';
+import { useToast } from '@/components/ui/toast';
 
 type MetCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
 type MetAggregationType =
@@ -65,6 +72,10 @@ interface RangeGridResult {
   sums: Record<string, number>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
+  /** PLN-260912 — GA4 per-site visitors { [date]: { [site]: n } } */
+  siteVisits?: Record<string, Record<string, number>>;
+  manualVisitorDates?: string[];
+  ga4LastSyncAt?: string | null;
 }
 
 interface RangeSummaryResponse {
@@ -280,11 +291,68 @@ export function DashboardPage() {
     setManualOpen(true);
   };
 
+  // PLN-260912 — GA4 visitor breakdown for the MARKETING card + "sync now" (ADMIN)
+  const role = useAuthStore((s) => s.user?.role);
+  const toast = useToast();
+  const ga4Sync = useGa4SyncNow();
+  const visitorBreakdown = useMemo<VisitorBreakdown | null>(() => {
+    const sv = gridQ.data?.siteVisits;
+    if (!sv || !Object.keys(sv).length) return null;
+    const bySite: Record<string, number> = {};
+    for (const perSite of Object.values(sv)) {
+      for (const [site, n] of Object.entries(perSite)) bySite[site] = (bySite[site] ?? 0) + n;
+    }
+    return {
+      bySite,
+      lastSyncAt: gridQ.data?.ga4LastSyncAt ?? null,
+      manualDays: gridQ.data?.manualVisitorDates?.length ?? 0,
+    };
+  }, [gridQ.data]);
+  const manualDates = useMemo(
+    () => new Set(gridQ.data?.manualVisitorDates ?? []),
+    [gridQ.data],
+  );
+  const visitorCellTitle = (date: string): string | undefined => {
+    const perSite = gridQ.data?.siteVisits?.[date];
+    const parts: string[] = [];
+    if (perSite) {
+      parts.push(
+        `${t('visitor.cellTooltip')}: ${Object.entries(perSite)
+          .map(([s, n]) => `${s} ${n}`)
+          .join(' / ')}`,
+      );
+    }
+    if (manualDates.has(date)) parts.push(t('visitor.manualMark'));
+    return parts.length ? parts.join(' · ') : undefined;
+  };
+  const onGa4Sync = async () => {
+    try {
+      const r = await ga4Sync.mutateAsync({ from, to });
+      toast.success(t('visitor.syncDone', { rows: r.rowsUpserted }));
+    } catch {
+      toast.error(t('visitor.syncFailed'));
+    }
+  };
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex flex-wrap items-center gap-2">
+          {(role === 'ADMIN' || role === 'APP_ADMIN') && (
+            <Button
+              variant="outline"
+              onClick={onGa4Sync}
+              disabled={ga4Sync.isPending || !from || !to || from > to}
+              title={
+                gridQ.data?.ga4LastSyncAt
+                  ? new Date(gridQ.data.ga4LastSyncAt).toLocaleString()
+                  : undefined
+              }
+            >
+              {t('visitor.syncNow')}
+            </Button>
+          )}
           <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data}>
             {t('actions.exportCsv')}
           </Button>
@@ -355,6 +423,7 @@ export function DashboardPage() {
       <KpiSummaryCards
         categories={summaryQ.data?.categories ?? []}
         isLoading={summaryQ.isLoading}
+        visitorBreakdown={visitorBreakdown}
       />
 
       {(metricsQ.isLoading || gridQ.isLoading) && (
@@ -433,6 +502,8 @@ export function DashboardPage() {
                         const v = field ? (row[field] as unknown) : null;
                         const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
                         const isFirstOfCat = prevCat !== md.category;
+                        const isVisitor = md.code === 'mkt_visitor';
+                        const isManualVisitor = isVisitor && manualDates.has(row.date);
                         return (
                           <td
                             key={md.id}
@@ -440,8 +511,14 @@ export function DashboardPage() {
                               'px-2 py-1 text-right ' +
                               (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
                             }
+                            title={isVisitor ? visitorCellTitle(row.date) : undefined}
                           >
                             {fmt(v, md.format)}
+                            {isManualVisitor && (
+                              <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
+                                ✎
+                              </span>
+                            )}
                           </td>
                         );
                       })}

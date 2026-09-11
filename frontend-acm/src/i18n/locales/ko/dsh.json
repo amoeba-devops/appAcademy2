@@ -116,5 +116,15 @@
   },
   "empty": {
     "noData": "해당 월에 데이터가 없습니다."
+  },
+  "visitor": {
+    "sourceBadge": "출처 GA4 · 동기화 {{at}}",
+    "bySite": "사이트별",
+    "manualDays": "수동 {{count}}일",
+    "cellTooltip": "GA4 사이트별",
+    "manualMark": "수동 입력",
+    "syncNow": "GA4 동기화",
+    "syncDone": "GA4 동기화 완료 ({{rows}}행)",
+    "syncFailed": "GA4 동기화 실패"
   }
 }
