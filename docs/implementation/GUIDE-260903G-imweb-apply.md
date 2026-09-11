@@ -46,7 +46,7 @@ change_log:
 > ⚠ 계정은 공통이지만 **admin 세션은 사이트(서브도메인)별로 따로 로그인**해야 한다. "사이트 관리" 버튼도 SSO 되지 않고 해당 사이트 로그인 화면으로 간다.
 > 아래 절차를 **사이트마다 1회씩, 총 3회** 반복한다.
 >
-> 진행 현황 (2026-09-11): **TPI 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w20260912d54fe06e20578`) 삽입, 라이브 반영 확인. **TRINITY 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w202609124eeb037ab4ece`), `trinityacademy.kr/contact2` · `trinityacademy.imweb.me/contact2` 양쪽 라이브 확인. **SANTACROCE 완료** — 페이지 "컨설팅 신청" `/consult` 게시, 코드 위젯(위젯 ID `w202609125037d2515723d`), `santacroce.co.kr/consult` 라이브 확인. **FIX-260911 배포 완료(PR #205, 2b698f6, cd-production 2026-09-11 16:33Z)** 후 3사이트 시크릿 창 제출 테스트 성공("접수되었습니다"). 콘솔에서 상담종료 처리할 테스트 행 4건: TPI 2건(학생명 `테스트_ACM연동_TPI`, `테스트_ACM연동_TRINITY` — 후자는 이동 실패로 TPI 폼에 잘못 제출됨), TRINITY 1건(`테스트_ACM연동_TRINITY`), SANTACROCE 1건(`테스트_ACM연동_SANTACROCE`). 연락처는 모두 `010-0000-0000`.
+> 진행 현황 (2026-09-11): **TPI 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w20260912d54fe06e20578`) 삽입, 라이브 반영 확인. **TRINITY 완료** — 페이지 "상담 신청" `/contact2` 게시, 코드 위젯(위젯 ID `w202609124eeb037ab4ece`), `trinityacademy.kr/contact2` · `trinityacademy.imweb.me/contact2` 양쪽 라이브 확인. **SANTACROCE 완료** — 페이지 "컨설팅 신청" `/consult` 게시, 코드 위젯(위젯 ID `w202609125037d2515723d`), `santacroce.co.kr/consult` 라이브 확인. **FIX-260911 배포 완료(PR #205, 2b698f6, cd-production 2026-09-11 16:33Z)** 후 3사이트 시크릿 창 제출 테스트 성공("접수되었습니다"). 콘솔에서 상담종료 처리할 테스트 행 4건: TPI 2건(학생명 `테스트_ACM연동_TPI`, `테스트_ACM연동_TRINITY` — 후자는 이동 실패로 TPI 폼에 잘못 제출됨), TRINITY 1건(`테스트_ACM연동_TRINITY`), SANTACROCE 1건(`테스트_ACM연동_SANTACROCE`). 연락처는 모두 `010-0000-0000`. → **콘솔 등록 검증·상담종료 완료 (#19~#22)**: [TEST-260911](../test/TEST-260911-external-intake-3site-e2e.md) 참조. 발견된 콘솔 표시 갭(F-1 기타 원문, F-2 문의 내용 미표시)은 후속 REQ 대상.
 
 ### 3.1 페이지 생성
 1. imweb.me/mysite → 대상 사이트 선택 → **사이트 편집** 진입
