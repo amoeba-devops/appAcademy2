@@ -19,6 +19,8 @@ import {
   CslKanbanBoard,
   type KanbanInquiry,
 } from '@/modules/csl/components/csl-kanban-board';
+import { RegisteredAtCell } from '@/modules/csl/components/registered-at-cell';
+import { useTenantTz } from '@/lib/tz';
 
 interface Inquiry extends KanbanInquiry {
   createdAt: string;
@@ -103,6 +105,7 @@ export function CslListPage() {
 
   const localeMap: Record<string, string> = { ko: 'ko-KR', en: 'en-US', vi: 'vi-VN' };
   const dateLocale = localeMap[i18n.language?.slice(0, 2) ?? 'ko'] ?? 'ko-KR';
+  const tz = useTenantTz(); // REQ-260903 — 시각은 테넌트 타임존 기준
   const dash = t('common:dash');
 
   const stageBadgeClass = (stage: Inquiry['currentStage']) => {
@@ -172,7 +175,7 @@ export function CslListPage() {
       </div>
       {isLoading && <p className="text-secondary">{t('common:status.loading')}</p>}
       {!isLoading && view === 'kanban' && (
-        <CslKanbanBoard inquiries={items} dateLocale={dateLocale} />
+        <CslKanbanBoard inquiries={items} dateLocale={dateLocale} tz={tz} />
       )}
       {view === 'list' && (
         <div className="rounded-lg bg-surface border border-[var(--border-subtle)] overflow-x-auto">
@@ -330,9 +333,14 @@ export function CslListPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-secondary">
-                    {c.registeredAt
-                      ? new Date(c.registeredAt).toLocaleDateString(dateLocale)
-                      : dash}
+                    {/* 요구 260912C — 등록일 + 등록 시:분. */}
+                    <RegisteredAtCell
+                      registeredAt={c.registeredAt}
+                      createdAt={c.createdAt}
+                      locale={dateLocale}
+                      tz={tz}
+                      dash={dash}
+                    />
                   </td>
                   <td className="px-4 py-3 text-secondary">
                     {c.followupAt

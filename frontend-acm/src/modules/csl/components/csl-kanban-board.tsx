@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RegisteredAtCell } from '@/modules/csl/components/registered-at-cell';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Dialog,
@@ -37,6 +38,8 @@ export interface KanbanInquiry {
   applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
   currentStage: Stage;
   registeredAt: string;
+  /** 요구 260912C — 등록 시:분 표기용 행 생성 시각. */
+  createdAt?: string | null;
   followupAt?: string | null;
   // PLN-260718 요구3 — 수강등록으로 연결된 STD 학생 (있으면).
   linkedStudent?: { id: string; name: string; status: string } | null;
@@ -68,9 +71,11 @@ const COLUMN_ACCENT: Record<Stage, string> = {
 export function CslKanbanBoard({
   inquiries,
   dateLocale,
+  tz,
 }: {
   inquiries: KanbanInquiry[];
   dateLocale: string;
+  tz?: string;
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const [droppedOpen, setDroppedOpen] = useState(false);
@@ -117,6 +122,7 @@ export function CslKanbanBoard({
                     key={c.id}
                     inq={c}
                     dateLocale={dateLocale}
+                    tz={tz}
                     onOpen={() => setSelectedInqId(c.id)}
                   />
                 ))}
@@ -149,6 +155,7 @@ export function CslKanbanBoard({
                 key={c.id}
                 inq={c}
                 dateLocale={dateLocale}
+                tz={tz}
                 onOpen={() => setSelectedInqId(c.id)}
               />
             ))}
@@ -181,10 +188,12 @@ export function CslKanbanBoard({
 function KanbanCard({
   inq,
   dateLocale,
+  tz,
   onOpen,
 }: {
   inq: KanbanInquiry;
   dateLocale: string;
+  tz?: string;
   onOpen: () => void;
 }) {
   const { t } = useTranslation(['csl', 'common']);
@@ -193,9 +202,15 @@ function KanbanCard({
     ? t('anonymousInquiry', { seqNo: inq.seqNo })
     : inq.studentName;
 
-  const registered = inq.registeredAt
-    ? new Date(inq.registeredAt).toLocaleDateString(dateLocale)
-    : null;
+  const registered = inq.registeredAt ? (
+    // 요구 260912C — 등록일 + 등록 시:분.
+    <RegisteredAtCell
+      registeredAt={inq.registeredAt}
+      createdAt={inq.createdAt}
+      locale={dateLocale}
+      tz={tz}
+    />
+  ) : null;
   const followup = inq.followupAt
     ? new Date(inq.followupAt).toLocaleDateString(dateLocale)
     : null;

@@ -28,7 +28,8 @@
     "applyPurpose": "Apply purpose",
     "registered": "Registered",
     "followup": "Follow-up",
-    "empty": "No inquiries yet."
+    "empty": "No inquiries yet.",
+    "receivedAt": "received"
   },
   "form": {
     "studentName": "Student name",

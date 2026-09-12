@@ -35,6 +35,8 @@ import type {
 import { validateLevelTestScoreDetail } from './dto/level-test-score.validator';
 import { StdInheritanceService } from './std-inheritance.service';
 import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.service';
+import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
+import { ymdInTz } from '../../acm-common/time/zoned-time.util';
 
 /**
  * 6-stage CSL pipeline transition matrix (acm-req-csl-001 v2.1 §4.1, §4.4).
@@ -78,6 +80,7 @@ export class InquiryService {
     private readonly events: EventEmitter2,
     private readonly stdInheritance: StdInheritanceService,
     private readonly enrollmentRegistration: CslEnrollmentRegistrationService,
+    private readonly tenantSettings: TenantSettingsService,
   ) {}
 
   // ──────────────────────────────────────────────────────────────────────
@@ -109,7 +112,10 @@ export class InquiryService {
       ? this.crypto.encrypt(dto.parentName)
       : null;
 
-    const today = new Date().toISOString().slice(0, 10);
+    // 요구 260912C — 등록일은 테넌트 타임존 기준 '오늘'. UTC 로 계산하면
+    // KST 00:00~09:00 에 접수된 건이 전날로 기록돼 화면 등록일이 하루 밀린다.
+    const tz = await this.tenantSettings.getTimezone(entId);
+    const today = ymdInTz(new Date(), tz);
 
     const entity = this.inq.create({
       id: randomUUID(),
