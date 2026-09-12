@@ -48,14 +48,23 @@ export interface IBodaeduServerClient {
     auth?: BodaServerAuth,
   ): Promise<BodaRecordingEntry[]>;
 
-  /** PLN-260728F C — 녹화 파일 스트리밍 다운로드 (Basic 인증 프록시). */
+  /**
+   * PLN-260728F C — 녹화 파일 스트리밍 다운로드 (Basic 인증 프록시).
+   *
+   * REQ-260912B: `range` 를 주면 HTTP Range 헤더를 그대로 전달한다. 업스트림이
+   * 206 을 지원하지 않으면 전체 본문(200)이 오므로 호출자는 `partial` 로 구분해
+   * graceful fallback 해야 한다.
+   */
   downloadRecording(
     recordIdx: number,
     auth?: BodaServerAuth,
+    range?: string,
   ): Promise<{
     stream: NodeJS.ReadableStream;
     contentType: string | null;
     contentLength: number | null;
+    contentRange: string | null;
+    partial: boolean;
   }>;
 
   /**

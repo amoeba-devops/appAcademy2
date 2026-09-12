@@ -40,6 +40,8 @@ export const BODA_EVENT_CODES = {
   USER_JOINED: 11,
   USER_LEFT: 12,
   USER_SCORE: 13, // P1
+  /** REQ-260912B — 녹화파일 저장 완료 (이벤트 연동 가이드 §21). */
+  RECORDING_SAVED: 21,
 } as const;
 export type BodaEventCode =
   (typeof BODA_EVENT_CODES)[keyof typeof BODA_EVENT_CODES];
@@ -83,7 +85,9 @@ export interface BodaJoinLogEntry {
  * Invalid Date(YYYYMMDDhhmmss)가 된다. TZ 표기가 없는 값은 +09:00 으로
  * 고정 해석해 UTC ISO 로 정규화한다. 이미 오프셋/Z 가 붙은 값은 그대로 파싱.
  */
-export function bodaDatetimeToIso(raw: string | null | undefined): string | null {
+export function bodaDatetimeToIso(
+  raw: string | null | undefined,
+): string | null {
   if (!raw) return null;
   const s = raw.trim();
   // YYYYMMDDhhmmss
@@ -119,4 +123,7 @@ export interface BodaRecordingEntry {
   startDatetime: string | null; // YYYYMMDDhhmmss
   endDatetime: string | null;
   fileExist: boolean;
+  /** REQ-260912B — 보관 레코드 식별용 (SPEC_823 v823.002 §녹화 목록 조회). */
+  meetIdx?: string | null;
+  roomCode?: string | null;
 }

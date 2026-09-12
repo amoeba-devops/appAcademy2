@@ -42,12 +42,21 @@ export interface CalReview {
   updatedAt: string | null;
 }
 
+/**
+ * REQ-260912B — 포털 녹화본 목록. 백엔드가 ACM 보관 레코드를 돌려주므로
+ * 벤더 원본 필드명(recordTitle/startDatetime)이 아니라 정규화된 형태다.
+ * 담당 강사에게만 내려오며, 학생·학부모에게는 항상 빈 배열이다.
+ */
 export interface BodaRecording {
   recordIdx: number;
-  recordTitle: string | null;
-  startDatetime: string | null;
-  endDatetime: string | null;
+  title: string | null;
+  startedAt: string | null;
+  endedAt: string | null;
+  durationSec: number | null;
   fileExist: boolean;
+  archiveStatus: 'PENDING' | 'ARCHIVING' | 'ARCHIVED' | 'FAILED' | 'MISSING';
+  sizeBytes: string | null;
+  playable: boolean;
 }
 
 export interface ClassRecordParticipant {

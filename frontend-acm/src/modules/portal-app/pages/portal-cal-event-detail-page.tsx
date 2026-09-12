@@ -216,13 +216,21 @@ function RecordingsSection({ evtId, isBoda }: { evtId: string; isBoda: boolean }
     queryKey: ['portal-recordings', evtId],
     queryFn: () => portalApi.recordings(evtId),
   });
-  const files = recs.filter((r) => r.fileExist);
+  const files = recs.filter((r) => r.playable);
   if (!isBoda || files.length === 0) return null;
 
-  const fmtDT = (v: string | null) =>
-    v && v.length >= 12
-      ? `${v.slice(4, 6)}/${v.slice(6, 8)} ${v.slice(8, 10)}:${v.slice(10, 12)}`
-      : '';
+  // REQ-260912B — 백엔드가 UTC ISO 로 정규화해 주므로 로케일 포맷으로 렌더한다.
+  const fmtDT = (v: string | null) => {
+    if (!v) return '';
+    const d = new Date(v);
+    if (Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat(undefined, {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  };
 
   return (
     <div className="mt-4">
@@ -236,11 +244,11 @@ function RecordingsSection({ evtId, isBoda }: { evtId: string; isBoda: boolean }
             className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
           >
             <span className="min-w-0 flex-1 truncate">
-              {r.recordTitle || `${t('portalApp.recordings.file', '녹화')} #${r.recordIdx}`}
+              {r.title || `${t('portalApp.recordings.file', '녹화')} #${r.recordIdx}`}
             </span>
             <span className="shrink-0 text-[11px] text-secondary">
-              {fmtDT(r.startDatetime)}
-              {r.endDatetime ? ` ~ ${fmtDT(r.endDatetime)}` : ''}
+              {fmtDT(r.startedAt)}
+              {r.endedAt ? ` ~ ${fmtDT(r.endedAt)}` : ''}
             </span>
             <button
               type="button"

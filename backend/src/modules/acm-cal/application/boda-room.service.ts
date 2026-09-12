@@ -214,26 +214,6 @@ export class BodaRoomService {
    * SERVER API failure we still proceed to delete the row (FK CASCADE handles
    * participant cleanup). T6 / vendor reconcile catches any drift.
    */
-  /** PLN-260728F C — 이벤트의 녹화 목록 (종료된 강의). */
-  async listRecordings(evtId: string, entId: string) {
-    const room = await this.repo.findOne({ where: { evtId, entId } });
-    if (!room?.meetKey) return [];
-    const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
-    return this.server.listRecordings(room.meetKey, auth);
-  }
-
-  /** PLN-260728F C — 녹화 파일 스트리밍 (권한검증은 컨트롤러, 타 방 녹화 차단). */
-  async downloadRecording(evtId: string, entId: string, recordIdx: number) {
-    const room = await this.repo.findOne({ where: { evtId, entId } });
-    if (!room?.meetKey) throw new NotFoundException('ROOM_NOT_FOUND');
-    const auth = (await this.cfg.getServerApiAuth(entId)) ?? undefined;
-    const list = await this.server.listRecordings(room.meetKey, auth);
-    if (!list.some((r) => r.recordIdx === recordIdx)) {
-      throw new NotFoundException('RECORDING_NOT_FOUND');
-    }
-    return this.server.downloadRecording(recordIdx, auth);
-  }
-
   async closeAndDelete(evtId: string, entId: string): Promise<void> {
     const room = await this.repo.findOne({ where: { evtId, entId } });
     if (!room) return; // nothing to do

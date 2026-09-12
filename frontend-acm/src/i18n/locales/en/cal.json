@@ -168,7 +168,11 @@
     "actualRow": "Actual",
     "reservedStart": "Scheduled start",
     "reservedEnd": "Scheduled end",
-    "joinListTitle": "Actual join times"
+    "joinListTitle": "Actual join times",
+    "recordSyncBtn": "Sync records",
+    "reconcileDone": "Records synced. ({{inserted}} new)",
+    "reconcileFailed": "Failed to sync records.",
+    "recordEmpty": "No join/leave records received from BODA School yet. They sync automatically about 10 minutes after class ends, or press [Sync records] to pull them now."
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -307,5 +311,35 @@
     "sendAlimtalk": "💬 Send AlimTalk ({{count}})",
     "alimtalkSentToast": "Sent {{count}} AlimTalk message(s).",
     "alimtalkNotConfigured": "AlimTalk (Solapi) is not configured or inactive."
+  },
+  "recordings": {
+    "title": "Class recordings",
+    "file": "Recording",
+    "play": "Play",
+    "download": "Download",
+    "syncBtn": "Sync recordings",
+    "syncFound": "Found {{count}} recording(s).",
+    "syncEmpty": "No recordings stored on BODA School.",
+    "syncFailed": "Failed to sync recordings.",
+    "openFailed": "Could not open the recording.",
+    "archiving": "Archiving {{count}} file(s)",
+    "archiveFailed": "{{count}} archive failure(s)",
+    "notArchived": "BODA original",
+    "status": {
+      "NOT_APPLICABLE": "Not an online class",
+      "NO_ROOM": "Room not created",
+      "UPCOMING": "Scheduled",
+      "IN_PROGRESS": "Class in progress",
+      "AWAITING": "Checking for recordings",
+      "NO_RECORDING": "No recording",
+      "AVAILABLE": "Recording available"
+    },
+    "empty": {
+      "NO_ROOM": "The BODA School room has not been created yet.",
+      "UPCOMING": "Recording status becomes available once the class starts.",
+      "IN_PROGRESS": "The class is running. Recordings appear after it ends.",
+      "AWAITING": "The class has ended. Recordings appear once BODA finishes saving them.",
+      "NO_RECORDING": "No recording was saved."
+    }
   }
 }
