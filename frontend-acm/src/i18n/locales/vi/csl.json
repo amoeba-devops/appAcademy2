@@ -28,7 +28,8 @@
     "applyPurpose": "Mục đích",
     "registered": "Ngày đăng ký",
     "followup": "Theo dõi",
-    "empty": "Chưa có tư vấn nào."
+    "empty": "Chưa có tư vấn nào.",
+    "receivedAt": "tiếp nhận"
   },
   "form": {
     "studentName": "Tên học sinh",

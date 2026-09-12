@@ -28,7 +28,8 @@
     "applyPurpose": "申请目的",
     "registered": "登记日期",
     "followup": "后续跟进",
-    "empty": "暂无咨询记录。"
+    "empty": "暂无咨询记录。",
+    "receivedAt": "接收"
   },
   "form": {
     "studentName": "学生姓名",

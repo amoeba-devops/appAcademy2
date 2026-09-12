@@ -13,6 +13,7 @@ import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.t
 import { InquiryService } from './inquiry.service';
 import { StdInheritanceService } from './std-inheritance.service';
 import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.service';
+import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 
 /**
  * REQ-260626 FR-CSL-122~128 — demo class update + feedback workflow.
@@ -53,6 +54,10 @@ describe('InquiryService — demo class + feedback', () => {
         {
           provide: CslEnrollmentRegistrationService,
           useValue: { register: jest.fn() },
+        },
+        {
+          provide: TenantSettingsService,
+          useValue: { getTimezone: jest.fn().mockResolvedValue('Asia/Seoul') },
         },
       ],
     }).compile();

@@ -28,7 +28,8 @@
     "applyPurpose": "신청목적",
     "registered": "등록일",
     "followup": "후속 일정",
-    "empty": "등록된 상담이 없습니다."
+    "empty": "등록된 상담이 없습니다.",
+    "receivedAt": "접수"
   },
   "form": {
     "studentName": "학생 이름",

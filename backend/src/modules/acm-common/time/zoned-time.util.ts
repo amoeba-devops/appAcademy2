@@ -24,7 +24,8 @@ function partFmt(tz: string): Intl.DateTimeFormat {
 
 function tzOffsetMs(date: Date, tz: string): number {
   const parts = partFmt(tz).formatToParts(date);
-  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? '0');
+  const get = (t: string) =>
+    Number(parts.find((p) => p.type === t)?.value ?? '0');
   const asUtc = Date.UTC(
     get('year'),
     get('month') - 1,
@@ -34,6 +35,17 @@ function tzOffsetMs(date: Date, tz: string): number {
     get('second'),
   );
   return asUtc - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+/**
+ * 요구 260912C — 해당 시각의 tz 기준 'YYYY-MM-DD'.
+ * `new Date().toISOString().slice(0, 10)` 은 UTC 날짜라 KST 00:00~09:00 에
+ * 하루 밀린다. 테넌트 기준 '오늘' 이 필요한 곳에서 쓴다.
+ */
+export function ymdInTz(date: Date, tz: string): string {
+  const parts = partFmt(tz).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '00';
+  return `${get('year')}-${get('month')}-${get('day')}`;
 }
 
 /** tz 벽시계(y,m,d,hh,mm) → UTC Date. */
