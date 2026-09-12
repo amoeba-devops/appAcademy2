@@ -1,10 +1,11 @@
 ---
 document_id: CAL-PLN-260912B
-version: 1.0.0
-status: IMPLEMENTED (P1·P2 완료, 미배포) — P0 운영 연동은 사용자 후속 설정 예정
+version: 1.0.1
+status: DEPLOYED (PR #211 1190df0 — cd-staging·cd-production 2026-09-12 08:0xZ 완료) — P0 운영 연동은 사용자 후속 설정 대기
 date: 2026-09-12
 depends_on: docs/analysis/REQ-260912B-cal-boda-recording-attendance.md
 change_log:
+  - 2026-09-12 v1.0.1 배포 완료 — staging·production 반영, 스모크 확인(티켓 라우트 403 INVALID_TICKET, 999l 자동 적용). 실데이터 검증은 P0 후 (Claude Code)
   - 2026-09-12 v1.0.0 P1(백엔드)·P2(프론트) 구현 완료 — 녹화 상태 표시·ACM 서버 보관·운영자/강사 전용 노출 반영, 사용자 결정사항 3건 적용 (Claude Code)
   - 2026-09-12 v0.1.0 초안 — 녹화본 링크 활성화 + 입출입 기록 노출 구현 계획 (Claude Code)
 ---
@@ -90,10 +91,24 @@ frontend-acm (admin)
 | P2-5 | i18n 4 locale — `cal.recordings.*`(상태 7종·빈 상태 문구 포함), `cal.boda.record*` | `i18n/locales/{ko,en,vi,zh-CN}/cal.json` | ✅ |
 | P2-6 | 포털 녹화본 응답 정규화 대응 (`title/startedAt/playable`) + 학생·학부모 미노출 | `portal-app/api/portal-api.ts`, `portal-cal-event-detail-page.tsx` | ✅ |
 
-### P3. 검증 (1h)
+### P3. 검증
 
-- 스테이징에서 실제 보다 룸 개설 → 녹화 → 종료 → 웹훅 수신(`amb_acm_cal_boda_event_log`) → 상세에서 녹화본·입출입 확인.
-- 프로덕션 배포 후 대상 이벤트(`999cb70c…`) 재확인. 단, **과거 수업은 보다 측에 녹화 파일이 없으면 표시되지 않음**.
+**배포 스모크 (2026-09-12 완료)**
+
+| 확인 | 결과 |
+|---|---|
+| CI (backend lint/unit, integration, frontend, docker×2, trivy) | 6/6 pass |
+| `cd-staging` (이미지 빌드 + 배포 + 스모크) | ✅ |
+| `cd-production` (`-f sha=1190df0`) | ✅ |
+| 프로덕션 컨테이너 이미지 | `acm-frontend:1190df0`, `tac-backend:1190df0` |
+| `sql/acm/999l` 자동 적용 | ✅ `amb_acm_cal_boda_recording` 생성 (0행) |
+| 티켓 라우트 위조 차단 | `GET /api/acm/cal/recordings/bogus-ticket` → **403 INVALID_TICKET** |
+| 녹화 목록 API 무자격 접근 | 401 |
+
+**실데이터 검증 — P0 완료 후 (미실시)**
+
+- 실제 보다 룸 개설 → 녹화 → 종료 → 웹훅 수신(`amb_acm_cal_boda_event_log`) → 상세에서 녹화본·입출입 확인.
+- 대상 이벤트(`999cb70c…`) 재확인. 단, **과거 수업은 보다 측에 녹화 파일이 없으면 표시되지 않음**.
 - 결과는 `docs/test/TEST-260912B-*.md` 로 기록.
 
 ### 신규 API (P1 결과)
