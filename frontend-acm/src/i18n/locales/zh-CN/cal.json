@@ -168,7 +168,11 @@
     "actualRow": "实际",
     "reservedStart": "预约开始",
     "reservedEnd": "预约结束",
-    "joinListTitle": "实际进入教室时间"
+    "joinListTitle": "实际进入教室时间",
+    "recordSyncBtn": "同步记录",
+    "reconcileDone": "记录已同步。（新增 {{inserted}} 条）",
+    "reconcileFailed": "同步记录失败。",
+    "recordEmpty": "尚未收到来自 BODA School 的进出记录。课程结束约 10 分钟后自动同步，也可点击 [同步记录] 立即获取。"
   },
   "instant": {
     "btnLabel": "立即开课",
@@ -307,5 +311,35 @@
     "sendAlimtalk": "💬 发送 AlimTalk ({{count}}人)",
     "alimtalkSentToast": "已发送 {{count}} 条 AlimTalk。",
     "alimtalkNotConfigured": "AlimTalk (Solapi) 未配置或已停用。"
+  },
+  "recordings": {
+    "title": "课程录像",
+    "file": "录像",
+    "play": "播放",
+    "download": "下载",
+    "syncBtn": "同步录像",
+    "syncFound": "已找到 {{count}} 个录像。",
+    "syncEmpty": "BODA School 上没有保存的录像。",
+    "syncFailed": "同步录像失败。",
+    "openFailed": "无法打开录像。",
+    "archiving": "正在归档 {{count}} 个文件",
+    "archiveFailed": "{{count}} 个归档失败",
+    "notArchived": "BODA 原件",
+    "status": {
+      "NOT_APPLICABLE": "非在线课程",
+      "NO_ROOM": "未创建教室",
+      "UPCOMING": "尚未开始",
+      "IN_PROGRESS": "课程进行中",
+      "AWAITING": "正在确认录像",
+      "NO_RECORDING": "无录像",
+      "AVAILABLE": "有录像"
+    },
+    "empty": {
+      "NO_ROOM": "BODA School 教室尚未创建。",
+      "UPCOMING": "课程开始后即可确认录像状态。",
+      "IN_PROGRESS": "课程进行中，结束后将显示录像。",
+      "AWAITING": "课程已结束，BODA 保存完成后将自动显示录像。",
+      "NO_RECORDING": "没有保存的录像。"
+    }
   }
 }

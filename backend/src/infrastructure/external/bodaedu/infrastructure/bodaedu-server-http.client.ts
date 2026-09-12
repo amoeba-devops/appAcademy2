@@ -92,6 +92,8 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       endDatetime:
         typeof r['endDatetime'] === 'string' ? r['endDatetime'] : null,
       fileExist: r['fileExist'] === true,
+      meetIdx: r['meetIdx'] == null ? null : String(r['meetIdx']),
+      roomCode: r['roomCode'] == null ? null : String(r['roomCode']),
     }));
   }
 
@@ -99,15 +101,22 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
   async downloadRecording(
     recordIdx: number,
     auth?: BodaServerAuth,
+    range?: string,
   ): Promise<{
     stream: NodeJS.ReadableStream;
     contentType: string | null;
     contentLength: number | null;
+    contentRange: string | null;
+    partial: boolean;
   }> {
     const eff = this.resolveAuth(auth);
+    const headers: Record<string, string> = {
+      Authorization: `Basic ${eff.basicAuth}`,
+    };
+    if (range) headers.Range = range;
     const res = await fetch(
       `${eff.baseUrl}/svr/record/log/video/${recordIdx}/download`,
-      { headers: { Authorization: `Basic ${eff.basicAuth}` } },
+      { headers },
     );
     if (!res.ok || !res.body) {
       throw new Error(`RECORDING_DOWNLOAD_FAILED_${res.status}`);
@@ -119,6 +128,9 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       contentLength: res.headers.get('content-length')
         ? Number(res.headers.get('content-length'))
         : null,
+      contentRange: res.headers.get('content-range'),
+      // 업스트림이 Range 를 무시하면 200 이 온다 — 그 경우 partial=false.
+      partial: res.status === 206,
     };
   }
 
@@ -236,14 +248,24 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       );
       return null;
     }
+    // REQ-260912B — 문서상 필드는 openDatetime/startDatetime/endDatetime
+    // (YYYYMMDDhhmmss, KST). 일부 배포본은 openedAt/startedAt 로 온다. 둘 다
+    // 수용하고 UTC ISO 로 정규화한다 — 정규화 없이 new Date() 하면 Invalid Date.
+    const pick = (...keys: string[]): string | null => {
+      for (const k of keys) {
+        const v = r[k];
+        if (typeof v === 'string' && v.trim()) return bodaDatetimeToIso(v);
+      }
+      return null;
+    };
     return {
       meetKey: typeof r.meetKey === 'string' ? r.meetKey : fallbackKey,
-      meetIdx: typeof r.meetIdx === 'string' ? r.meetIdx : null,
+      meetIdx: r.meetIdx == null ? null : String(r.meetIdx),
       status,
-      openedAt: typeof r.openedAt === 'string' ? r.openedAt : null,
-      startedAt: typeof r.startedAt === 'string' ? r.startedAt : null,
-      endedAt: typeof r.endedAt === 'string' ? r.endedAt : null,
-      closedAt: typeof r.closedAt === 'string' ? r.closedAt : null,
+      openedAt: pick('openedAt', 'openDatetime'),
+      startedAt: pick('startedAt', 'startDatetime'),
+      endedAt: pick('endedAt', 'endDatetime'),
+      closedAt: pick('closedAt', 'closeDatetime'),
       currentUserCount:
         typeof r.currentUserCount === 'number' ? r.currentUserCount : null,
     };

@@ -168,7 +168,11 @@
     "actualRow": "실제",
     "reservedStart": "예약시작",
     "reservedEnd": "예약종료",
-    "joinListTitle": "실제 수업 입장시간"
+    "joinListTitle": "실제 수업 입장시간",
+    "recordSyncBtn": "기록 동기화",
+    "reconcileDone": "기록을 동기화했습니다. (신규 {{inserted}}건)",
+    "reconcileFailed": "기록 동기화에 실패했습니다.",
+    "recordEmpty": "아직 보다스쿨에서 수신된 입·퇴장 기록이 없습니다. 수업 종료 후 약 10분 뒤 자동 반영되며, [기록 동기화] 로 즉시 다시 가져올 수 있습니다."
   },
   "instant": {
     "btnLabel": "즉시 강의 개설",
@@ -307,5 +311,35 @@
     "sendAlimtalk": "💬 알림톡 발송 ({{count}}명)",
     "alimtalkSentToast": "알림톡 {{count}}건을 발송했습니다.",
     "alimtalkNotConfigured": "알림톡(Solapi) 설정이 없거나 비활성입니다. 설정에서 등록하세요."
+  },
+  "recordings": {
+    "title": "수업 녹화본",
+    "file": "녹화",
+    "play": "재생",
+    "download": "다운로드",
+    "syncBtn": "녹화본 동기화",
+    "syncFound": "녹화본 {{count}}건을 확인했습니다.",
+    "syncEmpty": "보다스쿨에 저장된 녹화본이 없습니다.",
+    "syncFailed": "녹화본 동기화에 실패했습니다.",
+    "openFailed": "녹화본을 열지 못했습니다.",
+    "archiving": "서버 보관 중 {{count}}건",
+    "archiveFailed": "보관 실패 {{count}}건",
+    "notArchived": "보다스쿨 원본",
+    "status": {
+      "NOT_APPLICABLE": "화상수업 아님",
+      "NO_ROOM": "강의실 미개설",
+      "UPCOMING": "수업 예정",
+      "IN_PROGRESS": "수업 진행 중",
+      "AWAITING": "녹화본 확인 중",
+      "NO_RECORDING": "녹화 없음",
+      "AVAILABLE": "녹화본 있음"
+    },
+    "empty": {
+      "NO_ROOM": "보다스쿨 강의실이 아직 개설되지 않았습니다.",
+      "UPCOMING": "수업이 시작되면 녹화 여부를 확인할 수 있습니다.",
+      "IN_PROGRESS": "수업이 진행 중입니다. 종료 후 녹화본이 표시됩니다.",
+      "AWAITING": "수업이 끝났습니다. 녹화본 저장이 끝나면 자동으로 표시됩니다.",
+      "NO_RECORDING": "저장된 녹화본이 없습니다."
+    }
   }
 }

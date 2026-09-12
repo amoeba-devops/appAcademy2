@@ -177,18 +177,53 @@ export class ObjectStoreClient implements OnModuleInit {
   }
 
   /**
+   * REQ-260912B — 스트림 업로드. 녹화본처럼 수백 MB 일 수 있는 파일을 메모리에
+   * 통째로 올리지 않기 위해 사용한다. S3 PutObject 는 스트림 본문에
+   * ContentLength 를 요구하므로, 업스트림이 길이를 주지 않으면 호출자가
+   * 버퍼 폴백을 택해야 한다(길이 미상 시 여기서 예외).
+   */
+  async putObjectStream(opts: {
+    key: string;
+    body: Readable;
+    mime: string;
+    contentLength: number;
+  }): Promise<void> {
+    const { client, bucket } = this.requireClient();
+    if (!Number.isFinite(opts.contentLength) || opts.contentLength <= 0) {
+      throw new Error('CONTENT_LENGTH_REQUIRED');
+    }
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: opts.key,
+        Body: opts.body,
+        ContentType: opts.mime,
+        ContentLength: opts.contentLength,
+      }),
+    );
+  }
+
+  /**
    * Stream an object back to the controller, which forwards it to the
    * browser with Content-Disposition. Avoids buffering the whole object
    * in memory.
+   *
+   * `range` (REQ-260912B): HTTP Range 헤더 원문을 그대로 전달하면 S3 가 206
+   * 부분 응답을 돌려준다 — `<video>` 탐색(seek)에 필요.
    */
-  async getObjectStream(key: string): Promise<{
+  async getObjectStream(
+    key: string,
+    range?: string,
+  ): Promise<{
     stream: Readable;
     mime?: string;
     contentLength?: number;
+    contentRange?: string;
+    partial: boolean;
   }> {
     const { client, bucket } = this.requireClient();
     const res = await client.send(
-      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      new GetObjectCommand({ Bucket: bucket, Key: key, Range: range }),
     );
     if (!res.Body) {
       throw new Error('OBJECT_BODY_EMPTY');
@@ -197,6 +232,8 @@ export class ObjectStoreClient implements OnModuleInit {
       stream: res.Body as Readable,
       mime: res.ContentType,
       contentLength: res.ContentLength,
+      contentRange: res.ContentRange,
+      partial: !!res.ContentRange,
     };
   }
 }

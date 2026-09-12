@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AcmUserTypeormEntity } from '../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { ACM_DS } from '../acm-common/datasource';
@@ -33,15 +34,19 @@ import { BodaConfigTypeormEntity } from './infrastructure/typeorm/boda-config.ty
 import { BodaRoomTypeormEntity } from './infrastructure/typeorm/boda-room.typeorm-entity';
 import { BodaParticipantTypeormEntity } from './infrastructure/typeorm/boda-participant.typeorm-entity';
 import { BodaEventLogTypeormEntity } from './infrastructure/typeorm/boda-event-log.typeorm-entity';
+import { BodaRecordingTypeormEntity } from './infrastructure/typeorm/boda-recording.typeorm-entity';
 import { BodaConfigService } from './application/boda-config.service';
 import { BodaRoomService } from './application/boda-room.service';
 import { BodaLaunchContextService } from './application/boda-launch-context.service';
 import { BodaWebhookService } from './application/boda-webhook.service';
 import { BodaReconcileService } from './application/boda-reconcile.service';
+import { BodaRecordingService } from './application/boda-recording.service';
+import { BodaRecordingJob } from './application/boda-recording.job';
 import { InstantEventService } from './application/instant-event.service';
 import { InviteeSuggestionsService } from './application/invitee-suggestions.service';
 import { BodaeduModule } from '../../infrastructure/external/bodaedu/bodaedu.module';
 import { CalEventController } from './presentation/cal-event.controller';
+import { CalRecordingStreamController } from './presentation/cal-recording-stream.controller';
 import { CalEventAttachmentController } from './presentation/cal-event-attachment.controller';
 import { PortalCalController } from './presentation/portal-cal.controller';
 import { PortalBodaLaunchController } from './presentation/portal-boda-launch.controller';
@@ -57,6 +62,17 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
 @Module({
   imports: [
     ConfigModule,
+    // REQ-260912B — 녹화본 재생 티켓 서명 (세션 JWT 와 같은 시크릿, 5분 수명).
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>(
+          'ACM_JWT_SECRET',
+          'acm-dev-secret-change-in-production',
+        ),
+      }),
+    }),
     BodaeduModule, // BODAEDU_SERVER_CLIENT 주입
     AcmNotificationModule, // REQ-260902 — 피드백 메일 발송 이력 기록
     AcmSystemModule, // REQ-260902B — TenantMailerService (테넌트 SMTP 설정 우선)
@@ -74,6 +90,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
         BodaRoomTypeormEntity,
         BodaParticipantTypeormEntity,
         BodaEventLogTypeormEntity,
+        BodaRecordingTypeormEntity, // REQ-260912B — 녹화본 메타 + ACM 보관
         // REQ-260610 — Instant classroom suggestions read from CLS tables.
         ClassTypeormEntity,
         ClassStudentTypeormEntity,
@@ -90,6 +107,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   ],
   controllers: [
     CalEventController,
+    CalRecordingStreamController, // REQ-260912B — 티켓 기반 녹화본 스트리밍
     CalEventAttachmentController,
     PortalCalController,
     PortalBodaLaunchController,
@@ -108,6 +126,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     BodaRecordService,
     CalEventReviewService,
     ObjectStoreClient,
+    BodaRecordingService, // REQ-260912B
+    BodaRecordingJob, // REQ-260912B — 10분 주기 동기화·보관 워커
     CalInviteeService,
     FeedbackMailerService,
     InviteeNotifierService,

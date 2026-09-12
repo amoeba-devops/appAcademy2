@@ -104,6 +104,8 @@ export class BodaeduServerMockClient implements IBodaeduServerClient {
     stream: NodeJS.ReadableStream;
     contentType: string | null;
     contentLength: number | null;
+    contentRange: string | null;
+    partial: boolean;
   }> {
     throw new Error('MOCK_NO_RECORDING');
   }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,7 +24,7 @@ import { CalEventService } from '../application/cal-event.service';
 import { BodaRecordService } from '../application/boda-record.service';
 import { CalEventReviewService } from '../application/cal-event-review.service';
 import { FeedbackMailerService } from '../application/feedback-mailer.service';
-import { BodaRoomService } from '../application/boda-room.service';
+import { BodaRecordingService } from '../application/boda-recording.service';
 import {
   CreateCalEventDto,
   DeleteCalEventDto,
@@ -41,17 +42,77 @@ export class CalEventController {
     private readonly svc: CalEventService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
-    private readonly roomSvc: BodaRoomService,
+    private readonly recordingSvc: BodaRecordingService,
     private readonly feedbackMailer: FeedbackMailerService,
   ) {}
 
   @Get(':id/recordings')
-  @ApiOperation({ summary: '녹화 목록 — 관리자/강사 콘솔 (PLN-260728F C)' })
-  recordings(
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'STAFF', 'TEACHER')
+  @ApiOperation({
+    summary:
+      '녹화본 목록 + 녹화 상태 — 운영자·강사 전용 (REQ-260912B / PLN-260728F C)',
+  })
+  async recordings(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.roomSvc.listRecordings(id, u.entId);
+    await this.recordingSvc.assertConsoleAccess(u.entId, id, {
+      id: u.id,
+      role: u.role ?? 'ADMIN',
+    });
+    return this.recordingSvc.summaryForEvent(u.entId, id);
+  }
+
+  @Post(':id/recordings/sync')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'STAFF')
+  @ApiOperation({
+    summary: '녹화본 즉시 동기화 — 보다 SERVER API 목록 재조회 (REQ-260912B)',
+  })
+  async syncRecordings(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.recordingSvc.assertConsoleAccess(u.entId, id, {
+      id: u.id,
+      role: u.role ?? 'ADMIN',
+    });
+    return this.recordingSvc.syncEvent(u.entId, id);
+  }
+
+  @Post(':id/recordings/:recordIdx/ticket')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'STAFF', 'TEACHER')
+  @ApiOperation({
+    summary:
+      '녹화본 재생/다운로드 티켓 발급 — 5분 유효 (REQ-260912B). <video> 는 ' +
+      'Authorization 헤더를 붙일 수 없어 단시간 티켓 URL 로 스트리밍한다.',
+  })
+  async recordingTicket(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('recordIdx') recordIdxRaw: string,
+  ) {
+    await this.recordingSvc.assertConsoleAccess(u.entId, id, {
+      id: u.id,
+      role: u.role ?? 'ADMIN',
+    });
+    const recordIdx = Number(recordIdxRaw);
+    if (!Number.isInteger(recordIdx) || recordIdx <= 0) {
+      throw new BadRequestException('INVALID_RECORD_IDX');
+    }
+    const { ticket, expiresInSec } = this.recordingSvc.issueTicket({
+      entId: u.entId,
+      evtId: id,
+      recordIdx,
+      actorId: u.id,
+    });
+    return {
+      url: `/api/acm/cal/recordings/${ticket}`,
+      downloadUrl: `/api/acm/cal/recordings/${ticket}?dl=1`,
+      expiresInSec,
+    };
   }
 
   @Get(':id/review')

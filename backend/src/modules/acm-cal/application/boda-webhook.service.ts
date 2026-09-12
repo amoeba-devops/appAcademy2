@@ -10,6 +10,7 @@ import { BodaEventLogTypeormEntity } from '../infrastructure/typeorm/boda-event-
 import { BodaParticipantTypeormEntity } from '../infrastructure/typeorm/boda-participant.typeorm-entity';
 import { BodaRoomService } from './boda-room.service';
 import { BodaConfigService } from './boda-config.service';
+import { BodaRecordingService } from './boda-recording.service';
 import {
   verifyBodaWebhookToken,
   type VerifyResult,
@@ -47,6 +48,7 @@ export class BodaWebhookService {
     private readonly partRepo: Repository<BodaParticipantTypeormEntity>,
     private readonly rooms: BodaRoomService,
     private readonly cfg: BodaConfigService,
+    private readonly recordings: BodaRecordingService,
   ) {}
 
   // -------------------------------------------------------------------------
@@ -184,6 +186,13 @@ export class BodaWebhookService {
         await this.handleJoin(input);
       } else if (input.eventCode === BODA_EVENT_CODES.USER_LEFT) {
         await this.handleLeave(input);
+      } else if (input.eventCode === BODA_EVENT_CODES.RECORDING_SAVED) {
+        // REQ-260912B — 녹화파일 저장 완료(21). 메타 적재 후 아카이브 워커가 복사.
+        await this.recordings.applyRecordingEvent(
+          input.entId,
+          input.meetKey,
+          input.payload,
+        );
       }
 
       await this.markProcessed(input);

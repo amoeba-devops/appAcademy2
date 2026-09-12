@@ -44,6 +44,7 @@ import { FeedbackEmailDialog } from './feedback-email-dialog';
 import { copyHtmlToClipboard } from '../lib/copy-html';
 import { useBodaRoomStatus } from '@/lib/boda-launch-api';
 import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
+import { CalRecordingsSection } from './cal-recordings-section';
 
 interface Props {
   open: boolean;
@@ -1293,6 +1294,18 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
           </li>
         )}
       </ul>
+
+      {/* REQ-260912B — 녹화본 (운영자·강사 전용). 상세페이지와 같은 컴포넌트. */}
+      <CalRecordingsSection evtId={evtId} isBoda />
+
+      {record && record.participants.length === 0 && (
+        <p className="text-[11px] text-secondary">
+          {t(
+            'boda.recordEmpty',
+            '아직 보다스쿨에서 수신된 입·퇴장 기록이 없습니다. 수업 종료 후 약 10분 뒤 자동 반영되며, [기록 동기화] 로 즉시 다시 가져올 수 있습니다.',
+          )}
+        </p>
+      )}
 
       {record && record.participants.length > 0 && (
         <div className="rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-2">

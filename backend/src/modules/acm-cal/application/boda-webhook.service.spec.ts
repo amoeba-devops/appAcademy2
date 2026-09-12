@@ -7,6 +7,7 @@ import { BodaParticipantTypeormEntity } from '../infrastructure/typeorm/boda-par
 import { BodaRoomService } from './boda-room.service';
 import { BodaConfigService } from './boda-config.service';
 import { BodaWebhookService } from './boda-webhook.service';
+import { BodaRecordingService } from './boda-recording.service';
 import { BODA_EVENT_CODES } from '../../../infrastructure/external/bodaedu/bodaedu.types';
 
 /**
@@ -44,6 +45,7 @@ describe('BodaWebhookService', () => {
   // config service mocks
   let getDecryptedEventSecret: jest.Mock;
   let findByEntId: jest.Mock;
+  let applyRecordingEvent: jest.Mock;
 
   beforeEach(async () => {
     logSave = jest.fn(async (r) => r);
@@ -60,10 +62,17 @@ describe('BodaWebhookService', () => {
 
     getDecryptedEventSecret = jest.fn();
     findByEntId = jest.fn();
+    applyRecordingEvent = jest.fn().mockResolvedValue(undefined);
 
     const mod = await Test.createTestingModule({
       providers: [
         BodaWebhookService,
+        {
+          provide: BodaRecordingService,
+          useValue: {
+            applyRecordingEvent,
+          } as Partial<BodaRecordingService>,
+        },
         {
           provide: getRepositoryToken(BodaEventLogTypeormEntity, ACM_DS),
           useValue: { save: logSave, create: logCreate, update: logUpdate },

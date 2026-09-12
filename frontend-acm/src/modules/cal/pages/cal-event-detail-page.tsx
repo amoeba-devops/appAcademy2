@@ -1,13 +1,23 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import DOMPurify from 'dompurify';
-import { ChevronLeft, ClipboardCopy, Download, LogIn, Mail, Pencil } from 'lucide-react';
+import {
+  ChevronLeft,
+  ClipboardCopy,
+  Download,
+  LogIn,
+  Mail,
+  Pencil,
+  RefreshCw,
+} from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/toast';
+import { useBodaReconcile } from '@/lib/boda-admin-api';
 import { useCalEvent } from '../hooks/use-cal-events';
+import { CalRecordingsSection } from '../components/cal-recordings-section';
 import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
 import { FeedbackEmailDialog } from '../components/feedback-email-dialog';
 import { copyHtmlToClipboard } from '../lib/copy-html';
@@ -37,6 +47,9 @@ export function CalEventDetailPage() {
   const [emailOpen, setEmailOpen] = useState(false);
 
   const { data: event, isLoading } = useCalEvent(evtId);
+  const qc = useQueryClient();
+  // REQ-260912B — 웹훅이 늦거나 유실됐을 때 관리자가 즉시 다시 당겨온다.
+  const reconcileMut = useBodaReconcile(evtId);
 
   const { data: record } = useQuery({
     enabled: !!evtId,
@@ -258,12 +271,64 @@ export function CalEventDetailPage() {
           </div>
         )}
 
-        {/* 강의실 기록 */}
-        {record && (record.openedAt || record.participants.length > 0) && (
+        {/* REQ-260912B — 녹화본 (운영자·강사 전용, 백엔드가 역할 강제) */}
+        {evtId && (
+          <CalRecordingsSection
+            evtId={evtId}
+            isBoda={event.meetingProvider === 'BODASCHOOL'}
+          />
+        )}
+
+        {/* 강의실 기록 — 보다 수업이면 기록이 비어 있어도 안내 + 동기화 제공 */}
+        {(record || event.meetingProvider === 'BODASCHOOL') && (
           <div className="mt-4 rounded-md border border-[var(--border-subtle)] p-3">
-            <div className="mb-1 text-xs font-semibold text-secondary">
-              🕐 {t('boda.recordTitle', '강의실 기록')}
+            <div className="mb-1 flex items-center gap-2">
+              <span className="text-xs font-semibold text-secondary">
+                🕐 {t('boda.recordTitle', '강의실 기록')}
+              </span>
+              {event.meetingProvider === 'BODASCHOOL' && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto h-7 px-2 text-xs"
+                  disabled={reconcileMut.isPending}
+                  onClick={() =>
+                    reconcileMut.mutate(undefined, {
+                      onSuccess: (r) => {
+                        void qc.invalidateQueries({
+                          queryKey: ['cal', 'class-record', evtId],
+                        });
+                        toast.success(
+                          t('boda.reconcileDone', {
+                            defaultValue:
+                              '기록을 동기화했습니다. (신규 {{inserted}}건)',
+                            inserted: r.inserted,
+                          }),
+                        );
+                      },
+                      onError: () =>
+                        toast.error(
+                          t('boda.reconcileFailed', '기록 동기화에 실패했습니다.'),
+                        ),
+                    })
+                  }
+                >
+                  <RefreshCw size={12} className="mr-1" />
+                  {t('boda.recordSyncBtn', '기록 동기화')}
+                </Button>
+              )}
             </div>
+            {!record && (
+              <p className="text-xs text-secondary">
+                {t(
+                  'boda.recordEmpty',
+                  '아직 보다스쿨에서 수신된 입·퇴장 기록이 없습니다. 수업 종료 후 약 10분 뒤 자동 반영되며, [기록 동기화] 로 즉시 다시 가져올 수 있습니다.',
+                )}
+              </p>
+            )}
+            {record && (
+              <>
             {/* REQ-260729-3 — 예약(일정) 시간과 실제(강의실) 시간을 구분 표기.
                 모든 시각은 UTC instant 를 사용자 브라우저 타임존으로 렌더한다. */}
             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
@@ -329,6 +394,8 @@ export function CalEventDetailPage() {
                   </li>
                 ))}
               </ul>
+            )}
+              </>
             )}
           </div>
         )}

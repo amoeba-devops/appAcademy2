@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import {
   BODAEDU_SERVER_CLIENT,
@@ -60,28 +60,27 @@ export class BodaReconcileService {
     reconciled: number;
     closed: number;
   }> {
-    // ENDED rooms that haven't been reconciled yet, ordered by oldest endedAt
-    // so we don't starve in case of a backlog.
-    const candidates = await this.roomRepo.find({
-      where: {
-        status: 'ENDED',
-        reconciledAt: IsNull(),
-      },
-      order: { endedAt: 'ASC' },
-      take: 50, // soft cap per tick — operator can dial via env later
-    });
+    // Rooms awaiting reconcile, oldest first so a backlog doesn't starve.
+    //
+    // REQ-260912B — 두 갈래를 모두 잡는다.
+    //   (a) 웹훅 정상 수신: status=ENDED 이고 endedAt 이 찍힌 방 (기존 동작)
+    //   (b) 웹훅 유실: 이벤트 예약 종료시각이 지났는데 방이 여전히
+    //       PENDING/OPEN/STARTED/PAUSED 인 방. 이 경우 SERVER API 를 권위로
+    //       삼아 룸 상태까지 끌어온다 — 그러지 않으면 영원히 sweep 대상에서
+    //       빠져 입·퇴장 기록이 비어 있게 된다.
+    const candidates = await this.findSweepCandidates(50);
 
     let reconciled = 0;
     let closed = 0;
     const now = Date.now();
 
-    for (const room of candidates) {
-      if (!room.endedAt) continue;
+    for (const { room, effectiveEnd } of candidates) {
+      if (!effectiveEnd) continue;
       // Look up per-tenant grace before processing (NFR-5: not all tenants
       // share the same delay). Default 10 minutes if config row missing.
       const tenantCfg = await this.cfg.findByEntId(room.entId);
       const delayMin = tenantCfg?.reconcileDelayMin ?? 10;
-      const dueAt = new Date(room.endedAt).getTime() + delayMin * 60_000;
+      const dueAt = effectiveEnd.getTime() + delayMin * 60_000;
       if (now < dueAt) continue;
 
       try {
@@ -115,6 +114,74 @@ export class BodaReconcileService {
     return { scanned: candidates.length, reconciled, closed };
   }
 
+  /**
+   * REQ-260912B — sweep 대상 조회. 웹훅으로 종료가 찍힌 방과, 예약 종료시각이
+   * 지났는데 아직 종료 이벤트를 못 받은 방을 함께 돌려준다.
+   */
+  private async findSweepCandidates(
+    limit: number,
+  ): Promise<
+    Array<{ room: BodaRoomTypeormEntity; effectiveEnd: Date | null }>
+  > {
+    const rows: Array<{ bdr_id: string; effective_end: Date | null }> =
+      await this.roomRepo.query(
+        `SELECT r.bdr_id,
+                COALESCE(r.bdr_ended_at, e.evt_end_at) AS effective_end
+           FROM amb_acm_cal_boda_room r
+           JOIN amb_acm_cal_event e
+             ON e.evt_id = r.evt_id AND e.ent_id = r.ent_id
+          WHERE r.bdr_reconciled_at IS NULL
+            AND e.deleted_at IS NULL
+            AND (
+                  (r.bdr_status = 'ENDED' AND r.bdr_ended_at IS NOT NULL)
+               OR (r.bdr_status IN ('PENDING', 'OPEN', 'STARTED', 'PAUSED')
+                   AND e.evt_end_at < NOW())
+                )
+          ORDER BY COALESCE(r.bdr_ended_at, e.evt_end_at) ASC
+          LIMIT $1`,
+        [limit],
+      );
+
+    const out: Array<{
+      room: BodaRoomTypeormEntity;
+      effectiveEnd: Date | null;
+    }> = [];
+    for (const row of rows) {
+      const room = await this.roomRepo.findOne({ where: { id: row.bdr_id } });
+      if (!room) continue;
+      out.push({
+        room,
+        effectiveEnd: row.effective_end ? new Date(row.effective_end) : null,
+      });
+    }
+    return out;
+  }
+
+  /**
+   * REQ-260912B — 웹훅을 못 받은 방의 실제 개설/시작/종료 시각을 SERVER API
+   * (`getMeetInfo`) 에서 끌어와 채운다. vendor 가 404 를 주면(=개설된 적 없음)
+   * 그대로 둔다 — 이후 reconcile 이 빈 참석자 목록으로 정상 종료된다.
+   */
+  private async pullRoomState(room: BodaRoomTypeormEntity): Promise<void> {
+    const auth = (await this.cfg.getServerApiAuth(room.entId)) ?? undefined;
+    const info = await this.server.getMeetInfo(room.meetKey, auth);
+    if (!info) return;
+
+    if (info.meetIdx && !room.meetIdx) room.meetIdx = info.meetIdx;
+    if (info.openedAt && !room.openedAt)
+      room.openedAt = new Date(info.openedAt);
+    if (info.startedAt && !room.startedAt)
+      room.startedAt = new Date(info.startedAt);
+    if (info.endedAt && !room.endedAt) room.endedAt = new Date(info.endedAt);
+    if (info.closedAt && !room.closedAt)
+      room.closedAt = new Date(info.closedAt);
+    room.status = info.status ?? room.status;
+    await this.roomRepo.save(room);
+    this.logger.log(
+      `room state pulled from SERVER API meetKey=${room.meetKey} status=${room.status}`,
+    );
+  }
+
   // -------------------------------------------------------------------------
   // Per-room reconcile (callable by admin endpoint too)
   // -------------------------------------------------------------------------
@@ -127,6 +194,8 @@ export class BodaReconcileService {
     room: BodaRoomTypeormEntity,
   ): Promise<{ inserted: number; updated: number }> {
     const auth = (await this.cfg.getServerApiAuth(room.entId)) ?? undefined;
+    // REQ-260912B — 종료 웹훅을 못 받은 방은 실제 시각부터 SERVER API 로 보정.
+    if (!room.endedAt) await this.pullRoomState(room);
     const entries = await this.server.getJoinLog(room.meetKey, auth);
 
     let inserted = 0;

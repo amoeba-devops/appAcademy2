@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -29,7 +30,7 @@ import type { PortalAuthUser } from '../../acm-auth/application/portal-account.s
 import { CalEventService } from '../application/cal-event.service';
 import { CalEventAttachmentService } from '../application/cal-event-attachment.service';
 import { BodaRecordService } from '../application/boda-record.service';
-import { BodaRoomService } from '../application/boda-room.service';
+import { BodaRecordingService } from '../application/boda-recording.service';
 import { CalEventReviewService } from '../application/cal-event-review.service';
 import type { CalHomeworkStatus } from '../infrastructure/typeorm/cal-event-review.typeorm-entity';
 import { ListCalEventsQueryDto } from '../application/dto/cal-event.dto';
@@ -48,39 +49,51 @@ export class PortalCalController {
     private readonly attachmentSvc: CalEventAttachmentService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
-    private readonly roomSvc: BodaRoomService,
+    private readonly recordingSvc: BodaRecordingService,
   ) {}
 
   // ── 녹화본 (PLN-260728F C) ──────────────────────────────────────────
 
+  /**
+   * REQ-260912B — 녹화본은 학원 운영자·강사에게만 노출한다. 학생/학부모
+   * 포털에서는 목록 자체를 주지 않는다 (빈 배열 → 섹션 미표시).
+   */
   @Get(':id/recordings')
-  @ApiOperation({ summary: '종료된 보다 강의 녹화 목록 (관련자)' })
+  @ApiOperation({ summary: '종료된 보다 강의 녹화 목록 (담당 강사 전용)' })
   async recordings(
     @PortalUser() u: PortalAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
+    if (u.kind !== 'TEACHER') return [];
     await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
-    return this.roomSvc.listRecordings(id, u.entId);
+    const summary = await this.recordingSvc.summaryForEvent(u.entId, id);
+    return summary.items.filter((r) => r.playable);
   }
 
   @Get(':id/recordings/:recordIdx/download')
-  @ApiOperation({ summary: '녹화 파일 다운로드 (백엔드 프록시 스트리밍)' })
+  @ApiOperation({
+    summary: '녹화 파일 다운로드 (담당 강사 전용, ACM 보관본 우선)',
+  })
   async downloadRecording(
     @PortalUser() u: PortalAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Param('recordIdx') recordIdxRaw: string,
     @Res() res: Response,
   ) {
+    if (u.kind !== 'TEACHER') throw new ForbiddenException('TEACHER_ONLY');
     await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
     const recordIdx = Number(recordIdxRaw);
-    const dl = await this.roomSvc.downloadRecording(id, u.entId, recordIdx);
-    res.setHeader('Content-Type', dl.contentType ?? 'video/mp4');
-    if (dl.contentLength) res.setHeader('Content-Length', dl.contentLength);
+    if (!Number.isInteger(recordIdx) || recordIdx <= 0) {
+      throw new BadRequestException('INVALID_RECORD_IDX');
+    }
+    const out = await this.recordingSvc.openStream(u.entId, id, recordIdx);
+    res.setHeader('Content-Type', out.mime);
+    if (out.contentLength) res.setHeader('Content-Length', out.contentLength);
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="recording-${recordIdx}.mp4"`,
+      `attachment; filename*=UTF-8''${encodeURIComponent(out.filename)}`,
     );
-    dl.stream.pipe(res);
+    out.stream.pipe(res);
   }
 
   // ── 피드백·과제 (PLN-260728F B) ─────────────────────────────────────

@@ -168,7 +168,11 @@
     "actualRow": "Thực tế",
     "reservedStart": "Giờ bắt đầu đặt",
     "reservedEnd": "Giờ kết thúc đặt",
-    "joinListTitle": "Giờ vào lớp thực tế"
+    "joinListTitle": "Giờ vào lớp thực tế",
+    "recordSyncBtn": "Đồng bộ nhật ký",
+    "reconcileDone": "Đã đồng bộ nhật ký. ({{inserted}} mục mới)",
+    "reconcileFailed": "Đồng bộ nhật ký thất bại.",
+    "recordEmpty": "Chưa nhận được nhật ký ra/vào từ BODA School. Nhật ký tự động cập nhật khoảng 10 phút sau khi lớp kết thúc, hoặc nhấn [Đồng bộ nhật ký] để lấy ngay."
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -307,5 +311,35 @@
     "sendAlimtalk": "💬 Gửi AlimTalk ({{count}})",
     "alimtalkSentToast": "Đã gửi {{count}} tin AlimTalk.",
     "alimtalkNotConfigured": "AlimTalk (Solapi) chưa được cấu hình hoặc đang tắt."
+  },
+  "recordings": {
+    "title": "Bản ghi buổi học",
+    "file": "Bản ghi",
+    "play": "Phát",
+    "download": "Tải xuống",
+    "syncBtn": "Đồng bộ bản ghi",
+    "syncFound": "Đã tìm thấy {{count}} bản ghi.",
+    "syncEmpty": "Không có bản ghi nào được lưu trên BODA School.",
+    "syncFailed": "Đồng bộ bản ghi thất bại.",
+    "openFailed": "Không thể mở bản ghi.",
+    "archiving": "Đang lưu trữ {{count}} tệp",
+    "archiveFailed": "{{count}} tệp lưu trữ thất bại",
+    "notArchived": "Bản gốc BODA",
+    "status": {
+      "NOT_APPLICABLE": "Không phải lớp trực tuyến",
+      "NO_ROOM": "Chưa tạo phòng học",
+      "UPCOMING": "Sắp diễn ra",
+      "IN_PROGRESS": "Đang diễn ra",
+      "AWAITING": "Đang kiểm tra bản ghi",
+      "NO_RECORDING": "Không có bản ghi",
+      "AVAILABLE": "Có bản ghi"
+    },
+    "empty": {
+      "NO_ROOM": "Phòng học BODA School chưa được tạo.",
+      "UPCOMING": "Có thể kiểm tra bản ghi sau khi lớp bắt đầu.",
+      "IN_PROGRESS": "Lớp đang diễn ra. Bản ghi sẽ hiển thị sau khi kết thúc.",
+      "AWAITING": "Lớp đã kết thúc. Bản ghi sẽ hiển thị khi BODA lưu xong.",
+      "NO_RECORDING": "Không có bản ghi nào được lưu."
+    }
   }
 }
