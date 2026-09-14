@@ -182,6 +182,8 @@ export class InquiryService {
       registeredFrom?: string;
       registeredTo?: string;
       followupState?: 'SET' | 'EMPTY';
+      /** 요구 260914G — true 면 삭제된 상담만 조회 ('삭제 목록 보기'). */
+      deletedOnly?: boolean;
       limit?: number;
       offset?: number;
     } = {},
@@ -195,14 +197,20 @@ export class InquiryService {
       registeredFrom,
       registeredTo,
       followupState,
+      deletedOnly = false,
       limit = 50,
       offset = 0,
     } = opts;
 
     const qb = this.inq
       .createQueryBuilder('inq')
-      .where('inq.ent_id = :entId', { entId })
-      .andWhere('inq.deleted_at IS NULL');
+      .where('inq.ent_id = :entId', { entId });
+    // 소프트 삭제분은 기본적으로 숨기고, '삭제 목록 보기' 일 때만 그것만 본다.
+    if (deletedOnly) {
+      qb.withDeleted().andWhere('inq.deleted_at IS NOT NULL');
+    } else {
+      qb.andWhere('inq.deleted_at IS NULL');
+    }
 
     if (stage) {
       qb.andWhere('inq.inq_current_stage = :stage', { stage });
@@ -323,6 +331,10 @@ export class InquiryService {
 
   async update(entId: string, id: string, dto: UpdateInquiryDto) {
     const e = await this.getOrThrow(entId, id);
+    // 요구 260914G — 대시보드 사이트 귀속이 바뀌면 그 날짜 KPI 를 다시 계산해야
+    // 한다. 바뀌기 전 값을 기억해 뒀다가 저장 후 비교한다.
+    const prevSite = e.siteOverride ?? null;
+    const prevDate = e.registeredAt;
 
     if (dto.studentName !== undefined) {
       const enc = this.crypto.encrypt(dto.studentName);
@@ -387,7 +399,20 @@ export class InquiryService {
     if (dto.followupMemo !== undefined)
       e.followupMemo = dto.followupMemo ?? null;
 
-    return this.toView(await this.inq.save(e));
+    const saved = await this.inq.save(e);
+
+    // 사이트 귀속(또는 등록일)이 바뀌면 대시보드 일별 KPI 재계산을 요청한다.
+    // 야간 배치(03:00)까지 기다리면 운영자가 방금 지정한 건이 반영되지 않는다.
+    const siteChanged = (saved.siteOverride ?? null) !== prevSite;
+    const dateChanged = saved.registeredAt !== prevDate;
+    if (siteChanged || dateChanged) {
+      const dates = new Set([saved.registeredAt, prevDate].filter(Boolean));
+      for (const date of dates) {
+        this.events.emit('acm.csl.site_attribution.changed', { entId, date });
+      }
+    }
+
+    return this.toView(saved);
   }
 
   async softDelete(entId: string, id: string): Promise<void> {

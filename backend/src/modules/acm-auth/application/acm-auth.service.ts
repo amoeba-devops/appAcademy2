@@ -121,6 +121,8 @@ export class AcmAuthService {
         email: user.email,
         name: user.name,
         role: user.role ?? 'ADMIN',
+        // 요구 260914G — 프론트가 AMA 전용 동작(상담 삭제)을 노출할지 판단한다.
+        authSource: user.authSource === 'ama' ? 'ama' : 'local',
         mustChangePassword: user.mustChangePassword ?? false,
       },
     };
@@ -135,6 +137,8 @@ export class AcmAuthService {
       email: u.email,
       name: u.name,
       role: u.role ?? 'ADMIN',
+      // 요구 260914G — AMA 연동 계정만 상담 삭제를 허용하므로 세션에 싣는다.
+      authSource: u.authSource === 'ama' ? 'ama' : 'local',
       mustChangePassword: u.mustChangePassword ?? false,
     };
   }

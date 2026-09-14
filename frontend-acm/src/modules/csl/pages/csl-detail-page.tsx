@@ -4,6 +4,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useAuthStore } from '@/stores/auth.store';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import { CslStageStepper } from '@/modules/csl/components/csl-stage-stepper';
 import { IntakeStagePanel } from '@/modules/csl/components/intake-stage-panel';
 import { LevelTestPanel } from '@/modules/csl/components/level-test-panel';
@@ -106,6 +110,38 @@ export function CslDetailBody({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
+
+  // 요구 260914G — 상담 삭제는 AMA 연동 계정만 (서버도 AmaAccountGuard 로 막는다).
+  const canDelete = useAuthStore((st) => st.user?.authSource) === 'ama';
+  const confirm = useConfirm();
+  const toast = useToast();
+  const navigateTo = useNavigate();
+  const [removing, setRemoving] = useState(false);
+
+  async function onDelete(): Promise<void> {
+    const ok = await confirm({
+      title: t('delete.title', '상담 삭제'),
+      description: t(
+        'delete.confirmDetail',
+        '이 상담을 삭제할까요? 상담목록의 [삭제 목록 보기] 에서 복구할 수 있습니다.',
+      ),
+      confirmLabel: t('common:actions.delete', '삭제'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    setRemoving(true);
+    try {
+      await apiClient.delete(`/acm/csl/inquiries/${inqId}`);
+      void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      toast.success(t('delete.done', '삭제했습니다.'));
+      if (onBack) onBack();
+      else navigateTo('/admin/csl');
+    } catch {
+      toast.error(t('delete.failed', '삭제에 실패했습니다.'));
+    } finally {
+      setRemoving(false);
+    }
+  }
 
   const { data: inq, isLoading } = useQuery({
     queryKey: ['csl', 'detail', inqId],
@@ -219,6 +255,19 @@ export function CslDetailBody({
           {isDropped && (
             <Button onClick={() => reactivate.mutate()} disabled={reactivate.isPending}>
               {t('detail.reactivate')}
+            </Button>
+          )}
+          {/* 요구 260914G — 삭제는 AMA 연동 계정만. 소프트 삭제라 목록의
+              '삭제 목록 보기' 에서 복구할 수 있다. */}
+          {canDelete && (
+            <Button
+              variant="outline"
+              className="border-red-300 text-red-600 hover:bg-red-50"
+              onClick={() => void onDelete()}
+              disabled={removing}
+            >
+              <Trash2 size={14} className="mr-1" />
+              {t('common:actions.delete', '삭제')}
             </Button>
           )}
         </div>

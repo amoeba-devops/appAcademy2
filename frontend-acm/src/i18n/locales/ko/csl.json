@@ -29,7 +29,9 @@
     "registered": "등록일",
     "followup": "후속 일정",
     "empty": "등록된 상담이 없습니다.",
-    "receivedAt": "접수"
+    "receivedAt": "접수",
+    "dashboardSite": "대시보드 사이트",
+    "manage": "관리"
   },
   "form": {
     "studentName": "학생 이름",
@@ -416,5 +418,25 @@
     "none": "미지정(공통)",
     "common": "공통",
     "effective": "대시보드 귀속: {{site}}"
+  },
+  "site": {
+    "fromSource": "자동 ({{site}})",
+    "common": "공통",
+    "saved": "대시보드 사이트를 반영했습니다.",
+    "saveFailed": "사이트 지정에 실패했습니다."
+  },
+  "delete": {
+    "title": "상담 삭제",
+    "confirm": "#{{seqNo}} 상담을 삭제할까요? 삭제 목록에서 다시 복구할 수 있습니다.",
+    "confirmDetail": "이 상담을 삭제할까요? 상담목록의 [삭제 목록 보기] 에서 복구할 수 있습니다.",
+    "done": "삭제했습니다.",
+    "failed": "삭제에 실패했습니다.",
+    "restored": "복구했습니다.",
+    "restoreFailed": "복구에 실패했습니다.",
+    "listBtn": "삭제 목록 보기",
+    "listBtnTitle": "삭제한 상담을 조회합니다"
+  },
+  "actions": {
+    "restore": "복구"
   }
 }

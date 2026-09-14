@@ -13,6 +13,7 @@ import { MetricDefinitionService } from './application/metric-definition.service
 import { ManualInputService } from './application/manual-input.service';
 import { ComplaintService } from './application/complaint.service';
 import { DailyKpiService } from './application/daily-kpi.service';
+import { CslSiteAttributionListener } from './application/csl-site-attribution.listener';
 import { DailyKpiJob } from './application/daily-kpi.job';
 import { MonthlySummaryService } from './application/monthly-summary.service';
 import { Ga4SyncService } from './application/ga4-sync.service';
@@ -50,6 +51,7 @@ import { DashboardController } from './presentation/dashboard.controller';
     Ga4DataClient,
     Ga4SyncService,
     Ga4SyncJob,
+    CslSiteAttributionListener, // 요구 260914G
   ],
   exports: [DailyKpiService],
 })
