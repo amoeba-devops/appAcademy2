@@ -20,6 +20,7 @@
       "category": "분류"
     },
     "table": {
+      "no": "번호",
       "title": "제목",
       "category": "분류",
       "status": "상태",
