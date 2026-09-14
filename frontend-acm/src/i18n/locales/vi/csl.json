@@ -29,7 +29,9 @@
     "registered": "Ngày đăng ký",
     "followup": "Theo dõi",
     "empty": "Chưa có tư vấn nào.",
-    "receivedAt": "tiếp nhận"
+    "receivedAt": "tiếp nhận",
+    "dashboardSite": "Trang bảng điều khiển",
+    "manage": "Quản lý"
   },
   "form": {
     "studentName": "Tên học sinh",
@@ -416,5 +418,25 @@
     "none": "Chưa gán (chung)",
     "common": "Chung",
     "effective": "Gán cho: {{site}}"
+  },
+  "site": {
+    "fromSource": "Tự động ({{site}})",
+    "common": "Chung",
+    "saved": "Đã cập nhật trang bảng điều khiển.",
+    "saveFailed": "Không thể đặt trang."
+  },
+  "delete": {
+    "title": "Xóa tư vấn",
+    "confirm": "Xóa tư vấn #{{seqNo}}? Bạn có thể khôi phục từ danh sách đã xóa.",
+    "confirmDetail": "Xóa tư vấn này? Bạn có thể khôi phục từ [Xem mục đã xóa] trên danh sách.",
+    "done": "Đã xóa.",
+    "failed": "Xóa thất bại.",
+    "restored": "Đã khôi phục.",
+    "restoreFailed": "Khôi phục thất bại.",
+    "listBtn": "Xem mục đã xóa",
+    "listBtnTitle": "Xem các tư vấn đã xóa"
+  },
+  "actions": {
+    "restore": "Khôi phục"
   }
 }

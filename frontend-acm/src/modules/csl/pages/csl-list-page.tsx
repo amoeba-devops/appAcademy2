@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { List, LayoutGrid } from 'lucide-react';
@@ -22,10 +22,17 @@ import {
 } from '@/modules/csl/components/csl-kanban-board';
 import { RegisteredAtCell } from '@/modules/csl/components/registered-at-cell';
 import { useTenantTz } from '@/lib/tz';
+import { useAuthStore } from '@/stores/auth.store';
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface Inquiry extends KanbanInquiry {
   createdAt: string;
   applyPurposes?: string[];
+  /** 요구 260914G — 대시보드 사이트 귀속 (목록에서 바로 지정). */
+  siteOverride?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
 }
 
 // REQ-260701 — persisted view toggle. Defaults to 'list'.
@@ -61,6 +68,8 @@ export function CslListPage() {
   const [globalFilters, setGlobalFilters] = useState<CslGlobalFiltersValue>(DEFAULT_GLOBAL_FILTERS);
   const [columnFilters, setColumnFilters] = useState<CslColumnFiltersValue>(DEFAULT_COLUMN_FILTERS);
   const [page, setPage] = useState(1);
+  // 요구 260914G — '삭제 목록 보기' 토글. 켜면 삭제된 상담만 조회한다.
+  const [showDeleted, setShowDeleted] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(VIEW_STORAGE_KEY, view);
@@ -72,7 +81,7 @@ export function CslListPage() {
       : { ...globalFilters, ...DEFAULT_COLUMN_FILTERS };
 
   const { data, isLoading } = useQuery({
-    queryKey: ['csl', 'list', view, effectiveFilters, page],
+    queryKey: ['csl', 'list', view, effectiveFilters, page, showDeleted],
     queryFn: async () => {
       const res = await apiClient.get<Inquiry[] | { items: Inquiry[]; total: number }>(
         '/acm/csl/inquiries',
@@ -92,6 +101,7 @@ export function CslListPage() {
             ...(effectiveFilters.followupState
               ? { followupState: effectiveFilters.followupState }
               : {}),
+            ...(showDeleted ? { deletedOnly: 'true' } : {}),
             limit: view === 'list' ? PAGE_SIZE : KANBAN_LIMIT,
             offset: view === 'list' ? (page - 1) * PAGE_SIZE : 0,
           },
@@ -108,6 +118,58 @@ export function CslListPage() {
   const dateLocale = localeMap[i18n.language?.slice(0, 2) ?? 'ko'] ?? 'ko-KR';
   const tz = useTenantTz(); // REQ-260903 — 시각은 테넌트 타임존 기준
   const dash = t('common:dash');
+
+  // 요구 260914G — 상담 삭제·복구는 AMA 연동 계정만. 서버도 같은 기준으로
+  // 막지만(AmaAccountGuard), 누를 수 없는 버튼을 보여주지 않는다.
+  const authSource = useAuthStore((s) => s.user?.authSource);
+  const canDelete = authSource === 'ama';
+  const confirm = useConfirm();
+  const toast = useToast();
+  const qc = useQueryClient();
+
+  const siteMut = useMutation({
+    mutationFn: async ({ id, site }: { id: string; site: string }) => {
+      await apiClient.patch(`/acm/csl/inquiries/${id}`, {
+        siteOverride: site === '' ? null : site,
+      });
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      toast.success(t('site.saved', '대시보드 사이트를 반영했습니다.'));
+    },
+    onError: () => toast.error(t('site.saveFailed', '사이트 지정에 실패했습니다.')),
+  });
+
+  async function onDelete(row: { id: string; seqNo: number }): Promise<void> {
+    const ok = await confirm({
+      title: t('delete.title', '상담 삭제'),
+      description: t('delete.confirm', {
+        defaultValue:
+          '#{{seqNo}} 상담을 삭제할까요? 삭제 목록에서 다시 복구할 수 있습니다.',
+        seqNo: row.seqNo,
+      }),
+      confirmLabel: t('common:actions.delete', '삭제'),
+      variant: 'destructive',
+    });
+    if (!ok) return;
+    try {
+      await apiClient.delete(`/acm/csl/inquiries/${row.id}`);
+      void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      toast.success(t('delete.done', '삭제했습니다.'));
+    } catch {
+      toast.error(t('delete.failed', '삭제에 실패했습니다.'));
+    }
+  }
+
+  async function onRestore(row: { id: string }): Promise<void> {
+    try {
+      await apiClient.post(`/acm/csl/inquiries/${row.id}/restore`);
+      void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      toast.success(t('delete.restored', '복구했습니다.'));
+    } catch {
+      toast.error(t('delete.restoreFailed', '복구에 실패했습니다.'));
+    }
+  }
 
   const stageBadgeClass = (stage: Inquiry['currentStage']) => {
     if (stage === 'DROPPED') return 'bg-[var(--gray-200)] text-secondary';
@@ -147,7 +209,22 @@ export function CslListPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 요구 260914G — 삭제 목록 보기 (AMA 연동 계정만 삭제/복구 가능) */}
+          {canDelete && view === 'list' && (
+            <Button
+              size="sm"
+              variant={showDeleted ? 'default' : 'outline'}
+              onClick={() => {
+                setShowDeleted((v) => !v);
+                setPage(1);
+              }}
+              title={t('delete.listBtnTitle', '삭제한 상담을 조회합니다')}
+            >
+              <Trash2 size={14} className="mr-1" />
+              {t('delete.listBtn', '삭제 목록 보기')}
+            </Button>
+          )}
           <ViewToggle value={view} onChange={setView} />
           <CslCreateDialog />
         </div>
@@ -296,6 +373,15 @@ export function CslListPage() {
                     </CslFilterSelect>
                   </div>
                 </th>
+                {/* 요구 260914G — 대시보드 사이트 귀속 + 삭제 */}
+                <th className="text-left px-4 py-3 min-w-[130px]">
+                  {t('table.dashboardSite', '대시보드 사이트')}
+                </th>
+                {canDelete && (
+                  <th className="text-left px-4 py-3 w-20">
+                    {t('table.manage', '관리')}
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -354,11 +440,68 @@ export function CslListPage() {
                       ? new Date(c.followupAt).toLocaleDateString(dateLocale)
                       : dash}
                   </td>
+                  {/* 요구 260914G — 여기서 바로 사이트를 지정하면 해당 날짜
+                      대시보드 KPI 가 즉시 재계산된다. 행 클릭(상세 이동)과
+                      겹치지 않도록 이벤트 전파를 막는다. */}
+                  <td
+                    className="px-4 py-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <CslFilterSelect
+                      value={c.siteOverride ?? ''}
+                      disabled={siteMut.isPending}
+                      aria-label={t('table.dashboardSite', '대시보드 사이트')}
+                      onChange={(e) =>
+                        siteMut.mutate({ id: c.id, site: e.target.value })
+                      }
+                    >
+                      <option value="">
+                        {c.sourceSite
+                          ? t('site.fromSource', {
+                              defaultValue: '자동 ({{site}})',
+                              site: t(`sourceSite.${c.sourceSite}`),
+                            })
+                          : t('site.common', '공통')}
+                      </option>
+                      {APPLY_PURPOSE_SITES.map((site) => (
+                        <option key={site} value={site}>
+                          {t(`sourceSite.${site}`, site)}
+                        </option>
+                      ))}
+                    </CslFilterSelect>
+                  </td>
+                  {canDelete && (
+                    <td
+                      className="px-4 py-3"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {showDeleted ? (
+                        <button
+                          type="button"
+                          onClick={() => void onRestore(c)}
+                          className="text-xs text-accent-700 hover:underline"
+                        >
+                          {t('actions.restore', '복구')}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void onDelete(c)}
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          {t('common:actions.delete', '삭제')}
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
               {!isLoading && (data?.items ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-6 text-center text-secondary">
+                  <td
+                    colSpan={canDelete ? 11 : 10}
+                    className="px-4 py-6 text-center text-secondary"
+                  >
                     {t('table.empty')}
                   </td>
                 </tr>

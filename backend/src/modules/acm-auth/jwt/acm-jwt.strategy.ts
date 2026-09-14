@@ -28,6 +28,7 @@ export class AcmJwtStrategy extends PassportStrategy(Strategy, ACM_JWT_STRATEGY)
     email: string;
     name: string;
     role: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
+    authSource: 'local' | 'ama';
     mustChangePassword: boolean;
   }> {
     if (!payload?.sub || !payload?.entId) {
@@ -39,6 +40,7 @@ export class AcmJwtStrategy extends PassportStrategy(Strategy, ACM_JWT_STRATEGY)
     return {
       ...u,
       role: u.role ?? payload.role ?? 'ADMIN',
+      authSource: u.authSource === 'ama' ? 'ama' : 'local',
       mustChangePassword: u.mustChangePassword ?? false,
     };
   }

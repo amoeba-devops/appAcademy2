@@ -25,6 +25,7 @@ import type { Response } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { AmaAccountGuard } from '../../acm-common/guards/ama-account.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { InquiryService } from '../application/inquiry.service';
 import { InquiryWorkflowService } from '../application/inquiry-workflow.service';
@@ -89,6 +90,7 @@ export class InquiryController {
     @Query('registeredFrom') registeredFrom?: string,
     @Query('registeredTo') registeredTo?: string,
     @Query('followupState') followupState?: 'SET' | 'EMPTY',
+    @Query('deletedOnly') deletedOnly?: string,
     @Query('limit') limit = '50',
     @Query('offset') offset = '0',
   ) {
@@ -107,6 +109,7 @@ export class InquiryController {
       registeredFrom,
       registeredTo,
       followupState,
+      deletedOnly: deletedOnly === 'true',
       limit: Number(limit),
       offset: Number(offset),
     });
@@ -141,14 +144,22 @@ export class InquiryController {
     return this.base.update(user.entId, inqId, dto);
   }
 
+  /**
+   * 요구 260914G — 상담 삭제·복구는 **AMA 연동 계정만**. 소프트 삭제라
+   * '삭제 목록 보기' 에서 확인·복구할 수 있다.
+   */
   @Delete(':inqId')
   @HttpCode(204)
+  @UseGuards(AmaAccountGuard)
+  @ApiOperation({ summary: '상담 삭제 (소프트) — AMA 연동 계정 전용' })
   remove(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.base.softDelete(user.entId, inqId);
   }
 
   @Post(':inqId/restore')
   @HttpCode(204)
+  @UseGuards(AmaAccountGuard)
+  @ApiOperation({ summary: '삭제된 상담 복구 — AMA 연동 계정 전용' })
   restore(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
     return this.workflow.restore(user.entId, inqId);
   }

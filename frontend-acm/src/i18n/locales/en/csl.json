@@ -29,7 +29,9 @@
     "registered": "Registered",
     "followup": "Follow-up",
     "empty": "No inquiries yet.",
-    "receivedAt": "received"
+    "receivedAt": "received",
+    "dashboardSite": "Dashboard site",
+    "manage": "Manage"
   },
   "form": {
     "studentName": "Student name",
@@ -416,5 +418,25 @@
     "none": "Unassigned (common)",
     "common": "Common",
     "effective": "Attributed to: {{site}}"
+  },
+  "site": {
+    "fromSource": "Auto ({{site}})",
+    "common": "Common",
+    "saved": "Dashboard site updated.",
+    "saveFailed": "Failed to set the site."
+  },
+  "delete": {
+    "title": "Delete inquiry",
+    "confirm": "Delete inquiry #{{seqNo}}? You can restore it from the deleted list.",
+    "confirmDetail": "Delete this inquiry? You can restore it from [Show deleted] on the inquiry list.",
+    "done": "Deleted.",
+    "failed": "Failed to delete.",
+    "restored": "Restored.",
+    "restoreFailed": "Failed to restore.",
+    "listBtn": "Show deleted",
+    "listBtnTitle": "Show deleted inquiries"
+  },
+  "actions": {
+    "restore": "Restore"
   }
 }

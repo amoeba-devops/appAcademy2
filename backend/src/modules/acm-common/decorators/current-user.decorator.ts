@@ -8,6 +8,8 @@ export interface AcmCurrentUser {
   role?: AcmRole;
   /** @deprecated use `role` */
   roles?: string[];
+  /** 요구 260914G — 계정 인증 출처. AMA 연동 계정만 허용하는 동작에 쓴다. */
+  authSource?: 'local' | 'ama';
   email?: string;
   name?: string;
   phone?: string | null;

@@ -7,6 +7,8 @@ export interface AcmUser {
   entId: string;
   email?: string;
   role?: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
+  /** 요구 260914G — AMA 연동 계정만 쓰는 동작(상담 삭제) 노출 판단용. */
+  authSource?: 'local' | 'ama';
   roles?: string[];
   /** REQ-260621 — true until the user rotates a seeded/admin-set password. */
   mustChangePassword?: boolean;

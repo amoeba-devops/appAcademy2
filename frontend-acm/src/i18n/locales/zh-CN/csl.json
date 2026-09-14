@@ -29,7 +29,9 @@
     "registered": "登记日期",
     "followup": "后续跟进",
     "empty": "暂无咨询记录。",
-    "receivedAt": "接收"
+    "receivedAt": "接收",
+    "dashboardSite": "仪表板站点",
+    "manage": "管理"
   },
   "form": {
     "studentName": "学生姓名",
@@ -416,5 +418,25 @@
     "none": "未指定(公共)",
     "common": "公共",
     "effective": "归属: {{site}}"
+  },
+  "site": {
+    "fromSource": "自动（{{site}}）",
+    "common": "共通",
+    "saved": "已更新仪表板站点。",
+    "saveFailed": "设置站点失败。"
+  },
+  "delete": {
+    "title": "删除咨询",
+    "confirm": "删除咨询 #{{seqNo}}？可从删除列表中恢复。",
+    "confirmDetail": "删除此咨询？可在咨询列表的[查看已删除]中恢复。",
+    "done": "已删除。",
+    "failed": "删除失败。",
+    "restored": "已恢复。",
+    "restoreFailed": "恢复失败。",
+    "listBtn": "查看已删除",
+    "listBtnTitle": "查看已删除的咨询"
+  },
+  "actions": {
+    "restore": "恢复"
   }
 }
