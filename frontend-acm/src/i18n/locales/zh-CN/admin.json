@@ -20,6 +20,7 @@
       "category": "分类"
     },
     "table": {
+      "no": "序号",
       "title": "标题",
       "category": "分类",
       "status": "状态",

@@ -118,7 +118,7 @@ export function PostsListPage() {
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-[var(--gray-100)] text-secondary">
                   <tr>
-                    <th className="px-4 py-3">ID</th>
+                    <th className="px-4 py-3">{t('posts.table.no', 'No.')}</th>
                     <th className="px-4 py-3">{t('posts.table.title', 'Title')}</th>
                     <th className="px-4 py-3">{t('posts.table.category', 'Category')}</th>
                     <th className="px-4 py-3">{t('posts.table.status', 'Status')}</th>
@@ -127,13 +127,13 @@ export function PostsListPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {posts.map((post: Post) => (
+                  {posts.map((post: Post, index: number) => (
                     <tr
                       key={post.id}
                       className="border-t border-[var(--border-subtle)] hover:bg-[var(--gray-50)] cursor-pointer"
                       onClick={() => navigate(`/admin/posts/${post.id}`)}
                     >
-                      <td className="px-4 py-3 text-secondary">{post.id}</td>
+                      <td className="px-4 py-3 text-secondary">{posts.length - index}</td>
                       <td className="px-4 py-3 font-medium">{post.title}</td>
                       <td className="px-4 py-3 text-secondary">{post.category}</td>
                       <td className="px-4 py-3 text-secondary">{post.status}</td>
