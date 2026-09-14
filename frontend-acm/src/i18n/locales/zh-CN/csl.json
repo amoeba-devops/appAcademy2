@@ -52,14 +52,17 @@
     "registeredAt": "登记日期",
     "followupAt": "后续跟进日期",
     "followupMemo": "后续备注",
-    "required": "*"
+    "required": "*",
+    "parentEmail": "家长邮箱",
+    "parentEmailPlaceholder": "parent@example.com"
   },
   "validation": {
     "phoneInvalid": "电话号码格式不正确",
     "schoolRequired": "请输入学校名称",
     "phoneRequiredForProvided": "电话状态为“已提供”时必须填写电话号码",
     "purposeOtherRequired": "选择“其他”时请输入原因",
-    "studentNameOrAnonymous": "非匿名时请输入学生姓名"
+    "studentNameOrAnonymous": "非匿名时请输入学生姓名",
+    "emailInvalid": "请检查电子邮箱地址。"
   },
   "stage": {
     "INTAKE": "1. 接收",
@@ -190,7 +193,8 @@
         "consultDone": "咨询完成",
         "registeredAt": "登记日期",
         "isAnonymous": "匿名",
-        "siteOverride": "仪表盘站点"
+        "siteOverride": "仪表盘站点",
+        "parentEmail": "家长邮箱"
       }
     },
     "backToList": "返回列表",

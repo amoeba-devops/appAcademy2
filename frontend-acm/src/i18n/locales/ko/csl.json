@@ -52,14 +52,17 @@
     "registeredAt": "등록일",
     "followupAt": "후속 일정",
     "followupMemo": "후속 메모",
-    "required": "*"
+    "required": "*",
+    "parentEmail": "학부모 이메일",
+    "parentEmailPlaceholder": "parent@example.com"
   },
   "validation": {
     "phoneInvalid": "전화번호 형식이 올바르지 않습니다",
     "schoolRequired": "학교명을 입력하세요",
     "phoneRequiredForProvided": "전화번호 상태가 '제공'일 때 전화번호가 필요합니다",
     "purposeOtherRequired": "기타를 선택한 경우 사유를 입력하세요",
-    "studentNameOrAnonymous": "익명이 아닌 경우 학생 이름을 입력하세요"
+    "studentNameOrAnonymous": "익명이 아닌 경우 학생 이름을 입력하세요",
+    "emailInvalid": "이메일 주소를 확인해 주세요."
   },
   "stage": {
     "INTAKE": "1. 접수",
@@ -190,7 +193,8 @@
         "consultDone": "상담완료",
         "registeredAt": "등록일",
         "isAnonymous": "익명",
-        "siteOverride": "대시보드 사이트"
+        "siteOverride": "대시보드 사이트",
+        "parentEmail": "학부모 이메일"
       }
     },
     "backToList": "상담 목록으로",

@@ -101,6 +101,14 @@ export class InquiryTypeormEntity {
   @Column({ name: 'inq_parent_name_auth_tag', type: 'bytea', nullable: true })
   parentNameAuthTag?: Buffer | null;
 
+  /** 요구 260914E — 학부모 이메일 (외부 접수 폼에서 연락처 분리). */
+  @Column({ name: 'inq_parent_email_encrypted', type: 'bytea', nullable: true })
+  parentEmailEncrypted?: Buffer | null;
+  @Column({ name: 'inq_parent_email_iv', type: 'bytea', nullable: true })
+  parentEmailIv?: Buffer | null;
+  @Column({ name: 'inq_parent_email_auth_tag', type: 'bytea', nullable: true })
+  parentEmailAuthTag?: Buffer | null;
+
   /** F-06 */
   @Column({ name: 'inq_inflow_type', type: 'varchar', length: 20 })
   inflowType!: InflowType;

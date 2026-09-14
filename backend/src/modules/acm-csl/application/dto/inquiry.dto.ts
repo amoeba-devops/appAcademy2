@@ -3,6 +3,7 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsIn,
   IsInt,
@@ -150,6 +151,13 @@ export class CreateInquiryDto {
   @IsString()
   @MaxLength(50)
   parentName?: string;
+
+  /** 요구 260914E — parent email (optional, encrypted at rest) */
+  @ApiPropertyOptional({ description: 'Parent email (encrypted)' })
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(200)
+  parentEmail?: string;
 
   /** REQ-260511 — school name (optional) */
   @ApiPropertyOptional({ description: 'School name' })

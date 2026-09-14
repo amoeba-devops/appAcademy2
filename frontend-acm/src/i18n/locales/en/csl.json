@@ -52,14 +52,17 @@
     "registeredAt": "Registered at",
     "followupAt": "Follow-up date",
     "followupMemo": "Follow-up memo",
-    "required": "*"
+    "required": "*",
+    "parentEmail": "Parent email",
+    "parentEmailPlaceholder": "parent@example.com"
   },
   "validation": {
     "phoneInvalid": "Invalid phone format",
     "schoolRequired": "School is required",
     "phoneRequiredForProvided": "Phone is required when status is PROVIDED",
     "purposeOtherRequired": "Reason is required when purpose is OTHER",
-    "studentNameOrAnonymous": "Student name is required unless anonymous"
+    "studentNameOrAnonymous": "Student name is required unless anonymous",
+    "emailInvalid": "Please check the email address."
   },
   "stage": {
     "INTAKE": "1. Intake",
@@ -190,7 +193,8 @@
         "consultDone": "Consult done",
         "registeredAt": "Registered",
         "isAnonymous": "Anonymous",
-        "siteOverride": "Dashboard site"
+        "siteOverride": "Dashboard site",
+        "parentEmail": "Parent email"
       }
     },
     "backToList": "Back to list",

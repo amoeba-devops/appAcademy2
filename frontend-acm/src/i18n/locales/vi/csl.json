@@ -52,14 +52,17 @@
     "registeredAt": "Ngày đăng ký",
     "followupAt": "Ngày theo dõi",
     "followupMemo": "Ghi chú theo dõi",
-    "required": "*"
+    "required": "*",
+    "parentEmail": "Email phụ huynh",
+    "parentEmailPlaceholder": "parent@example.com"
   },
   "validation": {
     "phoneInvalid": "SĐT không hợp lệ",
     "schoolRequired": "Vui lòng nhập trường",
     "phoneRequiredForProvided": "SĐT cần thiết khi trạng thái là 'Đã cung cấp'",
     "purposeOtherRequired": "Cần nhập lý do khi chọn 'Khác'",
-    "studentNameOrAnonymous": "Vui lòng nhập tên học sinh hoặc chọn ẩn danh"
+    "studentNameOrAnonymous": "Vui lòng nhập tên học sinh hoặc chọn ẩn danh",
+    "emailInvalid": "Vui lòng kiểm tra địa chỉ email."
   },
   "stage": {
     "INTAKE": "1. Tiếp nhận",
@@ -190,7 +193,8 @@
         "consultDone": "Hoàn tất tư vấn",
         "registeredAt": "Ngày đăng ký",
         "isAnonymous": "Ẩn danh",
-        "siteOverride": "Site dashboard"
+        "siteOverride": "Site dashboard",
+        "parentEmail": "Email phụ huynh"
       }
     },
     "backToList": "Quay lại danh sách",

@@ -13,6 +13,7 @@ import {
   Equals,
   IsArray,
   IsBoolean,
+  IsEmail,
   IsOptional,
   IsString,
   Matches,
@@ -38,6 +39,13 @@ export class ExternalIntakeDto {
 
   @IsString() @Matches(/^[0-9+\-() ]{7,20}$/)
   parentPhone!: string;
+
+  /**
+   * 요구 260914E — 사이트 폼에서 연락처를 전화번호/이메일로 분리하면서 추가.
+   * 이메일 칸이 없는 사이트도 있으므로 optional 로 둔다.
+   */
+  @IsOptional() @IsEmail() @MaxLength(200)
+  parentEmail?: string;
 
   @IsOptional() @IsString() @MaxLength(100)
   schoolName?: string;
@@ -113,6 +121,7 @@ export class ExternalIntakeController {
       studentName: dto.studentName,
       parentName: dto.parentName,
       parentPhone: dto.parentPhone,
+      parentEmail: dto.parentEmail,
       phoneStatus: 'PROVIDED',
       grade: dto.grade,
       inflowType: 'WEB_EXTERNAL',

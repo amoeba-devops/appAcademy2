@@ -42,6 +42,8 @@ interface Inquiry {
   isAnonymous: boolean;
   parentName: string | null;
   parentPhone: string | null;
+  /** 요구 260914E — 외부 접수 폼 연락처 분리로 추가. */
+  parentEmail?: string | null;
   phoneStatus: 'PROVIDED' | 'DECLINED' | 'UNKNOWN' | null;
   schoolFreetext: string | null;
   grade: string | null;
@@ -602,6 +604,10 @@ function IntakeReadOnlyBox({
           extra={
             inq.phoneStatus ? `(${t(`phoneStatus.${inq.phoneStatus}`)})` : null
           }
+        />
+        <Row
+          label={t('detail.intake.field.parentEmail', '학부모 이메일')}
+          value={inq.parentEmail ?? '—'}
         />
         <Row label={t('detail.intake.field.school')} value={inq.schoolFreetext ?? '—'} />
         <Row
