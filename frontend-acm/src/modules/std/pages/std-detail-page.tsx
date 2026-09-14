@@ -65,7 +65,7 @@ export function StdDetailPage() {
       <div className="flex items-start justify-between">
         <div>
           <button
-            onClick={() => navigate('/std')}
+            onClick={() => navigate('/admin/std')}
             className="mb-2 flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
           >
             <ArrowLeft size={14} />
