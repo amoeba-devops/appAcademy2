@@ -128,7 +128,9 @@
     "manualMark": "Nhập thủ công",
     "syncNow": "Đồng bộ GA4",
     "syncDone": "Đã đồng bộ GA4 ({{rows}} dòng)",
-    "syncFailed": "Đồng bộ GA4 thất bại"
+    "syncFailed": "Đồng bộ GA4 thất bại",
+    "notConfigured": "Chưa cấu hình GA4. Nhập property, stream và khóa tại Cài đặt › Liên kết GA4.",
+    "syncFailedReason": "Đồng bộ GA4 thất bại: {{reason}}"
   },
   "site": {
     "label": "Site",

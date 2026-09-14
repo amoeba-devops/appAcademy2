@@ -1,10 +1,11 @@
 ---
 document_id: DSH-GUIDE-260912
-version: 1.0.0
+version: 1.1.0
 status: CONFIRMED
 date: 2026-09-12
 depends_on: docs/plan/PLN-260912-dsh-ga4-visitor-sync.md
 change_log:
+  - 2026-09-14 v+ ACM 콘솔 설정 단계 완료(속성·스트림·SA 키 저장, 연결 테스트·동기화 SUCCESS), SA 키 파일 삭제. TPI·TRINITY gtag 미렌더링 잔여 → REQ-260914C (Claude Code)
   - 2026-09-12 v1.0.0 최초 작성 — fremdung@gmail.com 계정 기준 GA4·GCP·아임웹·ACM 사전 작업 순서 (Claude Code)
 ---
 
@@ -121,3 +122,13 @@ change_log:
 | 연결 성공 `0행` 이 계속됨 | 아임웹에 측정 ID 미연결 또는 오타 | 4절 재확인, GA4 실시간 보고서로 태그 동작 확인 |
 | 대시보드 방문자가 비어 있음 | 동기화 전이거나 해당 날짜에 수동 입력이 있음 | "GA4 동기화" 버튼(현재 기간) 실행, 셀 툴팁 확인 |
 | `GA4_CONFIG_NOT_SET` | 속성 ID·스트림·키 중 하나 미입력 또는 비활성 | 5-2 항목 채우고 "사용" 체크 후 저장 |
+
+## Progress Update (진행 현황, 2026-09-14)
+
+| Step | Status |
+|------|--------|
+| ACM 콘솔 `/admin/config/ga4` 입력 (속성 553818421, 스트림 3개, 서비스계정 키) | ✅ 완료 — 운영 ADMIN 세션에서 저장, "설정됨 — acm-ga4@acm-ga4.iam.gserviceaccount.com" |
+| 연결 테스트 | ✅ 최근 7일 3행, 스트림 15761907393 (SANTACROCE) |
+| 지금 동기화 | ✅ 2026-09-07~09-13 2행 반영, 대시보드 MARKETING 카드 "출처 GA4" 표시 |
+| 서비스계정 키 파일 삭제 | ✅ `~/Downloads/acm-ga4-48261a572202.json` 삭제 (재발급은 GCP › 서비스 계정 › 키) |
+| TPI·TRINITY 게시 페이지 gtag | ❌ 미렌더링 — GA4 데이터 0행. 조치 후보: 아임웹 헤드 코드 삽입 (사용자 결정 필요), 후속 [REQ-260914C](../analysis/REQ-260914C-ga4-site-integration-mgmt.md) |

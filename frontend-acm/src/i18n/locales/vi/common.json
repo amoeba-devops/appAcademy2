@@ -569,6 +569,53 @@
       },
       "errors": {
         "invalidKey": "JSON khóa service account không hợp lệ (cần client_email · private_key)."
+      },
+      "sites": {
+        "title": "Liên kết theo site",
+        "check": "Kiểm tra trạng thái",
+        "checking": "Đang kiểm tra…",
+        "lastChecked": "Kiểm tra lần cuối: {{at}}",
+        "neverChecked": "Chưa kiểm tra",
+        "hint": "Để trống stream ID nếu không thu thập site đó. Measurement ID và URL chỉ dùng để xác nhận thẻ.",
+        "col": {
+          "site": "Site",
+          "url": "URL",
+          "measurementId": "Measurement ID",
+          "streamId": "Stream ID",
+          "tag": "Thẻ",
+          "ga4": "Dữ liệu GA4 (7 ngày)",
+          "acm": "ACM",
+          "status": "Trạng thái"
+        },
+        "name": {
+          "TPI": "TPI",
+          "TRINITY": "Trinity",
+          "SANTACROCE": "Santa Croce"
+        },
+        "tag": {
+          "yes": "Có",
+          "no": "Không",
+          "unknown": "Không rõ"
+        },
+        "rows": "{{rows}} dòng",
+        "visitors": "{{n}} khách",
+        "level": {
+          "OK": "Bình thường",
+          "NO_DATA": "Chưa có dữ liệu",
+          "TAG_MISSING": "Thiếu thẻ",
+          "NOT_CONFIGURED": "Chưa cấu hình",
+          "UNKNOWN": "Không rõ"
+        },
+        "advice": {
+          "TAG_MISSING": "Trang đã xuất bản không có thẻ GA. Kiểm tra imweb Cài đặt › Kênh marketing › Google Analytics và tùy chọn \"Cho phép truy cập từ Trung Quốc\" (bật sẽ chặn script Google).",
+          "NO_DATA": "Có thẻ nhưng GA4 chưa có dữ liệu. Kiểm tra lại sau 24–48 giờ.",
+          "UNKNOWN": "Không tải được HTML của site. Kiểm tra URL hoặc thử lại sau."
+        },
+        "errors": {
+          "invalidUrl": "URL site không hợp lệ (https://…).",
+          "invalidMeasurementId": "Measurement ID không hợp lệ (G-XXXXXXXXXX).",
+          "checkFailed": "Kiểm tra thất bại:"
+        }
       }
     }
   },
