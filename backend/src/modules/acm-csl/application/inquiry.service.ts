@@ -416,8 +416,16 @@ export class InquiryService {
   }
 
   async softDelete(entId: string, id: string): Promise<void> {
-    await this.getOrThrow(entId, id);
+    const e = await this.getOrThrow(entId, id);
     await this.inq.softDelete({ id, entId });
+    // 요구 260914H — 삭제된 상담은 통계에서 빠져야 한다. 야간 배치를 기다리면
+    // 지운 건이 대시보드에 그대로 남아 보인다.
+    if (e.registeredAt) {
+      this.events.emit('acm.csl.site_attribution.changed', {
+        entId,
+        date: e.registeredAt,
+      });
+    }
   }
 
   // ──────────────────────────────────────────────────────────────────────

@@ -16,6 +16,7 @@ import {
 import { TransitionTypeormEntity } from '../infrastructure/typeorm/transition.typeorm-entity';
 import { RemarkTypeormEntity } from '../infrastructure/typeorm/remark.typeorm-entity';
 import { PiiAuditTypeormEntity } from '../infrastructure/typeorm/pii-audit.typeorm-entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InquiryService } from './inquiry.service';
 import type { CreateCancellationDto } from './dto/inquiry.dto';
 import type { AssignDto, BackwardTransitionDto, CreateRemarkDto } from './dto/transitions.dto';
@@ -44,6 +45,7 @@ export class InquiryWorkflowService {
     private readonly piiAudit: Repository<PiiAuditTypeormEntity>,
     private readonly crypto: AesGcmService,
     private readonly base: InquiryService,
+    private readonly events: EventEmitter2,
   ) {}
 
   /** C-06 — Restore soft-deleted inquiry within 90 days */
@@ -57,6 +59,13 @@ export class InquiryWorkflowService {
       throw new BadRequestException('Restore window (90 days) exceeded');
     }
     await this.inq.restore({ id: inqId, entId });
+    // 요구 260914H — 복구하면 다시 통계에 잡혀야 한다.
+    if (e.registeredAt) {
+      this.events.emit('acm.csl.site_attribution.changed', {
+        entId,
+        date: e.registeredAt,
+      });
+    }
   }
 
   /** C-07 — Audited PII reveal (phone) */

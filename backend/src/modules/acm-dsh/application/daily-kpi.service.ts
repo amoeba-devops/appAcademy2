@@ -16,6 +16,7 @@ import {
   DSH_SITE_COMMON,
   DSH_SITE_ROWS,
   INQ_SITE_SQL,
+  NOT_DELETED_INQ,
   type DshSite,
   type DshSiteOrCommon,
 } from './dsh-site.util';
@@ -441,49 +442,55 @@ export class DailyKpiService {
     type CountRow = { c: string };
     const counselingQ = await this.ds.query<CountRow[]>(
       `SELECT COUNT(*)::text AS c FROM amb_acm_csl_inquiry
-        WHERE ent_id = $1 AND inq_registered_at = $2`,
+        WHERE ent_id = $1 AND inq_registered_at = $2
+          AND deleted_at IS NULL`,
       [entId, isoDate],
     );
     const cs_counseling = Number(counselingQ[0]?.c ?? 0);
 
     // apply: enrollment rows where enr_applied=true and updated on this day
     const applyQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_enrollment
-        WHERE ent_id = $1 AND enr_applied = true
-          AND DATE(updated_at AT TIME ZONE 'Asia/Seoul') = $2`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_enrollment e
+        WHERE e.ent_id = $1 AND e.enr_applied = true
+          AND DATE(e.updated_at AT TIME ZONE 'Asia/Seoul') = $2
+          AND ${NOT_DELETED_INQ}`,
       [entId, isoDate],
     );
     const cs_apply = Number(applyQ[0]?.c ?? 0);
 
     // beginning: cls_started_at = day
     const begQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_enrollment
-        WHERE ent_id = $1 AND cls_started_at = $2`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_enrollment e
+        WHERE e.ent_id = $1 AND e.cls_started_at = $2
+          AND ${NOT_DELETED_INQ}`,
       [entId, isoDate],
     );
     const cs_beginning = Number(begQ[0]?.c ?? 0);
 
     // missing: transition to DROPPED on day
     const missQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_transition
-        WHERE ent_id = $1 AND to_status = 'DROPPED'
-          AND DATE(occurred_at AT TIME ZONE 'Asia/Seoul') = $2`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_transition e
+        WHERE e.ent_id = $1 AND e.to_status = 'DROPPED'
+          AND DATE(e.occurred_at AT TIME ZONE 'Asia/Seoul') = $2
+          AND ${NOT_DELETED_INQ}`,
       [entId, isoDate],
     );
     const cs_missing = Number(missQ[0]?.c ?? 0);
 
     // trial class: tcl_held_at = day
     const tclQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_trial_class
-        WHERE ent_id = $1 AND tcl_held_at = $2`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_trial_class e
+        WHERE e.ent_id = $1 AND e.tcl_held_at = $2
+          AND ${NOT_DELETED_INQ}`,
       [entId, isoDate],
     );
     const cs_trial_class = Number(tclQ[0]?.c ?? 0);
 
     // map test scheduled
     const mapQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_map_test
-        WHERE ent_id = $1 AND mpt_scheduled_at = $2`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_map_test e
+        WHERE e.ent_id = $1 AND e.mpt_scheduled_at = $2
+          AND ${NOT_DELETED_INQ}`,
       [entId, isoDate],
     );
     const cls_map_test = Number(mapQ[0]?.c ?? 0);
@@ -666,28 +673,33 @@ export class DailyKpiService {
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
              FROM amb_acm_csl_inquiry i
             WHERE i.ent_id = $1 AND i.inq_registered_at = $2
+              AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
              FROM amb_acm_csl_enrollment e
              JOIN amb_acm_csl_inquiry i ON i.inq_id = e.inq_id
             WHERE e.ent_id = $1 AND e.enr_applied = true
               AND DATE(e.updated_at AT TIME ZONE 'Asia/Seoul') = $2
+              AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
              FROM amb_acm_csl_enrollment e
              JOIN amb_acm_csl_inquiry i ON i.inq_id = e.inq_id
             WHERE e.ent_id = $1 AND e.cls_started_at = $2
+              AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
              FROM amb_acm_csl_transition t
              JOIN amb_acm_csl_inquiry i ON i.inq_id = t.inq_id
             WHERE t.ent_id = $1 AND t.to_status = 'DROPPED'
               AND DATE(t.occurred_at AT TIME ZONE 'Asia/Seoul') = $2
+              AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
              FROM amb_acm_csl_trial_class tc
              JOIN amb_acm_csl_inquiry i ON i.inq_id = tc.inq_id
             WHERE tc.ent_id = $1 AND tc.tcl_held_at = $2
+              AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT COALESCE(cmp_site, 'COMMON') AS site, COUNT(*)::text AS c
              FROM amb_acm_dsh_complaints
