@@ -30,12 +30,34 @@ export type InflowType =
 /** REQ-260903G — external intake source sites (imweb). */
 export type SourceSite = 'TPI' | 'TRINITY' | 'SANTACROCE';
 export type ApplyType = 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
+/**
+ * 신청목적 — 접수 사이트마다 상품 구성이 달라 **사이트별로 분리 유지**한다
+ * (요구 260914F). 의미가 비슷해 보여도 합치지 않는다: 합치면 사이트별 상품
+ * 통계가 불가능해진다.
+ *
+ * `inq_apply_purpose` 는 TEXT(콤마 구분, CHECK 제약 없음 — 마이그레이션 120)
+ * 이라 코드를 늘려도 스키마 변경이 필요 없다.
+ */
 export type ApplyPurpose =
+  // TPI (tpi.co.kr/contact2)
   | 'MAP_TEST_TUTORING'
   | 'ISEE_TUTORING'
   | 'INTL_SCHOOL_PREP'
   | 'GPA_MGMT'
-  | 'ADVANCED_COURSES';
+  | 'ADVANCED_COURSES'
+  // TRINITY (trinityacademy.kr/contact2)
+  | 'TRI_INTL_ACCREDITED'
+  | 'TRI_INTL_UNACCREDITED'
+  | 'TRI_FOREIGN_SCHOOL'
+  | 'TRI_BOARDING_PREP'
+  | 'TRI_ALL_IN_ONE'
+  // SANTACROCE (santacroce.co.kr/consult)
+  | 'SAN_EDU_AGENT'
+  | 'SAN_US_UK_ADMISSIONS'
+  | 'SAN_TOP_BOARDING'
+  | 'SAN_TOP_JUNIOR_BOARDING'
+  | 'SAN_PREMIUM_GUARDIAN'
+  | 'SAN_INTL_CONSULTING';
 export type PhoneStatus = 'PROVIDED' | 'DECLINED' | 'UNKNOWN';
 export type YesNo = 'YES' | 'NO';
 

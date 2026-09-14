@@ -90,7 +90,18 @@
     "ISEE_TUTORING": "ISEE 튜터링",
     "INTL_SCHOOL_PREP": "국제학교/외국인학교 입학 준비",
     "GPA_MGMT": "맞춤형 GPA 관리",
-    "ADVANCED_COURSES": "심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    "ADVANCED_COURSES": "심화 수업(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)",
+    "TRI_INTL_ACCREDITED": "인가 국제학교 입학 준비",
+    "TRI_INTL_UNACCREDITED": "비인가 국제학교 입학 준비",
+    "TRI_FOREIGN_SCHOOL": "외국인학교 입학 준비",
+    "TRI_BOARDING_PREP": "해외 주니어 보딩스쿨 / 하이 보딩스쿨 입학 준비",
+    "TRI_ALL_IN_ONE": "All in One 입학 준비 컨설팅(수업+포트폴리오+원서 지원+GPA관리)",
+    "SAN_EDU_AGENT": "교육 대리인 서비스",
+    "SAN_US_UK_ADMISSIONS": "미국·영국 대학 입시 컨설팅",
+    "SAN_TOP_BOARDING": "탑 보딩스쿨 컨설팅",
+    "SAN_TOP_JUNIOR_BOARDING": "탑 주니어 보딩스쿨 컨설팅",
+    "SAN_PREMIUM_GUARDIAN": "프리미엄 가디언 서비스",
+    "SAN_INTL_CONSULTING": "외국인·국제학교 컨설팅"
   },
   "phoneStatus": {
     "PROVIDED": "제공됨",
@@ -195,7 +206,8 @@
         "isAnonymous": "익명",
         "siteOverride": "대시보드 사이트",
         "parentEmail": "학부모 이메일"
-      }
+      },
+      "applyPurposeOther": "기타(원문)"
     },
     "backToList": "상담 목록으로",
     "drop": "상담종료",

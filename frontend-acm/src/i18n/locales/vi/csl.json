@@ -90,7 +90,18 @@
     "ISEE_TUTORING": "Dạy kèm ISEE",
     "INTL_SCHOOL_PREP": "Chuẩn bị tuyển sinh trường quốc tế/nước ngoài",
     "GPA_MGMT": "Quản lý GPA theo yêu cầu",
-    "ADVANCED_COURSES": "Khóa nâng cao (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    "ADVANCED_COURSES": "Khóa nâng cao (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)",
+    "TRI_INTL_ACCREDITED": "Chuẩn bị nhập học trường quốc tế được công nhận",
+    "TRI_INTL_UNACCREDITED": "Chuẩn bị nhập học trường quốc tế chưa công nhận",
+    "TRI_FOREIGN_SCHOOL": "Chuẩn bị nhập học trường nước ngoài",
+    "TRI_BOARDING_PREP": "Chuẩn bị nhập học trường nội trú junior / high ở nước ngoài",
+    "TRI_ALL_IN_ONE": "Tư vấn nhập học All-in-One (lớp học + hồ sơ + nộp đơn + GPA)",
+    "SAN_EDU_AGENT": "Dịch vụ đại diện giáo dục",
+    "SAN_US_UK_ADMISSIONS": "Tư vấn tuyển sinh đại học Mỹ · Anh",
+    "SAN_TOP_BOARDING": "Tư vấn trường nội trú hàng đầu",
+    "SAN_TOP_JUNIOR_BOARDING": "Tư vấn trường nội trú junior hàng đầu",
+    "SAN_PREMIUM_GUARDIAN": "Dịch vụ giám hộ cao cấp",
+    "SAN_INTL_CONSULTING": "Tư vấn trường nước ngoài · quốc tế"
   },
   "phoneStatus": {
     "PROVIDED": "Đã cung cấp",
@@ -195,7 +206,8 @@
         "isAnonymous": "Ẩn danh",
         "siteOverride": "Site dashboard",
         "parentEmail": "Email phụ huynh"
-      }
+      },
+      "applyPurposeOther": "Khác (nguyên văn)"
     },
     "backToList": "Quay lại danh sách",
     "drop": "Kết thúc tư vấn",

@@ -54,18 +54,29 @@ const SITES: readonly ExternalIntakeSite[] = [
       'http://trinityacademy.kr',
       'http://www.trinityacademy.kr',
     ],
+    // 요구 260914F — 5개 항목을 각각 고유 코드로. 이전에는 앞 3개가 모두
+    // INTL_SCHOOL_PREP 하나로 뭉개지고 나머지 2개는 free-text 로 빠졌다.
     purposeMap: {
-      '인가 국제학교 입학 준비': 'INTL_SCHOOL_PREP',
-      '비인가 국제학교 입학 준비': 'INTL_SCHOOL_PREP',
-      '외국인학교 입학 준비': 'INTL_SCHOOL_PREP',
+      '인가 국제학교 입학 준비': 'TRI_INTL_ACCREDITED',
+      '비인가 국제학교 입학 준비': 'TRI_INTL_UNACCREDITED',
+      '외국인학교 입학 준비': 'TRI_FOREIGN_SCHOOL',
+      '해외 주니어 보딩스쿨 / 하이 보딩스쿨 입학 준비': 'TRI_BOARDING_PREP',
+      'All in One 입학 준비 컨설팅(수업+포트폴리오+원서 지원+GPA관리)':
+        'TRI_ALL_IN_ONE',
     },
   },
   {
     code: 'SANTACROCE',
     displayName: '산타크로체 웹 접수',
     origins: ['https://santacroce.co.kr', 'https://www.santacroce.co.kr'],
+    // 요구 260914F — 6개 항목 전부 매핑 (이전에는 1개만 매핑되고 5개가 유실).
     purposeMap: {
-      '외국인·국제학교 컨설팅': 'INTL_SCHOOL_PREP',
+      '교육 대리인 서비스': 'SAN_EDU_AGENT',
+      '미국·영국 대학 입시 컨설팅': 'SAN_US_UK_ADMISSIONS',
+      '탑 보딩스쿨 컨설팅': 'SAN_TOP_BOARDING',
+      '탑 주니어 보딩스쿨 컨설팅': 'SAN_TOP_JUNIOR_BOARDING',
+      '프리미엄 가디언 서비스': 'SAN_PREMIUM_GUARDIAN',
+      '외국인·국제학교 컨설팅': 'SAN_INTL_CONSULTING',
     },
   },
 ] as const;
