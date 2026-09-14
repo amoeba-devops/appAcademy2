@@ -1,10 +1,11 @@
 ---
 document_id: DSH-PLN-260914B
-version: 1.0.0
-status: IMPLEMENTED (배포 대기 — PR 생성)
+version: 1.1.0
+status: DEPLOYED (staging·production 2026-09-14, sha 2340bbb)
 date: 2026-09-14
 depends_on: docs/analysis/REQ-260914B-dsh-site-dashboards.md
 change_log:
+  - 2026-09-14 v1.1.0 DEPLOYED — PR #226 squash 2340bbb, cd-staging 34801693239 success, cd-production 34801858097 success, 무자격 스모크(site-comparison 401 / 미존재 404, 번들 site-comparison 포함) 통과 (Claude Code)
   - 2026-09-14 v1.0.0 구현 완료 — backend(daily_kpi_site·site-comparison·site 파라미터·siteOverride) + frontend(사이트 탭·비교 표·수동입력/불만 사이트 선택·상담 사이트 귀속) + i18n 4 locale, 로컬 스모크 통과 (Claude Code)
   - 2026-09-14 v0.1.0 초안 — 사이트 탭(통합/TPI/TRINITY/SANTACROCE) + daily_kpi_site + 사이트 비교 표 (Claude Code)
 ---
@@ -127,3 +128,14 @@ ALTER TABLE amb_acm_csl_inquiry ADD COLUMN IF NOT EXISTS inq_site_override VARCH
 - **Complaint (불만)**: `site` 선택 (기본 공통) → `cmp_site`. 사이트 탭에서 열면 해당 사이트 preselect.
 - **Inquiry (상담)**: Intake 패널 "대시보드 사이트" select → `PATCH /acm/csl/inquiries/:id { siteOverride }`; 유효 귀속 = override ?? sourceSite ?? 공통.
 - **Local smoke (로컬 스모크)**: `site=FOO` → 400, `site=TPI` range/summary 는 MARKETING/CS 만, site-comparison TOTAL == 통합, 사이트 수동입력·불만·siteOverride 왕복 확인 후 스모크 데이터 삭제·재계산.
+
+## Deployment (배포 기록, 2026-09-14)
+
+| Step | Result |
+|------|--------|
+| PR | #226 → squash `2340bbb` |
+| cd-staging | run 34801693239 success — `GET /api/acm/dsh/site-comparison` 401 (존재), `/api/acm/dsh/nope` 404, 번들 `site-comparison` 포함 |
+| cd-production | run 34801858097 success — 동일 프로브 통과 |
+| SQL | `sql/acm/1012-dsh-daily-kpi-site.sql` CD step4 자동 적용 (멱등) |
+
+**Post-deploy note (사후 확인 사항)**: 사이트 행(`amb_acm_dsh_daily_kpi_site`)은 recomputeDay 시점에 생성된다. 배포 이전 날짜의 사이트 탭·비교 표는 야간 배치 또는 관리자 "GA4 동기화"/재계산 이후 채워진다. 운영 콘솔 ADMIN 로그인 후 `/admin/dashboard?site=TPI` 육안 확인 필요.
