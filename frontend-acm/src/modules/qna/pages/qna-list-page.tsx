@@ -120,7 +120,7 @@ export function QnaListPage() {
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
           <Link
-            to="/qna/categories"
+            to="/admin/qna/categories"
             className="px-3 py-1.5 rounded-md border border-[var(--border-subtle)] bg-surface hover:bg-[var(--bg-hover)] text-sm"
           >
             {t('manageCategories')}
