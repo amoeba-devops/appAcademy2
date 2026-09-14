@@ -91,7 +91,9 @@
       "PENDING": "未录入",
       "PARTIAL": "部分",
       "COMPLETE": "完成"
-    }
+    },
+    "site": "站点",
+    "siteHint": "选择站点后仅录入该站点的访客·费用·投诉，并汇总到合计。"
   },
   "complaint": {
     "title": "登记投诉",
@@ -112,7 +114,8 @@
       "LOW": "低",
       "MEDIUM": "中",
       "HIGH": "高"
-    }
+    },
+    "site": "站点"
   },
   "empty": {
     "noData": "该月份暂无数据。"
@@ -126,5 +129,27 @@
     "syncNow": "同步 GA4",
     "syncDone": "GA4 同步完成（{{rows}} 行）",
     "syncFailed": "GA4 同步失败"
+  },
+  "site": {
+    "label": "站点",
+    "tabs": {
+      "ALL": "汇总",
+      "TPI": "TPI",
+      "TRINITY": "Trinity",
+      "SANTACROCE": "Santa Croce",
+      "COMMON": "公共(未指定)",
+      "TOTAL": "合计"
+    },
+    "hiddenNote": "运营·课程指标不区分站点，仅在汇总页显示。",
+    "comparison": {
+      "title": "站点对比",
+      "visitor": "访客",
+      "counseling": "咨询",
+      "apply": "申请",
+      "effect": "效果",
+      "cost": "费用",
+      "complain": "投诉",
+      "note": "公共(未指定)包含电话/Kakao/主页等未指定站点的咨询和公共手动录入。合计等于汇总仪表盘数值。"
+    }
   }
 }

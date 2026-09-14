@@ -7,6 +7,7 @@ import { MetricDefinitionTypeormEntity } from './infrastructure/typeorm/metric-d
 import { ManualInputTypeormEntity } from './infrastructure/typeorm/manual-input.typeorm-entity';
 import { ComplaintTypeormEntity } from './infrastructure/typeorm/complaint.typeorm-entity';
 import { DailyKpiTypeormEntity } from './infrastructure/typeorm/daily-kpi.typeorm-entity';
+import { DailyKpiSiteTypeormEntity } from './infrastructure/typeorm/daily-kpi-site.typeorm-entity';
 import { SiteVisitTypeormEntity } from './infrastructure/typeorm/site-visit.typeorm-entity';
 import { MetricDefinitionService } from './application/metric-definition.service';
 import { ManualInputService } from './application/manual-input.service';
@@ -32,6 +33,7 @@ import { DashboardController } from './presentation/dashboard.controller';
         ManualInputTypeormEntity,
         ComplaintTypeormEntity,
         DailyKpiTypeormEntity,
+        DailyKpiSiteTypeormEntity,
         SiteVisitTypeormEntity,
       ],
       ACM_DS,

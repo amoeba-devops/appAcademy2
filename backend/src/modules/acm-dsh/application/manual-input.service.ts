@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { ManualInputTypeormEntity } from '../infrastructure/typeorm/manual-input.typeorm-entity';
 import { UpsertManualInputDto } from './dto/manual-input.dto';
 import { DailyKpiService } from './daily-kpi.service';
+import type { DshSite } from './dsh-site.util';
 
 @Injectable()
 export class ManualInputService {
@@ -21,18 +22,29 @@ export class ManualInputService {
       .andWhere(`TO_CHAR(m.min_date, 'YYYY-MM') = :ym`, { ym: yearMonth })
       .andWhere('m.min_deleted_at IS NULL')
       .orderBy('m.min_date', 'ASC')
+      .addOrderBy('m.min_site', 'ASC', 'NULLS FIRST')
       .getMany();
   }
 
-  findByDate(entId: string, date: string) {
-    return this.repo.findOne({ where: { entId, date } });
+  /** PLN-260914B — `site` undefined/null = tenant-level (공통) row. */
+  findByDate(entId: string, date: string, site?: DshSite | null) {
+    return this.repo.findOne({
+      where: { entId, date, site: site ? site : IsNull(), deletedAt: IsNull() },
+    });
   }
 
-  /** Upsert per (ent_id, date). BR-DSH-005: triggers daily_kpi update. */
-  async upsert(entId: string, date: string, dto: UpsertManualInputDto, actorId?: string) {
-    const existing = await this.repo.findOne({ where: { entId, date } });
+  /** Upsert per (ent_id, date, site). BR-DSH-005: triggers daily_kpi update. */
+  async upsert(
+    entId: string,
+    date: string,
+    dto: UpsertManualInputDto,
+    actorId?: string,
+  ) {
+    const site = dto.site ?? null;
+    const existing = await this.findByDate(entId, date, site);
     const now = new Date();
-    const costStr = dto.marketingCost != null ? String(dto.marketingCost) : null;
+    const costStr =
+      dto.marketingCost != null ? String(dto.marketingCost) : null;
     if (existing) {
       await this.repo.update(
         { id: existing.id },
@@ -53,6 +65,7 @@ export class ManualInputService {
       await this.repo.insert({
         entId,
         date,
+        site,
         marketingVisitor: dto.marketingVisitor ?? null,
         marketingCost: costStr,
         marketingEffect: dto.marketingEffect ?? null,
@@ -67,6 +80,6 @@ export class ManualInputService {
       });
     }
     await this.dailyKpi.recomputeDay(entId, date, 'manual_input');
-    return this.repo.findOne({ where: { entId, date } });
+    return this.findByDate(entId, date, site);
   }
 }

@@ -13,8 +13,15 @@ import {
 } from 'class-validator';
 
 export const MANUAL_INPUT_STATUSES = ['PENDING', 'PARTIAL', 'COMPLETE'] as const;
+export const MANUAL_INPUT_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 
 export class UpsertManualInputDto {
+  /** PLN-260914B — site row; omit for the tenant-level (공통) row. */
+  @ApiPropertyOptional({ enum: MANUAL_INPUT_SITES })
+  @IsOptional()
+  @IsEnum(MANUAL_INPUT_SITES)
+  site?: (typeof MANUAL_INPUT_SITES)[number];
+
   @ApiPropertyOptional()
   @IsOptional()
   @Type(() => Number)

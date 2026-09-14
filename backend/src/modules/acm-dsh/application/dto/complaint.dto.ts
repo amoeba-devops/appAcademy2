@@ -10,6 +10,7 @@ import {
 
 export const COMPLAINT_CHANNELS = ['PHONE', 'EMAIL', 'CHAT', 'IN_PERSON', 'OTHER'] as const;
 export const COMPLAINT_SEVERITIES = ['LOW', 'MEDIUM', 'HIGH'] as const;
+export const COMPLAINT_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 
 export class CreateComplaintDto {
   @ApiProperty({ example: '2026-04-26' })
@@ -41,9 +42,20 @@ export class CreateComplaintDto {
   @IsOptional()
   @IsUUID()
   linkedQnaId?: string;
+
+  /** PLN-260914B — site attribution; omit = 공통 */
+  @ApiPropertyOptional({ enum: COMPLAINT_SITES })
+  @IsOptional()
+  @IsEnum(COMPLAINT_SITES)
+  site?: (typeof COMPLAINT_SITES)[number];
 }
 
 export class UpdateComplaintDto {
+  @ApiPropertyOptional({ enum: COMPLAINT_SITES })
+  @IsOptional()
+  @IsEnum(COMPLAINT_SITES)
+  site?: (typeof COMPLAINT_SITES)[number];
+
   @ApiPropertyOptional({ enum: COMPLAINT_CHANNELS })
   @IsOptional()
   @IsEnum(COMPLAINT_CHANNELS)

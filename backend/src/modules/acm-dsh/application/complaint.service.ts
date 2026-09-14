@@ -41,6 +41,7 @@ export class ComplaintService {
         subject: dto.subject ?? null,
         description: dto.description ?? null,
         linkedQnaId: dto.linkedQnaId ?? null,
+        site: dto.site ?? null, // PLN-260914B
         createdBy: actorId ?? null,
         createdAt: now,
         updatedAt: now,
@@ -61,16 +62,23 @@ export class ComplaintService {
         subject: dto.subject ?? found.subject,
         description: dto.description ?? found.description,
         linkedQnaId: dto.linkedQnaId ?? found.linkedQnaId,
+        site: dto.site !== undefined ? dto.site : found.site,
         updatedAt: new Date(),
       },
     );
+    if (dto.site !== undefined && dto.site !== found.site) {
+      await this.dailyKpi.recomputeDay(entId, found.date, 'complaint_updated');
+    }
     return this.findOne(entId, id);
   }
 
   async softDelete(entId: string, id: string) {
     const found = await this.findOne(entId, id);
     if (!found) throw new NotFoundException(`Complaint ${id} not found`);
-    await this.repo.update({ id }, { deletedAt: new Date(), updatedAt: new Date() });
+    await this.repo.update(
+      { id },
+      { deletedAt: new Date(), updatedAt: new Date() },
+    );
     await this.dailyKpi.recomputeDay(entId, found.date, 'complaint_deleted');
   }
 }

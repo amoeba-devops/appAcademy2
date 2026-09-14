@@ -189,7 +189,8 @@
         "applyType": "Apply type",
         "consultDone": "Consult done",
         "registeredAt": "Registered",
-        "isAnonymous": "Anonymous"
+        "isAnonymous": "Anonymous",
+        "siteOverride": "Dashboard site"
       }
     },
     "backToList": "Back to list",
@@ -394,5 +395,10 @@
     "TPI": "TPI",
     "TRINITY": "Trinity",
     "SANTACROCE": "Santa Croce"
+  },
+  "siteOverride": {
+    "none": "Unassigned (common)",
+    "common": "Common",
+    "effective": "Attributed to: {{site}}"
   }
 }

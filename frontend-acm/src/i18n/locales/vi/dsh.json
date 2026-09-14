@@ -91,7 +91,9 @@
       "PENDING": "Chưa nhập",
       "PARTIAL": "Một phần",
       "COMPLETE": "Hoàn tất"
-    }
+    },
+    "site": "Site",
+    "siteHint": "Khi chọn site, chỉ nhập khách truy cập·chi phí·khiếu nại của site đó và được cộng vào tổng."
   },
   "complaint": {
     "title": "Ghi nhận khiếu nại",
@@ -112,7 +114,8 @@
       "LOW": "Thấp",
       "MEDIUM": "Trung bình",
       "HIGH": "Cao"
-    }
+    },
+    "site": "Site"
   },
   "empty": {
     "noData": "Không có dữ liệu cho tháng này."
@@ -126,5 +129,27 @@
     "syncNow": "Đồng bộ GA4",
     "syncDone": "Đã đồng bộ GA4 ({{rows}} dòng)",
     "syncFailed": "Đồng bộ GA4 thất bại"
+  },
+  "site": {
+    "label": "Site",
+    "tabs": {
+      "ALL": "Tổng hợp",
+      "TPI": "TPI",
+      "TRINITY": "Trinity",
+      "SANTACROCE": "Santa Croce",
+      "COMMON": "Chung (chưa gán)",
+      "TOTAL": "Tổng"
+    },
+    "hiddenNote": "Chỉ số Vận hành·Lớp học không phân theo site nên chỉ hiển thị ở tab Tổng hợp.",
+    "comparison": {
+      "title": "So sánh site",
+      "visitor": "Khách truy cập",
+      "counseling": "Tư vấn",
+      "apply": "Đăng ký",
+      "effect": "Hiệu quả",
+      "cost": "Chi phí",
+      "complain": "Khiếu nại",
+      "note": "Chung (chưa gán) gồm tư vấn qua điện thoại / Kakao / trang chủ chưa gán site và nhập thủ công cấp chung. Tổng bằng dashboard Tổng hợp."
+    }
   }
 }

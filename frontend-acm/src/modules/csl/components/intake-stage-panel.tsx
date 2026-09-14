@@ -47,6 +47,8 @@ interface Inquiry {
   grade: string | null;
   inflowType: string;
   sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
+  /** PLN-260914B — operator-assigned dashboard site (overrides sourceSite) */
+  siteOverride?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: string;
   applyPurposes: ApplyPurpose[];
   consultDone: 'YES' | 'NO' | null;
@@ -224,7 +226,7 @@ export function IntakeStagePanel({
       <h2 className="text-base font-semibold">{t('detail.intake.title')}</h2>
 
       {/* 1. Read-only intake info */}
-      <IntakeReadOnlyBox inq={inq} locale={i18n.language ?? 'ko'} />
+      <IntakeReadOnlyBox inq={inq} inqId={inqId} locale={i18n.language ?? 'ko'} />
 
       {/* 2. Apply purposes (editable) */}
       <ApplyPurposesEditor inqId={inqId} inq={inq} />
@@ -566,9 +568,11 @@ export function IntakeStagePanel({
 
 function IntakeReadOnlyBox({
   inq,
+  inqId,
   locale,
 }: {
   inq: Inquiry;
+  inqId: string;
   locale: string;
 }) {
   const { t } = useTranslation(['csl', 'common']);
@@ -608,6 +612,7 @@ function IntakeReadOnlyBox({
               : t(`inflow.${inq.inflowType}`)
           }
         />
+        <SiteOverrideRow inqId={inqId} inq={inq} />
         <Row
           label={t('detail.intake.field.applyType')}
           value={t(`applyType.${inq.applyType}`)}
@@ -723,6 +728,50 @@ function ApplyPurposesEditor({
             ?.data?.message ?? (mutate.error as Error).message}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * PLN-260914B — dashboard site attribution for non-web inquiries.
+ * Effective site = siteOverride ?? sourceSite ?? 공통. Saves immediately on change.
+ */
+function SiteOverrideRow({ inqId, inq }: { inqId: string; inq: Inquiry }) {
+  const { t } = useTranslation(['csl', 'common']);
+  const qc = useQueryClient();
+  const mutate = useMutation({
+    mutationFn: async (value: string) => {
+      await apiClient.patch(`/acm/csl/inquiries/${inqId}`, {
+        siteOverride: value === '' ? null : value,
+      });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'detail', inqId] }),
+  });
+  const effective = inq.siteOverride ?? inq.sourceSite ?? null;
+  return (
+    <div className="grid grid-cols-[120px_1fr] gap-1 items-center">
+      <span className="text-xs text-secondary">{t('detail.intake.field.siteOverride')}</span>
+      <span className="flex items-center gap-2 text-sm">
+        <select
+          className="h-7 rounded-md border border-[var(--border-subtle)] bg-surface px-2 text-xs"
+          value={inq.siteOverride ?? ''}
+          disabled={mutate.isPending}
+          onChange={(e) => mutate.mutate(e.target.value)}
+          aria-label={t('detail.intake.field.siteOverride')}
+        >
+          <option value="">{t('siteOverride.none')}</option>
+          {(['TPI', 'TRINITY', 'SANTACROCE'] as const).map((s) => (
+            <option key={s} value={s}>
+              {t(`sourceSite.${s}`)}
+            </option>
+          ))}
+        </select>
+        <span className="text-[11px] text-secondary">
+          {t('siteOverride.effective', {
+            site: effective ? t(`sourceSite.${effective}`) : t('siteOverride.common'),
+          })}
+        </span>
+      </span>
     </div>
   );
 }

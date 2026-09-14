@@ -91,7 +91,9 @@
       "PENDING": "Pending",
       "PARTIAL": "Partial",
       "COMPLETE": "Complete"
-    }
+    },
+    "site": "Site",
+    "siteHint": "With a site selected, only that site's visitors, cost and complaints are entered and rolled up into the total."
   },
   "complaint": {
     "title": "Log Complaint",
@@ -112,7 +114,8 @@
       "LOW": "Low",
       "MEDIUM": "Medium",
       "HIGH": "High"
-    }
+    },
+    "site": "Site"
   },
   "empty": {
     "noData": "No data for this month."
@@ -126,5 +129,27 @@
     "syncNow": "Sync GA4",
     "syncDone": "GA4 synced ({{rows}} rows)",
     "syncFailed": "GA4 sync failed"
+  },
+  "site": {
+    "label": "Site",
+    "tabs": {
+      "ALL": "All sites",
+      "TPI": "TPI",
+      "TRINITY": "Trinity",
+      "SANTACROCE": "Santa Croce",
+      "COMMON": "Common (unassigned)",
+      "TOTAL": "Total"
+    },
+    "hiddenNote": "Operating and Class metrics have no site dimension and are shown on the All-sites tab only.",
+    "comparison": {
+      "title": "Site comparison",
+      "visitor": "Visitors",
+      "counseling": "Counseling",
+      "apply": "Apply",
+      "effect": "Effect",
+      "cost": "Cost",
+      "complain": "Complaints",
+      "note": "Common (unassigned) covers phone / Kakao / homepage inquiries without a site and tenant-level manual input. Total equals the All-sites dashboard."
+    }
   }
 }

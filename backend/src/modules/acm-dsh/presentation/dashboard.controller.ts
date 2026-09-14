@@ -30,6 +30,7 @@ import {
   UpdateComplaintDto,
 } from '../application/dto/complaint.dto';
 import { Ga4SyncService } from '../application/ga4-sync.service';
+import { parseSiteParam } from '../application/dsh-site.util';
 import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { RolesGuard } from '../../acm-common/guards/roles.guard';
 
@@ -136,9 +137,25 @@ export class DashboardController {
     @CurrentUser() user: AcmCurrentUser,
     @Query('from') from: string,
     @Query('to') to: string,
+    @Query('site') site?: string,
   ) {
     validateRange(from, to);
-    return this.dailyKpi.getRange(user.entId, from, to);
+    return this.dailyKpi.getRange(user.entId, from, to, parseSiteParam(site));
+  }
+
+  // -------- PLN-260914B: consolidated site comparison --------
+  @Get('site-comparison')
+  @ApiOperation({
+    summary:
+      'Per-site sums (visitor/counseling/apply/effect/cost) + tenant total for [from,to]',
+  })
+  getSiteComparison(
+    @CurrentUser() user: AcmCurrentUser,
+    @Query('from') from: string,
+    @Query('to') to: string,
+  ) {
+    validateRange(from, to);
+    return this.dailyKpi.getSiteComparison(user.entId, from, to);
   }
 
   @Get('range-summary')
@@ -150,9 +167,15 @@ export class DashboardController {
     @CurrentUser() user: AcmCurrentUser,
     @Query('from') from: string,
     @Query('to') to: string,
+    @Query('site') site?: string,
   ) {
     validateRange(from, to);
-    return this.monthlySummary.getRangeSummary(user.entId, from, to);
+    return this.monthlySummary.getRangeSummary(
+      user.entId,
+      from,
+      to,
+      parseSiteParam(site),
+    );
   }
 
   @Put('daily-kpi-manual/:date')
@@ -211,8 +234,12 @@ export class DashboardController {
   }
 
   @Get('manual-inputs/:date')
-  getManual(@CurrentUser() user: AcmCurrentUser, @Param('date') date: string) {
-    return this.manualInput.findByDate(user.entId, date);
+  getManual(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('date') date: string,
+    @Query('site') site?: string,
+  ) {
+    return this.manualInput.findByDate(user.entId, date, parseSiteParam(site));
   }
 
   @Put('manual-inputs/:date')

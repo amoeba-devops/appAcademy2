@@ -21,7 +21,11 @@ export type CslStage =
   | 'ATTENDING'
   | 'DROPPED';
 
-export type InflowType = 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
+export type InflowType =
+  | 'HOMEPAGE'
+  | 'KAKAO_CHANNEL'
+  | 'PHONE'
+  | 'WEB_EXTERNAL';
 
 /** REQ-260903G — external intake source sites (imweb). */
 export type SourceSite = 'TPI' | 'TRINITY' | 'SANTACROCE';
@@ -81,7 +85,12 @@ export class InquiryTypeormEntity {
   phoneIv?: Buffer | null;
   @Column({ name: 'inq_phone_auth_tag', type: 'bytea', nullable: true })
   phoneAuthTag?: Buffer | null;
-  @Column({ name: 'inq_phone_status', type: 'varchar', length: 16, default: 'UNKNOWN' })
+  @Column({
+    name: 'inq_phone_status',
+    type: 'varchar',
+    length: 16,
+    default: 'UNKNOWN',
+  })
   phoneStatus!: PhoneStatus;
 
   /** REQ-260511 — encrypted parent name (optional) */
@@ -97,8 +106,22 @@ export class InquiryTypeormEntity {
   inflowType!: InflowType;
 
   /** REQ-260903G — external intake source site code (WEB_EXTERNAL only) */
-  @Column({ name: 'inq_source_site', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'inq_source_site',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   sourceSite?: SourceSite | null;
+
+  /** PLN-260914B — operator-assigned site for dashboard attribution (overrides sourceSite) */
+  @Column({
+    name: 'inq_site_override',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  siteOverride?: SourceSite | null;
 
   /** F-07 — Q-CSL-009 */
   @Column({ name: 'inq_apply_type', type: 'varchar', length: 20 })
@@ -111,27 +134,52 @@ export class InquiryTypeormEntity {
   applyPurposeOther?: string | null;
 
   /** F-09 */
-  @Column({ name: 'inq_consult_done', type: 'varchar', length: 8, nullable: true })
+  @Column({
+    name: 'inq_consult_done',
+    type: 'varchar',
+    length: 8,
+    nullable: true,
+  })
   consultDone?: YesNo | null;
 
   /** School link (existing master) or freetext fallback */
   @Column({ name: 'school_id', type: 'uuid', nullable: true })
   schoolId?: string | null;
-  @Column({ name: 'school_freetext', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'school_freetext',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   schoolFreetext?: string | null;
   @Column({ name: 'grade', type: 'varchar', length: 10, nullable: true })
   grade?: string | null;
 
   /** 6-stage state machine */
-  @Column({ name: 'inq_current_stage', type: 'varchar', length: 32, default: 'INTAKE' })
+  @Column({
+    name: 'inq_current_stage',
+    type: 'varchar',
+    length: 32,
+    default: 'INTAKE',
+  })
   currentStage!: CslStage;
-  @Column({ name: 'inq_previous_stage', type: 'varchar', length: 32, nullable: true })
+  @Column({
+    name: 'inq_previous_stage',
+    type: 'varchar',
+    length: 32,
+    nullable: true,
+  })
   previousStage?: CslStage | null;
 
   /** Ownership / lifecycle */
   @Column({ name: 'advisor_id', type: 'uuid', nullable: true })
   advisorId?: string | null;
-  @Column({ name: 'channel_legacy', type: 'varchar', length: 20, nullable: true })
+  @Column({
+    name: 'channel_legacy',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
   channelLegacy?: string | null;
   @Column({ name: 'enrolled_at', type: 'timestamptz', nullable: true })
   enrolledAt?: Date | null;

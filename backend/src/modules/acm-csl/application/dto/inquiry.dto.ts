@@ -54,8 +54,16 @@ const INFLOW_TYPES: readonly InflowType[] = [
   'PHONE',
   'WEB_EXTERNAL',
 ] as const;
-const SOURCE_SITES: readonly SourceSite[] = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
-const APPLY_TYPES: readonly ApplyType[] = ['COUNSELING_ONLY', 'EXAM_ONLY', 'BOTH'] as const;
+const SOURCE_SITES: readonly SourceSite[] = [
+  'TPI',
+  'TRINITY',
+  'SANTACROCE',
+] as const;
+const APPLY_TYPES: readonly ApplyType[] = [
+  'COUNSELING_ONLY',
+  'EXAM_ONLY',
+  'BOTH',
+] as const;
 const APPLY_PURPOSES = [
   'MAP_TEST_TUTORING',
   'ISEE_TUTORING',
@@ -63,10 +71,18 @@ const APPLY_PURPOSES = [
   'GPA_MGMT',
   'ADVANCED_COURSES',
 ] as const;
-const PHONE_STATUSES: readonly PhoneStatus[] = ['PROVIDED', 'DECLINED', 'UNKNOWN'] as const;
+const PHONE_STATUSES: readonly PhoneStatus[] = [
+  'PROVIDED',
+  'DECLINED',
+  'UNKNOWN',
+] as const;
 const YES_NO: readonly YesNo[] = ['YES', 'NO'] as const;
 
-const MAP_FEE_STATUSES: readonly MapFeeStatus[] = ['PAID', 'UNPAID', 'WAIVED'] as const;
+const MAP_FEE_STATUSES: readonly MapFeeStatus[] = [
+  'PAID',
+  'UNPAID',
+  'WAIVED',
+] as const;
 const MAP_WAIVER_REASONS: readonly MapWaiverReason[] = [
   'RETAKE_WITHIN_90D',
   'TRIAL_PROMOTION',
@@ -80,9 +96,21 @@ const MAP_SCHEDULE_STATUSES: readonly MapScheduleStatus[] = [
   'RESCHEDULED',
 ] as const;
 
-const FEEDBACK_STATUSES: readonly FeedbackStatus[] = ['SENT', 'PENDING', 'NA'] as const;
-const NOTICE_STATUSES: readonly NoticeStatus[] = ['SENT', 'PENDING', 'NA'] as const;
-const PAYMENT_METHODS: readonly PaymentMethod[] = ['BANK_TRANSFER', 'CARD', 'OTHER'] as const;
+const FEEDBACK_STATUSES: readonly FeedbackStatus[] = [
+  'SENT',
+  'PENDING',
+  'NA',
+] as const;
+const NOTICE_STATUSES: readonly NoticeStatus[] = [
+  'SENT',
+  'PENDING',
+  'NA',
+] as const;
+const PAYMENT_METHODS: readonly PaymentMethod[] = [
+  'BANK_TRANSFER',
+  'CARD',
+  'OTHER',
+] as const;
 const CANCELLATION_REASON_CODES: readonly CancellationReasonCode[] = [
   'SIMPLE_INQUIRY_END',
   'ACADEMY_CANCELLED',
@@ -96,7 +124,10 @@ const CANCELLATION_REASON_CODES: readonly CancellationReasonCode[] = [
 // ── Inquiry (INTAKE stage entry) ────────────────────────────────────────
 export class CreateInquiryDto {
   /** F-04 — student name (encrypted at rest) */
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(50)
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
   studentName!: string;
 
   @ApiPropertyOptional({ default: false })
@@ -106,7 +137,9 @@ export class CreateInquiryDto {
 
   /** F-05 — parent phone (E.164 / KR mobile loose) */
   @ApiPropertyOptional()
-  @ValidateIf((o: CreateInquiryDto) => o.phoneStatus === 'PROVIDED' || !!o.parentPhone)
+  @ValidateIf(
+    (o: CreateInquiryDto) => o.phoneStatus === 'PROVIDED' || !!o.parentPhone,
+  )
   @IsString()
   @Matches(/^[0-9+\-() ]{7,20}$/)
   parentPhone?: string;
@@ -130,17 +163,26 @@ export class CreateInquiryDto {
   @IsEnum(PHONE_STATUSES)
   phoneStatus?: PhoneStatus;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   schoolId?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   schoolFreetext?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(10)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
   grade?: string;
 
   /** F-06 */
-  @ApiProperty({ enum: INFLOW_TYPES }) @IsEnum(INFLOW_TYPES)
+  @ApiProperty({ enum: INFLOW_TYPES })
+  @IsEnum(INFLOW_TYPES)
   inflowType!: InflowType;
 
   /** REQ-260903G — source site code (WEB_EXTERNAL intake only) */
@@ -149,8 +191,15 @@ export class CreateInquiryDto {
   @IsEnum(SOURCE_SITES)
   sourceSite?: SourceSite;
 
+  /** PLN-260914B — operator-assigned site for dashboard attribution (null = clear) */
+  @ApiPropertyOptional({ enum: SOURCE_SITES, nullable: true })
+  @IsOptional()
+  @IsEnum(SOURCE_SITES)
+  siteOverride?: SourceSite | null;
+
   /** F-07 */
-  @ApiProperty({ enum: APPLY_TYPES }) @IsEnum(APPLY_TYPES)
+  @ApiProperty({ enum: APPLY_TYPES })
+  @IsEnum(APPLY_TYPES)
   applyType!: ApplyType;
 
   /** F-08 — multi-select; comma-joined on storage */
@@ -168,7 +217,9 @@ export class CreateInquiryDto {
   applyPurposeOther?: string;
 
   /** F-09 */
-  @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
+  @ApiPropertyOptional({ enum: YES_NO })
+  @IsOptional()
+  @IsEnum(YES_NO)
   consultDone?: YesNo;
 
   /** F-02 — defaults to today on server if omitted */
@@ -178,10 +229,15 @@ export class CreateInquiryDto {
   registeredAt?: string;
 
   /** F-03 */
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   followupAt?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   followupMemo?: string;
 }
 
@@ -190,12 +246,22 @@ export class UpdateInquiryDto extends PartialType(CreateInquiryDto) {}
 // ── MAP / Level test (1:1) ──────────────────────────────────────────────
 
 /** REQ-260626 FR-CSL-112 — generalized level test types (DSN §5.6). */
-const LEVEL_TEST_TYPES = ['MAP', 'ISEE', 'SSAT', 'DUOLINGO', 'TOEFL', 'TOEFL_JR', 'OTHER'] as const;
+const LEVEL_TEST_TYPES = [
+  'MAP',
+  'ISEE',
+  'SSAT',
+  'DUOLINGO',
+  'TOEFL',
+  'TOEFL_JR',
+  'OTHER',
+] as const;
 export type LevelTestType = (typeof LEVEL_TEST_TYPES)[number];
 
 export class UpsertMapTestDto {
   /** F-10 */
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   hasPriorScore?: boolean;
 
   /** F-11 */
@@ -206,14 +272,21 @@ export class UpsertMapTestDto {
 
   @ApiPropertyOptional({ enum: MAP_WAIVER_REASONS })
   @ValidateIf((o: UpsertMapTestDto) => o.feeStatus === 'WAIVED')
-  @IsEnum(MAP_WAIVER_REASONS, { message: 'waiverReason required when feeStatus=WAIVED' })
+  @IsEnum(MAP_WAIVER_REASONS, {
+    message: 'waiverReason required when feeStatus=WAIVED',
+  })
   waiverReason?: MapWaiverReason;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   waiverNote?: string;
 
   /** F-12 */
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   scheduledAt?: string;
 
   /**
@@ -231,22 +304,32 @@ export class UpsertMapTestDto {
    * (sql/acm/985 §1). Non-MAP test scores live in `scoreDetail` JSONB.
    */
   @ApiPropertyOptional({ minimum: 100, maximum: 350 })
-  @IsOptional() @IsInt() @Min(100) @Max(350)
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreReading?: number;
 
   @ApiPropertyOptional({ minimum: 100, maximum: 350 })
-  @IsOptional() @IsInt() @Min(100) @Max(350)
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreMath?: number;
 
   @ApiPropertyOptional({ minimum: 100, maximum: 350 })
-  @IsOptional() @IsInt() @Min(100) @Max(350)
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreLanguage?: number;
 
   // ── REQ-260626 (DSN §3.2 + §5.6) ───────────────────────────────────────
 
   /** FR-CSL-112 — test type. Defaults to MAP on first write (matches DB default). */
   @ApiPropertyOptional({ enum: LEVEL_TEST_TYPES })
-  @IsOptional() @IsEnum(LEVEL_TEST_TYPES)
+  @IsOptional()
+  @IsEnum(LEVEL_TEST_TYPES)
   testType?: LevelTestType;
 
   /** FR-CSL-112 — required only when testType=OTHER. */
@@ -263,7 +346,8 @@ export class UpsertMapTestDto {
   @ApiPropertyOptional({ description: '30-min granularity time (HH:MM)' })
   @IsOptional()
   @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
-    message: 'scheduledTime must be HH:MM with 30-min granularity (e.g., 14:00 or 14:30)',
+    message:
+      'scheduledTime must be HH:MM with 30-min granularity (e.g., 14:00 or 14:30)',
   })
   scheduledTime?: string;
 
@@ -272,8 +356,11 @@ export class UpsertMapTestDto {
    * testType. MAP uses the dedicated `score{Reading,Math,Language}` columns
    * above. Per-type schema validation runs in {@link validateLevelTestScoreDetail}.
    */
-  @ApiPropertyOptional({ description: 'Non-MAP score detail (DSN §5.6 schema by test type)' })
-  @IsOptional() @IsObject()
+  @ApiPropertyOptional({
+    description: 'Non-MAP score detail (DSN §5.6 schema by test type)',
+  })
+  @IsOptional()
+  @IsObject()
   scoreDetail?: Record<string, unknown>;
 
   /**
@@ -281,8 +368,11 @@ export class UpsertMapTestDto {
    * Validator 는 v1 에선 shape pass-through (operator-discretion 자유입력 허용),
    * 정식 검증은 2단계 LevelTest result 에서.
    */
-  @ApiPropertyOptional({ description: 'INTAKE prior self-report scores (DSN-260629 §4.1)' })
-  @IsOptional() @IsObject()
+  @ApiPropertyOptional({
+    description: 'INTAKE prior self-report scores (DSN-260629 §4.1)',
+  })
+  @IsOptional()
+  @IsObject()
   priorScoresDetail?: Record<string, unknown>;
 }
 
@@ -297,15 +387,29 @@ export class RecordLevelTestResultDto {
   @IsEnum(LEVEL_TEST_TYPES)
   testType!: LevelTestType;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreReading?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreMath?: number;
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   scoreLanguage?: number;
 
   /** Per-type schema validated separately (see validateLevelTestScoreDetail). */
-  @ApiPropertyOptional() @IsOptional() @IsObject()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
   scoreDetail?: Record<string, unknown>;
 }
 
@@ -333,19 +437,26 @@ export class UpsertLevelTestDto {
   })
   scheduledTime?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   scheduledAt?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   teacherId?: string;
 
   @ApiPropertyOptional({ enum: LEVEL_TEST_STATUSES })
-  @IsOptional() @IsEnum(LEVEL_TEST_STATUSES)
+  @IsOptional()
+  @IsEnum(LEVEL_TEST_STATUSES)
   status?: LevelTestStatus;
 
   /** For OTHER type only — freetext exam name. */
   @ApiPropertyOptional()
-  @IsOptional() @IsString() @MaxLength(100)
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   testTypeOther?: string;
 }
 
@@ -353,7 +464,8 @@ export { LEVEL_TEST_STATUSES };
 
 // ── Trial class / Demo class (1:N) ─────────────────────────────────────
 export class CreateTrialClassDto {
-  @ApiProperty() @IsDateString()
+  @ApiProperty()
+  @IsDateString()
   heldAt!: string;
 
   /**
@@ -362,10 +474,14 @@ export class CreateTrialClassDto {
    * default is the no-op state).
    */
   @ApiPropertyOptional({ enum: FEEDBACK_STATUSES, default: 'PENDING' })
-  @IsOptional() @IsEnum(FEEDBACK_STATUSES)
+  @IsOptional()
+  @IsEnum(FEEDBACK_STATUSES)
   feedbackStatus?: FeedbackStatus;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   note?: string;
 
   // ── REQ-260626 (FR-CSL-122/123) ────────────────────────────────────────
@@ -379,7 +495,9 @@ export class CreateTrialClassDto {
   heldTime?: string;
 
   /** FR-CSL-123 — demo teacher (AMA Client via amb_acm_tch_teacher). */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   teacherId?: string;
 }
 
@@ -390,7 +508,9 @@ export class CreateTrialClassDto {
  * whole row.
  */
 export class UpdateTrialClassDto {
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   heldAt?: string;
 
   @ApiPropertyOptional()
@@ -400,18 +520,27 @@ export class UpdateTrialClassDto {
   })
   heldTime?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   teacherId?: string;
 
   /** FR-CSL-125 — completion flag (replaces deprecated feedbackStatus). */
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   completed?: boolean;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
   note?: string;
 
   /** FR-CSL-122 — CAL event link (set by T-08 integration; allowed to clear). */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   calEventId?: string;
 }
 
@@ -421,87 +550,134 @@ export class UpdateTrialClassDto {
  * the service stamps authorId/At from the actor.
  */
 export class WriteFeedbackDto {
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(4000)
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(4000)
   body!: string;
 }
 
 // ── Enrollment (1:1) ────────────────────────────────────────────────────
 export class UpsertEnrollmentDto {
   /** F-16 */
-  @ApiPropertyOptional({ enum: NOTICE_STATUSES }) @IsOptional() @IsEnum(NOTICE_STATUSES)
+  @ApiPropertyOptional({ enum: NOTICE_STATUSES })
+  @IsOptional()
+  @IsEnum(NOTICE_STATUSES)
   paymentNoticeStatus?: NoticeStatus;
 
   /** F-17 */
-  @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
+  @ApiPropertyOptional({ enum: YES_NO })
+  @IsOptional()
+  @IsEnum(YES_NO)
   counselDone?: YesNo;
 
   /** F-18 */
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   applied?: boolean;
 
   /** F-19 */
-  @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
+  @ApiPropertyOptional({ enum: YES_NO })
+  @IsOptional()
+  @IsEnum(YES_NO)
   paymentNoticeSent?: YesNo;
 
   /** F-20 */
-  @ApiPropertyOptional({ minimum: 1 }) @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional({ minimum: 1 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   classMinutes?: number;
 
   /** F-21 — KRW 0..50,000,000 */
   @ApiPropertyOptional({ minimum: 0, maximum: 50_000_000 })
-  @IsOptional() @IsInt() @Min(0) @Max(50_000_000)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(50_000_000)
   tuitionAmount?: number;
 
   /** REQ-260704 — actual payment date entered by operator. */
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   paymentDate?: string;
 
   @ApiPropertyOptional({ enum: PAYMENT_METHODS })
-  @IsOptional() @IsEnum(PAYMENT_METHODS)
+  @IsOptional()
+  @IsEnum(PAYMENT_METHODS)
   paymentMethod?: PaymentMethod;
 
   @ApiPropertyOptional({ minimum: 0, maximum: 50_000_000 })
-  @IsOptional() @IsInt() @Min(0) @Max(50_000_000)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(50_000_000)
   paymentAmount?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
   paymentMemo?: string;
 
   /** F-22 — BR-CSL-012 (server enforces senior-manager role) */
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   tuitionPaid?: boolean;
 
   /** F-23 */
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   classStartedAt?: string;
 
   /** F-24 */
-  @ApiPropertyOptional({ enum: YES_NO }) @IsOptional() @IsEnum(YES_NO)
+  @ApiPropertyOptional({ enum: YES_NO })
+  @IsOptional()
+  @IsEnum(YES_NO)
   classStarted?: YesNo;
 
   // ── REQ-260626 (FR-CSL-131~135) ────────────────────────────────────────
 
   /** FR-CSL-131 — operator-recorded counsel memo. */
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(4000)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(4000)
   counselMemo?: string;
 
   /** FR-CSL-132 — course master FK. Mutually exclusive-ish with courseFreetext. */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   courseId?: string;
 
   /** FR-CSL-132 — freetext course when no master row exists. */
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   courseFreetext?: string;
 
   /** FR-CSL-134 — total session count. */
-  @ApiPropertyOptional({ minimum: 0 }) @IsOptional() @IsInt() @Min(0)
+  @ApiPropertyOptional({ minimum: 0 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   sessionCount?: number;
 
   /** FR-CSL-135 — enrollment date range (DB CHECK end >= start). */
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   startDate?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   endDate?: string;
 }
 
@@ -509,11 +685,13 @@ export class UpsertEnrollmentDto {
 
 /** FR-CSL-136 — assign a teacher to an inquiry (PRIMARY/SECONDARY role). */
 export class AssignTeacherDto {
-  @ApiProperty() @IsUUID()
+  @ApiProperty()
+  @IsUUID()
   teacherId!: string;
 
   @ApiPropertyOptional({ enum: ['PRIMARY', 'SECONDARY'], default: 'PRIMARY' })
-  @IsOptional() @IsEnum(['PRIMARY', 'SECONDARY'])
+  @IsOptional()
+  @IsEnum(['PRIMARY', 'SECONDARY'])
   role?: 'PRIMARY' | 'SECONDARY';
 }
 
@@ -528,7 +706,10 @@ export class ApprovePaymentDto {
   @IsEnum(PAYMENT_METHODS)
   method!: PaymentMethod;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   memo?: string;
 }
 
@@ -544,18 +725,29 @@ export class ApprovePaymentDto {
 // ── REQ-260626 — Course master (per-tenant) ─────────────────────────────
 
 export class CreateCourseDto {
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(40)
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(40)
   code!: string;
 
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(100)
+  @ApiProperty()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
   name!: string;
 }
 
 export class UpdateCourseDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   name?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsBoolean()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 }
 
@@ -574,10 +766,14 @@ export class CreateCancellationDto {
 
 // ── Stage transition ────────────────────────────────────────────────────
 export class ChangeStageDto {
-  @ApiProperty({ enum: STAGES }) @IsEnum(STAGES)
+  @ApiProperty({ enum: STAGES })
+  @IsEnum(STAGES)
   toStage!: CslStage;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(500)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
   reason?: string;
 }
 

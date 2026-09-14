@@ -189,7 +189,8 @@
         "applyType": "Loại đăng ký",
         "consultDone": "Hoàn tất tư vấn",
         "registeredAt": "Ngày đăng ký",
-        "isAnonymous": "Ẩn danh"
+        "isAnonymous": "Ẩn danh",
+        "siteOverride": "Site dashboard"
       }
     },
     "backToList": "Quay lại danh sách",
@@ -394,5 +395,10 @@
     "TPI": "TPI",
     "TRINITY": "Trinity",
     "SANTACROCE": "Santa Croce"
+  },
+  "siteOverride": {
+    "none": "Chưa gán (chung)",
+    "common": "Chung",
+    "effective": "Gán cho: {{site}}"
   }
 }
