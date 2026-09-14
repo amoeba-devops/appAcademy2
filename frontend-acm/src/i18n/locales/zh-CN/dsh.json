@@ -128,7 +128,9 @@
     "manualMark": "手动录入",
     "syncNow": "同步 GA4",
     "syncDone": "GA4 同步完成（{{rows}} 行）",
-    "syncFailed": "GA4 同步失败"
+    "syncFailed": "GA4 同步失败",
+    "notConfigured": "GA4 尚未配置。请在 设置 › GA4 访客集成 中输入媒体资源、数据流和密钥。",
+    "syncFailedReason": "GA4 同步失败：{{reason}}"
   },
   "site": {
     "label": "站点",

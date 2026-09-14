@@ -5,6 +5,7 @@ import { AcmAuthModule } from '../acm-auth/acm-auth.module';
 import { AcmUserTypeormEntity } from '../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
 import { AesGcmService } from '../acm-common/crypto/aes-gcm.service';
 import { Ga4DataClient } from '../acm-common/ga4/ga4-data.client';
+import { SiteTagProbe } from '../acm-common/ga4/site-tag-probe';
 import { AcmTenantTypeormEntity } from './infrastructure/typeorm/acm-tenant.typeorm-entity';
 import { AcmTenantMenuTypeormEntity } from './infrastructure/typeorm/acm-tenant-menu.typeorm-entity';
 import { MailConfigTypeormEntity } from './infrastructure/typeorm/mail-config.typeorm-entity';
@@ -67,6 +68,7 @@ import { Ga4ConfigController } from './presentation/ga4-config.controller';
     KakaoConfigService,
     SolapiAlimtalkService,
     Ga4DataClient,
+    SiteTagProbe, // PLN-260914C
     Ga4ConfigService,
   ],
   exports: [

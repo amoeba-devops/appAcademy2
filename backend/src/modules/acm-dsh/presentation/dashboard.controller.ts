@@ -96,8 +96,12 @@ export class DashboardController {
     @CurrentUser() user: AcmCurrentUser,
     @Body() body: { from?: string; to?: string },
   ) {
-    const to = body?.to ?? isoDaysAgo(1);
-    const from = body?.from ?? isoDaysAgo(7);
+    // PLN-260914C — GA4 has no data for today/future: clamp the window to D-1.
+    const yesterday = isoDaysAgo(1);
+    let to = body?.to ?? yesterday;
+    if (ISO_DATE.test(to) && to > yesterday) to = yesterday;
+    let from = body?.from ?? isoDaysAgo(7);
+    if (ISO_DATE.test(from) && from > to) from = to;
     validateRange(from, to);
     try {
       return await this.ga4Sync.syncRange(user.entId, from, to);

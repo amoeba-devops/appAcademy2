@@ -128,7 +128,9 @@
     "manualMark": "Manual input",
     "syncNow": "Sync GA4",
     "syncDone": "GA4 synced ({{rows}} rows)",
-    "syncFailed": "GA4 sync failed"
+    "syncFailed": "GA4 sync failed",
+    "notConfigured": "GA4 is not configured yet. Enter the property, streams and key under Settings › GA4 visitors.",
+    "syncFailedReason": "GA4 sync failed: {{reason}}"
   },
   "site": {
     "label": "Site",

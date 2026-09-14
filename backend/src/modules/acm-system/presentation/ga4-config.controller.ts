@@ -41,6 +41,14 @@ export class UpdateGa4ConfigDto {
   @IsObject()
   streamMap?: Record<string, string>;
 
+  /** PLN-260914C — { TPI: {url, measurementId, streamId}, … } (streamMap 은 여기서 재생성) */
+  @IsOptional()
+  @IsObject()
+  siteMap?: Record<
+    string,
+    { url?: string; measurementId?: string; streamId?: string }
+  >;
+
   /** 서비스계정 JSON 전체. undefined = 유지, '' = 삭제 */
   @IsOptional()
   @IsString()
@@ -82,8 +90,24 @@ export class Ga4ConfigController {
       return await this.svc.upsertByEntId(u.entId, dto);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      if (msg.startsWith('GA4_SA_KEY')) throw new BadRequestException(msg);
+      if (msg.startsWith('GA4_SA_KEY') || msg.startsWith('GA4_SITE_'))
+        throw new BadRequestException(msg);
       throw e;
+    }
+  }
+
+  @Post('site-status')
+  @Roles('ADMIN')
+  @ApiOperation({
+    summary:
+      'PLN-260914C — 사이트별 연동 상태 점검 (태그 설치 · GA4 수신 7일 · ACM 반영) 실행 후 결과 저장·반환',
+  })
+  async siteStatus(@CurrentUser() u: AcmCurrentUser) {
+    try {
+      return await this.svc.checkSiteStatus(u.entId);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new BadRequestException(msg);
     }
   }
 

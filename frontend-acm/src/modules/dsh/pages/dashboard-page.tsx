@@ -348,8 +348,19 @@ export function DashboardPage() {
     try {
       const r = await ga4Sync.mutateAsync({ from, to });
       toast.success(t('visitor.syncDone', { rows: r.rowsUpserted }));
-    } catch {
-      toast.error(t('visitor.syncFailed'));
+    } catch (e) {
+      // PLN-260914C — surface the server reason (e.g. GA4_CONFIG_NOT_SET)
+      const body = (e as { response?: { data?: { error?: { message?: string | string[] } } } })
+        .response?.data;
+      const m = body?.error?.message;
+      const reason = Array.isArray(m) ? m.join(', ') : (m ?? '');
+      toast.error(
+        reason === 'GA4_CONFIG_NOT_SET'
+          ? t('visitor.notConfigured')
+          : reason
+            ? t('visitor.syncFailedReason', { reason })
+            : t('visitor.syncFailed'),
+      );
     }
   };
 

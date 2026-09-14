@@ -6,6 +6,34 @@ export type Ga4Metric = (typeof GA4_METRICS)[number];
 export const GA4_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 export type Ga4Site = (typeof GA4_SITES)[number];
 
+/** PLN-260914C — 사이트별 연동 정보. streamId 는 gac_stream_map 과 동기화된다. */
+export interface Ga4SiteEntry {
+  url?: string;
+  measurementId?: string;
+  streamId?: string;
+}
+
+export type Ga4SiteLevel =
+  | 'OK'
+  | 'NO_DATA'
+  | 'TAG_MISSING'
+  | 'NOT_CONFIGURED'
+  | 'UNKNOWN';
+
+/** PLN-260914C — 마지막 연동 상태 점검 결과 (사이트 1건). */
+export interface Ga4SiteStatus {
+  level: Ga4SiteLevel;
+  tag: { installed: boolean | null; foundIds: string[]; error: string | null };
+  ga4: {
+    rows: number;
+    lastDate: string | null;
+    visitors7d: number;
+    error: string | null;
+  };
+  acm: { lastDate: string | null; visitors7d: number };
+  checkedAt: string;
+}
+
 /**
  * PLN-260912 — 테넌트별 GA4 Data API 설정. ent당 1행.
  * gac_sa_key_enc: 서비스계정 JSON 전체를 AES-256-GCM [iv(12)][authTag(16)][ciphertext] BYTEA 로 저장.
@@ -34,6 +62,20 @@ export class Ga4ConfigTypeormEntity {
     default: () => "'{}'::jsonb",
   })
   streamMap!: Record<string, string>;
+
+  /** PLN-260914C — site → {url, measurementId, streamId} */
+  @Column({
+    name: 'gac_site_map',
+    type: 'jsonb',
+    default: () => "'{}'::jsonb",
+  })
+  siteMap!: Record<string, Ga4SiteEntry>;
+
+  @Column({ name: 'gac_site_status', type: 'jsonb', nullable: true })
+  siteStatus?: Record<string, Ga4SiteStatus> | null;
+
+  @Column({ name: 'gac_site_checked_at', type: 'timestamptz', nullable: true })
+  siteCheckedAt?: Date | null;
 
   @Column({
     name: 'gac_sa_email',

@@ -1,10 +1,11 @@
 ---
 document_id: DSH-PLN-260914C
-version: 0.1.0
-status: DRAFT (사용자 확인 대기 — CLAUDE.md §9.2)
+version: 1.0.0
+status: IMPLEMENTED (배포 대기 — PR 생성)
 date: 2026-09-14
 depends_on: docs/analysis/REQ-260914C-ga4-site-integration-mgmt.md
 change_log:
+  - 2026-09-14 v1.0.0 구현 완료 — 사용자 '진행'(기본값: 서버 태그 검출 허용·URL/측정 ID 시드) 승인. SQL 1013, SiteTagProbe, checkSiteStatus, siteMap 저장, 대시보드 토스트·D-1 절삭, 설정 페이지 사이트 표, i18n 4 locale, 로컬 스모크 통과 (Claude Code)
   - 2026-09-14 v0.1.0 초안 — 사이트별 연동 정보 표 + 연동 상태 점검 + 대시보드 동기화 UX 보완 (Claude Code)
 ---
 
@@ -100,3 +101,11 @@ GA4 속성 ID  [553818421      ]   방문자 지표 (•) activeUsers ( ) totalU
 - [ ] 운영 `/admin/config/ga4` 에서 3사이트 URL·측정 ID·스트림 ID 저장 후 새로고침 시 유지
 - [ ] "연동 상태 점검" → SANTACROCE `정상`, TPI·TRINITY `태그 미설치` (현재 상태 기준)
 - [ ] 대시보드 GA4 동기화 실패 시 토스트에 원인 표시, 이번 달 범위 동기화 시 `to` 가 D-1 로 절삭
+
+---
+
+## Implementation Notes (구현 메모, 2026-09-14)
+
+- **Local smoke**: 레거시 `streamMap` 만 저장한 행에 SQL 1013 재실행 → 3사이트 URL·측정 ID 시드 확인(멱등). `ftp://` URL → 400 `GA4_SITE_URL_INVALID TPI`. 실제 사이트 점검(SA 키 없음): TPI·TRINITY `TAG_MISSING`(HTML 에 G- 없음), SANTACROCE `NO_DATA`(태그 검출, GA4 미조회) — 결과가 `gac_site_status` 에 저장됨.
+- **Root cause found during imweb check (REQ-260914C §3 보강)**: TPI 아임웹 "기본 설정 › 기타 설정 › 중국내 접속 허용(beta)" 이 켜져 있음. 이 옵션은 Google 스크립트를 차단하므로 GA 연동이 저장돼 있어도 gtag 가 렌더링되지 않는다. 헤드 코드 삽입도 같은 이유로 무효할 가능성이 커 보류, 사용자 결정(옵션 해제 vs 중국 접속 유지+수동 입력) 대기. 상태 표의 `TAG_MISSING` 안내 문구에 이 옵션 확인을 포함했다.
+- 점검 API 는 3사이트 HTML GET(8s timeout) + GA4 report 1콜 + site_visit 1쿼리. 실패는 `UNKNOWN`/오류 문자열로 표시하고 예외로 올리지 않는다(설정 행 없음만 400).

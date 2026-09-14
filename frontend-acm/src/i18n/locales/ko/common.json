@@ -569,6 +569,53 @@
       },
       "errors": {
         "invalidKey": "서비스계정 키 JSON이 올바르지 않습니다 (client_email · private_key 필요)."
+      },
+      "sites": {
+        "title": "사이트별 연동 정보",
+        "check": "연동 상태 점검",
+        "checking": "점검 중…",
+        "lastChecked": "마지막 점검: {{at}}",
+        "neverChecked": "아직 점검하지 않음",
+        "hint": "스트림 ID 를 비우면 해당 사이트는 수집하지 않습니다. 측정 ID 와 URL 은 태그 설치 확인에만 사용됩니다.",
+        "col": {
+          "site": "사이트",
+          "url": "URL",
+          "measurementId": "측정 ID",
+          "streamId": "스트림 ID",
+          "tag": "태그 설치",
+          "ga4": "GA4 수신(7일)",
+          "acm": "ACM 반영",
+          "status": "상태"
+        },
+        "name": {
+          "TPI": "TPI",
+          "TRINITY": "트리니티",
+          "SANTACROCE": "산타크로체"
+        },
+        "tag": {
+          "yes": "검출",
+          "no": "미검출",
+          "unknown": "확인 불가"
+        },
+        "rows": "{{rows}}행",
+        "visitors": "방문자 {{n}}",
+        "level": {
+          "OK": "정상",
+          "NO_DATA": "데이터 없음",
+          "TAG_MISSING": "태그 미설치",
+          "NOT_CONFIGURED": "미설정",
+          "UNKNOWN": "확인 불가"
+        },
+        "advice": {
+          "TAG_MISSING": "게시된 페이지에 GA 태그가 없습니다. 아임웹 설정 › 마케팅 채널 연동 › Google 애널리틱스 연결과 \"중국내 접속 허용\" 옵션(켜져 있으면 Google 스크립트 차단)을 확인하세요.",
+          "NO_DATA": "태그는 있으나 GA4 데이터가 아직 없습니다. 설치 후 24~48시간 뒤 다시 점검하세요.",
+          "UNKNOWN": "사이트 HTML 을 가져오지 못했습니다. URL 을 확인하거나 잠시 후 다시 점검하세요."
+        },
+        "errors": {
+          "invalidUrl": "사이트 URL 형식이 올바르지 않습니다 (https://…).",
+          "invalidMeasurementId": "측정 ID 형식이 올바르지 않습니다 (G-XXXXXXXXXX).",
+          "checkFailed": "연동 상태 점검 실패:"
+        }
       }
     }
   },

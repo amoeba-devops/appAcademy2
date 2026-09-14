@@ -569,6 +569,53 @@
       },
       "errors": {
         "invalidKey": "服务账号密钥 JSON 无效（需要 client_email · private_key）。"
+      },
+      "sites": {
+        "title": "各站点集成信息",
+        "check": "检查集成状态",
+        "checking": "检查中…",
+        "lastChecked": "上次检查：{{at}}",
+        "neverChecked": "尚未检查",
+        "hint": "数据流 ID 留空则不采集该站点。衡量 ID 和 URL 仅用于确认标签安装。",
+        "col": {
+          "site": "站点",
+          "url": "URL",
+          "measurementId": "衡量 ID",
+          "streamId": "数据流 ID",
+          "tag": "标签",
+          "ga4": "GA4 数据(7天)",
+          "acm": "ACM",
+          "status": "状态"
+        },
+        "name": {
+          "TPI": "TPI",
+          "TRINITY": "Trinity",
+          "SANTACROCE": "Santa Croce"
+        },
+        "tag": {
+          "yes": "已检出",
+          "no": "未检出",
+          "unknown": "无法确认"
+        },
+        "rows": "{{rows}}行",
+        "visitors": "访客 {{n}}",
+        "level": {
+          "OK": "正常",
+          "NO_DATA": "无数据",
+          "TAG_MISSING": "未安装标签",
+          "NOT_CONFIGURED": "未配置",
+          "UNKNOWN": "无法确认"
+        },
+        "advice": {
+          "TAG_MISSING": "已发布页面没有 GA 标签。请检查 imweb 设置 › 营销渠道 › Google Analytics 以及\"允许中国访问\"选项（开启时会屏蔽 Google 脚本）。",
+          "NO_DATA": "已有标签但 GA4 尚无数据。安装后 24–48 小时再检查。",
+          "UNKNOWN": "无法获取站点 HTML。请检查 URL 或稍后重试。"
+        },
+        "errors": {
+          "invalidUrl": "站点 URL 格式不正确 (https://…)。",
+          "invalidMeasurementId": "衡量 ID 格式不正确 (G-XXXXXXXXXX)。",
+          "checkFailed": "集成状态检查失败："
+        }
       }
     }
   },

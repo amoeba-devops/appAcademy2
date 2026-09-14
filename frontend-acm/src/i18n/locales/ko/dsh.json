@@ -128,7 +128,9 @@
     "manualMark": "수동 입력",
     "syncNow": "GA4 동기화",
     "syncDone": "GA4 동기화 완료 ({{rows}}행)",
-    "syncFailed": "GA4 동기화 실패"
+    "syncFailed": "GA4 동기화 실패",
+    "notConfigured": "GA4 설정이 완료되지 않았습니다. 설정 › GA4 방문자 연동에서 속성·스트림·키를 입력하세요.",
+    "syncFailedReason": "GA4 동기화 실패: {{reason}}"
   },
   "site": {
     "label": "사이트",

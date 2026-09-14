@@ -569,6 +569,53 @@
       },
       "errors": {
         "invalidKey": "Invalid service-account key JSON (client_email · private_key required)."
+      },
+      "sites": {
+        "title": "Per-site integration",
+        "check": "Check integration status",
+        "checking": "Checking…",
+        "lastChecked": "Last checked: {{at}}",
+        "neverChecked": "Not checked yet",
+        "hint": "Leave the stream ID empty to skip a site. The measurement ID and URL are only used to verify the tag.",
+        "col": {
+          "site": "Site",
+          "url": "URL",
+          "measurementId": "Measurement ID",
+          "streamId": "Stream ID",
+          "tag": "Tag",
+          "ga4": "GA4 data (7d)",
+          "acm": "ACM",
+          "status": "Status"
+        },
+        "name": {
+          "TPI": "TPI",
+          "TRINITY": "Trinity",
+          "SANTACROCE": "Santa Croce"
+        },
+        "tag": {
+          "yes": "Found",
+          "no": "Missing",
+          "unknown": "Unknown"
+        },
+        "rows": "{{rows}} rows",
+        "visitors": "{{n}} visitors",
+        "level": {
+          "OK": "OK",
+          "NO_DATA": "No data",
+          "TAG_MISSING": "Tag missing",
+          "NOT_CONFIGURED": "Not configured",
+          "UNKNOWN": "Unknown"
+        },
+        "advice": {
+          "TAG_MISSING": "The published page has no GA tag. Check imweb Settings › Marketing channels › Google Analytics and the \"China access\" option (it blocks Google scripts when on).",
+          "NO_DATA": "Tag found but GA4 has no data yet. Re-check 24–48 hours after installation.",
+          "UNKNOWN": "Could not fetch the site HTML. Verify the URL or try again later."
+        },
+        "errors": {
+          "invalidUrl": "Invalid site URL (https://…).",
+          "invalidMeasurementId": "Invalid measurement ID (G-XXXXXXXXXX).",
+          "checkFailed": "Status check failed:"
+        }
       }
     }
   },
