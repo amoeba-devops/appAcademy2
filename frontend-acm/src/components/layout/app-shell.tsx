@@ -42,6 +42,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useMyMenus } from '@/modules/system/hooks/use-my-menus';
 import { talkApi } from '@/modules/talk/api/talk-api';
 import { useUiStore } from '@/stores/ui.store';
+import { me as fetchMe } from '@/modules/auth/api/auth-api';
 import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query';
 
 const NAV = [
@@ -133,6 +134,28 @@ export function AppShell() {
     clear();
     navigate('/login', { replace: true });
   };
+
+  // FIX-260914 — 세션에 authSource 가 없는 사용자는 /me 로 한 번 보충한다.
+  // 스토어가 localStorage 에 persist 되므로, 이 필드가 생기기 전에 로그인한
+  // 사용자는 재로그인 전까지 AMA 전용 동작(상담 삭제)이 보이지 않는다.
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const token = useAuthStore((s) => s.token);
+  useEffect(() => {
+    if (!token || !user || user.authSource) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetchMe();
+        if (cancelled || !res.user.authSource) return;
+        setAuth(token, { ...user, authSource: res.user.authSource });
+      } catch {
+        // 보충 실패는 조용히 넘긴다 — 다음 로그인에 정상 채워진다.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, user, setAuth]);
 
   // REQ-260903C — 사이드바 채팅 미읽음 배지 (전역, 이벤트 시 invalidate 로 갱신).
   const isTalkRole = user?.role === 'ADMIN' || user?.role === 'APP_ADMIN';

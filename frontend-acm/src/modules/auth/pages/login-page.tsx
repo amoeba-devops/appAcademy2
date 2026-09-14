@@ -79,6 +79,9 @@ export function LoginPage() {
           entId: user.entId,
           email: user.email,
           role: user.role,
+          // 요구 260914G — 세션에 담지 않으면 AMA 전용 동작(상담 삭제)이
+          // 로그인해도 나타나지 않는다.
+          authSource: user.authSource,
           mustChangePassword: user.mustChangePassword,
         });
         scrubUrl();
@@ -124,6 +127,7 @@ export function LoginPage() {
         entId: user.entId,
         email: user.email,
         role: user.role,
+        authSource: user.authSource,
         mustChangePassword: user.mustChangePassword,
       });
       if (user.mustChangePassword) {
