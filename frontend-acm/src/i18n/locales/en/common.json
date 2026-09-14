@@ -240,7 +240,12 @@
     "notifications": "Notifications",
     "enrollments": "Enrollments",
     "systemAdmin": "System Admin",
-    "chat": "Lobby Chat"
+    "chat": "Lobby Chat",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "expandMenu": "Expand menu",
+    "collapseMenu": "Collapse menu",
+    "mainMenu": "Main menu"
   },
   "lang": {
     "label": "Language",

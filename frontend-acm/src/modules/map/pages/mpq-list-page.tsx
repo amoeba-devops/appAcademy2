@@ -59,7 +59,7 @@ export function MpqListPage() {
 
       <MpqFilters value={filters} onChange={(v) => { setFilters(v); setPage(1); }} />
 
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-secondary">{t('table.total', { count: total })}</p>
         <div className="flex items-center gap-2 text-sm">
           <button

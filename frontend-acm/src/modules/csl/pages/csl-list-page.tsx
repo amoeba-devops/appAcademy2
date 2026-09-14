@@ -156,7 +156,7 @@ export function CslListPage() {
         onChange={updateGlobalFilter}
         onReset={resetFilters}
       />
-      <div className="flex items-center justify-between mb-3 text-sm text-secondary">
+      <div className="flex flex-wrap items-center justify-between mb-3 text-sm text-secondary gap-2">
         <span>
           {t('table.totalCount', {
             count: total,

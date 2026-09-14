@@ -300,7 +300,7 @@ export function MapTestPanel({
                 {t('detail.mapTest.priorScoresHint')}
               </p>
             )}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/*
                 FR-CSL-102 — Reading / Math / Language Usage labels are English-fixed
                 across all locales (per requirement: 한국어 모드에서도 영문 표기).

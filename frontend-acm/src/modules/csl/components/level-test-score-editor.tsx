@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -91,7 +92,8 @@ function IseeEditor({
   return (
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.isee.label')}</Label>
-      <table className="w-full border-collapse text-xs">
+      <ResponsiveTable>
+      <table className="w-full min-w-[420px] border-collapse text-xs">
         <thead>
           <tr className="text-secondary">
             <th className="text-left py-1 w-32">Section</th>
@@ -144,6 +146,7 @@ function IseeEditor({
           })}
         </tbody>
       </table>
+    </ResponsiveTable>
     </div>
   );
 }
@@ -163,7 +166,8 @@ function SsatEditor({
   return (
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.ssat.label')}</Label>
-      <table className="w-full border-collapse text-xs">
+      <ResponsiveTable>
+      <table className="w-full min-w-[420px] border-collapse text-xs">
         <thead>
           <tr className="text-secondary">
             <th className="text-left py-1 w-32">Section</th>
@@ -222,6 +226,7 @@ function SsatEditor({
           </tr>
         </tbody>
       </table>
+    </ResponsiveTable>
     </div>
   );
 }
@@ -244,7 +249,7 @@ function DuolingoEditor({
   return (
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.duolingo.label')}</Label>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {DUOLINGO_KEYS.map((k) => (
           <div key={k} className="grid gap-1">
             <Label className="text-[11px] capitalize">{k} (10~160)</Label>
@@ -277,7 +282,7 @@ function ToeflEditor({
   return (
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.toefl.label')}</Label>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {TOEFL_KEYS.map((k) => (
           <div key={k} className="grid gap-1">
             <Label className="text-[11px] capitalize">{k}</Label>
@@ -309,7 +314,7 @@ function ToeflJrEditor({
   return (
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.toeflJr.label')}</Label>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="grid gap-1">
           <Label className="text-[11px]">Total (0~5)</Label>
           <Input

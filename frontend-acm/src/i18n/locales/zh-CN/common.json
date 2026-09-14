@@ -240,7 +240,12 @@
     "notifications": "通知",
     "enrollments": "报名",
     "systemAdmin": "系统管理",
-    "chat": "大厅聊天"
+    "chat": "大厅聊天",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "expandMenu": "展开菜单",
+    "collapseMenu": "收起菜单",
+    "mainMenu": "主菜单"
   },
   "lang": {
     "label": "语言",

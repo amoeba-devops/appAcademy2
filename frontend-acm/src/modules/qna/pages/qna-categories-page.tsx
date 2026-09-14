@@ -62,7 +62,7 @@ export function QnaCategoriesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
         <h1 className="text-2xl font-semibold">{t('categories.title')}</h1>
         <button
           onClick={() => setForm({ open: true, initial: null })}
@@ -79,8 +79,8 @@ export function QnaCategoriesPage() {
       )}
 
       {categories && categories.length > 0 && (
-        <div className="rounded-lg border border-[var(--border-subtle)] overflow-hidden bg-surface">
-          <table className="w-full text-sm">
+        <div className="rounded-lg border border-[var(--border-subtle)] overflow-x-auto bg-surface">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-[var(--bg-subtle)] text-left">
               <tr>
                 <th className="px-3 py-2">{t('categories.code')}</th>

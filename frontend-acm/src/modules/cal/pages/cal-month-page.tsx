@@ -62,7 +62,13 @@ export function CalMonthPage() {
       setAnchor(toZonedShift(new Date(), tz)); // TZ 변경 시 '오늘'로 재정렬
     }
   }, [tz]);
-  const [view, setView] = useState<CalendarView>('month');
+  // PLN-260914 — 모바일에서 월 그리드(7열)는 셀이 50px 남짓이라 읽기 어렵다.
+  // 첫 진입만 리스트로 잡아주고, 이후 사용자의 선택은 그대로 존중한다.
+  const [view, setView] = useState<CalendarView>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+      ? 'list'
+      : 'month',
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CalEvent | undefined>(undefined);
   const [defaultDate, setDefaultDate] = useState<Date | undefined>(undefined);
@@ -447,7 +453,7 @@ function MonthView({
               inMonth ? '' : 'opacity-40'
             }`}
           >
-            <div className="mb-1 flex items-center justify-between">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <span
                 className={`text-xs font-medium ${
                   isToday

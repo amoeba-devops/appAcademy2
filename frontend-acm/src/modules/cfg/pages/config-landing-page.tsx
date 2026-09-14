@@ -43,7 +43,7 @@ export function ConfigLandingPage() {
             to={to}
             className="group flex flex-col rounded-lg border border-[var(--border-subtle)] bg-surface p-5 transition-colors hover:border-accent-300 hover:bg-accent-50/40"
           >
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-accent-50 text-accent-700">
                 <Icon size={20} />
               </span>

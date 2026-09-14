@@ -1,4 +1,12 @@
-import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import {
+  Link,
+  NavLink,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +28,10 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
@@ -29,6 +41,8 @@ import { AdminRealtime } from '@/components/layout/admin-realtime';
 import { useAuthStore } from '@/stores/auth.store';
 import { useMyMenus } from '@/modules/system/hooks/use-my-menus';
 import { talkApi } from '@/modules/talk/api/talk-api';
+import { useUiStore } from '@/stores/ui.store';
+import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query';
 
 const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
@@ -59,6 +73,37 @@ export function AppShell() {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // PLN-260914 — 3 모드: 모바일 드로어 / 태블릿 아이콘 고정 / 데스크톱 토글.
+  const isMobile = useIsMobile();
+  const isDesktop = useIsDesktop();
+  const collapsedPref = useUiStore((s) => s.sidebarCollapsed);
+  const toggleSidebar = useUiStore((s) => s.toggleSidebar);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // 데스크톱은 사용자 선택, 태블릿(768~1023)은 항상 아이콘 모드.
+  const iconOnly = isMobile ? false : isDesktop ? collapsedPref : true;
+
+  // 라우트가 바뀌면 드로어를 닫는다 (메뉴 선택 후 그대로 열려 있으면 곤란).
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
+
+  // 데스크톱/태블릿으로 넓어지면 드로어 상태를 정리한다.
+  useEffect(() => {
+    if (!isMobile) setDrawerOpen(false);
+  }, [isMobile]);
+
+  // ESC 로 드로어 닫기.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDrawerOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [drawerOpen]);
 
   // REQ-260621 v1.1 / PLN-260728E — per-tenant 메뉴 가시성 + 순서(UI-only).
   // Fail-open: 로딩/오류 시 전체 표시·기본(NAV) 순서.
@@ -111,17 +156,84 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-canvas text-primary">
       <AdminRealtime />
-      <header className="fixed inset-x-0 top-0 z-10 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-6">
-        {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
-        <Link to="/admin" className="font-semibold text-lg text-accent-700">
-          ACM
-        </Link>
+      <header className="fixed inset-x-0 top-0 z-30 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-3 sm:px-6">
+        <div className="flex items-center gap-2">
+          {/* PLN-260914 — 모바일: 드로어 열기 / 데스크톱: 아이콘 모드 토글.
+              태블릿은 항상 아이콘 모드라 토글을 노출하지 않는다. */}
+          {isMobile ? (
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="-ml-1 rounded-md p-2 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
+              aria-label={t('nav.openMenu', '메뉴 열기')}
+              aria-expanded={drawerOpen}
+            >
+              <Menu size={20} />
+            </button>
+          ) : (
+            isDesktop && (
+              <button
+                type="button"
+                onClick={toggleSidebar}
+                className="-ml-1 rounded-md p-2 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
+                aria-label={
+                  iconOnly
+                    ? t('nav.expandMenu', '메뉴 펼치기')
+                    : t('nav.collapseMenu', '메뉴 접기')
+                }
+                title={
+                  iconOnly
+                    ? t('nav.expandMenu', '메뉴 펼치기')
+                    : t('nav.collapseMenu', '메뉴 접기')
+                }
+              >
+                {iconOnly ? (
+                  <PanelLeftOpen size={20} />
+                ) : (
+                  <PanelLeftClose size={20} />
+                )}
+              </button>
+            )
+          )}
+          {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
+          <Link to="/admin" className="font-semibold text-lg text-accent-700">
+            ACM
+          </Link>
+        </div>
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
         </div>
       </header>
 
-      <aside className="fixed left-0 top-header bottom-0 w-sidebar bg-surface border-r border-[var(--border-subtle)] flex flex-col">
+      {/* PLN-260914 — 모바일 드로어 오버레이. */}
+      {isMobile && drawerOpen && (
+        <div
+          className="fixed inset-0 top-header z-20 bg-black/50"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={clsx(
+          'fixed left-0 top-header bottom-0 z-20 bg-surface border-r border-[var(--border-subtle)] flex flex-col transition-[width,transform] duration-200',
+          iconOnly ? 'w-sidebar-icon' : 'w-sidebar',
+          // 모바일은 드로어 — 닫히면 화면 밖으로 밀어둔다.
+          isMobile && (drawerOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'),
+        )}
+        aria-label={t('nav.mainMenu', '주 메뉴')}
+        aria-hidden={isMobile && !drawerOpen}
+      >
+        {isMobile && (
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(false)}
+            className="absolute right-2 top-2 rounded-md p-1.5 text-secondary hover:bg-[var(--gray-100)]"
+            aria-label={t('nav.closeMenu', '메뉴 닫기')}
+          >
+            <X size={18} />
+          </button>
+        )}
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
           {visibleNav.map(({ to, icon: Icon, key }) => (
             <NavLink
@@ -129,19 +241,32 @@ export function AppShell() {
               to={to}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors',
+                  iconOnly ? 'justify-center px-0' : 'px-3',
                   isActive
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-secondary hover:bg-[var(--gray-100)]',
                 )
               }
+              title={iconOnly ? t(`nav.${key}`) : undefined}
+              aria-label={iconOnly ? t(`nav.${key}`) : undefined}
             >
-              <Icon size={18} />
-              <span className="flex-1">{t(`nav.${key}`)}</span>
-              {key === 'chat' && chatUnread > 0 && (
-                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
-                  {chatUnread > 99 ? '99+' : chatUnread}
-                </span>
+              <span className="relative shrink-0">
+                <Icon size={18} />
+                {/* 아이콘 모드에서는 숫자 배지가 들어갈 자리가 없어 점으로 줄인다. */}
+                {iconOnly && key === 'chat' && chatUnread > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
+                )}
+              </span>
+              {!iconOnly && (
+                <>
+                  <span className="flex-1">{t(`nav.${key}`)}</span>
+                  {key === 'chat' && chatUnread > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                      {chatUnread > 99 ? '99+' : chatUnread}
+                    </span>
+                  )}
+                </>
               )}
             </NavLink>
           ))}
@@ -154,7 +279,8 @@ export function AppShell() {
               to="/system/admin"
               className={({ isActive }) =>
                 clsx(
-                  'mb-2 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'mb-2 flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors',
+                  iconOnly ? 'justify-center px-0' : 'px-3',
                   isActive
                     ? 'bg-accent-50 text-accent-700'
                     : 'text-secondary hover:bg-[var(--gray-100)]',
@@ -162,10 +288,11 @@ export function AppShell() {
               }
             >
               <ShieldCheck size={18} />
-              {t('nav.systemAdmin')}
+              {!iconOnly && t('nav.systemAdmin')}
             </NavLink>
           )}
-          {user?.email && (
+          {/* 아이콘 모드에서는 이메일을 숨긴다 — 64px 안에서 읽을 수 없다. */}
+          {user?.email && !iconOnly && (
             <div className="px-3 pb-2 text-xs text-secondary truncate" title={user.email}>
               {user.email}
             </div>
@@ -173,16 +300,26 @@ export function AppShell() {
           <button
             type="button"
             onClick={onLogout}
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-secondary transition-colors hover:bg-[var(--gray-100)] hover:text-primary"
+            className={clsx(
+              'flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-secondary transition-colors hover:bg-[var(--gray-100)] hover:text-primary',
+              iconOnly ? 'justify-center px-0' : 'px-3',
+            )}
             aria-label={tAuth('session.logout')}
+            title={iconOnly ? tAuth('session.logout') : undefined}
           >
             <LogOut size={18} />
-            {tAuth('session.logout')}
+            {!iconOnly && tAuth('session.logout')}
           </button>
         </div>
       </aside>
 
-      <main className="ml-sidebar mt-header p-6">
+      <main
+        className={clsx(
+          'mt-header p-3 sm:p-4 lg:p-6 transition-[margin] duration-200',
+          // 모바일은 드로어라 본문을 밀지 않는다.
+          isMobile ? 'ml-0' : iconOnly ? 'ml-sidebar-icon' : 'ml-sidebar',
+        )}
+      >
         <Outlet />
       </main>
     </div>

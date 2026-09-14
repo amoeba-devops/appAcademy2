@@ -116,7 +116,7 @@ export function QnaListPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
         <div className="flex items-center gap-2">
           <Link
@@ -168,8 +168,8 @@ export function QnaListPage() {
       )}
 
       {questions && questions.length > 0 && (
-        <div className="rounded-lg border border-[var(--border-subtle)] overflow-hidden bg-surface">
-          <table className="w-full text-sm">
+        <div className="rounded-lg border border-[var(--border-subtle)] overflow-x-auto bg-surface">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-[var(--bg-subtle)] text-left">
               <tr>
                 <th className="px-3 py-2">{t('columns.subject')}</th>
@@ -249,7 +249,7 @@ function ThreadModal({ q, onClose }: { q: Question; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-surface rounded-lg shadow-lg max-w-2xl w-full p-6 max-h-[80vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <h2 className="text-lg font-semibold">{t('thread.title')}</h2>
           <button onClick={onClose} className="text-secondary hover:text-primary">✕</button>
         </div>
@@ -291,7 +291,7 @@ function ReplyModal({ q, onClose }: { q: Question; onClose: () => void }) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={onClose}>
       <div className="bg-surface rounded-lg shadow-lg max-w-xl w-full p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <h2 className="text-lg font-semibold">{t('reply.title', { subject: q.subject })}</h2>
           <button onClick={onClose} className="text-secondary hover:text-primary">✕</button>
         </div>

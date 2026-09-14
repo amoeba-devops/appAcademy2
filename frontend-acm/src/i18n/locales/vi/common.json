@@ -240,7 +240,12 @@
     "notifications": "Thông báo",
     "enrollments": "Đăng ký học",
     "systemAdmin": "Quản trị hệ thống",
-    "chat": "Trò chuyện sảnh"
+    "chat": "Trò chuyện sảnh",
+    "openMenu": "Mở menu",
+    "closeMenu": "Đóng menu",
+    "expandMenu": "Mở rộng menu",
+    "collapseMenu": "Thu gọn menu",
+    "mainMenu": "Menu chính"
   },
   "lang": {
     "label": "Ngôn ngữ",

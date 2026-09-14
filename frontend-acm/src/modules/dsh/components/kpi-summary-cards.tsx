@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { Sparkline } from './sparkline';
 
 export type DshCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
@@ -141,7 +142,8 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
               )}
             </div>
 
-            <table className="w-full text-[11px] tabular-nums">
+            <ResponsiveTable>
+            <table className="w-full min-w-[420px] text-[11px] tabular-nums">
               <thead>
                 <tr className="text-secondary">
                   <th className="text-left font-normal py-0.5">{t('summary.headers.label')}</th>
@@ -163,6 +165,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
                 ))}
               </tbody>
             </table>
+          </ResponsiveTable>
 
             {c.category === 'MARKETING' && visitorBreakdown && sites.length > 0 && (
               <div className="text-[10px] text-secondary leading-4" data-testid="visitor-breakdown">

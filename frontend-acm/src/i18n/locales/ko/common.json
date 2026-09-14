@@ -240,7 +240,12 @@
     "notifications": "알림",
     "enrollments": "수강신청",
     "systemAdmin": "시스템 관리",
-    "chat": "로비채팅"
+    "chat": "로비채팅",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기",
+    "expandMenu": "메뉴 펼치기",
+    "collapseMenu": "메뉴 접기",
+    "mainMenu": "주 메뉴"
   },
   "lang": {
     "label": "언어",

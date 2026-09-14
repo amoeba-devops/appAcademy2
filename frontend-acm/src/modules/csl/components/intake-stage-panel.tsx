@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -244,7 +245,7 @@ export function IntakeStagePanel({
             <legend className="text-xs font-medium px-1">
               {t('detail.intake.mapScores')}
             </legend>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* English-fixed labels per FR-CSL-102 */}
               <Field label="Reading">
                 <Input
@@ -288,7 +289,8 @@ export function IntakeStagePanel({
             <p className="text-[11px] text-secondary">
               {t('detail.intake.iseeIntakeHint')}
             </p>
-            <table className="w-full border-collapse text-xs">
+            <ResponsiveTable>
+            <table className="w-full min-w-[420px] border-collapse text-xs">
               <thead>
                 <tr className="text-secondary">
                   <th className="text-left py-1 w-28">Section</th>
@@ -358,6 +360,7 @@ export function IntakeStagePanel({
                 )}
               </tbody>
             </table>
+          </ResponsiveTable>
           </fieldset>
         )}
 
@@ -371,7 +374,7 @@ export function IntakeStagePanel({
             </p>
             <div className="grid gap-4">
               <StructuredSection title="SSAT">
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {(['verbal', 'quantitative', 'reading', 'total'] as const).map((key) => {
                     const row = ssatIntake[key] ?? {};
                     return (
@@ -412,7 +415,7 @@ export function IntakeStagePanel({
               </StructuredSection>
 
               <StructuredSection title="Duolingo">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {(
                     [
                       'total',
@@ -443,7 +446,7 @@ export function IntakeStagePanel({
               </StructuredSection>
 
               <StructuredSection title="TOEFL">
-                <div className="grid grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {(['total', 'reading', 'listening', 'speaking', 'writing'] as const).map(
                     (key) => (
                       <Field key={key} label={capitalize(key)}>
@@ -464,7 +467,7 @@ export function IntakeStagePanel({
               </StructuredSection>
 
               <StructuredSection title="SAT">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Field label="Reading & Writing">
                     <Input
                       type="number"

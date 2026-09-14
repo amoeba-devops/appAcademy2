@@ -30,6 +30,8 @@ export default {
       },
       spacing: {
         sidebar: '240px',
+        // PLN-260914 — 아이콘 전용 사이드바 폭 (라벨 숨김 모드).
+        'sidebar-icon': '64px',
         header: '56px',
       },
     },

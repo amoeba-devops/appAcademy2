@@ -117,7 +117,7 @@ export function MpqFormModal({ open, onClose, editId }: MpqFormModalProps) {
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className={labelClass}>{t('form.grade')}</label>
               <select className={inputClass} {...register('mpqGrade', { required: true })}>
