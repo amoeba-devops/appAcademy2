@@ -54,6 +54,15 @@ const cslCreateSchema = z
       .optional()
       .refine((v) => !v || phoneRegex.test(v), { message: 'csl:validation.phoneInvalid' }),
     parentName: z.string().trim().max(50).optional().or(z.literal('')),
+    // 요구 260914E — 학부모 이메일 (선택).
+    parentEmail: z
+      .string()
+      .trim()
+      .max(200)
+      .optional()
+      .refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v), {
+        message: 'csl:validation.emailInvalid',
+      }),
     phoneStatus: z.enum(PHONE_STATUSES).default('UNKNOWN'),
     schoolFreetext: z.string().trim().max(100).optional().or(z.literal('')),
     schoolId: z.string().uuid().optional().or(z.literal('')),
@@ -113,6 +122,7 @@ export function CslCreateDialog() {
         studentName: payload.isAnonymous ? '익명' : (payload.studentName ?? ''),
         isAnonymous: payload.isAnonymous,
         parentPhone: payload.parentPhone || undefined,
+        parentEmail: payload.parentEmail || undefined,
         parentName: payload.parentName || undefined,
         phoneStatus: payload.phoneStatus,
         schoolFreetext: payload.schoolFreetext || undefined,
@@ -176,6 +186,18 @@ export function CslCreateDialog() {
               <p className="text-xs text-red-600">{tr(errors.studentName?.message as string)}</p>
             )}
           </div>
+
+          {/* 요구 260914E — 학부모 이메일 */}
+          <Field
+            label={t('form.parentEmail', '학부모 이메일')}
+            error={tr(errors.parentEmail?.message as string)}
+          >
+            <Input
+              type="email"
+              {...register('parentEmail')}
+              placeholder={t('form.parentEmailPlaceholder', 'parent@example.com')}
+            />
+          </Field>
 
           {/* Phone + status */}
           <div className="grid grid-cols-[1fr_140px] gap-3">

@@ -108,6 +108,9 @@ export class InquiryService {
       phoneStatus === 'PROVIDED' && dto.parentPhone
         ? this.crypto.encrypt(dto.parentPhone)
         : null;
+    const parentEmailEnc = dto.parentEmail
+      ? this.crypto.encrypt(dto.parentEmail)
+      : null;
     const parentNameEnc = dto.parentName
       ? this.crypto.encrypt(dto.parentName)
       : null;
@@ -135,6 +138,9 @@ export class InquiryService {
       parentNameEncrypted: parentNameEnc?.ciphertext ?? null,
       parentNameIv: parentNameEnc?.iv ?? null,
       parentNameAuthTag: parentNameEnc?.authTag ?? null,
+      parentEmailEncrypted: parentEmailEnc?.ciphertext ?? null,
+      parentEmailIv: parentEmailEnc?.iv ?? null,
+      parentEmailAuthTag: parentEmailEnc?.authTag ?? null,
       inflowType: dto.inflowType,
       sourceSite: dto.sourceSite ?? null,
       siteOverride: dto.siteOverride ?? null,
@@ -349,6 +355,18 @@ export class InquiryService {
         e.parentNameEncrypted = null;
         e.parentNameIv = null;
         e.parentNameAuthTag = null;
+      }
+    }
+    if (dto.parentEmail !== undefined) {
+      if (dto.parentEmail) {
+        const enc = this.crypto.encrypt(dto.parentEmail);
+        e.parentEmailEncrypted = enc.ciphertext;
+        e.parentEmailIv = enc.iv;
+        e.parentEmailAuthTag = enc.authTag;
+      } else {
+        e.parentEmailEncrypted = null;
+        e.parentEmailIv = null;
+        e.parentEmailAuthTag = null;
       }
     }
     if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
@@ -1122,6 +1140,15 @@ export class InquiryService {
             authTag: e.parentNameAuthTag,
           })
         : null;
+    // 요구 260914E — 학부모 이메일 (외부 접수 폼 연락처 분리).
+    const parentEmail =
+      e.parentEmailEncrypted && e.parentEmailIv && e.parentEmailAuthTag
+        ? this.crypto.decrypt({
+            ciphertext: e.parentEmailEncrypted,
+            iv: e.parentEmailIv,
+            authTag: e.parentEmailAuthTag,
+          })
+        : null;
     return {
       id: e.id,
       entId: e.entId,
@@ -1133,6 +1160,7 @@ export class InquiryService {
       isAnonymous: e.isAnonymous,
       parentName,
       parentPhone, // ⚠ revealed on detail per existing convention; mask in list view client-side
+      parentEmail,
       phoneStatus: e.phoneStatus,
       schoolId: e.schoolId,
       schoolFreetext: e.schoolFreetext,

@@ -84,6 +84,25 @@ describe('ExternalIntakeController', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
+  // 요구 260914E — 사이트 폼에서 연락처를 전화번호/이메일로 분리했다. 이메일이
+  // DTO 에 없던 동안 forbidNonWhitelisted 로 전건 400 이 났다(TPI 접수 중단).
+  it('passes parentEmail through to the inquiry', async () => {
+    const dto = Object.assign(baseDto(), { parentEmail: 'parent@example.com' });
+    await controller.submit(dto, TPI_KEY, 'https://www.tpi.co.kr');
+    expect(create).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ parentEmail: 'parent@example.com' }),
+    );
+  });
+
+  it('still accepts a submission without email (sites that have no email field)', async () => {
+    await controller.submit(baseDto(), TPI_KEY, 'https://www.tpi.co.kr');
+    expect(create).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ parentEmail: undefined }),
+    );
+  });
+
   it('maps known purpose labels to codes and keeps unmapped labels verbatim', async () => {
     const dto = baseDto();
     dto.applyPurposeLabels = [

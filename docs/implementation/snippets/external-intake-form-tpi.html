@@ -41,8 +41,12 @@
       <input class="ai-input" id="ai-grade" maxlength="10" placeholder="예: 중2">
       <label class="ai-label">학부모 성함</label>
       <input class="ai-input" id="ai-parent" maxlength="50">
-      <label class="ai-label">연락처 <span class="ai-req">*</span></label>
+      <label class="ai-label">전화번호 <span class="ai-req">*</span></label>
       <input class="ai-input" id="ai-phone" maxlength="20" inputmode="tel" placeholder="010-0000-0000" autocomplete="tel">
+    </div>
+    <div class="ai-row">
+      <label class="ai-label">이메일 <span class="ai-req">*</span></label>
+      <input class="ai-input" id="ai-email" type="email" maxlength="200" placeholder="parent@example.com" autocomplete="email">
       <label class="ai-label">문의 내용</label>
       <textarea class="ai-input" id="ai-message" rows="4" maxlength="2000" placeholder="궁금하신 부분을 말씀해 주세요."></textarea>
 
@@ -80,12 +84,14 @@
     
 
     if (!get('ai-student')) { result.textContent = '이름을 입력해 주세요.'; result.className = 'ai-msg err'; return; }
-    if (!/^[0-9+\-() ]{7,20}$/.test(get('ai-phone'))) { result.textContent = '연락처를 확인해 주세요.'; result.className = 'ai-msg err'; return; }
+    if (!/^[0-9+\-() ]{7,20}$/.test(get('ai-phone'))) { result.textContent = '전화번호를 확인해 주세요.'; result.className = 'ai-msg err'; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(get('ai-email'))) { result.textContent = '이메일 주소를 확인해 주세요.'; result.className = 'ai-msg err'; return; }
     if (!document.getElementById('ai-consent').checked) { result.textContent = '개인정보 수집·이용 동의가 필요합니다.'; result.className = 'ai-msg err'; return; }
 
     var payload = {
       studentName: get('ai-student'),
       parentPhone: get('ai-phone'),
+      parentEmail: get('ai-email'),
       applyPurposeLabels: purposes,
       message: message || undefined,
       consent: true,
