@@ -1,10 +1,11 @@
 ---
 document_id: DSH-REQ-260914C
-version: 0.1.0
-status: DRAFT (사용자 확인 대기 — CLAUDE.md §9.2)
+version: 1.1.0
+status: IMPLEMENTED (PLN-260914C DEPLOYED) · 운영 조치 진행 중
 date: 2026-09-14
 related: docs/plan/PLN-260912-dsh-ga4-visitor-sync.md, docs/implementation/GUIDE-260912-ga4-setup.md, docs/analysis/REQ-260914B-dsh-site-dashboards.md
 change_log:
+  - 2026-09-14 v1.1.0 원인 확정·조치 — TPI/TRINITY gtag 미렌더링 원인은 아임웹 '중국내 접속 허용(beta)' 옵션(Google 스크립트 차단). 사용자 결정 A(옵션 해제)로 TPI 해제 → gtag G-QVDVBTC7JC 렌더링 확인. TRINITY 는 아임웹 로그인 대기. Q1·Q3 기본값 채택, Q2 헤드 코드 삽입은 불필요로 종결 (Claude Code)
   - 2026-09-14 v0.1.0 초안 — 대시보드 GA4 동기화 400 원인 분석 + 3사이트 연동 정보 관리 요구 분석 (Claude Code)
 ---
 
@@ -71,3 +72,15 @@ change_log:
 | Q1 | 태그 검출을 위해 ACM 운영 서버가 3개 공개 사이트에 아웃바운드 HTTP 요청을 해도 되는가 | 허용 (공개 페이지 GET 1회) |
 | Q2 | TPI·TRINITY gtag 미렌더링 해결책: 아임웹 "헤드 코드 삽입" 에 gtag 스니펫 직접 삽입 (아임웹 GA 연동과 병행 시 중복 집계 가능 → GA 연동은 해제하고 헤드 코드만 사용) — 진행 여부 | 사용자 결정 후 별도 실행 (본 REQ 범위 외, 상태 화면에서 안내만) |
 | Q3 | 사이트 URL·측정 ID 초기값을 마이그레이션 SQL 로 시드할지 (TPI/TRINITY/SANTACROCE 3건, 위 표 값) | 시드함 (운영 테넌트 1개, 값은 문서화됨) |
+
+## 8. Resolution Log (조치 기록)
+
+| Date | Item | Result |
+|------|------|--------|
+| 2026-09-14 | 400 원인 | 운영 GA4 설정 미입력 → 입력·동기화 완료 (§2) |
+| 2026-09-14 | PLN-260914C | 배포 완료 (PR #232 `38766f9`). 운영 점검: TPI·TRINITY 태그 미설치 / SANTACROCE 정상 |
+| 2026-09-14 | gtag 미렌더링 진짜 원인 | TPI 아임웹 "기본 설정 › 기타 설정 › **중국내 접속 허용(beta)**" ON → Google 스크립트 제거. 게시 HTML 비교로 확인(TPI·TRINITY Google 참조 0건, SANTACROCE 만 gtag) |
+| 2026-09-14 | 사용자 결정 | **A. 중국내 접속 허용 해제** (헤드 코드 삽입 Q2 는 불필요로 종결) |
+| 2026-09-14 | TPI 조치 | 옵션 해제·저장 → 새로고침 유지 확인 → `https://www.tpi.co.kr/` HTML 에 `G-QVDVBTC7JC` + googletagmanager 렌더링 확인. GA4 데이터는 24~48h 후 유입 예상 → ACM 점검 결과 `데이터 없음` → `정상` 전환 예정 |
+| 대기 | TRINITY | 아임웹 관리자 세션 만료 — 로그인 후 동일 옵션 확인·해제 예정 |
+| 대기 | SANTACROCE | 옵션 OFF 추정(gtag 렌더링 중) — 로그인 후 확인만 |

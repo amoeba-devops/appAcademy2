@@ -131,4 +131,6 @@ change_log:
 | 연결 테스트 | ✅ 최근 7일 3행, 스트림 15761907393 (SANTACROCE) |
 | 지금 동기화 | ✅ 2026-09-07~09-13 2행 반영, 대시보드 MARKETING 카드 "출처 GA4" 표시 |
 | 서비스계정 키 파일 삭제 | ✅ `~/Downloads/acm-ga4-48261a572202.json` 삭제 (재발급은 GCP › 서비스 계정 › 키) |
-| TPI·TRINITY 게시 페이지 gtag | ❌ 미렌더링 — GA4 데이터 0행. 조치 후보: 아임웹 헤드 코드 삽입 (사용자 결정 필요), 후속 [REQ-260914C](../analysis/REQ-260914C-ga4-site-integration-mgmt.md) |
+| TPI·TRINITY 게시 페이지 gtag | 원인: 아임웹 **중국내 접속 허용(beta)** 옵션(Google 스크립트 차단). TPI ✅ 옵션 해제 후 gtag 렌더링 확인(2026-09-14). TRINITY ⏳ 아임웹 로그인 후 동일 조치. 상세 [REQ-260914C §8](../analysis/REQ-260914C-ga4-site-integration-mgmt.md) |
+
+> ⚠️ **주의 (2026-09-14 추가)**: 아임웹 "기본 설정 › 기타 설정 › 중국내 접속 허용(beta)" 이 켜져 있으면 GA 연동을 저장해도 게시 페이지에서 gtag 가 제거되어 GA4 데이터가 0이 된다. GA4 연동 사이트는 이 옵션을 반드시 끈다. ACM `/admin/config/ga4` › 연동 상태 점검에서 "태그 미설치" 로 드러난다.
