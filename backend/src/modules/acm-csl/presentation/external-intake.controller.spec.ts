@@ -121,7 +121,9 @@ describe('ExternalIntakeController', () => {
     );
   });
 
-  it('dedupes labels mapping to the same code (TRINITY → INTL_SCHOOL_PREP)', async () => {
+  // 요구 260914F — 사이트마다 상품이 달라 코드를 분리 유지한다. 이전에는
+  // 트리니티의 국제학교 3종이 INTL_SCHOOL_PREP 하나로 뭉개져 구분이 불가능했다.
+  it('keeps TRINITY purposes as distinct per-site codes (no collapsing)', async () => {
     const dto = baseDto();
     dto.applyPurposeLabels = [
       '인가 국제학교 입학 준비',
@@ -135,7 +137,63 @@ describe('ExternalIntakeController', () => {
     expect(create).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        applyPurposes: ['INTL_SCHOOL_PREP'],
+        applyPurposes: ['TRI_INTL_ACCREDITED', 'TRI_INTL_UNACCREDITED'],
+        applyPurposeOther: undefined,
+      }),
+    );
+  });
+
+  it('maps every TRINITY form label — nothing falls into free text', async () => {
+    const dto = baseDto();
+    dto.applyPurposeLabels = [
+      '인가 국제학교 입학 준비',
+      '비인가 국제학교 입학 준비',
+      '외국인학교 입학 준비',
+      '해외 주니어 보딩스쿨 / 하이 보딩스쿨 입학 준비',
+      'All in One 입학 준비 컨설팅(수업+포트폴리오+원서 지원+GPA관리)',
+    ];
+    await controller.submit(dto, TRINITY_KEY, 'https://trinityacademy.kr');
+    expect(create).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        applyPurposes: [
+          'TRI_INTL_ACCREDITED',
+          'TRI_INTL_UNACCREDITED',
+          'TRI_FOREIGN_SCHOOL',
+          'TRI_BOARDING_PREP',
+          'TRI_ALL_IN_ONE',
+        ],
+        applyPurposeOther: undefined,
+      }),
+    );
+  });
+
+  it('maps every SANTACROCE form label — nothing falls into free text', async () => {
+    const dto = baseDto();
+    dto.applyPurposeLabels = [
+      '교육 대리인 서비스',
+      '미국·영국 대학 입시 컨설팅',
+      '탑 보딩스쿨 컨설팅',
+      '탑 주니어 보딩스쿨 컨설팅',
+      '프리미엄 가디언 서비스',
+      '외국인·국제학교 컨설팅',
+    ];
+    await controller.submit(
+      dto,
+      'santacroce-93d05af5a571f33a',
+      'https://santacroce.co.kr',
+    );
+    expect(create).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        applyPurposes: [
+          'SAN_EDU_AGENT',
+          'SAN_US_UK_ADMISSIONS',
+          'SAN_TOP_BOARDING',
+          'SAN_TOP_JUNIOR_BOARDING',
+          'SAN_PREMIUM_GUARDIAN',
+          'SAN_INTL_CONSULTING',
+        ],
         applyPurposeOther: undefined,
       }),
     );

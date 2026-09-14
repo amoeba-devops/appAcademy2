@@ -6,7 +6,8 @@ import { List, LayoutGrid } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { CslCreateDialog } from '@/modules/csl/components/csl-create-dialog';
 import {
-  APPLY_PURPOSES,
+  APPLY_PURPOSES_BY_SITE,
+  APPLY_PURPOSE_SITES,
   APPLY_TYPES,
   CslFilterSelect,
   CslListFilters,
@@ -236,10 +237,16 @@ export function CslListPage() {
                       <option value="">
                         {t('filters.allPurposes', { defaultValue: '전체 신청목적' })}
                       </option>
-                      {APPLY_PURPOSES.map((item) => (
-                        <option key={item} value={item}>
-                          {t(`applyPurpose.${item}`)}
-                        </option>
+                      {/* 요구 260914F — 16종을 평평하게 나열하면 어느 사이트
+                          항목인지 알 수 없어 사이트별로 묶어 보여준다. */}
+                      {APPLY_PURPOSE_SITES.map((site) => (
+                        <optgroup key={site} label={t(`sourceSite.${site}`, site)}>
+                          {APPLY_PURPOSES_BY_SITE[site].map((item) => (
+                            <option key={item} value={item}>
+                              {t(`applyPurpose.${item}`)}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </CslFilterSelect>
                   </div>

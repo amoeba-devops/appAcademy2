@@ -90,7 +90,18 @@
     "ISEE_TUTORING": "ISEE 补习",
     "INTL_SCHOOL_PREP": "国际学校/外国人学校入学准备",
     "GPA_MGMT": "定制化GPA管理",
-    "ADVANCED_COURSES": "强化课程(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    "ADVANCED_COURSES": "强化课程(SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)",
+    "TRI_INTL_ACCREDITED": "认证国际学校入学准备",
+    "TRI_INTL_UNACCREDITED": "非认证国际学校入学准备",
+    "TRI_FOREIGN_SCHOOL": "外国人学校入学准备",
+    "TRI_BOARDING_PREP": "海外初中 / 高中寄宿学校入学准备",
+    "TRI_ALL_IN_ONE": "All in One 入学准备咨询（课程+作品集+申请+GPA管理）",
+    "SAN_EDU_AGENT": "教育代理服务",
+    "SAN_US_UK_ADMISSIONS": "美国·英国大学升学咨询",
+    "SAN_TOP_BOARDING": "顶级寄宿学校咨询",
+    "SAN_TOP_JUNIOR_BOARDING": "顶级初中寄宿学校咨询",
+    "SAN_PREMIUM_GUARDIAN": "高级监护服务",
+    "SAN_INTL_CONSULTING": "外国人·国际学校咨询"
   },
   "phoneStatus": {
     "PROVIDED": "已提供",
@@ -195,7 +206,8 @@
         "isAnonymous": "匿名",
         "siteOverride": "仪表盘站点",
         "parentEmail": "家长邮箱"
-      }
+      },
+      "applyPurposeOther": "其他（原文）"
     },
     "backToList": "返回列表",
     "drop": "结束咨询",

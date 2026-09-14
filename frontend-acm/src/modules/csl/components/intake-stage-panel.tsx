@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AttachmentPanel } from './attachment-panel';
+import { applyPurposeOptions } from './csl-list-filters';
 
 /**
  * REQ-260626 SCR-CSL-01 v2 (DSN-260629) — INTAKE stage panel.
@@ -26,14 +27,8 @@ import { AttachmentPanel } from './attachment-panel';
  * existing FIX-260624 patron pattern.
  */
 
-const APPLY_PURPOSES = [
-  'MAP_TEST_TUTORING',
-  'ISEE_TUTORING',
-  'INTL_SCHOOL_PREP',
-  'GPA_MGMT',
-  'ADVANCED_COURSES',
-] as const;
-type ApplyPurpose = (typeof APPLY_PURPOSES)[number];
+// 요구 260914F — 신청목적은 사이트마다 다르다. 목록 필터와 같은 레지스트리를 쓴다.
+type ApplyPurpose = string;
 
 interface Inquiry {
   id: string;
@@ -53,6 +48,8 @@ interface Inquiry {
   siteOverride?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: string;
   applyPurposes: ApplyPurpose[];
+  /** 요구 260914F — 매핑되지 않은 라벨 원문 (화면에 노출해 유실을 막는다). */
+  applyPurposeOther?: string | null;
   consultDone: 'YES' | 'NO' | null;
   registeredAt: string | null;
 }
@@ -707,7 +704,7 @@ function ApplyPurposesEditor({
         )}
       </div>
       <div className="grid gap-1.5 rounded-md border border-[var(--border-subtle)] bg-transparent px-3 py-2">
-        {APPLY_PURPOSES.map((p) => {
+        {applyPurposeOptions(inq.sourceSite, draft).map((p) => {
           const checked = (editing ? draft : inq.applyPurposes ?? []).includes(p);
           return (
             <label
@@ -728,6 +725,16 @@ function ApplyPurposesEditor({
           );
         })}
       </div>
+      {/* 요구 260914F — 매핑되지 않은 라벨 원문. 예전에는 API 응답에만 있고
+          화면에 렌더되지 않아 접수 내용이 사실상 유실됐다. */}
+      {inq.applyPurposeOther && (
+        <p className="text-xs text-secondary">
+          <span className="font-medium">
+            {t('detail.intake.applyPurposeOther', '기타(원문)')}:
+          </span>{' '}
+          {inq.applyPurposeOther}
+        </p>
+      )}
       {mutate.isError && (
         <p className="text-xs text-red-600">
           {(mutate.error as { response?: { data?: { message?: string } } })?.response

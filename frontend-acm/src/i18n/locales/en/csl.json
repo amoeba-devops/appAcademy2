@@ -90,7 +90,18 @@
     "ISEE_TUTORING": "ISEE Tutoring",
     "INTL_SCHOOL_PREP": "Intl./foreign school admission prep",
     "GPA_MGMT": "Customized GPA management",
-    "ADVANCED_COURSES": "Advanced courses (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)"
+    "ADVANCED_COURSES": "Advanced courses (SSAT / Duolingo / TOEFL / PSAT / AP / IB / ACT / SAT)",
+    "TRI_INTL_ACCREDITED": "Accredited international school prep",
+    "TRI_INTL_UNACCREDITED": "Non-accredited international school prep",
+    "TRI_FOREIGN_SCHOOL": "Foreign school prep",
+    "TRI_BOARDING_PREP": "Overseas junior / high boarding school prep",
+    "TRI_ALL_IN_ONE": "All-in-One admissions consulting (classes + portfolio + applications + GPA)",
+    "SAN_EDU_AGENT": "Education agent service",
+    "SAN_US_UK_ADMISSIONS": "US / UK university admissions consulting",
+    "SAN_TOP_BOARDING": "Top boarding school consulting",
+    "SAN_TOP_JUNIOR_BOARDING": "Top junior boarding school consulting",
+    "SAN_PREMIUM_GUARDIAN": "Premium guardian service",
+    "SAN_INTL_CONSULTING": "Foreign / international school consulting"
   },
   "phoneStatus": {
     "PROVIDED": "Provided",
@@ -195,7 +206,8 @@
         "isAnonymous": "Anonymous",
         "siteOverride": "Dashboard site",
         "parentEmail": "Parent email"
-      }
+      },
+      "applyPurposeOther": "Other (as submitted)"
     },
     "backToList": "Back to list",
     "drop": "End consultation",
