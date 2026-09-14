@@ -189,7 +189,8 @@
         "applyType": "申请类型",
         "consultDone": "咨询完成",
         "registeredAt": "登记日期",
-        "isAnonymous": "匿名"
+        "isAnonymous": "匿名",
+        "siteOverride": "仪表盘站点"
       }
     },
     "backToList": "返回列表",
@@ -394,5 +395,10 @@
     "TPI": "TPI",
     "TRINITY": "Trinity",
     "SANTACROCE": "Santa Croce"
+  },
+  "siteOverride": {
+    "none": "未指定(公共)",
+    "common": "公共",
+    "effective": "归属: {{site}}"
   }
 }

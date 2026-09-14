@@ -91,7 +91,9 @@
       "PENDING": "미입력",
       "PARTIAL": "부분 입력",
       "COMPLETE": "완료"
-    }
+    },
+    "site": "사이트",
+    "siteHint": "사이트를 선택하면 해당 사이트의 방문자·비용·불만만 입력되며 통합에 합산됩니다."
   },
   "complaint": {
     "title": "불만 사례 등록",
@@ -112,7 +114,8 @@
       "LOW": "낮음",
       "MEDIUM": "보통",
       "HIGH": "높음"
-    }
+    },
+    "site": "사이트"
   },
   "empty": {
     "noData": "해당 월에 데이터가 없습니다."
@@ -126,5 +129,27 @@
     "syncNow": "GA4 동기화",
     "syncDone": "GA4 동기화 완료 ({{rows}}행)",
     "syncFailed": "GA4 동기화 실패"
+  },
+  "site": {
+    "label": "사이트",
+    "tabs": {
+      "ALL": "통합",
+      "TPI": "TPI",
+      "TRINITY": "트리니티",
+      "SANTACROCE": "산타크로체",
+      "COMMON": "공통(미지정)",
+      "TOTAL": "합계"
+    },
+    "hiddenNote": "운영·수업 지표는 사이트 구분이 없어 통합 탭에서만 표시됩니다.",
+    "comparison": {
+      "title": "사이트 비교",
+      "visitor": "방문자",
+      "counseling": "상담",
+      "apply": "지원",
+      "effect": "효과",
+      "cost": "비용",
+      "complain": "불만",
+      "note": "공통(미지정)은 전화·카카오·홈페이지 유입 등 사이트가 지정되지 않은 상담과 공통 수동 입력입니다. 합계는 통합 대시보드 값입니다."
+    }
   }
 }

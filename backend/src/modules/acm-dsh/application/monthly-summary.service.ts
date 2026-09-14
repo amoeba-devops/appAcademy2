@@ -3,6 +3,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { Between, DataSource } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { DailyKpiTypeormEntity } from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
+import { DailyKpiSiteTypeormEntity } from '../infrastructure/typeorm/daily-kpi-site.typeorm-entity';
+import type { DshSite } from './dsh-site.util';
 
 export type DshCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
 
@@ -39,6 +41,8 @@ export interface RangeSummaryResult {
   previousTo: string | null;
   populatedDayCount: number;
   categories: CategorySummary[];
+  /** PLN-260914B — site filter applied (undefined = tenant total) */
+  site?: DshSite;
 }
 
 export interface MonthlySummaryResult {
@@ -48,9 +52,33 @@ export interface MonthlySummaryResult {
   categories: CategorySummary[];
 }
 
+/** Minimal row shape shared by daily_kpi and the per-site table. */
+type KpiLike = Pick<
+  DailyKpiTypeormEntity,
+  | 'marketingVisitor'
+  | 'marketingCost'
+  | 'marketingEffect'
+  | 'csCounseling'
+  | 'csApply'
+  | 'csBeginning'
+  | 'csMissing'
+  | 'csTrialClass'
+  | 'csComplain'
+  | 'opsNewSt'
+  | 'opsOutSt'
+  | 'opsCountSt'
+  | 'opsNewTc'
+  | 'opsOutTc'
+  | 'opsCountTc'
+  | 'classMapTest'
+  | 'classTtClass'
+  | 'classStudent'
+  | 'classTeacher'
+>;
+
 interface MetricMeta {
   code: string;
-  field: keyof DailyKpiTypeormEntity;
+  field: keyof KpiLike;
   labelKr: string;
   labelEn: string;
   isSnapshot?: boolean;
@@ -60,28 +88,88 @@ interface MetricMeta {
 
 const CATEGORY_METRICS: Record<DshCategory, MetricMeta[]> = {
   MARKETING: [
-    { code: 'mkt_visitor', field: 'marketingVisitor', labelKr: '방문자', labelEn: 'Visitor' },
-    { code: 'mkt_cost', field: 'marketingCost', labelKr: '전체 비용', labelEn: 'Cost' },
-    { code: 'mkt_effect', field: 'marketingEffect', labelKr: '효과', labelEn: 'Effect', derived: 'EFFECT' },
+    {
+      code: 'mkt_visitor',
+      field: 'marketingVisitor',
+      labelKr: '방문자',
+      labelEn: 'Visitor',
+    },
+    {
+      code: 'mkt_cost',
+      field: 'marketingCost',
+      labelKr: '전체 비용',
+      labelEn: 'Cost',
+    },
+    {
+      code: 'mkt_effect',
+      field: 'marketingEffect',
+      labelKr: '효과',
+      labelEn: 'Effect',
+      derived: 'EFFECT',
+    },
   ],
   CS: [
-    { code: 'cs_counseling', field: 'csCounseling', labelKr: '상담', labelEn: 'Counseling' },
+    {
+      code: 'cs_counseling',
+      field: 'csCounseling',
+      labelKr: '상담',
+      labelEn: 'Counseling',
+    },
     { code: 'cs_apply', field: 'csApply', labelKr: '지원', labelEn: 'Apply' },
-    { code: 'cs_trial_class', field: 'csTrialClass', labelKr: '체험수업', labelEn: 'Trial Class' },
+    {
+      code: 'cs_trial_class',
+      field: 'csTrialClass',
+      labelKr: '체험수업',
+      labelEn: 'Trial Class',
+    },
   ],
   OPERATING: [
-    { code: 'ops_count_st', field: 'opsCountSt', labelKr: '학생수', labelEn: '# of Students', isSnapshot: true },
-    { code: 'ops_count_tc', field: 'opsCountTc', labelKr: '강사수', labelEn: '# of Teachers', isSnapshot: true },
-    { code: 'ops_new_st', field: 'opsNewSt', labelKr: '신입생', labelEn: 'New St.' },
+    {
+      code: 'ops_count_st',
+      field: 'opsCountSt',
+      labelKr: '학생수',
+      labelEn: '# of Students',
+      isSnapshot: true,
+    },
+    {
+      code: 'ops_count_tc',
+      field: 'opsCountTc',
+      labelKr: '강사수',
+      labelEn: '# of Teachers',
+      isSnapshot: true,
+    },
+    {
+      code: 'ops_new_st',
+      field: 'opsNewSt',
+      labelKr: '신입생',
+      labelEn: 'New St.',
+    },
   ],
   CLASS: [
-    { code: 'cls_tt_class', field: 'classTtClass', labelKr: '총수업', labelEn: 'Tt. Class' },
-    { code: 'cls_student', field: 'classStudent', labelKr: '학생', labelEn: 'Student' },
-    { code: 'cls_teacher', field: 'classTeacher', labelKr: '강사', labelEn: 'Teacher' },
+    {
+      code: 'cls_tt_class',
+      field: 'classTtClass',
+      labelKr: '총수업',
+      labelEn: 'Tt. Class',
+    },
+    {
+      code: 'cls_student',
+      field: 'classStudent',
+      labelKr: '학생',
+      labelEn: 'Student',
+    },
+    {
+      code: 'cls_teacher',
+      field: 'classTeacher',
+      labelKr: '강사',
+      labelEn: 'Teacher',
+    },
   ],
 };
 
 const CATEGORY_ORDER: DshCategory[] = ['MARKETING', 'CS', 'OPERATING', 'CLASS'];
+/** PLN-260914B — categories that carry a site dimension. */
+const SITE_CATEGORIES: DshCategory[] = ['MARKETING', 'CS'];
 
 function prevYearMonth(yearMonth: string): string {
   const [yStr, mStr] = yearMonth.split('-');
@@ -109,7 +197,7 @@ function numOf(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function metricValue(row: DailyKpiTypeormEntity, meta: MetricMeta): number {
+function metricValue(row: KpiLike, meta: MetricMeta): number {
   if (meta.derived === 'EFFECT') {
     return (row.csCounseling ?? 0) + (row.csApply ?? 0);
   }
@@ -118,8 +206,8 @@ function metricValue(row: DailyKpiTypeormEntity, meta: MetricMeta): number {
 
 function buildCategory(
   cat: DshCategory,
-  rows: DailyKpiTypeormEntity[],
-  prevRows: DailyKpiTypeormEntity[],
+  rows: KpiLike[],
+  prevRows: KpiLike[],
 ): CategorySummary {
   const metricsMeta = CATEGORY_METRICS[cat];
   const metrics: MetricSummary[] = metricsMeta.map((meta) => {
@@ -129,11 +217,13 @@ function buildCategory(
     if (meta.isSnapshot) {
       sum = series.length > 0 ? series[series.length - 1] : 0;
       aver = null;
-      prevSum = prevSeries.length > 0 ? prevSeries[prevSeries.length - 1] : null;
+      prevSum =
+        prevSeries.length > 0 ? prevSeries[prevSeries.length - 1] : null;
     } else {
       sum = series.reduce((a, b) => a + b, 0);
       aver = series.length > 0 ? sum / series.length : null;
-      prevSum = prevSeries.length > 0 ? prevSeries.reduce((a, b) => a + b, 0) : null;
+      prevSum =
+        prevSeries.length > 0 ? prevSeries.reduce((a, b) => a + b, 0) : null;
     }
     let momDeltaPct: number | null = null;
     if (prevSum !== null && prevSum !== 0) {
@@ -149,7 +239,8 @@ function buildCategory(
       sum: Math.round(sum * 10) / 10,
       aver: aver === null ? null : Math.round(aver * 10) / 10,
       previousSum: prevSum === null ? null : Math.round(prevSum * 10) / 10,
-      momDeltaPct: momDeltaPct === null ? null : Math.round(momDeltaPct * 10) / 10,
+      momDeltaPct:
+        momDeltaPct === null ? null : Math.round(momDeltaPct * 10) / 10,
     };
   });
 
@@ -171,7 +262,7 @@ function buildCategory(
   };
 }
 
-function isPopulated(r: DailyKpiTypeormEntity): boolean {
+function isPopulated(r: KpiLike): boolean {
   return (
     (r.marketingVisitor ?? 0) > 0 ||
     r.csCounseling > 0 ||
@@ -180,6 +271,31 @@ function isPopulated(r: DailyKpiTypeormEntity): boolean {
     r.csTrialClass > 0 ||
     r.classMapTest > 0
   );
+}
+
+/** Per-site row → KpiLike (OPERATING/CLASS have no site dimension → 0). */
+function siteRowToKpiLike(r: DailyKpiSiteTypeormEntity): KpiLike {
+  return {
+    marketingVisitor: r.marketingVisitor ?? null,
+    marketingCost: r.marketingCost ?? null,
+    marketingEffect: r.marketingEffect ?? null,
+    csCounseling: r.csCounseling,
+    csApply: r.csApply,
+    csBeginning: r.csBeginning,
+    csMissing: r.csMissing,
+    csTrialClass: r.csTrialClass,
+    csComplain: r.csComplain,
+    opsNewSt: 0,
+    opsOutSt: 0,
+    opsCountSt: 0,
+    opsNewTc: 0,
+    opsOutTc: 0,
+    opsCountTc: 0,
+    classMapTest: 0,
+    classTtClass: '0',
+    classStudent: 0,
+    classTeacher: 0,
+  };
 }
 
 @Injectable()
@@ -197,7 +313,10 @@ export class MonthlySummaryService {
     return rows.map((r) => r.ym);
   }
 
-  async getMonthlySummary(entId: string, yearMonth: string): Promise<MonthlySummaryResult> {
+  async getMonthlySummary(
+    entId: string,
+    yearMonth: string,
+  ): Promise<MonthlySummaryResult> {
     const repo = this.ds.getRepository(DailyKpiTypeormEntity);
     const prev = prevYearMonth(yearMonth);
     const [rows, prevRows] = await Promise.all([
@@ -206,23 +325,64 @@ export class MonthlySummaryService {
     ]);
     const previousYM = rows.length > 0 || prevRows.length > 0 ? prev : null;
     const populatedDayCount = rows.filter(isPopulated).length;
-    const categories = CATEGORY_ORDER.map((cat) => buildCategory(cat, rows, prevRows));
-    return { yearMonth, previousYearMonth: previousYM, populatedDayCount, categories };
+    const categories = CATEGORY_ORDER.map((cat) =>
+      buildCategory(cat, rows, prevRows),
+    );
+    return {
+      yearMonth,
+      previousYearMonth: previousYM,
+      populatedDayCount,
+      categories,
+    };
   }
 
-  async getRangeSummary(entId: string, from: string, to: string): Promise<RangeSummaryResult> {
-    const repo = this.ds.getRepository(DailyKpiTypeormEntity);
+  /**
+   * Range summary. PLN-260914B: with `site`, rows come from daily_kpi_site and
+   * only the site-aware categories (MARKETING, CS) are returned.
+   */
+  async getRangeSummary(
+    entId: string,
+    from: string,
+    to: string,
+    site?: DshSite,
+  ): Promise<RangeSummaryResult> {
     const lengthDays = diffDaysInclusive(from, to);
     const previousTo = isoAddDays(from, -1);
     const previousFrom = isoAddDays(previousTo, -(lengthDays - 1));
 
-    const [rows, prevRows] = await Promise.all([
-      repo.find({ where: { entId, date: Between(from, to) }, order: { date: 'ASC' } }),
-      repo.find({ where: { entId, date: Between(previousFrom, previousTo) }, order: { date: 'ASC' } }),
-    ]);
+    let rows: KpiLike[];
+    let prevRows: KpiLike[];
+    if (site) {
+      const repo = this.ds.getRepository(DailyKpiSiteTypeormEntity);
+      const [a, b] = await Promise.all([
+        repo.find({
+          where: { entId, site, date: Between(from, to) },
+          order: { date: 'ASC' },
+        }),
+        repo.find({
+          where: { entId, site, date: Between(previousFrom, previousTo) },
+          order: { date: 'ASC' },
+        }),
+      ]);
+      rows = a.map(siteRowToKpiLike);
+      prevRows = b.map(siteRowToKpiLike);
+    } else {
+      const repo = this.ds.getRepository(DailyKpiTypeormEntity);
+      [rows, prevRows] = await Promise.all([
+        repo.find({
+          where: { entId, date: Between(from, to) },
+          order: { date: 'ASC' },
+        }),
+        repo.find({
+          where: { entId, date: Between(previousFrom, previousTo) },
+          order: { date: 'ASC' },
+        }),
+      ]);
+    }
 
     const populatedDayCount = rows.filter(isPopulated).length;
-    const categories = CATEGORY_ORDER.map((cat) => buildCategory(cat, rows, prevRows));
+    const cats = site ? SITE_CATEGORIES : CATEGORY_ORDER;
+    const categories = cats.map((cat) => buildCategory(cat, rows, prevRows));
 
     return {
       from,
@@ -231,6 +391,7 @@ export class MonthlySummaryService {
       previousTo: prevRows.length > 0 ? previousTo : null,
       populatedDayCount,
       categories,
+      site,
     };
   }
 }

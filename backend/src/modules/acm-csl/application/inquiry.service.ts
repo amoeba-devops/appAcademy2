@@ -137,6 +137,7 @@ export class InquiryService {
       parentNameAuthTag: parentNameEnc?.authTag ?? null,
       inflowType: dto.inflowType,
       sourceSite: dto.sourceSite ?? null,
+      siteOverride: dto.siteOverride ?? null,
       applyType: dto.applyType,
       applyPurpose: dto.applyPurposes?.length
         ? dto.applyPurposes.join(',')
@@ -355,6 +356,8 @@ export class InquiryService {
       e.schoolFreetext = dto.schoolFreetext ?? null;
     if (dto.grade !== undefined) e.grade = dto.grade ?? null;
     if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
+    if (dto.siteOverride !== undefined)
+      e.siteOverride = dto.siteOverride ?? null;
     if (dto.applyType !== undefined) e.applyType = dto.applyType;
     if (dto.applyPurposes !== undefined)
       e.applyPurpose = dto.applyPurposes?.length
@@ -1137,6 +1140,7 @@ export class InquiryService {
       stdId: e.stdId ?? null,
       inflowType: e.inflowType,
       sourceSite: e.sourceSite ?? null,
+      siteOverride: e.siteOverride ?? null,
       applyType: e.applyType,
       applyPurposes: e.applyPurpose
         ? e.applyPurpose.split(',').filter(Boolean)

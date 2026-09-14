@@ -13,10 +13,20 @@ export class ManualInputTypeormEntity {
   @Column({ name: 'min_date', type: 'date' })
   date!: string;
 
+  /** PLN-260914B — site row (TPI/TRINITY/SANTACROCE); NULL = tenant-level (공통). */
+  @Column({ name: 'min_site', type: 'varchar', length: 20, nullable: true })
+  site?: string | null;
+
   @Column({ name: 'min_marketing_visitor', type: 'int', nullable: true })
   marketingVisitor?: number | null;
 
-  @Column({ name: 'min_marketing_cost', type: 'numeric', precision: 12, scale: 0, nullable: true })
+  @Column({
+    name: 'min_marketing_cost',
+    type: 'numeric',
+    precision: 12,
+    scale: 0,
+    nullable: true,
+  })
   marketingCost?: string | null;
 
   @Column({ name: 'min_marketing_effect', type: 'int', nullable: true })
@@ -25,13 +35,28 @@ export class ManualInputTypeormEntity {
   @Column({ name: 'min_cs_complain', type: 'int', nullable: true })
   csComplain?: number | null;
 
-  @Column({ name: 'min_input_status', type: 'varchar', length: 20, default: 'PENDING' })
+  @Column({
+    name: 'min_input_status',
+    type: 'varchar',
+    length: 20,
+    default: 'PENDING',
+  })
   status!: ManualInputStatus;
 
-  @Column({ name: 'min_visitor_source', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'min_visitor_source',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   visitorSource?: string | null;
 
-  @Column({ name: 'min_cost_source', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'min_cost_source',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   costSource?: string | null;
 
   @Column({ name: 'min_input_note', type: 'text', nullable: true })

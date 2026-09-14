@@ -12,6 +12,7 @@ import {
   type CategorySummary,
   type VisitorBreakdown,
 } from '@/modules/dsh/components/kpi-summary-cards';
+import { SiteComparisonTable } from '@/modules/dsh/components/site-comparison-table';
 import { toCsv, downloadCsv } from '@/modules/dsh/lib/export-csv';
 import { useGa4SyncNow } from '@/modules/cfg/hooks/use-ga4-config';
 import { useAuthStore } from '@/stores/auth.store';
@@ -24,6 +25,12 @@ type MetAggregationType =
   | 'DAILY_DISTINCT'
   | 'NET_DELTA'
   | 'COMPUTED';
+
+/** PLN-260914B — dashboard site dimension. */
+export type DshSiteTab = 'ALL' | 'TPI' | 'TRINITY' | 'SANTACROCE';
+const SITE_TABS: DshSiteTab[] = ['ALL', 'TPI', 'TRINITY', 'SANTACROCE'];
+/** Categories that carry a site dimension; OPERATING/CLASS are tenant-wide (통합 only). */
+const SITE_CATEGORIES: MetCategory[] = ['MARKETING', 'CS'];
 
 interface MetricDefinition {
   id: string;
@@ -76,6 +83,7 @@ interface RangeGridResult {
   siteVisits?: Record<string, Record<string, number>>;
   manualVisitorDates?: string[];
   ga4LastSyncAt?: string | null;
+  site?: string;
 }
 
 interface RangeSummaryResponse {
@@ -176,6 +184,10 @@ function ymOf(iso: string): string {
   return iso.slice(0, 7);
 }
 
+function parseSiteTab(raw: string | null): DshSiteTab {
+  return raw && (SITE_TABS as string[]).includes(raw) ? (raw as DshSiteTab) : 'ALL';
+}
+
 export function DashboardPage() {
   const { t, i18n } = useTranslation(['dsh', 'common']);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -186,6 +198,9 @@ export function DashboardPage() {
   const [activePreset, setActivePreset] = useState<PresetKey>(
     (searchParams.get('preset') as PresetKey | null) ?? 'thisMonth',
   );
+  // PLN-260914B — site tab (통합 / TPI / TRINITY / SANTACROCE)
+  const [site, setSite] = useState<DshSiteTab>(parseSiteTab(searchParams.get('site')));
+  const isSiteView = site !== 'ALL';
 
   const [manualOpen, setManualOpen] = useState(false);
   const [manualDate, setManualDate] = useState<string>(isoToday());
@@ -197,9 +212,10 @@ export function DashboardPage() {
     params.set('from', from);
     params.set('to', to);
     params.set('preset', activePreset);
+    params.set('site', site);
     setSearchParams(params, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [from, to, activePreset]);
+  }, [from, to, activePreset, site]);
 
   const applyPreset = (key: PresetKey) => {
     setActivePreset(key);
@@ -211,6 +227,7 @@ export function DashboardPage() {
   };
 
   const rangeKey = `${from}~${to}`;
+  const siteParam = isSiteView ? { site } : {};
 
   const metricsQ = useQuery({
     queryKey: ['dsh', 'metrics'],
@@ -218,26 +235,28 @@ export function DashboardPage() {
   });
 
   const gridQ = useQuery({
-    queryKey: ['dsh', 'grid', rangeKey],
+    queryKey: ['dsh', 'grid', rangeKey, site],
     queryFn: async () =>
       (
         await apiClient.get<RangeGridResult>('/acm/dsh/daily-kpi-range', {
-          params: { from, to },
+          params: { from, to, ...siteParam },
         })
       ).data,
     enabled: !!from && !!to && from <= to,
   });
 
   const summaryQ = useQuery({
-    queryKey: ['dsh', 'summary', rangeKey],
+    queryKey: ['dsh', 'summary', rangeKey, site],
     queryFn: async () =>
       (
         await apiClient.get<RangeSummaryResponse>('/acm/dsh/range-summary', {
-          params: { from, to },
+          params: { from, to, ...siteParam },
         })
       ).data,
     enabled: !!from && !!to && from <= to,
   });
+
+  const visibleCategories = isSiteView ? SITE_CATEGORIES : CATEGORY_ORDER;
 
   const grouped = useMemo(() => {
     const m: Record<MetCategory, MetricDefinition[]> = {
@@ -254,7 +273,7 @@ export function DashboardPage() {
   }, [metricsQ.data]);
 
   const isKr = i18n.language?.startsWith('ko');
-  const flatMetrics = CATEGORY_ORDER.flatMap((c) => grouped[c]);
+  const flatMetrics = visibleCategories.flatMap((c) => grouped[c]);
   const totalCols = 2 + flatMetrics.length;
 
   const handleExportCsv = () => {
@@ -283,7 +302,7 @@ export function DashboardPage() {
       );
     }
     const csv = toCsv([header, ...dataRows, sumRow, averRow]);
-    downloadCsv(`dsh-${from}_${to}.csv`, csv);
+    downloadCsv(`dsh-${site}-${from}_${to}.csv`, csv);
   };
 
   const onRowClick = (date: string) => {
@@ -300,7 +319,7 @@ export function DashboardPage() {
     if (!sv || !Object.keys(sv).length) return null;
     const bySite: Record<string, number> = {};
     for (const perSite of Object.values(sv)) {
-      for (const [site, n] of Object.entries(perSite)) bySite[site] = (bySite[site] ?? 0) + n;
+      for (const [s, n] of Object.entries(perSite)) bySite[s] = (bySite[s] ?? 0) + n;
     }
     return {
       bySite,
@@ -369,8 +388,33 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* PLN-260914B — site tabs */}
+      <div
+        className="flex flex-wrap gap-1 mb-3 border-b border-[var(--border-subtle)]"
+        role="tablist"
+        aria-label={t('site.label')}
+      >
+        {SITE_TABS.map((s) => (
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            aria-selected={site === s}
+            onClick={() => setSite(s)}
+            className={
+              'px-3 py-1.5 text-sm -mb-px border-b-2 transition-colors ' +
+              (site === s
+                ? 'border-[var(--accent-700,#4f46e5)] text-primary font-medium'
+                : 'border-transparent text-secondary hover:text-primary')
+            }
+          >
+            {t(`site.tabs.${s}`)}
+          </button>
+        ))}
+      </div>
+
       <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-3 flex flex-wrap items-end gap-3">
-        <div className="min-w-[140px] flex-1 sm:flex-none">
+        <div>
           <label className="text-xs text-secondary block mb-1">{t('range.from')}</label>
           <Input
             type="date"
@@ -380,10 +424,10 @@ export function DashboardPage() {
               setFrom(e.target.value);
               setActivePreset('custom');
             }}
-            className="w-full sm:w-[160px]"
+            className="w-[160px]"
           />
         </div>
-        <div className="min-w-[140px] flex-1 sm:flex-none">
+        <div>
           <label className="text-xs text-secondary block mb-1">{t('range.to')}</label>
           <Input
             type="date"
@@ -393,7 +437,7 @@ export function DashboardPage() {
               setTo(e.target.value);
               setActivePreset('custom');
             }}
-            className="w-full sm:w-[160px]"
+            className="w-[160px]"
           />
         </div>
         <div className="flex flex-wrap gap-1">
@@ -417,14 +461,19 @@ export function DashboardPage() {
             count: gridQ.data.populatedDayCount,
             total: gridQ.data.rows.length,
           })}
+          {isSiteView && <span className="ml-2">· {t('site.hiddenNote')}</span>}
         </p>
       )}
 
       <KpiSummaryCards
-        categories={summaryQ.data?.categories ?? []}
+        categories={(summaryQ.data?.categories ?? []).filter((c) =>
+          visibleCategories.includes(c.category),
+        )}
         isLoading={summaryQ.isLoading}
         visitorBreakdown={visitorBreakdown}
       />
+
+      {!isSiteView && <SiteComparisonTable from={from} to={to} />}
 
       {(metricsQ.isLoading || gridQ.isLoading) && (
         <p className="text-secondary">{t('common:status.loading')}</p>
@@ -444,7 +493,7 @@ export function DashboardPage() {
                 <th className="px-2 py-1 text-left" rowSpan={2}>
                   {t('grid.dow')}
                 </th>
-                {CATEGORY_ORDER.map((cat) => (
+                {visibleCategories.map((cat) => (
                   <th
                     key={cat}
                     className="px-2 py-1 text-center border-l border-[var(--border-subtle)]"
@@ -584,12 +633,14 @@ export function DashboardPage() {
         open={manualOpen}
         onOpenChange={setManualOpen}
         initialDate={manualDate}
+        initialSite={isSiteView ? site : undefined}
         invalidateKey={rangeKey}
       />
       <ComplaintDialog
         open={complaintOpen}
         onOpenChange={setComplaintOpen}
         yearMonth={ymOf(to)}
+        initialSite={isSiteView ? site : undefined}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -13,14 +14,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+type ComplaintSite = 'COMMON' | 'TPI' | 'TRINITY' | 'SANTACROCE';
+const SITES: ComplaintSite[] = ['COMMON', 'TPI', 'TRINITY', 'SANTACROCE'];
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   yearMonth: string;
+  /** PLN-260914B — preselect a site (from the site tab). */
+  initialSite?: Exclude<ComplaintSite, 'COMMON'>;
 }
 
 interface FormInput {
   date: string;
+  site: ComplaintSite;
   channel: 'PHONE' | 'EMAIL' | 'CHAT' | 'IN_PERSON' | 'OTHER';
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
   subject?: string;
@@ -32,12 +39,21 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function ComplaintDialog({ open, onOpenChange, yearMonth }: Props) {
+export function ComplaintDialog({ open, onOpenChange, yearMonth, initialSite }: Props) {
   const { t } = useTranslation('dsh');
   const qc = useQueryClient();
-  const { register, handleSubmit, reset } = useForm<FormInput>({
-    defaultValues: { date: todayIso(), channel: 'PHONE', severity: 'MEDIUM' },
+  const defaults = (): FormInput => ({
+    date: todayIso(),
+    site: initialSite ?? 'COMMON',
+    channel: 'PHONE',
+    severity: 'MEDIUM',
   });
+  const { register, handleSubmit, reset } = useForm<FormInput>({ defaultValues: defaults() });
+
+  useEffect(() => {
+    if (open) reset(defaults());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialSite]);
 
   const mutation = useMutation({
     mutationFn: async (data: FormInput) => {
@@ -46,12 +62,14 @@ export function ComplaintDialog({ open, onOpenChange, yearMonth }: Props) {
       if (data.subject) body.subject = data.subject;
       if (data.description) body.description = data.description;
       if (data.linkedQnaId) body.linkedQnaId = data.linkedQnaId;
+      if (data.site && data.site !== 'COMMON') body.site = data.site; // PLN-260914B
       return apiClient.post(`/acm/dsh/complaints`, body);
     },
     onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dsh'] });
       qc.invalidateQueries({ queryKey: ['dsh', 'grid', yearMonth] });
       qc.invalidateQueries({ queryKey: ['dsh', 'complaints'] });
-      reset({ date: todayIso(), channel: 'PHONE', severity: 'MEDIUM' });
+      reset(defaults());
       onOpenChange(false);
     },
   });
@@ -60,7 +78,7 @@ export function ComplaintDialog({ open, onOpenChange, yearMonth }: Props) {
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) reset({ date: todayIso(), channel: 'PHONE', severity: 'MEDIUM' });
+        if (!o) reset(defaults());
         onOpenChange(o);
       }}
     >
@@ -72,6 +90,19 @@ export function ComplaintDialog({ open, onOpenChange, yearMonth }: Props) {
           <div>
             <Label>{t('complaint.date')}</Label>
             <Input type="date" {...register('date', { required: true })} />
+          </div>
+          <div>
+            <Label>{t('complaint.site')}</Label>
+            <select
+              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 text-sm"
+              {...register('site')}
+            >
+              {SITES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`site.tabs.${s}`)}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <Label>{t('complaint.channel')}</Label>

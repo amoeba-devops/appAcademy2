@@ -8,8 +8,17 @@ import {
 } from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
 import { ManualInputTypeormEntity } from '../infrastructure/typeorm/manual-input.typeorm-entity';
 import { ComplaintTypeormEntity } from '../infrastructure/typeorm/complaint.typeorm-entity';
-import { Between } from 'typeorm';
+import { DailyKpiSiteTypeormEntity } from '../infrastructure/typeorm/daily-kpi-site.typeorm-entity';
+import { Between, IsNull } from 'typeorm';
 import type { UpsertDailyKpiManualDto } from './dto/daily-kpi-manual.dto';
+import {
+  DSH_SITES,
+  DSH_SITE_COMMON,
+  DSH_SITE_ROWS,
+  INQ_SITE_SQL,
+  type DshSite,
+  type DshSiteOrCommon,
+} from './dsh-site.util';
 
 const DOW_EN: DkpDayOfWeek[] = [
   'SUN',
@@ -43,6 +52,19 @@ export interface RangeGridResult {
   manualVisitorDates: string[];
   /** Last successful/failed GA4 sync timestamp of the active config, if any */
   ga4LastSyncAt: string | null;
+  /** PLN-260914B — site filter applied (undefined = tenant total) */
+  site?: DshSite;
+}
+
+/** PLN-260914B — one row of the consolidated site comparison table. */
+export interface SiteComparisonRow {
+  site: DshSiteOrCommon | 'TOTAL';
+  visitor: number | null;
+  counseling: number;
+  apply: number;
+  effect: number;
+  cost: number;
+  complain: number;
 }
 
 /** Override mkt_effect = cs_counseling + cs_apply on the in-memory row. */
@@ -167,12 +189,16 @@ export class DailyKpiService {
     entId: string,
     from: string,
     to: string,
+    site?: DshSite,
   ): Promise<RangeGridResult> {
     const repo = this.ds.getRepository(DailyKpiTypeormEntity);
-    const rows = await repo.find({
-      where: { entId, date: Between(from, to) },
-      order: { date: 'ASC' },
-    });
+    // PLN-260914B — site view reads the per-site table and presents it in the daily_kpi shape
+    const rows = site
+      ? await this.loadSiteRowsAsKpi(entId, from, to, site)
+      : await repo.find({
+          where: { entId, date: Between(from, to) },
+          order: { date: 'ASC' },
+        });
     applyEffectOverride(rows);
 
     const sums: Record<string, number> = {
@@ -259,8 +285,9 @@ export class DailyKpiService {
       `SELECT svt_date::text AS d, svt_site AS site, svt_visitors::text AS v
          FROM amb_acm_dsh_site_visit
         WHERE ent_id = $1 AND svt_date BETWEEN $2 AND $3
+          AND ($4::text IS NULL OR svt_site = $4)
         ORDER BY svt_date, svt_site`,
-      [entId, from, to],
+      [entId, from, to, site ?? null],
     );
     const siteVisits: Record<string, Record<string, number>> = {};
     for (const r of svtRows) {
@@ -270,8 +297,9 @@ export class DailyKpiService {
     const manualRows = await this.ds.query<{ d: string }[]>(
       `SELECT min_date::text AS d FROM amb_acm_dsh_manual_inputs
         WHERE ent_id = $1 AND min_date BETWEEN $2 AND $3
-          AND min_marketing_visitor IS NOT NULL AND min_deleted_at IS NULL`,
-      [entId, from, to],
+          AND min_marketing_visitor IS NOT NULL AND min_deleted_at IS NULL
+          AND (($4::text IS NULL AND min_site IS NULL) OR min_site = $4)`,
+      [entId, from, to, site ?? null],
     );
     const manualVisitorDates = manualRows.map((r) => r.d);
     const gacRows = await this.ds.query<{ at: string | null }[]>(
@@ -291,6 +319,7 @@ export class DailyKpiService {
       siteVisits,
       manualVisitorDates,
       ga4LastSyncAt,
+      site,
     };
   }
 
@@ -504,18 +533,44 @@ export class DailyKpiService {
     // complaint count from complaints table
     const cmpCnt = await cmpRepo.count({ where: { entId, date: isoDate } });
 
-    // manual input
-    const manual = await minRepo.findOne({ where: { entId, date: isoDate } });
+    // manual input — PLN-260914B: tenant-level row (site NULL) + optional per-site rows
+    const manualRows = await minRepo.find({
+      where: { entId, date: isoDate, deletedAt: IsNull() },
+    });
+    const manual = manualRows.find((m) => !m.site) ?? null;
+    const manualSiteRows = manualRows.filter((m) => !!m.site);
+    const costVals = manualRows
+      .map((m) => m.marketingCost)
+      .filter((v): v is string => v !== null && v !== undefined && v !== '');
+    const manualCostTotal = costVals.length
+      ? String(costVals.reduce((s, v) => s + Number(v), 0))
+      : null;
+    const manualComplainTotal = manualRows.reduce(
+      (s, m) => s + (m.csComplain ?? 0),
+      0,
+    );
 
-    // PLN-260912 — GA4 site visits (sum over sites); manual input wins when present
-    const svtQ = await this.ds.query<{ s: string; c: string }[]>(
-      `SELECT COALESCE(SUM(svt_visitors),0)::text AS s, COUNT(*)::text AS c
+    // PLN-260912/PLN-260914B — tenant visitor = tenant manual ?? Σ_site (site manual ?? GA4 site visits)
+    const svtQ = await this.ds.query<{ site: string; s: string }[]>(
+      `SELECT svt_site AS site, COALESCE(SUM(svt_visitors),0)::text AS s
          FROM amb_acm_dsh_site_visit
-        WHERE ent_id = $1 AND svt_date = $2`,
+        WHERE ent_id = $1 AND svt_date = $2
+        GROUP BY svt_site`,
       [entId, isoDate],
     );
-    const ga4Visitor =
-      Number(svtQ[0]?.c ?? 0) > 0 ? Number(svtQ[0]?.s ?? 0) : null;
+    const ga4BySite: Record<string, number> = {};
+    for (const r of svtQ) ga4BySite[r.site] = Number(r.s);
+    let siteVisitorSum = 0;
+    let siteVisitorAny = false;
+    for (const site of DSH_SITES) {
+      const m = manualSiteRows.find((r) => r.site === site);
+      const v = m?.marketingVisitor ?? ga4BySite[site] ?? null;
+      if (v !== null && v !== undefined) {
+        siteVisitorSum += Number(v);
+        siteVisitorAny = true;
+      }
+    }
+    const ga4Visitor = siteVisitorAny ? siteVisitorSum : null;
 
     // upsert daily_kpi row
     await this.ds.transaction(async (em) => {
@@ -535,14 +590,14 @@ export class DailyKpiService {
         dayOfWeek: DOW_EN[dow],
         dayOfWeekKr: DOW_KR[dow],
         marketingVisitor: manual?.marketingVisitor ?? ga4Visitor,
-        marketingCost: manual?.marketingCost ?? null,
+        marketingCost: manualCostTotal,
         marketingEffect: manual?.marketingEffect ?? null,
         csCounseling: cs_counseling,
         csApply: cs_apply,
         csBeginning: cs_beginning,
         csMissing: cs_missing,
         csTrialClass: cs_trial_class,
-        csComplain: (manual?.csComplain ?? 0) + cmpCnt,
+        csComplain: manualComplainTotal + cmpCnt,
         opsNewSt: 0,
         opsOutSt: 0,
         opsCountSt: ops_count_st,
@@ -571,9 +626,258 @@ export class DailyKpiService {
       }
     });
 
+    // PLN-260914B — per-site breakdown rows (MARKETING + CS)
+    await this.recomputeSiteRows(
+      entId,
+      isoDate,
+      yearMonth,
+      manual,
+      manualSiteRows,
+      cmpCnt,
+    );
+
     this.logger.log(
       `recomputeDay ent=${entId} date=${isoDate} reason=${reason}`,
     );
+  }
+
+  /**
+   * PLN-260914B — compute TPI / TRINITY / SANTACROCE / COMMON rows for one day.
+   * Inquiry site = COALESCE(inq_site_override, inq_source_site, 'COMMON');
+   * derived CS metrics follow their inquiry. Visitors come from site_visit
+   * (manual site row wins); cost/complain from the matching manual row.
+   */
+  private async recomputeSiteRows(
+    entId: string,
+    isoDate: string,
+    yearMonth: string,
+    manualCommon: ManualInputTypeormEntity | null,
+    manualSiteRows: ManualInputTypeormEntity[],
+    complaintTotal: number,
+  ): Promise<void> {
+    type SiteCount = { site: string; c: string };
+    const bySite = (rows: SiteCount[]): Record<string, number> =>
+      Object.fromEntries(rows.map((r) => [r.site, Number(r.c)]));
+    const q = (sql: string) =>
+      this.ds.query<SiteCount[]>(sql, [entId, isoDate]).then(bySite);
+
+    const [counseling, apply, beginning, missing, trial, complaints, visits] =
+      await Promise.all([
+        q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
+             FROM amb_acm_csl_inquiry i
+            WHERE i.ent_id = $1 AND i.inq_registered_at = $2
+            GROUP BY 1`),
+        q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
+             FROM amb_acm_csl_enrollment e
+             JOIN amb_acm_csl_inquiry i ON i.inq_id = e.inq_id
+            WHERE e.ent_id = $1 AND e.enr_applied = true
+              AND DATE(e.updated_at AT TIME ZONE 'Asia/Seoul') = $2
+            GROUP BY 1`),
+        q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
+             FROM amb_acm_csl_enrollment e
+             JOIN amb_acm_csl_inquiry i ON i.inq_id = e.inq_id
+            WHERE e.ent_id = $1 AND e.cls_started_at = $2
+            GROUP BY 1`),
+        q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
+             FROM amb_acm_csl_transition t
+             JOIN amb_acm_csl_inquiry i ON i.inq_id = t.inq_id
+            WHERE t.ent_id = $1 AND t.to_status = 'DROPPED'
+              AND DATE(t.occurred_at AT TIME ZONE 'Asia/Seoul') = $2
+            GROUP BY 1`),
+        q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
+             FROM amb_acm_csl_trial_class tc
+             JOIN amb_acm_csl_inquiry i ON i.inq_id = tc.inq_id
+            WHERE tc.ent_id = $1 AND tc.tcl_held_at = $2
+            GROUP BY 1`),
+        q(`SELECT COALESCE(cmp_site, 'COMMON') AS site, COUNT(*)::text AS c
+             FROM amb_acm_dsh_complaints
+            WHERE ent_id = $1 AND cmp_date = $2 AND cmp_deleted_at IS NULL
+            GROUP BY 1`),
+        q(`SELECT svt_site AS site, COALESCE(SUM(svt_visitors),0)::text AS c
+             FROM amb_acm_dsh_site_visit
+            WHERE ent_id = $1 AND svt_date = $2
+            GROUP BY 1`),
+      ]);
+    void complaintTotal; // tenant total already applied to daily_kpi; per-site uses `complaints`
+
+    const now = new Date();
+    const rows = DSH_SITE_ROWS.map((site) => {
+      const isCommon = site === DSH_SITE_COMMON;
+      const m = isCommon
+        ? manualCommon
+        : (manualSiteRows.find((r) => r.site === site) ?? null);
+      const cs_counseling = counseling[site] ?? 0;
+      const cs_apply = apply[site] ?? 0;
+      const visitor = isCommon
+        ? null
+        : (m?.marketingVisitor ?? (site in visits ? visits[site] : null));
+      return {
+        entId,
+        site,
+        date: isoDate,
+        yearMonth,
+        marketingVisitor: visitor,
+        marketingCost: m?.marketingCost ?? null,
+        marketingEffect: cs_counseling + cs_apply,
+        csCounseling: cs_counseling,
+        csApply: cs_apply,
+        csBeginning: beginning[site] ?? 0,
+        csMissing: missing[site] ?? 0,
+        csTrialClass: trial[site] ?? 0,
+        csComplain: (complaints[site] ?? 0) + (m?.csComplain ?? 0),
+        computedAt: now,
+        createdAt: now,
+        updatedAt: now,
+      };
+    });
+
+    await this.ds.transaction(async (em) => {
+      const repo = em.getRepository(DailyKpiSiteTypeormEntity);
+      await repo.delete({ entId, date: isoDate });
+      await repo.insert(rows);
+    });
+  }
+
+  /** PLN-260914B — per-site rows presented in the daily_kpi row shape (OPERATING/CLASS = 0). */
+  private async loadSiteRowsAsKpi(
+    entId: string,
+    from: string,
+    to: string,
+    site: DshSite,
+  ): Promise<DailyKpiTypeormEntity[]> {
+    const repo = this.ds.getRepository(DailyKpiSiteTypeormEntity);
+    const siteRows = await repo.find({
+      where: { entId, site, date: Between(from, to) },
+      order: { date: 'ASC' },
+    });
+    return siteRows.map((r) => {
+      const iso =
+        typeof r.date === 'string'
+          ? r.date
+          : new Date(r.date).toISOString().slice(0, 10);
+      const d = new Date(`${iso}T00:00:00Z`);
+      const dow = d.getUTCDay();
+      const kpi = new DailyKpiTypeormEntity();
+      Object.assign(kpi, {
+        id: r.id,
+        entId,
+        date: iso,
+        yearMonth: r.yearMonth,
+        dayOfMonth: d.getUTCDate(),
+        dayOfWeek: DOW_EN[dow],
+        dayOfWeekKr: DOW_KR[dow],
+        marketingVisitor: r.marketingVisitor ?? null,
+        marketingCost: r.marketingCost ?? null,
+        marketingEffect: r.marketingEffect ?? null,
+        csCounseling: r.csCounseling,
+        csApply: r.csApply,
+        csBeginning: r.csBeginning,
+        csMissing: r.csMissing,
+        csTrialClass: r.csTrialClass,
+        csComplain: r.csComplain,
+        opsNewSt: 0,
+        opsOutSt: 0,
+        opsCountSt: 0,
+        opsNewTc: 0,
+        opsOutTc: 0,
+        opsCountTc: 0,
+        classMapTest: 0,
+        classTtClass: '0',
+        classStudent: 0,
+        classTeacher: 0,
+        computedAt: r.computedAt,
+        computationStatus: 'FRESH',
+        dataCompleteness: 'COMPLETE',
+        manuallyOverridden: false,
+        lastRecomputeReason: 'site_view',
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      });
+      return kpi;
+    });
+  }
+
+  /**
+   * PLN-260914B — consolidated comparison: per-site sums over [from,to] plus the
+   * tenant TOTAL taken from daily_kpi (the source of truth for the 통합 tab).
+   */
+  async getSiteComparison(
+    entId: string,
+    from: string,
+    to: string,
+  ): Promise<{ from: string; to: string; rows: SiteComparisonRow[] }> {
+    type AggRow = {
+      site: string;
+      visitor: string | null;
+      counseling: string;
+      apply: string;
+      cost: string | null;
+      complain: string;
+    };
+    const agg = await this.ds.query<AggRow[]>(
+      `SELECT dks_site AS site,
+              SUM(dks_marketing_visitor)::text AS visitor,
+              COALESCE(SUM(dks_cs_counseling),0)::text AS counseling,
+              COALESCE(SUM(dks_cs_apply),0)::text AS apply,
+              SUM(dks_marketing_cost)::text AS cost,
+              COALESCE(SUM(dks_cs_complain),0)::text AS complain
+         FROM amb_acm_dsh_daily_kpi_site
+        WHERE ent_id = $1 AND dks_date BETWEEN $2 AND $3
+        GROUP BY dks_site`,
+      [entId, from, to],
+    );
+    const byCode = new Map(agg.map((r) => [r.site, r]));
+    const rows: SiteComparisonRow[] = DSH_SITE_ROWS.map((site) => {
+      const r = byCode.get(site);
+      const counseling = Number(r?.counseling ?? 0);
+      const apply = Number(r?.apply ?? 0);
+      return {
+        site,
+        visitor:
+          r?.visitor === null || r?.visitor === undefined
+            ? null
+            : Number(r.visitor),
+        counseling,
+        apply,
+        effect: counseling + apply,
+        cost: Number(r?.cost ?? 0),
+        complain: Number(r?.complain ?? 0),
+      };
+    });
+    const total = await this.ds.query<
+      {
+        visitor: string | null;
+        counseling: string;
+        apply: string;
+        cost: string | null;
+        complain: string;
+      }[]
+    >(
+      `SELECT SUM(dkp_marketing_visitor)::text AS visitor,
+              COALESCE(SUM(dkp_cs_counseling),0)::text AS counseling,
+              COALESCE(SUM(dkp_cs_apply),0)::text AS apply,
+              SUM(dkp_marketing_cost)::text AS cost,
+              COALESCE(SUM(dkp_cs_complain),0)::text AS complain
+         FROM amb_acm_dsh_daily_kpi
+        WHERE ent_id = $1 AND dkp_date BETWEEN $2 AND $3`,
+      [entId, from, to],
+    );
+    const t = total[0];
+    const tc = Number(t?.counseling ?? 0);
+    const ta = Number(t?.apply ?? 0);
+    rows.push({
+      site: 'TOTAL',
+      visitor:
+        t?.visitor === null || t?.visitor === undefined
+          ? null
+          : Number(t.visitor),
+      counseling: tc,
+      apply: ta,
+      effect: tc + ta,
+      cost: Number(t?.cost ?? 0),
+      complain: Number(t?.complain ?? 0),
+    });
+    return { from, to, rows };
   }
 
   /**

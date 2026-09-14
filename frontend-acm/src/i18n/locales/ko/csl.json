@@ -189,7 +189,8 @@
         "applyType": "신청유형",
         "consultDone": "상담완료",
         "registeredAt": "등록일",
-        "isAnonymous": "익명"
+        "isAnonymous": "익명",
+        "siteOverride": "대시보드 사이트"
       }
     },
     "backToList": "상담 목록으로",
@@ -394,5 +395,10 @@
     "TPI": "TPI",
     "TRINITY": "트리니티",
     "SANTACROCE": "산타크로체"
+  },
+  "siteOverride": {
+    "none": "미지정(공통)",
+    "common": "공통",
+    "effective": "대시보드 귀속: {{site}}"
   }
 }

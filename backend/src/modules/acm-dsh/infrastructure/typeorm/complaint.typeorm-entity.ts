@@ -1,6 +1,11 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export type ComplaintChannel = 'PHONE' | 'EMAIL' | 'CHAT' | 'IN_PERSON' | 'OTHER';
+export type ComplaintChannel =
+  | 'PHONE'
+  | 'EMAIL'
+  | 'CHAT'
+  | 'IN_PERSON'
+  | 'OTHER';
 export type ComplaintSeverity = 'LOW' | 'MEDIUM' | 'HIGH';
 
 @Entity('amb_acm_dsh_complaints')
@@ -17,7 +22,12 @@ export class ComplaintTypeormEntity {
   @Column({ name: 'cmp_channel', type: 'varchar', length: 20 })
   channel!: ComplaintChannel;
 
-  @Column({ name: 'cmp_severity', type: 'varchar', length: 10, default: 'MEDIUM' })
+  @Column({
+    name: 'cmp_severity',
+    type: 'varchar',
+    length: 10,
+    default: 'MEDIUM',
+  })
   severity!: ComplaintSeverity;
 
   @Column({ name: 'cmp_subject', type: 'varchar', length: 200, nullable: true })
@@ -28,6 +38,10 @@ export class ComplaintTypeormEntity {
 
   @Column({ name: 'cmp_linked_qna_id', type: 'uuid', nullable: true })
   linkedQnaId?: string | null;
+
+  /** PLN-260914B — site attribution (TPI/TRINITY/SANTACROCE); NULL = 공통. */
+  @Column({ name: 'cmp_site', type: 'varchar', length: 20, nullable: true })
+  site?: string | null;
 
   @Column({ name: 'cmp_created_by', type: 'uuid', nullable: true })
   createdBy?: string | null;
