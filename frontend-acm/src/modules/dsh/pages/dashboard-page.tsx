@@ -370,7 +370,7 @@ export function DashboardPage() {
       </div>
 
       <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-3 flex flex-wrap items-end gap-3">
-        <div>
+        <div className="min-w-[140px] flex-1 sm:flex-none">
           <label className="text-xs text-secondary block mb-1">{t('range.from')}</label>
           <Input
             type="date"
@@ -380,10 +380,10 @@ export function DashboardPage() {
               setFrom(e.target.value);
               setActivePreset('custom');
             }}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
           />
         </div>
-        <div>
+        <div className="min-w-[140px] flex-1 sm:flex-none">
           <label className="text-xs text-secondary block mb-1">{t('range.to')}</label>
           <Input
             type="date"
@@ -393,7 +393,7 @@ export function DashboardPage() {
               setTo(e.target.value);
               setActivePreset('custom');
             }}
-            className="w-[160px]"
+            className="w-full sm:w-[160px]"
           />
         </div>
         <div className="flex flex-wrap gap-1">

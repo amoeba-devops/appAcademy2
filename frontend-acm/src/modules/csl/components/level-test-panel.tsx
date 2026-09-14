@@ -557,7 +557,7 @@ function ScoreEditorBlock({
       </div>
 
       {testType === 'MAP' ? (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* English-fixed labels per FR-CSL-102 */}
           <Field label="Reading">
             <input
@@ -661,7 +661,7 @@ function ResultPreviewDialog({
         {!row ? (
           <p className="text-sm text-secondary">-</p>
         ) : row.testType === 'MAP' ? (
-          <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <PreviewItem label="Reading" value={row.scoreReading} />
             <PreviewItem label="Math" value={row.scoreMath} />
             <PreviewItem label="Language Usage" value={row.scoreLanguage} />

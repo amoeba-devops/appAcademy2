@@ -272,7 +272,7 @@ export function CslCreateDialog() {
           </div>
 
           {/* Consult done + registered + followup */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Field label={t('form.consultDone')}>
               <Select {...register('consultDone')}>
                 <option value="">{t('common:dash')}</option>

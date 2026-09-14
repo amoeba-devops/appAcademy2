@@ -60,7 +60,7 @@ export function StfListPage() {
         </select>
       </div>
 
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-secondary">
           {t('table.total', { count: data?.total ?? 0 })}
         </p>

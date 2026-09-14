@@ -276,7 +276,7 @@ export function CalStatsPage() {
 
           {/* 강사별 — 리스트/카드 토글 */}
           <div>
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-primary">
                 {t('stats.byTeacher', '강사별 수업통계')}
               </span>

@@ -186,7 +186,7 @@ export function StdDetailPage() {
 
       {/* 학부모 */}
       <div className="rounded-lg border border-[var(--border-subtle)] p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xs font-semibold uppercase tracking-wide text-secondary">
             {t('form.sectionParents', '학부모 정보')}
           </h3>
@@ -202,7 +202,7 @@ export function StdDetailPage() {
         )}
         <div className="divide-y divide-[var(--border-subtle)]">
           {student.parents?.map((p) => (
-            <div key={p.linkId} className="flex items-center justify-between gap-3 py-2">
+            <div key={p.linkId} className="flex flex-wrap items-center justify-between gap-3 py-2">
               <div className="min-w-0">
                 <div className="text-sm font-medium text-primary">
                   {p.name}

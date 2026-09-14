@@ -64,8 +64,8 @@ export function BenchmarkList() {
         <p className="text-secondary py-12 text-center">{t('empty.benchmarks')}</p>
       )}
       {(data?.length ?? 0) > 0 && (
-        <div className="rounded-lg bg-surface border border-[var(--border-subtle)] overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-lg bg-surface border border-[var(--border-subtle)] overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-[var(--gray-100)] text-secondary">
               <tr>
                 <th className="text-left px-4 py-3">{t('table.code')}</th>

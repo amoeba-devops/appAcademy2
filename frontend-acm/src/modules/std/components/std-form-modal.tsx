@@ -258,7 +258,7 @@ export function StdFormModal({ open, onClose, initial, prefill }: StdFormModalPr
               해당 필드에 구체적 오류를 표시해 운영자가 바로잡을 수 있게 한다. */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">{t('form.sectionMap')}</legend>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {(['stdMapReading', 'stdMapMath', 'stdMapLanguage'] as const).map((name, i) => (
                 <div key={name}>
                   <label className={labelClass}>

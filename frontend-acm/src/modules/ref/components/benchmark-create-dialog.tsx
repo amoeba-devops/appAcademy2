@@ -143,7 +143,7 @@ export function BenchmarkCreateDialog() {
           onSubmit={handleSubmit((d) => mutation.mutate(d))}
           className="space-y-4 py-2"
         >
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label>{t('form.code')}</Label>
               <Input {...register('code')} placeholder="MAP_G5_TARGET" />
@@ -177,7 +177,7 @@ export function BenchmarkCreateDialog() {
           {examType === 'MAP' ? (
             <div className="rounded-md border border-[var(--border-subtle)] p-3">
               <p className="text-sm font-medium mb-2">MAP</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>{t('form.mapReadingScore')}</Label>
                   <Input

@@ -28,7 +28,9 @@ export const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-surface p-6 shadow-lg',
+        // PLN-260914 — 모바일에서는 좌우 여백을 남기고 화면 높이를 넘지 않게 스크롤.
+        'fixed left-1/2 top-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-surface p-4 sm:p-6 shadow-lg sm:w-full',
+        'max-h-[90vh] overflow-y-auto overscroll-contain',
         className,
       )}
       {...props}
