@@ -10,6 +10,7 @@ import { ProcessSection } from '../components/home/process-section';
 import { EquipSlider } from '../components/home/equip-slider';
 import { ResultsSection } from '../components/home/results-section';
 import { ContactCtaBanner } from '../components/home/contact-cta-banner';
+import { ShopTalkWidget } from '@/components/integrations/shoptalk-widget';
 
 // Section order mirrors live www.tpi.co.kr — REQ-260520 v3.2.
 // Deprecated (files preserved for rollback, import 0):
@@ -31,6 +32,8 @@ export function PortalHomePage() {
       <EquipSlider />
       <ResultsSection />
       <ContactCtaBanner />
+      {/* 요구 260914C — 랜딩페이지 상담 위젯 (SharpTalk). */}
+      <ShopTalkWidget />
     </>
   );
 }
