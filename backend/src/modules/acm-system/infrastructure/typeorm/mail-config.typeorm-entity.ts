@@ -35,6 +35,15 @@ export class MailConfigTypeormEntity {
   @Column({ name: 'mlc_from_address', type: 'varchar', length: 200, nullable: true })
   fromAddress?: string | null;
 
+  /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
+  @Column({
+    name: 'mlc_operator_emails',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
+  operatorEmails?: string | null;
+
   @Column({ name: 'mlc_is_active', type: 'boolean', default: true })
   isActive!: boolean;
 

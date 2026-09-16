@@ -245,7 +245,8 @@
     "closeMenu": "Đóng menu",
     "expandMenu": "Mở rộng menu",
     "collapseMenu": "Thu gọn menu",
-    "mainMenu": "Menu chính"
+    "mainMenu": "Menu chính",
+    "mapApply": "Đăng ký MAP test"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -458,6 +459,10 @@
         },
         "isActive": {
           "label": "Kích hoạt (cho phép gửi)"
+        },
+        "operatorEmails": {
+          "label": "Email nhận thông báo vận hành",
+          "hint": "Đăng ký MAP test mới sẽ được gửi tới các địa chỉ này. Phân tách bằng dấu phẩy; để trống sẽ không gửi."
         }
       },
       "test": {
@@ -506,6 +511,10 @@
         },
         "isActive": {
           "label": "Kích hoạt (cho phép gửi)"
+        },
+        "templateIdMapApply": {
+          "label": "ID mẫu tiếp nhận MAP test",
+          "hint": "Mẫu xác nhận đăng ký MAP test. Để trống sẽ không gửi AlimTalk. Biến giống như trên."
         }
       },
       "test": {

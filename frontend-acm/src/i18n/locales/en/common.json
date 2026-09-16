@@ -245,7 +245,8 @@
     "closeMenu": "Close menu",
     "expandMenu": "Expand menu",
     "collapseMenu": "Collapse menu",
-    "mainMenu": "Main menu"
+    "mainMenu": "Main menu",
+    "mapApply": "MAP test applications"
   },
   "lang": {
     "label": "Language",
@@ -458,6 +459,10 @@
         },
         "isActive": {
           "label": "Enabled (allow sending)"
+        },
+        "operatorEmails": {
+          "label": "Operator notification emails",
+          "hint": "New MAP-test applications are emailed to these addresses. Comma-separated; leave empty to disable."
         }
       },
       "test": {
@@ -506,6 +511,10 @@
         },
         "isActive": {
           "label": "Enabled (allow sending)"
+        },
+        "templateIdMapApply": {
+          "label": "MAP test intake template ID",
+          "hint": "Template for MAP-test application confirmations. Leave empty to skip the AlimTalk. Same variables as above."
         }
       },
       "test": {

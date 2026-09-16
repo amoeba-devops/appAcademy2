@@ -18,6 +18,8 @@ export interface KakaoConfigView {
   apiSecretIsSet: boolean;
   pfId: string | null;
   templateId: string | null;
+  /** CSL-PLN-260916 — 맵테스트 접수 확인용 템플릿 */
+  templateIdMapApply: string | null;
   senderPhone: string | null;
   smsFallback: boolean;
   isActive: boolean;
@@ -55,6 +57,7 @@ export class KakaoConfigService {
       apiSecret?: string;
       pfId?: string;
       templateId?: string;
+      templateIdMapApply?: string;
       senderPhone?: string;
       smsFallback?: boolean;
       isActive?: boolean;
@@ -66,6 +69,9 @@ export class KakaoConfigService {
     if (dto.pfId !== undefined) row.pfId = dto.pfId.trim() || null;
     if (dto.templateId !== undefined) {
       row.templateId = dto.templateId.trim() || null;
+    }
+    if (dto.templateIdMapApply !== undefined) {
+      row.templateIdMapApply = dto.templateIdMapApply.trim() || null;
     }
     if (dto.senderPhone !== undefined) {
       row.senderPhone = dto.senderPhone.replace(/[^0-9]/g, '') || null;
@@ -108,12 +114,24 @@ export class KakaoConfigService {
     };
   }
 
+  /**
+   * CSL-PLN-260916 — 맵테스트 접수 확인 알림톡 템플릿 ID.
+   * 발송 설정이 완비되지 않았거나 템플릿이 비어 있으면 null (발송 생략).
+   */
+  async getMapApplyTemplateId(entId: string): Promise<string | null> {
+    const cfg = await this.getSendConfig(entId);
+    if (!cfg) return null;
+    const row = await this.repo.findOne({ where: { entId } });
+    return row?.templateIdMapApply?.trim() || null;
+  }
+
   private toView(row: KakaoConfigTypeormEntity | null): KakaoConfigView {
     return {
       apiKey: row?.apiKey ?? null,
       apiSecretIsSet: !!row?.apiSecretEnc?.length,
       pfId: row?.pfId ?? null,
       templateId: row?.templateId ?? null,
+      templateIdMapApply: row?.templateIdMapApply ?? null,
       senderPhone: row?.senderPhone ?? null,
       smsFallback: row?.smsFallback ?? false,
       isActive: row?.isActive ?? true,

@@ -11,6 +11,8 @@ export interface MailConfig {
   passwordIsSet: boolean;
   fromName: string | null;
   fromAddress: string | null;
+  /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
+  operatorEmails: string | null;
   isActive: boolean;
   updatedAt: string | null;
 }
@@ -24,6 +26,7 @@ export interface UpdateMailConfigInput {
   password?: string;
   fromName?: string;
   fromAddress?: string;
+  operatorEmails?: string;
   isActive?: boolean;
 }
 

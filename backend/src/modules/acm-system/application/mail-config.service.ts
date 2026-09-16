@@ -21,6 +21,8 @@ export interface MailConfigView {
   passwordIsSet: boolean;
   fromName: string | null;
   fromAddress: string | null;
+  /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
+  operatorEmails: string | null;
   isActive: boolean;
   updatedAt: string | null;
 }
@@ -59,6 +61,7 @@ export class MailConfigService {
       password?: string;
       fromName?: string;
       fromAddress?: string;
+      operatorEmails?: string;
       isActive?: boolean;
     },
   ): Promise<MailConfigView> {
@@ -73,6 +76,14 @@ export class MailConfigService {
     if (dto.fromName !== undefined) row.fromName = dto.fromName.trim() || null;
     if (dto.fromAddress !== undefined) {
       row.fromAddress = dto.fromAddress.trim() || null;
+    }
+    if (dto.operatorEmails !== undefined) {
+      row.operatorEmails =
+        dto.operatorEmails
+          .split(',')
+          .map((x) => x.trim())
+          .filter(Boolean)
+          .join(',') || null;
     }
     if (dto.isActive !== undefined) row.isActive = dto.isActive;
     // password: undefined = 유지, '' = 삭제, 값 = 암호화 교체
@@ -109,6 +120,15 @@ export class MailConfigService {
     };
   }
 
+  /** CSL-PLN-260916 — 운영자 알림 수신 이메일 목록. 미설정이면 빈 배열. */
+  async getOperatorEmails(entId: string): Promise<string[]> {
+    const row = await this.repo.findOne({ where: { entId } });
+    return (row?.operatorEmails ?? '')
+      .split(',')
+      .map((x) => x.trim())
+      .filter(Boolean);
+  }
+
   private toView(row: MailConfigTypeormEntity | null): MailConfigView {
     return {
       host: row?.host ?? 'smtp.gmail.com',
@@ -118,6 +138,7 @@ export class MailConfigService {
       passwordIsSet: !!row?.passwordEnc?.length,
       fromName: row?.fromName ?? null,
       fromAddress: row?.fromAddress ?? null,
+      operatorEmails: row?.operatorEmails ?? null,
       isActive: row?.isActive ?? true,
       updatedAt: row?.updatedAt ? row.updatedAt.toISOString() : null,
     };

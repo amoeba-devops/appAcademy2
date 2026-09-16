@@ -13,6 +13,12 @@ import { PiiAuditTypeormEntity } from './infrastructure/typeorm/pii-audit.typeor
 import { AttachmentTypeormEntity } from './infrastructure/typeorm/attachment.typeorm-entity';
 import { TeacherAssignmentTypeormEntity } from './infrastructure/typeorm/teacher-assignment.typeorm-entity';
 import { CourseTypeormEntity } from './infrastructure/typeorm/course.typeorm-entity';
+// CSL-PLN-260916 — 맵테스트 신청 (아임웹 /test2 → /admin/test)
+import { MapApplyTypeormEntity } from './infrastructure/typeorm/map-apply.typeorm-entity';
+import { MapApplyService } from './application/map-apply.service';
+import { MapApplyNotifierService } from './application/map-apply-notifier.service';
+import { MapApplyController } from './presentation/map-apply.controller';
+import { AcmNotificationModule } from '../acm-notification/acm-notification.module';
 import { InquiryController } from './presentation/inquiry.controller';
 import { WebInquiryController } from './presentation/web-inquiry.controller';
 import { ExternalIntakeController } from './presentation/external-intake.controller';
@@ -56,6 +62,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
       [
         InquiryTypeormEntity,
         MapTestTypeormEntity,
+        MapApplyTypeormEntity, // CSL-PLN-260916
         TrialClassTypeormEntity,
         EnrollmentTypeormEntity,
         CancellationTypeormEntity,
@@ -80,6 +87,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     AcmCalModule,
     AcmSystemModule, // REQ-260903F — TenantSettingsService (링커 TZ 변환)
     AcmAuditModule,
+    AcmNotificationModule, // CSL-PLN-260916 — 접수 알림 로그
     // PLN-260706 — PortalAccountService for auto-issuing portal login accounts.
     AcmAuthModule,
   ],
@@ -87,6 +95,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     InquiryController,
     WebInquiryController,
     ExternalIntakeController,
+    MapApplyController, // CSL-PLN-260916
     CourseController,
   ],
   providers: [
@@ -100,6 +109,8 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     CslCalLinkerService,
     AttachmentService,
     ObjectStoreClient,
+    MapApplyService, // CSL-PLN-260916
+    MapApplyNotifierService,
   ],
   exports: [
     InquiryService,
@@ -110,6 +121,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     LevelTestPdfService,
     CslCalLinkerService,
     AttachmentService,
+    MapApplyService, // CSL-PLN-260916
   ],
 })
 export class AcmCslModule {}

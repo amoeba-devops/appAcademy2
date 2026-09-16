@@ -4,6 +4,7 @@ import {
   ExternalIntakeDto,
 } from './external-intake.controller';
 import type { InquiryService } from '../application/inquiry.service';
+import type { MapApplyService } from '../application/map-apply.service';
 
 /**
  * REQ-260903G — external intake gate branches:
@@ -26,9 +27,12 @@ describe('ExternalIntakeController', () => {
 
   beforeEach(() => {
     create = jest.fn().mockResolvedValue({ seqNo: 42 });
-    controller = new ExternalIntakeController({
-      create,
-    } as unknown as InquiryService);
+    controller = new ExternalIntakeController(
+      { create } as unknown as InquiryService,
+      {
+        createFromIntake: jest.fn().mockResolvedValue({ seqNo: 43 }),
+      } as unknown as MapApplyService,
+    );
     delete process.env.ACM_INTAKE_SITE_KEYS;
   });
 

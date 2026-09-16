@@ -7,6 +7,7 @@ export const ALWAYS_ON_MENU_KEYS = ['dashboard'] as const;
 
 export const TOGGLEABLE_MENU_KEYS = [
   'csl',
+  'mapApply', // CSL-PLN-260916
   'std',
   'parents',
   'cls',

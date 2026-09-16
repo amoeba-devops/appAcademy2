@@ -7,6 +7,8 @@ import { LoginPage } from '@/modules/auth/pages/login-page';
 import { ParentLoginPage } from '@/modules/auth/pages/parent-login-page';
 import { ChangePasswordPage } from '@/modules/auth/pages/change-password-page';
 import { DashboardPage } from '@/modules/dsh/pages/dashboard-page';
+import { MapApplyListPage } from '@/modules/csl/pages/map-apply-list-page';
+import { MapApplyDetailPage } from '@/modules/csl/pages/map-apply-detail-page';
 import { CslListPage } from '@/modules/csl/pages/csl-list-page';
 import { CslDetailPage } from '@/modules/csl/pages/csl-detail-page';
 import { ClsListPage } from '@/modules/cls/pages/cls-list-page';
@@ -187,6 +189,9 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/admin/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'csl', element: <CslListPage /> },
+      // CSL-PLN-260916 — 맵테스트 신청 (아임웹 /test2 접수)
+      { path: 'test', element: <MapApplyListPage /> },
+      { path: 'test/:id', element: <MapApplyDetailPage /> },
       { path: 'csl/:id', element: <CslDetailPage /> },
       { path: 'cls', element: <ClsListPage /> },
       { path: 'cls/:id', element: <ClsDetailPage /> },

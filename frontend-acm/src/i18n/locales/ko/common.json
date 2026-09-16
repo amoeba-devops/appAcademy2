@@ -245,7 +245,8 @@
     "closeMenu": "메뉴 닫기",
     "expandMenu": "메뉴 펼치기",
     "collapseMenu": "메뉴 접기",
-    "mainMenu": "주 메뉴"
+    "mainMenu": "주 메뉴",
+    "mapApply": "맵테스트 신청"
   },
   "lang": {
     "label": "언어",
@@ -458,6 +459,10 @@
         },
         "isActive": {
           "label": "사용 (발송 활성화)"
+        },
+        "operatorEmails": {
+          "label": "운영자 알림 수신 이메일",
+          "hint": "새 맵테스트 신청이 접수되면 이 주소로 알림 메일을 보냅니다. 쉼표로 여러 명을 지정할 수 있고, 비워 두면 보내지 않습니다."
         }
       },
       "test": {
@@ -506,6 +511,10 @@
         },
         "isActive": {
           "label": "사용 (발송 활성화)"
+        },
+        "templateIdMapApply": {
+          "label": "맵테스트 접수 템플릿 ID",
+          "hint": "맵테스트 신청 접수 확인용 템플릿. 비워 두면 접수 알림톡을 보내지 않습니다. 변수는 위와 동일합니다."
         }
       },
       "test": {

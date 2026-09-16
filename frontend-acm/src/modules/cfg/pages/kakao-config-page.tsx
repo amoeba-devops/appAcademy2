@@ -27,6 +27,7 @@ export function KakaoConfigPage() {
   const [apiSecret, setApiSecret] = useState(''); // write-only
   const [pfId, setPfId] = useState('');
   const [templateId, setTemplateId] = useState('');
+  const [templateIdMapApply, setTemplateIdMapApply] = useState('');
   const [senderPhone, setSenderPhone] = useState('');
   const [smsFallback, setSmsFallback] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -41,6 +42,7 @@ export function KakaoConfigPage() {
       setApiSecret('');
       setPfId(data.pfId ?? '');
       setTemplateId(data.templateId ?? '');
+      setTemplateIdMapApply(data.templateIdMapApply ?? '');
       setSenderPhone(data.senderPhone ?? '');
       setSmsFallback(data.smsFallback);
       setIsActive(data.isActive);
@@ -52,6 +54,7 @@ export function KakaoConfigPage() {
     setApiSecret('');
     setPfId(data?.pfId ?? '');
     setTemplateId(data?.templateId ?? '');
+    setTemplateIdMapApply(data?.templateIdMapApply ?? '');
     setSenderPhone(data?.senderPhone ?? '');
     setSmsFallback(data?.smsFallback ?? false);
     setIsActive(data?.isActive ?? true);
@@ -63,6 +66,7 @@ export function KakaoConfigPage() {
         apiKey: apiKey.trim(),
         pfId: pfId.trim(),
         templateId: templateId.trim(),
+        templateIdMapApply: templateIdMapApply.trim(),
         senderPhone: senderPhone.trim(),
         smsFallback,
         isActive,
@@ -168,6 +172,22 @@ export function KakaoConfigPage() {
                   placeholder="KA01TP..."
                   autoComplete="off"
                 />
+              </div>
+              {/* CSL-PLN-260916 — 맵테스트 접수 확인 템플릿 */}
+              <div className="space-y-1.5">
+                <Label htmlFor="kkTemplateIdMapApply">
+                  {t('config.kakao.fields.templateIdMapApply.label')}
+                </Label>
+                <Input
+                  id="kkTemplateIdMapApply"
+                  value={templateIdMapApply}
+                  onChange={(e) => setTemplateIdMapApply(e.target.value)}
+                  placeholder="KA01TP..."
+                  autoComplete="off"
+                />
+                <p className="text-xs text-secondary">
+                  {t('config.kakao.fields.templateIdMapApply.hint')}
+                </p>
               </div>
             </div>
             <p className="rounded-md bg-[var(--canvas-subtle)] px-3 py-2 text-xs text-secondary">

@@ -438,5 +438,83 @@
   },
   "actions": {
     "restore": "恢复"
+  },
+  "mapApply": {
+    "title": "MAP 测试申请",
+    "detailTitle": "MAP 测试申请 #{{seqNo}}",
+    "total": "共 {{count}} 条",
+    "empty": "暂无 MAP 测试申请。",
+    "loadFailed": "无法加载列表。",
+    "backToList": "MAP 测试申请列表",
+    "openInquiry": "查看咨询详情",
+    "submitted": "受理",
+    "saved": "已保存。",
+    "saveFailed": "保存失败。",
+    "birthdateRaw": "原文：{{raw}}",
+    "opsNote": "阶段·负责人·跟进等运营项目在咨询详情中管理。",
+    "section": {
+      "original": "申请原始内容",
+      "ops": "运营"
+    },
+    "actions": {
+      "import": "导入 imweb CSV",
+      "export": "导出 CSV"
+    },
+    "export": {
+      "failed": "CSV 导出失败。"
+    },
+    "pager": {
+      "prev": "上一页",
+      "next": "下一页"
+    },
+    "origin": {
+      "WEB": "网页受理",
+      "IMPORT": "导入"
+    },
+    "gender": {
+      "M": "男",
+      "F": "女",
+      "none": "未选择"
+    },
+    "filters": {
+      "search": "搜索",
+      "searchPlaceholder": "姓名·英文名·手机号后4位",
+      "all": "全部",
+      "from": "受理开始日",
+      "to": "受理结束日",
+      "reset": "重置"
+    },
+    "field": {
+      "seqNo": "编号",
+      "submittedAt": "受理时间",
+      "site": "站点",
+      "studentName": "学生姓名(韩)",
+      "studentNameEn": "学生姓名(英)",
+      "birthdate": "出生日期",
+      "grade": "年级",
+      "gender": "性别",
+      "parentPhone": "联系电话",
+      "parentEmail": "家长邮箱",
+      "examLocation": "考试国家/城市",
+      "preferredSlot": "希望时间",
+      "stage": "阶段",
+      "registeredAt": "登记日",
+      "followupAt": "跟进日",
+      "followupMemo": "备注"
+    },
+    "import": {
+      "title": "导入 imweb 历史申请",
+      "hint": "imweb 导出的是 .xlsx，请用 Excel 打开并另存为“CSV UTF-8”后再选择文件。已导入的记录会自动跳过。",
+      "file": "CSV 文件",
+      "parsed": "{{name}} — 识别 {{count}} 条",
+      "missingColumns": "未找到受理时间和学生姓名列。",
+      "noRows": "没有可导入的数据行。",
+      "parseFailed": "无法读取 CSV。",
+      "failed": "导入失败。",
+      "dryRun": "仅校验",
+      "run": "执行导入",
+      "result": "完成 — 新增 {{inserted}} / 跳过 {{skipped}} / 失败 {{failed}}",
+      "dryResult": "校验结果 — 将新增 {{inserted}} / 跳过 {{skipped}} / 失败 {{failed}}"
+    }
   }
 }
