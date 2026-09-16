@@ -1,10 +1,11 @@
 ---
 document_id: CSL-PLN-260916
-version: 1.1.0
-status: DEPLOYED (staging·production 2026-09-16, sha c906d56) · 아임웹 /test2 게시 잔여
+version: 1.2.0
+status: DONE (2026-09-16 아임웹 /test2 2사이트 게시·E2E 검증 완료)
 date: 2026-09-16
 depends_on: docs/analysis/REQ-260916-map-test-application-intake.md
 change_log:
+  - 2026-09-16 v1.2.0 아임웹 `/test2` TPI·TRINITY 게시 완료, 사이트별 실접수 E2E 검증 후 테스트 건 삭제. 잔여는 알림 설정(O-2)·토스트 폭주(O-3)·메뉴 교체(O-4) (Claude Code)
   - 2026-09-16 v1.1.0 DEPLOYED — PR #238 squash c906d56, cd-staging 35096428322 / cd-production 35096661097 success. 운영에서 아임웹 누적 64건(TPI 51 · TRINITY 13) 이관 완료. 아임웹 /test2 게시는 잔여 (Claude Code)
   - 2026-09-16 v1.0.0 구현 완료 — SQL 1014/1015, 접수 API·목록/상세/보정/이관/CSV, 알림(알림톡·이메일·SSE), 콘솔 `/admin/test`, 스니펫 2종, i18n 4 locale. 사용자 확정(Q1 9항목 통일·Q3 이관·Q5 알림 발송) 반영 (Claude Code)
   - 2026-09-16 v0.1.0 초안 — `/test2` 스니펫 + 맵테스트 신청 구조화 저장 + `/admin/test` 목록·상세 구현 계획 (Claude Code)
@@ -262,7 +263,24 @@ CREATE TRIGGER trg_acm_csl_map_apply_updated_at
 
 | # | 항목 | 상태 |
 |---|------|------|
-| O-1 | 아임웹 `/test2` 게시 (TPI·TRINITY) | **미완** — TPI 에 초안 페이지 `MAP TEST 응시 신청(신규)` + 빈 코드 위젯까지 생성(미게시). 스니펫 붙여넣기·페이지 주소 `test2` 지정·게시가 남음. 절차는 [GUIDE-260916](../implementation/GUIDE-260916-imweb-map-test.md) §2. 아임웹 위젯 설정은 마우스 hover 기반이라 자동화로 진행하지 못했다. **라이브 사이트에는 아무 영향 없음(미게시 초안)** |
+| O-1 | 아임웹 `/test2` 게시 (TPI·TRINITY) | ✅ **완료 (2026-09-16)** — 아래 §게시 기록 참조. ~~미완~~ — TPI 에 초안 페이지 `MAP TEST 응시 신청(신규)` + 빈 코드 위젯까지 생성(미게시). 스니펫 붙여넣기·페이지 주소 `test2` 지정·게시가 남음. 절차는 [GUIDE-260916](../implementation/GUIDE-260916-imweb-map-test.md) §2. 아임웹 위젯 설정은 마우스 hover 기반이라 자동화로 진행하지 못했다. **라이브 사이트에는 아무 영향 없음(미게시 초안)** |
 | O-2 | 접수 알림 실발송 | 미설정 — `/admin/config/kakao` 맵테스트 템플릿 ID, `/admin/config/mail` SMTP+운영자 수신 이메일 입력 필요 |
 | O-3 | 대량 이관 시 콘솔 토스트 폭주 | 알려진 문제 — `inquiryService.create` 가 건마다 `acm.csl.created` 를 발행해 64건 이관 중 SSE 토스트가 64회 떴다. 알림톡·이메일은 이관 경로에서 제외했으나 콘솔 토스트는 남는다. 후속으로 이관 시 이벤트 발행을 생략하는 옵션 추가 권장 |
 | O-4 | `/test` → `/test2` 메뉴 교체 | 운영자 판단 (GUIDE §7) |
+
+## imweb `/test2` 게시 기록 (2026-09-16)
+
+| 사이트 | 페이지 | URL | 결과 |
+|--------|--------|-----|------|
+| TPI | `MAP TEST 응시 신청(신규)` | https://www.tpi.co.kr/test2 | 코드 위젯 + 스니펫(8,777자) 저장 → 게시 완료 |
+| TRINITY | `MAP TEST 응시 신청(신규)` | https://trinityacademy.kr/test2 | 코드 위젯 + 스니펫(8,785자) 저장 → 게시 완료 |
+
+- 게시 HTML 검증: 두 사이트 모두 `acm-map-apply` 17회, 사이트 키 정상(`tpi-…` / `trinity-…`), 희망 요일/시간 셀렉트 노출(Q1 9항목 통일 반영).
+- **실접수 E2E**: 각 사이트 키·오리진으로 접수 → `201 {success, seqNo}` (TPI #102 / TRINITY #103). `/admin/test` 목록에 사이트·영문명·학년·성별·연락처·응시지·희망시간까지 정상 표시. 잘못된 Origin → **403**.
+- 테스트 2건은 상담 목록에서 삭제해 원복(총 66 → 64건).
+
+### 작업 중 배운 점 (자동화 메모)
+- 아임웹 코드 위젯 편집은 캔버스 **우클릭 → 코드 설정 → 코드 에디터 열기** 경로가 유일하게 안정적이다. 더블클릭·AX 메뉴 항목 클릭은 동작하지 않는다.
+- 위젯 추가는 캔버스의 `+` 를 좌표로 클릭 → `기본 › 디자인·DB 요소 › 코드`.
+- 페이지 주소는 제목 옆 톱니 → **메뉴 설정**의 URL 필드(기본값은 숫자 자동 부여). 붙여넣기 후 모달을 닫으면 저장된다.
+- 코드 위젯 패널에 "Free 버전에서는 스크립트가 제거되고 저장돼요" 경고가 있으나, TPI·TRINITY 는 유료 플랜이라 `<script>` 가 그대로 게시됐다(게시 HTML 로 확인).
