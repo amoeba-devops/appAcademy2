@@ -76,6 +76,9 @@ import { Ga4ConfigController } from './presentation/ga4-config.controller';
     TenantSettingsService,
     SolapiAlimtalkService,
     Ga4ConfigService,
+    // CSL-PLN-260916 — 맵테스트 접수 알림에서 템플릿/수신자 설정을 읽는다.
+    KakaoConfigService,
+    MailConfigService,
   ],
 })
 export class AcmSystemModule {}

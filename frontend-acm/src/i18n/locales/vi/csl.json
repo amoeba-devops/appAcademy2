@@ -438,5 +438,83 @@
   },
   "actions": {
     "restore": "Khôi phục"
+  },
+  "mapApply": {
+    "title": "Đăng ký MAP test",
+    "detailTitle": "Đăng ký MAP test #{{seqNo}}",
+    "total": "Tổng {{count}}",
+    "empty": "Chưa có đăng ký MAP test.",
+    "loadFailed": "Không tải được danh sách.",
+    "backToList": "Danh sách đăng ký MAP test",
+    "openInquiry": "Xem hồ sơ tư vấn",
+    "submitted": "tiếp nhận",
+    "saved": "Đã lưu.",
+    "saveFailed": "Lưu thất bại.",
+    "birthdateRaw": "nguyên văn: {{raw}}",
+    "opsNote": "Giai đoạn, phụ trách và theo dõi được quản lý ở hồ sơ tư vấn.",
+    "section": {
+      "original": "Nội dung đăng ký",
+      "ops": "Vận hành"
+    },
+    "actions": {
+      "import": "Nhập CSV imweb",
+      "export": "Xuất CSV"
+    },
+    "export": {
+      "failed": "Xuất CSV thất bại."
+    },
+    "pager": {
+      "prev": "Trước",
+      "next": "Sau"
+    },
+    "origin": {
+      "WEB": "Web",
+      "IMPORT": "Đã nhập"
+    },
+    "gender": {
+      "M": "Nam",
+      "F": "Nữ",
+      "none": "Chưa chọn"
+    },
+    "filters": {
+      "search": "Tìm kiếm",
+      "searchPlaceholder": "Tên, tên tiếng Anh hoặc 4 số cuối",
+      "all": "Tất cả",
+      "from": "Từ ngày",
+      "to": "Đến ngày",
+      "reset": "Đặt lại"
+    },
+    "field": {
+      "seqNo": "Số",
+      "submittedAt": "Thời gian tiếp nhận",
+      "site": "Site",
+      "studentName": "Tên (KR)",
+      "studentNameEn": "Tên (EN)",
+      "birthdate": "Ngày sinh",
+      "grade": "Khối lớp",
+      "gender": "Giới tính",
+      "parentPhone": "Điện thoại",
+      "parentEmail": "Email phụ huynh",
+      "examLocation": "Quốc gia/thành phố thi",
+      "preferredSlot": "Thời gian mong muốn",
+      "stage": "Giai đoạn",
+      "registeredAt": "Ngày đăng ký",
+      "followupAt": "Ngày theo dõi",
+      "followupMemo": "Ghi chú"
+    },
+    "import": {
+      "title": "Nhập đăng ký từ imweb",
+      "hint": "Chọn tệp CSV xuất từ imweb (Nội dung › Biểu mẫu › Xuất). Các dòng đã nhập sẽ được bỏ qua.",
+      "file": "Tệp CSV",
+      "parsed": "{{name}} — nhận {{count}} dòng",
+      "missingColumns": "Không tìm thấy cột thời gian và tên học sinh.",
+      "noRows": "Không có dòng nào để nhập.",
+      "parseFailed": "Không đọc được CSV.",
+      "failed": "Nhập thất bại.",
+      "dryRun": "Chỉ kiểm tra",
+      "run": "Nhập dữ liệu",
+      "result": "Hoàn tất — thêm {{inserted}} / bỏ qua {{skipped}} / lỗi {{failed}}",
+      "dryResult": "Kiểm tra — sẽ thêm {{inserted}} / bỏ qua {{skipped}} / lỗi {{failed}}"
+    }
   }
 }

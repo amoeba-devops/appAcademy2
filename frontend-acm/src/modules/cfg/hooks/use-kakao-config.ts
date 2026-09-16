@@ -7,6 +7,8 @@ export interface KakaoConfig {
   apiSecretIsSet: boolean;
   pfId: string | null;
   templateId: string | null;
+  /** CSL-PLN-260916 — 맵테스트 접수 확인용 템플릿 */
+  templateIdMapApply: string | null;
   senderPhone: string | null;
   smsFallback: boolean;
   isActive: boolean;
@@ -19,6 +21,7 @@ export interface UpdateKakaoConfigInput {
   apiSecret?: string;
   pfId?: string;
   templateId?: string;
+  templateIdMapApply?: string;
   senderPhone?: string;
   smsFallback?: boolean;
   isActive?: boolean;

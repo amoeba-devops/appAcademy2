@@ -40,6 +40,21 @@ export class SolapiAlimtalkService {
     await this.dispatch(cfg, to, variables);
   }
 
+  /**
+   * CSL-PLN-260916 — 템플릿을 지정해 1건 발송 (용도별 템플릿 분리).
+   * 자격증명·pfId 는 테넌트 설정을 그대로 쓰고 templateId 만 교체한다.
+   */
+  async sendWithTemplate(
+    entId: string,
+    to: string,
+    templateId: string,
+    variables: Record<string, string>,
+  ): Promise<void> {
+    const cfg = await this.configSvc.getSendConfig(entId);
+    if (!cfg) throw new Error('KAKAO_CONFIG_NOT_SET');
+    await this.dispatch({ ...cfg, templateId }, to, variables);
+  }
+
   /** 설정 페이지 테스트 발송 — 샘플 변수로 실발송. */
   async sendTest(entId: string, to: string): Promise<void> {
     const cfg = await this.configSvc.getSendConfig(entId);

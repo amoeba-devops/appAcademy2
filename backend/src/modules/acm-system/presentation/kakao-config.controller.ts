@@ -40,6 +40,12 @@ export class UpdateKakaoConfigDto {
   @IsOptional() @IsString() @MaxLength(60)
   templateId?: string;
 
+  /** CSL-PLN-260916 — 맵테스트 접수 확인용 템플릿 ID */
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  templateIdMapApply?: string;
+
   @IsOptional() @IsString() @MaxLength(20)
   senderPhone?: string;
 

@@ -438,5 +438,83 @@
   },
   "actions": {
     "restore": "복구"
+  },
+  "mapApply": {
+    "title": "맵테스트 신청",
+    "detailTitle": "맵테스트 신청 #{{seqNo}}",
+    "total": "총 {{count}}건",
+    "empty": "접수된 맵테스트 신청이 없습니다.",
+    "loadFailed": "목록을 불러오지 못했습니다.",
+    "backToList": "맵테스트 신청 목록",
+    "openInquiry": "상담 상세 보기",
+    "submitted": "접수",
+    "saved": "저장했습니다.",
+    "saveFailed": "저장에 실패했습니다.",
+    "birthdateRaw": "원문: {{raw}}",
+    "opsNote": "단계·담당·팔로업 등 운영 항목은 상담 상세에서 관리합니다.",
+    "section": {
+      "original": "신청서 원본",
+      "ops": "운영"
+    },
+    "actions": {
+      "import": "아임웹 CSV 이관",
+      "export": "CSV 내보내기"
+    },
+    "export": {
+      "failed": "CSV 내보내기에 실패했습니다."
+    },
+    "pager": {
+      "prev": "이전",
+      "next": "다음"
+    },
+    "origin": {
+      "WEB": "웹 접수",
+      "IMPORT": "이관"
+    },
+    "gender": {
+      "M": "남",
+      "F": "여",
+      "none": "미선택"
+    },
+    "filters": {
+      "search": "검색",
+      "searchPlaceholder": "학생명·영문명·연락처 뒤 4자리",
+      "all": "전체",
+      "from": "접수일 From",
+      "to": "접수일 To",
+      "reset": "초기화"
+    },
+    "field": {
+      "seqNo": "번호",
+      "submittedAt": "접수일시",
+      "site": "사이트",
+      "studentName": "학생 한글이름",
+      "studentNameEn": "학생 영문이름",
+      "birthdate": "생년월일",
+      "grade": "학년",
+      "gender": "성별",
+      "parentPhone": "연락처",
+      "parentEmail": "학부모 이메일",
+      "examLocation": "응시 국가/도시",
+      "preferredSlot": "희망 요일/시간",
+      "stage": "단계",
+      "registeredAt": "등록일",
+      "followupAt": "팔로업일",
+      "followupMemo": "메모"
+    },
+    "import": {
+      "title": "아임웹 누적 접수 이관",
+      "hint": "아임웹 관리자 › 콘텐츠 › 입력폼 › 내보내기로 받은 CSV 를 선택하세요. 이미 이관된 건은 자동으로 건너뜁니다.",
+      "file": "CSV 파일",
+      "parsed": "{{name}} — {{count}}건 인식",
+      "missingColumns": "작성시각·학생 한글이름 컬럼을 찾지 못했습니다.",
+      "noRows": "이관할 행이 없습니다.",
+      "parseFailed": "CSV 를 읽지 못했습니다.",
+      "failed": "이관에 실패했습니다.",
+      "dryRun": "검증만",
+      "run": "이관 실행",
+      "result": "이관 완료 — 추가 {{inserted}} / 건너뜀 {{skipped}} / 실패 {{failed}}",
+      "dryResult": "검증 결과 — 추가 예정 {{inserted}} / 건너뜀 {{skipped}} / 실패 {{failed}}"
+    }
   }
 }

@@ -10,6 +10,7 @@ import {
 import {
   LayoutDashboard,
   Users,
+  FileText,
   Users2,
   School,
   BookOpen,
@@ -48,6 +49,8 @@ import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query';
 const NAV = [
   { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
   { to: '/admin/csl', icon: Users, key: 'csl' },
+  // CSL-PLN-260916 — 맵테스트 신청 목록
+  { to: '/admin/test', icon: FileText, key: 'mapApply' },
   { to: '/admin/std', icon: UserRound, key: 'std' },
   { to: '/admin/std/parents', icon: Users2, key: 'parents' },
   { to: '/admin/cls', icon: GraduationCap, key: 'cls' },

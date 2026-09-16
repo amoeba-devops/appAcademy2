@@ -31,6 +31,7 @@ export function MailConfigPage() {
   const [password, setPassword] = useState(''); // write-only
   const [fromName, setFromName] = useState('');
   const [fromAddress, setFromAddress] = useState('');
+  const [operatorEmails, setOperatorEmails] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [testTo, setTestTo] = useState('');
   const [testResult, setTestResult] = useState<
@@ -46,6 +47,7 @@ export function MailConfigPage() {
       setPassword(''); // never prefilled
       setFromName(data.fromName ?? '');
       setFromAddress(data.fromAddress ?? '');
+      setOperatorEmails(data.operatorEmails ?? '');
       setIsActive(data.isActive);
     }
   }, [data]);
@@ -58,6 +60,7 @@ export function MailConfigPage() {
     setPassword('');
     setFromName(data?.fromName ?? '');
     setFromAddress(data?.fromAddress ?? '');
+    setOperatorEmails(data?.operatorEmails ?? '');
     setIsActive(data?.isActive ?? true);
   };
 
@@ -75,6 +78,7 @@ export function MailConfigPage() {
         username: username.trim(),
         fromName: fromName.trim(),
         fromAddress: fromAddress.trim(),
+        operatorEmails: operatorEmails.trim(),
         isActive,
         // 입력했을 때만 교체 (미입력 = 기존값 유지)
         ...(password.trim() ? { password: password.trim() } : {}),
@@ -226,6 +230,23 @@ export function MailConfigPage() {
                   autoComplete="off"
                 />
               </div>
+            </div>
+
+            {/* CSL-PLN-260916 — 운영자 알림 수신자 */}
+            <div className="space-y-1.5">
+              <Label htmlFor="mailOperatorEmails">
+                {t('config.mail.fields.operatorEmails.label')}
+              </Label>
+              <Input
+                id="mailOperatorEmails"
+                value={operatorEmails}
+                onChange={(e) => setOperatorEmails(e.target.value)}
+                placeholder="ops@example.com, manager@example.com"
+                autoComplete="off"
+              />
+              <p className="text-xs text-secondary">
+                {t('config.mail.fields.operatorEmails.hint')}
+              </p>
             </div>
 
             <label className="flex items-center gap-2 text-sm text-primary">

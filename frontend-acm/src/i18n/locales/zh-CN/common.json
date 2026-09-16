@@ -245,7 +245,8 @@
     "closeMenu": "关闭菜单",
     "expandMenu": "展开菜单",
     "collapseMenu": "收起菜单",
-    "mainMenu": "主菜单"
+    "mainMenu": "主菜单",
+    "mapApply": "MAP 测试申请"
   },
   "lang": {
     "label": "语言",
@@ -458,6 +459,10 @@
         },
         "isActive": {
           "label": "启用（允许发送）"
+        },
+        "operatorEmails": {
+          "label": "运营通知接收邮箱",
+          "hint": "收到新的 MAP 测试申请时发送通知邮件。多个地址用逗号分隔，留空则不发送。"
         }
       },
       "test": {
@@ -506,6 +511,10 @@
         },
         "isActive": {
           "label": "启用（允许发送）"
+        },
+        "templateIdMapApply": {
+          "label": "MAP 测试受理模板 ID",
+          "hint": "MAP 测试申请受理确认模板。留空则不发送 AlimTalk。变量与上方相同。"
         }
       },
       "test": {

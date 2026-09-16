@@ -49,6 +49,12 @@ export class UpdateMailConfigDto {
   @MaxLength(200)
   fromAddress?: string;
 
+  /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  operatorEmails?: string;
+
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

@@ -438,5 +438,83 @@
   },
   "actions": {
     "restore": "Restore"
+  },
+  "mapApply": {
+    "title": "MAP test applications",
+    "detailTitle": "MAP test application #{{seqNo}}",
+    "total": "{{count}} total",
+    "empty": "No MAP test applications yet.",
+    "loadFailed": "Could not load the list.",
+    "backToList": "MAP test applications",
+    "openInquiry": "Open counseling record",
+    "submitted": "received",
+    "saved": "Saved.",
+    "saveFailed": "Save failed.",
+    "birthdateRaw": "raw: {{raw}}",
+    "opsNote": "Stage, advisor and follow-up are managed on the counseling record.",
+    "section": {
+      "original": "Submitted form",
+      "ops": "Operations"
+    },
+    "actions": {
+      "import": "Import imweb CSV",
+      "export": "Export CSV"
+    },
+    "export": {
+      "failed": "CSV export failed."
+    },
+    "pager": {
+      "prev": "Prev",
+      "next": "Next"
+    },
+    "origin": {
+      "WEB": "Web",
+      "IMPORT": "Imported"
+    },
+    "gender": {
+      "M": "Male",
+      "F": "Female",
+      "none": "Not set"
+    },
+    "filters": {
+      "search": "Search",
+      "searchPlaceholder": "Name, English name or last 4 digits",
+      "all": "All",
+      "from": "From",
+      "to": "To",
+      "reset": "Reset"
+    },
+    "field": {
+      "seqNo": "No.",
+      "submittedAt": "Received",
+      "site": "Site",
+      "studentName": "Student (KR)",
+      "studentNameEn": "Student (EN)",
+      "birthdate": "Birth date",
+      "grade": "Grade",
+      "gender": "Gender",
+      "parentPhone": "Phone",
+      "parentEmail": "Parent email",
+      "examLocation": "Exam country/city",
+      "preferredSlot": "Preferred slot",
+      "stage": "Stage",
+      "registeredAt": "Registered",
+      "followupAt": "Follow-up",
+      "followupMemo": "Memo"
+    },
+    "import": {
+      "title": "Import imweb applications",
+      "hint": "Choose the CSV exported from imweb (Content › Form › Export). Rows already imported are skipped.",
+      "file": "CSV file",
+      "parsed": "{{name}} — {{count}} rows detected",
+      "missingColumns": "Could not find the submitted-time and student-name columns.",
+      "noRows": "No importable rows.",
+      "parseFailed": "Could not read the CSV.",
+      "failed": "Import failed.",
+      "dryRun": "Validate only",
+      "run": "Import",
+      "result": "Done — added {{inserted}} / skipped {{skipped}} / failed {{failed}}",
+      "dryResult": "Validation — would add {{inserted}} / skip {{skipped}} / fail {{failed}}"
+    }
   }
 }

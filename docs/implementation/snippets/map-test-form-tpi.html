@@ -1,0 +1,193 @@
+<!--
+  ============================================================
+  TPI — ACM 맵테스트 응시 신청 폼 (CSL-PLN-260916)
+  아임웹 적용 방법:
+    1. 아임웹 관리자 → 사이트 편집 → 새 페이지(/test2) 생성
+    2. "코드" 위젯 추가 → 이 파일 전체를 붙여넣기 → 저장/게시
+  주의:
+    - SITE_KEY 는 백엔드 external-intake.config.ts 의 사이트 키와 일치해야 함
+    - API_URL 은 운영 백엔드 주소 (스테이징 테스트 시 acm-stg 로 교체)
+    - 기존 /test (아임웹 자체 입력폼) 은 그대로 두고 병행 운영한다
+  ============================================================
+-->
+<div id="acm-map-apply">
+  <style>
+    #acm-map-apply { max-width: 560px; margin: 0 auto; font-family: Pretendard, -apple-system, sans-serif; color: #222; }
+    #acm-map-apply h3 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+    #acm-map-apply .ma-lead { margin: 0 0 18px; font-size: 14px; color: #666; }
+    #acm-map-apply .ma-label { display: block; margin: 14px 0 4px; font-size: 14px; font-weight: 600; }
+    #acm-map-apply .ma-req { color: #c0392b; }
+    #acm-map-apply .ma-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; background: #fff; color: #222; }
+    #acm-map-apply .ma-input:focus { outline: none; border-color: #1f2d4d; }
+    #acm-map-apply .ma-hint { margin: 4px 0 0; font-size: 12px; color: #888; }
+    #acm-map-apply .ma-consent { display: flex; align-items: center; gap: 8px; margin-top: 18px; font-size: 13px; }
+    #acm-map-apply .ma-btn { width: 100%; margin-top: 18px; padding: 12px; border: 0; border-radius: 6px; background: #1f2d4d; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; }
+    #acm-map-apply .ma-btn:hover { background: #16213a; }
+    #acm-map-apply .ma-btn:disabled { opacity: .5; cursor: default; }
+    #acm-map-apply .ma-msg { margin-top: 12px; font-size: 14px; display: none; }
+    #acm-map-apply .ma-msg.ok { color: #1e7e34; display: block; }
+    #acm-map-apply .ma-msg.err { color: #c0392b; display: block; }
+    #acm-map-apply .ma-hp { position: absolute; left: -9999px; opacity: 0; height: 0; overflow: hidden; }
+    #ma-modal { position: fixed; inset: 0; z-index: 99999; display: none; background: rgba(0,0,0,.6); }
+    #ma-modal.ma-open { display: block; }
+    #ma-modal .ma-box { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); box-sizing: border-box; width: calc(100% - 40px); max-width: 380px; background: #fff; border-radius: 8px; padding: 28px 24px 20px; text-align: center; }
+    #ma-modal .ma-box p { margin: 0 0 18px; font-size: 15px; line-height: 1.6; }
+    #ma-modal .ma-box button { padding: 10px 28px; border: 0; border-radius: 6px; background: #1f2d4d; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  </style>
+
+  <h3>MAP TEST 응시 신청</h3>
+  <p class="ma-lead">MAP Test를 응시하는 학생의 기본 인적사항을 입력해 주세요.</p>
+
+  <label class="ma-label" for="ma-student">학생의 한글 이름 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-student" maxlength="50" autocomplete="name">
+
+  <label class="ma-label" for="ma-student-en">학생의 영문 이름 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-student-en" maxlength="120" autocomplete="off">
+
+  <label class="ma-label" for="ma-birthdate">학생의 생년월일 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-birthdate" inputmode="numeric" maxlength="8" placeholder="예: 20100914">
+  <p class="ma-hint">숫자 8자리로 입력해 주세요.</p>
+
+  <label class="ma-label" for="ma-grade">학생의 학년 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-grade" maxlength="10" placeholder="예: G10">
+
+  <label class="ma-label" for="ma-gender">학생의 성별</label>
+  <select class="ma-input" id="ma-gender">
+    <option value="">(선택)</option>
+    <option value="M">남</option>
+    <option value="F">여</option>
+  </select>
+
+  <label class="ma-label" for="ma-phone">연락이 가능한 전화번호 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-phone" inputmode="numeric" maxlength="11" placeholder="- 없이 숫자만 입력">
+
+  <label class="ma-label" for="ma-email">학부모님의 이메일 주소</label>
+  <input class="ma-input" id="ma-email" maxlength="200" autocomplete="email" placeholder="example@email.com">
+
+  <label class="ma-label" for="ma-location">학생이 MAP TEST에 응시하는 국가, 도시 <span class="ma-req">*</span></label>
+  <input class="ma-input" id="ma-location" maxlength="200" placeholder="예: 싱가포르">
+
+  <label class="ma-label" for="ma-slot">MAP TEST 응시 희망 요일 / 시간</label>
+  <select class="ma-input" id="ma-slot">
+    <option value="">(선택)</option>
+    <option value="월요일 오후 5시">월요일 오후 5시</option>
+    <option value="화요일 오전 10시">화요일 오전 10시</option>
+    <option value="화요일 오후 5시">화요일 오후 5시</option>
+    <option value="수요일 오후 5시">수요일 오후 5시</option>
+    <option value="목요일 오전 10시">목요일 오전 10시</option>
+    <option value="목요일 오후 5시">목요일 오후 5시</option>
+    <option value="금요일 오후 5시">금요일 오후 5시</option>
+  </select>
+  <p class="ma-hint">한국 시간 기준입니다. 시차가 다른 해외의 경우 문의 부탁드립니다.</p>
+
+  <div class="ma-hp"><input id="ma-website" tabindex="-1" autocomplete="off"></div>
+
+  <label class="ma-consent">
+    <input type="checkbox" id="ma-consent">
+    개인정보 수집 및 이용에 동의합니다. <span class="ma-req">*</span>
+  </label>
+
+  <button class="ma-btn" id="ma-submit" type="button">신청하기</button>
+  <p class="ma-msg" id="ma-result"></p>
+</div>
+
+<div id="ma-modal">
+  <div class="ma-box">
+    <p>MAP TEST 응시 신청이 접수되었습니다.<br>담당자가 확인 후 연락드리겠습니다.</p>
+    <button type="button" id="ma-modal-ok">확인</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var API_URL = 'https://acm.amoeba.site/api/web/external-intake/map-test';
+  var SITE_KEY = 'tpi-8c094fefd4fd2314';
+
+  function get(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+  function fail(msg) {
+    var r = document.getElementById('ma-result');
+    r.textContent = msg;
+    r.className = 'ma-msg err';
+  }
+
+  // 전화번호 / 생년월일: 숫자만 허용
+  ['ma-phone', 'ma-birthdate'].forEach(function (id) {
+    var el = document.getElementById(id);
+    var max = id === 'ma-phone' ? 11 : 8;
+    function clean() {
+      var v = el.value.replace(/[^0-9]/g, '').slice(0, max);
+      if (v !== el.value) el.value = v;
+    }
+    el.addEventListener('input', clean);
+    el.addEventListener('blur', clean);
+  });
+
+  // 이메일: 비ASCII 입력 방지 (한글 자동완성 방지)
+  var emailEl = document.getElementById('ma-email');
+  function cleanEmail() {
+    var v = emailEl.value.replace(/[^A-Za-z0-9@._+\-]/g, '');
+    if (v !== emailEl.value) emailEl.value = v;
+  }
+  emailEl.addEventListener('input', cleanEmail);
+  emailEl.addEventListener('compositionend', cleanEmail);
+  emailEl.addEventListener('blur', cleanEmail);
+
+  // 완료 모달 — 부모 transform 영향을 받지 않도록 body 직속으로 옮긴다
+  var modal = document.getElementById('ma-modal');
+  document.body.appendChild(modal);
+  document.getElementById('ma-modal-ok').addEventListener('click', function () {
+    modal.classList.remove('ma-open');
+    window.location.reload();
+  });
+
+  document.getElementById('ma-submit').addEventListener('click', function () {
+    var btn = this;
+    document.getElementById('ma-result').className = 'ma-msg';
+
+    if (!get('ma-student')) { fail('학생의 한글 이름을 입력해 주세요.'); return; }
+    if (!get('ma-student-en')) { fail('학생의 영문 이름을 입력해 주세요.'); return; }
+    if (!/^[0-9]{8}$/.test(get('ma-birthdate'))) { fail('생년월일을 숫자 8자리로 입력해 주세요. (예: 20100914)'); return; }
+    if (!get('ma-grade')) { fail('학생의 학년을 입력해 주세요.'); return; }
+    if (!/^0[0-9]{9,10}$/.test(get('ma-phone'))) { fail('전화번호는 - 없이 숫자만 10~11자리로 입력해 주세요.'); return; }
+    var email = get('ma-email');
+    if (email && !/^[A-Za-z0-9._+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test(email)) {
+      fail('이메일 주소를 정확히 입력해 주세요. (예: example@email.com)'); return;
+    }
+    if (!get('ma-location')) { fail('응시하는 국가, 도시를 입력해 주세요.'); return; }
+    if (!document.getElementById('ma-consent').checked) { fail('개인정보 수집·이용 동의가 필요합니다.'); return; }
+
+    var payload = {
+      studentName: get('ma-student'),
+      studentNameEn: get('ma-student-en'),
+      birthdate: get('ma-birthdate'),
+      grade: get('ma-grade'),
+      parentPhone: get('ma-phone'),
+      examLocation: get('ma-location'),
+      consent: true
+    };
+    if (get('ma-gender')) payload.gender = get('ma-gender');
+    if (email) payload.parentEmail = email;
+    if (get('ma-slot')) payload.preferredSlot = get('ma-slot');
+    if (get('ma-website')) payload.website = get('ma-website');
+
+    btn.disabled = true;
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-acm-site-key': SITE_KEY },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        modal.classList.add('ma-open');
+        document.getElementById('ma-modal-ok').focus();
+      })
+      .catch(function () {
+        fail('접수에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        btn.disabled = false;
+      });
+  });
+})();
+</script>

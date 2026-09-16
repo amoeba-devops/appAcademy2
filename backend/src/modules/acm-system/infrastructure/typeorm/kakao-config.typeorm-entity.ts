@@ -25,6 +25,15 @@ export class KakaoConfigTypeormEntity {
   @Column({ name: 'kkc_template_id', type: 'varchar', length: 60, nullable: true })
   templateId?: string | null;
 
+  /** CSL-PLN-260916 — 맵테스트 접수 확인용 템플릿 (미설정 시 알림톡 생략) */
+  @Column({
+    name: 'kkc_template_id_map_apply',
+    type: 'varchar',
+    length: 60,
+    nullable: true,
+  })
+  templateIdMapApply?: string | null;
+
   @Column({ name: 'kkc_sender_phone', type: 'varchar', length: 20, nullable: true })
   senderPhone?: string | null;
 

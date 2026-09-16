@@ -1,10 +1,11 @@
 ---
 document_id: CSL-PLN-260916
-version: 0.1.0
-status: DRAFT (사용자 확인 대기 — CLAUDE.md §9.2)
+version: 1.0.0
+status: IMPLEMENTED (배포 대기 — PR 생성)
 date: 2026-09-16
 depends_on: docs/analysis/REQ-260916-map-test-application-intake.md
 change_log:
+  - 2026-09-16 v1.0.0 구현 완료 — SQL 1014/1015, 접수 API·목록/상세/보정/이관/CSV, 알림(알림톡·이메일·SSE), 콘솔 `/admin/test`, 스니펫 2종, i18n 4 locale. 사용자 확정(Q1 9항목 통일·Q3 이관·Q5 알림 발송) 반영 (Claude Code)
   - 2026-09-16 v0.1.0 초안 — `/test2` 스니펫 + 맵테스트 신청 구조화 저장 + `/admin/test` 목록·상세 구현 계획 (Claude Code)
 ---
 
@@ -207,3 +208,40 @@ CREATE TRIGGER trg_acm_csl_map_apply_updated_at
 - [ ] 좌측 메뉴 "맵테스트 신청" 노출, 4개 로케일 라벨 정상
 - [ ] 접수 건이 대시보드 사이트별 상담 집계에 반영
 - [ ] 테스트 접수 건 정리(삭제) 후 보고서 작성
+
+---
+
+## Implementation Notes (구현 메모, 2026-09-16)
+
+### 확정 반영
+- **Q1** — `/test2` 는 두 사이트 모두 **9항목 동일**. TRINITY 에도 "응시 희망 요일/시간" 셀렉트를 추가했다 (스니펫 2종은 `SITE_KEY` 만 다르다).
+- **Q3** — 아임웹 누적 이관: `POST /acm/csl/map-applications/import` (ADMIN). 콘솔 목록의 [아임웹 CSV 이관] 모달이 아임웹 "내보내기" CSV 를 브라우저에서 파싱해 전송한다. `(사이트|작성시각|한글이름)` 멱등 키로 **재실행해도 중복 생성되지 않는다**. `dryRun` 으로 먼저 검증 가능. 이관 건은 알림을 보내지 않는다.
+- **Q5** — 접수 알림 3종. 구현은 완료했으나 **실발송에는 운영 설정이 필요**하다 (§아래).
+
+### 데이터 모델 (실제)
+`sql/acm/1014-csl-map-apply.sql` — `amb_acm_csl_map_apply` (상담 1:1). 계획 대비 추가:
+- `mpa_submitted_at` — 실제 접수 시각. 상담의 `registeredAt` 은 날짜만 갖기 때문에 목록 정렬·표시는 이 컬럼을 쓴다. 이관 건은 아임웹 작성시각(KST 해석).
+- `mpa_origin` (`WEB`|`IMPORT`), `mpa_import_key` (부분 유니크 인덱스) — 이관 멱등성.
+- `mpa_birthdate` + `mpa_birthdate_raw` — `20100914`/`2010-09-14`/`2010.09.14` 는 정규화하고, 해석 불가(`2010년 9월`, `20100230`)는 원문을 보존한 뒤 상세에서 보정한다.
+
+`sql/acm/1015-map-apply-notify-config.sql` — 알림 설정 2컬럼:
+- `amb_acm_kakao_config.kkc_template_id_map_apply` — 기존 `kkc_template_id` 는 수업 피드백용이라 접수 확인용 템플릿을 분리했다. 변수는 기존 승인 템플릿과 동일한 `#{학원명} #{학생명} #{수업명} #{일시}` 를 쓰도록 맞춰 재검수 부담을 줄였다 (`수업명` = `MAP TEST 응시`, `일시` = 희망 슬롯).
+- `amb_acm_mail_config.mlc_operator_emails` — 운영자 수신자(쉼표 구분). 기존 스키마에 "알림 수신자" 개념이 아예 없어 신설했다.
+
+### ⚠ 운영 설정이 없으면 발송되지 않는다 (의도된 동작)
+| 채널 | 선행 조건 | 미충족 시 |
+|------|----------|----------|
+| 학부모 알림톡 | `/admin/config/kakao` 에 Solapi 자격증명·pfId + **맵테스트 접수 템플릿 ID**. 채널 인증·템플릿 검수는 플랫폼 밖 절차 | `SKIPPED (MAP_APPLY_TEMPLATE_NOT_SET)` 로그만 남고 접수는 정상 |
+| 학부모 이메일 | `/admin/config/mail` SMTP 설정 + 신청자가 이메일을 입력 | `SKIPPED (MAIL_NOT_CONFIGURED)` |
+| 운영자 이메일 | 위 SMTP + `/admin/config/mail` 의 **운영자 알림 수신 이메일** | 수신자 미설정 시 발송 없음 |
+| 콘솔 실시간 알림 | 없음 (기존 `acm.csl.created` → SSE) | 항상 동작 |
+
+현재 운영 테넌트에는 `amb_acm_kakao_config` / `amb_acm_mail_config` 행이 **없다**. 즉 배포 직후에는 콘솔 실시간 알림만 동작하며, 로컬 스모크에서도 두 채널 모두 `SKIPPED` 로 기록되고 접수는 201 로 성공했다.
+
+### 로컬 스모크 결과
+- 접수: 정상 201 / 잘못된 키 401 / 동의 미체크 400 / 허니팟 201·행 미생성
+- 목록·상세: 사이트·단계·기간·검색(한글·영문·전화 뒤 4자리) 필터 동작
+- 보정: `2010년 9월` → `birthdate=null` + `raw` 보존, `20100914` 재입력 시 복구
+- 이관: dryRun 1건 → 실행 1건 → 재실행 `skipped 1` (멱등)
+- CSV: `StreamableFile` 로 반환해 `TransformInterceptor` 래핑을 피했고 UTF-8 BOM 으로 엑셀 한글 정상
+- 스모크 데이터는 삭제 후 마감
