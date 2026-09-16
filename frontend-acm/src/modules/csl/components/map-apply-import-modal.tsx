@@ -24,7 +24,8 @@ interface Props {
 
 /** 아임웹 "내보내기" CSV 헤더 → 내부 필드. 라벨 일부만 일치해도 매칭한다. */
 const COLUMN_HINTS: Array<{ key: keyof MapApplyImportRow; hints: string[] }> = [
-  { key: 'submittedAt', hints: ['작성시각', '작성일', '등록일', 'created'] },
+  // 아임웹 내보내기 헤더는 "응답시간"; 목록 화면 헤더는 "작성시각" 이라 둘 다 받는다.
+  { key: 'submittedAt', hints: ['응답시간', '작성시각', '작성일', '등록일', 'created'] },
   { key: 'studentName', hints: ['한글 이름', '한글이름', '학생의 한글'] },
   { key: 'studentNameEn', hints: ['영문 이름', '영문이름', '학생의 영문'] },
   { key: 'birthdate', hints: ['생년월일'] },

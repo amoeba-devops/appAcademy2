@@ -504,7 +504,7 @@
     },
     "import": {
       "title": "导入 imweb 历史申请",
-      "hint": "请选择从 imweb（内容 › 表单 › 导出）导出的 CSV。已导入的记录会自动跳过。",
+      "hint": "imweb 导出的是 .xlsx，请用 Excel 打开并另存为“CSV UTF-8”后再选择文件。已导入的记录会自动跳过。",
       "file": "CSV 文件",
       "parsed": "{{name}} — 识别 {{count}} 条",
       "missingColumns": "未找到受理时间和学生姓名列。",

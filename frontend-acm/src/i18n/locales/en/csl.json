@@ -504,7 +504,7 @@
     },
     "import": {
       "title": "Import imweb applications",
-      "hint": "Choose the CSV exported from imweb (Content › Form › Export). Rows already imported are skipped.",
+      "hint": "imweb exports .xlsx — open it in Excel and save as \"CSV UTF-8\", then choose the file here. Rows already imported are skipped.",
       "file": "CSV file",
       "parsed": "{{name}} — {{count}} rows detected",
       "missingColumns": "Could not find the submitted-time and student-name columns.",

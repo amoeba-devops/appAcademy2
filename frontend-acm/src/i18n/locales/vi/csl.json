@@ -504,7 +504,7 @@
     },
     "import": {
       "title": "Nhập đăng ký từ imweb",
-      "hint": "Chọn tệp CSV xuất từ imweb (Nội dung › Biểu mẫu › Xuất). Các dòng đã nhập sẽ được bỏ qua.",
+      "hint": "imweb xuất ra .xlsx — hãy mở bằng Excel và lưu dưới dạng \"CSV UTF-8\", rồi chọn tệp tại đây. Các dòng đã nhập sẽ được bỏ qua.",
       "file": "Tệp CSV",
       "parsed": "{{name}} — nhận {{count}} dòng",
       "missingColumns": "Không tìm thấy cột thời gian và tên học sinh.",
