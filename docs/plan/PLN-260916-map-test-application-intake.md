@@ -1,10 +1,11 @@
 ---
 document_id: CSL-PLN-260916
-version: 1.0.0
-status: IMPLEMENTED (배포 대기 — PR 생성)
+version: 1.1.0
+status: DEPLOYED (staging·production 2026-09-16, sha c906d56) · 아임웹 /test2 게시 잔여
 date: 2026-09-16
 depends_on: docs/analysis/REQ-260916-map-test-application-intake.md
 change_log:
+  - 2026-09-16 v1.1.0 DEPLOYED — PR #238 squash c906d56, cd-staging 35096428322 / cd-production 35096661097 success. 운영에서 아임웹 누적 64건(TPI 51 · TRINITY 13) 이관 완료. 아임웹 /test2 게시는 잔여 (Claude Code)
   - 2026-09-16 v1.0.0 구현 완료 — SQL 1014/1015, 접수 API·목록/상세/보정/이관/CSV, 알림(알림톡·이메일·SSE), 콘솔 `/admin/test`, 스니펫 2종, i18n 4 locale. 사용자 확정(Q1 9항목 통일·Q3 이관·Q5 알림 발송) 반영 (Claude Code)
   - 2026-09-16 v0.1.0 초안 — `/test2` 스니펫 + 맵테스트 신청 구조화 저장 + `/admin/test` 목록·상세 구현 계획 (Claude Code)
 ---
@@ -245,3 +246,23 @@ CREATE TRIGGER trg_acm_csl_map_apply_updated_at
 - 이관: dryRun 1건 → 실행 1건 → 재실행 `skipped 1` (멱등)
 - CSV: `StreamableFile` 로 반환해 `TransformInterceptor` 래핑을 피했고 UTF-8 BOM 으로 엑셀 한글 정상
 - 스모크 데이터는 삭제 후 마감
+
+## Deployment & Migration (배포·이관 기록, 2026-09-16)
+
+| 단계 | 결과 |
+|------|------|
+| PR | #238 → squash `c906d56` (CI 6잡 통과) |
+| cd-staging | run 35096428322 success — `/api/acm/csl/map-applications` 401 |
+| cd-production | run 35096661097 success — 목록 401, `/api/web/external-intake/map-test` 400(검증 도달) |
+| SQL 1014·1015 | CD 자동 적용 |
+| 콘솔 | `/admin/test` 노출, 좌측 메뉴 "맵테스트 신청" 정상 |
+| **누적 이관** | 아임웹 내보내기(xlsx) → CSV 변환 → 콘솔 이관 모달. **TPI 추가 51 / 건너뜀 0 / 실패 0**, **TRINITY 추가 13 / 건너뜀 0 / 실패 0** → 목록 **총 64건** 확인 (사이트·영문명·학년·성별·연락처·응시지 모두 정상 표시) |
+
+## Outstanding (잔여 작업)
+
+| # | 항목 | 상태 |
+|---|------|------|
+| O-1 | 아임웹 `/test2` 게시 (TPI·TRINITY) | **미완** — TPI 에 초안 페이지 `MAP TEST 응시 신청(신규)` + 빈 코드 위젯까지 생성(미게시). 스니펫 붙여넣기·페이지 주소 `test2` 지정·게시가 남음. 절차는 [GUIDE-260916](../implementation/GUIDE-260916-imweb-map-test.md) §2. 아임웹 위젯 설정은 마우스 hover 기반이라 자동화로 진행하지 못했다. **라이브 사이트에는 아무 영향 없음(미게시 초안)** |
+| O-2 | 접수 알림 실발송 | 미설정 — `/admin/config/kakao` 맵테스트 템플릿 ID, `/admin/config/mail` SMTP+운영자 수신 이메일 입력 필요 |
+| O-3 | 대량 이관 시 콘솔 토스트 폭주 | 알려진 문제 — `inquiryService.create` 가 건마다 `acm.csl.created` 를 발행해 64건 이관 중 SSE 토스트가 64회 떴다. 알림톡·이메일은 이관 경로에서 제외했으나 콘솔 토스트는 남는다. 후속으로 이관 시 이벤트 발행을 생략하는 옵션 추가 권장 |
+| O-4 | `/test` → `/test2` 메뉴 교체 | 운영자 판단 (GUIDE §7) |
