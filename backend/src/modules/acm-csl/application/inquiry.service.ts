@@ -241,7 +241,13 @@ export class InquiryService {
       qb.andWhere('inq.inq_followup_at IS NULL');
     }
 
-    qb.orderBy('inq.inq_seq_no', 'DESC');
+    // 요구 260917 — 기본 정렬은 등록일 역순. 등록일은 DATE 라 같은 날이 흔하고,
+    // 동률이면 순서가 흔들려 페이지네이션에서 행이 중복/누락될 수 있으므로
+    // 접수번호를 2차 기준으로 고정한다.
+    qb.orderBy('inq.inq_registered_at', 'DESC').addOrderBy(
+      'inq.inq_seq_no',
+      'DESC',
+    );
 
     if (q && q.trim()) {
       const needle = q.trim().toLocaleLowerCase();

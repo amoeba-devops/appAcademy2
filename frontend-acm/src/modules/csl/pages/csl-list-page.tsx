@@ -261,6 +261,10 @@ export function CslListPage() {
             <thead className="bg-[var(--gray-100)] text-secondary">
               <tr>
                 <th className="text-left px-4 py-3 w-16">{t('table.seqNo')}</th>
+                {/* 요구 260917 — 등록일을 번호 바로 뒤로 (기본 정렬 기준) */}
+                <th className="text-left px-4 py-3 min-w-[150px]">
+                  {t('table.registered')}
+                </th>
                 <th className="text-left px-4 py-3">{t('table.student')}</th>
                 <th className="text-left px-4 py-3">
                   {t('table.grade', { defaultValue: '학년' })}
@@ -347,7 +351,6 @@ export function CslListPage() {
                     </CslFilterSelect>
                   </div>
                 </th>
-                <th className="text-left px-4 py-3">{t('table.registered')}</th>
                 <th className="text-left px-4 py-3 min-w-[160px]">
                   <div className="grid gap-2">
                     <span>{t('table.followup')}</span>
@@ -392,6 +395,16 @@ export function CslListPage() {
                   className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-[var(--gray-100)]"
                 >
                   <td className="px-4 py-3 text-secondary tabular-nums">#{c.seqNo}</td>
+                  <td className="px-4 py-3 text-secondary">
+                    {/* 요구 260912C — 등록일 + 등록 시:분. */}
+                    <RegisteredAtCell
+                      registeredAt={c.registeredAt}
+                      createdAt={c.createdAt}
+                      locale={dateLocale}
+                      tz={tz}
+                      dash={dash}
+                    />
+                  </td>
                   <td className="px-4 py-3 font-medium">
                     {c.isAnonymous
                       ? t('anonymousInquiry', { seqNo: c.seqNo })
@@ -424,16 +437,6 @@ export function CslListPage() {
                     >
                       {t(`stage.${c.currentStage}`)}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-secondary">
-                    {/* 요구 260912C — 등록일 + 등록 시:분. */}
-                    <RegisteredAtCell
-                      registeredAt={c.registeredAt}
-                      createdAt={c.createdAt}
-                      locale={dateLocale}
-                      tz={tz}
-                      dash={dash}
-                    />
                   </td>
                   <td className="px-4 py-3 text-secondary">
                     {c.followupAt

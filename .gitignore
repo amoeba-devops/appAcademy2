@@ -1,5 +1,8 @@
 # ── Dependencies ──────────────────────────────────────────
 node_modules/
+# 심볼릭 링크로 만들어진 node_modules 는 위 패턴(슬래시)에 걸리지 않는다.
+# PR #238 에서 self-referential 심볼릭 링크가 커밋돼 체크아웃이 깨졌다.
+node_modules
 .pnp
 .pnp.js
 .yarn/install-state.gz
