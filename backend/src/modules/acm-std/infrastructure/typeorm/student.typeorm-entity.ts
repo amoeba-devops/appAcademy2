@@ -12,6 +12,9 @@ export class StudentTypeormEntity {
   @Column({ name: 'ent_id', type: 'uuid' })
   entId!: string;
 
+  @Column({ name: 'std_site', type: 'varchar', length: 20, nullable: true })
+  site?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
+
   // 기본 인적사항
   @Column({ name: 'std_name', type: 'varchar', length: 100 })
   name!: string;

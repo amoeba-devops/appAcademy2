@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
@@ -44,6 +44,7 @@ export class CslEnrollmentRegistrationService {
   async register(
     entId: string,
     inqId: string,
+    stdSite?: 'TPI' | 'TRINITY' | 'SANTACROCE',
   ): Promise<{ stdId: string; created: boolean } | null> {
     const inq = await this.inq.findOne({ where: { id: inqId, entId } });
     if (!inq) {
@@ -73,6 +74,7 @@ export class CslEnrollmentRegistrationService {
       studentName,
       phone,
       inq,
+      stdSite,
     );
 
     // ---- Parent find-or-create + link ---------------------------------------
@@ -111,9 +113,10 @@ export class CslEnrollmentRegistrationService {
     name: string,
     phone: string | null,
     inq: InquiryTypeormEntity,
+    stdSite?: 'TPI' | 'TRINITY' | 'SANTACROCE',
   ): Promise<{ student: StudentTypeormEntity; created: boolean }> {
     const nameMatches = await this.students.find({
-      where: { entId, name, status: 'ACTIVE' },
+      where: { entId, name, status: 'ACTIVE', deletedAt: IsNull() },
     });
 
     // Tier 1 — name + normalized phone (reuse the closest match).
@@ -148,6 +151,7 @@ export class CslEnrollmentRegistrationService {
       this.students.create({
         entId,
         name,
+        site: stdSite ?? null,
         phone: phone ?? null,
         school,
         grade: inq.grade ?? null,

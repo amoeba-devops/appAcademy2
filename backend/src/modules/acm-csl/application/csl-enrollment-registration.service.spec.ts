@@ -100,6 +100,17 @@ describe('CslEnrollmentRegistrationService', () => {
     );
   });
 
+  it('uses the explicitly selected site only for newly created students', async () => {
+    const h = build({ inquiry: baseInquiry() });
+    await h.svc.register(ENT, 'inq-1', 'TRINITY');
+    expect(h.stdRepo.save).toHaveBeenCalledWith(expect.objectContaining({ site: 'TRINITY' }));
+    const existing = { id: 'existing', name: '홍길동', phone: '01012345678', status: 'ACTIVE', site: 'TPI' };
+    const linked = build({ inquiry: baseInquiry(), students: [existing] });
+    await linked.svc.register(ENT, 'inq-1', 'SANTACROCE');
+    expect(linked.stdRepo.save).not.toHaveBeenCalled();
+    expect(existing.site).toBe('TPI');
+  });
+
   it('is idempotent — skips when inq already linked to a student', async () => {
     const h = build({ inquiry: baseInquiry({ stdId: 'std-existing' }) });
     const res = await h.svc.register(ENT, 'inq-1');
