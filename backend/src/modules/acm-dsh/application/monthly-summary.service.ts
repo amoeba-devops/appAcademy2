@@ -1,3 +1,10 @@
+import {
+  aggregateKpis,
+  comparisonRange,
+  type KpiRow,
+  type KpiCode,
+  type MetricCoverage,
+} from './kpi-aggregation';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Between, DataSource } from 'typeorm';
@@ -13,7 +20,8 @@ export interface MetricSummary {
   labelKr: string;
   labelEn: string;
   isSnapshot: boolean;
-  sum: number;
+  coverage: MetricCoverage;
+  sum: number | null;
   aver: number | null;
   previousSum: number | null;
   momDeltaPct: number | null;
@@ -25,11 +33,11 @@ export interface CategorySummary {
   primaryMetricCode: string;
   primaryMetricLabelKr: string;
   primaryMetricLabelEn: string;
-  sum: number;
+  sum: number | null;
   aver: number | null;
   previousSum: number | null;
   momDeltaPct: number | null;
-  series: number[];
+  series: (number | null)[];
   /** v2 — up to 3 key metrics rendered as a mini-table inside the card. */
   metrics: MetricSummary[];
 }
@@ -40,6 +48,7 @@ export interface RangeSummaryResult {
   previousFrom: string | null;
   previousTo: string | null;
   populatedDayCount: number;
+  actualThrough: string | null;
   categories: CategorySummary[];
   /** PLN-260914B — site filter applied (undefined = tenant total) */
   site?: DshSite;
@@ -49,35 +58,15 @@ export interface MonthlySummaryResult {
   yearMonth: string;
   previousYearMonth: string | null;
   populatedDayCount: number;
+  actualThrough: string | null;
   categories: CategorySummary[];
 }
 
 /** Minimal row shape shared by daily_kpi and the per-site table. */
-type KpiLike = Pick<
-  DailyKpiTypeormEntity,
-  | 'marketingVisitor'
-  | 'marketingCost'
-  | 'marketingEffect'
-  | 'csCounseling'
-  | 'csApply'
-  | 'csBeginning'
-  | 'csMissing'
-  | 'csTrialClass'
-  | 'csComplain'
-  | 'opsNewSt'
-  | 'opsOutSt'
-  | 'opsCountSt'
-  | 'opsNewTc'
-  | 'opsOutTc'
-  | 'opsCountTc'
-  | 'classMapTest'
-  | 'classTtClass'
-  | 'classStudent'
-  | 'classTeacher'
->;
+type KpiLike = KpiRow;
 
 interface MetricMeta {
-  code: string;
+  code: KpiCode;
   field: keyof KpiLike;
   labelKr: string;
   labelEn: string;
@@ -171,83 +160,34 @@ const CATEGORY_ORDER: DshCategory[] = ['MARKETING', 'CS', 'OPERATING', 'CLASS'];
 /** PLN-260914B — categories that carry a site dimension. */
 const SITE_CATEGORIES: DshCategory[] = ['MARKETING', 'CS'];
 
-function prevYearMonth(yearMonth: string): string {
-  const [yStr, mStr] = yearMonth.split('-');
-  const y = Number(yStr);
-  const m = Number(mStr);
-  const d = new Date(Date.UTC(y, m - 2, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function isoAddDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
-function diffDaysInclusive(from: string, to: string): number {
-  const a = new Date(`${from}T00:00:00Z`).getTime();
-  const b = new Date(`${to}T00:00:00Z`).getTime();
-  return Math.round((b - a) / 86400000) + 1;
-}
-
-function numOf(v: unknown): number {
-  if (v === null || v === undefined || v === '') return 0;
-  const n = typeof v === 'string' ? Number(v) : (v as number);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function metricValue(row: KpiLike, meta: MetricMeta): number {
-  if (meta.derived === 'EFFECT') {
-    return (row.csCounseling ?? 0) + (row.csApply ?? 0);
-  }
-  return numOf(row[meta.field]);
-}
-
 function buildCategory(
   cat: DshCategory,
-  rows: KpiLike[],
-  prevRows: KpiLike[],
+  aggregate: ReturnType<typeof aggregateKpis>,
+  previous: ReturnType<typeof aggregateKpis>,
 ): CategorySummary {
-  const metricsMeta = CATEGORY_METRICS[cat];
-  const metrics: MetricSummary[] = metricsMeta.map((meta) => {
-    const series = rows.map((r) => metricValue(r, meta));
-    const prevSeries = prevRows.map((r) => metricValue(r, meta));
-    let sum: number, aver: number | null, prevSum: number | null;
-    if (meta.isSnapshot) {
-      sum = series.length > 0 ? series[series.length - 1] : 0;
-      aver = null;
-      prevSum =
-        prevSeries.length > 0 ? prevSeries[prevSeries.length - 1] : null;
-    } else {
-      sum = series.reduce((a, b) => a + b, 0);
-      aver = series.length > 0 ? sum / series.length : null;
-      prevSum =
-        prevSeries.length > 0 ? prevSeries.reduce((a, b) => a + b, 0) : null;
-    }
-    let momDeltaPct: number | null = null;
-    if (prevSum !== null && prevSum !== 0) {
-      momDeltaPct = ((sum - prevSum) / prevSum) * 100;
-    } else if (prevSum === 0 && sum > 0) {
-      momDeltaPct = 100;
-    }
+  const metrics = CATEGORY_METRICS[cat].map((meta): MetricSummary => {
+    const coverage = aggregate.coverage[meta.code];
+    const priorCoverage = previous.coverage[meta.code];
+    const sum = aggregate.sums[meta.code];
+    const previousSum = previous.sums[meta.code];
+    const comparable =
+      coverage.status === 'AVAILABLE' && priorCoverage.status === 'AVAILABLE';
     return {
       code: meta.code,
       labelKr: meta.labelKr,
       labelEn: meta.labelEn,
       isSnapshot: !!meta.isSnapshot,
-      sum: Math.round(sum * 10) / 10,
-      aver: aver === null ? null : Math.round(aver * 10) / 10,
-      previousSum: prevSum === null ? null : Math.round(prevSum * 10) / 10,
+      sum,
+      previousSum,
+      coverage,
+      aver: aggregate.averages[meta.code],
       momDeltaPct:
-        momDeltaPct === null ? null : Math.round(momDeltaPct * 10) / 10,
+        comparable && sum !== null && previousSum !== null && previousSum !== 0
+          ? Math.round(((sum - previousSum) / previousSum) * 1000) / 10
+          : null,
     };
   });
-
   const primary = metrics[0];
-  const primaryMeta = metricsMeta[0];
-  const series = rows.map((r) => metricValue(r, primaryMeta));
-
   return {
     category: cat,
     primaryMetricCode: primary.code,
@@ -257,25 +197,15 @@ function buildCategory(
     aver: primary.aver,
     previousSum: primary.previousSum,
     momDeltaPct: primary.momDeltaPct,
-    series,
+    series: aggregate.series[primary.code],
     metrics,
   };
-}
-
-function isPopulated(r: KpiLike): boolean {
-  return (
-    (r.marketingVisitor ?? 0) > 0 ||
-    r.csCounseling > 0 ||
-    r.csApply > 0 ||
-    r.csBeginning > 0 ||
-    r.csTrialClass > 0 ||
-    r.classMapTest > 0
-  );
 }
 
 /** Per-site row → KpiLike (OPERATING/CLASS have no site dimension → 0). */
 function siteRowToKpiLike(r: DailyKpiSiteTypeormEntity): KpiLike {
   return {
+    date: r.date,
     marketingVisitor: r.marketingVisitor ?? null,
     marketingCost: r.marketingCost ?? null,
     marketingEffect: r.marketingEffect ?? null,
@@ -317,22 +247,19 @@ export class MonthlySummaryService {
     entId: string,
     yearMonth: string,
   ): Promise<MonthlySummaryResult> {
-    const repo = this.ds.getRepository(DailyKpiTypeormEntity);
-    const prev = prevYearMonth(yearMonth);
-    const [rows, prevRows] = await Promise.all([
-      repo.find({ where: { entId, yearMonth }, order: { date: 'ASC' } }),
-      repo.find({ where: { entId, yearMonth: prev }, order: { date: 'ASC' } }),
-    ]);
-    const previousYM = rows.length > 0 || prevRows.length > 0 ? prev : null;
-    const populatedDayCount = rows.filter(isPopulated).length;
-    const categories = CATEGORY_ORDER.map((cat) =>
-      buildCategory(cat, rows, prevRows),
-    );
+    const from = `${yearMonth}-01`;
+    const to = new Date(
+      Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5)), 0),
+    )
+      .toISOString()
+      .slice(0, 10);
+    const result = await this.getRangeSummary(entId, from, to);
     return {
       yearMonth,
-      previousYearMonth: previousYM,
-      populatedDayCount,
-      categories,
+      previousYearMonth: result.previousFrom?.slice(0, 7) ?? null,
+      populatedDayCount: result.populatedDayCount,
+      actualThrough: result.actualThrough,
+      categories: result.categories,
     };
   }
 
@@ -346,9 +273,7 @@ export class MonthlySummaryService {
     to: string,
     site?: DshSite,
   ): Promise<RangeSummaryResult> {
-    const lengthDays = diffDaysInclusive(from, to);
-    const previousTo = isoAddDays(from, -1);
-    const previousFrom = isoAddDays(previousTo, -(lengthDays - 1));
+    const { previousFrom, previousTo } = comparisonRange(from, to);
 
     let rows: KpiLike[];
     let prevRows: KpiLike[];
@@ -380,9 +305,13 @@ export class MonthlySummaryService {
       ]);
     }
 
-    const populatedDayCount = rows.filter(isPopulated).length;
+    const aggregate = aggregateKpis(rows, from, to);
+    const previous = aggregateKpis(prevRows, previousFrom, previousTo);
+    const populatedDayCount = aggregate.populatedDayCount;
     const cats = site ? SITE_CATEGORIES : CATEGORY_ORDER;
-    const categories = cats.map((cat) => buildCategory(cat, rows, prevRows));
+    const categories = cats.map((cat) =>
+      buildCategory(cat, aggregate, previous),
+    );
 
     return {
       from,
@@ -390,6 +319,7 @@ export class MonthlySummaryService {
       previousFrom: prevRows.length > 0 ? previousFrom : null,
       previousTo: prevRows.length > 0 ? previousTo : null,
       populatedDayCount,
+      actualThrough: aggregate.actualThrough,
       categories,
       site,
     };

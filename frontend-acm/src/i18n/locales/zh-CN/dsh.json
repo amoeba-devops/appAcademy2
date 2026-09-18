@@ -121,8 +121,8 @@
     "noData": "该月份暂无数据。"
   },
   "visitor": {
-    "sourceBadge": "来源 GA4 · 同步 {{at}}",
-    "bySite": "按站点",
+    "sourceBadge": "GA4 采集 · 同步 {{at}}",
+    "bySite": "GA4 部分（可能与全部来源不同）",
     "manualDays": "手动 {{count}} 天",
     "cellTooltip": "GA4 按站点",
     "manualMark": "手动录入",
@@ -153,5 +153,20 @@
       "complain": "投诉",
       "note": "公共(未指定)包含电话/Kakao/主页等未指定站点的咨询和公共手动录入。合计等于汇总仪表盘数值。"
     }
+  },
+  "quality": {
+    "through": "实际统计范围截至 {{date}}（各指标观测天数见下方）",
+    "observed": "已观测 {{count}}/{{total}} 天",
+    "partial": "部分汇总",
+    "comparison": "比较期间：{{from}} – {{to}}",
+    "reconcile": "总计与站点明细存在差异",
+    "reconcileHint": "差值为总计减去已知站点值。请核查缺失、导入和手工修改来源，不将差值归入公共项。",
+    "definitionNote": "原有申请、开始和新生指标可能与 MAP 申请、咨询开始和首次付款不同。核对来源映射后再分析转化率。",
+    "future": "未来日期",
+    "state": "数据状态",
+    "missing": "未录入",
+    "observedLabel": "观测天数",
+    "asOfLabel": "最后观测日期",
+    "stateLabel": "覆盖状态"
   }
 }
