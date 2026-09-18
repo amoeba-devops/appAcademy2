@@ -121,8 +121,8 @@
     "noData": "해당 월에 데이터가 없습니다."
   },
   "visitor": {
-    "sourceBadge": "출처 GA4 · 동기화 {{at}}",
-    "bySite": "사이트별",
+    "sourceBadge": "GA4 수집 내역 · 동기화 {{at}}",
+    "bySite": "GA4 수집분 (전체 원천과 다를 수 있음)",
     "manualDays": "수동 {{count}}일",
     "cellTooltip": "GA4 사이트별",
     "manualMark": "수동 입력",
@@ -153,5 +153,20 @@
       "complain": "불만",
       "note": "공통(미지정)은 전화·카카오·홈페이지 유입 등 사이트가 지정되지 않은 상담과 공통 수동 입력입니다. 합계는 통합 대시보드 값입니다."
     }
+  },
+  "quality": {
+    "through": "집계 가능 기간: {{date}}까지 (지표별 관측일은 아래 표시)",
+    "observed": "관측 {{count}}/{{total}}일",
+    "partial": "부분 집계",
+    "comparison": "비교 기간: {{from}} ~ {{to}}",
+    "reconcile": "통합과 사이트별 합계에 차이가 있습니다",
+    "reconcileHint": "통합에서 알려진 사이트 값을 뺀 차이입니다. 누락·이관·수동 수정의 원천을 확인해야 하며 공통 값으로 간주하지 않습니다.",
+    "definitionNote": "기존 지원·시강·신입생은 MAP 신청·상담 시작·최초 납부와 정의가 다를 수 있습니다. 원장 매핑 검증 전 전환율로 해석하지 마세요.",
+    "future": "미래일",
+    "state": "집계 상태",
+    "missing": "미입력",
+    "observedLabel": "관측일 수",
+    "asOfLabel": "마지막 관측일",
+    "stateLabel": "집계 상태"
   }
 }

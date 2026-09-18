@@ -1,3 +1,4 @@
+import { aggregateKpis, kpiToday, type MetricCoverage } from "./kpi-aggregation";
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -35,7 +36,9 @@ const DOW_KR = ['일', '월', '화', '수', '목', '금', '토'];
 export interface MonthGridResult {
   yearMonth: string;
   rows: DailyKpiTypeormEntity[];
-  sums: Record<string, number>;
+  sums: Record<string, number | null>;
+  coverage: Record<string, MetricCoverage>;
+  actualThrough: string | null;
   averages: Record<string, number | null>;
   populatedDayCount: number;
 }
@@ -44,7 +47,9 @@ export interface RangeGridResult {
   from: string;
   to: string;
   rows: DailyKpiTypeormEntity[];
-  sums: Record<string, number>;
+  sums: Record<string, number | null>;
+  coverage: Record<string, MetricCoverage>;
+  actualThrough: string | null;
   averages: Record<string, number | null>;
   populatedDayCount: number;
   /** PLN-260912 — GA4 per-site visitors: { [date]: { TPI: n, TRINITY: n, SANTACROCE: n } } */
@@ -61,11 +66,11 @@ export interface RangeGridResult {
 export interface SiteComparisonRow {
   site: DshSiteOrCommon | 'TOTAL';
   visitor: number | null;
-  counseling: number;
-  apply: number;
-  effect: number;
-  cost: number;
-  complain: number;
+  counseling: number | null;
+  apply: number | null;
+  effect: number | null;
+  cost: number | null;
+  complain: number | null;
 }
 
 /** Override mkt_effect = cs_counseling + cs_apply on the in-memory row. */
@@ -92,93 +97,14 @@ export class DailyKpiService {
     });
     applyEffectOverride(rows);
 
-    const sums: Record<string, number> = {
-      mkt_visitor: 0,
-      mkt_cost: 0,
-      mkt_effect: 0,
-      cs_counseling: 0,
-      cs_apply: 0,
-      cs_beginning: 0,
-      cs_missing: 0,
-      cs_trial_class: 0,
-      cs_complain: 0,
-      ops_new_st: 0,
-      ops_out_st: 0,
-      ops_count_st: 0,
-      ops_new_tc: 0,
-      ops_out_tc: 0,
-      ops_count_tc: 0,
-      cls_map_test: 0,
-      cls_tt_class: 0,
-      cls_student: 0,
-      cls_teacher: 0,
-    };
-
-    let populatedDayCount = 0;
-    for (const r of rows) {
-      const populated =
-        (r.marketingVisitor ?? 0) > 0 ||
-        r.csCounseling > 0 ||
-        r.csApply > 0 ||
-        r.csBeginning > 0 ||
-        r.csTrialClass > 0 ||
-        r.classMapTest > 0;
-      if (populated) populatedDayCount += 1;
-
-      sums.mkt_visitor += r.marketingVisitor ?? 0;
-      sums.mkt_cost += Number(r.marketingCost ?? 0);
-      sums.mkt_effect += r.marketingEffect ?? 0;
-      sums.cs_counseling += r.csCounseling;
-      sums.cs_apply += r.csApply;
-      sums.cs_beginning += r.csBeginning;
-      sums.cs_missing += r.csMissing;
-      sums.cs_trial_class += r.csTrialClass;
-      sums.cs_complain += r.csComplain;
-      sums.ops_new_st += r.opsNewSt;
-      sums.ops_out_st += r.opsOutSt;
-      sums.ops_new_tc += r.opsNewTc;
-      sums.ops_out_tc += r.opsOutTc;
-      sums.cls_map_test += r.classMapTest;
-      sums.cls_tt_class += Number(r.classTtClass ?? 0);
-      sums.cls_student += r.classStudent;
-      sums.cls_teacher += r.classTeacher;
-    }
-
-    // STATUS_SNAPSHOT — last day's value
-    const last = rows[rows.length - 1];
-    sums.ops_count_st = last?.opsCountSt ?? 0;
-    sums.ops_count_tc = last?.opsCountTc ?? 0;
-
-    // Aver. — UI-DSH-006: only volume/distinct/net_delta types average; status types null.
-    const dayCount = rows.length || 1;
-    const averagesNumeric: Record<string, number | null> = {
-      mkt_visitor: sums.mkt_visitor / dayCount,
-      mkt_cost: sums.mkt_cost / dayCount,
-      mkt_effect: sums.mkt_effect / dayCount,
-      cs_counseling: sums.cs_counseling / dayCount,
-      cs_apply: sums.cs_apply / dayCount,
-      cs_beginning: sums.cs_beginning / dayCount,
-      cs_missing: sums.cs_missing / dayCount,
-      cs_trial_class: sums.cs_trial_class / dayCount,
-      cs_complain: sums.cs_complain / dayCount,
-      ops_new_st: sums.ops_new_st / dayCount,
-      ops_out_st: sums.ops_out_st / dayCount,
-      ops_count_st: null,
-      ops_new_tc: sums.ops_new_tc / dayCount,
-      ops_out_tc: sums.ops_out_tc / dayCount,
-      ops_count_tc: null,
-      cls_map_test: sums.cls_map_test / dayCount,
-      cls_tt_class: sums.cls_tt_class / dayCount,
-      cls_student: sums.cls_student / dayCount,
-      cls_teacher: sums.cls_teacher / dayCount,
-    };
+    const from = `${yearMonth}-01`;
+    const to = new Date(Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5)), 0)).toISOString().slice(0, 10);
+    const aggregate = aggregateKpis(rows, from, to);
 
     return {
       yearMonth,
       rows,
-      sums,
-      averages: averagesNumeric,
-      populatedDayCount,
+      ...aggregate,
     };
   }
 
@@ -202,82 +128,7 @@ export class DailyKpiService {
         });
     applyEffectOverride(rows);
 
-    const sums: Record<string, number> = {
-      mkt_visitor: 0,
-      mkt_cost: 0,
-      mkt_effect: 0,
-      cs_counseling: 0,
-      cs_apply: 0,
-      cs_beginning: 0,
-      cs_missing: 0,
-      cs_trial_class: 0,
-      cs_complain: 0,
-      ops_new_st: 0,
-      ops_out_st: 0,
-      ops_count_st: 0,
-      ops_new_tc: 0,
-      ops_out_tc: 0,
-      ops_count_tc: 0,
-      cls_map_test: 0,
-      cls_tt_class: 0,
-      cls_student: 0,
-      cls_teacher: 0,
-    };
-
-    let populatedDayCount = 0;
-    for (const r of rows) {
-      const populated =
-        (r.marketingVisitor ?? 0) > 0 ||
-        r.csCounseling > 0 ||
-        r.csApply > 0 ||
-        r.csBeginning > 0 ||
-        r.csTrialClass > 0 ||
-        r.classMapTest > 0;
-      if (populated) populatedDayCount += 1;
-      sums.mkt_visitor += r.marketingVisitor ?? 0;
-      sums.mkt_cost += Number(r.marketingCost ?? 0);
-      sums.mkt_effect += r.marketingEffect ?? 0;
-      sums.cs_counseling += r.csCounseling;
-      sums.cs_apply += r.csApply;
-      sums.cs_beginning += r.csBeginning;
-      sums.cs_missing += r.csMissing;
-      sums.cs_trial_class += r.csTrialClass;
-      sums.cs_complain += r.csComplain;
-      sums.ops_new_st += r.opsNewSt;
-      sums.ops_out_st += r.opsOutSt;
-      sums.ops_new_tc += r.opsNewTc;
-      sums.ops_out_tc += r.opsOutTc;
-      sums.cls_map_test += r.classMapTest;
-      sums.cls_tt_class += Number(r.classTtClass ?? 0);
-      sums.cls_student += r.classStudent;
-      sums.cls_teacher += r.classTeacher;
-    }
-    const last = rows[rows.length - 1];
-    sums.ops_count_st = last?.opsCountSt ?? 0;
-    sums.ops_count_tc = last?.opsCountTc ?? 0;
-
-    const dayCount = rows.length || 1;
-    const averages: Record<string, number | null> = {
-      mkt_visitor: sums.mkt_visitor / dayCount,
-      mkt_cost: sums.mkt_cost / dayCount,
-      mkt_effect: sums.mkt_effect / dayCount,
-      cs_counseling: sums.cs_counseling / dayCount,
-      cs_apply: sums.cs_apply / dayCount,
-      cs_beginning: sums.cs_beginning / dayCount,
-      cs_missing: sums.cs_missing / dayCount,
-      cs_trial_class: sums.cs_trial_class / dayCount,
-      cs_complain: sums.cs_complain / dayCount,
-      ops_new_st: sums.ops_new_st / dayCount,
-      ops_out_st: sums.ops_out_st / dayCount,
-      ops_count_st: null,
-      ops_new_tc: sums.ops_new_tc / dayCount,
-      ops_out_tc: sums.ops_out_tc / dayCount,
-      ops_count_tc: null,
-      cls_map_test: sums.cls_map_test / dayCount,
-      cls_tt_class: sums.cls_tt_class / dayCount,
-      cls_student: sums.cls_student / dayCount,
-      cls_teacher: sums.cls_teacher / dayCount,
-    };
+    const aggregate = aggregateKpis(rows, from, to);
 
     // PLN-260912 — per-site GA4 breakdown + manual-override dates for the same window
     const svtRows = await this.ds.query<
@@ -314,9 +165,7 @@ export class DailyKpiService {
       from,
       to,
       rows,
-      sums,
-      averages,
-      populatedDayCount,
+      ...aggregate,
       siteVisits,
       manualVisitorDates,
       ga4LastSyncAt,
@@ -821,28 +670,28 @@ export class DailyKpiService {
     type AggRow = {
       site: string;
       visitor: string | null;
-      counseling: string;
-      apply: string;
+      counseling: string | null;
+      apply: string | null;
       cost: string | null;
-      complain: string;
+      complain: string | null;
     };
     const agg = await this.ds.query<AggRow[]>(
       `SELECT dks_site AS site,
               SUM(dks_marketing_visitor)::text AS visitor,
-              COALESCE(SUM(dks_cs_counseling),0)::text AS counseling,
-              COALESCE(SUM(dks_cs_apply),0)::text AS apply,
+              SUM(dks_cs_counseling)::text AS counseling,
+              SUM(dks_cs_apply)::text AS apply,
               SUM(dks_marketing_cost)::text AS cost,
-              COALESCE(SUM(dks_cs_complain),0)::text AS complain
+              SUM(dks_cs_complain)::text AS complain
          FROM amb_acm_dsh_daily_kpi_site
         WHERE ent_id = $1 AND dks_date BETWEEN $2 AND $3
         GROUP BY dks_site`,
-      [entId, from, to],
+      [entId, from, to < kpiToday() ? to : kpiToday()],
     );
     const byCode = new Map(agg.map((r) => [r.site, r]));
     const rows: SiteComparisonRow[] = DSH_SITE_ROWS.map((site) => {
       const r = byCode.get(site);
-      const counseling = Number(r?.counseling ?? 0);
-      const apply = Number(r?.apply ?? 0);
+      const counseling = r?.counseling == null ? null : Number(r.counseling);
+      const apply = r?.apply == null ? null : Number(r.apply);
       return {
         site,
         visitor:
@@ -851,32 +700,34 @@ export class DailyKpiService {
             : Number(r.visitor),
         counseling,
         apply,
-        effect: counseling + apply,
-        cost: Number(r?.cost ?? 0),
-        complain: Number(r?.complain ?? 0),
+        effect: counseling === null || apply === null ? null : counseling + apply,
+        cost: r?.cost == null ? null : Number(r.cost),
+        complain: r?.complain == null ? null : Number(r.complain),
       };
     });
     const total = await this.ds.query<
       {
         visitor: string | null;
-        counseling: string;
-        apply: string;
+        counseling: string | null;
+        apply: string | null;
         cost: string | null;
-        complain: string;
+        complain: string | null;
       }[]
     >(
       `SELECT SUM(dkp_marketing_visitor)::text AS visitor,
-              COALESCE(SUM(dkp_cs_counseling),0)::text AS counseling,
-              COALESCE(SUM(dkp_cs_apply),0)::text AS apply,
+              SUM(dkp_cs_counseling)::text AS counseling,
+              SUM(dkp_cs_apply)::text AS apply,
               SUM(dkp_marketing_cost)::text AS cost,
-              COALESCE(SUM(dkp_cs_complain),0)::text AS complain
+              SUM(dkp_cs_complain)::text AS complain
          FROM amb_acm_dsh_daily_kpi
-        WHERE ent_id = $1 AND dkp_date BETWEEN $2 AND $3`,
-      [entId, from, to],
+        WHERE ent_id = $1 AND dkp_date BETWEEN $2 AND $3
+          AND dkp_computation_status = 'FRESH'
+          AND dkp_data_completeness <> 'PARTIAL_FUTURE'`,
+      [entId, from, to < kpiToday() ? to : kpiToday()],
     );
     const t = total[0];
-    const tc = Number(t?.counseling ?? 0);
-    const ta = Number(t?.apply ?? 0);
+    const tc = t?.counseling == null ? null : Number(t.counseling);
+    const ta = t?.apply == null ? null : Number(t.apply);
     rows.push({
       site: 'TOTAL',
       visitor:
@@ -885,9 +736,9 @@ export class DailyKpiService {
           : Number(t.visitor),
       counseling: tc,
       apply: ta,
-      effect: tc + ta,
-      cost: Number(t?.cost ?? 0),
-      complain: Number(t?.complain ?? 0),
+      effect: tc === null || ta === null ? null : tc + ta,
+      cost: t?.cost == null ? null : Number(t.cost),
+      complain: t?.complain == null ? null : Number(t.complain),
     });
     return { from, to, rows };
   }

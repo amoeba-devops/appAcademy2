@@ -121,8 +121,8 @@
     "noData": "No data for this month."
   },
   "visitor": {
-    "sourceBadge": "Source GA4 · synced {{at}}",
-    "bySite": "By site",
+    "sourceBadge": "GA4 collection · synced {{at}}",
+    "bySite": "GA4 portion (may differ from total sources)",
     "manualDays": "manual {{count}}d",
     "cellTooltip": "GA4 by site",
     "manualMark": "Manual input",
@@ -153,5 +153,20 @@
       "complain": "Complaints",
       "note": "Common (unassigned) covers phone / Kakao / homepage inquiries without a site and tenant-level manual input. Total equals the All-sites dashboard."
     }
+  },
+  "quality": {
+    "through": "Actuals window through {{date}} (observed days shown per metric)",
+    "observed": "{{count}}/{{total}} observed days",
+    "partial": "Partial",
+    "comparison": "Comparison: {{from}} – {{to}}",
+    "reconcile": "Total differs from the site breakdown",
+    "reconcileHint": "Differences subtract known site values from the total. Check missing, imported and overridden sources; these are not Common values.",
+    "definitionNote": "Legacy Apply, Beginning and New Student metrics may differ from MAP applications, counseling starts and first payments. Verify source mappings before interpreting conversion.",
+    "future": "Future",
+    "state": "Data status",
+    "missing": "Missing",
+    "observedLabel": "Observed days",
+    "asOfLabel": "Last observed date",
+    "stateLabel": "Coverage status"
   }
 }

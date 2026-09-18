@@ -76,7 +76,9 @@ interface RangeGridResult {
   from: string;
   to: string;
   rows: DailyKpiRow[];
-  sums: Record<string, number>;
+  sums: Record<string, number | null>;
+  actualThrough: string | null;
+  coverage: Record<string, { validDays: number; expectedDays: number; asOf: string | null; status: string }>;
   averages: Record<string, number | null>;
   populatedDayCount: number;
   /** PLN-260912 — GA4 per-site visitors { [date]: { [site]: n } } */
@@ -89,6 +91,7 @@ interface RangeGridResult {
 interface RangeSummaryResponse {
   from: string;
   to: string;
+  actualThrough: string | null;
   previousFrom: string | null;
   previousTo: string | null;
   populatedDayCount: number;
@@ -276,21 +279,26 @@ export function DashboardPage() {
   const flatMetrics = visibleCategories.flatMap((c) => grouped[c]);
   const totalCols = 2 + flatMetrics.length;
 
+  const actualValue = (row: DailyKpiRow, field: keyof DailyKpiRow) =>
+    !gridQ.data?.actualThrough || row.date > gridQ.data.actualThrough ||
+    row.dataCompleteness === 'PARTIAL_FUTURE' || row.computationStatus !== 'FRESH'
+      ? null : row[field];
+
   const handleExportCsv = () => {
     if (!metricsQ.data || !gridQ.data) return;
-    const header: (string | number)[] = ['Date', t('grid.dow')];
+    const header: (string | number)[] = ['Date', t('grid.dow'), t('quality.state')];
     for (const md of flatMetrics) header.push(isKr ? md.labelKr : md.labelEn);
     const dataRows: (string | number | null)[][] = gridQ.data.rows.map((row) => {
-      const cells: (string | number | null)[] = [row.date, row.dayOfWeekKr];
+      const cells: (string | number | null)[] = [row.date, row.dayOfWeekKr, row.date > (gridQ.data?.actualThrough ?? '') ? t('quality.future') : row.computationStatus];
       for (const md of flatMetrics) {
         const field = METRIC_TO_FIELD[md.code];
-        const v = field ? (row[field] as unknown) : null;
+        const v = field ? actualValue(row, field) : null;
         cells.push(v === null || v === undefined ? null : (v as string | number));
       }
       return cells;
     });
-    const sumRow: (string | number | null)[] = [t('grid.sum'), ''];
-    const averRow: (string | number | null)[] = [t('grid.aver'), ''];
+    const sumRow: (string | number | null)[] = [t('grid.sum'), '', ''];
+    const averRow: (string | number | null)[] = [t('grid.aver'), '', ''];
     for (const md of flatMetrics) {
       sumRow.push(gridQ.data.sums[md.code] ?? null);
       averRow.push(
@@ -301,7 +309,15 @@ export function DashboardPage() {
             : null,
       );
     }
-    const csv = toCsv([header, ...dataRows, sumRow, averRow]);
+    const coverageRows = ['observed', 'asOf', 'state'].map(kind => {
+      const row: (string | number | null)[] = [t(`quality.${kind}Label`), '', ''];
+      for (const md of flatMetrics) {
+        const coverage = gridQ.data.coverage?.[md.code];
+        row.push(!coverage ? null : kind === 'observed' ? `${coverage.validDays}/${coverage.expectedDays}` : kind === 'asOf' ? coverage.asOf : coverage.status);
+      }
+      return row;
+    });
+    const csv = toCsv([header, ...dataRows, sumRow, averRow, ...coverageRows]);
     downloadCsv(`dsh-${site}-${from}_${to}.csv`, csv);
   };
 
@@ -318,7 +334,8 @@ export function DashboardPage() {
     const sv = gridQ.data?.siteVisits;
     if (!sv || !Object.keys(sv).length) return null;
     const bySite: Record<string, number> = {};
-    for (const perSite of Object.values(sv)) {
+    for (const [date, perSite] of Object.entries(sv)) {
+      if (!gridQ.data?.actualThrough || date > gridQ.data.actualThrough) continue;
       for (const [s, n] of Object.entries(perSite)) bySite[s] = (bySite[s] ?? 0) + n;
     }
     return {
@@ -468,13 +485,14 @@ export function DashboardPage() {
 
       {gridQ.data && (
         <p className="text-xs text-secondary mb-2">
-          {t('status.populated', {
-            count: gridQ.data.populatedDayCount,
-            total: gridQ.data.rows.length,
-          })}
+          {t('quality.through', { date: gridQ.data.actualThrough ?? '—' })}
           {isSiteView && <span className="ml-2">· {t('site.hiddenNote')}</span>}
         </p>
       )}
+
+      {(metricsQ.isError || gridQ.isError || summaryQ.isError) && <p role="alert" className="text-sm text-red-600 mb-3">{t('loadFailed')}</p>}
+      <p className="text-xs text-secondary mb-3">{t('quality.definitionNote')}</p>
+      {summaryQ.data?.previousFrom && <p className="text-xs text-secondary mb-3">{t('quality.comparison', { from: summaryQ.data.previousFrom, to: summaryQ.data.previousTo })}</p>}
 
       <KpiSummaryCards
         categories={(summaryQ.data?.categories ?? []).filter((c) =>
@@ -555,11 +573,11 @@ export function DashboardPage() {
                       className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-surface-subtle"
                       onClick={() => onRowClick(row.date)}
                     >
-                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}</td>
+                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}{row.date > (gridQ.data?.actualThrough ?? '') && <span className="block text-[10px] text-secondary">{t('quality.future')}</span>}</td>
                       <td className="px-2 py-1">{row.dayOfWeekKr}</td>
                       {flatMetrics.map((md, i) => {
                         const field = METRIC_TO_FIELD[md.code];
-                        const v = field ? (row[field] as unknown) : null;
+                        const v = field ? actualValue(row, field) : null;
                         const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
                         const isFirstOfCat = prevCat !== md.category;
                         const isVisitor = md.code === 'mkt_visitor';
@@ -604,6 +622,7 @@ export function DashboardPage() {
                       }
                     >
                       {fmt(gridQ.data!.sums[md.code], md.format)}
+                      {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}
                     </td>
                   );
                 })}

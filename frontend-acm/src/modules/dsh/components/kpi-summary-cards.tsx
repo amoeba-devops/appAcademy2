@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { ResponsiveTable } from '@/components/ui/responsive-table';
 import { Sparkline } from './sparkline';
 
 export type DshCategory = 'MARKETING' | 'CS' | 'OPERATING' | 'CLASS';
@@ -9,7 +8,8 @@ export interface MetricSummary {
   labelKr: string;
   labelEn: string;
   isSnapshot: boolean;
-  sum: number;
+  coverage?: { validDays: number; expectedDays: number; asOf: string | null; status: string };
+  sum: number | null;
   aver: number | null;
   previousSum: number | null;
   momDeltaPct: number | null;
@@ -20,11 +20,11 @@ export interface CategorySummary {
   primaryMetricCode: string;
   primaryMetricLabelKr: string;
   primaryMetricLabelEn: string;
-  sum: number;
+  sum: number | null;
   aver: number | null;
   previousSum: number | null;
   momDeltaPct: number | null;
-  series: number[];
+  series: (number | null)[];
   metrics?: MetricSummary[];
 }
 
@@ -57,9 +57,9 @@ function fmtNum(n: number | null): string {
   return (Math.round(n * 10) / 10).toString();
 }
 
-function DeltaCell({ delta }: { delta: number | null }) {
+function DeltaCell({ delta, neutral = false }: { delta: number | null; neutral?: boolean }) {
   if (delta === null) return <span className="text-secondary">—</span>;
-  const color = delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-secondary';
+  const color = neutral ? 'text-secondary' : delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-secondary';
   const arrow = delta > 0 ? '▲' : delta < 0 ? '▼' : '·';
   return (
     <span className={color}>
@@ -75,7 +75,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
@@ -89,7 +89,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
   const sites = visitorBreakdown ? Object.keys(visitorBreakdown.bySite) : [];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
       {categories.map((c) => {
         const accent = ACCENT[c.category];
         const metrics: MetricSummary[] =
@@ -110,7 +110,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
         return (
           <div
             key={c.category}
-            className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 flex flex-col gap-2"
+            className="min-w-0 rounded-md border border-[var(--border-subtle)] bg-surface p-4 flex flex-col gap-2"
           >
             <div className="flex items-center justify-between">
               <span
@@ -142,8 +142,8 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
               )}
             </div>
 
-            <ResponsiveTable>
-            <table className="w-full min-w-[420px] text-[11px] tabular-nums">
+            <div>
+            <table className="w-full table-fixed text-xs tabular-nums">
               <thead>
                 <tr className="text-secondary">
                   <th className="text-left font-normal py-0.5">{t('summary.headers.label')}</th>
@@ -155,17 +155,19 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
               <tbody>
                 {metrics.map((m) => (
                   <tr key={m.code} className="border-t border-[var(--border-subtle)]">
-                    <td className="text-left py-0.5">{isKr ? m.labelKr : m.labelEn}</td>
-                    <td className="text-right py-0.5 font-medium">{fmtNum(m.sum)}</td>
+                    <td className="text-left py-2 pr-2 break-words">{isKr ? m.labelKr : m.labelEn}
+                      {m.coverage && <span className="block text-[10px] text-secondary">{t('quality.observed', { count: m.coverage.validDays, total: m.coverage.expectedDays })}</span>}
+                    </td>
+                    <td className="text-right py-0.5 font-medium">{m.sum === null ? t('quality.missing') : fmtNum(m.sum)}{m.coverage?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}</td>
                     <td className="text-right py-0.5">{m.isSnapshot ? '—' : fmtNum(m.aver)}</td>
                     <td className="text-right py-0.5">
-                      <DeltaCell delta={m.momDeltaPct} />
+                      <DeltaCell delta={m.momDeltaPct} neutral={m.code === 'mkt_cost'} />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </ResponsiveTable>
+          </div>
 
             {c.category === 'MARKETING' && visitorBreakdown && sites.length > 0 && (
               <div className="text-[10px] text-secondary leading-4" data-testid="visitor-breakdown">
