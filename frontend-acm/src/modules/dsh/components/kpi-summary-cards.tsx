@@ -75,7 +75,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
         {[0, 1, 2, 3].map((i) => (
           <div
             key={i}
@@ -89,7 +89,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
   const sites = visitorBreakdown ? Object.keys(visitorBreakdown.bySite) : [];
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
       {categories.map((c) => {
         const accent = ACCENT[c.category];
         const metrics: MetricSummary[] =
@@ -110,9 +110,9 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
         return (
           <div
             key={c.category}
-            className="min-w-0 rounded-md border border-[var(--border-subtle)] bg-surface p-4 flex flex-col gap-2"
+            className="min-w-0 rounded-md border border-[var(--border-subtle)] bg-surface p-3 flex flex-col gap-2"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <span
                 className="text-[11px] uppercase tracking-wider font-semibold"
                 style={{ color: accent }}
@@ -143,7 +143,8 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
             </div>
 
             <div>
-            <table className="w-full table-fixed text-xs tabular-nums">
+            <table className="w-full table-fixed text-[11px] tabular-nums">
+              <colgroup><col className="w-[24%]" /><col className="w-[28%]" /><col className="w-[28%]" /><col className="w-[20%]" /></colgroup>
               <thead>
                 <tr className="text-secondary">
                   <th className="text-left font-normal py-0.5">{t('summary.headers.label')}</th>
@@ -155,7 +156,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
               <tbody>
                 {metrics.map((m) => (
                   <tr key={m.code} className="border-t border-[var(--border-subtle)]">
-                    <td className="text-left py-2 pr-2 break-words">{isKr ? m.labelKr : m.labelEn}
+                    <td className="text-left py-2 pr-1 break-words">{isKr ? m.labelKr : m.labelEn}
                       {m.coverage && <span className="block text-[10px] text-secondary">{t('quality.observed', { count: m.coverage.validDays, total: m.coverage.expectedDays })}</span>}
                     </td>
                     <td className="text-right py-0.5 font-medium">{m.sum === null ? t('quality.missing') : fmtNum(m.sum)}{m.coverage?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}</td>
@@ -187,7 +188,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
               </div>
             )}
 
-            <div style={{ color: accent }}>
+            <div className="mt-auto pt-3" style={{ color: accent }}>
               <Sparkline data={c.series} />
             </div>
           </div>

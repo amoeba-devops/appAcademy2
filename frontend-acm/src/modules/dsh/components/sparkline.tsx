@@ -2,19 +2,17 @@ interface SparklineProps {
   data: (number | null)[];
   height?: number;
   color?: string;
-  fillOpacity?: number;
 }
 
 export function Sparkline({
   data,
-  height = 32,
+  height = 40,
   color = 'currentColor',
-  fillOpacity = 0.12,
 }: SparklineProps) {
   if (!data || data.length === 0) {
     return <div style={{ height }} className="text-secondary text-xs flex items-center">—</div>;
   }
-  const w = 100;
+  const w = 320;
   const h = height;
   const pad = 2;
   const known = data.filter((v): v is number => v !== null);
@@ -26,11 +24,10 @@ export function Sparkline({
   const points = data.map((v, i) => {
     if (v === null) return null;
     const x = pad + i * step;
-    const y = pad + (1 - (v - min) / range) * (h - pad * 2);
+    const y = max === min ? h / 2 : pad + (1 - (v - min) / range) * (h - pad * 2);
     return [x, y] as const;
   });
   const linePath = points.map((p, i) => p ? `${i === 0 || points[i - 1] === null ? "M" : "L"}${p[0].toFixed(2)},${p[1].toFixed(2)}` : "").join(" ");
-  const fillPath = "";
 
   return (
     <svg
@@ -42,8 +39,7 @@ export function Sparkline({
       aria-label="sparkline"
       style={{ display: 'block' }}
     >
-      {fillPath && <path d={fillPath} fill={color} opacity={fillOpacity} />}
-      <path d={linePath} fill="none" stroke={color} strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" />
+      <path d={linePath} fill="none" stroke={color} strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
     </svg>
   );
 }
