@@ -1,31 +1,32 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/lib/api-client';
-import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth.store';
-import { useConfirm } from '@/components/ui/confirm-dialog';
-import { useToast } from '@/components/ui/toast';
-import { CslStageStepper } from '@/modules/csl/components/csl-stage-stepper';
-import { IntakeStagePanel } from '@/modules/csl/components/intake-stage-panel';
-import { LevelTestPanel } from '@/modules/csl/components/level-test-panel';
-import { TrialClassPanel } from '@/modules/csl/components/trial-class-panel';
-import { EnrollmentPanel } from '@/modules/csl/components/enrollment-panel';
-import { CancellationDialog } from '@/modules/csl/components/cancellation-dialog';
-import { RemarksPanel } from '@/modules/csl/components/remarks-panel';
-import { ClassStatusSummaryPanel } from '@/modules/csl/components/class-status-summary-panel';
+import { STD_SITES } from "@/modules/std/types";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
+import { useAuthStore } from "@/stores/auth.store";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
+import { CslStageStepper } from "@/modules/csl/components/csl-stage-stepper";
+import { IntakeStagePanel } from "@/modules/csl/components/intake-stage-panel";
+import { LevelTestPanel } from "@/modules/csl/components/level-test-panel";
+import { TrialClassPanel } from "@/modules/csl/components/trial-class-panel";
+import { EnrollmentPanel } from "@/modules/csl/components/enrollment-panel";
+import { CancellationDialog } from "@/modules/csl/components/cancellation-dialog";
+import { RemarksPanel } from "@/modules/csl/components/remarks-panel";
+import { ClassStatusSummaryPanel } from "@/modules/csl/components/class-status-summary-panel";
 
 export type CslStage =
-  | 'INTAKE'
-  | 'MAP_TEST'
-  | 'TRIAL_CLASS'
-  | 'ENROLLMENT_COUNSELING'
-  | 'PAYMENT'
-  | 'CLASS_STARTED'
-  | 'ATTENDING'
-  | 'DROPPED';
+  | "INTAKE"
+  | "MAP_TEST"
+  | "TRIAL_CLASS"
+  | "ENROLLMENT_COUNSELING"
+  | "PAYMENT"
+  | "CLASS_STARTED"
+  | "ATTENDING"
+  | "DROPPED";
 
 interface InquiryDetail {
   id: string;
@@ -34,14 +35,14 @@ interface InquiryDetail {
   isAnonymous: boolean;
   parentName: string | null;
   parentPhone: string | null;
-  phoneStatus: 'PROVIDED' | 'DECLINED' | 'UNKNOWN';
+  phoneStatus: "PROVIDED" | "DECLINED" | "UNKNOWN";
   schoolFreetext?: string | null;
   grade?: string | null;
-  inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
-  sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
-  applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
+  inflowType: "HOMEPAGE" | "KAKAO_CHANNEL" | "PHONE" | "WEB_EXTERNAL";
+  sourceSite?: "TPI" | "TRINITY" | "SANTACROCE" | null;
+  applyType: "COUNSELING_ONLY" | "EXAM_ONLY" | "BOTH";
   applyPurposes?: string[];
-  consultDone?: 'YES' | 'NO' | null;
+  consultDone?: "YES" | "NO" | null;
   currentStage: CslStage;
   previousStage?: CslStage | null;
   registeredAt: string;
@@ -54,11 +55,11 @@ interface InquiryDetail {
 // 헤더의 "→ 단계" 진행 버튼 맵. CLASS_STARTED→ATTENDING(수강중) 전환은 헤더
 // 버튼이 아니라 6단계 패널의 [수강등록완료] 버튼이 담당하므로 여기서는 비워둔다.
 const FORWARD: Record<CslStage, CslStage[]> = {
-  INTAKE: ['MAP_TEST', 'TRIAL_CLASS'],
-  MAP_TEST: ['TRIAL_CLASS'],
-  TRIAL_CLASS: ['ENROLLMENT_COUNSELING'],
-  ENROLLMENT_COUNSELING: ['PAYMENT'],
-  PAYMENT: ['CLASS_STARTED'],
+  INTAKE: ["MAP_TEST", "TRIAL_CLASS"],
+  MAP_TEST: ["TRIAL_CLASS"],
+  TRIAL_CLASS: ["ENROLLMENT_COUNSELING"],
+  ENROLLMENT_COUNSELING: ["PAYMENT"],
+  PAYMENT: ["CLASS_STARTED"],
   CLASS_STARTED: [],
   ATTENDING: [],
   DROPPED: [],
@@ -71,17 +72,17 @@ const FORWARD: Record<CslStage, CslStage[]> = {
 export function CslDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['csl', 'common']);
+  const { t } = useTranslation(["csl", "common"]);
 
   if (!id) {
-    return <p className="text-secondary">{t('common:status.error')}</p>;
+    return <p className="text-secondary">{t("common:status.error")}</p>;
   }
 
   return (
     <CslDetailBody
       inqId={id}
-      onBack={() => navigate('/admin/csl')}
-      backLabel={t('detail.backToList')}
+      onBack={() => navigate("/admin/csl")}
+      backLabel={t("detail.backToList")}
       variant="page"
     />
   );
@@ -98,21 +99,22 @@ export function CslDetailBody({
   inqId,
   onBack,
   backLabel,
-  variant = 'page',
+  variant = "page",
 }: {
   inqId: string;
   onBack?: () => void;
   backLabel?: string;
-  variant?: 'page' | 'modal';
+  variant?: "page" | "modal";
 }) {
-  const { t } = useTranslation(['csl', 'common']);
+  const { t } = useTranslation(["csl", "common"]);
   const qc = useQueryClient();
+  const [registrationSite, setRegistrationSite] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
 
   // 요구 260914G — 상담 삭제는 AMA 연동 계정만 (서버도 AmaAccountGuard 로 막는다).
-  const canDelete = useAuthStore((st) => st.user?.authSource) === 'ama';
+  const canDelete = useAuthStore((st) => st.user?.authSource) === "ama";
   const confirm = useConfirm();
   const toast = useToast();
   const navigateTo = useNavigate();
@@ -120,33 +122,35 @@ export function CslDetailBody({
 
   async function onDelete(): Promise<void> {
     const ok = await confirm({
-      title: t('delete.title', '상담 삭제'),
+      title: t("delete.title", "상담 삭제"),
       description: t(
-        'delete.confirmDetail',
-        '이 상담을 삭제할까요? 상담목록의 [삭제 목록 보기] 에서 복구할 수 있습니다.',
+        "delete.confirmDetail",
+        "이 상담을 삭제할까요? 상담목록의 [삭제 목록 보기] 에서 복구할 수 있습니다.",
       ),
-      confirmLabel: t('common:actions.delete', '삭제'),
-      variant: 'destructive',
+      confirmLabel: t("common:actions.delete", "삭제"),
+      variant: "destructive",
     });
     if (!ok) return;
     setRemoving(true);
     try {
       await apiClient.delete(`/acm/csl/inquiries/${inqId}`);
-      void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
-      toast.success(t('delete.done', '삭제했습니다.'));
+      void qc.invalidateQueries({ queryKey: ["csl", "list"] });
+      toast.success(t("delete.done", "삭제했습니다."));
       if (onBack) onBack();
-      else navigateTo('/admin/csl');
+      else navigateTo("/admin/csl");
     } catch {
-      toast.error(t('delete.failed', '삭제에 실패했습니다.'));
+      toast.error(t("delete.failed", "삭제에 실패했습니다."));
     } finally {
       setRemoving(false);
     }
   }
 
   const { data: inq, isLoading } = useQuery({
-    queryKey: ['csl', 'detail', inqId],
+    queryKey: ["csl", "detail", inqId],
     queryFn: async () => {
-      const res = await apiClient.get<InquiryDetail>(`/acm/csl/inquiries/${inqId}`);
+      const res = await apiClient.get<InquiryDetail>(
+        `/acm/csl/inquiries/${inqId}`,
+      );
       return res.data;
     },
     enabled: !!inqId,
@@ -157,29 +161,48 @@ export function CslDetailBody({
       setErrorMsg(null);
       const res = await apiClient.post(
         `/acm/csl/inquiries/${inqId}/transitions`,
-        { toStage },
+        {
+          toStage,
+          ...(toStage === "CLASS_STARTED"
+            ? { stdSite: registrationSite || inq?.sourceSite || undefined }
+            : {}),
+        },
       );
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) =>
-      setErrorMsg(e.response?.data?.message ?? e.message ?? 'Transition failed'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["csl"] }),
+    onError: (e: {
+      response?: { data?: { message?: string } };
+      message?: string;
+    }) =>
+      setErrorMsg(
+        e.response?.data?.message ?? e.message ?? "Transition failed",
+      ),
   });
 
   const reactivate = useMutation({
     mutationFn: async () => {
       setErrorMsg(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${inqId}/reactivate`);
+      const res = await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/reactivate`,
+      );
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl'] }),
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) =>
-      setErrorMsg(e.response?.data?.message ?? e.message ?? 'Reactivate failed'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["csl"] }),
+    onError: (e: {
+      response?: { data?: { message?: string } };
+      message?: string;
+    }) =>
+      setErrorMsg(
+        e.response?.data?.message ?? e.message ?? "Reactivate failed",
+      ),
   });
 
   const displayName = useMemo(() => {
-    if (!inq) return '';
-    return inq.isAnonymous ? t('anonymousInquiry', { seqNo: inq.seqNo }) : inq.studentName;
+    if (!inq) return "";
+    return inq.isAnonymous
+      ? t("anonymousInquiry", { seqNo: inq.seqNo })
+      : inq.studentName;
   }, [inq, t]);
 
   useEffect(() => {
@@ -187,11 +210,11 @@ export function CslDetailBody({
   }, [inq?.currentStage]);
 
   if (isLoading || !inq) {
-    return <p className="text-secondary">{t('common:status.loading')}</p>;
+    return <p className="text-secondary">{t("common:status.loading")}</p>;
   }
 
   const allowedForward = FORWARD[inq.currentStage];
-  const isDropped = inq.currentStage === 'DROPPED';
+  const isDropped = inq.currentStage === "DROPPED";
   const effectiveSelected: CslStage = isDropped
     ? inq.currentStage
     : (selectedStage ?? inq.currentStage);
@@ -206,28 +229,28 @@ export function CslDetailBody({
               onClick={onBack}
               className="text-xs text-secondary hover:text-primary mb-2"
             >
-              {variant === 'modal' ? '✕' : '←'}{' '}
-              {backLabel ?? t('detail.backToList')}
+              {variant === "modal" ? "✕" : "←"}{" "}
+              {backLabel ?? t("detail.backToList")}
             </button>
           )}
           <h1 className="text-2xl font-semibold">{displayName}</h1>
           <p className="text-sm text-secondary mt-1">
             #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)}
-            {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{' '}
+            {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{" "}
             {t(`applyType.${inq.applyType}`)}
             {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
             {inq.grade && ` (${t(`grade.${inq.grade}`, inq.grade)})`}
           </p>
           {(inq.parentName || inq.parentPhone) && (
             <p className="text-sm text-secondary mt-1">
-              👪 {inq.parentName ?? '—'}
+              👪 {inq.parentName ?? "—"}
               {inq.parentPhone && ` · ☎ ️ ${inq.parentPhone}`}
             </p>
           )}
           {inq.linkedStudent && (
             <p className="mt-1 text-sm">
               <span className="text-secondary">
-                🎓 {t('detail.linkedStudent', '수강등록 연결')}:{' '}
+                🎓 {t("detail.linkedStudent", "수강등록 연결")}:{" "}
               </span>
               <Link
                 to={`/admin/std/${inq.linkedStudent.id}`}
@@ -236,25 +259,58 @@ export function CslDetailBody({
                 {inq.linkedStudent.name}
               </Link>
               <span className="ml-1 text-xs text-secondary">
-                ({t(`std:status.${inq.linkedStudent.status}`, inq.linkedStudent.status)})
+                (
+                {t(
+                  `std:status.${inq.linkedStudent.status}`,
+                  inq.linkedStudent.status,
+                )}
+                )
               </span>
             </p>
           )}
         </div>
         <div className="flex gap-2">
+          {inq.currentStage === "PAYMENT" && (
+            <label className="text-xs">
+              {t("std:site.label")}
+              <select
+                aria-label={t("std:site.label")}
+                className="block rounded border p-2"
+                value={registrationSite ?? inq.sourceSite ?? ""}
+                onChange={(e) => setRegistrationSite(e.target.value)}
+              >
+                <option value="">{t("std:site.UNASSIGNED")}</option>
+                {STD_SITES.map((site) => (
+                  <option key={site} value={site}>
+                    {t(`std:site.${site}`)}
+                  </option>
+                ))}
+              </select>
+              {inq.linkedStudent && (
+                <span>{t("std:site.existingPreserved")}</span>
+              )}
+            </label>
+          )}
           {!isDropped &&
             allowedForward.map((s) => (
               <Button
                 key={s}
                 onClick={() => forward.mutate(s)}
-                disabled={forward.isPending}
+                disabled={
+                  forward.isPending ||
+                  (s === "CLASS_STARTED" &&
+                    !(registrationSite ?? inq.sourceSite))
+                }
               >
                 → {t(`stage.${s}`)}
               </Button>
             ))}
           {isDropped && (
-            <Button onClick={() => reactivate.mutate()} disabled={reactivate.isPending}>
-              {t('detail.reactivate')}
+            <Button
+              onClick={() => reactivate.mutate()}
+              disabled={reactivate.isPending}
+            >
+              {t("detail.reactivate")}
             </Button>
           )}
           {/* 요구 260914G — 삭제는 AMA 연동 계정만. 소프트 삭제라 목록의
@@ -267,7 +323,7 @@ export function CslDetailBody({
               disabled={removing}
             >
               <Trash2 size={14} className="mr-1" />
-              {t('common:actions.delete', '삭제')}
+              {t("common:actions.delete", "삭제")}
             </Button>
           )}
         </div>
@@ -287,24 +343,24 @@ export function CslDetailBody({
 
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
         <div className="grid gap-4">
-          {effectiveSelected === 'INTAKE' && (
+          {effectiveSelected === "INTAKE" && (
             <IntakeStagePanel
               inqId={inq.id}
               onAfterAdvance={
-                inq.currentStage === 'INTAKE'
-                  ? () => forward.mutate('MAP_TEST')
+                inq.currentStage === "INTAKE"
+                  ? () => forward.mutate("MAP_TEST")
                   : undefined
               }
             />
           )}
-          {effectiveSelected === 'MAP_TEST' && (
+          {effectiveSelected === "MAP_TEST" && (
             <LevelTestPanel inqId={inq.id} />
           )}
-          {effectiveSelected === 'TRIAL_CLASS' && (
+          {effectiveSelected === "TRIAL_CLASS" && (
             <TrialClassPanel inqId={inq.id} />
           )}
-          {(effectiveSelected === 'ENROLLMENT_COUNSELING' ||
-            effectiveSelected === 'PAYMENT') && (
+          {(effectiveSelected === "ENROLLMENT_COUNSELING" ||
+            effectiveSelected === "PAYMENT") && (
             <EnrollmentPanel
               inqId={inq.id}
               currentStage={effectiveSelected}
@@ -315,8 +371,8 @@ export function CslDetailBody({
               }
             />
           )}
-          {(effectiveSelected === 'CLASS_STARTED' ||
-            effectiveSelected === 'ATTENDING') && (
+          {(effectiveSelected === "CLASS_STARTED" ||
+            effectiveSelected === "ATTENDING") && (
             <ClassStatusSummaryPanel
               inqId={inq.id}
               currentStage={inq.currentStage}
@@ -327,8 +383,12 @@ export function CslDetailBody({
           inqId={inq.id}
           headerAction={
             !isDropped ? (
-              <Button size="sm" variant="outline" onClick={() => setCancelOpen(true)}>
-                {t('detail.drop')}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setCancelOpen(true)}
+              >
+                {t("detail.drop")}
               </Button>
             ) : undefined
           }

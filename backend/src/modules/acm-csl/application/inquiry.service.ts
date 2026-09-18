@@ -947,6 +947,7 @@ export class InquiryService {
     toStage: CslStage,
     note: string | undefined,
     actorId?: string,
+    stdSite?: 'TPI' | 'TRINITY' | 'SANTACROCE',
   ) {
     const e = await this.getOrThrow(entId, inqId);
     const allowed = FORWARD_TRANSITIONS[e.currentStage];
@@ -972,6 +973,7 @@ export class InquiryService {
       undefined,
       note,
       actorId,
+      stdSite,
     );
   }
 
@@ -1071,6 +1073,7 @@ export class InquiryService {
     reasonCode?: string,
     note?: string,
     actorId?: string,
+    stdSite?: 'TPI' | 'TRINITY' | 'SANTACROCE',
   ) {
     const fromStage = inq.currentStage;
     inq.previousStage = fromStage;
@@ -1116,7 +1119,7 @@ export class InquiryService {
       // student row exists when inheritance matches it. Best-effort: failures
       // must NOT abort the transition (the inquiry is already saved above).
       try {
-        await this.enrollmentRegistration.register(entId, inq.id);
+        await this.enrollmentRegistration.register(entId, inq.id, stdSite);
       } catch (e) {
         this.events.emit('acm.csl.enrollment_registration_failed', {
           entId,

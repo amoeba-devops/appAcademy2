@@ -1,7 +1,9 @@
 // STD module shared types — mirrors backend DTOs.
 
-export type StdStatus = 'ACTIVE' | 'INACTIVE' | 'WITHDRAWN';
-export type StdGender = 'M' | 'F';
+export const STD_SITES = ["TPI", "TRINITY", "SANTACROCE"] as const;
+export type StdSite = (typeof STD_SITES)[number];
+export type StdStatus = "ACTIVE" | "INACTIVE" | "WITHDRAWN";
+export type StdGender = "M" | "F";
 
 /** PLN-260718 요구4 — 이 학생을 만든 원본 신규상담(있으면). */
 export interface SourceInquiryLink {
@@ -11,6 +13,8 @@ export interface SourceInquiryLink {
 }
 
 export interface StudentSummary {
+  site?: StdSite | null;
+  updatedAt: string;
   id: string;
   name: string;
   englishName?: string | null;
@@ -74,6 +78,7 @@ export interface ParentInput {
 // 학생 등록 폼(StdFormModal) create 모드 프리필. 상담(CSL)에서 학생 등록으로
 // 넘어올 때 학생명·학부모 정보 등을 미리 채우기 위해 사용한다.
 export interface StudentCreatePrefill {
+  stdSite?: StdSite;
   stdName?: string;
   stdPhone?: string;
   stdSchool?: string;
@@ -83,6 +88,7 @@ export interface StudentCreatePrefill {
 }
 
 export interface ListStudentsResponse {
+  siteCounts: Record<string, number>;
   items: StudentSummary[];
   total: number;
   page: number;
@@ -96,6 +102,10 @@ export interface ImportResult {
 }
 
 export interface ListStudentsQuery {
+  site?: string;
+  teacherId?: string;
+  startDateFrom?: string;
+  startDateTo?: string;
   q?: string;
   status?: string;
   school?: string;
@@ -103,6 +113,6 @@ export interface ListStudentsQuery {
   teacher?: string;
   page?: number;
   limit?: number;
-  sort?: 'name' | 'createdAt';
-  dir?: 'asc' | 'desc';
+  sort?: "name" | "createdAt" | "site" | "startDate";
+  dir?: "asc" | "desc";
 }

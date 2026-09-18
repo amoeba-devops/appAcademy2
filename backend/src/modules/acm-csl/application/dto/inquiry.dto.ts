@@ -786,6 +786,10 @@ export class CreateCancellationDto {
 
 // ── Stage transition ────────────────────────────────────────────────────
 export class ChangeStageDto {
+  @IsOptional()
+  @IsEnum(SOURCE_SITES)
+  stdSite?: SourceSite;
+
   @ApiProperty({ enum: STAGES })
   @IsEnum(STAGES)
   toStage!: CslStage;

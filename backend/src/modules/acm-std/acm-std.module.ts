@@ -1,3 +1,4 @@
+import { SiteImportService } from './application/site-import.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -40,6 +41,7 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
   providers: [
     StudentService,
     ImportService,
+    SiteImportService,
     ParentService,
     PortalTeacherStudentsService,
     RolesGuard,

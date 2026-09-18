@@ -196,7 +196,7 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: ChangeStageDto,
   ) {
-    return this.base.forwardStage(user.entId, inqId, dto.toStage, dto.reason, user.id);
+    return this.base.forwardStage(user.entId, inqId, dto.toStage, dto.reason, user.id, dto.stdSite);
   }
 
   @Post(':inqId/transitions/backward')

@@ -18,6 +18,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export const STD_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 export const STD_STATUSES = ['ACTIVE', 'INACTIVE', 'WITHDRAWN'] as const;
 export const STD_GENDERS = ['M', 'F'] as const;
 
@@ -26,22 +27,37 @@ export const STD_GENDERS = ['M', 'F'] as const;
 // ============================================================================
 export class StudentParentInputDto {
   /** par_id — when present, link existing parent (optionally update fields). */
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   parId?: string;
 
-  @ApiProperty() @IsString() @MaxLength(100)
+  @ApiProperty()
+  @IsString()
+  @MaxLength(100)
   parName!: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   parRelation?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
   parPhone?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(200)
   parEmail?: string;
 
-  @ApiPropertyOptional({ default: false }) @IsOptional() @IsBoolean()
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
   spIsPrimary?: boolean;
 }
 
@@ -49,53 +65,100 @@ export class StudentParentInputDto {
 // Create
 // ============================================================================
 export class CreateStudentDto {
-  @ApiProperty() @IsString() @MaxLength(100)
+  @ApiProperty({ enum: STD_SITES })
+  @IsIn(STD_SITES)
+  stdSite!: (typeof STD_SITES)[number];
+
+  @ApiProperty()
+  @IsString()
+  @MaxLength(100)
   stdName!: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdEnglishName?: string;
 
-  @ApiPropertyOptional({ enum: STD_GENDERS }) @IsOptional() @IsIn(STD_GENDERS)
+  @ApiPropertyOptional({ enum: STD_GENDERS })
+  @IsOptional()
+  @IsIn(STD_GENDERS)
   stdGender?: 'M' | 'F';
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdBirthDate?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
   stdPhone?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(200)
   stdEmail?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdResidence?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdSchool?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   stdGrade?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapReading?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapMath?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapLanguage?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdMapNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdTeacher?: string;
 
   // PLN-260714 — 담당강사 정규화 FK (하위호환 — stdTeacherIds 미제공 시 단일값)
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   stdTeacherId?: string;
 
   // REQ-260903B — 담당강사 복수 (입력 순서 = 표시 순서, 첫번째 = 대표)
@@ -106,45 +169,74 @@ export class CreateStudentDto {
   @IsUUID(undefined, { each: true })
   stdTeacherIds?: string[];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdSubject?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdCurriculum?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdMaterials?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
   stdMobility?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   stdGpa?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdSsatIseeNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdSpecialNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdGoalsNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   stdSatisfactionNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdLastCounselDate?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdStartDate?: string;
 
   @ApiPropertyOptional({ enum: STD_STATUSES, default: 'ACTIVE' })
-  @IsOptional() @IsEnum(STD_STATUSES)
-  stdStatus?: typeof STD_STATUSES[number];
+  @IsOptional()
+  @IsEnum(STD_STATUSES)
+  stdStatus?: (typeof STD_STATUSES)[number];
 
   @ApiPropertyOptional({ type: [StudentParentInputDto] })
-  @IsOptional() @IsArray() @ArrayMaxSize(20)
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
   @ValidateNested({ each: true })
   @Type(() => StudentParentInputDto)
   stdParents?: StudentParentInputDto[];
@@ -154,53 +246,102 @@ export class CreateStudentDto {
 // Update — all fields optional
 // ============================================================================
 export class UpdateStudentDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional({ enum: STD_SITES })
+  @IsOptional()
+  @IsIn(STD_SITES)
+  stdSite?: (typeof STD_SITES)[number] | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdName?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdEnglishName?: string;
 
-  @ApiPropertyOptional({ enum: STD_GENDERS }) @IsOptional() @IsIn(STD_GENDERS)
+  @ApiPropertyOptional({ enum: STD_GENDERS })
+  @IsOptional()
+  @IsIn(STD_GENDERS)
   stdGender?: 'M' | 'F';
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdBirthDate?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(30)
   stdPhone?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsEmail() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(200)
   stdEmail?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdResidence?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdSchool?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   stdGrade?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapReading?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapMath?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(100) @Max(350)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(100)
+  @Max(350)
   @Type(() => Number)
   stdMapLanguage?: number;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdMapNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdTeacher?: string;
 
   // PLN-260714 — 담당강사 정규화 FK (하위호환 — stdTeacherIds 미제공 시 단일값)
-  @ApiPropertyOptional() @IsOptional() @IsUUID()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
   stdTeacherId?: string;
 
   // REQ-260903B — 담당강사 복수 (입력 순서 = 표시 순서, 첫번째 = 대표)
@@ -211,45 +352,74 @@ export class UpdateStudentDto {
   @IsUUID(undefined, { each: true })
   stdTeacherIds?: string[];
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
   stdSubject?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdCurriculum?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdMaterials?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(50)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
   stdMobility?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
   stdGpa?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdSsatIseeNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdSpecialNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   stdGoalsNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200)
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
   stdSatisfactionNote?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdLastCounselDate?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsDateString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
   stdStartDate?: string;
 
   @ApiPropertyOptional({ enum: STD_STATUSES })
-  @IsOptional() @IsEnum(STD_STATUSES)
-  stdStatus?: typeof STD_STATUSES[number];
+  @IsOptional()
+  @IsEnum(STD_STATUSES)
+  stdStatus?: (typeof STD_STATUSES)[number];
 
   @ApiPropertyOptional({ type: [StudentParentInputDto] })
-  @IsOptional() @IsArray() @ArrayMaxSize(20)
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
   @ValidateNested({ each: true })
   @Type(() => StudentParentInputDto)
   stdParents?: StudentParentInputDto[];
@@ -261,42 +431,93 @@ export class UpdateStudentDto {
 export class ChangeStudentStatusDto {
   @ApiProperty({ enum: STD_STATUSES })
   @IsEnum(STD_STATUSES)
-  stdStatus!: typeof STD_STATUSES[number];
+  stdStatus!: (typeof STD_STATUSES)[number];
 }
 
 // ============================================================================
 // List query
 // ============================================================================
 export class ListStudentsQueryDto {
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @IsOptional()
+  @IsIn([...STD_SITES, 'ALL', 'UNASSIGNED'])
+  site?: string;
+
+  @IsOptional()
+  @IsUUID()
+  teacherId?: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  startDateFrom?: string;
+
+  @IsOptional()
+  @IsDateString({ strict: true })
+  startDateTo?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   q?: string;
 
-  @ApiPropertyOptional({ enum: ['ACTIVE', 'INACTIVE', 'WITHDRAWN', 'ALL'], default: 'ACTIVE' })
-  @IsOptional() @IsString()
+  @ApiPropertyOptional({
+    enum: ['ACTIVE', 'INACTIVE', 'WITHDRAWN', 'ALL'],
+    default: 'ACTIVE',
+  })
+  @IsOptional()
+  @IsString()
   status?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   school?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   grade?: string;
 
-  @ApiPropertyOptional() @IsOptional() @IsString()
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   teacher?: string;
 
-  @ApiPropertyOptional({ default: 1 }) @IsOptional() @IsInt() @Min(1)
+  @ApiPropertyOptional({ default: 1 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
   @Type(() => Number)
   page?: number;
 
-  @ApiPropertyOptional({ default: 50 }) @IsOptional() @IsInt() @Min(1) @Max(200)
+  @ApiPropertyOptional({ default: 50 })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(200)
   @Type(() => Number)
   limit?: number;
 
   @ApiPropertyOptional({ default: 'name' })
-  @IsOptional() @IsIn(['name', 'createdAt'])
+  @IsOptional()
+  @IsIn(['name', 'createdAt', 'site', 'startDate'])
   sort?: string;
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'] })
-  @IsOptional() @IsIn(['asc', 'desc'])
+  @IsOptional()
+  @IsIn(['asc', 'desc'])
   dir?: 'asc' | 'desc';
+}
+
+export class SiteChangeItemDto {
+  @IsUUID() id!: string;
+  @IsDateString() updatedAt!: string;
+}
+export class ChangeStudentSitesDto {
+  @IsArray()
+  @ArrayMaxSize(100)
+  @ValidateNested({ each: true })
+  @Type(() => SiteChangeItemDto)
+  items!: SiteChangeItemDto[];
+  @IsIn(STD_SITES) site!: (typeof STD_SITES)[number];
+  @IsString() @MaxLength(500) reason!: string;
 }

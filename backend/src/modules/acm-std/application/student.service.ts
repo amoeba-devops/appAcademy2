@@ -15,6 +15,7 @@ import type {
   UpdateStudentDto,
   ChangeStudentStatusDto,
   ListStudentsQueryDto,
+  ChangeStudentSitesDto,
 } from './dto/student.dto';
 import { ParentService } from './parent.service';
 
@@ -117,7 +118,10 @@ export class StudentService {
   } {
     if (teachers.length === 0) return { teacher: null, teacherId: null };
     return {
-      teacher: teachers.map((t) => t.name).join(', ').slice(0, 100),
+      teacher: teachers
+        .map((t) => t.name)
+        .join(', ')
+        .slice(0, 100),
       teacherId: teachers[0].tchId,
     };
   }
@@ -216,12 +220,49 @@ export class StudentService {
       qb.andWhere('s.teacher ILIKE :teacher', { teacher: `%${q.teacher}%` });
     }
 
-    // dir 미지정 시 기존 기본값 유지 (name ASC / createdAt DESC)
-    if (q.sort === 'createdAt') {
-      qb.orderBy('s.createdAt', q.dir === 'asc' ? 'ASC' : 'DESC');
-    } else {
-      qb.orderBy('s.name', q.dir === 'desc' ? 'DESC' : 'ASC');
+    if (q.teacherId)
+      qb.andWhere(
+        `EXISTS (
+      SELECT 1 FROM amb_acm_std_student_teacher st
+      WHERE st.ent_id = :entId AND st.std_id = s.std_id AND st.tch_id = :teacherId
+    )`,
+        { teacherId: q.teacherId },
+      );
+    if (q.startDateFrom)
+      qb.andWhere('s.startDate >= :from', { from: q.startDateFrom });
+    if (q.startDateTo) qb.andWhere('s.startDate <= :to', { to: q.startDateTo });
+    if (q.startDateFrom && q.startDateTo && q.startDateFrom > q.startDateTo)
+      throw new BadRequestException('INVALID_DATE_RANGE');
+    const counts = await qb
+      .clone()
+      .select('s.site', 'site')
+      .addSelect('COUNT(*)', 'count')
+      .groupBy('s.site')
+      .getRawMany<{ site: string | null; count: string }>();
+    const siteCounts: Record<string, number> = {
+      ALL: 0,
+      TPI: 0,
+      TRINITY: 0,
+      SANTACROCE: 0,
+      UNASSIGNED: 0,
+    };
+    for (const row of counts) {
+      siteCounts[row.site ?? 'UNASSIGNED'] = Number(row.count);
+      siteCounts.ALL += Number(row.count);
     }
+    if (q.site === 'UNASSIGNED') qb.andWhere('s.site IS NULL');
+    else if (q.site && q.site !== 'ALL')
+      qb.andWhere('s.site = :site', { site: q.site });
+    const field = ['name', 'site', 'startDate', 'createdAt'].includes(
+      q.sort ?? '',
+    )
+      ? q.sort
+      : 'name';
+    qb.orderBy(
+      `s.${field}`,
+      q.dir === 'desc' || (!q.dir && field === 'createdAt') ? 'DESC' : 'ASC',
+      'NULLS LAST',
+    ).addOrderBy('s.id', 'ASC');
 
     qb.skip(skip).take(limit);
 
@@ -238,7 +279,7 @@ export class StudentService {
       teachers: teacherMap.get(s.id) ?? [],
       sourceInquiry: srcMap.get(s.id) ?? null,
     }));
-    return { items: withSource, total, page, limit };
+    return { items: withSource, total, page, limit, siteCounts };
   }
 
   async findOne(entId: string, id: string) {
@@ -273,6 +314,7 @@ export class StudentService {
     const entity = this.repo.create({
       entId,
       name: dto.stdName,
+      site: dto.stdSite ?? null,
       englishName: dto.stdEnglishName,
       gender: dto.stdGender,
       birthDate: dto.stdBirthDate,
@@ -311,12 +353,18 @@ export class StudentService {
     return { ...this.toDetail(saved), teachers, parents };
   }
 
-  async update(entId: string, id: string, dto: UpdateStudentDto) {
+  async update(
+    entId: string,
+    id: string,
+    dto: UpdateStudentDto,
+    actorId?: string,
+  ) {
     const entity = await this.repo.findOne({
       where: { id, entId, deletedAt: IsNull() },
     });
     if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
 
+    if (dto.stdSite !== undefined) entity.site = dto.stdSite;
     if (dto.stdName !== undefined) entity.name = dto.stdName;
     if (dto.stdEnglishName !== undefined)
       entity.englishName = dto.stdEnglishName;
@@ -370,7 +418,13 @@ export class StudentService {
     if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
 
     entity.updatedAt = new Date();
-    const saved = await this.repo.save(entity);
+    const saved = await this.ds.transaction(async (manager) => {
+      await manager.query(
+        "SELECT set_config('acm.actor_id', $1, true), set_config('acm.change_reason', $2, true)",
+        [actorId ?? '', 'Student form'],
+      );
+      return manager.getRepository(StudentTypeormEntity).save(entity);
+    });
     if (syncedTeachers !== undefined) {
       await this.syncTeacherLinks(entId, saved.id, syncedTeachers);
     }
@@ -380,10 +434,10 @@ export class StudentService {
     const parents = await this.parentService.listForStudent(entId, saved.id);
     const teachers =
       syncedTeachers ??
-      ((await this.teachersByStudents(entId, saved.id ? [saved.id] : [])).get(
+      (await this.teachersByStudents(entId, saved.id ? [saved.id] : [])).get(
         saved.id,
       ) ??
-        []);
+      [];
     return { ...this.toDetail(saved), teachers, parents };
   }
 
@@ -396,6 +450,50 @@ export class StudentService {
     entity.updatedAt = new Date();
     const saved = await this.repo.save(entity);
     return this.toDetail(saved);
+  }
+
+  async changeSites(
+    entId: string,
+    actorId: string,
+    dto: ChangeStudentSitesDto,
+  ) {
+    if (
+      !dto.items.length ||
+      !dto.reason.trim() ||
+      new Set(dto.items.map((i) => i.id)).size !== dto.items.length
+    )
+      throw new BadRequestException('INVALID_SITE_CHANGE');
+    return this.ds.transaction(async (manager) => {
+      const repo = manager.getRepository(StudentTypeormEntity);
+      const students = await repo.find({
+        where: {
+          entId,
+          id: In(dto.items.map((i) => i.id)),
+          deletedAt: IsNull(),
+        },
+        lock: { mode: 'pessimistic_write' },
+        order: { id: 'ASC' },
+      });
+      if (students.length !== dto.items.length)
+        throw new NotFoundException('STUDENT_NOT_FOUND');
+      for (const student of students) {
+        const expected = dto.items.find((i) => i.id === student.id)!;
+        if (
+          new Date(expected.updatedAt).getTime() !== student.updatedAt.getTime()
+        )
+          throw new ConflictException('STUDENT_CHANGED');
+      }
+      await manager.query(
+        "SELECT set_config('acm.actor_id', $1, true), set_config('acm.change_reason', $2, true)",
+        [actorId, dto.reason.trim()],
+      );
+      for (const student of students) {
+        student.site = dto.site;
+        student.updatedAt = new Date();
+      }
+      await repo.save(students);
+      return { updated: students.length };
+    });
   }
 
   async remove(entId: string, id: string) {
@@ -413,6 +511,8 @@ export class StudentService {
     return {
       id: e.id,
       name: e.name,
+      site: e.site ?? null,
+      updatedAt: e.updatedAt,
       englishName: e.englishName,
       gender: e.gender,
       school: e.school,
@@ -430,6 +530,8 @@ export class StudentService {
       id: e.id,
       entId: e.entId,
       name: e.name,
+      site: e.site ?? null,
+      updatedAt: e.updatedAt,
       englishName: e.englishName,
       gender: e.gender,
       birthDate: e.birthDate,
@@ -458,7 +560,6 @@ export class StudentService {
       startDate: e.startDate,
       status: e.status,
       createdAt: e.createdAt,
-      updatedAt: e.updatedAt,
     };
   }
 }
