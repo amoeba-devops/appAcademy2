@@ -132,5 +132,19 @@
       "mime": "Unsupported file type (PDF/JPG/PNG only).",
       "size": "File size must be under 10 MB."
     }
+  },
+  "profile": {
+    "Education": "Education",
+    "Experience": "Experience",
+    "TeachingSubjectsText": "Teaching subjects",
+    "ProfileText": "Profile",
+    "Residence": "Residence",
+    "KakaoId": "KakaoTalk ID",
+    "Gender": "Gender",
+    "unset": "Not provided",
+    "male": "Male",
+    "female": "Female",
+    "section": "Education, experience and profile",
+    "emailHint": "Required when issuing a login account."
   }
 }

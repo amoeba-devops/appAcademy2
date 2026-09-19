@@ -132,5 +132,19 @@
       "mime": "허용되지 않는 파일 형식입니다 (PDF/JPG/PNG).",
       "size": "파일 크기는 10 MB 이하여야 합니다."
     }
+  },
+  "profile": {
+    "Education": "학력",
+    "Experience": "경력",
+    "TeachingSubjectsText": "담당 과목 상세",
+    "ProfileText": "상세 프로필",
+    "Residence": "거주지역",
+    "KakaoId": "카카오톡 ID",
+    "Gender": "성별",
+    "unset": "미입력",
+    "male": "남",
+    "female": "여",
+    "section": "학력·경력·프로필",
+    "emailHint": "로그인 계정을 발급할 때 필요합니다."
   }
 }
