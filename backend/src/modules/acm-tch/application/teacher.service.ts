@@ -71,7 +71,9 @@ export class TeacherService {
     const [items, total] = await qb.getManyAndCount();
 
     // Account meta join (separate fetch — keeps two-DS scenario simple)
-    const userIds = items.map((it) => it.userId).filter((x): x is string => !!x);
+    const userIds = items
+      .map((it) => it.userId)
+      .filter((x): x is string => !!x);
     const accounts = userIds.length
       ? await this.userRepo.find({ where: userIds.map((id) => ({ id })) })
       : [];
@@ -86,13 +88,17 @@ export class TeacherService {
       ]),
     );
 
-    let detailed = items.map((e) => this.toDetail(e, accountMap.get(e.userId ?? '')));
+    let detailed = items.map((e) =>
+      this.toDetail(e, accountMap.get(e.userId ?? '')),
+    );
 
     if (q.accountState && q.accountState !== 'ALL') {
       detailed = detailed.filter((d) => {
         if (q.accountState === 'NO_ACCOUNT') return !d.hasAccount;
-        if (q.accountState === 'LOCKED') return d.hasAccount && !!d.accountLockedAt;
-        if (q.accountState === 'UNLOCKED') return d.hasAccount && !d.accountLockedAt;
+        if (q.accountState === 'LOCKED')
+          return d.hasAccount && !!d.accountLockedAt;
+        if (q.accountState === 'UNLOCKED')
+          return d.hasAccount && !d.accountLockedAt;
         return true;
       });
     }
@@ -101,14 +107,16 @@ export class TeacherService {
   }
 
   async findOne(entId: string, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     const meta = e.userId ? await this.fetchAccountMeta(e.userId) : undefined;
     return this.toDetail(e, meta);
   }
 
   async create(entId: string, dto: CreateTeacherDto) {
-    const email = dto.tchEmail.trim().toLowerCase();
+    const email = dto.tchEmail?.trim().toLowerCase() || null;
     await this.assertNoDuplicate(entId, {
       name: dto.tchName,
       englishName: dto.tchEnglishName ?? null,
@@ -117,6 +125,7 @@ export class TeacherService {
 
     let userId: string | null = null;
     if (dto.tchCreateAccount) {
+      if (!email) throw new BadRequestException('EMAIL_REQUIRED_FOR_ACCOUNT');
       if (!dto.tchPassword) {
         throw new BadRequestException('PASSWORD_REQUIRED');
       }
@@ -139,16 +148,26 @@ export class TeacherService {
       birthDate: dto.tchBirthDate ?? null,
       subjects: dto.tchSubjects ?? [],
       memo: dto.tchMemo ?? null,
+      education: dto.tchEducation?.trim() || null,
+      teachingSubjectsText: dto.tchTeachingSubjectsText?.trim() || null,
+      experience: dto.tchExperience?.trim() || null,
+      profileText: dto.tchProfileText?.trim() || null,
+      residence: dto.tchResidence?.trim() || null,
+      kakaoId: dto.tchKakaoId?.trim() || null,
+      gender: dto.tchGender ?? null,
+
       userId,
       amaUserId: dto.tchAmaUserId ?? null,
       status: dto.tchStatus ?? 'ACTIVE',
       isInstructor: dto.tchIsInstructor ?? true,
-      employmentType: dto.tchEmploymentType ?? 'FULL_TIME',
+      employmentType: dto.tchEmploymentType ?? null,
       hiredAt: dto.tchHiredAt ?? null,
       attendanceNo: dto.tchAttendanceNo ?? null,
     });
     const saved = await this.repo.save(entity);
-    const meta = saved.userId ? await this.fetchAccountMeta(saved.userId) : undefined;
+    const meta = saved.userId
+      ? await this.fetchAccountMeta(saved.userId)
+      : undefined;
     return this.toDetail(saved, meta);
   }
 
@@ -228,7 +247,9 @@ export class TeacherService {
   }
 
   async update(entId: string, id: string, dto: UpdateTeacherDto) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
 
     // Same dup check as create — only on fields the operator is changing,
@@ -239,33 +260,54 @@ export class TeacherService {
       {
         name: dto.tchName,
         englishName: dto.tchEnglishName,
-        email: dto.tchEmail ? dto.tchEmail.trim().toLowerCase() : undefined,
+        email: dto.tchEmail
+          ? dto.tchEmail?.trim().toLowerCase() || null
+          : undefined,
       },
       id,
     );
 
     if (dto.tchName !== undefined) e.name = dto.tchName;
     if (dto.tchEnglishName !== undefined) e.englishName = dto.tchEnglishName;
-    if (dto.tchEmail !== undefined) e.email = dto.tchEmail.trim().toLowerCase();
+    if (dto.tchEmail !== undefined)
+      e.email = dto.tchEmail?.trim().toLowerCase() || null;
     if (dto.tchPhone !== undefined) e.phone = dto.tchPhone;
     if (dto.tchBirthDate !== undefined) e.birthDate = dto.tchBirthDate;
     if (dto.tchSubjects !== undefined) e.subjects = dto.tchSubjects;
     if (dto.tchMemo !== undefined) e.memo = dto.tchMemo;
     if (dto.tchStatus !== undefined) e.status = dto.tchStatus;
     if (dto.tchIsInstructor !== undefined) e.isInstructor = dto.tchIsInstructor;
-    if (dto.tchEmploymentType !== undefined) e.employmentType = dto.tchEmploymentType;
+    if (dto.tchEmploymentType !== undefined)
+      e.employmentType = dto.tchEmploymentType;
     if (dto.tchHiredAt !== undefined) e.hiredAt = dto.tchHiredAt;
     if (dto.tchAttendanceNo !== undefined) e.attendanceNo = dto.tchAttendanceNo;
     if (dto.tchAmaUserId !== undefined) e.amaUserId = dto.tchAmaUserId ?? null;
+    if (dto.tchEducation !== undefined)
+      e.education = dto.tchEducation?.trim() || null;
+    if (dto.tchTeachingSubjectsText !== undefined)
+      e.teachingSubjectsText = dto.tchTeachingSubjectsText?.trim() || null;
+    if (dto.tchExperience !== undefined)
+      e.experience = dto.tchExperience?.trim() || null;
+    if (dto.tchProfileText !== undefined)
+      e.profileText = dto.tchProfileText?.trim() || null;
+    if (dto.tchResidence !== undefined)
+      e.residence = dto.tchResidence?.trim() || null;
+    if (dto.tchKakaoId !== undefined)
+      e.kakaoId = dto.tchKakaoId?.trim() || null;
+    if (dto.tchGender !== undefined) e.gender = dto.tchGender ?? null;
     e.updatedAt = new Date();
 
     const saved = await this.repo.save(e);
-    const meta = saved.userId ? await this.fetchAccountMeta(saved.userId) : undefined;
+    const meta = saved.userId
+      ? await this.fetchAccountMeta(saved.userId)
+      : undefined;
     return this.toDetail(saved, meta);
   }
 
   async resetPassword(entId: string, id: string, dto: ResetTeacherPasswordDto) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     if (!e.userId) throw new BadRequestException('TEACHER_NO_ACCOUNT');
     await this.authService.updateUserPassword(e.userId, dto.tchPassword);
@@ -273,7 +315,9 @@ export class TeacherService {
   }
 
   async lockAccount(entId: string, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     if (!e.userId) throw new BadRequestException('TEACHER_NO_ACCOUNT');
     await this.authService.lockUser(e.userId);
@@ -281,7 +325,9 @@ export class TeacherService {
   }
 
   async unlockAccount(entId: string, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     if (!e.userId) throw new BadRequestException('TEACHER_NO_ACCOUNT');
     await this.authService.unlockUser(e.userId);
@@ -289,7 +335,9 @@ export class TeacherService {
   }
 
   async remove(entId: string, id: string) {
-    const e = await this.repo.findOne({ where: { id, entId, deletedAt: IsNull() } });
+    const e = await this.repo.findOne({
+      where: { id, entId, deletedAt: IsNull() },
+    });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     e.deletedAt = new Date();
     e.updatedAt = new Date();
@@ -374,7 +422,9 @@ export class TeacherService {
     }
   }
 
-  private async fetchAccountMeta(userId: string): Promise<AccountMeta | undefined> {
+  private async fetchAccountMeta(
+    userId: string,
+  ): Promise<AccountMeta | undefined> {
     const u = await this.userRepo.findOne({ where: { id: userId } });
     if (!u) return undefined;
     return {
@@ -394,6 +444,14 @@ export class TeacherService {
     birthDate: e.birthDate,
     subjects: e.subjects ?? [],
     memo: e.memo,
+    education: e.education ?? null,
+    teachingSubjectsText: e.teachingSubjectsText ?? null,
+    experience: e.experience ?? null,
+    profileText: e.profileText ?? null,
+    residence: e.residence ?? null,
+    kakaoId: e.kakaoId ?? null,
+    gender: e.gender ?? null,
+
     userId: e.userId,
     amaUserId: e.amaUserId ?? null,
     hasAccount: !!e.userId,

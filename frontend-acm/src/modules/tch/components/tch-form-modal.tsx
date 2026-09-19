@@ -1,20 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-import { Upload, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { Upload, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { useConfirm } from '@/components/ui/confirm-dialog';
-import { useToast } from '@/components/ui/toast';
-import { AmaUserPicker } from '@/components/common/ama-user-picker';
-import { PortalAccountPanel } from '@/modules/portal-admin/components/portal-account-panel';
-import type { AmaPlatformUser } from '@/lib/ama-user-api';
+} from "@/components/ui/dialog";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
+import { AmaUserPicker } from "@/components/common/ama-user-picker";
+import { PortalAccountPanel } from "@/modules/portal-admin/components/portal-account-panel";
+import type { AmaPlatformUser } from "@/lib/ama-user-api";
 import {
   uploadTeacherAttachment,
   useCreateTeacher,
@@ -23,13 +23,13 @@ import {
   useResetTeacherPassword,
   useUnlockTeacherAccount,
   useUpdateTeacher,
-} from '../hooks/use-teachers';
-import { TCH_SUBJECTS, type TchSubject, type TeacherDetail } from '../types';
-import { useAuthStore } from '@/stores/auth.store';
-import { TchAttachmentPanel } from './tch-attachment-panel';
+} from "../hooks/use-teachers";
+import { TCH_SUBJECTS, type TchSubject, type TeacherDetail } from "../types";
+import { useAuthStore } from "@/stores/auth.store";
+import { TchAttachmentPanel } from "./tch-attachment-panel";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_MIME = ['application/pdf', 'image/jpeg', 'image/png'];
+const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
 const fmtSize = (n: number) => {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
@@ -45,7 +45,7 @@ interface Props {
    * AmaDirectorySection. When set, the form opens in create mode with the
    * AMA picker pre-populated (name/email locked, amaUserId carried through).
    */
-  prefillFromAma?: import('@/lib/ama-user-api').AmaPlatformUser | null;
+  prefillFromAma?: import("@/lib/ama-user-api").AmaPlatformUser | null;
 }
 
 type FormValues = {
@@ -53,12 +53,20 @@ type FormValues = {
   tchEnglishName: string;
   tchEmail: string;
   tchPhone: string;
+  tchEducation: string;
+  tchExperience: string;
+  tchTeachingSubjectsText: string;
+  tchProfileText: string;
+  tchResidence: string;
+  tchKakaoId: string;
+  tchGender: string;
+
   tchBirthDate: string;
   tchMemo: string;
   tchStatus: string;
   // REQ-260510 신규 필드
   tchIsInstructor: boolean;
-  tchEmploymentType: 'FULL_TIME' | 'PART_TIME';
+  tchEmploymentType: "" | "FULL_TIME" | "PART_TIME";
   tchHiredAt: string;
   tchAttendanceNo: string;
   // 신규 등록 시만
@@ -68,35 +76,49 @@ type FormValues = {
 };
 
 const inputClass =
-  'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
-const labelClass = 'block text-xs text-secondary mb-1';
+  "w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40";
+const labelClass = "block text-xs text-secondary mb-1";
 
-export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) {
-  const { t } = useTranslation('tch');
+export function TchFormModal({
+  open,
+  onClose,
+  initial,
+  prefillFromAma,
+}: Props) {
+  const { t } = useTranslation("tch");
   // AMA iframe 임베드 환경에서는 window.confirm/alert 네이티브 다이얼로그가
   // 표시되지 않으므로 반드시 인앱 모달/토스트를 사용한다 (REQ-260831).
   const confirm = useConfirm();
   const toast = useToast();
   const isEdit = !!initial;
 
-  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
-    defaultValues: {
-      tchName: '',
-      tchEnglishName: '',
-      tchEmail: '',
-      tchPhone: '',
-      tchBirthDate: '',
-      tchMemo: '',
-      tchStatus: 'ACTIVE',
-      tchIsInstructor: true,
-      tchEmploymentType: 'FULL_TIME',
-      tchHiredAt: '',
-      tchAttendanceNo: '',
-      tchCreateAccount: false,
-      tchPassword: '',
-      tchPasswordConfirm: '',
-    },
-  });
+  const { register, handleSubmit, reset, watch, setValue } =
+    useForm<FormValues>({
+      defaultValues: {
+        tchName: "",
+        tchEnglishName: "",
+        tchEmail: "",
+        tchPhone: "",
+        tchEducation: "",
+        tchExperience: "",
+        tchTeachingSubjectsText: "",
+        tchProfileText: "",
+        tchResidence: "",
+        tchKakaoId: "",
+        tchGender: "",
+
+        tchBirthDate: "",
+        tchMemo: "",
+        tchStatus: "ACTIVE",
+        tchIsInstructor: true,
+        tchEmploymentType: "",
+        tchHiredAt: "",
+        tchAttendanceNo: "",
+        tchCreateAccount: false,
+        tchPassword: "",
+        tchPasswordConfirm: "",
+      },
+    });
 
   const [subjects, setSubjects] = useState<TchSubject[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -126,46 +148,62 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     if (initial) {
       reset({
         tchName: initial.name,
-        tchEnglishName: initial.englishName ?? '',
-        tchEmail: initial.email,
-        tchPhone: initial.phone ?? '',
-        tchBirthDate: initial.birthDate ?? '',
-        tchMemo: initial.memo ?? '',
+        tchEnglishName: initial.englishName ?? "",
+        tchEmail: initial.email ?? "",
+        tchPhone: initial.phone ?? "",
+        tchEducation: initial.education ?? "",
+        tchExperience: initial.experience ?? "",
+        tchTeachingSubjectsText: initial.teachingSubjectsText ?? "",
+        tchProfileText: initial.profileText ?? "",
+        tchResidence: initial.residence ?? "",
+        tchKakaoId: initial.kakaoId ?? "",
+        tchGender: initial.gender ?? "",
+
+        tchBirthDate: initial.birthDate ?? "",
+        tchMemo: initial.memo ?? "",
         tchStatus: initial.status,
         tchIsInstructor: initial.isInstructor,
-        tchEmploymentType: initial.employmentType,
-        tchHiredAt: initial.hiredAt ?? '',
-        tchAttendanceNo: initial.attendanceNo ?? '',
+        tchEmploymentType: initial.employmentType ?? "",
+        tchHiredAt: initial.hiredAt ?? "",
+        tchAttendanceNo: initial.attendanceNo ?? "",
         tchCreateAccount: false,
-        tchPassword: '',
-        tchPasswordConfirm: '',
+        tchPassword: "",
+        tchPasswordConfirm: "",
       });
       setSubjects(initial.subjects ?? []);
     } else {
       reset({
-        tchName: prefillFromAma?.name ?? '',
-        tchEnglishName: '',
-        tchEmail: prefillFromAma?.email ?? '',
-        tchPhone: '',
-        tchBirthDate: '',
-        tchMemo: '',
-        tchStatus: 'ACTIVE',
+        tchName: prefillFromAma?.name ?? "",
+        tchEnglishName: "",
+        tchEmail: prefillFromAma?.email ?? "",
+        tchPhone: "",
+        tchEducation: "",
+        tchExperience: "",
+        tchTeachingSubjectsText: "",
+        tchProfileText: "",
+        tchResidence: "",
+        tchKakaoId: "",
+        tchGender: "",
+
+        tchBirthDate: "",
+        tchMemo: "",
+        tchStatus: "ACTIVE",
         tchIsInstructor: true,
-        tchEmploymentType: 'FULL_TIME',
-        tchHiredAt: '',
-        tchAttendanceNo: '',
+        tchEmploymentType: "",
+        tchHiredAt: "",
+        tchAttendanceNo: "",
         tchCreateAccount: false,
-        tchPassword: '',
-        tchPasswordConfirm: '',
+        tchPassword: "",
+        tchPasswordConfirm: "",
       });
       setSubjects([]);
     }
   }, [open, initial, prefillFromAma, reset]);
 
   const createMut = useCreateTeacher();
-  const updateMut = useUpdateTeacher(initial?.id ?? '');
+  const updateMut = useUpdateTeacher(initial?.id ?? "");
   const deleteMut = useDeleteTeacher();
-  const resetPwMut = useResetTeacherPassword(initial?.id ?? '');
+  const resetPwMut = useResetTeacherPassword(initial?.id ?? "");
   const lockMut = useLockTeacherAccount();
   const unlockMut = useUnlockTeacherAccount();
   const currentUserId = useAuthStore((s) => s.user?.id);
@@ -177,35 +215,47 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     lockMut.isPending ||
     unlockMut.isPending;
 
-  const wantsAccount = watch('tchCreateAccount');
+  const wantsAccount = watch("tchCreateAccount");
 
   const toggleSubject = (s: TchSubject) =>
-    setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
+    setSubjects((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+    );
 
   const onSubmit = async (values: FormValues) => {
     setError(null);
     if (!isEdit && values.tchCreateAccount) {
       if (!values.tchPassword || values.tchPassword.length < 8) {
-        setError(t('error.passwordShort'));
+        setError(t("error.passwordShort"));
         return;
       }
       if (values.tchPassword !== values.tchPasswordConfirm) {
-        setError(t('error.passwordMismatch'));
+        setError(t("error.passwordMismatch"));
         return;
       }
-      if (!/[A-Za-z]/.test(values.tchPassword) || !/[0-9]/.test(values.tchPassword)) {
-        setError(t('error.passwordComplexity'));
+      if (
+        !/[A-Za-z]/.test(values.tchPassword) ||
+        !/[0-9]/.test(values.tchPassword)
+      ) {
+        setError(t("error.passwordComplexity"));
         return;
       }
     }
 
     const dto: Record<string, unknown> = {
       tchName: values.tchName,
-      tchEmail: values.tchEmail,
+      tchEmail: values.tchEmail.trim() || null,
       tchSubjects: subjects,
       tchStatus: values.tchStatus,
       tchIsInstructor: !!values.tchIsInstructor,
-      tchEmploymentType: values.tchEmploymentType,
+      tchEmploymentType: values.tchEmploymentType || null,
+      tchEducation: values.tchEducation.trim() || null,
+      tchExperience: values.tchExperience.trim() || null,
+      tchTeachingSubjectsText: values.tchTeachingSubjectsText.trim() || null,
+      tchProfileText: values.tchProfileText.trim() || null,
+      tchResidence: values.tchResidence.trim() || null,
+      tchKakaoId: values.tchKakaoId.trim() || null,
+      tchGender: values.tchGender.trim() || null,
     };
     if (values.tchEnglishName) dto.tchEnglishName = values.tchEnglishName;
     if (values.tchPhone) dto.tchPhone = values.tchPhone;
@@ -237,13 +287,18 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
             try {
               await uploadTeacherAttachment(created.id, f);
             } catch (uploadErr) {
-              const msg = (uploadErr as { response?: { data?: { message?: string } } })
-                ?.response?.data?.message;
+              const msg = (
+                uploadErr as { response?: { data?: { message?: string } } }
+              )?.response?.data?.message;
               setError(
-                t('attachment.error.uploadFailed', '첨부파일 업로드 실패: {{name}} ({{msg}})', {
-                  name: f.name,
-                  msg: msg ?? 'unknown',
-                }),
+                t(
+                  "attachment.error.uploadFailed",
+                  "첨부파일 업로드 실패: {{name}} ({{msg}})",
+                  {
+                    name: f.name,
+                    msg: msg ?? "unknown",
+                  },
+                ),
               );
               // continue with remaining files
             }
@@ -266,15 +321,15 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
         };
       };
       const code = err.response?.data?.code;
-      const value = err.response?.data?.value ?? '';
-      if (code === 'NAME_DUPLICATE') {
-        setError(t('error.nameDuplicate', { value }));
-      } else if (code === 'ENGLISH_NAME_DUPLICATE') {
-        setError(t('error.englishNameDuplicate', { value }));
-      } else if (code === 'EMAIL_DUPLICATE') {
-        setError(t('error.emailDuplicate', { value }));
+      const value = err.response?.data?.value ?? "";
+      if (code === "NAME_DUPLICATE") {
+        setError(t("error.nameDuplicate", { value }));
+      } else if (code === "ENGLISH_NAME_DUPLICATE") {
+        setError(t("error.englishNameDuplicate", { value }));
+      } else if (code === "EMAIL_DUPLICATE") {
+        setError(t("error.emailDuplicate", { value }));
       } else {
-        setError(err.response?.data?.message ?? t('common:status.error'));
+        setError(err.response?.data?.message ?? t("common:status.error"));
       }
     }
   };
@@ -283,49 +338,53 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
     setError(null);
     const v = watch();
     if (!v.tchPassword || v.tchPassword.length < 8) {
-      setError(t('error.passwordShort'));
+      setError(t("error.passwordShort"));
       return;
     }
     if (v.tchPassword !== v.tchPasswordConfirm) {
-      setError(t('error.passwordMismatch'));
+      setError(t("error.passwordMismatch"));
       return;
     }
     if (!/[A-Za-z]/.test(v.tchPassword) || !/[0-9]/.test(v.tchPassword)) {
-      setError(t('error.passwordComplexity'));
+      setError(t("error.passwordComplexity"));
       return;
     }
     try {
       await resetPwMut.mutateAsync(v.tchPassword);
-      reset({ ...v, tchPassword: '', tchPasswordConfirm: '' });
-      toast.success(t('toast.passwordReset'));
+      reset({ ...v, tchPassword: "", tchPasswordConfirm: "" });
+      toast.success(t("toast.passwordReset"));
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? t('common:status.error'));
+      const msg = (e as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setError(msg ?? t("common:status.error"));
     }
   };
 
   const onDelete = async () => {
     if (!initial) return;
     const ok = await confirm({
-      title: t('confirm.delete'),
-      description: t('common:confirm.deleteDescription'),
-      variant: 'destructive',
+      title: t("confirm.delete"),
+      description: t("common:confirm.deleteDescription"),
+      variant: "destructive",
     });
     if (!ok) return;
     try {
       await deleteMut.mutateAsync(initial.id);
       onClose();
     } catch (e) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? t('common:status.error'));
+      const msg = (e as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setError(msg ?? t("common:status.error"));
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
+      <DialogContent className="max-w-[960px] max-h-[90dvh] overflow-y-auto">
+        <DialogHeader className="sticky top-0 z-10 bg-canvas py-2">
+          <DialogTitle>
+            {isEdit ? t("form.titleEdit") : t("form.titleCreate")}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
@@ -336,19 +395,19 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {!HIDE_AMA_PICKER && !isEdit && !manualMode && (
             <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
               <legend className="text-xs font-semibold text-secondary px-1">
-                {t('form.sectionAmaPicker', { defaultValue: 'AMA directory' })}
+                {t("form.sectionAmaPicker", { defaultValue: "AMA directory" })}
               </legend>
               <AmaUserPicker
                 value={amaUser}
-                levels={['MANAGER', 'MEMBER', 'VIEWER']}
+                levels={["MANAGER", "MEMBER", "VIEWER"]}
                 onChange={(u) => {
                   setAmaUser(u);
                   if (u) {
-                    setValue('tchName', u.name);
-                    setValue('tchEmail', u.email);
+                    setValue("tchName", u.name);
+                    setValue("tchEmail", u.email);
                   } else {
-                    setValue('tchName', '');
-                    setValue('tchEmail', '');
+                    setValue("tchName", "");
+                    setValue("tchEmail", "");
                   }
                 }}
                 onManualMode={() => setManualMode(true)}
@@ -361,13 +420,13 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {/* 기본 정보 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
-              {t('form.sectionBasic')}
+              {t("form.sectionBasic")}
             </legend>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className={labelClass}>{t('field.name')} *</label>
+                <label className={labelClass}>{t("field.name")} *</label>
                 <input
-                  {...register('tchName', { required: true })}
+                  {...register("tchName", { required: true })}
                   className={inputClass}
                   // When the picker controls the name, lock the input so the
                   // operator can't desync them. Manual mode unlocks it.
@@ -375,57 +434,118 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                 />
               </div>
               <div>
-                <label className={labelClass}>{t('field.englishName')}</label>
-                <input {...register('tchEnglishName')} className={inputClass} />
+                <label className={labelClass}>{t("field.englishName")}</label>
+                <input {...register("tchEnglishName")} className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>{t('field.email')} *</label>
+                <label className={labelClass}>
+                  {t("field.email")}
+                  {wantsAccount ? " *" : ""}
+                </label>
                 <input
                   type="email"
-                  {...register('tchEmail', { required: true })}
+                  {...register("tchEmail", { required: wantsAccount })}
+                  aria-describedby="tch-email-help"
                   className={inputClass}
-                  disabled={isEdit || (!manualMode && !!amaUser)}
+                  disabled={!isEdit && !manualMode && !!amaUser}
+                />
+                <p id="tch-email-help" className="mt-1 text-xs text-secondary">
+                  {t("profile.emailHint")}
+                </p>
+              </div>
+              <div>
+                <label className={labelClass}>{t("field.phone")}</label>
+                <input {...register("tchPhone")} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>{t("field.birthDate")}</label>
+                <input
+                  type="date"
+                  {...register("tchBirthDate")}
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t('field.phone')}</label>
-                <input {...register('tchPhone')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.birthDate')}</label>
-                <input type="date" {...register('tchBirthDate')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.status')}</label>
-                <select {...register('tchStatus')} className={inputClass}>
-                  <option value="ACTIVE">{t('status.ACTIVE')}</option>
-                  <option value="LEAVE">{t('status.LEAVE')}</option>
-                  <option value="RESIGNED">{t('status.RESIGNED')}</option>
+                <label className={labelClass}>{t("field.status")}</label>
+                <select {...register("tchStatus")} className={inputClass}>
+                  <option value="ACTIVE">{t("status.ACTIVE")}</option>
+                  <option value="LEAVE">{t("status.LEAVE")}</option>
+                  <option value="RESIGNED">{t("status.RESIGNED")}</option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>{t('field.employmentType')}</label>
-                <select {...register('tchEmploymentType')} className={inputClass}>
-                  <option value="FULL_TIME">{t('employmentType.FULL_TIME')}</option>
-                  <option value="PART_TIME">{t('employmentType.PART_TIME')}</option>
+                <label className={labelClass}>
+                  {t("field.employmentType")}
+                </label>
+                <select
+                  {...register("tchEmploymentType")}
+                  className={inputClass}
+                >
+                  <option value="">{t("profile.unset")}</option>
+                  <option value="FULL_TIME">
+                    {t("employmentType.FULL_TIME")}
+                  </option>
+                  <option value="PART_TIME">
+                    {t("employmentType.PART_TIME")}
+                  </option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>{t('field.hiredAt')}</label>
-                <input type="date" {...register('tchHiredAt')} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.attendanceNo')}</label>
+                <label className={labelClass}>{t("field.hiredAt")}</label>
                 <input
-                  {...register('tchAttendanceNo')}
+                  type="date"
+                  {...register("tchHiredAt")}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>{t("field.attendanceNo")}</label>
+                <input
+                  {...register("tchAttendanceNo")}
                   className={inputClass}
                   maxLength={50}
                 />
               </div>
-              <div className="col-span-2">
+              <div>
+                <label htmlFor="tchKakaoId" className={labelClass}>
+                  {t("profile.KakaoId")}
+                </label>
+                <input
+                  id="tchKakaoId"
+                  {...register("tchKakaoId")}
+                  maxLength={100}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="tchResidence" className={labelClass}>
+                  {t("profile.Residence")}
+                </label>
+                <input
+                  id="tchResidence"
+                  {...register("tchResidence")}
+                  maxLength={200}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="tchGender" className={labelClass}>
+                  {t("profile.Gender")}
+                </label>
+                <select
+                  id="tchGender"
+                  {...register("tchGender")}
+                  className={inputClass}
+                >
+                  <option value="">{t("profile.unset")}</option>
+                  <option value="MALE">{t("profile.male")}</option>
+                  <option value="FEMALE">{t("profile.female")}</option>
+                </select>
+              </div>
+              <div className="sm:col-span-2">
                 <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" {...register('tchIsInstructor')} />
-                  {t('field.isInstructor')}
+                  <input type="checkbox" {...register("tchIsInstructor")} />
+                  {t("field.isInstructor")}
                 </label>
               </div>
             </div>
@@ -434,7 +554,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {/* 담당 과목 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
-              {t('form.sectionSubjects')}
+              {t("form.sectionSubjects")}
             </legend>
             <div className="flex flex-wrap gap-2">
               {TCH_SUBJECTS.map((s) => {
@@ -446,8 +566,8 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                     onClick={() => toggleSubject(s)}
                     className={
                       selected
-                        ? 'rounded-full border border-accent-500 bg-accent-50 px-3 py-1 text-xs text-accent-700'
-                        : 'rounded-full border border-[var(--border-subtle)] px-3 py-1 text-xs text-secondary hover:bg-[var(--gray-50)]'
+                        ? "rounded-full border border-accent-500 bg-accent-50 px-3 py-1 text-xs text-accent-700"
+                        : "rounded-full border border-[var(--border-subtle)] px-3 py-1 text-xs text-secondary hover:bg-[var(--gray-50)]"
                     }
                   >
                     {t(`subject.${s}`)}
@@ -457,45 +577,109 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
             </div>
           </fieldset>
 
+          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+            <legend className="text-xs font-semibold text-secondary px-1">
+              {t("profile.section")}
+            </legend>
+            <div>
+              <label htmlFor="tchEducation" className={labelClass}>
+                {t("profile.Education")}
+              </label>
+              <textarea
+                id="tchEducation"
+                {...register("tchEducation")}
+                maxLength={4000}
+                rows={3}
+                className={inputClass + " h-auto py-2"}
+              />
+            </div>
+            <div>
+              <label htmlFor="tchExperience" className={labelClass}>
+                {t("profile.Experience")}
+              </label>
+              <textarea
+                id="tchExperience"
+                {...register("tchExperience")}
+                maxLength={4000}
+                rows={3}
+                className={inputClass + " h-auto py-2"}
+              />
+            </div>
+            <div>
+              <label htmlFor="tchTeachingSubjectsText" className={labelClass}>
+                {t("profile.TeachingSubjectsText")}
+              </label>
+              <textarea
+                id="tchTeachingSubjectsText"
+                {...register("tchTeachingSubjectsText")}
+                maxLength={4000}
+                rows={3}
+                className={inputClass + " h-auto py-2"}
+              />
+            </div>
+            <div>
+              <label htmlFor="tchProfileText" className={labelClass}>
+                {t("profile.ProfileText")}
+              </label>
+              <textarea
+                id="tchProfileText"
+                {...register("tchProfileText")}
+                maxLength={20000}
+                rows={8}
+                className={inputClass + " h-auto py-2"}
+              />
+            </div>
+          </fieldset>
+
           {/* 메모 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4">
             <legend className="text-xs font-semibold text-secondary px-1">
-              {t('field.memo')}
+              {t("field.memo")}
             </legend>
-            <textarea {...register('tchMemo')} rows={2} className={inputClass + ' h-auto py-2'} />
+            <textarea
+              {...register("tchMemo")}
+              rows={2}
+              className={inputClass + " h-auto py-2"}
+            />
           </fieldset>
 
           {/* 로그인 계정 (등록 시) / 비밀번호 재설정 (수정 시) */}
           {!isEdit && (
             <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
               <legend className="text-xs font-semibold text-secondary px-1">
-                {t('form.sectionAccount')}
+                {t("form.sectionAccount")}
               </legend>
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" {...register('tchCreateAccount')} />
-                {t('field.createAccount')}
+                <input type="checkbox" {...register("tchCreateAccount")} />
+                {t("field.createAccount")}
               </label>
               {wantsAccount && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>{t('field.password')} *</label>
+                    <label className={labelClass}>
+                      {t("field.password")} *
+                    </label>
                     <input
                       type="password"
                       autoComplete="new-password"
-                      {...register('tchPassword')}
+                      {...register("tchPassword")}
                       className={inputClass}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>{t('field.passwordConfirm')} *</label>
+                    <label className={labelClass}>
+                      {t("field.passwordConfirm")} *
+                    </label>
                     <input
                       type="password"
                       autoComplete="new-password"
-                      {...register('tchPasswordConfirm')}
+                      {...register("tchPasswordConfirm")}
                       className={inputClass}
                     />
                   </div>
-                  <p className="col-span-2 text-xs text-secondary">{t('hint.passwordPolicy')}</p>
+                  <p className="col-span-2 text-xs text-secondary">
+                    {t("hint.passwordPolicy")}
+                  </p>
                 </div>
               )}
             </fieldset>
@@ -504,14 +688,14 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {isEdit && initial?.hasAccount && (
             <fieldset className="rounded-md border border-rose-200 bg-rose-50/40 p-4 space-y-3">
               <legend className="text-xs font-semibold text-rose-800 px-1">
-                {t('form.sectionAccountLock')}
+                {t("form.sectionAccountLock")}
               </legend>
               <div className="flex items-center justify-between text-sm">
                 <div>
                   <span className="font-medium">
                     {initial.accountLockedAt
-                      ? t('accountState.LOCKED')
-                      : t('accountState.UNLOCKED')}
+                      ? t("accountState.LOCKED")
+                      : t("accountState.UNLOCKED")}
                   </span>
                   {initial.accountLockedAt && (
                     <span className="ml-2 text-xs text-secondary">
@@ -520,7 +704,9 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                   )}
                 </div>
                 {initial.userId === currentUserId ? (
-                  <span className="text-xs text-secondary">{t('hint.cannotLockSelf')}</span>
+                  <span className="text-xs text-secondary">
+                    {t("hint.cannotLockSelf")}
+                  </span>
                 ) : initial.accountLockedAt ? (
                   <Button
                     type="button"
@@ -531,13 +717,14 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                       try {
                         await unlockMut.mutateAsync(initial.id);
                       } catch (e) {
-                        const msg = (e as { response?: { data?: { message?: string } } })
-                          ?.response?.data?.message;
-                        setError(msg ?? t('common:status.error'));
+                        const msg = (
+                          e as { response?: { data?: { message?: string } } }
+                        )?.response?.data?.message;
+                        setError(msg ?? t("common:status.error"));
                       }
                     }}
                   >
-                    {t('actions.unlock')}
+                    {t("actions.unlock")}
                   </Button>
                 ) : (
                   <Button
@@ -548,40 +735,42 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                     className="border-rose-200 text-rose-700 hover:bg-rose-50"
                     onClick={async () => {
                       const ok = await confirm({
-                        title: t('actions.lock'),
-                        description: t('confirm.lock'),
-                        variant: 'destructive',
+                        title: t("actions.lock"),
+                        description: t("confirm.lock"),
+                        variant: "destructive",
                       });
                       if (!ok) return;
                       try {
                         await lockMut.mutateAsync(initial.id);
                       } catch (e) {
-                        const msg = (e as { response?: { data?: { message?: string } } })
-                          ?.response?.data?.message;
-                        setError(msg ?? t('common:status.error'));
+                        const msg = (
+                          e as { response?: { data?: { message?: string } } }
+                        )?.response?.data?.message;
+                        setError(msg ?? t("common:status.error"));
                       }
                     }}
                   >
-                    {t('actions.lock')}
+                    {t("actions.lock")}
                   </Button>
                 )}
               </div>
             </fieldset>
           )}
 
-          {isEdit && initial && (
-            <TchAttachmentPanel teacherId={initial.id} />
-          )}
+          {isEdit && initial && <TchAttachmentPanel teacherId={initial.id} />}
 
           {/* FIX-260512: staged attachments for create mode */}
           {!isEdit && (
             <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
               <legend className="text-xs font-semibold text-secondary px-1">
-                {t('attachment.section', '첨부파일')}
+                {t("attachment.section", "첨부파일")}
               </legend>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-secondary">
-                  {t('attachment.hint', 'PDF/JPEG/PNG, 개별 최대 10MB. 교사 등록 후 자동 업로드됩니다.')}
+                  {t(
+                    "attachment.hint",
+                    "PDF/JPEG/PNG, 개별 최대 10MB. 교사 등록 후 자동 업로드됩니다.",
+                  )}
                 </p>
                 <Button
                   type="button"
@@ -591,7 +780,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                   disabled={isLoading}
                 >
                   <Upload size={14} className="mr-1" />
-                  {t('attachment.actions.add', '파일 추가')}
+                  {t("attachment.actions.add", "파일 추가")}
                 </Button>
                 <input
                   ref={stagedInputRef}
@@ -601,15 +790,27 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                   className="hidden"
                   onChange={(e) => {
                     const files = Array.from(e.target.files ?? []);
-                    e.target.value = '';
+                    e.target.value = "";
                     const accepted: File[] = [];
                     for (const f of files) {
                       if (!ALLOWED_MIME.includes(f.type)) {
-                        setError(t('attachment.error.mime', '허용되지 않은 파일 형식: {{name}}', { name: f.name }));
+                        setError(
+                          t(
+                            "attachment.error.mime",
+                            "허용되지 않은 파일 형식: {{name}}",
+                            { name: f.name },
+                          ),
+                        );
                         continue;
                       }
                       if (f.size > MAX_BYTES) {
-                        setError(t('attachment.error.size', '파일 크기 초과(최대 10MB): {{name}}', { name: f.name }));
+                        setError(
+                          t(
+                            "attachment.error.size",
+                            "파일 크기 초과(최대 10MB): {{name}}",
+                            { name: f.name },
+                          ),
+                        );
                         continue;
                       }
                       accepted.push(f);
@@ -623,7 +824,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
               </div>
               {stagedFiles.length === 0 ? (
                 <p className="text-secondary py-2 text-center text-xs">
-                  {t('attachment.staged.empty', '추가된 파일이 없습니다')}
+                  {t("attachment.staged.empty", "추가된 파일이 없습니다")}
                 </p>
               ) : (
                 <ul className="divide-y divide-[var(--border-subtle)]">
@@ -635,7 +836,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium">{f.name}</p>
                         <p className="text-xs text-secondary">
-                          {f.type || 'unknown'} · {fmtSize(f.size)}
+                          {f.type || "unknown"} · {fmtSize(f.size)}
                         </p>
                       </div>
                       <Button
@@ -643,7 +844,9 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          setStagedFiles((prev) => prev.filter((_, i) => i !== idx))
+                          setStagedFiles((prev) =>
+                            prev.filter((_, i) => i !== idx),
+                          )
                         }
                         disabled={isLoading}
                         className="text-red-600 hover:bg-red-50"
@@ -660,24 +863,26 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {isEdit && initial?.hasAccount && (
             <fieldset className="rounded-md border border-amber-200 bg-amber-50/40 p-4 space-y-3">
               <legend className="text-xs font-semibold text-amber-800 px-1">
-                {t('form.sectionResetPassword')}
+                {t("form.sectionResetPassword")}
               </legend>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelClass}>{t('field.newPassword')}</label>
+                  <label className={labelClass}>{t("field.newPassword")}</label>
                   <input
                     type="password"
                     autoComplete="new-password"
-                    {...register('tchPassword')}
+                    {...register("tchPassword")}
                     className={inputClass}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>{t('field.passwordConfirm')}</label>
+                  <label className={labelClass}>
+                    {t("field.passwordConfirm")}
+                  </label>
                   <input
                     type="password"
                     autoComplete="new-password"
-                    {...register('tchPasswordConfirm')}
+                    {...register("tchPasswordConfirm")}
                     className={inputClass}
                   />
                 </div>
@@ -690,7 +895,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                   onClick={onResetPassword}
                   disabled={isLoading}
                 >
-                  {t('actions.resetPassword')}
+                  {t("actions.resetPassword")}
                 </Button>
               </div>
             </fieldset>
@@ -699,7 +904,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
           {isEdit && initial && (
             <div className="rounded-lg border border-[var(--border-subtle)] p-4">
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
-                {t('common:portalAccount.title')}
+                {t("common:portalAccount.title")}
               </h3>
               <PortalAccountPanel kind="TEACHER" refId={initial.id} />
             </div>
@@ -707,7 +912,7 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <DialogFooter className="flex justify-between">
+          <DialogFooter className="sticky bottom-0 bg-canvas py-3 flex justify-between">
             <div>
               {isEdit && (
                 <Button
@@ -718,16 +923,23 @@ export function TchFormModal({ open, onClose, initial, prefillFromAma }: Props) 
                   disabled={isLoading}
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
-                  {t('common:actions.delete')}
+                  {t("common:actions.delete")}
                 </Button>
               )}
             </div>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={onClose}>
-                {t('common:actions.cancel')}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onClose}
+              >
+                {t("common:actions.cancel")}
               </Button>
               <Button type="submit" size="sm" disabled={isLoading}>
-                {isLoading ? t('common:actions.saving') : t('common:actions.save')}
+                {isLoading
+                  ? t("common:actions.saving")
+                  : t("common:actions.save")}
               </Button>
             </div>
           </DialogFooter>

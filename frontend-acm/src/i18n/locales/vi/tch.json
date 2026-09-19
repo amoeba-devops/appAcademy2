@@ -132,5 +132,19 @@
       "mime": "Định dạng không hỗ trợ (PDF/JPG/PNG).",
       "size": "Kích thước tối đa 10 MB."
     }
+  },
+  "profile": {
+    "Education": "Học vấn",
+    "Experience": "Kinh nghiệm",
+    "TeachingSubjectsText": "Môn giảng dạy",
+    "ProfileText": "Hồ sơ",
+    "Residence": "Nơi cư trú",
+    "KakaoId": "ID KakaoTalk",
+    "Gender": "Giới tính",
+    "unset": "Chưa nhập",
+    "male": "Nam",
+    "female": "Nữ",
+    "section": "Học vấn, kinh nghiệm và hồ sơ",
+    "emailHint": "Bắt buộc khi cấp tài khoản đăng nhập."
   }
 }

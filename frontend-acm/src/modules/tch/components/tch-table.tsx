@@ -85,7 +85,7 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
                     <span className="text-secondary text-xs">{t('isInstructor.no')}</span>
                   )}
                 </td>
-                <td className="px-4 py-3">{t(`employmentType.${it.employmentType}`)}</td>
+                <td className="px-4 py-3">{it.employmentType ? t(`employmentType.${it.employmentType}`) : '—'}</td>
                 <td className="px-4 py-3 text-secondary">{it.accountUsername ?? '—'}</td>
                 <td className="px-4 py-3">{fmtDate(it.birthDate)}</td>
                 <td className="px-4 py-3">{it.email}</td>

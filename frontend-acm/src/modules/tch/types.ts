@@ -23,18 +23,26 @@ export interface TeacherDetail {
   entId: string;
   name: string;
   englishName?: string | null;
-  email: string;
+  email: string | null;
   phone?: string | null;
   birthDate?: string | null;
   subjects: TchSubject[];
   memo?: string | null;
+  education?: string | null;
+  teachingSubjectsText?: string | null;
+  experience?: string | null;
+  profileText?: string | null;
+  residence?: string | null;
+  kakaoId?: string | null;
+  gender?: 'MALE' | 'FEMALE' | null;
+
   userId?: string | null;
   amaUserId?: string | null;
   hasAccount: boolean;
   status: TchStatus;
   // REQ-260510 additions
   isInstructor: boolean;
-  employmentType: TchEmploymentType;
+  employmentType: TchEmploymentType | null;
   hiredAt?: string | null;
   attendanceNo?: string | null;
   accountUsername?: string | null;

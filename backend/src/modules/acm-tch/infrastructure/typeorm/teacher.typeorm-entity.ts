@@ -13,7 +13,9 @@ export type TchSubject =
   | 'OTHER';
 
 @Entity('amb_acm_tch_teacher')
-@Index('idx_acm_tch_ent_status', ['entId', 'status'], { where: 'deleted_at IS NULL' })
+@Index('idx_acm_tch_ent_status', ['entId', 'status'], {
+  where: 'deleted_at IS NULL',
+})
 export class TeacherTypeormEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'tch_id' })
   id!: string;
@@ -24,11 +26,16 @@ export class TeacherTypeormEntity {
   @Column({ name: 'tch_name', type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({ name: 'tch_english_name', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'tch_english_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   englishName?: string | null;
 
-  @Column({ name: 'tch_email', type: 'varchar', length: 200 })
-  email!: string;
+  @Column({ name: 'tch_email', type: 'varchar', length: 200, nullable: true })
+  email!: string | null;
 
   @Column({ name: 'tch_phone', type: 'varchar', length: 30, nullable: true })
   phone?: string | null;
@@ -38,6 +45,37 @@ export class TeacherTypeormEntity {
 
   @Column({ name: 'tch_subjects', type: 'jsonb', default: () => `'[]'::jsonb` })
   subjects!: TchSubject[];
+
+  @Column({ name: 'tch_education', type: 'text', nullable: true })
+  education?: string | null;
+
+  @Column({ name: 'tch_teaching_subjects_text', type: 'text', nullable: true })
+  teachingSubjectsText?: string | null;
+
+  @Column({ name: 'tch_experience', type: 'text', nullable: true })
+  experience?: string | null;
+
+  @Column({ name: 'tch_profile_text', type: 'text', nullable: true })
+  profileText?: string | null;
+
+  @Column({
+    name: 'tch_residence',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
+  residence?: string | null;
+
+  @Column({
+    name: 'tch_kakao_id',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  kakaoId?: string | null;
+
+  @Column({ name: 'tch_gender', type: 'varchar', length: 20, nullable: true })
+  gender?: 'MALE' | 'FEMALE' | null;
 
   @Column({ name: 'tch_memo', type: 'text', nullable: true })
   memo?: string | null;
@@ -50,23 +88,43 @@ export class TeacherTypeormEntity {
    * is created via AmaUserPicker (TchFormModal) or lazy-upserted from a CSL
    * stage 2/3 schedule save. UNIQUE per tenant (sql/acm/989).
    */
-  @Column({ name: 'tch_ama_user_id', type: 'varchar', length: 64, nullable: true })
+  @Column({
+    name: 'tch_ama_user_id',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
   amaUserId?: string | null;
 
-  @Column({ name: 'tch_status', type: 'varchar', length: 20, default: 'ACTIVE' })
+  @Column({
+    name: 'tch_status',
+    type: 'varchar',
+    length: 20,
+    default: 'ACTIVE',
+  })
   status!: TchStatus;
 
   // --- REQ-260510 additions ---
   @Column({ name: 'tch_is_instructor', type: 'boolean', default: true })
   isInstructor!: boolean;
 
-  @Column({ name: 'tch_employment_type', type: 'varchar', length: 20, default: 'FULL_TIME' })
-  employmentType!: TchEmploymentType;
+  @Column({
+    name: 'tch_employment_type',
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+  })
+  employmentType!: TchEmploymentType | null;
 
   @Column({ name: 'tch_hired_at', type: 'date', nullable: true })
   hiredAt?: string | null;
 
-  @Column({ name: 'tch_attendance_no', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'tch_attendance_no',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   attendanceNo?: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })

@@ -50,7 +50,10 @@ describe('TeacherService dup check (name / englishName / email)', () => {
     const mod = await Test.createTestingModule({
       providers: [
         TeacherService,
-        { provide: getRepositoryToken(TeacherTypeormEntity, ACM_DS), useValue: repo },
+        {
+          provide: getRepositoryToken(TeacherTypeormEntity, ACM_DS),
+          useValue: repo,
+        },
         {
           provide: getRepositoryToken(AcmUserTypeormEntity, ACM_DS),
           useValue: { findOne: jest.fn() },
@@ -59,6 +62,52 @@ describe('TeacherService dup check (name / englishName / email)', () => {
       ],
     }).compile();
     svc = mod.get(TeacherService);
+  });
+
+  it('creates a profile without email, employment or a login account', async () => {
+    const result = await svc.create('e1', {
+      tchName: 'Profile Teacher',
+      tchEducation: 'University',
+      tchProfileText: 'Courses\nMAP',
+      tchKakaoId: 'teacher-chat',
+    });
+    expect(result).toMatchObject({
+      email: null,
+      employmentType: null,
+      education: 'University',
+      profileText: 'Courses\nMAP',
+      kakaoId: 'teacher-chat',
+      hasAccount: false,
+    });
+  });
+
+  it('requires email when creating an account', async () => {
+    await expect(
+      svc.create('e1', {
+        tchName: 'Teacher',
+        tchCreateAccount: true,
+        tchPassword: 'ValidPass123',
+      }),
+    ).rejects.toThrow('EMAIL_REQUIRED_FOR_ACCOUNT');
+  });
+
+  it('supports explicit profile clearing while retaining omitted fields and links', async () => {
+    repoFindOne.mockResolvedValue({
+      id: 'existing',
+      name: 'Teacher',
+      education: 'Keep',
+      experience: 'Old',
+      userId: 'account',
+      amaUserId: 'ama',
+    });
+    const result = await svc.update('e1', 'existing', { tchExperience: null });
+    expect(result).toMatchObject({
+      id: 'existing',
+      education: 'Keep',
+      experience: null,
+      userId: 'account',
+      amaUserId: 'ama',
+    });
   });
 
   it('email collision → ConflictException with code=EMAIL_DUPLICATE', async () => {
@@ -77,7 +126,9 @@ describe('TeacherService dup check (name / englishName / email)', () => {
 
   it('name collision (email free) → code=NAME_DUPLICATE', async () => {
     // Email check returns null, then name check returns a hit.
-    qbGetOne.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 'tch-other' });
+    qbGetOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'tch-other' });
     await expect(svc.create('e1', dto())).rejects.toMatchObject({
       status: 409,
       response: expect.objectContaining({
@@ -106,9 +157,9 @@ describe('TeacherService dup check (name / englishName / email)', () => {
   it('no englishName provided → skips that branch (no QB call for it)', async () => {
     qbGetOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     // englishName branch wouldn't run; only 2 QB getOne calls.
-    await expect(
-      svc.create('e1', dto({ tchEnglishName: undefined })),
-    ).rejects.toBeInstanceOf(ConflictException).catch(() => {});
+    await expect(svc.create('e1', dto({ tchEnglishName: undefined })))
+      .rejects.toBeInstanceOf(ConflictException)
+      .catch(() => {});
     // 2 calls total (email + name) — no englishName lookup.
     expect(qbGetOne).toHaveBeenCalledTimes(2);
   });

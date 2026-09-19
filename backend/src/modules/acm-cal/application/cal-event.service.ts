@@ -770,8 +770,8 @@ export class CalEventService {
   private async lookupAssignees(
     entId: string,
     ids: (string | null | undefined)[],
-  ): Promise<Map<string, { name: string; email: string }>> {
-    const map = new Map<string, { name: string; email: string }>();
+  ): Promise<Map<string, { name: string; email: string | null }>> {
+    const map = new Map<string, { name: string; email: string | null }>();
     const unique = Array.from(
       new Set(
         ids.filter((x): x is string => typeof x === 'string' && x.length > 0),

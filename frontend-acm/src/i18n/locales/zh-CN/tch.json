@@ -132,5 +132,19 @@
       "mime": "不支持的文件类型 (仅限 PDF/JPG/PNG)。",
       "size": "文件大小须 ≤ 10 MB。"
     }
+  },
+  "profile": {
+    "Education": "学历",
+    "Experience": "经验",
+    "TeachingSubjectsText": "教学科目详情",
+    "ProfileText": "详细简介",
+    "Residence": "居住地区",
+    "KakaoId": "KakaoTalk ID",
+    "Gender": "性别",
+    "unset": "未填写",
+    "male": "男",
+    "female": "女",
+    "section": "学历、经验与简介",
+    "emailHint": "创建登录账户时必填。"
   }
 }
