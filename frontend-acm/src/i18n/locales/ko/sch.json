@@ -5,17 +5,26 @@
   "loading": "불러오는 중...",
   "empty": "등록된 학교가 없습니다.",
   "columns": {
-    "name": "이름",
+    "name": "학교명",
     "level": "등급",
     "region": "지역",
-    "authorized": "인가",
+    "authorized": "인가여부",
     "bands": "학년대",
     "schedules": "일정",
-    "actions": "작업"
+    "actions": "작업",
+    "curriculum": "구분",
+    "target": "시험대상",
+    "exam": "시험내용",
+    "eligibility": "지원자격",
+    "notes": "비고",
+    "schedule": "지원일정",
+    "district": "세부 지역",
+    "curriculumDescription": "구분"
   },
   "authorized": {
-    "yes": "AUTH'D",
-    "no": "UNAUTH'D"
+    "yes": "인가",
+    "no": "비인가",
+    "unknown": "미확인"
   },
   "actions": {
     "viewBands": "학년대 보기",
@@ -52,6 +61,43 @@
     "note": "비고",
     "add": "일정 추가",
     "edit": "일정 수정"
+  },
+  "catalog": {
+    "searchName": "학교명 검색",
+    "searchCurriculum": "구분 검색",
+    "allAuthorization": "인가여부 전체",
+    "reset": "초기화",
+    "count": "학교 {{count}}개",
+    "pageAdmissions": "현재 페이지 전형 {{count}}건",
+    "loadError": "목록을 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "details": "상세보기",
+    "previous": "이전",
+    "next": "다음",
+    "placeholder": "입력하세요",
+    "legacy": "기존 분류 정보",
+    "saved": "저장했습니다.",
+    "saveError": "저장하지 못했습니다.",
+    "admissions": "시험·지원 정보",
+    "admissionNumber": "전형 정보 {{number}}",
+    "addAdmission": "전형 추가",
+    "cancel": "취소",
+    "saving": "저장 중…",
+    "save": "저장",
+    "basic": "기본정보",
+    "scheduleNotice": "지원일정은 등록된 원문입니다. 최신 모집 여부와 날짜의 의미는 학교에 확인하세요.",
+    "noAdmissions": "등록된 전형정보가 없습니다.",
+    "legacyBands": "기존 학년대 관리",
+    "legacySchedules": "기존 정형 일정 관리",
+    "legacyNotice": "기존 학년대·정형 일정은 전형 원문과 별도로 관리됩니다.",
+    "targetLabel": "시험대상",
+    "examContent": "시험내용",
+    "scheduleText": "지원일정"
+  },
+  "levels": {
+    "ELEMENTARY": "초등",
+    "MIDDLE": "중등",
+    "HIGH": "고등",
+    "FOREIGN": "외국/국제"
   }
 }
-

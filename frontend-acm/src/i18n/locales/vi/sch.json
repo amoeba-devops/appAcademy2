@@ -5,15 +5,27 @@
   "loading": "Đang tải...",
   "empty": "Chưa có trường nào.",
   "columns": {
-    "name": "Tên",
+    "name": "Tên trường",
     "level": "Cấp",
     "region": "Khu vực",
-    "authorized": "Auth",
+    "authorized": "Cấp phép",
     "bands": "Khối",
     "schedules": "Lịch",
-    "actions": "Hành động"
+    "actions": "Hành động",
+    "curriculum": "Chương trình / kiểm định",
+    "target": "Đối tượng thi",
+    "exam": "Nội dung thi",
+    "eligibility": "Điều kiện dự tuyển",
+    "notes": "Ghi chú",
+    "schedule": "Lịch tuyển sinh",
+    "district": "Quận/huyện",
+    "curriculumDescription": "Chương trình / kiểm định"
   },
-  "authorized": { "yes": "AUTH", "no": "UNAUTH" },
+  "authorized": {
+    "yes": "Được cấp phép",
+    "no": "Chưa được cấp phép",
+    "unknown": "Chưa xác nhận"
+  },
   "actions": {
     "viewBands": "Xem khối lớp",
     "viewSchedules": "Xem lịch",
@@ -49,6 +61,43 @@
     "note": "Ghi chú",
     "add": "Thêm lịch",
     "edit": "Sửa lịch"
+  },
+  "catalog": {
+    "searchName": "Tìm tên trường",
+    "searchCurriculum": "Tìm chương trình",
+    "allAuthorization": "Mọi trạng thái cấp phép",
+    "reset": "Đặt lại",
+    "count": "{{count}} trường",
+    "pageAdmissions": "{{count}} mục trên trang này",
+    "loadError": "Không thể tải dữ liệu.",
+    "retry": "Thử lại",
+    "details": "Xem chi tiết",
+    "previous": "Trước",
+    "next": "Sau",
+    "placeholder": "Nhập thông tin",
+    "legacy": "Phân loại hiện có",
+    "saved": "Đã lưu.",
+    "saveError": "Không thể lưu.",
+    "admissions": "Thông tin thi và dự tuyển",
+    "admissionNumber": "Mục tuyển sinh {{number}}",
+    "addAdmission": "Thêm mục tuyển sinh",
+    "cancel": "Hủy",
+    "saving": "Đang lưu…",
+    "save": "Lưu",
+    "basic": "Thông tin cơ bản",
+    "scheduleNotice": "Lịch là nội dung nguồn đã ghi. Hãy xác nhận tình trạng tuyển sinh và ý nghĩa ngày với trường.",
+    "noAdmissions": "Chưa có thông tin tuyển sinh.",
+    "legacyBands": "Quản lý khối lớp hiện có",
+    "legacySchedules": "Lịch ngày tháng hiện có",
+    "legacyNotice": "Khối lớp và lịch ngày tháng được quản lý riêng với nội dung tuyển sinh.",
+    "targetLabel": "Đối tượng thi",
+    "examContent": "Nội dung thi",
+    "scheduleText": "Lịch tuyển sinh"
+  },
+  "levels": {
+    "ELEMENTARY": "Tiểu học",
+    "MIDDLE": "THCS",
+    "HIGH": "THPT",
+    "FOREIGN": "Nước ngoài / Quốc tế"
   }
 }
-

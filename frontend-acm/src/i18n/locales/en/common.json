@@ -666,6 +666,7 @@
     "calendar": "Select an event to see class details.",
     "settings": "Check the save result after changing settings.",
     "chat": "Select a conversation before writing a message.",
-    "posts": "Check the publication status before saving a post."
+    "posts": "Check the publication status before saving a post.",
+    "schools": "Review school-specific tests and admission entries. Confirm current schedules with each school."
   }
 }

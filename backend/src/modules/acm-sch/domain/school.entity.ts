@@ -12,9 +12,19 @@ export interface School {
   region?: string;
   district?: string;
   isForeign: boolean;
-  isAuthorized: boolean;
+  isAuthorized: boolean | null;
+  curriculumDescription?: string | null;
+  eligibility?: string | null;
+  admissions?: AdmissionInfo[];
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt?: Date | null;
+}
+
+export interface AdmissionInfo {
+  id?: string;
+  targetLabel?: string | null;
+  examContent?: string | null;
+  scheduleText?: string | null;
 }

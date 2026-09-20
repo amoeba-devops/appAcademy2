@@ -1,7 +1,18 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, PrimaryColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity('amb_acm_sch_school')
-@Index('uq_acm_sch_school_ent_name', ['entId', 'name'], { unique: true, where: '"deleted_at" IS NULL' })
+@Index('uq_acm_sch_school_ent_name', ['entId', 'name'], {
+  unique: true,
+  where: '"deleted_at" IS NULL',
+})
 export class SchoolTypeormEntity {
   @PrimaryColumn({ name: 'sch_id', type: 'uuid' })
   id!: string;
@@ -25,8 +36,14 @@ export class SchoolTypeormEntity {
   @Column({ name: 'is_foreign', type: 'boolean', default: false })
   isForeign!: boolean;
 
-  @Column({ name: 'is_authorized', type: 'boolean', default: true })
-  isAuthorized!: boolean;
+  @Column({ name: 'is_authorized', type: 'boolean', nullable: true })
+  isAuthorized!: boolean | null;
+
+  @Column({ name: 'curriculum_description', type: 'text', nullable: true })
+  curriculumDescription?: string | null;
+
+  @Column({ name: 'eligibility', type: 'text', nullable: true })
+  eligibility?: string | null;
 
   @Column({ name: 'notes', type: 'text', nullable: true })
   notes?: string;

@@ -5,17 +5,26 @@
   "loading": "Loading...",
   "empty": "No schools registered yet.",
   "columns": {
-    "name": "Name",
+    "name": "School name",
     "level": "Level",
     "region": "Region",
-    "authorized": "Auth",
+    "authorized": "Authorization",
     "bands": "Bands",
     "schedules": "Schedules",
-    "actions": "Actions"
+    "actions": "Actions",
+    "curriculum": "Curriculum / accreditation",
+    "target": "Test applicants",
+    "exam": "Test content",
+    "eligibility": "Eligibility",
+    "notes": "Notes",
+    "schedule": "Application schedule",
+    "district": "District",
+    "curriculumDescription": "Curriculum / accreditation"
   },
   "authorized": {
-    "yes": "AUTH'D",
-    "no": "UNAUTH'D"
+    "yes": "Authorized",
+    "no": "Unauthorized",
+    "unknown": "Unconfirmed"
   },
   "actions": {
     "viewBands": "View Grade Bands",
@@ -52,6 +61,43 @@
     "note": "Note",
     "add": "Add schedule",
     "edit": "Edit schedule"
+  },
+  "catalog": {
+    "searchName": "Search school name",
+    "searchCurriculum": "Search curriculum",
+    "allAuthorization": "All authorization states",
+    "reset": "Reset",
+    "count": "{{count}} schools",
+    "pageAdmissions": "{{count}} entries on this page",
+    "loadError": "Could not load data.",
+    "retry": "Retry",
+    "details": "View details",
+    "previous": "Previous",
+    "next": "Next",
+    "placeholder": "Enter information",
+    "legacy": "Existing classification",
+    "saved": "Saved.",
+    "saveError": "Could not save.",
+    "admissions": "Tests and applications",
+    "admissionNumber": "Admission entry {{number}}",
+    "addAdmission": "Add admission entry",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "save": "Save",
+    "basic": "Basic information",
+    "scheduleNotice": "Schedules are recorded source text. Confirm current availability and date meanings with the school.",
+    "noAdmissions": "No admission entries.",
+    "legacyBands": "Existing grade bands",
+    "legacySchedules": "Existing dated schedules",
+    "legacyNotice": "Existing grade bands and dated schedules are managed separately from admission text.",
+    "targetLabel": "Test applicants",
+    "examContent": "Test content",
+    "scheduleText": "Application schedule"
+  },
+  "levels": {
+    "ELEMENTARY": "Elementary",
+    "MIDDLE": "Middle",
+    "HIGH": "High",
+    "FOREIGN": "Foreign / International"
   }
 }
-
