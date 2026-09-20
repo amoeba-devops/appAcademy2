@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import { Readable, Transform } from 'stream';
 import {
   ForbiddenException,
   Inject,
@@ -71,8 +71,6 @@ export interface RecordingSummary {
 
 /** 종료 직후 이 시간까지는 "수신 대기"로 본다 (보다 파일 저장 지연 감안). */
 const AWAIT_WINDOW_MIN = 30;
-/** 길이 미상일 때만 쓰는 버퍼 폴백 상한. */
-const MAX_BUFFER_BYTES = 256 * 1024 * 1024;
 /** 아카이브 재시도 상한. */
 const MAX_ATTEMPTS = 3;
 /** 재생 티켓 수명(초) + 용도 클레임. */
@@ -406,21 +404,25 @@ export class BodaRecordingService {
     const mime = dl.contentType ?? 'video/mp4';
     const key = `cal-recordings/${row.entId}/${row.evtId}/${row.recordIdx}.mp4`;
 
-    let size: number;
-    if (dl.contentLength && dl.contentLength > 0) {
-      await this.store.putObjectStream({
-        key,
-        body: dl.stream as Readable,
-        mime,
-        contentLength: dl.contentLength,
-      });
-      size = dl.contentLength;
-    } else {
-      // 업스트림이 길이를 주지 않으면 상한까지만 버퍼링해 올린다.
-      const buf = await this.readAllCapped(dl.stream as Readable);
-      await this.store.putObject({ key, body: buf, mime });
-      size = buf.length;
-    }
+    // REQ-260920C B-2 — 보다 다운로드는 Range 미지원·전체 전송이며 Content-Length
+    // 가 없을 수 있다. 길이가 있으면 단일 PutObject, 없으면 멀티파트 스트리밍.
+    // 어느 쪽이든 메모리에 파일을 통째로 올리지 않는다. 실제 전송 바이트는
+    // 카운터로 센다 (길이 미상 시 sizeBytes 의 근거).
+    const src = dl.stream as Readable;
+    const counter = new ByteCounter();
+    src.on('error', (e) => counter.destroy(e));
+    const contentLength =
+      dl.contentLength && dl.contentLength > 0 ? dl.contentLength : null;
+
+    await this.store.putObjectStream({
+      key,
+      body: src.pipe(counter),
+      mime,
+      contentLength,
+    });
+
+    const size = contentLength ?? counter.bytes;
+    if (size <= 0) throw new Error('RECORDING_EMPTY_BODY');
 
     await this.repo.update(
       { id: row.id },
@@ -434,23 +436,8 @@ export class BodaRecordingService {
       },
     );
     this.logger.log(
-      `recording archived evtId=${row.evtId} recordIdx=${row.recordIdx} bytes=${size}`,
+      `recording archived evtId=${row.evtId} recordIdx=${row.recordIdx} bytes=${size} mode=${contentLength ? 'put' : 'multipart'}`,
     );
-  }
-
-  private async readAllCapped(stream: Readable): Promise<Buffer> {
-    const chunks: Buffer[] = [];
-    let total = 0;
-    for await (const chunk of stream) {
-      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as string);
-      total += buf.length;
-      if (total > MAX_BUFFER_BYTES) {
-        throw new Error('RECORDING_TOO_LARGE_WITHOUT_CONTENT_LENGTH');
-      }
-      chunks.push(buf);
-    }
-    if (total === 0) throw new Error('RECORDING_EMPTY_BODY');
-    return Buffer.concat(chunks);
   }
 
   // ---------------------------------------------------------------------------
@@ -602,5 +589,20 @@ export class BodaRecordingService {
       );
 
     return rows.map((r) => ({ entId: r.ent_id, evtId: r.evt_id }));
+  }
+}
+
+/** 통과하는 바이트 수만 세는 pass-through (길이 미상 업로드의 크기 산출용). */
+class ByteCounter extends Transform {
+  bytes = 0;
+  _transform(
+    chunk: Buffer | string,
+    _enc: BufferEncoding,
+    cb: (err?: Error | null, data?: Buffer | string) => void,
+  ): void {
+    this.bytes += Buffer.isBuffer(chunk)
+      ? chunk.length
+      : Buffer.byteLength(chunk);
+    cb(null, chunk);
   }
 }

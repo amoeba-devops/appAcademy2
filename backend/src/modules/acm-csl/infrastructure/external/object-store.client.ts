@@ -9,6 +9,10 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Upload } from '@aws-sdk/lib-storage';
+
+/** 멀티파트 업로드 파트 크기 (S3 최소 5MB). */
+const MULTIPART_PART_BYTES = 16 * 1024 * 1024;
 
 /**
  * REQ-260626 T-06 / ADR-008 — S3-compatible object store client.
@@ -177,30 +181,50 @@ export class ObjectStoreClient implements OnModuleInit {
   }
 
   /**
-   * REQ-260912B — 스트림 업로드. 녹화본처럼 수백 MB 일 수 있는 파일을 메모리에
-   * 통째로 올리지 않기 위해 사용한다. S3 PutObject 는 스트림 본문에
-   * ContentLength 를 요구하므로, 업스트림이 길이를 주지 않으면 호출자가
-   * 버퍼 폴백을 택해야 한다(길이 미상 시 여기서 예외).
+   * REQ-260912B — 스트림 업로드. 녹화본처럼 수백 MB~GB 일 수 있는 파일을
+   * 메모리에 통째로 올리지 않기 위해 사용한다.
+   *
+   * REQ-260920C B-2 — 보다 다운로드 API 는 Range 미지원·전체 전송이며
+   * `Content-Length` 유무가 보장되지 않는다. 길이를 알면 단일 PutObject,
+   * 모르면 `@aws-sdk/lib-storage` 멀티파트 업로드로 길이 없이 스트리밍한다
+   * (이전 256MB 메모리 버퍼 폴백 제거).
    */
   async putObjectStream(opts: {
     key: string;
     body: Readable;
     mime: string;
-    contentLength: number;
+    /** 업스트림 Content-Length. 없거나 0 이하이면 멀티파트 경로. */
+    contentLength?: number | null;
   }): Promise<void> {
     const { client, bucket } = this.requireClient();
-    if (!Number.isFinite(opts.contentLength) || opts.contentLength <= 0) {
-      throw new Error('CONTENT_LENGTH_REQUIRED');
+    const len = opts.contentLength ?? 0;
+    if (Number.isFinite(len) && len > 0) {
+      await client.send(
+        new PutObjectCommand({
+          Bucket: bucket,
+          Key: opts.key,
+          Body: opts.body,
+          ContentType: opts.mime,
+          ContentLength: len,
+        }),
+      );
+      return;
     }
-    await client.send(
-      new PutObjectCommand({
+
+    const upload = new Upload({
+      client,
+      params: {
         Bucket: bucket,
         Key: opts.key,
         Body: opts.body,
         ContentType: opts.mime,
-        ContentLength: opts.contentLength,
-      }),
-    );
+      },
+      // 16MB 파트 × 동시 2 — 백엔드 메모리 상주 최대 ~32MB.
+      partSize: MULTIPART_PART_BYTES,
+      queueSize: 2,
+      leavePartsOnError: false,
+    });
+    await upload.done();
   }
 
   /**

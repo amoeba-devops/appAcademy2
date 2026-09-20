@@ -325,6 +325,8 @@
     "archiving": "Archiving {{count}} file(s)",
     "archiveFailed": "{{count}} archive failure(s)",
     "notArchived": "BODA original",
+    "notArchivedHint": "Archive pending — seeking unavailable",
+    "seekHint": "Seeking is unavailable until the ACM archive completes. Playing the BODA original as-is.",
     "status": {
       "NOT_APPLICABLE": "Not an online class",
       "NO_ROOM": "Room not created",

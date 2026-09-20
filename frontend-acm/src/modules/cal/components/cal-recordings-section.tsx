@@ -212,7 +212,10 @@ export function CalRecordingsSection({
                   : ''}
               </span>
               {r.archiveStatus !== 'ARCHIVED' && (
-                <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800">
+                <span
+                  className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"
+                  title={t('recordings.notArchivedHint', '보관 완료 전 — 구간 이동 불가')}
+                >
                   {t('recordings.notArchived', '보다스쿨 원본')}
                 </span>
               )}
@@ -290,6 +293,16 @@ export function CalRecordingsSection({
               autoPlay
               className="max-h-[70vh] w-full rounded bg-black"
             />
+            {/* REQ-260920C B-3 — 보다 다운로드 API 는 Range 미지원(벤더 확인).
+                ACM 보관본이 생기기 전까지는 구간 이동이 되지 않음을 알린다. */}
+            {playing.item.archiveStatus !== 'ARCHIVED' && (
+              <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
+                {t(
+                  'recordings.seekHint',
+                  '보관 완료 전에는 구간 이동(탐색)이 되지 않습니다. 보다스쿨 원본을 그대로 재생 중입니다.',
+                )}
+              </p>
+            )}
           </div>
         </div>
       )}

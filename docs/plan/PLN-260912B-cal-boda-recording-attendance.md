@@ -1,10 +1,11 @@
 ---
 document_id: CAL-PLN-260912B
-version: 1.0.1
+version: 1.0.2
 status: DEPLOYED (PR #211 1190df0 — cd-staging·cd-production 2026-09-12 08:0xZ 완료) — P0 운영 연동은 사용자 후속 설정 대기
 date: 2026-09-12
 depends_on: docs/analysis/REQ-260912B-cal-boda-recording-attendance.md
 change_log:
+  - 2026-09-20 v1.0.2 벤더 회신 반영 — P0-3 시크릿 불필요·P0-4 IP 3개·P0-5 자동 녹화 확정. 후속 코드 보강은 REQ/PLN-260920C (Claude Code)
   - 2026-09-12 v1.0.1 배포 완료 — staging·production 반영, 스모크 확인(티켓 라우트 403 INVALID_TICKET, 999l 자동 적용). 실데이터 검증은 P0 후 (Claude Code)
   - 2026-09-12 v1.0.0 P1(백엔드)·P2(프론트) 구현 완료 — 녹화 상태 표시·ACM 서버 보관·운영자/강사 전용 노출 반영, 사용자 결정사항 3건 적용 (Claude Code)
   - 2026-09-12 v0.1.0 초안 — 녹화본 링크 활성화 + 입출입 기록 노출 구현 계획 (Claude Code)
@@ -62,9 +63,9 @@ frontend-acm (admin)
 |---|---|---|
 | P0-1 | 프로덕션 `.env.production` 의 `BODA_MODE` 를 실연동 값으로 전환 후 backend 재기동 | 개발(배포) |
 | P0-2 | 보다 관리웹에 **이벤트 수신 URL** `https://acm.amoeba.site/api/webhooks/boda` 등록 + 전송 이벤트(1·2·4·5·11·12·21) 활성화 | 보다 담당자 |
-| P0-3 | **이벤트 시크릿** 발급 → `/admin/cal/boda/config` 에 저장 (현재 `bdc_event_secret_enc` NULL) | 사용자 |
-| P0-4 | 보다 발신 IP 확인 → `bdc_webhook_allow_cidrs` 설정 | 사용자/보다 |
-| P0-5 | 룸 **녹화 기능 ON** 여부 확인 (자동 녹화 or 강사 수동 녹화) | 보다 담당자 |
+| P0-3 | ~~이벤트 시크릿 발급~~ → **벤더 회신(2026-09-20): 인증 수단 없음. IP 단독 운영** — 시크릿 비워 둠 | — |
+| P0-4 | 보다 발신 IP **회신 완료**: `121.170.164.136,121.170.164.137,121.170.164.138` → `/admin/config/boda` 허용 IP 저장. 발신 IP 판정 보강은 REQ-260920C B-1 | 사용자 |
+| P0-5 | 룸 녹화 **ON 확인 완료** — 자동 녹화, 강사 포함 2명 입장 시 시작. 보관 1년. 다운로드 Range 미지원 (후속: REQ-260920C) | ✅ |
 
 ### P1. Backend — **완료**
 

@@ -160,6 +160,12 @@ services:
       ACM_S3_SECRET_ACCESS_KEY: ${ACM_S3_ROOT_PASSWORD}
       # BODA(보다에듀) integration (REQ-260526) + demo mode (REQ-260610)
       BODA_MODE: ${BODA_MODE:-mock}
+      # REQ-260920C B-1 — webhook 발신 IP 판정용 신뢰 프록시 수 (host nginx → 컨테이너 nginx = 2).
+      BODA_WEBHOOK_TRUSTED_PROXY_HOPS: ${BODA_WEBHOOK_TRUSTED_PROXY_HOPS:-2}
+      # REQ-260920C C-1 — 녹화 파일 전체 전송 상한(ms). 벤더 Range 미지원·전체 전송.
+      BODA_DOWNLOAD_TIMEOUT_MS: ${BODA_DOWNLOAD_TIMEOUT_MS:-1800000}
+      # REQ-260920C C-2 — 녹화 따라잡기 범위(h). 실연동 전환 직후 과거 수업 수집 시 일시 확대(예: 720).
+      BODA_RECORDING_SYNC_LOOKBACK_HOURS: ${BODA_RECORDING_SYNC_LOOKBACK_HOURS:-48}
       BODA_CRYPTO_KEY: ${BODA_CRYPTO_KEY:-}
       BODA_DEFAULT_ROOM_CODE: ${BODA_DEFAULT_ROOM_CODE:-r-tac-demo}
       # Enable `?demo=1` flow + simulate-event admin endpoint on staging only.

@@ -325,6 +325,8 @@
     "archiving": "正在归档 {{count}} 个文件",
     "archiveFailed": "{{count}} 个归档失败",
     "notArchived": "BODA 原件",
+    "notArchivedHint": "归档未完成 — 无法拖动进度",
+    "seekHint": "在 ACM 归档完成之前无法拖动进度。正在直接播放 BODA 原件。",
     "status": {
       "NOT_APPLICABLE": "非在线课程",
       "NO_ROOM": "未创建教室",

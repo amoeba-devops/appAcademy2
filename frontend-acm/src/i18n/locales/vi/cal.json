@@ -325,6 +325,8 @@
     "archiving": "Đang lưu trữ {{count}} tệp",
     "archiveFailed": "{{count}} tệp lưu trữ thất bại",
     "notArchived": "Bản gốc BODA",
+    "notArchivedHint": "Chưa lưu trữ — không thể tua",
+    "seekHint": "Không thể tua (tìm kiếm) cho đến khi lưu trữ trên ACM hoàn tất. Đang phát bản gốc BODA.",
     "status": {
       "NOT_APPLICABLE": "Không phải lớp trực tuyến",
       "NO_ROOM": "Chưa tạo phòng học",
