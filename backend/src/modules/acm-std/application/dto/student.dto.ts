@@ -23,6 +23,35 @@ export const STD_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 export const STD_STATUSES = ['ACTIVE', 'INACTIVE', 'WITHDRAWN'] as const;
 export const STD_GENDERS = ['M', 'F'] as const;
 
+export class TeacherClassInfoDto {
+  @IsUUID()
+  tchId!: string;
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  subject?: string | null;
+  @IsOptional()
+  @IsString()
+  @MaxLength(20000)
+  curriculum?: string | null;
+  @IsOptional()
+  @IsString()
+  @MaxLength(20000)
+  materials?: string | null;
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  mobility?: string | null;
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  gpa?: string | null;
+  @IsOptional()
+  @IsString()
+  @MaxLength(20000)
+  ssatIseeNote?: string | null;
+}
+
 // ============================================================================
 // Parent (guardian) sub-DTO — embedded in student create/update payload
 // ============================================================================
@@ -66,8 +95,23 @@ export class StudentParentInputDto {
 // Create
 // ============================================================================
 export class CreateStudentDto {
+  @ApiPropertyOptional({ type: [TeacherClassInfoDto] })
+  @ValidateIf((_object, value: unknown) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => TeacherClassInfoDto)
+  stdTeacherClassInfos?: TeacherClassInfoDto[];
+
+  @IsOptional()
+  @IsUUID()
+  stdClassInfoLegacyTeacherId?: string;
+
   @ApiPropertyOptional({ enum: STD_SITES })
-  @ValidateIf((dto: CreateStudentDto) => dto.stdStatus !== 'WITHDRAWN' || dto.stdSite != null)
+  @ValidateIf(
+    (dto: CreateStudentDto) =>
+      dto.stdStatus !== 'WITHDRAWN' || dto.stdSite != null,
+  )
   @IsIn(STD_SITES)
   stdSite!: (typeof STD_SITES)[number];
 
@@ -252,6 +296,18 @@ export class CreateStudentDto {
 // Update — all fields optional
 // ============================================================================
 export class UpdateStudentDto {
+  @ApiPropertyOptional({ type: [TeacherClassInfoDto] })
+  @ValidateIf((_object, value: unknown) => value !== undefined)
+  @IsArray()
+  @ArrayMaxSize(5)
+  @ValidateNested({ each: true })
+  @Type(() => TeacherClassInfoDto)
+  stdTeacherClassInfos?: TeacherClassInfoDto[];
+
+  @IsOptional()
+  @IsUUID()
+  stdClassInfoLegacyTeacherId?: string;
+
   @ApiPropertyOptional({ enum: STD_SITES })
   @IsOptional()
   @IsIn(STD_SITES)

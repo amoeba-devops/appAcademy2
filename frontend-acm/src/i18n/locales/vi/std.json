@@ -106,7 +106,8 @@
     "updatedAt": "Cập nhật lần cuối",
     "confirmDeactivate": "Vô hiệu hóa học sinh này?",
     "sourceInquiry": "Từ tư vấn",
-    "inputRequired": "Cần nhập"
+    "inputRequired": "Cần nhập",
+    "enterValue": "Nhập thông tin"
   },
   "parentPicker": {
     "title": "Thêm phụ huynh",
@@ -231,5 +232,13 @@
     "createWithdrawn": "Đăng ký học sinh thôi học",
     "currentAll": "Tất cả học sinh hiện tại",
     "toggle": "Mở/đóng menu học sinh"
+  },
+  "classInfo": {
+    "noTeacher": "Chọn giáo viên để nhập thông tin lớp học.",
+    "legacyTitle": "Thông tin cũ · cần gán giáo viên",
+    "assign": "Gán thông tin cũ",
+    "assigned": "Đã chọn · lưu để áp dụng",
+    "unlinkHint": "Tối đa 5 giáo viên. Thông tin được giữ lại khi bỏ liên kết.",
+    "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu."
   }
 }

@@ -1,7 +1,7 @@
 ---
 document_id: CAL-PLN-260920C
 version: 1.1.0
-status: DEPLOYED (PR #249 8333050 — cd-staging·cd-production 2026-09-20 완료, BODA_MODE=http 전환 완료) — 실데이터 검증 진행 중
+status: VERIFIED (PR #249·#251·#252 배포, BODA_MODE=http, 8/31 녹화 2건 ARCHIVED 2026-09-20 07:30Z) — 잔여: 목 데이터 정리(FIX-260920 §5)·웹훅 URL 등록 확인
 date: 2026-09-20
 depends_on: docs/analysis/REQ-260920C-boda-recording-vendor-reply-followup.md
 change_log:
@@ -95,7 +95,9 @@ X-Forwarded-For = [ (클라이언트 임의값…), VENDOR, 127.0.0.1 ]
 | **위조 헤더 차단** — `POST /api/webhooks/boda` + `X-Forwarded-For: 121.170.164.136` (외부에서) | ✅ **401 `AUTH_NOT_IN_ALLOWLIST`** |
 | 프로덕션 `bdc_webhook_allow_cidrs` | ✅ `121.170.164.136,121.170.164.137,121.170.164.138` (사용자 설정) |
 | 프로덕션 `BODA_MODE` | ✅ `http` (2026-09-20 06:56Z, 이미지 8333050, health 200) |
-| 실데이터(E-1~E-5) | ⏳ BODA_MODE=http 후 |
+| 실데이터 E-3 (8/31 녹화 2건) | ✅ 07:30Z `8251`·`8253` ARCHIVED (FIX-260920 봉투 해제 후) |
+| 실데이터 E-4 (8/31 입·퇴장) | ⏳ 목 모드 잔여 룸 상태 정리 후 (FIX-260920 §5) |
+| E-1·E-5 (실시간 웹훅·신규 수업) | ⏳ 벤더 수신 URL 등록 확인(Q-1) 후 |
 
 ## 6. Rollout (배포·운영 순서)
 

@@ -1,3 +1,4 @@
+import { saveClassInfos } from './teacher-class-info';
 import { Cron } from '@nestjs/schedule';
 import {
   BadRequestException,
@@ -121,7 +122,14 @@ export class SiteImportService {
       'INSERT INTO amb_acm_std_import_preview(ent_id,actor_id,file_hash,payload) VALUES($1,$2,$3,$4::jsonb) RETURNING sip_id',
       [entId, actorId, hash, JSON.stringify(rows)],
     );
-    const counts = { NEW: 0, UPDATE: 0, SAME: 0, HOLD: 0, ERROR: 0, DELETED: 0 };
+    const counts = {
+      NEW: 0,
+      UPDATE: 0,
+      SAME: 0,
+      HOLD: 0,
+      ERROR: 0,
+      DELETED: 0,
+    };
     for (const row of rows) {
       if (row.applied) counts.SAME++;
       else if (row.errors.length) counts.ERROR++;
@@ -130,8 +138,12 @@ export class SiteImportService {
       else if (!row.candidates.length) counts.NEW++;
       else {
         const c = row.candidates[0];
-        const unchanged = c.site === row.site && !row.teacherNames.length &&
-          Object.entries(row.values).every(([key, value]) => c.values[key] === value);
+        const unchanged =
+          c.site === row.site &&
+          !row.teacherNames.length &&
+          Object.entries(row.values).every(
+            ([key, value]) => c.values[key] === value,
+          );
         counts[unchanged ? 'SAME' : 'UPDATE']++;
       }
     }
@@ -152,7 +164,8 @@ export class SiteImportService {
       const preview = records[0];
       if (!preview || new Date(preview.expires_at).getTime() < Date.now())
         throw new NotFoundException('PREVIEW_EXPIRED');
-      if (!Array.isArray(preview.payload)) throw new BadRequestException('INVALID_PREVIEW_TYPE');
+      if (!Array.isArray(preview.payload))
+        throw new BadRequestException('INVALID_PREVIEW_TYPE');
       if (preview.result) return preview.result;
       const repo = m.getRepository(StudentTypeormEntity);
       const all = await repo.find({
@@ -200,11 +213,9 @@ export class SiteImportService {
         if (student.id && used.has(student.id))
           throw new ConflictException('DUPLICATE_STUDENT_TARGET');
         const teachers = d.teacherIds.length
-          ? await m
-              .getRepository(TeacherTypeormEntity)
-              .find({
-                where: { entId, id: In(d.teacherIds), deletedAt: IsNull() },
-              })
+          ? await m.getRepository(TeacherTypeormEntity).find({
+              where: { entId, id: In(d.teacherIds), deletedAt: IsNull() },
+            })
           : [];
         if (
           teachers.length !== d.teacherIds.length ||
@@ -271,6 +282,21 @@ export class SiteImportService {
             ),
           );
         }
+        const assignedLinks = await m
+          .getRepository(StudentTeacherTypeormEntity)
+          .find({ where: { entId, stdId: saved.id } });
+        const classPatch: { curriculum?: string; materials?: string } = {};
+        if (row.values.curriculum)
+          classPatch.curriculum = row.values.curriculum;
+        if (row.values.materials) classPatch.materials = row.values.materials;
+        await saveClassInfos(
+          m,
+          saved,
+          assignedLinks.map((link) => link.tchId),
+          undefined,
+          undefined,
+          classPatch,
+        );
         used.add(saved.id);
         if (!all.some((s) => s.id === saved.id)) all.push(saved);
         await m.query(

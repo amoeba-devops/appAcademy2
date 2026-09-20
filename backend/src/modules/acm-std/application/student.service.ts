@@ -1,11 +1,16 @@
 import {
+  CLASS_FIELDS,
+  readClassInfos,
+  saveClassInfos,
+} from './teacher-class-info';
+import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { StudentTypeormEntity } from '../infrastructure/typeorm/student.typeorm-entity';
 import { StudentTeacherTypeormEntity } from '../infrastructure/typeorm/student-teacher.typeorm-entity';
@@ -126,24 +131,28 @@ export class StudentService {
     };
   }
 
-  /** 링크 행 전체 교체 (sort_order = 입력 순서). */
+  /** 변경된 연결만 반영하고, 기존 연결 ID 및 별도 수업정보는 보존한다. */
   private async syncTeacherLinks(
     entId: string,
     stdId: string,
     teachers: Array<{ tchId: string; name: string }>,
+    manager: EntityManager,
   ): Promise<void> {
-    await this.studentTeacherRepo.delete({ entId, stdId });
-    if (teachers.length === 0) return;
-    await this.studentTeacherRepo.save(
-      teachers.map((t, i) =>
-        this.studentTeacherRepo.create({
-          entId,
-          stdId,
-          tchId: t.tchId,
-          sortOrder: i,
-        }),
-      ),
-    );
+    const repo = manager.getRepository(StudentTeacherTypeormEntity);
+    const existing = await repo.find({ where: { entId, stdId } });
+    const ids = new Set(teachers.map((t) => t.tchId));
+    for (const row of existing)
+      if (!ids.has(row.tchId)) await repo.delete({ id: row.id, entId });
+    for (const [sortOrder, teacher] of teachers.entries()) {
+      const row = existing.find((x) => x.tchId === teacher.tchId);
+      await repo.save({
+        ...row,
+        entId,
+        stdId,
+        tchId: teacher.tchId,
+        sortOrder,
+      });
+    }
   }
 
   /** 학생별 담당강사 배치 조회 — Map<stdId, [{tchId, name}]> (sort_order 순). */
@@ -193,8 +202,17 @@ export class StudentService {
       .where('s.entId = :entId', { entId })
       .andWhere('s.deletedAt IS NULL');
 
-    if ((q.scope === 'CURRENT' && q.status === 'WITHDRAWN') || (q.scope === 'WITHDRAWN' && q.status && !['WITHDRAWN', 'ALL'].includes(q.status))) throw new BadRequestException('INVALID_STUDENT_SCOPE');
-    if (q.scope === 'CURRENT') qb.andWhere('s.status IN (:...currentStatuses)', { currentStatuses: ['ACTIVE', 'INACTIVE'] });
+    if (
+      (q.scope === 'CURRENT' && q.status === 'WITHDRAWN') ||
+      (q.scope === 'WITHDRAWN' &&
+        q.status &&
+        !['WITHDRAWN', 'ALL'].includes(q.status))
+    )
+      throw new BadRequestException('INVALID_STUDENT_SCOPE');
+    if (q.scope === 'CURRENT')
+      qb.andWhere('s.status IN (:...currentStatuses)', {
+        currentStatuses: ['ACTIVE', 'INACTIVE'],
+      });
     if (q.scope === 'WITHDRAWN') {
       qb.andWhere('s.status = :status', { status: 'WITHDRAWN' });
     } else if (q.status && q.status !== 'ALL') {
@@ -237,9 +255,20 @@ export class StudentService {
     if (q.startDateTo) qb.andWhere('s.startDate <= :to', { to: q.startDateTo });
     if (q.startDateFrom && q.startDateTo && q.startDateFrom > q.startDateTo)
       throw new BadRequestException('INVALID_DATE_RANGE');
-    if (q.withdrawnDateFrom) qb.andWhere('s.withdrawnDate >= :withdrawnFrom', {withdrawnFrom:q.withdrawnDateFrom});
-    if (q.withdrawnDateTo) qb.andWhere('s.withdrawnDate <= :withdrawnTo', {withdrawnTo:q.withdrawnDateTo});
-    if (q.withdrawnDateFrom && q.withdrawnDateTo && q.withdrawnDateFrom > q.withdrawnDateTo) throw new BadRequestException('INVALID_DATE_RANGE');
+    if (q.withdrawnDateFrom)
+      qb.andWhere('s.withdrawnDate >= :withdrawnFrom', {
+        withdrawnFrom: q.withdrawnDateFrom,
+      });
+    if (q.withdrawnDateTo)
+      qb.andWhere('s.withdrawnDate <= :withdrawnTo', {
+        withdrawnTo: q.withdrawnDateTo,
+      });
+    if (
+      q.withdrawnDateFrom &&
+      q.withdrawnDateTo &&
+      q.withdrawnDateFrom > q.withdrawnDateTo
+    )
+      throw new BadRequestException('INVALID_DATE_RANGE');
     const counts = await qb
       .clone()
       .select('s.site', 'site')
@@ -298,12 +327,36 @@ export class StudentService {
     const sourceInquiry =
       (await this.lookupSourceInquiries(entId, [id])).get(id) ?? null;
     const teachers = (await this.teachersByStudents(entId, [id])).get(id) ?? [];
-    return { ...this.toDetail(entity), teachers, parents, sourceInquiry };
+    return {
+      ...this.toDetail(entity),
+      teachers,
+      parents,
+      sourceInquiry,
+      ...(await readClassInfos(this.ds.manager, entity)),
+    };
+  }
+
+  private legacyClassPatch(dto: CreateStudentDto | UpdateStudentDto) {
+    const patch: Partial<Record<(typeof CLASS_FIELDS)[number], string | null>> =
+      {};
+    const keys = [
+      'stdSubject',
+      'stdCurriculum',
+      'stdMaterials',
+      'stdMobility',
+      'stdGpa',
+      'stdSsatIseeNote',
+    ] as const;
+    CLASS_FIELDS.forEach((field, i) => {
+      if (dto[keys[i]] !== undefined) patch[field] = dto[keys[i]];
+    });
+    return patch;
   }
 
   async create(entId: string, dto: CreateStudentDto) {
     const email = dto.stdEmail?.trim();
-    if (!email && dto.stdStatus !== 'WITHDRAWN') throw new BadRequestException('EMAIL_REQUIRED');
+    if (!email && dto.stdStatus !== 'WITHDRAWN')
+      throw new BadRequestException('EMAIL_REQUIRED');
     if (email) await this.assertEmailUnique(entId, email, null);
 
     // REQ-260903B — 담당강사 복수. stdTeacherIds(또는 하위호환 stdTeacherId) 검증
@@ -352,15 +405,32 @@ export class StudentService {
       withdrawnReason: dto.stdWithdrawnReason,
       status: dto.stdStatus ?? 'ACTIVE',
     });
-    const saved = await this.repo.save(entity);
-    if (teacherIds !== undefined) {
-      await this.syncTeacherLinks(entId, saved.id, teachers);
-    }
+    const saved = await this.ds.transaction(async (manager) => {
+      const saved = await manager
+        .getRepository(StudentTypeormEntity)
+        .save(entity);
+      if (teacherIds !== undefined)
+        await this.syncTeacherLinks(entId, saved.id, teachers, manager);
+      await saveClassInfos(
+        manager,
+        saved,
+        teachers.map((t) => t.tchId),
+        dto.stdTeacherClassInfos,
+        dto.stdClassInfoLegacyTeacherId,
+        this.legacyClassPatch(dto),
+      );
+      return saved;
+    });
     if (dto.stdParents) {
       await this.parentService.syncForStudent(entId, saved.id, dto.stdParents);
     }
     const parents = await this.parentService.listForStudent(entId, saved.id);
-    return { ...this.toDetail(saved), teachers, parents };
+    return {
+      ...this.toDetail(saved),
+      teachers,
+      parents,
+      ...(await readClassInfos(this.ds.manager, saved)),
+    };
   }
 
   async update(
@@ -369,78 +439,105 @@ export class StudentService {
     dto: UpdateStudentDto,
     actorId?: string,
   ) {
-    const entity = await this.repo.findOne({
-      where: { id, entId, deletedAt: IsNull() },
-    });
-    if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
+    const { saved, syncedTeachers } = await this.ds.transaction(
+      async (manager) => {
+        const entity = await manager
+          .getRepository(StudentTypeormEntity)
+          .findOne({
+            lock: { mode: 'pessimistic_write' },
+            where: { id, entId, deletedAt: IsNull() },
+          });
+        if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
 
-    if (dto.stdSite !== undefined) entity.site = dto.stdSite;
-    if (dto.stdName !== undefined) entity.name = dto.stdName;
-    if (dto.stdEnglishName !== undefined)
-      entity.englishName = dto.stdEnglishName;
-    if (dto.stdGender !== undefined) entity.gender = dto.stdGender;
-    if (dto.stdBirthDate !== undefined) entity.birthDate = dto.stdBirthDate;
-    if (dto.stdPhone !== undefined) entity.phone = dto.stdPhone;
-    // PLN-260714 — 수정 후에도 이메일은 반드시 존재해야 하고, 중복이면 저장 불가.
-    if (dto.stdEmail !== undefined) {
-      const email = dto.stdEmail?.trim();
-      if (!email && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN') throw new BadRequestException('EMAIL_REQUIRED');
-      if (email) await this.assertEmailUnique(entId, email, id);
-      entity.email = email;
-    } else if (!entity.email?.trim() && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN') {
-      throw new BadRequestException('EMAIL_REQUIRED');
-    }
-    if (dto.stdResidence !== undefined) entity.residence = dto.stdResidence;
-    if (dto.stdSchool !== undefined) entity.school = dto.stdSchool;
-    if (dto.stdGrade !== undefined) entity.grade = dto.stdGrade;
-    if (dto.stdMapReading !== undefined) entity.mapReading = dto.stdMapReading;
-    if (dto.stdMapMath !== undefined) entity.mapMath = dto.stdMapMath;
-    if (dto.stdMapLanguage !== undefined)
-      entity.mapLanguage = dto.stdMapLanguage;
-    if (dto.stdMapNote !== undefined) entity.mapNote = dto.stdMapNote;
-    // REQ-260903B — 담당강사 복수. stdTeacherIds(또는 하위호환 stdTeacherId)
-    // 제공 시 링크 전체 동기화 + 레거시 미러 갱신, 빈 배열이면 전부 해제.
-    const teacherIds = this.normalizeTeacherIds(dto);
-    let syncedTeachers: Array<{ tchId: string; name: string }> | undefined;
-    if (teacherIds !== undefined) {
-      syncedTeachers = await this.resolveTeachers(entId, teacherIds);
-      const mirror = this.teacherMirror(syncedTeachers);
-      entity.teacher = mirror.teacher;
-      entity.teacherId = mirror.teacherId;
-    } else if (dto.stdTeacher !== undefined) {
-      entity.teacher = dto.stdTeacher;
-    }
-    if (dto.stdSubject !== undefined) entity.subject = dto.stdSubject;
-    if (dto.stdCurriculum !== undefined) entity.curriculum = dto.stdCurriculum;
-    if (dto.stdMaterials !== undefined) entity.materials = dto.stdMaterials;
-    if (dto.stdMobility !== undefined) entity.mobility = dto.stdMobility;
-    if (dto.stdGpa !== undefined) entity.gpa = dto.stdGpa;
-    if (dto.stdSsatIseeNote !== undefined)
-      entity.ssatIseeNote = dto.stdSsatIseeNote;
-    if (dto.stdSpecialNote !== undefined)
-      entity.specialNote = dto.stdSpecialNote;
-    if (dto.stdGoalsNote !== undefined) entity.goalsNote = dto.stdGoalsNote;
-    if (dto.stdSatisfactionNote !== undefined)
-      entity.satisfactionNote = dto.stdSatisfactionNote;
-    if (dto.stdLastCounselDate !== undefined)
-      entity.lastCounselDate = dto.stdLastCounselDate;
-    if (dto.stdStartDate !== undefined) entity.startDate = dto.stdStartDate;
-    if (dto.stdAdmissionDate !== undefined) entity.admissionDate = dto.stdAdmissionDate;
-    if (dto.stdWithdrawnDate !== undefined) entity.withdrawnDate = dto.stdWithdrawnDate;
-    if (dto.stdWithdrawnReason !== undefined) entity.withdrawnReason = dto.stdWithdrawnReason;
-    if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
+        if (dto.stdSite !== undefined) entity.site = dto.stdSite;
+        if (dto.stdName !== undefined) entity.name = dto.stdName;
+        if (dto.stdEnglishName !== undefined)
+          entity.englishName = dto.stdEnglishName;
+        if (dto.stdGender !== undefined) entity.gender = dto.stdGender;
+        if (dto.stdBirthDate !== undefined) entity.birthDate = dto.stdBirthDate;
+        if (dto.stdPhone !== undefined) entity.phone = dto.stdPhone;
+        // PLN-260714 — 수정 후에도 이메일은 반드시 존재해야 하고, 중복이면 저장 불가.
+        if (dto.stdEmail !== undefined) {
+          const email = dto.stdEmail?.trim();
+          if (!email && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN')
+            throw new BadRequestException('EMAIL_REQUIRED');
+          if (email) await this.assertEmailUnique(entId, email, id);
+          entity.email = email;
+        } else if (
+          !entity.email?.trim() &&
+          (dto.stdStatus ?? entity.status) !== 'WITHDRAWN'
+        ) {
+          throw new BadRequestException('EMAIL_REQUIRED');
+        }
+        if (dto.stdResidence !== undefined) entity.residence = dto.stdResidence;
+        if (dto.stdSchool !== undefined) entity.school = dto.stdSchool;
+        if (dto.stdGrade !== undefined) entity.grade = dto.stdGrade;
+        if (dto.stdMapReading !== undefined)
+          entity.mapReading = dto.stdMapReading;
+        if (dto.stdMapMath !== undefined) entity.mapMath = dto.stdMapMath;
+        if (dto.stdMapLanguage !== undefined)
+          entity.mapLanguage = dto.stdMapLanguage;
+        if (dto.stdMapNote !== undefined) entity.mapNote = dto.stdMapNote;
+        // REQ-260903B — 담당강사 복수. stdTeacherIds(또는 하위호환 stdTeacherId)
+        // 제공 시 연결 변경분 반영 + 레거시 미러 갱신, 빈 배열이면 연결만 해제.
+        const teacherIds = this.normalizeTeacherIds(dto);
+        let syncedTeachers: Array<{ tchId: string; name: string }> | undefined;
+        if (teacherIds !== undefined) {
+          syncedTeachers = await this.resolveTeachers(entId, teacherIds);
+          const mirror = this.teacherMirror(syncedTeachers);
+          entity.teacher = mirror.teacher;
+          entity.teacherId = mirror.teacherId;
+        } else if (dto.stdTeacher !== undefined) {
+          entity.teacher = dto.stdTeacher;
+        }
+        if (dto.stdSubject !== undefined) entity.subject = dto.stdSubject;
+        if (dto.stdCurriculum !== undefined)
+          entity.curriculum = dto.stdCurriculum;
+        if (dto.stdMaterials !== undefined) entity.materials = dto.stdMaterials;
+        if (dto.stdMobility !== undefined) entity.mobility = dto.stdMobility;
+        if (dto.stdGpa !== undefined) entity.gpa = dto.stdGpa;
+        if (dto.stdSsatIseeNote !== undefined)
+          entity.ssatIseeNote = dto.stdSsatIseeNote;
+        if (dto.stdSpecialNote !== undefined)
+          entity.specialNote = dto.stdSpecialNote;
+        if (dto.stdGoalsNote !== undefined) entity.goalsNote = dto.stdGoalsNote;
+        if (dto.stdSatisfactionNote !== undefined)
+          entity.satisfactionNote = dto.stdSatisfactionNote;
+        if (dto.stdLastCounselDate !== undefined)
+          entity.lastCounselDate = dto.stdLastCounselDate;
+        if (dto.stdStartDate !== undefined) entity.startDate = dto.stdStartDate;
+        if (dto.stdAdmissionDate !== undefined)
+          entity.admissionDate = dto.stdAdmissionDate;
+        if (dto.stdWithdrawnDate !== undefined)
+          entity.withdrawnDate = dto.stdWithdrawnDate;
+        if (dto.stdWithdrawnReason !== undefined)
+          entity.withdrawnReason = dto.stdWithdrawnReason;
+        if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
 
-    entity.updatedAt = new Date();
-    const saved = await this.ds.transaction(async (manager) => {
-      await manager.query(
-        "SELECT set_config('acm.actor_id', $1, true), set_config('acm.change_reason', $2, true)",
-        [actorId ?? '', 'Student form'],
-      );
-      return manager.getRepository(StudentTypeormEntity).save(entity);
-    });
-    if (syncedTeachers !== undefined) {
-      await this.syncTeacherLinks(entId, saved.id, syncedTeachers);
-    }
+        entity.updatedAt = new Date();
+        await manager.query(
+          "SELECT set_config('acm.actor_id', $1, true), set_config('acm.change_reason', $2, true)",
+          [actorId ?? '', 'Student form'],
+        );
+        const saved = await manager
+          .getRepository(StudentTypeormEntity)
+          .save(entity);
+        if (syncedTeachers !== undefined)
+          await this.syncTeacherLinks(entId, saved.id, syncedTeachers, manager);
+        const links = await manager
+          .getRepository(StudentTeacherTypeormEntity)
+          .find({ where: { entId, stdId: id } });
+        await saveClassInfos(
+          manager,
+          saved,
+          links.map((t) => t.tchId),
+          dto.stdTeacherClassInfos,
+          dto.stdClassInfoLegacyTeacherId,
+          this.legacyClassPatch(dto),
+        );
+        return { saved, syncedTeachers };
+      },
+    );
     if (dto.stdParents !== undefined) {
       await this.parentService.syncForStudent(entId, saved.id, dto.stdParents);
     }
@@ -451,7 +548,12 @@ export class StudentService {
         saved.id,
       ) ??
       [];
-    return { ...this.toDetail(saved), teachers, parents };
+    return {
+      ...this.toDetail(saved),
+      teachers,
+      parents,
+      ...(await readClassInfos(this.ds.manager, saved)),
+    };
   }
 
   async changeStatus(entId: string, id: string, dto: ChangeStudentStatusDto) {
@@ -534,9 +636,9 @@ export class StudentService {
       teacherId: e.teacherId,
       status: e.status,
       startDate: e.startDate,
-    admissionDate: e.admissionDate,
-    withdrawnDate: e.withdrawnDate,
-    withdrawnReason: e.withdrawnReason,
+      admissionDate: e.admissionDate,
+      withdrawnDate: e.withdrawnDate,
+      withdrawnReason: e.withdrawnReason,
       createdAt: e.createdAt,
     };
   }
@@ -574,9 +676,9 @@ export class StudentService {
       satisfactionNote: e.satisfactionNote,
       lastCounselDate: e.lastCounselDate,
       startDate: e.startDate,
-    admissionDate: e.admissionDate,
-    withdrawnDate: e.withdrawnDate,
-    withdrawnReason: e.withdrawnReason,
+      admissionDate: e.admissionDate,
+      withdrawnDate: e.withdrawnDate,
+      withdrawnReason: e.withdrawnReason,
       status: e.status,
       createdAt: e.createdAt,
     };

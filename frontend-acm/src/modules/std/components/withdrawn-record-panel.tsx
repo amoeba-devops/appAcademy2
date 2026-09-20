@@ -43,7 +43,7 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
         return (
           <section
             key={record.id}
-            className="rounded-lg border border-[var(--border-subtle)] p-4"
+            className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4"
           >
             <div className="flex justify-between">
               <h3 className="text-[13px] font-bold">
@@ -134,7 +134,10 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                 ],
               },
             ].map((group) => (
-              <div key={group.title} className="border rounded p-3 mt-3">
+              <div
+                key={group.title}
+                className="border rounded bg-surface p-3 mt-3"
+              >
                 <h4 className="text-[13px] font-bold mb-2">{t(group.title)}</h4>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {Object.entries(current.fields)
@@ -166,7 +169,8 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                             ) : (
                               <textarea
                                 id={`${record.id}-${key}`}
-                                className="w-full border rounded p-1 bg-canvas"
+                                placeholder={t("detail.enterValue")}
+                                className="w-full border rounded p-1 bg-surface placeholder:italic placeholder:text-secondary"
                                 rows={key === "메모" ? 4 : 1}
                                 value={value == null ? "" : String(value)}
                                 onChange={(e) =>
@@ -181,7 +185,9 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                               />
                             )
                           ) : value == null || value === "" ? (
-                            t("detail.inputRequired")
+                            <span className="italic text-secondary">
+                              {t("detail.inputRequired")}
+                            </span>
                           ) : typeof value === "boolean" ? (
                             value ? (
                               "O"

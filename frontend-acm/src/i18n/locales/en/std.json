@@ -106,7 +106,8 @@
     "updatedAt": "Last updated",
     "confirmDeactivate": "Deactivate this student?",
     "sourceInquiry": "From inquiry",
-    "inputRequired": "Input required"
+    "inputRequired": "Input required",
+    "enterValue": "Enter a value"
   },
   "parentPicker": {
     "title": "Add Parent",
@@ -231,5 +232,13 @@
     "createWithdrawn": "Register withdrawn student",
     "currentAll": "All current students",
     "toggle": "Expand/collapse student menus"
+  },
+  "classInfo": {
+    "noTeacher": "Assign a teacher to enter class information.",
+    "legacyTitle": "Previous class information · assignment needed",
+    "assign": "Assign previous information",
+    "assigned": "Selected · save to apply",
+    "unlinkHint": "Up to 5 teachers. Unlinking preserves class information for reconnection.",
+    "assignHint": "Choose a target teacher to fill empty fields only. Review before saving."
   }
 }

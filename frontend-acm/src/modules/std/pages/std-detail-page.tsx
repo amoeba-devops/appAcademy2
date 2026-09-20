@@ -1,3 +1,4 @@
+import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
@@ -19,9 +20,9 @@ import { PortalAccountPanel } from "@/modules/portal-admin/components/portal-acc
 export function displayStudentValue(
   value: string | number | boolean | null | undefined,
   missing: string,
-): string | number {
+): React.ReactNode {
   if (value == null || (typeof value === "string" && !value.trim()))
-    return missing;
+    return <span className="italic text-secondary">{missing}</span>;
   return typeof value === "boolean" ? String(value) : value;
 }
 
@@ -36,7 +37,7 @@ function InfoRow({
   return (
     <div className="py-1.5 flex flex-wrap items-baseline gap-x-1">
       <dt className="text-xs text-secondary">{label} :</dt>
-      <dd className="text-sm text-primary">
+      <dd className="text-sm text-primary whitespace-pre-wrap break-words min-w-0">
         {displayStudentValue(value, t("detail.inputRequired"))}
       </dd>
     </div>
@@ -51,7 +52,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+    <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
       <h3 className="mb-3 text-[13px] font-bold text-secondary">{title}</h3>
       <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-3">{children}</dl>
     </div>
@@ -98,7 +99,7 @@ export function StdDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl space-y-4">
+    <div className="max-w-3xl space-y-4 bg-canvas">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -226,23 +227,56 @@ export function StdDetailPage() {
         </div>
       </Section>
 
-      {/* 수업 정보 */}
-      <Section title={t("form.sectionClass")}>
-        <InfoRow
-          label={t("field.teacher")}
-          value={
-            student.teachers?.length
-              ? student.teachers.map((x) => x.name).join(", ")
-              : student.teacher
-          }
-        />
-        <InfoRow label={t("field.subject")} value={student.subject} />
-        <InfoRow label={t("field.curriculum")} value={student.curriculum} />
-        <InfoRow label={t("field.materials")} value={student.materials} />
-        <InfoRow label={t("field.mobility")} value={student.mobility} />
-        <InfoRow label={t("field.gpa")} value={student.gpa} />
-        <InfoRow label={t("field.ssatIseeNote")} value={student.ssatIseeNote} />
-      </Section>
+      {/* One independent profile per assigned teacher. */}
+      <div className="space-y-4">
+        <h2 className="text-[13px] font-bold">
+          {t("form.sectionClass")} ({student.teachers?.length ?? 0})
+        </h2>
+        {!student.teachers?.length && (
+          <Section title={t("form.sectionClass")}>
+            <InfoRow label={t("field.teacher")} value={student.teacher} />
+            <p className="col-span-full italic text-secondary">
+              {t("classInfo.noTeacher")}
+            </p>
+          </Section>
+        )}
+        {student.teachers?.map((teacher) => {
+          const info = student.teacherClassInfos?.find(
+            (x) => x.tchId === teacher.tchId,
+          );
+          return (
+            <Section
+              key={teacher.tchId}
+              title={`${teacher.name} · ${t("form.sectionClass")}`}
+            >
+              <InfoRow label={t("field.teacher")} value={teacher.name} />
+              {CLASS_FIELDS.map((field) => (
+                <InfoRow
+                  key={field}
+                  label={t(`field.${field}`)}
+                  value={info?.[field]}
+                />
+              ))}
+            </Section>
+          );
+        })}
+        {student.classInfoLegacyPending && (
+          <Section title={t("classInfo.legacyTitle")}>
+            {CLASS_FIELDS.map((field) => (
+              <InfoRow
+                key={field}
+                label={t(`field.${field}`)}
+                value={student[field]}
+              />
+            ))}
+            <div className="col-span-full">
+              <Button variant="outline" onClick={() => setShowEdit(true)}>
+                {t("classInfo.assign")}
+              </Button>
+            </div>
+          </Section>
+        )}
+      </div>
 
       {/* 메모 */}
       <Section title={t("form.sectionMemo")}>
@@ -272,7 +306,7 @@ export function StdDetailPage() {
       </Section>
 
       {/* 포털 계정 (PLN-260706) */}
-      <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
         <h3 className="mb-3 text-[13px] font-bold text-secondary">
           {t("common:portalAccount.title")}
         </h3>
@@ -288,7 +322,7 @@ export function StdDetailPage() {
       </div>
 
       {/* 학부모 */}
-      <div className="rounded-lg border border-[var(--border-subtle)] p-4">
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-[13px] font-bold text-secondary">
             {t("form.sectionParents", "학부모 정보")}

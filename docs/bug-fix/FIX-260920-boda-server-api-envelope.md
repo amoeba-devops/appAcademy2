@@ -1,7 +1,7 @@
 ---
 document_id: CAL-FIX-260920-boda-server-api-envelope
 version: 1.0.0
-status: FIXED — 1차(봉투) PR #251 66ed8f8 배포 2026-09-20 07:1xZ, 2차(WB-400-2xx) 후속 PR
+status: VERIFIED — PR #251 66ed8f8 + PR #252 122fd9c 프로덕션 배포·실측 완료 (2026-09-20 07:30Z)
 date: 2026-09-20
 related:
   - docs/plan/PLN-260920C-boda-recording-vendor-reply-followup.md
@@ -50,4 +50,20 @@ GET /svr/record/log/video?searchType=ROOM&meetKey=tac-999cb70c…&size=100
 
 - 단위: 위 스펙 + 기존 acm-cal 스위트 통과 (`tsc`·`jest`·`eslint`).
 - 프로덕션 1차 실측(07:20Z sweep): 8/31 건 `recordIdx 8251·8253` upsert ✅, 타 수업 녹화 3건 ARCHIVED(634MB 포함, 벤더 Content-Length 제공 → PutObject 경로) ✅, 7/14 룸 `ENDED` + 참석자 3건 reconcile ✅.
-- 프로덕션(2차 배포 후): 다음 10분 cron 에서 8/31 건 `recordIdx 8253·8251` upsert → `ARCHIVED` → 상세 화면 재생. reconcile 405 경고 소멸, 8/31 룸 `ENDED` + 입·퇴장 기록 표시.
+- 프로덕션 2차 실측(07:30Z, 122fd9c): 8/31 건 `8251` **ARCHIVED 7,042,745B** · `8253` **ARCHIVED 19,204,227B** ✅. `BODA reconcile sweep: scanned=3 reconciled=3 closed=3` — WB-400-245 경고 소멸, 미개설 PENDING 룸 3건 CLOSED(auto_reconcile) ✅. 전체 녹화 보관 5/5 ARCHIVED.
+
+## 5. Residual (잔여 — 사용자 결정 필요)
+
+목 모드(`BODA_MODE=mock`) 시절 reconcile 이 남긴 **가짜 룸 상태**가 프로덕션에 남아 있다: `bdr_meet_idx LIKE 'm-%'` 룸 **34/44건**(개설·종료 시각이 2026-09-12 로 기록됨, 8/31 수업 포함) + 목 참석자(`ama-user-*`) **82행**. 이 룸들은 `CLOSED`·`reconciled_at` 이 찍혀 있어 sweep 이 다시 건드리지 않으므로 상세의 🕐 강의실 기록에 가짜 시각이 표시된다. 정리안(프로덕션 데이터 변경 — 승인 후 실행):
+
+```sql
+BEGIN;
+DELETE FROM amb_acm_cal_boda_participant WHERE bdp_boda_user_id LIKE 'ama-user-%';
+UPDATE amb_acm_cal_boda_room
+   SET bdr_status='PENDING', bdr_meet_idx=NULL, bdr_opened_at=NULL, bdr_started_at=NULL,
+       bdr_ended_at=NULL, bdr_closed_at=NULL, bdr_reconciled_at=NULL, bdr_close_type=NULL
+ WHERE bdr_meet_idx LIKE 'm-%';
+COMMIT;
+-- 이후 5분 sweep 이 BODA 회의 결과 목록으로 실제 개설/시작/종료 시각·참석자를 다시 채우고,
+-- 개설된 적 없는 방은 WB-400-2xx → CLOSED 처리.
+```

@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import {
   ListStudentsQueryDto,
   CreateStudentDto,
+  UpdateStudentDto,
   ChangeStudentSitesDto,
 } from './student.dto';
 const pipe = new ValidationPipe({
@@ -83,4 +84,44 @@ describe('student site HTTP contracts', () => {
       ),
     ).rejects.toThrow();
   });
+});
+
+describe('teacher class information HTTP contract', () => {
+  it('accepts blank fields without persisting placeholder strings', async () => {
+    const result = await pipe.transform(
+      {
+        stdTeacherClassInfos: [
+          {
+            tchId: '11111111-1111-4111-8111-111111111111',
+            curriculum: '',
+            gpa: '0',
+          },
+        ],
+      },
+      { type: 'body', metatype: UpdateStudentDto },
+    );
+    expect(result.stdTeacherClassInfos[0].curriculum).toBe('');
+    expect(result.stdTeacherClassInfos[0].gpa).toBe('0');
+  });
+  it.each([
+    null,
+    [{ tchId: 'bad' }],
+    [
+      {
+        tchId: '11111111-1111-4111-8111-111111111111',
+        subject: 'x'.repeat(101),
+      },
+    ],
+    Array(6).fill({ tchId: '11111111-1111-4111-8111-111111111111' }),
+  ])(
+    'rejects invalid nested profile input %#',
+    async (stdTeacherClassInfos) => {
+      await expect(
+        pipe.transform(
+          { stdTeacherClassInfos },
+          { type: 'body', metatype: UpdateStudentDto },
+        ),
+      ).rejects.toThrow();
+    },
+  );
 });
