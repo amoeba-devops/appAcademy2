@@ -234,6 +234,7 @@ export function StdDetailPage() {
         </h2>
         {!student.teachers?.length && (
           <Section title={t("form.sectionClass")}>
+            <InfoRow label={t("field.teacher")} value={student.teacher} />
             <p className="col-span-full italic text-secondary">
               {t("classInfo.noTeacher")}
             </p>
