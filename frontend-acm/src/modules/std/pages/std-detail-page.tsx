@@ -187,10 +187,16 @@ export function StdDetailPage() {
           value={student.admissionDate}
         />
         {student.status === "WITHDRAWN" && (
-          <InfoRow
-            label={t("withdrawn.withdrawnDate")}
-            value={student.withdrawnDate}
-          />
+          <>
+            <InfoRow
+              label={t("withdrawn.withdrawnDate")}
+              value={student.withdrawnDate}
+            />
+            <InfoRow
+              label={t("withdrawn.reason")}
+              value={student.withdrawnReason}
+            />
+          </>
         )}
       </Section>
 

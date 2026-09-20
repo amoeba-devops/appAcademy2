@@ -28,7 +28,7 @@ function file(rows: Record<string, unknown>[]) {
   XLSX.utils.book_append_sheet(
     wb,
     XLSX.utils.aoa_to_sheet([
-      WITHDRAWN_HEADERS,
+      [...WITHDRAWN_HEADERS],
       ...rows.map((r) => WITHDRAWN_HEADERS.map((k) => r[k] ?? '')),
     ]),
     'Sheet0',
