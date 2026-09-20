@@ -106,7 +106,8 @@
     "updatedAt": "最后更新",
     "confirmDeactivate": "确认停用该学生？",
     "sourceInquiry": "来自咨询",
-    "inputRequired": "待填写"
+    "inputRequired": "待填写",
+    "enterValue": "请输入"
   },
   "parentPicker": {
     "title": "添加家长",
@@ -231,5 +232,13 @@
     "createWithdrawn": "登记退学学生",
     "currentAll": "全部在校学生",
     "toggle": "展开/收起学生菜单"
+  },
+  "classInfo": {
+    "noTeacher": "关联教师后可填写课程信息。",
+    "legacyTitle": "原课程信息 · 待分配教师",
+    "assign": "分配原有信息",
+    "assigned": "已选择 · 保存后生效",
+    "unlinkHint": "最多5位教师。解除关联后保留课程信息，重新关联时恢复。",
+    "assignHint": "选择目标教师，仅填写空字段。请检查后保存。"
   }
 }

@@ -1,3 +1,9 @@
+import {
+  CLASS_FIELDS,
+  emptyClassInfo,
+  TeacherClassFields,
+} from "./teacher-class-fields";
+import type { TeacherClassInfo } from "../types";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -43,10 +49,6 @@ type FormValues = {
   stdMapReading: string;
   stdMapMath: string;
   stdMapLanguage: string;
-  stdSubject: string;
-  stdCurriculum: string;
-  stdMobility: string;
-  stdGpa: string;
   stdGoalsNote: string;
   stdSpecialNote: string;
   stdStatus: string;
@@ -58,7 +60,7 @@ type FormValues = {
 };
 
 const inputClass =
-  "w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40";
+  "w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary placeholder:italic placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-accent-500/40";
 const labelClass = "block text-xs text-secondary mb-1";
 
 export function StdFormModal({
@@ -82,6 +84,28 @@ export function StdFormModal({
     if (open) setSelectedTeachers(initialTeachers());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial?.id]);
+
+  const [classInfos, setClassInfos] = useState<
+    Record<string, TeacherClassInfo>
+  >(() =>
+    Object.fromEntries(
+      (initial?.teacherClassInfos ?? []).map((info) => [info.tchId, info]),
+    ),
+  );
+  const [legacyTeacherId, setLegacyTeacherId] = useState<string>();
+  const changeTeachers = (teachers: TeacherDetail[]) => {
+    setSelectedTeachers(teachers);
+    if (legacyTeacherId && !teachers.some((t) => t.id === legacyTeacherId))
+      setLegacyTeacherId(undefined);
+  };
+  const assignLegacy = (tchId: string) => {
+    const info = classInfos[tchId] ?? emptyClassInfo(tchId);
+    const merged = { ...info };
+    for (const field of CLASS_FIELDS)
+      if (!merged[field]?.trim()) merged[field] = initial?.[field] ?? "";
+    setClassInfos((prev) => ({ ...prev, [tchId]: merged }));
+    setLegacyTeacherId(tchId);
+  };
 
   const {
     register,
@@ -107,10 +131,6 @@ export function StdFormModal({
       stdMapMath: initial?.mapMath != null ? String(initial.mapMath) : "",
       stdMapLanguage:
         initial?.mapLanguage != null ? String(initial.mapLanguage) : "",
-      stdSubject: initial?.subject ?? "",
-      stdCurriculum: initial?.curriculum ?? "",
-      stdMobility: initial?.mobility ?? "",
-      stdGpa: initial?.gpa ?? "",
       stdGoalsNote: initial?.goalsNote ?? "",
       stdSpecialNote: initial?.specialNote ?? "",
       stdStatus: initial?.status ?? initialStatus,
@@ -148,6 +168,10 @@ export function StdFormModal({
     if (isEdit) dto.stdSite = values.stdSite || null;
     // REQ-260903B — 담당강사 복수: 전체 목록 동기화(빈 배열 = 전부 해제).
     dto.stdTeacherIds = selectedTeachers.map((tch) => tch.id);
+    dto.stdTeacherClassInfos = selectedTeachers.map(
+      (tch) => classInfos[tch.id] ?? emptyClassInfo(tch.id),
+    );
+    if (legacyTeacherId) dto.stdClassInfoLegacyTeacherId = legacyTeacherId;
     if (dto.stdMapReading) dto.stdMapReading = Number(dto.stdMapReading);
     if (dto.stdMapMath) dto.stdMapMath = Number(dto.stdMapMath);
     if (dto.stdMapLanguage) dto.stdMapLanguage = Number(dto.stdMapLanguage);
@@ -222,7 +246,7 @@ export function StdFormModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 space-y-3">
             <legend className="text-[13px] font-bold">
               {t("withdrawn.datesTitle")}
             </legend>
@@ -246,6 +270,7 @@ export function StdFormModal({
               <label className={`${labelClass} sm:col-span-2`}>
                 {t("withdrawn.reason")}
                 <textarea
+                  placeholder={t("detail.enterValue")}
                   {...register("stdWithdrawnReason")}
                   className={inputClass}
                   maxLength={1000}
@@ -254,7 +279,7 @@ export function StdFormModal({
             </div>
           </fieldset>
           {/* 기본 인적사항 */}
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
               {t("form.sectionBasic")}
             </legend>
@@ -283,13 +308,18 @@ export function StdFormModal({
               <div>
                 <label className={labelClass}>{t("field.name")} *</label>
                 <input
+                  placeholder={t("detail.enterValue")}
                   {...register("stdName", { required: true })}
                   className={inputClass}
                 />
               </div>
               <div>
                 <label className={labelClass}>{t("field.englishName")}</label>
-                <input {...register("stdEnglishName")} className={inputClass} />
+                <input
+                  placeholder={t("detail.enterValue")}
+                  {...register("stdEnglishName")}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t("field.gender")}</label>
@@ -311,7 +341,11 @@ export function StdFormModal({
                 <label className={labelClass}>
                   {t("field.phone", "전화번호")}
                 </label>
-                <input {...register("stdPhone")} className={inputClass} />
+                <input
+                  placeholder={t("detail.enterValue")}
+                  {...register("stdPhone")}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>
@@ -319,6 +353,7 @@ export function StdFormModal({
                   {!isWithdrawn ? " *" : ""}
                 </label>
                 <input
+                  placeholder={t("detail.enterValue")}
                   type="email"
                   {...register("stdEmail", {
                     required:
@@ -343,11 +378,19 @@ export function StdFormModal({
               </div>
               <div>
                 <label className={labelClass}>{t("field.residence")}</label>
-                <input {...register("stdResidence")} className={inputClass} />
+                <input
+                  placeholder={t("detail.enterValue")}
+                  {...register("stdResidence")}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t("field.school")}</label>
-                <input {...register("stdSchool")} className={inputClass} />
+                <input
+                  placeholder={t("detail.enterValue")}
+                  {...register("stdSchool")}
+                  className={inputClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t("field.grade")}</label>
@@ -377,7 +420,7 @@ export function StdFormModal({
           {/* MAP 점수 — 서버 DTO(@Min 100/@Max 350)와 동일 범위를 폼에서 선검증.
               범위 밖 레거시 값이 있으면 어떤 필드를 고쳐도 저장 전체가 400 나므로
               해당 필드에 구체적 오류를 표시해 운영자가 바로잡을 수 있게 한다. */}
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
               {t("form.sectionMap")}
             </legend>
@@ -395,6 +438,7 @@ export function StdFormModal({
                       )}
                     </label>
                     <input
+                      placeholder={t("detail.enterValue")}
                       type="number"
                       {...register(name, {
                         validate: (v) =>
@@ -418,63 +462,99 @@ export function StdFormModal({
           </fieldset>
 
           {/* 수업 정보 */}
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
               {t("form.sectionClass")}
             </legend>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className={labelClass}>{t("field.teacher")}</label>
-                <TeacherMultiCombo
-                  value={selectedTeachers}
-                  onChange={setSelectedTeachers}
-                  max={5}
-                />
-                <p className="mt-1 text-[11px] text-secondary">
-                  {t("form.teachersHint", {
-                    defaultValue: "최대 {{max}}명 · 첫 번째가 대표 강사",
-                    max: 5,
-                  })}
+            <TeacherMultiCombo
+              value={selectedTeachers}
+              onChange={changeTeachers}
+              max={5}
+            />
+            <p className="text-xs text-secondary">
+              {t("classInfo.unlinkHint")}
+            </p>
+            {initial?.classInfoLegacyPending && (
+              <div className="border rounded p-3 bg-surface">
+                <h4 className="text-[13px] font-bold">
+                  {t("classInfo.legacyTitle")}
+                </h4>
+                {CLASS_FIELDS.map((field) => (
+                  <p
+                    key={field}
+                    className="text-sm whitespace-pre-wrap break-words"
+                  >
+                    {t(`field.${field}`)} :{" "}
+                    {initial[field] || (
+                      <span className="italic text-secondary">
+                        {t("detail.inputRequired")}
+                      </span>
+                    )}
+                  </p>
+                ))}
+                <p className="text-xs text-secondary">
+                  {t("classInfo.assignHint")}
                 </p>
               </div>
-              <div>
-                <label className={labelClass}>{t("field.subject")}</label>
-                <input {...register("stdSubject")} className={inputClass} />
+            )}
+            {!selectedTeachers.length && (
+              <p className="italic text-secondary">
+                {t("classInfo.noTeacher")}
+              </p>
+            )}
+            {selectedTeachers.map((teacher) => (
+              <div
+                key={teacher.id}
+                className="rounded border bg-surface p-4 space-y-3"
+              >
+                <h4 className="text-[13px] font-bold">
+                  {teacher.name} · {t("form.sectionClass")}
+                </h4>
+                {initial?.classInfoLegacyPending && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => assignLegacy(teacher.id)}
+                  >
+                    {t(
+                      legacyTeacherId === teacher.id
+                        ? "classInfo.assigned"
+                        : "classInfo.assign",
+                    )}
+                  </Button>
+                )}
+                <TeacherClassFields
+                  value={classInfos[teacher.id] ?? emptyClassInfo(teacher.id)}
+                  onChange={(info) =>
+                    setClassInfos((prev) => ({ ...prev, [teacher.id]: info }))
+                  }
+                />
               </div>
-              <div className="col-span-2">
-                <label className={labelClass}>{t("field.curriculum")}</label>
-                <input {...register("stdCurriculum")} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("field.mobility")}</label>
-                <input {...register("stdMobility")} className={inputClass} />
-              </div>
-              <div>
-                <label className={labelClass}>{t("field.gpa")}</label>
-                <input {...register("stdGpa")} className={inputClass} />
-              </div>
-            </div>
+            ))}
           </fieldset>
 
           {/* 메모/상태 */}
-          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] bg-surface p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
               {t("form.sectionMemo")}
             </legend>
             <div>
               <label className={labelClass}>{t("field.goalsNote")}</label>
               <textarea
+                placeholder={t("detail.enterValue")}
                 {...register("stdGoalsNote")}
                 rows={2}
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 resize-none"
+                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary placeholder:italic placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-accent-500/40 resize-none"
               />
             </div>
             <div>
               <label className={labelClass}>{t("field.specialNote")}</label>
               <textarea
+                placeholder={t("detail.enterValue")}
                 {...register("stdSpecialNote")}
                 rows={2}
-                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40 resize-none"
+                className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary placeholder:italic placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-accent-500/40 resize-none"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">

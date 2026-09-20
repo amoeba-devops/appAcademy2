@@ -106,7 +106,8 @@
     "updatedAt": "최종 수정",
     "confirmDeactivate": "이 학생을 비활성화하시겠습니까?",
     "sourceInquiry": "신규상담 연결",
-    "inputRequired": "입력필요"
+    "inputRequired": "입력필요",
+    "enterValue": "입력하세요"
   },
   "parentPicker": {
     "title": "학부모 추가",
@@ -231,5 +232,13 @@
     "createWithdrawn": "퇴원생 등록",
     "currentAll": "현재 학생 전체",
     "toggle": "학생관리 하위 메뉴 펼치기/접기"
+  },
+  "classInfo": {
+    "noTeacher": "담당강사를 연결하면 수업정보를 입력할 수 있습니다.",
+    "legacyTitle": "기존 수업정보 · 강사 연결 필요",
+    "assign": "기존 정보 배정",
+    "assigned": "배정 선택됨 · 저장 시 반영",
+    "unlinkHint": "최대 5명 · 강사 연결을 해제해도 수업정보는 보관되며 재연결 시 복원됩니다.",
+    "assignHint": "대상 강사 카드에서 배정을 선택하면 빈 항목만 채웁니다. 내용을 검토한 뒤 저장하세요."
   }
 }

@@ -64,13 +64,25 @@ suite('student sites and reviewed imports (isolated PostgreSQL)', () => {
     await ds.query(
       'CREATE TABLE IF NOT EXISTS amb_acm_csl_inquiry(inq_id uuid, ent_id uuid, inq_std_id uuid, inq_seq_no int, inq_current_stage text, deleted_at timestamptz)',
     );
+    await ds.query(
+      readFileSync(
+        resolve(
+          __dirname,
+          '../../../../sql/acm/999r-acm-std-teacher-class-info.sql',
+        ),
+        'utf8',
+      ),
+    );
     importer = new SiteImportService(ds);
     students = new StudentService(
       ds.getRepository(Student),
       ds.getRepository(Teacher),
       ds.getRepository(Link),
       ds,
-      {} as ParentService,
+      {
+        listForStudent: async () => [],
+        syncForStudent: async () => undefined,
+      } as unknown as ParentService,
     );
   });
   afterAll(async () => {
@@ -78,8 +90,134 @@ suite('student sites and reviewed imports (isolated PostgreSQL)', () => {
   });
   beforeEach(async () => {
     await ds.query(
-      'TRUNCATE amb_acm_std_student, amb_acm_tch_teacher, amb_acm_std_student_teacher, amb_acm_std_site_audit, amb_acm_std_import_preview, amb_acm_std_import_row',
+      'TRUNCATE amb_acm_std_teacher_class_info, amb_acm_std_student, amb_acm_tch_teacher, amb_acm_std_student_teacher, amb_acm_std_site_audit, amb_acm_std_import_preview, amb_acm_std_import_row',
     );
+  });
+  async function teacher(name: string, entId = ent) {
+    return ds
+      .getRepository(Teacher)
+      .save(ds.getRepository(Teacher).create({ entId, name }));
+  }
+  it('keeps independent profiles across reorder, unlink/relink and legacy partial updates', async () => {
+    const a = await teacher('A'),
+      b = await teacher('B');
+    const student = await students.create(ent, {
+      stdName: 'Profiles', stdSite: 'TPI',
+      stdStatus: 'WITHDRAWN',
+      stdTeacherIds: [a.id, b.id],
+      stdTeacherClassInfos: [
+        { tchId: a.id, curriculum: 'English', gpa: '0' },
+        { tchId: b.id, curriculum: 'Math' },
+      ],
+    });
+    await students.update(ent, student.id, { stdTeacherIds: [b.id, a.id] });
+    await students.update(ent, student.id, { stdTeacherIds: [b.id] });
+    await students.update(ent, student.id, { stdTeacherIds: [a.id, b.id] });
+    let detail = await students.findOne(ent, student.id);
+    expect(
+      detail.teacherClassInfos.find((x) => x.tchId === a.id),
+    ).toMatchObject({ curriculum: 'English', gpa: '0' });
+    expect(
+      detail.teacherClassInfos.find((x) => x.tchId === b.id)?.curriculum,
+    ).toBe('Math');
+    await students.update(ent, student.id, {
+      stdTeacherIds: [a.id],
+      stdSubject: 'SAT',
+    });
+    detail = await students.findOne(ent, student.id);
+    expect(
+      detail.teacherClassInfos.find((x) => x.tchId === a.id),
+    ).toMatchObject({ subject: 'SAT', curriculum: 'English' });
+  });
+  it('rejects conflicting profile targets atomically and isolates tenants', async () => {
+    const a = await teacher('A'),
+      foreign = await teacher('Foreign', other);
+    const student = await students.create(ent, {
+      stdName: 'Original', stdSite: 'TPI',
+      stdStatus: 'WITHDRAWN',
+      stdTeacherIds: [a.id],
+    });
+    await expect(
+      students.update(ent, student.id, {
+        stdName: 'Changed',
+        stdTeacherClassInfos: [],
+      }),
+    ).rejects.toThrow('CLASS_INFO_TEACHERS_MISMATCH');
+    expect((await students.findOne(ent, student.id)).name).toBe('Original');
+    await expect(
+      students.update(ent, student.id, { stdTeacherIds: [foreign.id] }),
+    ).rejects.toThrow();
+    await expect(
+      students.update(ent, student.id, {
+        stdTeacherClassInfos: [{ tchId: a.id }, { tchId: a.id }],
+      }),
+    ).rejects.toThrow('CLASS_INFO_TEACHERS_MISMATCH');
+    await expect(students.findOne(other, student.id)).rejects.toThrow();
+  });
+  it('preserves ambiguous legacy information until explicit reviewed assignment', async () => {
+    const a = await teacher('A'),
+      b = await teacher('B');
+    const student = await students.create(ent, {
+      stdName: 'Legacy', stdSite: 'TPI',
+      stdStatus: 'WITHDRAWN',
+      stdTeacherIds: [a.id, b.id],
+      stdCurriculum: 'Shared',
+    });
+    expect(student.classInfoLegacyPending).toBe(true);
+    expect(student.teacherClassInfos.every((x) => !x.curriculum)).toBe(true);
+    const updated = await students.update(ent, student.id, {
+      stdTeacherClassInfos: [
+        { tchId: a.id, curriculum: 'Shared' },
+        { tchId: b.id, curriculum: 'Other' },
+      ],
+      stdClassInfoLegacyTeacherId: a.id,
+    });
+    expect(updated.classInfoLegacyPending).toBe(false);
+    expect(updated.curriculum).toBe('Shared');
+    await students.update(ent, student.id, { stdTeacherIds: [] });
+    expect(
+      (await students.findOne(ent, student.id)).teacherClassInfos,
+    ).toHaveLength(2);
+  });
+  it('backfills only single actual teacher links, preserves originals and replays safely', async () => {
+    const a = await teacher('A'),
+      b = await teacher('B');
+    const repo = ds.getRepository(Student),
+      links = ds.getRepository(Link);
+    const single = await repo.save(
+      repo.create({ entId: ent, name: 'Single', curriculum: 'Original' }),
+    );
+    const multi = await repo.save(
+      repo.create({ entId: ent, name: 'Multi', curriculum: 'Unassigned' }),
+    );
+    await links.save([
+      { entId: ent, stdId: single.id, tchId: a.id },
+      { entId: ent, stdId: multi.id, tchId: a.id },
+      { entId: ent, stdId: multi.id, tchId: b.id },
+    ]);
+    const sql = readFileSync(
+      resolve(
+        __dirname,
+        '../../../../sql/acm/999r-acm-std-teacher-class-info.sql',
+      ),
+      'utf8',
+    );
+    await ds.query(sql);
+    await ds.query(sql);
+    expect(
+      (await students.findOne(ent, single.id)).teacherClassInfos[0].curriculum,
+    ).toBe('Original');
+    expect((await students.findOne(ent, multi.id)).classInfoLegacyPending).toBe(
+      true,
+    );
+    await students.update(ent, single.id, {
+      stdStatus: 'WITHDRAWN',
+      stdTeacherClassInfos: [{ tchId: a.id, curriculum: 'Edited' }],
+    });
+    await ds.query(sql);
+    expect(
+      (await students.findOne(ent, single.id)).teacherClassInfos[0].curriculum,
+    ).toBe('Edited');
   });
   it('paginates 51 students and counts sites independently from the selected tab', async () => {
     const repo = ds.getRepository(Student);
@@ -128,23 +266,68 @@ suite('student sites and reviewed imports (isolated PostgreSQL)', () => {
   it('separates current and withdrawn students while retaining integrated site counts', async () => {
     const repo = ds.getRepository(Student);
     await repo.save([
-      {entId:ent,name:'Current TPI',site:'TPI',status:'ACTIVE'},
-      {entId:ent,name:'Paused Trinity',site:'TRINITY',status:'INACTIVE'},
-      {entId:ent,name:'Current Santa',site:'SANTACROCE',status:'ACTIVE'},
-      {entId:ent,name:'Unassigned',status:'ACTIVE'},
-      {entId:ent,name:'Withdrawn TPI',site:'TPI',status:'WITHDRAWN',withdrawnDate:'2026-08-11'},
-      {entId:other,name:'Other tenant',status:'WITHDRAWN'},
+      { entId: ent, name: 'Current TPI', site: 'TPI', status: 'ACTIVE' },
+      {
+        entId: ent,
+        name: 'Paused Trinity',
+        site: 'TRINITY',
+        status: 'INACTIVE',
+      },
+      {
+        entId: ent,
+        name: 'Current Santa',
+        site: 'SANTACROCE',
+        status: 'ACTIVE',
+      },
+      { entId: ent, name: 'Unassigned', status: 'ACTIVE' },
+      {
+        entId: ent,
+        name: 'Withdrawn TPI',
+        site: 'TPI',
+        status: 'WITHDRAWN',
+        withdrawnDate: '2026-08-11',
+      },
+      { entId: other, name: 'Other tenant', status: 'WITHDRAWN' },
     ]);
-    const current = await students.list(ent,{scope:'CURRENT',status:'ALL'});
+    const current = await students.list(ent, {
+      scope: 'CURRENT',
+      status: 'ALL',
+    });
     expect(current.total).toBe(4);
-    expect(current.siteCounts).toMatchObject({ALL:4,TPI:1,TRINITY:1,SANTACROCE:1,UNASSIGNED:1});
-    expect((await students.list(ent,{scope:'CURRENT',status:'ALL',site:'TPI'})).total).toBe(1);
-    const withdrawn = await students.list(ent,{scope:'WITHDRAWN'});
-    expect(withdrawn.total).toBe(1); expect(withdrawn.items[0].status).toBe('WITHDRAWN');
-    expect((await students.list(ent,{scope:'WITHDRAWN',withdrawnDateFrom:'2026-08-12'})).total).toBe(0);
-    expect((await students.list(ent,{status:'ALL'})).total).toBe(5);
-    await expect(students.list(ent,{scope:'CURRENT',status:'WITHDRAWN'})).rejects.toThrow('INVALID_STUDENT_SCOPE');
-    await expect(students.list(ent,{scope:'WITHDRAWN',status:'ACTIVE'})).rejects.toThrow('INVALID_STUDENT_SCOPE');
+    expect(current.siteCounts).toMatchObject({
+      ALL: 4,
+      TPI: 1,
+      TRINITY: 1,
+      SANTACROCE: 1,
+      UNASSIGNED: 1,
+    });
+    expect(
+      (
+        await students.list(ent, {
+          scope: 'CURRENT',
+          status: 'ALL',
+          site: 'TPI',
+        })
+      ).total,
+    ).toBe(1);
+    const withdrawn = await students.list(ent, { scope: 'WITHDRAWN' });
+    expect(withdrawn.total).toBe(1);
+    expect(withdrawn.items[0].status).toBe('WITHDRAWN');
+    expect(
+      (
+        await students.list(ent, {
+          scope: 'WITHDRAWN',
+          withdrawnDateFrom: '2026-08-12',
+        })
+      ).total,
+    ).toBe(0);
+    expect((await students.list(ent, { status: 'ALL' })).total).toBe(5);
+    await expect(
+      students.list(ent, { scope: 'CURRENT', status: 'WITHDRAWN' }),
+    ).rejects.toThrow('INVALID_STUDENT_SCOPE');
+    await expect(
+      students.list(ent, { scope: 'WITHDRAWN', status: 'ACTIVE' }),
+    ).rejects.toThrow('INVALID_STUDENT_SCOPE');
   });
   it('records site changes and rejects stale or other-tenant bulk targets atomically', async () => {
     const repo = ds.getRepository(Student);
@@ -252,23 +435,66 @@ suite('student sites and reviewed imports (isolated PostgreSQL)', () => {
     expect((await repo.findOneByOrFail({ id: s.id })).school).toBe('Edited');
   });
   it('rejects a cross-tenant teacher and rolls back earlier rows in the same commit', async () => {
-    const foreign = await ds.getRepository(Teacher).save({entId:other,name:'Teacher',email:'teacher@example.test'});
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([headers,['First'],['Second']]),'TPI 현재 등록 학생');
-    const preview=await importer.preview(ent,actor,Buffer.from(XLSX.write(wb,{type:'buffer',bookType:'xlsx'})));
-    await expect(importer.commit(ent,actor,{previewId:preview.previewId,decisions:preview.rows.map((r,i)=>({key:r.key,action:'NEW',reviewed:true,teacherIds:i?[foreign.id]:[]}))})).rejects.toThrow('TEACHER_REQUIRES_REVIEW');
+    const foreign = await ds
+      .getRepository(Teacher)
+      .save({ entId: other, name: 'Teacher', email: 'teacher@example.test' });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(
+      wb,
+      XLSX.utils.aoa_to_sheet([headers, ['First'], ['Second']]),
+      'TPI 현재 등록 학생',
+    );
+    const preview = await importer.preview(
+      ent,
+      actor,
+      Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })),
+    );
+    await expect(
+      importer.commit(ent, actor, {
+        previewId: preview.previewId,
+        decisions: preview.rows.map((r, i) => ({
+          key: r.key,
+          action: 'NEW',
+          reviewed: true,
+          teacherIds: i ? [foreign.id] : [],
+        })),
+      }),
+    ).rejects.toThrow('TEACHER_REQUIRES_REVIEW');
     expect(await ds.getRepository(Student).count()).toBe(0);
-    expect(await ds.query('SELECT * FROM amb_acm_std_import_row')).toHaveLength(0);
+    expect(await ds.query('SELECT * FROM amb_acm_std_import_row')).toHaveLength(
+      0,
+    );
   });
   it('teacher filter counts each student once and rejects expired previews', async () => {
-    const teacher=await ds.getRepository(Teacher).save({entId:ent,name:'Teacher',email:'teacher@example.test'});
-    const student=await ds.getRepository(Student).save({entId:ent,name:'Student',site:'TRINITY'});
-    await ds.getRepository(Link).save({entId:ent,stdId:student.id,tchId:teacher.id,sortOrder:0});
-    const result=await students.list(ent,{teacherId:teacher.id});
-    expect(result.total).toBe(1);expect(result.siteCounts.TRINITY).toBe(1);
-    const preview=await importer.preview(ent,actor,file('Expired'));
-    await ds.query("UPDATE amb_acm_std_import_preview SET expires_at=now()-interval '1 minute' WHERE sip_id=$1",[preview.previewId]);
-    await expect(importer.commit(ent,actor,{previewId:preview.previewId,decisions:[{key:preview.rows[0].key,action:'NEW',reviewed:true,teacherIds:[]}]})).rejects.toThrow('PREVIEW_EXPIRED');
+    const teacher = await ds
+      .getRepository(Teacher)
+      .save({ entId: ent, name: 'Teacher', email: 'teacher@example.test' });
+    const student = await ds
+      .getRepository(Student)
+      .save({ entId: ent, name: 'Student', site: 'TRINITY' });
+    await ds
+      .getRepository(Link)
+      .save({ entId: ent, stdId: student.id, tchId: teacher.id, sortOrder: 0 });
+    const result = await students.list(ent, { teacherId: teacher.id });
+    expect(result.total).toBe(1);
+    expect(result.siteCounts.TRINITY).toBe(1);
+    const preview = await importer.preview(ent, actor, file('Expired'));
+    await ds.query(
+      "UPDATE amb_acm_std_import_preview SET expires_at=now()-interval '1 minute' WHERE sip_id=$1",
+      [preview.previewId],
+    );
+    await expect(
+      importer.commit(ent, actor, {
+        previewId: preview.previewId,
+        decisions: [
+          {
+            key: preview.rows[0].key,
+            action: 'NEW',
+            reviewed: true,
+            teacherIds: [],
+          },
+        ],
+      }),
+    ).rejects.toThrow('PREVIEW_EXPIRED');
   });
-
 });

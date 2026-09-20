@@ -33,7 +33,19 @@ export interface StudentSummary {
   sourceInquiry?: SourceInquiryLink | null;
 }
 
+export interface TeacherClassInfo {
+  tchId: string;
+  subject?: string | null;
+  curriculum?: string | null;
+  materials?: string | null;
+  mobility?: string | null;
+  gpa?: string | null;
+  ssatIseeNote?: string | null;
+}
+
 export interface StudentDetail extends StudentSummary {
+  teacherClassInfos?: TeacherClassInfo[];
+  classInfoLegacyPending?: boolean;
   entId: string;
   teacherId?: string | null;
   birthDate?: string | null;
