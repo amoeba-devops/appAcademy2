@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Lightbulb } from 'lucide-react';
@@ -30,8 +30,20 @@ export function AdminSupportPanel({ banner }: { banner?: SupportBanner }) {
 
 export function AdminContentLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  if (['/admin', '/admin/', '/admin/dashboard', '/admin/dashboard/'].includes(pathname)) return <>{children}</>;
-  return <div className="admin-content-container">
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [availableWidth, setAvailableWidth] = useState(0);
+  const isDashboard = ['/admin', '/admin/', '/admin/dashboard', '/admin/dashboard/'].includes(pathname);
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    // Container containment would change fixed-position custom dialogs' viewport.
+    // Measure the frame without introducing a containing block for those dialogs.
+    const observer = new ResizeObserver(([entry]) => setAvailableWidth(entry.contentRect.width));
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [isDashboard]);
+  if (isDashboard) return <>{children}</>;
+  return <div ref={containerRef} className={`admin-content-container ${availableWidth >= 1176 ? 'admin-content-wide' : ''} ${availableWidth < 640 ? 'admin-content-narrow' : ''}`}>
     <div className="admin-content-grid">
       <div className="admin-page-content">{children}</div>
       <AdminSupportPanel />
