@@ -237,6 +237,41 @@ describe('BodaeduServerHttpClient — response envelope (FIX-260920)', () => {
     expect(await client.getMeetInfo('tac-404', AUTH)).toBeNull();
   });
 
+  it('treats 400 WB-400-2xx (unknown meetKey) as not found — null info, empty join log', async () => {
+    // 프로덕션 실측(2026-09-20): 개설된 적 없는 meetKey 조회 →
+    // 400 {"status":400,"errorCode":"WB-400-245","errorName":"WB-400-245","success":true}
+    const notFound = () =>
+      jsonResponse(
+        {
+          status: 400,
+          errorCode: 'WB-400-245',
+          errorName: 'WB-400-245',
+          success: true,
+        },
+        400,
+      );
+    fetchMock.mockResolvedValueOnce(notFound());
+    expect(await client.getMeetInfo('tac-never-opened', AUTH)).toBeNull();
+
+    fetchMock.mockResolvedValueOnce(notFound());
+    expect(await client.getJoinLog('tac-never-opened', AUTH)).toEqual([]);
+
+    fetchMock.mockResolvedValueOnce(notFound());
+    expect(await client.listRecordings('tac-never-opened', AUTH)).toEqual([]);
+  });
+
+  it('still raises BodaeduUnavailableException for other 400s', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(
+        { status: 400, errorCode: 'WB-400-155', errorName: 'TokenMissing' },
+        400,
+      ),
+    );
+    await expect(client.getMeetInfo('tac-x', AUTH)).rejects.toBeInstanceOf(
+      BodaeduUnavailableException,
+    );
+  });
+
   it('getMeetInfo picks the latest meeting when the key was reused', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({

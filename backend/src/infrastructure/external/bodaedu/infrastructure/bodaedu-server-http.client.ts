@@ -255,6 +255,23 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
     }
 
     if (res.status === 404) return null;
+    if (res.status === 400) {
+      // FIX-260920 — 벤더는 BODA 에 존재하지 않는 meetKey 조회에 404 가 아니라
+      // `400 WB-400-2xx`(유효하지 않은 파라미터, 실측 WB-400-245) 를 돌려준다.
+      // 개설된 적 없는 방을 "vendor down" 으로 오인해 5분마다 재시도하지 않도록
+      // 이 계열은 "정보 없음"(null) 으로 취급한다. 그 외 400 은 클라이언트 오류.
+      const raw = await res.text().catch(() => '');
+      const code = this.errorCodeOf(raw);
+      if (code && /^WB-400-2\d*$/.test(code)) {
+        this.logger.debug(
+          `bodaedu ${method} ${path} → ${code} (treated as not found)`,
+        );
+        return null;
+      }
+      throw new BodaeduUnavailableException(
+        `client error status=400 body=${raw.slice(0, 200)}`,
+      );
+    }
     if (res.status >= 500) {
       throw new BodaeduUnavailableException(`5xx status=${res.status}`);
     }
@@ -301,6 +318,15 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       );
     }
     return 'data' in o ? (o.data ?? null) : parsed;
+  }
+
+  private errorCodeOf(raw: string): string | null {
+    try {
+      const o = JSON.parse(raw) as { errorCode?: unknown };
+      return typeof o?.errorCode === 'string' ? o.errorCode : null;
+    } catch {
+      return null;
+    }
   }
 
   /** 페이징 응답의 `content[]` — 없으면 빈 배열. */
