@@ -175,17 +175,10 @@ export function StdTable({
               </td>
               <td className="px-4 py-3">{s.school ?? "—"}</td>
               <td className="px-4 py-3">{s.grade ?? "—"}</td>
-              <td
-                className="px-4 py-3"
-                title={s.teachers?.map((x) => x.name).join(", ") || undefined}
-              >
-                {s.teachers && s.teachers.length > 1
-                  ? t("table.teacherMore", {
-                      defaultValue: "{{name}} 외 {{count}}명",
-                      name: s.teachers[0].name,
-                      count: s.teachers.length - 1,
-                    })
-                  : (s.teachers?.[0]?.name ?? s.teacher ?? "—")}
+              <td className="px-4 py-3 whitespace-normal break-words">
+                {s.teachers?.length
+                  ? s.teachers.map((teacher) => teacher.name).join(", ")
+                  : (s.teacher ?? "—")}
               </td>
               <td className="px-4 py-3">
                 <StdStatusBadge status={s.status} />
