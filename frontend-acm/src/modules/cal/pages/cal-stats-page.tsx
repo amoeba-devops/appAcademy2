@@ -301,7 +301,7 @@ export function CalStatsPage() {
             </div>
 
             {data.teachers.length === 0 ? (
-              <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+              <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
                 {t('stats.empty', '해당 기간 수업이 없습니다.')}
               </p>
             ) : view === 'card' ? (

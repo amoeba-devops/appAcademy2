@@ -794,7 +794,7 @@ function DeletedEventsList({
 
   if (events.length === 0) {
     return (
-      <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+      <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
         {t('deleted.empty', '이 기간에 삭제한 수업일정이 없습니다.')}
       </p>
     );
