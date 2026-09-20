@@ -6,6 +6,8 @@ import * as XLSX from 'xlsx';
 import { StudentTypeormEntity as Student } from '../../../src/modules/acm-std/infrastructure/typeorm/student.typeorm-entity';
 import { WithdrawnImportService } from '../../../src/modules/acm-std/application/withdrawn-import.service';
 import { WITHDRAWN_HEADERS } from '../../../src/modules/acm-std/application/withdrawn-import.parser';
+import { ParentTypeormEntity as Parent } from '../../../src/modules/acm-std/infrastructure/typeorm/parent.typeorm-entity';
+import { StudentParentTypeormEntity as Link } from '../../../src/modules/acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { AesGcmService } from '../../../src/modules/acm-common/crypto/aes-gcm.service';
 const ent = '11111111-1111-4111-8111-111111111111',
   other = '22222222-2222-4222-8222-222222222222',
@@ -44,7 +46,7 @@ suite('withdrawn import isolated PostgreSQL', () => {
       username: 'postgres',
       password: 'std-test-only',
       database: 'std_test',
-      entities: [Student],
+      entities: [Student, Parent, Link],
       synchronize: true,
     }).initialize();
     for (const name of [
@@ -132,15 +134,13 @@ suite('withdrawn import isolated PostgreSQL', () => {
     expect(await ds.getRepository(Student).count()).toBe(1);
   });
   it('preserves current enrollment and populated fields, records historical withdrawal independently', async () => {
-    const s = await ds
-      .getRepository(Student)
-      .save({
-        entId: ent,
-        name: 'Synthetic active',
-        status: 'ACTIVE',
-        school: 'Current school',
-        site: 'TPI',
-      });
+    const s = await ds.getRepository(Student).save({
+      entId: ent,
+      name: 'Synthetic active',
+      status: 'ACTIVE',
+      school: 'Current school',
+      site: 'TPI',
+    });
     const p = await service.preview(ent, actor, file([row(s.name, '00002')]));
     await service.commit(ent, actor, {
       previewId: p.previewId,

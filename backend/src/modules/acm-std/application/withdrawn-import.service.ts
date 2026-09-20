@@ -78,8 +78,14 @@ export class WithdrawnImportService {
     ) as WithdrawnFields;
   }
   private matches(student: StudentTypeormEntity, row: WithdrawnRow) {
+    const keys = (name: string) =>
+      [name, name.replace(/[（(].*?[)）]/g, '')]
+        .map((v) => v.normalize('NFKC').replace(/\s+/g, '').toLowerCase())
+        .filter(Boolean);
     return (
-      student.name.trim() === row.fields['이름'] ||
+      keys(student.name).some((key) =>
+        keys(String(row.fields['이름'])).includes(key),
+      ) ||
       (!!row.fields['생일'] && student.birthDate === row.fields['생일'])
     );
   }
@@ -94,6 +100,11 @@ export class WithdrawnImportService {
       'SELECT * FROM amb_acm_std_withdrawn_record WHERE ent_id=$1 AND source_system=$2',
       [entId, SOURCE],
     );
+    const contacts: Array<{ std_id: string; par_phone: string }> =
+      await this.ds.query(
+        'SELECT sp.std_id,p.par_phone FROM amb_acm_std_student_parent sp JOIN amb_acm_std_parent p ON p.par_id=sp.par_id AND p.ent_id=sp.ent_id WHERE sp.ent_id=$1 AND p.deleted_at IS NULL AND p.par_phone IS NOT NULL',
+        [entId],
+      );
     const rows: ReviewRow[] = parsed.map((row) => {
       const linked = records.find((r) => r.external_id === row.key);
       const matches = students.filter((s) =>
@@ -115,6 +126,11 @@ export class WithdrawnImportService {
             updatedAt: s.updatedAt.toISOString(),
             fields: {
               이름: s.name,
+              보호자연락처:
+                contacts
+                  .filter((p) => p.std_id === s.id)
+                  .map((p) => p.par_phone)
+                  .join(' / ') || null,
               생일: s.birthDate ?? null,
               학교: s.school ?? null,
               학년: s.grade ?? null,
@@ -400,12 +416,10 @@ export class WithdrawnImportService {
       await m.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
         `std-import:${entId}`,
       ]);
-      const student = await m
-        .getRepository(StudentTypeormEntity)
-        .findOne({
-          where: { id: stdId, entId, deletedAt: IsNull() },
-          lock: { mode: 'pessimistic_write' },
-        });
+      const student = await m.getRepository(StudentTypeormEntity).findOne({
+        where: { id: stdId, entId, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
+      });
       if (!student) throw new NotFoundException('STUDENT_NOT_FOUND');
       const records: SourceRecord[] = await m.query(
         'SELECT * FROM amb_acm_std_withdrawn_record WHERE ent_id=$1 AND std_id=$2 AND swr_id=$3 FOR UPDATE',
