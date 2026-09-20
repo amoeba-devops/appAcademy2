@@ -171,9 +171,7 @@ export function StdListPage() {
             onClick={() => change({ site: key })}
             className="whitespace-nowrap"
           >
-            {key.startsWith("withdrawn")
-              ? t(`withdrawn.${key}`)
-              : t(`site.${key}`)}{" "}
+            {t(`site.${key}`)}{" "}
             ({data?.siteCounts?.[key] ?? "—"})
           </Button>
         ))}
@@ -212,7 +210,7 @@ export function StdListPage() {
           ] as const
         ).map((key) => (
           <label key={key} className="text-xs">
-            {t(`site.${key}`)}
+            {key.startsWith("withdrawn") ? t(`withdrawn.${key}`) : t(`site.${key}`)}
             <input
               type="date"
               className="block rounded border p-2 bg-surface"
