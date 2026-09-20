@@ -77,15 +77,18 @@ export class WithdrawnImportService {
       }),
     ) as WithdrawnFields;
   }
-  private matches(student: StudentTypeormEntity, row: WithdrawnRow) {
+  private sameName(student: StudentTypeormEntity, row: WithdrawnRow) {
     const keys = (name: string) =>
       [name, name.replace(/[（(].*?[)）]/g, '')]
         .map((v) => v.normalize('NFKC').replace(/\s+/g, '').toLowerCase())
         .filter(Boolean);
+    return keys(student.name).some((key) =>
+      keys(String(row.fields['이름'])).includes(key),
+    );
+  }
+  private matches(student: StudentTypeormEntity, row: WithdrawnRow) {
     return (
-      keys(student.name).some((key) =>
-        keys(String(row.fields['이름'])).includes(key),
-      ) ||
+      this.sameName(student, row) ||
       (!!row.fields['생일'] && student.birthDate === row.fields['생일'])
     );
   }
@@ -224,7 +227,7 @@ export class WithdrawnImportService {
         let student: StudentTypeormEntity;
         const isNew = decision.action === 'NEW';
         if (isNew) {
-          if (matches.length || record)
+          if (matches.some((s) => this.sameName(s, row)) || record)
             throw new ConflictException('STUDENT_MATCH_REQUIRED');
           student = repo.create({
             entId,
