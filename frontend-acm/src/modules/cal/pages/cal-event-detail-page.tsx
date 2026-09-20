@@ -133,7 +133,7 @@ export function CalEventDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full min-w-0">
       <Link
         to="/admin/cal"
         className="mb-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"

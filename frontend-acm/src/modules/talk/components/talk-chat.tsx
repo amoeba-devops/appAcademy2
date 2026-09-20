@@ -86,7 +86,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
   const active = channels.find((c) => c.id === activeId) ?? null;
 
   return (
-    <div className="flex h-[calc(100vh-190px)] min-h-[420px] overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface">
+    <div className={`${mode === 'admin' ? 'admin-chat-layout ' : ''}flex h-[calc(100vh-190px)] min-h-[420px] overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}>
       {/* 채널 목록 */}
       <aside className="flex w-60 shrink-0 flex-col border-r border-[var(--border-subtle)]">
         {mode === 'admin' && (

@@ -656,5 +656,16 @@
     "filePreview": "File",
     "newInquiry": "🔔 New consultation inquiry #{{seqNo}}",
     "openInquiries": "Open inquiries"
+  },
+  "adminLayout": {
+    "support": "Help and banners",
+    "tips": "Tips",
+    "general": "Use search and filters to find items. Scroll wide lists horizontally.",
+    "students": "View students together or by site. Find withdrawn students in the Withdrawn menu.",
+    "stats": "Choose a period to view class statistics. Switch between cards and list view.",
+    "calendar": "Select an event to see class details.",
+    "settings": "Check the save result after changing settings.",
+    "chat": "Select a conversation before writing a message.",
+    "posts": "Check the publication status before saving a post."
   }
 }

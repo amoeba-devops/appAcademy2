@@ -206,7 +206,7 @@ export function MapApplyListPage() {
       ) : total === 0 ? (
         <p className="text-secondary">{t('mapApply.empty')}</p>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-[var(--border-subtle)]">
+        <div className="bg-surface overflow-x-auto rounded-md border border-[var(--border-subtle)]">
           <table className="min-w-full text-sm">
             <thead className="bg-[var(--canvas-subtle)] text-secondary">
               <tr>

@@ -298,7 +298,7 @@ export function StdListPage({
         )}
       </div>
       {isError ? (
-        <div role="alert">
+        <div role="alert" className="admin-list-surface p-6">
           {t("site.loadError")}{" "}
           <Button onClick={() => refetch()}>{t("site.retry")}</Button>
         </div>

@@ -72,7 +72,7 @@ export function MapApplyDetailPage() {
     setEdit((s) => (s ? { ...s, [k]: v } : s));
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <Link
           to="/admin/test"

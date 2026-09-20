@@ -11,7 +11,7 @@ export function BodaConfigPage() {
   const { t } = useTranslation('common');
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full min-w-0">
       <Link
         to="/admin/config"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"

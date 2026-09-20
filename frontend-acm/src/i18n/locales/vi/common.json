@@ -656,5 +656,16 @@
     "filePreview": "Tệp",
     "newInquiry": "🔔 Yêu cầu tư vấn mới #{{seqNo}}",
     "openInquiries": "Mở danh sách tư vấn"
+  },
+  "adminLayout": {
+    "support": "Trợ giúp và biểu ngữ",
+    "tips": "Mẹo sử dụng",
+    "general": "Dùng tìm kiếm và bộ lọc để tìm mục cần xem. Cuộn ngang đối với danh sách rộng.",
+    "students": "Xem toàn bộ học sinh hoặc theo cơ sở. Học sinh đã nghỉ nằm trong mục Đã nghỉ.",
+    "stats": "Chọn khoảng thời gian để xem thống kê. Chuyển giữa dạng thẻ và danh sách.",
+    "calendar": "Chọn lịch để xem thông tin lớp học.",
+    "settings": "Kiểm tra kết quả lưu sau khi thay đổi cài đặt.",
+    "chat": "Chọn cuộc trò chuyện trước khi soạn tin nhắn.",
+    "posts": "Kiểm tra trạng thái công khai trước khi lưu bài viết."
   }
 }

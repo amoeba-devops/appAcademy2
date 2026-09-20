@@ -449,7 +449,7 @@ function MonthView({
             key={dayKey}
             type="button"
             onClick={() => onDayClick(day)}
-            className={`relative flex min-h-[140px] flex-col items-stretch justify-start bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
+            className={`relative flex min-w-0 min-h-[140px] flex-col items-stretch justify-start bg-surface p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
               inMonth ? '' : 'opacity-40'
             }`}
           >
@@ -794,7 +794,7 @@ function DeletedEventsList({
 
   if (events.length === 0) {
     return (
-      <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+      <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
         {t('deleted.empty', '이 기간에 삭제한 수업일정이 없습니다.')}
       </p>
     );

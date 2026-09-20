@@ -50,7 +50,7 @@ export function CalTeacherStatsPage() {
   }, [events, tz]);
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Link
@@ -71,7 +71,7 @@ export function CalTeacherStatsPage() {
       </div>
 
       {teacher && (
-        <div className="mb-4 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-4">
+        <div className="mb-4 rounded-md border border-[var(--border-subtle)] bg-surface p-4">
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
             <span className="text-2xl font-bold text-primary">
               {teacher.count}

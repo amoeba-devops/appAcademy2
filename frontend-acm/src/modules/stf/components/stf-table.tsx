@@ -12,14 +12,14 @@ export function StfTable({ items, isLoading, onRowClick }: Props) {
   const { t } = useTranslation('stf');
 
   if (isLoading) {
-    return <p className="text-secondary py-8 text-center">{t('common:status.loading')}</p>;
+    return <p className="admin-list-surface text-secondary py-8 text-center">{t('common:status.loading')}</p>;
   }
   if (!items.length) {
-    return <p className="text-secondary py-8 text-center">{t('table.empty')}</p>;
+    return <p className="admin-list-surface text-secondary py-8 text-center">{t('table.empty')}</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+    <div className="bg-surface overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
       <table className="w-full min-w-[700px] text-sm">
         <thead className="bg-[var(--gray-50)] text-xs uppercase tracking-wide text-secondary">
           <tr>

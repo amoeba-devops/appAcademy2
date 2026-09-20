@@ -1,3 +1,4 @@
+import { AdminContentLayout } from "./admin-content-layout";
 import { StudentNavigation } from "@/modules/std/components/student-navigation";
 import { useEffect, useState } from 'react';
 import {
@@ -347,7 +348,7 @@ export function AppShell() {
           isMobile ? 'ml-0' : iconOnly ? 'ml-sidebar-icon' : 'ml-sidebar',
         )}
       >
-        <Outlet />
+        <AdminContentLayout><Outlet /></AdminContentLayout>
       </main>
     </div>
   );

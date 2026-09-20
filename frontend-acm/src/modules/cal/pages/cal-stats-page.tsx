@@ -243,14 +243,14 @@ export function CalStatsPage() {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('stats.title', '수업통계')}</h1>
         <PeriodControls />
       </div>
 
       {isLoading || !data ? (
-        <p className="py-10 text-center text-sm text-secondary">…</p>
+        <p className="admin-list-surface py-10 text-center text-sm text-secondary">…</p>
       ) : (
         <div className="space-y-5">
           {/* 전체 요약 + 수업상태별 */}
@@ -301,7 +301,7 @@ export function CalStatsPage() {
             </div>
 
             {data.teachers.length === 0 ? (
-              <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
+              <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
                 {t('stats.empty', '해당 기간 수업이 없습니다.')}
               </p>
             ) : view === 'card' ? (
