@@ -1,7 +1,7 @@
 ---
 document_id: ACM-STD-WITHDRAWN-REQ-1.0.0
 version: 1.1.0
-status: IMPLEMENTING
+status: IMPLEMENTED_PENDING_DATA_REVIEW
 date: 2026-09-20
 change_log:
   - version: 1.1.0
@@ -158,3 +158,7 @@ SHA-256: `d708e8b6c4b780d8b468ede81a52e8c456e58757bee4ad5a34857df9f1a485db`.
 ## Implementation Approval (구현 승인)
 
 2026-09-20 사용자 “작업 진행”으로 구현 승인. 기존 재원·휴원 학생의 상태 변경은 답변 대기이며, 보완 시 현재 상태를 유지한다.
+
+## Deployment Result (배포 결과)
+
+PR #246/#247 및 운영 배포 완료. 신규 퇴원 등록 16명·기존 보완 15명, 원본 기록 31개를 확인했다. 이름 기준 연결 확인이 필요한 36명은 보류 중이다. 상세 결과는 [작업 보고서](../report/RPT-260920-std-withdrawn-import.md)를 참조한다. 후속 메뉴 분리/업로드 버튼 제거는 [추가 계획서](../plan/PLN-260920B-std-navigation-withdrawn-list.md)로 관리한다.

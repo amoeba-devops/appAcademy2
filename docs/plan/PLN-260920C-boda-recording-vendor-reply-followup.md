@@ -1,10 +1,11 @@
 ---
 document_id: CAL-PLN-260920C
-version: 1.0.0
-status: IMPLEMENTED (PR 대기) — 운영 설정(A)·실검증(E)은 사용자 후속
+version: 1.1.0
+status: DEPLOYED (PR #249 8333050 — cd-staging·cd-production 2026-09-20 완료, BODA_MODE=http 전환 완료) — 실데이터 검증 진행 중
 date: 2026-09-20
 depends_on: docs/analysis/REQ-260920C-boda-recording-vendor-reply-followup.md
 change_log:
+  - 2026-09-20 v1.1.0 배포 완료 + 위조 헤더 401 스모크 확인. C-2 lookback env 추가. BODA_MODE 전환은 운영자 수동 (Claude Code)
   - 2026-09-20 v1.0.0 B-1·B-2·B-3·C-1·D-1~D-4 구현 완료 (Claude Code)
 ---
 
@@ -24,7 +25,7 @@ change_log:
 | C-1 | 녹화 다운로드 fetch 전체 전송 타임아웃(기본 30분, env) | ✅ |
 | D-1 | 강사 매뉴얼 자동 녹화 안내 (HTML 2종 + GUIDE) | ✅ |
 | D-2~D-4 | 체크리스트·벤더 질문 마스터·PLN-260912B 상태 갱신 | ✅ |
-| C-2 | 과거 수업 전건 백필 | ⏸ 보류 — UI `[녹화본 동기화]` 로 대체. 필요 시 별도 |
+| C-2 | 과거 수업 따라잡기 — 10분 cron lookback 을 env `BODA_RECORDING_SYNC_LOOKBACK_HOURS`(기본 48) 로 조정. 프로덕션 `.env.production` 에 720 설정(30일, 수집 후 되돌림) | ✅ (1ee96ce) |
 | C-3 | 웹훅 수신 가시화 | ⏸ 보류 |
 
 ## 3. Design (설계)
@@ -88,12 +89,31 @@ X-Forwarded-For = [ (클라이언트 임의값…), VENDOR, 127.0.0.1 ]
 | backend jest (webhook util·recording·webhook service) | ✅ 61 pass |
 | backend eslint 변경 파일 | 0 error (기존 warning 만) |
 | frontend-acm `tsc --noEmit` | ✅ |
-| 실데이터(E-1~E-5) | ⏳ 운영 설정(A-1~A-3) 후 |
+| CI (PR #249) | ✅ 6/6 |
+| cd-staging (8333050) | ✅ run 35495004097 |
+| cd-production (`-f sha=8333050`) | ✅ run 35495186156 (Preflight·Deploy success) |
+| **위조 헤더 차단** — `POST /api/webhooks/boda` + `X-Forwarded-For: 121.170.164.136` (외부에서) | ✅ **401 `AUTH_NOT_IN_ALLOWLIST`** |
+| 프로덕션 `bdc_webhook_allow_cidrs` | ✅ `121.170.164.136,121.170.164.137,121.170.164.138` (사용자 설정) |
+| 프로덕션 `BODA_MODE` | ✅ `http` (2026-09-20 06:56Z, 이미지 8333050, health 200) |
+| 실데이터(E-1~E-5) | ⏳ BODA_MODE=http 후 |
 
 ## 6. Rollout (배포·운영 순서)
 
-1. PR 머지 → cd-staging → cd-production (`BODA_WEBHOOK_TRUSTED_PROXY_HOPS` 는 compose 기본 2 — `.env` 추가 불필요).
-2. `/admin/config/boda` 허용 IP 저장 (A-1).
-3. `.env.production` `BODA_MODE=http` → backend 재기동 (A-2).
-4. 벤더에 수신 URL 등록 여부 확인 (A-3 / Q-1).
-5. 체크리스트 §4.3 검증 — 특히 **위조 헤더 401** 과 8/31 건 2개 녹화본.
+1. ✅ PR #249 머지 → cd-staging → cd-production 8333050 (2026-09-20).
+2. ✅ `/admin/config/boda` 허용 IP 저장 (A-1).
+3. ✅ **`.env.production` `BODA_MODE=http` → backend 재생성 (A-2)** — 2026-09-20 06:56Z 완료. 컨테이너 `tac-backend:8333050`, `BODA_MODE=http`, `/api/health` 200.
+
+   > ⚠️ **사고 기록**: 첫 재생성을 `DEPLOY_SHA` 없이 `docker compose up -d backend` 로 실행 → compose 의 `image: …:${DEPLOY_SHA:-production}` 폴백으로 **구 `:production` 태그(MySQL 시절 이미지)** 가 떠서 `ECONNREFUSED 127.0.0.1:3306` crash-loop, `/api` 502 약 1분. `DEPLOY_SHA=8333050` 로 재실행해 복구. **백엔드 단독 재생성 시 반드시 `DEPLOY_SHA=<현재 배포 sha>` 를 붙인다** (또는 `scripts/deploy-production.sh` 사용).
+
+   ```bash
+   cd ~/app-academy
+   sed -i 's/^BODA_MODE=mock/BODA_MODE=http/' docker/production/.env.production
+   DEPLOY_SHA=$(docker inspect --format '{{.Config.Image}}' tac-prod-backend | sed 's/.*://') \
+   docker compose -f docker/production/docker-compose.production.yml \
+     --env-file docker/production/.env.production up -d --no-deps backend
+   docker exec tac-prod-backend env | grep '^BODA_MODE'   # → http
+   ```
+
+4. ⏳ 벤더에 수신 URL 등록 여부 확인 (A-3 / Q-1).
+5. ⏳ 10분 내 `/admin/cal/999cb70c-ff33-4624-95f2-1f2218baa471` 🎬 수업 녹화본 2건 → `ARCHIVED` 전환 → 재생·seek·다운로드. 즉시 확인은 `[녹화본 동기화]`.
+6. ⏳ 수집 완료 후 `BODA_RECORDING_SYNC_LOOKBACK_HOURS` 를 48 로 되돌리거나 제거.

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-STD-WITHDRAWN-PLN-1.0.0
 version: 1.1.0
-status: IMPLEMENTING
+status: IMPLEMENTED_PENDING_DATA_REVIEW
 date: 2026-09-20
 change_log:
   - version: 1.1.0
@@ -269,3 +269,7 @@ ACM 시스템 등록일 [실제 생성 시각]
 ```
 
 원본 식별과 역사 정보는 `amb_acm_std_withdrawn_record`에 통합한다. 48개 필드는 고정 키·타입 검증을 거친 뒤 AES-GCM으로 암호화하여 저장하며, 원본번호는 테넌트/출처 내 유일하다. 별도의 부모 마스터 생성이나 금융/알림 설정 변경은 발생하지 않는다. 변경 감사도 암호화한다. 일반 목록 날짜 검색용 입학일·퇴원일·사유는 학생 테이블 nullable 필드로 추가한다. 동일 원본번호의 재업로드는 빈 값만 보완하며, 이전 원본 내용을 정정할 때는 상세의 명시적 수정을 사용한다.
+
+## Deployment Result (배포 결과)
+
+PR #246/#247 및 운영 배포 완료. 신규 퇴원 등록 16명·기존 보완 15명, 원본 기록 31개를 확인했다. 이름 기준 연결 확인이 필요한 36명은 보류 중이다. 상세 결과는 [작업 보고서](../report/RPT-260920-std-withdrawn-import.md)를 참조한다. 후속 메뉴 분리/업로드 버튼 제거는 [추가 계획서](../plan/PLN-260920B-std-navigation-withdrawn-list.md)로 관리한다.
