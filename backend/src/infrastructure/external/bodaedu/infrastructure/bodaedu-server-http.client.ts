@@ -36,6 +36,8 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
   private readonly envBaseUrl: string;
   private readonly envBasicAuth: string;
   private readonly timeoutMs: number;
+  /** 녹화 파일 전체 전송 상한 (REQ-260920C C-1). 기본 30분. */
+  private readonly downloadTimeoutMs: number;
 
   constructor(config: ConfigService) {
     this.envBaseUrl = (config.get<string>('BODA_SERVER_URL') ?? '').replace(
@@ -44,6 +46,9 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
     );
     this.envBasicAuth = config.get<string>('BODA_BASIC_AUTH') ?? '';
     this.timeoutMs = Number(config.get('BODA_TIMEOUT_MS', 5000));
+    this.downloadTimeoutMs = Number(
+      config.get('BODA_DOWNLOAD_TIMEOUT_MS', 30 * 60_000),
+    );
   }
 
   async getMeetInfo(
@@ -114,9 +119,12 @@ export class BodaeduServerHttpClient implements IBodaeduServerClient {
       Authorization: `Basic ${eff.basicAuth}`,
     };
     if (range) headers.Range = range;
+    // REQ-260920C C-1 — 벤더 다운로드는 Range 미지원·전체 전송(수백 MB~GB).
+    // 헤더 도착까지의 짧은 timeoutMs 대신 전송 전체에 넉넉한 상한을 둔다.
+    // 상한 초과 시 본문 스트림이 abort 되어 보관 워커가 FAILED 로 기록·재시도.
     const res = await fetch(
       `${eff.baseUrl}/svr/record/log/video/${recordIdx}/download`,
-      { headers },
+      { headers, signal: AbortSignal.timeout(this.downloadTimeoutMs) },
     );
     if (!res.ok || !res.body) {
       throw new Error(`RECORDING_DOWNLOAD_FAILED_${res.status}`);

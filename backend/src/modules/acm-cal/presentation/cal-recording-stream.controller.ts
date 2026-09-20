@@ -41,7 +41,10 @@ export class CalRecordingStreamController {
     );
 
     res.setHeader('Content-Type', out.mime);
-    res.setHeader('Accept-Ranges', 'bytes');
+    // REQ-260920C B-3 — 보다 원본 직프록시는 Range 미지원(벤더 확인). 브라우저가
+    // seek 마다 전체 파일을 다시 받지 않도록 `none` 을 알린다. ACM 보관본(S3)만
+    // 구간 요청이 가능하다.
+    res.setHeader('Accept-Ranges', out.source === 'ACM' ? 'bytes' : 'none');
     // 티켓 URL 이 공유·캐시되지 않도록.
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader(

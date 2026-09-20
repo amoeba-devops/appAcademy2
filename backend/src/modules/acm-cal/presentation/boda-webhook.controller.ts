@@ -10,6 +10,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,6 +18,10 @@ import type { Request } from 'express';
 import { BodaConfigTypeormEntity } from '../infrastructure/typeorm/boda-config.typeorm-entity';
 import { ACM_DS } from '../../acm-common/datasource';
 import { BodaWebhookService } from '../application/boda-webhook.service';
+import {
+  parseTrustedHops,
+  resolveWebhookSourceIp,
+} from '../../../infrastructure/external/bodaedu/webhook/bodaedu-webhook-source-ip.util';
 
 /**
  * BODA Webhook payload — vendor SPEC_823 v823.002. Fields are deliberately
@@ -61,12 +66,22 @@ interface BodaWebhookPayload {
 @Controller('webhooks/boda')
 export class BodaWebhookController {
   private readonly logger = new Logger(BodaWebhookController.name);
+  /**
+   * REQ-260920C B-1 — backend 앞의 신뢰 프록시 수. 운영(host nginx → 컨테이너
+   * nginx) = 2. 로컬 직접 호출은 XFF 가 없으므로 소켓 IP 로 자연 폴백.
+   */
+  private readonly trustedHops: number;
 
   constructor(
     @InjectRepository(BodaConfigTypeormEntity, ACM_DS)
     private readonly cfgRepo: Repository<BodaConfigTypeormEntity>,
     private readonly svc: BodaWebhookService,
-  ) {}
+    config: ConfigService,
+  ) {
+    this.trustedHops = parseTrustedHops(
+      config.get<string>('BODA_WEBHOOK_TRUSTED_PROXY_HOPS'),
+    );
+  }
 
   @Post()
   @HttpCode(200)
@@ -153,13 +168,13 @@ export class BodaWebhookController {
   }
 
   private srcOf(req: Request): string {
-    // Trust X-Forwarded-For only when the request comes from a proxy we
-    // control. NestJS' default trust-proxy behavior already strips spoofed
-    // hops at the edge nginx; here we just take the first hop.
-    const xff = req.headers['x-forwarded-for'];
-    if (typeof xff === 'string' && xff.length > 0) {
-      return xff.split(',')[0].trim();
-    }
-    return req.ip ?? '';
+    // IP allowlist 가 유일한 인증이므로 X-Forwarded-For 의 첫 항목(클라이언트가
+    // 임의로 넣을 수 있음)이 아니라, 신뢰 프록시가 append 한 뒤쪽 항목을 쓴다.
+    // @see bodaedu-webhook-source-ip.util.ts
+    return resolveWebhookSourceIp(
+      req.headers['x-forwarded-for'],
+      req.ip ?? req.socket?.remoteAddress,
+      this.trustedHops,
+    );
   }
 }

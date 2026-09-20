@@ -25,8 +25,8 @@ related:
 | # | 항목 | 그룹 | 상태 | 우선순위 |
 |---|------|:---:|:---:|:---:|
 | A1 | Webhook 수신 URL 등록 | A 컷오버 | 🔴 요청 | **필수** |
-| A2 | Webhook 출발지 IP 대역 (Q2 연계) | A 컷오버 | 🔴 미회신 | **필수** |
-| A3 | Webhook 고정 헤더 토큰 지원 여부 (Q2) | A 컷오버 | 🔴 미회신 | High |
+| A2 | Webhook 출발지 IP 대역 (Q2 연계) | A 컷오버 | ✅ 회신(2026-09-20) `121.170.164.136/.137/.138` | **필수** |
+| A3 | Webhook 고정 헤더 토큰 지원 여부 (Q2) | A 컷오버 | ✅ 회신(2026-09-20) **미지원 — IP 단독** | High |
 | A4 | SERVER API 조회 키 — 고객사 `meetKey` vs `meetIdx` | A 컷오버 | 🔴 미회신 | High |
 | B1 | `bodaOpen/bodaJoin` 클라이언트에 `AuCd` 노출 필요 여부 (Q1) | B 입장 | 🟡 가정(불필요) | High |
 | B2 | `BodaAppApi.js` 배포처·버전·갱신 정책 (Q4) | B 입장 | 🔴 미회신 | Medium |
@@ -38,7 +38,7 @@ related:
 | C2 | iframe `src` URL + 쿼리 파라미터 정확한 명세 (Q-LX-2) | C iframe | 🔴 미회신 | High |
 | C3 | iframe 모드 강사 입장 시 SSO 처리 방식 (Q-LX-3) | C iframe | 🔴 미회신 | High |
 | D1 | 그룹수업용 `roomCode` 추가 발급 (Q3) | D 확장 | 🔴 미회신 | 후속 |
-| D2 | 녹화/수업노트 SERVER API 조회·재생 권한 | D 확장 | 🔴 미회신 | 후속 |
+| D2 | 녹화/수업노트 SERVER API 조회·재생 권한 | D 확장 | ✅ 회신(2026-09-20) 서버녹화 자동(강사 포함 2명 입장 시), 보관 1년, 다운로드 Range 미지원·동시/속도 제한 없음 | 후속 |
 | D3 | 자격증명 비대칭 보안 채널 합의 (Q12) | D 확장 | 🟡 협의 | Medium |
 
 > ✅ 이미 확보(재질문 불필요): Ccd=245 / Cid=tpi / AuCd=769730064 / SvrApi Basic=`MjQ1Ojc2OTczMDA2NA==` / roomCode(1:1)=699 / URL(bodaweb·svr·webrtc) / userType 11·12·13 / `dup=1` 고정.
@@ -85,8 +85,8 @@ SPEC_823 v823.002 기준 연동 개발을 완료했고, 실연동 전환 전 아
 | # | 우리 측 현재 구현·가정 | 회신 후 반영 위치 |
 |---|------------------------|-------------------|
 | A1 | 수신 엔드포인트 구현 완료(`POST /api/webhooks/boda`), 200 멱등 | 벤더 등록 확인 → 수신 테스트 |
-| A2 | webhook 인증을 **IP-allowlist 우선**으로 완화(FIX-260624) | `/admin/config/boda` → `webhookAllowCidrs` |
-| A3 | 토큰 있으면 IP+토큰 이중, 없으면 IP 단독 | (가능 시) `eventSecret` 저장 |
+| A2 | webhook 인증을 **IP-allowlist 우선**으로 완화(FIX-260624). 발신 IP 판정은 XFF 뒤에서 2번째 (REQ-260920C B-1) | `/admin/config/boda` → `webhookAllowCidrs` = `121.170.164.136,121.170.164.137,121.170.164.138` |
+| A3 | 토큰 있으면 IP+토큰 이중, 없으면 IP 단독 | 벤더 미지원 확정 → `eventSecret` 비워 둠 |
 | A4 | `getMeetInfo/getJoinLog`를 고객사 `meetKey`로 조회 | 불가 시 `meetIdx` 기준 전환(소규모 PR) |
 | B1 | `bodaOpen/Join`에 AuCd 미전달(TCPS 가정) | 필요 회신 시 클라이언트 파라미터 추가 |
 | B2 | `appApiUrl = {bodaWebUrl}/BodaAppApi.js` 로 로드(10s 타임아웃) | 배포처/버전 회신 반영 |
@@ -96,7 +96,7 @@ SPEC_823 v823.002 기준 연동 개발을 완료했고, 실연동 전환 전 아
 | B6 | 동시 운영 한계 미반영 | 한계 회신 시 throttle/안내 |
 | C1–C3 | 모드 A(iframe) **코드 완료·`BODA_EMBED_ENABLED=false`로 비활성** | 허용 회신 시 `BODA_EMBED_ENABLED=true` + URL/SSO 반영 |
 | D1 | 그룹수업 Non-Goal | 발급 시 다종 roomCode 운용 |
-| D2 | 녹화/노트 미사용 | 조건 회신 후 별도 작업 |
+| D2 | 녹화 연동 구현·배포 완료 (PLN-260912B) + 벤더 제약 반영 (REQ-260920C: 멀티파트 보관·Range 미지원 안내·다운로드 타임아웃) | 운영 설정(IP·BODA_MODE) 후 실검증 |
 | D3 | 비밀 AES-GCM BYTEA 저장, env 키 이름만 기록 | 채널 합의 |
 
 > 참고: 컷오버 절차·설정 매핑은 [RPT-260624](../implementation/RPT-260624-boda-status-check.md) §6, 리허설은 [scripts/boda-staging-cutover-rehearsal.sh](../../scripts/boda-staging-cutover-rehearsal.sh).

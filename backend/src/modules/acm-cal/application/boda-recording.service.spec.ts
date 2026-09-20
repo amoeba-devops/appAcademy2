@@ -299,6 +299,57 @@ describe('BodaRecordingService', () => {
     );
   });
 
+  it('archiveDue streams via multipart (no Content-Length) and records the counted size', async () => {
+    // REQ-260920C B-2 — 보다 다운로드 API 가 길이를 주지 않아도 메모리 버퍼 없이 보관.
+    recFind.mockResolvedValue([rec()]);
+    downloadRecording.mockResolvedValue({
+      stream: Readable.from([Buffer.from('vid'), Buffer.from('eo!')]),
+      contentType: 'video/mp4',
+      contentLength: null,
+      contentRange: null,
+      partial: false,
+    });
+    putObjectStream.mockImplementation(({ body }: { body: Readable }) =>
+      drain(body),
+    );
+
+    const r = await svc.archiveDue();
+
+    expect(r).toEqual({ picked: 1, archived: 1, failed: 0 });
+    expect(putObjectStream).toHaveBeenCalledWith(
+      expect.objectContaining({ contentLength: null, mime: 'video/mp4' }),
+    );
+    expect(recUpdate).toHaveBeenLastCalledWith(
+      { id: 'v-1' },
+      expect.objectContaining({ archiveStatus: 'ARCHIVED', sizeBytes: '6' }),
+    );
+  });
+
+  it('archiveDue marks FAILED when the upstream body is empty', async () => {
+    recFind.mockResolvedValue([rec()]);
+    downloadRecording.mockResolvedValue({
+      stream: Readable.from([]),
+      contentType: 'video/mp4',
+      contentLength: null,
+      contentRange: null,
+      partial: false,
+    });
+    putObjectStream.mockImplementation(({ body }: { body: Readable }) =>
+      drain(body),
+    );
+
+    const r = await svc.archiveDue();
+
+    expect(r).toEqual({ picked: 1, archived: 0, failed: 1 });
+    expect(recUpdate).toHaveBeenLastCalledWith(
+      { id: 'v-1' },
+      expect.objectContaining({
+        archiveStatus: 'FAILED',
+        error: 'RECORDING_EMPTY_BODY',
+      }),
+    );
+  });
+
   it('archiveDue marks FAILED when the vendor download blows up', async () => {
     recFind.mockResolvedValue([rec()]);
     downloadRecording.mockRejectedValue(
@@ -398,3 +449,10 @@ describe('BodaRecordingService', () => {
     );
   });
 });
+
+/** S3 업로더처럼 본문을 끝까지 소비한다 (ByteCounter 가 크기를 세도록). */
+function drain(body: Readable): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    body.on('end', resolve).on('error', reject).resume();
+  });
+}

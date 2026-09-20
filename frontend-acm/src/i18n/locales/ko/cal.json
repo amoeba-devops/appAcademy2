@@ -325,6 +325,8 @@
     "archiving": "서버 보관 중 {{count}}건",
     "archiveFailed": "보관 실패 {{count}}건",
     "notArchived": "보다스쿨 원본",
+    "notArchivedHint": "보관 완료 전 — 구간 이동 불가",
+    "seekHint": "보관 완료 전에는 구간 이동(탐색)이 되지 않습니다. 보다스쿨 원본을 그대로 재생 중입니다.",
     "status": {
       "NOT_APPLICABLE": "화상수업 아님",
       "NO_ROOM": "강의실 미개설",
