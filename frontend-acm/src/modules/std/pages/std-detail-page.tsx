@@ -1,3 +1,5 @@
+import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
+import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -14,6 +16,15 @@ import { StdFormModal } from "../components/std-form-modal";
 import { ParentPickOrCreateDialog } from "../components/parent-pick-or-create-dialog";
 import { PortalAccountPanel } from "@/modules/portal-admin/components/portal-account-panel";
 
+export function displayStudentValue(
+  value: string | number | boolean | null | undefined,
+  missing: string,
+): string | number {
+  if (value == null || (typeof value === "string" && !value.trim()))
+    return missing;
+  return typeof value === "boolean" ? String(value) : value;
+}
+
 function InfoRow({
   label,
   value,
@@ -21,10 +32,13 @@ function InfoRow({
   label: string;
   value?: string | number | null;
 }) {
+  const { t } = useTranslation("std");
   return (
-    <div className="py-1.5">
-      <dt className="text-xs text-secondary">{label}</dt>
-      <dd className="text-sm text-primary">{value ?? "—"}</dd>
+    <div className="py-1.5 flex flex-wrap items-baseline gap-x-1">
+      <dt className="text-xs text-secondary">{label} :</dt>
+      <dd className="text-sm text-primary">
+        {displayStudentValue(value, t("detail.inputRequired"))}
+      </dd>
     </div>
   );
 }
@@ -38,10 +52,8 @@ function Section({
 }) {
   return (
     <div className="rounded-lg border border-[var(--border-subtle)] p-4">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
-        {title}
-      </h3>
-      <dl className="grid grid-cols-2 gap-x-6 sm:grid-cols-3">{children}</dl>
+      <h3 className="mb-3 text-[13px] font-bold text-secondary">{title}</h3>
+      <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-3">{children}</dl>
     </div>
   );
 }
@@ -53,6 +65,7 @@ export function StdDetailPage() {
   const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
   const { t } = useTranslation("std");
   const confirm = useConfirm();
+  const role = useAuthStore((s) => s.user?.role);
   const [showEdit, setShowEdit] = useState(false);
   const [showParentPicker, setShowParentPicker] = useState(false);
 
@@ -169,17 +182,37 @@ export function StdDetailPage() {
         <InfoRow label={t("field.school")} value={student.school} />
         <InfoRow label={t("field.grade")} value={student.grade} />
         <InfoRow label={t("field.startDate")} value={student.startDate} />
+        <InfoRow
+          label={t("withdrawn.admissionDate")}
+          value={student.admissionDate}
+        />
+        {student.status === "WITHDRAWN" && (
+          <>
+            <InfoRow
+              label={t("withdrawn.withdrawnDate")}
+              value={student.withdrawnDate}
+            />
+            <InfoRow
+              label={t("withdrawn.reason")}
+              value={student.withdrawnReason}
+            />
+          </>
+        )}
       </Section>
+
+      {(role === "ADMIN" || role === "APP_ADMIN") && (
+        <WithdrawnRecordPanel studentId={student.id} />
+      )}
 
       {/* MAP 점수 */}
       <Section title={t("form.sectionMap")}>
         <InfoRow label={t("field.mapReading")} value={student.mapReading} />
         <InfoRow label={t("field.mapMath")} value={student.mapMath} />
         <InfoRow label={t("field.mapLanguage")} value={student.mapLanguage} />
-        <div className="col-span-2 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.mapNote")}</dt>
+        <div className="col-span-1 sm:col-span-3 py-1.5">
+          <dt className="text-xs text-secondary">{t("field.mapNote")} :</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
-            {student.mapNote ?? "—"}
+            {displayStudentValue(student.mapNote, t("detail.inputRequired"))}
           </dd>
         </div>
       </Section>
@@ -204,16 +237,19 @@ export function StdDetailPage() {
 
       {/* 메모 */}
       <Section title={t("form.sectionMemo")}>
-        <div className="col-span-2 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.goalsNote")}</dt>
+        <div className="col-span-1 sm:col-span-3 py-1.5">
+          <dt className="text-xs text-secondary">{t("field.goalsNote")} :</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
-            {student.goalsNote ?? "—"}
+            {displayStudentValue(student.goalsNote, t("detail.inputRequired"))}
           </dd>
         </div>
-        <div className="col-span-2 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.specialNote")}</dt>
+        <div className="col-span-1 sm:col-span-3 py-1.5">
+          <dt className="text-xs text-secondary">{t("field.specialNote")} :</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
-            {student.specialNote ?? "—"}
+            {displayStudentValue(
+              student.specialNote,
+              t("detail.inputRequired"),
+            )}
           </dd>
         </div>
         <InfoRow
@@ -228,7 +264,7 @@ export function StdDetailPage() {
 
       {/* 포털 계정 (PLN-260706) */}
       <div className="rounded-lg border border-[var(--border-subtle)] p-4">
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-secondary">
+        <h3 className="mb-3 text-[13px] font-bold text-secondary">
           {t("common:portalAccount.title")}
         </h3>
         <PortalAccountPanel
@@ -245,7 +281,7 @@ export function StdDetailPage() {
       {/* 학부모 */}
       <div className="rounded-lg border border-[var(--border-subtle)] p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-secondary">
+          <h3 className="text-[13px] font-bold text-secondary">
             {t("form.sectionParents", "학부모 정보")}
           </h3>
           <Button
@@ -287,7 +323,8 @@ export function StdDetailPage() {
                   )}
                 </div>
                 <div className="text-xs text-secondary">
-                  {p.phone ?? "—"} · {p.email ?? "—"}
+                  {displayStudentValue(p.phone, t("detail.inputRequired"))} ·{" "}
+                  {displayStudentValue(p.email, t("detail.inputRequired"))}
                 </div>
               </div>
               <div className="flex items-center gap-2">

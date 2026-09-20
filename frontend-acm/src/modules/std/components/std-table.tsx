@@ -10,6 +10,7 @@ export interface StdSort {
 }
 
 interface StdTableProps {
+  showWithdrawal?: boolean;
   items: StudentSummary[];
   selected?: string[];
   onSelect?: (id: string) => void;
@@ -28,6 +29,7 @@ const fmtDate = (s?: string | null) => {
 
 export function StdTable({
   items,
+  showWithdrawal = false,
   isLoading,
   sort,
   onSort,
@@ -94,7 +96,9 @@ export function StdTable({
       <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-[var(--gray-50)] text-xs uppercase tracking-wide text-secondary">
           <tr>
-            <th className="px-4 py-3 text-left">{onSelect ? t("site.select") : "#"}</th>
+            <th className="px-4 py-3 text-left">
+              {onSelect ? t("site.select") : "#"}
+            </th>
             <SortableTh field="site" label={t("site.label")} />
             <SortableTh field="name" label={t("table.name")} />
 
@@ -102,6 +106,14 @@ export function StdTable({
             <th className="px-4 py-3 text-left">{t("table.grade")}</th>
             <th className="px-4 py-3 text-left">{t("table.teacher")}</th>
             <th className="px-4 py-3 text-left">{t("table.status")}</th>
+            <>
+              {showWithdrawal && (
+                <>
+                  <th>{t("withdrawn.withdrawnDate")}</th>
+                  <th>{t("withdrawn.reason")}</th>
+                </>
+              )}
+            </>
             <SortableTh field="startDate" label={t("field.startDate")} />
             <SortableTh field="createdAt" label={t("table.createdAt")} />
           </tr>
@@ -178,6 +190,12 @@ export function StdTable({
               <td className="px-4 py-3">
                 <StdStatusBadge status={s.status} />
               </td>
+              {showWithdrawal && (
+                <>
+                  <td className="px-4 py-3">{fmtDate(s.withdrawnDate)}</td>
+                  <td className="px-4 py-3">{s.withdrawnReason ?? "—"}</td>
+                </>
+              )}
               <td className="px-4 py-3 text-secondary">
                 {fmtDate(s.startDate)}
               </td>

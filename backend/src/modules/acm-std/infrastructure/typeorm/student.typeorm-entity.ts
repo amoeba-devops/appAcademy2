@@ -100,6 +100,13 @@ export class StudentTypeormEntity {
   @Column({ name: 'std_last_counsel_date', type: 'date', nullable: true })
   lastCounselDate?: string | null;
 
+  @Column({ name: 'std_admission_date', type: 'date', nullable: true })
+  admissionDate?: string | null;
+  @Column({ name: 'std_withdrawn_date', type: 'date', nullable: true })
+  withdrawnDate?: string | null;
+  @Column({ name: 'std_withdrawn_reason', type: 'text', nullable: true })
+  withdrawnReason?: string | null;
+
   // 상태/등록
   @Column({ name: 'std_start_date', type: 'date', nullable: true })
   startDate?: string | null;

@@ -152,6 +152,7 @@ export class SiteImportService {
       const preview = records[0];
       if (!preview || new Date(preview.expires_at).getTime() < Date.now())
         throw new NotFoundException('PREVIEW_EXPIRED');
+      if (!Array.isArray(preview.payload)) throw new BadRequestException('INVALID_PREVIEW_TYPE');
       if (preview.result) return preview.result;
       const repo = m.getRepository(StudentTypeormEntity);
       const all = await repo.find({

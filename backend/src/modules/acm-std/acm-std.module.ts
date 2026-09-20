@@ -1,3 +1,5 @@
+import { WithdrawnImportService } from './application/withdrawn-import.service';
+import { WithdrawnImportController } from './presentation/withdrawn-import.controller';
 import { SiteImportService } from './application/site-import.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -33,12 +35,14 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
     AmaModule,
   ],
   controllers: [
+    WithdrawnImportController,
     StudentController,
     ParentController,
     StudentParentController,
     PortalTeacherStudentsController, // PLN-260719 C — 강사 포털 수강생관리
   ],
   providers: [
+    WithdrawnImportService,
     StudentService,
     ImportService,
     SiteImportService,

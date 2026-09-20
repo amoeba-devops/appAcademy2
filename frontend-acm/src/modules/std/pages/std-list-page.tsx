@@ -1,3 +1,4 @@
+import { WithdrawnImportModal } from "../components/withdrawn-import-modal";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -34,6 +35,7 @@ export function StdListPage() {
   const [prefill, setPrefill] = useState(navPrefill);
   const [showCreate, setShowCreate] = useState(!!navPrefill);
   const [showImport, setShowImport] = useState(false);
+  const [showWithdrawnImport, setShowWithdrawnImport] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [newSite, setNewSite] = useState("TPI");
@@ -98,6 +100,8 @@ export function StdListPage() {
     sort: sort.field,
     dir: sort.dir,
     teacherId: teacherId || undefined,
+    withdrawnDateFrom: params.get("withdrawnDateFrom") || undefined,
+    withdrawnDateTo: params.get("withdrawnDateTo") || undefined,
     startDateFrom: params.get("startDateFrom") || undefined,
     startDateTo: params.get("startDateTo") || undefined,
   });
@@ -129,9 +133,17 @@ export function StdListPage() {
         <h1 className="text-2xl font-semibold">{t("title")}</h1>
         <div className="flex gap-2">
           {canBulk && (
-            <Button variant="outline" onClick={() => setShowImport(true)}>
-              {t("actions.import")}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setShowWithdrawnImport(true)}
+              >
+                {t("withdrawn.importTitle")}
+              </Button>
+              <Button variant="outline" onClick={() => setShowImport(true)}>
+                {t("actions.import")}
+              </Button>
+            </>
           )}
           <Button
             onClick={() => {
@@ -159,7 +171,10 @@ export function StdListPage() {
             onClick={() => change({ site: key })}
             className="whitespace-nowrap"
           >
-            {t(`site.${key}`)} ({data?.siteCounts?.[key] ?? "—"})
+            {key.startsWith("withdrawn")
+              ? t(`withdrawn.${key}`)
+              : t(`site.${key}`)}{" "}
+            ({data?.siteCounts?.[key] ?? "—"})
           </Button>
         ))}
       </div>
@@ -188,7 +203,14 @@ export function StdListPage() {
             }
           />
         </div>
-        {(["startDateFrom", "startDateTo"] as const).map((key) => (
+        {(
+          [
+            "startDateFrom",
+            "startDateTo",
+            "withdrawnDateFrom",
+            "withdrawnDateTo",
+          ] as const
+        ).map((key) => (
           <label key={key} className="text-xs">
             {t(`site.${key}`)}
             <input
@@ -231,6 +253,7 @@ export function StdListPage() {
         </div>
       ) : (
         <StdTable
+          showWithdrawal={filters.status === "WITHDRAWN"}
           items={data?.items ?? []}
           isLoading={isLoading}
           sort={sort}
@@ -289,6 +312,12 @@ export function StdListPage() {
           open
           onClose={() => setShowCreate(false)}
           prefill={prefill}
+        />
+      )}
+      {showWithdrawnImport && (
+        <WithdrawnImportModal
+          open
+          onClose={() => setShowWithdrawnImport(false)}
         />
       )}
       {showImport && (

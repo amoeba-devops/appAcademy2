@@ -50,6 +50,9 @@ type FormValues = {
   stdSpecialNote: string;
   stdStatus: string;
   stdStartDate: string;
+  stdAdmissionDate: string;
+  stdWithdrawnDate: string;
+  stdWithdrawnReason: string;
   stdParents: ParentInput[];
 };
 
@@ -80,6 +83,7 @@ export function StdFormModal({
 
   const {
     register,
+    watch,
     handleSubmit,
     reset,
     control,
@@ -108,6 +112,9 @@ export function StdFormModal({
       stdGoalsNote: initial?.goalsNote ?? "",
       stdSpecialNote: initial?.specialNote ?? "",
       stdStatus: initial?.status ?? "ACTIVE",
+      stdAdmissionDate: initial?.admissionDate ?? "",
+      stdWithdrawnDate: initial?.withdrawnDate ?? "",
+      stdWithdrawnReason: initial?.withdrawnReason ?? "",
       stdStartDate: initial?.startDate ?? prefill?.stdStartDate ?? "",
       stdParents:
         initial?.parents?.map((p) => ({
@@ -126,6 +133,8 @@ export function StdFormModal({
   const createMut = useCreateStudent();
   const updateMut = useUpdateStudent(initial?.id ?? "");
   const isLoading = createMut.isPending || updateMut.isPending;
+
+  const isWithdrawn = watch("stdStatus") === "WITHDRAWN";
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
@@ -211,6 +220,37 @@ export function StdFormModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+          <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
+            <legend className="text-[13px] font-bold">
+              {t("withdrawn.datesTitle")}
+            </legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className={labelClass}>
+                {t("withdrawn.admissionDate")}
+                <input
+                  type="date"
+                  {...register("stdAdmissionDate")}
+                  className={inputClass}
+                />
+              </label>
+              <label className={labelClass}>
+                {t("withdrawn.withdrawnDate")}
+                <input
+                  type="date"
+                  {...register("stdWithdrawnDate")}
+                  className={inputClass}
+                />
+              </label>
+              <label className={`${labelClass} sm:col-span-2`}>
+                {t("withdrawn.reason")}
+                <textarea
+                  {...register("stdWithdrawnReason")}
+                  className={inputClass}
+                  maxLength={1000}
+                />
+              </label>
+            </div>
+          </fieldset>
           {/* 기본 인적사항 */}
           <fieldset className="rounded-md border border-[var(--border-subtle)] p-4 space-y-3">
             <legend className="text-xs font-semibold text-secondary px-1">
@@ -219,12 +259,15 @@ export function StdFormModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelClass} htmlFor="std-site">
-                  {t("site.label")} *
+                  {t("site.label")}
+                  {!isEdit && !isWithdrawn ? " *" : ""}
                 </label>
                 <select
                   id="std-site"
-                  {...register("stdSite", { required: !isEdit })}
-                  required={!isEdit}
+                  {...register("stdSite", {
+                    required: !isEdit && !isWithdrawn,
+                  })}
+                  required={!isEdit && !isWithdrawn}
                   className={inputClass}
                 >
                   <option value="">{t("site.UNASSIGNED")}</option>
@@ -270,14 +313,17 @@ export function StdFormModal({
               </div>
               <div>
                 <label className={labelClass}>
-                  {t("field.email", "이메일")} *
+                  {t("field.email", "이메일")}
+                  {!isWithdrawn ? " *" : ""}
                 </label>
                 <input
                   type="email"
                   {...register("stdEmail", {
-                    required: t("form.error.emailRequired", {
-                      defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
-                    }) as string,
+                    required:
+                      !isWithdrawn &&
+                      (t("form.error.emailRequired", {
+                        defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
+                      }) as string),
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                       message: t("form.error.emailInvalid", {

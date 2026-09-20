@@ -105,7 +105,8 @@
     "notFound": "Không tìm thấy học sinh",
     "updatedAt": "Cập nhật lần cuối",
     "confirmDeactivate": "Vô hiệu hóa học sinh này?",
-    "sourceInquiry": "Từ tư vấn"
+    "sourceInquiry": "Từ tư vấn",
+    "inputRequired": "Cần nhập"
   },
   "parentPicker": {
     "title": "Thêm phụ huynh",
@@ -196,5 +197,31 @@
     "HOLD": "Ghép chưa rõ",
     "ERROR": "Lỗi",
     "DELETED": "Hồ sơ đã xóa"
+  },
+  "withdrawn": {
+    "importTitle": "Nhập danh sách học sinh thôi học",
+    "policy": "Học sinh mới được đăng ký với trạng thái thôi học. Học sinh hiện có giữ nguyên trạng thái; chỉ bổ sung thông tin còn trống.",
+    "analyze": "Phân tích ô",
+    "counts": "Tổng {{total}} · Mới {{new}} · Hiện có {{existing}} · Tạm giữ {{hold}}",
+    "row": "Dòng",
+    "candidate": "Học sinh hiện có",
+    "review": "Đã kiểm tra",
+    "select": "Chọn học sinh",
+    "new": "Mới · Thôi học",
+    "source": "Thông tin nguồn",
+    "failed": "Không thể lưu. Kiểm tra dữ liệu và thông tin học sinh hiện tại rồi thử lại.",
+    "result": "Đã tạo {{created}} · Đã cập nhật {{updated}} · Không đổi {{unchanged}}",
+    "apply": "Áp dụng {{count}} dòng đã kiểm tra",
+    "recordTitle": "Nhập học và thôi học / Thông tin nguồn",
+    "sourceHint": "Thông tin lịch sử từ nguồn. Chỉnh sửa không thay đổi trạng thái hiện tại, thanh toán hoặc thông báo.",
+    "admissionDate": "Ngày nhập học",
+    "withdrawnDate": "Ngày thôi học",
+    "withdrawnDateFrom": "Ngày thôi học: từ",
+    "withdrawnDateTo": "Ngày thôi học: đến",
+    "reason": "Lý do thôi học",
+    "current": "Hiện tại → Nguồn",
+    "keep": "Giữ giá trị hiện có",
+    "supplement": "Bổ sung giá trị trống",
+    "datesTitle": "Thông tin nhập học và thôi học"
   }
 }

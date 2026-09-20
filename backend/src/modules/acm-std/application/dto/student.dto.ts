@@ -15,6 +15,7 @@ import {
   MaxLength,
   Min,
   ValidateNested,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -65,7 +66,8 @@ export class StudentParentInputDto {
 // Create
 // ============================================================================
 export class CreateStudentDto {
-  @ApiProperty({ enum: STD_SITES })
+  @ApiPropertyOptional({ enum: STD_SITES })
+  @ValidateIf((dto: CreateStudentDto) => dto.stdStatus !== 'WITHDRAWN' || dto.stdSite != null)
   @IsIn(STD_SITES)
   stdSite!: (typeof STD_SITES)[number];
 
@@ -227,6 +229,10 @@ export class CreateStudentDto {
   @IsOptional()
   @IsDateString()
   stdStartDate?: string;
+
+  @IsOptional() @IsDateString() stdAdmissionDate?: string;
+  @IsOptional() @IsDateString() stdWithdrawnDate?: string;
+  @IsOptional() @IsString() @MaxLength(1000) stdWithdrawnReason?: string;
 
   @ApiPropertyOptional({ enum: STD_STATUSES, default: 'ACTIVE' })
   @IsOptional()
@@ -411,6 +417,10 @@ export class UpdateStudentDto {
   @IsDateString()
   stdStartDate?: string;
 
+  @IsOptional() @IsDateString() stdAdmissionDate?: string;
+  @IsOptional() @IsDateString() stdWithdrawnDate?: string;
+  @IsOptional() @IsString() @MaxLength(1000) stdWithdrawnReason?: string;
+
   @ApiPropertyOptional({ enum: STD_STATUSES })
   @IsOptional()
   @IsEnum(STD_STATUSES)
@@ -449,6 +459,9 @@ export class ListStudentsQueryDto {
   @IsOptional()
   @IsDateString({ strict: true })
   startDateFrom?: string;
+
+  @IsOptional() @IsDateString() withdrawnDateFrom?: string;
+  @IsOptional() @IsDateString() withdrawnDateTo?: string;
 
   @IsOptional()
   @IsDateString({ strict: true })

@@ -105,7 +105,8 @@
     "notFound": "학생을 찾을 수 없습니다",
     "updatedAt": "최종 수정",
     "confirmDeactivate": "이 학생을 비활성화하시겠습니까?",
-    "sourceInquiry": "신규상담 연결"
+    "sourceInquiry": "신규상담 연결",
+    "inputRequired": "입력필요"
   },
   "parentPicker": {
     "title": "학부모 추가",
@@ -196,5 +197,31 @@
     "HOLD": "매칭 보류",
     "ERROR": "오류",
     "DELETED": "삭제 이력 충돌"
+  },
+  "withdrawn": {
+    "importTitle": "퇴원생 엑셀 업로드",
+    "policy": "신규 학생은 퇴원으로 등록합니다. 기존 학생은 빈 정보만 보완하고 현재 상태를 유지합니다.",
+    "analyze": "셀 분석",
+    "counts": "전체 {{total}}명 · 신규 후보 {{new}}명 · 기존 후보 {{existing}}명 · 보류 {{hold}}명",
+    "row": "행",
+    "candidate": "기존 학생 후보",
+    "review": "확인",
+    "select": "학생 선택",
+    "new": "신규 · 퇴원",
+    "source": "원본 정보",
+    "failed": "처리하지 못했습니다. 입력과 최신 학생 정보를 확인한 뒤 다시 시도해 주세요.",
+    "result": "신규 {{created}}명 · 보완 {{updated}}명 · 변경 없음 {{unchanged}}명",
+    "apply": "확인한 {{count}}명 반영",
+    "recordTitle": "입학·퇴원 이력 / 원본 행정정보",
+    "sourceHint": "과거 원본 정보입니다. 편집해도 현재 재원 상태·수납·알림 설정은 변경되지 않습니다.",
+    "admissionDate": "입학일",
+    "withdrawnDate": "퇴원일",
+    "withdrawnDateFrom": "퇴원일: 시작",
+    "withdrawnDateTo": "퇴원일: 종료",
+    "reason": "퇴원사유",
+    "current": "현재 값 → 원본 값",
+    "keep": "기존 값 유지",
+    "supplement": "빈 값 보완",
+    "datesTitle": "입학·퇴원 정보"
   }
 }

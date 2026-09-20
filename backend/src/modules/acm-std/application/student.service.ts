@@ -233,6 +233,9 @@ export class StudentService {
     if (q.startDateTo) qb.andWhere('s.startDate <= :to', { to: q.startDateTo });
     if (q.startDateFrom && q.startDateTo && q.startDateFrom > q.startDateTo)
       throw new BadRequestException('INVALID_DATE_RANGE');
+    if (q.withdrawnDateFrom) qb.andWhere('s.withdrawnDate >= :withdrawnFrom', {withdrawnFrom:q.withdrawnDateFrom});
+    if (q.withdrawnDateTo) qb.andWhere('s.withdrawnDate <= :withdrawnTo', {withdrawnTo:q.withdrawnDateTo});
+    if (q.withdrawnDateFrom && q.withdrawnDateTo && q.withdrawnDateFrom > q.withdrawnDateTo) throw new BadRequestException('INVALID_DATE_RANGE');
     const counts = await qb
       .clone()
       .select('s.site', 'site')
@@ -296,8 +299,8 @@ export class StudentService {
 
   async create(entId: string, dto: CreateStudentDto) {
     const email = dto.stdEmail?.trim();
-    if (!email) throw new BadRequestException('EMAIL_REQUIRED');
-    await this.assertEmailUnique(entId, email, null);
+    if (!email && dto.stdStatus !== 'WITHDRAWN') throw new BadRequestException('EMAIL_REQUIRED');
+    if (email) await this.assertEmailUnique(entId, email, null);
 
     // REQ-260903B — 담당강사 복수. stdTeacherIds(또는 하위호환 stdTeacherId) 검증
     // 후 레거시 컬럼(std_teacher/std_teacher_id)에 대표·이름 미러링.
@@ -319,7 +322,7 @@ export class StudentService {
       gender: dto.stdGender,
       birthDate: dto.stdBirthDate,
       phone: dto.stdPhone,
-      email,
+      email: email || null,
       residence: dto.stdResidence,
       school: dto.stdSchool,
       grade: dto.stdGrade,
@@ -340,6 +343,9 @@ export class StudentService {
       satisfactionNote: dto.stdSatisfactionNote,
       lastCounselDate: dto.stdLastCounselDate,
       startDate: dto.stdStartDate,
+      admissionDate: dto.stdAdmissionDate,
+      withdrawnDate: dto.stdWithdrawnDate,
+      withdrawnReason: dto.stdWithdrawnReason,
       status: dto.stdStatus ?? 'ACTIVE',
     });
     const saved = await this.repo.save(entity);
@@ -374,10 +380,10 @@ export class StudentService {
     // PLN-260714 — 수정 후에도 이메일은 반드시 존재해야 하고, 중복이면 저장 불가.
     if (dto.stdEmail !== undefined) {
       const email = dto.stdEmail?.trim();
-      if (!email) throw new BadRequestException('EMAIL_REQUIRED');
-      await this.assertEmailUnique(entId, email, id);
+      if (!email && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN') throw new BadRequestException('EMAIL_REQUIRED');
+      if (email) await this.assertEmailUnique(entId, email, id);
       entity.email = email;
-    } else if (!entity.email?.trim()) {
+    } else if (!entity.email?.trim() && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN') {
       throw new BadRequestException('EMAIL_REQUIRED');
     }
     if (dto.stdResidence !== undefined) entity.residence = dto.stdResidence;
@@ -415,6 +421,9 @@ export class StudentService {
     if (dto.stdLastCounselDate !== undefined)
       entity.lastCounselDate = dto.stdLastCounselDate;
     if (dto.stdStartDate !== undefined) entity.startDate = dto.stdStartDate;
+    if (dto.stdAdmissionDate !== undefined) entity.admissionDate = dto.stdAdmissionDate;
+    if (dto.stdWithdrawnDate !== undefined) entity.withdrawnDate = dto.stdWithdrawnDate;
+    if (dto.stdWithdrawnReason !== undefined) entity.withdrawnReason = dto.stdWithdrawnReason;
     if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
 
     entity.updatedAt = new Date();
@@ -521,6 +530,9 @@ export class StudentService {
       teacherId: e.teacherId,
       status: e.status,
       startDate: e.startDate,
+    admissionDate: e.admissionDate,
+    withdrawnDate: e.withdrawnDate,
+    withdrawnReason: e.withdrawnReason,
       createdAt: e.createdAt,
     };
   }
@@ -558,6 +570,9 @@ export class StudentService {
       satisfactionNote: e.satisfactionNote,
       lastCounselDate: e.lastCounselDate,
       startDate: e.startDate,
+    admissionDate: e.admissionDate,
+    withdrawnDate: e.withdrawnDate,
+    withdrawnReason: e.withdrawnReason,
       status: e.status,
       createdAt: e.createdAt,
     };

@@ -25,6 +25,9 @@ export interface StudentSummary {
   /** REQ-260903B — 담당강사 복수 (sort 순, 첫번째 = 대표) */
   teachers?: Array<{ tchId: string; name: string }>;
   status: StdStatus;
+  admissionDate?: string | null;
+  withdrawnDate?: string | null;
+  withdrawnReason?: string | null;
   startDate?: string | null;
   createdAt: string;
   sourceInquiry?: SourceInquiryLink | null;
@@ -84,6 +87,9 @@ export interface StudentCreatePrefill {
   stdSchool?: string;
   stdGrade?: string;
   stdStartDate?: string;
+  stdAdmissionDate?: string;
+  stdWithdrawnDate?: string;
+  stdWithdrawnReason?: string;
   stdParents?: ParentInput[];
 }
 
@@ -104,6 +110,8 @@ export interface ImportResult {
 export interface ListStudentsQuery {
   site?: string;
   teacherId?: string;
+  withdrawnDateFrom?: string;
+  withdrawnDateTo?: string;
   startDateFrom?: string;
   startDateTo?: string;
   q?: string;
