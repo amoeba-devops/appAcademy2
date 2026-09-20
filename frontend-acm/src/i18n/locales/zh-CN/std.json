@@ -223,5 +223,13 @@
     "keep": "保留现有值",
     "supplement": "补充空值",
     "datesTitle": "入学与退学信息"
+  },
+  "navigation": {
+    "integrated": "查看全部校区",
+    "integratedTitle": "学生管理 — 全部校区",
+    "withdrawnTitle": "退学学生管理",
+    "createWithdrawn": "登记退学学生",
+    "currentAll": "全部在校学生",
+    "toggle": "展开/收起学生菜单"
   }
 }

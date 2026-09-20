@@ -449,6 +449,10 @@ export class ChangeStudentStatusDto {
 // ============================================================================
 export class ListStudentsQueryDto {
   @IsOptional()
+  @IsIn(['CURRENT', 'WITHDRAWN'])
+  scope?: 'CURRENT' | 'WITHDRAWN';
+
+  @IsOptional()
   @IsIn([...STD_SITES, 'ALL', 'UNASSIGNED'])
   site?: string;
 

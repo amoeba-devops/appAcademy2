@@ -21,6 +21,7 @@ import { STD_SITES } from "../types";
 import { ParentSubform } from "./parent-subform";
 
 interface StdFormModalProps {
+  initialStatus?: "ACTIVE" | "WITHDRAWN";
   open: boolean;
   onClose: () => void;
   initial?: StudentDetail;
@@ -65,6 +66,7 @@ export function StdFormModal({
   onClose,
   initial,
   prefill,
+  initialStatus = "ACTIVE",
 }: StdFormModalProps) {
   const { t } = useTranslation("std");
   const isEdit = !!initial;
@@ -111,7 +113,7 @@ export function StdFormModal({
       stdGpa: initial?.gpa ?? "",
       stdGoalsNote: initial?.goalsNote ?? "",
       stdSpecialNote: initial?.specialNote ?? "",
-      stdStatus: initial?.status ?? "ACTIVE",
+      stdStatus: initial?.status ?? initialStatus,
       stdAdmissionDate: initial?.admissionDate ?? "",
       stdWithdrawnDate: initial?.withdrawnDate ?? "",
       stdWithdrawnReason: initial?.withdrawnReason ?? "",

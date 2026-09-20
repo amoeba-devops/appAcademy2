@@ -108,6 +108,7 @@ export interface ImportResult {
 }
 
 export interface ListStudentsQuery {
+  scope?: 'CURRENT' | 'WITHDRAWN';
   site?: string;
   teacherId?: string;
   withdrawnDateFrom?: string;

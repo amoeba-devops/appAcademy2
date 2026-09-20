@@ -125,6 +125,27 @@ suite('student sites and reviewed imports (isolated PostgreSQL)', () => {
     expect(site.total).toBe(30);
     expect(site.siteCounts).toMatchObject({ ALL: 51, TPI: 30, UNASSIGNED: 21 });
   });
+  it('separates current and withdrawn students while retaining integrated site counts', async () => {
+    const repo = ds.getRepository(Student);
+    await repo.save([
+      {entId:ent,name:'Current TPI',site:'TPI',status:'ACTIVE'},
+      {entId:ent,name:'Paused Trinity',site:'TRINITY',status:'INACTIVE'},
+      {entId:ent,name:'Current Santa',site:'SANTACROCE',status:'ACTIVE'},
+      {entId:ent,name:'Unassigned',status:'ACTIVE'},
+      {entId:ent,name:'Withdrawn TPI',site:'TPI',status:'WITHDRAWN',withdrawnDate:'2026-08-11'},
+      {entId:other,name:'Other tenant',status:'WITHDRAWN'},
+    ]);
+    const current = await students.list(ent,{scope:'CURRENT',status:'ALL'});
+    expect(current.total).toBe(4);
+    expect(current.siteCounts).toMatchObject({ALL:4,TPI:1,TRINITY:1,SANTACROCE:1,UNASSIGNED:1});
+    expect((await students.list(ent,{scope:'CURRENT',status:'ALL',site:'TPI'})).total).toBe(1);
+    const withdrawn = await students.list(ent,{scope:'WITHDRAWN'});
+    expect(withdrawn.total).toBe(1); expect(withdrawn.items[0].status).toBe('WITHDRAWN');
+    expect((await students.list(ent,{scope:'WITHDRAWN',withdrawnDateFrom:'2026-08-12'})).total).toBe(0);
+    expect((await students.list(ent,{status:'ALL'})).total).toBe(5);
+    await expect(students.list(ent,{scope:'CURRENT',status:'WITHDRAWN'})).rejects.toThrow('INVALID_STUDENT_SCOPE');
+    await expect(students.list(ent,{scope:'WITHDRAWN',status:'ACTIVE'})).rejects.toThrow('INVALID_STUDENT_SCOPE');
+  });
   it('records site changes and rejects stale or other-tenant bulk targets atomically', async () => {
     const repo = ds.getRepository(Student);
     const s = await repo.save(repo.create({ entId: ent, name: 'A' }));

@@ -105,7 +105,16 @@ export function StdDetailPage() {
           <button
             onClick={() =>
               navigate(
-                returnTo?.startsWith("/admin/std?") ? returnTo : "/admin/std",
+                returnTo &&
+                  /^\/admin\/std(?:\/(?:tpi|trinity|santa-croce|withdrawn))?(?:\?[^#]*)?$/.test(
+                    returnTo,
+                  )
+                  ? returnTo
+                  : student.status === "WITHDRAWN"
+                    ? "/admin/std/withdrawn"
+                    : student.site
+                      ? `/admin/std/${{ TPI: "tpi", TRINITY: "trinity", SANTACROCE: "santa-croce" }[student.site]}`
+                      : "/admin/std",
               )
             }
             className="mb-2 flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"

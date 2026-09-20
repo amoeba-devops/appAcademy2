@@ -223,5 +223,13 @@
     "keep": "Keep existing",
     "supplement": "Fill missing",
     "datesTitle": "Admission and withdrawal"
+  },
+  "navigation": {
+    "integrated": "View all sites",
+    "integratedTitle": "Students — All sites",
+    "withdrawnTitle": "Withdrawn students",
+    "createWithdrawn": "Register withdrawn student",
+    "currentAll": "All current students",
+    "toggle": "Expand/collapse student menus"
   }
 }
