@@ -5,15 +5,27 @@
   "loading": "加载中...",
   "empty": "暂无学校。",
   "columns": {
-    "name": "名称",
+    "name": "学校名称",
     "level": "层级",
     "region": "地区",
-    "authorized": "授权",
+    "authorized": "许可状态",
     "bands": "年级段",
     "schedules": "日程",
-    "actions": "操作"
+    "actions": "操作",
+    "curriculum": "课程 / 认证",
+    "target": "考试对象",
+    "exam": "考试内容",
+    "eligibility": "申请资格",
+    "notes": "备注",
+    "schedule": "申请时间",
+    "district": "具体地区",
+    "curriculumDescription": "课程 / 认证"
   },
-  "authorized": { "yes": "已授权", "no": "未授权" },
+  "authorized": {
+    "yes": "已许可",
+    "no": "未许可",
+    "unknown": "未确认"
+  },
   "actions": {
     "viewBands": "查看年级段",
     "viewSchedules": "查看日程",
@@ -49,6 +61,43 @@
     "note": "备注",
     "add": "添加日程",
     "edit": "编辑日程"
+  },
+  "catalog": {
+    "searchName": "搜索学校名称",
+    "searchCurriculum": "搜索课程",
+    "allAuthorization": "全部许可状态",
+    "reset": "重置",
+    "count": "{{count}} 所学校",
+    "pageAdmissions": "本页 {{count}} 条招生信息",
+    "loadError": "无法加载数据。",
+    "retry": "重试",
+    "details": "查看详情",
+    "previous": "上一页",
+    "next": "下一页",
+    "placeholder": "请输入",
+    "legacy": "现有分类",
+    "saved": "已保存。",
+    "saveError": "保存失败。",
+    "admissions": "考试与申请信息",
+    "admissionNumber": "招生信息 {{number}}",
+    "addAdmission": "添加招生信息",
+    "cancel": "取消",
+    "saving": "保存中…",
+    "save": "保存",
+    "basic": "基本信息",
+    "scheduleNotice": "时间为已登记的原文。请向学校确认当前招生情况及日期含义。",
+    "noAdmissions": "暂无招生信息。",
+    "legacyBands": "现有年级管理",
+    "legacySchedules": "现有日期日程管理",
+    "legacyNotice": "现有年级及日期日程与招生原文分别管理。",
+    "targetLabel": "考试对象",
+    "examContent": "考试内容",
+    "scheduleText": "申请时间"
+  },
+  "levels": {
+    "ELEMENTARY": "小学",
+    "MIDDLE": "初中",
+    "HIGH": "高中",
+    "FOREIGN": "外国 / 国际"
   }
 }
-

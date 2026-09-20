@@ -9,6 +9,7 @@ export function AdminSupportPanel({ banner }: { banner?: SupportBanner }) {
   const { t } = useTranslation('common');
   const module = pathname.split('/')[2];
   const tip = module === 'std' ? 'students'
+    : module === 'sch' ? 'schools'
     : module === 'cal-stats' ? 'stats'
     : module === 'cal' ? 'calendar'
     : module === 'config' ? 'settings'

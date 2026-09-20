@@ -1,3 +1,4 @@
+import { SchoolDetailPage } from '@/modules/sch/pages/school-detail-page';
 import { createBrowserRouter, Navigate, useLocation, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
 import { PortalLayout } from '@/components/layout/portal-layout';
@@ -211,6 +212,7 @@ export const router = createBrowserRouter([
       { path: 'cal/:evtId', element: <CalEventDetailPage /> },
       { path: 'map', element: <MpqListPage /> },
       { path: 'sch', element: <SchoolListPage /> },
+      { path: 'sch/:id', element: <SchoolDetailPage /> },
       { path: 'ref', element: <ReferenceListPage /> },
       { path: 'posts', element: <PostsListPage /> },
       { path: 'posts/new', element: <PostEditorPage /> },

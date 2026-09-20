@@ -28,7 +28,7 @@ describe('IT-SCH-P1 school CRUD + bands + schedules', () => {
       .expect(201);
     expect(res.body.id).toBeDefined();
     expect(res.body.name).toBe('IT-SCH-P1 Middle');
-    expect(res.body.isAuthorized).toBe(true); // default
+    expect(res.body.isAuthorized).toBeNull(); // unspecified is unconfirmed
     schoolId = res.body.id;
   });
 

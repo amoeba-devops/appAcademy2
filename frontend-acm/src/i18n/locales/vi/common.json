@@ -666,6 +666,7 @@
     "calendar": "Chọn lịch để xem thông tin lớp học.",
     "settings": "Kiểm tra kết quả lưu sau khi thay đổi cài đặt.",
     "chat": "Chọn cuộc trò chuyện trước khi soạn tin nhắn.",
-    "posts": "Kiểm tra trạng thái công khai trước khi lưu bài viết."
+    "posts": "Kiểm tra trạng thái công khai trước khi lưu bài viết.",
+    "schools": "Xem đối tượng thi và thông tin tuyển sinh theo trường. Xác nhận lịch mới nhất với trường."
   }
 }

@@ -1,10 +1,20 @@
-import { ConflictException, Inject, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { ACM_DS } from '../../acm-common/datasource';
-import { SCHOOL_REPOSITORY, type SchoolRepository, type SchoolFilter } from '../domain/school.repository';
+import {
+  SCHOOL_REPOSITORY,
+  type SchoolRepository,
+  type SchoolFilter,
+} from '../domain/school.repository';
 import type { School } from '../domain/school.entity';
 import type { CreateSchoolDto, UpdateSchoolDto } from './dto/school.dto';
 
@@ -16,9 +26,16 @@ export class SchoolService {
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
   ) {}
 
-  async create(entId: string, dto: CreateSchoolDto, actorId?: string): Promise<School> {
+  async create(
+    entId: string,
+    dto: CreateSchoolDto,
+    actorId?: string,
+  ): Promise<School> {
     const existing = await this.repo.findByName(entId, dto.name);
-    if (existing) throw new ConflictException(`School with name "${dto.name}" already exists`);
+    if (existing)
+      throw new ConflictException(
+        `School with name "${dto.name}" already exists`,
+      );
 
     const school = await this.repo.save({
       id: randomUUID(),
@@ -28,13 +45,19 @@ export class SchoolService {
       region: dto.region,
       district: dto.district,
       isForeign: dto.isForeign ?? false,
-      isAuthorized: dto.isAuthorized ?? true,
+      isAuthorized: dto.isAuthorized ?? null,
+      curriculumDescription: dto.curriculumDescription,
+      eligibility: dto.eligibility,
+      admissions: dto.admissions,
       notes: dto.notes,
       deletedAt: null,
     });
     this.events.emit('acm.sch.created', {
-      entId, occurredAt: new Date().toISOString(), actorId,
-      schoolId: school.id, name: school.name,
+      entId,
+      occurredAt: new Date().toISOString(),
+      actorId,
+      schoolId: school.id,
+      name: school.name,
     });
     return school;
   }
@@ -53,11 +76,20 @@ export class SchoolService {
     return this.repo.autocomplete(entId, prefix, limit);
   }
 
-  async update(entId: string, id: string, dto: UpdateSchoolDto, actorId?: string): Promise<School> {
+  async update(
+    entId: string,
+    id: string,
+    dto: UpdateSchoolDto,
+    actorId?: string,
+  ): Promise<School> {
     await this.findById(entId, id);
-    const updated = await this.repo.update(entId, id, dto);
+    const { expectedUpdatedAt, ...patch } = dto;
+    const updated = await this.repo.update(entId, id, patch, expectedUpdatedAt);
     this.events.emit('acm.sch.updated', {
-      entId, occurredAt: new Date().toISOString(), actorId, schoolId: id,
+      entId,
+      occurredAt: new Date().toISOString(),
+      actorId,
+      schoolId: id,
     });
     return updated;
   }
