@@ -105,7 +105,8 @@
     "notFound": "未找到学生",
     "updatedAt": "最后更新",
     "confirmDeactivate": "确认停用该学生？",
-    "sourceInquiry": "来自咨询"
+    "sourceInquiry": "来自咨询",
+    "inputRequired": "待填写"
   },
   "parentPicker": {
     "title": "添加家长",
@@ -196,5 +197,31 @@
     "HOLD": "匹配待审核",
     "ERROR": "错误",
     "DELETED": "已删除记录冲突"
+  },
+  "withdrawn": {
+    "importTitle": "导入退学学生",
+    "policy": "新学生将登记为退学。现有学生保留当前状态，仅补充空白信息。",
+    "analyze": "分析单元格",
+    "counts": "共 {{total}} · 新增候选 {{new}} · 现有候选 {{existing}} · 暂缓 {{hold}}",
+    "row": "行",
+    "candidate": "现有学生",
+    "review": "已核对",
+    "select": "选择学生",
+    "new": "新增 · 退学",
+    "source": "来源信息",
+    "failed": "无法保存。请检查输入及当前学生信息后重试。",
+    "result": "新增 {{created}} · 更新 {{updated}} · 无变化 {{unchanged}}",
+    "apply": "应用已核对的 {{count}} 行",
+    "recordTitle": "入学与退学 / 来源信息",
+    "sourceHint": "历史来源信息。编辑不会更改当前在读状态、付款或通知。",
+    "admissionDate": "入学日期",
+    "withdrawnDate": "退学日期",
+    "withdrawnDateFrom": "退学日期：起",
+    "withdrawnDateTo": "退学日期：止",
+    "reason": "退学原因",
+    "current": "当前值 → 来源值",
+    "keep": "保留现有值",
+    "supplement": "补充空值",
+    "datesTitle": "入学与退学信息"
   }
 }

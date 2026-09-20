@@ -105,7 +105,8 @@
     "notFound": "Student not found",
     "updatedAt": "Last updated",
     "confirmDeactivate": "Deactivate this student?",
-    "sourceInquiry": "From inquiry"
+    "sourceInquiry": "From inquiry",
+    "inputRequired": "Input required"
   },
   "parentPicker": {
     "title": "Add Parent",
@@ -196,5 +197,31 @@
     "HOLD": "Ambiguous matches",
     "ERROR": "Errors",
     "DELETED": "Deleted records"
+  },
+  "withdrawn": {
+    "importTitle": "Import withdrawn students",
+    "policy": "New students are registered as withdrawn. Existing students retain their status; only empty fields are supplemented.",
+    "analyze": "Analyze cells",
+    "counts": "Total {{total}} · New candidates {{new}} · Existing candidates {{existing}} · Hold {{hold}}",
+    "row": "Row",
+    "candidate": "Existing student",
+    "review": "Reviewed",
+    "select": "Select student",
+    "new": "New · Withdrawn",
+    "source": "Source information",
+    "failed": "Unable to save. Check the input and current student information, then try again.",
+    "result": "Created {{created}} · Updated {{updated}} · Unchanged {{unchanged}}",
+    "apply": "Apply {{count}} reviewed rows",
+    "recordTitle": "Admission and withdrawal / Source information",
+    "sourceHint": "Historical source information. Editing does not change current enrollment, payments or notifications.",
+    "admissionDate": "Admission date",
+    "withdrawnDate": "Withdrawal date",
+    "withdrawnDateFrom": "Withdrawal date: from",
+    "withdrawnDateTo": "Withdrawal date: to",
+    "reason": "Withdrawal reason",
+    "current": "Current → Source",
+    "keep": "Keep existing",
+    "supplement": "Fill missing",
+    "datesTitle": "Admission and withdrawal"
   }
 }
