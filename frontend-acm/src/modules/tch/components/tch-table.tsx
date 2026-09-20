@@ -30,14 +30,14 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
   const { t } = useTranslation('tch');
 
   if (isLoading) {
-    return <p className="text-secondary py-8 text-center">{t('common:status.loading')}</p>;
+    return <p className="admin-list-surface text-secondary py-8 text-center">{t('common:status.loading')}</p>;
   }
   if (!items.length) {
-    return <p className="text-secondary py-8 text-center">{t('table.empty')}</p>;
+    return <p className="admin-list-surface text-secondary py-8 text-center">{t('table.empty')}</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+    <div className="bg-surface overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
       <table className="w-full min-w-[1400px] text-sm">
         <thead className="bg-[var(--gray-50)] text-xs uppercase tracking-wide text-secondary">
           <tr>
@@ -70,7 +70,7 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
                 onClick={() => onRowClick(it)}
                 className="cursor-pointer hover:bg-[var(--gray-50)] transition-colors"
               >
-                <td className="sticky left-0 z-10 bg-canvas px-4 py-3 font-medium">
+                <td className="sticky left-0 z-10 bg-surface px-4 py-3 font-medium">
                   {it.name}
                   {it.englishName && (
                     <span className="ml-1 text-secondary text-xs">({it.englishName})</span>

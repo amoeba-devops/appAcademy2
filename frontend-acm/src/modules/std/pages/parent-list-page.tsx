@@ -105,7 +105,7 @@ export function ParentListPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+      <div className="bg-surface overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
         <table className="w-full text-sm">
           <thead className="bg-[var(--canvas-subtle)] text-xs uppercase text-secondary">
             <tr>

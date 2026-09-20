@@ -243,14 +243,14 @@ export function CalStatsPage() {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full min-w-0">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('stats.title', '수업통계')}</h1>
         <PeriodControls />
       </div>
 
       {isLoading || !data ? (
-        <p className="py-10 text-center text-sm text-secondary">…</p>
+        <p className="admin-list-surface py-10 text-center text-sm text-secondary">…</p>
       ) : (
         <div className="space-y-5">
           {/* 전체 요약 + 수업상태별 */}

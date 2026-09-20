@@ -202,7 +202,7 @@ export function Ga4ConfigPage() {
     data?.siteStatus?.[site] ?? undefined;
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full min-w-0">
       <Link
         to="/admin/config"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"

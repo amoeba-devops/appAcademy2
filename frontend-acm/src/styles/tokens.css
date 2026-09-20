@@ -24,6 +24,9 @@
   --border-subtle: var(--gray-200);
 
   /* Layout */
+  --admin-content-width: 896px;
+  --admin-support-width: 256px;
+  --admin-content-gap: 24px;
   --sidebar-width: 240px;
   --header-height: 56px;
 }

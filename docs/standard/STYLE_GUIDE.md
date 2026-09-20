@@ -2,7 +2,7 @@
 doc_id: STD-APP-ACADEMY-STYLE-GUIDE
 title: App Academy Web Style Guide
 version: 1.0.0
-updated: 2026-07-04
+updated: 2026-09-20
 status: active
 based_on:
   - docs/amoeba-starter-kit/amoeba_web_style_guide_v2.md
@@ -45,6 +45,14 @@ ACM 웹은 학원 운영자가 반복적으로 사용하는 업무 도구와 학
 ## 3. Layout
 
 ### 3.1 Admin Console
+
+- 공통 프레임 `AdminContentLayout`: 수업통계 기준 본문 최대 896px, 우측 팁/배너 256px, 간격 24px.
+- 콘텐츠 컨테이너 가용 폭 1176px 이상에서 2열, 그 미만은 도움말을 본문 아래 배치한다.
+- 페이지 배경 `bg-canvas`, 표·카드·빈 상태 `bg-surface`. 넓은 표는 목록 내부에서 스크롤한다.
+- 대시보드(`/admin`, `/admin/dashboard`)는 기존 폭과 구성을 유지하며 보조 패널을 적용하지 않는다.
+- 페이지 루트는 공통 폭에 위임한다. 입력창·모달의 개별 크기는 유지한다.
+- 배너는 자료가 있을 때만 `AdminSupportPanel`의 선택 속성으로 표시한다. 기본 팁은 4개 언어를 지원한다.
+
 
 - Shell: `AppShell`
 - 기본 경로: `/admin`

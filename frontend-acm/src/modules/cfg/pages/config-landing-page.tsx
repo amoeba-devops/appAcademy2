@@ -29,7 +29,7 @@ export function ConfigLandingPage() {
   const { t } = useTranslation('common');
 
   return (
-    <div className="max-w-3xl">
+    <div className="w-full min-w-0">
       <header className="mb-6 flex items-center gap-2">
         <Settings size={20} className="text-accent-700" />
         <h1 className="text-xl font-semibold text-primary">{t('config.landing.title')}</h1>

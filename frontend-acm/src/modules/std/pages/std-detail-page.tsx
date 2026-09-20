@@ -99,7 +99,7 @@ export function StdDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl space-y-4 bg-canvas">
+    <div className="w-full min-w-0 space-y-4 bg-canvas">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

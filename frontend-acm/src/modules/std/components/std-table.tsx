@@ -43,7 +43,7 @@ export function StdTable({
 
   if (isLoading) {
     return (
-      <p className="text-secondary py-8 text-center">
+      <p className="admin-list-surface text-secondary py-8 text-center">
         {t("common:status.loading")}
       </p>
     );
@@ -51,7 +51,7 @@ export function StdTable({
 
   if (!items.length) {
     return (
-      <p className="text-secondary py-8 text-center">{t("table.empty")}</p>
+      <p className="admin-list-surface text-secondary py-8 text-center">{t("table.empty")}</p>
     );
   }
 
@@ -92,7 +92,7 @@ export function StdTable({
   );
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
+    <div className="bg-surface overflow-x-auto rounded-lg border border-[var(--border-subtle)]">
       <table className="w-full min-w-[760px] text-sm">
         <thead className="bg-[var(--gray-50)] text-xs uppercase tracking-wide text-secondary">
           <tr>

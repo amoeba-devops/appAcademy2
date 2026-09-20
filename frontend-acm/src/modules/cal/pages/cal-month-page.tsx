@@ -449,7 +449,7 @@ function MonthView({
             key={dayKey}
             type="button"
             onClick={() => onDayClick(day)}
-            className={`relative flex min-h-[140px] flex-col items-stretch justify-start bg-canvas p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
+            className={`relative flex min-w-0 min-h-[140px] flex-col items-stretch justify-start bg-surface p-1.5 text-left transition-colors hover:bg-[var(--gray-50)] ${
               inMonth ? '' : 'opacity-40'
             }`}
           >
