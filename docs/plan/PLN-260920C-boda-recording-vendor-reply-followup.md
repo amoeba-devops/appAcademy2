@@ -1,7 +1,7 @@
 ---
 document_id: CAL-PLN-260920C
 version: 1.1.0
-status: DEPLOYED (PR #249 8333050 — cd-staging·cd-production 2026-09-20 완료) — BODA_MODE=http 전환·실검증 대기
+status: DEPLOYED (PR #249 8333050 — cd-staging·cd-production 2026-09-20 완료, BODA_MODE=http 전환 완료) — 실데이터 검증 진행 중
 date: 2026-09-20
 depends_on: docs/analysis/REQ-260920C-boda-recording-vendor-reply-followup.md
 change_log:
@@ -94,22 +94,23 @@ X-Forwarded-For = [ (클라이언트 임의값…), VENDOR, 127.0.0.1 ]
 | cd-production (`-f sha=8333050`) | ✅ run 35495186156 (Preflight·Deploy success) |
 | **위조 헤더 차단** — `POST /api/webhooks/boda` + `X-Forwarded-For: 121.170.164.136` (외부에서) | ✅ **401 `AUTH_NOT_IN_ALLOWLIST`** |
 | 프로덕션 `bdc_webhook_allow_cidrs` | ✅ `121.170.164.136,121.170.164.137,121.170.164.138` (사용자 설정) |
-| 프로덕션 `BODA_MODE` | ⏳ **아직 `mock`** — `.env.production` 59행 전환 + backend 재생성 필요 (§6) |
+| 프로덕션 `BODA_MODE` | ✅ `http` (2026-09-20 06:56Z, 이미지 8333050, health 200) |
 | 실데이터(E-1~E-5) | ⏳ BODA_MODE=http 후 |
 
 ## 6. Rollout (배포·운영 순서)
 
 1. ✅ PR #249 머지 → cd-staging → cd-production 8333050 (2026-09-20).
 2. ✅ `/admin/config/boda` 허용 IP 저장 (A-1).
-3. ⏳ **`.env.production` `BODA_MODE=http` → backend 재생성 (A-2)** — 프로덕션 호스트(appacademy)에서:
+3. ✅ **`.env.production` `BODA_MODE=http` → backend 재생성 (A-2)** — 2026-09-20 06:56Z 완료. 컨테이너 `tac-backend:8333050`, `BODA_MODE=http`, `/api/health` 200.
+
+   > ⚠️ **사고 기록**: 첫 재생성을 `DEPLOY_SHA` 없이 `docker compose up -d backend` 로 실행 → compose 의 `image: …:${DEPLOY_SHA:-production}` 폴백으로 **구 `:production` 태그(MySQL 시절 이미지)** 가 떠서 `ECONNREFUSED 127.0.0.1:3306` crash-loop, `/api` 502 약 1분. `DEPLOY_SHA=8333050` 로 재실행해 복구. **백엔드 단독 재생성 시 반드시 `DEPLOY_SHA=<현재 배포 sha>` 를 붙인다** (또는 `scripts/deploy-production.sh` 사용).
 
    ```bash
    cd ~/app-academy
-   # 백업은 .env.production.bak-260920 로 이미 생성됨. LOOKBACK=720 은 이미 추가됨.
    sed -i 's/^BODA_MODE=mock/BODA_MODE=http/' docker/production/.env.production
-   grep -n '^BODA_MODE=\|^BODA_RECORDING_SYNC_LOOKBACK_HOURS=' docker/production/.env.production
+   DEPLOY_SHA=$(docker inspect --format '{{.Config.Image}}' tac-prod-backend | sed 's/.*://') \
    docker compose -f docker/production/docker-compose.production.yml \
-     --env-file docker/production/.env.production up -d backend
+     --env-file docker/production/.env.production up -d --no-deps backend
    docker exec tac-prod-backend env | grep '^BODA_MODE'   # → http
    ```
 

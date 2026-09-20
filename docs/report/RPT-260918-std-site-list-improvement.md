@@ -1,9 +1,12 @@
 ---
 document_id: ACM-STD-RPT-1.0.0
-version: 1.0.0
-status: IMPLEMENTED_NOT_DEPLOYED
+version: 1.1.0
+status: DEPLOYED_SITE_ASSIGNMENT_COMPLETE
 date: 2026-09-18
 change_log:
+  - version: 1.1.0
+    date: 2026-09-18
+    description: 운영 배포 및 사용자 승인에 따른 50명 소속 사이트만 반영 완료
   - version: 1.0.0
     date: 2026-09-18
     description: 사이트별 학생 목록 및 검토형 엑셀 업로드 구현·검증 결과
@@ -13,7 +16,7 @@ change_log:
 
 ## 1. Outcome (구현 결과)
 
-사용자의 계획 진행 승인에 따라 학생당 현재 주 소속 사이트 1개를 적용했다. TPI / Trinity Academy / Santa Croce / 미분류를 구분하며, 기존 학생에 사이트를 임의 지정하지 않는다. **소스 구현과 로컬 검증을 완료했으며 운영 배포·운영 학생 입력은 수행하지 않았다.**
+사용자의 계획 진행 승인에 따라 학생당 현재 주 소속 사이트 1개를 적용했다. TPI / Trinity Academy / Santa Croce / 미분류를 구분한다. **운영 배포와 승인된 50명의 소속 사이트 반영을 완료했다. 다른 학생 정보는 변경하지 않았다.**
 
 - 통합/사이트별 탭과 인원 집계. 상태·검색·학교·학년·담당강사 ID·수업 시작일 필터 적용.
 - 사이트·이름·수업 시작일·시스템 등록일 정렬, ID 보조 정렬, 25/50/100명 페이지 이동.
@@ -26,7 +29,7 @@ change_log:
 
 ## 2. Workbook Handling (엑셀 처리)
 
-실제 원본 `TPI 학생 정보.xlsx`를 읽기 전용으로 실행한 결과 이름 앵커는 **TPI 33 / Trinity Academy 3 / Santa Croce 14**로 확인됐다. 파서의 날짜 오류는 0개, 공유 셀·연락처 등 검토 표시가 있는 행은 45개였다. 운영 학생과의 실제 매칭은 실행하지 않았다.
+실제 원본 `TPI 학생 정보.xlsx`를 읽기 전용으로 실행한 결과 이름 앵커는 **TPI 33 / Trinity Academy 3 / Santa Croce 14**로 확인됐다. 파서의 날짜 오류는 0개, 공유 셀·연락처 등 검토 표시가 있는 행은 45개였다. 이후 운영 서버 내부에서 이름의 공백·괄호 표기를 정규화하여 대조한 결과, 50명 모두 주 테넌트의 재원 학생 1명씩과 일치했다. 동명이인 후보·비재원 일치·삭제 이력 충돌은 0건이었다. 이는 이름 기준 매칭이며 생년월일 대조 결과를 의미하지 않는다.
 
 이름 병합 범위 안의 강사·수업 연속행을 수집한다. 학생 경계를 넘는 병합 셀은 원본 값과 위치를 표시하되 자동 입력에서 제외한다. 학년과 괄호가 포함된 이름은 원문을 보존한다. MAP는 시험일을 추측하지 않고 메모로 보존하며 스케줄 원문은 기존 JSON의 `importedText`에 저장한다.
 
@@ -72,7 +75,7 @@ STD_TEST_DB_PORT=<test-db-port> npm run test:int -- --runTestsByPath test/integr
 
 ## 5. Scope and Follow-up (범위와 후속 작업)
 
-- 이번 릴리스는 계획의 사이트 목록·관리 기능과 3사이트 원본의 검토형 업로드를 구현한다. 실제 운영 대사/입력(단계 4)은 미실행이다.
+- 이번 릴리스는 계획의 사이트 목록·관리 기능과 3사이트 원본의 검토형 업로드를 구현한다. 운영 대사 후 사용자가 승인한 사이트 분류만 반영했다. 연락처·강사·학년 등 엑셀의 나머지 필드 입력은 수행하지 않았다.
 - 기존 두 번째 시트/C열 고정 방식의 즉시 저장 업로드는 `IMPORT_PREVIEW_REQUIRED`로 차단했다. 새 템플릿은 3사이트 시트를 제공한다. **구 상담형 템플릿 변환은 지원하지 않으며** 명시적인 매핑을 추가하는 후속 작업으로 남긴다.
 - 공유 병합 필드의 자동 분배, 학부모 연락처 자동 분리, 오류 셀 인라인 수정은 제공하지 않는다. 원본 정정 후 재업로드하거나 검토 대상 행을 제외한다.
 - 동명이인 후보가 있으면 이번 입력에서 임의로 새 학생을 생성할 수 없다. 별도 학생 등록/정리 후 다시 검토한다.
@@ -83,3 +86,32 @@ STD_TEST_DB_PORT=<test-db-port> npm run test:int -- --runTestsByPath test/integr
 
 - [요구사항](../analysis/REQ-260918-std-site-list-improvement.md)
 - [구현 계획](../plan/PLN-260918-std-site-list-improvement.md)
+
+## 7. Production Result (운영 반영 결과)
+
+- 변경 PR: [#244](https://github.com/amoeba-devops/appAcademy2/pull/244)
+- 배포 SHA: `d167497ea09b586259696039118a45e510498e28` (`d167497`)
+- 운영 배포 시각: 2026-09-18 23:33:34 KST
+- [CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/35356692570), [스테이징](https://github.com/amoeba-devops/appAcademy2/actions/runs/35356692569), [운영 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/35356915667): 성공
+- 화면: [운영 학생관리](https://acm.amoeba.site/admin/std)
+
+사용자 확인: “소속 사이트만 반영, 다른 학생 정보는 유지”. 이 승인에 따라 기존 학생 50명의 `std_site`와 수정 시각만 갱신했다. 신규 학생을 만들거나 파일 전체를 임포트하지 않았다.
+
+| 주 테넌트 재원 분류 | 반영 후 인원 |
+|---|---:|
+| TPI | 33 |
+| Trinity Academy | 3 |
+| Santa Croce | 14 |
+| 미분류 | 8 |
+| 합계 | 58 |
+
+트랜잭션 안에서 전체 학생 298행의 변경 전후를 비교했다. 사이트·수정 시각 외 필드 변경 0건, 대상 외 학생 변경 0건을 확인한 뒤 커밋했다. 감사 기록은 `maintenance:std-site-260918` 작업 식별자와 사용자 승인 사유로 50건 생성됐다. 다른 테넌트 재원생 12명과 주 테넌트 비재원 220명은 분류하지 않았다. 삭제된 학생 8행도 변경하지 않았다.
+
+운영 화면에서 통합 58명, 사이트별 33/3/14/8명과 필터 동작을 확인했다. TPI 33명의 두 번째 페이지에서 8개 학생 행을 확인했다. API health는 `ok`, 두 운영 컨테이너는 동일한 `d167497` 이미지로 실행 중이다. 배포 직후 로그에서 BODA의 `MOCK_FAIL` 4건을 확인했으며, 학생관리 오류는 발견되지 않았다. BODA 코드·설정은 이번 배포에서 변경하지 않았다.
+
+서버 내부 백업(권한 0600):
+
+- `/home/appacademy/app-academy-backups/std-site-260918/before-deploy.dump`
+- `/home/appacademy/app-academy-backups/std-site-260918/before-site-assignment.dump`
+
+학생 식별 정보·생년월일의 로컬 파일 반출은 자동 승인 검토에서 거절되어 실행하지 않았다. 대신 운영 서버 내부 대조와 비식별 집계 결과로 검증했으며, 운영 학생 원본을 로컬에 저장하지 않았다.

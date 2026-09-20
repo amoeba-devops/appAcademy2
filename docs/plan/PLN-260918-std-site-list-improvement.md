@@ -1,7 +1,7 @@
 ---
 document_id: ACM-STD-PLN-1.0.0
 version: 1.1.0
-status: IMPLEMENTED_CORE_NOT_DEPLOYED
+status: DEPLOYED_CORE
 date: 2026-09-18
 change_log:
   - version: 1.1.0
@@ -18,7 +18,7 @@ change_log:
 
 [요구사항 분석서](../analysis/REQ-260918-std-site-list-improvement.md)를 기준으로 `/admin/std`에서 **TPI / Trinity Academy / Santa Croce별 학생을 구분하고, 학생별 수업 시작일과 담당강사를 정확히 조회**한다. 엑셀 현재 등록 시트는 TPI 33명, Trinity Academy 3명, Santa Croce 14명의 이름 행으로 구성되어 있다. 이 수치는 원본 분석 결과이며 운영 반영 후 목표 인원으로 강제하지 않는다.
 
-진행 승인 후 사이트 목록·관리와 검토형 업로드의 핵심 구현을 완료했다. 운영 배포와 학생 입력은 아직 수행하지 않았다. 실제 학생 입력은 미리보기의 매칭과 변경 내용을 확정한 뒤 수행한다. 구현 범위와 기존 양식 변경 사항은 [구현 보고서](../report/RPT-260918-std-site-list-improvement.md)를 참조한다.
+진행 승인 후 사이트 목록·관리와 검토형 업로드의 핵심 구현 및 운영 배포를 완료했다. 후속 사용자 승인에 따라 기존 50명의 소속 사이트만 반영했으며, 다른 학생 필드는 유지했다. 나머지 엑셀 필드 입력은 별도 검토 대상이다. 구현 범위와 운영 검증 결과는 [구현 보고서](../report/RPT-260918-std-site-list-improvement.md)를 참조한다.
 
 ## 2. Screen Layout (화면 구성안)
 

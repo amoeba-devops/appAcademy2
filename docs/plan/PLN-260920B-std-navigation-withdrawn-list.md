@@ -1,7 +1,7 @@
 ---
 document_id: ACM-STD-NAV-PLN-1.0.0
 version: 1.1.0
-status: IMPLEMENTING
+status: DEPLOYED
 date: 2026-09-20
 change_log:
   - version: 1.1.0
