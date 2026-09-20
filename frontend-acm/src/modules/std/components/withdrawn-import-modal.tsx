@@ -148,16 +148,30 @@ export function WithdrawnImportModal({
                         {row.candidates.length ? (
                           <select
                             aria-label={`${row.fields["이름"]} ${t("withdrawn.candidate")}`}
-                            value={decisions[row.key]?.studentId ?? ""}
+                            value={
+                              decisions[row.key]?.action === "NEW"
+                                ? "__new__"
+                                : (decisions[row.key]?.studentId ?? "")
+                            }
                             disabled={pending || !!commit.data}
                             onChange={(e) =>
                               decide(row, {
-                                studentId: e.target.value,
+                                studentId:
+                                  e.target.value === "__new__"
+                                    ? undefined
+                                    : e.target.value,
+                                action:
+                                  e.target.value === "__new__"
+                                    ? "NEW"
+                                    : "UPDATE",
                                 reviewed: false,
                               })
                             }
                           >
                             <option value="">{t("withdrawn.select")}</option>
+                            <option value="__new__">
+                              {t("withdrawn.new")}
+                            </option>
                             {row.candidates.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {c.name} / {t(`status.${c.status}`)} /{" "}
@@ -179,6 +193,7 @@ export function WithdrawnImportModal({
                             pending ||
                             !!commit.data ||
                             (row.candidates.length > 0 &&
+                              decisions[row.key]?.action !== "NEW" &&
                               !decisions[row.key]?.studentId)
                           }
                           onChange={(e) =>

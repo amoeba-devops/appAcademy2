@@ -211,6 +211,32 @@ suite('withdrawn import isolated PostgreSQL', () => {
       await ds.query('SELECT * FROM amb_acm_std_withdrawn_record'),
     ).toHaveLength(0);
   });
+  it('allows explicitly reviewed distinct names with the same birthday without merging them', async () => {
+    await ds
+      .getRepository(Student)
+      .save({ entId: ent, name: 'Synthetic A', birthDate: '2014-08-07' });
+    const source = { ...row('Synthetic B', '00006'), 생일: '20140807' };
+    const p = await service.preview(ent, actor, file([source]));
+    expect(p.rows[0].candidates).toHaveLength(1);
+    expect(
+      await service.commit(ent, actor, {
+        previewId: p.previewId,
+        decisions: [
+          { key: '00006', action: 'NEW', reviewed: true, teacherIds: [] },
+        ],
+      }),
+    ).toMatchObject({ created: 1 });
+    expect(await ds.getRepository(Student).count()).toBe(2);
+    const again = await service.preview(ent, actor, file([source]));
+    await expect(
+      service.commit(ent, actor, {
+        previewId: again.previewId,
+        decisions: [
+          { key: '00006', action: 'NEW', reviewed: true, teacherIds: [] },
+        ],
+      }),
+    ).rejects.toThrow('STUDENT_MATCH_REQUIRED');
+  });
   it('source edits require current revision and reject deleted students', async () => {
     const p = await service.preview(
       ent,
