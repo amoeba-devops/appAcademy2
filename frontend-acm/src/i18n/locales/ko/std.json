@@ -223,5 +223,13 @@
     "keep": "기존 값 유지",
     "supplement": "빈 값 보완",
     "datesTitle": "입학·퇴원 정보"
+  },
+  "navigation": {
+    "integrated": "전체 통합 보기",
+    "integratedTitle": "학생관리 — 전체 통합 보기",
+    "withdrawnTitle": "퇴원생 관리",
+    "createWithdrawn": "퇴원생 등록",
+    "currentAll": "현재 학생 전체",
+    "toggle": "학생관리 하위 메뉴 펼치기/접기"
   }
 }

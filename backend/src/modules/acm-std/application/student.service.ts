@@ -193,7 +193,11 @@ export class StudentService {
       .where('s.entId = :entId', { entId })
       .andWhere('s.deletedAt IS NULL');
 
-    if (q.status && q.status !== 'ALL') {
+    if ((q.scope === 'CURRENT' && q.status === 'WITHDRAWN') || (q.scope === 'WITHDRAWN' && q.status && !['WITHDRAWN', 'ALL'].includes(q.status))) throw new BadRequestException('INVALID_STUDENT_SCOPE');
+    if (q.scope === 'CURRENT') qb.andWhere('s.status IN (:...currentStatuses)', { currentStatuses: ['ACTIVE', 'INACTIVE'] });
+    if (q.scope === 'WITHDRAWN') {
+      qb.andWhere('s.status = :status', { status: 'WITHDRAWN' });
+    } else if (q.status && q.status !== 'ALL') {
       qb.andWhere('s.status = :status', { status: q.status });
     } else if (!q.status) {
       qb.andWhere('s.status = :status', { status: 'ACTIVE' });

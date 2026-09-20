@@ -223,5 +223,13 @@
     "keep": "Giữ giá trị hiện có",
     "supplement": "Bổ sung giá trị trống",
     "datesTitle": "Thông tin nhập học và thôi học"
+  },
+  "navigation": {
+    "integrated": "Xem tất cả cơ sở",
+    "integratedTitle": "Học sinh — Tất cả cơ sở",
+    "withdrawnTitle": "Học sinh thôi học",
+    "createWithdrawn": "Đăng ký học sinh thôi học",
+    "currentAll": "Tất cả học sinh hiện tại",
+    "toggle": "Mở/đóng menu học sinh"
   }
 }

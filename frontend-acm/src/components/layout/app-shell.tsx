@@ -1,3 +1,4 @@
+import { StudentNavigation } from "@/modules/std/components/student-navigation";
 import { useEffect, useState } from 'react';
 import {
   Link,
@@ -261,7 +262,7 @@ export function AppShell() {
           </button>
         )}
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
-          {visibleNav.map(({ to, icon: Icon, key }) => (
+          {visibleNav.map(({ to, icon: Icon, key }) => key === "std" ? <StudentNavigation key={to} iconOnly={iconOnly} onNavigate={() => setDrawerOpen(false)} /> : (
             <NavLink
               key={to}
               to={to}

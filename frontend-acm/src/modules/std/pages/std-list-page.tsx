@@ -1,4 +1,3 @@
-import { WithdrawnImportModal } from "../components/withdrawn-import-modal";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -21,7 +20,13 @@ import { StdFormModal } from "../components/std-form-modal";
 import { StdImportModal } from "../components/std-import-modal";
 import { STD_SITES, type StudentCreatePrefill } from "../types";
 
-export function StdListPage() {
+export function StdListPage({
+  fixedSite,
+  withdrawn = false,
+}: {
+  fixedSite?: (typeof STD_SITES)[number];
+  withdrawn?: boolean;
+}) {
   const { t } = useTranslation("std");
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,23 +40,51 @@ export function StdListPage() {
   const [prefill, setPrefill] = useState(navPrefill);
   const [showCreate, setShowCreate] = useState(!!navPrefill);
   const [showImport, setShowImport] = useState(false);
-  const [showWithdrawnImport, setShowWithdrawnImport] = useState(false);
+
   const [selected, setSelected] = useState<string[]>([]);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [newSite, setNewSite] = useState("TPI");
   const [reason, setReason] = useState("");
   const filters = {
     q: params.get("q") ?? "",
-    status: params.get("status") ?? "ACTIVE",
+    status: withdrawn
+      ? "WITHDRAWN"
+      : ["ACTIVE", "INACTIVE", "ALL"].includes(params.get("status") ?? "")
+        ? params.get("status")!
+        : "ACTIVE",
     school: params.get("school") ?? "",
     grade: params.get("grade") ?? "",
     showInactive: false,
   };
-  const site = ["ALL", "UNASSIGNED", ...STD_SITES].includes(
-    params.get("site") ?? "",
-  )
-    ? params.get("site")!
-    : "ALL";
+  const site =
+    fixedSite ??
+    (["ALL", "UNASSIGNED", ...STD_SITES].includes(params.get("site") ?? "")
+      ? params.get("site")!
+      : "ALL");
+  useEffect(() => {
+    if (withdrawn) return;
+    const next = new URLSearchParams(params);
+    const paths: Record<string, string> = {
+      TPI: "tpi",
+      TRINITY: "trinity",
+      SANTACROCE: "santa-croce",
+    };
+    if (params.get("status") === "WITHDRAWN") {
+      if (fixedSite) next.set("site", fixedSite);
+      next.delete("status");
+      navigate(`/admin/std/withdrawn?${next}`, {
+        replace: true,
+        state: location.state,
+      });
+    } else if (!fixedSite && paths[params.get("site") ?? ""]) {
+      const path = paths[params.get("site")!];
+      next.delete("site");
+      navigate(`/admin/std/${path}?${next}`, {
+        replace: true,
+        state: location.state,
+      });
+    }
+  }, [location.pathname, location.search, fixedSite, withdrawn]);
   const page = Math.max(1, Number(params.get("page")) || 1);
   const limit = [25, 50, 100].includes(Number(params.get("limit")))
     ? Number(params.get("limit"))
@@ -90,6 +123,7 @@ export function StdListPage() {
       ]
     : [];
   const { data, isLoading, isError, refetch } = useStudents({
+    scope: withdrawn ? "WITHDRAWN" : "CURRENT",
     q: filters.q || undefined,
     status: filters.status,
     school: filters.school || undefined,
@@ -100,10 +134,18 @@ export function StdListPage() {
     sort: sort.field,
     dir: sort.dir,
     teacherId: teacherId || undefined,
-    withdrawnDateFrom: params.get("withdrawnDateFrom") || undefined,
-    withdrawnDateTo: params.get("withdrawnDateTo") || undefined,
-    startDateFrom: params.get("startDateFrom") || undefined,
-    startDateTo: params.get("startDateTo") || undefined,
+    withdrawnDateFrom: withdrawn
+      ? params.get("withdrawnDateFrom") || undefined
+      : undefined,
+    withdrawnDateTo: withdrawn
+      ? params.get("withdrawnDateTo") || undefined
+      : undefined,
+    startDateFrom: !withdrawn
+      ? params.get("startDateFrom") || undefined
+      : undefined,
+    startDateTo: !withdrawn
+      ? params.get("startDateTo") || undefined
+      : undefined,
   });
   const pages = Math.max(1, Math.ceil((data?.total ?? 0) / limit));
   useEffect(() => {
@@ -130,20 +172,25 @@ export function StdListPage() {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
+        <div>
+          {(fixedSite || withdrawn) && (
+            <Button variant="ghost" onClick={() => navigate("/admin/std")}>
+              {t("navigation.integrated")}
+            </Button>
+          )}
+          <h1 className="text-2xl font-semibold">
+            {withdrawn
+              ? t("navigation.withdrawnTitle")
+              : fixedSite
+                ? `${t(`site.${fixedSite}`)} · ${t("title")}`
+                : t("navigation.integratedTitle")}
+          </h1>
+        </div>
         <div className="flex gap-2">
-          {canBulk && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setShowWithdrawnImport(true)}
-              >
-                {t("withdrawn.importTitle")}
-              </Button>
-              <Button variant="outline" onClick={() => setShowImport(true)}>
-                {t("actions.import")}
-              </Button>
-            </>
+          {canBulk && !withdrawn && (
+            <Button variant="outline" onClick={() => setShowImport(true)}>
+              {t("actions.import")}
+            </Button>
           )}
           <Button
             onClick={() => {
@@ -155,28 +202,30 @@ export function StdListPage() {
               setShowCreate(true);
             }}
           >
-            {t("actions.create")}
+            {t(withdrawn ? "navigation.createWithdrawn" : "actions.create")}
           </Button>
         </div>
       </div>
-      <div
-        className="mb-4 flex gap-2 overflow-x-auto"
-        aria-label={t("site.label")}
-      >
-        {["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => (
-          <Button
-            key={key}
-            variant={site === key ? "default" : "outline"}
-            aria-pressed={site === key}
-            onClick={() => change({ site: key })}
-            className="whitespace-nowrap"
-          >
-            {t(`site.${key}`)}{" "}
-            ({data?.siteCounts?.[key] ?? "—"})
-          </Button>
-        ))}
-      </div>
+      {!fixedSite && (
+        <div
+          className="mb-4 flex gap-2 overflow-x-auto"
+          aria-label={t("site.label")}
+        >
+          {["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => (
+            <Button
+              key={key}
+              variant={site === key ? "default" : "outline"}
+              aria-pressed={site === key}
+              onClick={() => change({ site: key })}
+              className="whitespace-nowrap"
+            >
+              {t(`site.${key}`)} ({data?.siteCounts?.[key] ?? "—"})
+            </Button>
+          ))}
+        </div>
+      )}
       <StdFilters
+        scope={withdrawn ? "WITHDRAWN" : "CURRENT"}
         value={filters}
         onChange={(next) =>
           change({
@@ -202,15 +251,19 @@ export function StdListPage() {
           />
         </div>
         {(
-          [
-            "startDateFrom",
-            "startDateTo",
-            "withdrawnDateFrom",
-            "withdrawnDateTo",
-          ] as const
+          (withdrawn
+            ? ["withdrawnDateFrom", "withdrawnDateTo"]
+            : ["startDateFrom", "startDateTo"]) as Array<
+            | "startDateFrom"
+            | "startDateTo"
+            | "withdrawnDateFrom"
+            | "withdrawnDateTo"
+          >
         ).map((key) => (
           <label key={key} className="text-xs">
-            {key.startsWith("withdrawn") ? t(`withdrawn.${key}`) : t(`site.${key}`)}
+            {key.startsWith("withdrawn")
+              ? t(`withdrawn.${key}`)
+              : t(`site.${key}`)}
             <input
               type="date"
               className="block rounded border p-2 bg-surface"
@@ -310,12 +363,7 @@ export function StdListPage() {
           open
           onClose={() => setShowCreate(false)}
           prefill={prefill}
-        />
-      )}
-      {showWithdrawnImport && (
-        <WithdrawnImportModal
-          open
-          onClose={() => setShowWithdrawnImport(false)}
+          initialStatus={withdrawn ? "WITHDRAWN" : "ACTIVE"}
         />
       )}
       {showImport && (
