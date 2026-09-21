@@ -1,3 +1,5 @@
+import { OperatingPanel, OperatingTable, DualValue } from '../components/operating-panel';
+import { OperatingResult, OpsMetric } from '../types/operating';
 import { SourceCurrentPanel } from '../components/source-current-panel';
 import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -31,7 +33,7 @@ type MetAggregationType =
 export type DshSiteTab = 'ALL' | 'TPI' | 'TRINITY' | 'SANTACROCE';
 const SITE_TABS: DshSiteTab[] = ['ALL', 'TPI', 'TRINITY', 'SANTACROCE'];
 /** Categories that carry a site dimension; OPERATING/CLASS are tenant-wide (통합 only). */
-const SITE_CATEGORIES: MetCategory[] = ['MARKETING', 'CS'];
+const SITE_CATEGORIES: MetCategory[] = ['MARKETING', 'CS', 'OPERATING'];
 
 interface MetricDefinition {
   id: string;
@@ -238,6 +240,10 @@ export function DashboardPage() {
     queryFn: async () => (await apiClient.get<MetricDefinition[]>('/acm/dsh/metrics')).data,
   });
 
+  const opsUser = useAuthStore(s => s.user);
+  const longRange = (Date.parse(to)-Date.parse(from))/86400000 >= 365;
+  const opsQ = useQuery({queryKey:['dsh','operating',opsUser?.entId,opsUser?.id,from,to,site],queryFn:async()=>(await apiClient.get<OperatingResult>('/acm/dsh/operating-range',{params:{from,to,site}})).data,enabled:!!opsUser?.entId && !!from && !!to && from<=to,refetchInterval:5000,refetchOnWindowFocus:true});
+  const opsRows = new Map((opsQ.isError?[]:opsQ.data?.rows??[]).map(r=>[r.date,r.values]));
   const gridQ = useQuery({
     queryKey: ['dsh', 'grid', rangeKey, site],
     queryFn: async () =>
@@ -246,7 +252,7 @@ export function DashboardPage() {
           params: { from, to, ...siteParam },
         })
       ).data,
-    enabled: !!from && !!to && from <= to,
+    enabled: !!from && !!to && from <= to && !longRange,
   });
 
   const summaryQ = useQuery({
@@ -257,9 +263,11 @@ export function DashboardPage() {
           params: { from, to, ...siteParam },
         })
       ).data,
-    enabled: !!from && !!to && from <= to,
+    enabled: !!from && !!to && from <= to && !longRange,
   });
 
+  const legacyRows = new Map((gridQ.data?.rows??[]).map(r=>[r.date,r]));
+  const displayRows: DailyKpiRow[] = !opsQ.isError && opsQ.data ? opsQ.data.rows.map(r=>legacyRows.get(r.date)??({date:r.date,yearMonth:r.date.slice(0,7),dayOfWeekKr:new Intl.DateTimeFormat('ko',{weekday:'short',timeZone:'UTC'}).format(new Date(r.date)),computationStatus:'STALE',dataCompleteness:'PARTIAL_PENDING_MANUAL'} as DailyKpiRow)) : gridQ.data?.rows??[];
   const visibleCategories = isSiteView ? SITE_CATEGORIES : CATEGORY_ORDER;
 
   const grouped = useMemo(() => {
@@ -269,12 +277,12 @@ export function DashboardPage() {
       OPERATING: [],
       CLASS: [],
     };
-    for (const md of metricsQ.data ?? []) m[md.category].push(md);
+    for (const md of metricsQ.data ?? []) { if(isSiteView && md.category==='OPERATING' && md.code.endsWith('_tc')) continue; m[md.category].push(md); }
     for (const cat of CATEGORY_ORDER) {
       m[cat].sort((a, b) => a.displayOrder - b.displayOrder);
     }
     return m;
-  }, [metricsQ.data]);
+  }, [metricsQ.data, isSiteView]);
 
   const isKr = i18n.language?.startsWith('ko');
   const flatMetrics = visibleCategories.flatMap((c) => grouped[c]);
@@ -286,40 +294,17 @@ export function DashboardPage() {
       ? null : row[field];
 
   const handleExportCsv = () => {
-    if (!metricsQ.data || !gridQ.data) return;
-    const header: (string | number)[] = ['Date', t('grid.dow'), t('quality.state')];
-    for (const md of flatMetrics) header.push(isKr ? md.labelKr : md.labelEn);
-    const dataRows: (string | number | null)[][] = gridQ.data.rows.map((row) => {
-      const cells: (string | number | null)[] = [row.date, row.dayOfWeekKr, row.date > (gridQ.data?.actualThrough ?? '') ? t('quality.future') : row.computationStatus];
-      for (const md of flatMetrics) {
-        const field = METRIC_TO_FIELD[md.code];
-        const v = field ? actualValue(row, field) : null;
-        cells.push(v === null || v === undefined ? null : (v as string | number));
-      }
-      return cells;
-    });
-    const sumRow: (string | number | null)[] = [t('grid.sum'), '', ''];
-    const averRow: (string | number | null)[] = [t('grid.aver'), '', ''];
-    for (const md of flatMetrics) {
-      sumRow.push(gridQ.data.sums[md.code] ?? null);
-      averRow.push(
-        md.aggregationType === 'STATUS_SNAPSHOT'
-          ? null
-          : gridQ.data.averages[md.code] !== null
-            ? Math.round((gridQ.data.averages[md.code] as number) * 10) / 10
-            : null,
-      );
-    }
-    const coverageRows = ['observed', 'asOf', 'state'].map(kind => {
-      const row: (string | number | null)[] = [t(`quality.${kind}Label`), '', ''];
-      for (const md of flatMetrics) {
-        const coverage = gridQ.data.coverage?.[md.code];
-        row.push(!coverage ? null : kind === 'observed' ? `${coverage.validDays}/${coverage.expectedDays}` : kind === 'asOf' ? coverage.asOf : coverage.status);
-      }
-      return row;
-    });
-    const csv = toCsv([header, ...dataRows, sumRow, averRow, ...coverageRows]);
-    downloadCsv(`dsh-${site}-${from}_${to}.csv`, csv);
+    if (!gridQ.data || !opsQ.data || opsQ.isError) return;
+    const header = ['Date','Site',...flatMetrics.flatMap(m=>m.category==='OPERATING'?[`${m.code}:calculated`,`${m.code}:manual`,`${m.code}:manualPresent`,`${m.code}:quality`]:[isKr?m.labelKr:m.labelEn])];
+    const dataRows = displayRows.map(row=>[row.date,site,...flatMetrics.flatMap(m=>{
+      if(m.category==='OPERATING'){const c=opsRows.get(row.date)?.[m.code as OpsMetric];return [c?.calculated??null,c?.manual??null,String(c?.manualPresent??false),c?.quality??'UNAVAILABLE'];}
+      const f=METRIC_TO_FIELD[m.code];return [f?actualValue(row,f) as string|number|null:null];
+    })]);
+    const summaryRow = [t('grid.sum'),site,...flatMetrics.flatMap(m=>{
+      if(m.category==='OPERATING'){const c=opsQ.data!.summary[m.code as OpsMetric];return [c?.calculated??null,c?.manual??null,String(c?.manualPresent??false),c?.quality??'UNAVAILABLE'];}
+      return [gridQ.data!.sums[m.code]??null];
+    })];
+    downloadCsv(`dsh-v2-${site}-${from}_${to}.csv`,toCsv([header,...dataRows,summaryRow]));
   };
 
   const onRowClick = (date: string) => {
@@ -401,7 +386,7 @@ export function DashboardPage() {
               {t('visitor.syncNow')}
             </Button>
           )}
-          <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data}>
+          <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
             {t('actions.exportCsv')}
           </Button>
           <Button
@@ -498,14 +483,17 @@ export function DashboardPage() {
       {summaryQ.data?.previousFrom && <p className="text-xs text-secondary mb-3">{t('quality.comparison', { from: summaryQ.data.previousFrom, to: summaryQ.data.previousTo })}</p>}
 
       <KpiSummaryCards
-        categories={(summaryQ.data?.categories ?? []).filter((c) =>
+        operatingSlot={<OperatingPanel data={opsQ.data} error={opsQ.isError} />}
+        categories={(summaryQ.data?.categories?.length ? summaryQ.data.categories : []).filter((c) =>
           visibleCategories.includes(c.category),
         )}
-        isLoading={summaryQ.isLoading}
+        isLoading={summaryQ.isLoading && !longRange}
         visitorBreakdown={visitorBreakdown}
       />
 
-      {!isSiteView && <SiteComparisonTable from={from} to={to} />}
+      {longRange && <p className="text-xs text-secondary">{t("ops.longRange")}</p>}
+      {longRange && opsQ.data && !opsQ.isError && <OperatingTable data={opsQ.data}/>}
+      {!longRange && !isSiteView && <SiteComparisonTable from={from} to={to} />}
 
       {(metricsQ.isLoading || gridQ.isLoading) && (
         <p className="text-secondary">{t('common:status.loading')}</p>
@@ -555,10 +543,10 @@ export function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {gridQ.data.rows.map((row, idx) => {
+              {displayRows.map((row, idx) => {
                 const ym = row.yearMonth ?? ymOf(row.date);
                 const prevYm =
-                  idx > 0 ? (gridQ.data!.rows[idx - 1].yearMonth ?? ymOf(gridQ.data!.rows[idx - 1].date)) : null;
+                  idx > 0 ? (displayRows[idx - 1].yearMonth ?? ymOf(displayRows[idx - 1].date)) : null;
                 const showDivider = prevYm !== null && prevYm !== ym;
                 return (
                   <Fragment key={row.date}>
@@ -594,7 +582,7 @@ export function DashboardPage() {
                             }
                             title={isVisitor ? visitorCellTitle(row.date) : undefined}
                           >
-                            {fmt(v, md.format)}
+                            {md.category==='OPERATING' ? <DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
                             {isManualVisitor && (
                               <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
                                 ✎
@@ -624,7 +612,7 @@ export function DashboardPage() {
                         (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
                       }
                     >
-                      {fmt(gridQ.data!.sums[md.code], md.format)}
+                      {md.category==='OPERATING' ? <DualValue cell={opsQ.isError?undefined:opsQ.data?.summary[md.code as OpsMetric]}/> : fmt(gridQ.data!.sums[md.code], md.format)}
                       {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}
                     </td>
                   );
@@ -637,7 +625,7 @@ export function DashboardPage() {
                 {flatMetrics.map((md, i) => {
                   const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
                   const isFirstOfCat = prevCat !== md.category;
-                  const avg = gridQ.data!.averages[md.code];
+                  const avg = md.category==='OPERATING' ? null : gridQ.data!.averages[md.code];
                   return (
                     <td
                       key={md.id}
@@ -658,7 +646,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {gridQ.data && gridQ.data.rows.length === 0 && (
+      {gridQ.data && displayRows.length === 0 && (
         <p className="text-secondary mt-4">{t('empty.noData')}</p>
       )}
 

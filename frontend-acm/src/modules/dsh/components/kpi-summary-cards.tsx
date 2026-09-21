@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Sparkline } from './sparkline';
 
@@ -40,6 +41,7 @@ export interface VisitorBreakdown {
 
 interface KpiSummaryCardsProps {
   categories: CategorySummary[];
+  operatingSlot?: ReactNode;
   isLoading?: boolean;
   visitorBreakdown?: VisitorBreakdown | null;
 }
@@ -69,7 +71,7 @@ function DeltaCell({ delta, neutral = false }: { delta: number | null; neutral?:
   );
 }
 
-export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: KpiSummaryCardsProps) {
+export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, operatingSlot }: KpiSummaryCardsProps) {
   const { t, i18n } = useTranslation(['dsh', 'common']);
   const isKr = i18n.language?.startsWith('ko');
 
@@ -91,6 +93,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
       {categories.map((c) => {
+        if(c.category==='OPERATING' && operatingSlot) return <div key={c.category}>{operatingSlot}</div>;
         const accent = ACCENT[c.category];
         const metrics: MetricSummary[] =
           c.metrics ??
@@ -194,6 +197,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown }: Kpi
           </div>
         );
       })}
+      {!categories.some(c=>c.category==='OPERATING') && operatingSlot}
     </div>
   );
 }

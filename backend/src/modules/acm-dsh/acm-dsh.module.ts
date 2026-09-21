@@ -1,3 +1,4 @@
+import { OperatingService } from './application/operating.service';
 import { SourceCurrentService } from './application/source-current.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -43,6 +44,7 @@ import { DashboardController } from './presentation/dashboard.controller';
   ],
   controllers: [DashboardController],
   providers: [
+    OperatingService,
     SourceCurrentService,
     MetricDefinitionService,
     ManualInputService,

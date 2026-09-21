@@ -1,3 +1,4 @@
+import { OperatingPeriodEditor } from '@/modules/dsh/components/operating-period-editor';
 import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
 import { useAuthStore } from "@/stores/auth.store";
@@ -410,6 +411,7 @@ export function StdDetailPage() {
         {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}
       </p>
 
+      {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id}/>}
       <StdFormModal
         open={showEdit}
         onClose={() => setShowEdit(false)}
