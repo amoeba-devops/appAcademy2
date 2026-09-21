@@ -410,6 +410,7 @@
     "linkedStudent": "报名学生"
   },
   "sourceSite": {
+    "unspecified": "未指定",
     "TPI": "TPI",
     "TRINITY": "Trinity",
     "SANTACROCE": "Santa Croce"
