@@ -166,5 +166,23 @@
     "observedLabel": "观测天数",
     "asOfLabel": "最后观测日期",
     "stateLabel": "覆盖状态"
-  }
+  },
+  "sourceCurrent": {
+  "title": "当前源数据",
+  "refresh": "刷新",
+  "scope": "全部站点 · 当前值，并非所选期间的业绩。",
+  "error": "源数据查询失败，请刷新。",
+  "activeStudents": "在读学生",
+  "activeTeachers": "在职教师",
+  "assignedStudents": "已分配学生",
+  "assignedTeachers": "已分配教师",
+  "activeStudentsHint": "学生管理 · ACTIVE，排除已删除",
+  "activeTeachersHint": "教师管理 · ACTIVE 且为授课教师",
+  "assignedStudentsHint": "分配了有效在职教师的在读学生",
+  "assignedTeachersHint": "分配给在读学生的在职教师 · 去重",
+  "asOf": "源数据查询：{{date}} (KST)",
+  "quality": "期间统计所需日期",
+  "missing": "缺少入学日期的在读学生 {{admission}} 人 · 缺少退学日期的学生 {{withdrawal}} 人 · 缺少入职日期的在职教师 {{hire}} 人",
+  "history": "现有期间统计保留在下方。不会用当前人数推算缺失的历史日期或状态。"
+}
 }

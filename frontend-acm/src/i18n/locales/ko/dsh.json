@@ -166,5 +166,23 @@
     "observedLabel": "관측일 수",
     "asOfLabel": "마지막 관측일",
     "stateLabel": "집계 상태"
-  }
+  },
+  "sourceCurrent": {
+  "title": "원장 현재 현황",
+  "refresh": "새로고침",
+  "scope": "전체 사이트 · 현재 시점의 값이며 선택한 기간의 실적이 아닙니다.",
+  "error": "원장 조회에 실패했습니다. 새로고침해 주세요.",
+  "activeStudents": "재원 학생",
+  "activeTeachers": "재직 강사",
+  "assignedStudents": "수업 배정 학생",
+  "assignedTeachers": "수업 배정 강사",
+  "activeStudentsHint": "학생관리 · 재원(ACTIVE), 삭제 제외",
+  "activeTeachersHint": "교사관리 · 재직(ACTIVE) 및 강사",
+  "assignedStudentsHint": "재원생 중 유효한 재직 강사가 배정된 학생",
+  "assignedTeachersHint": "재원생에 배정된 재직 강사 · 중복 제외",
+  "asOf": "원장 조회: {{date}} (KST)",
+  "quality": "기간 실적에 필요한 입력 확인",
+  "missing": "입학일 미입력 재원생 {{admission}}명 · 퇴원일 미입력 퇴원생 {{withdrawal}}명 · 입사일 미입력 재직 강사 {{hire}}명",
+  "history": "기존 기간 통계는 아래에 보존되어 있습니다. 날짜·과거 이력이 없는 지표는 현재 인원으로 소급 계산하지 않습니다."
+}
 }
