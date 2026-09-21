@@ -8,6 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AttachmentPanel } from './attachment-panel';
 import { applyPurposeOptions } from './csl-list-filters';
+import {
+  formatGrade,
+  INQUIRY_GENDERS,
+  INQUIRY_KINDS,
+  KIND_BADGE_CLASS,
+  type InquiryGender,
+  type InquiryKind,
+} from '../lib/grade';
 
 /**
  * REQ-260626 SCR-CSL-01 v2 (DSN-260629) — INTAKE stage panel.
@@ -42,6 +50,10 @@ interface Inquiry {
   phoneStatus: 'PROVIDED' | 'DECLINED' | 'UNKNOWN' | null;
   schoolFreetext: string | null;
   grade: string | null;
+  /** REQ-260921B — 구분·생년월일·성별 */
+  kind?: InquiryKind;
+  birthdate?: string | null;
+  gender?: InquiryGender | null;
   inflowType: string;
   sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   /** PLN-260914B — operator-assigned dashboard site (overrides sourceSite) */
@@ -226,6 +238,9 @@ export function IntakeStagePanel({
 
       {/* 1. Read-only intake info */}
       <IntakeReadOnlyBox inq={inq} inqId={inqId} locale={i18n.language ?? 'ko'} />
+
+      {/* REQ-260921B — 구분·학교·학년·생년월일·성별 인라인 수정 */}
+      <BasicInfoEditor inqId={inqId} inq={inq} />
 
       {/* 2. Apply purposes (editable) */}
       <ApplyPurposesEditor inqId={inqId} inq={inq} />
@@ -590,9 +605,12 @@ function IntakeReadOnlyBox({
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
         <Row label={t('detail.intake.field.student')} value={inq.studentName} />
+        <Row label={t('detail.intake.field.kind', '구분')} value={t(`kind.${inq.kind ?? 'TUTORING'}`)} />
+        <Row label={t('detail.intake.field.grade')} value={formatGrade(t, inq.grade) || '—'} />
         <Row
-          label={t('detail.intake.field.grade')}
-          value={inq.grade ? t(`grade.${inq.grade}`, inq.grade) : '—'}
+          label={t('detail.intake.field.birthdate', '생년월일')}
+          value={inq.birthdate ?? '—'}
+          extra={inq.gender ? `(${t(`gender.${inq.gender}`)})` : null}
         />
         <Row label={t('detail.intake.field.parentName')} value={inq.parentName ?? '—'} />
         <Row
@@ -735,6 +753,158 @@ function ApplyPurposesEditor({
           {inq.applyPurposeOther}
         </p>
       )}
+      {mutate.isError && (
+        <p className="text-xs text-red-600">
+          {(mutate.error as { response?: { data?: { message?: string } } })?.response
+            ?.data?.message ?? (mutate.error as Error).message}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * REQ-260921B — 구분·학교·학년·생년월일·성별 인라인 편집.
+ * 학교는 필수 아님(빈란 허용). 구분을 맵테스트로 바꾸면 서버가 /admin/test 부속 행을 만든다.
+ */
+function BasicInfoEditor({ inqId, inq }: { inqId: string; inq: Inquiry }) {
+  const { t } = useTranslation(['csl', 'common']);
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const initial = () => ({
+    kind: (inq.kind ?? 'TUTORING') as InquiryKind,
+    schoolFreetext: inq.schoolFreetext ?? '',
+    grade: formatGrade(t, inq.grade),
+    birthdate: inq.birthdate ?? '',
+    gender: (inq.gender ?? '') as InquiryGender | '',
+  });
+  const [draft, setDraft] = useState(initial);
+
+  useEffect(() => {
+    setDraft(initial());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inq.kind, inq.schoolFreetext, inq.grade, inq.birthdate, inq.gender]);
+
+  const mutate = useMutation({
+    mutationFn: async () => {
+      await apiClient.patch(`/acm/csl/inquiries/${inqId}`, {
+        kind: draft.kind,
+        schoolFreetext: draft.schoolFreetext.trim() || null,
+        grade: draft.grade.trim() || null,
+        birthdate: draft.birthdate || null,
+        gender: draft.gender || null,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['csl', 'detail', inqId] });
+      qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      setEditing(false);
+    },
+  });
+
+  if (!editing) {
+    return (
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="text-xs text-primary hover:underline"
+        >
+          {t('detail.intake.editBasic', '기본정보 수정')}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-2 rounded-md border border-[var(--border-subtle)] p-3">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-semibold">
+          {t('detail.intake.editBasic', '기본정보 수정')}
+        </Label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setDraft(initial());
+              setEditing(false);
+            }}
+            className="text-xs text-secondary hover:underline"
+          >
+            {t('common:actions.cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={() => mutate.mutate()}
+            disabled={mutate.isPending}
+            className="text-xs text-primary hover:underline"
+          >
+            {t('common:actions.save')}
+          </button>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2" role="radiogroup">
+        {INQUIRY_KINDS.map((k) => (
+          <label
+            key={k}
+            className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${
+              draft.kind === k ? KIND_BADGE_CLASS[k] + ' font-medium' : 'border-[var(--border-subtle)]'
+            }`}
+          >
+            <input
+              type="radio"
+              name={`kind-${inqId}`}
+              className="accent-primary"
+              checked={draft.kind === k}
+              onChange={() => setDraft((d) => ({ ...d, kind: k }))}
+            />
+            {t(`kind.${k}`)}
+          </label>
+        ))}
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('form.school')}</Label>
+          <Input
+            value={draft.schoolFreetext}
+            onChange={(e) => setDraft((d) => ({ ...d, schoolFreetext: e.target.value }))}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('form.grade')}</Label>
+          <Input
+            value={draft.grade}
+            maxLength={40}
+            placeholder={t('form.gradePlaceholder', '예: 중2, G10')}
+            onChange={(e) => setDraft((d) => ({ ...d, grade: e.target.value }))}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('form.birthdate', '생년월일')}</Label>
+          <Input
+            type="date"
+            value={draft.birthdate}
+            onChange={(e) => setDraft((d) => ({ ...d, birthdate: e.target.value }))}
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs">{t('form.gender', '성별')}</Label>
+          <select
+            className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
+            value={draft.gender}
+            onChange={(e) =>
+              setDraft((d) => ({ ...d, gender: e.target.value as InquiryGender | '' }))
+            }
+          >
+            <option value="">{t('common:dash')}</option>
+            {INQUIRY_GENDERS.map((g) => (
+              <option key={g} value={g}>
+                {t(`gender.${g}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       {mutate.isError && (
         <p className="text-xs text-red-600">
           {(mutate.error as { response?: { data?: { message?: string } } })?.response

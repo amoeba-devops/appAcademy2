@@ -111,20 +111,23 @@ export class MapApplyService {
     site: SourceSite,
     dto: ExternalMapApplyDto,
   ): Promise<{ seqNo: number; inqId: string; mpaId: string }> {
+    const bd = MapApplyService.normalizeBirthdate(dto.birthdate);
     const view = await this.inquiryService.create(entId, {
       studentName: dto.studentName,
       parentPhone: dto.parentPhone,
       parentEmail: dto.parentEmail,
       phoneStatus: 'PROVIDED',
       grade: dto.grade,
-      schoolFreetext: '홈페이지 접수',
       inflowType: 'WEB_EXTERNAL',
       sourceSite: site,
       applyType: 'EXAM_ONLY',
       applyPurposes: ['MAP_TEST_TUTORING'],
+      // REQ-260921B — 구분·생년월일·성별을 상담 본체에도 싣는다 (학교는 빈란).
+      kind: 'MAP_TEST',
+      birthdate: bd.date ?? undefined,
+      gender: dto.gender ?? undefined,
     });
 
-    const bd = MapApplyService.normalizeBirthdate(dto.birthdate);
     const now = new Date();
     const row = this.repo.create({
       id: randomUUID(),
@@ -285,7 +288,69 @@ export class MapApplyService {
     }
     row.updatedAt = new Date();
     await this.repo.save(row);
+
+    // REQ-260921B — 생년월일·성별은 상담 본체(inq_birthdate/inq_gender)와 동기.
+    if (dto.birthdate !== undefined || dto.gender !== undefined) {
+      const inq = await this.inq.findOne({
+        where: { id: row.inqId, entId },
+      });
+      if (inq) {
+        if (dto.birthdate !== undefined) inq.birthdate = row.birthdate ?? null;
+        if (dto.gender !== undefined) inq.gender = row.gender ?? null;
+        await this.inq.save(inq);
+      }
+    }
     return this.detail(entId, id);
+  }
+
+  /**
+   * REQ-260921B — 콘솔에서 등록/수정된 상담을 맵테스트 부속 행에 반영한다.
+   *   - 구분=MAP_TEST 인데 부속 행이 없으면 생성(origin=CONSOLE) → /admin/test 노출
+   *   - 부속 행이 있으면 생년월일·성별을 상담 본체 기준으로 맞춘다
+   * 구분이 TUTORING 으로 바뀌어도 부속 행은 지우지 않는다(접수 원문 보존).
+   */
+  async reflectInquiry(entId: string, inqId: string): Promise<void> {
+    const inq = await this.inq.findOne({ where: { id: inqId, entId } });
+    if (!inq) return;
+    const existing = await this.repo.findOne({ where: { inqId, entId } });
+    if (existing) {
+      const nextBirth = inq.birthdate ?? null;
+      const nextGender = inq.gender ?? null;
+      if (
+        (existing.birthdate ?? null) !== nextBirth ||
+        (existing.gender ?? null) !== nextGender
+      ) {
+        existing.birthdate = nextBirth;
+        if (nextBirth) existing.birthdateRaw = null;
+        existing.gender = nextGender;
+        existing.updatedAt = new Date();
+        await this.repo.save(existing);
+      }
+      return;
+    }
+    if (inq.kind !== 'MAP_TEST') return;
+    const now = new Date();
+    await this.repo.save(
+      this.repo.create({
+        id: randomUUID(),
+        entId,
+        inqId,
+        submittedAt: inq.createdAt ?? now,
+        studentNameEn: null,
+        birthdate: inq.birthdate ?? null,
+        birthdateRaw: null,
+        gender: inq.gender ?? null,
+        examLocation: null,
+        preferredSlot: null,
+        sourceSite: inq.sourceSite ?? inq.siteOverride ?? 'TPI',
+        origin: 'CONSOLE',
+        importKey: null,
+        rawPayload: null,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    );
+    this.log.log(`map-apply row created from console inquiry inq=${inqId}`);
   }
 
   // ────────────────────────────────────────────────────────────────────
@@ -332,21 +397,23 @@ export class MapApplyService {
           continue;
         }
 
+        const bd = MapApplyService.normalizeBirthdate(r.birthdate);
         const view = await this.inquiryService.create(entId, {
           studentName: r.studentName,
           parentPhone: r.parentPhone || undefined,
           parentEmail: r.parentEmail || undefined,
           phoneStatus: r.parentPhone ? 'PROVIDED' : 'UNKNOWN',
           grade: r.grade || undefined,
-          schoolFreetext: '홈페이지 접수(이관)',
           inflowType: 'WEB_EXTERNAL',
           sourceSite: dto.site,
           applyType: 'EXAM_ONLY',
           applyPurposes: ['MAP_TEST_TUTORING'],
           registeredAt: MapApplyService.ymd(submittedAt),
+          kind: 'MAP_TEST',
+          birthdate: bd.date ?? undefined,
+          gender: r.gender ?? undefined,
         });
 
-        const bd = MapApplyService.normalizeBirthdate(r.birthdate);
         const now = new Date();
         await this.repo.save(
           this.repo.create({

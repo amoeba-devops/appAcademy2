@@ -63,7 +63,7 @@ export class ExternalIntakeDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(10)
+  @MaxLength(40)
   grade?: string;
 
   /** Raw checkbox labels as shown on the site — mapped server-side (FR-3). */

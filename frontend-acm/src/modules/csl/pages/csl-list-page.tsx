@@ -27,9 +27,14 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatGrade, INQUIRY_KINDS, KIND_BADGE_CLASS, type InquiryKind } from '@/modules/csl/lib/grade';
 
 interface Inquiry extends KanbanInquiry {
   createdAt: string;
+  /** REQ-260921B — 구분·생년월일·성별 */
+  kind?: InquiryKind;
+  birthdate?: string | null;
+  gender?: 'M' | 'F' | null;
   applyPurposes?: string[];
   /** 요구 260914G — 대시보드 사이트 귀속 (목록에서 바로 지정). */
   siteOverride?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
@@ -49,6 +54,7 @@ const DEFAULT_GLOBAL_FILTERS: CslGlobalFiltersValue = {
 
 const DEFAULT_COLUMN_FILTERS: CslColumnFiltersValue = {
   stage: '',
+  kind: '',
   inflowType: '',
   applyType: '',
   applyPurpose: '',
@@ -91,6 +97,7 @@ export function CslListPage() {
             ...(effectiveFilters.stage ? { stage: effectiveFilters.stage } : {}),
             ...(effectiveFilters.inflowType ? { inflowType: effectiveFilters.inflowType } : {}),
             ...(effectiveFilters.applyType ? { applyType: effectiveFilters.applyType } : {}),
+            ...(effectiveFilters.kind ? { kind: effectiveFilters.kind } : {}),
             ...(effectiveFilters.applyPurpose ? { applyPurpose: effectiveFilters.applyPurpose } : {}),
             ...(effectiveFilters.registeredFrom
               ? { registeredFrom: effectiveFilters.registeredFrom }
@@ -265,9 +272,29 @@ export function CslListPage() {
                 <th className="text-left px-4 py-3 min-w-[150px]">
                   {t('table.registered')}
                 </th>
-                <th className="text-left px-4 py-3">{t('table.student')}</th>
+                <th className="text-left px-4 py-3 min-w-[170px]">
+                  <div className="grid gap-2">
+                    <span>{t('table.student')}</span>
+                    {/* REQ-260921B — 구분 필터 */}
+                    <CslFilterSelect
+                      value={columnFilters.kind}
+                      onChange={(e) => updateColumnFilter('kind', e.target.value)}
+                      aria-label={t('filters.allKinds', { defaultValue: '전체 구분' })}
+                    >
+                      <option value="">{t('filters.allKinds', { defaultValue: '전체 구분' })}</option>
+                      {INQUIRY_KINDS.map((k) => (
+                        <option key={k} value={k}>
+                          {t(`kind.${k}`)}
+                        </option>
+                      ))}
+                    </CslFilterSelect>
+                  </div>
+                </th>
                 <th className="text-left px-4 py-3">
                   {t('table.grade', { defaultValue: '학년' })}
+                </th>
+                <th className="text-left px-4 py-3 whitespace-nowrap">
+                  {t('table.birthdate', { defaultValue: '생년월일' })}
                 </th>
                 <th className="text-left px-4 py-3 min-w-[150px]">
                   <div className="grid gap-2">
@@ -409,6 +436,14 @@ export function CslListPage() {
                     {c.isAnonymous
                       ? t('anonymousInquiry', { seqNo: c.seqNo })
                       : c.studentName}
+                    {/* REQ-260921B — 구분 배지 */}
+                    <span
+                      className={`ml-1.5 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-normal ${
+                        KIND_BADGE_CLASS[c.kind ?? 'TUTORING']
+                      }`}
+                    >
+                      {t(`kind.${c.kind ?? 'TUTORING'}`)}
+                    </span>
                     {c.linkedStudent && (
                       <span
                         className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[10px] font-normal text-accent-700"
@@ -419,7 +454,11 @@ export function CslListPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-secondary">
-                    {c.grade ? t(`grade.${c.grade}`, c.grade) : dash}
+                    {formatGrade(t, c.grade) || dash}
+                  </td>
+                  <td className="px-4 py-3 text-secondary whitespace-nowrap">
+                    {c.birthdate ?? dash}
+                    {c.gender && ` (${t(`gender.${c.gender}`)})`}
                   </td>
                   <td className="px-4 py-3 text-secondary">
                     {t(`inflow.${c.inflowType}`)}

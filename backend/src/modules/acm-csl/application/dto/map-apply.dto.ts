@@ -65,7 +65,7 @@ export class ExternalMapApplyDto {
   @ApiProperty({ description: '학년 (자유 입력, 예: G10)' })
   @IsString()
   @MinLength(1)
-  @MaxLength(10)
+  @MaxLength(40)
   grade!: string;
 
   @ApiPropertyOptional({ enum: MAP_APPLY_GENDERS })
@@ -212,7 +212,7 @@ export class ImportMapApplyRowDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
-  @MaxLength(10)
+  @MaxLength(40)
   grade?: string;
 
   @ApiPropertyOptional({ enum: MAP_APPLY_GENDERS })

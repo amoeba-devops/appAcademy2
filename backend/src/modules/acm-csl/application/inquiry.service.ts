@@ -16,6 +16,7 @@ import {
   type ApplyPurpose,
   type ApplyType,
   type InflowType,
+  type InquiryKind,
 } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm-entity';
 import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.typeorm-entity';
@@ -87,11 +88,7 @@ export class InquiryService {
   // CRUD
   // ──────────────────────────────────────────────────────────────────────
   async create(entId: string, dto: CreateInquiryDto, actorId?: string) {
-    if (!dto.schoolId && !dto.schoolFreetext) {
-      throw new BadRequestException(
-        'schoolId or schoolFreetext required (C-105)',
-      );
-    }
+    // REQ-260921B — 학교는 더 이상 필수가 아니다(빈란 허용). C-105 검사 제거.
 
     // Allocate per-tenant sequential number
     const rows: Array<{ next: number }> = await this.ds.query(
@@ -152,7 +149,11 @@ export class InquiryService {
       consultDone: dto.consultDone ?? null,
       schoolId: dto.schoolId ?? null,
       schoolFreetext: dto.schoolFreetext ?? null,
-      grade: dto.grade ?? null,
+      grade: dto.grade?.trim() || null,
+      // REQ-260921B — 구분·생년월일·성별
+      kind: dto.kind ?? 'TUTORING',
+      birthdate: dto.birthdate ?? null,
+      gender: dto.gender ?? null,
       currentStage: 'INTAKE',
       previousStage: null,
     });
@@ -178,6 +179,8 @@ export class InquiryService {
       q?: string;
       inflowType?: InflowType;
       applyType?: ApplyType;
+      /** REQ-260921B — 구분 필터 */
+      kind?: InquiryKind;
       applyPurpose?: ApplyPurpose;
       registeredFrom?: string;
       registeredTo?: string;
@@ -193,6 +196,7 @@ export class InquiryService {
       q,
       inflowType,
       applyType,
+      kind,
       applyPurpose,
       registeredFrom,
       registeredTo,
@@ -220,6 +224,9 @@ export class InquiryService {
     }
     if (applyType) {
       qb.andWhere('inq.inq_apply_type = :applyType', { applyType });
+    }
+    if (kind) {
+      qb.andWhere('inq.inq_kind = :kind', { kind });
     }
     if (applyPurpose) {
       qb.andWhere('inq.inq_apply_purpose ILIKE :applyPurpose', {
@@ -390,7 +397,11 @@ export class InquiryService {
     if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
     if (dto.schoolFreetext !== undefined)
       e.schoolFreetext = dto.schoolFreetext ?? null;
-    if (dto.grade !== undefined) e.grade = dto.grade ?? null;
+    if (dto.grade !== undefined) e.grade = dto.grade?.trim() || null;
+    // REQ-260921B
+    if (dto.kind !== undefined) e.kind = dto.kind;
+    if (dto.birthdate !== undefined) e.birthdate = dto.birthdate ?? null;
+    if (dto.gender !== undefined) e.gender = dto.gender ?? null;
     if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
     if (dto.siteOverride !== undefined)
       e.siteOverride = dto.siteOverride ?? null;
@@ -1207,6 +1218,10 @@ export class InquiryService {
       schoolId: e.schoolId,
       schoolFreetext: e.schoolFreetext,
       grade: e.grade,
+      // REQ-260921B
+      kind: e.kind ?? 'TUTORING',
+      birthdate: e.birthdate ?? null,
+      gender: e.gender ?? null,
       stdId: e.stdId ?? null,
       inflowType: e.inflowType,
       sourceSite: e.sourceSite ?? null,

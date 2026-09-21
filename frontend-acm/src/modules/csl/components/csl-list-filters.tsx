@@ -10,6 +10,8 @@ export interface CslGlobalFiltersValue {
 
 export interface CslColumnFiltersValue {
   stage: string;
+  /** REQ-260921B — 구분 (TUTORING | MAP_TEST) */
+  kind: string;
   inflowType: string;
   applyType: string;
   applyPurpose: string;

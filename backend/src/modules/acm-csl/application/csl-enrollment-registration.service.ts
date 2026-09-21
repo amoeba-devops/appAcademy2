@@ -56,9 +56,15 @@ export class CslEnrollmentRegistrationService {
       return { stdId: inq.stdId, created: false };
     }
 
-    const studentName = this.decrypt(inq.nameEncrypted, inq.nameIv, inq.nameAuthTag);
+    const studentName = this.decrypt(
+      inq.nameEncrypted,
+      inq.nameIv,
+      inq.nameAuthTag,
+    );
     if (inq.isAnonymous || !studentName || studentName === '익명') {
-      this.log.log(`inq ${inqId}: anonymous/empty name — auto-registration skipped`);
+      this.log.log(
+        `inq ${inqId}: anonymous/empty name — auto-registration skipped`,
+      );
       return null;
     }
 
@@ -155,6 +161,9 @@ export class CslEnrollmentRegistrationService {
         phone: phone ?? null,
         school,
         grade: inq.grade ?? null,
+        // REQ-260921B — 상담의 생년월일·성별을 학생에 복사
+        birthDate: inq.birthdate ?? null,
+        gender: inq.gender ?? null,
         status: 'ACTIVE',
         startDate: new Date().toISOString().slice(0, 10),
       }),
@@ -170,7 +179,9 @@ export class CslEnrollmentRegistrationService {
     const matches = await this.parents.find({ where: { entId, name } });
     if (phone && matches.length > 0) {
       const norm = normalizePhone(phone);
-      const hit = matches.find((p) => p.phone && normalizePhone(p.phone) === norm);
+      const hit = matches.find(
+        (p) => p.phone && normalizePhone(p.phone) === norm,
+      );
       if (hit) return hit;
     }
     if (matches.length === 1 && !phone) return matches[0];
@@ -185,7 +196,9 @@ export class CslEnrollmentRegistrationService {
     stdId: string,
     parId: string,
   ): Promise<void> {
-    const existing = await this.links.findOne({ where: { entId, stdId, parId } });
+    const existing = await this.links.findOne({
+      where: { entId, stdId, parId },
+    });
     if (existing) return;
     // First guardian for this student → primary.
     const hasPrimary = await this.links.findOne({

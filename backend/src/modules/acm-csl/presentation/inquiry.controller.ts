@@ -22,8 +22,16 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
-import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CurrentUser, type AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { AmaAccountGuard } from '../../acm-common/guards/ama-account.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
@@ -34,6 +42,7 @@ import { CourseService } from '../application/course.service';
 import { LevelTestPdfService } from '../application/level-test-pdf.service';
 import { CslCalLinkerService } from '../application/csl-cal-linker.service';
 import { AttachmentService } from '../application/attachment.service';
+import { MapApplyService } from '../application/map-apply.service';
 import type { AcmRole } from '../../acm-common/decorators/current-user.decorator';
 import {
   ApprovePaymentDto,
@@ -75,6 +84,7 @@ export class InquiryController {
     private readonly pdf: LevelTestPdfService,
     private readonly calLinker: CslCalLinkerService,
     private readonly attachments: AttachmentService,
+    private readonly mapApply: MapApplyService,
   ) {}
 
   // ── Inquiry CRUD ────────────────────────────────────────────────────
@@ -86,6 +96,7 @@ export class InquiryController {
     @Query('q') q?: string,
     @Query('inflowType') inflowType?: string,
     @Query('applyType') applyType?: string,
+    @Query('kind') kind?: string,
     @Query('applyPurpose') applyPurpose?: string,
     @Query('registeredFrom') registeredFrom?: string,
     @Query('registeredTo') registeredTo?: string,
@@ -97,8 +108,18 @@ export class InquiryController {
     return this.base.list(user.entId, {
       stage,
       q,
-      inflowType: inflowType as 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | undefined,
-      applyType: applyType as 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH' | undefined,
+      inflowType: inflowType as
+        | 'HOMEPAGE'
+        | 'KAKAO_CHANNEL'
+        | 'PHONE'
+        | undefined,
+      applyType: applyType as
+        | 'COUNSELING_ONLY'
+        | 'EXAM_ONLY'
+        | 'BOTH'
+        | undefined,
+      // REQ-260921B — 구분 필터
+      kind: kind === 'TUTORING' || kind === 'MAP_TEST' ? kind : undefined,
       applyPurpose: applyPurpose as
         | 'MAP_TEST_TUTORING'
         | 'ISEE_TUTORING'
@@ -117,22 +138,40 @@ export class InquiryController {
 
   @Post()
   @ApiOperation({ summary: 'Create inquiry (INTAKE)' })
-  create(@CurrentUser() user: AcmCurrentUser, @Body() dto: CreateInquiryDto) {
-    return this.base.create(user.entId, dto, user.id);
+  async create(
+    @CurrentUser() user: AcmCurrentUser,
+    @Body() dto: CreateInquiryDto,
+  ) {
+    const view = await this.base.create(user.entId, dto, user.id);
+    // REQ-260921B — 구분=맵테스트면 /admin/test 에도 보이도록 부속 행 생성.
+    await this.mapApply.reflectInquiry(user.entId, view.id);
+    return view;
   }
 
   @Get(':inqId')
-  detail(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  detail(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.base.findOne(user.entId, inqId);
   }
 
   @Patch(':inqId')
-  update(
+  async update(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: UpdateInquiryDto,
   ) {
-    return this.base.update(user.entId, inqId, dto);
+    const view = await this.base.update(user.entId, inqId, dto);
+    // REQ-260921B — 구분·생년월일·성별 변경을 맵테스트 부속 행에 반영.
+    if (
+      dto.kind !== undefined ||
+      dto.birthdate !== undefined ||
+      dto.gender !== undefined
+    ) {
+      await this.mapApply.reflectInquiry(user.entId, inqId);
+    }
+    return view;
   }
 
   @Put(':inqId')
@@ -152,7 +191,10 @@ export class InquiryController {
   @HttpCode(204)
   @UseGuards(AmaAccountGuard)
   @ApiOperation({ summary: '상담 삭제 (소프트) — AMA 연동 계정 전용' })
-  remove(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  remove(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.base.softDelete(user.entId, inqId);
   }
 
@@ -160,7 +202,10 @@ export class InquiryController {
   @HttpCode(204)
   @UseGuards(AmaAccountGuard)
   @ApiOperation({ summary: '삭제된 상담 복구 — AMA 연동 계정 전용' })
-  restore(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  restore(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.workflow.restore(user.entId, inqId);
   }
 
@@ -185,7 +230,10 @@ export class InquiryController {
 
   // ── Stage Pipeline ──────────────────────────────────────────────────
   @Get(':inqId/transitions')
-  listTransitions(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  listTransitions(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.workflow.listTransitions(user.entId, inqId);
   }
 
@@ -196,7 +244,14 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: ChangeStageDto,
   ) {
-    return this.base.forwardStage(user.entId, inqId, dto.toStage, dto.reason, user.id, dto.stdSite);
+    return this.base.forwardStage(
+      user.entId,
+      inqId,
+      dto.toStage,
+      dto.reason,
+      user.id,
+      dto.stdSite,
+    );
   }
 
   @Post(':inqId/transitions/backward')
@@ -208,7 +263,13 @@ export class InquiryController {
   ) {
     // FIX-260622: same root cause as upsertEnrollment — use the JWT `role`.
     const isAdmin = user.role === 'ADMIN' || user.role === 'APP_ADMIN';
-    return this.workflow.backwardTransition(user.entId, inqId, dto, user.id, isAdmin);
+    return this.workflow.backwardTransition(
+      user.entId,
+      inqId,
+      dto,
+      user.id,
+      isAdmin,
+    );
   }
 
   @Post(':inqId/cancellations')
@@ -230,13 +291,18 @@ export class InquiryController {
   }
 
   @Post(':inqId/reactivate')
-  reactivate(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  reactivate(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.workflow.reactivate(user.entId, inqId, user.id);
   }
 
   // ── Sub-resources ───────────────────────────────────────────────────
   @Put(':inqId/map-test')
-  @ApiOperation({ summary: 'Upsert MAP test record (CAL link auto-fired on schedule)' })
+  @ApiOperation({
+    summary: 'Upsert MAP test record (CAL link auto-fired on schedule)',
+  })
   async upsertMapTest(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -257,7 +323,10 @@ export class InquiryController {
   }
 
   @Get(':inqId/map-test')
-  getMapTest(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  getMapTest(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.base.getMapTest(user.entId, inqId);
   }
 
@@ -268,16 +337,19 @@ export class InquiryController {
    * schedules + intake fields are open to any authenticated staff).
    */
   @Post(':inqId/map-test/result')
-  @ApiOperation({ summary: 'Record level test result (operator-only, FR-CSL-115)' })
+  @ApiOperation({
+    summary: 'Record level test result (operator-only, FR-CSL-115)',
+  })
   recordLevelTestResult(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: RecordLevelTestResultDto,
   ) {
     // STAFF↑ — TEACHER must NOT be able to enter or alter scores.
-    const allowed = user.role === 'STAFF'
-      || user.role === 'ADMIN'
-      || user.role === 'APP_ADMIN';
+    const allowed =
+      user.role === 'STAFF' ||
+      user.role === 'ADMIN' ||
+      user.role === 'APP_ADMIN';
     if (!allowed) {
       throw new ForbiddenException(
         'POL-CSL-201: only STAFF/ADMIN can record level-test results',
@@ -294,16 +366,21 @@ export class InquiryController {
    * stubbed inline (the formal audit table comes with T-20).
    */
   @Get(':inqId/map-test/result-pdf')
-  @ApiOperation({ summary: 'Download level test result PDF (FR-CSL-116, legacy 1:1)' })
+  @ApiOperation({
+    summary: 'Download level test result PDF (FR-CSL-116, legacy 1:1)',
+  })
   async downloadResultPdf(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Res() res: Response,
   ): Promise<void> {
     const allowed =
-      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+      !!user.role &&
+      ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
-      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+      throw new ForbiddenException(
+        'POL-CSL-204: only TEACHER/STAFF/ADMIN may download',
+      );
     }
     const { buffer, filename } = await this.pdf.generate(user.entId, inqId);
     res.setHeader('Content-Type', 'application/pdf');
@@ -348,7 +425,14 @@ export class InquiryController {
     const saved = await this.base.upsertLevelTest(
       user.entId,
       inqId,
-      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      testType as
+        | 'MAP'
+        | 'ISEE'
+        | 'SSAT'
+        | 'DUOLINGO'
+        | 'TOEFL'
+        | 'TOEFL_JR'
+        | 'OTHER',
       dto,
     );
     // Best-effort CAL link (same pattern as upsertMapTest).
@@ -388,7 +472,14 @@ export class InquiryController {
     return this.base.recordLevelTestResultByType(
       user.entId,
       inqId,
-      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      testType as
+        | 'MAP'
+        | 'ISEE'
+        | 'SSAT'
+        | 'DUOLINGO'
+        | 'TOEFL'
+        | 'TOEFL_JR'
+        | 'OTHER',
       dto,
       user.id,
     );
@@ -403,14 +494,24 @@ export class InquiryController {
     @Res() res: Response,
   ): Promise<void> {
     const allowed =
-      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+      !!user.role &&
+      ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
-      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+      throw new ForbiddenException(
+        'POL-CSL-204: only TEACHER/STAFF/ADMIN may download',
+      );
     }
     const { buffer, filename } = await this.pdf.generate(
       user.entId,
       inqId,
-      testType as 'MAP' | 'ISEE' | 'SSAT' | 'DUOLINGO' | 'TOEFL' | 'TOEFL_JR' | 'OTHER',
+      testType as
+        | 'MAP'
+        | 'ISEE'
+        | 'SSAT'
+        | 'DUOLINGO'
+        | 'TOEFL'
+        | 'TOEFL_JR'
+        | 'OTHER',
     );
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
@@ -433,11 +534,17 @@ export class InquiryController {
     @Res() res: Response,
   ): Promise<void> {
     const allowed =
-      !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+      !!user.role &&
+      ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
-      throw new ForbiddenException('POL-CSL-204: only TEACHER/STAFF/ADMIN may download');
+      throw new ForbiddenException(
+        'POL-CSL-204: only TEACHER/STAFF/ADMIN may download',
+      );
     }
-    const { buffer, filename } = await this.pdf.generateUnified(user.entId, inqId);
+    const { buffer, filename } = await this.pdf.generateUnified(
+      user.entId,
+      inqId,
+    );
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
@@ -484,7 +591,12 @@ export class InquiryController {
     @Param('tclId', ParseUUIDPipe) tclId: string,
     @Body() dto: UpdateTrialClassDto,
   ) {
-    const saved = await this.base.updateTrialClass(user.entId, inqId, tclId, dto);
+    const saved = await this.base.updateTrialClass(
+      user.entId,
+      inqId,
+      tclId,
+      dto,
+    );
     // REQ-260626 T-08 — late-bound schedule. CAL link is idempotent: if
     // calEventId is already set, the linker no-ops. So this is safe to
     // call on every patch.
@@ -513,9 +625,13 @@ export class InquiryController {
     @Param('tclId', ParseUUIDPipe) tclId: string,
     @Body() dto: WriteFeedbackDto,
   ) {
-    const allowed = !!user.role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    const allowed =
+      !!user.role &&
+      ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
-      throw new ForbiddenException('Only TEACHER/STAFF/ADMIN may write demo feedback');
+      throw new ForbiddenException(
+        'Only TEACHER/STAFF/ADMIN may write demo feedback',
+      );
     }
     return this.base.writeFeedback(user.entId, inqId, tclId, dto.body, user.id);
   }
@@ -532,9 +648,12 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('tclId', ParseUUIDPipe) tclId: string,
   ) {
-    const allowed = !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    const allowed =
+      !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
-      throw new ForbiddenException('Only STAFF/ADMIN may confirm demo feedback');
+      throw new ForbiddenException(
+        'Only STAFF/ADMIN may confirm demo feedback',
+      );
     }
     return this.base.confirmFeedback(user.entId, inqId, tclId, user.id);
   }
@@ -551,7 +670,8 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('tclId', ParseUUIDPipe) tclId: string,
   ) {
-    const allowed = !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
+    const allowed =
+      !!user.role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(user.role);
     if (!allowed) {
       throw new ForbiddenException('Only STAFF/ADMIN may mark delivery');
     }
@@ -575,7 +695,10 @@ export class InquiryController {
   }
 
   @Get(':inqId/enrollment')
-  getEnrollment(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  getEnrollment(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.base.getEnrollment(user.entId, inqId);
   }
 
@@ -585,7 +708,9 @@ export class InquiryController {
    * surface. Idempotent — already-approved returns the current row.
    */
   @Post(':inqId/enrollment/approve-payment')
-  @ApiOperation({ summary: 'Approve payment — ADMIN/APP_ADMIN only (FR-CSL-141)' })
+  @ApiOperation({
+    summary: 'Approve payment — ADMIN/APP_ADMIN only (FR-CSL-141)',
+  })
   approvePayment(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -609,7 +734,9 @@ export class InquiryController {
   }
 
   @Post(':inqId/teacher-assignments')
-  @ApiOperation({ summary: 'Assign teacher (PRIMARY/SECONDARY) — upsert by (inq,tch)' })
+  @ApiOperation({
+    summary: 'Assign teacher (PRIMARY/SECONDARY) — upsert by (inq,tch)',
+  })
   assignTeacher(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -645,7 +772,10 @@ export class InquiryController {
   }
 
   @Get(':inqId/remarks')
-  listRemarks(@CurrentUser() user: AcmCurrentUser, @Param('inqId', ParseUUIDPipe) inqId: string) {
+  listRemarks(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+  ) {
     return this.workflow.listRemarks(user.entId, inqId);
   }
 
@@ -655,9 +785,13 @@ export class InquiryController {
   // HTTPS Mixed Content. Backend now proxies the upload + download stream.
 
   @Post(':inqId/attachments')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }),
+  )
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload attachment (multipart) — backend proxies to MinIO' })
+  @ApiOperation({
+    summary: 'Upload attachment (multipart) — backend proxies to MinIO',
+  })
   async uploadAttachment(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -666,9 +800,14 @@ export class InquiryController {
     @Body('refId') refId?: string,
   ) {
     const role = user.role as AcmRole | undefined;
-    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
-    const isTeacherPlus = !!role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
-    if (!category || !['TRANSCRIPT', 'MATERIAL', 'RESULT_PDF'].includes(category)) {
+    const isStaffPlus =
+      !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    const isTeacherPlus =
+      !!role && ['TEACHER', 'STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    if (
+      !category ||
+      !['TRANSCRIPT', 'MATERIAL', 'RESULT_PDF'].includes(category)
+    ) {
       throw new BadRequestException({ code: 'CATEGORY_REQUIRED' });
     }
     if (category === 'TRANSCRIPT' && !isStaffPlus) {
@@ -703,7 +842,9 @@ export class InquiryController {
   }
 
   @Get(':inqId/attachments/:attId/download')
-  @ApiOperation({ summary: 'Stream attachment bytes (backend-proxied from MinIO)' })
+  @ApiOperation({
+    summary: 'Stream attachment bytes (backend-proxied from MinIO)',
+  })
   async downloadAttachment(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -741,7 +882,8 @@ export class InquiryController {
     @Param('attId', ParseUUIDPipe) attId: string,
   ): Promise<void> {
     const role = user.role as AcmRole | undefined;
-    const isStaffPlus = !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
+    const isStaffPlus =
+      !!role && ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role);
     if (!isStaffPlus) {
       throw new ForbiddenException({ code: 'ROLE_REQUIRED_STAFF_PLUS' });
     }

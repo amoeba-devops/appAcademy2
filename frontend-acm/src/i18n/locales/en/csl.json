@@ -31,7 +31,9 @@
     "empty": "No inquiries yet.",
     "receivedAt": "received",
     "dashboardSite": "Dashboard site",
-    "manage": "Manage"
+    "manage": "Manage",
+    "kind": "Type",
+    "birthdate": "Date of birth"
   },
   "form": {
     "studentName": "Student name",
@@ -56,7 +58,11 @@
     "followupMemo": "Follow-up memo",
     "required": "*",
     "parentEmail": "Parent email",
-    "parentEmailPlaceholder": "parent@example.com"
+    "parentEmailPlaceholder": "parent@example.com",
+    "kind": "Type",
+    "birthdate": "Date of birth",
+    "gender": "Gender",
+    "gradePlaceholder": "e.g. Grade 8, G10"
   },
   "validation": {
     "phoneInvalid": "Invalid phone format",
@@ -64,7 +70,8 @@
     "phoneRequiredForProvided": "Phone is required when status is PROVIDED",
     "purposeOtherRequired": "Reason is required when purpose is OTHER",
     "studentNameOrAnonymous": "Student name is required unless anonymous",
-    "emailInvalid": "Please check the email address."
+    "emailInvalid": "Please check the email address.",
+    "birthdateRequiredForMapTest": "Date of birth is required for MAP Test"
   },
   "stage": {
     "INTAKE": "1. Intake",
@@ -207,9 +214,13 @@
         "registeredAt": "Registered",
         "isAnonymous": "Anonymous",
         "siteOverride": "Dashboard site",
-        "parentEmail": "Parent email"
+        "parentEmail": "Parent email",
+        "kind": "Type",
+        "birthdate": "Date of birth",
+        "gender": "Gender"
       },
-      "applyPurposeOther": "Other (as submitted)"
+      "applyPurposeOther": "Other (as submitted)",
+      "editBasic": "Edit basic info"
     },
     "backToList": "Back to list",
     "drop": "End consultation",
@@ -517,5 +528,16 @@
       "result": "Done — added {{inserted}} / skipped {{skipped}} / failed {{failed}}",
       "dryResult": "Validation — would add {{inserted}} / skip {{skipped}} / fail {{failed}}"
     }
+  },
+  "kind": {
+    "TUTORING": "Tutoring",
+    "MAP_TEST": "MAP Test"
+  },
+  "gender": {
+    "M": "Male",
+    "F": "Female"
+  },
+  "filters": {
+    "allKinds": "All types"
   }
 }

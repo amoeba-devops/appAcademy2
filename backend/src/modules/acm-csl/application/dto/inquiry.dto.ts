@@ -18,6 +18,12 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import {
+  INQUIRY_GENDERS,
+  INQUIRY_KINDS,
+  type InquiryGender,
+  type InquiryKind,
+} from '../../infrastructure/typeorm/inquiry.typeorm-entity';
 import type {
   ApplyPurpose,
   ApplyType,
@@ -194,11 +200,30 @@ export class CreateInquiryDto {
   @MaxLength(100)
   schoolFreetext?: string;
 
-  @ApiPropertyOptional()
+  /** REQ-260921B — 자유 입력, 40자 */
+  @ApiPropertyOptional({ description: '학년 (자유 입력, 예: 중2, G10)' })
   @IsOptional()
   @IsString()
-  @MaxLength(10)
+  @MaxLength(40)
   grade?: string;
+
+  /** REQ-260921B — 구분 (기본 TUTORING) */
+  @ApiPropertyOptional({ enum: INQUIRY_KINDS, default: 'TUTORING' })
+  @IsOptional()
+  @IsEnum(INQUIRY_KINDS)
+  kind?: InquiryKind;
+
+  /** REQ-260921B — 생년월일 YYYY-MM-DD (null = 지움) */
+  @ApiPropertyOptional({ description: 'YYYY-MM-DD', nullable: true })
+  @IsOptional()
+  @IsDateString()
+  birthdate?: string | null;
+
+  /** REQ-260921B — 성별 M|F (null = 지움) */
+  @ApiPropertyOptional({ enum: INQUIRY_GENDERS, nullable: true })
+  @IsOptional()
+  @IsEnum(INQUIRY_GENDERS)
+  gender?: InquiryGender | null;
 
   /** F-06 */
   @ApiProperty({ enum: INFLOW_TYPES })

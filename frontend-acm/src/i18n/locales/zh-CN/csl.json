@@ -31,7 +31,9 @@
     "empty": "暂无咨询记录。",
     "receivedAt": "接收",
     "dashboardSite": "仪表板站点",
-    "manage": "管理"
+    "manage": "管理",
+    "kind": "类别",
+    "birthdate": "出生日期"
   },
   "form": {
     "studentName": "学生姓名",
@@ -56,7 +58,11 @@
     "followupMemo": "后续备注",
     "required": "*",
     "parentEmail": "家长邮箱",
-    "parentEmailPlaceholder": "parent@example.com"
+    "parentEmailPlaceholder": "parent@example.com",
+    "kind": "类别",
+    "birthdate": "出生日期",
+    "gender": "性别",
+    "gradePlaceholder": "例：初二, G10"
   },
   "validation": {
     "phoneInvalid": "电话号码格式不正确",
@@ -64,7 +70,8 @@
     "phoneRequiredForProvided": "电话状态为“已提供”时必须填写电话号码",
     "purposeOtherRequired": "选择“其他”时请输入原因",
     "studentNameOrAnonymous": "非匿名时请输入学生姓名",
-    "emailInvalid": "请检查电子邮箱地址。"
+    "emailInvalid": "请检查电子邮箱地址。",
+    "birthdateRequiredForMapTest": "MAP 测试需要填写出生日期"
   },
   "stage": {
     "INTAKE": "1. 接收",
@@ -207,9 +214,13 @@
         "registeredAt": "登记日期",
         "isAnonymous": "匿名",
         "siteOverride": "仪表盘站点",
-        "parentEmail": "家长邮箱"
+        "parentEmail": "家长邮箱",
+        "kind": "类别",
+        "birthdate": "出生日期",
+        "gender": "性别"
       },
-      "applyPurposeOther": "其他（原文）"
+      "applyPurposeOther": "其他（原文）",
+      "editBasic": "编辑基本信息"
     },
     "backToList": "返回列表",
     "drop": "结束咨询",
@@ -517,5 +528,16 @@
       "result": "完成 — 新增 {{inserted}} / 跳过 {{skipped}} / 失败 {{failed}}",
       "dryResult": "校验结果 — 将新增 {{inserted}} / 跳过 {{skipped}} / 失败 {{failed}}"
     }
+  },
+  "kind": {
+    "TUTORING": "辅导咨询",
+    "MAP_TEST": "MAP 测试"
+  },
+  "gender": {
+    "M": "男",
+    "F": "女"
+  },
+  "filters": {
+    "allKinds": "全部类别"
   }
 }

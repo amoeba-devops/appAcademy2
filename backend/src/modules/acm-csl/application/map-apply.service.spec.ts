@@ -10,7 +10,12 @@ import type { ImportMapApplyDto } from './dto/map-apply.dto';
 describe('MapApplyService', () => {
   describe('normalizeBirthdate', () => {
     it('accepts YYYYMMDD and separator variants', () => {
-      for (const raw of ['20100914', '2010-09-14', '2010.09.14', '2010 09 14']) {
+      for (const raw of [
+        '20100914',
+        '2010-09-14',
+        '2010.09.14',
+        '2010 09 14',
+      ]) {
         expect(MapApplyService.normalizeBirthdate(raw)).toEqual({
           date: '2010-09-14',
           raw,
@@ -90,7 +95,9 @@ describe('MapApplyService', () => {
         repo as unknown as Repository<MapApplyTypeormEntity>,
         {} as unknown as Repository<InquiryTypeormEntity>,
         inquiryService as unknown as InquiryService,
-        { notifyNewApplication: jest.fn() } as unknown as MapApplyNotifierService,
+        {
+          notifyNewApplication: jest.fn(),
+        } as unknown as MapApplyNotifierService,
       );
     });
 
@@ -128,5 +135,85 @@ describe('MapApplyService', () => {
       expect(inquiryService.create).not.toHaveBeenCalled();
       expect(repo.save).not.toHaveBeenCalled();
     });
+  });
+});
+
+// REQ-260921B — 콘솔 등록/수정 상담을 맵테스트 부속 행에 반영.
+describe('reflectInquiry', () => {
+  let repo: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
+  let inqRepo: { findOne: jest.Mock; save: jest.Mock };
+  let svc: MapApplyService;
+
+  beforeEach(() => {
+    repo = {
+      findOne: jest.fn(),
+      create: jest.fn((v: unknown) => v),
+      save: jest.fn(async (v: unknown) => v),
+    };
+    inqRepo = { findOne: jest.fn(), save: jest.fn(async (v: unknown) => v) };
+    svc = new MapApplyService(
+      repo as unknown as Repository<MapApplyTypeormEntity>,
+      inqRepo as unknown as Repository<InquiryTypeormEntity>,
+      {} as unknown as InquiryService,
+      {} as unknown as MapApplyNotifierService,
+    );
+  });
+
+  it('creates a CONSOLE map-apply row for a MAP_TEST inquiry without one', async () => {
+    inqRepo.findOne.mockResolvedValue({
+      id: 'inq-1',
+      kind: 'MAP_TEST',
+      birthdate: '2012-03-14',
+      gender: 'F',
+      sourceSite: null,
+      siteOverride: 'TRINITY',
+      createdAt: new Date('2026-09-21T00:00:00Z'),
+    });
+    repo.findOne.mockResolvedValue(null);
+
+    await svc.reflectInquiry('ent-1', 'inq-1');
+
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        inqId: 'inq-1',
+        origin: 'CONSOLE',
+        birthdate: '2012-03-14',
+        gender: 'F',
+        sourceSite: 'TRINITY',
+      }),
+    );
+  });
+
+  it('does nothing for a TUTORING inquiry without a row', async () => {
+    inqRepo.findOne.mockResolvedValue({ id: 'inq-2', kind: 'TUTORING' });
+    repo.findOne.mockResolvedValue(null);
+    await svc.reflectInquiry('ent-1', 'inq-2');
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('syncs birthdate/gender into an existing row and clears raw text', async () => {
+    inqRepo.findOne.mockResolvedValue({
+      id: 'inq-3',
+      kind: 'MAP_TEST',
+      birthdate: '2011-01-02',
+      gender: 'M',
+    });
+    const existing = {
+      inqId: 'inq-3',
+      birthdate: null,
+      birthdateRaw: '2011년 1월',
+      gender: null,
+    };
+    repo.findOne.mockResolvedValue(existing);
+
+    await svc.reflectInquiry('ent-1', 'inq-3');
+
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        birthdate: '2011-01-02',
+        birthdateRaw: null,
+        gender: 'M',
+      }),
+    );
   });
 });
