@@ -97,7 +97,7 @@ export function CslKanbanBoard({
   return (
     <div className="grid min-w-0 max-w-full gap-4">
       <div className="min-w-0 max-w-full overflow-x-auto pb-2" data-testid="csl-kanban-scroll">
-      <div className="grid grid-cols-6 min-w-[1380px] gap-3" data-testid="csl-kanban-stages">
+      <div className="grid w-[1016px] min-w-[1016px] grid-cols-6 gap-3" data-testid="csl-kanban-stages">
         {ACTIVE_STAGES.map((stage) => {
           const cards = byStage.get(stage) ?? [];
           return (
