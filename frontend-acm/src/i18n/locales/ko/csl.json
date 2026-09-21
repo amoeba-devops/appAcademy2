@@ -410,6 +410,7 @@
     "linkedStudent": "수강등록 연결"
   },
   "sourceSite": {
+    "unspecified": "미지정",
     "TPI": "TPI",
     "TRINITY": "트리니티",
     "SANTACROCE": "산타크로체"

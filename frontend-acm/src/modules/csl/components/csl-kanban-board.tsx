@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RegisteredAtCell } from '@/modules/csl/components/registered-at-cell';
+import { formatRegisteredAt } from '@/modules/csl/lib/registered-at';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   Dialog,
@@ -35,6 +35,7 @@ export interface KanbanInquiry {
   grade?: string | null;
   inflowType: 'HOMEPAGE' | 'KAKAO_CHANNEL' | 'PHONE' | 'WEB_EXTERNAL';
   sourceSite?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
+  siteOverride?: 'TPI' | 'TRINITY' | 'SANTACROCE' | null;
   applyType: 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
   currentStage: Stage;
   registeredAt: string;
@@ -95,13 +96,13 @@ export function CslKanbanBoard({
 
   return (
     <div className="grid gap-4">
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid min-w-0 gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]">
         {ACTIVE_STAGES.map((stage) => {
           const cards = byStage.get(stage) ?? [];
           return (
             <section
               key={stage}
-              className={`rounded-lg border ${COLUMN_ACCENT[stage]} p-2 flex flex-col min-h-[200px]`}
+              className={`rounded-lg border ${COLUMN_ACCENT[stage]} p-2 flex min-w-0 flex-col min-h-[200px]`}
             >
               <header className="flex items-baseline justify-between px-1 py-2 mb-2 border-b border-[var(--border-subtle)]">
                 <span className="text-sm font-semibold text-primary">
@@ -111,7 +112,7 @@ export function CslKanbanBoard({
                   {cards.length}
                 </span>
               </header>
-              <div className="grid gap-2">
+              <div className="grid min-w-0 grid-cols-1 gap-2">
                 {cards.length === 0 && (
                   <p className="text-[11px] text-secondary text-center py-4">
                     {t('kanban.emptyColumn')}
@@ -149,7 +150,7 @@ export function CslKanbanBoard({
           </span>
         </button>
         {droppedOpen && droppedCount > 0 && (
-          <div className="grid gap-2 mt-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid min-w-0 gap-2 mt-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]">
             {(byStage.get('DROPPED') ?? []).map((c) => (
               <KanbanCard
                 key={c.id}
@@ -202,15 +203,11 @@ function KanbanCard({
     ? t('anonymousInquiry', { seqNo: inq.seqNo })
     : inq.studentName;
 
-  const registered = inq.registeredAt ? (
-    // 요구 260912C — 등록일 + 등록 시:분.
-    <RegisteredAtCell
-      registeredAt={inq.registeredAt}
-      createdAt={inq.createdAt}
-      locale={dateLocale}
-      tz={tz}
-    />
-  ) : null;
+  const registered = formatRegisteredAt(inq.registeredAt, inq.createdAt, dateLocale, tz);
+  const site = inq.siteOverride ?? inq.sourceSite;
+  const siteLabel = site ? { TPI: 'TPI', TRINITY: 'TA', SANTACROCE: 'SC' }[site] : t('sourceSite.unspecified', '미지정');
+  const school = inq.schoolFreetext?.trim();
+  const showSchool = school && !/^(홈페이지\s*접수|(?:TPI|TA|SC|Trinity|Santa Croce)\s*웹\s*접수)(?:\s*\(이관\))?$/i.test(school);
   const followup = inq.followupAt
     ? new Date(inq.followupAt).toLocaleDateString(dateLocale)
     : null;
@@ -219,25 +216,24 @@ function KanbanCard({
     <button
       type="button"
       onClick={onOpen}
-      className="rounded-md border border-[var(--border-subtle)] bg-surface px-3 py-2.5 text-left hover:border-accent-300 hover:shadow-sm transition text-xs"
+      className="w-full min-w-0 max-w-full rounded-md border border-[var(--border-subtle)] bg-surface px-3 py-2.5 text-left hover:border-accent-300 hover:shadow-sm transition text-xs"
     >
       <div className="flex items-baseline justify-between gap-2 mb-1">
-        <span className="font-medium text-primary truncate">{displayName}</span>
-        <span className="text-[10px] text-secondary tabular-nums">
+        <span className="min-w-0 font-medium text-primary truncate">{displayName}</span>
+        <span className="shrink-0 text-[10px] text-secondary tabular-nums">
           #{inq.seqNo}
         </span>
       </div>
-      {(inq.schoolFreetext || inq.grade) && (
-        <p className="text-[11px] text-secondary truncate">
-          {inq.schoolFreetext ?? '—'}
-          {inq.grade && ` · ${t(`grade.${inq.grade}`, inq.grade)}`}
-        </p>
-      )}
-      <div className="flex flex-wrap gap-1 mt-1.5">
-        <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
-          {t(`inflow.${inq.inflowType}`)}
-          {inq.sourceSite && ` · ${t(`sourceSite.${inq.sourceSite}`)}`}
-        </span>
+      <p className="text-[11px] text-secondary break-words">
+        {siteLabel}{inq.grade && ` · ${t(`grade.${inq.grade}`, inq.grade)}`}
+      </p>
+      {showSchool && <p className="text-[11px] text-secondary truncate" title={school}>{school}</p>}
+      <div className="flex min-w-0 flex-wrap gap-1 mt-1.5 [&>span]:max-w-full [&>span]:break-words">
+        {(inq.inflowType === 'PHONE' || inq.inflowType === 'KAKAO_CHANNEL') && (
+          <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
+            {t(`inflow.${inq.inflowType}`)}
+          </span>
+        )}
         <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
           {t(`applyType.${inq.applyType}`)}
         </span>
@@ -248,10 +244,10 @@ function KanbanCard({
         )}
       </div>
       {(registered || followup) && (
-        <p className="text-[10px] text-secondary mt-1.5">
+        <p className="text-[10px] text-secondary mt-1.5 break-words">
           {registered && (
             <>
-              📥 {registered}
+              {registered.date}{registered.time && ` ${registered.time}`}
               {followup && ' · '}
             </>
           )}
