@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 /** CSL-PLN-260916 — 맵테스트 신청 출처. */
-export const MAP_APPLY_ORIGINS = ['WEB', 'IMPORT'] as const;
+export const MAP_APPLY_ORIGINS = ['WEB', 'IMPORT', 'CONSOLE'] as const;
 export type MapApplyOrigin = (typeof MAP_APPLY_ORIGINS)[number];
 
 export const MAP_APPLY_GENDERS = ['M', 'F'] as const;

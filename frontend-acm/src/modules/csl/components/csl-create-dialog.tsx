@@ -9,6 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  INQUIRY_GENDERS,
+  INQUIRY_KINDS,
+  KIND_BADGE_CLASS,
+} from '../lib/grade';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -35,14 +40,7 @@ const APPLY_PURPOSES = [
 ] as const;
 const PHONE_STATUSES = ['PROVIDED', 'DECLINED', 'UNKNOWN'] as const;
 const YES_NO = ['YES', 'NO'] as const;
-// REQ-260626 FR-CSL-104 / Q-CSL-105 — 초1~고3 전체 + 기타.
-// (기존 코드는 초5~고3 만 — 초1~초4 학년의 인콰이어리 등록을 막고 있었음.)
-const GRADES = [
-  'E1', 'E2', 'E3', 'E4', 'E5', 'E6',
-  'M1', 'M2', 'M3',
-  'H1', 'H2', 'H3',
-  'OTHER',
-] as const;
+// REQ-260921B — 학년은 자유 입력(예: 중2, G10, 예비고1). 코드 셀렉트 제거.
 
 const cslCreateSchema = z
   .object({
@@ -66,7 +64,11 @@ const cslCreateSchema = z
     phoneStatus: z.enum(PHONE_STATUSES).default('UNKNOWN'),
     schoolFreetext: z.string().trim().max(100).optional().or(z.literal('')),
     schoolId: z.string().uuid().optional().or(z.literal('')),
-    grade: z.enum(GRADES).optional(),
+    grade: z.string().trim().max(40).optional().or(z.literal('')),
+    // REQ-260921B — 구분·생년월일·성별
+    kind: z.enum(INQUIRY_KINDS).default('TUTORING'),
+    birthdate: z.string().optional().or(z.literal('')),
+    gender: z.enum(INQUIRY_GENDERS).optional().or(z.literal('')),
     inflowType: z.enum(INFLOW_TYPES),
     applyType: z.enum(APPLY_TYPES),
     applyPurposes: z.array(z.enum(APPLY_PURPOSES)).default([]),
@@ -79,9 +81,10 @@ const cslCreateSchema = z
     path: ['studentName'],
     message: 'csl:validation.studentNameOrAnonymous',
   })
-  .refine((d) => !!(d.schoolId || (d.schoolFreetext && d.schoolFreetext.length > 0)), {
-    path: ['schoolFreetext'],
-    message: 'csl:validation.schoolRequired',
+  // REQ-260921B — 학교는 필수 아님(빈란 허용). 맵테스트 구분이면 생년월일 필수.
+  .refine((d) => d.kind !== 'MAP_TEST' || !!d.birthdate, {
+    path: ['birthdate'],
+    message: 'csl:validation.birthdateRequiredForMapTest',
   })
   .refine((d) => d.phoneStatus !== 'PROVIDED' || !!d.parentPhone, {
     path: ['parentPhone'],
@@ -106,6 +109,7 @@ export function CslCreateDialog() {
     resolver: zodResolver(cslCreateSchema),
     defaultValues: {
       isAnonymous: false,
+      kind: 'TUTORING',
       phoneStatus: 'UNKNOWN',
       inflowType: 'HOMEPAGE',
       applyType: 'COUNSELING_ONLY',
@@ -115,6 +119,14 @@ export function CslCreateDialog() {
 
   const isAnonymous = watch('isAnonymous');
   const applyPurposes = watch('applyPurposes');
+  const kind = watch('kind');
+
+  // REQ-260921B Q-1(A) — 맵테스트를 고르면 신청 유형을 '시험만' 으로 맞춘다(변경 가능).
+  const selectKind = (next: (typeof INQUIRY_KINDS)[number]) => {
+    setValue('kind', next, { shouldValidate: true });
+    if (next === 'MAP_TEST') setValue('applyType', 'EXAM_ONLY');
+    else if (watch('applyType') === 'EXAM_ONLY') setValue('applyType', 'COUNSELING_ONLY');
+  };
 
   const mutation = useMutation({
     mutationFn: async (payload: CslCreateInput) => {
@@ -128,6 +140,9 @@ export function CslCreateDialog() {
         schoolFreetext: payload.schoolFreetext || undefined,
         schoolId: payload.schoolId || undefined,
         grade: payload.grade || undefined,
+        kind: payload.kind,
+        birthdate: payload.birthdate || undefined,
+        gender: payload.gender || undefined,
         inflowType: payload.inflowType,
         applyType: payload.applyType,
         applyPurposes: payload.applyPurposes.length ? payload.applyPurposes : undefined,
@@ -165,6 +180,30 @@ export function CslCreateDialog() {
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="grid gap-3 pt-2 max-h-[70vh] overflow-y-auto pr-1">
+          {/* REQ-260921B — 구분: 튜터링 상담 / 맵테스트 */}
+          <div className="grid gap-1">
+            <Label>{t('form.kind', '구분')} *</Label>
+            <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('form.kind', '구분')}>
+              {INQUIRY_KINDS.map((k) => (
+                <label
+                  key={k}
+                  className={`flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${
+                    kind === k ? KIND_BADGE_CLASS[k] + ' font-medium' : 'border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="kind"
+                    className="accent-primary"
+                    checked={kind === k}
+                    onChange={() => selectKind(k)}
+                  />
+                  {t(`kind.${k}`)}
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* Student name + anonymous */}
           <div className="grid gap-1">
             <div className="flex items-center justify-between">
@@ -185,6 +224,26 @@ export function CslCreateDialog() {
             {errors.studentName && (
               <p className="text-xs text-red-600">{tr(errors.studentName?.message as string)}</p>
             )}
+          </div>
+
+          {/* REQ-260921B — 생년월일 + 성별 */}
+          <div className="grid grid-cols-[1fr_140px] gap-3">
+            <Field
+              label={`${t('form.birthdate', '생년월일')}${kind === 'MAP_TEST' ? ' *' : ''}`}
+              error={tr(errors.birthdate?.message as string)}
+            >
+              <Input type="date" {...register('birthdate')} />
+            </Field>
+            <Field label={t('form.gender', '성별')}>
+              <Select {...register('gender')}>
+                <option value="">{t('common:dash')}</option>
+                {INQUIRY_GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {t(`gender.${g}`)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
           </div>
 
           {/* 요구 260914E — 학부모 이메일 */}
@@ -226,20 +285,17 @@ export function CslCreateDialog() {
           {/* School + grade */}
           <div className="grid grid-cols-[1fr_120px] gap-3">
             <Field
-              label={`${t('form.school')} *`}
+              label={t('form.school')}
               error={tr(errors.schoolFreetext?.message as string)}
             >
               <Input {...register('schoolFreetext')} placeholder={t('form.schoolPlaceholder')} />
             </Field>
-            <Field label={t('form.grade')}>
-              <Select {...register('grade')}>
-                <option value="">{t('common:dash')}</option>
-                {GRADES.map((g) => (
-                  <option key={g} value={g}>
-                    {t(`grade.${g}`)}
-                  </option>
-                ))}
-              </Select>
+            <Field label={t('form.grade')} error={tr(errors.grade?.message as string)}>
+              <Input
+                {...register('grade')}
+                maxLength={40}
+                placeholder={t('form.gradePlaceholder', '예: 중2, G10')}
+              />
             </Field>
           </div>
 

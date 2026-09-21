@@ -30,6 +30,12 @@ export type InflowType =
 /** REQ-260903G — external intake source sites (imweb). */
 export type SourceSite = 'TPI' | 'TRINITY' | 'SANTACROCE';
 export type ApplyType = 'COUNSELING_ONLY' | 'EXAM_ONLY' | 'BOTH';
+/** REQ-260921B — 구분: 튜터링 상담 | 맵테스트. */
+export const INQUIRY_KINDS = ['TUTORING', 'MAP_TEST'] as const;
+export type InquiryKind = (typeof INQUIRY_KINDS)[number];
+/** REQ-260921B — 성별 (학생·맵테스트 부속과 동일 코드). */
+export const INQUIRY_GENDERS = ['M', 'F'] as const;
+export type InquiryGender = (typeof INQUIRY_GENDERS)[number];
 /**
  * 신청목적 — 접수 사이트마다 상품 구성이 달라 **사이트별로 분리 유지**한다
  * (요구 260914F). 의미가 비슷해 보여도 합치지 않는다: 합치면 사이트별 상품
@@ -182,8 +188,24 @@ export class InquiryTypeormEntity {
     nullable: true,
   })
   schoolFreetext?: string | null;
-  @Column({ name: 'grade', type: 'varchar', length: 10, nullable: true })
+  /** REQ-260921B — 자유 입력(예: 중2, G10, 예비고1). 10→40자 (마이그레이션 1016). */
+  @Column({ name: 'grade', type: 'varchar', length: 40, nullable: true })
   grade?: string | null;
+
+  /** REQ-260921B — 구분. 웹 /test2 접수·부속 행 보유 건은 MAP_TEST. */
+  @Column({
+    name: 'inq_kind',
+    type: 'varchar',
+    length: 20,
+    default: 'TUTORING',
+  })
+  kind!: InquiryKind;
+  /** REQ-260921B — 생년월일 (YYYY-MM-DD). 맵테스트 부속 mpa_birthdate 와 동기. */
+  @Column({ name: 'inq_birthdate', type: 'date', nullable: true })
+  birthdate?: string | null;
+  /** REQ-260921B — 성별 M|F. 맵테스트 부속 mpa_gender 와 동기. */
+  @Column({ name: 'inq_gender', type: 'varchar', length: 10, nullable: true })
+  gender?: InquiryGender | null;
 
   /** 6-stage state machine */
   @Column({

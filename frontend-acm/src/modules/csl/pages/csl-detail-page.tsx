@@ -11,6 +11,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { CslStageStepper } from "@/modules/csl/components/csl-stage-stepper";
 import { IntakeStagePanel } from "@/modules/csl/components/intake-stage-panel";
+import { formatGrade, KIND_BADGE_CLASS } from "@/modules/csl/lib/grade";
 import { LevelTestPanel } from "@/modules/csl/components/level-test-panel";
 import { TrialClassPanel } from "@/modules/csl/components/trial-class-panel";
 import { EnrollmentPanel } from "@/modules/csl/components/enrollment-panel";
@@ -38,6 +39,10 @@ interface InquiryDetail {
   phoneStatus: "PROVIDED" | "DECLINED" | "UNKNOWN";
   schoolFreetext?: string | null;
   grade?: string | null;
+  /** REQ-260921B — 구분·생년월일·성별 */
+  kind?: "TUTORING" | "MAP_TEST";
+  birthdate?: string | null;
+  gender?: "M" | "F" | null;
   inflowType: "HOMEPAGE" | "KAKAO_CHANNEL" | "PHONE" | "WEB_EXTERNAL";
   sourceSite?: "TPI" | "TRINITY" | "SANTACROCE" | null;
   applyType: "COUNSELING_ONLY" | "EXAM_ONLY" | "BOTH";
@@ -233,13 +238,25 @@ export function CslDetailBody({
               {backLabel ?? t("detail.backToList")}
             </button>
           )}
-          <h1 className="text-2xl font-semibold">{displayName}</h1>
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
+            {displayName}
+            {/* REQ-260921B — 구분 배지 */}
+            <span
+              className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${
+                KIND_BADGE_CLASS[inq.kind ?? "TUTORING"]
+              }`}
+            >
+              {t(`kind.${inq.kind ?? "TUTORING"}`)}
+            </span>
+          </h1>
           <p className="text-sm text-secondary mt-1">
             #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)}
             {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{" "}
             {t(`applyType.${inq.applyType}`)}
             {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
-            {inq.grade && ` (${t(`grade.${inq.grade}`, inq.grade)})`}
+            {inq.grade && ` (${formatGrade(t, inq.grade)})`}
+            {inq.birthdate && ` · ${t("form.birthdate", "생년월일")} ${inq.birthdate}`}
+            {inq.gender && ` (${t(`gender.${inq.gender}`)})`}
           </p>
           {(inq.parentName || inq.parentPhone) && (
             <p className="text-sm text-secondary mt-1">

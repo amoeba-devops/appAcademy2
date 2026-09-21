@@ -31,7 +31,9 @@
     "empty": "Chưa có tư vấn nào.",
     "receivedAt": "tiếp nhận",
     "dashboardSite": "Trang bảng điều khiển",
-    "manage": "Quản lý"
+    "manage": "Quản lý",
+    "kind": "Phân loại",
+    "birthdate": "Ngày sinh"
   },
   "form": {
     "studentName": "Tên học sinh",
@@ -56,7 +58,11 @@
     "followupMemo": "Ghi chú theo dõi",
     "required": "*",
     "parentEmail": "Email phụ huynh",
-    "parentEmailPlaceholder": "parent@example.com"
+    "parentEmailPlaceholder": "parent@example.com",
+    "kind": "Phân loại",
+    "birthdate": "Ngày sinh",
+    "gender": "Giới tính",
+    "gradePlaceholder": "VD: Lớp 8, G10"
   },
   "validation": {
     "phoneInvalid": "SĐT không hợp lệ",
@@ -64,7 +70,8 @@
     "phoneRequiredForProvided": "SĐT cần thiết khi trạng thái là 'Đã cung cấp'",
     "purposeOtherRequired": "Cần nhập lý do khi chọn 'Khác'",
     "studentNameOrAnonymous": "Vui lòng nhập tên học sinh hoặc chọn ẩn danh",
-    "emailInvalid": "Vui lòng kiểm tra địa chỉ email."
+    "emailInvalid": "Vui lòng kiểm tra địa chỉ email.",
+    "birthdateRequiredForMapTest": "MAP Test cần có ngày sinh"
   },
   "stage": {
     "INTAKE": "1. Tiếp nhận",
@@ -207,9 +214,13 @@
         "registeredAt": "Ngày đăng ký",
         "isAnonymous": "Ẩn danh",
         "siteOverride": "Site dashboard",
-        "parentEmail": "Email phụ huynh"
+        "parentEmail": "Email phụ huynh",
+        "kind": "Phân loại",
+        "birthdate": "Ngày sinh",
+        "gender": "Giới tính"
       },
-      "applyPurposeOther": "Khác (nguyên văn)"
+      "applyPurposeOther": "Khác (nguyên văn)",
+      "editBasic": "Sửa thông tin cơ bản"
     },
     "backToList": "Quay lại danh sách",
     "drop": "Kết thúc tư vấn",
@@ -517,5 +528,16 @@
       "result": "Hoàn tất — thêm {{inserted}} / bỏ qua {{skipped}} / lỗi {{failed}}",
       "dryResult": "Kiểm tra — sẽ thêm {{inserted}} / bỏ qua {{skipped}} / lỗi {{failed}}"
     }
+  },
+  "kind": {
+    "TUTORING": "Tư vấn gia sư",
+    "MAP_TEST": "MAP Test"
+  },
+  "gender": {
+    "M": "Nam",
+    "F": "Nữ"
+  },
+  "filters": {
+    "allKinds": "Tất cả phân loại"
   }
 }
