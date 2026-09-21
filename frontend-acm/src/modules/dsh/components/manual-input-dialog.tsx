@@ -199,12 +199,6 @@ export function ManualInputDialog({
     setValue('csMissing', r.csMissing);
     setValue('csTrialClass', r.csTrialClass);
     setValue('csComplain', r.csComplain);
-    setValue('opsNewSt', r.opsNewSt);
-    setValue('opsOutSt', r.opsOutSt);
-    setValue('opsCountSt', r.opsCountSt);
-    setValue('opsNewTc', r.opsNewTc);
-    setValue('opsOutTc', r.opsOutTc);
-    setValue('opsCountTc', r.opsCountTc);
     setValue('classMapTest', r.classMapTest);
     setValue('classTtClass', Number(r.classTtClass) || 0);
     setValue('classStudent', r.classStudent);
@@ -240,6 +234,7 @@ export function ManualInputDialog({
       }
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(rest)) {
+        if(k.startsWith('ops')) continue;
         const num = toNum(v);
         if (num !== undefined) body[k] = num;
         else if (k === 'note' && typeof v === 'string' && v.trim() !== '') body[k] = v.trim();
@@ -254,7 +249,7 @@ export function ManualInputDialog({
     },
   });
 
-  const sections = isSiteRow ? SITE_SECTIONS : SECTIONS;
+  const sections = isSiteRow ? SITE_SECTIONS : SECTIONS.filter(s=>s.key!=='operating');
 
   return (
     <Dialog

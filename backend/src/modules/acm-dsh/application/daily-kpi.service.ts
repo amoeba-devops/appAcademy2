@@ -1,4 +1,8 @@
-import { aggregateKpis, kpiToday, type MetricCoverage } from "./kpi-aggregation";
+import {
+  aggregateKpis,
+  kpiToday,
+  type MetricCoverage,
+} from './kpi-aggregation';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -98,7 +102,11 @@ export class DailyKpiService {
     applyEffectOverride(rows);
 
     const from = `${yearMonth}-01`;
-    const to = new Date(Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5)), 0)).toISOString().slice(0, 10);
+    const to = new Date(
+      Date.UTC(Number(yearMonth.slice(0, 4)), Number(yearMonth.slice(5)), 0),
+    )
+      .toISOString()
+      .slice(0, 10);
     const aggregate = aggregateKpis(rows, from, to);
 
     return {
@@ -182,81 +190,101 @@ export class DailyKpiService {
     isoDate: string,
     dto: UpsertDailyKpiManualDto,
   ): Promise<DailyKpiTypeormEntity> {
-    const repo = this.ds.getRepository(DailyKpiTypeormEntity);
-    const d = new Date(`${isoDate}T00:00:00Z`);
-    const yearMonth = isoDate.slice(0, 7);
-    const dayOfMonth = d.getUTCDate();
-    const dow = d.getUTCDay();
-    const now = new Date();
+    return this.ds.transaction(async (manager) => {
+      const repo = manager.getRepository(DailyKpiTypeormEntity);
+      const d = new Date(`${isoDate}T00:00:00Z`);
+      const yearMonth = isoDate.slice(0, 7);
+      const dayOfMonth = d.getUTCDate();
+      const dow = d.getUTCDay();
+      const now = new Date();
 
-    const existing = await repo.findOne({ where: { entId, date: isoDate } });
-    const base: Partial<DailyKpiTypeormEntity> = existing ?? {
-      entId,
-      date: isoDate,
-      yearMonth,
-      dayOfMonth,
-      dayOfWeek: DOW_EN[dow],
-      dayOfWeekKr: DOW_KR[dow],
-      csCounseling: 0,
-      csApply: 0,
-      csBeginning: 0,
-      csMissing: 0,
-      csTrialClass: 0,
-      csComplain: 0,
-      opsNewSt: 0,
-      opsOutSt: 0,
-      opsCountSt: 0,
-      opsNewTc: 0,
-      opsOutTc: 0,
-      opsCountTc: 0,
-      classMapTest: 0,
-      classTtClass: '0',
-      classStudent: 0,
-      classTeacher: 0,
-      computationStatus: 'FRESH',
-      dataCompleteness: 'COMPLETE',
-      createdAt: now,
-    };
+      const existing = await repo.findOne({ where: { entId, date: isoDate } });
+      const base: Partial<DailyKpiTypeormEntity> = existing ?? {
+        entId,
+        date: isoDate,
+        yearMonth,
+        dayOfMonth,
+        dayOfWeek: DOW_EN[dow],
+        dayOfWeekKr: DOW_KR[dow],
+        csCounseling: 0,
+        csApply: 0,
+        csBeginning: 0,
+        csMissing: 0,
+        csTrialClass: 0,
+        csComplain: 0,
+        opsNewSt: 0,
+        opsOutSt: 0,
+        opsCountSt: 0,
+        opsNewTc: 0,
+        opsOutTc: 0,
+        opsCountTc: 0,
+        classMapTest: 0,
+        classTtClass: '0',
+        classStudent: 0,
+        classTeacher: 0,
+        computationStatus: 'FRESH',
+        dataCompleteness: 'COMPLETE',
+        createdAt: now,
+      };
 
-    const apply = <K extends keyof DailyKpiTypeormEntity>(k: K, v: unknown) => {
-      if (v !== undefined && v !== null) (base as any)[k] = v;
-    };
-    apply('marketingVisitor', dto.marketingVisitor ?? null);
-    if (dto.marketingCost !== undefined)
-      (base as any).marketingCost = String(dto.marketingCost);
-    apply('csCounseling', dto.csCounseling);
-    apply('csApply', dto.csApply);
-    apply('csBeginning', dto.csBeginning);
-    apply('csMissing', dto.csMissing);
-    apply('csTrialClass', dto.csTrialClass);
-    apply('csComplain', dto.csComplain);
-    apply('opsNewSt', dto.opsNewSt);
-    apply('opsOutSt', dto.opsOutSt);
-    apply('opsCountSt', dto.opsCountSt);
-    apply('opsNewTc', dto.opsNewTc);
-    apply('opsOutTc', dto.opsOutTc);
-    apply('opsCountTc', dto.opsCountTc);
-    apply('classMapTest', dto.classMapTest);
-    if (dto.classTtClass !== undefined)
-      (base as any).classTtClass = dto.classTtClass.toFixed(1);
-    apply('classStudent', dto.classStudent);
-    apply('classTeacher', dto.classTeacher);
-    // derived effect
-    (base as any).marketingEffect =
-      ((base as any).csCounseling ?? 0) + ((base as any).csApply ?? 0);
-    (base as any).manuallyOverridden = true;
-    (base as any).computationStatus = 'FRESH';
-    (base as any).dataCompleteness = 'COMPLETE';
-    (base as any).computedAt = now;
-    (base as any).updatedAt = now;
-    (base as any).lastRecomputeReason = 'manual_full_override';
+      const apply = <K extends keyof DailyKpiTypeormEntity>(
+        k: K,
+        v: unknown,
+      ) => {
+        if (v !== undefined && v !== null) (base as any)[k] = v;
+      };
+      apply('marketingVisitor', dto.marketingVisitor ?? null);
+      if (dto.marketingCost !== undefined)
+        (base as any).marketingCost = String(dto.marketingCost);
+      apply('csCounseling', dto.csCounseling);
+      apply('csApply', dto.csApply);
+      apply('csBeginning', dto.csBeginning);
+      apply('csMissing', dto.csMissing);
+      apply('csTrialClass', dto.csTrialClass);
+      apply('csComplain', dto.csComplain);
+      apply('opsNewSt', dto.opsNewSt);
+      apply('opsOutSt', dto.opsOutSt);
+      apply('opsCountSt', dto.opsCountSt);
+      apply('opsNewTc', dto.opsNewTc);
+      apply('opsOutTc', dto.opsOutTc);
+      apply('opsCountTc', dto.opsCountTc);
+      apply('classMapTest', dto.classMapTest);
+      if (dto.classTtClass !== undefined)
+        (base as any).classTtClass = dto.classTtClass.toFixed(1);
+      apply('classStudent', dto.classStudent);
+      apply('classTeacher', dto.classTeacher);
+      // derived effect
+      (base as any).marketingEffect =
+        ((base as any).csCounseling ?? 0) + ((base as any).csApply ?? 0);
+      (base as any).manuallyOverridden = true;
+      (base as any).computationStatus = 'FRESH';
+      (base as any).dataCompleteness = 'COMPLETE';
+      (base as any).computedAt = now;
+      (base as any).updatedAt = now;
+      (base as any).lastRecomputeReason = 'manual_full_override';
 
-    if (existing) {
-      await repo.update({ id: existing.id }, base as object);
-      return (await repo.findOne({ where: { id: existing.id } }))!;
-    }
-    const inserted = await repo.save(base as DailyKpiTypeormEntity);
-    return inserted;
+      const mapping = {
+        opsNewSt: 'ops_new_st',
+        opsOutSt: 'ops_out_st',
+        opsCountSt: 'ops_count_st',
+        opsNewTc: 'ops_new_tc',
+        opsOutTc: 'ops_out_tc',
+        opsCountTc: 'ops_count_tc',
+      } as const;
+      for (const key of Object.keys(mapping) as (keyof typeof mapping)[]) {
+        if (dto[key] !== undefined && dto[key] !== null)
+          await manager.query(
+            `INSERT INTO amb_acm_dsh_operating_manual(ent_id,date,site,metric,value,source) VALUES($1,$2,'ALL',$3,$4,'manual-api') ON CONFLICT(ent_id,date,site,metric) DO UPDATE SET value=EXCLUDED.value,source=EXCLUDED.source,updated_at=now()`,
+            [entId, isoDate, mapping[key], dto[key]],
+          );
+      }
+      if (existing) {
+        await repo.update({ id: existing.id }, base as object);
+        return (await repo.findOne({ where: { id: existing.id } }))!;
+      }
+      const inserted = await repo.save(base as DailyKpiTypeormEntity);
+      return inserted;
+    });
   }
 
   /**
@@ -700,7 +728,8 @@ export class DailyKpiService {
             : Number(r.visitor),
         counseling,
         apply,
-        effect: counseling === null || apply === null ? null : counseling + apply,
+        effect:
+          counseling === null || apply === null ? null : counseling + apply,
         cost: r?.cost == null ? null : Number(r.cost),
         complain: r?.complain == null ? null : Number(r.complain),
       };

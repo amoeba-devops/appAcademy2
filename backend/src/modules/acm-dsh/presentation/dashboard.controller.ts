@@ -1,3 +1,4 @@
+import { OperatingService } from '../application/operating.service';
 import { SourceCurrentService } from '../application/source-current.service';
 import {
   BadRequestException,
@@ -67,6 +68,7 @@ function validateRange(from: string, to: string): void {
 export class DashboardController {
   constructor(
     private readonly sourceCurrent: SourceCurrentService,
+    private readonly operating: OperatingService,
     private readonly metrics: MetricDefinitionService,
     private readonly dailyKpi: DailyKpiService,
     private readonly manualInput: ManualInputService,
@@ -82,6 +84,65 @@ export class DashboardController {
   })
   getSourceCurrent(@CurrentUser() user: AcmCurrentUser) {
     return this.sourceCurrent.getCurrent(user.entId);
+  }
+
+  @Get('operating-range')
+  operatingRange(
+    @CurrentUser() user: AcmCurrentUser,
+    @Query('from') from: string,
+    @Query('to') to: string,
+    @Query('site') site?: string,
+  ) {
+    return this.operating.range(user.entId, from, to, site);
+  }
+
+  @Get('operating-periods/:kind/:subjectId')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  operatingPeriods(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('kind') kind: string,
+    @Param('subjectId', ParseUUIDPipe) id: string,
+  ) {
+    return this.operating.list(user.entId, kind, id);
+  }
+
+  @Put('operating-periods/:kind/:subjectId')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  saveOperatingPeriod(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('kind') kind: string,
+    @Param('subjectId', ParseUUIDPipe) id: string,
+    @Body()
+    body: {
+      id?: string;
+      start: string;
+      end?: string | null;
+      site?: string | null;
+      revision?: number;
+      cancelled?: boolean;
+      replaceMaster?: boolean;
+    },
+  ) {
+    return this.operating.savePeriod(user.entId, user.id, kind, id, body);
+  }
+
+  @Put('operating-manual/:date')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  saveOperatingManual(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('date') date: string,
+    @Body() body: { site: string; values: Record<string, unknown> },
+  ) {
+    return this.operating.saveManual(
+      user.entId,
+      user.id,
+      date,
+      body.site,
+      body.values,
+    );
   }
 
   // -------- PLN-260912: GA4 site visits --------

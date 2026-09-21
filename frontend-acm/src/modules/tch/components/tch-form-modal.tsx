@@ -1,3 +1,4 @@
+import { OperatingPeriodEditor } from '@/modules/dsh/components/operating-period-editor';
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -944,6 +945,7 @@ export function TchFormModal({
             </div>
           </DialogFooter>
         </form>
+      {initial && <OperatingPeriodEditor kind="TEACHER" subjectId={initial.id}/>}
       </DialogContent>
     </Dialog>
   );
