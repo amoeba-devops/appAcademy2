@@ -159,8 +159,6 @@
     "observed": "{{count}}/{{total}} ngày có dữ liệu",
     "partial": "Một phần",
     "comparison": "So sánh: {{from}} – {{to}}",
-    "reconcile": "Tổng khác với chi tiết theo trang",
-    "reconcileHint": "Chênh lệch là tổng trừ dữ liệu trang đã biết. Kiểm tra dữ liệu thiếu, nhập và sửa thủ công; không coi là dữ liệu chung.",
     "definitionNote": "Apply, Beginning và New Student cũ có thể khác đơn MAP, bắt đầu tư vấn và thanh toán lần đầu. Cần xác minh nguồn trước khi tính chuyển đổi.",
     "future": "Tương lai",
     "state": "Trạng thái dữ liệu",
