@@ -95,8 +95,9 @@ export function CslKanbanBoard({
   const droppedCount = byStage.get('DROPPED')?.length ?? 0;
 
   return (
-    <div className="grid gap-4">
-      <div className="grid min-w-0 gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]">
+    <div className="grid min-w-0 max-w-full gap-4">
+      <div className="min-w-0 max-w-full overflow-x-auto pb-2" data-testid="csl-kanban-scroll">
+      <div className="grid grid-cols-6 min-w-[1380px] gap-3" data-testid="csl-kanban-stages">
         {ACTIVE_STAGES.map((stage) => {
           const cards = byStage.get(stage) ?? [];
           return (
@@ -131,6 +132,8 @@ export function CslKanbanBoard({
             </section>
           );
         })}
+      </div>
+
       </div>
 
       <section
