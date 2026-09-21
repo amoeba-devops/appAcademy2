@@ -85,8 +85,16 @@ export class ParentService {
     >();
     if (items.length > 0) {
       const ids = items.map((p) => p.id);
+      // FIX-260921 — 소프트 삭제된 학생과의 연결은 세지 않는다. 이전에는 링크
+      // 행만 세어 "연결 자녀 1" 인데 이름은 없는(삭제된 학생) 학부모가 생겼고,
+      // 그 학부모는 UI 에서 삭제 버튼이 비활성돼 지울 수 없었다.
       const rows: Array<{ par_id: string; cnt: string }> = await this.links
         .createQueryBuilder('l')
+        .innerJoin(
+          StudentTypeormEntity,
+          's',
+          's.std_id = l.std_id AND s.deleted_at IS NULL',
+        )
         .select('l.par_id', 'par_id')
         .addSelect('COUNT(l.std_id)', 'cnt')
         .where('l.ent_id = :entId', { entId })
