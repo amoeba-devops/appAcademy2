@@ -4,8 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { validateEmploymentDates } from './employment-dates';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, QueryFailedError } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AcmAuthService } from '../../acm-auth/application/acm-auth.service';
 import { AcmUserTypeormEntity } from '../../acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
@@ -116,6 +117,7 @@ export class TeacherService {
   }
 
   async create(entId: string, dto: CreateTeacherDto) {
+    validateEmploymentDates(dto.tchHiredAt, dto.tchEndedAt);
     const email = dto.tchEmail?.trim().toLowerCase() || null;
     await this.assertNoDuplicate(entId, {
       name: dto.tchName,
@@ -162,6 +164,7 @@ export class TeacherService {
       isInstructor: dto.tchIsInstructor ?? true,
       employmentType: dto.tchEmploymentType ?? null,
       hiredAt: dto.tchHiredAt ?? null,
+      endedAt: dto.tchEndedAt ?? null,
       attendanceNo: dto.tchAttendanceNo ?? null,
     });
     const saved = await this.repo.save(entity);
@@ -247,61 +250,90 @@ export class TeacherService {
   }
 
   async update(entId: string, id: string, dto: UpdateTeacherDto) {
-    const e = await this.repo.findOne({
-      where: { id, entId, deletedAt: IsNull() },
-    });
-    if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
+    return this.repo.manager
+      .transaction(async (em) => {
+        const repo = em.getRepository(TeacherTypeormEntity);
+        const e = await repo.findOne({
+          lock: { mode: 'pessimistic_write' },
+          where: { id, entId, deletedAt: IsNull() },
+        });
+        if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
+        if (dto.tchHiredAt !== undefined || dto.tchEndedAt !== undefined) {
+          if (
+            dto.expectedUpdatedAt &&
+            new Date(dto.expectedUpdatedAt).getTime() !== e.updatedAt.getTime()
+          )
+            throw new ConflictException('TEACHER_DATES_CHANGED_RELOAD');
+          validateEmploymentDates(
+            dto.tchHiredAt !== undefined ? dto.tchHiredAt : e.hiredAt,
+            dto.tchEndedAt !== undefined ? dto.tchEndedAt : e.endedAt,
+          );
+        }
 
-    // Same dup check as create — only on fields the operator is changing,
-    // and excludes the current row so its own values don't collide with
-    // themselves.
-    await this.assertNoDuplicate(
-      entId,
-      {
-        name: dto.tchName,
-        englishName: dto.tchEnglishName,
-        email: dto.tchEmail
-          ? dto.tchEmail?.trim().toLowerCase() || null
-          : undefined,
-      },
-      id,
-    );
+        // Same dup check as create — only on fields the operator is changing,
+        // and excludes the current row so its own values don't collide with
+        // themselves.
+        await this.assertNoDuplicate(
+          entId,
+          {
+            name: dto.tchName,
+            englishName: dto.tchEnglishName,
+            email: dto.tchEmail
+              ? dto.tchEmail?.trim().toLowerCase() || null
+              : undefined,
+          },
+          id,
+        );
 
-    if (dto.tchName !== undefined) e.name = dto.tchName;
-    if (dto.tchEnglishName !== undefined) e.englishName = dto.tchEnglishName;
-    if (dto.tchEmail !== undefined)
-      e.email = dto.tchEmail?.trim().toLowerCase() || null;
-    if (dto.tchPhone !== undefined) e.phone = dto.tchPhone;
-    if (dto.tchBirthDate !== undefined) e.birthDate = dto.tchBirthDate;
-    if (dto.tchSubjects !== undefined) e.subjects = dto.tchSubjects;
-    if (dto.tchMemo !== undefined) e.memo = dto.tchMemo;
-    if (dto.tchStatus !== undefined) e.status = dto.tchStatus;
-    if (dto.tchIsInstructor !== undefined) e.isInstructor = dto.tchIsInstructor;
-    if (dto.tchEmploymentType !== undefined)
-      e.employmentType = dto.tchEmploymentType;
-    if (dto.tchHiredAt !== undefined) e.hiredAt = dto.tchHiredAt;
-    if (dto.tchAttendanceNo !== undefined) e.attendanceNo = dto.tchAttendanceNo;
-    if (dto.tchAmaUserId !== undefined) e.amaUserId = dto.tchAmaUserId ?? null;
-    if (dto.tchEducation !== undefined)
-      e.education = dto.tchEducation?.trim() || null;
-    if (dto.tchTeachingSubjectsText !== undefined)
-      e.teachingSubjectsText = dto.tchTeachingSubjectsText?.trim() || null;
-    if (dto.tchExperience !== undefined)
-      e.experience = dto.tchExperience?.trim() || null;
-    if (dto.tchProfileText !== undefined)
-      e.profileText = dto.tchProfileText?.trim() || null;
-    if (dto.tchResidence !== undefined)
-      e.residence = dto.tchResidence?.trim() || null;
-    if (dto.tchKakaoId !== undefined)
-      e.kakaoId = dto.tchKakaoId?.trim() || null;
-    if (dto.tchGender !== undefined) e.gender = dto.tchGender ?? null;
-    e.updatedAt = new Date();
+        if (dto.tchName !== undefined) e.name = dto.tchName;
+        if (dto.tchEnglishName !== undefined)
+          e.englishName = dto.tchEnglishName;
+        if (dto.tchEmail !== undefined)
+          e.email = dto.tchEmail?.trim().toLowerCase() || null;
+        if (dto.tchPhone !== undefined) e.phone = dto.tchPhone;
+        if (dto.tchBirthDate !== undefined) e.birthDate = dto.tchBirthDate;
+        if (dto.tchSubjects !== undefined) e.subjects = dto.tchSubjects;
+        if (dto.tchMemo !== undefined) e.memo = dto.tchMemo;
+        if (dto.tchStatus !== undefined) e.status = dto.tchStatus;
+        if (dto.tchIsInstructor !== undefined)
+          e.isInstructor = dto.tchIsInstructor;
+        if (dto.tchEmploymentType !== undefined)
+          e.employmentType = dto.tchEmploymentType;
+        if (dto.tchHiredAt !== undefined) e.hiredAt = dto.tchHiredAt;
+        if (dto.tchEndedAt !== undefined) e.endedAt = dto.tchEndedAt;
+        if (dto.tchAttendanceNo !== undefined)
+          e.attendanceNo = dto.tchAttendanceNo;
+        if (dto.tchAmaUserId !== undefined)
+          e.amaUserId = dto.tchAmaUserId ?? null;
+        if (dto.tchEducation !== undefined)
+          e.education = dto.tchEducation?.trim() || null;
+        if (dto.tchTeachingSubjectsText !== undefined)
+          e.teachingSubjectsText = dto.tchTeachingSubjectsText?.trim() || null;
+        if (dto.tchExperience !== undefined)
+          e.experience = dto.tchExperience?.trim() || null;
+        if (dto.tchProfileText !== undefined)
+          e.profileText = dto.tchProfileText?.trim() || null;
+        if (dto.tchResidence !== undefined)
+          e.residence = dto.tchResidence?.trim() || null;
+        if (dto.tchKakaoId !== undefined)
+          e.kakaoId = dto.tchKakaoId?.trim() || null;
+        if (dto.tchGender !== undefined) e.gender = dto.tchGender ?? null;
+        e.updatedAt = new Date();
 
-    const saved = await this.repo.save(e);
-    const meta = saved.userId
-      ? await this.fetchAccountMeta(saved.userId)
-      : undefined;
-    return this.toDetail(saved, meta);
+        const saved = await repo.save(e);
+        const meta = saved.userId
+          ? await this.fetchAccountMeta(saved.userId)
+          : undefined;
+        return this.toDetail(saved, meta);
+      })
+      .catch((error: unknown) => {
+        if (
+          error instanceof QueryFailedError &&
+          error.message.includes('EMPLOYMENT_')
+        )
+          throw new BadRequestException(error.message);
+        throw error;
+      });
   }
 
   async resetPassword(entId: string, id: string, dto: ResetTeacherPasswordDto) {
@@ -459,6 +491,7 @@ export class TeacherService {
     isInstructor: e.isInstructor,
     employmentType: e.employmentType,
     hiredAt: e.hiredAt,
+    endedAt: e.endedAt,
     attendanceNo: e.attendanceNo,
     accountUsername: account?.username ?? null,
     accountLastLoginAt: account?.lastLoginAt ?? null,

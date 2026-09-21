@@ -51,7 +51,7 @@
     "birthDate": "Birth date",
     "email": "Email",
     "phone": "Phone",
-    "hiredAt": "Hired at",
+    "hiredAt": "Hire date",
     "attendanceNo": "Attendance #",
     "lastLoginAt": "Last login",
     "status": "Employment status",
@@ -72,13 +72,15 @@
     "subjects": "Subjects",
     "isInstructor": "Instructor (check if instructor)",
     "employmentType": "Employment type",
-    "hiredAt": "Hired at",
+    "hiredAt": "Hire date",
     "attendanceNo": "Attendance number",
     "createAccount": "Provision login account",
     "password": "Password",
     "passwordConfirm": "Confirm password",
     "newPassword": "New password",
-    "amaUser": "AMA user"
+    "amaUser": "AMA user",
+    "endedAt": "Departure date",
+    "datePlaceholder": "Enter a date"
   },
   "subject": {
     "MAP": "MAP",
@@ -109,7 +111,11 @@
     "passwordComplexity": "Must include letters and digits.",
     "nameDuplicate": "Name [{{value}}] is already in use. Please enter a different one.",
     "englishNameDuplicate": "English name [{{value}}] is already in use. Please enter a different one.",
-    "emailDuplicate": "Email [{{value}}] is already in use. Please enter a different one."
+    "emailDuplicate": "Email [{{value}}] is already in use. Please enter a different one.",
+    "datesChanged": "Dates changed elsewhere. Close and reopen this form.",
+    "editPeriod": "Edit or cancel the matching employment period.",
+    "overlappingPeriod": "Dates overlap another employment period.",
+    "invalidDates": "Enter valid dates; departure must be on or after hire date."
   },
   "toast": {
     "passwordReset": "Password has been reset."

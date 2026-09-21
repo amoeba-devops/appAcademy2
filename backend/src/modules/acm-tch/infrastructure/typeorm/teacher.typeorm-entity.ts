@@ -119,6 +119,9 @@ export class TeacherTypeormEntity {
   @Column({ name: 'tch_hired_at', type: 'date', nullable: true })
   hiredAt?: string | null;
 
+  @Column({ name: 'tch_ended_at', type: 'date', nullable: true })
+  endedAt?: string | null;
+
   @Column({
     name: 'tch_attendance_no',
     type: 'varchar',

@@ -47,6 +47,13 @@ describe('TeacherService dup check (name / englishName / email)', () => {
       create: jest.fn((row) => row),
       save: jest.fn((row) => Promise.resolve({ id: 'tch-new', ...row })),
     };
+    Object.assign(repo, {
+      manager: {
+        transaction: async (
+          fn: (em: { getRepository: () => typeof repo }) => unknown,
+        ) => fn({ getRepository: () => repo }),
+      },
+    });
     const mod = await Test.createTestingModule({
       providers: [
         TeacherService,

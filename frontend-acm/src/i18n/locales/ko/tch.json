@@ -51,7 +51,7 @@
     "birthDate": "생년월일",
     "email": "이메일",
     "phone": "핸드폰번호",
-    "hiredAt": "입사일자",
+    "hiredAt": "입사일",
     "attendanceNo": "출결번호",
     "lastLoginAt": "최종로그인",
     "status": "재직상태",
@@ -72,13 +72,15 @@
     "subjects": "담당 과목",
     "isInstructor": "강사 여부 (체크 시 강사)",
     "employmentType": "고용형태",
-    "hiredAt": "입사일자",
+    "hiredAt": "입사일",
     "attendanceNo": "출결번호",
     "createAccount": "로그인 계정 발급",
     "password": "비밀번호",
     "passwordConfirm": "비밀번호 확인",
     "newPassword": "새 비밀번호",
-    "amaUser": "AMA 사용자"
+    "amaUser": "AMA 사용자",
+    "endedAt": "퇴사일",
+    "datePlaceholder": "입력하세요"
   },
   "subject": {
     "MAP": "MAP",
@@ -109,7 +111,11 @@
     "passwordComplexity": "영문과 숫자를 모두 포함해야 합니다.",
     "nameDuplicate": "이름 [{{value}}] 사용중입니다. 다시 입력해주세요.",
     "englishNameDuplicate": "영문명 [{{value}}] 사용중입니다. 다시 입력해주세요.",
-    "emailDuplicate": "이메일 [{{value}}] 사용중입니다. 다시 입력해주세요."
+    "emailDuplicate": "이메일 [{{value}}] 사용중입니다. 다시 입력해주세요.",
+    "datesChanged": "다른 화면에서 날짜가 변경되었습니다. 화면을 닫고 다시 열어 주세요.",
+    "editPeriod": "재직 기간에서 해당 기간을 수정하거나 취소해 주세요.",
+    "overlappingPeriod": "다른 재직 기간과 겹칩니다. 날짜를 확인해 주세요.",
+    "invalidDates": "올바른 날짜를 입력하고 퇴사일을 입사일 이후로 지정해 주세요."
   },
   "toast": {
     "passwordReset": "비밀번호가 재설정되었습니다."

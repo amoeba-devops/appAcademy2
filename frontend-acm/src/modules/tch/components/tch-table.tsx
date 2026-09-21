@@ -44,13 +44,13 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
             <th className="sticky left-0 z-10 bg-[var(--gray-50)] px-4 py-3 text-left">
               {t('table.name')}
             </th>
+            <th className="px-4 py-3 text-left">{t('table.hiredAt')}</th>
             <th className="px-4 py-3 text-left">{t('table.isInstructor')}</th>
             <th className="px-4 py-3 text-left">{t('table.employmentType')}</th>
             <th className="px-4 py-3 text-left">{t('table.username')}</th>
             <th className="px-4 py-3 text-left">{t('table.birthDate')}</th>
             <th className="px-4 py-3 text-left">{t('table.email')}</th>
             <th className="px-4 py-3 text-left">{t('table.phone')}</th>
-            <th className="px-4 py-3 text-left">{t('table.hiredAt')}</th>
             <th className="px-4 py-3 text-left">{t('table.attendanceNo')}</th>
             <th className="px-4 py-3 text-left">{t('table.lastLoginAt')}</th>
             <th className="px-4 py-3 text-left">{t('table.status')}</th>
@@ -76,6 +76,7 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
                     <span className="ml-1 text-secondary text-xs">({it.englishName})</span>
                   )}
                 </td>
+                <td className="px-4 py-3 whitespace-nowrap">{it.hiredAt ?? ""}</td>
                 <td className="px-4 py-3">
                   {it.isInstructor ? (
                     <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
@@ -90,7 +91,6 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
                 <td className="px-4 py-3">{fmtDate(it.birthDate)}</td>
                 <td className="px-4 py-3">{it.email}</td>
                 <td className="px-4 py-3">{it.phone ?? '—'}</td>
-                <td className="px-4 py-3">{fmtDate(it.hiredAt)}</td>
                 <td className="px-4 py-3">{it.attendanceNo ?? '—'}</td>
                 <td className="px-4 py-3 text-xs">{fmtDateTime(it.accountLastLoginAt)}</td>
                 <td className="px-4 py-3">

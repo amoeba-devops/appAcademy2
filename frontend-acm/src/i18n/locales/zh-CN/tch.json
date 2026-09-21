@@ -78,7 +78,9 @@
     "password": "密码",
     "passwordConfirm": "确认密码",
     "newPassword": "新密码",
-    "amaUser": "AMA 用户"
+    "amaUser": "AMA 用户",
+    "endedAt": "离职日期",
+    "datePlaceholder": "请输入日期"
   },
   "subject": {
     "MAP": "MAP",
@@ -109,7 +111,11 @@
     "passwordComplexity": "需包含字母和数字。",
     "nameDuplicate": "姓名 [{{value}}] 已被使用，请重新输入。",
     "englishNameDuplicate": "英文名 [{{value}}] 已被使用，请重新输入。",
-    "emailDuplicate": "邮箱 [{{value}}] 已被使用，请重新输入。"
+    "emailDuplicate": "邮箱 [{{value}}] 已被使用，请重新输入。",
+    "datesChanged": "日期已被修改，请关闭并重新打开。",
+    "editPeriod": "请编辑或取消对应的任职期间。",
+    "overlappingPeriod": "日期与其他任职期间重叠。",
+    "invalidDates": "请输入有效日期；离职日期不得早于入职日期。"
   },
   "toast": {
     "passwordReset": "密码已重置。"

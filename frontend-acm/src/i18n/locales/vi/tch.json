@@ -78,7 +78,9 @@
     "password": "Mật khẩu",
     "passwordConfirm": "Xác nhận mật khẩu",
     "newPassword": "Mật khẩu mới",
-    "amaUser": "Người dùng AMA"
+    "amaUser": "Người dùng AMA",
+    "endedAt": "Ngày nghỉ việc",
+    "datePlaceholder": "Nhập ngày"
   },
   "subject": {
     "MAP": "MAP",
@@ -109,7 +111,11 @@
     "passwordComplexity": "Phải có cả chữ và số.",
     "nameDuplicate": "Tên [{{value}}] đã được dùng. Vui lòng nhập tên khác.",
     "englishNameDuplicate": "Tên tiếng Anh [{{value}}] đã được dùng. Vui lòng nhập tên khác.",
-    "emailDuplicate": "Email [{{value}}] đã được dùng. Vui lòng nhập email khác."
+    "emailDuplicate": "Email [{{value}}] đã được dùng. Vui lòng nhập email khác.",
+    "datesChanged": "Ngày đã thay đổi. Hãy đóng và mở lại biểu mẫu.",
+    "editPeriod": "Sửa hoặc hủy giai đoạn làm việc tương ứng.",
+    "overlappingPeriod": "Ngày trùng với một giai đoạn làm việc khác.",
+    "invalidDates": "Nhập ngày hợp lệ; ngày nghỉ không được trước ngày vào làm."
   },
   "toast": {
     "passwordReset": "Mật khẩu đã được đặt lại."

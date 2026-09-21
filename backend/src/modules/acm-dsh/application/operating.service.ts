@@ -162,6 +162,18 @@ export class OperatingService {
         if (!result.length)
           throw new ConflictException('Period changed; reload');
       } else {
+        if (kind === 'TEACHER' && body.replaceMaster) {
+          const existing = await em.query<{ opr_id: string }[]>(
+            `SELECT opr_id FROM amb_acm_dsh_operating_period WHERE ent_id=$1 AND kind='TEACHER' AND subject_id=$2`,
+            [entId, subjectId],
+          );
+          if (existing.length)
+            throw new ConflictException('Period changed; reload');
+          await em.query(
+            `UPDATE amb_acm_tch_teacher SET tch_hired_at=$3,tch_ended_at=$4,updated_at=now() WHERE ent_id=$1 AND tch_id=$2`,
+            [entId, subjectId, body.start, body.end || null],
+          );
+        }
         if (!body.replaceMaster) {
           const startCol =
             kind === 'STUDENT' ? 'std_start_date' : 'tch_hired_at';
