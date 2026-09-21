@@ -166,5 +166,23 @@
     "observedLabel": "Observed days",
     "asOfLabel": "Last observed date",
     "stateLabel": "Coverage status"
-  }
+  },
+  "sourceCurrent": {
+  "title": "Current source records",
+  "refresh": "Refresh",
+  "scope": "All sites · Current values, not results for the selected period.",
+  "error": "Source lookup failed. Please refresh.",
+  "activeStudents": "Active students",
+  "activeTeachers": "Active instructors",
+  "assignedStudents": "Assigned students",
+  "assignedTeachers": "Assigned instructors",
+  "activeStudentsHint": "Student records · ACTIVE, excluding deleted",
+  "activeTeachersHint": "Teacher records · ACTIVE instructors",
+  "assignedStudentsHint": "Active students assigned to valid active instructors",
+  "assignedTeachersHint": "Active instructors assigned to active students · unique",
+  "asOf": "Source queried: {{date}} (KST)",
+  "quality": "Missing dates for period reporting",
+  "missing": "Active students without admission dates: {{admission}} · Withdrawn students without withdrawal dates: {{withdrawal}} · Active instructors without hire dates: {{hire}}",
+  "history": "Existing period statistics remain below. Current counts do not reconstruct missing historical dates or status history."
+}
 }

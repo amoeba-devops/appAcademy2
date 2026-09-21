@@ -1,7 +1,7 @@
 ---
 document_id: CSL-PLN-260921B
 version: 1.0.0
-status: IMPLEMENTED (PR 대기) — 학교 필수 해제·성별 포함
+status: DEPLOYED (PR #263 6768d8e — cd-staging·cd-production 2026-09-21 완료) — 리포트 RPT-260921B
 date: 2026-09-21
 depends_on: docs/analysis/REQ-260921B-csl-intake-grade-birthdate-kind.md
 change_log:
@@ -119,7 +119,9 @@ UPDATE amb_acm_csl_inquiry i SET inq_birthdate=m.mpa_birthdate
 |---|---|
 | backend `tsc` · eslint(0 error) · jest acm-csl | ✅ 103 pass (+reflectInquiry 2) |
 | frontend-acm `tsc` · `vite build` | ✅ |
-| SQL 1016 로컬 적용 | (아래 결과) |
+| SQL 1016 로컬 적용 | ✅ 백필 3건 |
+| CI · cd-staging · cd-production (6768d8e) | ✅ |
+| 프로덕션 백필 | 맵테스트 67(생년월일 40·성별 67) · 튜터링 4 · grade 40자 |
 
 - backend `tsc`·jest·eslint / frontend `tsc`·build
 - 로컬 `sql/acm/1016` 수동 적용(로컬만; staging/prod 는 CD 자동)

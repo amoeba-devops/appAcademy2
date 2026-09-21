@@ -1,3 +1,4 @@
+import { SourceCurrentPanel } from '../components/source-current-panel';
 import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -482,6 +483,8 @@ export function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {!isSiteView && <SourceCurrentPanel />}
 
       {gridQ.data && (
         <p className="text-xs text-secondary mb-2">

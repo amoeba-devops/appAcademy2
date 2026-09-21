@@ -1,3 +1,4 @@
+import { SourceCurrentService } from './application/source-current.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -42,6 +43,7 @@ import { DashboardController } from './presentation/dashboard.controller';
   ],
   controllers: [DashboardController],
   providers: [
+    SourceCurrentService,
     MetricDefinitionService,
     ManualInputService,
     ComplaintService,

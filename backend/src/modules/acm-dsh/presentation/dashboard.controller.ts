@@ -1,3 +1,4 @@
+import { SourceCurrentService } from '../application/source-current.service';
 import {
   BadRequestException,
   Body,
@@ -65,6 +66,7 @@ function validateRange(from: string, to: string): void {
 @Controller('acm/dsh')
 export class DashboardController {
   constructor(
+    private readonly sourceCurrent: SourceCurrentService,
     private readonly metrics: MetricDefinitionService,
     private readonly dailyKpi: DailyKpiService,
     private readonly manualInput: ManualInputService,
@@ -72,6 +74,15 @@ export class DashboardController {
     private readonly monthlySummary: MonthlySummaryService,
     private readonly ga4Sync: Ga4SyncService,
   ) {}
+
+  @Get('source-current')
+  @ApiOperation({
+    summary:
+      'Current tenant-wide master counts; independent of historical range',
+  })
+  getSourceCurrent(@CurrentUser() user: AcmCurrentUser) {
+    return this.sourceCurrent.getCurrent(user.entId);
+  }
 
   // -------- PLN-260912: GA4 site visits --------
   @Get('site-visits')
