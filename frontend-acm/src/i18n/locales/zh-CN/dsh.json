@@ -159,8 +159,6 @@
     "observed": "已观测 {{count}}/{{total}} 天",
     "partial": "部分汇总",
     "comparison": "比较期间：{{from}} – {{to}}",
-    "reconcile": "总计与站点明细存在差异",
-    "reconcileHint": "差值为总计减去已知站点值。请核查缺失、导入和手工修改来源，不将差值归入公共项。",
     "definitionNote": "原有申请、开始和新生指标可能与 MAP 申请、咨询开始和首次付款不同。核对来源映射后再分析转化率。",
     "future": "未来日期",
     "state": "数据状态",

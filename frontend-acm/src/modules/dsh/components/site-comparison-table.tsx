@@ -48,16 +48,6 @@ export function SiteComparisonTable({ from, to }: Props) {
     { key: 'complain', label: t('site.comparison.complain') },
   ];
 
-  const total = q.data?.rows.find(row => row.site === 'TOTAL');
-  const details = q.data?.rows.filter(row => row.site !== 'TOTAL') ?? [];
-  const differences = cols.flatMap(column => {
-    const value = total?.[column.key];
-    const known = details.map(row => row[column.key]).filter((n): n is number => n !== null);
-    if (value == null) return [];
-    const delta = value - known.reduce((sum, n) => sum + n, 0);
-    return delta === 0 ? [] : [{ label: column.label, delta }];
-  });
-
   return (
     <div
       className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-4"
@@ -71,11 +61,6 @@ export function SiteComparisonTable({ from, to }: Props) {
           {from} ~ {to}
         </span>
       </div>
-      {differences.length > 0 && <div role="status" className="mb-3 rounded border border-[var(--border-subtle)] p-3 text-sm">
-        <p className="font-medium">{t('quality.reconcile')}</p>
-        <p>{differences.map(item => `${item.label}: ${item.delta > 0 ? '+' : ''}${fmt(item.delta)}`).join(' · ')}</p>
-        <p className="text-xs text-secondary mt-1">{t('quality.reconcileHint')}</p>
-      </div>}
       {q.isLoading ? (
         <p className="text-xs text-secondary">{t('common:status.loading', { ns: 'common' })}</p>
       ) : q.isError ? (

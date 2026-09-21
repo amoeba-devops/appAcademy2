@@ -159,8 +159,6 @@
     "observed": "{{count}}/{{total}} observed days",
     "partial": "Partial",
     "comparison": "Comparison: {{from}} – {{to}}",
-    "reconcile": "Total differs from the site breakdown",
-    "reconcileHint": "Differences subtract known site values from the total. Check missing, imported and overridden sources; these are not Common values.",
     "definitionNote": "Legacy Apply, Beginning and New Student metrics may differ from MAP applications, counseling starts and first payments. Verify source mappings before interpreting conversion.",
     "future": "Future",
     "state": "Data status",
