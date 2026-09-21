@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
@@ -32,11 +32,41 @@ export function OperatingPanel({
 }) {
   const { t } = useTranslation("dsh");
   const qc = useQueryClient();
-  const admin = useAuthStore((s) => s.user?.role === "ADMIN");
+  const user = useAuthStore((s) => s.user);
+  const admin = user?.role === "ADMIN";
   const [edit, setEdit] = useState(false);
   const [date, setDate] = useState("");
   const [values, setValues] = useState<Record<string, string>>({});
   const [metric, setMetric] = useState<OpsMetric>("ops_count_st");
+  const manualDateQ = useQuery({
+    queryKey: [
+      "dsh",
+      "operating-manual-date",
+      user?.entId,
+      user?.id,
+      data?.site,
+      date,
+    ],
+    queryFn: async () =>
+      (
+        await apiClient.get<OperatingResult>("/acm/dsh/operating-range", {
+          params: { from: date, to: date, site: data?.site },
+        })
+      ).data,
+    enabled: edit && !!date && !!data,
+    refetchOnWindowFocus: false,
+  });
+  useEffect(() => {
+    if (manualDateQ.data)
+      setValues(
+        Object.fromEntries(
+          manualDateQ.data.metrics.map((k) => [
+            k,
+            String(manualDateQ.data!.rows[0]?.values[k]?.manual ?? ""),
+          ]),
+        ),
+      );
+  }, [manualDateQ.data]);
   const save = useMutation({
     mutationFn: () =>
       apiClient.put(`/acm/dsh/operating-manual/${date}`, {
@@ -260,7 +290,12 @@ export function OperatingPanel({
           ))}
           {save.isError && <p role="alert">{t("loadFailed")}</p>}
           <Button
-            disabled={save.isPending || !date}
+            disabled={
+              save.isPending ||
+              !date ||
+              manualDateQ.isFetching ||
+              manualDateQ.isError
+            }
             onClick={() => save.mutate()}
           >
             {t("ops.save")}
