@@ -4,7 +4,9 @@ export type StdStatus = 'ACTIVE' | 'INACTIVE' | 'WITHDRAWN';
 export type StdGender = 'M' | 'F';
 
 @Entity('amb_acm_std_student')
-@Index('idx_acm_std_ent_status', ['entId', 'status'], { where: 'deleted_at IS NULL' })
+@Index('idx_acm_std_ent_status', ['entId', 'status'], {
+  where: 'deleted_at IS NULL',
+})
 export class StudentTypeormEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'std_id' })
   id!: string;
@@ -19,7 +21,12 @@ export class StudentTypeormEntity {
   @Column({ name: 'std_name', type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({ name: 'std_english_name', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'std_english_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   englishName?: string | null;
 
   @Column({ name: 'std_gender', type: 'char', length: 1, nullable: true })
@@ -34,7 +41,12 @@ export class StudentTypeormEntity {
   @Column({ name: 'std_email', type: 'varchar', length: 200, nullable: true })
   email?: string | null;
 
-  @Column({ name: 'std_residence', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'std_residence',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   residence?: string | null;
 
   // 학교 정보
@@ -94,7 +106,12 @@ export class StudentTypeormEntity {
   @Column({ name: 'std_goals_note', type: 'text', nullable: true })
   goalsNote?: string | null;
 
-  @Column({ name: 'std_satisfaction_note', type: 'varchar', length: 200, nullable: true })
+  @Column({
+    name: 'std_satisfaction_note',
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+  })
   satisfactionNote?: string | null;
 
   @Column({ name: 'std_last_counsel_date', type: 'date', nullable: true })
@@ -110,8 +127,16 @@ export class StudentTypeormEntity {
   // 상태/등록
   @Column({ name: 'std_start_date', type: 'date', nullable: true })
   startDate?: string | null;
+  /** 수업 종료일 — 대시보드 운영 지표(REQ-260922)의 종료 기준. 퇴원 시 퇴원일로 자동 채움(RPT-260922D B). */
+  @Column({ name: 'std_end_date', type: 'date', nullable: true })
+  endDate?: string | null;
 
-  @Column({ name: 'std_status', type: 'varchar', length: 20, default: 'ACTIVE' })
+  @Column({
+    name: 'std_status',
+    type: 'varchar',
+    length: 20,
+    default: 'ACTIVE',
+  })
   status!: StdStatus;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })

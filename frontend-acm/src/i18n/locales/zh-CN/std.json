@@ -69,7 +69,8 @@
     "parentRelation": "关系",
     "parentPhone": "电话",
     "parentEmail": "邮箱",
-    "parentPrimary": "主联系人"
+    "parentPrimary": "主联系人",
+    "endDate": "课程结束日期"
   },
   "form": {
     "titleCreate": "注册学生",

@@ -1,4 +1,4 @@
-import { OperatingPeriodEditor } from '@/modules/dsh/components/operating-period-editor';
+import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
 import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
 import { useAuthStore } from "@/stores/auth.store";
@@ -193,6 +193,9 @@ export function StdDetailPage() {
         <InfoRow label={t("field.school")} value={student.school} />
         <InfoRow label={t("field.grade")} value={student.grade} />
         <InfoRow label={t("field.startDate")} value={student.startDate} />
+        {student.status === "WITHDRAWN" && (
+          <InfoRow label={t("field.endDate")} value={student.endDate} />
+        )}
         <InfoRow
           label={t("withdrawn.admissionDate")}
           value={student.admissionDate}
@@ -411,7 +414,7 @@ export function StdDetailPage() {
         {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}
       </p>
 
-      {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id}/>}
+      {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id} />}
       <StdFormModal
         open={showEdit}
         onClose={() => setShowEdit(false)}

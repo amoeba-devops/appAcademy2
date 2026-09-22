@@ -69,7 +69,8 @@
     "parentRelation": "Quan hệ",
     "parentPhone": "Số điện thoại",
     "parentEmail": "Email",
-    "parentPrimary": "Liên hệ chính"
+    "parentPrimary": "Liên hệ chính",
+    "endDate": "Ngày kết thúc học"
   },
   "form": {
     "titleCreate": "Đăng ký học sinh",

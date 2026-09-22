@@ -9,6 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { applyWithdrawnDateDefaults } from './withdrawn-dates';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -420,11 +421,14 @@ export class StudentService {
       satisfactionNote: dto.stdSatisfactionNote,
       lastCounselDate: dto.stdLastCounselDate,
       startDate: dto.stdStartDate,
+      endDate: dto.stdEndDate,
       admissionDate: dto.stdAdmissionDate,
       withdrawnDate: dto.stdWithdrawnDate,
       withdrawnReason: dto.stdWithdrawnReason,
       status: dto.stdStatus ?? 'ACTIVE',
     });
+    // RPT-260922D B — 퇴원생은 수업 시작/종료일을 입학/퇴원일로 채워 대시보드 집계에 반영.
+    applyWithdrawnDateDefaults(entity);
     const saved = await this.ds.transaction(async (manager) => {
       const saved = await manager
         .getRepository(StudentTypeormEntity)
@@ -529,6 +533,7 @@ export class StudentService {
         if (dto.stdLastCounselDate !== undefined)
           entity.lastCounselDate = dto.stdLastCounselDate;
         if (dto.stdStartDate !== undefined) entity.startDate = dto.stdStartDate;
+        if (dto.stdEndDate !== undefined) entity.endDate = dto.stdEndDate;
         if (dto.stdAdmissionDate !== undefined)
           entity.admissionDate = dto.stdAdmissionDate;
         if (dto.stdWithdrawnDate !== undefined)
@@ -536,6 +541,8 @@ export class StudentService {
         if (dto.stdWithdrawnReason !== undefined)
           entity.withdrawnReason = dto.stdWithdrawnReason;
         if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
+        // RPT-260922D B — 퇴원 전환·퇴원일 입력 시 수업 종료일(시작일)을 자동 보완.
+        applyWithdrawnDateDefaults(entity);
 
         entity.updatedAt = new Date();
         await manager.query(
@@ -659,6 +666,7 @@ export class StudentService {
       teacherId: e.teacherId,
       status: e.status,
       startDate: e.startDate,
+      endDate: e.endDate ?? null,
       admissionDate: e.admissionDate,
       withdrawnDate: e.withdrawnDate,
       withdrawnReason: e.withdrawnReason,
@@ -699,6 +707,7 @@ export class StudentService {
       satisfactionNote: e.satisfactionNote,
       lastCounselDate: e.lastCounselDate,
       startDate: e.startDate,
+      endDate: e.endDate ?? null,
       admissionDate: e.admissionDate,
       withdrawnDate: e.withdrawnDate,
       withdrawnReason: e.withdrawnReason,
