@@ -13,6 +13,11 @@ export interface Period {
   revision: number;
   cancelled: boolean;
 }
+export interface Admission {
+  subjectId: string;
+  site: string | null;
+  date: string | null;
+}
 export interface ManualValue {
   date: string;
   site: string;
@@ -33,7 +38,14 @@ export function calculateOperating(
   to: string,
   site: string,
   today: string,
+  admissions: Admission[] = [],
 ) {
+  const scopedAdmissions = [
+    ...new Map(admissions.map((a) => [a.subjectId, a])).values(),
+  ].filter(
+    (a) => sites.includes(a.site ?? '') && (site === 'ALL' || a.site === site),
+  );
+  const missingAdmissions = scopedAdmissions.filter((a) => !a.date).length;
   const actualThrough = to < today ? to : today;
   const metrics: OpsMetric[] = site === 'ALL' ? [...OPS_METRICS] : [...OPS_ST];
   const bySite = Object.fromEntries(
@@ -90,6 +102,7 @@ export function calculateOperating(
             .map((s) => counts(bySite[s], date))
             .reduce((a, b) => a.map((v, i) => v + b[i]), [0, 0, 0])
         : counts(students, date);
+    st[0] = scopedAdmissions.filter((a) => a.date === date).length;
     const tc = counts(teachers, date);
     const values: Partial<Record<OpsMetric, OpsCell>> = {};
     metrics.forEach((metric, i) => {
@@ -102,7 +115,7 @@ export function calculateOperating(
         manualPresent: m !== null,
         quality: unavailable
           ? 'UNAVAILABLE'
-          : i < 3 && unresolved > 0
+          : (i === 0 ? missingAdmissions > 0 : i < 3 && unresolved > 0)
             ? 'PARTIAL'
             : 'COMPLETE',
       };
@@ -143,7 +156,7 @@ export function calculateOperating(
   });
   const prev = new Date(Date.parse(from) - 86400000).toISOString().slice(0, 10);
   return {
-    definitionVersion: 'operating-period-v1',
+    definitionVersion: 'operating-admission-v2',
     site,
     from,
     to,
@@ -155,6 +168,6 @@ export function calculateOperating(
       students: counts(students, prev)[2],
       teachers: missingTeachers ? null : counts(teachers, prev)[2],
     },
-    quality: { unclassified, unresolved, missingTeachers },
+    quality: { unclassified, unresolved, missingTeachers, missingAdmissions },
   };
 }

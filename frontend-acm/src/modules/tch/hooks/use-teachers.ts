@@ -35,7 +35,10 @@ export function useCreateTeacher() {
       const res = await apiClient.post<TeacherDetail>('/acm/tch/teachers', dto);
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'teachers'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [KEY, 'teachers'] });
+      qc.invalidateQueries({ queryKey: ['dsh'] });
+    },
   });
 }
 
@@ -46,7 +49,10 @@ export function useUpdateTeacher(id: string) {
       const res = await apiClient.put<TeacherDetail>(`/acm/tch/teachers/${id}`, dto);
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'teachers'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [KEY, 'teachers'] });
+      qc.invalidateQueries({ queryKey: ['dsh'] });
+    },
   });
 }
 

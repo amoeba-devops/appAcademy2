@@ -1,4 +1,5 @@
-import { OperatingPeriodEditor } from '@/modules/dsh/components/operating-period-editor';
+import { apiClient } from "@/lib/api-client";
+import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -69,6 +70,7 @@ type FormValues = {
   tchIsInstructor: boolean;
   tchEmploymentType: "" | "FULL_TIME" | "PART_TIME";
   tchHiredAt: string;
+  tchEndedAt: string;
   tchAttendanceNo: string;
   // 신규 등록 시만
   tchCreateAccount: boolean;
@@ -114,6 +116,7 @@ export function TchFormModal({
         tchIsInstructor: true,
         tchEmploymentType: "",
         tchHiredAt: "",
+        tchEndedAt: "",
         tchAttendanceNo: "",
         tchCreateAccount: false,
         tchPassword: "",
@@ -122,6 +125,9 @@ export function TchFormModal({
     });
 
   const [subjects, setSubjects] = useState<TchSubject[]>([]);
+  const [dateSnapshot, setDateSnapshot] = useState<TeacherDetail | undefined>(
+    initial,
+  );
   const [error, setError] = useState<string | null>(null);
   // FIX-260512: staged file uploads for create mode (uploaded after teacher is created)
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
@@ -140,6 +146,7 @@ export function TchFormModal({
   // Sync defaults when opening for edit/create.
   useEffect(() => {
     if (!open) return;
+    setDateSnapshot(initial);
     setError(null);
     setStagedFiles([]);
     // REQ-260629 — when opened with a prefill from the list-page AMA section,
@@ -166,6 +173,7 @@ export function TchFormModal({
         tchIsInstructor: initial.isInstructor,
         tchEmploymentType: initial.employmentType ?? "",
         tchHiredAt: initial.hiredAt ?? "",
+        tchEndedAt: initial.endedAt ?? "",
         tchAttendanceNo: initial.attendanceNo ?? "",
         tchCreateAccount: false,
         tchPassword: "",
@@ -192,6 +200,7 @@ export function TchFormModal({
         tchIsInstructor: true,
         tchEmploymentType: "",
         tchHiredAt: "",
+        tchEndedAt: "",
         tchAttendanceNo: "",
         tchCreateAccount: false,
         tchPassword: "",
@@ -262,7 +271,15 @@ export function TchFormModal({
     if (values.tchPhone) dto.tchPhone = values.tchPhone;
     if (values.tchBirthDate) dto.tchBirthDate = values.tchBirthDate;
     if (values.tchMemo) dto.tchMemo = values.tchMemo;
-    if (values.tchHiredAt) dto.tchHiredAt = values.tchHiredAt;
+    if ((values.tchHiredAt || null) !== (dateSnapshot?.hiredAt ?? null))
+      dto.tchHiredAt = values.tchHiredAt || null;
+    if ((values.tchEndedAt || null) !== (dateSnapshot?.endedAt ?? null))
+      dto.tchEndedAt = values.tchEndedAt || null;
+    if (
+      initial &&
+      (dto.tchHiredAt !== undefined || dto.tchEndedAt !== undefined)
+    )
+      dto.expectedUpdatedAt = dateSnapshot?.updatedAt;
     if (values.tchAttendanceNo) dto.tchAttendanceNo = values.tchAttendanceNo;
     // REQ-260604 FR-3 / REQ-260629 — propagate AMA picker selection to backend.
     //   - On create: linkage carries through.
@@ -321,6 +338,21 @@ export function TchFormModal({
           };
         };
       };
+      const dateError = err.response?.data?.message ?? "";
+      if (/EMPLOYMENT_|TEACHER_DATES_CHANGED/.test(dateError)) {
+        setError(
+          t(
+            dateError.includes("CHANGED")
+              ? "error.datesChanged"
+              : dateError.includes("PERIOD_REQUIRED")
+                ? "error.editPeriod"
+                : dateError.includes("OVERLAPPING")
+                  ? "error.overlappingPeriod"
+                  : "error.invalidDates",
+          ),
+        );
+        return;
+      }
       const code = err.response?.data?.code;
       const value = err.response?.data?.value ?? "";
       if (code === "NAME_DUPLICATE") {
@@ -491,13 +523,40 @@ export function TchFormModal({
                   </option>
                 </select>
               </div>
-              <div>
-                <label className={labelClass}>{t("field.hiredAt")}</label>
-                <input
-                  type="date"
-                  {...register("tchHiredAt")}
-                  className={inputClass}
-                />
+              <div className="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="tchHiredAt" className={labelClass}>
+                    {t("field.hiredAt")}
+                  </label>
+                  <input
+                    id="tchHiredAt"
+                    type="date"
+                    {...register("tchHiredAt")}
+                    className={inputClass}
+                  />
+                  {!watch("tchHiredAt") && (
+                    <p className="text-xs italic text-gray-400">
+                      {t("field.datePlaceholder")}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="tchEndedAt" className={labelClass}>
+                    {t("field.endedAt")}
+                  </label>
+                  <input
+                    id="tchEndedAt"
+                    type="date"
+                    {...register("tchEndedAt")}
+                    min={watch("tchHiredAt") || undefined}
+                    className={inputClass}
+                  />
+                  {!watch("tchEndedAt") && (
+                    <p className="text-xs italic text-gray-400">
+                      {t("field.datePlaceholder")}
+                    </p>
+                  )}
+                </div>
               </div>
               <div>
                 <label className={labelClass}>{t("field.attendanceNo")}</label>
@@ -945,7 +1004,22 @@ export function TchFormModal({
             </div>
           </DialogFooter>
         </form>
-      {initial && <OperatingPeriodEditor kind="TEACHER" subjectId={initial.id}/>}
+        {initial && (
+          <OperatingPeriodEditor
+            kind="TEACHER"
+            subjectId={initial.id}
+            onSaved={async () => {
+              const latest = (
+                await apiClient.get<TeacherDetail>(
+                  `/acm/tch/teachers/${initial.id}`,
+                )
+              ).data;
+              setDateSnapshot(latest);
+              setValue("tchHiredAt", latest.hiredAt ?? "");
+              setValue("tchEndedAt", latest.endedAt ?? "");
+            }}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

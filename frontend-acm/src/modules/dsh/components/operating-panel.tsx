@@ -215,10 +215,11 @@ export function OperatingPanel({
           {(data.quality.unverifiedManual > 0 ||
             data.quality.unclassified > 0 ||
             data.quality.unresolved > 0 ||
-            data.quality.missingTeachers > 0) && (
+            data.quality.missingTeachers > 0 || data.quality.missingAdmissions > 0) && (
             <details className="text-xs">
               <summary>{t("ops.check")}</summary>
               {t("ops.quality", data.quality)}
+              <p>{t("ops.missingAdmissions", {count: data.quality.missingAdmissions})}</p>
               <p>
                 {t("ops.unverified", { count: data.quality.unverifiedManual })}
               </p>

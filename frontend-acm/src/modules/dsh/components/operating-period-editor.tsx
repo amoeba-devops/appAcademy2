@@ -15,9 +15,11 @@ interface Period {
 export function OperatingPeriodEditor({
   kind,
   subjectId,
+  onSaved,
 }: {
   kind: "STUDENT" | "TEACHER";
   subjectId: string;
+  onSaved?: () => Promise<void>;
 }) {
   const { t } = useTranslation("dsh");
   const user = useAuthStore((s) => s.user);
@@ -33,9 +35,12 @@ export function OperatingPeriodEditor({
   const save = useMutation({
     mutationFn: () =>
       apiClient.put(url, { ...edit, id: edit?.id ?? undefined, replaceMaster }),
-    onSuccess: () => {
+    onSuccess: async () => {
       setEdit(null);
+      if (kind === "TEACHER")
+        qc.invalidateQueries({ queryKey: ["tch", "teachers"] });
       qc.invalidateQueries({ queryKey: ["dsh"] });
+      await onSaved?.();
     },
   });
   if (user?.role !== "ADMIN") return null;

@@ -11,6 +11,7 @@ import { isUUID } from 'class-validator';
 import { ACM_DS } from '../../acm-common/datasource';
 import {
   calculateOperating,
+  Admission,
   ManualValue,
   OPS_METRICS,
   Period,
@@ -61,6 +62,7 @@ export class OperatingService {
     const [raw] = await this.ds.query<
       {
         periods: Period[];
+        admissions: Admission[];
         manual: ManualValue[];
         today: string;
         asOf: string;
@@ -68,7 +70,7 @@ export class OperatingService {
       }[]
     >(
       OPERATING_PERIOD_SQL +
-        `SELECT COALESCE((SELECT json_agg(p) FROM periods p),'[]') periods, COALESCE((SELECT json_agg(m) FROM (SELECT date::text,site,metric,value FROM amb_acm_dsh_operating_manual WHERE ent_id=$1 AND date BETWEEN $2::date AND $3::date) m),'[]') manual, (SELECT count(*)::int FROM amb_acm_dsh_daily_kpi k CROSS JOIN (VALUES('ops_new_st'),('ops_out_st'),('ops_count_st'),('ops_new_tc'),('ops_out_tc'),('ops_count_tc')) v(metric) WHERE k.ent_id=$1 AND k.dkp_date BETWEEN $2::date AND $3::date AND k.dkp_manually_overridden AND NOT EXISTS(SELECT 1 FROM amb_acm_dsh_operating_manual m WHERE m.ent_id=k.ent_id AND m.date=k.dkp_date AND m.site='ALL' AND m.metric=v.metric)) AS "unverifiedManual", (now() AT TIME ZONE 'Asia/Seoul')::date::text today,now()::text AS "asOf"`,
+        `SELECT COALESCE((SELECT json_agg(a) FROM (SELECT std_id::text AS "subjectId",std_site AS site,std_admission_date::text AS date FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL) a),'[]') admissions, COALESCE((SELECT json_agg(p) FROM periods p),'[]') periods, COALESCE((SELECT json_agg(m) FROM (SELECT date::text,site,metric,value FROM amb_acm_dsh_operating_manual WHERE ent_id=$1 AND date BETWEEN $2::date AND $3::date) m),'[]') manual, (SELECT count(*)::int FROM amb_acm_dsh_daily_kpi k CROSS JOIN (VALUES('ops_new_st'),('ops_out_st'),('ops_count_st'),('ops_new_tc'),('ops_out_tc'),('ops_count_tc')) v(metric) WHERE k.ent_id=$1 AND k.dkp_date BETWEEN $2::date AND $3::date AND k.dkp_manually_overridden AND NOT EXISTS(SELECT 1 FROM amb_acm_dsh_operating_manual m WHERE m.ent_id=k.ent_id AND m.date=k.dkp_date AND m.site='ALL' AND m.metric=v.metric)) AS "unverifiedManual", (now() AT TIME ZONE 'Asia/Seoul')::date::text today,now()::text AS "asOf"`,
       [entId, from, to],
     );
     const calculated = calculateOperating(
@@ -78,6 +80,7 @@ export class OperatingService {
       to,
       site,
       raw.today,
+      raw.admissions,
     );
     return {
       ...calculated,
@@ -162,6 +165,18 @@ export class OperatingService {
         if (!result.length)
           throw new ConflictException('Period changed; reload');
       } else {
+        if (kind === 'TEACHER' && body.replaceMaster) {
+          const existing = await em.query<{ opr_id: string }[]>(
+            `SELECT opr_id FROM amb_acm_dsh_operating_period WHERE ent_id=$1 AND kind='TEACHER' AND subject_id=$2`,
+            [entId, subjectId],
+          );
+          if (existing.length)
+            throw new ConflictException('Period changed; reload');
+          await em.query(
+            `UPDATE amb_acm_tch_teacher SET tch_hired_at=$3,tch_ended_at=$4,updated_at=now() WHERE ent_id=$1 AND tch_id=$2`,
+            [entId, subjectId, body.start, body.end || null],
+          );
+        }
         if (!body.replaceMaster) {
           const startCol =
             kind === 'STUDENT' ? 'std_start_date' : 'tch_hired_at';

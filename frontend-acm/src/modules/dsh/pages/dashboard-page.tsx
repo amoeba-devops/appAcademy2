@@ -88,6 +88,7 @@ interface RangeGridResult {
   siteVisits?: Record<string, Record<string, number>>;
   manualVisitorDates?: string[];
   ga4LastSyncAt?: string | null;
+  ga4LastDataDate?: string | null;
   site?: string;
 }
 
@@ -386,6 +387,7 @@ export function DashboardPage() {
               {t('visitor.syncNow')}
             </Button>
           )}
+          {gridQ.data && <span className="text-xs text-secondary">{t("visitor.lastDataDate", {date: gridQ.data.ga4LastDataDate ?? "—"})}</span>}
           <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
             {t('actions.exportCsv')}
           </Button>

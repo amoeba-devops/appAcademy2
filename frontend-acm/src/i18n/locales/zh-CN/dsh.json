@@ -130,7 +130,8 @@
     "syncDone": "GA4 同步完成（{{rows}} 行）",
     "syncFailed": "GA4 同步失败",
     "notConfigured": "GA4 尚未配置。请在 设置 › GA4 访客集成 中输入媒体资源、数据流和密钥。",
-    "syncFailedReason": "GA4 同步失败：{{reason}}"
+    "syncFailedReason": "GA4 同步失败：{{reason}}",
+    "lastDataDate": "查询期间最新 GA 日期：{{date}}"
   },
   "site": {
     "label": "站点",
@@ -190,9 +191,9 @@
     "manual": "手工值",
     "partial": "Confirmed periods only",
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
-    "ops_new_st": "新增学生",
+    "ops_new_st": "新生（入学日期）",
     "ops_out_st": "退学学生",
-    "ops_count_st": "学生数",
+    "ops_count_st": "学生数（上课期间）",
     "ops_new_tc": "新入职教师",
     "ops_out_tc": "离职教师",
     "ops_count_tc": "教师数",
@@ -217,6 +218,7 @@
     "start": "Start date",
     "end": "End date",
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
-    "unverified": "{{count}}个历史字段的手工来源未确认，保留原值且不显示括号。"
+    "unverified": "{{count}}个历史字段的手工来源未确认，保留原值且不显示括号。",
+    "missingAdmissions": "缺少入学日期：{{count}}"
   }
 }

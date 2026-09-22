@@ -22,5 +22,6 @@ export interface OperatingResult {
     unverifiedManual: number;
     unresolved: number;
     missingTeachers: number;
+    missingAdmissions: number;
   };
 }

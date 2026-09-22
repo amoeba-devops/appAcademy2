@@ -130,7 +130,8 @@
     "syncDone": "GA4 동기화 완료 ({{rows}}행)",
     "syncFailed": "GA4 동기화 실패",
     "notConfigured": "GA4 설정이 완료되지 않았습니다. 설정 › GA4 방문자 연동에서 속성·스트림·키를 입력하세요.",
-    "syncFailedReason": "GA4 동기화 실패: {{reason}}"
+    "syncFailedReason": "GA4 동기화 실패: {{reason}}",
+    "lastDataDate": "조회 기간 내 GA 최근 데이터: {{date}}"
   },
   "site": {
     "label": "사이트",
@@ -190,9 +191,9 @@
     "manual": "수기값",
     "partial": "확인된 기간만 집계",
     "legend": "계산값 (수기값) · 실선=계산, 점선=수기",
-    "ops_new_st": "신규학생",
+    "ops_new_st": "신규학생 (입학일)",
     "ops_out_st": "퇴원학생",
-    "ops_count_st": "학생수",
+    "ops_count_st": "학생수 (수업기간 기준)",
     "ops_new_tc": "신규교사",
     "ops_out_tc": "퇴직교사",
     "ops_count_tc": "교사수",
@@ -217,6 +218,7 @@
     "start": "시작일",
     "end": "종료일",
     "saveFailed": "저장하지 못했습니다. 중복 기간·날짜·동시 수정을 확인하세요.",
-    "unverified": "수기 출처 미확정 {{count}}개 항목은 원본을 보존하고 괄호 표시에서 제외했습니다."
+    "unverified": "수기 출처 미확정 {{count}}개 항목은 원본을 보존하고 괄호 표시에서 제외했습니다.",
+    "missingAdmissions": "입학일 누락 {{count}}명"
   }
 }

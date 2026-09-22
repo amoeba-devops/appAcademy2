@@ -130,7 +130,8 @@
     "syncDone": "Đã đồng bộ GA4 ({{rows}} dòng)",
     "syncFailed": "Đồng bộ GA4 thất bại",
     "notConfigured": "Chưa cấu hình GA4. Nhập property, stream và khóa tại Cài đặt › Liên kết GA4.",
-    "syncFailedReason": "Đồng bộ GA4 thất bại: {{reason}}"
+    "syncFailedReason": "Đồng bộ GA4 thất bại: {{reason}}",
+    "lastDataDate": "Ngày GA mới nhất trong kỳ: {{date}}"
   },
   "site": {
     "label": "Site",
@@ -190,9 +191,9 @@
     "manual": "Nhập tay",
     "partial": "Confirmed periods only",
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
-    "ops_new_st": "Học sinh mới",
+    "ops_new_st": "Học sinh mới (nhập học)",
     "ops_out_st": "Học sinh nghỉ",
-    "ops_count_st": "Số học sinh",
+    "ops_count_st": "Học sinh (giai đoạn học)",
     "ops_new_tc": "Giáo viên mới",
     "ops_out_tc": "Giáo viên nghỉ",
     "ops_count_tc": "Số giáo viên",
@@ -217,6 +218,7 @@
     "start": "Start date",
     "end": "End date",
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
-    "unverified": "{{count}} trường cũ chưa xác minh nguồn nhập tay; giữ nguyên bản gốc và không hiển thị ngoặc."
+    "unverified": "{{count}} trường cũ chưa xác minh nguồn nhập tay; giữ nguyên bản gốc và không hiển thị ngoặc.",
+    "missingAdmissions": "Thiếu ngày nhập học: {{count}}"
   }
 }

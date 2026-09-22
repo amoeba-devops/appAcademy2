@@ -44,6 +44,7 @@ export interface TeacherDetail {
   isInstructor: boolean;
   employmentType: TchEmploymentType | null;
   hiredAt?: string | null;
+  endedAt?: string | null;
   attendanceNo?: string | null;
   accountUsername?: string | null;
   accountLastLoginAt?: string | null;

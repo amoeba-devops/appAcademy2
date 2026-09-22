@@ -131,7 +131,17 @@ export class CreateTeacherDto extends TeacherProfileDto {
   @ApiPropertyOptional({ description: '입사일자 (YYYY-MM-DD)' })
   @IsOptional()
   @IsDateString()
-  tchHiredAt?: string;
+  tchHiredAt?: string | null;
+
+  @ApiPropertyOptional({ description: '퇴사일 (YYYY-MM-DD)', nullable: true })
+  @IsOptional()
+  @IsDateString()
+  tchEndedAt?: string | null;
+
+  @ApiPropertyOptional({ description: 'Optimistic concurrency timestamp' })
+  @IsOptional()
+  @IsDateString()
+  expectedUpdatedAt?: string;
 
   @ApiPropertyOptional({ description: '출결번호 (자유 입력, ≤50자)' })
   @IsOptional()
@@ -253,7 +263,17 @@ export class UpdateTeacherDto extends TeacherProfileDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsDateString()
-  tchHiredAt?: string;
+  tchHiredAt?: string | null;
+
+  @ApiPropertyOptional({ description: '퇴사일 (YYYY-MM-DD)', nullable: true })
+  @IsOptional()
+  @IsDateString()
+  tchEndedAt?: string | null;
+
+  @ApiPropertyOptional({ description: 'Optimistic concurrency timestamp' })
+  @IsOptional()
+  @IsDateString()
+  expectedUpdatedAt?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
