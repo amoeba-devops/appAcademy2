@@ -219,19 +219,29 @@ export function StdFormModal({
         apiErr?.code === "HTTP_400" || apiErr?.code === "HTTP_409"
           ? rawMsg
           : (apiErr?.code ?? rawMsg);
+      // FIX-260922 — 이름 중복(사전 검사 NAME_DUPLICATE 또는 DB 제약 UNIQUE_VIOLATION).
+      const isNameDuplicate =
+        code === "NAME_DUPLICATE" ||
+        (apiErr?.code === "UNIQUE_VIOLATION" &&
+          String(rawMsg ?? "").includes("uq_acm_std_ent_name"));
       setServerError(
-        code === "EMAIL_DUPLICATE"
-          ? t("form.error.emailDuplicate", {
-              defaultValue: "이미 사용 중인 이메일입니다.",
+        isNameDuplicate
+          ? t("form.error.nameDuplicate", {
+              defaultValue:
+                "같은 이름의 학생이 이미 등록되어 있습니다(재원·비활성·퇴원 포함). 기존 학생을 수정하거나 이름을 구분해 주세요.",
             })
-          : code === "EMAIL_REQUIRED"
-            ? t("form.error.emailRequired", {
-                defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
+          : code === "EMAIL_DUPLICATE"
+            ? t("form.error.emailDuplicate", {
+                defaultValue: "이미 사용 중인 이메일입니다.",
               })
-            : (rawMsg ??
-              err.response?.data?.message ??
-              err.message ??
-              t("form.error.save", { defaultValue: "저장에 실패했습니다." })),
+            : code === "EMAIL_REQUIRED"
+              ? t("form.error.emailRequired", {
+                  defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
+                })
+              : (rawMsg ??
+                err.response?.data?.message ??
+                err.message ??
+                t("form.error.save", { defaultValue: "저장에 실패했습니다." })),
       );
     }
   };

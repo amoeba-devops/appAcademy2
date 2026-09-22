@@ -96,6 +96,25 @@ export class StudentService {
   }
 
   /**
+   * FIX-260922 — `uq_acm_std_ent_name UNIQUE (ent_id, std_name)` 는 소프트
+   * 삭제된 행까지 포함한다. DB 제약 위반이 그대로 500 으로 새던 것을 사전 검사로
+   * 409 `NAME_DUPLICATE` 로 돌린다 (퇴원생 등록 시 기존 INACTIVE 학생과 동명 사례).
+   */
+  private async assertNameUnique(
+    entId: string,
+    name: string,
+    excludeId: string | null,
+  ): Promise<void> {
+    const qb = this.repo
+      .createQueryBuilder('s')
+      .withDeleted()
+      .where('s.entId = :entId', { entId })
+      .andWhere('s.name = :name', { name });
+    if (excludeId) qb.andWhere('s.id != :excludeId', { excludeId });
+    if (await qb.getExists()) throw new ConflictException('NAME_DUPLICATE');
+  }
+
+  /**
    * REQ-260903B — 담당강사 복수. 전원 테넌트 검증 후 입력 순서대로
    * [{tchId, name}] 반환 (첫번째 = 대표). 미존재 강사는 400.
    */
@@ -358,6 +377,7 @@ export class StudentService {
     if (!email && dto.stdStatus !== 'WITHDRAWN')
       throw new BadRequestException('EMAIL_REQUIRED');
     if (email) await this.assertEmailUnique(entId, email, null);
+    await this.assertNameUnique(entId, dto.stdName, null);
 
     // REQ-260903B — 담당강사 복수. stdTeacherIds(또는 하위호환 stdTeacherId) 검증
     // 후 레거시 컬럼(std_teacher/std_teacher_id)에 대표·이름 미러링.
@@ -450,7 +470,10 @@ export class StudentService {
         if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
 
         if (dto.stdSite !== undefined) entity.site = dto.stdSite;
-        if (dto.stdName !== undefined) entity.name = dto.stdName;
+        if (dto.stdName !== undefined && dto.stdName !== entity.name) {
+          await this.assertNameUnique(entId, dto.stdName, entity.id);
+          entity.name = dto.stdName;
+        }
         if (dto.stdEnglishName !== undefined)
           entity.englishName = dto.stdEnglishName;
         if (dto.stdGender !== undefined) entity.gender = dto.stdGender;

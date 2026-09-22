@@ -87,7 +87,8 @@
       "emailDuplicate": "Email này đã được sử dụng.",
       "emailInvalid": "Định dạng email không hợp lệ.",
       "save": "Lưu thất bại.",
-      "mapRange": "Điểm MAP phải nằm trong khoảng 100~350."
+      "mapRange": "Điểm MAP phải nằm trong khoảng 100~350.",
+      "nameDuplicate": "Đã có học sinh trùng tên (kể cả không hoạt động/đã nghỉ). Hãy sửa học sinh hiện có hoặc phân biệt tên."
     },
     "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính"
   },

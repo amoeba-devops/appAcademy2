@@ -87,7 +87,8 @@
       "emailDuplicate": "This email is already in use.",
       "emailInvalid": "Invalid email format.",
       "save": "Failed to save.",
-      "mapRange": "MAP score must be between 100 and 350."
+      "mapRange": "MAP score must be between 100 and 350.",
+      "nameDuplicate": "A student with the same name already exists (including inactive/withdrawn). Edit the existing student or make the name distinct."
     },
     "teachersHint": "Up to {{max}} · the first is the primary teacher"
   },
