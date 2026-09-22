@@ -327,6 +327,19 @@ export function CslDetailBody({
                 → {t(`stage.${s}`)}
               </Button>
             ))}
+          {/* REQ-260922E — 다음 단계로 가기 전에 무엇을 입력해야 하는지 미리 안내 */}
+          {!isDropped && allowedForward.length > 0 && (
+            <div className="basis-full text-xs text-secondary">
+              {allowedForward.map((s) => (
+                <p key={`hint-${s}`}>
+                  <span className="font-medium">{t(`stage.${s}`)}</span>
+                  {" · "}
+                  {t(`transition.hints.${s}`, { defaultValue: "" }) ||
+                    t("transition.hints.none", "별도 입력 요건 없음")}
+                </p>
+              ))}
+            </div>
+          )}
           {isDropped && (
             <Button
               onClick={() => reactivate.mutate()}

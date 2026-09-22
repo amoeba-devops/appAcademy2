@@ -330,7 +330,11 @@
         "SENT": "전송 완료",
         "PENDING": "대기",
         "NA": "해당 없음"
-      }
+      },
+      "skipHint": "데모수업을 진행하지 않고 등록상담으로 넘길 수 있습니다 (운영자 판단, 전환 이력에 기록됩니다).",
+      "skipConfirmTitle": "데모수업 없이 등록상담으로 진행할까요?",
+      "skipConfirmDesc": "데모수업 기록 없이 4단계(등록 상담)로 이동합니다. 전환 이력에 \"데모수업 없이 진행\"이 남습니다.",
+      "skipToCounseling": "데모수업 없이 등록상담 진행"
     },
     "enrollment": {
       "title": "등록상담",
@@ -549,7 +553,18 @@
       "GATE_TRIAL_CLASS_REQUIRED": "수강상담 단계로 가려면 데모수업 기록이 1건 이상 필요합니다. 3단계 패널에서 데모수업을 등록하세요.",
       "GATE_COUNSEL_NOT_DONE": "결제 단계로 가려면 수강상담 완료(예)로 표시해야 합니다.",
       "GATE_TUITION_NOT_PAID": "수업 시작 단계로 가려면 수강료 납부가 확인돼야 합니다.",
-      "GATE_STUDENT_NOT_REGISTERED": "수강중으로 바꾸려면 학생이 학생관리에 등록돼 있어야 합니다."
+      "GATE_STUDENT_NOT_REGISTERED": "수강중으로 바꾸려면 학생이 학생관리에 등록돼 있어야 합니다.",
+      "SKIP_TRIAL_FORBIDDEN": "데모수업 건너뛰기는 관리자(ADMIN·STAFF)만 할 수 있습니다.",
+      "SKIP_TRIAL_ONLY_FOR_COUNSELING": "데모수업 건너뛰기는 등록상담 단계로 갈 때만 가능합니다."
+    },
+    "hints": {
+      "none": "별도 입력 요건 없음",
+      "MAP_TEST": "별도 입력 요건 없음 (레벨테스트 기록 단계)",
+      "TRIAL_CLASS": "접수에서 바로 갈 때만: 이전 MAP 점수 또는 응시료 납부/면제 기록",
+      "ENROLLMENT_COUNSELING": "데모수업 기록 1건 (3단계 패널에서 추가) — 또는 3단계 패널의 [데모수업 없이 등록상담 진행]",
+      "PAYMENT": "4단계 패널에서 수강상담 완료 = 예",
+      "CLASS_STARTED": "5단계에서 수강료 납부 확인 + 등록 사이트 선택",
+      "ATTENDING": "학생관리에 학생 등록 (6단계 진입 시 자동)"
     }
   }
 }

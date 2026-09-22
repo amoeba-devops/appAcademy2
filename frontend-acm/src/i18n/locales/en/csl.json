@@ -330,7 +330,11 @@
         "SENT": "Sent",
         "PENDING": "Pending",
         "NA": "N/A"
-      }
+      },
+      "skipHint": "You can move to enrollment counseling without a trial class (operator decision; recorded in the transition history).",
+      "skipConfirmTitle": "Proceed to enrollment counseling without a trial class?",
+      "skipConfirmDesc": "Moves to stage 4 (enrollment counseling) with no trial class record. The history will note \"proceeded without trial class\".",
+      "skipToCounseling": "Proceed without trial class"
     },
     "enrollment": {
       "title": "Enrollment Counseling",
@@ -549,7 +553,18 @@
       "GATE_TRIAL_CLASS_REQUIRED": "Enrollment counseling requires at least one trial class record. Add one in the stage 3 panel.",
       "GATE_COUNSEL_NOT_DONE": "Mark enrollment counseling as completed (Yes) before moving to payment.",
       "GATE_TUITION_NOT_PAID": "Tuition must be confirmed as paid before the class can start.",
-      "GATE_STUDENT_NOT_REGISTERED": "The student must be registered in student management before switching to attending."
+      "GATE_STUDENT_NOT_REGISTERED": "The student must be registered in student management before switching to attending.",
+      "SKIP_TRIAL_FORBIDDEN": "Only ADMIN or STAFF can skip the trial class.",
+      "SKIP_TRIAL_ONLY_FOR_COUNSELING": "Skipping the trial class is only possible when moving to enrollment counseling."
+    },
+    "hints": {
+      "none": "No extra input required",
+      "MAP_TEST": "No extra input required (level-test recording stage)",
+      "TRIAL_CLASS": "Only when skipping from intake: prior MAP score or paid/waived test fee",
+      "ENROLLMENT_COUNSELING": "One trial class record (add in the stage 3 panel) — or use [Proceed without trial class] there",
+      "PAYMENT": "Mark enrollment counseling completed = Yes in the stage 4 panel",
+      "CLASS_STARTED": "Confirm tuition paid in stage 5 and choose a registration site",
+      "ATTENDING": "Student registered in student management (automatic on stage 6)"
     }
   }
 }

@@ -824,6 +824,17 @@ export class ChangeStageDto {
   @IsString()
   @MaxLength(500)
   reason?: string;
+
+  /**
+   * REQ-260922E — 데모수업 없이 등록상담(4단계)으로 진행 (운영자 판단).
+   * TRIAL_CLASS → ENROLLMENT_COUNSELING 에서만 유효, ADMIN·STAFF 전용.
+   */
+  @ApiPropertyOptional({
+    description: '데모수업 없이 등록상담 진행 (ADMIN·STAFF)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  skipTrialClass?: boolean;
 }
 
 export {

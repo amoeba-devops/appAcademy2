@@ -330,7 +330,11 @@
         "SENT": "Đã gửi",
         "PENDING": "Chờ",
         "NA": "N/A"
-      }
+      },
+      "skipHint": "Có thể chuyển sang tư vấn đăng ký mà không cần lớp thử (quyết định của vận hành; được ghi trong lịch sử chuyển giai đoạn).",
+      "skipConfirmTitle": "Chuyển sang tư vấn đăng ký mà không có lớp thử?",
+      "skipConfirmDesc": "Chuyển sang giai đoạn 4 (tư vấn đăng ký) mà không có bản ghi lớp thử. Lịch sử sẽ ghi \"tiếp tục không cần lớp thử\".",
+      "skipToCounseling": "Tiếp tục không cần lớp thử"
     },
     "enrollment": {
       "title": "Tư vấn ghi danh",
@@ -549,7 +553,18 @@
       "GATE_TRIAL_CLASS_REQUIRED": "Tư vấn đăng ký cần ít nhất một bản ghi lớp thử. Hãy thêm trong bảng giai đoạn 3.",
       "GATE_COUNSEL_NOT_DONE": "Đánh dấu tư vấn đăng ký đã hoàn thành (Có) trước khi sang thanh toán.",
       "GATE_TUITION_NOT_PAID": "Cần xác nhận đã đóng học phí trước khi bắt đầu lớp.",
-      "GATE_STUDENT_NOT_REGISTERED": "Học sinh phải được đăng ký trong quản lý học sinh trước khi chuyển sang đang học."
+      "GATE_STUDENT_NOT_REGISTERED": "Học sinh phải được đăng ký trong quản lý học sinh trước khi chuyển sang đang học.",
+      "SKIP_TRIAL_FORBIDDEN": "Chỉ ADMIN hoặc STAFF mới có thể bỏ qua lớp thử.",
+      "SKIP_TRIAL_ONLY_FOR_COUNSELING": "Chỉ có thể bỏ qua lớp thử khi chuyển sang tư vấn đăng ký."
+    },
+    "hints": {
+      "none": "Không cần nhập thêm",
+      "MAP_TEST": "Không cần nhập thêm (giai đoạn ghi nhận kiểm tra trình độ)",
+      "TRIAL_CLASS": "Chỉ khi chuyển thẳng từ tiếp nhận: điểm MAP trước đó hoặc lệ phí thi đã đóng/miễn",
+      "ENROLLMENT_COUNSELING": "Một bản ghi lớp thử (thêm ở bảng giai đoạn 3) — hoặc dùng [Tiếp tục không cần lớp thử] tại đó",
+      "PAYMENT": "Đánh dấu tư vấn đăng ký hoàn thành = Có ở bảng giai đoạn 4",
+      "CLASS_STARTED": "Xác nhận đã đóng học phí ở giai đoạn 5 và chọn cơ sở đăng ký",
+      "ATTENDING": "Học sinh đã được đăng ký trong quản lý học sinh (tự động ở giai đoạn 6)"
     }
   }
 }

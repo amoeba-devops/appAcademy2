@@ -330,7 +330,11 @@
         "SENT": "已发送",
         "PENDING": "待处理",
         "NA": "不适用"
-      }
+      },
+      "skipHint": "可以不进行试听课直接进入报名咨询（运营判断，会记录在阶段转换历史中）。",
+      "skipConfirmTitle": "不进行试听课，直接进入报名咨询？",
+      "skipConfirmDesc": "在没有试听课记录的情况下进入第 4 阶段（报名咨询）。历史中将记录“未进行试听课”。",
+      "skipToCounseling": "无试听课直接进入报名咨询"
     },
     "enrollment": {
       "title": "报名咨询",
@@ -549,7 +553,18 @@
       "GATE_TRIAL_CLASS_REQUIRED": "进入报名咨询阶段需要至少一条试听课记录。请在第 3 阶段面板中登记试听课。",
       "GATE_COUNSEL_NOT_DONE": "进入缴费阶段前，请将报名咨询标记为已完成（是）。",
       "GATE_TUITION_NOT_PAID": "开始上课前必须确认学费已缴纳。",
-      "GATE_STUDENT_NOT_REGISTERED": "切换为在读前，学生必须已登记到学生管理。"
+      "GATE_STUDENT_NOT_REGISTERED": "切换为在读前，学生必须已登记到学生管理。",
+      "SKIP_TRIAL_FORBIDDEN": "只有 ADMIN 或 STAFF 可以跳过试听课。",
+      "SKIP_TRIAL_ONLY_FOR_COUNSELING": "仅在进入报名咨询阶段时才能跳过试听课。"
+    },
+    "hints": {
+      "none": "无需额外输入",
+      "MAP_TEST": "无需额外输入（等级测试记录阶段）",
+      "TRIAL_CLASS": "仅从接收直接跳转时：需要既往 MAP 成绩或已缴/免除考试费记录",
+      "ENROLLMENT_COUNSELING": "一条试听课记录（在第 3 阶段面板添加）——或使用该面板的[无试听课直接进入报名咨询]",
+      "PAYMENT": "在第 4 阶段面板将报名咨询完成标记为“是”",
+      "CLASS_STARTED": "在第 5 阶段确认学费已缴纳并选择登记校区",
+      "ATTENDING": "学生已登记到学生管理（进入第 6 阶段时自动）"
     }
   }
 }
