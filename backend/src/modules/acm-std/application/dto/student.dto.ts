@@ -274,6 +274,9 @@ export class CreateStudentDto {
   @IsDateString()
   stdStartDate?: string;
 
+  /** RPT-260922D B — 수업 종료일 (비우면 퇴원 시 퇴원일로 자동) */
+  @IsOptional() @IsDateString() stdEndDate?: string;
+
   @IsOptional() @IsDateString() stdAdmissionDate?: string;
   @IsOptional() @IsDateString() stdWithdrawnDate?: string;
   @IsOptional() @IsString() @MaxLength(1000) stdWithdrawnReason?: string;
@@ -472,6 +475,9 @@ export class UpdateStudentDto {
   @IsOptional()
   @IsDateString()
   stdStartDate?: string;
+
+  /** RPT-260922D B — 수업 종료일 (비우면 퇴원 시 퇴원일로 자동) */
+  @IsOptional() @IsDateString() stdEndDate?: string;
 
   @IsOptional() @IsDateString() stdAdmissionDate?: string;
   @IsOptional() @IsDateString() stdWithdrawnDate?: string;

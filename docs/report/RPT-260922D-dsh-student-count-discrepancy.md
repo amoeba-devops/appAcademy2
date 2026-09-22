@@ -1,7 +1,7 @@
 ---
 document_id: DSH-RPT-260922D
 version: 1.0.0
-status: REPORTED (2026-09-22 프로덕션 실측)
+status: ACTIONED — A 데이터 정정 완료(2026-09-22, 35건), B 자동 종료일 코드 구현
 date: 2026-09-22
 related:
   - docs/analysis/REQ-260922-dsh-operating-dual-values.md (학생수 = 수업 시작 누적 − 수업 종료 누적, ALL = 3 사이트 합)
@@ -56,3 +56,11 @@ SELECT COALESCE(pr.site,'(none)'), st.std_status, count(*)
  WHERE pr.confirmed AND NOT pr.cancelled AND pr.s <= CURRENT_DATE AND (pr.e IS NULL OR pr.e > CURRENT_DATE)
  GROUP BY 1,2 ORDER BY 1,2;
 ```
+
+## 5. Actions Taken (조치 결과 — 2026-09-22)
+
+| 조치 | 결과 |
+|---|---|
+| **A 데이터 정정** | 백업 `amb_acm_std_student_endfix_260922`(35행) 후 `std_end_date = std_withdrawn_date` 를 행 단위 적용 — **35 갱신 / 0 실패**. 운영 기간 행(이태오 2건·윤슬 1건)도 트리거로 종료일 반영. 재검증: TPI 33 · TRINITY 3 · SANTACROCE 14 = **50**, 퇴원생 집계 0 |
+| **B 코드** | `applyWithdrawnDateDefaults` — 상태 WITHDRAWN 이면 수업 종료일←퇴원일, 수업 시작일←입학일(빈 값만 채움). 콘솔 생성·수정, 퇴원생 xlsx 이관 3경로에 적용. 엔티티에 `std_end_date` 매핑, DTO `stdEndDate`, 상세 화면에 '수업 종료일'(퇴원생) 표시 |
+| 미조치 | C(사이트 미지정 재원 12명 사이트 지정) · D(장연서·장연우 수업 시작일) 는 운영 입력 대기, E(ALL 정의 변경) 는 정책 결정 대기 |

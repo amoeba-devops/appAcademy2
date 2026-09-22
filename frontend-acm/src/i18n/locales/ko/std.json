@@ -69,7 +69,8 @@
     "parentRelation": "관계",
     "parentPhone": "전화번호",
     "parentEmail": "이메일",
-    "parentPrimary": "대표 학부모"
+    "parentPrimary": "대표 학부모",
+    "endDate": "수업 종료일"
   },
   "form": {
     "titleCreate": "학생 등록",

@@ -29,6 +29,8 @@ export interface StudentSummary {
   withdrawnDate?: string | null;
   withdrawnReason?: string | null;
   startDate?: string | null;
+  /** RPT-260922D B — 수업 종료일 (퇴원 시 퇴원일로 자동) */
+  endDate?: string | null;
   createdAt: string;
   sourceInquiry?: SourceInquiryLink | null;
 }
@@ -120,7 +122,7 @@ export interface ImportResult {
 }
 
 export interface ListStudentsQuery {
-  scope?: 'CURRENT' | 'WITHDRAWN';
+  scope?: "CURRENT" | "WITHDRAWN";
   site?: string;
   teacherId?: string;
   withdrawnDateFrom?: string;

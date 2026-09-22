@@ -69,7 +69,8 @@
     "parentRelation": "Relation",
     "parentPhone": "Phone",
     "parentEmail": "Email",
-    "parentPrimary": "Primary contact"
+    "parentPrimary": "Primary contact",
+    "endDate": "Class end date"
   },
   "form": {
     "titleCreate": "Register Student",
