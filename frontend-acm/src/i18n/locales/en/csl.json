@@ -539,5 +539,17 @@
   },
   "filters": {
     "allKinds": "All types"
+  },
+  "transition": {
+    "failed": "Stage transition failed.",
+    "errors": {
+      "TRANSITION_NOT_ALLOWED": "That stage cannot be reached from the current stage.",
+      "ANONYMOUS_CANNOT_PROGRESS": "Enter the student name first — anonymous inquiries cannot move past intake.",
+      "GATE_TRIAL_SKIP_REQUIRES_MAP": "Skipping straight to the trial class requires a prior MAP score or a paid/waived test fee.",
+      "GATE_TRIAL_CLASS_REQUIRED": "Enrollment counseling requires at least one trial class record. Add one in the stage 3 panel.",
+      "GATE_COUNSEL_NOT_DONE": "Mark enrollment counseling as completed (Yes) before moving to payment.",
+      "GATE_TUITION_NOT_PAID": "Tuition must be confirmed as paid before the class can start.",
+      "GATE_STUDENT_NOT_REGISTERED": "The student must be registered in student management before switching to attending."
+    }
   }
 }

@@ -539,5 +539,17 @@
   },
   "filters": {
     "allKinds": "全部类别"
+  },
+  "transition": {
+    "failed": "阶段转换失败。",
+    "errors": {
+      "TRANSITION_NOT_ALLOWED": "无法从当前阶段转到该阶段。",
+      "ANONYMOUS_CANNOT_PROGRESS": "请先输入学生姓名——匿名咨询无法越过接收阶段。",
+      "GATE_TRIAL_SKIP_REQUIRES_MAP": "从接收直接进入试听课需要既往 MAP 成绩或已缴纳/免除的考试费记录。",
+      "GATE_TRIAL_CLASS_REQUIRED": "进入报名咨询阶段需要至少一条试听课记录。请在第 3 阶段面板中登记试听课。",
+      "GATE_COUNSEL_NOT_DONE": "进入缴费阶段前，请将报名咨询标记为已完成（是）。",
+      "GATE_TUITION_NOT_PAID": "开始上课前必须确认学费已缴纳。",
+      "GATE_STUDENT_NOT_REGISTERED": "切换为在读前，学生必须已登记到学生管理。"
+    }
   }
 }

@@ -962,16 +962,20 @@ export class InquiryService {
   ) {
     const e = await this.getOrThrow(entId, inqId);
     const allowed = FORWARD_TRANSITIONS[e.currentStage];
+    // FIX-260922B — 전환 거부 사유를 안정적인 code 로 내려 UI 가 번역해 안내한다.
     if (!allowed.includes(toStage)) {
-      throw new BadRequestException(
-        `Cannot transition ${e.currentStage} → ${toStage}`,
-      );
+      throw new BadRequestException({
+        code: 'TRANSITION_NOT_ALLOWED',
+        message: `Cannot transition ${e.currentStage} → ${toStage}`,
+      });
     }
     // Anonymous inquiries cannot progress past INTAKE
     if (e.isAnonymous && toStage !== 'DROPPED') {
-      throw new BadRequestException(
-        'Anonymous inquiry cannot progress past INTAKE — provide student name first',
-      );
+      throw new BadRequestException({
+        code: 'ANONYMOUS_CANNOT_PROGRESS',
+        message:
+          'Anonymous inquiry cannot progress past INTAKE — provide student name first',
+      });
     }
     // Stage entry gates
     await this.assertEntryGate(entId, inqId, e.currentStage, toStage);
@@ -1031,34 +1035,39 @@ export class InquiryService {
             mt.scoreMath != null ||
             mt.scoreLanguage != null);
         if (!passed) {
-          throw new BadRequestException(
-            'Skip-to-TRIAL_CLASS requires prior MAP score or paid/waived fee (Q-CSL-003)',
-          );
+          throw new BadRequestException({
+            code: 'GATE_TRIAL_SKIP_REQUIRES_MAP',
+            message:
+              'Skip-to-TRIAL_CLASS requires prior MAP score or paid/waived fee (Q-CSL-003)',
+          });
         }
       }
     }
     if (toStage === 'ENROLLMENT_COUNSELING') {
       const cnt = await this.trialClasses.count({ where: { entId, inqId } });
       if (cnt === 0) {
-        throw new BadRequestException(
-          'ENROLLMENT_COUNSELING requires at least one trial class',
-        );
+        throw new BadRequestException({
+          code: 'GATE_TRIAL_CLASS_REQUIRED',
+          message: 'ENROLLMENT_COUNSELING requires at least one trial class',
+        });
       }
     }
     if (toStage === 'PAYMENT') {
       const er = await this.enrollments.findOne({ where: { entId, inqId } });
       if (!er || er.counselDone !== 'YES') {
-        throw new BadRequestException(
-          'PAYMENT entry requires enrollment counseling completed',
-        );
+        throw new BadRequestException({
+          code: 'GATE_COUNSEL_NOT_DONE',
+          message: 'PAYMENT entry requires enrollment counseling completed',
+        });
       }
     }
     if (toStage === 'CLASS_STARTED') {
       const er = await this.enrollments.findOne({ where: { entId, inqId } });
       if (!er || er.tuitionPaid !== true) {
-        throw new BadRequestException(
-          'CLASS_STARTED entry requires tuition paid',
-        );
+        throw new BadRequestException({
+          code: 'GATE_TUITION_NOT_PAID',
+          message: 'CLASS_STARTED entry requires tuition paid',
+        });
       }
     }
     // PLN-260714 — ATTENDING(수강중) requires the student to be registered into
@@ -1069,9 +1078,10 @@ export class InquiryService {
         select: { id: true, stdId: true },
       });
       if (!row?.stdId) {
-        throw new BadRequestException(
-          'ATTENDING entry requires the student to be registered',
-        );
+        throw new BadRequestException({
+          code: 'GATE_STUDENT_NOT_REGISTERED',
+          message: 'ATTENDING entry requires the student to be registered',
+        });
       }
     }
   }
