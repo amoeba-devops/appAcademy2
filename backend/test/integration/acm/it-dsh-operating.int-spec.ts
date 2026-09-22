@@ -1,3 +1,4 @@
+import { DailyKpiService } from '../../../src/modules/acm-dsh/application/daily-kpi.service';
 import { TeacherTypeormEntity } from '../../../src/modules/acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { TeacherService } from '../../../src/modules/acm-tch/application/teacher.service';
 import { AcmUserTypeormEntity } from '../../../src/modules/acm-auth/infrastructure/typeorm/acm-user.typeorm-entity';
@@ -51,6 +52,9 @@ describe('operating periods PostgreSQL', () => {
     await ds.query(
       'ALTER TABLE amb_acm_std_student ADD std_admission_date date',
     );
+    await ds.query(`ALTER TABLE amb_acm_dsh_daily_kpi ADD dkp_marketing_visitor int, ADD dkp_last_recompute_reason text, ADD updated_at timestamptz, ADD dkp_marketing_cost int;
+      CREATE TABLE amb_acm_dsh_site_visit(ent_id uuid,svt_date date,svt_site text,svt_visitors int);
+      CREATE TABLE amb_acm_dsh_manual_inputs(ent_id uuid,min_date date,min_site text,min_marketing_visitor int,min_deleted_at timestamptz);`);
     service = new OperatingService(ds);
   });
   afterAll(async () => {
@@ -59,7 +63,7 @@ describe('operating periods PostgreSQL', () => {
   });
   beforeEach(async () => {
     await ds.query(
-      'TRUNCATE amb_acm_std_student,amb_acm_tch_teacher,amb_acm_dsh_operating_period,amb_acm_dsh_operating_manual,amb_acm_dsh_operating_audit',
+      'TRUNCATE amb_acm_dsh_daily_kpi,amb_acm_dsh_site_visit,amb_acm_dsh_manual_inputs,amb_acm_std_student,amb_acm_tch_teacher,amb_acm_dsh_operating_period,amb_acm_dsh_operating_manual,amb_acm_dsh_operating_audit',
     );
     await ds.query(
       `INSERT INTO amb_acm_std_student VALUES($1,$2,'TPI','2024-12-02',NULL,NULL,'2024-12-01')`,
@@ -284,5 +288,66 @@ describe('operating periods PostgreSQL', () => {
         replaceMaster: true,
       }),
     ).rejects.toThrow();
+  });
+  it('fills missing GA visitors on manual days, refreshes corrections and preserves explicit zero/cost/other tenants', async () => {
+    const kpi = new DailyKpiService(ds);
+    await ds.query(
+      `INSERT INTO amb_acm_dsh_daily_kpi(ent_id,dkp_date,dkp_manually_overridden,dkp_marketing_visitor,dkp_marketing_cost) VALUES($1,'2026-09-21',true,NULL,100),($1,'2026-09-20',true,0,200),($2,'2026-09-21',true,NULL,300)`,
+      [a, b],
+    );
+    await ds.query(
+      `INSERT INTO amb_acm_dsh_site_visit VALUES($1,'2026-09-21','TPI',107),($1,'2026-09-21','TRINITY',12),($1,'2026-09-20','TPI',99)`,
+      [a],
+    );
+    await kpi.refreshManualDayVisitors(a, '2026-09-21');
+    let rows = await ds.query(
+      `SELECT * FROM amb_acm_dsh_daily_kpi WHERE ent_id=$1 AND dkp_date='2026-09-21'`,
+      [a],
+    );
+    expect(rows[0]).toMatchObject({
+      dkp_marketing_visitor: 119,
+      dkp_marketing_cost: 100,
+      dkp_manually_overridden: true,
+    });
+    await ds.query(
+      `UPDATE amb_acm_dsh_site_visit SET svt_visitors=110 WHERE ent_id=$1 AND svt_date='2026-09-21' AND svt_site='TPI'`,
+      [a],
+    );
+    await kpi.refreshManualDayVisitors(a, '2026-09-21');
+    rows = await ds.query(
+      `SELECT * FROM amb_acm_dsh_daily_kpi WHERE ent_id=$1 AND dkp_date='2026-09-21'`,
+      [a],
+    );
+    expect(rows[0].dkp_marketing_visitor).toBe(122);
+    await kpi.refreshManualDayVisitors(a, '2026-09-20');
+    expect(
+      (
+        await ds.query(
+          `SELECT dkp_marketing_visitor v FROM amb_acm_dsh_daily_kpi WHERE ent_id=$1 AND dkp_date='2026-09-20'`,
+          [a],
+        )
+      )[0].v,
+    ).toBe(0);
+    expect(
+      (
+        await ds.query(
+          'SELECT dkp_marketing_visitor v FROM amb_acm_dsh_daily_kpi WHERE ent_id=$1',
+          [b],
+        )
+      )[0].v,
+    ).toBeNull();
+    await ds.query(
+      `INSERT INTO amb_acm_dsh_manual_inputs VALUES($1,'2026-09-21',NULL,0,NULL)`,
+      [a],
+    );
+    await kpi.refreshManualDayVisitors(a, '2026-09-21');
+    expect(
+      (
+        await ds.query(
+          `SELECT dkp_marketing_visitor v FROM amb_acm_dsh_daily_kpi WHERE ent_id=$1 AND dkp_date='2026-09-21'`,
+          [a],
+        )
+      )[0].v,
+    ).toBe(0);
   });
 });

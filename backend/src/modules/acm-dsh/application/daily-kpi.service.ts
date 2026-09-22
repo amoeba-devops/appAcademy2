@@ -311,6 +311,23 @@ export class DailyKpiService {
     // Skip if this row was full-overridden via manual upsert
     const existing = await dkpRepo.findOne({ where: { entId, date: isoDate } });
     if (existing?.manuallyOverridden) {
+      if (reason === 'ga4_sync') {
+        // A full manual row may only contain Operating/Cost values. Keep every
+        // entered value, but let GA fill an absent visitor field and refresh
+        // subsequent GA corrections using explicit provenance.
+        await this.refreshManualDayVisitors(entId, isoDate);
+        const manualRows = await minRepo.find({
+          where: { entId, date: isoDate, deletedAt: IsNull() },
+        });
+        await this.recomputeSiteRows(
+          entId,
+          isoDate,
+          isoDate.slice(0, 7),
+          manualRows.find((m) => !m.site) ?? null,
+          manualRows.filter((m) => !!m.site),
+          0,
+        );
+      }
       this.logger.log(
         `recomputeDay SKIP (manually_overridden) ent=${entId} date=${isoDate}`,
       );
@@ -529,6 +546,26 @@ export class DailyKpiService {
 
     this.logger.log(
       `recomputeDay ent=${entId} date=${isoDate} reason=${reason}`,
+    );
+  }
+
+  async refreshManualDayVisitors(
+    entId: string,
+    isoDate: string,
+  ): Promise<void> {
+    await this.ds.query(
+      `
+      UPDATE amb_acm_dsh_daily_kpi k SET
+        dkp_marketing_visitor=COALESCE(
+          (SELECT m.min_marketing_visitor FROM amb_acm_dsh_manual_inputs m WHERE m.ent_id=k.ent_id AND m.min_date=k.dkp_date AND m.min_site IS NULL AND m.min_deleted_at IS NULL),
+          (SELECT SUM(COALESCE(m.min_marketing_visitor,v.svt_visitors)) FROM amb_acm_dsh_site_visit v LEFT JOIN amb_acm_dsh_manual_inputs m ON m.ent_id=v.ent_id AND m.min_date=v.svt_date AND m.min_site=v.svt_site AND m.min_deleted_at IS NULL WHERE v.ent_id=k.ent_id AND v.svt_date=k.dkp_date)
+        ),
+        dkp_last_recompute_reason='manual_full_override_ga4_visitor',updated_at=now()
+      WHERE k.ent_id=$1 AND k.dkp_date=$2 AND k.dkp_manually_overridden
+        AND (k.dkp_marketing_visitor IS NULL OR k.dkp_last_recompute_reason='manual_full_override_ga4_visitor')
+        AND EXISTS(SELECT 1 FROM amb_acm_dsh_site_visit v WHERE v.ent_id=k.ent_id AND v.svt_date=k.dkp_date)
+    `,
+      [entId, isoDate],
     );
   }
 
