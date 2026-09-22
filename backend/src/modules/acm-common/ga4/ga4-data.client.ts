@@ -163,7 +163,11 @@ export class Ga4DataClient {
           const streamId = r.dimensionValues[1]?.value ?? '';
           const metrics: Record<string, number> = {};
           opts.metrics.forEach((m, i) => {
-            metrics[m] = Number(r.metricValues[i]?.value ?? 0);
+            const value = r.metricValues[i]?.value;
+            if (typeof value !== 'string' || !value.trim() || !Number.isFinite(Number(value))) {
+              throw new Error('GA4_REPORT_METRIC_INVALID');
+            }
+            metrics[m] = Number(value);
           });
           return { date, streamId, metrics };
         });

@@ -1,3 +1,4 @@
+import type { VisitorComparisonService } from './visitor-comparison.service';
 import { Ga4SyncService } from './ga4-sync.service';
 import type { Ga4DataClient } from '../../acm-common/ga4/ga4-data.client';
 import type { Ga4ConfigService } from '../../acm-system/application/ga4-config.service';
@@ -21,9 +22,11 @@ describe('Ga4SyncService', () => {
     listActiveEntIds: jest.Mock;
   };
   let kpi: { recomputeDay: jest.Mock };
+  const comparison = { recordGa: jest.fn().mockResolvedValue(undefined) };
   let svc: Ga4SyncService;
 
   beforeEach(() => {
+    comparison.recordGa.mockClear();
     repo = {
       findOne: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
@@ -47,8 +50,34 @@ describe('Ga4SyncService', () => {
       ga4 as unknown as Ga4DataClient,
       config as unknown as Ga4ConfigService,
       kpi as unknown as DailyKpiService,
+      comparison as unknown as VisitorComparisonService,
     );
   });
+
+  it.each([undefined, -1, Number.NaN, 1.5])(
+    'rejects invalid GA metric %s instead of storing zero',
+    async (value) => {
+      ga4.runReport.mockResolvedValue([
+        {
+          date: '2026-09-10',
+          streamId: '111',
+          metrics: { activeUsers: value },
+        },
+      ]);
+      await expect(
+        svc.syncRange(ENT, '2026-09-10', '2026-09-10'),
+      ).rejects.toThrow('GA4_VISITOR_METRIC_INVALID');
+      expect(repo.insert).not.toHaveBeenCalled();
+      expect(repo.update).not.toHaveBeenCalled();
+      expect(comparison.recordGa).not.toHaveBeenCalled();
+      expect(kpi.recomputeDay).not.toHaveBeenCalled();
+      expect(config.recordSyncResult).toHaveBeenCalledWith(
+        ENT,
+        'FAILED',
+        'GA4_VISITOR_METRIC_INVALID',
+      );
+    },
+  );
 
   it('maps streams to sites, inserts new rows, updates existing, skips unmapped, recomputes each day', async () => {
     ga4.runReport.mockResolvedValue([
@@ -74,6 +103,15 @@ describe('Ga4SyncService', () => {
 
     const r = await svc.syncRange(ENT, '2026-09-10', '2026-09-11');
 
+    expect(comparison.recordGa).toHaveBeenCalledTimes(2);
+    expect(comparison.recordGa).toHaveBeenCalledWith(
+      ENT,
+      expect.objectContaining({
+        site: 'TPI',
+        metric: 'activeUsers',
+        value: 115,
+      }),
+    );
     expect(ga4.runReport).toHaveBeenCalledWith(expect.anything(), {
       propertyId: '123',
       startDate: '2026-09-10',
