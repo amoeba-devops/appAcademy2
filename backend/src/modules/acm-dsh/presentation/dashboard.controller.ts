@@ -1,3 +1,4 @@
+import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { OperatingService } from '../application/operating.service';
 import { SourceCurrentService } from '../application/source-current.service';
 import {
@@ -38,12 +39,6 @@ import { RolesGuard } from '../../acm-common/guards/roles.guard';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MAX_RANGE_DAYS = 365;
-
-function isoDaysAgo(n: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().slice(0, 10);
-}
 
 function validateRange(from: string, to: string): void {
   if (!ISO_DATE.test(from) || !ISO_DATE.test(to)) {

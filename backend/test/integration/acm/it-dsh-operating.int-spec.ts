@@ -48,6 +48,9 @@ describe('operating periods PostgreSQL', () => {
         'utf8',
       ),
     );
+    await ds.query(
+      'ALTER TABLE amb_acm_std_student ADD std_admission_date date',
+    );
     service = new OperatingService(ds);
   });
   afterAll(async () => {
@@ -59,7 +62,7 @@ describe('operating periods PostgreSQL', () => {
       'TRUNCATE amb_acm_std_student,amb_acm_tch_teacher,amb_acm_dsh_operating_period,amb_acm_dsh_operating_manual,amb_acm_dsh_operating_audit',
     );
     await ds.query(
-      `INSERT INTO amb_acm_std_student VALUES($1,$2,'TPI','2024-12-02',NULL,NULL)`,
+      `INSERT INTO amb_acm_std_student VALUES($1,$2,'TPI','2024-12-02',NULL,NULL,'2024-12-01')`,
       [id, a],
     );
   });
@@ -130,8 +133,24 @@ describe('operating periods PostgreSQL', () => {
       ['2026-01-02', id],
     );
     const r = await service.range(a, '2024-12-02', '2026-02-01');
-    expect(r.summary.ops_new_st?.calculated).toBe(2);
+    expect(r.summary.ops_new_st?.calculated).toBe(0);
     expect(r.summary.ops_count_st?.calculated).toBe(1);
+  });
+  it('reads admission dates live without duplicating re-entry periods', async () => {
+    await ds.query(
+      'UPDATE amb_acm_std_student SET std_admission_date=$1 WHERE std_id=$2',
+      ['2026-09-01', id],
+    );
+    const r = await service.range(a, '2026-09-01', '2026-09-01');
+    expect(r.summary.ops_new_st?.calculated).toBe(1);
+    expect(
+      (await service.range(a, '2026-09-01', '2026-09-01', 'TPI')).summary
+        .ops_new_st?.calculated,
+    ).toBe(1);
+    expect(
+      (await service.range(b, '2026-09-01', '2026-09-01')).summary.ops_new_st
+        ?.calculated,
+    ).toBe(0);
   });
   it('manual zero, clear and scope are independent of computed data', async () => {
     await service.saveManual(a, a, '2026-09-01', 'TPI', { ops_new_st: 0 });
@@ -151,18 +170,16 @@ describe('operating periods PostgreSQL', () => {
   });
   const tid = '20000000-0000-0000-0000-000000000001';
   async function teacherFixture() {
-    await ds
-      .getRepository(TeacherTypeormEntity)
-      .save({
-        id: tid,
-        entId: a,
-        name: 'Test teacher',
-        email: null,
-        status: 'ACTIVE',
-        isInstructor: true,
-        hiredAt: '2025-01-01',
-        endedAt: '2025-06-01',
-      });
+    await ds.getRepository(TeacherTypeormEntity).save({
+      id: tid,
+      entId: a,
+      name: 'Test teacher',
+      email: null,
+      status: 'ACTIVE',
+      isInstructor: true,
+      hiredAt: '2025-01-01',
+      endedAt: '2025-06-01',
+    });
     return new TeacherService(
       ds.getRepository(TeacherTypeormEntity),
       ds.getRepository(AcmUserTypeormEntity),

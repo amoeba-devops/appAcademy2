@@ -45,6 +45,7 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
               {t('table.name')}
             </th>
             <th className="px-4 py-3 text-left">{t('table.hiredAt')}</th>
+            <th className="px-4 py-3 text-left">{t('field.endedAt')}</th>
             <th className="px-4 py-3 text-left">{t('table.isInstructor')}</th>
             <th className="px-4 py-3 text-left">{t('table.employmentType')}</th>
             <th className="px-4 py-3 text-left">{t('table.username')}</th>
@@ -77,6 +78,7 @@ export function TchTable({ items, isLoading, onRowClick }: TchTableProps) {
                   )}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">{it.hiredAt ?? ""}</td>
+                <td className="px-4 py-3 whitespace-nowrap">{it.endedAt ?? ""}</td>
                 <td className="px-4 py-3">
                   {it.isInstructor ? (
                     <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">

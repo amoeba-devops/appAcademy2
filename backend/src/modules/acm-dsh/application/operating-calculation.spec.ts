@@ -73,7 +73,7 @@ describe('operating site sum', () => {
       'ALL',
       '2026-01-03',
     );
-    expect(r.summary.ops_new_st?.calculated).toBe(2);
+    expect(r.summary.ops_new_st?.calculated).toBe(0);
     expect(r.summary.ops_out_st?.calculated).toBe(1);
     expect(r.summary.ops_count_st?.calculated).toBe(1);
     expect(r.rows[0].values.ops_new_st).toMatchObject({
@@ -115,5 +115,49 @@ describe('operating site sum', () => {
   it('rejects non-calendar dates', () => {
     expect(() => validateOpsDate('2026-02-30')).toThrow();
     expect(() => validateOpsDate('2026-01-01')).not.toThrow();
+  });
+});
+
+describe('admission-based new students', () => {
+  it('counts each student once on admission date, independently of class periods and status', () => {
+    const periods = [
+      period('TPI', '2026-09-02', '2026-09-03'),
+      period('TPI', '2026-09-05'),
+    ];
+    const admissions = [
+      { subjectId: 's', site: 'TPI', date: '2026-09-01' },
+      { subjectId: 't', site: 'TRINITY', date: '2026-09-01' },
+      { subjectId: 'u', site: 'SANTACROCE', date: null },
+      { subjectId: 'x', site: null, date: '2026-09-01' },
+    ];
+    const all = calculateOperating(
+      periods,
+      [],
+      '2026-09-01',
+      '2026-09-05',
+      'ALL',
+      '2026-09-05',
+      admissions,
+    );
+    expect(all.rows[0].values.ops_new_st?.calculated).toBe(2);
+    expect(all.rows[1].values.ops_new_st?.calculated).toBe(0);
+    expect(all.summary.ops_new_st?.calculated).toBe(2);
+    expect(all.quality.missingAdmissions).toBe(1);
+    expect(all.summary.ops_new_st?.calculated).toBe(
+      ['TPI', 'TRINITY', 'SANTACROCE'].reduce(
+        (n, site) =>
+          n +
+          (calculateOperating(
+            periods,
+            [],
+            '2026-09-01',
+            '2026-09-05',
+            site,
+            '2026-09-05',
+            admissions,
+          ).summary.ops_new_st?.calculated ?? 0),
+        0,
+      ),
+    );
   });
 });

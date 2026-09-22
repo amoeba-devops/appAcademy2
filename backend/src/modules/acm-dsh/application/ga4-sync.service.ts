@@ -1,3 +1,4 @@
+import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
@@ -14,12 +15,6 @@ export interface Ga4SyncResult {
   rowsUpserted: number;
   unmappedStreams: string[];
   daysRecomputed: number;
-}
-
-function isoDaysAgo(n: number): string {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().slice(0, 10);
 }
 
 /**

@@ -61,6 +61,7 @@ export interface RangeGridResult {
   /** Dates whose marketingVisitor comes from manual input (override) */
   manualVisitorDates: string[];
   /** Last successful/failed GA4 sync timestamp of the active config, if any */
+  ga4LastDataDate?: string | null;
   ga4LastSyncAt: string | null;
   /** PLN-260914B — site filter applied (undefined = tenant total) */
   site?: DshSite;
@@ -140,9 +141,9 @@ export class DailyKpiService {
 
     // PLN-260912 — per-site GA4 breakdown + manual-override dates for the same window
     const svtRows = await this.ds.query<
-      { d: string; site: string; v: string }[]
+      { d: string; site: string; v: string; source: string }[]
     >(
-      `SELECT svt_date::text AS d, svt_site AS site, svt_visitors::text AS v
+      `SELECT svt_date::text AS d, svt_site AS site, svt_visitors::text AS v, svt_source AS source
          FROM amb_acm_dsh_site_visit
         WHERE ent_id = $1 AND svt_date BETWEEN $2 AND $3
           AND ($4::text IS NULL OR svt_site = $4)
@@ -177,6 +178,12 @@ export class DailyKpiService {
       siteVisits,
       manualVisitorDates,
       ga4LastSyncAt,
+      ga4LastDataDate:
+        svtRows
+          .filter((r) => r.source === 'GA4')
+          .map((r) => r.d)
+          .sort()
+          .at(-1) ?? null,
       site,
     };
   }

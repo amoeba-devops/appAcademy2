@@ -130,7 +130,8 @@
     "syncDone": "GA4 synced ({{rows}} rows)",
     "syncFailed": "GA4 sync failed",
     "notConfigured": "GA4 is not configured yet. Enter the property, streams and key under Settings › GA4 visitors.",
-    "syncFailedReason": "GA4 sync failed: {{reason}}"
+    "syncFailedReason": "GA4 sync failed: {{reason}}",
+    "lastDataDate": "Latest GA date in range: {{date}}"
   },
   "site": {
     "label": "Site",
@@ -190,9 +191,9 @@
     "manual": "Manual",
     "partial": "Confirmed periods only",
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
-    "ops_new_st": "New students",
+    "ops_new_st": "New students (admission)",
     "ops_out_st": "Departing students",
-    "ops_count_st": "Students",
+    "ops_count_st": "Students (class periods)",
     "ops_new_tc": "New teachers",
     "ops_out_tc": "Departing teachers",
     "ops_count_tc": "Teachers",
@@ -217,6 +218,7 @@
     "start": "Start date",
     "end": "End date",
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
-    "unverified": "Manual provenance is unverified for {{count}} legacy fields; originals are preserved without parentheses."
+    "unverified": "Manual provenance is unverified for {{count}} legacy fields; originals are preserved without parentheses.",
+    "missingAdmissions": "Missing admission dates: {{count}}"
   }
 }
