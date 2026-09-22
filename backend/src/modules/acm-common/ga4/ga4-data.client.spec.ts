@@ -123,6 +123,15 @@ describe('Ga4DataClient', () => {
     expect(tokenCalls).toBe(1);
   });
 
+  it.each([undefined, '', 'invalid'])('rejects malformed metric %s without fabricating zero', async value => {
+    const client = new Ga4DataClient();
+    jest.spyOn(client, 'getAccessToken').mockResolvedValue('tok');
+    jest.spyOn(global, 'fetch').mockResolvedValue(new Response(JSON.stringify({rows:[{
+      dimensionValues:[{value:'20260901'},{value:'111'}],metricValues:[{value}],
+    }]}),{status:200}));
+    await expect(client.runReport(key,{propertyId:'1',startDate:'2026-09-01',endDate:'2026-09-01',metrics:['activeUsers']})).rejects.toThrow('GA4_REPORT_METRIC_INVALID');
+  });
+
   it('runReport surfaces a 403 without retrying', async () => {
     const client = new Ga4DataClient();
     const fetchMock = jest

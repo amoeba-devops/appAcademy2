@@ -1,3 +1,4 @@
+import { VisitorComparisonService } from './visitor-comparison.service';
 import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,6 +32,7 @@ export class Ga4SyncService {
     private readonly ga4: Ga4DataClient,
     private readonly config: Ga4ConfigService,
     private readonly dailyKpi: DailyKpiService,
+    private readonly visitorComparison: VisitorComparisonService,
   ) {}
 
   /** Default window for the nightly job: D-3 .. D-1. */
@@ -66,7 +68,14 @@ export class Ga4SyncService {
           unmapped.add(r.streamId);
           continue;
         }
-        const visitors = Math.max(0, Math.round(r.metrics[cfg.metric] ?? 0));
+        const visitors = r.metrics[cfg.metric];
+        if (
+          !Number.isInteger(visitors) ||
+          visitors < 0 ||
+          visitors > 2147483647
+        ) {
+          throw new Error('GA4_VISITOR_METRIC_INVALID');
+        }
         const existing = await this.repo.findOne({
           where: { entId, site, date: r.date },
         });
@@ -96,6 +105,14 @@ export class Ga4SyncService {
             updatedAt: now,
           });
         }
+        await this.visitorComparison.recordGa(entId, {
+          site,
+          date: r.date,
+          value: visitors,
+          metric: cfg.metric,
+          propertyId: cfg.propertyId,
+          streamId: r.streamId,
+        });
         upserted += 1;
         touchedDates.add(r.date);
       }

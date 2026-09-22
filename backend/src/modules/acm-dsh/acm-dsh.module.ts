@@ -1,3 +1,4 @@
+import { VisitorComparisonService } from './application/visitor-comparison.service';
 import { OperatingService } from './application/operating.service';
 import { SourceCurrentService } from './application/source-current.service';
 import { Module } from '@nestjs/common';
@@ -44,6 +45,7 @@ import { DashboardController } from './presentation/dashboard.controller';
   ],
   controllers: [DashboardController],
   providers: [
+    VisitorComparisonService,
     OperatingService,
     SourceCurrentService,
     MetricDefinitionService,

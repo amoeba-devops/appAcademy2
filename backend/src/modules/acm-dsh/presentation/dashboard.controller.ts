@@ -1,3 +1,4 @@
+import { VisitorComparisonService, type ImwebInput } from '../application/visitor-comparison.service';
 import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { OperatingService } from '../application/operating.service';
 import { SourceCurrentService } from '../application/source-current.service';
@@ -70,7 +71,30 @@ export class DashboardController {
     private readonly complaint: ComplaintService,
     private readonly monthlySummary: MonthlySummaryService,
     private readonly ga4Sync: Ga4SyncService,
+    private readonly visitorComparison: VisitorComparisonService,
   ) {}
+
+  @Get('visitor-comparison')
+  getVisitorComparison(@CurrentUser() user: AcmCurrentUser, @Query('from') from: string,
+    @Query('to') to: string, @Query('site') site?: string) {
+    return this.visitorComparison.range(user.entId, from, to, site);
+  }
+
+  @Put('visitor-imweb/:date')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  saveVisitorImweb(@CurrentUser() user: AcmCurrentUser, @Param('date') date: string,
+    @Body() body: ImwebInput) {
+    return this.visitorComparison.saveImweb(user.entId, user.id, date, body);
+  }
+
+  @Get('visitor-history/:date')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  getVisitorHistory(@CurrentUser() user: AcmCurrentUser, @Param('date') date: string,
+    @Query('site') site: string) {
+    return this.visitorComparison.history(user.entId, date, site);
+  }
 
   @Get('source-current')
   @ApiOperation({

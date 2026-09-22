@@ -1,3 +1,4 @@
+import { VisitorComparisonPanel } from '../components/visitor-comparison-panel';
 import { OperatingPanel, OperatingTable, DualValue } from '../components/operating-panel';
 import { OperatingResult, OpsMetric } from '../types/operating';
 import { SourceCurrentPanel } from '../components/source-current-panel';
@@ -496,6 +497,7 @@ export function DashboardPage() {
       {longRange && <p className="text-xs text-secondary">{t("ops.longRange")}</p>}
       {longRange && opsQ.data && !opsQ.isError && <OperatingTable data={opsQ.data}/>}
       {!longRange && !isSiteView && <SiteComparisonTable from={from} to={to} />}
+      {!longRange && <VisitorComparisonPanel key={`${from}:${to}:${site}`} from={from} to={to} site={site} />}
 
       {(metricsQ.isLoading || gridQ.isLoading) && (
         <p className="text-secondary">{t('common:status.loading')}</p>
