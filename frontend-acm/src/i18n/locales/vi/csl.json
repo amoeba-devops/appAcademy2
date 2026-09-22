@@ -539,5 +539,17 @@
   },
   "filters": {
     "allKinds": "Tất cả phân loại"
+  },
+  "transition": {
+    "failed": "Chuyển giai đoạn thất bại.",
+    "errors": {
+      "TRANSITION_NOT_ALLOWED": "Không thể chuyển đến giai đoạn đó từ giai đoạn hiện tại.",
+      "ANONYMOUS_CANNOT_PROGRESS": "Hãy nhập tên học sinh trước — tư vấn ẩn danh không thể vượt qua bước tiếp nhận.",
+      "GATE_TRIAL_SKIP_REQUIRES_MAP": "Để chuyển thẳng sang lớp thử, cần điểm MAP trước đó hoặc lệ phí thi đã thanh toán/miễn.",
+      "GATE_TRIAL_CLASS_REQUIRED": "Tư vấn đăng ký cần ít nhất một bản ghi lớp thử. Hãy thêm trong bảng giai đoạn 3.",
+      "GATE_COUNSEL_NOT_DONE": "Đánh dấu tư vấn đăng ký đã hoàn thành (Có) trước khi sang thanh toán.",
+      "GATE_TUITION_NOT_PAID": "Cần xác nhận đã đóng học phí trước khi bắt đầu lớp.",
+      "GATE_STUDENT_NOT_REGISTERED": "Học sinh phải được đăng ký trong quản lý học sinh trước khi chuyển sang đang học."
+    }
   }
 }

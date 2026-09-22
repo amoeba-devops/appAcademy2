@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/lib/api-client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { apiClient } from "@/lib/api-client";
+import { apiErrorParts } from "../lib/api-error";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -12,16 +13,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 const REASON_CODES = [
-  'SIMPLE_INQUIRY_END',
-  'ACADEMY_CANCELLED',
-  'STUDENT_ILLNESS',
-  'STUDENT_SCHEDULE_CHANGE',
-  'PAYMENT_DECLINED',
-  'LOST_TO_COMPETITOR',
-  'OTHER',
+  "SIMPLE_INQUIRY_END",
+  "ACADEMY_CANCELLED",
+  "STUDENT_ILLNESS",
+  "STUDENT_SCHEDULE_CHANGE",
+  "PAYMENT_DECLINED",
+  "LOST_TO_COMPETITOR",
+  "OTHER",
 ] as const;
 
 export function CancellationDialog({
@@ -33,44 +34,52 @@ export function CancellationDialog({
   onOpenChange: (v: boolean) => void;
   inqId: string;
 }) {
-  const { t } = useTranslation(['csl', 'common']);
+  const { t } = useTranslation(["csl", "common"]);
   const qc = useQueryClient();
   const [reasonCode, setReasonCode] =
-    useState<(typeof REASON_CODES)[number]>('SIMPLE_INQUIRY_END');
-  const [reasonOther, setReasonOther] = useState('');
+    useState<(typeof REASON_CODES)[number]>("SIMPLE_INQUIRY_END");
+  const [reasonOther, setReasonOther] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
       setError(null);
-      const res = await apiClient.post(`/acm/csl/inquiries/${inqId}/cancellations`, {
-        reasonCode,
-        reasonOther: reasonOther || undefined,
-      });
+      const res = await apiClient.post(
+        `/acm/csl/inquiries/${inqId}/cancellations`,
+        {
+          reasonCode,
+          reasonOther: reasonOther || undefined,
+        },
+      );
       return res.data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['csl'] });
-      setReasonOther('');
+      qc.invalidateQueries({ queryKey: ["csl"] });
+      setReasonOther("");
       onOpenChange(false);
     },
-    onError: (e: { response?: { data?: { message?: string } }; message?: string }) =>
-      setError(e.response?.data?.message ?? e.message ?? 'Drop failed'),
+    // FIX-260922B — 응답 봉투(error.message)를 읽는다.
+    onError: (e: unknown) =>
+      setError(
+        apiErrorParts(e).message ??
+          (e as { message?: string }).message ??
+          "Drop failed",
+      ),
   });
 
-  const requiresOther = reasonCode === 'OTHER';
+  const requiresOther = reasonCode === "OTHER";
   const canSubmit = !requiresOther || reasonOther.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('detail.cancel.title')}</DialogTitle>
-          <DialogDescription>{t('detail.cancel.subtitle')}</DialogDescription>
+          <DialogTitle>{t("detail.cancel.title")}</DialogTitle>
+          <DialogDescription>{t("detail.cancel.subtitle")}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1">
-            <Label className="text-xs">{t('detail.cancel.reasonCode')}</Label>
+            <Label className="text-xs">{t("detail.cancel.reasonCode")}</Label>
             <select
               value={reasonCode}
               onChange={(e) =>
@@ -87,11 +96,13 @@ export function CancellationDialog({
           </div>
           {requiresOther && (
             <div className="grid gap-1">
-              <Label className="text-xs">{t('detail.cancel.reasonOther')}</Label>
+              <Label className="text-xs">
+                {t("detail.cancel.reasonOther")}
+              </Label>
               <Input
                 value={reasonOther}
                 onChange={(e) => setReasonOther(e.target.value)}
-                placeholder={t('detail.cancel.reasonOtherPlaceholder')}
+                placeholder={t("detail.cancel.reasonOtherPlaceholder")}
               />
             </div>
           )}
@@ -99,13 +110,13 @@ export function CancellationDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common:actions.cancel')}
+            {t("common:actions.cancel")}
           </Button>
           <Button
             onClick={() => mutation.mutate()}
             disabled={!canSubmit || mutation.isPending}
           >
-            {mutation.isPending ? t('common:actions.saving') : t('detail.drop')}
+            {mutation.isPending ? t("common:actions.saving") : t("detail.drop")}
           </Button>
         </DialogFooter>
       </DialogContent>

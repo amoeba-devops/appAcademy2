@@ -12,6 +12,7 @@ import { useToast } from "@/components/ui/toast";
 import { CslStageStepper } from "@/modules/csl/components/csl-stage-stepper";
 import { IntakeStagePanel } from "@/modules/csl/components/intake-stage-panel";
 import { formatGrade, KIND_BADGE_CLASS } from "@/modules/csl/lib/grade";
+import { transitionErrorMessage } from "@/modules/csl/lib/api-error";
 import { LevelTestPanel } from "@/modules/csl/components/level-test-panel";
 import { TrialClassPanel } from "@/modules/csl/components/trial-class-panel";
 import { EnrollmentPanel } from "@/modules/csl/components/enrollment-panel";
@@ -176,12 +177,14 @@ export function CslDetailBody({
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["csl"] }),
-    onError: (e: {
-      response?: { data?: { message?: string } };
-      message?: string;
-    }) =>
+    // FIX-260922B — 게이트 거부 사유를 번역해 표시 (이전엔 axios 기본 문구만 보였다).
+    onError: (e: unknown) =>
       setErrorMsg(
-        e.response?.data?.message ?? e.message ?? "Transition failed",
+        transitionErrorMessage(
+          t,
+          e,
+          t("transition.failed", "단계 전환에 실패했습니다."),
+        ),
       ),
   });
 
@@ -194,12 +197,13 @@ export function CslDetailBody({
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["csl"] }),
-    onError: (e: {
-      response?: { data?: { message?: string } };
-      message?: string;
-    }) =>
+    onError: (e: unknown) =>
       setErrorMsg(
-        e.response?.data?.message ?? e.message ?? "Reactivate failed",
+        transitionErrorMessage(
+          t,
+          e,
+          t("transition.failed", "단계 전환에 실패했습니다."),
+        ),
       ),
   });
 
@@ -255,7 +259,8 @@ export function CslDetailBody({
             {t(`applyType.${inq.applyType}`)}
             {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
             {inq.grade && ` (${formatGrade(t, inq.grade)})`}
-            {inq.birthdate && ` · ${t("form.birthdate", "생년월일")} ${inq.birthdate}`}
+            {inq.birthdate &&
+              ` · ${t("form.birthdate", "생년월일")} ${inq.birthdate}`}
             {inq.gender && ` (${t(`gender.${inq.gender}`)})`}
           </p>
           {(inq.parentName || inq.parentPhone) && (
