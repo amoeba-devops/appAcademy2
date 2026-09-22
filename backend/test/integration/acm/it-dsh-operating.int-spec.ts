@@ -52,7 +52,7 @@ describe('operating periods PostgreSQL', () => {
     await ds.query(
       'ALTER TABLE amb_acm_std_student ADD std_admission_date date',
     );
-    await ds.query(`ALTER TABLE amb_acm_dsh_daily_kpi ADD dkp_marketing_visitor int, ADD dkp_last_recompute_reason text, ADD updated_at timestamptz, ADD dkp_marketing_cost int;
+    await ds.query(`ALTER TABLE amb_acm_dsh_daily_kpi ADD dkp_marketing_visitor int, ADD dkp_last_recompute_reason text, ADD dkp_updated_at timestamptz, ADD dkp_marketing_cost int;
       CREATE TABLE amb_acm_dsh_site_visit(ent_id uuid,svt_date date,svt_site text,svt_visitors int);
       CREATE TABLE amb_acm_dsh_manual_inputs(ent_id uuid,min_date date,min_site text,min_marketing_visitor int,min_deleted_at timestamptz);`);
     service = new OperatingService(ds);
