@@ -42,6 +42,10 @@ const TRANSITION_DEFAULTS: Record<string, string> = {
     "수업 시작 단계로 가려면 수강료 납부가 확인돼야 합니다.",
   GATE_STUDENT_NOT_REGISTERED:
     "수강중으로 바꾸려면 학생이 학생관리에 등록돼 있어야 합니다.",
+  SKIP_TRIAL_FORBIDDEN:
+    "데모수업 건너뛰기는 관리자(ADMIN·STAFF)만 할 수 있습니다.",
+  SKIP_TRIAL_ONLY_FOR_COUNSELING:
+    "데모수업 건너뛰기는 등록상담 단계로 갈 때만 가능합니다.",
 };
 
 /**

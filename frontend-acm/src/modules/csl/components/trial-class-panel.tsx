@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/lib/api-client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AttachmentPanel } from './attachment-panel';
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AttachmentPanel } from "./attachment-panel";
+import { useAuthStore } from "@/stores/auth.store";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { transitionErrorMessage } from "../lib/api-error";
 
 /**
  * REQ-260626 SCR-CSL-03 — demo class panel.
@@ -49,22 +52,46 @@ interface Teacher {
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
   for (let h = 9; h <= 22; h++) {
-    out.push(`${String(h).padStart(2, '0')}:00`);
-    out.push(`${String(h).padStart(2, '0')}:30`);
+    out.push(`${String(h).padStart(2, "0")}:00`);
+    out.push(`${String(h).padStart(2, "0")}:30`);
   }
   return out;
 })();
 
 export function TrialClassPanel({ inqId }: { inqId: string }) {
-  const { t, i18n } = useTranslation(['csl', 'common']);
+  const { t, i18n } = useTranslation(["csl", "common"]);
   const qc = useQueryClient();
-  const [heldAt, setHeldAt] = useState('');
-  const [heldTime, setHeldTime] = useState('');
+  // REQ-260922E — 데모수업 없이 등록상담 진행 (ADMIN·STAFF, 운영자 판단)
+  const role = useAuthStore((s) => s.user?.role);
+  const canSkipTrial =
+    role === "ADMIN" || role === "STAFF" || role === "APP_ADMIN";
+  const confirm = useConfirm();
+  const [skipError, setSkipError] = useState<string | null>(null);
+  const skipToCounseling = useMutation({
+    mutationFn: async () => {
+      setSkipError(null);
+      await apiClient.post(`/acm/csl/inquiries/${inqId}/transitions`, {
+        toStage: "ENROLLMENT_COUNSELING",
+        skipTrialClass: true,
+      });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["csl"] }),
+    onError: (e: unknown) =>
+      setSkipError(
+        transitionErrorMessage(
+          t,
+          e,
+          t("transition.failed", "단계 전환에 실패했습니다."),
+        ),
+      ),
+  });
+  const [heldAt, setHeldAt] = useState("");
+  const [heldTime, setHeldTime] = useState("");
   // REQ-260629 v0.2 — create-form picker is local strict select. Source = /acm/tch/teachers.
-  const [teacherId, setTeacherId] = useState('');
+  const [teacherId, setTeacherId] = useState("");
 
   const { data: classes = [] } = useQuery({
-    queryKey: ['csl', 'trial-classes', inqId],
+    queryKey: ["csl", "trial-classes", inqId],
     queryFn: async () => {
       const res = await apiClient.get<TrialClass[]>(
         `/acm/csl/inquiries/${inqId}/trial-classes`,
@@ -74,14 +101,14 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
   });
 
   const { data: teachers = [] } = useQuery({
-    queryKey: ['acm', 'teachers'],
+    queryKey: ["acm", "teachers"],
     // /acm/tch/teachers returns `{ items, total, page, limit }` (no `meta`,
     // so the global TransformInterceptor doesn't unwrap items). Handle
     // both shapes so a future shape change doesn't break the picker.
     queryFn: async () => {
       try {
         const res = await apiClient.get<Teacher[] | { items: Teacher[] }>(
-          '/acm/tch/teachers',
+          "/acm/tch/teachers",
         );
         const body = res.data;
         return Array.isArray(body) ? body : (body?.items ?? []);
@@ -100,28 +127,70 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
       });
     },
     onSuccess: () => {
-      setHeldAt('');
-      setHeldTime('');
-      setTeacherId('');
-      qc.invalidateQueries({ queryKey: ['csl', 'trial-classes', inqId] });
+      setHeldAt("");
+      setHeldTime("");
+      setTeacherId("");
+      qc.invalidateQueries({ queryKey: ["csl", "trial-classes", inqId] });
     },
   });
 
   const dateLocale =
-    ({ ko: 'ko-KR', en: 'en-US', vi: 'vi-VN', 'zh-CN': 'zh-CN' } as Record<string, string>)[
-      i18n.language ?? 'ko'
-    ] ?? 'ko-KR';
+    (
+      { ko: "ko-KR", en: "en-US", vi: "vi-VN", "zh-CN": "zh-CN" } as Record<
+        string,
+        string
+      >
+    )[i18n.language ?? "ko"] ?? "ko-KR";
 
   const nameById = new Map(teachers.map((tt) => [tt.id, tt.name]));
 
   return (
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5">
-      <h2 className="text-base font-semibold mb-4">{t('detail.trial.title')}</h2>
+      <h2 className="text-base font-semibold mb-4">
+        {t("detail.trial.title")}
+      </h2>
 
       {/* List of demo sessions */}
       <div className="grid gap-3 mb-4">
         {classes.length === 0 && (
-          <p className="text-xs text-secondary">{t('detail.trial.empty')}</p>
+          <p className="text-xs text-secondary">{t("detail.trial.empty")}</p>
+        )}
+        {classes.length === 0 && canSkipTrial && (
+          <div className="rounded-md border border-dashed border-[var(--border-subtle)] p-3">
+            <p className="mb-2 text-xs text-secondary">
+              {t(
+                "detail.trial.skipHint",
+                "데모수업을 진행하지 않고 등록상담으로 넘길 수 있습니다 (운영자 판단, 전환 이력에 기록됩니다).",
+              )}
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={skipToCounseling.isPending}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: t(
+                    "detail.trial.skipConfirmTitle",
+                    "데모수업 없이 등록상담으로 진행할까요?",
+                  ),
+                  description: t(
+                    "detail.trial.skipConfirmDesc",
+                    '데모수업 기록 없이 4단계(등록 상담)로 이동합니다. 전환 이력에 "데모수업 없이 진행"이 남습니다.',
+                  ),
+                });
+                if (ok) skipToCounseling.mutate();
+              }}
+            >
+              {t(
+                "detail.trial.skipToCounseling",
+                "데모수업 없이 등록상담 진행",
+              )}
+            </Button>
+            {skipError && (
+              <p className="mt-2 text-xs text-red-600">{skipError}</p>
+            )}
+          </div>
         )}
         {classes.map((c) => (
           <DemoClassRow
@@ -129,10 +198,14 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
             inqId={inqId}
             tcl={c}
             teachers={teachers}
-            teacherName={c.teacherId ? nameById.get(c.teacherId) ?? null : null}
+            teacherName={
+              c.teacherId ? (nameById.get(c.teacherId) ?? null) : null
+            }
             dateLocale={dateLocale}
             onChange={() =>
-              qc.invalidateQueries({ queryKey: ['csl', 'trial-classes', inqId] })
+              qc.invalidateQueries({
+                queryKey: ["csl", "trial-classes", inqId],
+              })
             }
           />
         ))}
@@ -141,16 +214,23 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
       {/* Add new demo session */}
       <div className="border-t border-[var(--border-subtle)] pt-3">
         <h3 className="text-xs font-semibold text-secondary mb-2">
-          {t('detail.trial.addNew')}
+          {t("detail.trial.addNew")}
         </h3>
         <div className="grid grid-cols-[1fr_140px_1fr_auto] gap-2 items-end">
           <div className="grid gap-1">
-            <Label className="text-xs">{t('detail.trial.heldAt')}</Label>
-            <Input type="date" value={heldAt} onChange={(e) => setHeldAt(e.target.value)} />
+            <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
+            <Input
+              type="date"
+              value={heldAt}
+              onChange={(e) => setHeldAt(e.target.value)}
+            />
           </div>
           <div className="grid gap-1">
-            <Label className="text-xs">{t('detail.trial.heldTime')}</Label>
-            <Select value={heldTime} onChange={(e) => setHeldTime(e.target.value)}>
+            <Label className="text-xs">{t("detail.trial.heldTime")}</Label>
+            <Select
+              value={heldTime}
+              onChange={(e) => setHeldTime(e.target.value)}
+            >
               <option value="">—</option>
               {TIME_SLOTS.map((s) => (
                 <option key={s} value={s}>
@@ -160,8 +240,11 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
             </Select>
           </div>
           <div className="grid gap-1">
-            <Label className="text-xs">{t('detail.trial.teacher')}</Label>
-            <Select value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+            <Label className="text-xs">{t("detail.trial.teacher")}</Label>
+            <Select
+              value={teacherId}
+              onChange={(e) => setTeacherId(e.target.value)}
+            >
               <option value="">—</option>
               {teachers.map((tt) => (
                 <option key={tt.id} value={tt.id}>
@@ -171,18 +254,21 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
             </Select>
             {teachers.length === 0 && (
               <p className="text-[10px] text-red-600">
-                {t('detail.trial.noTeachersHint')}
+                {t("detail.trial.noTeachersHint")}
               </p>
             )}
           </div>
-          <Button onClick={() => create.mutate()} disabled={!heldAt || create.isPending}>
-            {t('detail.trial.add')}
+          <Button
+            onClick={() => create.mutate()}
+            disabled={!heldAt || create.isPending}
+          >
+            {t("detail.trial.add")}
           </Button>
         </div>
         {create.isError && (
           <p className="mt-2 text-xs text-red-600">
-            {(create.error as { response?: { data?: { message?: string } } })?.response
-              ?.data?.message ?? (create.error as Error).message}
+            {(create.error as { response?: { data?: { message?: string } } })
+              ?.response?.data?.message ?? (create.error as Error).message}
           </p>
         )}
       </div>
@@ -207,20 +293,22 @@ function DemoClassRow({
   dateLocale: string;
   onChange: () => void;
 }) {
-  const { t } = useTranslation(['csl', 'common']);
-  const [feedbackDraft, setFeedbackDraft] = useState(tcl.feedbackBody ?? '');
+  const { t } = useTranslation(["csl", "common"]);
+  const [feedbackDraft, setFeedbackDraft] = useState(tcl.feedbackBody ?? "");
   // REQ-260903F — 서버는 time 컬럼을 "HH:MM:SS" 로 반환하는데 옵션 값은
   // "HH:MM" 이라 select 가 빈 값으로 보이던 문제: 정규화 + props 재동기화.
-  const [editingTime, setEditingTime] = useState((tcl.heldTime ?? '').slice(0, 5));
-  const [editingDate, setEditingDate] = useState(tcl.heldAt ?? '');
+  const [editingTime, setEditingTime] = useState(
+    (tcl.heldTime ?? "").slice(0, 5),
+  );
+  const [editingDate, setEditingDate] = useState(tcl.heldAt ?? "");
   // REQ-260629 v0.2 — local strict select. Source is the parent's teachers query.
-  const [editingTeacherId, setEditingTeacherId] = useState(tcl.teacherId ?? '');
+  const [editingTeacherId, setEditingTeacherId] = useState(tcl.teacherId ?? "");
   useEffect(() => {
-    setEditingTime((tcl.heldTime ?? '').slice(0, 5));
-    setEditingDate(tcl.heldAt ?? '');
-    setEditingTeacherId(tcl.teacherId ?? '');
+    setEditingTime((tcl.heldTime ?? "").slice(0, 5));
+    setEditingDate(tcl.heldAt ?? "");
+    setEditingTeacherId(tcl.teacherId ?? "");
   }, [tcl.heldTime, tcl.heldAt, tcl.teacherId]);
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
 
   const patch = useMutation({
     mutationFn: async (body: Record<string, unknown>) => {
@@ -263,8 +351,8 @@ function DemoClassRow({
   function copyForKakao() {
     if (!tcl.feedbackBody) return;
     navigator.clipboard.writeText(tcl.feedbackBody).then(() => {
-      setCopyStatus('copied');
-      setTimeout(() => setCopyStatus('idle'), 2000);
+      setCopyStatus("copied");
+      setTimeout(() => setCopyStatus("idle"), 2000);
     });
   }
 
@@ -277,11 +365,16 @@ function DemoClassRow({
         <span className="font-medium">
           {heldDate}
           {tcl.heldTime && (
-            <span className="ml-1 text-secondary">{tcl.heldTime.slice(0, 5)}</span>
+            <span className="ml-1 text-secondary">
+              {tcl.heldTime.slice(0, 5)}
+            </span>
           )}
         </span>
         <span className="text-secondary">
-          {teacherName ?? (tcl.teacherId ? tcl.teacherId.slice(0, 8) : t('detail.trial.noTeacher'))}
+          {teacherName ??
+            (tcl.teacherId
+              ? tcl.teacherId.slice(0, 8)
+              : t("detail.trial.noTeacher"))}
         </span>
         <label className="flex items-center gap-1 text-xs ml-auto">
           <input
@@ -289,7 +382,7 @@ function DemoClassRow({
             checked={tcl.completed}
             onChange={(e) => patch.mutate({ completed: e.target.checked })}
           />
-          {t('detail.trial.completed')}
+          {t("detail.trial.completed")}
         </label>
       </div>
 
@@ -297,7 +390,7 @@ function DemoClassRow({
           변경 시 연동 캘린더 일정이 자동 동기화된다. */}
       <div className="grid grid-cols-[150px_120px_1fr_auto] gap-2 items-end mb-3">
         <div className="grid gap-1">
-          <Label className="text-xs">{t('detail.trial.heldAt')}</Label>
+          <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
           <Input
             type="date"
             value={editingDate}
@@ -305,8 +398,11 @@ function DemoClassRow({
           />
         </div>
         <div className="grid gap-1">
-          <Label className="text-xs">{t('detail.trial.heldTime')}</Label>
-          <Select value={editingTime} onChange={(e) => setEditingTime(e.target.value)}>
+          <Label className="text-xs">{t("detail.trial.heldTime")}</Label>
+          <Select
+            value={editingTime}
+            onChange={(e) => setEditingTime(e.target.value)}
+          >
             <option value="">—</option>
             {TIME_SLOTS.map((s) => (
               <option key={s} value={s}>
@@ -316,7 +412,7 @@ function DemoClassRow({
           </Select>
         </div>
         <div className="grid gap-1">
-          <Label className="text-xs">{t('detail.trial.teacher')}</Label>
+          <Label className="text-xs">{t("detail.trial.teacher")}</Label>
           <Select
             value={editingTeacherId}
             onChange={(e) => setEditingTeacherId(e.target.value)}
@@ -340,19 +436,19 @@ function DemoClassRow({
           }
           disabled={patch.isPending}
         >
-          {t('common:actions.save')}
+          {t("common:actions.save")}
         </Button>
       </div>
 
       {/* Feedback workflow */}
       <div className="grid gap-2 rounded-md bg-[var(--surface-strong)] p-3">
-        <Label className="text-xs">{t('detail.trial.feedbackBody')}</Label>
+        <Label className="text-xs">{t("detail.trial.feedbackBody")}</Label>
         <textarea
           value={feedbackDraft}
           onChange={(e) => setFeedbackDraft(e.target.value)}
           rows={3}
           className="min-h-[72px] w-full rounded-md border border-[var(--border-subtle)] bg-transparent p-2 text-sm"
-          placeholder={t('detail.trial.feedbackPlaceholder')}
+          placeholder={t("detail.trial.feedbackPlaceholder")}
         />
         <FeedbackTimeline tcl={tcl} dateLocale={dateLocale} />
 
@@ -364,16 +460,20 @@ function DemoClassRow({
             disabled={!feedbackDraft.trim() || writeFb.isPending}
           >
             {tcl.feedbackBody
-              ? t('detail.trial.updateFeedback')
-              : t('detail.trial.writeFeedback')}
+              ? t("detail.trial.updateFeedback")
+              : t("detail.trial.writeFeedback")}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => confirmFb.mutate()}
-            disabled={!tcl.feedbackBody || !!tcl.feedbackConfirmedAt || confirmFb.isPending}
+            disabled={
+              !tcl.feedbackBody ||
+              !!tcl.feedbackConfirmedAt ||
+              confirmFb.isPending
+            }
           >
-            {t('detail.trial.confirmFeedback')}
+            {t("detail.trial.confirmFeedback")}
           </Button>
           <Button
             type="button"
@@ -381,16 +481,20 @@ function DemoClassRow({
             onClick={copyForKakao}
             disabled={!tcl.feedbackBody}
           >
-            {copyStatus === 'copied'
-              ? t('detail.trial.copied')
-              : t('detail.trial.copyForKakao')}
+            {copyStatus === "copied"
+              ? t("detail.trial.copied")
+              : t("detail.trial.copyForKakao")}
           </Button>
           <Button
             type="button"
             onClick={() => deliveredFb.mutate()}
-            disabled={!tcl.feedbackConfirmedAt || !!tcl.feedbackDeliveredAt || deliveredFb.isPending}
+            disabled={
+              !tcl.feedbackConfirmedAt ||
+              !!tcl.feedbackDeliveredAt ||
+              deliveredFb.isPending
+            }
           >
-            {t('detail.trial.markDelivered')}
+            {t("detail.trial.markDelivered")}
           </Button>
         </div>
 
@@ -401,7 +505,8 @@ function DemoClassRow({
                 response?: { data?: { message?: string } };
               }
             )?.response?.data?.message ??
-              ((writeFb.error ?? confirmFb.error ?? deliveredFb.error) as Error).message}
+              ((writeFb.error ?? confirmFb.error ?? deliveredFb.error) as Error)
+                .message}
           </p>
         )}
       </div>
@@ -421,27 +526,27 @@ function FeedbackTimeline({
   tcl: TrialClass;
   dateLocale: string;
 }) {
-  const { t } = useTranslation(['csl', 'common']);
+  const { t } = useTranslation(["csl", "common"]);
   function fmt(ts: string | null): string {
-    return ts ? new Date(ts).toLocaleString(dateLocale) : '—';
+    return ts ? new Date(ts).toLocaleString(dateLocale) : "—";
   }
   return (
     <ul className="grid gap-0.5 text-[11px] text-secondary">
       <li>
-        ✍ {t('detail.trial.authoredAt')}:{' '}
-        <span className={tcl.feedbackAuthoredAt ? 'text-primary' : ''}>
+        ✍ {t("detail.trial.authoredAt")}:{" "}
+        <span className={tcl.feedbackAuthoredAt ? "text-primary" : ""}>
           {fmt(tcl.feedbackAuthoredAt)}
         </span>
       </li>
       <li>
-        ✅ {t('detail.trial.confirmedAt')}:{' '}
-        <span className={tcl.feedbackConfirmedAt ? 'text-primary' : ''}>
+        ✅ {t("detail.trial.confirmedAt")}:{" "}
+        <span className={tcl.feedbackConfirmedAt ? "text-primary" : ""}>
           {fmt(tcl.feedbackConfirmedAt)}
         </span>
       </li>
       <li>
-        📨 {t('detail.trial.deliveredAt')}:{' '}
-        <span className={tcl.feedbackDeliveredAt ? 'text-primary' : ''}>
+        📨 {t("detail.trial.deliveredAt")}:{" "}
+        <span className={tcl.feedbackDeliveredAt ? "text-primary" : ""}>
           {fmt(tcl.feedbackDeliveredAt)}
         </span>
       </li>

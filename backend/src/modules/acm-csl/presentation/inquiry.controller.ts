@@ -251,6 +251,8 @@ export class InquiryController {
       dto.reason,
       user.id,
       dto.stdSite,
+      // REQ-260922E — 데모수업 건너뛰기(운영자 판단)
+      { skipTrialClass: dto.skipTrialClass === true, actorRole: user.role },
     );
   }
 

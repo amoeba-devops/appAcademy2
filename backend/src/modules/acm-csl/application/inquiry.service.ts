@@ -959,6 +959,7 @@ export class InquiryService {
     note: string | undefined,
     actorId?: string,
     stdSite?: 'TPI' | 'TRINITY' | 'SANTACROCE',
+    opts?: { skipTrialClass?: boolean; actorRole?: string },
   ) {
     const e = await this.getOrThrow(entId, inqId);
     const allowed = FORWARD_TRANSITIONS[e.currentStage];
@@ -977,8 +978,27 @@ export class InquiryService {
           'Anonymous inquiry cannot progress past INTAKE — provide student name first',
       });
     }
+    // REQ-260922E — 데모수업 없이 등록상담 진행 (운영자 판단, ADMIN·STAFF 전용).
+    const skipTrialClass = opts?.skipTrialClass === true;
+    if (skipTrialClass) {
+      if (toStage !== 'ENROLLMENT_COUNSELING') {
+        throw new BadRequestException({
+          code: 'SKIP_TRIAL_ONLY_FOR_COUNSELING',
+          message: 'skipTrialClass applies only to ENROLLMENT_COUNSELING',
+        });
+      }
+      const role = opts?.actorRole ?? '';
+      if (!['ADMIN', 'STAFF', 'APP_ADMIN'].includes(role)) {
+        throw new ForbiddenException({
+          code: 'SKIP_TRIAL_FORBIDDEN',
+          message: 'Skipping the trial class requires ADMIN or STAFF',
+        });
+      }
+    }
     // Stage entry gates
-    await this.assertEntryGate(entId, inqId, e.currentStage, toStage);
+    await this.assertEntryGate(entId, inqId, e.currentStage, toStage, {
+      skipTrialClass,
+    });
 
     return this.applyTransition(
       entId,
@@ -986,7 +1006,11 @@ export class InquiryService {
       toStage,
       'FORWARD',
       undefined,
-      note,
+      skipTrialClass
+        ? [note, '데모수업 없이 등록상담 진행 (운영자 판단)']
+            .filter(Boolean)
+            .join(' — ')
+        : note,
       actorId,
       stdSite,
     );
@@ -1017,6 +1041,7 @@ export class InquiryService {
     inqId: string,
     fromStage: CslStage,
     toStage: CslStage,
+    opts: { skipTrialClass?: boolean } = {},
   ): Promise<void> {
     if (toStage === 'TRIAL_CLASS') {
       // REQ-260903D — MAP_TEST → TRIAL_CLASS 는 항상 허용(미진행 포함 운영자
@@ -1043,7 +1068,7 @@ export class InquiryService {
         }
       }
     }
-    if (toStage === 'ENROLLMENT_COUNSELING') {
+    if (toStage === 'ENROLLMENT_COUNSELING' && !opts.skipTrialClass) {
       const cnt = await this.trialClasses.count({ where: { entId, inqId } });
       if (cnt === 0) {
         throw new BadRequestException({
