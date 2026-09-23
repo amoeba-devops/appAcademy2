@@ -38,6 +38,7 @@ export interface MapApplyItem {
 }
 
 export interface MapApplyDetail extends MapApplyItem {
+  updatedAt: string;
   birthdateRaw: string | null;
   registeredAt: string;
   followupAt: string | null;
@@ -108,6 +109,7 @@ export function useUpdateMapApply(id: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: {
+      expectedUpdatedAt?: string;
       studentNameEn?: string;
       birthdate?: string;
       gender?: MapApplyGender | null;
@@ -116,6 +118,7 @@ export function useUpdateMapApply(id: string) {
     }) => (await apiClient.patch<MapApplyDetail>(`${BASE}/${id}`, input)).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [KEY] });
+      qc.invalidateQueries({ queryKey: ['csl'] });
     },
   });
 }

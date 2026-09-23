@@ -44,6 +44,7 @@ const YES_NO = ['YES', 'NO'] as const;
 
 const cslCreateSchema = z
   .object({
+    studentNameEn: z.string().trim().max(120).optional(),
     studentName: z.string().trim().max(50).optional().or(z.literal('')),
     isAnonymous: z.boolean().default(false),
     parentPhone: z
@@ -135,6 +136,7 @@ export function CslCreateDialog() {
         isAnonymous: payload.isAnonymous,
         parentPhone: payload.parentPhone || undefined,
         parentEmail: payload.parentEmail || undefined,
+        studentNameEn: payload.studentNameEn || undefined,
         parentName: payload.parentName || undefined,
         phoneStatus: payload.phoneStatus,
         schoolFreetext: payload.schoolFreetext || undefined,
@@ -226,6 +228,11 @@ export function CslCreateDialog() {
             )}
           </div>
 
+          {kind === 'MAP_TEST' && (
+            <Field label={t('form.studentNameEn')} error={tr(errors.studentNameEn?.message as string)}>
+              <Input {...register('studentNameEn')} maxLength={120} placeholder={t('form.studentNameEnPlaceholder')} className="placeholder:italic placeholder:text-gray-400" />
+            </Field>
+          )}
           {/* REQ-260921B — 생년월일 + 성별 */}
           <div className="grid grid-cols-[1fr_140px] gap-3">
             <Field

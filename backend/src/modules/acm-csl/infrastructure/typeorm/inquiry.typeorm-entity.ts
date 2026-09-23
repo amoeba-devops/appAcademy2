@@ -106,6 +106,13 @@ export class InquiryTypeormEntity {
   @Column({ name: 'inq_is_anonymous', type: 'boolean', default: false })
   isAnonymous!: boolean;
 
+  @Column({ name: 'inq_english_name_encrypted', type: 'bytea', nullable: true })
+  englishNameEncrypted?: Buffer | null;
+  @Column({ name: 'inq_english_name_iv', type: 'bytea', nullable: true })
+  englishNameIv?: Buffer | null;
+  @Column({ name: 'inq_english_name_auth_tag', type: 'bytea', nullable: true })
+  englishNameAuthTag?: Buffer | null;
+
   /** F-05 — encrypted phone + status enum */
   @Column({ name: 'inq_phone_encrypted', type: 'bytea', nullable: true })
   phoneEncrypted?: Buffer | null;

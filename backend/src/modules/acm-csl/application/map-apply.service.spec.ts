@@ -50,6 +50,7 @@ describe('MapApplyService', () => {
   describe('importRows', () => {
     let repo: {
       findOne: jest.Mock;
+      findOneByOrFail: jest.Mock;
       create: jest.Mock;
       save: jest.Mock;
       createQueryBuilder: jest.Mock;
@@ -83,6 +84,7 @@ describe('MapApplyService', () => {
       seq = 100;
       repo = {
         findOne: jest.fn().mockResolvedValue(null),
+        findOneByOrFail: jest.fn().mockResolvedValue({ id: "created-map" }),
         create: jest.fn((v: unknown) => v),
         save: jest.fn(async (v: unknown) => v),
         createQueryBuilder: jest.fn(),

@@ -34,6 +34,10 @@ interface InquiryDetail {
   id: string;
   seqNo: number;
   studentName: string;
+  studentNameEn?: string | null;
+  updatedAt?: string;
+  parentEmail?: string | null;
+  schoolId?: string | null;
   isAnonymous: boolean;
   parentName: string | null;
   parentPhone: string | null;
