@@ -193,7 +193,7 @@
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
     "ops_new_st": "Học sinh mới (nhập học)",
     "ops_out_st": "Học sinh nghỉ",
-    "ops_count_st": "Học sinh (giai đoạn học)",
+    "ops_count_st": "Học sinh (ngày nhập học)",
     "ops_new_tc": "Giáo viên mới",
     "ops_out_tc": "Giáo viên nghỉ",
     "ops_count_tc": "Số giáo viên",

@@ -193,7 +193,7 @@
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
     "ops_new_st": "新生（入学日期）",
     "ops_out_st": "退学学生",
-    "ops_count_st": "学生数（上课期间）",
+    "ops_count_st": "学生数（入学日期）",
     "ops_new_tc": "新入职教师",
     "ops_out_tc": "离职教师",
     "ops_count_tc": "教师数",

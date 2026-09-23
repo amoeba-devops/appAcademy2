@@ -156,6 +156,32 @@ describe('operating periods PostgreSQL', () => {
         ?.calculated,
     ).toBe(0);
   });
+  it('uses admission for stock on the same day, independent of next-day classes', async () => {
+    await ds.query(
+      'UPDATE amb_acm_std_student SET std_admission_date=$1,std_start_date=$2 WHERE std_id=$3',
+      ['2026-09-22', '2026-09-23', id],
+    );
+    const r = await service.range(a, '2026-09-21', '2026-09-23');
+    expect(r.rows.map((row) => row.values.ops_count_st?.calculated)).toEqual([
+      0, 1, 1,
+    ]);
+    expect(r.rows.map((row) => row.values.ops_new_st?.calculated)).toEqual([
+      0, 1, 0,
+    ]);
+    expect(
+      (await service.range(a, '2026-09-23', '2026-09-23', 'TPI')).openingBalance
+        .students,
+    ).toBe(1);
+    expect(
+      (await service.range(b, '2026-09-22', '2026-09-23')).summary.ops_count_st
+        ?.calculated,
+    ).toBe(0);
+    const [student] = await ds.query(
+      'SELECT std_start_date::text start FROM amb_acm_std_student WHERE std_id=$1',
+      [id],
+    );
+    expect(student.start).toBe('2026-09-23');
+  });
   it('manual zero, clear and scope are independent of computed data', async () => {
     await service.saveManual(a, a, '2026-09-01', 'TPI', { ops_new_st: 0 });
     expect(
