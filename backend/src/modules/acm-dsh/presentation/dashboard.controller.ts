@@ -1,3 +1,5 @@
+import { MarketingInputService } from '../application/marketing-input.service';
+import { MarketingPatchDto } from '../application/dto/marketing-input.dto';
 import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { OperatingService } from '../application/operating.service';
 import { SourceCurrentService } from '../application/source-current.service';
@@ -11,6 +13,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -62,6 +65,7 @@ function validateRange(from: string, to: string): void {
 @Controller('acm/dsh')
 export class DashboardController {
   constructor(
+    private readonly marketingInput: MarketingInputService,
     private readonly sourceCurrent: SourceCurrentService,
     private readonly operating: OperatingService,
     private readonly metrics: MetricDefinitionService,
@@ -71,6 +75,22 @@ export class DashboardController {
     private readonly monthlySummary: MonthlySummaryService,
     private readonly ga4Sync: Ga4SyncService,
   ) {}
+
+  @Get('marketing-inputs/:date')
+  getMarketing(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('date') date: string,
+  ) {
+    return this.marketingInput.get(user.entId, date);
+  }
+  @Patch('marketing-inputs/:date')
+  patchMarketing(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('date') date: string,
+    @Body() dto: MarketingPatchDto,
+  ) {
+    return this.marketingInput.patch(user.entId, date, dto, user.id);
+  }
 
   @Get('source-current')
   @ApiOperation({

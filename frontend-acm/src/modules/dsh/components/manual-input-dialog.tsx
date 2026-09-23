@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+import { MarketingInputPanel } from './marketing-input-panel';
 
 /** PLN-260914B — manual input scope: tenant-level (COMMON) or one site. */
 export type ManualInputSite = 'COMMON' | 'TPI' | 'TRINITY' | 'SANTACROCE';
@@ -123,13 +125,17 @@ export function ManualInputDialog({
 }: Props) {
   const { t } = useTranslation('dsh');
   const qc = useQueryClient();
+  const [marketingDirty, setMarketingDirty] = useState(false);
+  const close = () => { if ((marketingDirty || hasOtherEdits) && !window.confirm(t('marketingEditor.discard'))) return; onOpenChange(false); };
   const defaults = (): FormInput => ({
     date: initialDate ?? todayIso(),
     site: initialSite ?? 'COMMON',
   });
-  const { register, handleSubmit, reset, setValue, control } = useForm<FormInput>({
+  const { register, handleSubmit, reset, setValue, control, getFieldState, formState: { dirtyFields } } = useForm<FormInput>({
     defaultValues: defaults(),
   });
+
+  const hasOtherEdits = Object.keys(dirtyFields).some(k => k !== 'date' && k !== 'site' && !k.startsWith('marketing'));
 
   useEffect(() => {
     if (open) reset(defaults());
@@ -139,6 +145,7 @@ export function ManualInputDialog({
   const date = useWatch({ control, name: 'date' });
   const site = useWatch({ control, name: 'site' });
   const isSiteRow = site !== 'COMMON';
+  useEffect(() => { reset({date,site}); }, [date,site,reset]);
   const csCounseling = useWatch({ control, name: 'csCounseling' });
   const csApply = useWatch({ control, name: 'csApply' });
 
@@ -151,19 +158,17 @@ export function ManualInputDialog({
     setValue('marketingEffect', autoEffect);
   }, [autoEffect, setValue]);
 
+  const prefill = (name: keyof FormInput, value: FormInput[keyof FormInput]) => { if (!getFieldState(name).isDirty) setValue(name, value); };
+
   // COMMON: prefill from the tenant daily_kpi row (full override semantics)
   const existingQ = useQuery({
     enabled: open && !!date && !isSiteRow,
     queryKey: ['dsh', 'daily-kpi-row', date],
     queryFn: async () => {
-      try {
         const res = await apiClient.get<{ rows: DailyKpiRow[] }>('/acm/dsh/daily-kpi-range', {
           params: { from: date, to: date },
         });
         return res.data.rows[0] ?? null;
-      } catch {
-        return null;
-      }
     },
   });
 
@@ -172,15 +177,11 @@ export function ManualInputDialog({
     enabled: open && !!date && isSiteRow,
     queryKey: ['dsh', 'manual-input-row', date, site],
     queryFn: async () => {
-      try {
         const res = await apiClient.get<ManualInputRow | null>(
           `/acm/dsh/manual-inputs/${date}`,
           { params: { site } },
         );
         return res.data ?? null;
-      } catch {
-        return null;
-      }
     },
   });
 
@@ -188,33 +189,33 @@ export function ManualInputDialog({
     if (!open || isSiteRow) return;
     const r = existingQ.data;
     if (!r) return;
-    setValue('marketingVisitor', r.marketingVisitor ?? undefined);
-    setValue(
+    prefill('marketingVisitor', r.marketingVisitor ?? undefined);
+    prefill(
       'marketingCost',
       r.marketingCost !== null && r.marketingCost !== undefined ? Number(r.marketingCost) : undefined,
     );
-    setValue('csCounseling', r.csCounseling);
-    setValue('csApply', r.csApply);
-    setValue('csBeginning', r.csBeginning);
-    setValue('csMissing', r.csMissing);
-    setValue('csTrialClass', r.csTrialClass);
-    setValue('csComplain', r.csComplain);
-    setValue('classMapTest', r.classMapTest);
-    setValue('classTtClass', Number(r.classTtClass) || 0);
-    setValue('classStudent', r.classStudent);
-    setValue('classTeacher', r.classTeacher);
+    prefill('csCounseling', r.csCounseling);
+    prefill('csApply', r.csApply);
+    prefill('csBeginning', r.csBeginning);
+    prefill('csMissing', r.csMissing);
+    prefill('csTrialClass', r.csTrialClass);
+    prefill('csComplain', r.csComplain);
+    prefill('classMapTest', r.classMapTest);
+    prefill('classTtClass', Number(r.classTtClass) || 0);
+    prefill('classStudent', r.classStudent);
+    prefill('classTeacher', r.classTeacher);
   }, [existingQ.data, open, isSiteRow, setValue]);
 
   useEffect(() => {
     if (!open || !isSiteRow) return;
     const r = siteRowQ.data;
-    setValue('marketingVisitor', r?.marketingVisitor ?? undefined);
-    setValue(
+    prefill('marketingVisitor', r?.marketingVisitor ?? undefined);
+    prefill(
       'marketingCost',
       r?.marketingCost !== null && r?.marketingCost !== undefined ? Number(r.marketingCost) : undefined,
     );
-    setValue('csComplain', r?.csComplain ?? undefined);
-    setValue('note', r?.note ?? undefined);
+    prefill('csComplain', r?.csComplain ?? undefined);
+    prefill('note', r?.note ?? undefined);
   }, [siteRowQ.data, open, isSiteRow, setValue]);
 
   const mutation = useMutation({
@@ -223,18 +224,16 @@ export function ManualInputDialog({
       if (s !== 'COMMON') {
         // PLN-260914B — per-site manual row (visitor / cost / complain only)
         const body: Record<string, unknown> = { site: s, status: 'COMPLETE' };
-        const mv = toNum(rest.marketingVisitor);
-        const mc = toNum(rest.marketingCost);
         const cc = toNum(rest.csComplain);
-        if (mv !== undefined) body.marketingVisitor = mv;
-        if (mc !== undefined) body.marketingCost = mc;
-        if (cc !== undefined) body.csComplain = cc;
-        if (typeof rest.note === 'string' && rest.note.trim() !== '') body.note = rest.note.trim();
+
+
+        if (dirtyFields.csComplain && cc !== undefined) body.csComplain = cc;
+        if (dirtyFields.note && typeof rest.note === 'string' && rest.note.trim() !== '') body.note = rest.note.trim();
         return apiClient.put(`/acm/dsh/manual-inputs/${d}`, body);
       }
       const body: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(rest)) {
-        if(k.startsWith('ops')) continue;
+        if(k.startsWith('ops') || k.startsWith('marketing') || !dirtyFields[k as keyof FormInput]) continue;
         const num = toNum(v);
         if (num !== undefined) body[k] = num;
         else if (k === 'note' && typeof v === 'string' && v.trim() !== '') body[k] = v.trim();
@@ -245,21 +244,20 @@ export function ManualInputDialog({
       qc.invalidateQueries({ queryKey: ['dsh'] });
       if (invalidateKey) qc.invalidateQueries({ queryKey: ['dsh', 'grid', invalidateKey] });
       reset(defaults());
-      onOpenChange(false);
+      if (!marketingDirty) onOpenChange(false);
     },
   });
 
-  const sections = isSiteRow ? SITE_SECTIONS : SECTIONS.filter(s=>s.key!=='operating');
+  const sections = (isSiteRow ? SITE_SECTIONS : SECTIONS).filter(s => s.key !== 'operating' && s.key !== 'marketing');
 
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
-        if (!o) reset(defaults());
-        onOpenChange(o);
+        if (!o) close(); else onOpenChange(o);
       }}
     >
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto p-0">
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))}>
           <DialogHeader className="p-4 pb-2 sticky top-0 bg-surface z-10 border-b border-[var(--border-subtle)]">
             <DialogTitle>{t('manualInput.title')}</DialogTitle>
@@ -269,14 +267,14 @@ export function ManualInputDialog({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="max-w-xs">
                 <Label>{t('manualInput.date')}</Label>
-                <Input type="date" {...register('date', { required: true })} />
+                <Input type="date" required value={date} disabled={marketingDirty} onChange={e => { if (hasOtherEdits && !window.confirm(t('marketingEditor.discard'))) return; setValue('date', e.target.value); }} />
               </div>
               <div>
                 <Label>{t('manualInput.site')}</Label>
                 <div className="flex flex-wrap gap-3 mt-2" role="radiogroup">
                   {SITES.map((s) => (
                     <label key={s} className="flex items-center gap-1.5 text-sm">
-                      <input type="radio" value={s} {...register('site')} />
+                      <input type="radio" value={s} checked={site === s} onChange={() => { if (hasOtherEdits && !window.confirm(t('marketingEditor.discard'))) return; setValue('site', s); }} />
                       {t(`site.tabs.${s}`)}
                     </label>
                   ))}
@@ -286,6 +284,8 @@ export function ManualInputDialog({
                 )}
               </div>
             </div>
+
+            {open && date && <MarketingInputPanel key={date} date={date} site={site} onDirtyChange={setMarketingDirty} />}
 
             {sections.map((sec) => (
               <fieldset
@@ -328,6 +328,7 @@ export function ManualInputDialog({
               </fieldset>
             ))}
 
+            {(existingQ.isError || siteRowQ.isError || mutation.isError) && <p role="alert">{t("marketingEditor.failed")}</p>}
             <div>
               <Label>{t('manualInput.fields.note')}</Label>
               <Input {...register('note')} />
@@ -335,11 +336,11 @@ export function ManualInputDialog({
           </div>
 
           <div className="sticky bottom-0 bg-surface border-t border-[var(--border-subtle)] p-3 flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={close}>
               {t('actions.cancel')}
             </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {t('actions.save')}
+            <Button type="submit" disabled={marketingDirty || mutation.isPending || existingQ.isError || siteRowQ.isError || !(Object.keys(dirtyFields).some(k => k !== "date" && k !== "site" && !k.startsWith("marketing")))}>
+              {t('marketingEditor.saveOther')}
             </Button>
           </div>
         </form>

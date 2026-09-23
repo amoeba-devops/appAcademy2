@@ -8,6 +8,7 @@ describe('MonthlySummaryService actuals contract', () => {
   const getRepository = jest.fn(() => ({ find }));
   const service = new MonthlySummaryService({
     getRepository,
+    query: jest.fn().mockResolvedValue([]),
   } as unknown as DataSource);
 
   beforeEach(() => {

@@ -56,6 +56,7 @@ const ACM_SQL_FILES = [
   '1014-csl-map-apply.sql',
   '1016-csl-inquiry-kind-birthdate-gender.sql',
   '1018-csl-inquiry-english-name.sql',
+  '1019-dsh-marketing-adjustments.sql',
   '996-acm-csl-inquiry-std-link.sql',
 ];
 

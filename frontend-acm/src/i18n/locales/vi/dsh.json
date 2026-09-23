@@ -220,5 +220,32 @@
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
     "unverified": "{{count}} trường cũ chưa xác minh nguồn nhập tay; giữ nguyên bản gốc và không hiển thị ngoặc.",
     "missingAdmissions": "Thiếu ngày nhập học: {{count}}"
+  },
+  "marketingEditor": {
+    "title": "Điều chỉnh khách truy cập · Quảng cáo",
+    "adjustment": "Khách bổ sung",
+    "visitor": "Khách truy cập",
+    "adSpend": "Chi phí quảng cáo",
+    "effect": "Hiệu quả",
+    "missing": "Unavailable",
+    "total": "Tổng khách truy cập",
+    "explanation": "Visitors = GA + adjustment. Missing GA prevents a complete total. Effect = consultations + applications. Enter a medium to convert legacy costs.",
+    "transition": "Saving switches total visitors: previous {{previous}} → site total {{next}}",
+    "common": "Common cost",
+    "medium": "Kênh quảng cáo",
+    "amount": "Chi phí (KRW)",
+    "remove": "Xóa",
+    "add": "Thêm kênh",
+    "save": "Lưu marketing",
+    "saveOther": "Lưu CS · Lớp học",
+    "saved": "Đã lưu.",
+    "invalid": "Enter non-negative whole numbers within the limits and an advertising medium.",
+    "failed": "Loading or saving failed. Please retry.",
+    "conflict": "Another user made changes. Review your edits and reload the latest values.",
+    "legacyMismatch": "Legacy total cost is less than the site costs. Reconcile the existing costs before converting.",
+    "reload": "Reload",
+    "discard": "Discard unsaved changes?",
+    "loading": "Loading…",
+    "partial": "Tổng đã biết"
   }
 }

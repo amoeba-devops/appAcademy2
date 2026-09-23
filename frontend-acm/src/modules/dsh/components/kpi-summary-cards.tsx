@@ -40,6 +40,7 @@ export interface VisitorBreakdown {
 }
 
 interface KpiSummaryCardsProps {
+  siteView?: boolean;
   categories: CategorySummary[];
   operatingSlot?: ReactNode;
   isLoading?: boolean;
@@ -71,7 +72,7 @@ function DeltaCell({ delta, neutral = false }: { delta: number | null; neutral?:
   );
 }
 
-export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, operatingSlot }: KpiSummaryCardsProps) {
+export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, operatingSlot, siteView }: KpiSummaryCardsProps) {
   const { t, i18n } = useTranslation(['dsh', 'common']);
   const isKr = i18n.language?.startsWith('ko');
 
@@ -159,7 +160,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, opera
               <tbody>
                 {metrics.map((m) => (
                   <tr key={m.code} className="border-t border-[var(--border-subtle)]">
-                    <td className="text-left py-2 pr-1 break-words">{isKr ? m.labelKr : m.labelEn}
+                    <td className="text-left py-2 pr-1 break-words">{siteView && m.code === 'mkt_cost' ? t('marketingEditor.adSpend') : isKr ? m.labelKr : m.labelEn}
                       {m.coverage && <span className="block text-[10px] text-secondary">{t('quality.observed', { count: m.coverage.validDays, total: m.coverage.expectedDays })}</span>}
                     </td>
                     <td className="text-right py-0.5 font-medium">{m.sum === null ? t('quality.missing') : fmtNum(m.sum)}{m.coverage?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}</td>

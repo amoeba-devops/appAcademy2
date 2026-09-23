@@ -1,3 +1,4 @@
+import { applyMarketingRows, guardLegacyMarketing, resolveMarketing } from './marketing-resolver';
 import {
   aggregateKpis,
   kpiToday,
@@ -108,6 +109,7 @@ export class DailyKpiService {
     )
       .toISOString()
       .slice(0, 10);
+    await applyMarketingRows(this.ds, entId, from, to, rows);
     const aggregate = aggregateKpis(rows, from, to);
 
     return {
@@ -137,6 +139,7 @@ export class DailyKpiService {
         });
     applyEffectOverride(rows);
 
+    await applyMarketingRows(this.ds, entId, from, to, rows, site);
     const aggregate = aggregateKpis(rows, from, to);
 
     // PLN-260912 — per-site GA4 breakdown + manual-override dates for the same window
@@ -198,6 +201,7 @@ export class DailyKpiService {
     dto: UpsertDailyKpiManualDto,
   ): Promise<DailyKpiTypeormEntity> {
     return this.ds.transaction(async (manager) => {
+      await guardLegacyMarketing(manager,entId,isoDate,dto.marketingVisitor !== undefined,dto.marketingCost !== undefined);
       const repo = manager.getRepository(DailyKpiTypeormEntity);
       const d = new Date(`${isoDate}T00:00:00Z`);
       const yearMonth = isoDate.slice(0, 7);
@@ -813,6 +817,20 @@ export class DailyKpiService {
       cost: t?.cost == null ? null : Number(t.cost),
       complain: t?.complain == null ? null : Number(t.complain),
     });
+    const marketingChanges = await resolveMarketing(this.ds,entId,from,to < kpiToday() ? to : kpiToday());
+    if (!marketingChanges.length) return {from,to,rows};
+    for (const item of rows) {
+      const isTotal = item.site === 'TOTAL';
+      const sourceRows: Array<DailyKpiTypeormEntity | DailyKpiSiteTypeormEntity> = isTotal
+        ? await this.ds.getRepository(DailyKpiTypeormEntity).find({where:{entId,date:Between(from,to)}})
+        : await this.ds.getRepository(DailyKpiSiteTypeormEntity).find({where:{entId,site:item.site,date:Between(from,to)}});
+      await applyMarketingRows(this.ds,entId,from,to,sourceRows,isTotal?undefined:item.site);
+      const usable = sourceRows.filter(r=>r.date <= kpiToday() && (!('computationStatus' in r) || r.computationStatus === 'FRESH') && (!('dataCompleteness' in r) || r.dataCompleteness !== 'PARTIAL_FUTURE'));
+      const visitors = usable.map(r=>r.marketingVisitor).filter((n):n is number=>n!=null);
+      const costs = usable.map(r=>r.marketingCost).filter((n):n is string=>n!=null);
+      item.visitor=visitors.length?visitors.reduce((sum,n)=>sum+n,0):null;
+      item.cost=costs.length?costs.reduce((sum,n)=>sum+Number(n),0):null;
+    }
     return { from, to, rows };
   }
 
