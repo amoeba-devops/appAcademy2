@@ -32,6 +32,7 @@ export async function syncInquiryProfile(
   inq: InquiryTypeormEntity,
   crypto: AesGcmService,
   explicitEnglish = false,
+  explicitBirthdate = false,
 ) {
   const repo = manager.getRepository(MapApplyTypeormEntity);
   let row = await repo.findOne({
@@ -57,7 +58,7 @@ export async function syncInquiryProfile(
     });
   row.studentNameEn = readEnglishName(inq, crypto);
   row.birthdate = inq.birthdate ?? null;
-  if (row.birthdate) row.birthdateRaw = null;
+  if (row.birthdate || explicitBirthdate) row.birthdateRaw = null;
   row.gender = inq.gender ?? null;
   row.updatedAt = new Date();
   await repo.save(row);

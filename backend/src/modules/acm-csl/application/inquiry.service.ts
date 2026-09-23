@@ -479,6 +479,7 @@ export class InquiryService {
         saved,
         this.crypto,
         dto.studentNameEn !== undefined,
+        dto.birthdate !== undefined,
       );
       return { saved, prevSite, prevDate };
     };

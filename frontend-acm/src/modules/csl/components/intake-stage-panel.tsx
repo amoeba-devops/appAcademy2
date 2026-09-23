@@ -950,8 +950,7 @@ export function BasicInfoEditor({ inqId, inq }: {
       </div>
       {mutate.isError && (
         <p className="text-xs text-red-600">
-          {(mutate.error as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message === 'INQUIRY_CHANGED' ? t('form.editConflict') : t('form.saveFailed')}
+          {(mutate.error as { response?: { status?: number } })?.response?.status === 409 ? t('form.editConflict') : t('form.saveFailed')}
         </p>
       )}
     </form>

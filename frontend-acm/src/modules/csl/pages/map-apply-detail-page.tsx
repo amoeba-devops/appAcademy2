@@ -67,8 +67,8 @@ export function MapApplyDetailPage() {
       });
       setVersion(saved.updatedAt);
       toast.success(t('mapApply.saved'));
-    } catch {
-      toast.error(t('mapApply.saveFailed'));
+    } catch (error) {
+      toast.error(t((error as { response?: { status?: number } })?.response?.status === 409 ? 'form.editConflict' : 'mapApply.saveFailed'));
     }
   };
 
