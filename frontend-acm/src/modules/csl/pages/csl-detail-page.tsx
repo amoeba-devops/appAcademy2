@@ -10,7 +10,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { CslStageStepper } from "@/modules/csl/components/csl-stage-stepper";
-import { IntakeStagePanel } from "@/modules/csl/components/intake-stage-panel";
+import { BasicInfoEditor, IntakeStagePanel } from "@/modules/csl/components/intake-stage-panel";
 import { formatGrade, KIND_BADGE_CLASS } from "@/modules/csl/lib/grade";
 import { transitionErrorMessage } from "@/modules/csl/lib/api-error";
 import { LevelTestPanel } from "@/modules/csl/components/level-test-panel";
@@ -369,6 +369,8 @@ export function CslDetailBody({
           {errorMsg}
         </div>
       )}
+
+      <BasicInfoEditor key={inq.id} inqId={inq.id} inq={inq} />
 
       <CslStageStepper
         currentStage={inq.currentStage}

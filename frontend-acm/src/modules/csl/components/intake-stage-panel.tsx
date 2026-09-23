@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ResponsiveTable } from '@/components/ui/responsive-table';
@@ -238,9 +239,6 @@ export function IntakeStagePanel({
 
       {/* 1. Read-only intake info */}
       <IntakeReadOnlyBox inq={inq} inqId={inqId} locale={i18n.language ?? 'ko'} />
-
-      {/* REQ-260921B — 구분·학교·학년·생년월일·성별 인라인 수정 */}
-      <BasicInfoEditor inqId={inqId} inq={inq} />
 
       {/* 2. Apply purposes (editable) */}
       <ApplyPurposesEditor inqId={inqId} inq={inq} />
@@ -767,7 +765,10 @@ function ApplyPurposesEditor({
  * REQ-260921B — 구분·학교·학년·생년월일·성별 인라인 편집.
  * 학교는 필수 아님(빈란 허용). 구분을 맵테스트로 바꾸면 서버가 /admin/test 부속 행을 만든다.
  */
-function BasicInfoEditor({ inqId, inq }: { inqId: string; inq: Inquiry }) {
+export function BasicInfoEditor({ inqId, inq }: {
+  inqId: string;
+  inq: Partial<Pick<Inquiry, 'kind' | 'schoolFreetext' | 'grade' | 'birthdate' | 'gender'>>;
+}) {
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
   const [editing, setEditing] = useState(false);
@@ -805,13 +806,14 @@ function BasicInfoEditor({ inqId, inq }: { inqId: string; inq: Inquiry }) {
   if (!editing) {
     return (
       <div className="flex justify-end">
-        <button
+        <Button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-xs text-primary hover:underline"
+          className="gap-2 font-semibold shadow-sm"
         >
+          <Pencil size={16} aria-hidden="true" />
           {t('detail.intake.editBasic', '기본정보 수정')}
-        </button>
+        </Button>
       </div>
     );
   }
