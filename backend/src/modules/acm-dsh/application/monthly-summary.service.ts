@@ -1,3 +1,4 @@
+import { applyMarketingRows } from './marketing-resolver';
 import {
   aggregateKpis,
   comparisonRange,
@@ -305,6 +306,7 @@ export class MonthlySummaryService {
       ]);
     }
 
+    await Promise.all([applyMarketingRows(this.ds,entId,from,to,rows,site),applyMarketingRows(this.ds,entId,previousFrom,previousTo,prevRows,site)]);
     const aggregate = aggregateKpis(rows, from, to);
     const previous = aggregateKpis(prevRows, previousFrom, previousTo);
     const populatedDayCount = aggregate.populatedDayCount;
@@ -313,6 +315,7 @@ export class MonthlySummaryService {
       buildCategory(cat, aggregate, previous),
     );
 
+    if(site) for(const category of categories) for(const metric of category.metrics) if(metric.code === 'mkt_cost') {metric.labelKr='사용광고비';metric.labelEn='Ad spend';}
     return {
       from,
       to,

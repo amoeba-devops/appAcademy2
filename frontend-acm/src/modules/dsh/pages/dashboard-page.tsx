@@ -53,6 +53,11 @@ interface DailyKpiRow {
   dayOfWeekKr: string;
   yearMonth?: string;
   marketingVisitor: number | null;
+  marketingVisitorPolicy?: string;
+  marketingGa?: number | null;
+  marketingAdjustment?: number;
+  marketingVisitorPartial?: boolean;
+  marketingVisitorKnownSubtotal?: number;
   marketingCost: string | null;
   marketingEffect: number | null;
   csCounseling: number;
@@ -278,12 +283,12 @@ export function DashboardPage() {
       OPERATING: [],
       CLASS: [],
     };
-    for (const md of metricsQ.data ?? []) { if(isSiteView && md.category==='OPERATING' && md.code.endsWith('_tc')) continue; m[md.category].push(md); }
+    for (const md of metricsQ.data ?? []) { if(isSiteView && md.category==='OPERATING' && md.code.endsWith('_tc')) continue; m[md.category].push(isSiteView && md.code === 'mkt_cost' ? {...md,labelKr:t('marketingEditor.adSpend'),labelEn:t('marketingEditor.adSpend')} : md); }
     for (const cat of CATEGORY_ORDER) {
       m[cat].sort((a, b) => a.displayOrder - b.displayOrder);
     }
     return m;
-  }, [metricsQ.data, isSiteView]);
+  }, [metricsQ.data, isSiteView, t]);
 
   const isKr = i18n.language?.startsWith('ko');
   const flatMetrics = visibleCategories.flatMap((c) => grouped[c]);
@@ -485,6 +490,7 @@ export function DashboardPage() {
       {summaryQ.data?.previousFrom && <p className="text-xs text-secondary mb-3">{t('quality.comparison', { from: summaryQ.data.previousFrom, to: summaryQ.data.previousTo })}</p>}
 
       <KpiSummaryCards
+        siteView={isSiteView}
         operatingSlot={<OperatingPanel data={opsQ.data} error={opsQ.isError} />}
         categories={(summaryQ.data?.categories?.length ? summaryQ.data.categories : []).filter((c) =>
           visibleCategories.includes(c.category),
@@ -574,7 +580,7 @@ export function DashboardPage() {
                         const prevCat = i > 0 ? flatMetrics[i - 1].category : null;
                         const isFirstOfCat = prevCat !== md.category;
                         const isVisitor = md.code === 'mkt_visitor';
-                        const isManualVisitor = isVisitor && manualDates.has(row.date);
+                        const isManualVisitor = isVisitor && row.marketingVisitorPolicy !== 'GA_PLUS_ADJUSTMENT' && manualDates.has(row.date);
                         return (
                           <td
                             key={md.id}
@@ -582,9 +588,10 @@ export function DashboardPage() {
                               'px-2 py-1 text-right ' +
                               (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
                             }
-                            title={isVisitor ? visitorCellTitle(row.date) : undefined}
+                            title={isVisitor ? row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' ? `GA ${row.marketingGa ?? '—'} + ${row.marketingAdjustment ?? 0}` : visitorCellTitle(row.date) : undefined}
                           >
                             {md.category==='OPERATING' ? <DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
+                            {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-[10px] text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
                             {isManualVisitor && (
                               <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
                                 ✎

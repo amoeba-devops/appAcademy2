@@ -220,5 +220,32 @@
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
     "unverified": "{{count}}个历史字段的手工来源未确认，保留原值且不显示括号。",
     "missingAdmissions": "缺少入学日期：{{count}}"
+  },
+  "marketingEditor": {
+    "title": "访客调整 · 广告费",
+    "adjustment": "新增访客",
+    "visitor": "访客",
+    "adSpend": "广告支出",
+    "effect": "效果",
+    "missing": "Unavailable",
+    "total": "访客合计",
+    "explanation": "Visitors = GA + adjustment. Missing GA prevents a complete total. Effect = consultations + applications. Enter a medium to convert legacy costs.",
+    "transition": "Saving switches total visitors: previous {{previous}} → site total {{next}}",
+    "common": "Common cost",
+    "medium": "广告媒体",
+    "amount": "广告费 (KRW)",
+    "remove": "删除",
+    "add": "添加媒体",
+    "save": "保存营销数据",
+    "saveOther": "保存咨询和课程",
+    "saved": "已保存。",
+    "invalid": "Enter non-negative whole numbers within the limits and an advertising medium.",
+    "failed": "Loading or saving failed. Please retry.",
+    "conflict": "Another user made changes. Review your edits and reload the latest values.",
+    "legacyMismatch": "Legacy total cost is less than the site costs. Reconcile the existing costs before converting.",
+    "reload": "Reload",
+    "discard": "Discard unsaved changes?",
+    "loading": "Loading…",
+    "partial": "已知小计"
   }
 }

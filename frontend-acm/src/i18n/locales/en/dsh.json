@@ -220,5 +220,32 @@
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
     "unverified": "Manual provenance is unverified for {{count}} legacy fields; originals are preserved without parentheses.",
     "missingAdmissions": "Missing admission dates: {{count}}"
+  },
+  "marketingEditor": {
+    "title": "Visitor adjustment · Advertising",
+    "adjustment": "Additional visitors",
+    "visitor": "Visitors",
+    "adSpend": "Ad spend",
+    "effect": "Effect",
+    "missing": "Unavailable",
+    "total": "Total visitors",
+    "explanation": "Visitors = GA + adjustment. Missing GA prevents a complete total. Effect = consultations + applications. Enter a medium to convert legacy costs.",
+    "transition": "Saving switches total visitors: previous {{previous}} → site total {{next}}",
+    "common": "Common cost",
+    "medium": "Advertising medium",
+    "amount": "Cost (KRW)",
+    "remove": "Remove",
+    "add": "Add medium",
+    "save": "Save marketing",
+    "saveOther": "Save CS · Class",
+    "saved": "Saved.",
+    "invalid": "Enter non-negative whole numbers within the limits and an advertising medium.",
+    "failed": "Loading or saving failed. Please retry.",
+    "conflict": "Another user made changes. Review your edits and reload the latest values.",
+    "legacyMismatch": "Legacy total cost is less than the site costs. Reconcile the existing costs before converting.",
+    "reload": "Reload",
+    "discard": "Discard unsaved changes?",
+    "loading": "Loading…",
+    "partial": "Known subtotal"
   }
 }

@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import { DailyKpiService } from './daily-kpi.service';
 
 describe('DailyKpiService site reconciliation', () => {
-  const query = jest.fn();
+  const query = jest.fn().mockResolvedValue([]);
   const service = new DailyKpiService({ query } as unknown as DataSource);
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2026-09-18T03:00:00Z'));
