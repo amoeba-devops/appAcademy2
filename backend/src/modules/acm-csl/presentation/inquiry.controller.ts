@@ -1,3 +1,5 @@
+import { LevelTestScheduleResetService } from '../application/level-test-schedule-reset.service';
+import { ResetLevelTestScheduleDto } from '../application/dto/reset-level-test-schedule.dto';
 import {
   BadRequestException,
   Body,
@@ -78,6 +80,7 @@ import type { CslStage } from '../infrastructure/typeorm/inquiry.typeorm-entity'
 export class InquiryController {
   constructor(
     private readonly base: InquiryService,
+    private readonly schedules: LevelTestScheduleResetService,
     private readonly workflow: InquiryWorkflowService,
     private readonly teachers: TeacherAssignmentService,
     private readonly courses: CourseService,
@@ -310,18 +313,20 @@ export class InquiryController {
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Body() dto: UpsertMapTestDto,
   ) {
-    const saved = await this.base.upsertMapTest(user.entId, inqId, dto);
-    // REQ-260626 T-08 / FR-CSL-114 — link to CAL after persistence. Best
-    // effort; linker handles "already linked" / "schedule incomplete" /
-    // "cal create failed" all the same way (returns null, no throw).
-    const inq = await this.base.getOrThrow(user.entId, inqId);
-    await this.calLinker.linkLevelTest(
-      inq,
-      saved,
-      user.id,
-      (user.role ?? 'STAFF') as AcmRole,
-    );
-    return saved;
+    return this.schedules.withLock(user.entId, inqId, async () => {
+      const saved = await this.base.upsertMapTest(user.entId, inqId, dto);
+      // REQ-260626 T-08 / FR-CSL-114 — link to CAL after persistence. Best
+      // effort; linker handles "already linked" / "schedule incomplete" /
+      // "cal create failed" all the same way (returns null, no throw).
+      const inq = await this.base.getOrThrow(user.entId, inqId);
+      await this.calLinker.linkLevelTest(
+        inq,
+        saved,
+        user.id,
+        (user.role ?? 'STAFF') as AcmRole,
+      );
+      return saved;
+    });
   }
 
   @Get(':inqId/map-test')
@@ -416,6 +421,23 @@ export class InquiryController {
    * persistence, fires the CAL linker if scheduledAt + scheduledTime
    * are present.
    */
+  @Post(':inqId/level-tests/:testType/reset-schedule')
+  resetLevelTestSchedule(
+    @CurrentUser() user: AcmCurrentUser,
+    @Param('inqId', ParseUUIDPipe) inqId: string,
+    @Param('testType') testType: string,
+    @Body() dto: ResetLevelTestScheduleDto,
+  ) {
+    return this.schedules.reset(
+      user.entId,
+      inqId,
+      testType,
+      user.id,
+      user.role ?? '',
+      dto,
+    );
+  }
+
   @Put(':inqId/level-tests/:testType')
   @ApiOperation({ summary: 'Upsert per-type schedule + teacher + status' })
   async upsertLevelTest(
@@ -424,30 +446,32 @@ export class InquiryController {
     @Param('testType') testType: string,
     @Body() dto: UpsertLevelTestDto,
   ) {
-    const saved = await this.base.upsertLevelTest(
-      user.entId,
-      inqId,
-      testType as
-        | 'MAP'
-        | 'ISEE'
-        | 'SSAT'
-        | 'DUOLINGO'
-        | 'TOEFL'
-        | 'TOEFL_JR'
-        | 'OTHER',
-      dto,
-    );
-    // Best-effort CAL link (same pattern as upsertMapTest).
-    if (saved.scheduledAt && saved.scheduledTime) {
-      const inq = await this.base.getOrThrow(user.entId, inqId);
-      await this.calLinker.linkLevelTest(
-        inq,
-        saved,
-        user.id,
-        (user.role ?? 'STAFF') as AcmRole,
+    return this.schedules.withLock(user.entId, inqId, async () => {
+      const saved = await this.base.upsertLevelTest(
+        user.entId,
+        inqId,
+        testType as
+          | 'MAP'
+          | 'ISEE'
+          | 'SSAT'
+          | 'DUOLINGO'
+          | 'TOEFL'
+          | 'TOEFL_JR'
+          | 'OTHER',
+        dto,
       );
-    }
-    return saved;
+      // Best-effort CAL link (same pattern as upsertMapTest).
+      if (saved.scheduledAt && saved.scheduledTime) {
+        const inq = await this.base.getOrThrow(user.entId, inqId);
+        await this.calLinker.linkLevelTest(
+          inq,
+          saved,
+          user.id,
+          (user.role ?? 'STAFF') as AcmRole,
+        );
+      }
+      return saved;
+    });
   }
 
   /**

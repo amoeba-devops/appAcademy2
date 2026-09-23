@@ -185,7 +185,12 @@
         "teacher": "Giáo viên",
         "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
         "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
-        "saveAndCal": "Lưu + đăng ký CAL"
+        "saveAndCal": "Lưu + đăng ký CAL",
+        "reset": "Xóa lịch hẹn",
+        "resetTitle": "Xóa lịch hẹn này?",
+        "resetDescription": "Xóa ngày, giờ và sự kiện lịch liên kết. Giữ nguyên giáo viên, kết quả và trạng thái bài kiểm tra.",
+        "resetDone": "Đã xóa lịch hẹn.",
+        "resetFailed": "Không thể xóa. Kiểm tra thay đổi lịch, quyền hoặc cuộc họp bên ngoài, rồi tải lại và thử lại."
       }
     },
     "intake": {

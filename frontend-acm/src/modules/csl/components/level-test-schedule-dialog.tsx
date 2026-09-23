@@ -1,3 +1,7 @@
+import { useConfirm } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
+import { useAuthStore } from '@/stores/auth.store';
+import { RotateCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +41,7 @@ interface LevelTestRow {
   scheduledAt: string | null;
   scheduledTime: string | null;
   teacherId: string | null;
+  calEventId?: string | null;
 }
 
 interface Teacher {
@@ -60,6 +65,10 @@ export function LevelTestScheduleDialog({
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
+  const confirm = useConfirm();
+  const toast = useToast();
+  const role = useAuthStore(st => st.user?.role);
+  const canReset = ['STAFF', 'ADMIN', 'APP_ADMIN'].includes(role ?? '');
 
   const [scheduledAt, setScheduledAt] = useState(row.scheduledAt ?? '');
   const [scheduledTime, setScheduledTime] = useState(
@@ -72,7 +81,7 @@ export function LevelTestScheduleDialog({
     setScheduledAt(row.scheduledAt ?? '');
     setScheduledTime(row.scheduledTime ? row.scheduledTime.slice(0, 5) : '');
     setTeacherId(row.teacherId ?? '');
-  }, [row.testType, row.scheduledAt, row.scheduledTime, row.teacherId]);
+  }, [open, row.testType, row.scheduledAt, row.scheduledTime, row.teacherId]);
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
@@ -109,6 +118,31 @@ export function LevelTestScheduleDialog({
     },
   });
 
+  const reset = useMutation({
+    mutationFn: () => apiClient.post(`/acm/csl/inquiries/${inqId}/level-tests/${row.testType}/reset-schedule`, {
+      scheduledAt: row.scheduledAt ?? null,
+      scheduledTime: row.scheduledTime ?? null,
+      calEventId: row.calEventId ?? null,
+    }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['csl'] });
+      void qc.invalidateQueries({ queryKey: ['cal'] });
+      toast.success(t('detail.levelTest.dialog.resetDone'));
+      onSaved?.();
+      onOpenChange(false);
+    },
+  });
+  const busy = save.isPending || reset.isPending;
+  async function onReset() {
+    const accepted = await confirm({
+      title: t('detail.levelTest.dialog.resetTitle'),
+      description: t('detail.levelTest.dialog.resetDescription'),
+      confirmLabel: t('detail.levelTest.dialog.reset'),
+      variant: 'destructive',
+    });
+    if (accepted) reset.mutate();
+  }
+
   const testLabel =
     row.testType === 'OTHER' && row.testTypeOther
       ? `Other (${row.testTypeOther})`
@@ -117,7 +151,7 @@ export function LevelTestScheduleDialog({
         : row.testType;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={next => { if (!busy) onOpenChange(next); }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
@@ -171,6 +205,7 @@ export function LevelTestScheduleDialog({
           <p className="text-[11px] text-secondary">
             {t('detail.levelTest.dialog.calHint')}
           </p>
+          {reset.isError && <p role="alert" className="text-sm text-red-600">{t('detail.levelTest.dialog.resetFailed')}</p>}
           {save.isError && (
             <p className="text-xs text-red-600">
               {(save.error as { response?: { data?: { message?: string } } })?.response
@@ -179,18 +214,23 @@ export function LevelTestScheduleDialog({
           )}
         </div>
         <DialogFooter>
+          {canReset && (row.scheduledAt || row.scheduledTime || row.calEventId) && (
+            <Button type="button" variant="outline" className="gap-1 text-red-600 sm:mr-auto" disabled={busy} onClick={() => void onReset()}>
+              <RotateCcw size={14} aria-hidden="true" />{t('detail.levelTest.dialog.reset')}
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={save.isPending}
+            disabled={busy}
           >
             {t('common:actions.cancel')}
           </Button>
           <Button
             type="button"
             onClick={() => save.mutate()}
-            disabled={save.isPending || !scheduledAt || !scheduledTime}
+            disabled={busy || !scheduledAt || !scheduledTime}
           >
             {save.isPending
               ? t('common:actions.saving')
