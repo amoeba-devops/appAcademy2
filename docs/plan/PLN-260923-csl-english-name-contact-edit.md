@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CSL-ENGLISH-CONTACT-PLN-1.0.0
 version: 1.0.0
-status: InProgress
+status: Completed
 change_log:
   - version: 1.0.0
     date: 2026-09-23
@@ -65,4 +65,4 @@ change_log:
 - 일정 초기화/레벨테스트 결과/대시보드 및 연결 학생 원장 비영향.
 
 ## 5. Approval (구현 확인)
-프로젝트 AGENTS.md 9.2에 따라 요구사항 분석서와 화면 구성 포함 계획서를 작성했다. 2026-09-23 사용자의 “진행”으로 구현·검증·배포 승인. 승인된 범위 내에서 구현을 진행한다.
+프로젝트 AGENTS.md 9.2에 따라 요구사항 분석서와 화면 구성 포함 계획서를 작성했다. 2026-09-23 사용자의 “진행”으로 구현·검증·배포 승인. 승인된 범위의 구현·운영 배포 및 영문명 66건 이관을 완료했다. 검증 상세는 [결과 보고서](../report/RPT-260923-csl-english-name-contact-edit.md)를 참조한다.

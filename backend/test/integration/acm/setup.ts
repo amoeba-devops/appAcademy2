@@ -53,6 +53,9 @@ const ACM_SQL_FILES = [
   '999s-acm-sch-admission-info.sql',
   '1010-csl-external-intake.sql',
   '1012-dsh-daily-kpi-site.sql',
+  '1014-csl-map-apply.sql',
+  '1016-csl-inquiry-kind-birthdate-gender.sql',
+  '1018-csl-inquiry-english-name.sql',
   '996-acm-csl-inquiry-std-link.sql',
 ];
 
