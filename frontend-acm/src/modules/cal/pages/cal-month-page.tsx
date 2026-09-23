@@ -736,7 +736,7 @@ function CalendarEventCard({
 
 function buildEventDisplayLine(event: CalEvent, locale: string, tz?: string): string {
   const parsed = splitEventTitle(event);
-  const student = event.primaryStudentName ?? parsed.studentName ?? '학생 미지정';
+  const student = event.primaryStudentName ?? parsed.studentName ?? '';
   const className = parsed.className ?? event.title;
   return `${formatTime(event.startAt, locale, tz)} | ${student} | ${className}`;
 }
