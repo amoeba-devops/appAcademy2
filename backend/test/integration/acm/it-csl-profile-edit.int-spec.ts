@@ -46,10 +46,8 @@ describe('consultation profile editing (PostgreSQL)', () => {
     });
   beforeAll(async () => {
     pg = await new PostgreSqlContainer(
-      process.env.ACM_TEST_PG_IMAGE ?? 'tac-postgres-acm:pg16-bigm',
-    )
-      .withPullPolicy({ shouldPull: () => false })
-      .start();
+      process.env.ACM_TEST_PG_IMAGE ?? 'postgres:16-alpine',
+    ).start();
     ds = await new DataSource({
       type: 'postgres',
       url: pg.getConnectionUri(),
