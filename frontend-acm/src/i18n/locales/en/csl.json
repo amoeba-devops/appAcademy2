@@ -185,7 +185,12 @@
         "teacher": "Assigned teacher",
         "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
         "calHint": "Will be registered on the class calendar automatically.",
-        "saveAndCal": "Save + CAL register"
+        "saveAndCal": "Save + CAL register",
+        "reset": "Reset schedule",
+        "resetTitle": "Reset this schedule?",
+        "resetDescription": "Clear the date and time and delete the linked calendar event. The teacher, results and test status will be kept.",
+        "resetDone": "Schedule reset.",
+        "resetFailed": "Reset failed. Check for schedule changes, calendar permissions or external meetings, then refresh and retry."
       }
     },
     "intake": {

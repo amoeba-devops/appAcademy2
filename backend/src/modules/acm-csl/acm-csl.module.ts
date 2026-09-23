@@ -1,3 +1,4 @@
+import { LevelTestScheduleResetService } from './application/level-test-schedule-reset.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -99,6 +100,7 @@ import { ObjectStoreClient } from './infrastructure/external/object-store.client
     CourseController,
   ],
   providers: [
+    LevelTestScheduleResetService,
     InquiryService,
     InquiryWorkflowService,
     TeacherAssignmentService,

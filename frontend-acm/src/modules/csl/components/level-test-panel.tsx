@@ -38,6 +38,7 @@ interface LevelTest {
   scheduledAt: string | null;
   scheduledTime: string | null;
   teacherId: string | null;
+  calEventId: string | null;
   scheduledStatus: 'PENDING' | 'COMPLETED' | 'NOT_HELD' | null;
   scoreReading: number | null;
   scoreMath: number | null;
@@ -259,6 +260,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
                 scheduledAt: null,
                 scheduledTime: null,
                 teacherId: null,
+                calEventId: null,
                 scheduledStatus: 'PENDING' as const,
                 scoreReading: null,
                 scoreMath: null,
@@ -465,6 +467,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
             scheduledAt: dialogRow.scheduledAt,
             scheduledTime: dialogRow.scheduledTime,
             teacherId: dialogRow.teacherId,
+            calEventId: dialogRow.calEventId,
           }}
         />
       )}

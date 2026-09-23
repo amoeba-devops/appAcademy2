@@ -185,7 +185,12 @@
         "teacher": "负责教师",
         "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
         "calHint": "保存时将自动登记至课程日历。",
-        "saveAndCal": "保存并登记 CAL"
+        "saveAndCal": "保存并登记 CAL",
+        "reset": "重置预约",
+        "resetTitle": "重置此预约？",
+        "resetDescription": "清除日期、时间及关联日程。保留教师、考试成绩及状态。",
+        "resetDone": "预约已重置。",
+        "resetFailed": "重置失败。请检查预约变更、日程权限或外部会议，刷新后重试。"
       }
     },
     "intake": {

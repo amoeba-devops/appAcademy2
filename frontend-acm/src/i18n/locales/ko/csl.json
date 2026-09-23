@@ -185,7 +185,12 @@
         "teacher": "담당강사",
         "noTeachersHint": "등록된 강사가 없습니다 — /admin/tch 에서 먼저 추가하세요.",
         "calHint": "저장 시 수업일정(CAL)에 자동 등록됩니다.",
-        "saveAndCal": "저장 + CAL 등록"
+        "saveAndCal": "저장 + CAL 등록",
+        "reset": "일정 초기화",
+        "resetTitle": "일정을 초기화할까요?",
+        "resetDescription": "응시예정일과 시간을 지우고 연결된 수업일정을 삭제합니다. 담당강사, 시험 결과와 진행상태는 유지됩니다.",
+        "resetDone": "일정을 초기화했습니다.",
+        "resetFailed": "초기화하지 못했습니다. 예약 변경 여부, 일정 삭제 권한 또는 외부 미팅 연동을 확인한 뒤 새로고침하여 다시 시도하세요."
       }
     },
     "intake": {
