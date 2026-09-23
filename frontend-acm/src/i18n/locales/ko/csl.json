@@ -62,7 +62,12 @@
     "kind": "구분",
     "birthdate": "생년월일",
     "gender": "성별",
-    "gradePlaceholder": "예: 중2, G10, 예비고1"
+    "gradePlaceholder": "예: 중2, G10, 예비고1",
+    "studentNameEn": "학생 영문이름",
+    "studentNameEnPlaceholder": "예: Jihu Kim",
+    "emptyPlaceholder": "입력하세요",
+    "editConflict": "다른 사용자가 정보를 수정했습니다. 취소 후 최신 정보를 확인하고 다시 수정하세요.",
+    "saveFailed": "저장하지 못했습니다. 입력 형식을 확인하고 다시 시도하세요."
   },
   "validation": {
     "phoneInvalid": "전화번호 형식이 올바르지 않습니다",

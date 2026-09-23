@@ -1,12 +1,18 @@
 import {
+  readEnglishName,
+  setEnglishName,
+  syncInquiryProfile,
+} from './inquiry-profile-sync';
+import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -157,7 +163,17 @@ export class InquiryService {
       currentStage: 'INTAKE',
       previousStage: null,
     });
-    const saved = await this.inq.save(entity);
+    setEnglishName(entity, dto.studentNameEn, this.crypto);
+    const saved = await this.ds.transaction(async (manager) => {
+      const saved = await manager.save(InquiryTypeormEntity, entity);
+      await syncInquiryProfile(
+        manager,
+        saved,
+        this.crypto,
+        dto.studentNameEn !== undefined,
+      );
+      return saved;
+    });
 
     this.events.emit('acm.csl.created', {
       entId,
@@ -342,81 +358,134 @@ export class InquiryService {
     }));
   }
 
-  async update(entId: string, id: string, dto: UpdateInquiryDto) {
-    const e = await this.getOrThrow(entId, id);
-    // 요구 260914G — 대시보드 사이트 귀속이 바뀌면 그 날짜 KPI 를 다시 계산해야
-    // 한다. 바뀌기 전 값을 기억해 뒀다가 저장 후 비교한다.
-    const prevSite = e.siteOverride ?? null;
-    const prevDate = e.registeredAt;
+  async update(
+    entId: string,
+    id: string,
+    dto: UpdateInquiryDto,
+    tx?: EntityManager,
+  ) {
+    const write = async (manager: EntityManager) => {
+      const e = await manager.findOne(InquiryTypeormEntity, {
+        where: { id, entId, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!e) throw new NotFoundException('INQUIRY_NOT_FOUND');
+      if (
+        dto.expectedUpdatedAt &&
+        e.updatedAt.toISOString() !==
+          new Date(dto.expectedUpdatedAt).toISOString()
+      )
+        throw new ConflictException('INQUIRY_CHANGED');
+      if (dto.studentNameEn !== undefined)
+        setEnglishName(e, dto.studentNameEn, this.crypto);
+      // 요구 260914G — 대시보드 사이트 귀속이 바뀌면 그 날짜 KPI 를 다시 계산해야
+      // 한다. 바뀌기 전 값을 기억해 뒀다가 저장 후 비교한다.
+      const prevSite = e.siteOverride ?? null;
+      const prevDate = e.registeredAt;
 
-    if (dto.studentName !== undefined) {
-      const enc = this.crypto.encrypt(dto.studentName);
-      e.nameEncrypted = enc.ciphertext;
-      e.nameIv = enc.iv;
-      e.nameAuthTag = enc.authTag;
-    }
-    if (dto.isAnonymous !== undefined) e.isAnonymous = dto.isAnonymous;
-    if (dto.phoneStatus !== undefined) e.phoneStatus = dto.phoneStatus;
-    if (dto.parentPhone !== undefined) {
-      if (dto.parentPhone) {
-        const enc = this.crypto.encrypt(dto.parentPhone);
-        e.phoneEncrypted = enc.ciphertext;
-        e.phoneIv = enc.iv;
-        e.phoneAuthTag = enc.authTag;
-        if (e.phoneStatus !== 'PROVIDED') e.phoneStatus = 'PROVIDED';
-      } else {
+      if (dto.studentName !== undefined) {
+        const enc = this.crypto.encrypt(dto.studentName);
+        e.nameEncrypted = enc.ciphertext;
+        e.nameIv = enc.iv;
+        e.nameAuthTag = enc.authTag;
+      }
+      if (dto.isAnonymous !== undefined) e.isAnonymous = dto.isAnonymous;
+      if (dto.phoneStatus !== undefined) e.phoneStatus = dto.phoneStatus;
+      if (dto.parentPhone !== undefined) {
+        if (dto.parentPhone) {
+          const enc = this.crypto.encrypt(dto.parentPhone);
+          e.phoneEncrypted = enc.ciphertext;
+          e.phoneIv = enc.iv;
+          e.phoneAuthTag = enc.authTag;
+          if (e.phoneStatus !== 'PROVIDED') e.phoneStatus = 'PROVIDED';
+        } else {
+          e.phoneEncrypted = null;
+          e.phoneIv = null;
+          e.phoneAuthTag = null;
+        }
+      }
+      if (dto.parentName !== undefined) {
+        if (dto.parentName) {
+          const enc = this.crypto.encrypt(dto.parentName);
+          e.parentNameEncrypted = enc.ciphertext;
+          e.parentNameIv = enc.iv;
+          e.parentNameAuthTag = enc.authTag;
+        } else {
+          e.parentNameEncrypted = null;
+          e.parentNameIv = null;
+          e.parentNameAuthTag = null;
+        }
+      }
+      if (dto.parentEmail !== undefined) {
+        if (dto.parentEmail) {
+          const enc = this.crypto.encrypt(dto.parentEmail);
+          e.parentEmailEncrypted = enc.ciphertext;
+          e.parentEmailIv = enc.iv;
+          e.parentEmailAuthTag = enc.authTag;
+        } else {
+          e.parentEmailEncrypted = null;
+          e.parentEmailIv = null;
+          e.parentEmailAuthTag = null;
+        }
+      }
+      if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
+      if (dto.schoolFreetext !== undefined)
+        e.schoolFreetext = dto.schoolFreetext ?? null;
+      if (dto.grade !== undefined) e.grade = dto.grade?.trim() || null;
+      // REQ-260921B
+      if (dto.kind !== undefined) e.kind = dto.kind;
+      if (dto.birthdate !== undefined) e.birthdate = dto.birthdate ?? null;
+      if (dto.gender !== undefined) e.gender = dto.gender ?? null;
+      if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
+      if (dto.siteOverride !== undefined)
+        e.siteOverride = dto.siteOverride ?? null;
+      if (dto.applyType !== undefined) e.applyType = dto.applyType;
+      if (dto.applyPurposes !== undefined)
+        e.applyPurpose = dto.applyPurposes?.length
+          ? dto.applyPurposes.join(',')
+          : null;
+      if (dto.consultDone !== undefined)
+        e.consultDone = dto.consultDone ?? null;
+      if (dto.registeredAt !== undefined) e.registeredAt = dto.registeredAt;
+      if (dto.followupAt !== undefined) e.followupAt = dto.followupAt ?? null;
+      if (dto.followupMemo !== undefined)
+        e.followupMemo = dto.followupMemo ?? null;
+
+      if (
+        dto.parentPhone !== undefined &&
+        !dto.parentPhone &&
+        e.phoneStatus === 'PROVIDED'
+      )
+        e.phoneStatus = 'UNKNOWN';
+      if (dto.phoneStatus && dto.phoneStatus !== 'PROVIDED') {
         e.phoneEncrypted = null;
         e.phoneIv = null;
         e.phoneAuthTag = null;
       }
-    }
-    if (dto.parentName !== undefined) {
-      if (dto.parentName) {
-        const enc = this.crypto.encrypt(dto.parentName);
-        e.parentNameEncrypted = enc.ciphertext;
-        e.parentNameIv = enc.iv;
-        e.parentNameAuthTag = enc.authTag;
-      } else {
-        e.parentNameEncrypted = null;
-        e.parentNameIv = null;
-        e.parentNameAuthTag = null;
+      if (e.phoneStatus === 'PROVIDED' && !e.phoneEncrypted)
+        throw new BadRequestException('PHONE_REQUIRED');
+      if (dto.schoolFreetext !== undefined && dto.schoolId === undefined)
+        e.schoolId = null;
+      if (dto.schoolId && e.schoolId) {
+        const schools = await manager.query(
+          'SELECT 1 FROM amb_acm_sch_school WHERE sch_id=$1 AND ent_id=$2 AND deleted_at IS NULL',
+          [e.schoolId, entId],
+        );
+        if (!schools.length) throw new BadRequestException('SCHOOL_NOT_FOUND');
       }
-    }
-    if (dto.parentEmail !== undefined) {
-      if (dto.parentEmail) {
-        const enc = this.crypto.encrypt(dto.parentEmail);
-        e.parentEmailEncrypted = enc.ciphertext;
-        e.parentEmailIv = enc.iv;
-        e.parentEmailAuthTag = enc.authTag;
-      } else {
-        e.parentEmailEncrypted = null;
-        e.parentEmailIv = null;
-        e.parentEmailAuthTag = null;
-      }
-    }
-    if (dto.schoolId !== undefined) e.schoolId = dto.schoolId ?? null;
-    if (dto.schoolFreetext !== undefined)
-      e.schoolFreetext = dto.schoolFreetext ?? null;
-    if (dto.grade !== undefined) e.grade = dto.grade?.trim() || null;
-    // REQ-260921B
-    if (dto.kind !== undefined) e.kind = dto.kind;
-    if (dto.birthdate !== undefined) e.birthdate = dto.birthdate ?? null;
-    if (dto.gender !== undefined) e.gender = dto.gender ?? null;
-    if (dto.inflowType !== undefined) e.inflowType = dto.inflowType;
-    if (dto.siteOverride !== undefined)
-      e.siteOverride = dto.siteOverride ?? null;
-    if (dto.applyType !== undefined) e.applyType = dto.applyType;
-    if (dto.applyPurposes !== undefined)
-      e.applyPurpose = dto.applyPurposes?.length
-        ? dto.applyPurposes.join(',')
-        : null;
-    if (dto.consultDone !== undefined) e.consultDone = dto.consultDone ?? null;
-    if (dto.registeredAt !== undefined) e.registeredAt = dto.registeredAt;
-    if (dto.followupAt !== undefined) e.followupAt = dto.followupAt ?? null;
-    if (dto.followupMemo !== undefined)
-      e.followupMemo = dto.followupMemo ?? null;
-
-    const saved = await this.inq.save(e);
+      const saved = await manager.save(InquiryTypeormEntity, e);
+      await syncInquiryProfile(
+        manager,
+        saved,
+        this.crypto,
+        dto.studentNameEn !== undefined,
+        dto.birthdate !== undefined,
+      );
+      return { saved, prevSite, prevDate };
+    };
+    const { saved, prevSite, prevDate } = await (tx
+      ? write(tx)
+      : this.ds.transaction(write));
 
     // 사이트 귀속(또는 등록일)이 바뀌면 대시보드 일별 KPI 재계산을 요청한다.
     // 야간 배치(03:00)까지 기다리면 운영자가 방금 지정한 건이 반영되지 않는다.
@@ -1245,6 +1314,7 @@ export class InquiryService {
       followupAt: e.followupAt,
       followupMemo: e.followupMemo,
       studentName,
+      studentNameEn: readEnglishName(e, this.crypto),
       isAnonymous: e.isAnonymous,
       parentName,
       parentPhone, // ⚠ revealed on detail per existing convention; mask in list view client-side

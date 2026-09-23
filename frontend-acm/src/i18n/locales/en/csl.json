@@ -62,7 +62,12 @@
     "kind": "Type",
     "birthdate": "Date of birth",
     "gender": "Gender",
-    "gradePlaceholder": "e.g. Grade 8, G10"
+    "gradePlaceholder": "e.g. Grade 8, G10",
+    "studentNameEn": "Student English name",
+    "studentNameEnPlaceholder": "e.g. Jihu Kim",
+    "emptyPlaceholder": "Enter a value",
+    "editConflict": "This record was changed. Cancel and reopen to edit the latest version.",
+    "saveFailed": "Could not save. Check the input and try again."
   },
   "validation": {
     "phoneInvalid": "Invalid phone format",

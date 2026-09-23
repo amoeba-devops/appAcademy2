@@ -43,6 +43,9 @@ interface Inquiry {
   id: string;
   seqNo: number | string;
   studentName: string;
+  studentNameEn?: string | null;
+  updatedAt?: string;
+  schoolId?: string | null;
   isAnonymous: boolean;
   parentName: string | null;
   parentPhone: string | null;
@@ -603,6 +606,7 @@ function IntakeReadOnlyBox({
       </div>
       <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
         <Row label={t('detail.intake.field.student')} value={inq.studentName} />
+        <Row label={t('form.studentNameEn')} value={inq.studentNameEn ?? ''} />
         <Row label={t('detail.intake.field.kind', '구분')} value={t(`kind.${inq.kind ?? 'TUTORING'}`)} />
         <Row label={t('detail.intake.field.grade')} value={formatGrade(t, inq.grade) || '—'} />
         <Row
@@ -767,7 +771,7 @@ function ApplyPurposesEditor({
  */
 export function BasicInfoEditor({ inqId, inq }: {
   inqId: string;
-  inq: Partial<Pick<Inquiry, 'kind' | 'schoolFreetext' | 'grade' | 'birthdate' | 'gender'>>;
+  inq: Partial<Pick<Inquiry, 'kind' | 'schoolFreetext' | 'schoolId' | 'grade' | 'birthdate' | 'gender' | 'studentNameEn' | 'parentName' | 'parentEmail' | 'parentPhone' | 'phoneStatus' | 'updatedAt'>>;
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
@@ -775,30 +779,42 @@ export function BasicInfoEditor({ inqId, inq }: {
   const initial = () => ({
     kind: (inq.kind ?? 'TUTORING') as InquiryKind,
     schoolFreetext: inq.schoolFreetext ?? '',
-    grade: formatGrade(t, inq.grade),
+    schoolId: inq.schoolId ?? '',
+    grade: inq.grade ?? '',
+    studentNameEn: inq.studentNameEn ?? '',
+    parentName: inq.parentName ?? '',
+    parentEmail: inq.parentEmail ?? '',
+    parentPhone: inq.parentPhone ?? '',
+    phoneStatus: inq.phoneStatus ?? 'UNKNOWN',
     birthdate: inq.birthdate ?? '',
     gender: (inq.gender ?? '') as InquiryGender | '',
   });
   const [draft, setDraft] = useState(initial);
+  const [schoolSearch, setSchoolSearch] = useState('');
+  const { data: schools } = useQuery({
+    queryKey: ['school-catalog', 'csl-picker', schoolSearch], enabled: editing && schoolSearch.trim().length > 0,
+    queryFn: async () => (await apiClient.get<{ items: Array<{ id: string; name: string }> }>('/acm/sch/schools', { params: { q: schoolSearch.trim(), limit: 20 } })).data,
+  });
 
-  useEffect(() => {
-    setDraft(initial());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inq.kind, inq.schoolFreetext, inq.grade, inq.birthdate, inq.gender]);
+  const [baseline, setBaseline] = useState(initial);
+  const [version, setVersion] = useState(inq.updatedAt);
 
   const mutate = useMutation({
     mutationFn: async () => {
-      await apiClient.patch(`/acm/csl/inquiries/${inqId}`, {
-        kind: draft.kind,
-        schoolFreetext: draft.schoolFreetext.trim() || null,
-        grade: draft.grade.trim() || null,
-        birthdate: draft.birthdate || null,
-        gender: draft.gender || null,
-      });
+      const patch: Record<string, unknown> = { expectedUpdatedAt: version };
+      for (const key of Object.keys(draft) as Array<keyof typeof draft>) {
+        if (draft[key] !== baseline[key]) patch[key] = draft[key].trim() || null;
+      }
+      if ('schoolFreetext' in patch || 'schoolId' in patch) patch.schoolId = draft.schoolId || null;
+      if ('parentPhone' in patch && !('phoneStatus' in patch)) {
+        patch.phoneStatus = draft.parentPhone.trim() ? 'PROVIDED' : 'UNKNOWN';
+      }
+      await apiClient.patch(`/acm/csl/inquiries/${inqId}`, patch);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['csl', 'detail', inqId] });
       qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+      qc.invalidateQueries({ queryKey: ['mapApply'] });
       setEditing(false);
     },
   });
@@ -808,7 +824,7 @@ export function BasicInfoEditor({ inqId, inq }: {
       <div className="flex justify-end">
         <Button
           type="button"
-          onClick={() => setEditing(true)}
+          onClick={() => { const next = initial(); setDraft(next); setBaseline(next); setVersion(inq.updatedAt); setEditing(true); }}
           className="gap-2 font-semibold shadow-sm"
         >
           <Pencil size={16} aria-hidden="true" />
@@ -819,7 +835,7 @@ export function BasicInfoEditor({ inqId, inq }: {
   }
 
   return (
-    <div className="grid gap-2 rounded-md border border-[var(--border-subtle)] p-3">
+    <form onSubmit={(event) => { event.preventDefault(); mutate.mutate(); }} className="grid gap-2 rounded-md border border-[var(--border-subtle)] bg-white p-3">
       <div className="flex items-center justify-between">
         <Label className="text-sm font-semibold">
           {t('detail.intake.editBasic', '기본정보 수정')}
@@ -836,8 +852,7 @@ export function BasicInfoEditor({ inqId, inq }: {
             {t('common:actions.cancel')}
           </button>
           <button
-            type="button"
-            onClick={() => mutate.mutate()}
+            type="submit"
             disabled={mutate.isPending}
             className="text-xs text-primary hover:underline"
           >
@@ -865,12 +880,38 @@ export function BasicInfoEditor({ inqId, inq }: {
         ))}
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
+        {(['studentNameEn', 'parentName', 'parentEmail', 'parentPhone'] as const).map((field) => (
+          <div key={field} className="grid gap-1">
+            <Label htmlFor={`basic-${field}`} className="text-xs">{t(`form.${field}`)}</Label>
+            <Input id={`basic-${field}`} type={field === 'parentEmail' ? 'email' : field === 'parentPhone' ? 'tel' : 'text'}
+              maxLength={field === 'studentNameEn' ? 120 : field === 'parentEmail' ? 200 : field === 'parentPhone' ? 20 : 50}
+              pattern={field === 'parentPhone' ? '[0-9+\\-\\(\\) ]{7,20}' : undefined}
+              placeholder={t('form.emptyPlaceholder')} className="placeholder:italic placeholder:text-gray-400"
+              value={draft[field]} onChange={(event) => setDraft((d) => ({ ...d, [field]: event.target.value,
+                ...(field === 'parentPhone' ? { phoneStatus: event.target.value.trim() ? 'PROVIDED' : 'UNKNOWN' } : {}) }))} />
+          </div>
+        ))}
+        <div className="grid gap-1">
+          <Label htmlFor="basic-phone-status" className="text-xs">{t('form.phoneStatus')}</Label>
+          <select id="basic-phone-status" className="h-9 rounded-md border px-3 text-sm" value={draft.phoneStatus}
+            onChange={(event) => setDraft((d) => ({ ...d, phoneStatus: event.target.value as typeof d.phoneStatus,
+              ...(event.target.value !== 'PROVIDED' ? { parentPhone: '' } : {}) }))}>
+            {(['PROVIDED', 'DECLINED', 'UNKNOWN'] as const).map((status) => <option key={status} value={status}>{t(`phoneStatus.${status}`)}</option>)}
+          </select>
+        </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t('form.school')}</Label>
           <Input
             value={draft.schoolFreetext}
-            onChange={(e) => setDraft((d) => ({ ...d, schoolFreetext: e.target.value }))}
+            maxLength={100} placeholder={t('form.schoolPlaceholder')} className="placeholder:italic placeholder:text-gray-400"
+            onChange={(e) => { setDraft((d) => ({ ...d, schoolFreetext: e.target.value, schoolId: '' })); setSchoolSearch(e.target.value); }}
           />
+          {schoolSearch && (schools?.items.length ?? 0) > 0 && (
+            <div className="max-h-32 overflow-y-auto rounded border bg-white">
+              {schools?.items.map((school) => <button key={school.id} type="button" className="block w-full px-2 py-1 text-left text-sm hover:bg-gray-100"
+                onClick={() => { setDraft((d) => ({ ...d, schoolId: school.id, schoolFreetext: school.name })); setSchoolSearch(''); }}>{school.name}</button>)}
+            </div>
+          )}
         </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t('form.grade')}</Label>
@@ -909,11 +950,10 @@ export function BasicInfoEditor({ inqId, inq }: {
       </div>
       {mutate.isError && (
         <p className="text-xs text-red-600">
-          {(mutate.error as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? (mutate.error as Error).message}
+          {(mutate.error as { response?: { status?: number } })?.response?.status === 409 ? t('form.editConflict') : t('form.saveFailed')}
         </p>
       )}
-    </div>
+    </form>
   );
 }
 

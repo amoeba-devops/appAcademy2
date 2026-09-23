@@ -1,6 +1,11 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import { ACM_DS } from '../../acm-common/datasource';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
@@ -114,6 +119,7 @@ export class MapApplyService {
     const bd = MapApplyService.normalizeBirthdate(dto.birthdate);
     const view = await this.inquiryService.create(entId, {
       studentName: dto.studentName,
+      studentNameEn: dto.studentNameEn,
       parentPhone: dto.parentPhone,
       parentEmail: dto.parentEmail,
       phoneStatus: 'PROVIDED',
@@ -130,7 +136,7 @@ export class MapApplyService {
 
     const now = new Date();
     const row = this.repo.create({
-      id: randomUUID(),
+      id: (await this.repo.findOneByOrFail({ entId, inqId: view.id })).id,
       entId,
       inqId: view.id,
       submittedAt: now,
@@ -247,6 +253,7 @@ export class MapApplyService {
       studentName: view.studentName,
       studentNameEn: row.studentNameEn ?? null,
       birthdate: row.birthdate ?? null,
+      updatedAt: row.updatedAt.toISOString(),
       birthdateRaw: row.birthdateRaw ?? null,
       grade: view.grade ?? null,
       gender: (row.gender as MapApplyGender | null) ?? null,
@@ -268,38 +275,50 @@ export class MapApplyService {
     id: string,
     dto: UpdateMapApplyDto,
   ): Promise<MapApplyDetail> {
-    const row = await this.repo.findOne({ where: { id, entId } });
-    if (!row) throw new NotFoundException('MAP_APPLY_NOT_FOUND');
-
-    if (dto.studentNameEn !== undefined) {
-      row.studentNameEn = dto.studentNameEn.trim() || null;
-    }
-    if (dto.birthdate !== undefined) {
-      const bd = MapApplyService.normalizeBirthdate(dto.birthdate);
-      row.birthdate = bd.date;
-      row.birthdateRaw = bd.date ? null : bd.raw;
-    }
-    if (dto.gender !== undefined) row.gender = dto.gender;
-    if (dto.examLocation !== undefined) {
-      row.examLocation = dto.examLocation.trim() || null;
-    }
-    if (dto.preferredSlot !== undefined) {
-      row.preferredSlot = dto.preferredSlot.trim() || null;
-    }
-    row.updatedAt = new Date();
-    await this.repo.save(row);
-
-    // REQ-260921B — 생년월일·성별은 상담 본체(inq_birthdate/inq_gender)와 동기.
-    if (dto.birthdate !== undefined || dto.gender !== undefined) {
-      const inq = await this.inq.findOne({
-        where: { id: row.inqId, entId },
+    const ref = await this.repo.findOneBy({ id, entId });
+    if (!ref) throw new NotFoundException('MAP_APPLY_NOT_FOUND');
+    await this.repo.manager.transaction(async (manager) => {
+      const inq = await manager.findOne(InquiryTypeormEntity, {
+        where: { id: ref.inqId, entId, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
       });
-      if (inq) {
-        if (dto.birthdate !== undefined) inq.birthdate = row.birthdate ?? null;
-        if (dto.gender !== undefined) inq.gender = row.gender ?? null;
-        await this.inq.save(inq);
+      if (!inq) throw new NotFoundException('INQUIRY_NOT_FOUND');
+      const repo = manager.getRepository(MapApplyTypeormEntity);
+      const row = await repo.findOneOrFail({
+        where: { id, entId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (
+        dto.expectedUpdatedAt &&
+        row.updatedAt.toISOString() !==
+          new Date(dto.expectedUpdatedAt).toISOString()
+      ) {
+        throw new ConflictException('MAP_APPLY_CHANGED');
       }
-    }
+      const bd =
+        dto.birthdate !== undefined
+          ? MapApplyService.normalizeBirthdate(dto.birthdate)
+          : undefined;
+      await this.inquiryService.update(
+        entId,
+        inq.id,
+        {
+          ...(dto.studentNameEn !== undefined
+            ? { studentNameEn: dto.studentNameEn }
+            : {}),
+          ...(bd ? { birthdate: bd.date } : {}),
+          ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
+        },
+        manager,
+      );
+      const synced = await repo.findOneByOrFail({ id, entId });
+      if (bd) synced.birthdateRaw = bd.date ? null : bd.raw;
+      if (dto.examLocation !== undefined)
+        synced.examLocation = dto.examLocation?.trim() || null;
+      if (dto.preferredSlot !== undefined)
+        synced.preferredSlot = dto.preferredSlot?.trim() || null;
+      await repo.save(synced);
+    });
     return this.detail(entId, id);
   }
 
@@ -400,6 +419,7 @@ export class MapApplyService {
         const bd = MapApplyService.normalizeBirthdate(r.birthdate);
         const view = await this.inquiryService.create(entId, {
           studentName: r.studentName,
+          studentNameEn: r.studentNameEn,
           parentPhone: r.parentPhone || undefined,
           parentEmail: r.parentEmail || undefined,
           phoneStatus: r.parentPhone ? 'PROVIDED' : 'UNKNOWN',
@@ -417,7 +437,7 @@ export class MapApplyService {
         const now = new Date();
         await this.repo.save(
           this.repo.create({
-            id: randomUUID(),
+            id: (await this.repo.findOneByOrFail({ entId, inqId: view.id })).id,
             entId,
             inqId: view.id,
             submittedAt,

@@ -146,8 +146,7 @@ export class InquiryController {
     @Body() dto: CreateInquiryDto,
   ) {
     const view = await this.base.create(user.entId, dto, user.id);
-    // REQ-260921B — 구분=맵테스트면 /admin/test 에도 보이도록 부속 행 생성.
-    await this.mapApply.reflectInquiry(user.entId, view.id);
+    // InquiryService saves the MAP profile in the same transaction.
     return view;
   }
 
@@ -166,14 +165,6 @@ export class InquiryController {
     @Body() dto: UpdateInquiryDto,
   ) {
     const view = await this.base.update(user.entId, inqId, dto);
-    // REQ-260921B — 구분·생년월일·성별 변경을 맵테스트 부속 행에 반영.
-    if (
-      dto.kind !== undefined ||
-      dto.birthdate !== undefined ||
-      dto.gender !== undefined
-    ) {
-      await this.mapApply.reflectInquiry(user.entId, inqId);
-    }
     return view;
   }
 

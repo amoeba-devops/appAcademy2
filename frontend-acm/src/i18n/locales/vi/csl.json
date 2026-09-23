@@ -62,7 +62,12 @@
     "kind": "Phân loại",
     "birthdate": "Ngày sinh",
     "gender": "Giới tính",
-    "gradePlaceholder": "VD: Lớp 8, G10"
+    "gradePlaceholder": "VD: Lớp 8, G10",
+    "studentNameEn": "Tên tiếng Anh của học sinh",
+    "studentNameEnPlaceholder": "Ví dụ: Jihu Kim",
+    "emptyPlaceholder": "Nhập thông tin",
+    "editConflict": "Thông tin đã thay đổi. Hủy và mở lại để chỉnh sửa bản mới nhất.",
+    "saveFailed": "Không thể lưu. Kiểm tra thông tin và thử lại."
   },
   "validation": {
     "phoneInvalid": "SĐT không hợp lệ",

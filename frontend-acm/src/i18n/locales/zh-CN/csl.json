@@ -62,7 +62,12 @@
     "kind": "类别",
     "birthdate": "出生日期",
     "gender": "性别",
-    "gradePlaceholder": "例：初二, G10"
+    "gradePlaceholder": "例：初二, G10",
+    "studentNameEn": "学生英文姓名",
+    "studentNameEnPlaceholder": "例如：Jihu Kim",
+    "emptyPlaceholder": "请输入",
+    "editConflict": "信息已被修改。请取消并重新打开后编辑最新内容。",
+    "saveFailed": "保存失败。请检查输入后重试。"
   },
   "validation": {
     "phoneInvalid": "电话号码格式不正确",

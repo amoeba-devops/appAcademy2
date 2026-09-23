@@ -154,6 +154,12 @@ export class CreateInquiryDto {
   @IsBoolean()
   isAnonymous?: boolean;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  studentNameEn?: string;
+
   /** F-05 — parent phone (E.164 / KR mobile loose) */
   @ApiPropertyOptional()
   @ValidateIf(
@@ -286,7 +292,12 @@ export class CreateInquiryDto {
   followupMemo?: string;
 }
 
-export class UpdateInquiryDto extends PartialType(CreateInquiryDto) {}
+export class UpdateInquiryDto extends PartialType(CreateInquiryDto) {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsDateString()
+  expectedUpdatedAt?: string;
+}
 
 // ── MAP / Level test (1:1) ──────────────────────────────────────────────
 

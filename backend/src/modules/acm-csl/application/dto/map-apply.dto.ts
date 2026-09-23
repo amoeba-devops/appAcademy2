@@ -11,6 +11,7 @@ import {
   IsIn,
   IsInt,
   IsOptional,
+  IsISO8601,
   IsString,
   Matches,
   Max,
@@ -156,6 +157,10 @@ export class ListMapApplyQueryDto {
 export class UpdateMapApplyDto {
   @ApiPropertyOptional()
   @IsOptional()
+  @IsISO8601()
+  expectedUpdatedAt?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   studentNameEn?: string;
@@ -289,6 +294,7 @@ export interface MapApplyListItem {
 }
 
 export interface MapApplyDetail extends MapApplyListItem {
+  updatedAt: string;
   birthdateRaw: string | null;
   followupAt: string | null;
   followupMemo: string | null;

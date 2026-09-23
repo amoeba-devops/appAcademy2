@@ -38,8 +38,10 @@ export function MapApplyDetailPage() {
   const update = useUpdateMapApply(id ?? '');
   const [edit, setEdit] = useState<EditState | null>(null);
 
+  const [version, setVersion] = useState<string>();
   useEffect(() => {
-    if (!data) return;
+    if (!data || edit) return;
+    setVersion(data.updatedAt);
     setEdit({
       studentNameEn: data.studentNameEn ?? '',
       birthdate: data.birthdate ?? data.birthdateRaw ?? '',
@@ -47,7 +49,7 @@ export function MapApplyDetailPage() {
       examLocation: data.examLocation ?? '',
       preferredSlot: data.preferredSlot ?? '',
     });
-  }, [data]);
+  }, [data, edit]);
 
   if (isLoading) return <p className="text-secondary">{t('common:status.loading')}</p>;
   if (isError || !data || !edit)
@@ -55,16 +57,18 @@ export function MapApplyDetailPage() {
 
   const onSave = async () => {
     try {
-      await update.mutateAsync({
+      const saved = await update.mutateAsync({
+        expectedUpdatedAt: version,
         studentNameEn: edit.studentNameEn,
         birthdate: edit.birthdate,
         gender: edit.gender === '' ? null : edit.gender,
         examLocation: edit.examLocation,
         preferredSlot: edit.preferredSlot,
       });
+      setVersion(saved.updatedAt);
       toast.success(t('mapApply.saved'));
-    } catch {
-      toast.error(t('mapApply.saveFailed'));
+    } catch (error) {
+      toast.error(t((error as { response?: { status?: number } })?.response?.status === 409 ? 'form.editConflict' : 'mapApply.saveFailed'));
     }
   };
 
