@@ -46,6 +46,56 @@ export function calculateOperating(
     (a) => sites.includes(a.site ?? '') && (site === 'ALL' || a.site === site),
   );
   const missingAdmissions = scopedAdmissions.filter((a) => !a.date).length;
+  // Admission controls the first enrollment boundary. Later confirmed periods
+  // retain re-entry dates, so withdrawn gaps are not counted as attendance.
+  // Build globally before site filtering: filtering first could replace a
+  // transfer/re-entry date with the original admission date in another site.
+  const studentPeriods = periods.filter((p) => p.kind === 'STUDENT');
+  const enrollmentIntervals = [
+    ...new Map(admissions.map((a) => [a.subjectId, a])).values(),
+  ]
+    .filter((a) => a.date && sites.includes(a.site ?? ''))
+    .flatMap((a) => {
+      const history = studentPeriods.filter((p) => p.subjectId === a.subjectId);
+      const valid = history
+        .filter((p) => p.confirmed && !p.cancelled)
+        .sort((x, y) => (x.start ?? '').localeCompare(y.start ?? ''));
+      // A master with admission but no class schedule still belongs to the academy.
+      // Explicit cancelled/unconfirmed history must not be resurrected.
+      if (!history.length)
+        return [
+          { subjectId: a.subjectId, site: a.site, start: a.date!, end: null },
+        ];
+      return valid.flatMap((p, i) => {
+        const start = i === 0 ? a.date! : p.start;
+        if (!start || !sites.includes(p.site ?? '')) return [];
+        const effectiveStart = start < a.date! ? a.date! : start;
+        if (p.end && p.end < effectiveStart) return [];
+        return [
+          {
+            subjectId: a.subjectId,
+            site: p.site,
+            start: effectiveStart,
+            end: p.end,
+          },
+        ];
+      });
+    });
+  const studentStock = (selectedSite: string, date: string) =>
+    new Set(
+      enrollmentIntervals
+        .filter(
+          (p) =>
+            p.site === selectedSite &&
+            p.start <= date &&
+            (!p.end || p.end > date),
+        )
+        .map((p) => p.subjectId),
+    ).size;
+  const stock = (date: string) =>
+    site === 'ALL'
+      ? sites.reduce((sum, s) => sum + studentStock(s, date), 0)
+      : studentStock(site, date);
   const actualThrough = to < today ? to : today;
   const metrics: OpsMetric[] = site === 'ALL' ? [...OPS_METRICS] : [...OPS_ST];
   const bySite = Object.fromEntries(
@@ -103,6 +153,7 @@ export function calculateOperating(
             .reduce((a, b) => a.map((v, i) => v + b[i]), [0, 0, 0])
         : counts(students, date);
     st[0] = scopedAdmissions.filter((a) => a.date === date).length;
+    st[2] = stock(date);
     const tc = counts(teachers, date);
     const values: Partial<Record<OpsMetric, OpsCell>> = {};
     metrics.forEach((metric, i) => {
@@ -115,7 +166,13 @@ export function calculateOperating(
         manualPresent: m !== null,
         quality: unavailable
           ? 'UNAVAILABLE'
-          : (i === 0 ? missingAdmissions > 0 : i < 3 && unresolved > 0)
+          : (
+                i === 0
+                  ? missingAdmissions > 0
+                  : i === 2
+                    ? missingAdmissions > 0 || unresolved > 0
+                    : i < 3 && unresolved > 0
+              )
             ? 'PARTIAL'
             : 'COMPLETE',
       };
@@ -156,7 +213,7 @@ export function calculateOperating(
   });
   const prev = new Date(Date.parse(from) - 86400000).toISOString().slice(0, 10);
   return {
-    definitionVersion: 'operating-admission-v2',
+    definitionVersion: 'operating-admission-stock-v3',
     site,
     from,
     to,
@@ -165,7 +222,7 @@ export function calculateOperating(
     rows,
     summary,
     openingBalance: {
-      students: counts(students, prev)[2],
+      students: stock(prev),
       teachers: missingTeachers ? null : counts(teachers, prev)[2],
     },
     quality: { unclassified, unresolved, missingTeachers, missingAdmissions },

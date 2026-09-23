@@ -193,7 +193,7 @@
     "legend": "계산값 (수기값) · 실선=계산, 점선=수기",
     "ops_new_st": "신규학생 (입학일)",
     "ops_out_st": "퇴원학생",
-    "ops_count_st": "학생수 (수업기간 기준)",
+    "ops_count_st": "학생수 (입학일 기준)",
     "ops_new_tc": "신규교사",
     "ops_out_tc": "퇴직교사",
     "ops_count_tc": "교사수",
