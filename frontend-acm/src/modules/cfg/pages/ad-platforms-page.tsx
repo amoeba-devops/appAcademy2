@@ -15,6 +15,7 @@ import {
   type AdSite,
   type AdRun,
 } from "../types/ads";
+import { AdProviderGuidePanel } from "../components/ad-provider-guide-panel";
 const root = "/acm/admin/ad-connections";
 const day = (offset = 0) =>
   new Date(Date.now() + 9 * 3600000 + offset * 86400000)
@@ -26,6 +27,7 @@ export function AdPlatformsPage() {
   const [selected, setSelected] = useState<AdConnection | null>(null);
   const [editing, setEditing] = useState(false);
   const [provider, setProvider] = useState<AdProvider>("META");
+  const [guideProvider, setGuideProvider] = useState<AdProvider>("META");
   const [name, setName] = useState("");
   const [account, setAccount] = useState("");
   const [start, setStart] = useState(day());
@@ -89,6 +91,7 @@ export function AdPlatformsPage() {
   const open = (c: AdConnection | null) => {
     setSelected(c);
     setProvider(c?.provider ?? "META");
+    setGuideProvider(c?.provider ?? "META");
     setName(c?.name ?? "");
     setAccount(c?.account_id ?? "");
     setStart(c?.config.startDate ?? day());
@@ -136,7 +139,7 @@ export function AdPlatformsPage() {
       {q.data?.length === 0 && (
         <p className="rounded bg-white p-6">{t("ads.empty")}</p>
       )}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="min-w-0 space-y-3">
           {q.data?.map((c) => (
             <article
@@ -250,12 +253,7 @@ export function AdPlatformsPage() {
             </article>
           ))}
         </section>
-        <aside className="h-fit space-y-3 rounded-lg border bg-white p-4 text-sm text-gray-600">
-          <h2 className="font-bold text-gray-900">{t("ads.help")}</h2>
-          <p>{t("ads.helpBody")}</p>
-          <p>{t("ads.mappingWarning")}</p>
-          <p>{t("ads.oauthHelp")}</p>
-        </aside>
+        <AdProviderGuidePanel selected={guideProvider} onSelect={setGuideProvider} />
       </div>
       {editing && (
         <form
@@ -300,7 +298,9 @@ export function AdPlatformsPage() {
                 value={provider}
                 disabled={!!selected}
                 onChange={(e) => {
-                  setProvider(e.target.value as AdProvider);
+                  const next = e.target.value as AdProvider;
+                  setProvider(next);
+                  setGuideProvider(next);
                   setKeys({});
                 }}
               >

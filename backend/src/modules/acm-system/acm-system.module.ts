@@ -11,6 +11,7 @@ import { AcmTenantMenuTypeormEntity } from './infrastructure/typeorm/acm-tenant-
 import { MailConfigTypeormEntity } from './infrastructure/typeorm/mail-config.typeorm-entity';
 import { KakaoConfigTypeormEntity } from './infrastructure/typeorm/kakao-config.typeorm-entity';
 import { Ga4ConfigTypeormEntity } from './infrastructure/typeorm/ga4-config.typeorm-entity';
+import { AiConfigTypeormEntity } from './infrastructure/typeorm/ai-config.typeorm-entity';
 import { SystemUserService } from './application/system-user.service';
 import { TenantService } from './application/tenant.service';
 import { MailConfigService } from './application/mail-config.service';
@@ -26,6 +27,8 @@ import { MailConfigController } from './presentation/mail-config.controller';
 import { TenantSettingsController } from './presentation/tenant-settings.controller';
 import { KakaoConfigController } from './presentation/kakao-config.controller';
 import { Ga4ConfigController } from './presentation/ga4-config.controller';
+import { AiConfigService } from './application/ai-config.service';
+import { AiConfigController } from './presentation/ai-config.controller';
 
 /**
  * REQ-260621 — System administration module (APP_ADMIN, cross-tenant) +
@@ -45,6 +48,7 @@ import { Ga4ConfigController } from './presentation/ga4-config.controller';
         MailConfigTypeormEntity,
         KakaoConfigTypeormEntity,
         Ga4ConfigTypeormEntity,
+        AiConfigTypeormEntity,
       ],
       ACM_DS,
     ),
@@ -57,6 +61,7 @@ import { Ga4ConfigController } from './presentation/ga4-config.controller';
     TenantSettingsController,
     KakaoConfigController,
     Ga4ConfigController,
+    AiConfigController,
   ],
   providers: [
     SystemUserService,
@@ -70,6 +75,7 @@ import { Ga4ConfigController } from './presentation/ga4-config.controller';
     Ga4DataClient,
     SiteTagProbe, // PLN-260914C
     Ga4ConfigService,
+    AiConfigService,
   ],
   exports: [
     TenantMailerService,
