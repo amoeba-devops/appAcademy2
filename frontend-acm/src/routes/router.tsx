@@ -1,3 +1,4 @@
+import { AdPlatformsPage } from '@/modules/cfg/pages/ad-platforms-page';
 import { SchoolDetailPage } from '@/modules/sch/pages/school-detail-page';
 import { createBrowserRouter, Navigate, useLocation, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/app-shell';
@@ -231,6 +232,7 @@ export const router = createBrowserRouter([
       { path: 'config/general', element: <GeneralConfigPage /> },
       { path: 'config/kakao', element: <KakaoConfigPage /> },
       // PLN-260912 — GA4 방문자 동기화
+      { path: 'config/ad-platforms', element: <AdPlatformsPage /> },
       { path: 'config/ga4', element: <Ga4ConfigPage /> },
     ],
   },

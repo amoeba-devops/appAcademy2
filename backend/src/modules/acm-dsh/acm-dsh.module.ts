@@ -1,3 +1,8 @@
+import { AdsOAuthService } from './ads/ads-oauth.service';
+import { AdsService } from './ads/ads.service';
+import { AdsProviderClient } from './ads/ads-provider.client';
+import { AdsJob } from './ads/ads.job';
+import { AdsController, AdsCostController } from './ads/ads.controller';
 import { MarketingInputService } from './application/marketing-input.service';
 import { OperatingService } from './application/operating.service';
 import { SourceCurrentService } from './application/source-current.service';
@@ -43,8 +48,12 @@ import { DashboardController } from './presentation/dashboard.controller';
       ACM_DS,
     ),
   ],
-  controllers: [DashboardController],
+  controllers: [DashboardController, AdsController, AdsCostController],
   providers: [
+    AdsService,
+    AdsProviderClient,
+    AdsJob,
+    AdsOAuthService,
     MarketingInputService,
     OperatingService,
     SourceCurrentService,
