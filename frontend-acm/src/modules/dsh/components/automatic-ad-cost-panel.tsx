@@ -1,3 +1,4 @@
+import { formatAdMicros } from "@/modules/cfg/lib/ad-cost-format";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -97,7 +98,7 @@ export function AutomaticAdCostPanel({
       {q.data?.unmapped.map((r, i) => (
         <p key={i} className="text-amber-800">
           {t("ads.unmapped")}: {r.name} ·{" "}
-          {Number(BigInt(r.micros) / 1000000n).toLocaleString()} KRW
+          {formatAdMicros(r.micros)} KRW
         </p>
       ))}
       <details className="text-sm">
@@ -106,7 +107,7 @@ export function AutomaticAdCostPanel({
           <p key={i}>
             {s.name} ·{" "}
             {s.date
-              ? `${Number(BigInt(s.micros ?? "0") / 1000000n).toLocaleString()} KRW`
+              ? `${formatAdMicros(s.micros)} KRW`
               : t("ads.noCoverage")}{" "}
             · {t("ads.lastSuccess")}:{" "}
             {s.last_success_at

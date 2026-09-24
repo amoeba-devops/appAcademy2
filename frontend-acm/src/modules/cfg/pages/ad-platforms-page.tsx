@@ -1,3 +1,4 @@
+import { formatAdMicros } from "../lib/ad-cost-format";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -169,7 +170,7 @@ export function AdPlatformsPage() {
               {c.test_result && (
                 <p>
                   {c.test_result.ok
-                    ? `${t("ads.testSuccess")} · ${t("ads.unmapped")}: ${c.test_result.unmapped} · KRW ${Number(BigInt(c.test_result.totalMicros ?? "0") / 1000000n).toLocaleString()}`
+                    ? `${t("ads.testSuccess")} · ${t("ads.unmapped")}: ${c.test_result.unmapped} · KRW ${formatAdMicros(c.test_result.totalMicros)}`
                     : c.test_result.code}
                 </p>
               )}
