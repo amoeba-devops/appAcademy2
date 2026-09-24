@@ -1,3 +1,8 @@
+import {
+  automaticCosts,
+  applyAutomaticCost,
+  AutomaticCost,
+} from '../ads/ads-cost';
 import { lockMarketingDay } from './marketing-resolver';
 import {
   BadRequestException,
@@ -30,6 +35,9 @@ export interface MarketingSite {
   legacyVisitor: number | null;
   cost: number | null;
   costManaged: boolean;
+  automaticCosts?: AutomaticCost[];
+  automaticPending?: boolean;
+  manualCost?: number | null;
   ads: AdCost[];
   effect: number | null;
 }
@@ -120,6 +128,7 @@ export async function readMarketingDay(
     : daily[0]?.cost != null
       ? Number(daily[0].cost) - siteCostSum
       : legacySiteCost('COMMON');
+  const automatic = await automaticCosts(db, entId, date, date);
   const sites = MARKETING_SITES.map((site) => {
     const edit = edits.find((r) => r.site === site),
       m = manual.find((r) => r.site === site),
@@ -159,6 +168,20 @@ export async function readMarketingDay(
       effect: c?.effect ?? null,
     };
   });
+  for (const site of sites) {
+    const auto = automatic.filter((a) => a.site === site.site);
+    const resolved = applyAutomaticCost(
+      site.cost,
+      auto,
+      (sites.find((s) => s.site === 'COMMON')?.cost ?? 0) > 0,
+    );
+    Object.assign(site, {
+      manualCost: site.cost,
+      automaticCosts: auto,
+      automaticPending: resolved.pending,
+    });
+    site.cost = resolved.cost;
+  }
   return {
     date,
     revision: policy?.revision ?? 0,

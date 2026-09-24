@@ -42,6 +42,7 @@ describe('Dashboard marketing (PostgreSQL)', () => {
         'utf8',
       ),
     );
+    await ds.query(readFileSync(resolve(__dirname,'../../../../sql/acm/1020-ad-platform-cost-sync.sql'),'utf8'));
     service = new MarketingInputService(ds);
   });
   afterAll(async () => {

@@ -1,3 +1,4 @@
+import { automaticCosts, applyAutomaticCost } from '../ads/ads-cost';
 import { ConflictException } from '@nestjs/common';
 import { DataSource, EntityManager } from 'typeorm';
 import { DailyKpiTypeormEntity } from '../infrastructure/typeorm/daily-kpi.typeorm-entity';
@@ -64,8 +65,20 @@ export async function resolveMarketing(
     WHERE d.ent_id=$1 AND d.date BETWEEN $2 AND $3 ORDER BY d.date,s.site`,
     [entId, from, to],
   );
+  const auto = await automaticCosts(ds, entId, from, to);
   return rows.map((r) => ({
     ...r,
+    cost: (() => {
+      const cost = applyAutomaticCost(
+        r.cost == null ? null : Number(r.cost),
+        auto.filter((a) => a.date === r.date && a.site === r.site),
+        rows.some(
+          (c) =>
+            c.date === r.date && c.site === 'COMMON' && Number(c.cost ?? 0) > 0,
+        ),
+      ).cost;
+      return cost === null ? null : String(cost);
+    })(),
     ga: r.ga == null ? null : Number(r.ga),
     visitor: r.visitor == null ? null : Number(r.visitor),
   }));
