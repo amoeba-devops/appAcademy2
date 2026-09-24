@@ -97,6 +97,8 @@ export class AdsService {
     if (!dto.config || !dto.name.trim())
       throw new BadRequestException('INVALID_CONFIG');
     validateMarketingDate(dto.config.startDate);
+    if (dto.provider === 'GOOGLE')
+      dto.accountId = dto.accountId.replace(/-/g, '');
     if (!/^(act_)?\d+$/.test(dto.accountId))
       throw new BadRequestException('INVALID_ACCOUNT');
     dto.accountId = dto.accountId.replace(/^act_/, '');

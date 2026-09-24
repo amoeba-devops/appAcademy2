@@ -696,7 +696,7 @@
     "help": "Hướng dẫn kết nối",
     "helpBody": "Chỉ áp dụng tài khoản KRW / Asia/Seoul. Lưu, kiểm tra và xác nhận phân bổ trước khi bật. Chi phí báo cáo có thể khác hóa đơn.",
     "mappingWarning": "Thay đổi phân bổ áp dụng từ ngày đã chọn. Khi có dữ liệu, không thể đổi phân bổ cho ngày trước hôm nay.",
-    "oauthHelp": "Để dùng Google OAuth, cấu hình ADS_GOOGLE_REDIRECT_URI và URI chuyển hướng được phép trong Google Cloud bằng URL trang này.",
+    "oauthHelp": "Thêm URL trang này vào URI chuyển hướng được phép trong Google Cloud, sau đó kết nối tài khoản Google.",
     "oauthCancelled": "Chưa hoàn tất kết nối Google.",
     "duplicate": "ID chiến dịch bị trùng.",
     "provider": "Nền tảng quảng cáo",

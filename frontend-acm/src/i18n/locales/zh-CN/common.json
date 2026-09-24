@@ -696,7 +696,7 @@
     "help": "连接帮助",
     "helpBody": "仅应用 KRW / Asia/Seoul 账户。启用前请保存、测试并确认站点分配。报告费用可能与账单不同。",
     "mappingWarning": "分配变更从所选日期生效。已有采集数据时，不允许变更今天之前的分配。",
-    "oauthHelp": "使用 Google OAuth 时，请将 ADS_GOOGLE_REDIRECT_URI 和 Google Cloud 授权重定向 URI 设置为此页面 URL。",
+    "oauthHelp": "请将此页面 URL 添加到 Google Cloud 的授权重定向 URI，然后连接 Google 账户。",
     "oauthCancelled": "Google 连接未完成。",
     "duplicate": "广告系列 ID 重复。",
     "provider": "广告平台",

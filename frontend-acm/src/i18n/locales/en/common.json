@@ -696,7 +696,7 @@
     "help": "Connection help",
     "helpBody": "Only KRW / Asia/Seoul accounts are applied. Save, test, and verify site assignments before enabling. Costs are report amounts and may differ from invoices.",
     "mappingWarning": "Mapping changes take effect on the selected date. After collection, changes before today require a separate migration review.",
-    "oauthHelp": "For Google OAuth, configure ADS_GOOGLE_REDIRECT_URI and the Google Cloud authorized redirect URI to this page URL.",
+    "oauthHelp": "Add this page URL to the authorized redirect URIs in Google Cloud, then connect your Google account.",
     "oauthCancelled": "Google connection was not completed.",
     "duplicate": "Duplicate campaign ID.",
     "provider": "Provider",
