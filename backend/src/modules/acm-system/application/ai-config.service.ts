@@ -60,7 +60,7 @@ export class AiConfigService {
 
   async test(entId: string, dto: TestAiConfigDto): Promise<AiConfigView> {
     this.validateEndpoint(dto.provider, dto.baseUrl);
-    let row = await this.repo.findOne({ where: { entId } });
+    const row = await this.repo.findOne({ where: { entId } });
     const apiKey = dto.apiKey?.trim() || (row?.apiKeyEnc?.length ? this.aes.decrypt(unpackEncrypted(row.apiKeyEnc)) : '');
     if (!apiKey) throw new BadRequestException('AI_API_KEY_REQUIRED');
     const result = await this.probe(dto.provider, dto.modelId.trim(), apiKey, dto.baseUrl, dto.orgProjectId);
