@@ -228,7 +228,8 @@ export const router = createBrowserRouter([
       // REQ-260621 — Configuration: landing card menu + per-integration pages.
       { path: 'config', element: <ConfigLandingPage /> },
       { path: 'config/ama', element: <AmaConfigPage /> },
-      { path: 'config/boda', element: <BodaConfigPage /> },
+      { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
+      { path: 'config/video', element: <BodaConfigPage /> },
       { path: 'config/mail', element: <MailConfigPage /> },
       { path: 'config/general', element: <GeneralConfigPage /> },
       { path: 'config/kakao', element: <KakaoConfigPage /> },

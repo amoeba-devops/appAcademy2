@@ -1,3 +1,4 @@
+import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -47,12 +48,14 @@ export function CalEventDetailPage() {
   const [emailOpen, setEmailOpen] = useState(false);
 
   const { data: event, isLoading } = useCalEvent(evtId);
+  const video = useVideoConfig();
+  const isBoda = video.bodaEnabled && event?.meetingProvider === 'BODASCHOOL';
   const qc = useQueryClient();
   // REQ-260912B — 웹훅이 늦거나 유실됐을 때 관리자가 즉시 다시 당겨온다.
   const reconcileMut = useBodaReconcile(evtId);
 
   const { data: record } = useQuery({
-    enabled: !!evtId,
+    enabled: !!evtId && isBoda,
     queryKey: ['cal', 'class-record', evtId],
     queryFn: async () =>
       (
@@ -115,7 +118,7 @@ export function CalEventDetailPage() {
 
   const classDone =
     !!review?.feedbackHtml?.trim() && review?.homeworkStatus != null;
-  const canEnter = event.meetingProvider === 'BODASCHOOL' && !!event.meetingUrl;
+  const canEnter = canEnterVideo(event, video.bodaEnabled);
 
   const downloadAttachment = async (attId: string, filename: string) => {
     const res = await apiClient.get<Blob>(
@@ -145,6 +148,7 @@ export function CalEventDetailPage() {
         <div className="flex items-start justify-between gap-2">
           <div>
             <h1 className="text-xl font-semibold text-primary">{event.title}</h1>
+            {event.meetingProvider === 'BODASCHOOL' && !video.bodaEnabled && <p className="mt-2 text-sm text-secondary">{t('common:video.unavailable')}</p>}
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <span className="rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
                 {t(`category.${event.category}`, event.category)}
@@ -162,7 +166,7 @@ export function CalEventDetailPage() {
                 size="sm"
                 onClick={() =>
                   window.open(
-                    teacherJoinUrl(event.meetingUrl as string),
+                    event.meetingProvider === 'BODASCHOOL' ? teacherJoinUrl(event.meetingUrl as string) : event.meetingUrl as string,
                     '_blank',
                     'noopener,noreferrer',
                   )
@@ -275,18 +279,18 @@ export function CalEventDetailPage() {
         {evtId && (
           <CalRecordingsSection
             evtId={evtId}
-            isBoda={event.meetingProvider === 'BODASCHOOL'}
+            isBoda={isBoda}
           />
         )}
 
         {/* 강의실 기록 — 보다 수업이면 기록이 비어 있어도 안내 + 동기화 제공 */}
-        {(record || event.meetingProvider === 'BODASCHOOL') && (
+        {isBoda && (
           <div className="mt-4 rounded-md border border-[var(--border-subtle)] p-3">
             <div className="mb-1 flex items-center gap-2">
               <span className="text-xs font-semibold text-secondary">
                 🕐 {t('boda.recordTitle', '강의실 기록')}
               </span>
-              {event.meetingProvider === 'BODASCHOOL' && (
+              {isBoda && (
                 <Button
                   type="button"
                   size="sm"

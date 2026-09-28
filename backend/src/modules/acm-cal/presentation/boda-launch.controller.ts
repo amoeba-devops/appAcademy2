@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   Controller,
   Get,
@@ -35,6 +37,7 @@ import type {
 @ApiTags('acm-cal-boda-launch')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('cal/boda')
 export class BodaLaunchController {
   constructor(private readonly svc: BodaLaunchContextService) {}

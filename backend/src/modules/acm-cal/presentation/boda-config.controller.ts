@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
@@ -24,6 +26,7 @@ import {
 @ApiTags('acm-cal-boda-config')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal/boda/config')
 export class BodaConfigController {
   constructor(private readonly svc: BodaConfigService) {}

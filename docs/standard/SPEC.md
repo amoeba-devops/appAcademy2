@@ -2,7 +2,7 @@
 doc_id: STD-APP-ACADEMY-SPEC
 title: App Academy / Trinity Academy Development Specification
 version: 1.0.0
-updated: 2026-07-04
+updated: 2026-09-28
 status: active
 based_on:
   - docs/amoeba-starter-kit/amoeba_basic_SPEC_v2.md
@@ -170,6 +170,15 @@ MySQL legacy 제거 원칙은 다음과 같다.
 - 알림/감사: 이벤트 기반 notification/audit 스키마 기준으로 확장
 
 외부 연동은 tenant config와 secret 분리를 전제로 한다.
+
+### 10.1 Video Provider Settings (화상강의 종류 설정)
+
+- `/admin/config/video`에서 ADMIN이 학원별 `GOOGLE_MEET` / `BODASCHOOL`을 선택한다. 기존 `/admin/config/boda`는 중립 설정 페이지로 연결한다.
+- `amb_acm_cal_video_config`에 제공사를 저장하며 미등록 학원은 기존 BODA 기본값을 유지한다. 일반 사용자에게는 인증된 학원의 제공사·기능 여부만 반환한다.
+- 구글 모드에서는 CAL 정규·체험수업에 Meet 링크를 입력하고 직접 입장한다. 보다 전용 UI·사용자 API를 차단하며 기존 일정·기록·비밀키는 보존한다.
+- 상담 자동 체험수업은 구글 모드에서 링크 미등록 일정으로 생성하고 CAL에서 링크를 보완한다. Google 회의 생성/OAuth·자동 출결·녹화 연동은 지원하지 않는다.
+- DB migration: `sql/acm/999t-acm-cal-video-config.sql`. 상세: `docs/report/RPT-260928-cal-video-provider.md`.
+
 
 ## 11. 비기능 요구사항
 

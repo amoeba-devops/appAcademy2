@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   BadRequestException,
   Body,
@@ -41,6 +43,7 @@ import { BODA_EVENT_CODES } from '../../../infrastructure/external/bodaedu/bodae
 @ApiTags('acm-cal-boda-demo')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal')
 export class BodaDemoController {
   private readonly logger = new Logger(BodaDemoController.name);

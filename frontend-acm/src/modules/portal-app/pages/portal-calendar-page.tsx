@@ -1,3 +1,4 @@
+import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -210,6 +211,7 @@ function MonthGrid({
   events: PortalCalEvent[];
   onSelect: (e: PortalCalEvent) => void;
 }) {
+  const video = useVideoConfig(true);
   const weeks = Math.ceil(
     (new Date(from.getFullYear(), anchorMonth + 1, 0).getDate() +
       new Date(from.getFullYear(), anchorMonth, 1).getDay()) /
@@ -244,7 +246,7 @@ function MonthGrid({
                 onClick={() => onSelect(e)}
                 className="mt-0.5 flex w-full items-center gap-0.5 truncate rounded bg-accent-50 px-1 text-left text-accent-800 hover:bg-accent-100"
               >
-                {e.meetingProvider === 'BODASCHOOL' && <Video size={10} className="shrink-0" />}
+                {canEnterVideo(e, video.bodaEnabled) && <Video size={10} className="shrink-0" />}
                 <span className="truncate">
                   {timeLabel(e)} {e.title}
                 </span>
@@ -302,6 +304,7 @@ function Agenda({
 }
 
 function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalEvent) => void }) {
+  const video = useVideoConfig(true);
   const { t } = useTranslation('common');
   return (
     <button
@@ -335,7 +338,7 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
         )}
       </span>
       {e.assigneeName && <span className="text-xs text-secondary">{e.assigneeName}</span>}
-      {e.meetingProvider === 'BODASCHOOL' && (
+      {canEnterVideo(e, video.bodaEnabled) && (
         <Video size={14} className="shrink-0 text-accent-700" />
       )}
     </button>
@@ -405,9 +408,10 @@ function EventDetailModal({
   event: PortalCalEvent | null;
   onClose: () => void;
 }) {
+  const video = useVideoConfig(true);
   const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
-  const isBoda = event?.meetingProvider === 'BODASCHOOL';
+  const isBoda = !!event && canEnterVideo(event, video.bodaEnabled);
 
   const when = event
     ? new Intl.DateTimeFormat(i18n.language, {

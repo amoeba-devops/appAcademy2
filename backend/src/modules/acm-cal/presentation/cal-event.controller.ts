@@ -1,3 +1,5 @@
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
+import { UseInterceptors } from '@nestjs/common';
 import {
   BadRequestException,
   Body,
@@ -46,6 +48,7 @@ export class CalEventController {
     private readonly feedbackMailer: FeedbackMailerService,
   ) {}
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/recordings')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'STAFF', 'TEACHER')
@@ -64,6 +67,7 @@ export class CalEventController {
     return this.recordingSvc.summaryForEvent(u.entId, id);
   }
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Post(':id/recordings/sync')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'STAFF')
@@ -81,6 +85,7 @@ export class CalEventController {
     return this.recordingSvc.syncEvent(u.entId, id);
   }
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Post(':id/recordings/:recordIdx/ticket')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'STAFF', 'TEACHER')
@@ -175,6 +180,7 @@ export class CalEventController {
     return this.svc.stats(u.entId, from, to);
   }
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/class-record')
   @ApiOperation({
     summary:

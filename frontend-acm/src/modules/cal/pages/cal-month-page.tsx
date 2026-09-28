@@ -1,3 +1,4 @@
+import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -76,7 +77,8 @@ export function CalMonthPage() {
   const navigate = useNavigate();
   const role = useAuthStore((s) => s.user?.role);
   const isAdmin = role === 'ADMIN';
-  const canCreateInstant = role === 'ADMIN' || role === 'TEACHER';
+  const video = useVideoConfig();
+  const canCreateInstant = video.bodaEnabled && (role === 'ADMIN' || role === 'TEACHER');
   const [selectedTeachers, setSelectedTeachers] = useState<TeacherDetail[]>([]);
   // PLN-260729 1.1 — 수업종류 필터 + 월간 '모두보기' 일자 모달.
   const [categoryFilter, setCategoryFilter] = useState<string>('');
@@ -236,7 +238,7 @@ export function CalMonthPage() {
         </div>
       </div>
 
-      <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />
+      {video.bodaEnabled && <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />}
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
         <div className="flex items-center gap-2">
@@ -669,7 +671,8 @@ function CalendarEventCard({
   const tz = useTenantTz();
   const display = buildEventDisplayLine(event, locale, tz);
   // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
-  const canEnter = event.meetingProvider === 'BODASCHOOL' && !!event.meetingUrl;
+  const video = useVideoConfig();
+  const canEnter = canEnterVideo(event, video.bodaEnabled);
   return (
     <div
       onClick={onClick}
@@ -720,7 +723,7 @@ function CalendarEventCard({
           onClick={(e) => {
             e.stopPropagation();
             window.open(
-              teacherJoinUrl(event.meetingUrl as string),
+              event.meetingProvider === 'BODASCHOOL' ? teacherJoinUrl(event.meetingUrl as string) : event.meetingUrl as string,
               '_blank',
               'noopener,noreferrer',
             );

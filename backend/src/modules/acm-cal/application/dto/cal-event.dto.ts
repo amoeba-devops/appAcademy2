@@ -102,6 +102,9 @@ export class CreateCalEventDto {
   @IsString()
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   evtMeetingUrl?: string;
 
   @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES, default: 'ONE_TO_ONE' })
@@ -186,6 +189,9 @@ export class UpdateCalEventDto {
   @IsString()
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   evtMeetingUrl?: string;
 
   @ApiPropertyOptional({ enum: CAL_BODA_ROOM_TYPES })

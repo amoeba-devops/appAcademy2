@@ -51,6 +51,7 @@ const ACM_SQL_FILES = [
   // 요구 260914E — 학부모 이메일 컬럼. 없으면 inquiry INSERT 가 컬럼 부재로 깨진다.
   '999n-csl-inquiry-parent-email.sql',
   '999s-acm-sch-admission-info.sql',
+  '999t-acm-cal-video-config.sql',
   '1010-csl-external-intake.sql',
   '1012-dsh-daily-kpi-site.sql',
   '1014-csl-map-apply.sql',

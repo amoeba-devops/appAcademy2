@@ -1,3 +1,4 @@
+import { VideoConfigService } from './video-config.service';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
@@ -20,6 +21,7 @@ export class InviteeNotifierService {
     private readonly mailer: TenantMailerService,
     private readonly inviteeSvc: CalInviteeService,
     private readonly config: ConfigService,
+    private readonly video: VideoConfigService,
   ) {}
 
   /** Notify a freshly added batch. Updates each invitee's status. */
@@ -36,6 +38,9 @@ export class InviteeNotifierService {
     };
     if (addedRows.length === 0) return summary;
 
+    const includeMeetingLink =
+      event.meetingProvider !== 'BODASCHOOL' ||
+      (await this.video.get(entId)).bodaEnabled;
     const hydrated = await this.inviteeSvc.hydrate(entId, addedRows);
     const smtpReady = await this.mailer.isConfigured(entId);
 
@@ -52,7 +57,10 @@ export class InviteeNotifierService {
           return;
         }
         try {
-          await this.mailer.send(entId, this.renderInvite(event, inv));
+          await this.mailer.send(
+            entId,
+            this.renderInvite(event, inv, includeMeetingLink),
+          );
           await this.inviteeSvc.updateNotifyStatus(inv.id, 'SENT');
           summary.sent++;
         } catch (e: unknown) {
@@ -67,7 +75,11 @@ export class InviteeNotifierService {
     return summary;
   }
 
-  private renderInvite(event: CalEventTypeormEntity, inv: InviteeView) {
+  private renderInvite(
+    event: CalEventTypeormEntity,
+    inv: InviteeView,
+    includeMeetingLink: boolean,
+  ) {
     const portal = this.config.get<string>('ACM_PORTAL_URL') ?? '';
     const start = event.startAt.toISOString();
     const end = event.endAt.toISOString();
@@ -81,7 +93,9 @@ export class InviteeNotifierService {
       `시작: ${start}`,
       `종료: ${end}`,
       event.locationText ? `장소: ${event.locationText}` : '',
-      event.meetingUrl ? `미팅 URL: ${event.meetingUrl}` : '',
+      includeMeetingLink && event.meetingUrl
+        ? `미팅 URL: ${event.meetingUrl}`
+        : '',
       portal ? `\n포털 바로가기: ${portal}` : '',
     ]
       .filter(Boolean)

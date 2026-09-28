@@ -1,3 +1,4 @@
+import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,7 +34,8 @@ export function PortalCalEventDetailPage() {
     queryFn: () => portalApi.calEvent(evtId!),
   });
 
-  const isBoda = event?.meetingProvider === 'BODASCHOOL';
+  const video = useVideoConfig(true);
+  const isBoda = video.bodaEnabled && event?.meetingProvider === 'BODASCHOOL';
   const fmtFull = (iso: string, withTime: boolean) =>
     new Intl.DateTimeFormat(i18n.language, {
       year: 'numeric',
@@ -185,12 +187,13 @@ export function PortalCalEventDetailPage() {
             </div>
           )}
 
+          {event.meetingProvider === 'BODASCHOOL' && !video.bodaEnabled && <p>{t('video.unavailable')}</p>}
           {isBoda ? (
             <div className="mt-5">
               <BodaEntry evtId={event.id} />
             </div>
           ) : (
-            event.meetingUrl && (
+            canEnterVideo(event, video.bodaEnabled) && event.meetingUrl && (
               <a
                 href={event.meetingUrl}
                 target="_blank"

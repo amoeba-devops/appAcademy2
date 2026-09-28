@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import { Body, Controller, Headers, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -34,6 +36,7 @@ import {
 @ApiTags('acm-cal-instant')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal/events')
 export class InstantEventController {
   constructor(private readonly svc: InstantEventService) {}

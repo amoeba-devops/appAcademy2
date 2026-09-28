@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   Controller,
   HttpException,
@@ -36,6 +38,7 @@ import { BodaReconcileService } from '../application/boda-reconcile.service';
 @ApiTags('acm-cal-boda-admin')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal/events')
 export class BodaAdminController {
   private readonly logger = new Logger(BodaAdminController.name);

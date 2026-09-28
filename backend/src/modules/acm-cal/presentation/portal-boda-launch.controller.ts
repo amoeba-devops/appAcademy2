@@ -1,3 +1,5 @@
+import { UseInterceptors } from '@nestjs/common';
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PortalJwtAuthGuard } from '../../acm-auth/guards/portal-jwt-auth.guard';
@@ -13,6 +15,7 @@ import { BodaLaunchContextService } from '../application/boda-launch-context.ser
 @ApiTags('portal-cal')
 @ApiBearerAuth()
 @UseGuards(PortalJwtAuthGuard)
+@UseInterceptors(BodaPolicyInterceptor)
 @Controller('portal/cal/boda')
 export class PortalBodaLaunchController {
   constructor(private readonly svc: BodaLaunchContextService) {}
