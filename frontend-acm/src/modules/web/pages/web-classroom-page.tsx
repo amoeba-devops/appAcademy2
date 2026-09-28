@@ -1,3 +1,4 @@
+import { useVideoConfig } from '@/modules/cfg/hooks/use-video-config';
 import DOMPurify from 'dompurify';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
@@ -61,9 +62,10 @@ export function WebClassroomPage() {
   // below — otherwise the hook count changes between renders (React #310).
   const [search] = useSearchParamsCompat();
 
+  const video = useVideoConfig(mode === 'portal');
   const lang: 'ko' | 'en' = i18n.language === 'en' ? 'en' : 'ko';
   const ctxQuery = useBodaLaunchContext(evtId, lang, {
-    enabled: !!mode,
+    enabled: !!mode && video.bodaEnabled,
     portal: mode === 'portal',
     pollWhilePending: mode === 'portal',
   });
@@ -78,7 +80,7 @@ export function WebClassroomPage() {
 
   // 콘솔 모드는 전용 status 폴링 엔드포인트 사용. 포털 모드는 위 컨텍스트 재조회로 대체.
   const shouldPoll =
-    mode === 'console' &&
+    video.bodaEnabled && mode === 'console' &&
     ctxQuery.data?.status === 'PENDING' &&
     ctxQuery.data.userType !== 11;
   const statusQuery = useBodaRoomStatus(evtId, {
@@ -98,7 +100,11 @@ export function WebClassroomPage() {
     return <Navigate to={`/portal/login?returnTo=${returnTo}`} replace />;
   }
 
-  if (ctxQuery.isLoading) {
+  if (!video.bodaEnabled) {
+    return <CenteredCard><p>{t(video.isLoading ? 'common:video.loading' : video.isError ? 'common:video.loadError' : 'common:video.unavailable')}</p></CenteredCard>;
+  }
+
+  if (ctxQuery.isLoading || !ctxQuery.data && !ctxQuery.isError) {
     return (
       <CenteredCard>
         <Loader2 className="h-5 w-5 animate-spin text-accent-600" />

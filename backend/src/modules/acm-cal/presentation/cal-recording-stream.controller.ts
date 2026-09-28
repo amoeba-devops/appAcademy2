@@ -1,3 +1,4 @@
+import { VideoConfigService } from '../application/video-config.service';
 import { Controller, Get, Param, Query, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -18,7 +19,7 @@ import { BodaRecordingService } from '../application/boda-recording.service';
 @SkipThrottle()
 @Controller('acm/cal/recordings')
 export class CalRecordingStreamController {
-  constructor(private readonly svc: BodaRecordingService) {}
+  constructor(private readonly svc: BodaRecordingService, private readonly video: VideoConfigService) {}
 
   @Get(':ticket')
   @ApiOperation({
@@ -32,6 +33,7 @@ export class CalRecordingStreamController {
     @Res() res: Response,
   ): Promise<void> {
     const claims = this.svc.verifyTicket(ticket);
+    await this.video.assertBoda(claims.entId);
     const range = dl ? undefined : req.headers.range;
     const out = await this.svc.openStream(
       claims.entId,

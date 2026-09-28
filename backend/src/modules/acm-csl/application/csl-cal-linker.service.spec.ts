@@ -68,7 +68,7 @@ describe('CslCalLinkerService', () => {
     const mod = await Test.createTestingModule({
       providers: [
         CslCalLinkerService,
-        { provide: CalEventService, useValue: { create: calCreate, update: calUpdate } },
+        { provide: CalEventService, useValue: { createFromConsultation: calCreate, update: calUpdate } },
         {
           provide: TenantSettingsService,
           useValue: { getTimezone: jest.fn().mockResolvedValue('Asia/Seoul') },

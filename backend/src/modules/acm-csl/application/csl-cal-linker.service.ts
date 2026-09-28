@@ -199,7 +199,7 @@ export class CslCalLinkerService {
         }
       }
 
-      const event = await this.calEvents.create(
+      const event = await this.calEvents.createFromConsultation(
         input.entId,
         input.actorUserId,
         input.actorRole,

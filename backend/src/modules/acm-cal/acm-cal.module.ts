@@ -1,3 +1,11 @@
+import { VideoConfigService } from './application/video-config.service';
+import { CalVideoConfigTypeormEntity } from './infrastructure/typeorm/video-config.typeorm-entity';
+import {
+  VideoConfigController,
+  VideoCapabilitiesController,
+  PortalVideoCapabilitiesController,
+} from './presentation/video-config.controller';
+import { BodaPolicyInterceptor } from './presentation/boda-policy.interceptor';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -78,6 +86,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     AcmSystemModule, // REQ-260902B — TenantMailerService (테넌트 SMTP 설정 우선)
     TypeOrmModule.forFeature(
       [
+        CalVideoConfigTypeormEntity,
         CalEventTypeormEntity,
         CalEventRevisionTypeormEntity,
         CalInviteeTypeormEntity,
@@ -106,6 +115,9 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     ),
   ],
   controllers: [
+    VideoConfigController,
+    VideoCapabilitiesController,
+    PortalVideoCapabilitiesController,
     CalEventController,
     CalRecordingStreamController, // REQ-260912B — 티켓 기반 녹화본 스트리밍
     CalEventAttachmentController,
@@ -121,6 +133,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     BodaDemoController,
   ],
   providers: [
+    VideoConfigService,
+    BodaPolicyInterceptor,
     CalEventService,
     CalEventAttachmentService,
     BodaRecordService,

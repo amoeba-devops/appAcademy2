@@ -1,3 +1,4 @@
+import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   BadRequestException,
   Body,
@@ -58,6 +59,7 @@ export class PortalCalController {
    * REQ-260912B — 녹화본은 학원 운영자·강사에게만 노출한다. 학생/학부모
    * 포털에서는 목록 자체를 주지 않는다 (빈 배열 → 섹션 미표시).
    */
+  @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/recordings')
   @ApiOperation({ summary: '종료된 보다 강의 녹화 목록 (담당 강사 전용)' })
   async recordings(
@@ -70,6 +72,7 @@ export class PortalCalController {
     return summary.items.filter((r) => r.playable);
   }
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/recordings/:recordIdx/download')
   @ApiOperation({
     summary: '녹화 파일 다운로드 (담당 강사 전용, ACM 보관본 우선)',
@@ -165,6 +168,7 @@ export class PortalCalController {
     return this.attachmentSvc.softDelete(u.entId, id, attId);
   }
 
+  @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/class-record')
   @ApiOperation({
     summary:

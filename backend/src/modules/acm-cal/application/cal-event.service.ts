@@ -1,3 +1,5 @@
+import { VideoConfigService } from './video-config.service';
+import { validateMeetingUrl } from './meeting-url';
 import {
   BadRequestException,
   ForbiddenException,
@@ -79,6 +81,7 @@ export class CalEventService {
     private readonly bodaRoomSvc: BodaRoomService,
     private readonly eventAttachmentSvc: CalEventAttachmentService,
     private readonly reviewSvc: CalEventReviewService,
+    private readonly video: VideoConfigService,
   ) {}
 
   async list(
@@ -487,11 +490,66 @@ export class CalEventService {
     actorRole: AcmRole,
     dto: CreateCalEventDto,
   ) {
+    return this.video.withLock(entId, () =>
+      this.createLocked(entId, actorUserId, actorRole, dto),
+    );
+  }
+
+  /** CSL has no meeting-link field: preserve the scheduled slot until CAL supplies it. */
+  async createFromConsultation(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    dto: CreateCalEventDto,
+  ) {
+    return this.video.withLock(entId, async () => {
+      const config = await this.video.get(entId);
+      return this.createLocked(
+        entId,
+        actorUserId,
+        actorRole,
+        {
+          ...dto,
+          evtMeetingProvider:
+            dto.evtCategory === 'DEMO_CLASS' ? config.provider : 'NONE',
+        },
+        true,
+      );
+    });
+  }
+
+  private async createLocked(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    dto: CreateCalEventDto,
+    allowPendingLink = false,
+  ) {
     this.validateTimes(dto.evtStartAt, dto.evtEndAt);
+    const config = await this.video.get(entId);
+    if (
+      dto.evtCategory === 'REGULAR_CLASS' ||
+      dto.evtCategory === 'DEMO_CLASS'
+    ) {
+      dto.evtMeetingProvider ??= config.provider;
+      if (dto.evtMeetingProvider !== config.provider)
+        throw new BadRequestException('VIDEO_PROVIDER_MISMATCH');
+    }
+    if (dto.evtMeetingProvider === 'BODASCHOOL')
+      await this.video.assertBoda(entId);
     // REQ-260526 v2 FR-ROOM-4 — BODASCHOOL 의 URL 은 이벤트 저장 후 자동
     // 생성되므로 사용자 입력을 강제하지 않는다. 그 외 provider 는 기존 로직.
-    if (dto.evtMeetingProvider !== 'BODASCHOOL') {
-      this.validateMeeting(dto.evtMeetingProvider, dto.evtMeetingUrl);
+    if (
+      dto.evtMeetingProvider !== 'BODASCHOOL' &&
+      !(
+        allowPendingLink &&
+        dto.evtMeetingProvider === 'GOOGLE_MEET' &&
+        !dto.evtMeetingUrl
+      )
+    ) {
+      dto.evtMeetingUrl =
+        validateMeetingUrl(dto.evtMeetingProvider, dto.evtMeetingUrl) ??
+        undefined;
     }
 
     let ownerUserId = actorUserId;
@@ -558,6 +616,18 @@ export class CalEventService {
     id: string,
     dto: UpdateCalEventDto,
   ) {
+    return this.video.withLock(entId, () =>
+      this.updateLocked(entId, actorUserId, actorRole, id, dto),
+    );
+  }
+
+  private async updateLocked(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    id: string,
+    dto: UpdateCalEventDto,
+  ) {
     const e = await this.repo.findOne({
       where: { id, entId, deletedAt: IsNull() },
     });
@@ -578,6 +648,28 @@ export class CalEventService {
     if (dto.evtMeetingProvider !== undefined)
       e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
+    const config = await this.video.get(entId);
+    if (prevMeetingProvider !== e.meetingProvider) {
+      if (
+        (e.category === 'REGULAR_CLASS' || e.category === 'DEMO_CLASS') &&
+        e.meetingProvider !== config.provider
+      ) {
+        throw new BadRequestException('VIDEO_PROVIDER_MISMATCH');
+      }
+      if (prevMeetingProvider === 'BODASCHOOL')
+        await this.video.assertNoActiveRooms(entId, id);
+      if (e.meetingProvider === 'BODASCHOOL')
+        await this.video.assertBoda(entId);
+    } else if (
+      e.meetingProvider === 'BODASCHOOL' &&
+      !config.bodaEnabled &&
+      ((dto.evtBodaRoomType !== undefined &&
+        dto.evtBodaRoomType !== e.bodaRoomType) ||
+        (dto.evtMeetingUrl !== undefined &&
+          dto.evtMeetingUrl !== beforeSnapshot.meetingUrl))
+    ) {
+      throw new BadRequestException('VIDEO_PROVIDER_DISABLED');
+    }
     const prevBodaRoomType = e.bodaRoomType;
     if (dto.evtBodaRoomType !== undefined) e.bodaRoomType = dto.evtBodaRoomType;
     if (dto.evtClsId !== undefined) e.clsId = dto.evtClsId;
@@ -585,8 +677,16 @@ export class CalEventService {
       e.assigneeTchId = dto.evtAssigneeTchId;
 
     if (e.endAt <= e.startAt) throw new BadRequestException('END_BEFORE_START');
-    if (e.meetingProvider !== 'BODASCHOOL') {
-      this.validateMeeting(e.meetingProvider, e.meetingUrl ?? undefined);
+    if (
+      e.meetingProvider !== 'BODASCHOOL' &&
+      !(
+        e.meetingProvider === 'GOOGLE_MEET' &&
+        !e.meetingUrl &&
+        dto.evtMeetingProvider === undefined &&
+        dto.evtMeetingUrl === undefined
+      )
+    ) {
+      e.meetingUrl = validateMeetingUrl(e.meetingProvider, e.meetingUrl);
     }
 
     e.updatedAt = new Date();
@@ -609,7 +709,7 @@ export class CalEventService {
       );
     }
 
-    if (saved.meetingProvider === 'BODASCHOOL') {
+    if (saved.meetingProvider === 'BODASCHOOL' && config.bodaEnabled) {
       const shouldProvision =
         !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
       if (shouldProvision) {
@@ -725,6 +825,7 @@ export class CalEventService {
       allDay: e.allDay ? 'true' : 'false',
       locationText: e.locationText ?? null,
       meetingProvider: e.meetingProvider ?? null,
+      meetingUrl: e.meetingUrl ?? null,
       bodaRoomType: e.bodaRoomType ?? null,
       assigneeTchId: e.assigneeTchId ?? null,
     };
@@ -793,14 +894,6 @@ export class CalEventService {
       throw new BadRequestException('INVALID_DATE');
     }
     if (e <= s) throw new BadRequestException('END_BEFORE_START');
-  }
-
-  private validateMeeting(provider?: string, url?: string | null) {
-    if (provider && provider !== 'NONE') {
-      if (!url || !/^https?:\/\//i.test(url)) {
-        throw new BadRequestException('MEETING_URL_REQUIRED');
-      }
-    }
   }
 
   private async ensureBodaLauncher(

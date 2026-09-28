@@ -1,3 +1,4 @@
+import { useVideoConfig, isGoogleMeetUrl, videoErrorCode } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
@@ -124,6 +125,9 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   // REQ-260903 — 폼의 날짜·시간 문자열은 테넌트 TZ 벽시계 기준.
   const tz = useTenantTz();
   const isEdit = !!initial;
+  const video = useVideoConfig();
+  const [convertVideo, setConvertVideo] = useState(false);
+  useEffect(() => setConvertVideo(false), [open, initial?.id]);
   const [error, setError] = useState<string | null>(null);
   // REQ-260728 — 삭제 사유 입력 프롬프트.
   const [deletePrompt, setDeletePrompt] = useState(false);
@@ -213,8 +217,12 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     }).format(d);
   })();
   const isLevelTest = editorCategory === 'LEVEL_TEST';
-  const isBodaCategory =
-    editorCategory === 'DEMO_CLASS' || editorCategory === 'REGULAR_CLASS';
+  const isClassCategory = editorCategory === 'DEMO_CLASS' || editorCategory === 'REGULAR_CLASS';
+  const resolvedMeetingProvider = isLevelTest ? 'NONE' : isClassCategory
+    ? (isEdit && !convertVideo ? initial.meetingProvider : video.data?.provider ?? 'NONE')
+    : meetingProvider;
+  const isBodaCategory = video.bodaEnabled && resolvedMeetingProvider === 'BODASCHOOL';
+  const blockedBoda = resolvedMeetingProvider === 'BODASCHOOL' && !video.bodaEnabled;
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['acm', 'teachers'],
@@ -304,12 +312,12 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   }, [open, detail]);
 
   const isReadOnly = isEdit && initial?.source !== 'MANUAL';
-  const resolvedMeetingProvider =
-    isBodaCategory ? 'BODASCHOOL' : isLevelTest ? 'NONE' : meetingProvider;
-  const currentLink = detail?.meetingUrl ?? initial?.meetingUrl ?? '';
+  const currentLink = !convertVideo && initial?.meetingProvider === 'BODASCHOOL'
+    ? detail?.meetingUrl ?? initial?.meetingUrl ?? '' : '';
 
   const onSubmit = async (values: FormValues) => {
     setError(null);
+    if (!video.data || video.isError) { setError(t('common:video.loadError')); return; }
     if (!values.evtTitle.trim()) {
       setError(t('error.titleRequired'));
       return;
@@ -326,11 +334,15 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       return;
     }
 
-    if (!isLevelTest && !isBodaCategory && values.evtMeetingProvider !== 'NONE') {
+    if (!isLevelTest && !blockedBoda && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE') {
       if (!values.evtMeetingUrl || !/^https?:\/\//i.test(values.evtMeetingUrl)) {
         setError(t('error.meetingUrlRequired'));
         return;
       }
+    }
+
+    if (resolvedMeetingProvider === 'GOOGLE_MEET' && !isGoogleMeetUrl(values.evtMeetingUrl)) {
+      setError(t('common:video.invalidLink')); return;
     }
 
     // REQ-260728 — 수정 시 수정 사유 필수(2자 이상).
@@ -354,14 +366,14 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     }
 
     // FIX-260724 — BODASCHOOL 이벤트만 룸 유형(1:1/1:N) 전송.
-    if (resolvedMeetingProvider === 'BODASCHOOL') {
+    if (resolvedMeetingProvider === 'BODASCHOOL' && video.bodaEnabled) {
       dto.evtBodaRoomType = values.evtBodaRoomType;
     }
 
     if (values.evtDescription) dto.evtDescription = values.evtDescription;
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
-    if (!isLevelTest && !isBodaCategory && values.evtMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
-      dto.evtMeetingUrl = values.evtMeetingUrl;
+    if (!isLevelTest && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
+      dto.evtMeetingUrl = values.evtMeetingUrl.trim();
     }
     if (isEdit) {
       dto.evtAssigneeTchId = values.evtAssigneeTchId || null;
@@ -389,6 +401,10 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         onClose();
       }
     } catch (submissionError) {
+      const videoCode = videoErrorCode(submissionError);
+      if (['VIDEO_ACTIVE_ROOM', 'VIDEO_PROVIDER_MISMATCH', 'VIDEO_PROVIDER_DISABLED', 'INVALID_GOOGLE_MEET_URL'].includes(videoCode ?? '')) {
+        setError(t(videoCode === 'VIDEO_ACTIVE_ROOM' ? 'common:video.activeRoom' : videoCode === 'INVALID_GOOGLE_MEET_URL' ? 'common:video.invalidLink' : 'common:video.changed')); return;
+      }
       const msg = (
         submissionError as { response?: { data?: { message?: string } } }
       )?.response?.data?.message;
@@ -639,7 +655,13 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 {t('form.sectionMeeting', '화상수업')}
               </legend>
 
-              {isBodaCategory ? (
+              {(!video.data || video.isError) && <p role="status">{t(video.isError ? 'common:video.loadError' : 'common:video.loading')}</p>}
+              {isEdit && isClassCategory && video.data && !convertVideo && initial.meetingProvider !== video.data.provider && !isReadOnly && (
+                <Button type="button" variant="outline" onClick={() => { setConvertVideo(true); setValue('evtMeetingUrl', ''); }}>
+                  {t('common:video.convert')}
+                </Button>
+              )}
+              {blockedBoda ? <p>{t('common:video.unavailable')}</p> : isBodaCategory ? (
                 <div className="grid gap-3">
                   <p className="text-xs text-secondary">
                     {t(
@@ -716,26 +738,28 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label className={labelClass}>{t('field.meetingProvider')}</label>
-                    <select {...register('evtMeetingProvider')} className={inputClass}>
-                      {CAL_PROVIDERS.map((provider) => (
+                    <select {...register('evtMeetingProvider')} value={resolvedMeetingProvider} disabled={isClassCategory || isReadOnly || !video.data} className={inputClass}>
+                      {CAL_PROVIDERS.filter((provider) => provider !== 'BODASCHOOL' || video.bodaEnabled).map((provider) => (
                         <option key={provider} value={provider}>
                           {t(`provider.${provider}`)}
                         </option>
                       ))}
                     </select>
                   </div>
-                  {meetingProvider !== 'NONE' && (
+                  {resolvedMeetingProvider !== 'NONE' && (
                     <div>
-                      <label className={labelClass}>{t('field.meetingUrl')} *</label>
+                      <label htmlFor="cal-meeting-url" className={labelClass}>{t(resolvedMeetingProvider === 'GOOGLE_MEET' ? 'common:video.link' : 'field.meetingUrl')} *</label>
                       <input
+                        id="cal-meeting-url"
                         type="url"
-                        placeholder="https://..."
+                        placeholder={resolvedMeetingProvider === 'GOOGLE_MEET' ? 'https://meet.google.com/xxx-xxxx-xxx' : 'https://...'}
                         {...register('evtMeetingUrl')}
                         className={inputClass}
                       />
+                      {resolvedMeetingProvider === 'GOOGLE_MEET' && <p className="mt-1 text-xs text-secondary">{t('common:video.googleHint')}</p>}
                     </div>
                   )}
                 </div>
@@ -861,7 +885,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
           )}
 
           {/* PLN-260718 — BODA 화상강의실 박스는 참석자 아래로 이동 */}
-          {isEdit && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
+          {isEdit && video.bodaEnabled && resolvedMeetingProvider === 'BODASCHOOL' && initial && (
             <BodaRoomPanel evtId={initial.id} />
           )}
 
@@ -1020,7 +1044,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 {t('common:actions.cancel')}
               </Button>
               {!isReadOnly && (
-                <Button type="submit" size="sm" disabled={isLoading}>
+                <Button type="submit" size="sm" disabled={isLoading || !video.data || video.isError}>
                   {isLoading ? t('common:actions.saving') : t('common:actions.save')}
                 </Button>
               )}
