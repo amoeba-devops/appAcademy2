@@ -1,3 +1,4 @@
+import { TodayLiveService } from '../application/today-live.service';
 import { MarketingInputService } from '../application/marketing-input.service';
 import { MarketingPatchDto } from '../application/dto/marketing-input.dto';
 import { kstDaysAgo as isoDaysAgo } from '../business-date';
@@ -67,6 +68,7 @@ export class DashboardController {
   constructor(
     private readonly marketingInput: MarketingInputService,
     private readonly sourceCurrent: SourceCurrentService,
+    private readonly live: TodayLiveService,
     private readonly operating: OperatingService,
     private readonly metrics: MetricDefinitionService,
     private readonly dailyKpi: DailyKpiService,
@@ -98,7 +100,7 @@ export class DashboardController {
       'Current tenant-wide master counts; independent of historical range',
   })
   getSourceCurrent(@CurrentUser() user: AcmCurrentUser) {
-    return this.sourceCurrent.getCurrent(user.entId);
+    return this.live.get(user.entId);
   }
 
   @Get('operating-range')
@@ -108,7 +110,7 @@ export class DashboardController {
     @Query('to') to: string,
     @Query('site') site?: string,
   ) {
-    return this.operating.range(user.entId, from, to, site);
+    return this.live.operatingRange(user.entId, from, to, site);
   }
 
   @Get('operating-periods/:kind/:subjectId')
@@ -211,11 +213,12 @@ export class DashboardController {
   @ApiOperation({
     summary: 'Per-category Sum/Aver + MoM delta + sparkline series',
   })
-  getMonthlySummary(
+  async getMonthlySummary(
     @CurrentUser() user: AcmCurrentUser,
     @Query('yearMonth') yearMonth: string,
   ) {
-    return this.monthlySummary.getMonthlySummary(user.entId, yearMonth);
+    const from=`${yearMonth}-01`;const to=new Date(Date.UTC(Number(yearMonth.slice(0,4)),Number(yearMonth.slice(5)),0)).toISOString().slice(0,10);
+    return this.live.decorateSummary(await this.monthlySummary.getMonthlySummary(user.entId, yearMonth),user.entId,from,to);
   }
 
   // -------- v2: range-based grid + summary --------
@@ -254,19 +257,14 @@ export class DashboardController {
     summary:
       'Per-category multi-metric summary for [from,to] (delta vs same-length prior window)',
   })
-  getRangeSummary(
+  async getRangeSummary(
     @CurrentUser() user: AcmCurrentUser,
     @Query('from') from: string,
     @Query('to') to: string,
     @Query('site') site?: string,
   ) {
     validateRange(from, to);
-    return this.monthlySummary.getRangeSummary(
-      user.entId,
-      from,
-      to,
-      parseSiteParam(site),
-    );
+    return this.live.decorateSummary(await this.monthlySummary.getRangeSummary(user.entId,from,to,parseSiteParam(site)),user.entId,from,to,site);
   }
 
   @Put('daily-kpi-manual/:date')

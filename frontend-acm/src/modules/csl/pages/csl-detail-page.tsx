@@ -1,3 +1,4 @@
+import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { STD_SITES } from "@/modules/std/types";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -375,6 +376,7 @@ export function CslDetailBody({
       )}
 
       <BasicInfoEditor key={inq.id} inqId={inq.id} inq={inq} />
+      <LifecycleEditor key={`lifecycle:${inq.id}`} subjectKind="INQUIRY" subjectId={inq.id} />
 
       <CslStageStepper
         currentStage={inq.currentStage}
