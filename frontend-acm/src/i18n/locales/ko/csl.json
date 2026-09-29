@@ -392,7 +392,13 @@
         "SENT": "발송",
         "PENDING": "대기",
         "NA": "해당 없음"
-      }
+      },
+      "courseSearch": "강좌 검색",
+      "inactiveCourse": "비활성",
+      "removeCourse": "강좌 선택 해제",
+      "tuitionInvalid": "0~50,000,000 사이의 정수를 입력하세요.",
+      "tuitionTotal": "선택한 강좌 전체의 총 수강료입니다.",
+      "loadError": "등록 정보 또는 강좌를 불러오지 못했습니다. 새로고침 후 다시 시도하세요."
     },
     "classStatus": {
       "title": "6. 수강 등록",

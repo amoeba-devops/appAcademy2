@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsArray,
+  ArrayUnique,
+  ArrayMaxSize,
   IsBoolean,
   IsDateString,
   IsEmail,
@@ -710,6 +712,15 @@ export class UpsertEnrollmentDto {
   @IsOptional()
   @IsUUID()
   courseId?: string;
+
+  @ApiPropertyOptional({ type: [String] })
+  @ValidateIf((_object, value) => value !== undefined)
+  @IsArray()
+  @ArrayUnique()
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  courseIds?: string[];
+
 
   /** FR-CSL-132 — freetext course when no master row exists. */
   @ApiPropertyOptional()

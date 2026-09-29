@@ -37,7 +37,7 @@
   },
   "category": {
     "MARKETING": "Marketing",
-    "CS": "CS",
+    "CS": "Scheduled",
     "OPERATING": "Vận hành",
     "CLASS": "Lớp học"
   },
@@ -169,9 +169,9 @@
     "stateLabel": "Trạng thái dữ liệu"
   },
   "sourceCurrent": {
-    "title": "Dữ liệu nguồn hiện tại",
+    "title": "Tổng quan trực tiếp hôm nay",
     "refresh": "Làm mới",
-    "scope": "Tất cả cơ sở · Giá trị hiện tại, không phải kết quả của kỳ đã chọn.",
+    "scope": "Today, all sites. Independent of the selected date range.",
     "error": "Không thể truy vấn dữ liệu nguồn. Vui lòng làm mới.",
     "activeStudents": "Học sinh đang học",
     "activeTeachers": "Giáo viên đang làm việc",
@@ -191,7 +191,7 @@
     "manual": "Nhập tay",
     "partial": "Confirmed periods only",
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
-    "ops_new_st": "Học sinh mới (nhập học)",
+    "ops_new_st": "New St. (awaiting first class)",
     "ops_out_st": "Học sinh nghỉ",
     "ops_count_st": "Học sinh (ngày nhập học)",
     "ops_new_tc": "Giáo viên mới",
@@ -219,7 +219,9 @@
     "end": "End date",
     "saveFailed": "Could not save. Check overlapping periods, dates and concurrent edits.",
     "unverified": "{{count}} trường cũ chưa xác minh nguồn nhập tay; giữ nguyên bản gốc và không hiển thị ngoặc.",
-    "missingAdmissions": "Thiếu ngày nhập học: {{count}}"
+    "missingAdmissions": "Thiếu ngày nhập học: {{count}}",
+    "ops_returning_st": "Returning St.",
+    "ops_referral_st": "Referral St."
   },
   "marketingEditor": {
     "title": "Điều chỉnh khách truy cập · Quảng cáo",
@@ -247,5 +249,44 @@
     "discard": "Discard unsaved changes?",
     "loading": "Loading…",
     "partial": "Tổng đã biết"
+  },
+  "life": {
+    "editor": "Schedule and student history",
+    "evidenceHint": "Record verified evidence. First payment requires a matching paid tuition record. Return requires a matching prior interruption. Correct errors by cancelling the record and adding a replacement.",
+    "kind": "Record type",
+    "date": "Effective date",
+    "site": "Site",
+    "status": "Schedule status",
+    "course": "Course identifier (same value for updates)",
+    "teacher": "Teacher",
+    "scheduledAt": "Class schedule (KST)",
+    "select": "Select a record",
+    "relatedKind": "Linked record type",
+    "name": "Student / referrer name search",
+    "stoppedDate": "Interruption date",
+    "verified": "I verified the linked evidence and identity",
+    "save": "Save record",
+    "cancel": "Cancel record",
+    "error": "Unable to save or load. Check required dates, links, teacher, payment and interruption evidence.",
+    "saved": "Saved",
+    "details": "Students and source records",
+    "close": "Close",
+    "loading": "Loading",
+    "empty": "No matching students",
+    "todayScope": "Today {{date}} (KST), all sites. Independent of the selected period. * Partial evidence.",
+    "externalSync": "External data last synchronized / data date",
+    "SCHEDULE": "Class schedule",
+    "RETURN": "Returning student",
+    "REFERRAL": "Referral student",
+    "FIRST_PAYMENT": "Verified first tuition payment",
+    "FIRST_CLASS": "Verified first class held",
+    "SCHEDULING": "Scheduling",
+    "SCHEDULED": "Scheduled",
+    "CLOSED": "Closed",
+    "CANCELLED": "Cancelled",
+    "STUDENT": "Student",
+    "INQUIRY": "Prior inquiry",
+    "PARENT": "Parent",
+    "PAYMENT_ENDED": "Full tuition refund / enrollment cancellation"
   }
 }

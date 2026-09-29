@@ -1,3 +1,4 @@
+import { replaceEnrollmentCourses, validateEnrollmentCourses } from './enrollment-courses';
 import {
   readEnglishName,
   setEnglishName,
@@ -895,49 +896,85 @@ export class InquiryService {
     actor: { id?: string; isSeniorManager?: boolean } = {},
   ) {
     await this.getOrThrow(entId, inqId);
-    let er = await this.enrollments.findOne({ where: { inqId, entId } });
-    if (!er) {
-      er = this.enrollments.create({ id: randomUUID(), entId, inqId });
-    }
-    if (dto.tuitionPaid !== undefined && dto.tuitionPaid !== er.tuitionPaid) {
-      if (!actor.isSeniorManager) {
-        throw new ForbiddenException(
-          'BR-CSL-012: only senior manager can mark tuition paid',
-        );
+    return this.ds.transaction(async (manager) => {
+      await manager.query(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1,0))',
+        [`${entId}:enrollment:${inqId}`],
+      );
+      const enrollments = manager.getRepository(EnrollmentTypeormEntity);
+      if (dto.courseIds !== undefined && dto.courseId !== undefined)
+        throw new BadRequestException('Use courseIds or courseId, not both');
+      let er = await enrollments.findOne({ where: { inqId, entId } });
+      if (!er) {
+        er = enrollments.create({ id: randomUUID(), entId, inqId });
       }
-      er.tuitionPaid = dto.tuitionPaid;
-      er.tuitionPaidActorId = actor.id ?? null;
-      er.tuitionPaidAt = new Date();
-    }
-    if (dto.paymentNoticeStatus !== undefined)
-      er.paymentNoticeStatus = dto.paymentNoticeStatus ?? null;
-    if (dto.counselDone !== undefined) er.counselDone = dto.counselDone ?? null;
-    if (dto.applied !== undefined) er.applied = dto.applied;
-    if (dto.paymentNoticeSent !== undefined)
-      er.paymentNoticeSent = dto.paymentNoticeSent ?? null;
-    if (dto.classMinutes !== undefined) er.classMinutes = dto.classMinutes;
-    if (dto.tuitionAmount !== undefined)
-      er.tuitionAmount = String(dto.tuitionAmount);
-    if (dto.paymentDate !== undefined) er.paymentDate = dto.paymentDate ?? null;
-    if (dto.paymentMethod !== undefined)
-      er.paymentMethod = dto.paymentMethod ?? null;
-    if (dto.paymentAmount !== undefined)
-      er.paymentAmount = String(dto.paymentAmount);
-    if (dto.paymentMemo !== undefined) er.paymentMemo = dto.paymentMemo ?? null;
-    if (dto.classStartedAt !== undefined)
-      er.classStartedAt = dto.classStartedAt;
-    if (dto.classStarted !== undefined) er.classStarted = dto.classStarted;
+      if (dto.tuitionPaid !== undefined && dto.tuitionPaid !== er.tuitionPaid) {
+        if (!actor.isSeniorManager) {
+          throw new ForbiddenException(
+            'BR-CSL-012: only senior manager can mark tuition paid',
+          );
+        }
+        er.tuitionPaid = dto.tuitionPaid;
+        er.tuitionPaidActorId = actor.id ?? null;
+        er.tuitionPaidAt = new Date();
+      }
+      if (dto.paymentNoticeStatus !== undefined)
+        er.paymentNoticeStatus = dto.paymentNoticeStatus ?? null;
+      if (dto.counselDone !== undefined)
+        er.counselDone = dto.counselDone ?? null;
+      if (dto.applied !== undefined) er.applied = dto.applied;
+      if (dto.paymentNoticeSent !== undefined)
+        er.paymentNoticeSent = dto.paymentNoticeSent ?? null;
+      if (dto.classMinutes !== undefined) er.classMinutes = dto.classMinutes;
+      if (dto.tuitionAmount !== undefined)
+        er.tuitionAmount = String(dto.tuitionAmount);
+      if (dto.paymentDate !== undefined)
+        er.paymentDate = dto.paymentDate ?? null;
+      if (dto.paymentMethod !== undefined)
+        er.paymentMethod = dto.paymentMethod ?? null;
+      if (dto.paymentAmount !== undefined)
+        er.paymentAmount = String(dto.paymentAmount);
+      if (dto.paymentMemo !== undefined)
+        er.paymentMemo = dto.paymentMemo ?? null;
+      if (dto.classStartedAt !== undefined)
+        er.classStartedAt = dto.classStartedAt;
+      if (dto.classStarted !== undefined) er.classStarted = dto.classStarted;
 
-    // REQ-260626 (FR-CSL-131~135)
-    if (dto.counselMemo !== undefined) er.counselMemo = dto.counselMemo ?? null;
-    if (dto.courseId !== undefined) er.courseId = dto.courseId ?? null;
-    if (dto.courseFreetext !== undefined)
-      er.courseFreetext = dto.courseFreetext ?? null;
-    if (dto.sessionCount !== undefined)
-      er.sessionCount = dto.sessionCount ?? null;
-    if (dto.startDate !== undefined) er.startDate = dto.startDate ?? null;
-    if (dto.endDate !== undefined) er.endDate = dto.endDate ?? null;
-    return this.enrollments.save(er);
+      // REQ-260626 (FR-CSL-131~135)
+      if (dto.counselMemo !== undefined)
+        er.counselMemo = dto.counselMemo ?? null;
+      if (dto.courseId !== undefined) er.courseId = dto.courseId ?? null;
+      if (dto.courseFreetext !== undefined)
+        er.courseFreetext = dto.courseFreetext ?? null;
+      if (dto.sessionCount !== undefined)
+        er.sessionCount = dto.sessionCount ?? null;
+      if (dto.startDate !== undefined) er.startDate = dto.startDate ?? null;
+      if (dto.endDate !== undefined) {
+        er.endDate = dto.endDate ?? null;
+        if (er.endDate && er.startDate && er.endDate < er.startDate)
+          throw new BadRequestException('End date must not precede start date');
+      }
+      const ids =
+        dto.courseIds !== undefined
+          ? dto.courseIds
+          : dto.courseId !== undefined
+            ? dto.courseId
+              ? [dto.courseId]
+              : []
+            : undefined;
+      if (ids !== undefined) {
+        await validateEnrollmentCourses(manager, entId, er.id, ids);
+        er.courseId = ids[0] ?? null;
+      }
+      const saved = await enrollments.save(er);
+      if (ids !== undefined)
+        await replaceEnrollmentCourses(manager, entId, saved.id, ids);
+      const links = await manager.query<Array<{ id: string }>>(
+        'SELECT course_id::text id FROM amb_acm_csl_enrollment_course WHERE ent_id=$1 AND enr_id=$2 ORDER BY created_at,course_id',
+        [entId, saved.id],
+      );
+      return { ...saved, courseIds: links.map((l) => l.id) };
+    });
   }
 
   /**
@@ -980,8 +1017,21 @@ export class InquiryService {
     return this.enrollments.save(er);
   }
 
-  getEnrollment(entId: string, inqId: string) {
-    return this.enrollments.findOne({ where: { inqId, entId } });
+  async getEnrollment(entId: string, inqId: string) {
+    const row = await this.enrollments.findOne({ where: { inqId, entId } });
+    if (!row) return null;
+    const links = await this.ds.query<Array<{ id: string }>>(
+      'SELECT course_id::text id FROM amb_acm_csl_enrollment_course WHERE ent_id=$1 AND enr_id=$2 ORDER BY created_at,course_id',
+      [entId, row.id],
+    );
+    return {
+      ...row,
+      courseIds: links.length
+        ? links.map((l) => l.id)
+        : row.courseId
+          ? [row.courseId]
+          : [],
+    };
   }
 
   // ──────────────────────────────────────────────────────────────────────

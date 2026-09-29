@@ -1,4 +1,4 @@
-export const OPS_ST = ["ops_new_st", "ops_out_st", "ops_count_st"] as const;
+export const OPS_ST = ["ops_new_st", "ops_out_st", "ops_count_st", "ops_returning_st", "ops_referral_st"] as const;
 export const OPS_TC = ["ops_new_tc", "ops_out_tc", "ops_count_tc"] as const;
 export type OpsMetric = (typeof OPS_ST)[number] | (typeof OPS_TC)[number];
 export interface OpsCell {

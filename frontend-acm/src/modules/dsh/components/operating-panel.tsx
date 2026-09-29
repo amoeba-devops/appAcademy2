@@ -72,7 +72,7 @@ export function OperatingPanel({
       apiClient.put(`/acm/dsh/operating-manual/${date}`, {
         site: data?.site,
         values: Object.fromEntries(
-          Object.entries(values).map(([k, v]) => [
+          Object.entries(values).filter(([k])=>!["ops_new_st","ops_returning_st","ops_referral_st"].includes(k)).map(([k, v]) => [
             k,
             v === "" ? null : Number(v),
           ]),
@@ -276,7 +276,7 @@ export function OperatingPanel({
           <p className="text-xs">
             {data?.site} · {t("ops.clearHint")}
           </p>
-          {data?.metrics.map((k) => (
+          {data?.metrics.filter(k=>!["ops_new_st","ops_returning_st","ops_referral_st"].includes(k)).map((k) => (
             <label key={k} className="block text-xs">
               {t(`ops.${k}`)}
               <input

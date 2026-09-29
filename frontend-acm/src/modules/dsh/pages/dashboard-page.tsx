@@ -1,3 +1,5 @@
+import { Sparkline } from '../components/sparkline';
+import { LifecycleDetails } from '../components/lifecycle-details';
 import { OperatingPanel, OperatingTable, DualValue } from '../components/operating-panel';
 import { OperatingResult, OpsMetric } from '../types/operating';
 import { SourceCurrentPanel } from '../components/source-current-panel';
@@ -214,6 +216,7 @@ export function DashboardPage() {
   const [site, setSite] = useState<DshSiteTab>(parseSiteTab(searchParams.get('site')));
   const isSiteView = site !== 'ALL';
 
+  const [lifeDetail,setLifeDetail]=useState<{date:string;code:string}|null>(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [manualDate, setManualDate] = useState<string>(isoToday());
   const [complaintOpen, setComplaintOpen] = useState(false);
@@ -272,6 +275,9 @@ export function DashboardPage() {
     enabled: !!from && !!to && from <= to && !longRange,
   });
 
+  const lifeQ=useQuery({queryKey:['dsh','lifecycle',opsUser?.entId,from,to,site],queryFn:async()=>(await apiClient.get<{rows:Array<{date:string;values:Record<string,{calculated:number|null;quality:string}>}>;summary:Record<string,{calculated:number|null;quality:string}>}>('/acm/dsh/lifecycle/range',{params:{from,to,site}})).data,enabled:!!opsUser?.entId&&from<=to,refetchInterval:5000});
+  const lifeRows=new Map((lifeQ.isError?[]:lifeQ.data?.rows??[]).map(r=>[r.date,r.values]));
+  const lifeCodes=['cs_scheduling','cs_scheduled','cs_new_class'];
   const legacyRows = new Map((gridQ.data?.rows??[]).map(r=>[r.date,r]));
   const displayRows: DailyKpiRow[] = !opsQ.isError && opsQ.data ? opsQ.data.rows.map(r=>legacyRows.get(r.date)??({date:r.date,yearMonth:r.date.slice(0,7),dayOfWeekKr:new Intl.DateTimeFormat('ko',{weekday:'short',timeZone:'UTC'}).format(new Date(r.date)),computationStatus:'STALE',dataCompleteness:'PARTIAL_PENDING_MANUAL'} as DailyKpiRow)) : gridQ.data?.rows??[];
   const visibleCategories = isSiteView ? SITE_CATEGORIES : CATEGORY_ORDER;
@@ -301,14 +307,15 @@ export function DashboardPage() {
 
   const handleExportCsv = () => {
     if (!gridQ.data || !opsQ.data || opsQ.isError) return;
-    const header = ['Date','Site',...flatMetrics.flatMap(m=>m.category==='OPERATING'?[`${m.code}:calculated`,`${m.code}:manual`,`${m.code}:manualPresent`,`${m.code}:quality`]:[isKr?m.labelKr:m.labelEn])];
+    const header = ['Date','Site',...flatMetrics.flatMap(m=>m.category==='OPERATING'?[`${m.code}:calculated`,`${m.code}:manual`,`${m.code}:manualPresent`,`${m.code}:quality`]:lifeCodes.includes(m.code)?[isKr?m.labelKr:m.labelEn,`${m.code}:quality`]:[isKr?m.labelKr:m.labelEn])];
     const dataRows = displayRows.map(row=>[row.date,site,...flatMetrics.flatMap(m=>{
+      if(lifeCodes.includes(m.code))return [lifeRows.get(row.date)?.[m.code]?.calculated??null,lifeRows.get(row.date)?.[m.code]?.quality??'UNAVAILABLE'];
       if(m.category==='OPERATING'){const c=opsRows.get(row.date)?.[m.code as OpsMetric];return [c?.calculated??null,c?.manual??null,String(c?.manualPresent??false),c?.quality??'UNAVAILABLE'];}
       const f=METRIC_TO_FIELD[m.code];return [f?actualValue(row,f) as string|number|null:null];
     })]);
     const summaryRow = [t('grid.sum'),site,...flatMetrics.flatMap(m=>{
       if(m.category==='OPERATING'){const c=opsQ.data!.summary[m.code as OpsMetric];return [c?.calculated??null,c?.manual??null,String(c?.manualPresent??false),c?.quality??'UNAVAILABLE'];}
-      return [gridQ.data!.sums[m.code]??null];
+      return lifeCodes.includes(m.code)?[lifeQ.isError?null:lifeQ.data?.summary[m.code]?.calculated??null,lifeQ.isError?'UNAVAILABLE':lifeQ.data?.summary[m.code]?.quality??'UNAVAILABLE']:[gridQ.data!.sums[m.code]??null];
     })];
     downloadCsv(`dsh-v2-${site}-${from}_${to}.csv`,toCsv([header,...dataRows,summaryRow]));
   };
@@ -485,7 +492,7 @@ export function DashboardPage() {
         </p>
       )}
 
-      {(metricsQ.isError || gridQ.isError || summaryQ.isError) && <p role="alert" className="text-sm text-red-600 mb-3">{t('loadFailed')}</p>}
+      {(metricsQ.isError || gridQ.isError || summaryQ.isError || lifeQ.isError) && <p role="alert" className="text-sm text-red-600 mb-3">{t('loadFailed')}</p>}
       <p className="text-xs text-secondary mb-3">{t('quality.definitionNote')}</p>
       {summaryQ.data?.previousFrom && <p className="text-xs text-secondary mb-3">{t('quality.comparison', { from: summaryQ.data.previousFrom, to: summaryQ.data.previousTo })}</p>}
 
@@ -499,6 +506,7 @@ export function DashboardPage() {
         visitorBreakdown={visitorBreakdown}
       />
 
+      {lifeQ.data&&!lifeQ.isError&&<div className="grid md:grid-cols-3 gap-3 my-3">{lifeCodes.map(code=><section key={code} className="border rounded p-3"><h3>{metricsQ.data?.find(m=>m.code===code)?.[isKr?'labelKr':'labelEn']}</h3><Sparkline data={lifeQ.data.rows.map(r=>r.values[code]?.calculated??null)}/></section>)}</div>}
       {longRange && <p className="text-xs text-secondary">{t("ops.longRange")}</p>}
       {longRange && opsQ.data && !opsQ.isError && <OperatingTable data={opsQ.data}/>}
       {!longRange && !isSiteView && <SiteComparisonTable from={from} to={to} />}
@@ -590,7 +598,7 @@ export function DashboardPage() {
                             }
                             title={isVisitor ? row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' ? `GA ${row.marketingGa ?? '—'} + ${row.marketingAdjustment ?? 0}` : visitorCellTitle(row.date) : undefined}
                           >
-                            {md.category==='OPERATING' ? <DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
+                            {lifeCodes.includes(md.code)?<button type="button" className="underline" disabled={lifeRows.get(row.date)?.[md.code]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}>{lifeRows.get(row.date)?.[md.code]?.calculated??'—'}{lifeRows.get(row.date)?.[md.code]?.quality==='PARTIAL'?' *':''}</button>:md.category==='OPERATING' ? ['ops_new_st','ops_returning_st','ops_referral_st'].includes(md.code)?<button type="button" className="underline" disabled={opsRows.get(row.date)?.[md.code as OpsMetric]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}><DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/></button>:<DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
                             {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-[10px] text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
                             {isManualVisitor && (
                               <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
@@ -621,7 +629,7 @@ export function DashboardPage() {
                         (isFirstOfCat ? 'border-l border-[var(--border-subtle)]' : '')
                       }
                     >
-                      {md.category==='OPERATING' ? <DualValue cell={opsQ.isError?undefined:opsQ.data?.summary[md.code as OpsMetric]}/> : fmt(gridQ.data!.sums[md.code], md.format)}
+                      {lifeCodes.includes(md.code)?lifeQ.isError?'—':lifeQ.data?.summary[md.code]?.calculated??'—':md.category==='OPERATING' ? <DualValue cell={opsQ.isError?undefined:opsQ.data?.summary[md.code as OpsMetric]}/> : fmt(gridQ.data!.sums[md.code], md.format)}
                       {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}
                     </td>
                   );
@@ -659,6 +667,7 @@ export function DashboardPage() {
         <p className="text-secondary mt-4">{t('empty.noData')}</p>
       )}
 
+      {lifeDetail&&<LifecycleDetails {...lifeDetail} site={site} close={()=>setLifeDetail(null)}/>}
       <ManualInputDialog
         open={manualOpen}
         onOpenChange={setManualOpen}

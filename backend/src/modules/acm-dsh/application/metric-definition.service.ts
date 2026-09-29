@@ -1,3 +1,4 @@
+import { withLifecycleMetrics } from './lifecycle-metrics';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
@@ -11,11 +12,11 @@ export class MetricDefinitionService {
     private readonly repo: Repository<MetricDefinitionTypeormEntity>,
   ) {}
 
-  list(entId: string) {
-    return this.repo.find({
+  async list(entId: string) {
+    return withLifecycleMetrics(await this.repo.find({
       where: { entId, deletedAt: IsNull(), active: true },
       order: { category: 'ASC', displayOrder: 'ASC' },
-    });
+    }));
   }
 
   findByCode(entId: string, code: string) {

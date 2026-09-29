@@ -1,3 +1,4 @@
+import { LifecycleEditor } from '@/modules/dsh/components/lifecycle-editor';
 import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
 import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
@@ -414,6 +415,7 @@ export function StdDetailPage() {
         {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}
       </p>
 
+      {id && <LifecycleEditor subjectKind="STUDENT" subjectId={id} />}
       {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id} />}
       <StdFormModal
         open={showEdit}

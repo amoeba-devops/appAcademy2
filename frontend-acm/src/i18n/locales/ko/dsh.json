@@ -37,7 +37,7 @@
   },
   "category": {
     "MARKETING": "Marketing",
-    "CS": "CS",
+    "CS": "Scheduled",
     "OPERATING": "Operating",
     "CLASS": "Class"
   },
@@ -169,9 +169,9 @@
     "stateLabel": "집계 상태"
   },
   "sourceCurrent": {
-    "title": "원장 현재 현황",
+    "title": "오늘 실시간 현황",
     "refresh": "새로고침",
-    "scope": "전체 사이트 · 현재 시점의 값이며 선택한 기간의 실적이 아닙니다.",
+    "scope": "오늘  (한국 시간) · 전체 사이트 · 조회 기간과 무관합니다. * 확인된 자료만 일부 집계",
     "error": "원장 조회에 실패했습니다. 새로고침해 주세요.",
     "activeStudents": "재원 학생",
     "activeTeachers": "재직 강사",
@@ -191,7 +191,7 @@
     "manual": "수기값",
     "partial": "확인된 기간만 집계",
     "legend": "계산값 (수기값) · 실선=계산, 점선=수기",
-    "ops_new_st": "신규학생 (입학일)",
+    "ops_new_st": "첫 납부 후 수업 대기",
     "ops_out_st": "퇴원학생",
     "ops_count_st": "학생수 (입학일 기준)",
     "ops_new_tc": "신규교사",
@@ -219,7 +219,9 @@
     "end": "종료일",
     "saveFailed": "저장하지 못했습니다. 중복 기간·날짜·동시 수정을 확인하세요.",
     "unverified": "수기 출처 미확정 {{count}}개 항목은 원본을 보존하고 괄호 표시에서 제외했습니다.",
-    "missingAdmissions": "입학일 누락 {{count}}명"
+    "missingAdmissions": "입학일 누락 {{count}}명",
+    "ops_returning_st": "복귀 학생",
+    "ops_referral_st": "소개 학생"
   },
   "marketingEditor": {
     "title": "방문자 보정 · 광고비",
@@ -247,5 +249,44 @@
     "discard": "저장하지 않은 변경사항을 버릴까요?",
     "loading": "불러오는 중…",
     "partial": "확인된 부분합"
+  },
+  "life": {
+    "editor": "수업 스케줄 · 학생 이력",
+    "evidenceHint": "확인된 원천을 기록합니다. 최초 납부는 납부일·금액이 등록된 수강료 기록, 복귀는 과거 중단 기록이 필요합니다. 잘못 입력한 기록은 취소 후 다시 등록합니다.",
+    "kind": "기록 종류",
+    "date": "기준일",
+    "site": "소속",
+    "status": "조율 상태",
+    "course": "수강건 구분 (변경 시 같은 값 사용)",
+    "teacher": "담당 강사",
+    "scheduledAt": "수업 예정일시 (한국 시간)",
+    "select": "기록 선택",
+    "relatedKind": "연결 대상",
+    "name": "학생 / 소개자 이름 검색",
+    "stoppedDate": "중단일",
+    "verified": "연결 대상과 증빙을 확인했습니다",
+    "save": "기록 저장",
+    "cancel": "기록 취소",
+    "error": "처리하지 못했습니다. 날짜·연결 대상·강사·납부 또는 중단 원천 기록을 확인하세요.",
+    "saved": "저장했습니다",
+    "details": "학생정보 · 집계 근거",
+    "close": "닫기",
+    "loading": "불러오는 중",
+    "empty": "해당 학생이 없습니다",
+    "todayScope": "오늘 {{date}} (한국 시간) · 전체 사이트 · 조회 기간과 무관합니다. * 확인된 자료만 일부 집계",
+    "externalSync": "외부 자료 마지막 동기화 / 자료 기준일",
+    "SCHEDULE": "수업 스케줄",
+    "RETURN": "복귀 학생",
+    "REFERRAL": "소개 학생",
+    "FIRST_PAYMENT": "최초 수강료 납부 확인",
+    "FIRST_CLASS": "첫 수업 실제 진행 확인",
+    "SCHEDULING": "수업 스케줄 조율 중",
+    "SCHEDULED": "수업 스케줄 조율 완료",
+    "CLOSED": "종료",
+    "CANCELLED": "취소",
+    "STUDENT": "학생",
+    "INQUIRY": "과거 상담",
+    "PARENT": "학부모",
+    "PAYMENT_ENDED": "수강료 전액 환불 / 등록 취소 확인"
   }
 }

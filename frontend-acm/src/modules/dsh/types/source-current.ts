@@ -1,5 +1,11 @@
 export interface CurrentSourceSnapshot {
-  definitionVersion: 'current-master-v1';
+  definitionVersion: 'today-live-v1';
+  today:string;
+  externalSources:Array<{provider:string;syncedAt:string|null;dataDate:string|null;status:string|null}>;
+  externalSyncedAt:string|null;
+  externalDataDate:string|null;
+  metrics:Array<{code:string;category:string;labelKr:string;labelEn:string;displayOrder:number;format?:string;unit?:string}>;
+  values:Record<string,{calculated:number|null;manual:number|null;manualPresent:boolean;quality:string}>;
   scope: 'ALL';
   asOf: string;
   activeStudents: number;

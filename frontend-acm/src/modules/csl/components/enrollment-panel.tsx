@@ -1,3 +1,4 @@
+import { TuitionInput } from './tuition-input';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,6 +26,7 @@ interface Enrollment {
   // REQ-260626 — fields added at enrollment counseling
   counselMemo?: string | null;
   courseId?: string | null;
+  courseIds?: string[];
   courseFreetext?: string | null;
   sessionCount?: number | null;
   startDate?: string | null;
@@ -57,7 +59,6 @@ const PAYMENT_METHODS = ['BANK_TRANSFER', 'CARD', 'OTHER'] as const;
 type FormValues = {
   paymentNoticeStatus: '' | (typeof NOTICE_STATUSES)[number];
   counselDone: '' | (typeof YES_NO)[number];
-  applied: boolean;
   paymentNoticeSent: '' | (typeof YES_NO)[number];
   classMinutes: string;
   tuitionAmount: string;
@@ -70,11 +71,9 @@ type FormValues = {
   classStarted: '' | (typeof YES_NO)[number];
   // REQ-260626
   counselMemo: string;
-  courseId: string;
+  courseIds: string[];
   courseFreetext: string;
-  sessionCount: string;
   startDate: string;
-  endDate: string;
 };
 
 export function EnrollmentPanel({
@@ -91,8 +90,13 @@ export function EnrollmentPanel({
 }) {
   const { t } = useTranslation(['csl', 'common']);
   const qc = useQueryClient();
+  const [courseSearch, setCourseSearch] = useState('');
 
-  const { data } = useQuery({
+  const {
+    data,
+    isLoading: enrollmentLoading,
+    isError: enrollmentError,
+  } = useQuery({
     queryKey: ['csl', 'enrollment', inqId],
     queryFn: async () => {
       const res = await apiClient.get<Enrollment | null>(
@@ -102,10 +106,16 @@ export function EnrollmentPanel({
     },
   });
 
-  const { data: courses = [] } = useQuery({
-    queryKey: ['csl', 'courses'],
+  const {
+    data: courses = [],
+    isLoading: coursesLoading,
+    isError: coursesError,
+  } = useQuery({
+    queryKey: ['csl', 'courses', 'including-inactive'],
     queryFn: async () => {
-      const res = await apiClient.get<Course[]>('/acm/csl/courses');
+      const res = await apiClient.get<Course[]>('/acm/csl/courses', {
+        params: { includeInactive: true },
+      });
       return res.data;
     },
   });
@@ -140,29 +150,27 @@ export function EnrollmentPanel({
     },
   });
 
-  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
-    defaultValues: {
-      paymentNoticeStatus: '',
-      counselDone: '',
-      applied: false,
-      paymentNoticeSent: '',
-      classMinutes: '',
-      tuitionAmount: '',
-      paymentDate: '',
-      paymentMethod: '',
-      paymentAmount: '',
-      paymentMemo: '',
-      tuitionPaid: false,
-      classStartedAt: '',
-      classStarted: '',
-      counselMemo: '',
-      courseId: '',
-      courseFreetext: '',
-      sessionCount: '',
-      startDate: '',
-      endDate: '',
-    },
-  });
+  const { register, handleSubmit, reset, watch, setValue } =
+    useForm<FormValues>({
+      defaultValues: {
+        paymentNoticeStatus: '',
+        counselDone: '',
+        paymentNoticeSent: '',
+        classMinutes: '',
+        tuitionAmount: '',
+        paymentDate: '',
+        paymentMethod: '',
+        paymentAmount: '',
+        paymentMemo: '',
+        tuitionPaid: false,
+        classStartedAt: '',
+        classStarted: '',
+        counselMemo: '',
+        courseIds: [],
+        courseFreetext: '',
+        startDate: '',
+      },
+    });
 
   useEffect(() => {
     if (data) {
@@ -170,24 +178,22 @@ export function EnrollmentPanel({
         paymentNoticeStatus: (data.paymentNoticeStatus ??
           '') as FormValues['paymentNoticeStatus'],
         counselDone: (data.counselDone ?? '') as FormValues['counselDone'],
-        applied: data.applied ?? false,
         paymentNoticeSent: (data.paymentNoticeSent ??
           '') as FormValues['paymentNoticeSent'],
         classMinutes: data.classMinutes?.toString() ?? '',
         tuitionAmount: data.tuitionAmount ?? '',
         paymentDate: data.paymentDate ?? '',
-        paymentMethod: (data.paymentMethod ?? '') as FormValues['paymentMethod'],
+        paymentMethod: (data.paymentMethod ??
+          '') as FormValues['paymentMethod'],
         paymentAmount: data.paymentAmount ?? '',
         paymentMemo: data.paymentMemo ?? '',
         tuitionPaid: data.tuitionPaid ?? false,
         classStartedAt: data.classStartedAt ?? '',
         classStarted: (data.classStarted ?? '') as FormValues['classStarted'],
         counselMemo: data.counselMemo ?? '',
-        courseId: data.courseId ?? '',
+        courseIds: data.courseIds ?? (data.courseId ? [data.courseId] : []),
         courseFreetext: data.courseFreetext ?? '',
-        sessionCount: data.sessionCount?.toString() ?? '',
         startDate: data.startDate ?? '',
-        endDate: data.endDate ?? '',
       });
     }
   }, [data, reset]);
@@ -199,8 +205,9 @@ export function EnrollmentPanel({
   function toBody(v: FormValues, forceCounselDone = false) {
     return {
       paymentNoticeStatus: v.paymentNoticeStatus || undefined,
-      counselDone: forceCounselDone ? ('YES' as const) : v.counselDone || undefined,
-      applied: v.applied,
+      counselDone: forceCounselDone
+        ? ('YES' as const)
+        : v.counselDone || undefined,
       paymentNoticeSent: v.paymentNoticeSent || undefined,
       classMinutes: v.classMinutes ? Number(v.classMinutes) : undefined,
       tuitionAmount: v.tuitionAmount ? Number(v.tuitionAmount) : undefined,
@@ -214,11 +221,9 @@ export function EnrollmentPanel({
       // REQ-260626 — empty strings collapse to undefined so the server keeps
       // the existing column value rather than clearing it.
       counselMemo: v.counselMemo || undefined,
-      courseId: v.courseId || undefined,
+      courseIds: isCounselStage ? v.courseIds : undefined,
       courseFreetext: v.courseFreetext || undefined,
-      sessionCount: v.sessionCount ? Number(v.sessionCount) : undefined,
       startDate: v.startDate || undefined,
-      endDate: v.endDate || undefined,
     };
   }
 
@@ -230,7 +235,8 @@ export function EnrollmentPanel({
       );
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ['csl', 'enrollment', inqId] }),
   });
 
   /** "저장하고 다음 단계로" — single-shot save (with counselDone forced YES)
@@ -257,7 +263,9 @@ export function EnrollmentPanel({
 
   return (
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5">
-      <h2 className="text-base font-semibold mb-4">{t(`stage.${currentStage}`)}</h2>
+      <h2 className="text-base font-semibold mb-4">
+        {t(`stage.${currentStage}`)}
+      </h2>
 
       <form
         onSubmit={handleSubmit((v) => mutation.mutate(v))}
@@ -276,14 +284,71 @@ export function EnrollmentPanel({
 
             <div className="grid gap-3 md:grid-cols-2">
               <Field label={t('detail.enrollment.course')}>
-                <Select {...register('courseId')}>
-                  <option value="">{t('common:dash')}</option>
-                  {courses.filter((c) => c.isActive).map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.code} — {c.name}
-                    </option>
+                <Input
+                  value={courseSearch}
+                  onChange={(e) => setCourseSearch(e.target.value)}
+                  placeholder={t('detail.enrollment.courseSearch')}
+                  aria-label={t('detail.enrollment.courseSearch')}
+                />
+                <div className="max-h-48 overflow-y-auto space-y-2 border rounded p-2 mt-2">
+                  {courses
+                    .filter(
+                      (c) =>
+                        (c.isActive || watch('courseIds').includes(c.id)) &&
+                        `${c.code} ${c.name}`
+                          .toLowerCase()
+                          .includes(courseSearch.toLowerCase()),
+                    )
+                    .map((c) => (
+                      <label
+                        key={c.id}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={watch('courseIds').includes(c.id)}
+                          disabled={
+                            !c.isActive && !watch('courseIds').includes(c.id)
+                          }
+                          onChange={(e) =>
+                            setValue(
+                              'courseIds',
+                              e.target.checked
+                                ? [...watch('courseIds'), c.id]
+                                : watch('courseIds').filter(
+                                    (id) => id !== c.id,
+                                  ),
+                              { shouldDirty: true },
+                            )
+                          }
+                        />
+                        {c.code} — {c.name}
+                        {!c.isActive &&
+                          ` (${t('detail.enrollment.inactiveCourse')})`}
+                      </label>
+                    ))}
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {watch('courseIds').map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className="border rounded px-2 py-1 text-xs"
+                      aria-label={`${t('detail.enrollment.removeCourse')}: ${courses.find((c) => c.id === id)?.name ?? t('detail.enrollment.course')}`}
+                      onClick={() =>
+                        setValue(
+                          'courseIds',
+                          watch('courseIds').filter((c) => c !== id),
+                          { shouldDirty: true },
+                        )
+                      }
+                    >
+                      {courses.find((c) => c.id === id)?.name ??
+                        t('detail.enrollment.course')}{' '}
+                      ×
+                    </button>
                   ))}
-                </Select>
+                </div>
               </Field>
               <Field label={t('detail.enrollment.courseFreetext')}>
                 <Input
@@ -294,14 +359,8 @@ export function EnrollmentPanel({
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <Field label={t('detail.enrollment.sessionCount')}>
-                <Input type="number" min={0} {...register('sessionCount')} />
-              </Field>
               <Field label={t('detail.enrollment.startDate')}>
                 <Input type="date" {...register('startDate')} />
-              </Field>
-              <Field label={t('detail.enrollment.endDate')}>
-                <Input type="date" {...register('endDate')} />
               </Field>
             </div>
 
@@ -316,10 +375,6 @@ export function EnrollmentPanel({
                   ))}
                 </Select>
               </Field>
-              <label className="flex items-center gap-2 text-sm pt-5">
-                <input type="checkbox" {...register('applied')} />
-                {t('detail.enrollment.applied')}
-              </label>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
@@ -349,7 +404,10 @@ export function EnrollmentPanel({
                   setValue={(next) =>
                     setValue('classMinutes', next, { shouldDirty: true })
                   }
-                  presetLabel={t('detail.enrollment.classMinutesPresets', '프리셋')}
+                  presetLabel={t(
+                    'detail.enrollment.classMinutesPresets',
+                    '프리셋',
+                  )}
                   freeInputPlaceholder={t(
                     'detail.enrollment.classMinutesFreeInput',
                     '분단위 자유입력',
@@ -358,12 +416,16 @@ export function EnrollmentPanel({
                 />
               </Field>
               <Field label={t('detail.enrollment.tuitionAmount')}>
-                <Input
-                  type="number"
-                  min={0}
-                  max={50000000}
-                  {...register('tuitionAmount')}
+                <TuitionInput
+                  value={watch('tuitionAmount')}
+                  onChange={(value) =>
+                    setValue('tuitionAmount', value, { shouldDirty: true })
+                  }
+                  errorMessage={t('detail.enrollment.tuitionInvalid')}
                 />
+                <p className="text-xs text-secondary">
+                  {t('detail.enrollment.tuitionTotal')}
+                </p>
               </Field>
             </div>
           </>
@@ -456,15 +518,32 @@ export function EnrollmentPanel({
           <Button
             type="submit"
             variant={isCounselStage ? 'outline' : 'default'}
-            disabled={mutation.isPending || saveAndAdvance.isPending}
+            disabled={
+              enrollmentLoading ||
+              enrollmentError ||
+              (isCounselStage && (coursesLoading || coursesError)) ||
+              mutation.isPending ||
+              saveAndAdvance.isPending
+            }
           >
-            {mutation.isPending ? t('common:actions.saving') : t('common:actions.save')}
+            {mutation.isPending
+              ? t('common:actions.saving')
+              : t('common:actions.save')}
           </Button>
           {isCounselStage && onAfterAdvance && (
             <Button
               type="button"
-              onClick={handleSubmit((v) => saveAndAdvance.mutate(v))}
-              disabled={mutation.isPending || saveAndAdvance.isPending}
+              onClick={(event) => {
+                if (event.currentTarget.form?.reportValidity())
+                  void handleSubmit((v) => saveAndAdvance.mutate(v))(event);
+              }}
+              disabled={
+                enrollmentLoading ||
+                enrollmentError ||
+                (isCounselStage && (coursesLoading || coursesError)) ||
+                mutation.isPending ||
+                saveAndAdvance.isPending
+              }
             >
               {saveAndAdvance.isPending
                 ? t('common:actions.saving')
@@ -472,6 +551,11 @@ export function EnrollmentPanel({
             </Button>
           )}
         </div>
+        {(enrollmentError || coursesError) && (
+          <p role="alert" className="text-xs text-red-600">
+            {t('detail.enrollment.loadError')}
+          </p>
+        )}
         {(mutation.isError || saveAndAdvance.isError) && (
           <p className="text-xs text-red-600">
             {(
@@ -518,10 +602,10 @@ function TeacherAssignmentsBlock({
 
   const assign = useMutation({
     mutationFn: async () => {
-      await apiClient.post(
-        `/acm/csl/inquiries/${inqId}/teacher-assignments`,
-        { teacherId, role },
-      );
+      await apiClient.post(`/acm/csl/inquiries/${inqId}/teacher-assignments`, {
+        teacherId,
+        role,
+      });
     },
     onSuccess: () => {
       setTeacherId('');
@@ -577,7 +661,9 @@ function TeacherAssignmentsBlock({
 
       <div className="flex gap-2 items-end">
         <div className="grid gap-1 flex-1">
-          <Label className="text-xs">{t('detail.enrollment.assignTeacher')}</Label>
+          <Label className="text-xs">
+            {t('detail.enrollment.assignTeacher')}
+          </Label>
           <Select
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
@@ -591,13 +677,19 @@ function TeacherAssignmentsBlock({
           </Select>
         </div>
         <div className="grid gap-1">
-          <Label className="text-xs">{t('detail.enrollment.assignRoleLabel')}</Label>
+          <Label className="text-xs">
+            {t('detail.enrollment.assignRoleLabel')}
+          </Label>
           <Select
             value={role}
             onChange={(e) => setRole(e.target.value as 'PRIMARY' | 'SECONDARY')}
           >
-            <option value="PRIMARY">{t('detail.enrollment.assignRole.PRIMARY')}</option>
-            <option value="SECONDARY">{t('detail.enrollment.assignRole.SECONDARY')}</option>
+            <option value="PRIMARY">
+              {t('detail.enrollment.assignRole.PRIMARY')}
+            </option>
+            <option value="SECONDARY">
+              {t('detail.enrollment.assignRole.SECONDARY')}
+            </option>
           </Select>
         </div>
         <Button
@@ -611,8 +703,8 @@ function TeacherAssignmentsBlock({
       </div>
       {assign.isError && (
         <p className="mt-1 text-xs text-red-600">
-          {(assign.error as { response?: { data?: { message?: string } } })?.response
-            ?.data?.message ?? (assign.error as Error).message}
+          {(assign.error as { response?: { data?: { message?: string } } })
+            ?.response?.data?.message ?? (assign.error as Error).message}
         </p>
       )}
     </div>
@@ -688,7 +780,12 @@ function ClassMinutesField({
           );
         })}
       </div>
-      <Input type="number" min={1} {...register} placeholder={freeInputPlaceholder} />
+      <Input
+        type="number"
+        min={1}
+        {...register}
+        placeholder={freeInputPlaceholder}
+      />
     </div>
   );
 }

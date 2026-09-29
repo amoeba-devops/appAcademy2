@@ -1,3 +1,6 @@
+import { LifecycleService } from './application/lifecycle.service';
+import { LifecycleController } from './presentation/lifecycle.controller';
+import { TodayLiveService } from './application/today-live.service';
 import { AdsOAuthService } from './ads/ads-oauth.service';
 import { AdsService } from './ads/ads.service';
 import { AdsProviderClient } from './ads/ads-provider.client';
@@ -48,8 +51,8 @@ import { DashboardController } from './presentation/dashboard.controller';
       ACM_DS,
     ),
   ],
-  controllers: [DashboardController, AdsController, AdsCostController],
-  providers: [
+  controllers: [LifecycleController, DashboardController, AdsController, AdsCostController],
+  providers: [LifecycleService, TodayLiveService,
     AdsService,
     AdsProviderClient,
     AdsJob,
