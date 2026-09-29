@@ -392,7 +392,13 @@
         "SENT": "Đã gửi",
         "PENDING": "Chờ",
         "NA": "N/A"
-      }
+      },
+      "courseSearch": "Search courses",
+      "inactiveCourse": "Inactive",
+      "removeCourse": "Remove course",
+      "tuitionInvalid": "Enter whole numbers from 0 to 50,000,000.",
+      "tuitionTotal": "Total tuition for all selected courses.",
+      "loadError": "Could not load enrollment or courses. Refresh and try again."
     },
     "classStatus": {
       "title": "6. Đăng ký học",
