@@ -1,3 +1,4 @@
+import { IcsImportService } from './ics/ics-import.service';
 import { VideoConfigService } from './video-config.service';
 import { validateMeetingUrl } from './meeting-url';
 import {
@@ -82,6 +83,7 @@ export class CalEventService {
     private readonly eventAttachmentSvc: CalEventAttachmentService,
     private readonly reviewSvc: CalEventReviewService,
     private readonly video: VideoConfigService,
+    private readonly ics: IcsImportService,
   ) {}
 
   async list(
@@ -100,6 +102,7 @@ export class CalEventService {
       throw new BadRequestException('INVALID_RANGE');
     }
 
+    await this.ics.ensureRange(entId, to);
     const qb = this.repo
       .createQueryBuilder('e')
       .where('e.entId = :entId', { entId })
@@ -199,6 +202,7 @@ export class CalEventService {
       throw new BadRequestException('INVALID_RANGE');
     }
 
+    await this.ics.ensureRange(entId, to);
     const qb = this.repo
       .createQueryBuilder('e')
       .where('e.entId = :entId', { entId })

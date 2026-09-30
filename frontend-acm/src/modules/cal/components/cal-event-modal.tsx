@@ -1,3 +1,4 @@
+import { IcsSourcePanel } from './ics-source-panel';
 import { useVideoConfig, isGoogleMeetUrl, videoErrorCode } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -490,6 +491,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         <DialogHeader>
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
+
+        {initial && <IcsSourcePanel eventId={initial.id} startAt={initial.startAt} onStopped={onClose} />}
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           {isReadOnly && (

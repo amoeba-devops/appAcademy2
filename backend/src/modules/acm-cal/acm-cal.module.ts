@@ -1,3 +1,5 @@
+import { IcsImportService } from './application/ics/ics-import.service';
+import { IcsController } from './presentation/ics.controller';
 import { VideoConfigService } from './application/video-config.service';
 import { CalVideoConfigTypeormEntity } from './infrastructure/typeorm/video-config.typeorm-entity';
 import {
@@ -115,6 +117,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     ),
   ],
   controllers: [
+    IcsController,
     VideoConfigController,
     VideoCapabilitiesController,
     PortalVideoCapabilitiesController,
@@ -133,6 +136,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     BodaDemoController,
   ],
   providers: [
+    IcsImportService,
     VideoConfigService,
     BodaPolicyInterceptor,
     CalEventService,
