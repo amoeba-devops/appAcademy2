@@ -1,3 +1,4 @@
+import { IcsSourcePanel } from '../components/ics-source-panel';
 import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -211,6 +212,8 @@ export function CalEventDetailPage() {
             </div>
           )}
         </dl>
+
+        <IcsSourcePanel eventId={event.id} startAt={event.startAt} onStopped={() => navigate('/admin/cal')} />
 
         {event.description && (
           <div className="mt-3">

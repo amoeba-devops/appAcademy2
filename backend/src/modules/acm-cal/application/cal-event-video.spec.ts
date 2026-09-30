@@ -1,3 +1,4 @@
+import { IcsImportService } from './ics/ics-import.service';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -70,6 +71,10 @@ describe('calendar video transitions', () => {
     const mod = await Test.createTestingModule({
       providers: [
         CalEventService,
+        {
+          provide: IcsImportService,
+          useValue: { ensureRange: jest.fn().mockResolvedValue(undefined) },
+        },
         {
           provide: getRepositoryToken(CalEventTypeormEntity, ACM_DS),
           useValue: repo,
