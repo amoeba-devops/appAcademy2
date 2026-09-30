@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { EntityManager, IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import {
   BODAEDU_SERVER_CLIENT,
@@ -86,12 +86,16 @@ export class BodaRoomService {
    * Returns the BODA room launcher URL the caller writes back into
    * `evt_meeting_url` so the frontend can hyperlink it.
    */
-  async createPending(input: {
-    evtId: string;
-    entId: string;
-    sesId?: string | null;
-    roomType?: BodaRoomType;
-  }): Promise<{ room: BodaRoomTypeormEntity; launcherUrl: string }> {
+  async createPending(
+    input: {
+      evtId: string;
+      entId: string;
+      sesId?: string | null;
+      roomType?: BodaRoomType;
+    },
+    manager?: EntityManager,
+  ): Promise<{ room: BodaRoomTypeormEntity; launcherUrl: string }> {
+    const repo = manager?.getRepository(BodaRoomTypeormEntity) ?? this.repo;
     const cfg = await this.cfg.findByEntId(input.entId);
     if (cfg && !cfg.isActive) {
       // Tenant disabled BODA branch — caller (cal-event.service) should fall
@@ -107,7 +111,7 @@ export class BodaRoomService {
     }
     const roomType = input.roomType ?? 'ONE_TO_ONE';
 
-    const existing = await this.repo.findOne({ where: { evtId: input.evtId } });
+    const existing = await repo.findOne({ where: { evtId: input.evtId } });
     if (existing) {
       // 룸 유형 변경(1:1↔1:N)이 아직 개설 전(PENDING)이면 roomCode 를 교체한다.
       // 이미 개설된 방(OPEN 이상)은 세션 중 코드 변경을 하지 않는다.
@@ -115,7 +119,7 @@ export class BodaRoomService {
         const desired = this.resolveRoomCode(cfg, roomType);
         if (existing.roomCode !== desired) {
           existing.roomCode = desired;
-          await this.repo.save(existing);
+          await repo.save(existing);
           this.logger.log(
             `BODA room roomCode updated evtId=${input.evtId} → ${desired} (${roomType})`,
           );
@@ -129,7 +133,7 @@ export class BodaRoomService {
 
     const roomCode = this.resolveRoomCode(cfg, roomType);
     const meetKey = makeMeetKey(input.evtId);
-    const created = this.repo.create({
+    const created = repo.create({
       entId: input.entId,
       evtId: input.evtId,
       sesId: input.sesId ?? null,
@@ -137,7 +141,7 @@ export class BodaRoomService {
       roomCode,
       status: 'PENDING',
     });
-    const saved = await this.repo.save(created);
+    const saved = await repo.save(created);
     this.logger.log(
       `BODA room PENDING evtId=${input.evtId} entId=${input.entId} meetKey=${meetKey} roomCode=${roomCode} (${roomType})`,
     );

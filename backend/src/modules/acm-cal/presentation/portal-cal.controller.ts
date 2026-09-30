@@ -1,3 +1,4 @@
+import { RecurrenceService } from '../application/recurrence.service';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   BadRequestException,
@@ -47,6 +48,7 @@ import { ListCalEventsQueryDto } from '../application/dto/cal-event.dto';
 export class PortalCalController {
   constructor(
     private readonly svc: CalEventService,
+    private readonly recurrence: RecurrenceService,
     private readonly attachmentSvc: CalEventAttachmentService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
@@ -192,7 +194,11 @@ export class PortalCalController {
   @ApiOperation({
     summary: 'List my related calendar events (month/week/day range)',
   })
-  list(@PortalUser() u: PortalAuthUser, @Query() q: ListCalEventsQueryDto) {
+  async list(
+    @PortalUser() u: PortalAuthUser,
+    @Query() q: ListCalEventsQueryDto,
+  ) {
+    await this.recurrence.ensureRange(u.entId, new Date(q.to));
     return this.svc.listForPortal(u.entId, u.kind, u.refId, q);
   }
 

@@ -1,8 +1,9 @@
+import { RecurrenceEditor, RecurrenceScope, useRepeatMetadata, type RepeatRule, type RepeatScope } from './recurrence-editor';
 import { IcsSourcePanel } from './ics-source-panel';
 import { useVideoConfig, isGoogleMeetUrl, videoErrorCode } from '@/modules/cfg/hooks/use-video-config';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Calendar, Clock, ClipboardCopy, Copy, LogIn, Mail, Plus, X } from 'lucide-react';
@@ -126,6 +127,52 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   // REQ-260903 — 폼의 날짜·시간 문자열은 테넌트 TZ 벽시계 기준.
   const tz = useTenantTz();
   const isEdit = !!initial;
+  const qc = useQueryClient();
+  const confirmRepeat = useConfirm();
+  const repeatMeta = useRepeatMetadata(initial?.id);
+  const [repeat, setRepeat] = useState<RepeatRule | null>(null);
+  const [repeatScope, setRepeatScope] = useState<RepeatScope>('ONE');
+  const [repeatValid, setRepeatValid] = useState(true);
+  const [repeatBusy, setRepeatBusy] = useState(false);
+  const request = useRef({ payload: '', id: crypto.randomUUID() });
+  useEffect(() => {
+    setRepeat(null);
+    setRepeatScope('ONE');
+    request.current = { payload: '', id: crypto.randomUUID() };
+  }, [open, initial?.id]);
+  const changeRepeat = async (
+    event: Record<string, unknown> | undefined,
+    reason: string,
+    remove = false,
+  ) => {
+    if (!initial || !repeatMeta.data) throw new Error('REPEAT_NOT_FOUND');
+    const body = {
+      scope: repeatScope,
+      version: repeatMeta.data.version,
+      reason,
+      ...(event ? { event } : {}),
+    };
+    const base = `/acm/cal/recurrence/events/${initial.id}`;
+    const impact = (
+      await apiClient.post<{ changed: number; protected: number }>(
+        `${base}/impact`,
+        body,
+      )
+    ).data;
+    if (
+      !(await confirmRepeat({
+        title: t('repeat.confirm', {
+          changed: impact.changed,
+          protected: impact.protected,
+        }),
+        variant: remove ? 'destructive' : 'default',
+      }))
+    )
+      return false;
+    await apiClient.post(`${base}/${remove ? "delete" : "update"}`, body);
+    await qc.invalidateQueries({ queryKey: ['cal'] });
+    return true;
+  };
   const video = useVideoConfig();
   const [convertVideo, setConvertVideo] = useState(false);
   useEffect(() => setConvertVideo(false), [open, initial?.id]);
@@ -297,7 +344,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const updateMut = useUpdateCalEvent(initial?.id ?? '');
   const deleteMut = useDeleteCalEvent();
   const { data: detail } = useCalEvent(open && isEdit ? initial?.id : undefined);
-  const isLoading = createMut.isPending || updateMut.isPending || deleteMut.isPending;
+  const isLoading = repeatBusy || createMut.isPending || updateMut.isPending || deleteMut.isPending;
 
   useEffect(() => {
     if (!open || !detail) return;
@@ -392,6 +439,26 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     }
 
     try {
+      if (repeatMeta.data && isEdit) {
+        setRepeatBusy(true);
+        if (await changeRepeat(dto, values.evtEditReason.trim())) onClose();
+        return;
+      }
+      if (repeat && !isEdit) {
+        if (!repeatValid) return;
+        setRepeatBusy(true);
+        const payload = JSON.stringify({ event: dto, rule: repeat });
+        if (request.current.payload !== payload)
+          request.current = { payload, id: crypto.randomUUID() };
+        await apiClient.post('/acm/cal/recurrence/series', {
+          event: dto,
+          rule: repeat,
+          requestId: request.current.id,
+        });
+        await qc.invalidateQueries({ queryKey: ['cal'] });
+        onClose();
+        return;
+      }
       const saved = isEdit
         ? await updateMut.mutateAsync(dto)
         : await createMut.mutateAsync(dto);
@@ -410,7 +477,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         submissionError as { response?: { data?: { message?: string } } }
       )?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
-    }
+    } finally { setRepeatBusy(false); }
   };
 
   const onDelete = async () => {
@@ -421,6 +488,11 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       return;
     }
     try {
+      if (repeatMeta.data) {
+        setRepeatBusy(true);
+        if (await changeRepeat(undefined, deleteReason.trim(), true)) onClose();
+        return;
+      }
       await deleteMut.mutateAsync({ id: initial.id, reason: deleteReason.trim() });
       onClose();
     } catch (deleteError) {
@@ -428,7 +500,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         deleteError as { response?: { data?: { message?: string } } }
       )?.response?.data?.message;
       setError(msg ?? t('common:status.error'));
-    }
+    } finally { setRepeatBusy(false); }
   };
 
   const onRegisterFeedback = async () => {
@@ -1022,6 +1094,22 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </div>
           )}
 
+          {!isEdit && (
+            <RecurrenceEditor
+              value={repeat}
+              onChange={setRepeat}
+              start={startAtVal}
+              end={endAtVal}
+              onValid={setRepeatValid}
+            />
+          )}
+          {repeatMeta.data && (
+            <RecurrenceScope
+              metadata={repeatMeta.data}
+              scope={repeatScope}
+              onChange={setRepeatScope}
+            />
+          )}
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <DialogFooter className="flex justify-between">
@@ -1047,7 +1135,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 {t('common:actions.cancel')}
               </Button>
               {!isReadOnly && (
-                <Button type="submit" size="sm" disabled={isLoading || !video.data || video.isError}>
+                <Button type="submit" size="sm" disabled={isLoading || !video.data || video.isError || !repeatValid || (isEdit && (repeatMeta.isLoading || repeatMeta.isError))}>
                   {isLoading ? t('common:actions.saving') : t('common:actions.save')}
                 </Button>
               )}

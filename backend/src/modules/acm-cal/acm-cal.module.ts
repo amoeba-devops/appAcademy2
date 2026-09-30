@@ -1,3 +1,7 @@
+import { CalColorService } from './application/cal-color.service';
+import { CalColorController } from './presentation/cal-color.controller';
+import { RecurrenceService } from './application/recurrence.service';
+import { RecurrenceController } from './presentation/recurrence.controller';
 import { IcsImportService } from './application/ics/ics-import.service';
 import { IcsController } from './presentation/ics.controller';
 import { VideoConfigService } from './application/video-config.service';
@@ -117,6 +121,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     ),
   ],
   controllers: [
+    CalColorController,
+    RecurrenceController,
     IcsController,
     VideoConfigController,
     VideoCapabilitiesController,
@@ -136,6 +142,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     BodaDemoController,
   ],
   providers: [
+    CalColorService,
+    RecurrenceService,
     IcsImportService,
     VideoConfigService,
     BodaPolicyInterceptor,

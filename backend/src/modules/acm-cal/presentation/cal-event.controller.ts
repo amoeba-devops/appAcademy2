@@ -1,3 +1,4 @@
+import { RecurrenceService } from '../application/recurrence.service';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import { UseInterceptors } from '@nestjs/common';
 import {
@@ -42,6 +43,7 @@ import { SendFeedbackEmailDto } from '../application/dto/feedback-email.dto';
 export class CalEventController {
   constructor(
     private readonly svc: CalEventService,
+    private readonly recurrence: RecurrenceService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
     private readonly recordingSvc: BodaRecordingService,
@@ -195,7 +197,11 @@ export class CalEventController {
 
   @Get()
   @ApiOperation({ summary: 'List calendar events in range (FR-CAL-001)' })
-  list(@CurrentUser() u: AcmCurrentUser, @Query() q: ListCalEventsQueryDto) {
+  async list(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: ListCalEventsQueryDto,
+  ) {
+    await this.recurrence.ensureRange(u.entId, new Date(q.to));
     return this.svc.list(u.entId, u.id, u.role ?? 'ADMIN', q);
   }
 
@@ -216,11 +222,21 @@ export class CalEventController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update event (FR-CAL-004)' })
-  update(
+  async update(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCalEventDto,
   ) {
+    const meta = await this.recurrence.metadata(u, id);
+    if (meta) {
+      await this.recurrence.change(u, id, {
+        scope: 'ONE',
+        version: meta.version,
+        reason: dto.evtEditReason,
+        event: dto,
+      });
+      return this.svc.findOne(u.entId, u.id, u.role ?? 'STAFF', id);
+    }
     return this.svc.update(u.entId, u.id, u.role ?? 'ADMIN', id, dto);
   }
 
@@ -237,11 +253,21 @@ export class CalEventController {
   @ApiOperation({
     summary: 'Soft-delete event — 삭제 사유 필수 (FR-CAL-005 / REQ-260728)',
   })
-  remove(
+  async remove(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: DeleteCalEventDto,
   ) {
+    const meta = await this.recurrence.metadata(u, id);
+    if (meta) {
+      await this.recurrence.change(
+        u,
+        id,
+        { scope: 'ONE', version: meta.version, reason: dto.reason },
+        true,
+      );
+      return { id };
+    }
     return this.svc.remove(u.entId, u.id, u.role ?? 'ADMIN', id, dto.reason);
   }
 }

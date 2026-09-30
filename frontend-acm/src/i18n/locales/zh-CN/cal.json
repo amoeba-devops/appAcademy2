@@ -343,5 +343,67 @@
       "AWAITING": "课程已结束，BODA 保存完成后将自动显示录像。",
       "NO_RECORDING": "没有保存的录像。"
     }
+  },
+  "colors": {
+    "mode": "颜色依据",
+    "category": "分类",
+    "assignee": "负责人",
+    "settings": "颜色设置",
+    "teacherHint": "按负责教师显示颜色，未分配显示灰色。",
+    "shared": "颜色设置适用于整个机构。",
+    "search": "搜索教师",
+    "reset": "恢复默认",
+    "palette": {
+      "blue": "蓝色",
+      "purple": "紫色",
+      "amber": "黄色",
+      "green": "绿色",
+      "rose": "粉色",
+      "cyan": "青色",
+      "orange": "橙色",
+      "gray": "灰色"
+    },
+    "unassigned": "未分配"
+  },
+  "repeat": {
+    "title": "重复",
+    "kind": {
+      "NONE": "不重复",
+      "DAILY": "每天",
+      "WEEKLY": "每周",
+      "MONTHLY": "每月",
+      "DATES": "指定日期"
+    },
+    "interval": "每隔",
+    "unit": {
+      "DAILY": "天",
+      "WEEKLY": "周",
+      "MONTHLY": "个月"
+    },
+    "weekend": "周末",
+    "include": "包含",
+    "exclude": "排除（周六、周日）",
+    "monthHint": "按开始日期的每月同一天重复；没有该日期的月份跳过。",
+    "dates": "选择日期",
+    "addDate": "添加日期",
+    "end": "重复结束",
+    "endKind": {
+      "NEVER": "永不结束",
+      "UNTIL": "指定日期",
+      "COUNT": "指定次数后"
+    },
+    "preview": "接下来的日程",
+    "invalid": "请检查重复规则及开始、结束日期。",
+    "notify": "参与者只收到一次重复日程摘要，自动延长不会再次发送邀请。",
+    "scope": "应用范围",
+    "scopeKind": {
+      "ONE": "仅此日程",
+      "FOLLOWING": "此日程及之后",
+      "ALL": "整个系列"
+    },
+    "protected": "过去日程、有关联记录的日程和单独修改的日程不会被批量更改。",
+    "stopped": "已停止",
+    "confirm": "将更改 {{changed}} 次，保留 {{protected}} 次受保护日程。继续？",
+    "extensionError": "部分重复日程无法延长。请检查视频设置、教师和参与者。"
   }
 }

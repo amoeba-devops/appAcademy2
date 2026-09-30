@@ -343,5 +343,67 @@
       "AWAITING": "수업이 끝났습니다. 녹화본 저장이 끝나면 자동으로 표시됩니다.",
       "NO_RECORDING": "저장된 녹화본이 없습니다."
     }
+  },
+  "colors": {
+    "mode": "색상 기준",
+    "category": "카테고리",
+    "assignee": "담당자",
+    "settings": "색상 설정",
+    "teacherHint": "담당 강사 기준입니다. 미지정은 회색으로 표시됩니다.",
+    "shared": "학원 구성원에게 공통으로 적용됩니다.",
+    "search": "강사 검색",
+    "reset": "기본값 복원",
+    "palette": {
+      "blue": "파랑",
+      "purple": "보라",
+      "amber": "노랑",
+      "green": "초록",
+      "rose": "분홍",
+      "cyan": "청록",
+      "orange": "주황",
+      "gray": "회색"
+    },
+    "unassigned": "미지정"
+  },
+  "repeat": {
+    "title": "반복",
+    "kind": {
+      "NONE": "반복 없음",
+      "DAILY": "일",
+      "WEEKLY": "주",
+      "MONTHLY": "월",
+      "DATES": "특정일자"
+    },
+    "interval": "간격",
+    "unit": {
+      "DAILY": "일마다",
+      "WEEKLY": "주마다",
+      "MONTHLY": "개월마다"
+    },
+    "weekend": "주말",
+    "include": "포함",
+    "exclude": "제외 (토·일)",
+    "monthHint": "시작일과 같은 날짜에 반복합니다. 해당 날짜가 없는 달은 건너뜁니다.",
+    "dates": "날짜 선택",
+    "addDate": "날짜 추가",
+    "end": "반복 종료",
+    "endKind": {
+      "NEVER": "종료 없음",
+      "UNTIL": "날짜까지",
+      "COUNT": "횟수 후"
+    },
+    "preview": "다음 회차 미리보기",
+    "invalid": "반복 조건과 시작·종료 날짜를 확인하세요.",
+    "notify": "초대자가 있으면 반복 일정 요약을 1회 발송합니다. 자동 연장 시 재발송하지 않습니다.",
+    "scope": "적용 범위",
+    "scopeKind": {
+      "ONE": "이번 일정만",
+      "FOLLOWING": "이번 일정부터 이후",
+      "ALL": "전체 반복"
+    },
+    "protected": "과거 일정, 연결 이력이 있는 일정 및 개별 수정 회차는 일괄 변경에서 보호됩니다.",
+    "stopped": "종료됨",
+    "confirm": "{{changed}}회에 적용합니다. 보호되는 {{protected}}회는 유지합니다. 계속할까요?",
+    "extensionError": "일부 반복 일정의 추가 생성이 보류되었습니다. 해당 일정의 화상 설정·담당자·참석자를 확인하고 수정하세요."
   }
 }

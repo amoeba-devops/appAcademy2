@@ -343,5 +343,67 @@
       "AWAITING": "Lớp đã kết thúc. Bản ghi sẽ hiển thị khi BODA lưu xong.",
       "NO_RECORDING": "Không có bản ghi nào được lưu."
     }
+  },
+  "colors": {
+    "mode": "Màu theo",
+    "category": "Danh mục",
+    "assignee": "Người phụ trách",
+    "settings": "Cài đặt màu",
+    "teacherHint": "Màu theo giáo viên phụ trách. Chưa phân công hiển thị màu xám.",
+    "shared": "Màu được dùng chung trong học viện.",
+    "search": "Tìm giáo viên",
+    "reset": "Khôi phục mặc định",
+    "palette": {
+      "blue": "Xanh dương",
+      "purple": "Tím",
+      "amber": "Vàng",
+      "green": "Xanh lá",
+      "rose": "Hồng",
+      "cyan": "Xanh ngọc",
+      "orange": "Cam",
+      "gray": "Xám"
+    },
+    "unassigned": "Chưa phân công"
+  },
+  "repeat": {
+    "title": "Lặp lại",
+    "kind": {
+      "NONE": "Không lặp lại",
+      "DAILY": "Hàng ngày",
+      "WEEKLY": "Hàng tuần",
+      "MONTHLY": "Hàng tháng",
+      "DATES": "Ngày cụ thể"
+    },
+    "interval": "Mỗi",
+    "unit": {
+      "DAILY": "ngày",
+      "WEEKLY": "tuần",
+      "MONTHLY": "tháng"
+    },
+    "weekend": "Cuối tuần",
+    "include": "Bao gồm",
+    "exclude": "Loại trừ (T7–CN)",
+    "monthHint": "Lặp vào cùng ngày trong tháng. Bỏ qua tháng không có ngày đó.",
+    "dates": "Chọn ngày",
+    "addDate": "Thêm ngày",
+    "end": "Kết thúc lặp",
+    "endKind": {
+      "NEVER": "Không kết thúc",
+      "UNTIL": "Vào ngày",
+      "COUNT": "Sau số lần"
+    },
+    "preview": "Các lần tiếp theo",
+    "invalid": "Kiểm tra quy tắc lặp và ngày bắt đầu/kết thúc.",
+    "notify": "Người tham gia nhận một thông báo tóm tắt. Gia hạn không gửi lại lời mời.",
+    "scope": "Áp dụng cho",
+    "scopeKind": {
+      "ONE": "Lịch này",
+      "FOLLOWING": "Lịch này và các lịch sau",
+      "ALL": "Toàn bộ chuỗi"
+    },
+    "protected": "Lịch quá khứ, lịch có lịch sử liên kết và lần đã sửa riêng được bảo vệ khi thay đổi hàng loạt.",
+    "stopped": "Đã dừng",
+    "confirm": "Áp dụng cho {{changed}} lần và giữ {{protected}} lần được bảo vệ. Tiếp tục?",
+    "extensionError": "Một số lịch chưa thể gia hạn. Kiểm tra dịch vụ video, giáo viên và người tham gia."
   }
 }

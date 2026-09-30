@@ -29,6 +29,7 @@ export class InviteeNotifierService {
     entId: string,
     event: CalEventTypeormEntity,
     addedRows: CalInviteeTypeormEntity[],
+    recurrenceSummary?: string,
   ): Promise<NotifySummary> {
     const summary: NotifySummary = {
       sent: 0,
@@ -59,7 +60,12 @@ export class InviteeNotifierService {
         try {
           await this.mailer.send(
             entId,
-            this.renderInvite(event, inv, includeMeetingLink),
+            this.renderInvite(
+              event,
+              inv,
+              includeMeetingLink,
+              recurrenceSummary,
+            ),
           );
           await this.inviteeSvc.updateNotifyStatus(inv.id, 'SENT');
           summary.sent++;
@@ -79,6 +85,7 @@ export class InviteeNotifierService {
     event: CalEventTypeormEntity,
     inv: InviteeView,
     includeMeetingLink: boolean,
+    recurrenceSummary?: string,
   ) {
     const portal = this.config.get<string>('ACM_PORTAL_URL') ?? '';
     const start = event.startAt.toISOString();
@@ -92,6 +99,7 @@ export class InviteeNotifierService {
       `제목: ${event.title}`,
       `시작: ${start}`,
       `종료: ${end}`,
+      recurrenceSummary ?? '',
       event.locationText ? `장소: ${event.locationText}` : '',
       includeMeetingLink && event.meetingUrl
         ? `미팅 URL: ${event.meetingUrl}`

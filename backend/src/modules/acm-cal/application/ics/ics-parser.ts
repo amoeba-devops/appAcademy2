@@ -71,7 +71,7 @@ export function splitCalendar(
   });
 }
 // Floating/all-day values belong to the calendar zone, never the server zone.
-function instant(t: ICAL.Time, fallback: string): string {
+export function instant(t: ICAL.Time, fallback: string): string {
   if (!t.isDate && t.zone.tzid !== 'floating')
     return t.toJSDate().toISOString();
   const wall = Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute, t.second);
