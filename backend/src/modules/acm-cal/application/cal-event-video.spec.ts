@@ -96,7 +96,10 @@ describe('calendar video transitions', () => {
         { provide: VideoConfigService, useValue: video },
         {
           provide: CalInviteeService,
-          useValue: { listForEvent: jest.fn().mockResolvedValue([]) },
+          useValue: {
+            listForEvent: jest.fn().mockResolvedValue([]),
+            assertSameTenant: jest.fn().mockResolvedValue(undefined),
+          },
         },
         { provide: InviteeNotifierService, useValue: {} },
         { provide: BodaRoomService, useValue: { createPending: provision } },

@@ -522,7 +522,8 @@ export class CalEventService {
     });
   }
 
-  private async createLocked(
+  /** Validate before writing; shared by atomic recurring-event creation. Caller holds video lock. */
+  async prepareCreate(
     entId: string,
     actorUserId: string,
     actorRole: AcmRole,
@@ -556,6 +557,11 @@ export class CalEventService {
         undefined;
     }
 
+    await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees ?? []);
+    if (dto.evtAssigneeTchId)
+      await this.inviteeSvc.assertSameTenant(entId, [
+        { kind: 'TEACHER', refId: dto.evtAssigneeTchId },
+      ]);
     let ownerUserId = actorUserId;
     if (dto.evtOwnerUserId && dto.evtOwnerUserId !== actorUserId) {
       if (actorRole !== 'ADMIN') {
@@ -564,7 +570,7 @@ export class CalEventService {
       ownerUserId = dto.evtOwnerUserId;
     }
 
-    const entity = this.repo.create({
+    return this.repo.create({
       entId,
       ownerUserId,
       category: dto.evtCategory ?? 'CLASS',
@@ -581,6 +587,22 @@ export class CalEventService {
       assigneeTchId: dto.evtAssigneeTchId ?? null,
       source: 'MANUAL',
     });
+  }
+
+  private async createLocked(
+    entId: string,
+    actorUserId: string,
+    actorRole: AcmRole,
+    dto: CreateCalEventDto,
+    allowPendingLink = false,
+  ) {
+    const entity = await this.prepareCreate(
+      entId,
+      actorUserId,
+      actorRole,
+      dto,
+      allowPendingLink,
+    );
     const saved = await this.repo.save(entity);
 
     await this.ensureBodaLauncher(entId, saved);

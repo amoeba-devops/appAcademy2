@@ -343,5 +343,67 @@
       "AWAITING": "The class has ended. Recordings appear once BODA finishes saving them.",
       "NO_RECORDING": "No recording was saved."
     }
+  },
+  "colors": {
+    "mode": "Color by",
+    "category": "Category",
+    "assignee": "In Charge",
+    "settings": "Color settings",
+    "teacherHint": "Colors follow the assigned teacher. Unassigned events are gray.",
+    "shared": "Colors are shared across the academy.",
+    "search": "Search teachers",
+    "reset": "Reset defaults",
+    "palette": {
+      "blue": "Blue",
+      "purple": "Purple",
+      "amber": "Amber",
+      "green": "Green",
+      "rose": "Rose",
+      "cyan": "Cyan",
+      "orange": "Orange",
+      "gray": "Gray"
+    },
+    "unassigned": "Unassigned"
+  },
+  "repeat": {
+    "title": "Repeat",
+    "kind": {
+      "NONE": "Does not repeat",
+      "DAILY": "Daily",
+      "WEEKLY": "Weekly",
+      "MONTHLY": "Monthly",
+      "DATES": "Specific dates"
+    },
+    "interval": "Every",
+    "unit": {
+      "DAILY": "day(s)",
+      "WEEKLY": "week(s)",
+      "MONTHLY": "month(s)"
+    },
+    "weekend": "Weekends",
+    "include": "Include",
+    "exclude": "Exclude (Sat–Sun)",
+    "monthHint": "Repeats on the start date’s day of the month. Months without that day are skipped.",
+    "dates": "Select date",
+    "addDate": "Add date",
+    "end": "Repeat ends",
+    "endKind": {
+      "NEVER": "Never",
+      "UNTIL": "On date",
+      "COUNT": "After occurrences"
+    },
+    "preview": "Next occurrences",
+    "invalid": "Check the repeat rule and start/end dates.",
+    "notify": "Invitees receive one series summary. Extending the series does not resend invitations.",
+    "scope": "Apply to",
+    "scopeKind": {
+      "ONE": "This event",
+      "FOLLOWING": "This and following events",
+      "ALL": "Entire series"
+    },
+    "protected": "Past events, events with linked history and individually edited occurrences are protected from bulk changes.",
+    "stopped": "Stopped",
+    "confirm": "Apply to {{changed}} occurrences and keep {{protected}} protected occurrences. Continue?",
+    "extensionError": "Some recurring events could not be extended. Review their video provider, teacher and attendees."
   }
 }

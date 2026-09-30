@@ -37,7 +37,9 @@ const assert = require('node:assert/strict');
       const path = url.pathname.slice(4);
       let data = {};
       if (path.includes('/boda/') || /class-record|recordings/.test(path)) bodaRequests.push(path);
-      if (path.endsWith('/video-capabilities') || path === '/admin/cal/video/config') {
+      if (path.endsWith('/color-settings') || path.endsWith('/recurrence/status')) data = [];
+      else if (path.includes('/recurrence/events/') || path.endsWith('/ics')) data = null;
+      else if (path.endsWith('/video-capabilities') || path === '/admin/cal/video/config') {
         if (request.method() === 'PUT') provider = request.postDataJSON().provider;
         data = { provider, bodaEnabled: provider === 'BODASCHOOL' };
       } else if (path === `/acm/cal/events/${event.id}` && request.method() === 'PUT') {

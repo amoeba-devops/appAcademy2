@@ -1,3 +1,4 @@
+import { CalendarColorProvider, CalendarColorToolbar, useCalendarColor } from '../components/calendar-colors';
 import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -38,20 +39,12 @@ import { TeacherMultiCombo } from '../components/teacher-multi-combo';
 
 type CalendarView = 'day' | 'week' | 'month' | 'list';
 
-const CATEGORY_COLOR: Record<CalEvent['category'], string> = {
-  CLASS: 'bg-blue-100 text-blue-800 border-blue-200',
-  MEETING: 'bg-purple-100 text-purple-800 border-purple-200',
-  EVENT: 'bg-amber-100 text-amber-800 border-amber-200',
-  PERSONAL: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-  LEVEL_TEST: 'bg-amber-100 text-amber-800 border-amber-200',
-  DEMO_CLASS: 'bg-violet-100 text-violet-800 border-violet-200',
-  REGULAR_CLASS: 'bg-blue-100 text-blue-800 border-blue-200',
-  OTHER: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-};
+
 
 const VIEW_OPTIONS: CalendarView[] = ['day', 'week', 'month', 'list'];
 
-export function CalMonthPage() {
+export function CalMonthPage() { return <CalendarColorProvider><CalMonthContent /></CalendarColorProvider>; }
+function CalMonthContent() {
   const { t, i18n } = useTranslation('cal');
   // REQ-260903 — 모든 날짜 산술은 테넌트 TZ 벽시계(시프트 공간) 기준.
   const tz = useTenantTz();
@@ -209,7 +202,7 @@ export function CalMonthPage() {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
             variant={showDeleted ? 'default' : 'outline'}
@@ -238,10 +231,11 @@ export function CalMonthPage() {
         </div>
       </div>
 
+      <CalendarColorToolbar events={events} />
       {video.bodaEnabled && <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />}
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => shiftAnchor(-1)}
@@ -261,7 +255,7 @@ export function CalMonthPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-md border border-[var(--border-subtle)] bg-[var(--gray-50)] p-0.5">
             {VIEW_OPTIONS.map((option) => (
               <button
@@ -550,8 +544,10 @@ function ListRow({
 }) {
   const { t } = useTranslation('cal');
   const tz = useTenantTz();
+  const color = useCalendarColor(event);
   return (
     <button
+      style={{borderLeft: `4px solid ${color.borderColor}`, backgroundColor:color.backgroundColor}}
       type="button"
       onClick={onClick}
       className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-left hover:bg-[var(--gray-50)]"
@@ -586,9 +582,9 @@ function ListRow({
       <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[10px] text-secondary">
         {t(`category.${event.category}`, event.category)}
       </span>
-      {(event.assigneeName || event.ownerName) && (
+      {(
         <span className="shrink-0 text-xs text-secondary">
-          {event.assigneeName ?? event.ownerName}
+          {event.assigneeName ?? t('colors.unassigned')}
         </span>
       )}
     </button>
@@ -668,6 +664,7 @@ function CalendarEventCard({
   onClick: (event: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation('cal');
+  const color = useCalendarColor(event);
   const tz = useTenantTz();
   const display = buildEventDisplayLine(event, locale, tz);
   // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
@@ -676,10 +673,11 @@ function CalendarEventCard({
   return (
     <div
       onClick={onClick}
-      className={`group relative cursor-pointer rounded border px-2 py-1.5 text-left ${CATEGORY_COLOR[event.category]} ${
+      style={color}
+      className={`group relative cursor-pointer rounded border px-2 py-1.5 text-left  ${
         compact ? 'text-[10px]' : 'text-xs'
       }`}
-      title={display}
+      title={`${display} · ${t(`category.${event.category}`, event.category)}`}
     >
       <div className="truncate font-medium">
         {display}
@@ -690,6 +688,7 @@ function CalendarEventCard({
           </span>
         )}
       </div>
+      <div className="truncate text-[9px] opacity-80">{t(`category.${event.category}`, event.category)}</div>
       {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
         <div className="mt-0.5 flex items-center gap-1 text-[10px]">
           {event.hasFeedback && (
@@ -710,9 +709,9 @@ function CalendarEventCard({
           )}
         </div>
       )}
-      {(event.assigneeName || event.ownerName) && (
+      {(
         <div className="truncate text-[10px] opacity-80">
-          {event.assigneeName ?? event.ownerName}
+          {event.assigneeName ?? t('colors.unassigned')}
         </div>
       )}
       {canEnter && (
