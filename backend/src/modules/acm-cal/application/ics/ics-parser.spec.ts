@@ -6,6 +6,16 @@ function source(body: string) {
   )[0];
 }
 describe('ICS preservation', () => {
+  it('preserves a Zoom join URL as OTHER', () => {
+    const e = expandSource(
+      source(
+        'DTSTART:20261001T000000Z\r\nDTEND:20261001T010000Z\r\nLOCATION:https://zoom.us/j/123456?pwd=sample',
+      ),
+      new Date(),
+    )[0];
+    expect(e.meetingProvider).toBe('OTHER');
+    expect(e.meetingUrl).toBe('https://zoom.us/j/123456?pwd=sample');
+  });
   it('uses calendar timezone for exclusive all-day end', () => {
     const e = expandSource(
       source(

@@ -18,6 +18,7 @@ export interface IcsOccurrence {
   end: string;
   allDay: boolean;
   meetingUrl: string | null;
+  meetingProvider: 'NONE' | 'GOOGLE_MEET' | 'OTHER';
 }
 function prop(c: ICAL.Component, key: string): string {
   return String(c.getFirstPropertyValue(key) ?? '');
@@ -132,7 +133,13 @@ export function expandSource(
       description,
     ].join('\n');
     const meetingUrl =
-      linkText.match(/https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+/)?.[0] ?? null;
+      linkText.match(/https:\/\/meet\.google\.com\/[a-zA-Z0-9-]+/)?.[0] ??
+      linkText.match(
+        /https:\/\/(?:[a-z0-9-]+\.)?zoom\.us\/j\/[^\s<>"\\]+/,
+      )?.[0] ??
+      null;
+    if (meetingUrl && meetingUrl.length > 500)
+      throw new Error('Meeting URL exceeds destination length');
     results.set(key, {
       key,
       title,
@@ -142,6 +149,11 @@ export function expandSource(
       end: endIso,
       allDay: start.isDate,
       meetingUrl,
+      meetingProvider: meetingUrl
+        ? new URL(meetingUrl).hostname === 'meet.google.com'
+          ? 'GOOGLE_MEET'
+          : 'OTHER'
+        : 'NONE',
     });
   }
   if (master) {

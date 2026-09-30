@@ -103,7 +103,7 @@ export class IcsImportService {
           o.end,
           o.allDay,
           o.location || null,
-          o.meetingUrl ? 'GOOGLE_MEET' : 'NONE',
+          o.meetingProvider,
           o.meetingUrl,
           s.assignee_tch_id,
         ],
