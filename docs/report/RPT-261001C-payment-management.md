@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-MANAGEMENT-RPT-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed to production
 created: 2026-10-01
 change_log:
   - version: 1.0.0
@@ -13,7 +13,7 @@ change_log:
 
 ## 1. Result (구현 결과)
 
-사용자 “구현 진행” 승인에 따라 [작업계획](../plan/PLN-261001C-payment-management.md)의 Phase 1을 구현했다. 관리자 수강신청 다음에 **수납관리** 메뉴를 추가했으며 `/admin/pay`에서 월별 청구·납부·미납·환불 기록을 관리한다. 운영 배포는 아직 수행하지 않았다.
+사용자 “구현 진행” 승인에 따라 [작업계획](../plan/PLN-261001C-payment-management.md)의 Phase 1을 구현했다. 관리자 수강신청 다음에 **수납관리** 메뉴를 추가했으며 `/admin/pay`에서 월별 청구·납부·미납·환불 기록을 관리한다. 2026-10-01 22:51:24 KST 운영 배포 완료 (`2e7efd2`).
 
 원본 작업 디렉터리의 기존 변경을 보존하기 위해 production main `22d9263`에서 분리한 `feat/payment-management-261001` 브랜치, `/private/tmp/acm-payment-261001`에 구현했다. 원본 프로젝트에는 분석서·계획서·본 보고서·캡처만 반영했다.
 
@@ -93,4 +93,21 @@ ACM_TEST_ENV_FILE=/path/to/local-test.env npx ts-node --transpile-only test/pay-
 
 ## 6. Deployment Preparation (배포 준비)
 
-운영 미반영. 배포 시 DB 백업 후 1026 마이그레이션을 먼저 적용하고 backend/frontend-acm을 함께 배포한다. 운영의 기존 결제 원장은 이관하거나 수정하지 않는다. 메뉴 허용 목록을 별도 지정한 계정은 수납관리 권한이 포함되는지 확인한다. 운영 인증으로 역할·목록 조회를 확인하고 실제 수납 데이터 생성 검증은 별도 합의한 테스트 범위에서 수행한다. 롤백 시 앱을 이전 버전으로 되돌리되 새 원장 테이블과 기록은 보존한다.
+아래 운영 배포 기록을 기준으로 반영 완료. 향후 재배포 시 DB 백업 후 1026 마이그레이션을 먼저 적용하고 backend/frontend-acm을 함께 배포한다. 운영의 기존 결제 원장은 이관하거나 수정하지 않는다. 메뉴 허용 목록을 별도 지정한 계정은 수납관리 권한이 포함되는지 확인한다. 운영 인증으로 역할·목록 조회를 확인하고 실제 수납 데이터 생성 검증은 별도 합의한 테스트 범위에서 수행한다. 롤백 시 앱을 이전 버전으로 되돌리되 새 원장 테이블과 기록은 보존한다.
+
+
+## 7. Production Release (운영 배포 기록)
+
+- 최종 SHA: `2e7efd224a81e953a73b982258d87c59af16f2e3`, 배포 시각 2026-10-01 22:51:24 KST.
+- [PR #293](https://github.com/amoeba-devops/appAcademy2/pull/293) 병합 완료.
+- 최초 CI에서 신규 테스트 fixture의 부분 타입 단언 오류 2건을 확인하여 보완했다. 전체 `tsc --noEmit` 통과 후 [최종 PR CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/36870761421)가 성공했다. 단위 테스트·빌드·Docker·스캔·Nest AppModule 기동 및 PostgreSQL Testcontainers 단계 모두 통과했다.
+- [스테이징 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/36871411595) 성공. 격리한 가상 학원에서 실제 JWT/HTTP 청구 미리보기·생성·멱등 재시도·분할 및 잔액 수납·환불+청구감액·기간 합계·XLSX 검증 통과. 테스트 데이터 정리 완료.
+- [운영 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/36871740949) 성공. backend/frontend 모두 `:2e7efd2`, running, restarts=0.
+- migration 1026 적용 마커 및 신규 테이블 5개 확인. 운영 인증 목록·옵션 조회와 health 통과. 운영 업무 데이터 생성/변경 없음.
+- 브라우저에서 `/admin/pay`의 메뉴·요약·필터·빈 목록을 확인했다. 기존 상담/PG 내역은 자동 이관하지 않았으므로 최초 청구 목록 0건은 정상이다.
+- 배포 직후 관찰한 backend 로그에서 ERROR 0건. 장기간 모니터링 결과를 의미하지 않는다.
+- 운영 백업: `/home/appacademy/app-academy-backups/db_acm-before-payment-20261001T134044Z.dump` (7,161,217 bytes, mode 600, pg_restore 목록 검사 통과).
+- 스테이징 백업: `/home/appacademy/app-academy-backups/db_acm-before-payment-20261001T134049Z.dump` (542,641 bytes, mode 600, pg_restore 목록 검사 통과).
+- 복구 기준: `22d9263`. 앱 롤백 시 신규 원장 테이블과 기록은 보존한다.
+
+![운영 수납관리](screenshots/261001-pay/production.png)

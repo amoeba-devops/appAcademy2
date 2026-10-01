@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-MANAGEMENT-REQ-1.0.0
 version: 1.0.0
-status: Implemented (Phase 1; not deployed)
+status: Deployed to production
 created: 2026-10-01
 change_log:
   - version: 1.0.0
@@ -108,3 +108,5 @@ ACM 관리자에 수납관리 메뉴를 추가하고 [MakeEdu 상세수납](http
 ## Implementation Record (구현 기록)
 
 Phase 1 구현 및 로컬 검증 완료. [구현 보고서](../report/RPT-261001C-payment-management.md)에 실제 API·권한·화면 구성 및 배포 준비사항을 기록했다. 상세는 공통 모달, 목록은 순수납액 중심으로 제공하고 원납부/환불 합계는 상세·엑셀에서 확인한다. 외부 결제 및 데이터 이관은 수행하지 않았다.
+
+운영 배포: 2026-10-01 22:51:24 KST, `2e7efd2`. 상세 검증·백업·복구 기록은 구현 보고서 §7 참조.

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-MANAGEMENT-PLN-1.0.0
 version: 1.0.0
-status: Implemented (Phase 1; not deployed)
+status: Deployed to production
 created: 2026-10-01
 change_log:
   - version: 1.0.0
@@ -13,7 +13,7 @@ change_log:
 
 ## 1. Scope (범위)
 
-[요구사항](../analysis/REQ-261001C-payment-management.md)의 Phase 1을 기본 승인안으로 제안한다. 제공 링크의 상세수납을 우선 구현하고 영수증 발급·실제 환불·자동결제·문자 등 외부 연동은 Phase 2로 구분한다. 범위 답변에 따라 계획을 갱신한다. 2026-10-01 사용자의 “구현 진행” 승인에 따라 Phase 1 구현 및 로컬 검증 완료. 운영 배포는 별도 진행한다.
+[요구사항](../analysis/REQ-261001C-payment-management.md)의 Phase 1을 기본 승인안으로 제안한다. 제공 링크의 상세수납을 우선 구현하고 영수증 발급·실제 환불·자동결제·문자 등 외부 연동은 Phase 2로 구분한다. 범위 답변에 따라 계획을 갱신한다. 2026-10-01 사용자의 “구현 진행” 승인에 따라 Phase 1 구현 및 로컬 검증 완료. 2026-10-01 운영 배포 완료 (`2e7efd2`).
 
 ## 2. UI Layout (화면 구성안)
 
@@ -93,8 +93,10 @@ API 제안: `/api/acm/pay/bills` 목록/생성/상세/수정, `/summary`, `/batc
 
 ## 6. Approval (사용자 확인)
 
-2026-10-01 사용자 “구현 진행”으로 Phase 1 승인. 구현 결과와 검증 증빙은 [구현 보고서](../report/RPT-261001C-payment-management.md)를 참조한다. Phase 2 및 운영 배포는 이번 작업에 포함하지 않았다.
+2026-10-01 사용자 “구현 진행”으로 Phase 1 승인. 구현 결과와 검증 증빙은 [구현 보고서](../report/RPT-261001C-payment-management.md)를 참조한다. Phase 2는 별도 범위이며 운영 배포는 후속 사용자 요청으로 완료했다.
 
 ## Implementation Record (구현 기록)
 
 Phase 1 구현 및 로컬 검증 완료. [구현 보고서](../report/RPT-261001C-payment-management.md)에 실제 API·권한·화면 구성 및 배포 준비사항을 기록했다. 상세는 공통 모달, 목록은 순수납액 중심으로 제공하고 원납부/환불 합계는 상세·엑셀에서 확인한다. 외부 결제 및 데이터 이관은 수행하지 않았다.
+
+운영 배포: 2026-10-01 22:51:24 KST, `2e7efd2`. 상세 검증·백업·복구 기록은 구현 보고서 §7 참조.
