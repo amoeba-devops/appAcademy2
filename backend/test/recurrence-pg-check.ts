@@ -291,6 +291,22 @@ async function main() {
       "INSERT INTO amb_acm_cal_video_config(ent_id,vdc_provider) VALUES($1,'GOOGLE_MEET')",
       [ent],
     );
+    const pending = await svc.create(u, {
+      requestId: randomUUID(),
+      event: { ...dto.event, evtCategory: 'REGULAR_CLASS', evtMeetingProvider: 'GOOGLE_MEET', evtMeetingUrl: '' },
+      rule: { kind: 'DAILY', interval: 1, excludeWeekends: false, end: 'COUNT', count: 2 },
+    });
+    const pendingRows: {evt_id: string; evt_meeting_url: string | null}[] = await ds.query('SELECT e.evt_id,e.evt_meeting_url FROM amb_acm_cal_event e JOIN amb_acm_cal_recurrence_occurrence o ON o.evt_id=e.evt_id WHERE o.crs_id=$1 ORDER BY e.evt_start_at', [pending.id]);
+    assert.equal(pendingRows.length, 2);
+    assert(pendingRows.every(r => r.evt_meeting_url === null));
+    await svc.change(u, pendingRows[0].evt_id, { scope: 'ONE', version: 1, reason: 'Add class link', event: { evtEditReason: 'Add class link', evtMeetingUrl: 'https://meet.google.com/abc-defg-hij' } });
+    const links: typeof pendingRows = await ds.query('SELECT evt_id,evt_meeting_url FROM amb_acm_cal_event WHERE evt_id=ANY($1::uuid[])', [pendingRows.map(r => r.evt_id)]);
+    assert.equal(links.find(r => r.evt_id === pendingRows[0].evt_id)?.evt_meeting_url, 'https://meet.google.com/abc-defg-hij');
+    assert.equal(links.find(r => r.evt_id === pendingRows[1].evt_id)?.evt_meeting_url, null);
+    await svc.change(u, pendingRows[0].evt_id, {scope: 'ONE', version: 2, reason: 'Clear link', event: {evtMeetingUrl: '', evtEditReason: 'Clear link'}});
+    const [cleared] = await ds.query('SELECT evt_meeting_url FROM amb_acm_cal_event WHERE evt_id=$1', [pendingRows[0].evt_id]);
+    assert.equal(cleared.evt_meeting_url, null);
+    console.log('PASS: Google recurrence without links, later link on one occurrence only, clear stored link');
     await svc.ensureRange(ent, new Date('2037-01-01'));
     const statuses = await svc.generationStatus(u);
     assert(statuses.some((s: { id: string }) => s.id === changing.id));
