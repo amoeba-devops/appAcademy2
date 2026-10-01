@@ -98,7 +98,7 @@ export class CreateCalEventDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @ValidateIf((o) => o.evtMeetingProvider && o.evtMeetingProvider !== 'NONE')
+  @ValidateIf((o: CreateCalEventDto) => o.evtMeetingUrl !== '' && !!o.evtMeetingProvider && o.evtMeetingProvider !== 'NONE')
   @IsString()
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
@@ -188,6 +188,7 @@ export class UpdateCalEventDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
+  @ValidateIf((o: UpdateCalEventDto) => o.evtMeetingUrl !== '')
   @IsUrl({ require_protocol: true })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
