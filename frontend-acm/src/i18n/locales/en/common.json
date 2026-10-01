@@ -948,7 +948,7 @@
     "count": "Total records",
     "prev": "Previous",
     "next": "Next",
-    "createHint": "Select one or more active students and verify the billing amounts.",
+    "createHint": "Search for students and add them one at a time.",
     "enrolledClass": "Enrolled class",
     "narrowSearch": "Up to 100 students. Narrow your search.",
     "clear": "Clear selection",
@@ -1022,6 +1022,13 @@
     "PAY_BILL_NOT_FOUND": "Unable to complete. Check inputs and retry.",
     "billTitle": "Bill title",
     "transactionAmount": "Transaction amount",
-    "PAY_STUDENT_NOT_ENROLLED": "Select a class this student is enrolled in."
+    "PAY_STUDENT_NOT_ENROLLED": "Select a class this student is enrolled in.",
+    "searchPrompt": "Search by student name.",
+    "noStudents": "No students found.",
+    "addStudent": "Add",
+    "studentSelected": "Selected",
+    "selectedStudents": "Selected students",
+    "removeStudent": "Remove student",
+    "filterResetsSelection": "Changing the site or class filter clears the selected students."
   }
 }

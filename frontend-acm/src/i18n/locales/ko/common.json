@@ -948,7 +948,7 @@
     "count": "전체 건수",
     "prev": "이전",
     "next": "다음",
-    "createHint": "한 명 또는 여러 재원생을 선택하세요. 청구금액은 직접 확인하고 입력합니다.",
+    "createHint": "학생 이름을 검색한 뒤 한 명씩 추가하세요.",
     "enrolledClass": "수강신청 기준 수업",
     "narrowSearch": "최대 100명입니다. 검색 범위를 좁혀 주세요.",
     "clear": "선택 해제",
@@ -1022,6 +1022,13 @@
     "PAY_BILL_NOT_FOUND": "처리하지 못했습니다. 입력값을 확인하고 다시 시도하세요.",
     "billTitle": "수납명",
     "transactionAmount": "거래금액",
-    "PAY_STUDENT_NOT_ENROLLED": "선택한 학생의 수강 중인 수업을 선택하세요."
+    "PAY_STUDENT_NOT_ENROLLED": "선택한 학생의 수강 중인 수업을 선택하세요.",
+    "searchPrompt": "학생 이름을 검색하세요.",
+    "noStudents": "검색된 학생이 없습니다.",
+    "addStudent": "추가",
+    "studentSelected": "선택됨",
+    "selectedStudents": "선택한 학생",
+    "removeStudent": "학생 제외",
+    "filterResetsSelection": "사이트 또는 수업 필터를 변경하면 선택한 학생이 초기화됩니다."
   }
 }

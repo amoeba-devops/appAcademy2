@@ -948,7 +948,7 @@
     "count": "Tổng số",
     "prev": "Trước",
     "next": "Sau",
-    "createHint": "Chọn học sinh đang học và kiểm tra số tiền.",
+    "createHint": "Tìm học viên và thêm từng người một.",
     "enrolledClass": "Lớp đăng ký",
     "narrowSearch": "Tối đa 100 học sinh. Thu hẹp tìm kiếm.",
     "clear": "Bỏ chọn",
@@ -1022,6 +1022,13 @@
     "PAY_BILL_NOT_FOUND": "Không thể xử lý. Kiểm tra và thử lại.",
     "billTitle": "Tên khoản thu",
     "transactionAmount": "Số tiền giao dịch",
-    "PAY_STUDENT_NOT_ENROLLED": "Chọn lớp học sinh đã đăng ký."
+    "PAY_STUDENT_NOT_ENROLLED": "Chọn lớp học sinh đã đăng ký.",
+    "searchPrompt": "Tìm theo tên học viên.",
+    "noStudents": "Không tìm thấy học viên.",
+    "addStudent": "Thêm",
+    "studentSelected": "Đã chọn",
+    "selectedStudents": "Học viên đã chọn",
+    "removeStudent": "Bỏ học viên",
+    "filterResetsSelection": "Đổi cơ sở hoặc lớp sẽ xóa danh sách đã chọn."
   }
 }
