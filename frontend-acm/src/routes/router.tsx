@@ -1,3 +1,4 @@
+import { PaymentPage } from '@/modules/pay/payment-page';
 import { NotificationInboxPage } from '@/modules/notifications/components-inbox';
 import { AdPlatformsPage } from '@/modules/cfg/pages/ad-platforms-page';
 import { AiConfigPage } from '@/modules/cfg/pages/ai-config-page';
@@ -223,6 +224,7 @@ export const router = createBrowserRouter([
       { path: 'notification-inbox', element: <NotificationInboxPage /> },
       { path: 'notifications', element: <NotificationsListPage /> },
       { path: 'enrollments', element: <EnrollmentsListPage /> },
+      { path: 'pay', element: <PaymentPage /> },
       { path: 'qna', element: <QnaListPage /> },
       { path: 'qna/categories', element: <QnaCategoriesPage /> },
       // REQ-260728C — 로비채팅 (운영자)

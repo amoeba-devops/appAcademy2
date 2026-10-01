@@ -20,6 +20,7 @@ export const TOGGLEABLE_MENU_KEYS = [
   'posts',
   'notifications',
   'enrollments',
+  'pay',
   'map',
   'qna',
   'chat',

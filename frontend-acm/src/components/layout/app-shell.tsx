@@ -23,6 +23,7 @@ import {
   Newspaper,
   Bell,
   ClipboardList,
+  Wallet,
   GraduationCap,
   UserRound,
   UserCog,
@@ -67,6 +68,7 @@ const NAV = [
   { to: '/admin/posts', icon: Newspaper, key: 'posts' },
   { to: '/admin/notifications', icon: Bell, key: 'notifications' },
   { to: '/admin/enrollments', icon: ClipboardList, key: 'enrollments' },
+  { to: '/admin/pay', icon: Wallet, key: 'pay' },
   { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
   { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
   // REQ-260728C — 로비채팅 (운영자↔강사)
@@ -132,7 +134,7 @@ export function AppShell() {
     return keys;
   })();
   const rank = new Map(orderedKeys.map((k, i) => [k, i]));
-  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key))
+  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key) && (n.key !== 'pay' || ['ADMIN','APP_ADMIN','STAFF'].includes(user?.role ?? '')))
     .slice()
     .sort((a, b) => (rank.get(a.key) ?? 999) - (rank.get(b.key) ?? 999));
 

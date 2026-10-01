@@ -1,3 +1,6 @@
+import { CollectionsController } from './presentation/collections.controller';
+import { CollectionsService } from './application/collections.service';
+import { AcmSystemModule } from '../acm-system/acm-system.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -24,7 +27,8 @@ import { PayTaxInvoiceService } from './application/services/pay-tax-invoice.ser
  * @see sql/acm/950-acm-pay-schema.sql
  */
 @Module({
-  imports: [
+  controllers: [CollectionsController],
+  imports: [AcmSystemModule,
     TypeOrmModule.forFeature(
       [
         PayRefundPolicyTypeormEntity,
@@ -37,7 +41,7 @@ import { PayTaxInvoiceService } from './application/services/pay-tax-invoice.ser
       ACM_DS,
     ),
   ],
-  providers: [
+  providers: [CollectionsService,
     PayOrderService,
     PayLedgerService,
     PayReceiptService,
