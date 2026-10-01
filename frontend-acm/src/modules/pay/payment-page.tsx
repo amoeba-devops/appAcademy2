@@ -10,7 +10,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Bill, Detail, Edit, Options, Page, Preview } from "./types";
+import type {
+  Bill,
+  Detail,
+  Edit,
+  Option,
+  Options,
+  Page,
+  Preview,
+} from "./types";
 const base = "/acm/pay/bills";
 const input =
   "rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900";
@@ -849,7 +857,13 @@ function CreateDialog({
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("");
   const [site, setSite] = useState("");
-  const [ids, setIds] = useState<string[]>([]);
+  const [selectedStudents, setSelectedStudents] = useState<Option[]>([]);
+  const ids = selectedStudents.map((s) => s.id);
+  const [searchTerm, setSearchTerm] = useState("");
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(search.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [search]);
   const [form, setForm] = useState({
     month: new Date().toISOString().slice(0, 7),
     due: new Date().toISOString().slice(0, 10),
@@ -866,12 +880,19 @@ function CreateDialog({
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
   const options = useQuery({
-    queryKey: ["pay", identity, "create-options", search, classFilter, site],
+    queryKey: [
+      "pay",
+      identity,
+      "create-options",
+      searchTerm,
+      classFilter,
+      site,
+    ],
     queryFn: async () =>
       (
         await apiClient.get<Options>(base + "/options", {
           params: {
-            q: search,
+            q: searchTerm,
             classId: classFilter || undefined,
             site: site || undefined,
           },
@@ -882,10 +903,12 @@ function CreateDialog({
   useEffect(() => {
     setPreview(null);
     setRequestId(crypto.randomUUID());
-  }, [form, ids]);
+  }, [form, selectedStudents]);
   useEffect(() => {
     if (open) {
-      setIds([]);
+      setSearch("");
+      setSearchTerm("");
+      setSelectedStudents([]);
       setPreview(null);
       setError("");
       setResult("");
@@ -919,7 +942,7 @@ function CreateDialog({
           `${tr("created")}: ${r.ids.length} / ${tr("skipped")}: ${r.skipped.length}`,
         );
         setPreview(null);
-        setIds([]);
+        setSelectedStudents([]);
         await onSaved();
       } else
         setPreview(
@@ -964,7 +987,7 @@ function CreateDialog({
               value={site}
               onChange={(e) => {
                 setSite(e.target.value);
-                setIds([]);
+                setSelectedStudents([]);
               }}
             />
           </label>
@@ -975,7 +998,7 @@ function CreateDialog({
               value={classFilter}
               onChange={(e) => {
                 setClassFilter(e.target.value);
-                setIds([]);
+                setSelectedStudents([]);
               }}
             >
               <option value="">{tr("all")}</option>
@@ -987,50 +1010,88 @@ function CreateDialog({
             </select>
           </label>
         </div>
-        {options.isError && (
-          <button onClick={() => options.refetch()}>{tr("retry")}</button>
-        )}
-        {options.data?.hasMore && <p>{tr("narrowSearch")}</p>}
-        <div className="max-h-44 overflow-y-auto border p-2">
-          <button
-            className={btn}
-            onClick={() =>
-              setIds(
-                [
-                  ...new Set([
-                    ...ids,
-                    ...(options.data?.students
-                      .filter((s) => s.status === "ACTIVE")
-                      .map((s) => s.id) || []),
-                  ]),
-                ].slice(0, 100),
-              )
-            }
-          >
-            {tr("selectAll")}
-          </button>
-          <button className={btn} onClick={() => setIds([])}>
-            {tr("clear")}
-          </button>
-          <span> {ids.length}/100</span>
-          {options.data?.students.map((s) => (
-            <label key={s.id} className="block">
-              <input
-                type="checkbox"
-                disabled={s.status !== "ACTIVE"}
-                checked={ids.includes(s.id)}
-                onChange={(e) =>
-                  setIds(
-                    e.target.checked
-                      ? [...ids, s.id].slice(0, 100)
-                      : ids.filter((id) => id !== s.id),
-                  )
-                }
-              />
-              {s.name} · {s.site} · {tr(s.status || "ACTIVE")}
-            </label>
-          ))}
+        <p className="text-xs text-slate-500">{tr("filterResetsSelection")}</p>
+        <div
+          className="max-h-44 overflow-y-auto border rounded p-2"
+          aria-live="polite"
+        >
+          {!search.trim() ? (
+            <p>{tr("searchPrompt")}</p>
+          ) : search.trim() !== searchTerm || options.isFetching ? (
+            <p>{tr("loading")}</p>
+          ) : options.isError ? (
+            <button className={btn} onClick={() => options.refetch()}>
+              {tr("retry")}
+            </button>
+          ) : (
+            <>
+              {options.data?.hasMore && <p>{tr("narrowSearch")}</p>}
+              {!options.data?.students.length && <p>{tr("noStudents")}</p>}
+              {options.data?.students.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-2 py-1"
+                >
+                  <span>
+                    {s.name} · {s.site || tr("none")} ·{" "}
+                    {tr(s.status || "ACTIVE")}{" "}
+                    <span className="text-xs text-slate-500">
+                      #{s.id.slice(0, 8)}
+                    </span>
+                  </span>
+                  <button
+                    className={btn}
+                    disabled={
+                      busy ||
+                      s.status !== "ACTIVE" ||
+                      ids.includes(s.id) ||
+                      ids.length >= 100
+                    }
+                    onClick={() =>
+                      setSelectedStudents((current) =>
+                        current.some((x) => x.id === s.id) ||
+                        current.length >= 100
+                          ? current
+                          : [...current, s],
+                      )
+                    }
+                  >
+                    {tr(ids.includes(s.id) ? "studentSelected" : "addStudent")}
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
         </div>
+        <section
+          aria-label={tr("selectedStudents")}
+          className="rounded border p-2"
+        >
+          <h3 className="font-medium">
+            {tr("selectedStudents")} ({ids.length}/100)
+          </h3>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {selectedStudents.map((s) => (
+              <span
+                key={s.id}
+                className="inline-flex items-center gap-2 rounded bg-slate-100 px-2 py-1"
+              >
+                {s.name} · {s.site || tr("none")} · #{s.id.slice(0, 8)}
+                <button
+                  disabled={busy}
+                  aria-label={`${tr("removeStudent")} ${s.name}`}
+                  onClick={() =>
+                    setSelectedStudents((current) =>
+                      current.filter((x) => x.id !== s.id),
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        </section>
         <div className="grid grid-cols-2 gap-3">
           {["month", "due", "title", "memo"].map((k) => (
             <label key={k}>
