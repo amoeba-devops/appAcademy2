@@ -5,7 +5,10 @@ export function validateMeetingUrl(
 ): string | null {
   if (!provider || provider === 'NONE') return null;
   const trimmed = value?.trim();
-  if (!trimmed) throw new BadRequestException('MEETING_URL_REQUIRED');
+  if (!trimmed) {
+    if (provider === 'GOOGLE_MEET') return null;
+    throw new BadRequestException('MEETING_URL_REQUIRED');
+  }
   try {
     const url = new URL(trimmed);
     if (provider === 'GOOGLE_MEET') {

@@ -134,13 +134,23 @@ describe('calendar video transitions', () => {
     expect(result.meetingUrl).toBe(dto.evtMeetingUrl);
     expect(provision).not.toHaveBeenCalled();
   });
-  it('rejects missing links and attempts to override the tenant provider before writing', async () => {
-    await expect(
-      svc.create('tenant-a', 'user-a', 'ADMIN', {
-        ...dto,
-        evtMeetingUrl: undefined,
-      }),
-    ).rejects.toThrow('MEETING_URL_REQUIRED');
+  it.each([undefined, '', '   '])('creates Google classes with pending links: %s', async (url) => {
+    const result = await svc.create('tenant-a', 'user-a', 'ADMIN', { ...dto, evtMeetingUrl: url });
+    expect(result.meetingUrl).toBeNull();
+    expect(provision).not.toHaveBeenCalled();
+  });
+  it('adds, preserves and clears a Google link on later edits', async () => {
+    repo.findOne.mockResolvedValue({ ...event, meetingProvider: 'GOOGLE_MEET', meetingUrl: null });
+    const added = await svc.update('tenant-a', 'user-a', 'ADMIN', 'evt', { evtMeetingUrl: dto.evtMeetingUrl, evtEditReason: 'Add link' });
+    expect(added.meetingUrl).toBe(dto.evtMeetingUrl);
+    repo.findOne.mockResolvedValue({ ...event, meetingProvider: 'GOOGLE_MEET', meetingUrl: dto.evtMeetingUrl });
+    const kept = await svc.update('tenant-a', 'user-a', 'ADMIN', 'evt', { evtTitle: 'Renamed', evtEditReason: 'Title only' });
+    expect(kept.meetingUrl).toBe(dto.evtMeetingUrl);
+    const cleared = await svc.update('tenant-a', 'user-a', 'ADMIN', 'evt', { evtMeetingUrl: '', evtEditReason: 'Clear link' });
+    expect(cleared.meetingUrl).toBeNull();
+    expect(provision).not.toHaveBeenCalled();
+  });
+  it('rejects attempts to override the tenant provider before writing', async () => {
     await expect(
       svc.create('tenant-a', 'user-a', 'ADMIN', {
         ...dto,

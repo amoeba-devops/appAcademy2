@@ -382,14 +382,14 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       return;
     }
 
-    if (!isLevelTest && !blockedBoda && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE') {
+    if (!isLevelTest && !blockedBoda && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE' && resolvedMeetingProvider !== 'GOOGLE_MEET') {
       if (!values.evtMeetingUrl || !/^https?:\/\//i.test(values.evtMeetingUrl)) {
         setError(t('error.meetingUrlRequired'));
         return;
       }
     }
 
-    if (resolvedMeetingProvider === 'GOOGLE_MEET' && !isGoogleMeetUrl(values.evtMeetingUrl)) {
+    if (resolvedMeetingProvider === 'GOOGLE_MEET' && values.evtMeetingUrl.trim() && !isGoogleMeetUrl(values.evtMeetingUrl.trim())) {
       setError(t('common:video.invalidLink')); return;
     }
 
@@ -420,7 +420,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
 
     if (values.evtDescription) dto.evtDescription = values.evtDescription;
     if (values.evtLocationText) dto.evtLocationText = values.evtLocationText;
-    if (!isLevelTest && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE' && values.evtMeetingUrl) {
+    if (!isLevelTest && resolvedMeetingProvider !== 'BODASCHOOL' && resolvedMeetingProvider !== 'NONE' && (resolvedMeetingProvider === 'GOOGLE_MEET' || values.evtMeetingUrl)) {
       dto.evtMeetingUrl = values.evtMeetingUrl.trim();
     }
     if (isEdit) {
@@ -826,7 +826,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   </div>
                   {resolvedMeetingProvider !== 'NONE' && (
                     <div>
-                      <label htmlFor="cal-meeting-url" className={labelClass}>{t(resolvedMeetingProvider === 'GOOGLE_MEET' ? 'common:video.link' : 'field.meetingUrl')} *</label>
+                      <label htmlFor="cal-meeting-url" className={labelClass}>{t(resolvedMeetingProvider === 'GOOGLE_MEET' ? 'common:video.optionalLink' : 'field.meetingUrl')}{resolvedMeetingProvider !== 'GOOGLE_MEET' && ' *'}</label>
                       <input
                         id="cal-meeting-url"
                         type="url"

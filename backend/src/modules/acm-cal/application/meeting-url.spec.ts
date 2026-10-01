@@ -9,8 +9,6 @@ describe('Google Meet links', () => {
     ).toBe('https://meet.google.com/abc-defg-hij?authuser=1');
   });
   it.each([
-    undefined,
-    '',
     'http://meet.google.com/abc-defg-hij',
     'https://meet.google.com.evil.test/abc-defg-hij',
     'https://evil.test/abc-defg-hij',
@@ -22,6 +20,10 @@ describe('Google Meet links', () => {
     'https://meet.google.com/abc-defg-hij/extra',
   ])('rejects %s', (url) => {
     expect(() => validateMeetingUrl('GOOGLE_MEET', url)).toThrow();
+  });
+  it.each([undefined, null, '', '   '])('allows pending Google link %s', (url) => {
+    expect(validateMeetingUrl('GOOGLE_MEET', url)).toBeNull();
+    expect(() => validateMeetingUrl('OTHER', url)).toThrow('MEETING_URL_REQUIRED');
   });
   it('keeps ordinary meetings and no-meeting events compatible', () => {
     expect(validateMeetingUrl('OTHER', 'https://example.com/meeting')).toBe(
