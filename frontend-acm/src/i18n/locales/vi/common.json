@@ -860,5 +860,31 @@
     "convert": "Dùng cài đặt hiện tại",
     "join": "Vào Google Meet",
     "changed": "Cài đặt đã thay đổi. Vui lòng tải lại trang."
+  },
+  "inbox": {
+    "title": "Thông báo",
+    "bell": "Thông báo, {{count}} chưa đọc",
+    "all": "Tất cả",
+    "unread": "Chưa đọc",
+    "read": "Đã đọc",
+    "readAll": "Đánh dấu tất cả đã đọc",
+    "viewAll": "Xem tất cả thông báo",
+    "empty": "Không có thông báo.",
+    "error": "Không thể tải thông báo.",
+    "retry": "Thử lại",
+    "loading": "Đang tải…",
+    "more": "Xem thêm",
+    "unavailable": "Mục không còn tồn tại hoặc bạn không có quyền truy cập.",
+    "occurrences": "{{count}} buổi",
+    "mentionedMessage": "Tin nhắn nhắc đến bạn",
+    "mention": "Nhắc đến thành viên",
+    "removeMention": "Xóa nhắc tên",
+    "events": {
+      "CSL_CREATED": "Đã nhận tư vấn mới",
+      "CSL_STAGE": "Trạng thái tư vấn đã thay đổi",
+      "CAL_CREATED": "Đã tạo lịch học",
+      "CAL_UPDATED": "Lịch học đã thay đổi",
+      "CHAT_MENTION": "Bạn được nhắc đến trong trò chuyện"
+    }
   }
 }

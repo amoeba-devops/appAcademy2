@@ -27,6 +27,9 @@ export class TalkMessageTypeormEntity {
   @Column({ name: 'tms_type', type: 'varchar', length: 10, default: 'TEXT' })
   type!: TalkMessageType;
 
+  @Column({ name: 'tms_mentions', type: 'jsonb', default: () => "'[]'" })
+  mentions!: { kind: TalkMemberKind; refId: string; name: string }[];
+
   @Column({ name: 'tms_content', type: 'text', default: '' })
   content!: string;
 

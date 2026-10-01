@@ -860,5 +860,31 @@
     "convert": "현재 설정으로 변경",
     "join": "구글미트 입장",
     "changed": "설정이 변경되었습니다. 화면을 새로고침해 주세요."
+  },
+  "inbox": {
+    "title": "알림",
+    "bell": "알림, 안 읽음 {{count}}건",
+    "all": "전체",
+    "unread": "안 읽음",
+    "read": "읽음",
+    "readAll": "모두 읽음",
+    "viewAll": "전체 알림 보기",
+    "empty": "알림이 없습니다.",
+    "error": "알림을 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "loading": "불러오는 중…",
+    "more": "더 보기",
+    "unavailable": "대상이 삭제되었거나 접근 권한이 없습니다.",
+    "occurrences": "{{count}}회",
+    "mentionedMessage": "멘션된 메시지",
+    "mention": "멘션할 구성원",
+    "removeMention": "멘션 제거",
+    "events": {
+      "CSL_CREATED": "신규 상담이 접수되었습니다",
+      "CSL_STAGE": "상담 상태가 변경되었습니다",
+      "CAL_CREATED": "수업일정이 등록되었습니다",
+      "CAL_UPDATED": "수업일정이 변경되었습니다",
+      "CHAT_MENTION": "채팅에서 나를 멘션했습니다"
+    }
   }
 }

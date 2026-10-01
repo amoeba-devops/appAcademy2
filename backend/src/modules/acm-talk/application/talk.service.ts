@@ -1,3 +1,4 @@
+import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import {
   BadRequestException,
   ForbiddenException,
@@ -78,6 +79,7 @@ export interface TalkChannelView {
 }
 
 export interface TalkMessageView {
+  mentions: { kind: TalkMemberKind; refId: string; name: string }[];
   id: string;
   channelId: string;
   type: 'TEXT' | 'FILE';
@@ -196,8 +198,9 @@ export class TalkService {
     );
     const lastByChannel = new Map(lastRows.map((r) => [r.tlc_id, r]));
 
-    const unreadRows: Array<{ tlc_id: string; c: string }> = await this.ds.query(
-      `SELECT m.tlc_id, COUNT(*)::text AS c
+    const unreadRows: Array<{ tlc_id: string; c: string }> =
+      await this.ds.query(
+        `SELECT m.tlc_id, COUNT(*)::text AS c
          FROM amb_acm_talk_message m
          JOIN amb_acm_talk_member me
            ON me.tlc_id = m.tlc_id AND me.ent_id = m.ent_id
@@ -207,9 +210,11 @@ export class TalkService {
           AND NOT (m.tms_sender_kind = $3 AND m.tms_sender_ref = $4)
           AND (me.tlm_last_read_at IS NULL OR m.created_at > me.tlm_last_read_at)
         GROUP BY m.tlc_id`,
-      [entId, liveIds, actor.kind, actor.refId],
+        [entId, liveIds, actor.kind, actor.refId],
+      );
+    const unreadByChannel = new Map(
+      unreadRows.map((r) => [r.tlc_id, Number(r.c)]),
     );
-    const unreadByChannel = new Map(unreadRows.map((r) => [r.tlc_id, Number(r.c)]));
 
     const views = channels.map((c) => {
       const members = allMembers
@@ -370,7 +375,11 @@ export class TalkService {
     members: TalkMemberInput[],
   ): Promise<TalkChannelView> {
     const me: TalkActor = { kind: 'USER', refId: operatorUserId };
-    const channel = await this.getOwnedChannel(entId, channelId, operatorUserId);
+    const channel = await this.getOwnedChannel(
+      entId,
+      channelId,
+      operatorUserId,
+    );
     if (channel.type !== 'GROUP') {
       throw new BadRequestException('DM_MEMBERS_FIXED');
     }
@@ -420,7 +429,11 @@ export class TalkService {
     operatorUserId: string,
     channelId: string,
   ): Promise<void> {
-    const channel = await this.getOwnedChannel(entId, channelId, operatorUserId);
+    const channel = await this.getOwnedChannel(
+      entId,
+      channelId,
+      operatorUserId,
+    );
     // 삭제 이벤트는 삭제 전 멤버에게 전파.
     await this.emitChannelUpdate(entId, channelId);
     channel.deletedAt = new Date();
@@ -473,28 +486,110 @@ export class TalkService {
     };
   }
 
+  async message(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    id: string,
+  ) {
+    await this.assertMember(entId, channelId, actor);
+    const m = await this.messageRepo.findOneBy({
+      entId,
+      channelId,
+      id,
+      deletedAt: IsNull(),
+    });
+    if (!m) throw new NotFoundException('MESSAGE_NOT_FOUND');
+    const names = await this.resolveNames(entId, [
+      { kind: m.senderKind, refId: m.senderRef },
+    ]);
+    return this.toMessageView(m, actor, names);
+  }
+
   async sendMessage(
     entId: string,
     actor: TalkActor,
     channelId: string,
     content: string,
+    mentions: unknown = [],
   ): Promise<TalkMessageView> {
     await this.assertMember(entId, channelId, actor);
-    const trimmed = (content ?? '').trim();
+    if (typeof content !== 'string')
+      throw new BadRequestException('INVALID_MESSAGE');
+    const trimmed = content.trim();
     if (!trimmed) throw new BadRequestException('EMPTY_MESSAGE');
     if (trimmed.length > MAX_CONTENT) {
       throw new BadRequestException('MESSAGE_TOO_LONG');
     }
-    const saved = await this.messageRepo.save(
-      this.messageRepo.create({
+    if (!Array.isArray(mentions) || mentions.length > 50)
+      throw new BadRequestException('INVALID_MENTIONS');
+    const targets: TalkMemberInput[] = [];
+    for (const raw of mentions as unknown[]) {
+      if (!raw || typeof raw !== 'object')
+        throw new BadRequestException('INVALID_MENTIONS');
+      const item = raw as Record<string, unknown>;
+      if (
+        (item.kind !== 'USER' && item.kind !== 'TEACHER') ||
+        typeof item.refId !== 'string' ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          item.refId,
+        )
+      )
+        throw new BadRequestException('INVALID_MENTIONS');
+      if (!targets.some((t) => t.kind === item.kind && t.refId === item.refId))
+        targets.push({ kind: item.kind, refId: item.refId });
+    }
+    const names = await this.resolveNames(entId, [...targets, actor]);
+    const saved = await this.ds.transaction(async (manager) => {
+      const members: { tlm_kind: string; tlm_ref_id: string }[] =
+        await manager.query(
+          'SELECT tlm_kind,tlm_ref_id FROM amb_acm_talk_member WHERE ent_id=$1 AND tlc_id=$2 AND tlm_left_at IS NULL FOR SHARE',
+          [entId, channelId],
+        );
+      if (
+        !members.some(
+          (m) => m.tlm_kind === actor.kind && m.tlm_ref_id === actor.refId,
+        )
+      )
+        throw new ForbiddenException('NOT_CHANNEL_MEMBER');
+      for (const t of targets) {
+        if (
+          !members.some(
+            (m) => m.tlm_kind === t.kind && m.tlm_ref_id === t.refId,
+          )
+        )
+          throw new BadRequestException('MENTION_NOT_MEMBER');
+        const name = names.get(actorKey(t));
+        if (!name || !trimmed.includes('@' + name))
+          throw new BadRequestException('MENTION_TEXT_MISSING');
+      }
+      const saved = await manager.save(
+        TalkMessageTypeormEntity,
+        this.messageRepo.create({
+          entId,
+          channelId,
+          senderKind: actor.kind,
+          senderRef: actor.refId,
+          type: 'TEXT',
+          content: trimmed,
+          mentions: targets.map((t) => ({
+            ...t,
+            name: names.get(actorKey(t))!,
+          })),
+        }),
+      );
+      await enqueueInbox(manager, {
         entId,
-        channelId,
-        senderKind: actor.kind,
-        senderRef: actor.refId,
-        type: 'TEXT',
-        content: trimmed,
-      }),
-    );
+        actorId: actor.kind === 'USER' ? actor.refId : null,
+        type: 'CHAT_MENTION',
+        targetId: saved.id,
+        recipientIds: targets
+          .filter((t) => t.kind === 'USER')
+          .map((t) => t.refId),
+        payload: { channelId, senderName: names.get(actorKey(actor)) ?? '' },
+      });
+      return saved;
+    });
     await this.afterSend(entId, channelId, actor, saved);
     const nameMap = await this.resolveNames(entId, [actor]);
     return this.toMessageView(saved, actor, nameMap);
@@ -633,6 +728,7 @@ export class TalkService {
     return {
       id: m.id,
       channelId: m.channelId,
+      mentions: m.mentions ?? [],
       type: m.type,
       content: m.content,
       filename: m.filename ?? null,
@@ -640,13 +736,17 @@ export class TalkService {
       senderKind: m.senderKind,
       senderRefId: m.senderRef,
       senderName:
-        nameMap.get(actorKey({ kind: m.senderKind, refId: m.senderRef })) ?? '-',
+        nameMap.get(actorKey({ kind: m.senderKind, refId: m.senderRef })) ??
+        '-',
       mine: m.senderKind === viewer.kind && m.senderRef === viewer.refId,
       createdAt: m.createdAt.toISOString(),
     };
   }
 
-  private async memberKeys(entId: string, channelId: string): Promise<string[]> {
+  private async memberKeys(
+    entId: string,
+    channelId: string,
+  ): Promise<string[]> {
     const members = await this.memberRepo.find({
       where: { entId, channelId, leftAt: IsNull() },
     });

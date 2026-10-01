@@ -17,6 +17,7 @@ interface AdminSseEvent {
   type: 'csl:new-inquiry' | 'heartbeat';
   data?: {
     inqId: string;
+    actorId?: string | null;
     seqNo: number;
     inflowType?: string | null;
     applyType?: string | null;
@@ -82,6 +83,9 @@ export function AdminRealtime() {
   const onAdminEvent = useCallback(
     (e: AdminSseEvent) => {
       if (e.type === 'csl:new-inquiry' && e.data) {
+        // Own actions update the list without producing a self-notification.
+        void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+        if(e.data.actorId===user?.id || user?.role==='TEACHER') return;
         // 알림 필수 — sticky (수동 닫기 전 유지).
         toast.info(
           t('realtime.newInquiry', {
@@ -91,13 +95,13 @@ export function AdminRealtime() {
           {
             sticky: true,
             actionLabel: t('realtime.openInquiries', '상담 목록 열기'),
-            onAction: () => navigate('/admin/csl'),
+            onAction: () => navigate(`/admin/csl/${e.data!.inqId}`),
           },
         );
         void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
       }
     },
-    [toast, t, navigate, qc],
+    [toast, t, navigate, qc, user?.id, user?.role],
   );
 
   useSseStream<TalkSseEvent>(

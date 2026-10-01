@@ -127,14 +127,29 @@ export class TalkAdminController {
     );
   }
 
+  @Get('channels/:id/messages/:messageId')
+  message(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('messageId', ParseUUIDPipe) messageId: string,
+  ) {
+    return this.svc.message(u.entId, this.actor(u), id, messageId);
+  }
+
   @Post('channels/:id/messages')
   @ApiOperation({ summary: 'Send a text message' })
   send(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { content: string },
+    @Body() body: { content: string; mentions?: unknown },
   ) {
-    return this.svc.sendMessage(u.entId, this.actor(u), id, body.content);
+    return this.svc.sendMessage(
+      u.entId,
+      this.actor(u),
+      id,
+      body.content,
+      body.mentions,
+    );
   }
 
   @Post('channels/:id/files')

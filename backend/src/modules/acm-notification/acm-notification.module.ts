@@ -1,3 +1,5 @@
+import { InboxService } from './application/inbox.service';
+import { InboxController } from './presentation/inbox.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -25,8 +27,17 @@ import { AdminEventsController } from './presentation/admin-events.controller';
       ACM_DS,
     ),
   ],
-  controllers: [NotificationLogController, AdminEventsController],
-  providers: [NotificationService, AdminEventsSseService, CslCreatedListener],
+  controllers: [
+    InboxController,
+    NotificationLogController,
+    AdminEventsController,
+  ],
+  providers: [
+    InboxService,
+    NotificationService,
+    AdminEventsSseService,
+    CslCreatedListener,
+  ],
   exports: [NotificationService, AdminEventsSseService],
 })
 export class AcmNotificationModule {}

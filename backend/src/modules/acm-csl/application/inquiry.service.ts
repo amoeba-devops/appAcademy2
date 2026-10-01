@@ -1,4 +1,8 @@
-import { replaceEnrollmentCourses, validateEnrollmentCourses } from './enrollment-courses';
+import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
+import {
+  replaceEnrollmentCourses,
+  validateEnrollmentCourses,
+} from './enrollment-courses';
 import {
   readEnglishName,
   setEnglishName,
@@ -173,6 +177,13 @@ export class InquiryService {
         this.crypto,
         dto.studentNameEn !== undefined,
       );
+      await enqueueInbox(manager, {
+        entId,
+        actorId,
+        type: 'CSL_CREATED',
+        targetId: saved.id,
+        payload: { seqNo },
+      });
       return saved;
     });
 
@@ -1246,21 +1257,33 @@ export class InquiryService {
     if (toStage === 'CLASS_STARTED') inq.enrolledAt = new Date();
     if (toStage === 'DROPPED') inq.closedAt = new Date();
     if (direction === 'REACTIVATE') inq.closedAt = null;
-    const saved = await this.inq.save(inq);
+    const saved = await this.ds.transaction(async (manager) => {
+      const saved = await manager.save(InquiryTypeormEntity, inq);
 
-    await this.transitions.save(
-      this.transitions.create({
-        id: randomUUID(),
-        entId,
-        inqId: inq.id,
-        fromStatus: fromStage,
-        toStatus: toStage,
-        direction,
-        reasonCode: reasonCode ?? null,
-        note: note ?? null,
-        actorId: actorId ?? null,
-      }),
-    );
+      await manager.save(
+        this.transitions.create({
+          id: randomUUID(),
+          entId,
+          inqId: inq.id,
+          fromStatus: fromStage,
+          toStatus: toStage,
+          direction,
+          reasonCode: reasonCode ?? null,
+          note: note ?? null,
+          actorId: actorId ?? null,
+        }),
+      );
+
+      if (fromStage !== toStage)
+        await enqueueInbox(manager, {
+          entId,
+          actorId,
+          type: 'CSL_STAGE',
+          targetId: inq.id,
+          payload: { seqNo: inq.seqNo, fromStage, toStage },
+        });
+      return saved;
+    });
 
     this.events.emit('acm.csl.stage.changed', {
       entId,

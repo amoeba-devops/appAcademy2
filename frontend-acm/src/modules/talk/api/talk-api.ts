@@ -1,25 +1,25 @@
-import { apiClient } from '@/lib/api-client';
+import { apiClient } from "@/lib/api-client";
 
 /**
  * REQ-260728C — 로비채팅 API. 콘솔(admin, /acm/talk)과 강사 포털
  * (portal, /portal/talk)이 동일 스키마를 공유한다 — mode 로 base 경로만 분기.
  */
-export type TalkMode = 'admin' | 'portal';
-export type TalkMemberKind = 'USER' | 'TEACHER';
+export type TalkMode = "admin" | "portal";
+export type TalkMemberKind = "USER" | "TEACHER";
 
 const base = (mode: TalkMode) =>
-  mode === 'admin' ? '/acm/talk' : '/portal/talk';
+  mode === "admin" ? "/acm/talk" : "/portal/talk";
 
 export interface TalkMember {
   kind: TalkMemberKind;
   refId: string;
   name: string;
-  role: 'OWNER' | 'MEMBER';
+  role: "OWNER" | "MEMBER";
 }
 
 export interface TalkChannel {
   id: string;
-  type: 'GROUP' | 'DIRECT';
+  type: "GROUP" | "DIRECT";
   name: string;
   members: TalkMember[];
   unreadCount: number;
@@ -29,9 +29,10 @@ export interface TalkChannel {
 }
 
 export interface TalkMessage {
+  mentions?: (TalkMemberInput & { name: string })[];
   id: string;
   channelId: string;
-  type: 'TEXT' | 'FILE';
+  type: "TEXT" | "FILE";
   content: string;
   filename: string | null;
   sizeBytes: number | null;
@@ -55,7 +56,7 @@ export interface TalkMemberInput {
 }
 
 export interface TalkSseEvent {
-  type: 'message:new' | 'message:delete' | 'channel:update' | 'heartbeat';
+  type: "message:new" | "message:delete" | "channel:update" | "heartbeat";
   channelId?: string;
   data?: unknown;
 }
@@ -66,18 +67,18 @@ export const talkApi = {
 
   // 콘솔 전용 — 개설·DM·멤버관리.
   candidates: async () =>
-    (await apiClient.get<TalkCandidate[]>('/acm/talk/candidates')).data,
+    (await apiClient.get<TalkCandidate[]>("/acm/talk/candidates")).data,
 
   createChannel: async (name: string, members: TalkMemberInput[]) =>
     (
-      await apiClient.post<TalkChannel>('/acm/talk/channels', {
+      await apiClient.post<TalkChannel>("/acm/talk/channels", {
         name,
         members,
       })
     ).data,
 
   createDm: async (target: TalkMemberInput) =>
-    (await apiClient.post<TalkChannel>('/acm/talk/channels/dm', target)).data,
+    (await apiClient.post<TalkChannel>("/acm/talk/channels/dm", target)).data,
 
   updateMembers: async (channelId: string, members: TalkMemberInput[]) =>
     (
@@ -102,22 +103,34 @@ export const talkApi = {
       })
     ).data,
 
-  send: async (mode: TalkMode, channelId: string, content: string) =>
+  message: async (channelId: string, messageId: string) =>
+    (
+      await apiClient.get<TalkMessage>(
+        `/acm/talk/channels/${channelId}/messages/${messageId}`,
+      )
+    ).data,
+
+  send: async (
+    mode: TalkMode,
+    channelId: string,
+    content: string,
+    mentions: TalkMemberInput[] = [],
+  ) =>
     (
       await apiClient.post<TalkMessage>(
         `${base(mode)}/channels/${channelId}/messages`,
-        { content },
+        { content, mentions },
       )
     ).data,
 
   sendFile: async (mode: TalkMode, channelId: string, file: File) => {
     const form = new FormData();
-    form.append('file', file);
+    form.append("file", file);
     return (
       await apiClient.post<TalkMessage>(
         `${base(mode)}/channels/${channelId}/files`,
         form,
-        { headers: { 'Content-Type': 'multipart/form-data' } },
+        { headers: { "Content-Type": "multipart/form-data" } },
       )
     ).data;
   },
@@ -125,10 +138,10 @@ export const talkApi = {
   downloadFile: async (mode: TalkMode, messageId: string, filename: string) => {
     const res = await apiClient.get(
       `${base(mode)}/files/${messageId}/download`,
-      { responseType: 'blob' },
+      { responseType: "blob" },
     );
     const url = URL.createObjectURL(res.data as Blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);

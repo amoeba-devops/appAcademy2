@@ -39,8 +39,12 @@ async function main() {
   await ds.query(
     readFileSync('../sql/acm/1024-cal-colors-recurrence.sql', 'utf8'),
   );
+  await ds.query(
+    readFileSync('../sql/acm/1025-notification-inbox.sql', 'utf8'),
+  );
   const ent = randomUUID(),
-    user = randomUUID();
+    user = randomUUID(),
+    recipient = randomUUID();
   let notified = 0;
   const u = { entId: ent, id: user, role: 'ADMIN' as const };
   const video = new VideoConfigService(ds);
@@ -110,6 +114,10 @@ async function main() {
       "INSERT INTO amb_acm_user(usr_id,ent_id,usr_email,usr_name,usr_role,usr_status) VALUES($1,$2,$3,'Repeat test','ADMIN','ACTIVE')",
       [user, ent, `${user}@example.invalid`],
     );
+    await ds.query(
+      "INSERT INTO amb_acm_user(usr_id,ent_id,usr_email,usr_name,usr_role,usr_status) VALUES($1,$2,$3,'Recipient','STAFF','ACTIVE')",
+      [recipient, ent, recipient + '@example.invalid'],
+    );
     await colors.save(ent, [
       { kind: 'CATEGORY', target: 'CLASS', palette: 'rose' },
     ]);
@@ -138,6 +146,15 @@ async function main() {
     );
     assert.equal((await list()).length, 5);
     assert.equal(notified, 1);
+    const [{ n: initialInboxCount }] = await ds.query(
+      'SELECT count(*)::int AS n FROM amb_acm_notification_outbox WHERE ent_id=$1',
+      [ent],
+    );
+    assert.equal(
+      initialInboxCount,
+      1,
+      'series create/idempotent retry produces one summary',
+    );
     await assert.rejects(() =>
       svc.create(u, { ...dto, event: { ...dto.event, evtTitle: 'changed' } }),
     );
@@ -286,6 +303,8 @@ async function main() {
     );
   } finally {
     for (const table of [
+      'amb_acm_notification_inbox',
+      'amb_acm_notification_outbox',
       'amb_acm_cal_event_review',
       'amb_acm_cal_video_config',
       'amb_acm_cal_color_setting',

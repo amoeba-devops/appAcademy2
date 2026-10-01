@@ -1,3 +1,4 @@
+import type { EntityManager } from 'typeorm';
 import {
   BadRequestException,
   ForbiddenException,
@@ -52,6 +53,22 @@ describe('TalkService', () => {
       createQueryBuilder: jest.fn(() => qb),
     };
     const ds = {
+      transaction: async (work: (m: EntityManager) => Promise<unknown>) =>
+        work({
+          save: async (_entity: unknown, value: unknown) =>
+            messageRepo.save(value),
+          query: async (sql: string) =>
+            sql.includes('FOR SHARE')
+              ? opts.member
+                ? [
+                    {
+                      tlm_kind: opts.member.kind,
+                      tlm_ref_id: opts.member.refId,
+                    },
+                  ]
+                : []
+              : [],
+        } as unknown as EntityManager),
       query: jest.fn(async (sql: string) =>
         opts.dsRows ? opts.dsRows(sql) : [],
       ),
@@ -131,7 +148,10 @@ describe('TalkService', () => {
   it('createChannel saves the operator as OWNER + members', async () => {
     const { svc, memberRepo } = build({
       channel: groupChannel(),
-      members: [activeMember(), activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' })],
+      members: [
+        activeMember(),
+        activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
+      ],
       dsRows: teacherRows,
     });
     await svc.createChannel('e1', OP, '수학팀', [
@@ -191,7 +211,12 @@ describe('TalkService', () => {
       svc.sendMessage('e1', { kind: 'USER', refId: OP }, 'chn-1', '  '),
     ).rejects.toBeInstanceOf(BadRequestException);
     await expect(
-      svc.sendMessage('e1', { kind: 'USER', refId: OP }, 'chn-1', 'x'.repeat(2001)),
+      svc.sendMessage(
+        'e1',
+        { kind: 'USER', refId: OP },
+        'chn-1',
+        'x'.repeat(2001),
+      ),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     const view = await svc.sendMessage(

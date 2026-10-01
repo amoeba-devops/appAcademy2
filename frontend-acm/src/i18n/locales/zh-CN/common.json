@@ -860,5 +860,31 @@
     "convert": "使用当前设置",
     "join": "进入 Google Meet",
     "changed": "设置已更改，请刷新页面。"
+  },
+  "inbox": {
+    "title": "通知",
+    "bell": "通知，{{count}} 条未读",
+    "all": "全部",
+    "unread": "未读",
+    "read": "已读",
+    "readAll": "全部标为已读",
+    "viewAll": "查看全部通知",
+    "empty": "暂无通知。",
+    "error": "无法加载通知。",
+    "retry": "重试",
+    "loading": "加载中…",
+    "more": "加载更多",
+    "unavailable": "此项目已不可用或您无权访问。",
+    "occurrences": "{{count}} 次",
+    "mentionedMessage": "提及您的消息",
+    "mention": "提及成员",
+    "removeMention": "移除提及",
+    "events": {
+      "CSL_CREATED": "收到新的咨询",
+      "CSL_STAGE": "咨询状态已更改",
+      "CAL_CREATED": "已创建课程日程",
+      "CAL_UPDATED": "课程日程已更改",
+      "CHAT_MENTION": "有人在聊天中提及您"
+    }
   }
 }

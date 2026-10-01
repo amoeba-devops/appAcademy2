@@ -1,3 +1,4 @@
+import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import {
   BadRequestException,
   ConflictException,
@@ -134,6 +135,19 @@ export class RecurrenceService {
           series,
           generationHorizon(preview.items[0].start),
         );
+        const [first]: { evt_id: string }[] = await m.query(
+          'SELECT evt_id FROM amb_acm_cal_recurrence_occurrence WHERE ent_id=$1 AND crs_id=$2 ORDER BY cro_key LIMIT 1',
+          [u.entId, series.crs_id],
+        );
+        if (first)
+          await enqueueInbox(m, {
+            entId: u.entId,
+            actorId: u.id,
+            type: 'CAL_CREATED',
+            targetId: first.evt_id,
+            assigneeIds: [event.evtAssigneeTchId],
+            payload: { title: event.evtTitle, count: created },
+          });
         return { series, created };
       }),
     );
@@ -492,6 +506,9 @@ export class RecurrenceService {
           );
           await this.validateReferences(m, u.entId, check);
         }
+        let actualChanges = 0;
+        const assigneeIds = new Set<string>();
+        let changedEventId = eventId;
         for (const o of eligible) {
           const old = await repo.findOneByOrFail({
             entId: u.entId,
@@ -550,6 +567,21 @@ export class RecurrenceService {
                 before: old[f] == null ? null : String(old[f]),
                 after: saved[f] == null ? null : String(saved[f]),
               }));
+            const nextInvitees = dto.event?.evtInvitees;
+            const inviteeKeys = (items: { kind: string; refId: string }[]) =>
+              items
+                .map((i) => i.kind + ':' + i.refId)
+                .sort()
+                .join(',');
+            const inviteesChanged =
+              nextInvitees !== undefined &&
+              inviteeKeys(nextInvitees) !== inviteeKeys(inv);
+            if (changes.length || inviteesChanged) {
+              actualChanges++;
+              changedEventId = saved.id;
+              if (old.assigneeTchId) assigneeIds.add(old.assigneeTchId);
+              if (saved.assigneeTchId) assigneeIds.add(saved.assigneeTchId);
+            }
             await m.getRepository(CalEventRevisionTypeormEntity).save({
               entId: u.entId,
               evtId: old.id,
@@ -584,6 +616,19 @@ export class RecurrenceService {
           'UPDATE amb_acm_cal_recurrence_series SET crs_version=crs_version+1,updated_at=now() WHERE ent_id=$1 AND crs_id=$2',
           [u.entId, s.crs_id],
         );
+        if (!remove && actualChanges)
+          await enqueueInbox(m, {
+            entId: u.entId,
+            actorId: u.id,
+            type: 'CAL_UPDATED',
+            targetId: changedEventId,
+            assigneeIds: [...assigneeIds],
+            payload: {
+              title: dto.event?.evtTitle ?? selected.title,
+              count: actualChanges,
+              scope: dto.scope,
+            },
+          });
         return { changed: eligible.length, protected: protectedCount };
       }),
     );
