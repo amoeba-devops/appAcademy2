@@ -25,7 +25,7 @@ async function main() {
   const u = { entId: ent, id: randomUUID(), role: 'ADMIN' as const };
   const svc = new CollectionsService(ds, {
     getTimezone: async () => 'Asia/Seoul',
-  } as TenantSettingsService);
+  } as unknown as TenantSettingsService);
   try {
     await ds.query(readFileSync('../sql/acm/1026-pay-collections.sql', 'utf8'));
     await ds.query(

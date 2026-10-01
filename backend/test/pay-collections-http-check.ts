@@ -47,7 +47,7 @@ async function main() {
   );
   const svc = new CollectionsService(ds, {
     getTimezone: async () => 'Asia/Seoul',
-  } as TenantSettingsService);
+  } as unknown as TenantSettingsService);
   const mod = await Test.createTestingModule({
     controllers: [CollectionsController],
     providers: [{ provide: CollectionsService, useValue: svc }, RolesGuard],
