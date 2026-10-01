@@ -1,3 +1,4 @@
+import type { EntityManager } from 'typeorm';
 import { IcsImportService } from './ics/ics-import.service';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -33,6 +34,16 @@ describe('calendar video transitions', () => {
     bodaRoomType: 'ONE_TO_ONE',
   };
   const repo = {
+    manager: {
+      transaction: async (work: (m: EntityManager) => Promise<unknown>) =>
+        work({
+          save: async (entity: unknown, value?: object) =>
+            value ? repo.save(value) : revision.save(entity),
+          query: async () => [],
+          getRepository: () => repo,
+        } as unknown as EntityManager),
+    },
+    update: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn((x: unknown) => x),
     save: jest.fn(),
@@ -230,6 +241,7 @@ describe('calendar video transitions', () => {
     });
     expect(provision).toHaveBeenCalledWith(
       expect.objectContaining({ entId: 'tenant-a', evtId: 'evt' }),
+      expect.objectContaining({ save: expect.any(Function) }),
     );
   });
 });

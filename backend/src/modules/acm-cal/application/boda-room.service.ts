@@ -198,14 +198,16 @@ export class BodaRoomService {
     evtId: string,
     entId: string,
     roomType: BodaRoomType,
+    manager?: EntityManager,
   ): Promise<void> {
-    const room = await this.repo.findOne({ where: { evtId, entId } });
+    const repo = manager?.getRepository(BodaRoomTypeormEntity) ?? this.repo;
+    const room = await repo.findOne({ where: { evtId, entId } });
     if (!room || room.status !== 'PENDING') return;
     const cfg = await this.cfg.findByEntId(entId);
     const desired = this.resolveRoomCode(cfg, roomType);
     if (room.roomCode !== desired) {
       room.roomCode = desired;
-      await this.repo.save(room);
+      await repo.save(room);
       this.logger.log(
         `BODA room roomCode updated evtId=${evtId} → ${desired} (${roomType})`,
       );

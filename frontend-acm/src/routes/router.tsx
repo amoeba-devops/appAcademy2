@@ -1,3 +1,4 @@
+import { NotificationInboxPage } from '@/modules/notifications/components-inbox';
 import { AdPlatformsPage } from '@/modules/cfg/pages/ad-platforms-page';
 import { AiConfigPage } from '@/modules/cfg/pages/ai-config-page';
 import { SchoolDetailPage } from '@/modules/sch/pages/school-detail-page';
@@ -219,6 +220,7 @@ export const router = createBrowserRouter([
       { path: 'posts', element: <PostsListPage /> },
       { path: 'posts/new', element: <PostEditorPage /> },
       { path: 'posts/:id', element: <PostEditorPage /> },
+      { path: 'notification-inbox', element: <NotificationInboxPage /> },
       { path: 'notifications', element: <NotificationsListPage /> },
       { path: 'enrollments', element: <EnrollmentsListPage /> },
       { path: 'qna', element: <QnaListPage /> },

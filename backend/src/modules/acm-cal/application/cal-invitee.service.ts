@@ -1,3 +1,4 @@
+import type { EntityManager } from 'typeorm';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -121,8 +122,11 @@ export class CalInviteeService {
     entId: string,
     evtId: string,
     incoming: CalInviteeInputDto[],
+    manager?: EntityManager,
   ): Promise<InviteeDiff> {
-    const existing = await this.invitees.find({ where: { entId, evtId } });
+    const existing = await (
+      manager?.getRepository(CalInviteeTypeormEntity) ?? this.invitees
+    ).find({ where: { entId, evtId } });
     const incomingKey = (i: CalInviteeInputDto) => `${i.kind}:${i.refId}`;
     const existingKey = (e: CalInviteeTypeormEntity) => `${e.kind}:${e.refId}`;
 
@@ -146,12 +150,17 @@ export class CalInviteeService {
   }
 
   /** Apply diff: insert added, delete removed. Returns saved added rows. */
-  async applyDiff(diff: InviteeDiff): Promise<CalInviteeTypeormEntity[]> {
+  async applyDiff(
+    diff: InviteeDiff,
+    manager?: EntityManager,
+  ): Promise<CalInviteeTypeormEntity[]> {
+    const repo =
+      manager?.getRepository(CalInviteeTypeormEntity) ?? this.invitees;
     if (diff.removedIds.length > 0) {
-      await this.invitees.delete(diff.removedIds);
+      await repo.delete(diff.removedIds);
     }
     if (diff.added.length === 0) return [];
-    return this.invitees.save(diff.added);
+    return repo.save(diff.added);
   }
 
   /** Replace status fields after notification attempt. */

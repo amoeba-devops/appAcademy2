@@ -1,3 +1,6 @@
+import type { EntityManager } from 'typeorm';
+import type { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
+import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import { IcsImportService } from './ics/ics-import.service';
 import { VideoConfigService } from './video-config.service';
 import { validateMeetingUrl } from './meeting-url';
@@ -603,17 +606,29 @@ export class CalEventService {
       dto,
       allowPendingLink,
     );
-    const saved = await this.repo.save(entity);
+    let added: CalInviteeTypeormEntity[] = [];
+    const saved = await this.repo.manager.transaction(async (manager) => {
+      const saved = await manager.save(CalEventTypeormEntity, entity);
+      await this.ensureBodaLauncher(entId, saved, manager);
+      if (dto.evtInvitees?.length)
+        added = await this.inviteeSvc.applyDiff(
+          await this.inviteeSvc.diff(entId, saved.id, dto.evtInvitees, manager),
+          manager,
+        );
+      await enqueueInbox(manager, {
+        entId,
+        actorId: actorUserId,
+        type: 'CAL_CREATED',
+        targetId: saved.id,
+        assigneeIds: [saved.assigneeTchId],
+        payload: { title: saved.title },
+      });
+      return saved;
+    });
 
-    await this.ensureBodaLauncher(entId, saved);
-
-    let notifySummary: NotifySummary | null = null;
-    if (dto.evtInvitees && dto.evtInvitees.length > 0) {
-      await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees);
-      const diff = await this.inviteeSvc.diff(entId, saved.id, dto.evtInvitees);
-      const added = await this.inviteeSvc.applyDiff(diff);
-      notifySummary = await this.notifier.notifyAdded(entId, saved, added);
-    }
+    const notifySummary: NotifySummary | null = added.length
+      ? await this.notifier.notifyAdded(entId, saved, added)
+      : null;
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
     const assigneeMap = await this.lookupAssignees(entId, [
@@ -715,48 +730,81 @@ export class CalEventService {
       e.meetingUrl = validateMeetingUrl(e.meetingProvider, e.meetingUrl);
     }
 
-    e.updatedAt = new Date();
-    const saved = await this.repo.save(e);
-
-    // REQ-260728 — 사용자 수정 히스토리(변경 필드가 있을 때만 1건).
+    // Validate references before committing the event and its notification.
+    if (dto.evtInvitees)
+      await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees);
+    if (e.assigneeTchId)
+      await this.inviteeSvc.assertSameTenant(entId, [
+        { kind: 'TEACHER', refId: e.assigneeTchId },
+      ]);
     const changes = this.diffRevision(
       beforeSnapshot,
-      this.snapshotForRevision(saved),
+      this.snapshotForRevision(e),
     );
-    if (changes.length > 0) {
-      await this.revisionRepo.save(
-        this.revisionRepo.create({
-          entId,
-          evtId: saved.id,
-          editorUserId: actorUserId,
-          reason: dto.evtEditReason,
-          changes,
-        }),
-      );
-    }
-
-    if (saved.meetingProvider === 'BODASCHOOL' && config.bodaEnabled) {
-      const shouldProvision =
-        !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
-      if (shouldProvision) {
-        await this.ensureBodaLauncher(entId, saved);
-      } else if (saved.bodaRoomType !== prevBodaRoomType) {
-        // 룸 유형 토글(1:1↔1:N) — 아직 개설 전(PENDING)이면 roomCode 교체.
-        await this.bodaRoomSvc.applyRoomTypeIfPending(
-          saved.id,
-          entId,
-          saved.bodaRoomType,
-        );
+    e.updatedAt = new Date();
+    let added: CalInviteeTypeormEntity[] = [];
+    const saved = await this.repo.manager.transaction(async (manager) => {
+      const saved = await manager.save(CalEventTypeormEntity, e);
+      if (saved.meetingProvider === 'BODASCHOOL' && config.bodaEnabled) {
+        const shouldProvision =
+          !saved.meetingUrl || prevMeetingProvider !== 'BODASCHOOL';
+        if (shouldProvision) {
+          await this.ensureBodaLauncher(entId, saved, manager);
+        } else if (saved.bodaRoomType !== prevBodaRoomType) {
+          // 룸 유형 토글(1:1↔1:N) — 아직 개설 전(PENDING)이면 roomCode 교체.
+          await this.bodaRoomSvc.applyRoomTypeIfPending(
+            saved.id,
+            entId,
+            saved.bodaRoomType,
+            manager,
+          );
+        }
       }
-    }
 
-    let notifySummary: NotifySummary | null = null;
-    if (dto.evtInvitees !== undefined) {
-      await this.inviteeSvc.assertSameTenant(entId, dto.evtInvitees);
-      const diff = await this.inviteeSvc.diff(entId, saved.id, dto.evtInvitees);
-      const added = await this.inviteeSvc.applyDiff(diff);
-      notifySummary = await this.notifier.notifyAdded(entId, saved, added);
-    }
+      let inviteesChanged = false;
+      if (dto.evtInvitees !== undefined) {
+        const diff = await this.inviteeSvc.diff(
+          entId,
+          saved.id,
+          dto.evtInvitees,
+          manager,
+        );
+        inviteesChanged = !!(diff.added.length || diff.removedIds.length);
+        added = await this.inviteeSvc.applyDiff(diff, manager);
+      }
+      if (changes.length || inviteesChanged) {
+        await manager.save(
+          this.revisionRepo.create({
+            entId,
+            evtId: saved.id,
+            editorUserId: actorUserId,
+            reason: dto.evtEditReason,
+            changes,
+          }),
+        );
+        await enqueueInbox(manager, {
+          entId,
+          actorId: actorUserId,
+          type: 'CAL_UPDATED',
+          targetId: saved.id,
+          assigneeIds: [
+            saved.assigneeTchId,
+            typeof beforeSnapshot.assigneeTchId === 'string'
+              ? beforeSnapshot.assigneeTchId
+              : null,
+          ],
+          payload: {
+            title: saved.title,
+            fields: changes.map((c) => c.field).join(', '),
+          },
+        });
+      }
+      return saved;
+    });
+
+    const notifySummary: NotifySummary | null = added.length
+      ? await this.notifier.notifyAdded(entId, saved, added)
+      : null;
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
     const assigneeMap = await this.lookupAssignees(entId, [
@@ -854,6 +902,7 @@ export class CalEventService {
       meetingUrl: e.meetingUrl ?? null,
       bodaRoomType: e.bodaRoomType ?? null,
       assigneeTchId: e.assigneeTchId ?? null,
+      clsId: e.clsId ?? null,
     };
   }
 
@@ -925,16 +974,23 @@ export class CalEventService {
   private async ensureBodaLauncher(
     entId: string,
     event: CalEventTypeormEntity,
+    manager?: EntityManager,
   ): Promise<void> {
     if (event.meetingProvider !== 'BODASCHOOL') return;
-    const { launcherUrl } = await this.bodaRoomSvc.createPending({
-      evtId: event.id,
-      entId,
-      sesId: null,
-      roomType: event.bodaRoomType,
-    });
+    const { launcherUrl } = await this.bodaRoomSvc.createPending(
+      {
+        evtId: event.id,
+        entId,
+        sesId: null,
+        roomType: event.bodaRoomType,
+      },
+      manager,
+    );
     event.meetingUrl = launcherUrl;
-    await this.repo.update({ id: event.id }, { meetingUrl: launcherUrl });
+    await (manager?.getRepository(CalEventTypeormEntity) ?? this.repo).update(
+      { id: event.id, entId },
+      { meetingUrl: launcherUrl },
+    );
   }
 
   private async lookupCslLink(

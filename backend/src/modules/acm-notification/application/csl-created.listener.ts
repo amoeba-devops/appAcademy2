@@ -30,12 +30,15 @@ export class CslCreatedListener {
       type: 'csl:new-inquiry',
       data: {
         inqId: event.inqId,
+        actorId: event.actorId ?? null,
         seqNo: event.seqNo,
         inflowType: event.inflowType ?? null,
         applyType: event.applyType ?? null,
         occurredAt: event.occurredAt,
       },
     });
-    this.log.log(`csl:new-inquiry broadcast ent=${event.entId} seq=${event.seqNo}`);
+    this.log.log(
+      `csl:new-inquiry broadcast ent=${event.entId} seq=${event.seqNo}`,
+    );
   }
 }

@@ -860,5 +860,31 @@
     "convert": "Use current settings",
     "join": "Join Google Meet",
     "changed": "Settings changed. Please refresh this page."
+  },
+  "inbox": {
+    "title": "Notifications",
+    "bell": "Notifications, {{count}} unread",
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "readAll": "Mark all read",
+    "viewAll": "View all notifications",
+    "empty": "No notifications.",
+    "error": "Could not load notifications.",
+    "retry": "Retry",
+    "loading": "Loading…",
+    "more": "Load more",
+    "unavailable": "This item is no longer available or you do not have access.",
+    "occurrences": "{{count}} occurrences",
+    "mentionedMessage": "Mentioned message",
+    "mention": "Mention a member",
+    "removeMention": "Remove mention",
+    "events": {
+      "CSL_CREATED": "New consultation received",
+      "CSL_STAGE": "Consultation status changed",
+      "CAL_CREATED": "Class schedule created",
+      "CAL_UPDATED": "Class schedule updated",
+      "CHAT_MENTION": "You were mentioned in chat"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { NotificationBell } from '@/modules/notifications/components-inbox';
 import { AdminContentLayout } from "./admin-content-layout";
 import { StudentNavigation } from "@/modules/std/components/student-navigation";
 import { useEffect, useState } from 'react';
@@ -229,6 +230,7 @@ export function AppShell() {
           </Link>
         </div>
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <LanguageSwitcher />
         </div>
       </header>

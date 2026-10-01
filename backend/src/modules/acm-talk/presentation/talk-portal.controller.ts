@@ -78,9 +78,15 @@ export class TalkPortalController {
   send(
     @PortalUser() u: PortalAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { content: string },
+    @Body() body: { content: string; mentions?: unknown },
   ) {
-    return this.svc.sendMessage(u.entId, this.actor(u), id, body.content);
+    return this.svc.sendMessage(
+      u.entId,
+      this.actor(u),
+      id,
+      body.content,
+      body.mentions,
+    );
   }
 
   @Post('channels/:id/files')
@@ -116,7 +122,10 @@ export class TalkPortalController {
 
   @Post('channels/:id/read')
   @ApiOperation({ summary: 'Mark channel as read' })
-  read(@PortalUser() u: PortalAuthUser, @Param('id', ParseUUIDPipe) id: string) {
+  read(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
     return this.svc.markRead(u.entId, this.actor(u), id);
   }
 
