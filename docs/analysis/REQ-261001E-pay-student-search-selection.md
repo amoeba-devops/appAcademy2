@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-STUDENT-SEARCH-REQ-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed to production
 created: 2026-10-01
 change_log:
   - version: 1.0.0
@@ -31,4 +31,4 @@ change_log:
 
 [작업 계획](../plan/PLN-261001E-pay-student-search-selection.md)
 
-2026-10-01 사용자 “진행” 승인 후 구현 및 로컬 브라우저 검증 완료. 운영 미배포.
+2026-10-01 사용자 “진행” 승인 후 구현 및 로컬 브라우저 검증 완료. 운영 배포 완료 (`f8f8d49`, 2026-10-02 00:17:35 KST).

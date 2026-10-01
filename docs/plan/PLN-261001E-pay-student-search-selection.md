@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-STUDENT-SEARCH-PLN-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed to production
 created: 2026-10-01
 change_log:
   - version: 1.0.0
@@ -43,4 +43,4 @@ change_log:
 
 AGENTS.md §9.2에 따라 요구사항·화면 구성안 확인 후 구현한다. 운영 배포는 후속 요청에 따라 진행한다. 기존 상담 납부 이관은 실제 납부일·총 청구액 회신 대기 상태로 별도 유지하며 이번 UI 변경으로 임의 이관하지 않는다.
 
-2026-10-01 사용자 “진행” 승인 후 구현 및 로컬 브라우저 검증 완료. 운영 미배포.
+2026-10-01 사용자 “진행” 승인 후 구현 및 로컬 브라우저 검증 완료. 운영 배포 완료 (`f8f8d49`, 2026-10-02 00:17:35 KST).
