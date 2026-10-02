@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CAL-CORRECTION-REQ-1.0.0
 version: 1.0.0
-status: Implemented; deployment pending
+status: Deployed; production data applied
 change_log:
   - version: 1.0.0
     date: 2026-10-02
@@ -13,7 +13,7 @@ change_log:
 
 사용자 요청: 수업을 정규수업으로 이관하고 수업·개인·행사 카테고리를 제거한다. 10월까지만 의도한 수업이 11월 이후 반복된 문제를 정리한다. 수정 사유 없이 저장할 수 있게 하고 강사 포털 월 달력의 +N을 통해 숨겨진 모든 일정을 열람한다.
 
-이번 요청의 반복 종료는 앞선 원본 무기한 반복 유지 요청을 변경한다. 신규 반복 기능 자체는 유지한다. 사용자의 “진행” 확인 후 구현·로컬 검증을 완료했다. 운영 변경은 배포 단계에서 수행한다.
+이번 요청의 반복 종료는 앞선 원본 무기한 반복 유지 요청을 변경한다. 신규 반복 기능 자체는 유지한다. 사용자의 “진행” 확인 후 구현·로컬 검증을 완료했다. 운영 배포와 데이터 적용을 완료했다. 결과는 RPT-261002D 보고서를 참조한다.
 
 ## 2. Evidence (확인 결과)
 
@@ -55,3 +55,5 @@ ICS 수업 원본은 단일 2,407개, 유한 반복 693개, 무기한 반복 13�
 - [ICS 이관 계획](../plan/PLN-260930-cal-ics-import.md)
 - [반복·색상 계획](../plan/PLN-260930B-cal-colors-recurrence.md)
 - [기존 수정/삭제 이력 요구사항](REQ-260728-acm-cal-event-delete-edit-audit.md)
+
+운영 적용: 2026-10-02, SHA `b5003c1`. [운영 검증 보고서](../report/RPT-261002D-cal-category-repeat-portal.md#6-production-application-운영-적용-완료) 참조.

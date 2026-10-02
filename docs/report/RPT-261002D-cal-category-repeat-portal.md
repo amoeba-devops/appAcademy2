@@ -1,8 +1,11 @@
 ---
 document_id: ACM-CAL-CORRECTION-RPT-1.0.0
-version: 1.0.0
-status: Implemented; deployment pending
+version: 1.1.0
+status: Deployed; production data applied
 change_log:
+  - version: 1.1.0
+    date: 2026-10-02
+    description: 운영 배포 및 카테고리 이관·반복 종료 적용, 관리자/강사 API와 보존 해시 검증 완료
   - version: 1.0.0
     date: 2026-10-02
     description: 카테고리 정리, 반복 종료 도구, 수정 사유 선택, 강사 포털 더보기 구현과 검증
@@ -11,7 +14,7 @@ change_log:
 
 ## 1. Result (결과)
 
-사용자의 “진행” 승인으로 [계획](../plan/PLN-261002D-cal-category-repeat-portal.md)에 따른 구현을 완료했다. **운영 배포 및 실제 데이터 이관·삭제는 아직 수행하지 않았다.** 변경은 최신 운영 main `0fe757e` 기반 독립 작업 디렉터리 `/private/tmp/acm-payment-261001`, 브랜치 `feat/cal-corrections-261002`에 있다. 원래 작업 디렉터리의 다른 구현은 덮어쓰지 않았다.
+사용자의 “진행” 승인으로 [계획](../plan/PLN-261002D-cal-category-repeat-portal.md)에 따른 구현을 완료했다. **운영 배포와 실제 데이터 이관·반복 종료를 완료했다.** 변경은 최신 운영 main `0fe757e` 기반 독립 작업 디렉터리 `/private/tmp/acm-payment-261001`, 브랜치 `feat/cal-corrections-261002`에 있다. 원래 작업 디렉터리의 다른 구현은 덮어쓰지 않았다.
 
 - 수업/개인/행사 선택지를 제거하고 신규 수업 기본값을 정규수업으로 변경했다. 회의는 편집 시 회의로 유지한다. 구형 저장값은 읽기/필터/통계/색상 응답에서 정규수업·기타로 호환한다.
 - 대상 테넌트의 기존 수업 → 정규수업, 행사 → 기타 이관 및 11월 이후 반복 회차 soft-delete 도구를 추가했다. 기존 정규수업 색상을 우선 보존한다.
@@ -75,4 +78,50 @@ node correct-cal-october.cjs --email tpiyeri@tpiglobal.network \
 
 동일 backend 의존성 환경에서 `rollback-cal-october.cjs <applied.json>`으로 복구를 시험한다(기본은 트랜잭션 rollback). 실제 복구는 `--apply`로 실행한다. 적용 후 사용자 수정이 있으면 전체 복구를 거부하여 덮어쓰지 않는다. 전후 자료는 개인정보를 포함할 수 있어 비공개 보관한다.
 
-데이터 정리 후 이전 backend로 되돌리면 새 실제 시작 제한을 이해하지 못하므로 데이터 복구와 애플리케이션 롤백 순서를 함께 결정해야 한다. 운영 배포 때 이 절차를 실행하고 결과를 본 보고서에 추가한다.
+데이터 정리 후 이전 backend로 되돌리면 새 실제 시작 제한을 이해하지 못하므로 데이터 복구와 애플리케이션 롤백 순서를 함께 결정해야 한다. 운영 적용 결과와 복구 자료 위치는 아래에 기록했다.
+
+
+## 6. Production Application (운영 적용 완료)
+
+- 사용자 “운영 데이터에 적용” 요청에 따라 필요한 코드·스키마를 먼저 배포한 뒤 정리 도구를 적용했다.
+- PR [#297](https://github.com/amoeba-devops/appAcademy2/pull/297) 병합. 운영 SHA `b5003c12b17233a48d1d35c582b6f566556c19dc` (`b5003c1`).
+- [CI 37021409872](https://github.com/amoeba-devops/appAcademy2/actions/runs/37021409872) 성공. continue-on-error가 설정된 통합 테스트 단계까지 실패 없이 통과했다.
+- [Staging 37021944933](https://github.com/amoeba-devops/appAcademy2/actions/runs/37021944933) 성공. 실제 DB의 격리된 가상 테넌트로 단일/ONE/FOLLOWING/ALL 사유 없는 수정, revision, 사유 없는 삭제 거부, 이관/중단, 2028년 조회 시 재생성 0, 멱등성, 적용 영수증 기반 복구를 확인했다. 가상 데이터는 제거했다.
+- [Production 37022376242](https://github.com/amoeba-devops/appAcademy2/actions/runs/37022376242) 성공. **2026-10-02 23:48:22 KST (14:48:22 UTC)** 완료.
+- SQL 1028 적용 후 backend/frontend가 모두 `b5003c1`으로 실행 중이다. 공개 진입점은 `/assets/index-CKabgxZc.js`를 제공한다.
+
+### Applied Counts (실제 적용 건수)
+
+| 변경 | 실제 적용 |
+|---|---:|
+| 활성 수업 → 정규수업 | 6,373 |
+| 활성 행사 → 기타, 일정 내용 보존 | 9 |
+| 개인 카테고리 활성 일정 | 0 |
+| 11월 이후 ICS 반복 회차 soft-delete | 827 |
+| 11월 이후 자체 반복 회차 soft-delete | 1 |
+| ICS 반복 원본 종료 | 656 |
+| 자체 반복 원본 실제 시작 시각 제한 | 8 |
+
+적용 직전 dry-run digest는 기존 검증값과 동일했다. 같은 digest를 `--expect`로 지정하여 단일 트랜잭션으로 적용했다. 과거·삭제 이력의 구형 카테고리도 호환 이관했으며, 위 이관 건수는 활성 일정 기준이다.
+
+### Post-Apply Checks (사후 검증)
+
+- 활성 카테고리: 정규수업 **5,601**, 레벨테스트 **304**, 기타 **306**. 수업/개인/행사 활성 일정 **0**.
+- 10월 활성 일정 **541건 보존**. 11월 이전 총 6,251행의 카테고리/수정시각을 제외한 데이터 해시가 일치한다.
+- 전체 7,086개 이벤트의 내용·시간·담당자·연결 필드 해시 일치. 물리 삭제 없음.
+- 관리자 API에서 11월~2028년 구간을 두 번 조회해 **0건**, 활성 강사 계정의 포털 API에서도 **0건**. API 조회로 반복 전개 경로를 실행한 뒤에도 재생성되지 않았다.
+- 대상 테넌트 청구 51건, 수납 0건, 참석자 연결 66건의 전체 행 해시 일치. 다른 테넌트 일정 집계/해시도 일치한다(기준 시점 0건).
+- 정리 도구 재실행의 모든 변경 항목 **0건**.
+- 적용 직후 3분 시점 컨테이너 재시작 0, 최근 5분 backend ERROR 로그 0. 브라우저 로그인 화면의 직접 운영 UI 검증 대신 인증된 실제 관리자/강사 API로 검증했다. 위 스크린샷은 로컬 가상 데이터 검증 자료다.
+
+### Recovery Artifacts (비공개 복구 자료)
+
+운영 서버 `/home/appacademy/app-academy-backups/`, 모두 권한 0600:
+
+- `db_acm-before-cal-correction-20261002T144012Z.dump` — 7,199,745 bytes, pg_restore 목록 검사 통과.
+- `cal-production-baseline-261002.json` — 변경 전 데이터 보존 비교값.
+- `cal-preview-b5003c.json` — 2,758,108 bytes, 적용 전 영속 보관.
+- `cal-apply-b5003c.json` — 2,758,108 bytes, 적용 계획/이전 값.
+- `cal-apply-b5003c.json.applied.json` — 4,199,801 bytes, 전후 값과 충돌 검사용 복구 자료.
+
+스테이징 백업: `/home/appacademy/app-academy-backups/db_acm-before-cal-correction-20261002T144014Z.dump` (558,072 bytes).

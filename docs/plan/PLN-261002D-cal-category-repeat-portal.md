@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CAL-CORRECTION-PLN-1.0.0
 version: 1.0.0
-status: Implemented; deployment pending
+status: Deployed; production data applied
 change_log:
   - version: 1.0.0
     date: 2026-10-02
@@ -92,3 +92,5 @@ change_log:
 ## 5. Approval (구현 확인)
 
 사용자의 “진행”으로 전체 계획 구현 승인을 받았으며 구현과 로컬 검증을 완료했다. 프로젝트 [AGENTS.md §9.2](../../AGENTS.md)는 “요구사항 분석서 + 작업 계획서 작성 후 반드시 사용자 확인을 받은 후 구현으로 진행한다”고 정한다. 행사 9건의 기타 이동은 사용자 확인을 받았다. 확정한 화면 구성안·종료 범위에 따라 구현했다. 기존 기능의 과거 배포 요청을 이번 신규 변경의 배포 승인으로 간주하지 않는다.
+
+운영 적용: 2026-10-02, SHA `b5003c1`. [운영 검증 보고서](../report/RPT-261002D-cal-category-repeat-portal.md#6-production-application-운영-적용-완료) 참조.
