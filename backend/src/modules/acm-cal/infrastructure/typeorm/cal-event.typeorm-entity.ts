@@ -39,7 +39,7 @@ export class CalEventTypeormEntity {
     name: 'evt_category',
     type: 'varchar',
     length: 20,
-    default: 'CLASS',
+    default: 'REGULAR_CLASS',
   })
   category!: CalCategory;
 

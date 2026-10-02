@@ -1,5 +1,5 @@
 import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -212,6 +212,11 @@ function MonthGrid({
   onSelect: (e: PortalCalEvent) => void;
 }) {
   const video = useVideoConfig(true);
+  const { t } = useTranslation('cal');
+  const overflowTrigger = useRef<HTMLButtonElement | null>(null);
+  const eventTrigger = useRef<HTMLButtonElement | null>(null);
+  const [overflowDay, setOverflowDay] = useState<Date | null>(null);
+  const [overflowEvent, setOverflowEvent] = useState<PortalCalEvent | null>(null);
   const weeks = Math.ceil(
     (new Date(from.getFullYear(), anchorMonth + 1, 0).getDate() +
       new Date(from.getFullYear(), anchorMonth, 1).getDay()) /
@@ -220,6 +225,7 @@ function MonthGrid({
   const today = startOfDay(new Date());
   const cells = Array.from({ length: weeks * 7 }, (_, i) => addDays(from, i));
   return (
+    <>
     <div className="grid grid-cols-7 overflow-hidden rounded-md border border-[var(--border-subtle)] text-xs">
       {cells.slice(0, 7).map((d, i) => (
         <div key={`h${i}`} className="border-b border-[var(--border-subtle)] bg-[var(--gray-50)] p-1 text-center text-secondary">
@@ -259,12 +265,34 @@ function MonthGrid({
               </button>
             ))}
             {dayEvents.length > 3 && (
-              <div className="text-secondary">+{dayEvents.length - 3}</div>
+              <button type="button" className="mt-1 rounded px-1 text-accent-700 underline hover:bg-accent-50 focus-visible:outline focus-visible:outline-2"
+                onClick={(e) => { overflowTrigger.current = e.currentTarget; setOverflowDay(d); }}
+                aria-label={t('overflow.open', { date: d.toLocaleDateString(), count: dayEvents.length })}>
+                {t('overflow.more', { count: dayEvents.length - 3 })}
+              </button>
             )}
           </div>
         );
       })}
     </div>
+    <Dialog open={!!overflowDay} onOpenChange={(open) => { if (!open) setOverflowDay(null); }}>
+      <DialogContent className="max-w-lg" onCloseAutoFocus={(e) => { e.preventDefault(); overflowTrigger.current?.focus(); }}>
+        <DialogHeader><DialogTitle>{t('overflow.title', { date: overflowDay?.toLocaleDateString(), count: overflowDay ? eventsOn(events, overflowDay).length : 0 })}</DialogTitle></DialogHeader>
+        <ul className="max-h-[65vh] space-y-2 overflow-y-auto">
+          {overflowDay && eventsOn(events, overflowDay).map((event) => (
+            <li key={event.id}>
+              <button type="button" onClick={(e) => { eventTrigger.current = e.currentTarget; setOverflowEvent(event); }} className="w-full rounded-md border border-[var(--border-subtle)] p-3 text-left hover:bg-accent-50 focus-visible:outline focus-visible:outline-2">
+                <span className="block text-xs text-secondary">{event.allDay ? t('overflow.allDay') : `${timeLabel(event)}–${new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}</span>
+                <span className="block break-words font-medium">{event.title}</span>
+                {event.primaryStudentName && <span className="block text-sm text-secondary">{event.primaryStudentName}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <EventDetailModal event={overflowEvent} onClose={() => setOverflowEvent(null)} returnFocus={() => eventTrigger.current?.focus()} />
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 
@@ -404,9 +432,11 @@ function ListView({
 function EventDetailModal({
   event,
   onClose,
+  returnFocus,
 }: {
   event: PortalCalEvent | null;
   onClose: () => void;
+  returnFocus?: () => void;
 }) {
   const video = useVideoConfig(true);
   const { t, i18n } = useTranslation('common');
@@ -429,7 +459,7 @@ function EventDetailModal({
 
   return (
     <Dialog open={!!event} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={returnFocus ? (e) => { e.preventDefault(); returnFocus(); } : undefined}>
         {event && (
           <>
             <DialogHeader>

@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayUnique,
@@ -59,7 +59,14 @@ export class CreateRecurrenceDto extends RecurrencePreviewDto {
 export class ChangeRecurrenceDto {
   @IsIn(['ONE', 'FOLLOWING', 'ALL']) scope!: 'ONE' | 'FOLLOWING' | 'ALL';
   @IsInt() @Min(1) version!: number;
-  @IsString() @MinLength(2) @MaxLength(500) reason!: string;
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() || null : value,
+  )
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  @MaxLength(500)
+  reason?: string | null;
   @IsOptional()
   @ValidateNested()
   @Type(() => UpdateCalEventDto)

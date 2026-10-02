@@ -1,10 +1,7 @@
 // CAL module types — mirrors backend DTO.
 
 export const CAL_CATEGORIES = [
-  'CLASS',
   'MEETING',
-  'EVENT',
-  'PERSONAL',
   'LEVEL_TEST',
   'DEMO_CLASS',
   'REGULAR_CLASS',

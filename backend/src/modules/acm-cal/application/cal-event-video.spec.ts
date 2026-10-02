@@ -150,6 +150,10 @@ describe('calendar video transitions', () => {
     expect(cleared.meetingUrl).toBeNull();
     expect(provision).not.toHaveBeenCalled();
   });
+  it('records changes and a null reason when editing without a reason', async () => {
+    await svc.update('tenant-a', 'user-a', 'ADMIN', 'evt', { evtTitle: 'Updated without reason' });
+    expect(revision.save).toHaveBeenCalledWith(expect.objectContaining({ reason: null, changes: expect.arrayContaining([expect.objectContaining({ field: 'title' })]) }));
+  });
   it('rejects attempts to override the tenant provider before writing', async () => {
     await expect(
       svc.create('tenant-a', 'user-a', 'ADMIN', {

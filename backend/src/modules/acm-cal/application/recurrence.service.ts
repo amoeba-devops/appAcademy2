@@ -1,3 +1,4 @@
+import { normalizeCalCategory } from './cal-category';
 import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import {
   BadRequestException,
@@ -52,6 +53,7 @@ interface Series {
   crs_version: number;
   crs_generated_until: Date | null;
   crs_stop_at: Date | null;
+  crs_start_before?: Date | null;
   crs_changes: SeriesChange[];
   crs_request_hash: string;
 }
@@ -265,7 +267,11 @@ export class RecurrenceService {
       (ms, c) => ms + Math.max(0, -c.startShift),
       0,
     );
-    const expandedHorizon = new Date(+horizon + lookAhead);
+    const displayHorizon =
+      s.crs_start_before && s.crs_start_before < horizon
+        ? s.crs_start_before
+        : horizon;
+    const expandedHorizon = new Date(+displayHorizon + lookAhead);
     const until =
       s.crs_stop_at && s.crs_stop_at < expandedHorizon
         ? s.crs_stop_at
@@ -284,6 +290,11 @@ export class RecurrenceService {
       for (const c of s.crs_changes)
         if (!c.from || o.key >= c.from)
           dto = this.transform(dto, c, s.crs_timezone);
+      if (s.crs_start_before && new Date(dto.evtStartAt) >= s.crs_start_before)
+        continue;
+      dto.evtCategory = normalizeCalCategory(
+        dto.evtCategory ?? 'REGULAR_CLASS',
+      );
       const event = await this.persist(m, s, dto);
       await m.query(
         'INSERT INTO amb_acm_cal_recurrence_occurrence(ent_id,crs_id,cro_key,evt_id) VALUES($1,$2,$3,$4)',
@@ -336,7 +347,7 @@ export class RecurrenceService {
   async ensureRange(entId: string, to: Date) {
     if (!Number.isFinite(+to)) throw new BadRequestException('INVALID_RANGE');
     const ids: { crs_id: string }[] = await this.ds.query(
-      'SELECT crs_id FROM amb_acm_cal_recurrence_series WHERE ent_id=$1 AND (crs_generated_until IS NULL OR crs_generated_until<$2) AND (crs_stop_at IS NULL OR crs_generated_until<crs_stop_at)',
+      'SELECT crs_id FROM amb_acm_cal_recurrence_series WHERE ent_id=$1 AND (crs_generated_until IS NULL OR crs_generated_until<$2) AND (crs_stop_at IS NULL OR crs_generated_until<crs_stop_at) AND (crs_start_before IS NULL OR crs_generated_until IS NULL OR crs_generated_until<crs_start_before)',
       [entId, to],
     );
     for (const row of ids) {
@@ -412,7 +423,7 @@ export class RecurrenceService {
       version: s.crs_version,
       rule: s.crs_rule,
       timezone: s.crs_timezone,
-      stoppedAt: s.crs_stop_at,
+      stoppedAt: s.crs_start_before ?? s.crs_stop_at,
       key: o.cro_key,
     };
   }
@@ -436,6 +447,9 @@ export class RecurrenceService {
     remove = false,
     preview = false,
   ) {
+    const reason = dto.reason?.trim() || null;
+    if (remove && (!reason || reason.length < 2 || reason.length > 500))
+      throw new BadRequestException('DELETE_REASON_REQUIRED');
     return this.video.withLock(u.entId, () =>
       this.ds.transaction(async (m) => {
         await this.lock(m, u.entId);
@@ -482,7 +496,7 @@ export class RecurrenceService {
           if (!dto.event)
             throw new BadRequestException('REPEAT_EVENT_REQUIRED');
           const { evtStartAt, evtEndAt, evtEditReason, ...patch } = dto.event;
-          if (evtEditReason !== dto.reason)
+          if ((evtEditReason?.trim() || null) !== reason)
             throw new BadRequestException('REPEAT_REASON_MISMATCH');
           const delta = (v: string | undefined, old: Date) =>
             v
@@ -520,7 +534,7 @@ export class RecurrenceService {
               {
                 deletedAt: new Date(),
                 deletedBy: u.id,
-                deleteReason: dto.reason,
+                deleteReason: reason,
               },
             );
           else {
@@ -529,7 +543,7 @@ export class RecurrenceService {
               .findBy({ entId: u.entId, evtId: old.id });
             const input: CreateCalEventDto = {
               evtTitle: old.title,
-              evtCategory: old.category,
+              evtCategory: normalizeCalCategory(old.category),
               evtDescription: old.description ?? undefined,
               evtStartAt: old.startAt.toISOString(),
               evtEndAt: old.endAt.toISOString(),
@@ -586,7 +600,7 @@ export class RecurrenceService {
               entId: u.entId,
               evtId: old.id,
               editorUserId: u.id,
-              reason: dto.reason,
+              reason,
               changes,
             });
           }

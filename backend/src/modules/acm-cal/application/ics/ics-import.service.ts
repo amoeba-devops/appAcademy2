@@ -1,3 +1,4 @@
+import { normalizeCalCategory } from '../cal-category';
 import {
   BadRequestException,
   Injectable,
@@ -96,7 +97,7 @@ export class IcsImportService {
         [
           s.ent_id,
           s.owner_user_id,
-          s.category,
+          normalizeCalCategory(s.category),
           o.title,
           description,
           o.start,
@@ -200,7 +201,7 @@ export class IcsImportService {
             owner.usr_id,
             matches[0]?.tch_id ?? null,
             teacherName
-              ? 'CLASS'
+              ? 'REGULAR_CLASS'
               : source.calendarName.includes('맵테스트')
                 ? 'LEVEL_TEST'
                 : 'OTHER',

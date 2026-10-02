@@ -35,13 +35,10 @@ interface ColorSetting {
   palette: Palette;
 }
 const defaults: Record<CalEvent['category'], Palette> = {
-  CLASS: 'blue',
   REGULAR_CLASS: 'blue',
   DEMO_CLASS: 'purple',
   MEETING: 'purple',
-  EVENT: 'amber',
   LEVEL_TEST: 'amber',
-  PERSONAL: 'green',
   OTHER: 'green',
 };
 export function colorFor(

@@ -65,7 +65,9 @@
   "edit": {
     "reasonLabel": "修改原因",
     "reasonPlaceholder": "请输入修改原因（将记录到修改历史）",
-    "reasonRequired": "请输入修改原因。"
+    "reasonRequired": "填写时至少输入2个字符。",
+    "reasonOptional": "修改原因（选填）",
+    "reasonOptionalPlaceholder": "如有需要，请输入原因（记录到历史）"
   },
   "revision": {
     "title": "修改历史",
@@ -83,7 +85,8 @@
       "meetingProvider": "在线授课",
       "bodaRoomType": "课程类型",
       "assigneeTchId": "负责教师"
-    }
+    },
+    "noReason": "未填写"
   },
   "deleted": {
     "btnLabel": "查看已删除的课程安排",
@@ -405,5 +408,11 @@
     "stopped": "已停止",
     "confirm": "将更改 {{changed}} 次，保留 {{protected}} 次受保护日程。继续？",
     "extensionError": "部分重复日程无法延长。请检查视频设置、教师和参与者。"
+  },
+  "overflow": {
+    "more": "+{{count}} 更多",
+    "open": "查看 {{date}} 的全部 {{count}} 个日程",
+    "title": "{{date}} · {{count}} 个日程",
+    "allDay": "全天"
   }
 }

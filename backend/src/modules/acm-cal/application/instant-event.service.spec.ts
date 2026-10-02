@@ -96,7 +96,7 @@ describe('InstantEventService', () => {
       id: SAVED_ID,
       entId: 'ent-1',
       ownerUserId: 'u-teacher',
-      category: 'CLASS',
+      category: 'REGULAR_CLASS',
       title: '즉시 강의 - 김교사 14:00',
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
@@ -130,7 +130,7 @@ describe('InstantEventService', () => {
 
     const arg = calCreate.mock.calls[0][3];
     expect(arg).toMatchObject({
-      evtCategory: 'CLASS',
+      evtCategory: 'REGULAR_CLASS',
       evtMeetingProvider: 'BODASCHOOL',
       evtAllDay: false,
     });

@@ -60,6 +60,7 @@ const CAL_EDITOR_CATEGORIES = [
   'LEVEL_TEST',
   'DEMO_CLASS',
   'REGULAR_CLASS',
+  'MEETING',
   'OTHER',
 ] as const;
 
@@ -77,7 +78,7 @@ type FormValues = {
   evtMeetingUrl: string;
   evtBodaRoomType: CalBodaRoomType;
   evtAssigneeTchId: string;
-  /** REQ-260728 — 수정 사유(수정 시 필수). 이벤트에 저장되지 않고 히스토리로만 기록. */
+  /** REQ-260728 — 수정 사유(수정 시 선택). 이벤트에 저장되지 않고 히스토리로만 기록. */
   evtEditReason: string;
 };
 
@@ -393,8 +394,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       setError(t('common:video.invalidLink')); return;
     }
 
-    // REQ-260728 — 수정 시 수정 사유 필수(2자 이상).
-    if (isEdit && values.evtEditReason.trim().length < 2) {
+    // REQ-260728 — 입력한 수정 사유는 2자 이상.
+    if (isEdit && values.evtEditReason.trim() && values.evtEditReason.trim().length < 2) {
       setError(t('edit.reasonRequired', '수정 사유를 입력하세요.'));
       return;
     }
@@ -410,7 +411,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
 
     // REQ-260728 — 수정 사유(수정 시에만).
     if (isEdit) {
-      dto.evtEditReason = values.evtEditReason.trim();
+      dto.evtEditReason = values.evtEditReason.trim() || null;
     }
 
     // FIX-260724 — BODASCHOOL 이벤트만 룸 유형(1:1/1:N) 전송.
@@ -1026,19 +1027,19 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </div>
           )}
 
-          {/* REQ-260728 — 수정 사유(필수, 수정 시) */}
+          {/* REQ-260728 — 수정 사유(선택, 수정 시) */}
           {isEdit && !isReadOnly && (
             <div className="space-y-1.5 rounded-md border border-[var(--border-subtle)] p-3">
               <label className={labelClass}>
-                {t('edit.reasonLabel', '수정 사유')} *
+                {t('edit.reasonOptional', '수정 사유 (선택)')}
               </label>
               <textarea
                 {...register('evtEditReason')}
                 rows={2}
                 className={inputClass}
                 placeholder={t(
-                  'edit.reasonPlaceholder',
-                  '변경한 이유를 입력하세요 (수정 히스토리에 기록됩니다)',
+                  'edit.reasonOptionalPlaceholder',
+                  '필요한 경우 입력하세요 (수정 히스토리에 기록됩니다)',
                 )}
               />
             </div>
@@ -1528,9 +1529,9 @@ function normalizeEditorCategory(category: string): EditorCategory {
     case 'OTHER':
       return 'OTHER';
     case 'MEETING':
-      return 'DEMO_CLASS';
+      return 'MEETING';
     case 'EVENT':
-      return 'LEVEL_TEST';
+      return 'OTHER';
     case 'PERSONAL':
       return 'OTHER';
     case 'CLASS':
@@ -1608,11 +1609,9 @@ function CalEventHistoryPanel({
                 {new Date(r.createdAt).toLocaleString(undefined, { timeZone: tz })}
               </span>
             </div>
-            {r.reason && (
-              <div className="text-secondary">
-                {t('revision.reason', '사유')}: {r.reason}
-              </div>
-            )}
+            <div className="text-secondary">
+              {t('revision.reason', '사유')}: {r.reason || t('revision.noReason', '미입력')}
+            </div>
             {r.changes.length > 0 && (
               <ul className="mt-1 space-y-0.5 text-secondary">
                 {r.changes.map((c, i) => (

@@ -19,7 +19,7 @@ import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeo
  * REQ-260610 — 즉시 화상 강의 개설.
  *
  * 본 service 는 `CalEventService.create()` 의 얇은 wrapper:
- *   - 시작=now, 종료=now+durationMin, 분류='CLASS', provider='BODASCHOOL',
+ *   - 시작=now, 종료=now+durationMin, 분류='REGULAR_CLASS', provider='BODASCHOOL',
  *     evt_source='INSTANT' 강제.
  *   - 제목 비우면 `"즉시 강의 - {강사명} HH:mm"` 자동 생성.
  *   - 중복 요청 멱등화: `X-Idempotency-Key` 헤더로 Redis SET NX EX 600 가드.
@@ -79,7 +79,7 @@ export class InstantEventService {
     // 3) Delegate to CalEventService.create — it handles BODASCHOOL room
     //    creation, launcher URL backfill, and invitee notification.
     const saved = await this.calEventSvc.create(entId, actorUserId, actorRole, {
-      evtCategory: 'CLASS',
+      evtCategory: 'REGULAR_CLASS',
       evtTitle: title,
       evtStartAt: now.toISOString(),
       evtEndAt: endAt.toISOString(),
