@@ -1029,6 +1029,14 @@
     "studentSelected": "선택됨",
     "selectedStudents": "선택한 학생",
     "removeStudent": "학생 제외",
-    "filterResetsSelection": "사이트 또는 수업 필터를 변경하면 선택한 학생이 초기화됩니다."
+    "filterResetsSelection": "사이트 또는 수업 필터를 변경하면 선택한 학생이 초기화됩니다.",
+    "activeBatch": "재원생 일괄 등록",
+    "DRAFT": "금액 미입력",
+    "drafts": "금액 미입력",
+    "monthlyTuition": "월 수업료",
+    "draftHint": "재원생을 금액·납기 미입력 상태로 등록합니다. 같은 달 수업료 청구가 있는 학생은 제외합니다. 금액과 납기를 입력한 뒤 저장하면 청구가 확정됩니다.",
+    "targetCount": "대상 학생",
+    "PAY_DRAFT_NOT_READY": "금액과 납기를 입력하여 청구를 확정한 뒤 처리하세요.",
+    "CREATE_DRAFT": "재원생 일괄 등록"
   }
 }

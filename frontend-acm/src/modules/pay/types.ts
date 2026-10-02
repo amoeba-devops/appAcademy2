@@ -9,17 +9,17 @@ export interface Bill {
   classId: string | null;
   className: string | null;
   month: string;
-  due: string;
+  due: string | null;
   kind: string;
   title: string;
-  amount: number;
+  amount: number | null;
   discount: number;
   adjustment: number;
-  net: number;
+  net: number | null;
   paid: number;
   refunded: number;
   received: number;
-  unpaid: number;
+  unpaid: number | null;
   state: string;
   status: string;
   version: number;
@@ -42,7 +42,7 @@ export interface BillInput {
 export interface Edit {
   id: string;
   version: number;
-  amount: number;
+  amount: number | null;
   discount: number;
   due: string;
   title: string;
