@@ -31,6 +31,45 @@ export interface OpsCell {
   quality: 'COMPLETE' | 'PARTIAL' | 'UNAVAILABLE';
 }
 const sites = ['TPI', 'TRINITY', 'SANTACROCE'];
+export function studentEnrollmentIntervals(
+  periods: Period[],
+  admissions: Admission[],
+  allowedSites: (string | null)[] = sites,
+) {
+  // Admission controls the first enrollment boundary. Later confirmed periods
+  // retain re-entry dates, so withdrawn gaps are not counted as attendance.
+  // Build globally before site filtering: filtering first could replace a
+  // transfer/re-entry date with the original admission date in another site.
+  const studentPeriods = periods.filter((p) => p.kind === 'STUDENT');
+  return [...new Map(admissions.map((a) => [a.subjectId, a])).values()]
+    .filter((a) => a.date && allowedSites.includes(a.site))
+    .flatMap((a) => {
+      const history = studentPeriods.filter((p) => p.subjectId === a.subjectId);
+      const valid = history
+        .filter((p) => p.confirmed && !p.cancelled)
+        .sort((x, y) => (x.start ?? '').localeCompare(y.start ?? ''));
+      // A master with admission but no class schedule still belongs to the academy.
+      // Explicit cancelled/unconfirmed history must not be resurrected.
+      if (!history.length)
+        return [
+          { subjectId: a.subjectId, site: a.site, start: a.date!, end: null },
+        ];
+      return valid.flatMap((p, i) => {
+        const start = i === 0 ? a.date! : p.start;
+        if (!start || !allowedSites.includes(p.site)) return [];
+        const effectiveStart = start < a.date! ? a.date! : start;
+        if (p.end && p.end < effectiveStart) return [];
+        return [
+          {
+            subjectId: a.subjectId,
+            site: p.site,
+            start: effectiveStart,
+            end: p.end,
+          },
+        ];
+      });
+    });
+}
 export function calculateOperating(
   periods: Period[],
   manual: ManualValue[],
@@ -46,41 +85,7 @@ export function calculateOperating(
     (a) => sites.includes(a.site ?? '') && (site === 'ALL' || a.site === site),
   );
   const missingAdmissions = scopedAdmissions.filter((a) => !a.date).length;
-  // Admission controls the first enrollment boundary. Later confirmed periods
-  // retain re-entry dates, so withdrawn gaps are not counted as attendance.
-  // Build globally before site filtering: filtering first could replace a
-  // transfer/re-entry date with the original admission date in another site.
-  const studentPeriods = periods.filter((p) => p.kind === 'STUDENT');
-  const enrollmentIntervals = [
-    ...new Map(admissions.map((a) => [a.subjectId, a])).values(),
-  ]
-    .filter((a) => a.date && sites.includes(a.site ?? ''))
-    .flatMap((a) => {
-      const history = studentPeriods.filter((p) => p.subjectId === a.subjectId);
-      const valid = history
-        .filter((p) => p.confirmed && !p.cancelled)
-        .sort((x, y) => (x.start ?? '').localeCompare(y.start ?? ''));
-      // A master with admission but no class schedule still belongs to the academy.
-      // Explicit cancelled/unconfirmed history must not be resurrected.
-      if (!history.length)
-        return [
-          { subjectId: a.subjectId, site: a.site, start: a.date!, end: null },
-        ];
-      return valid.flatMap((p, i) => {
-        const start = i === 0 ? a.date! : p.start;
-        if (!start || !sites.includes(p.site ?? '')) return [];
-        const effectiveStart = start < a.date! ? a.date! : start;
-        if (p.end && p.end < effectiveStart) return [];
-        return [
-          {
-            subjectId: a.subjectId,
-            site: p.site,
-            start: effectiveStart,
-            end: p.end,
-          },
-        ];
-      });
-    });
+  const enrollmentIntervals = studentEnrollmentIntervals(periods, admissions);
   const studentStock = (selectedSite: string, date: string) =>
     new Set(
       enrollmentIntervals

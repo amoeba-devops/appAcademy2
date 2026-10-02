@@ -268,6 +268,41 @@ async function main() {
         (d) => d.Amount === undefined && d.Status === 'DRAFT',
       ),
     );
+    await ds.query(
+      "UPDATE amb_acm_std_student SET std_admission_date='2026-09-01',std_start_date='2026-10-01' WHERE ent_id=$1",
+      [ent],
+    );
+    assert.equal(
+      (await api('/monthly?month=2026-10', 'GET', undefined, 'fixture-teacher'))
+        .status,
+      403,
+    );
+    assert.equal((await api('/monthly?month=2026-13')).status, 400);
+    assert.equal(
+      (await api('/monthly?month=2026-10&site=invalid')).status,
+      400,
+    );
+    assert.equal(
+      (await api('/monthly?month=2026-10', 'GET', undefined, 'fixture-staff'))
+        .status,
+      200,
+    );
+    const monthly = await api('/monthly?month=2026-10');
+    const monthlyData = (await monthly.json()) as {
+      items: { id: string }[];
+      total: number;
+    };
+    assert.equal(monthlyData.total, 2);
+    const monthlyExport = await api('/monthly-export?month=2026-10&site=TPI');
+    const monthlyBook = XLSX.read(
+      Buffer.from(await monthlyExport.arrayBuffer()),
+      { type: 'buffer' },
+    );
+    const monthlyRows = XLSX.utils.sheet_to_json(monthlyBook.Sheets.Monthly);
+    assert.equal(monthlyRows.length, 1);
+    console.log(
+      'PASS: monthly HTTP teacher rejection, staff access, invalid month/site validation, historic roster and site-filtered XLSX',
+    );
     console.log(
       'PASS: actual Nest HTTP DTO validation, teacher rejection, STAFF payment/admin-only refund, persisted balance, draft permissions/NULL/payment block and XLSX blank/safe cells',
     );

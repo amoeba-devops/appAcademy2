@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-ACTIVE-DRAFT-RPT-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed; production registration complete
 created: 2026-10-02
 change_log:
   - version: 1.0.0
@@ -40,7 +40,7 @@ change_log:
 | 실제 Nest HTTP | 교사 403, 직원 허용, 잘못된 월/빈 확정금액 400, 준비 수납 차단, XLSX 금액 빈 셀·DRAFT 표시 통과 |
 | 브라우저 | 2명 중 기존 청구 1명 제외, 1명 미입력 생성, 기존 금액 합계 유지, 금액/납기 입력 후 미납 반영, 검색 기본 재원 확인 |
 
-격리된 로컬 DB `acm_lifecycle_test_260929`에서 임의 테넌트를 사용했다. HTTP 검증은 JWT만 가상 계정으로 대체하며 실제 Controller/ValidationPipe/RolesGuard/Service/PG를 사용한다. 테스트 데이터는 종료 시 정리했다. 운영 데이터 변경은 없다.
+격리된 로컬 DB `acm_lifecycle_test_260929`에서 임의 테넌트를 사용했다. HTTP 검증은 JWT만 가상 계정으로 대체하며 실제 Controller/ValidationPipe/RolesGuard/Service/PG를 사용한다. 테스트 데이터는 종료 시 정리했다. 아래 운영 등록과 별도로 수행한 로컬 검증이다.
 
 재현: backend에서 `ACM_TEST_ENV_FILE=/path/to/local.env npx ts-node --transpile-only test/pay-drafts-pg-check.ts`; 기존 `pay-collections-pg-check.ts`, `pay-collections-http-check.ts`도 migration 1027을 적용하도록 갱신했다.
 
@@ -56,6 +56,23 @@ change_log:
 
 - 작업 브랜치 `feat/pay-active-drafts-261002`, `/private/tmp/acm-payment-261001`.
 - 원본 프로젝트의 기존 미커밋 소스를 보존하고 문서/캡처만 복사했다.
-- 운영 배포 및 실제 재원생 등록은 아직 수행하지 않았다. 배포 시 백업→1027 적용→서버/화면 함께 배포→조회 검증 후 2026-10 재원생 일괄 등록을 실행하고 대상/제외 건수를 보고한다.
+- 사용자 승인에 따라 백업→스테이징 검증→운영 배포→2026-10 재원생 51명 일괄 등록 완료. 상세 결과는 아래와 같다.
 - DRAFT 생성 후 예전 코드로 롤백하면 null 의미를 처리하지 못한다. 준비 원장을 보존하면서 호환 코드로 복구하거나 수납 기능 접근을 일시 제한한 상태에서 복구해야 한다. 운영 기록을 0원으로 바꾸거나 삭제하는 롤백은 하지 않는다.
 - 상담 납부 3,040,000원 이관은 실제 납부일·총 청구액 확인 대기 상태로 유지한다.
+
+
+## 6. Production Release (운영 배포 및 등록)
+
+- 배포 완료: **2026-10-02 09:57:53 KST**, `69a0debf1ef3bd1dabb4b247c66b3fc640e17ad7` (PR [#295](https://github.com/amoeba-devops/appAcademy2/pull/295)).
+- [CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/36948031936), [스테이징](https://github.com/amoeba-devops/appAcademy2/actions/runs/36948350400), [운영 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/36948568844) 성공.
+- 운영 백업: `/home/appacademy/app-academy-backups/db_acm-before-payment-20261002T005045Z.dump` (7,176,667 bytes). 파일 권한 600 및 pg_restore 목록 확인.
+- 스테이징 가상 테넌트 2명 등록/재시도/미입력/수납 차단/확정/재원 검색 검증 통과, 데이터 정리 완료.
+- 운영은 관리자 인증 API를 통해 **2026-10 / 월 수업료**로 실행했다. 대상 **51명**, 신규 생성 **51건**, 제외 **0건**.
+- DB 확인: DRAFT **51건**, 금액·납기 모두 NULL **51건**, 연결된 납부 내역 **0건**. 청구·납부·미납 금액 합계 변화 없음.
+- 동일 요청 재시도와 재미리보기로 중복 방지 확인. requestId: `9e16f311-d197-4243-b3f0-078c8b9de9a0`.
+- 운영 화면에서 2026년 10월 금액 미입력 **51건**, 전체 목록 **51건**, 빈 금액·납기 확인.
+- 배포 직후 backend/frontend 이미지 모두 `69a0deb`, running/restarts=0. 확인 시점 최근 3분 backend 로그 ERROR 0건 (장기 모니터링 결과는 아님).
+
+학생 개인정보를 제외한 운영 집계 화면:
+
+![운영 재원생 금액 미입력 51건](screenshots/261001-pay/active-drafts-production.png)

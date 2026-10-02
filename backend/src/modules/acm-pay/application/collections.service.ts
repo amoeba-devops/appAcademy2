@@ -1,3 +1,4 @@
+import { monthlyPay, monthlyStudents, siteMatches } from './monthly-pay';
 import {
   BadRequestException,
   ConflictException,
@@ -11,6 +12,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import {
   ActiveDraftBatchDto,
+  MonthlyPayQuery,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -74,6 +76,13 @@ export class CollectionsService {
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly settings: TenantSettingsService,
   ) {}
+  async monthly(u: AcmCurrentUser, q: MonthlyPayQuery, exportAll = false) {
+    const result = await this.ds.transaction('REPEATABLE READ', (m) =>
+      monthlyPay(m, u.entId, q, BILL_SELECT, exportAll),
+    );
+    if (exportAll && result.total > 10000) this.error('PAY_EXPORT_LIMIT');
+    return result;
+  }
   private error(code: string): never {
     throw new BadRequestException(code);
   }
@@ -236,11 +245,38 @@ export class CollectionsService {
     commit: boolean,
   ) {
     if (!d.title.trim()) this.error('PAY_INVALID_AMOUNT');
+    if (d.roster === 'MONTH' && !/^20\d{2}-(0[1-9]|1[0-2])$/.test(d.month))
+      this.error('PAY_INVALID_RANGE');
     const work = async (m: EntityManager) => {
       await m.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
         u.entId + ':bills',
       ]);
-      const students = await this.draftCandidates(m, u.entId);
+      let students = await this.draftCandidates(m, u.entId);
+      if (d.roster === 'MONTH') {
+        // Lock student masters before deriving historic membership, as with current batches.
+        await m.query(
+          'SELECT std_id FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL ORDER BY std_id FOR SHARE',
+          [u.entId],
+        );
+        const roster = await monthlyStudents(
+          m,
+          u.entId,
+          d.month,
+          d.site || 'ALL',
+        );
+        students = roster
+          .filter((s) => s.enrolled && !s.review)
+          .map((s) => ({
+            id: s.id,
+            name: s.name,
+            site:
+              s.periods
+                .slice()
+                .sort((a, b) => (b.start || '').localeCompare(a.start || ''))[0]
+                ?.site ?? null,
+          }));
+      } else students = students.filter((s) => siteMatches(s.site, d.site));
+      if (d.studentId) students = students.filter((s) => s.id === d.studentId);
       const existing: { studentId: string }[] = await m.query(
         'SELECT DISTINCT std_id AS "studentId" FROM amb_acm_pay_bill WHERE ent_id=$1 AND pbl_month=$2 AND pbl_kind=\'CLASS\'',
         [u.entId, d.month],
@@ -604,7 +640,11 @@ export class CollectionsService {
       ['studentStatus', '"studentStatus"'],
       ['kind', 'kind'],
     ] as const)
-      if (q[key]) add(`v.${col}=?`, q[key]);
+      if (q[key]) {
+        if (key === 'site' && q[key] === 'UNASSIGNED')
+          clauses.push('v.site IS NULL');
+        else add(`v.${col}=?`, q[key]);
+      }
     if (q.q) add('v."studentName" ILIKE ?', `%${q.q}%`);
     if (q.school) add('v.school ILIKE ?', `%${q.school}%`);
     if (q.memo) add('v.memo ILIKE ?', `%${q.memo}%`);
@@ -690,7 +730,7 @@ export class CollectionsService {
       status: string;
       site: string | null;
     }[] = await this.ds.query(
-      `SELECT s.std_id AS id,s.std_name AS name,s.std_status AS status,s.std_site AS site FROM amb_acm_std_student s WHERE s.ent_id=$1 AND s.deleted_at IS NULL AND s.std_name ILIKE $2 AND ($5::text='ALL' OR s.std_status=$5) AND ($3::text IS NULL OR s.std_site=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=s.ent_id AND ce.std_id=s.std_id AND ce.cls_id=$4 AND ce.ce_status='CONFIRMED') OR EXISTS(SELECT 1 FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=s.ent_id AND cs.cls_id=$4 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=s.std_id OR i.inq_std_id=s.std_id))) ORDER BY s.std_name,s.std_id LIMIT 101`,
+      `SELECT s.std_id AS id,s.std_name AS name,s.std_status AS status,s.std_site AS site FROM amb_acm_std_student s WHERE s.ent_id=$1 AND s.deleted_at IS NULL AND s.std_name ILIKE $2 AND ($5::text='ALL' OR s.std_status=$5) AND ($3::text IS NULL OR COALESCE(s.std_site,'UNASSIGNED')=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=s.ent_id AND ce.std_id=s.std_id AND ce.cls_id=$4 AND ce.ce_status='CONFIRMED') OR EXISTS(SELECT 1 FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=s.ent_id AND cs.cls_id=$4 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=s.std_id OR i.inq_std_id=s.std_id))) ORDER BY s.std_name,s.std_id LIMIT 101`,
       [
         u.entId,
         `%${q.q ?? ''}%`,
