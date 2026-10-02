@@ -28,6 +28,7 @@ async function main() {
   } as unknown as TenantSettingsService);
   try {
     await ds.query(readFileSync('../sql/acm/1026-pay-collections.sql', 'utf8'));
+    await ds.query(readFileSync('../sql/acm/1027-pay-bill-drafts.sql', 'utf8'));
     await ds.query(
       "INSERT INTO amb_acm_std_student(std_id,ent_id,std_name,std_site,std_status) VALUES($1,$2,'Synthetic student','TPI','ACTIVE'),($3,$2,'Inactive','TPI','WITHDRAWN')",
       [student, ent, inactive],
@@ -262,7 +263,11 @@ async function main() {
       svc.list(u, { basis: 'PAYMENT', from: '2026-02-30', to: '2026-03-01' }),
     );
     const options = await svc.options(u, {});
-    assert.equal(options.students.length, 2);
+    assert.equal(options.students.length, 1);
+    assert.equal(
+      (await svc.options(u, { studentStatus: 'ALL' })).students.length,
+      2,
+    );
     const exported = await svc.list(
       u,
       { basis: 'PAYMENT', from: '2026-10-01', to: '2026-10-01' },

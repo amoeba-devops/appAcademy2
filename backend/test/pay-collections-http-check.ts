@@ -25,6 +25,7 @@ async function main() {
   });
   await ds.initialize();
   await ds.query(readFileSync('../sql/acm/1026-pay-collections.sql', 'utf8'));
+  await ds.query(readFileSync('../sql/acm/1027-pay-bill-drafts.sql', 'utf8'));
   const ent = randomUUID(),
     actor = randomUUID(),
     student = randomUUID(),
@@ -194,8 +195,81 @@ async function main() {
     });
     const cells = Object.values(book.Sheets.Collections) as XLSX.CellObject[];
     assert(cells.some((c) => c.v === '=not-a-formula' && c.t === 's' && !c.f));
+    const draftBatch = {
+      requestId: randomUUID(),
+      month: '2031-10',
+      title: 'HTTP drafts',
+    };
+    assert.equal(
+      (await api('/active-drafts', 'POST', draftBatch, 'fixture-teacher'))
+        .status,
+      403,
+    );
+    assert.equal(
+      (await api('/active-drafts', 'POST', { ...draftBatch, month: 'bad' }))
+        .status,
+      400,
+    );
+    assert.equal(
+      (await api('/active-drafts', 'POST', draftBatch, 'fixture-staff')).status,
+      201,
+    );
+    const draftList = (await (
+      await api('?from=2031-10&to=2031-10')
+    ).json()) as {
+      items: { id: string; amount: null; due: null; unpaid: null }[];
+      summary: { drafts: number; net: number };
+    };
+    assert.equal(draftList.summary.drafts, 2);
+    assert.equal(draftList.summary.net, 0);
+    assert.equal(draftList.items[0].amount, null);
+    assert.equal(draftList.items[0].due, null);
+    assert.equal(draftList.items[0].unpaid, null);
+    assert.equal(
+      (
+        await api('/' + draftList.items[0].id + '/collections', 'POST', {
+          ...payment,
+          requestId: randomUUID(),
+        })
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await api('/batch', 'PATCH', {
+          requestId: randomUUID(),
+          reason: 'Invalid empty amount',
+          items: [
+            {
+              id: draftList.items[0].id,
+              version: 1,
+              amount: null,
+              discount: 0,
+              due: '2031-10-20',
+              title: 'HTTP draft',
+              memo: '',
+            },
+          ],
+        })
+      ).status,
+      400,
+    );
+    const draftExport = await api('/export?from=2031-10&to=2031-10');
+    const draftBook = XLSX.read(Buffer.from(await draftExport.arrayBuffer()), {
+      type: 'buffer',
+    });
+    const exportedDrafts = XLSX.utils.sheet_to_json<{
+      Amount?: number;
+      Status: string;
+    }>(draftBook.Sheets.Collections);
+    assert.equal(exportedDrafts.length, 2);
+    assert(
+      exportedDrafts.every(
+        (d) => d.Amount === undefined && d.Status === 'DRAFT',
+      ),
+    );
     console.log(
-      'PASS: actual Nest HTTP DTO validation, teacher rejection, STAFF payment/admin-only refund, persisted balance and XLSX safe string cells',
+      'PASS: actual Nest HTTP DTO validation, teacher rejection, STAFF payment/admin-only refund, persisted balance, draft permissions/NULL/payment block and XLSX blank/safe cells',
     );
   } catch (e) {
     await cleanup();

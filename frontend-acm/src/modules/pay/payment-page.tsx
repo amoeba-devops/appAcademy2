@@ -24,7 +24,8 @@ const input =
   "rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900";
 const btn =
   "rounded border border-slate-300 px-3 py-1.5 text-sm disabled:opacity-40 hover:bg-slate-100";
-const format = (n: number) => new Intl.NumberFormat().format(n);
+const format = (n: number | null) =>
+  n === null ? "—" : new Intl.NumberFormat().format(n);
 const kinds = ["CLASS", "BOOK", "MATERIAL", "TRANSPORT", "OTHER"];
 const methods = ["CASH", "TRANSFER", "CARD", "OTHER"];
 function Money({
@@ -61,6 +62,31 @@ function Money({
             onChange(n);
           }
         }
+      }}
+    />
+  );
+}
+function DraftMoney({
+  value,
+  onChange,
+  label,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  label: string;
+}) {
+  return (
+    <input
+      className={`${input} w-28 text-right`}
+      aria-label={label}
+      placeholder="—"
+      inputMode="numeric"
+      value={value === null ? "" : format(value)}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/,/g, "");
+        if (raw === "") onChange(null);
+        else if (/^\d+$/.test(raw) && Number(raw) <= 50000000)
+          onChange(Number(raw));
       }}
     />
   );
@@ -142,6 +168,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const [drafts, setDrafts] = useState<Record<string, Edit>>({});
   const [selected, setSelected] = useState<string[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
+  const [batchOpen, setBatchOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -227,7 +254,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           version: b.version,
           amount: b.amount,
           discount: b.discount,
-          due: b.due,
+          due: b.due ?? "",
           title: b.title,
           memo: b.memo,
         }),
@@ -266,6 +293,13 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         <button className={btn} onClick={() => setCreateOpen(true)}>
           {tr("create")}
         </button>
+        <button
+          className={btn}
+          disabled={dirty || busy}
+          onClick={() => setBatchOpen(true)}
+        >
+          {tr("activeBatch")}
+        </button>
       </header>
       <p className="text-sm text-secondary">{tr("recordOnly")}</p>
       <div className="flex flex-wrap gap-3">
@@ -273,6 +307,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           "net",
           "received",
           "unpaid",
+          "drafts",
           "amount",
           "discount",
           "adjustment",
@@ -357,11 +392,13 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
               }
             >
               <option value="">{tr("all")}</option>
-              {["UNPAID", "PARTIAL", "PAID", "OVERDUE", "FREE"].map((v) => (
-                <option key={v} value={v}>
-                  {tr(v)}
-                </option>
-              ))}
+              {["DRAFT", "UNPAID", "PARTIAL", "PAID", "OVERDUE", "FREE"].map(
+                (v) => (
+                  <option key={v} value={v}>
+                    {tr(v)}
+                  </option>
+                ),
+              )}
             </select>
           </label>
           <label>
@@ -547,7 +584,10 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
             const n = Number(bulk.value.replace(/,/g, ""));
             if (
               numeric &&
-              (!Number.isSafeInteger(n) || n < 0 || n > 50000000)
+              (!bulk.value.trim() ||
+                !Number.isSafeInteger(n) ||
+                n < 0 ||
+                n > 50000000)
             ) {
               setError(tr("PAY_INVALID_AMOUNT"));
               return;
@@ -570,7 +610,12 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         />
         <button
           className={btn}
-          disabled={!dirty || busy || !reason.trim()}
+          disabled={
+            !dirty ||
+            busy ||
+            !reason.trim() ||
+            Object.values(drafts).some((d) => d.amount === null || !d.due)
+          }
           onClick={() =>
             run(async () => {
               await apiClient.patch(base + "/batch", {
@@ -720,7 +765,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
                           className={input}
                           type="date"
                           disabled={disabled}
-                          value={d?.due ?? b.due}
+                          value={d?.due ?? b.due ?? ""}
                           onChange={(e) => edit(b, { due: e.target.value })}
                         />
                       </td>
@@ -736,9 +781,9 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
                       </td>
                       <td>
                         <fieldset disabled={disabled}>
-                          <Money
+                          <DraftMoney
                             label={tr("amount")}
-                            value={d?.amount ?? b.amount}
+                            value={d ? d.amount : b.amount}
                             onChange={(amount) => edit(b, { amount })}
                           />
                         </fieldset>
@@ -752,18 +797,22 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
                           />
                         </fieldset>
                       </td>
-                      <td>{format(b.adjustment)}</td>
+                      <td>
+                        {b.state === "DRAFT" ? "—" : format(b.adjustment)}
+                      </td>
                       <td>{format(b.received)}</td>
                       <td className={b.unpaid ? "text-red-700" : ""}>
                         {format(b.unpaid)}
                       </td>
                       <td>
                         {tr(b.status)}
-                        {b.unpaid > 0 && b.due < data.data.today && (
-                          <span className="block text-red-700">
-                            {tr("OVERDUE")}
-                          </span>
-                        )}
+                        {(b.unpaid ?? 0) > 0 &&
+                          b.due !== null &&
+                          b.due < data.data.today && (
+                            <span className="block text-red-700">
+                              {tr("OVERDUE")}
+                            </span>
+                          )}
                       </td>
                       {visible("methods") && (
                         <td>{b.methods.map(tr).join(", ")}</td>
@@ -823,6 +872,12 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           </div>
         </>
       )}
+      <ActiveBatchDialog
+        open={batchOpen}
+        close={() => setBatchOpen(false)}
+        month={query.from?.slice(0, 7) || defaults.from}
+        onSaved={() => qc.invalidateQueries({ queryKey: key })}
+      />
       <CreateDialog
         open={createOpen}
         close={() => setCreateOpen(false)}
@@ -855,6 +910,7 @@ function CreateDialog({
   const { t } = useTranslation("common");
   const tr = (s: string) => t(`pay.${s === "title" ? "billTitle" : s}`);
   const [search, setSearch] = useState("");
+  const [studentStatus, setStudentStatus] = useState("ACTIVE");
   const [classFilter, setClassFilter] = useState("");
   const [site, setSite] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Option[]>([]);
@@ -885,6 +941,7 @@ function CreateDialog({
       identity,
       "create-options",
       searchTerm,
+      studentStatus,
       classFilter,
       site,
     ],
@@ -893,6 +950,7 @@ function CreateDialog({
         await apiClient.get<Options>(base + "/options", {
           params: {
             q: searchTerm,
+            studentStatus,
             classId: classFilter || undefined,
             site: site || undefined,
           },
@@ -907,6 +965,7 @@ function CreateDialog({
   useEffect(() => {
     if (open) {
       setSearch("");
+      setStudentStatus("ACTIVE");
       setSearchTerm("");
       setSelectedStudents([]);
       setPreview(null);
@@ -972,6 +1031,20 @@ function CreateDialog({
         </DialogHeader>
         <p className="text-sm">{tr("createHint")}</p>
         <div className="flex flex-wrap gap-2">
+          <label>
+            {tr("studentStatus")}
+            <select
+              className={input}
+              value={studentStatus}
+              onChange={(e) => setStudentStatus(e.target.value)}
+            >
+              {["ACTIVE", "ALL", "INACTIVE", "WITHDRAWN"].map((v) => (
+                <option key={v} value={v}>
+                  {tr(v === "ALL" ? "all" : v)}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             {tr("student")}
             <input
@@ -1389,7 +1462,10 @@ function DetailDialog({
                     onChange={setAmount}
                   />
                   {mode === "PAYMENT" && (
-                    <button className={btn} onClick={() => setAmount(b.unpaid)}>
+                    <button
+                      className={btn}
+                      onClick={() => setAmount(b.unpaid ?? 0)}
+                    >
                       {tr("balancePayment")}
                     </button>
                   )}
@@ -1495,6 +1571,130 @@ function DetailDialog({
             ))}
           </>
         )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ActiveBatchDialog({
+  open,
+  close,
+  month,
+  onSaved,
+}: {
+  open: boolean;
+  close: () => void;
+  month: string;
+  onSaved: () => Promise<unknown>;
+}) {
+  const { t } = useTranslation("common");
+  const tr = (k: string) => t(`pay.${k}`);
+  const [form, setForm] = useState({ month, title: tr("monthlyTuition") });
+  const [preview, setPreview] = useState<{
+    total: number;
+    eligible: number;
+    skipped: number;
+    created: number;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const [requestId, setRequestId] = useState("");
+  useEffect(() => {
+    if (open) {
+      setForm({ month, title: tr("monthlyTuition") });
+      setPreview(null);
+      setDone(false);
+      setError("");
+      setRequestId(crypto.randomUUID());
+    }
+  }, [open, month]);
+  const change = (patch: Partial<typeof form>) => {
+    setForm({ ...form, ...patch });
+    setPreview(null);
+    setDone(false);
+    setRequestId(crypto.randomUUID());
+  };
+  const act = async (commit: boolean) => {
+    setBusy(true);
+    setError("");
+    try {
+      const result = (
+        await apiClient.post<{
+          total: number;
+          eligible: number;
+          skipped: number;
+          created: number;
+        }>(base + (commit ? "/active-drafts" : "/active-drafts-preview"), {
+          ...form,
+          requestId,
+        })
+      ).data;
+      setPreview(result);
+      if (commit) {
+        setDone(true);
+        await onSaved();
+      }
+    } catch {
+      setError(tr("failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v && !busy) close();
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{tr("activeBatch")}</DialogTitle>
+        </DialogHeader>
+        <p>{tr("draftHint")}</p>
+        <label>
+          {tr("month")}
+          <input
+            disabled={busy}
+            className={input}
+            type="month"
+            value={form.month}
+            onChange={(e) => change({ month: e.target.value })}
+          />
+        </label>
+        <label>
+          {tr("billTitle")}
+          <input
+            disabled={busy}
+            className={input}
+            maxLength={200}
+            value={form.title}
+            onChange={(e) => change({ title: e.target.value })}
+          />
+        </label>
+        {preview && (
+          <p>
+            {tr("targetCount")}: {preview.total} / {tr("eligible")}:{" "}
+            {preview.eligible} / {tr("skipped")}: {preview.skipped}
+            {done && ` / ${tr("created")}: ${preview.created}`}
+          </p>
+        )}
+        {error && <p role="alert">{error}</p>}
+        <button
+          className={btn}
+          disabled={busy || !form.month || !form.title.trim()}
+          onClick={() => act(false)}
+        >
+          {tr("preview")}
+        </button>
+        <button
+          className={btn}
+          disabled={busy || done || !preview?.eligible}
+          onClick={() => act(true)}
+        >
+          {tr("activeBatch")}
+        </button>
       </DialogContent>
     </Dialog>
   );

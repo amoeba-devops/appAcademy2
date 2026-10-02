@@ -10,6 +10,7 @@ import { createHash } from 'crypto';
 import { ACM_DS } from '../../acm-common/datasource';
 import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import {
+  ActiveDraftBatchDto,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -33,17 +34,17 @@ export interface BillRow {
   className: string | null;
   teacherId: string | null;
   month: string;
-  due: string;
+  due: string | null;
   kind: string;
   title: string;
-  amount: number;
+  amount: number | null;
   discount: number;
   adjustment: number;
-  net: number;
+  net: number | null;
   paid: number;
   refunded: number;
   received: number;
-  unpaid: number;
+  unpaid: number | null;
   state: string;
   status: string;
   version: number;
@@ -57,7 +58,7 @@ const BILL_SELECT = `SELECT b.pbl_id AS id,b.std_id AS "studentId",s.std_name AS
  b.pbl_month AS month,b.pbl_due::text AS due,b.pbl_kind AS kind,b.pbl_title AS title,b.pbl_amount::float8 AS amount,b.pbl_discount::float8 AS discount,
  COALESCE(a.adjustment,0)::float8 AS adjustment,(b.pbl_amount-b.pbl_discount-COALESCE(a.adjustment,0))::float8 AS net,
  COALESCE(p.paid,0)::float8 AS paid,COALESCE(p.refunded,0)::float8 AS refunded,COALESCE(p.received,0)::float8 AS received,
- GREATEST(b.pbl_amount-b.pbl_discount-COALESCE(a.adjustment,0)-COALESCE(p.received,0),0)::float8 AS unpaid,
+ CASE WHEN b.pbl_amount IS NULL THEN NULL ELSE GREATEST(b.pbl_amount-b.pbl_discount-COALESCE(a.adjustment,0)-COALESCE(p.received,0),0)::float8 END AS unpaid,
  b.pbl_status AS state,b.pbl_version AS version,b.pbl_memo AS memo,COALESCE(p.methods,ARRAY[]::text[]) AS methods,p.paid_date::text AS "paidDate"
  FROM amb_acm_pay_bill b JOIN amb_acm_std_student s ON s.std_id=b.std_id AND s.ent_id=b.ent_id
  LEFT JOIN amb_acm_cls_classes c ON c.cls_id=b.cls_id AND c.ent_id=b.ent_id
@@ -160,6 +161,8 @@ export class CollectionsService {
     ]);
     if (b.version !== version)
       throw new ConflictException('PAY_VERSION_CONFLICT');
+    if (!allowCanceled && b.state === 'DRAFT')
+      this.error('PAY_DRAFT_NOT_READY');
     if (!allowCanceled && b.state !== 'ACTIVE') this.error('PAY_BILL_CANCELED');
     return b;
   }
@@ -219,6 +222,75 @@ export class CollectionsService {
     }
     return { items, eligible: items.filter((x) => !x.reason).length };
   }
+  private async draftCandidates(m: EntityManager, ent: string) {
+    const rows: { id: string; name: string; site: string | null }[] =
+      await m.query(
+        "SELECT std_id AS id,std_name AS name,std_site AS site FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL AND std_status='ACTIVE' ORDER BY std_id FOR SHARE",
+        [ent],
+      );
+    return rows;
+  }
+  async activeDrafts(
+    u: AcmCurrentUser,
+    d: ActiveDraftBatchDto,
+    commit: boolean,
+  ) {
+    if (!d.title.trim()) this.error('PAY_INVALID_AMOUNT');
+    const work = async (m: EntityManager) => {
+      await m.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
+        u.entId + ':bills',
+      ]);
+      const students = await this.draftCandidates(m, u.entId);
+      const existing: { studentId: string }[] = await m.query(
+        'SELECT DISTINCT std_id AS "studentId" FROM amb_acm_pay_bill WHERE ent_id=$1 AND pbl_month=$2 AND pbl_kind=\'CLASS\'',
+        [u.entId, d.month],
+      );
+      const seen = new Set(existing.map((b) => b.studentId));
+      const eligible = students.filter((s) => !seen.has(s.id));
+      const ids: string[] = [];
+      if (commit)
+        for (const s of eligible) {
+          const [row]: { id: string }[] = await m.query(
+            "INSERT INTO amb_acm_pay_bill(ent_id,std_id,pbl_site,pbl_month,pbl_kind,pbl_title,pbl_amount,pbl_due,pbl_status,pbl_source_key,created_by) VALUES($1,$2,$3,$4,'CLASS',$5,NULL,NULL,'DRAFT',$6,$7) RETURNING pbl_id AS id",
+            [
+              u.entId,
+              s.id,
+              s.site,
+              d.month,
+              d.title.trim(),
+              `active-draft:${s.id}:${d.month}`,
+              u.id,
+            ],
+          );
+          await this.audit(
+            m,
+            u,
+            row.id,
+            'CREATE_DRAFT',
+            null,
+            {
+              studentId: s.id,
+              month: d.month,
+              title: d.title,
+              amount: null,
+              due: null,
+            },
+            'CREATE_DRAFT',
+          );
+          ids.push(row.id);
+        }
+      return {
+        total: students.length,
+        eligible: eligible.length,
+        skipped: students.length - eligible.length,
+        created: ids.length,
+        month: d.month,
+      };
+    };
+    return commit
+      ? this.atomic(u, d.requestId, ['activeDrafts', d], work)
+      : this.ds.transaction(work);
+  }
   async create(u: AcmCurrentUser, d: BillBatchDto) {
     return this.atomic(u, d.requestId, ['create', d], async (m) => {
       // Serialize bill generation per tenant so concurrent requests cannot duplicate source keys.
@@ -266,7 +338,8 @@ export class CollectionsService {
       if (new Set(d.items.map((x) => x.id)).size !== d.items.length)
         this.error('PAY_DUPLICATE_ID');
       for (const x of [...d.items].sort((a, b) => a.id.localeCompare(b.id))) {
-        const b = await this.lock(m, u, x.id, x.version);
+        const b = await this.lock(m, u, x.id, x.version, true);
+        if (b.state === 'CANCELED') this.error('PAY_BILL_CANCELED');
         if (
           !x.title.trim() ||
           x.discount > x.amount ||
@@ -290,7 +363,7 @@ export class CollectionsService {
         );
         if (duplicate.length) throw new ConflictException('PAY_DUPLICATE_BILL');
         await m.query(
-          'UPDATE amb_acm_pay_bill SET pbl_amount=$3,pbl_discount=$4,pbl_due=$5,pbl_title=$6,pbl_memo=$7,pbl_source_key=$8,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2',
+          "UPDATE amb_acm_pay_bill SET pbl_status='ACTIVE',pbl_amount=$3,pbl_discount=$4,pbl_due=$5,pbl_title=$6,pbl_memo=$7,pbl_source_key=$8,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2",
           [
             u.entId,
             b.id,
@@ -310,7 +383,7 @@ export class CollectionsService {
   async collect(u: AcmCurrentUser, id: string, d: CollectionDto) {
     return this.atomic(u, d.requestId, ['collect', id, d], async (m) => {
       const b = await this.lock(m, u, id, d.version);
-      if (d.amount > b.unpaid) this.error('PAY_OVERPAYMENT');
+      if (d.amount > (b.unpaid ?? 0)) this.error('PAY_OVERPAYMENT');
       const [r]: { id: string }[] = await m.query(
         `INSERT INTO amb_acm_pay_collection(ent_id,pbl_id,pcl_type,pcl_amount,pcl_date,pcl_method,pcl_reason,created_by) VALUES($1,$2,'PAYMENT',$3,$4,$5,$6,$7) RETURNING pcl_id AS id`,
         [u.entId, id, d.amount, d.date, d.method, d.reason, u.id],
@@ -343,7 +416,7 @@ export class CollectionsService {
         this.error('PAY_REFUND_EXCEEDS_PAYMENT');
       if (d.type === 'REVERSAL' && d.reduceBill)
         this.error('PAY_INVALID_REVERSAL');
-      if (d.reduceBill && d.amount > b.net)
+      if (d.reduceBill && d.amount > (b.net ?? 0))
         this.error('PAY_INVALID_ADJUSTMENT');
       const [r]: { id: string }[] = await m.query(
         'INSERT INTO amb_acm_pay_collection(ent_id,pbl_id,pcl_type,pcl_amount,pcl_date,pcl_method,pcl_original_id,pcl_reason,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING pcl_id AS id',
@@ -383,8 +456,8 @@ export class CollectionsService {
       if (
         !d.amount ||
         b.adjustment + d.amount < 0 ||
-        b.net - d.amount < b.received ||
-        b.net - d.amount < 0
+        (b.net ?? 0) - d.amount < b.received ||
+        (b.net ?? 0) - d.amount < 0
       )
         this.error('PAY_INVALID_ADJUSTMENT');
       await m.query(
@@ -406,13 +479,17 @@ export class CollectionsService {
       const b = await this.lock(m, u, id, d.version, true);
       if (
         (restore && b.state !== 'CANCELED') ||
-        (!restore && b.state !== 'ACTIVE')
+        (!restore && !['ACTIVE', 'DRAFT'].includes(b.state))
       )
         this.error('PAY_INVALID_STATE');
       if (!restore && b.paid > 0) this.error('PAY_HAS_COLLECTIONS');
       await m.query(
         'UPDATE amb_acm_pay_bill SET pbl_status=$3,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2',
-        [u.entId, id, restore ? 'ACTIVE' : 'CANCELED'],
+        [
+          u.entId,
+          id,
+          restore ? (b.amount === null ? 'DRAFT' : 'ACTIVE') : 'CANCELED',
+        ],
       );
       await this.audit(
         m,
@@ -420,7 +497,13 @@ export class CollectionsService {
         id,
         restore ? 'RESTORE' : 'CANCEL',
         b,
-        { state: restore ? 'ACTIVE' : 'CANCELED' },
+        {
+          state: restore
+            ? b.amount === null
+              ? 'DRAFT'
+              : 'ACTIVE'
+            : 'CANCELED',
+        },
         d.reason,
       );
       return { id };
@@ -434,13 +517,17 @@ export class CollectionsService {
         const b = await this.lock(m, u, x.id, x.version, true);
         if (
           (d.restore && b.state !== 'CANCELED') ||
-          (!d.restore && b.state !== 'ACTIVE')
+          (!d.restore && !['ACTIVE', 'DRAFT'].includes(b.state))
         )
           this.error('PAY_INVALID_STATE');
         if (!d.restore && b.paid > 0) this.error('PAY_HAS_COLLECTIONS');
         await m.query(
           'UPDATE amb_acm_pay_bill SET pbl_status=$3,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2',
-          [u.entId, x.id, d.restore ? 'ACTIVE' : 'CANCELED'],
+          [
+            u.entId,
+            x.id,
+            d.restore ? (b.amount === null ? 'DRAFT' : 'ACTIVE') : 'CANCELED',
+          ],
         );
         await this.audit(
           m,
@@ -448,7 +535,13 @@ export class CollectionsService {
           x.id,
           d.restore ? 'RESTORE' : 'CANCEL',
           b,
-          { state: d.restore ? 'ACTIVE' : 'CANCELED' },
+          {
+            state: d.restore
+              ? b.amount === null
+                ? 'DRAFT'
+                : 'ACTIVE'
+              : 'CANCELED',
+          },
           d.reason,
         );
       }
@@ -481,7 +574,11 @@ export class CollectionsService {
       values.push(value);
       clauses.push(sql.replace('?', `$${values.length}`));
     };
-    add('v.state=?', q.canceled === 'true' ? 'CANCELED' : 'ACTIVE');
+    clauses.push(
+      q.canceled === 'true'
+        ? "v.state='CANCELED'"
+        : "v.state IN ('ACTIVE','DRAFT')",
+    );
     if (q.basis === 'PAYMENT') {
       if (!q.from || !q.to || q.from.length !== 10 || q.to.length !== 10)
         this.error('PAY_DATE_RANGE_REQUIRED');
@@ -521,14 +618,14 @@ export class CollectionsService {
       values.push(q.from, q.to);
       period = `COALESCE((SELECT sum(CASE WHEN x.pcl_type='PAYMENT' THEN x.pcl_amount ELSE -x.pcl_amount END) FROM amb_acm_pay_collection x WHERE x.ent_id=$1 AND x.pbl_id=v.id AND x.pcl_date BETWEEN $${values.length - 1}::date AND $${values.length}::date),0)::float8`;
     }
-    const sql = `WITH base AS (${BILL_SELECT}), v AS (SELECT base.*,CASE WHEN net=0 THEN 'FREE' WHEN unpaid=0 THEN 'PAID' WHEN received>0 THEN 'PARTIAL' ELSE 'UNPAID' END AS status FROM base) SELECT v.*,${period} AS "periodReceived" FROM v WHERE ${clauses.join(' AND ')}`;
+    const sql = `WITH base AS (${BILL_SELECT}), v AS (SELECT base.*,CASE WHEN amount IS NULL THEN 'DRAFT' WHEN net=0 THEN 'FREE' WHEN unpaid=0 THEN 'PAID' WHEN received>0 THEN 'PARTIAL' ELSE 'UNPAID' END AS status FROM base) SELECT v.*,${period} AS "periodReceived" FROM v WHERE ${clauses.join(' AND ')}`;
     return { sql, values, today };
   }
   async list(u: AcmCurrentUser, q: BillQuery, exportAll = false) {
     const { sql, values, today } = await this.filter(u.entId, q);
     return this.ds.transaction('REPEATABLE READ', async (m) => {
       const [summary]: Record<string, number>[] = await m.query(
-        `SELECT count(*)::int AS count,COALESCE(sum(amount),0)::float8 AS amount,COALESCE(sum(discount),0)::float8 AS discount,COALESCE(sum(adjustment),0)::float8 AS adjustment,COALESCE(sum(net),0)::float8 AS net,COALESCE(sum(paid),0)::float8 AS paid,COALESCE(sum(refunded),0)::float8 AS refunded,COALESCE(sum(received),0)::float8 AS received,COALESCE(sum(unpaid),0)::float8 AS unpaid,COALESCE(sum("periodReceived"),0)::float8 AS "periodReceived" FROM (${sql}) filtered`,
+        `SELECT count(*)::int AS count,count(*) FILTER(WHERE status='DRAFT')::int AS drafts,COALESCE(sum(amount),0)::float8 AS amount,COALESCE(sum(discount) FILTER(WHERE status<>'DRAFT'),0)::float8 AS discount,COALESCE(sum(adjustment),0)::float8 AS adjustment,COALESCE(sum(net),0)::float8 AS net,COALESCE(sum(paid),0)::float8 AS paid,COALESCE(sum(refunded),0)::float8 AS refunded,COALESCE(sum(received),0)::float8 AS received,COALESCE(sum(unpaid),0)::float8 AS unpaid,COALESCE(sum("periodReceived"),0)::float8 AS "periodReceived" FROM (${sql}) filtered`,
         values,
       );
       if (exportAll && summary.count > 10000) this.error('PAY_EXPORT_LIMIT');
@@ -593,8 +690,14 @@ export class CollectionsService {
       status: string;
       site: string | null;
     }[] = await this.ds.query(
-      `SELECT s.std_id AS id,s.std_name AS name,s.std_status AS status,s.std_site AS site FROM amb_acm_std_student s WHERE s.ent_id=$1 AND s.deleted_at IS NULL AND s.std_name ILIKE $2 AND ($3::text IS NULL OR s.std_site=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=s.ent_id AND ce.std_id=s.std_id AND ce.cls_id=$4 AND ce.ce_status='CONFIRMED') OR EXISTS(SELECT 1 FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=s.ent_id AND cs.cls_id=$4 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=s.std_id OR i.inq_std_id=s.std_id))) ORDER BY s.std_name,s.std_id LIMIT 101`,
-      [u.entId, `%${q.q ?? ''}%`, q.site || null, q.classId || null],
+      `SELECT s.std_id AS id,s.std_name AS name,s.std_status AS status,s.std_site AS site FROM amb_acm_std_student s WHERE s.ent_id=$1 AND s.deleted_at IS NULL AND s.std_name ILIKE $2 AND ($5::text='ALL' OR s.std_status=$5) AND ($3::text IS NULL OR s.std_site=$3) AND ($4::uuid IS NULL OR EXISTS(SELECT 1 FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=s.ent_id AND ce.std_id=s.std_id AND ce.cls_id=$4 AND ce.ce_status='CONFIRMED') OR EXISTS(SELECT 1 FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=s.ent_id AND cs.cls_id=$4 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=s.std_id OR i.inq_std_id=s.std_id))) ORDER BY s.std_name,s.std_id LIMIT 101`,
+      [
+        u.entId,
+        `%${q.q ?? ''}%`,
+        q.site || null,
+        q.classId || null,
+        q.studentStatus || 'ACTIVE',
+      ],
     );
     const classes: { id: string; name: string }[] = await this.ds.query(
       'SELECT cls_id AS id,COALESCE(cls_subject_label,cls_code) AS name FROM amb_acm_cls_classes WHERE ent_id=$1 AND cls_deleted_at IS NULL ORDER BY name',

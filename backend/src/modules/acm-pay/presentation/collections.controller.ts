@@ -21,6 +21,7 @@ import {
 } from '../../acm-common/decorators/current-user.decorator';
 import { CollectionsService } from '../application/collections.service';
 import {
+  ActiveDraftBatchDto,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -43,6 +44,18 @@ export class CollectionsController {
     @Query() q: BillQuery,
   ) {
     return this.service.options(u, q);
+  }
+  @Post('active-drafts-preview') activeDraftPreview(
+    @CurrentUser() u: AcmCurrentUser,
+    @Body() d: ActiveDraftBatchDto,
+  ) {
+    return this.service.activeDrafts(u, d, false);
+  }
+  @Post('active-drafts') activeDraftCreate(
+    @CurrentUser() u: AcmCurrentUser,
+    @Body() d: ActiveDraftBatchDto,
+  ) {
+    return this.service.activeDrafts(u, d, true);
   }
   @Post('batch-preview') preview(
     @CurrentUser() u: AcmCurrentUser,

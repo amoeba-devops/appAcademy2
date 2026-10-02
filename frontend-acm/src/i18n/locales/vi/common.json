@@ -1029,6 +1029,14 @@
     "studentSelected": "Đã chọn",
     "selectedStudents": "Học viên đã chọn",
     "removeStudent": "Bỏ học viên",
-    "filterResetsSelection": "Đổi cơ sở hoặc lớp sẽ xóa danh sách đã chọn."
+    "filterResetsSelection": "Đổi cơ sở hoặc lớp sẽ xóa danh sách đã chọn.",
+    "activeBatch": "Đăng ký hàng loạt học viên đang học",
+    "DRAFT": "Chưa nhập số tiền",
+    "drafts": "Chưa nhập số tiền",
+    "monthlyTuition": "Học phí tháng",
+    "draftHint": "Tạo bản nháp chưa có số tiền và hạn thanh toán. Bỏ qua học viên đã có học phí tháng này. Nhập số tiền và hạn rồi lưu để xác nhận.",
+    "targetCount": "Học viên mục tiêu",
+    "PAY_DRAFT_NOT_READY": "Nhập số tiền và hạn thanh toán rồi xác nhận trước.",
+    "CREATE_DRAFT": "Đăng ký hàng loạt học viên đang học"
   }
 }

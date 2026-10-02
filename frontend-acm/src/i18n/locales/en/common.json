@@ -1029,6 +1029,14 @@
     "studentSelected": "Selected",
     "selectedStudents": "Selected students",
     "removeStudent": "Remove student",
-    "filterResetsSelection": "Changing the site or class filter clears the selected students."
+    "filterResetsSelection": "Changing the site or class filter clears the selected students.",
+    "activeBatch": "Register active students",
+    "DRAFT": "Amount not entered",
+    "drafts": "Amounts not entered",
+    "monthlyTuition": "Monthly tuition",
+    "draftHint": "Create drafts with no amount or due date. Students with a tuition bill for this month are excluded. Enter amount and due date and save to finalize.",
+    "targetCount": "Target students",
+    "PAY_DRAFT_NOT_READY": "Enter the amount and due date and finalize the bill first.",
+    "CREATE_DRAFT": "Register active students"
   }
 }

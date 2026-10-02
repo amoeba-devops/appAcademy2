@@ -1029,6 +1029,14 @@
     "studentSelected": "已选择",
     "selectedStudents": "已选学生",
     "removeStudent": "移除学生",
-    "filterResetsSelection": "更改校区或课程筛选将清空已选学生。"
+    "filterResetsSelection": "更改校区或课程筛选将清空已选学生。",
+    "activeBatch": "批量登记在读学生",
+    "DRAFT": "金额未填写",
+    "drafts": "金额未填写",
+    "monthlyTuition": "每月学费",
+    "draftHint": "创建金额和到期日为空的草稿。跳过本月已有学费账单的学生。填写金额和到期日后保存确认。",
+    "targetCount": "目标学生",
+    "PAY_DRAFT_NOT_READY": "请先填写金额及到期日并确认账单。",
+    "CREATE_DRAFT": "批量登记在读学生"
   }
 }

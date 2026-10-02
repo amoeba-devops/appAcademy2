@@ -81,7 +81,7 @@ export class BillQuery {
   @IsOptional() @IsIn(['true', 'false']) previous?: string;
   @IsOptional() @IsIn(['true', 'false']) canceled?: string;
   @IsOptional()
-  @IsIn(['UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'FREE'])
+  @IsIn(['DRAFT', 'UNPAID', 'PARTIAL', 'PAID', 'OVERDUE', 'FREE'])
   status?: string;
   @IsOptional() @IsString() @MaxLength(100) q?: string;
   @IsOptional() @IsString() @MaxLength(100) school?: string;
@@ -121,4 +121,10 @@ export class StateBatchDto {
   @ValidateNested({ each: true })
   @Type(() => StateItem)
   items!: StateItem[];
+}
+
+export class ActiveDraftBatchDto {
+  @IsUUID() requestId!: string;
+  @Matches(/^\d{4}-(0[1-9]|1[0-2])$/) month!: string;
+  @IsString() @MinLength(1) @MaxLength(200) title!: string;
 }
