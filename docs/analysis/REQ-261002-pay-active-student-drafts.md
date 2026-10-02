@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-ACTIVE-DRAFT-REQ-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed; production registration complete
 created: 2026-10-02
 change_log:
   - version: 1.0.0
@@ -32,4 +32,4 @@ change_log:
 
 [작업 계획 및 화면 구성](../plan/PLN-261002-pay-active-student-drafts.md)
 
-2026-10-02 사용자 “진행” 승인 후 구현 및 로컬 검증 완료. 운영 배포와 실제 2026-10 재원생 일괄 등록은 아직 실행하지 않았다.
+2026-10-02 사용자 “진행” 승인 후 구현 및 로컬 검증 완료. 사용자 “운영배포 재원생 등록 진행” 승인에 따라 운영 배포 및 2026-10 재원생 51명 등록 완료. 금액·납기 미입력 51건, 생성된 납부 내역 0건. 상세 증빙은 RPT-261002를 참조한다.
