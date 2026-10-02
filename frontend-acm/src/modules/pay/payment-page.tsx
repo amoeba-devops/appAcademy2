@@ -1,5 +1,6 @@
+import { MonthlyPaymentView, monthlySites } from "./monthly-payment-view";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
@@ -144,6 +145,44 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const { t } = useTranslation("common");
   const tr = (s: string) => t(`pay.${s === "title" ? "billTitle" : s}`);
   const qc = useQueryClient();
+  const [url, setUrl] = useSearchParams();
+  const tab = ["monthly", "detail", "dashboard"].includes(url.get("view") || "")
+    ? url.get("view")!
+    : "monthly";
+  const monthlyMonth = /^20\d{2}-(0[1-9]|1[0-2])$/.test(url.get("month") || "")
+    ? url.get("month")!
+    : new Date()
+        .toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" })
+        .slice(0, 7);
+  const monthlySite = monthlySites.includes(url.get("site") || "")
+    ? url.get("site")!
+    : "ALL";
+  const setMonthly = (month: string, site: string, view = tab) => {
+    if (dirty && !window.confirm(tr("discard"))) return;
+    const next = new URLSearchParams(url);
+    next.set("month", month);
+    next.set("site", site);
+    next.set("view", view);
+    setUrl(next);
+    if (view === "detail" && tab !== "detail") {
+      const selected = {
+        basis: "MONTH",
+        from: month,
+        to: month,
+        canceled: "false",
+        ...(site === "ALL" ? {} : { site }),
+      };
+      setFilters(selected);
+      setQuery(selected);
+      setPage(1);
+      setSelected([]);
+    }
+    setDrafts({});
+  };
+  const [batchStudent, setBatchStudent] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const defaults = {
     basis: "MONTH",
     from: new Date().toISOString().slice(0, 7),
@@ -296,589 +335,660 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         <button
           className={btn}
           disabled={dirty || busy}
-          onClick={() => setBatchOpen(true)}
+          onClick={() => {
+            setBatchStudent(null);
+            setBatchOpen(true);
+          }}
         >
           {tr("activeBatch")}
         </button>
       </header>
-      <p className="text-sm text-secondary">{tr("recordOnly")}</p>
-      <div className="flex flex-wrap gap-3">
-        {[
-          "net",
-          "received",
-          "unpaid",
-          "drafts",
-          "amount",
-          "discount",
-          "adjustment",
-          "refunded",
-          ...(query.basis === "PAYMENT" ? ["periodReceived"] : []),
-        ].map((k) => (
-          <div key={k} className="rounded border bg-white p-3">
-            <div className="text-xs text-secondary">{tr(k)}</div>
-            <strong>{format(data.data?.summary[k] ?? 0)}</strong>
-          </div>
+      <div className="flex flex-wrap gap-2">
+        {(["monthly", "detail", "dashboard"] as const).map((v) => (
+          <button
+            key={v}
+            className={btn}
+            aria-pressed={tab === v}
+            onClick={() => setMonthly(monthlyMonth, monthlySite, v)}
+          >
+            {t(`payMonthly.${v}`)}
+          </button>
         ))}
       </div>
-      <div className="rounded border bg-white p-3 space-y-3">
-        <div className="flex flex-wrap items-end gap-2">
-          <label>
-            {tr("basis")}
-            <select
-              className={input}
-              value={filters.basis}
-              onChange={(e) => {
-                const basis = e.target.value;
-                setFilters({
-                  ...filters,
-                  basis,
-                  from:
-                    basis === "MONTH"
-                      ? filters.from.slice(0, 7)
-                      : filters.from.slice(0, 7) + "-01",
-                  to:
-                    basis === "MONTH"
-                      ? filters.to.slice(0, 7)
-                      : filters.to.slice(0, 7) + "-28",
-                });
-              }}
-            >
-              {["MONTH", "PAYMENT"].map((v) => (
-                <option key={v} value={v}>
-                  {tr(v)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {["from", "to"].map((k) => (
-            <label key={k}>
-              {tr(k)}
-              <input
-                className={input}
-                type={filters.basis === "MONTH" ? "month" : "date"}
-                value={filters[k]}
-                onChange={(e) =>
-                  setFilters({ ...filters, [k]: e.target.value })
-                }
-              />
-            </label>
+      {tab !== "detail" && (
+        <MonthlyPaymentView
+          key={`${monthlyMonth}:${monthlySite}`}
+          identity={identity}
+          month={monthlyMonth}
+          site={monthlySite}
+          dashboard={tab === "dashboard"}
+          onList={() => setMonthly(monthlyMonth, monthlySite, "monthly")}
+          onFilter={setMonthly}
+          onEdit={(studentId) => {
+            if (dirty && !window.confirm(tr("discard"))) return;
+            const next = {
+              basis: "MONTH",
+              from: monthlyMonth,
+              to: monthlyMonth,
+              canceled: "false",
+              studentId,
+              ...(monthlySite === "ALL" ? {} : { site: monthlySite }),
+            };
+            setQuery(next);
+            setFilters(next);
+            setPage(1);
+            setDrafts({});
+            setSelected([]);
+            const params = new URLSearchParams(url);
+            params.set("view", "detail");
+            setUrl(params);
+          }}
+          onDetail={setDetailId}
+          onCreate={(student) => {
+            setBatchStudent({ id: student.id, name: student.name });
+            setBatchOpen(true);
+          }}
+        />
+      )}
+      <div hidden={tab !== "detail"} className="space-y-4">
+        <p className="text-sm text-secondary">{tr("recordOnly")}</p>
+        <div className="flex flex-wrap gap-3">
+          {[
+            "net",
+            "received",
+            "unpaid",
+            "drafts",
+            "amount",
+            "discount",
+            "adjustment",
+            "refunded",
+            ...(query.basis === "PAYMENT" ? ["periodReceived"] : []),
+          ].map((k) => (
+            <div key={k} className="rounded border bg-white p-3">
+              <div className="text-xs text-secondary">{tr(k)}</div>
+              <strong>{format(data.data?.summary[k] ?? 0)}</strong>
+            </div>
           ))}
-          <label>
-            <input
-              type="checkbox"
-              checked={filters.previous === "true"}
-              disabled={filters.basis !== "MONTH"}
-              onChange={(e) =>
-                setFilters({ ...filters, previous: String(e.target.checked) })
-              }
-            />
-            {tr("previous")}
-          </label>
-          <label>
-            {tr("student")}
-            <input
-              className={input}
-              value={filters.q || ""}
-              onChange={(e) => setFilters({ ...filters, q: e.target.value })}
-            />
-          </label>
-          <label>
-            {tr("status")}
-            <select
-              className={input}
-              value={filters.status || ""}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value })
-              }
-            >
-              <option value="">{tr("all")}</option>
-              {["DRAFT", "UNPAID", "PARTIAL", "PAID", "OVERDUE", "FREE"].map(
-                (v) => (
+        </div>
+        <div className="rounded border bg-white p-3 space-y-3">
+          <div className="flex flex-wrap items-end gap-2">
+            <label>
+              {tr("basis")}
+              <select
+                className={input}
+                value={filters.basis}
+                onChange={(e) => {
+                  const basis = e.target.value;
+                  setFilters({
+                    ...filters,
+                    basis,
+                    from:
+                      basis === "MONTH"
+                        ? filters.from.slice(0, 7)
+                        : filters.from.slice(0, 7) + "-01",
+                    to:
+                      basis === "MONTH"
+                        ? filters.to.slice(0, 7)
+                        : filters.to.slice(0, 7) + "-28",
+                  });
+                }}
+              >
+                {["MONTH", "PAYMENT"].map((v) => (
                   <option key={v} value={v}>
                     {tr(v)}
                   </option>
-                ),
-              )}
-            </select>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={filters.canceled === "true"}
-              onChange={(e) =>
-                setFilters({ ...filters, canceled: String(e.target.checked) })
-              }
-            />
-            {tr("canceled")}
-          </label>
-          <button className={btn} onClick={() => setAdvanced(!advanced)}>
-            {tr("advanced")}
-          </button>
-        </div>
-        {advanced && (
-          <div className="flex flex-wrap gap-2">
-            {["school", "grade", "site", "memo"].map((k) => (
+                ))}
+              </select>
+            </label>
+            {["from", "to"].map((k) => (
               <label key={k}>
                 {tr(k)}
                 <input
                   className={input}
-                  value={filters[k] || ""}
+                  type={filters.basis === "MONTH" ? "month" : "date"}
+                  value={filters[k]}
                   onChange={(e) =>
                     setFilters({ ...filters, [k]: e.target.value })
                   }
                 />
               </label>
             ))}
-            {[
-              ["studentStatus", ["ACTIVE", "INACTIVE", "WITHDRAWN"]],
-              ["kind", kinds],
-              ["method", methods],
-            ].map(([k, values]) => (
-              <label key={k as string}>
-                {tr(k as string)}
-                <select
-                  className={input}
-                  value={filters[k as string] || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, [k as string]: e.target.value })
-                  }
-                >
-                  <option value="">{tr("all")}</option>
-                  {(values as string[]).map((v) => (
-                    <option value={v} key={v}>
-                      {tr(v)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-            {(["classId", "teacherId"] as const).map((k) => (
-              <label key={k}>
-                {tr(k)}
-                <select
-                  className={input}
-                  value={filters[k] || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, [k]: e.target.value })
-                  }
-                >
-                  <option value="">{tr("all")}</option>
-                  {(k === "classId"
-                    ? options.data?.classes
-                    : options.data?.teachers
-                  )?.map((v) => (
-                    <option value={v.id} key={v.id}>
-                      {v.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-            {["dueFrom", "dueTo"].map((k) => (
-              <label key={k}>
-                {tr(k)}
-                <input
-                  type="date"
-                  className={input}
-                  value={filters[k] || ""}
-                  onChange={(e) =>
-                    setFilters({ ...filters, [k]: e.target.value })
-                  }
-                />
-              </label>
-            ))}
-          </div>
-        )}
-        <div className="flex gap-2">
-          <button className={btn} onClick={applySearch}>
-            {tr("search")}
-          </button>
-          <button className={btn} onClick={() => setFilters(defaults)}>
-            {tr("reset")}
-          </button>
-          <button
-            className={btn}
-            onClick={() => {
-              localStorage.setItem(
-                `pay-filter:${identity}`,
-                JSON.stringify(filters),
-              );
-              setNotice(tr("saved"));
-            }}
-          >
-            {tr("saveFilter")}
-          </button>
-          <button
-            className={btn}
-            onClick={() => {
-              try {
-                const saved = JSON.parse(
-                  localStorage.getItem(`pay-filter:${identity}`) || "null",
-                );
-                if (saved) setFilters(saved);
-              } catch {
-                setError(tr("failed"));
-              }
-            }}
-          >
-            {tr("loadFilter")}
-          </button>
-        </div>
-      </div>
-      {error && (
-        <p role="alert" className="text-red-700">
-          {error}
-        </p>
-      )}
-      {notice && (
-        <p role="status" className="text-emerald-700">
-          {notice}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
-        <button className={btn} onClick={() => setShowColumns(!showColumns)}>
-          {tr("columns")}
-        </button>
-        <button
-          className={btn}
-          disabled={busy}
-          onClick={() =>
-            run(async () => {
-              const r = await apiClient.get(base + "/export", {
-                params: query,
-                responseType: "blob",
-              });
-              const url = URL.createObjectURL(r.data);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "collections.xlsx";
-              a.click();
-              setTimeout(() => URL.revokeObjectURL(url), 1000);
-            })
-          }
-        >
-          {tr("export")}
-        </button>
-        <select
-          className={input}
-          value={bulk.field}
-          onChange={(e) => setBulk({ ...bulk, field: e.target.value })}
-        >
-          {["amount", "discount", "due", "memo"].map((v) => (
-            <option key={v} value={v}>
-              {tr(v)}
-            </option>
-          ))}
-        </select>
-        <input
-          aria-label={tr("bulkValue")}
-          className={input}
-          value={bulk.value}
-          onChange={(e) => setBulk({ ...bulk, value: e.target.value })}
-        />
-        <button
-          className={btn}
-          disabled={!selected.length || query.canceled === "true"}
-          onClick={() => {
-            const numeric = ["amount", "discount"].includes(bulk.field);
-            const n = Number(bulk.value.replace(/,/g, ""));
-            if (
-              numeric &&
-              (!bulk.value.trim() ||
-                !Number.isSafeInteger(n) ||
-                n < 0 ||
-                n > 50000000)
-            ) {
-              setError(tr("PAY_INVALID_AMOUNT"));
-              return;
-            }
-            data.data?.items
-              .filter((b) => selected.includes(b.id))
-              .forEach((b) =>
-                edit(b, { [bulk.field]: numeric ? n : bulk.value }),
-              );
-          }}
-        >
-          {tr("bulkApply")}
-        </button>
-        <input
-          className={input}
-          placeholder={tr("reason")}
-          aria-label={tr("reason")}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-        <button
-          className={btn}
-          disabled={
-            !dirty ||
-            busy ||
-            !reason.trim() ||
-            Object.values(drafts).some((d) => d.amount === null || !d.due)
-          }
-          onClick={() =>
-            run(async () => {
-              await apiClient.patch(base + "/batch", {
-                requestId: crypto.randomUUID(),
-                reason,
-                items: Object.values(drafts),
-              });
-              setDrafts({});
-            })
-          }
-        >
-          {tr("save")} ({Object.keys(drafts).length})
-        </button>
-        {admin && (
-          <button
-            className={btn}
-            disabled={!selected.length || busy || !reason.trim()}
-            onClick={cancelSelected}
-          >
-            {tr(query.canceled === "true" ? "restore" : "cancelBill")}
-          </button>
-        )}
-      </div>
-      {showColumns && (
-        <div>
-          {["grade", "site", "kind", "methods", "paidDate", "memo"].map((k) => (
-            <label className="mr-3" key={k}>
+            <label>
               <input
                 type="checkbox"
-                checked={visible(k)}
-                onChange={(e) => {
-                  const next = e.target.checked
-                    ? [...columns, k]
-                    : columns.filter((x) => x !== k);
-                  setColumns(next);
-                  localStorage.setItem(
-                    `pay-columns:${identity}`,
-                    JSON.stringify(next),
-                  );
-                }}
+                checked={filters.previous === "true"}
+                disabled={filters.basis !== "MONTH"}
+                onChange={(e) =>
+                  setFilters({ ...filters, previous: String(e.target.checked) })
+                }
               />
-              {tr(k)}
+              {tr("previous")}
             </label>
-          ))}
-        </div>
-      )}
-      {data.isError ? (
-        <button className={btn} onClick={() => data.refetch()}>
-          {tr("retry")}
-        </button>
-      ) : data.isPending ? (
-        <p>{tr("loading")}</p>
-      ) : (
-        <>
-          <div className="overflow-x-auto rounded border">
-            <table className="min-w-max w-full text-sm">
-              <thead className="bg-slate-100">
-                <tr>
-                  <th>
-                    <input
-                      aria-label={tr("selectAll")}
-                      type="checkbox"
-                      checked={
-                        !!data.data.items.length &&
-                        data.data.items.every((b) => selected.includes(b.id))
-                      }
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? data.data.items.map((b) => b.id)
-                            : [],
-                        )
-                      }
-                    />
-                  </th>
-                  {[
-                    "student",
-                    "grade",
-                    "site",
-                    "month",
-                    "due",
-                    "kind",
-                    "title",
-                    "amount",
-                    "discount",
-                    "adjustment",
-                    "received",
-                    "unpaid",
-                    "status",
-                    "methods",
-                    "paidDate",
-                    "memo",
-                    "detail",
-                  ]
-                    .filter(
-                      (k) =>
-                        ![
-                          "grade",
-                          "site",
-                          "kind",
-                          "methods",
-                          "paidDate",
-                          "memo",
-                        ].includes(k) || visible(k),
-                    )
-                    .map((k) => (
-                      <th key={k} className="p-2 text-left">
-                        {tr(k)}
-                      </th>
+            <label>
+              {tr("student")}
+              <input
+                className={input}
+                value={filters.q || ""}
+                onChange={(e) => setFilters({ ...filters, q: e.target.value })}
+              />
+            </label>
+            <label>
+              {tr("status")}
+              <select
+                className={input}
+                value={filters.status || ""}
+                onChange={(e) =>
+                  setFilters({ ...filters, status: e.target.value })
+                }
+              >
+                <option value="">{tr("all")}</option>
+                {["DRAFT", "UNPAID", "PARTIAL", "PAID", "OVERDUE", "FREE"].map(
+                  (v) => (
+                    <option key={v} value={v}>
+                      {tr(v)}
+                    </option>
+                  ),
+                )}
+              </select>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={filters.canceled === "true"}
+                onChange={(e) =>
+                  setFilters({ ...filters, canceled: String(e.target.checked) })
+                }
+              />
+              {tr("canceled")}
+            </label>
+            <button className={btn} onClick={() => setAdvanced(!advanced)}>
+              {tr("advanced")}
+            </button>
+          </div>
+          {advanced && (
+            <div className="flex flex-wrap gap-2">
+              {["school", "grade", "site", "memo"].map((k) => (
+                <label key={k}>
+                  {tr(k)}
+                  <input
+                    className={input}
+                    value={filters[k] || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [k]: e.target.value })
+                    }
+                  />
+                </label>
+              ))}
+              {[
+                ["studentStatus", ["ACTIVE", "INACTIVE", "WITHDRAWN"]],
+                ["kind", kinds],
+                ["method", methods],
+              ].map(([k, values]) => (
+                <label key={k as string}>
+                  {tr(k as string)}
+                  <select
+                    className={input}
+                    value={filters[k as string] || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [k as string]: e.target.value })
+                    }
+                  >
+                    <option value="">{tr("all")}</option>
+                    {(values as string[]).map((v) => (
+                      <option value={v} key={v}>
+                        {tr(v)}
+                      </option>
                     ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.data.items.map((b) => {
-                  const d = drafts[b.id];
-                  const disabled = b.state === "CANCELED" || busy;
-                  return (
-                    <tr
-                      key={b.id}
-                      className={`border-t ${d ? "bg-amber-50" : "bg-white"}`}
-                    >
-                      <td className="p-2">
-                        <input
-                          aria-label={`${tr("select")} ${b.studentName}`}
-                          type="checkbox"
-                          checked={selected.includes(b.id)}
-                          onChange={(e) =>
-                            setSelected(
-                              e.target.checked
-                                ? [...selected, b.id]
-                                : selected.filter((id) => id !== b.id),
-                            )
-                          }
-                        />
-                      </td>
-                      <td className="p-2">
-                        <Link to={`/admin/std/${b.studentId}`}>
-                          {b.studentName}
-                        </Link>
-                      </td>
-                      {visible("grade") && <td>{b.grade}</td>}
-                      {visible("site") && <td>{b.site}</td>}
-                      <td>{b.month}</td>
-                      <td>
-                        <input
-                          aria-label={tr("due")}
-                          className={input}
-                          type="date"
-                          disabled={disabled}
-                          value={d?.due ?? b.due ?? ""}
-                          onChange={(e) => edit(b, { due: e.target.value })}
-                        />
-                      </td>
-                      {visible("kind") && <td>{tr(b.kind)}</td>}
-                      <td>
-                        <input
-                          aria-label={tr("title")}
-                          className={input}
-                          disabled={disabled}
-                          value={d?.title ?? b.title}
-                          onChange={(e) => edit(b, { title: e.target.value })}
-                        />
-                      </td>
-                      <td>
-                        <fieldset disabled={disabled}>
-                          <DraftMoney
-                            label={tr("amount")}
-                            value={d ? d.amount : b.amount}
-                            onChange={(amount) => edit(b, { amount })}
-                          />
-                        </fieldset>
-                      </td>
-                      <td>
-                        <fieldset disabled={disabled}>
-                          <Money
-                            label={tr("discount")}
-                            value={d?.discount ?? b.discount}
-                            onChange={(discount) => edit(b, { discount })}
-                          />
-                        </fieldset>
-                      </td>
-                      <td>
-                        {b.state === "DRAFT" ? "—" : format(b.adjustment)}
-                      </td>
-                      <td>{format(b.received)}</td>
-                      <td className={b.unpaid ? "text-red-700" : ""}>
-                        {format(b.unpaid)}
-                      </td>
-                      <td>
-                        {tr(b.status)}
-                        {(b.unpaid ?? 0) > 0 &&
-                          b.due !== null &&
-                          b.due < data.data.today && (
-                            <span className="block text-red-700">
-                              {tr("OVERDUE")}
-                            </span>
-                          )}
-                      </td>
-                      {visible("methods") && (
-                        <td>{b.methods.map(tr).join(", ")}</td>
-                      )}
-                      {visible("paidDate") && <td>{b.paidDate}</td>}
-                      {visible("memo") && (
-                        <td>
+                  </select>
+                </label>
+              ))}
+              {(["classId", "teacherId"] as const).map((k) => (
+                <label key={k}>
+                  {tr(k)}
+                  <select
+                    className={input}
+                    value={filters[k] || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [k]: e.target.value })
+                    }
+                  >
+                    <option value="">{tr("all")}</option>
+                    {(k === "classId"
+                      ? options.data?.classes
+                      : options.data?.teachers
+                    )?.map((v) => (
+                      <option value={v.id} key={v.id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+              {["dueFrom", "dueTo"].map((k) => (
+                <label key={k}>
+                  {tr(k)}
+                  <input
+                    type="date"
+                    className={input}
+                    value={filters[k] || ""}
+                    onChange={(e) =>
+                      setFilters({ ...filters, [k]: e.target.value })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button className={btn} onClick={applySearch}>
+              {tr("search")}
+            </button>
+            <button className={btn} onClick={() => setFilters(defaults)}>
+              {tr("reset")}
+            </button>
+            <button
+              className={btn}
+              onClick={() => {
+                localStorage.setItem(
+                  `pay-filter:${identity}`,
+                  JSON.stringify(filters),
+                );
+                setNotice(tr("saved"));
+              }}
+            >
+              {tr("saveFilter")}
+            </button>
+            <button
+              className={btn}
+              onClick={() => {
+                try {
+                  const saved = JSON.parse(
+                    localStorage.getItem(`pay-filter:${identity}`) || "null",
+                  );
+                  if (saved) setFilters(saved);
+                } catch {
+                  setError(tr("failed"));
+                }
+              }}
+            >
+              {tr("loadFilter")}
+            </button>
+          </div>
+        </div>
+        {error && (
+          <p role="alert" className="text-red-700">
+            {error}
+          </p>
+        )}
+        {notice && (
+          <p role="status" className="text-emerald-700">
+            {notice}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          <button className={btn} onClick={() => setShowColumns(!showColumns)}>
+            {tr("columns")}
+          </button>
+          <button
+            className={btn}
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                const r = await apiClient.get(base + "/export", {
+                  params: query,
+                  responseType: "blob",
+                });
+                const url = URL.createObjectURL(r.data);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "collections.xlsx";
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              })
+            }
+          >
+            {tr("export")}
+          </button>
+          <select
+            className={input}
+            value={bulk.field}
+            onChange={(e) => setBulk({ ...bulk, field: e.target.value })}
+          >
+            {["amount", "discount", "due", "memo"].map((v) => (
+              <option key={v} value={v}>
+                {tr(v)}
+              </option>
+            ))}
+          </select>
+          <input
+            aria-label={tr("bulkValue")}
+            className={input}
+            value={bulk.value}
+            onChange={(e) => setBulk({ ...bulk, value: e.target.value })}
+          />
+          <button
+            className={btn}
+            disabled={!selected.length || query.canceled === "true"}
+            onClick={() => {
+              const numeric = ["amount", "discount"].includes(bulk.field);
+              const n = Number(bulk.value.replace(/,/g, ""));
+              if (
+                numeric &&
+                (!bulk.value.trim() ||
+                  !Number.isSafeInteger(n) ||
+                  n < 0 ||
+                  n > 50000000)
+              ) {
+                setError(tr("PAY_INVALID_AMOUNT"));
+                return;
+              }
+              data.data?.items
+                .filter((b) => selected.includes(b.id))
+                .forEach((b) =>
+                  edit(b, { [bulk.field]: numeric ? n : bulk.value }),
+                );
+            }}
+          >
+            {tr("bulkApply")}
+          </button>
+          <input
+            className={input}
+            placeholder={tr("reason")}
+            aria-label={tr("reason")}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          <button
+            className={btn}
+            disabled={
+              !dirty ||
+              busy ||
+              !reason.trim() ||
+              Object.values(drafts).some((d) => d.amount === null || !d.due)
+            }
+            onClick={() =>
+              run(async () => {
+                await apiClient.patch(base + "/batch", {
+                  requestId: crypto.randomUUID(),
+                  reason,
+                  items: Object.values(drafts),
+                });
+                setDrafts({});
+              })
+            }
+          >
+            {tr("save")} ({Object.keys(drafts).length})
+          </button>
+          {admin && (
+            <button
+              className={btn}
+              disabled={!selected.length || busy || !reason.trim()}
+              onClick={cancelSelected}
+            >
+              {tr(query.canceled === "true" ? "restore" : "cancelBill")}
+            </button>
+          )}
+        </div>
+        {showColumns && (
+          <div>
+            {["grade", "site", "kind", "methods", "paidDate", "memo"].map(
+              (k) => (
+                <label className="mr-3" key={k}>
+                  <input
+                    type="checkbox"
+                    checked={visible(k)}
+                    onChange={(e) => {
+                      const next = e.target.checked
+                        ? [...columns, k]
+                        : columns.filter((x) => x !== k);
+                      setColumns(next);
+                      localStorage.setItem(
+                        `pay-columns:${identity}`,
+                        JSON.stringify(next),
+                      );
+                    }}
+                  />
+                  {tr(k)}
+                </label>
+              ),
+            )}
+          </div>
+        )}
+        {data.isError ? (
+          <button className={btn} onClick={() => data.refetch()}>
+            {tr("retry")}
+          </button>
+        ) : data.isPending ? (
+          <p>{tr("loading")}</p>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded border">
+              <table className="min-w-max w-full text-sm">
+                <thead className="bg-slate-100">
+                  <tr>
+                    <th>
+                      <input
+                        aria-label={tr("selectAll")}
+                        type="checkbox"
+                        checked={
+                          !!data.data.items.length &&
+                          data.data.items.every((b) => selected.includes(b.id))
+                        }
+                        onChange={(e) =>
+                          setSelected(
+                            e.target.checked
+                              ? data.data.items.map((b) => b.id)
+                              : [],
+                          )
+                        }
+                      />
+                    </th>
+                    {[
+                      "student",
+                      "grade",
+                      "site",
+                      "month",
+                      "due",
+                      "kind",
+                      "title",
+                      "amount",
+                      "discount",
+                      "adjustment",
+                      "received",
+                      "unpaid",
+                      "status",
+                      "methods",
+                      "paidDate",
+                      "memo",
+                      "detail",
+                    ]
+                      .filter(
+                        (k) =>
+                          ![
+                            "grade",
+                            "site",
+                            "kind",
+                            "methods",
+                            "paidDate",
+                            "memo",
+                          ].includes(k) || visible(k),
+                      )
+                      .map((k) => (
+                        <th key={k} className="p-2 text-left">
+                          {tr(k)}
+                        </th>
+                      ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.data.items.map((b) => {
+                    const d = drafts[b.id];
+                    const disabled = b.state === "CANCELED" || busy;
+                    return (
+                      <tr
+                        key={b.id}
+                        className={`border-t ${d ? "bg-amber-50" : "bg-white"}`}
+                      >
+                        <td className="p-2">
                           <input
-                            className={input}
-                            aria-label={tr("memo")}
-                            disabled={disabled}
-                            value={d?.memo ?? b.memo}
-                            onChange={(e) => edit(b, { memo: e.target.value })}
+                            aria-label={`${tr("select")} ${b.studentName}`}
+                            type="checkbox"
+                            checked={selected.includes(b.id)}
+                            onChange={(e) =>
+                              setSelected(
+                                e.target.checked
+                                  ? [...selected, b.id]
+                                  : selected.filter((id) => id !== b.id),
+                              )
+                            }
                           />
                         </td>
-                      )}
-                      <td>
-                        <button
-                          className={btn}
-                          onClick={() => setDetailId(b.id)}
-                        >
-                          {tr("detail")}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {!data.data.items.length && <p>{tr("empty")}</p>}
-          <div className="flex gap-3 items-center">
-            <span>
-              {tr("count")}: {data.data.summary.count}
-            </span>
-            <button
-              className={btn}
-              disabled={page === 1 || dirty}
-              onClick={() => {
-                setPage(page - 1);
-                setSelected([]);
-              }}
-            >
-              {tr("prev")}
-            </button>
-            <span>{page}</span>
-            <button
-              className={btn}
-              disabled={page * 50 >= data.data.summary.count || dirty}
-              onClick={() => {
-                setPage(page + 1);
-                setSelected([]);
-              }}
-            >
-              {tr("next")}
-            </button>
-          </div>
-        </>
-      )}
+                        <td className="p-2">
+                          <Link to={`/admin/std/${b.studentId}`}>
+                            {b.studentName}
+                          </Link>
+                        </td>
+                        {visible("grade") && <td>{b.grade}</td>}
+                        {visible("site") && <td>{b.site}</td>}
+                        <td>{b.month}</td>
+                        <td>
+                          <input
+                            aria-label={tr("due")}
+                            className={input}
+                            type="date"
+                            disabled={disabled}
+                            value={d?.due ?? b.due ?? ""}
+                            onChange={(e) => edit(b, { due: e.target.value })}
+                          />
+                        </td>
+                        {visible("kind") && <td>{tr(b.kind)}</td>}
+                        <td>
+                          <input
+                            aria-label={tr("title")}
+                            className={input}
+                            disabled={disabled}
+                            value={d?.title ?? b.title}
+                            onChange={(e) => edit(b, { title: e.target.value })}
+                          />
+                        </td>
+                        <td>
+                          <fieldset disabled={disabled}>
+                            <DraftMoney
+                              label={tr("amount")}
+                              value={d ? d.amount : b.amount}
+                              onChange={(amount) => edit(b, { amount })}
+                            />
+                          </fieldset>
+                        </td>
+                        <td>
+                          <fieldset disabled={disabled}>
+                            <Money
+                              label={tr("discount")}
+                              value={d?.discount ?? b.discount}
+                              onChange={(discount) => edit(b, { discount })}
+                            />
+                          </fieldset>
+                        </td>
+                        <td>
+                          {b.state === "DRAFT" ? "—" : format(b.adjustment)}
+                        </td>
+                        <td>{format(b.received)}</td>
+                        <td className={b.unpaid ? "text-red-700" : ""}>
+                          {format(b.unpaid)}
+                        </td>
+                        <td>
+                          {tr(b.status)}
+                          {(b.unpaid ?? 0) > 0 &&
+                            b.due !== null &&
+                            b.due < data.data.today && (
+                              <span className="block text-red-700">
+                                {tr("OVERDUE")}
+                              </span>
+                            )}
+                        </td>
+                        {visible("methods") && (
+                          <td>{b.methods.map(tr).join(", ")}</td>
+                        )}
+                        {visible("paidDate") && <td>{b.paidDate}</td>}
+                        {visible("memo") && (
+                          <td>
+                            <input
+                              className={input}
+                              aria-label={tr("memo")}
+                              disabled={disabled}
+                              value={d?.memo ?? b.memo}
+                              onChange={(e) =>
+                                edit(b, { memo: e.target.value })
+                              }
+                            />
+                          </td>
+                        )}
+                        <td>
+                          <button
+                            className={btn}
+                            onClick={() => setDetailId(b.id)}
+                          >
+                            {tr("detail")}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {!data.data.items.length && <p>{tr("empty")}</p>}
+            <div className="flex gap-3 items-center">
+              <span>
+                {tr("count")}: {data.data.summary.count}
+              </span>
+              <button
+                className={btn}
+                disabled={page === 1 || dirty}
+                onClick={() => {
+                  setPage(page - 1);
+                  setSelected([]);
+                }}
+              >
+                {tr("prev")}
+              </button>
+              <span>{page}</span>
+              <button
+                className={btn}
+                disabled={page * 50 >= data.data.summary.count || dirty}
+                onClick={() => {
+                  setPage(page + 1);
+                  setSelected([]);
+                }}
+              >
+                {tr("next")}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
       <ActiveBatchDialog
+        student={batchStudent}
         open={batchOpen}
         close={() => setBatchOpen(false)}
-        month={query.from?.slice(0, 7) || defaults.from}
+        month={
+          tab === "detail"
+            ? query.from?.slice(0, 7) || defaults.from
+            : monthlyMonth
+        }
+        site={tab === "detail" ? query.site || "ALL" : monthlySite}
+        roster={tab === "detail" ? "CURRENT" : "MONTH"}
         onSaved={() => qc.invalidateQueries({ queryKey: key })}
       />
       <CreateDialog
+        initialSite={
+          tab === "detail"
+            ? query.site
+            : monthlySite === "ALL"
+              ? ""
+              : monthlySite
+        }
+        month={tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth}
         open={createOpen}
         close={() => setCreateOpen(false)}
         identity={identity}
@@ -897,11 +1007,15 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   );
 }
 function CreateDialog({
+  initialSite,
+  month,
   open,
   close,
   identity,
   onSaved,
 }: {
+  month?: string;
+  initialSite?: string;
   open: boolean;
   close: () => void;
   identity: string;
@@ -965,14 +1079,16 @@ function CreateDialog({
   useEffect(() => {
     if (open) {
       setSearch("");
+      setSite(initialSite || "");
       setStudentStatus("ACTIVE");
       setSearchTerm("");
       setSelectedStudents([]);
+      if (month) setForm((old) => ({ ...old, month }));
       setPreview(null);
       setError("");
       setResult("");
     }
-  }, [open]);
+  }, [open, month, initialSite]);
   const items = () =>
     ids.map((studentId) => ({
       ...form,
@@ -1577,11 +1693,17 @@ function DetailDialog({
 }
 
 function ActiveBatchDialog({
+  site,
+  roster,
+  student,
   open,
   close,
   month,
   onSaved,
 }: {
+  student: { id: string; name: string } | null;
+  site: string;
+  roster: string;
   open: boolean;
   close: () => void;
   month: string;
@@ -1608,7 +1730,7 @@ function ActiveBatchDialog({
       setError("");
       setRequestId(crypto.randomUUID());
     }
-  }, [open, month]);
+  }, [open, month, site, roster, student]);
   const change = (patch: Partial<typeof form>) => {
     setForm({ ...form, ...patch });
     setPreview(null);
@@ -1627,6 +1749,9 @@ function ActiveBatchDialog({
           created: number;
         }>(base + (commit ? "/active-drafts" : "/active-drafts-preview"), {
           ...form,
+          site,
+          roster,
+          studentId: student?.id,
           requestId,
         })
       ).data;
@@ -1653,6 +1778,13 @@ function ActiveBatchDialog({
           <DialogTitle>{tr("activeBatch")}</DialogTitle>
         </DialogHeader>
         <p>{tr("draftHint")}</p>
+        {student && <p>{student.name}</p>}
+        <p>
+          {t(`payMonthly.${site}`)} ·{" "}
+          {t(
+            `payMonthly.${roster === "MONTH" ? "ENROLLED" : "currentStudents"}`,
+          )}
+        </p>
         <label>
           {tr("month")}
           <input

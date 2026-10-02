@@ -124,7 +124,25 @@ export class StateBatchDto {
 }
 
 export class ActiveDraftBatchDto {
+  @IsOptional() @IsUUID() studentId?: string;
+  @IsOptional()
+  @IsIn(['ALL', 'TPI', 'TRINITY', 'SANTACROCE', 'UNASSIGNED'])
+  site?: string;
+  @IsOptional() @IsIn(['CURRENT', 'MONTH']) roster?: string;
   @IsUUID() requestId!: string;
   @Matches(/^\d{4}-(0[1-9]|1[0-2])$/) month!: string;
   @IsString() @MinLength(1) @MaxLength(200) title!: string;
+}
+
+export class MonthlyPayQuery {
+  @Matches(/^(20[0-9]{2})-(0[1-9]|1[0-2])$/) month!: string;
+  @IsOptional()
+  @IsIn(['ALL', 'TPI', 'TRINITY', 'SANTACROCE', 'UNASSIGNED'])
+  site?: string;
+  @IsOptional() @IsIn(['ENROLLED', 'ALL', 'REVIEW']) scope?: string;
+  @IsOptional()
+  @IsIn(['NONE', 'DRAFT', 'UNPAID', 'PARTIAL', 'PAID', 'FREE', 'FINALIZED'])
+  status?: string;
+  @IsOptional() @IsString() @MaxLength(100) q?: string;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100000) page?: number;
 }

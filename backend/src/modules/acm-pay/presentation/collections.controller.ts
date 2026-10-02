@@ -22,6 +22,7 @@ import {
 import { CollectionsService } from '../application/collections.service';
 import {
   ActiveDraftBatchDto,
+  MonthlyPayQuery,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -38,6 +39,45 @@ export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
   @Get() list(@CurrentUser() u: AcmCurrentUser, @Query() q: BillQuery) {
     return this.service.list(u, q);
+  }
+  @Get('monthly') monthly(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: MonthlyPayQuery,
+  ) {
+    return this.service.monthly(u, q);
+  }
+  @Get('monthly-export') async monthlyExport(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: MonthlyPayQuery,
+    @Res() res: Response,
+  ) {
+    const result = await this.service.monthly(u, q, true);
+    const sheet = XLSX.utils.json_to_sheet(
+      result.items.map((r) => ({
+        Student: r.name,
+        Month: q.month,
+        Site: r.periods.map((p) => p.site || 'UNASSIGNED').join(', '),
+        Enrolled: r.enrolled,
+        Review: r.review,
+        Status: r.status,
+        Bills: r.billCount,
+        Drafts: r.drafts,
+        Net: r.net,
+        Received: r.received,
+        Unpaid: r.unpaid,
+      })),
+    );
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, 'Monthly');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="monthly-${q.month}.xlsx"`,
+    );
+    res.send(XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }));
   }
   @Get('options') options(
     @CurrentUser() u: AcmCurrentUser,
