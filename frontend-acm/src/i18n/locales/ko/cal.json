@@ -65,7 +65,9 @@
   "edit": {
     "reasonLabel": "수정 사유",
     "reasonPlaceholder": "변경한 이유를 입력하세요 (수정 히스토리에 기록됩니다)",
-    "reasonRequired": "수정 사유를 입력하세요."
+    "reasonRequired": "사유를 입력하는 경우 2자 이상 입력하세요.",
+    "reasonOptional": "수정 사유 (선택)",
+    "reasonOptionalPlaceholder": "필요한 경우 입력하세요 (수정 히스토리에 기록됩니다)"
   },
   "revision": {
     "title": "수정 히스토리",
@@ -83,7 +85,8 @@
       "meetingProvider": "화상수업",
       "bodaRoomType": "수업 유형",
       "assigneeTchId": "담당 강사"
-    }
+    },
+    "noReason": "미입력"
   },
   "deleted": {
     "btnLabel": "삭제한 수업일정 보기",
@@ -405,5 +408,11 @@
     "stopped": "종료됨",
     "confirm": "{{changed}}회에 적용합니다. 보호되는 {{protected}}회는 유지합니다. 계속할까요?",
     "extensionError": "일부 반복 일정의 추가 생성이 보류되었습니다. 해당 일정의 화상 설정·담당자·참석자를 확인하고 수정하세요."
+  },
+  "overflow": {
+    "more": "+{{count}} 더보기",
+    "open": "{{date}} 전체 일정 {{count}}건 보기",
+    "title": "{{date}} 일정 · {{count}}건",
+    "allDay": "종일"
   }
 }

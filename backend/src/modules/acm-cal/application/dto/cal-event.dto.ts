@@ -1,3 +1,4 @@
+import { ACTIVE_CAL_CATEGORIES } from '../cal-category';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -23,16 +24,7 @@ const toStringArray = ({ value }: { value: unknown }): string[] | undefined => {
   return [String(value)];
 };
 
-export const CAL_CATEGORIES = [
-  'CLASS',
-  'MEETING',
-  'EVENT',
-  'PERSONAL',
-  'LEVEL_TEST',
-  'DEMO_CLASS',
-  'REGULAR_CLASS',
-  'OTHER',
-] as const;
+export const CAL_CATEGORIES = ACTIVE_CAL_CATEGORIES;
 export const CAL_PROVIDERS = [
   'NONE',
   'GOOGLE_MEET',
@@ -57,7 +49,7 @@ export class CalInviteeInputDto {
 }
 
 export class CreateCalEventDto {
-  @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'CLASS' })
+  @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'REGULAR_CLASS' })
   @IsOptional()
   @IsEnum(CAL_CATEGORIES)
   evtCategory?: (typeof CAL_CATEGORIES)[number];
@@ -98,7 +90,12 @@ export class CreateCalEventDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @ValidateIf((o: CreateCalEventDto) => o.evtMeetingUrl !== '' && !!o.evtMeetingProvider && o.evtMeetingProvider !== 'NONE')
+  @ValidateIf(
+    (o: CreateCalEventDto) =>
+      o.evtMeetingUrl !== '' &&
+      !!o.evtMeetingProvider &&
+      o.evtMeetingProvider !== 'NONE',
+  )
   @IsString()
   @MaxLength(500)
   @IsUrl({ require_protocol: true })
@@ -230,12 +227,16 @@ export class UpdateCalEventDto {
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
 
-  /** REQ-260728 — 수정 사유(필수). 수정 히스토리에 기록된다. */
-  @ApiProperty({ description: '수정 사유 (필수, 2~500자)' })
+  /** Optional reason; actor and changes are still audited. */
+  @ApiPropertyOptional({ description: '수정 사유 (선택, 입력 시 2~500자)' })
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() || null : value,
+  )
+  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(500)
-  evtEditReason!: string;
+  evtEditReason?: string | null;
 }
 
 /** REQ-260728 — 삭제 시 삭제 사유(필수). */

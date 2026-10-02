@@ -65,7 +65,9 @@
   "edit": {
     "reasonLabel": "Lý do chỉnh sửa",
     "reasonPlaceholder": "Nhập lý do thay đổi (được ghi vào lịch sử chỉnh sửa)",
-    "reasonRequired": "Vui lòng nhập lý do chỉnh sửa."
+    "reasonRequired": "Nếu nhập, cần ít nhất 2 ký tự.",
+    "reasonOptional": "Lý do thay đổi (không bắt buộc)",
+    "reasonOptionalPlaceholder": "Nhập lý do nếu cần (lưu trong lịch sử)"
   },
   "revision": {
     "title": "Lịch sử chỉnh sửa",
@@ -83,7 +85,8 @@
       "meetingProvider": "Học trực tuyến",
       "bodaRoomType": "Loại lớp học",
       "assigneeTchId": "Giáo viên phụ trách"
-    }
+    },
+    "noReason": "Chưa nhập"
   },
   "deleted": {
     "btnLabel": "Xem lịch học đã xóa",
@@ -405,5 +408,11 @@
     "stopped": "Đã dừng",
     "confirm": "Áp dụng cho {{changed}} lần và giữ {{protected}} lần được bảo vệ. Tiếp tục?",
     "extensionError": "Một số lịch chưa thể gia hạn. Kiểm tra dịch vụ video, giáo viên và người tham gia."
+  },
+  "overflow": {
+    "more": "+{{count}} lịch khác",
+    "open": "Xem tất cả {{count}} lịch ngày {{date}}",
+    "title": "{{date}} · {{count}} lịch",
+    "allDay": "Cả ngày"
   }
 }

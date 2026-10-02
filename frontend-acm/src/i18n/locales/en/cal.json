@@ -65,7 +65,9 @@
   "edit": {
     "reasonLabel": "Edit reason",
     "reasonPlaceholder": "Enter why you changed this (recorded in the edit history)",
-    "reasonRequired": "Please enter an edit reason."
+    "reasonRequired": "If provided, enter at least 2 characters.",
+    "reasonOptional": "Reason for change (optional)",
+    "reasonOptionalPlaceholder": "Enter a reason if needed (saved in history)"
   },
   "revision": {
     "title": "Edit history",
@@ -83,7 +85,8 @@
       "meetingProvider": "Meeting",
       "bodaRoomType": "Class type",
       "assigneeTchId": "Assigned teacher"
-    }
+    },
+    "noReason": "Not provided"
   },
   "deleted": {
     "btnLabel": "View deleted schedules",
@@ -405,5 +408,11 @@
     "stopped": "Stopped",
     "confirm": "Apply to {{changed}} occurrences and keep {{protected}} protected occurrences. Continue?",
     "extensionError": "Some recurring events could not be extended. Review their video provider, teacher and attendees."
+  },
+  "overflow": {
+    "more": "+{{count}} more",
+    "open": "Show all {{count}} events on {{date}}",
+    "title": "{{date}} · {{count}} events",
+    "allDay": "All day"
   }
 }

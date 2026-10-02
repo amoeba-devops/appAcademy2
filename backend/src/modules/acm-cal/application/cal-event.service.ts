@@ -1,3 +1,4 @@
+import { normalizeCalCategory, storedCalCategories } from './cal-category';
 import type { EntityManager } from 'typeorm';
 import type { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
@@ -117,7 +118,9 @@ export class CalEventService {
       .andWhere('e.endAt > :from', { from });
 
     if (q.category)
-      qb.andWhere('e.category = :category', { category: q.category });
+      qb.andWhere('e.category IN (:...categories)', {
+        categories: storedCalCategories(q.category),
+      });
 
     if (actorRole === 'ADMIN') {
       const ownerIds = Array.from(
@@ -213,7 +216,9 @@ export class CalEventService {
       .andWhere('e.startAt < :to', { to })
       .andWhere('e.endAt > :from', { from });
     if (q.category)
-      qb.andWhere('e.category = :category', { category: q.category });
+      qb.andWhere('e.category IN (:...categories)', {
+        categories: storedCalCategories(q.category),
+      });
 
     this.applyPortalScope(qb, kind, refId);
 
@@ -289,7 +294,8 @@ export class CalEventService {
       b.count += 1;
       b.minutes += minutesOf(e);
       if (flags.get(e.id)?.classDone) b.done += 1;
-      b.byCategory[e.category] = (b.byCategory[e.category] ?? 0) + 1;
+      const category = normalizeCalCategory(e.category);
+      b.byCategory[category] = (b.byCategory[category] ?? 0) + 1;
     };
 
     const total = newBucket();
@@ -576,7 +582,7 @@ export class CalEventService {
     return this.repo.create({
       entId,
       ownerUserId,
-      category: dto.evtCategory ?? 'CLASS',
+      category: dto.evtCategory ?? 'REGULAR_CLASS',
       title: dto.evtTitle,
       description: dto.evtDescription ?? null,
       startAt: new Date(dto.evtStartAt),
@@ -778,7 +784,7 @@ export class CalEventService {
             entId,
             evtId: saved.id,
             editorUserId: actorUserId,
-            reason: dto.evtEditReason,
+            reason: dto.evtEditReason?.trim() || null,
             changes,
           }),
         );
@@ -1072,7 +1078,7 @@ export class CalEventService {
     id: e.id,
     entId: e.entId,
     ownerUserId: e.ownerUserId,
-    category: e.category,
+    category: normalizeCalCategory(e.category),
     title: e.title,
     description: e.description,
     startAt: e.startAt.toISOString(),

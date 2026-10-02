@@ -1,3 +1,4 @@
+import { normalizeCalCategory } from './cal-category';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -21,11 +22,23 @@ export interface CalendarColor {
 @Injectable()
 export class CalColorService {
   constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
-  list(entId: string): Promise<CalendarColor[]> {
-    return this.ds.query(
+  async list(entId: string): Promise<CalendarColor[]> {
+    const rows: CalendarColor[] = await this.ds.query(
       `SELECT ccs_kind AS kind,ccs_target AS target,ccs_palette AS palette FROM amb_acm_cal_color_setting c WHERE ent_id=$1 AND (ccs_kind='CATEGORY' OR EXISTS (SELECT 1 FROM amb_acm_tch_teacher t WHERE t.ent_id=c.ent_id AND t.tch_id::text=c.ccs_target AND t.deleted_at IS NULL))`,
       [entId],
     );
+    const normalized = new Map<string, CalendarColor>();
+    // Canonical category color wins over a legacy alias.
+    for (const row of rows.sort(
+      (a, b) =>
+        Number(a.target === normalizeCalCategory(a.target)) -
+        Number(b.target === normalizeCalCategory(b.target)),
+    )) {
+      const target =
+        row.kind === 'CATEGORY' ? normalizeCalCategory(row.target) : row.target;
+      normalized.set(`${row.kind}:${target}`, { ...row, target });
+    }
+    return [...normalized.values()];
   }
   async save(entId: string, items: CalendarColor[]) {
     await this.ds.transaction(async (m) => {
