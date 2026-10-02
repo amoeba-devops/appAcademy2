@@ -659,6 +659,8 @@
     "openInquiries": "Mở danh sách tư vấn"
   },
   "adminLayout": {
+    "hidePanel": "Ẩn",
+    "showPanel": "Hiện bảng bên phải",
     "support": "Trợ giúp và biểu ngữ",
     "tips": "Mẹo sử dụng",
     "general": "Dùng tìm kiếm và bộ lọc để tìm mục cần xem. Cuộn ngang đối với danh sách rộng.",

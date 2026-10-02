@@ -659,6 +659,8 @@
     "openInquiries": "Open inquiries"
   },
   "adminLayout": {
+    "hidePanel": "Hide",
+    "showPanel": "Show right panel",
     "support": "Help and banners",
     "tips": "Tips",
     "general": "Use search and filters to find items. Scroll wide lists horizontally.",

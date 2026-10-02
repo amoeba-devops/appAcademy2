@@ -659,6 +659,8 @@
     "openInquiries": "打开咨询列表"
   },
   "adminLayout": {
+    "hidePanel": "隐藏",
+    "showPanel": "显示右侧面板",
     "support": "帮助与横幅",
     "tips": "使用提示",
     "general": "使用搜索和筛选查找所需项目。较宽的列表可横向滚动。",

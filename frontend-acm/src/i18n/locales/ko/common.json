@@ -659,6 +659,8 @@
     "openInquiries": "상담 목록 열기"
   },
   "adminLayout": {
+    "hidePanel": "가리기",
+    "showPanel": "우측 패널 보이기",
     "support": "도움말 및 배너",
     "tips": "이용 팁",
     "general": "검색과 필터로 필요한 항목을 찾아보세요. 넓은 목록은 좌우로 스크롤할 수 있습니다.",
