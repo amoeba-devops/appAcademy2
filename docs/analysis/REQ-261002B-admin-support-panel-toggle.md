@@ -1,7 +1,7 @@
 ---
 document_id: ACM-ADMIN-SUPPORT-TOGGLE-REQ-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed
 created: 2026-10-02
 change_log:
   - version: 1.0.0
@@ -37,4 +37,16 @@ change_log:
 
 버튼 위치, 숨김 시 본문 폭 확장, 사용자별 표시 상태 유지 방안을 아래 계획서와 함께 승인받은 뒤 구현한다.
 
-2026-10-02 사용자 “구현 진행” 승인 후 구현 및 로컬 공통 레이아웃 검증 완료. 운영 배포 전.
+2026-10-02 사용자 “구현 진행” 승인 후 구현 및 로컬 공통 레이아웃 검증 완료. 2026-10-02 운영 배포 완료.
+
+
+## Production Release — 2026-10-02 (운영 배포)
+
+- 사용자 “운영 배포” 승인에 따라 월별 수납/통계 및 공통 우측 패널 기능을 함께 배포했다.
+- PR [#296](https://github.com/amoeba-devops/appAcademy2/pull/296), 운영 버전 `0fe757e80dbaacb8e6768e2c04d937d8678338cf`.
+- 배포 시각: **2026-10-02 22:55:44 KST**.
+- [CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37015461656), [스테이징](https://github.com/amoeba-devops/appAcademy2/actions/runs/37015913231), [운영](https://github.com/amoeba-devops/appAcademy2/actions/runs/37016213235) 모두 성공. continue-on-error 단계도 실패 없음.
+- 운영/스테이징 백업 생성 및 pg_restore 목록 확인, 권한 600. 신규 DB migration 없음.
+- 운영 backend/frontend 이미지 모두 `0fe757e`, running, restarts=0. 확인 시점 최근 3분 backend ERROR 0건. 장기 모니터링 결과는 아니다.
+- 운영 공개 주소에서 월별 API 경로·통계·패널 문구가 포함된 최신 JS 번들 제공 확인.
+- 운영 브라우저 로그인 세션 만료로 로그인 후 화면 직접 확인은 대기 중이다. 아래 검증은 실제 배포된 인증 API 및 컨테이너/정적 번들 확인이며, 본문 캡처는 로컬 검증 화면이다.

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-MONTHLY-RPT-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed
 created: 2026-10-02
 change_log:
   - version: 1.0.0
@@ -80,4 +80,28 @@ change_log:
 
 ## 7. Delivery (반영 상태)
 
-격리 작업 공간 `/private/tmp/acm-payment-261001`, 브랜치 `feat/pay-monthly-dashboard-261002`. 이전 공통 우측 패널 가리기 구현을 포함한다. 원본 프로젝트의 미커밋 소스를 덮어쓰지 않고 문서와 캡처만 복사했다. **운영 배포 전**이며 이번 작업으로 운영 청구·납부 내역은 변경하지 않았다.
+격리 작업 공간 `/private/tmp/acm-payment-261001`, 브랜치 `feat/pay-monthly-dashboard-261002`. 이전 공통 우측 패널 가리기 구현을 포함한다. 원본 프로젝트의 미커밋 소스를 덮어쓰지 않고 문서와 캡처만 복사했다. **2026-10-02 운영 배포 완료**이며 이번 작업으로 운영 청구·납부 내역은 변경하지 않았다.
+
+
+## Production Release — 2026-10-02 (운영 배포)
+
+- 사용자 “운영 배포” 승인에 따라 월별 수납/통계 및 공통 우측 패널 기능을 함께 배포했다.
+- PR [#296](https://github.com/amoeba-devops/appAcademy2/pull/296), 운영 버전 `0fe757e80dbaacb8e6768e2c04d937d8678338cf`.
+- 배포 시각: **2026-10-02 22:55:44 KST**.
+- [CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37015461656), [스테이징](https://github.com/amoeba-devops/appAcademy2/actions/runs/37015913231), [운영](https://github.com/amoeba-devops/appAcademy2/actions/runs/37016213235) 모두 성공. continue-on-error 단계도 실패 없음.
+- 운영/스테이징 백업 생성 및 pg_restore 목록 확인, 권한 600. 신규 DB migration 없음.
+- 운영 backend/frontend 이미지 모두 `0fe757e`, running, restarts=0. 확인 시점 최근 3분 backend ERROR 0건. 장기 모니터링 결과는 아니다.
+- 운영 공개 주소에서 월별 API 경로·통계·패널 문구가 포함된 최신 JS 번들 제공 확인.
+- 운영 브라우저 로그인 세션 만료로 로그인 후 화면 직접 확인은 대기 중이다. 아래 검증은 실제 배포된 인증 API 및 컨테이너/정적 번들 확인이며, 본문 캡처는 로컬 검증 화면이다.
+
+### Release Verification (배포 검증 상세)
+
+- 스테이징 가상 학생 2명: 순청구 100, 순수납 30, 미납 70, 수납률 30%, 청구 미등록 1명 확인. 사이트 필터·잘못된 월/사이트 400·월/사이트 지정 DRAFT 생성·멱등성 검증 후 가상 데이터 정리 완료.
+- 운영 2026-10 월 재원생 **51명**: TPI **34**, Trinity Academy **3**, Santa Croce **14**, 미지정 **0**.
+- 금액 미입력 **51명/51건**, 청구 미등록 **0명**, 확정 청구 **0명**, 납부 기록 **0건**. 순청구/순수납/미납 모두 0, 수납률은 ‘—’.
+- 전체 기간 확인 필요 기록 **178명**을 별도 분리한다. 이 인원은 10월 재원생 51명과 다른 검토 대상이다.
+- 운영 월별 API 응답 74ms (컨테이너 내부 단회 측정, 종단간/부하 성능 지표는 아님). 사이트별 API 및 입력 검증 통과.
+- 배포 전후 원장 51건/DRAFT 51건/금액 NULL/납부 0건 동일. 운영에는 조회만 수행했다.
+- 운영 백업: `/home/appacademy/app-academy-backups/db_acm-before-payment-20261002T134857Z.dump`, 7,199,665 bytes.
+- 스테이징 백업: `/home/appacademy/app-academy-backups/db_acm-before-payment-20261002T135055Z.dump`, 558,072 bytes.
+- 이상 시 backend/frontend를 이전 이미지 `69a0deb`로 함께 복구한다. 이 버전은 기존 DRAFT 스키마와 호환되며 원장 삭제/금액 0원 변환은 필요하지 않다.
