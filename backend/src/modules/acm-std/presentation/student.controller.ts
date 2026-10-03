@@ -39,6 +39,7 @@ import { ImportService } from '../application/import.service';
 import { StudentService } from '../application/student.service';
 import {
   ChangeStudentStatusDto,
+  CorrectStatusDateDto,
   ChangeStudentSitesDto,
   CreateStudentDto,
   ListStudentsQueryDto,
@@ -101,7 +102,7 @@ export class StudentController {
   @Post()
   @ApiOperation({ summary: 'Create student (FR-STD-003)' })
   create(@CurrentUser() u: AcmCurrentUser, @Body() dto: CreateStudentDto) {
-    return this.students.create(u.entId, dto);
+    return this.students.create(u.entId, dto, u.id);
   }
 
   @Get()
@@ -138,6 +139,22 @@ export class StudentController {
     return this.students.update(u.entId, id, dto, u.id);
   }
 
+  @Get(':id/status-history')
+  history(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.students.statusHistory(u.entId, id);
+  }
+  @Patch(':id/status-history/:historyId')
+  correctHistory(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('historyId', ParseUUIDPipe) historyId: string,
+    @Body() dto: CorrectStatusDateDto,
+  ) {
+    return this.students.correctStatusDate(u.entId, id, historyId, dto, u.id);
+  }
   @Patch(':id/status')
   @ApiOperation({ summary: 'Change student status (FR-STD-005)' })
   changeStatus(
@@ -145,7 +162,7 @@ export class StudentController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ChangeStudentStatusDto,
   ) {
-    return this.students.changeStatus(u.entId, id, dto);
+    return this.students.changeStatus(u.entId, id, dto, u.id);
   }
 
   @Delete(':id')

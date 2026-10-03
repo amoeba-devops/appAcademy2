@@ -1,3 +1,4 @@
+import { topStatistics } from './top-statistics';
 import { monthlyPay, monthlyStudents, siteMatches } from './monthly-pay';
 import {
   BadRequestException,
@@ -76,6 +77,11 @@ export class CollectionsService {
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     private readonly settings: TenantSettingsService,
   ) {}
+  async statistics(u: AcmCurrentUser, q: { month: string; site?: string }) {
+    return this.ds.transaction('REPEATABLE READ', (m) =>
+      topStatistics(m, u.entId, q.month, q.site || 'ALL', BILL_SELECT),
+    );
+  }
   async monthly(u: AcmCurrentUser, q: MonthlyPayQuery, exportAll = false) {
     const result = await this.ds.transaction('REPEATABLE READ', (m) =>
       monthlyPay(m, u.entId, q, BILL_SELECT, exportAll),

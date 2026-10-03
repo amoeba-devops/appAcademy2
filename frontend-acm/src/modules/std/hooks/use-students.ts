@@ -52,8 +52,8 @@ export function useUpdateStudent(id: string) {
 export function useChangeStudentStatus(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (stdStatus: string) => {
-      const res = await apiClient.patch(`/acm/std/students/${id}/status`, { stdStatus });
+    mutationFn: async ({ stdStatus, effectiveDate }: { stdStatus: string; effectiveDate: string }) => {
+      const res = await apiClient.patch(`/acm/std/students/${id}/status`, { stdStatus, effectiveDate });
       return res.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'students'] }),

@@ -22,7 +22,7 @@ export function monthBounds(month: string) {
   const date = new Date(Date.UTC(year, number, 1));
   return { start: `${month}-01`, next: date.toISOString().slice(0, 10) };
 }
-interface StudentEvidence {
+export interface StudentEvidence {
   id: string;
   name: string;
   site: string | null;
@@ -97,7 +97,7 @@ export function resolveMonthlyStudents(
     };
   });
 }
-async function studentEvidence(m: EntityManager, ent: string) {
+export async function studentEvidence(m: EntityManager, ent: string) {
   const periods: Period[] = await m.query(
     `${OPERATING_PERIOD_SQL} SELECT * FROM periods WHERE kind='STUDENT'`,
     [ent],

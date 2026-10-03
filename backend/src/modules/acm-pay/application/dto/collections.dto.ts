@@ -134,6 +134,12 @@ export class ActiveDraftBatchDto {
   @IsString() @MinLength(1) @MaxLength(200) title!: string;
 }
 
+export class TopStatisticsQuery {
+  @Matches(/^(20[0-9]{2})-(0[1-9]|1[0-2])$/) month!: string;
+  @IsOptional()
+  @IsIn(['ALL', 'TPI', 'TRINITY', 'SANTACROCE', 'UNASSIGNED'])
+  site?: string;
+}
 export class MonthlyPayQuery {
   @Matches(/^(20[0-9]{2})-(0[1-9]|1[0-2])$/) month!: string;
   @IsOptional()

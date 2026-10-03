@@ -20,6 +20,7 @@ import type {
   CreateStudentDto,
   UpdateStudentDto,
   ChangeStudentStatusDto,
+  CorrectStatusDateDto,
   ListStudentsQueryDto,
   ChangeStudentSitesDto,
 } from './dto/student.dto';
@@ -373,7 +374,7 @@ export class StudentService {
     return patch;
   }
 
-  async create(entId: string, dto: CreateStudentDto) {
+  async create(entId: string, dto: CreateStudentDto, actorId?: string) {
     const email = dto.stdEmail?.trim();
     if (!email && dto.stdStatus !== 'WITHDRAWN')
       throw new BadRequestException('EMAIL_REQUIRED');
@@ -430,6 +431,9 @@ export class StudentService {
     // RPT-260922D B — 퇴원생은 수업 시작/종료일을 입학/퇴원일로 채워 대시보드 집계에 반영.
     applyWithdrawnDateDefaults(entity);
     const saved = await this.ds.transaction(async (manager) => {
+      await manager.query(`SELECT set_config('acm.status_actor',$1,true)`, [
+        actorId || '',
+      ]);
       const saved = await manager
         .getRepository(StudentTypeormEntity)
         .save(entity);
@@ -465,6 +469,9 @@ export class StudentService {
   ) {
     const { saved, syncedTeachers } = await this.ds.transaction(
       async (manager) => {
+        await manager.query(`SELECT set_config('acm.status_actor',$1,true)`, [
+          actorId || '',
+        ]);
         const entity = await manager
           .getRepository(StudentTypeormEntity)
           .findOne({
@@ -586,15 +593,91 @@ export class StudentService {
     };
   }
 
-  async changeStatus(entId: string, id: string, dto: ChangeStudentStatusDto) {
-    const entity = await this.repo.findOne({
-      where: { id, entId, deletedAt: IsNull() },
+  async statusHistory(entId: string, id: string) {
+    if (!(await this.repo.existsBy({ entId, id, deletedAt: IsNull() })))
+      throw new NotFoundException('STUDENT_NOT_FOUND');
+    return this.ds.query(
+      `SELECT ssh_id id,ssh_previous previous,ssh_status status,ssh_date::text date,ssh_site site,ssh_revision revision,ssh_source source FROM amb_acm_std_status_history WHERE ent_id=$1 AND std_id=$2 ORDER BY ssh_sequence`,
+      [entId, id],
+    );
+  }
+  private validateStatusDate(date: string) {
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+    if (date > today) throw new BadRequestException('STATUS_DATE_FUTURE');
+  }
+  async correctStatusDate(
+    entId: string,
+    id: string,
+    historyId: string,
+    dto: CorrectStatusDateDto,
+    actor: string,
+  ) {
+    this.validateStatusDate(dto.effectiveDate);
+    if (!dto.reason.trim())
+      throw new BadRequestException('STATUS_CORRECTION_REASON');
+    return this.ds.transaction(async (m) => {
+      const student = await m
+        .getRepository(StudentTypeormEntity)
+        .findOne({
+          where: { entId, id, deletedAt: IsNull() },
+          lock: { mode: 'pessimistic_write' },
+        });
+      if (!student) throw new NotFoundException('STUDENT_NOT_FOUND');
+      const outOfOrder = await m.query(
+        `SELECT 1 FROM amb_acm_std_status_history h JOIN amb_acm_std_status_history target ON target.ent_id=h.ent_id AND target.std_id=h.std_id WHERE target.ent_id=$1 AND target.std_id=$2 AND target.ssh_id=$3 AND ((h.ssh_sequence<target.ssh_sequence AND h.ssh_date>$4::date) OR (h.ssh_sequence>target.ssh_sequence AND h.ssh_date<$4::date)) LIMIT 1`,
+        [entId, id, historyId, dto.effectiveDate],
+      );
+      if (outOfOrder.length) throw new BadRequestException('STATUS_DATE_ORDER');
+      const rows = await m.query(
+        `WITH changed AS (UPDATE amb_acm_std_status_history SET ssh_corrections=ssh_corrections || jsonb_build_array(jsonb_build_object('previousDate',ssh_date,'newDate',$4::text,'actor',$5::text,'reason',$6::text,'at',NOW())),ssh_date=$4::date,ssh_revision=ssh_revision+1,updated_at=NOW() WHERE ent_id=$1 AND std_id=$2 AND ssh_id=$3 AND ssh_revision=$7 RETURNING ssh_id) SELECT ssh_id FROM changed`,
+        [
+          entId,
+          id,
+          historyId,
+          dto.effectiveDate,
+          actor,
+          dto.reason,
+          dto.revision,
+        ],
+      );
+      if (!rows.length) throw new ConflictException('STATUS_HISTORY_CONFLICT');
+      return { ok: true };
     });
-    if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
-    entity.status = dto.stdStatus;
-    entity.updatedAt = new Date();
-    const saved = await this.repo.save(entity);
-    return this.toDetail(saved);
+  }
+  async changeStatus(
+    entId: string,
+    id: string,
+    dto: ChangeStudentStatusDto,
+    actorId?: string,
+  ) {
+    this.validateStatusDate(dto.effectiveDate);
+    return this.ds.transaction(async (m) => {
+      const repo = m.getRepository(StudentTypeormEntity);
+      const entity = await repo.findOne({
+        where: { id, entId, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
+      const later = await m.query(
+        `SELECT 1 FROM amb_acm_std_status_history WHERE ent_id=$1 AND std_id=$2 AND ssh_date>$3::date LIMIT 1`,
+        [entId, id, dto.effectiveDate],
+      );
+      if (later.length) throw new BadRequestException('STATUS_DATE_ORDER');
+      await m.query(
+        `SELECT set_config('acm.status_date',$1,true),set_config('acm.status_actor',$2,true)`,
+        [dto.effectiveDate, actorId || ''],
+      );
+      entity.status = dto.stdStatus;
+      if (dto.stdStatus === 'WITHDRAWN')
+        entity.withdrawnDate = dto.effectiveDate;
+      entity.updatedAt = new Date();
+      return this.toDetail(await repo.save(entity));
+    });
   }
 
   async changeSites(

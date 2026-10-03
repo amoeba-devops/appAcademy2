@@ -1,3 +1,4 @@
+import { PaymentTopStatistics } from "./top-statistics";
 import { MonthlyPaymentView, monthlySites } from "./monthly-payment-view";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -343,6 +344,12 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           {tr("activeBatch")}
         </button>
       </header>
+      <PaymentTopStatistics
+        identity={identity}
+        month={monthlyMonth}
+        site={monthlySite}
+        onFilter={(m, s) => setMonthly(m, s, tab)}
+      />
       <div className="flex flex-wrap gap-2">
         {(["monthly", "detail", "dashboard"] as const).map((v) => (
           <button
