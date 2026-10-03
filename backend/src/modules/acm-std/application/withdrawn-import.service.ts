@@ -176,6 +176,7 @@ export class WithdrawnImportService {
     if (new Set(dto.decisions.map((d) => d.key)).size !== dto.decisions.length)
       throw new BadRequestException('DUPLICATE_DECISION');
     return this.ds.transaction(async (m) => {
+      await m.query(`SELECT set_config('acm.status_actor',$1,true)`, [actor]);
       await m.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
         `std-import:${entId}`,
       ]);

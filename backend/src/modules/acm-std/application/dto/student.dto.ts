@@ -4,6 +4,7 @@ import {
   IsArray,
   IsBoolean,
   IsDateString,
+  Matches,
   IsEmail,
   IsEnum,
   IsIn,
@@ -500,7 +501,17 @@ export class UpdateStudentDto {
 // ============================================================================
 // Status change
 // ============================================================================
+export class CorrectStatusDateDto {
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  effectiveDate!: string;
+  @IsInt() @Min(1) revision!: number;
+  @IsString() @MaxLength(500) reason!: string;
+}
 export class ChangeStudentStatusDto {
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  effectiveDate!: string;
   @ApiProperty({ enum: STD_STATUSES })
   @IsEnum(STD_STATUSES)
   stdStatus!: (typeof STD_STATUSES)[number];

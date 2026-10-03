@@ -1,4 +1,5 @@
-import { LifecycleEditor } from '@/modules/dsh/components/lifecycle-editor';
+import { StatusHistoryPanel } from "../components/status-history-panel";
+import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
 import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
@@ -9,7 +10,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, Pencil, UserX, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { useStudent, useChangeStudentStatus } from "../hooks/use-students";
+import { useStudent } from "../hooks/use-students";
 import {
   useUnlinkParentFromStudent,
   useSetPrimaryParent,
@@ -73,7 +74,6 @@ export function StdDetailPage() {
   const [showParentPicker, setShowParentPicker] = useState(false);
 
   const { data: student, isLoading } = useStudent(id);
-  const statusMut = useChangeStudentStatus(id ?? "");
   const unlinkMut = useUnlinkParentFromStudent(id ?? "");
   const setPrimaryMut = useSetPrimaryParent(id ?? "");
 
@@ -91,13 +91,11 @@ export function StdDetailPage() {
     );
   }
 
-  const handleDeactivate = async () => {
-    const ok = await confirm({
-      title: t("detail.confirmDeactivate"),
-      variant: "destructive",
-    });
-    if (!ok) return;
-    await statusMut.mutateAsync("INACTIVE");
+  const handleDeactivate = () => {
+    document.getElementById("student-status-history")?.focus();
+    document
+      .getElementById("student-status-history")
+      ?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -157,12 +155,7 @@ export function StdDetailPage() {
             {t("actions.edit")}
           </Button>
           {student.status === "ACTIVE" && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDeactivate}
-              disabled={statusMut.isPending}
-            >
+            <Button variant="outline" size="sm" onClick={handleDeactivate}>
               <UserX size={14} className="mr-1" />
               {t("actions.deactivate")}
             </Button>
@@ -415,6 +408,7 @@ export function StdDetailPage() {
         {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}
       </p>
 
+      {id && <StatusHistoryPanel id={id} status={student.status} />}
       {id && <LifecycleEditor subjectKind="STUDENT" subjectId={id} />}
       {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id} />}
       <StdFormModal

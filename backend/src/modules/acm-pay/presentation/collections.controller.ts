@@ -23,6 +23,7 @@ import { CollectionsService } from '../application/collections.service';
 import {
   ActiveDraftBatchDto,
   MonthlyPayQuery,
+  TopStatisticsQuery,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -39,6 +40,12 @@ export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
   @Get() list(@CurrentUser() u: AcmCurrentUser, @Query() q: BillQuery) {
     return this.service.list(u, q);
+  }
+  @Get('statistics') statistics(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: TopStatisticsQuery,
+  ) {
+    return this.service.statistics(u, q);
   }
   @Get('monthly') monthly(
     @CurrentUser() u: AcmCurrentUser,

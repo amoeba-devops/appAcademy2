@@ -59,12 +59,6 @@ export function MonthlyPaymentView({
   });
   const result = query.data;
   const money = (n: number | null) => (n === null ? "—" : n.toLocaleString());
-  const move = (offset: number) => {
-    const d = new Date(`${month}-01T00:00:00Z`);
-    d.setUTCMonth(d.getUTCMonth() + offset);
-    const next = d.toISOString().slice(0, 7);
-    if (next >= "2000-01" && next <= "2099-12") change(next, site);
-  };
   const change = (m: string, s: string) => {
     if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(m)) return;
     setPage(1);
@@ -182,58 +176,6 @@ export function MonthlyPaymentView({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-2 rounded border bg-white p-3">
-        <button
-          className={field}
-          aria-label={tr("previousMonth")}
-          onClick={() => move(-1)}
-        >
-          ◀
-        </button>
-        <input
-          className={field}
-          aria-label={tr("month")}
-          type="month"
-          min="2000-01"
-          max="2099-12"
-          value={month}
-          onChange={(e) => change(e.target.value, site)}
-        />
-        <button
-          className={field}
-          aria-label={tr("nextMonth")}
-          onClick={() => move(1)}
-        >
-          ▶
-        </button>
-        <button
-          className={field}
-          onClick={() =>
-            change(
-              new Intl.DateTimeFormat("en-CA", {
-                year: "numeric",
-                month: "2-digit",
-                timeZone: "Asia/Seoul",
-              })
-                .format(new Date())
-                .slice(0, 7),
-              site,
-            )
-          }
-        >
-          {tr("thisMonth")}
-        </button>
-        <select
-          aria-label={tr("site")}
-          className={field}
-          value={site}
-          onChange={(e) => change(month, e.target.value)}
-        >
-          {monthlySites.map((s) => (
-            <option key={s} value={s}>
-              {tr(s)}
-            </option>
-          ))}
-        </select>
         <select
           aria-label={tr("scope")}
           className={field}
