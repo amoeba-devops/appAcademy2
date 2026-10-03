@@ -1,9 +1,12 @@
 ---
 document_id: ACM-PAY-TOP-STATS-RPT-1.0.0
-version: 1.0.0
-status: Implemented; not deployed
+version: 1.1.0
+status: Deployed to production
 created: 2026-10-03
 change_log:
+  - version: 1.1.0
+    date: 2026-10-03
+    description: CI·스테이징 검증 후 운영 배포, 기존 데이터 해시 보존 및 실제 집계 대사
   - version: 1.0.0
     date: 2026-10-03
     description: 수납 상단 통계, 날짜가 있는 학생 상태 이력 및 검증 결과
@@ -58,6 +61,48 @@ change_log:
 ### Mobile (모바일)
 ![Local synthetic mobile](screenshots/261003-pay/mobile.png)
 
-## 5. Deployment (배포 상태)
+## 5. Deployment (운영 배포)
 
-운영 배포 및 운영 데이터 변경은 수행하지 않았다. 배포 시 1029 마이그레이션을 앱보다 먼저 적용하고, 실제 테넌트의 월별 명단·청구 원장과 그래프를 대사해야 한다. 롤백은 앱 버전 복귀를 우선하고 새 이력 테이블은 보존한다.
+2026-10-03 **09:06:53 UTC / 18:06:53 KST** 운영 배포 완료.
+
+- PR: [#298](https://github.com/amoeba-devops/appAcademy2/pull/298)
+- 운영 커밋: `9851761973e34d26846b20fdf689399e1dbc4e33` (`9851761`)
+- [PR CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37111537985): 모든 job/step 성공, PostgreSQL Testcontainers 포함.
+- [Staging CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37111734265): 성공.
+- [Production CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37111919122): 성공.
+- 운영 backend/frontend 모두 `9851761`, 마이그레이션 1029 적용 확인.
+- 공개 페이지 HTTP 200, frontend asset `/assets/index-rN6BjD63.js` 확인.
+
+### Backup and Preservation (백업 및 보존 검증)
+
+운영 호스트 `/home/appacademy/app-academy-backups/`:
+
+- `db_acm-before-payment-20261003T090316Z.dump`: **7,631,179 bytes**, mode 0600, `pg_restore --list` 검증.
+- `pay-stats-baseline-261003.json`: 배포 직전 학생/청구/납부 전체 행 건수·해시.
+- 스테이징 백업: `db_acm-before-payment-20261003T085951Z.dump`, 558,382 bytes, 복원 목록 검증.
+
+배포 후 전체 학생 **319건**, 청구 **51건**, 납부 **0건**의 전체 행 해시가 배포 전과 동일했다. 신규 상태 이력 baseline만 추가됐다. 대상 테넌트 baseline은 307건이며 날짜 미확인 183건은 추측하지 않고 보존했다.
+
+### Deployed API Verification (배포된 API 검증)
+
+스테이징 격리 합성 테넌트에서 실제 API로 완납/부분납부/미납/초안/취소/0원 분모, 사이트 필터, 빈 달, 월별 재원 명단 대사, 적용일 상태 전환, 중복 휴원 집계, 날짜 정정 감사 기록, revision 충돌, 순서 오류/미래일/적용일 누락 거부를 확인했다. 테스트 자료는 모두 정리했다.
+
+운영은 읽기 전용으로 인증된 통계 API와 기존 월별 명단을 대사했다:
+
+| Site | October enrolled | Amount-unset bills |
+|---|---:|---:|
+| ALL | 51 | 51 |
+| TPI | 34 | 34 |
+| TRINITY | 3 | 3 |
+| SANTACROCE | 14 | 14 |
+| UNASSIGNED | 0 | 0 |
+
+10월 청구는 모두 금액 미입력 상태라 원형 그래프 집계 대상은 0건이다. 9월도 집계할 청구가 없다. 따라서 ‘집계 대상 없음’은 정상 결과다. 과거 상태 이력이 부족하여 휴원/퇴원은 확인된 수치와 이력 확인 안내로 표시한다. 초기 통계 API 응답은 14~46ms였다.
+
+운영 브라우저는 로그인 화면으로 이동하여 로그인 후 화면 자체는 검증하지 못했다. 위 캡처는 계속 **로컬 합성 데이터**이며, 운영 확인은 인증된 API·공개 asset·실행 이미지·마이그레이션 기준이다.
+
+앱 롤백 대상은 이전 `b5003c1`; 신규 상태 이력 테이블과 감사 기록은 보존한다.
+
+### Initial Monitoring (초기 모니터링)
+
+09:12:14 UTC 최종 확인(앱 시작 후 5분 28초): backend/frontend running, 재시작 0회, 배포 이후 백엔드 오류 로그 0건. 통계 API 재검증 10~30ms, 학생·청구·납부 원본 해시 및 사이트별 대사 재통과.
