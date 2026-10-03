@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PAY-TOP-STATS-PLN-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed to production
 created: 2026-10-03
 change_log:
   - version: 1.0.0
@@ -51,4 +51,4 @@ change_log:
 
 ## 3. Approval and Completion (승인 및 완료)
 
-2026-10-03 사용자의 “구현” 지시로 승인받아 구현했다. [구현 보고서](../report/RPT-261003-pay-top-statistics.md)에 검증·이력 한계·배포 상태를 기록했다. 운영 배포는 미실시다.
+2026-10-03 사용자의 “구현” 지시로 승인받아 구현했다. [구현 보고서](../report/RPT-261003-pay-top-statistics.md)에 검증·이력 한계·배포 상태를 기록했다. 2026-10-03 운영 배포를 완료했다(9851761).
