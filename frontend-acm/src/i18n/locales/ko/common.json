@@ -1106,6 +1106,8 @@
   "siteHint": "인원은 재원기간의 사이트, 금액은 청구 사이트 기준입니다. 이동 학생 때문에 사이트 인원 합계는 전체 고유 인원과 다를 수 있습니다."
 },
   "payStats": {
+    "hideCharts": "통계 닫기",
+    "showCharts": "통계 보기",
     "title": "월별 통계",
     "population": "원생현황",
     "enrolled": "재원생",

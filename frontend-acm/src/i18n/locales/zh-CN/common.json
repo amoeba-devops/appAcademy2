@@ -1106,6 +1106,8 @@
   "siteHint": "人数按在读校区、金额按账单校区。转校学生可能导致校区人数之和与去重人数不同。"
 },
   "payStats": {
+    "hideCharts": "收起统计",
+    "showCharts": "显示统计",
     "title": "月度统计",
     "population": "学生情况",
     "enrolled": "在读学生",

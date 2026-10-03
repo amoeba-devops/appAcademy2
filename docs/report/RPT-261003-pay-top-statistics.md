@@ -1,9 +1,12 @@
 ---
 document_id: ACM-PAY-TOP-STATS-RPT-1.0.0
-version: 1.1.0
-status: Deployed to production
+version: 1.2.0
+status: Base deployed; layout revision implemented, not deployed
 created: 2026-10-03
 change_log:
+  - version: 1.2.0
+    date: 2026-10-03
+    description: 3열 고정·축소 그래프 및 닫기/보기 구현(추가 수정 운영 미배포)
   - version: 1.1.0
     date: 2026-10-03
     description: CI·스테이징 검증 후 운영 배포, 기존 데이터 해시 보존 및 실제 집계 대사
@@ -106,3 +109,20 @@ change_log:
 ### Initial Monitoring (초기 모니터링)
 
 09:12:14 UTC 최종 확인(앱 시작 후 5분 28초): backend/frontend running, 재시작 0회, 배포 이후 백엔드 오류 로그 0건. 통계 API 재검증 10~30ms, 학생·청구·납부 원본 해시 및 사이트별 대사 재통과.
+
+## 6. Compact Layout and Toggle (축소 배치·닫기/보기 추가 수정)
+
+사용자의 추가 구성 승인 후 구현했다. **이 절의 변경사항은 아직 운영 미배포**이며 §5는 이전 그래프 기능 배포 이력이다.
+
+- 모든 화면 크기에서 3열 한 줄 유지. 원형 그래프 최대 160px, 혼합 그래프 최대 280px 및 카드 여백 축소.
+- 600px 미만의 콘텐츠 영역에서는 그래프 행만 가로 스크롤. 페이지 전체 가로 넘침 없음.
+- 우측 ‘통계 닫기 ×’/‘통계 보기’, `aria-expanded`/`aria-controls` 적용.
+- 월·사이트 필터는 유지하며 닫힌 상태의 전용 통계 조회·새로고침을 비활성화. 다시 펼치면 현재 선택 기준으로 조회.
+- 접힘 상태는 같은 페이지의 월/사이트/탭 변경 시 유지, 페이지 재진입 시 펼침. 4개 언어 반영.
+- API·집계·DB 변경 없음.
+
+검증: frontend production build 통과. 로컬 합성 데이터 화면에서 1024/1280px의 3열 배치와 닫기 → 월/사이트 변경 → 다시 펼치기 확인. 1280px 그래프 제목 3개의 top은 모두 125px. 모바일 390px에서 페이지 폭 390px, 그래프 스크롤 컨테이너 356px/콘텐츠 600px 확인.
+
+![수정된 데스크톱 — 합성 데이터](screenshots/261003-pay-layout/desktop.png)
+![닫힌 상태 — 합성 데이터](screenshots/261003-pay-layout/closed.png)
+![모바일 가로 스크롤 — 합성 데이터](screenshots/261003-pay-layout/mobile.png)
