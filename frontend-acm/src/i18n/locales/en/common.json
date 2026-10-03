@@ -1106,6 +1106,8 @@
   "siteHint": "Headcounts use enrollment sites; money uses bill sites. Transfers may make site counts exceed unique totals."
 },
   "payStats": {
+    "hideCharts": "Hide statistics",
+    "showCharts": "Show statistics",
     "title": "Monthly statistics",
     "population": "Student population",
     "enrolled": "Enrolled",

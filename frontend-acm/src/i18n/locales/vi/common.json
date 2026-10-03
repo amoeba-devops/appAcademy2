@@ -1106,6 +1106,8 @@
   "siteHint": "Số học viên theo cơ sở thời gian học; tiền theo cơ sở hóa đơn. Chuyển cơ sở có thể làm tổng số khác số duy nhất."
 },
   "payStats": {
+    "hideCharts": "Ẩn thống kê",
+    "showCharts": "Hiện thống kê",
     "title": "Thống kê hàng tháng",
     "population": "Tình hình học viên",
     "enrolled": "Đang học",
