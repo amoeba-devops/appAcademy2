@@ -1,9 +1,12 @@
 ---
 document_id: ACM-PAY-TOP-STATS-RPT-1.0.0
-version: 1.2.0
-status: Base deployed; layout revision implemented, not deployed
+version: 1.3.0
+status: Deployed to production including layout revision
 created: 2026-10-03
 change_log:
+  - version: 1.3.0
+    date: 2026-10-03
+    description: 3열 고정·닫기/보기 추가 수정 운영 배포 완료
   - version: 1.2.0
     date: 2026-10-03
     description: 3열 고정·축소 그래프 및 닫기/보기 구현(추가 수정 운영 미배포)
@@ -112,7 +115,7 @@ change_log:
 
 ## 6. Compact Layout and Toggle (축소 배치·닫기/보기 추가 수정)
 
-사용자의 추가 구성 승인 후 구현했다. **이 절의 변경사항은 아직 운영 미배포**이며 §5는 이전 그래프 기능 배포 이력이다.
+사용자의 추가 구성 승인 후 구현했다. **이 절의 변경사항도 운영 배포 완료**했으며, §7에 배포 검증 결과를 기록했다. §5는 이전 그래프 기능 배포 이력이다.
 
 - 모든 화면 크기에서 3열 한 줄 유지. 원형 그래프 최대 160px, 혼합 그래프 최대 280px 및 카드 여백 축소.
 - 600px 미만의 콘텐츠 영역에서는 그래프 행만 가로 스크롤. 페이지 전체 가로 넘침 없음.
@@ -126,3 +129,17 @@ change_log:
 ![수정된 데스크톱 — 합성 데이터](screenshots/261003-pay-layout/desktop.png)
 ![닫힌 상태 — 합성 데이터](screenshots/261003-pay-layout/closed.png)
 ![모바일 가로 스크롤 — 합성 데이터](screenshots/261003-pay-layout/mobile.png)
+
+## 7. Layout Release (배치·닫기 버튼 운영 배포)
+
+2026-10-03 **10:03:18 UTC / 19:03:18 KST**, 운영 버전 `06e69228535c4d05ff1b6e71dbd47df8bb8332c4` (`06e6922`) 배포 완료.
+
+- [PR #299](https://github.com/amoeba-devops/appAcademy2/pull/299)
+- [CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37114644851): 전체 job/step 성공, 통합 테스트 포함.
+- [Staging CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37114892815): 성공.
+- [Production CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37115082289): 성공.
+- 운영 backend/frontend 모두 `06e6922`, 재시작 0회, 초기 백엔드 오류 로그 0건.
+- 스테이징·운영 공개 페이지와 `/assets/index-YxP5AfXc.js` 모두 HTTP 200. 제공되는 실제 JS의 3열 최소 폭 600px, 원형 최대 160px, hideCharts/showCharts 포함 확인.
+- 운영 인증된 통계 API 45ms / 월별 명단 API 43ms, 모두 HTTP 200 및 재원생 집계 대사 통과.
+- 이번 변경은 프론트엔드·번역·문서만 포함. API/집계/DB 변경 및 데이터 이관 없음. 롤백 기준은 이전 `9851761`.
+- 1024/1280/390px 화면 및 닫기·필터 변경·다시 펼치기는 §6의 로컬 검증 결과이며, 운영 배포 확인은 실행 이미지·공개 파일·인증 API 기준이다.
