@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CHAT-MANAGEMENT-PLN-1.0.0
 version: 1.0.0
-status: Implemented
+status: Deployed
 created: 2026-10-06
 updated: 2026-10-06
 change_log:
@@ -62,4 +62,4 @@ ACM                                           [🔔 3] [언어]
 
 ## Implementation Status (구현 현황)
 
-2026-10-06 사용자의 “구현” 승인에 따라 구현 및 로컬 검증을 완료했다. 상세 결과는 [구현 보고서](../report/RPT-261006C-chat-mentions-room-management.md)를 참조한다. 운영 배포 및 실제 계정으로의 메시지 전송은 수행하지 않았다.
+2026-10-06 사용자의 “구현” 승인에 따라 구현 및 로컬 검증을 완료했다. 상세 결과는 [구현 보고서](../report/RPT-261006C-chat-mentions-room-management.md)를 참조한다. 운영 배포는 2026-10-06 완료했다. 실제 사용자에게 테스트 메시지는 보내지 않았다.

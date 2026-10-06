@@ -1,9 +1,12 @@
 ---
 document_id: ACM-CHAT-MANAGEMENT-RPT-1.0.0
-version: 1.0.0
-status: Implemented - Not Deployed
+version: 1.1.0
+status: Deployed
 created: 2026-10-06
 change_log:
+  - version: 1.1.0
+    date: 2026-10-06
+    description: Production deployment and read-only verification / 운영 배포 및 읽기 전용 검증
   - version: 1.0.0
     date: 2026-10-06
     description: Chat mentions and room management implemented and verified / 구현 및 검증 완료
@@ -12,7 +15,7 @@ change_log:
 
 ## 1. Result (결과)
 
-운영자와 강사 채팅에 멘션 알림, 단체방 제목 변경, 나가기, 개인 보관/복원을 구현했다. 운영 데이터 변경이나 배포는 하지 않았다. 기존 IDE 작업 트리의 다른 변경을 보존하기 위해 `/private/tmp/acm-complaints-261006`의 `feat/chat-management-261006` 브랜치에서 작업했다.
+운영자와 강사 채팅에 멘션 알림, 단체방 제목 변경, 나가기, 개인 보관/복원을 구현했다. 2026-10-06 운영 배포 및 데이터 보존 마이그레이션을 완료했다. 실제 사용자에게 테스트 메시지를 보내지 않았다. 기존 IDE 작업 트리의 다른 변경을 보존하기 위해 `/private/tmp/acm-complaints-261006`의 `feat/chat-management-261006` 브랜치에서 작업했다.
 
 - 운영자 멘션 알림을 유지하고 강사 TEACHER 수신자와 포털 알림 API를 추가했다. 강사 포털 상단 종 아이콘에서 미읽음 수, 목록, 읽음 처리, 해당 메시지 이동을 제공한다.
 - 그룹 방장은 제목을 1~100자로 변경할 수 있다. DM 제목 변경은 차단한다.
@@ -80,3 +83,28 @@ npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
 브라우저 검증은 별도 터미널에서 `node frontend-acm/tests/chat-management.smoke.cjs`를 실행한다. Playwright 설치 경로가 별도이면 `PLAYWRIGHT_MODULE`로 지정한다. 테스트는 운영 API를 호출하지 않는다.
+
+## 6. Production Deployment (운영 배포)
+
+- PR: [#303](https://github.com/amoeba-devops/appAcademy2/pull/303), merged.
+- Production SHA: `7806e5a267be7ad09c7b894538f98b6fc07e2ad6`.
+- Completed: 2026-10-06 10:40:15 UTC / 19:40:15 KST / 17:40:15 ICT.
+- [Main CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37450815825): 6 checks passed.
+- [Staging CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37450815981): success.
+- [Production CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37451246597): success, smoke test enabled.
+- Backup: production server `/home/appacademy/app-academy-backups/db_acm-before-chat-20261006T103554Z.dump`, 7,724,667 bytes, mode 600. `pg_restore --list` validated.
+
+### Staging Functional Verification (스테이징 기능 검증)
+
+실제 배포된 백엔드에서 임시 운영자 2명/강사 1명만 사용해 제목 변경과 방장 제한, 강사 멘션 outbox 전달, 미읽음 수와 바로가기, 개인 보관/복원, 방장 위임 후 나가기, 탈퇴자 메시지 및 알림 접근 차단을 확인했다. 생성된 채팅/알림/임시 계정은 모두 제거했다. 실제 사용자에게 메시지를 보내지 않았다.
+
+### Production Read-only Verification (운영 읽기 전용 검증)
+
+- Backend/frontend containers: `7806e5a`, running, restart count 0.
+- `/api/health`: HTTP 200, status ok; `/admin/chat`: HTTP 200.
+- Recent backend error log lines: 0.
+- SQL verification explicitly used `BEGIN TRANSACTION READ ONLY` (read_only=on).
+- Existing inbox rows: 1,155 before and after; invalid recipient records: 0; pending outbox: 0.
+- Member archive column, recipient columns, unique/indexes and compatibility trigger confirmed.
+
+실제 계정 인증을 포함한 공용 smoke 스크립트는 자동 승인 검토에서 실행이 거부됐다. 스테이징용 쓰기 경로가 함께 있어 운영 실행의 읽기 전용 여부가 불명확하다는 사유였다. 해당 스크립트는 운영에서 실행하지 않았으며, 쓰기 구문이 없는 READ ONLY SQL과 서비스 상태 확인으로 대체했다. 운영 실제 계정으로의 개별 채팅/알림 API 조회는 이번 배포 점검에 포함되지 않는다.
