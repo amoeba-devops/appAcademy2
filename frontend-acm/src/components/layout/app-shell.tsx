@@ -1,3 +1,4 @@
+import { useConfigAccess } from '@/modules/cfg/hooks/use-config-access';
 import { NotificationBell } from '@/modules/notifications/components-inbox';
 import { AdminContentLayout } from "./admin-content-layout";
 import { StudentNavigation } from "@/modules/std/components/student-navigation";
@@ -118,6 +119,7 @@ export function AppShell() {
   // REQ-260621 v1.1 / PLN-260728E — per-tenant 메뉴 가시성 + 순서(UI-only).
   // Fail-open: 로딩/오류 시 전체 표시·기본(NAV) 순서.
   const { data: menus } = useMyMenus();
+  const configAccess = useConfigAccess();
   const hiddenSet = new Set(menus?.hidden ?? []);
   // 표시 순서: 백엔드 order(관리 키) 기준, NAV 에만 있는 키(예: chat)는
   // 원래 NAV 이웃 뒤에 삽입해 위치 보존.
@@ -135,7 +137,7 @@ export function AppShell() {
     return keys;
   })();
   const rank = new Map(orderedKeys.map((k, i) => [k, i]));
-  const visibleNav = NAV.filter((n) => !hiddenSet.has(n.key) && (n.key !== 'pay' || ['ADMIN','APP_ADMIN','STAFF'].includes(user?.role ?? '')))
+  const visibleNav = NAV.filter((n) => (n.key === 'config' ? configAccess.allowed : !hiddenSet.has(n.key)) && (n.key !== 'pay' || ['ADMIN','APP_ADMIN','STAFF'].includes(user?.role ?? '')))
     .slice()
     .sort((a, b) => (rank.get(a.key) ?? 999) - (rank.get(b.key) ?? 999));
 

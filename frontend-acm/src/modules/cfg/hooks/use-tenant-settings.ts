@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -8,7 +9,7 @@ export interface TenantSettings {
 
 export function useTenantSettings() {
   return useQuery({
-    queryKey: ['tenant-settings'],
+    queryKey: ['tenant-settings', ...useConfigScope()],
     queryFn: async () =>
       (await apiClient.get<TenantSettings>('/acm/me/tenant-settings')).data,
   });

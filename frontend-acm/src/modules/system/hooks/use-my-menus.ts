@@ -1,3 +1,4 @@
+import { useConfigScope } from '@/modules/cfg/hooks/use-config-access';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -14,8 +15,10 @@ export interface MyMenus {
  * 로딩/오류 시 빈 값 → 전체 표시·기본 순서.
  */
 export function useMyMenus() {
+  const scope = useConfigScope();
   return useQuery({
-    queryKey: ['me-menus'],
+    queryKey: ['me-menus', ...scope],
+    enabled: !!scope[0] && !!scope[1],
     queryFn: async () => {
       const res = await apiClient.get<MyMenus>('/acm/me/menus');
       return {
@@ -23,6 +26,7 @@ export function useMyMenus() {
         order: res.data.order ?? [],
       } satisfies MyMenus;
     },
-    staleTime: 5 * 60_000,
+    staleTime: 0,
+    refetchInterval: 30_000,
   });
 }

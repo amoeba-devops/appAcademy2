@@ -1148,5 +1148,23 @@
     "actions": "작업",
     "baseline": "기존 상태",
     "knownWithdrawn": "확인된 퇴원"
+  },
+  "configAccess": {
+    "loading": "권한 확인 중…",
+    "denied": "설정 접근 권한 없음",
+    "required": "설정 관리자 권한이 필요합니다.",
+    "loadError": "정보를 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "menuTitle": "좌측 메뉴 노출 설정",
+    "level": "설정 관리자",
+    "scope": "소속 학원의 사용자에게 공통 적용됩니다. 메뉴를 숨겨도 업무 데이터 접근 권한은 변경되지 않습니다.",
+    "permissionOnly": "권한 보유자만 표시",
+    "fixed": "항상 표시",
+    "unsaved": "저장하지 않은 변경사항이 있습니다.",
+    "saved": "저장되었습니다.",
+    "cancel": "변경 취소",
+    "saving": "저장 중…",
+    "save": "저장",
+    "saveError": "저장하지 못했습니다. 권한과 연결 상태를 확인한 후 다시 시도해 주세요."
   }
 }

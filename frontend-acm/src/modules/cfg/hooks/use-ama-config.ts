@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -35,7 +36,7 @@ const KEY = 'ama-config';
 
 export function useAmaConfig() {
   return useQuery({
-    queryKey: [KEY],
+    queryKey: [KEY, ...useConfigScope()],
     queryFn: async () => {
       // GET returns null in initial-setup state (no row yet).
       const res = await apiClient.get<AmaConfig | null>('/acm/admin/ama-config');

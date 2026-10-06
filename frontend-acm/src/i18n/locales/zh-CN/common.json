@@ -1148,5 +1148,23 @@
     "actions": "操作",
     "baseline": "原有状态",
     "knownWithdrawn": "已确认退学"
+  },
+  "configAccess": {
+    "loading": "正在检查权限…",
+    "denied": "无设置访问权限",
+    "required": "需要设置管理员权限。",
+    "loadError": "无法加载数据。",
+    "retry": "重试",
+    "menuTitle": "左侧菜单显示设置",
+    "level": "设置管理员",
+    "scope": "适用于本学院的所有用户。隐藏菜单不会改变业务数据访问权限。",
+    "permissionOnly": "仅有权限者可见",
+    "fixed": "始终显示",
+    "unsaved": "有未保存的更改。",
+    "saved": "已保存。",
+    "cancel": "放弃更改",
+    "saving": "保存中…",
+    "save": "保存",
+    "saveError": "保存失败。请检查权限和连接后重试。"
   }
 }

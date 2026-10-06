@@ -4,9 +4,8 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { AcmJwtAuthGuard } from '../guards/acm-jwt-auth.guard';
 import { AmaConfigService } from '../application/ama-config.service';
 import {
@@ -22,13 +21,13 @@ import {
  */
 @ApiTags('acm-ama-config')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @Controller('acm/admin/ama-config')
 export class AmaConfigController {
   constructor(private readonly svc: AmaConfigService) {}
 
   @Get()
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary: 'GET tenant AMA integration config',
     description: 'Returns null if no row yet (initial setup state). Use PUT to upsert.',
@@ -40,7 +39,7 @@ export class AmaConfigController {
   }
 
   @Put()
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary: 'Upsert tenant AMA integration config',
     description:

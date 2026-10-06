@@ -21,9 +21,8 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { Ga4ConfigService } from '../application/ga4-config.service';
 import {
   GA4_METRICS,
@@ -67,20 +66,20 @@ export class UpdateGa4ConfigDto {
 /** PLN-260912 — GA4 방문자 동기화 설정 (관리자 /admin/config/ga4). */
 @ApiTags('acm-system')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @Controller('acm/admin/ga4-config')
 export class Ga4ConfigController {
   constructor(private readonly svc: Ga4ConfigService) {}
 
   @Get()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: 'GA4 설정 조회 — 서비스계정 키는 이메일·isSet만' })
   get(@CurrentUser() u: AcmCurrentUser) {
     return this.svc.findByEntId(u.entId);
   }
 
   @Put()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: 'GA4 설정 저장 (부분 갱신)' })
   async update(
     @CurrentUser() u: AcmCurrentUser,
@@ -97,7 +96,7 @@ export class Ga4ConfigController {
   }
 
   @Post('site-status')
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary:
       'PLN-260914C — 사이트별 연동 상태 점검 (태그 설치 · GA4 수신 7일 · ACM 반영) 실행 후 결과 저장·반환',
@@ -112,7 +111,7 @@ export class Ga4ConfigController {
   }
 
   @Post('test')
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary: 'GA4 연결 테스트 — 저장된 설정으로 최근 7일 리포트 1회 호출',
   })

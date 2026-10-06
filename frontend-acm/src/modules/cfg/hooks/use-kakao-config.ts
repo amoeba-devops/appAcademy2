@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -31,7 +32,7 @@ const KEY = 'kakao-config';
 
 export function useKakaoConfig() {
   return useQuery({
-    queryKey: [KEY],
+    queryKey: [KEY, ...useConfigScope()],
     queryFn: async () =>
       (await apiClient.get<KakaoConfig>('/acm/admin/kakao-config')).data,
   });

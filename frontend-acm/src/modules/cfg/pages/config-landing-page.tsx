@@ -1,3 +1,4 @@
+import { ConfigMenuVisibility } from '../components/config-menu-visibility';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { BarChart3, Bot, Globe, Mail, MessageCircle, Settings, Video, ChevronRight } from 'lucide-react';
@@ -38,7 +39,8 @@ export function ConfigLandingPage() {
       </header>
       <p className="mb-6 text-sm text-secondary">{t('config.landing.description')}</p>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <ConfigMenuVisibility />
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {CARDS.map(({ to, icon: Icon, titleKey, descKey }) => (
           <Link
             key={to}

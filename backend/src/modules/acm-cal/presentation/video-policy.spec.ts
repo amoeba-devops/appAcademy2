@@ -1,7 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { lastValueFrom, of, throwError } from 'rxjs';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { VideoConfigController } from './video-config.controller';
 import { VideoConfigService } from '../application/video-config.service';
@@ -14,20 +13,20 @@ describe('video settings access and BODA request policy', () => {
       getHandler: () => VideoConfigController.prototype.update,
       switchToHttp: () => ({
         getRequest: () => ({
-          user: { role, entId },
+          user: { id: 'test-user', role, entId },
           body,
           url: '/cal/boda/launch-context?evtId=event-a',
         }),
       }),
     }) as unknown as ExecutionContext;
-  it('allows only ADMIN to change the setting', () => {
-    const roles = new RolesGuard(new Reflector());
-    expect(roles.canActivate(context('ADMIN'))).toBe(true);
-    for (const role of ['STAFF', 'TEACHER', 'PARENT', 'APP_ADMIN']) {
-      expect(() => roles.canActivate(context(role))).toThrow(
-        'Insufficient role',
-      );
+  it('requires CONFIG_ADMIN independently of the base role', async () => {
+    const query = jest.fn().mockResolvedValue([{ allowed: false }]);
+    const guard = new ConfigAdminGuard({ query } as never);
+    for (const role of ['ADMIN', 'STAFF', 'TEACHER', 'PARENT', 'APP_ADMIN']) {
+      await expect(guard.canActivate(context(role))).rejects.toThrow('CONFIG_ADMIN permission required');
     }
+    query.mockResolvedValue([{ allowed: true }]);
+    await expect(guard.canActivate(context('ADMIN'))).resolves.toBe(true);
   });
   it('rejects spoofed tenant IDs before executing the handler', () => {
     expect(() =>

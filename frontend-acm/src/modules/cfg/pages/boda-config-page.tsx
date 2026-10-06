@@ -1,3 +1,4 @@
+import { useConfigAccess } from '../hooks/use-config-access';
 import { useAuthStore } from "@/stores/auth.store";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +18,7 @@ export function BodaConfigPage() {
   const { t } = useTranslation("common");
   const query = useVideoConfig();
   const user = useAuthStore((s) => s.user);
-  const canEdit = user?.role === "ADMIN";
+  const canEdit = useConfigAccess().allowed;
   const qc = useQueryClient();
   const [provider, setProvider] = useState<VideoProvider>("BODASCHOOL");
   const [dirty, setDirty] = useState(false);

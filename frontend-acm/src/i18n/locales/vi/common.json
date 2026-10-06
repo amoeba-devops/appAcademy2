@@ -1148,5 +1148,23 @@
     "actions": "Thao tác",
     "baseline": "Trạng thái ban đầu",
     "knownWithdrawn": "Nghỉ học đã xác nhận"
+  },
+  "configAccess": {
+    "loading": "Đang kiểm tra quyền…",
+    "denied": "Không có quyền truy cập cài đặt",
+    "required": "Cần quyền quản trị cài đặt.",
+    "loadError": "Không tải được dữ liệu.",
+    "retry": "Thử lại",
+    "menuTitle": "Hiển thị menu bên trái",
+    "level": "Quản trị cài đặt",
+    "scope": "Áp dụng cho mọi người dùng trong học viện. Ẩn menu không thay đổi quyền truy cập dữ liệu.",
+    "permissionOnly": "Chỉ người có quyền",
+    "fixed": "Luôn hiển thị",
+    "unsaved": "Có thay đổi chưa lưu.",
+    "saved": "Đã lưu.",
+    "cancel": "Hủy thay đổi",
+    "saving": "Đang lưu…",
+    "save": "Lưu",
+    "saveError": "Không lưu được. Kiểm tra quyền và kết nối rồi thử lại."
   }
 }
