@@ -43,6 +43,9 @@ export class TalkMemberTypeormEntity {
   })
   joinedAt!: Date;
 
+  @Column({ name: 'tlm_archived_at', type: 'timestamptz', nullable: true })
+  archivedAt?: Date | null;
+
   @Column({ name: 'tlm_left_at', type: 'timestamptz', nullable: true })
   leftAt?: Date | null;
 }

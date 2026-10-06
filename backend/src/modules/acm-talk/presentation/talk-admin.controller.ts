@@ -1,3 +1,4 @@
+import { ArchiveRoomDto, LeaveRoomDto, RenameRoomDto } from './room.dto';
 import {
   Body,
   Controller,
@@ -5,6 +6,7 @@ import {
   Get,
   Header,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
   Put,
@@ -60,8 +62,8 @@ export class TalkAdminController {
 
   @Get('channels')
   @ApiOperation({ summary: 'My channels + unread counts' })
-  channels(@CurrentUser() u: AcmCurrentUser) {
-    return this.svc.listMyChannels(u.entId, this.actor(u));
+  channels(@CurrentUser() u: AcmCurrentUser, @Query('scope') scope?: string) {
+    return this.svc.listMyChannels(u.entId, this.actor(u), scope);
   }
 
   @Get('candidates')
@@ -108,6 +110,38 @@ export class TalkAdminController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.svc.deleteChannel(u.entId, u.id, id);
+  }
+
+  @Get('channels/:id')
+  channel(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.getChannelView(u.entId, id, this.actor(u));
+  }
+  @Patch('channels/:id/archive')
+  archive(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ArchiveRoomDto,
+  ) {
+    return this.svc.archiveChannel(u.entId, this.actor(u), id, dto.archived);
+  }
+  @Post('channels/:id/leave')
+  leave(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: LeaveRoomDto,
+  ) {
+    return this.svc.leaveChannel(u.entId, this.actor(u), id, dto.successorId);
+  }
+  @Patch('channels/:id')
+  rename(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RenameRoomDto,
+  ) {
+    return this.svc.renameChannel(u.entId, this.actor(u), id, dto.name);
   }
 
   @Get('channels/:id/messages')

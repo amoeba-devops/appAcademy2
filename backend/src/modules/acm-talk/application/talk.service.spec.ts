@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { TalkChannelTypeormEntity } from '../infrastructure/typeorm/talk-channel.typeorm-entity';
 import { TalkService } from './talk.service';
 
 /** REQ-260728C — 로비채팅: 개설 권한·멤버십 접근제어·DM 재사용·전송 규칙. */
@@ -55,6 +56,8 @@ describe('TalkService', () => {
     const ds = {
       transaction: async (work: (m: EntityManager) => Promise<unknown>) =>
         work({
+          getRepository: (entity: unknown) =>
+            entity === TalkChannelTypeormEntity ? channelRepo : memberRepo,
           save: async (_entity: unknown, value: unknown) =>
             messageRepo.save(value),
           query: async (sql: string) =>
@@ -299,6 +302,8 @@ describe('TalkService', () => {
 
   it('deleteMessage is sender-only', async () => {
     const { svc } = build({
+      channel: groupChannel(),
+      member: activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
       message: {
         id: 'msg-1',
         entId: 'e1',
@@ -314,7 +319,7 @@ describe('TalkService', () => {
   });
 
   it('markRead forbids a non-member', async () => {
-    const { svc } = build({ member: null });
+    const { svc } = build({ channel: groupChannel(), member: null });
     await expect(
       svc.markRead('e1', { kind: 'TEACHER', refId: 'tX' }, 'chn-1'),
     ).rejects.toBeInstanceOf(ForbiddenException);
@@ -352,7 +357,12 @@ describe('TalkService', () => {
 
   it('updateMembers rejects DM member changes and non-owners', async () => {
     const dm: any = { ...groupChannel(), type: 'DIRECT' };
-    const { svc, memberRepo } = build({ channel: dm, member: activeMember() });
+    const { svc, memberRepo } = build({
+      channel: dm,
+      member: activeMember(),
+      members: [activeMember()],
+      dsRows: teacherRows,
+    });
     await expect(
       svc.updateMembers('e1', OP, 'chn-1', [{ kind: 'TEACHER', refId: 't1' }]),
     ).rejects.toBeInstanceOf(BadRequestException);

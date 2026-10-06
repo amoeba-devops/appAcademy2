@@ -9,7 +9,11 @@ import { Cron } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { Subject, interval, merge, filter, map } from 'rxjs';
 import { ACM_DS } from '../../acm-common/datasource';
-import type { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+export interface InboxActor {
+  entId: string;
+  id: string;
+  kind?: 'TEACHER';
+}
 
 // Apply the same visibility predicate to list, count, read and navigation. Never trust URL/body recipient IDs.
 const VISIBLE = `u.usr_status='ACTIVE' AND (
@@ -24,8 +28,24 @@ const VISIBLE = `u.usr_status='ACTIVE' AND (
    WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.deleted_at IS NULL AND c.deleted_at IS NULL
      AND member.tlm_kind='USER' AND member.tlm_ref_id=u.usr_id AND member.tlm_left_at IS NULL))
 )`;
-const FROM = `FROM amb_acm_notification_inbox n JOIN amb_acm_user u ON u.ent_id=n.ent_id AND u.usr_id=n.usr_id
+const USER_FROM = `FROM amb_acm_notification_inbox n JOIN amb_acm_user u ON u.ent_id=n.ent_id AND u.usr_id=n.usr_id
  WHERE n.ent_id=$1 AND n.usr_id=$2 AND ${VISIBLE}`;
+// Teacher IDs belong to the teacher master, never to amb_acm_user.
+const TEACHER_FROM = `FROM amb_acm_notification_inbox n
+ WHERE n.ent_id=$1 AND n.nin_recipient_kind='TEACHER' AND n.nin_recipient_id=$2
+ AND EXISTS(SELECT 1 FROM amb_acm_tch_teacher t JOIN amb_acm_portal_account p
+ ON p.ent_id=t.ent_id AND p.pac_ref_id=t.tch_id AND p.pac_kind='TEACHER'
+ WHERE t.ent_id=n.ent_id AND t.tch_id=$2 AND t.deleted_at IS NULL
+ AND p.pac_status='ACTIVE' AND p.pac_locked_at IS NULL)
+ AND n.nin_type='CHAT_MENTION' AND EXISTS(
+ SELECT 1 FROM amb_acm_talk_message msg JOIN amb_acm_talk_channel c ON c.ent_id=msg.ent_id AND c.tlc_id=msg.tlc_id
+ JOIN amb_acm_talk_member member ON member.ent_id=c.ent_id AND member.tlc_id=c.tlc_id
+ WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.deleted_at IS NULL AND c.deleted_at IS NULL
+ AND member.tlm_kind='TEACHER' AND member.tlm_ref_id=$2 AND member.tlm_left_at IS NULL)`;
+const from = (u: InboxActor) =>
+  u.kind === 'TEACHER' ? TEACHER_FROM : USER_FROM;
+const eventId = (u: InboxActor) =>
+  u.kind === 'TEACHER' ? `TEACHER:${u.id}` : u.id;
 export interface InboxRow {
   id: string;
   type: string;
@@ -51,12 +71,20 @@ export class InboxService {
         if (!rows.length) return [];
         const ids = rows.map((r) => r.nob_id);
         const recipients: { entId: string; userId: string }[] = await m.query(
-          `INSERT INTO amb_acm_notification_inbox
-          (ent_id,usr_id,nob_id,nin_type,nin_target_id,nin_payload)
-          SELECT o.ent_id,r.value::uuid,o.nob_id,o.nob_type,o.nob_target_id,o.nob_payload
-          FROM amb_acm_notification_outbox o CROSS JOIN LATERAL jsonb_array_elements_text(o.nob_recipients) r
-          JOIN amb_acm_user u ON u.ent_id=o.ent_id AND u.usr_id=r.value::uuid AND u.usr_status='ACTIVE'
-          WHERE o.nob_id=ANY($1::uuid[]) ON CONFLICT DO NOTHING RETURNING ent_id AS "entId",usr_id AS "userId"`,
+          `WITH targets AS (
+            SELECT o.*, CASE WHEN jsonb_typeof(r.value)='string' THEN 'USER' ELSE r.value->>'kind' END AS kind,
+              (CASE WHEN jsonb_typeof(r.value)='string' THEN r.value#>>'{}' ELSE r.value->>'refId' END)::uuid AS ref
+            FROM amb_acm_notification_outbox o CROSS JOIN LATERAL jsonb_array_elements(o.nob_recipients) r
+            WHERE o.nob_id=ANY($1::uuid[])
+          ) INSERT INTO amb_acm_notification_inbox
+          (ent_id,usr_id,nin_recipient_kind,nin_recipient_id,nob_id,nin_type,nin_target_id,nin_payload)
+          SELECT o.ent_id,CASE WHEN o.kind='USER' THEN o.ref END,o.kind,o.ref,o.nob_id,o.nob_type,o.nob_target_id,o.nob_payload
+          FROM targets o WHERE (o.kind='USER' AND EXISTS(SELECT 1 FROM amb_acm_user u WHERE u.ent_id=o.ent_id AND u.usr_id=o.ref AND u.usr_status='ACTIVE'))
+          OR (o.kind='TEACHER' AND EXISTS(SELECT 1 FROM amb_acm_tch_teacher t JOIN amb_acm_portal_account p
+            ON p.ent_id=t.ent_id AND p.pac_ref_id=t.tch_id AND p.pac_kind='TEACHER'
+            WHERE t.ent_id=o.ent_id AND t.tch_id=o.ref AND t.deleted_at IS NULL AND p.pac_status='ACTIVE' AND p.pac_locked_at IS NULL))
+          ON CONFLICT DO NOTHING RETURNING ent_id AS "entId",
+            CASE WHEN nin_recipient_kind='TEACHER' THEN 'TEACHER:'||nin_recipient_id::text ELSE nin_recipient_id::text END AS "userId"`,
           [ids],
         );
         await m.query(
@@ -72,15 +100,15 @@ export class InboxService {
       );
     }
   }
-  events(u: AcmCurrentUser) {
+  events(u: InboxActor) {
     return merge(
       this.changes.pipe(
-        filter((e) => e.entId === u.entId && e.userId === u.id),
+        filter((e) => e.entId === u.entId && e.userId === eventId(u)),
       ),
       interval(25000),
     ).pipe(map(() => ({ data: JSON.stringify({ type: 'inbox:refresh' }) })));
   }
-  async list(u: AcmCurrentUser, cursor?: string, unread = false) {
+  async list(u: InboxActor, cursor?: string, unread = false) {
     let tail = '';
     const params: unknown[] = [u.entId, u.id];
     if (cursor) {
@@ -107,7 +135,7 @@ export class InboxService {
       tail = ' AND (n.created_at,n.nin_id)<($3::timestamptz,$4::uuid)';
     }
     const rows: InboxRow[] = await this.ds.query(
-      `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload,n.nin_read_at AS "readAt",n.created_at AS "createdAt",n.created_at::text AS "cursorAt" ${FROM} ${unread ? 'AND n.nin_read_at IS NULL' : ''} ${tail} ORDER BY n.created_at DESC,n.nin_id DESC LIMIT 21`,
+      `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload,n.nin_read_at AS "readAt",n.created_at AS "createdAt",n.created_at::text AS "cursorAt" ${from(u)} ${unread ? 'AND n.nin_read_at IS NULL' : ''} ${tail} ORDER BY n.created_at DESC,n.nin_id DESC LIMIT 21`,
       params,
     );
     const items = rows.slice(0, 20);
@@ -123,41 +151,41 @@ export class InboxService {
       ...(await this.count(u)),
     };
   }
-  async count(u: AcmCurrentUser) {
+  async count(u: InboxActor) {
     const [row]: { unreadCount: number; asOf: string }[] = await this.ds.query(
-      `SELECT count(*)::int AS "unreadCount",to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "asOf" ${FROM} AND n.nin_read_at IS NULL`,
+      `SELECT count(*)::int AS "unreadCount",to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "asOf" ${from(u)} AND n.nin_read_at IS NULL`,
       [u.entId, u.id],
     );
     return row;
   }
-  async read(u: AcmCurrentUser, id: string) {
+  async read(u: InboxActor, id: string) {
     const rows: InboxRow[] = await this.ds.query(
-      `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload ${FROM} AND n.nin_id=$3`,
+      `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload ${from(u)} AND n.nin_id=$3`,
       [u.entId, u.id, id],
     );
     if (!rows.length) throw new NotFoundException('NOTIFICATION_UNAVAILABLE');
     await this.ds.query(
-      'UPDATE amb_acm_notification_inbox SET nin_read_at=COALESCE(nin_read_at,now()) WHERE ent_id=$1 AND usr_id=$2 AND nin_id=$3',
+      `UPDATE amb_acm_notification_inbox SET nin_read_at=COALESCE(nin_read_at,now()) WHERE nin_id IN (SELECT n.nin_id ${from(u)} AND n.nin_id=$3)`,
       [u.entId, u.id, id],
     );
-    this.changes.next({ entId: u.entId, userId: u.id });
+    this.changes.next({ entId: u.entId, userId: eventId(u) });
     const n = rows[0];
     return {
       href: n.type.startsWith('CSL_')
         ? `/admin/csl/${n.targetId}`
         : n.type.startsWith('CAL_')
           ? `/admin/cal/${n.targetId}`
-          : `/admin/chat?channelId=${encodeURIComponent(String(n.payload.channelId))}&messageId=${n.targetId}`,
+          : `${u.kind === 'TEACHER' ? '/portal' : '/admin'}/chat?channelId=${encodeURIComponent(String(n.payload.channelId))}&messageId=${n.targetId}`,
     };
   }
-  async readAll(u: AcmCurrentUser, asOf: string) {
+  async readAll(u: InboxActor, asOf: string) {
     if (typeof asOf !== 'string' || !Number.isFinite(Date.parse(asOf)))
       throw new BadRequestException('INVALID_CUTOFF');
     await this.ds.query(
-      `UPDATE amb_acm_notification_inbox SET nin_read_at=COALESCE(nin_read_at,now()) WHERE nin_id IN (SELECT n.nin_id ${FROM} AND n.created_at<=LEAST($3::timestamptz,clock_timestamp()))`,
+      `UPDATE amb_acm_notification_inbox SET nin_read_at=COALESCE(nin_read_at,now()) WHERE nin_id IN (SELECT n.nin_id ${from(u)} AND n.created_at<=LEAST($3::timestamptz,clock_timestamp()))`,
       [u.entId, u.id, asOf],
     );
-    this.changes.next({ entId: u.entId, userId: u.id });
+    this.changes.next({ entId: u.entId, userId: eventId(u) });
     return this.count(u);
   }
 }

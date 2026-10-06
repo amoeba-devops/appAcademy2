@@ -26,6 +26,8 @@ export interface TalkChannel {
   lastMessageAt: string | null;
   lastMessagePreview: string | null;
   mine: boolean;
+  archived: boolean;
+  canSend: boolean;
 }
 
 export interface TalkMessage {
@@ -62,8 +64,27 @@ export interface TalkSseEvent {
 }
 
 export const talkApi = {
-  channels: async (mode: TalkMode) =>
-    (await apiClient.get<TalkChannel[]>(`${base(mode)}/channels`)).data,
+  channels: async (mode: TalkMode, scope: "active" | "archived" = "active") =>
+    (
+      await apiClient.get<TalkChannel[]>(`${base(mode)}/channels`, {
+        params: { scope },
+      })
+    ).data,
+  channel: async (mode: TalkMode, id: string) =>
+    (await apiClient.get<TalkChannel>(`${base(mode)}/channels/${id}`)).data,
+  rename: async (id: string, name: string) =>
+    (await apiClient.patch<TalkChannel>(`/acm/talk/channels/${id}`, { name }))
+      .data,
+  archive: async (mode: TalkMode, id: string, archived: boolean) =>
+    (
+      await apiClient.patch<TalkChannel>(
+        `${base(mode)}/channels/${id}/archive`,
+        { archived },
+      )
+    ).data,
+  leave: async (mode: TalkMode, id: string, successorId?: string) => {
+    await apiClient.post(`${base(mode)}/channels/${id}/leave`, { successorId });
+  },
 
   // 콘솔 전용 — 개설·DM·멤버관리.
   candidates: async () =>
@@ -103,10 +124,10 @@ export const talkApi = {
       })
     ).data,
 
-  message: async (channelId: string, messageId: string) =>
+  message: async (mode: TalkMode, channelId: string, messageId: string) =>
     (
       await apiClient.get<TalkMessage>(
-        `/acm/talk/channels/${channelId}/messages/${messageId}`,
+        `${base(mode)}/channels/${channelId}/messages/${messageId}`,
       )
     ).data,
 

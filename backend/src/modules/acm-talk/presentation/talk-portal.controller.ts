@@ -1,3 +1,4 @@
+import { ArchiveRoomDto, LeaveRoomDto } from './room.dto';
 import {
   Body,
   Controller,
@@ -6,6 +7,7 @@ import {
   Get,
   Header,
   Param,
+  Patch,
   ParseUUIDPipe,
   Post,
   Query,
@@ -52,8 +54,40 @@ export class TalkPortalController {
 
   @Get('channels')
   @ApiOperation({ summary: 'My channels + unread counts (teacher)' })
-  channels(@PortalUser() u: PortalAuthUser) {
-    return this.svc.listMyChannels(u.entId, this.actor(u));
+  channels(@PortalUser() u: PortalAuthUser, @Query('scope') scope?: string) {
+    return this.svc.listMyChannels(u.entId, this.actor(u), scope);
+  }
+
+  @Get('channels/:id')
+  channel(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.getChannelView(u.entId, id, this.actor(u));
+  }
+  @Patch('channels/:id/archive')
+  archive(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ArchiveRoomDto,
+  ) {
+    return this.svc.archiveChannel(u.entId, this.actor(u), id, dto.archived);
+  }
+  @Post('channels/:id/leave')
+  leave(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: LeaveRoomDto,
+  ) {
+    return this.svc.leaveChannel(u.entId, this.actor(u), id, dto.successorId);
+  }
+  @Get('channels/:id/messages/:messageId')
+  message(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('messageId', ParseUUIDPipe) messageId: string,
+  ) {
+    return this.svc.message(u.entId, this.actor(u), id, messageId);
   }
 
   @Get('channels/:id/messages')

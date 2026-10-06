@@ -171,7 +171,7 @@ export function AppShell() {
   // REQ-260903C — 사이드바 채팅 미읽음 배지 (전역, 이벤트 시 invalidate 로 갱신).
   const isTalkRole = user?.role === 'ADMIN' || user?.role === 'APP_ADMIN';
   const { data: talkChannels } = useQuery({
-    queryKey: ['talk-channels', 'admin'],
+    queryKey: ['talk-channels', 'admin', `${user?.entId ?? ''}:${user?.id ?? ''}`, 'active'],
     queryFn: () => talkApi.channels('admin'),
     enabled: isTalkRole,
     refetchInterval: 60_000,

@@ -33,6 +33,7 @@ function isPortalEndpoint(url: string): boolean {
     url.startsWith('/portal/teacher') ||
     // REQ-260728C — 로비채팅 (강사 포털).
     url.startsWith('/portal/talk') ||
+    url.startsWith('/portal/notifications') ||
     url === '/portal/auth/change-password'
   );
 }
