@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CONFIG-ACCESS-PLN-1.0.0
 version: 1.0.0
-status: Implemented (not deployed)
+status: Deployed
 created: 2026-10-06
 change_log:
   - version: 1.0.0
@@ -66,4 +66,4 @@ AGENTS.md §9.2: “요구사항 분석서 + 작업 계획서 작성 후 반드�
 사용자의 “구현” 승인 후 코드와 검증을 완료했다. 운영 권한 부여는 관련 코드/마이그레이션이 준비된 배포 단계에서 실행한다. 기존 다른 기능의 배포 승인은 이번 새 기능의 배포 승인으로 간주하지 않는다.
 
 
-구현 메모: 최신 권한은 `/acm/me/config-access`에서 조회하며 관리 API는 매 요청 DB 권한을 검사한다. 기존 로그인/JWT/AMA 기본 역할은 변경하지 않는다. 운영 권한 부여 스크립트는 준비됐으며 아직 실행하지 않았다.
+구현 메모: 최신 권한은 `/acm/me/config-access`에서 조회하며 관리 API는 매 요청 DB 권한을 검사한다. 기존 로그인/JWT/AMA 기본 역할은 변경하지 않는다. 2026-10-06 운영 버전 4696a58 배포와 대상 계정 CONFIG_ADMIN 부여를 완료했다.

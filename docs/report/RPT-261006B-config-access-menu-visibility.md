@@ -1,9 +1,12 @@
 ---
 document_id: ACM-CONFIG-ACCESS-RPT-1.0.0
-version: 1.0.0
-status: Implemented (not deployed)
+version: 1.1.0
+status: Deployed
 created: 2026-10-06
 change_log:
+  - version: 1.1.0
+    date: 2026-10-06
+    description: Production 4696a58 deployed and requested account permission granted / 운영 배포·계정 권한 부여 완료
   - version: 1.0.0
     date: 2026-10-06
     description: CONFIG_ADMIN access and tenant sidebar visibility implemented / 설정 전용 권한·메뉴 노출 구현
@@ -29,7 +32,7 @@ change_log:
 - `PUT /api/acm/me/config-menus`: 권한 보유자의 메뉴 노출만 저장. 고정 메뉴 숨김/알 수 없는 키/중복 키/order·entId 주입 거부.
 - 마이그레이션: `sql/acm/999x-config-admin-permission.sql`.
 - 계정 부여: `scripts/operations/grant-config-admin-fremd.sql`. 확인된 UUID, 테넌트, 이메일, ACTIVE/ADMIN 상태가 모두 일치하는 단일 계정에만 멱등 부여한다.
-- **운영 배포 및 fremd@naver.com 운영 계정 권한 부여는 아직 실행하지 않았다.**
+- **운영 배포 및 fremd@naver.com의 CONFIG_ADMIN 권한 부여 완료. 기존 ADMIN / ACTIVE / AMA 계정 속성 유지.**
 
 ## 3. Validation (검증)
 
@@ -38,7 +41,7 @@ change_log:
 - 권한·메뉴 관련 Jest 23건 통과: 미보유 ADMIN/APP_ADMIN 거부, 권한 철회 재검증, 테넌트 격리, 관리 API 보호 범위, 일반 조회 보존, DTO 검증, 기존 메뉴 순서 보존.
 - `backend/test/config-access-pg-check.ts`: 임시 PostgreSQL 컨테이너 및 Nest HTTP로 스키마/권한부여 멱등성, 기존 ADMIN 유지, 403 차단·권한철회, 테넌트 위조, 메뉴 순서 보존을 검증. 통과 후 테스트 컨테이너 정리.
 - Chrome 로컬 fixture: 메뉴 체크 해제 → 저장 완료, 권한 철회 → 접근 거부 화면 확인.
-- 운영 고객 데이터 변경 없음. 실제 AMA 서버 재로그인 검증은 배포 검증 단계에서 수행해야 한다. 추가 권한 테이블은 기존 SSO 사용자 갱신 경로와 분리돼 있다.
+- 구현 검증 중 운영 고객 데이터 변경 없음. 운영 적용에서는 신규 권한 테이블과 요청된 추가 권한 1건만 반영했다. 실제 AMA 서버 재로그인은 별도로 수행하지 않았다. 추가 권한 테이블은 기존 SSO 사용자 갱신 경로와 분리돼 있다.
 - 로컬 린트 신규 권한 코드 오류 0건. 기존 코드 스타일/테스트 mock 관련 경고 및 FE 번들 크기 경고 유지.
 
 ## 4. Screenshots (테스트 화면)
@@ -62,3 +65,28 @@ change_log:
 - 독립 체크아웃: `/private/tmp/acm-complaints-261006`.
 - 브랜치: `feat/config-permission-261006` (기준 main `381097b`).
 - 기존 IDE 작업 변경은 보존하고 문서 및 캡처만 IDE 작업 폴더에 동기화했다.
+
+
+## 7. Production Deployment (운영 배포 결과)
+
+- 완료 시각: **2026-10-06 17:33:38 KST** / 15:33:38 ICT.
+- 운영 SHA: `4696a58a376abc0116543b89d72a7c2fdf275991`.
+- [PR #301](https://github.com/amoeba-devops/appAcademy2/pull/301) 병합 완료.
+- [PR CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37435695093) / [main CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37436155373): 6개 항목 모두 성공.
+- [스테이징 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/37436155281) / [운영 배포](https://github.com/amoeba-devops/appAcademy2/actions/runs/37436858457): 성공.
+- 대상: `fremd@naver.com`, 일치 계정 1건 재확인. UUID·테넌트·활성 ADMIN 조건 검사 후 CONFIG_ADMIN 부여.
+- 적용 후 DB 확인: `ADMIN | ACTIVE | CONFIG_ADMIN`. 기본 역할·AMA 속성 변경 없음.
+- 백업: 운영 서버 `/home/appacademy/app-academy-backups/db_acm-before-config-20261006.dump`, 7,721,332 bytes, mode 600. `pg_restore -l` 성공.
+
+배포 검증:
+
+- 스테이징 임시 계정: 미부여 403 → 부여 후 접근 → 철회 후 같은 토큰 403. 검증 후 임시 계정 제거.
+- 운영 대상 계정: 설정 API 8개 조회, 메뉴 고정 정책, 빈 변경 목록 저장, 타 테넌트 위조 요청 403 확인.
+- 운영의 권한 미부여 관리자: 설정 메뉴 API 및 메일 설정 API 403 확인.
+- 실제 운영 메뉴 표시/숨김 값 변경 0건. 요청된 권한 외 다른 사용자 권한 변경 없음.
+- 컨테이너 모두 `4696a58`, running, restart count 0. 기동 후 확인 로그 ERROR/Exception 없음.
+- `/admin/config` HTTP 200 및 API health 정상.
+- 단기 인증 토큰은 서버 메모리에서만 사용했고 비밀값/설정 내용은 출력·보고하지 않았다.
+- 실제 AMA 브라우저 재로그인과 장시간 관찰은 수행하지 않았다. 기존 계정 역할과 SSO 갱신 경로는 유지한다.
+
+화면이 이전 상태로 보이면 새로고침 후 [설정](https://acm.amoeba.site/admin/config)에 접속한다. 이 권한은 기본 역할을 교체하지 않으며 서버의 최신 권한을 기준으로 검사한다.
