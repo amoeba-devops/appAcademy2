@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CHAT-MEMBERS-RPT-1.0.0
 version: 1.0.0
-status: Implemented - Not Deployed
+status: Deployed
 created: 2026-10-06
 change_log:
   - version: 1.0.0
@@ -52,4 +52,18 @@ change_log:
 
 `sql/acm/999z-chat-participants.sql`은 채널 생성자를 USER/TEACHER kind 및 ref로 보존한다. 기존 USER 생성자 UUID는 유지하고, 강사가 생성한 DM은 USER 전용 필드에 강사 UUID를 넣지 않는다. 기존 버전 USER 생성 쓰기도 트리거로 호환한다. 마이그레이션은 데이터 삭제를 포함하지 않으며 재실행을 검증했다. 배포할 때 백엔드보다 먼저 적용해야 한다.
 
-사용자 승인 범위는 구현이다. **운영 배포 및 운영 DB 변경은 수행하지 않았다.** 기존 IDE 작업 디렉터리의 변경을 보존하기 위해 `/private/tmp/acm-complaints-261006`의 `feat/chat-participants-261006` 브랜치에서 작업하고, 보고서·계획서·캡처는 IDE 작업 디렉터리에도 복사한다.
+사용자 승인 범위는 구현이다. 최초 구현 시 운영 변경을 하지 않았고, 이후 사용자 운영 배포 요청에 따라 아래와 같이 반영했다. 기존 IDE 작업 디렉터리의 변경을 보존하기 위해 `/private/tmp/acm-complaints-261006`의 `feat/chat-participants-261006` 브랜치에서 작업하고, 보고서·계획서·캡처는 IDE 작업 디렉터리에도 복사한다.
+
+## 5. Production Deployment (운영 배포)
+
+- 사용자 운영 배포 승인 후 PR #305 병합. 운영 커밋: `2f188cd5294ca9464582dec0071b4e25d086bba2`.
+- 배포 시각: 2026-10-06 12:06:01 UTC / 21:06:01 KST / 19:06:01 ICT.
+- [Main CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/37460331103), [Staging CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37460331106), [Production CD](https://github.com/amoeba-devops/appAcademy2/actions/runs/37460794186): 모두 성공.
+- 스테이징 임시 계정으로 방장 초대/내보내기, 퇴장 후 접근 차단, 재초대, 강사·운영자 동시 DM 단일 방 재사용, 멘션 알림, 보관/복원, 방장 위임/나가기를 확인했다. 임시 기록은 정리했다. 테스트 스크립트는 기존 비참여자 조회 정책(404)과 새 DM이 존재하는 상황에 맞춰 보정 후 통과했다.
+- 운영 DB 백업: `/home/appacademy/app-academy-backups/db_acm-before-chat-participants-20261006T120203Z.dump` (7,731,126 bytes, mode 600). `pg_restore -l` 검증 완료.
+- `999z-chat-participants.sql` 적용 파일과 마커 해시 일치. 생성자 정합성 오류 0, 활성 그룹 OWNER 오류 0, 생성자 트리거 활성 확인.
+- 운영 전후 데이터: 대화방 9, 참여 기록 25, 메시지 11, 알림 1,156으로 동일.
+- 운영 관리자/강사 채팅 페이지 HTTP 200, 비인증 채팅 API HTTP 401, backend health OK. 배포 후 초기 점검에서 backend 오류 로그 0건, 두 컨테이너 재시작 0회.
+- 운영 확인은 읽기 전용 SQL·상태 확인·공개 HTTP 응답으로 수행했다. 실사용자 계정을 대신해 메시지 전송/초대/퇴장하지 않았다.
+- 롤백 기준은 health 실패, 반복적인 서버 오류, 생성자/참여 권한 정합성 오류다. 이전 서비스 이미지 `7806e5a`로 복귀할 수 있으며, 기존 USER 쓰기와 호환되는 추가 컬럼/트리거는 유지한다. 사용자 활동 이후 전체 DB를 덮어써 복원하지 않는다.
+- 배포 점검에 [engineering:deploy-checklist](</Users/gray/.codex/plugins/cache/claude-cowork/engineering/1.2.0/skills/deploy-checklist/SKILL.md>)를 사용했다.
