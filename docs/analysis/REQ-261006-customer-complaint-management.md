@@ -1,7 +1,7 @@
 ---
 document_id: ACM-COMPLAINT-LIST-REQ-1.0.0
 version: 1.0.0
-status: Implemented (not deployed)
+status: Deployed
 created: 2026-10-06
 change_log:
   - version: 1.0.0

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-COMPLAINT-LIST-PLN-1.0.0
 version: 1.0.0
-status: Implemented (not deployed)
+status: Deployed
 created: 2026-10-06
 change_log:
   - version: 1.0.0
@@ -48,4 +48,4 @@ change_log:
 
 ## 3. Approval and Deployment (확인 및 배포)
 
-2026-10-06 사용자의 “구현 진행” 확인 후 구현 및 로컬 검증을 완료했다. 운영 데이터는 변경하지 않았다. 운영 배포는 구현·검증 완료 후 별도 요청 시 수행한다.
+2026-10-06 사용자의 “구현 진행” 확인 후 구현 및 로컬 검증을 완료했다. 운영 데이터는 변경하지 않았다. 사용자의 운영 배포 요청에 따라 2026-10-06 버전 `381097b` 운영 배포를 완료했다.
