@@ -1,5 +1,23 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+
+/** REQ-261006 — AMA 로 전달 가능한 알림 종류 */
+export const AMA_FORWARD_TYPES = [
+  'CSL_CREATED',
+  'CSL_STAGE',
+  'CAL_CREATED',
+  'CAL_UPDATED',
+  'CHAT_MENTION',
+] as const;
 
 /**
  * AMA 연동 설정 갱신 DTO (REQ-260609B FR-2).
@@ -74,6 +92,19 @@ export class UpdateAmaConfigDto {
   @MinLength(1)
   @MaxLength(60)
   categorySlug?: string;
+
+  /** REQ-261006 — ACM 알림을 AMA 알림으로 전달 */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  forwardEnabled?: boolean;
+
+  @ApiPropertyOptional({ type: [String], enum: AMA_FORWARD_TYPES })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @IsIn([...AMA_FORWARD_TYPES], { each: true })
+  forwardTypes?: string[];
 }
 
 /** AMA 연동 설정 응답 DTO. secret 은 isSet 플래그로만 노출. */
@@ -89,6 +120,10 @@ export class AmaConfigResponseDto {
   /** Custom Category secret 이 저장돼 있는지 여부만 (값 미노출). */
   @ApiProperty() categorySecretIsSet!: boolean;
   @ApiPropertyOptional() categorySlug?: string | null;
+  /** REQ-261006 */
+  @ApiProperty() forwardEnabled!: boolean;
+  @ApiProperty({ type: [String] }) forwardTypes!: string[];
+  @ApiPropertyOptional() forwardEnabledAt?: Date | null;
   @ApiProperty() createdAt!: Date;
   @ApiProperty() updatedAt!: Date;
 }

@@ -5,10 +5,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { AmaConfigTypeormEntity } from '../infrastructure/typeorm/ama-config.typeorm-entity';
 import { packEncrypted } from '../infrastructure/ama-secret.codec';
-import {
-  AmaConfigResponseDto,
-  UpdateAmaConfigDto,
-} from './dto/ama-config.dto';
+import { AmaConfigResponseDto, UpdateAmaConfigDto } from './dto/ama-config.dto';
 
 /**
  * REQ-260609B FR-1/FR-2 — 테넌트 AMA 연동 설정 CRUD.
@@ -62,6 +59,11 @@ export class AmaConfigService {
             ? packEncrypted(this.aes.encrypt(dto.categorySecret))
             : null,
         categorySlug: dto.categorySlug ?? null,
+        forwardEnabled: dto.forwardEnabled ?? false,
+        forwardTypes: (dto.forwardTypes ?? ['CSL_CREATED', 'CSL_STAGE']).join(
+          ',',
+        ),
+        forwardEnabledAt: dto.forwardEnabled ? new Date() : null,
       });
       const saved = await this.repo.save(created);
       this.logger.log(`ama config created entId=${entId} id=${saved.id}`);
@@ -75,6 +77,16 @@ export class AmaConfigService {
       existing.expectedScope = dto.expectedScope;
     if (dto.categorySlug !== undefined)
       existing.categorySlug = dto.categorySlug;
+    // REQ-261006 — 전달 설정. 켜는 순간을 기록해 그 이후 이벤트만 전달한다.
+    if (dto.forwardTypes !== undefined)
+      existing.forwardTypes = dto.forwardTypes.join(',');
+    if (
+      dto.forwardEnabled !== undefined &&
+      dto.forwardEnabled !== existing.forwardEnabled
+    ) {
+      existing.forwardEnabled = dto.forwardEnabled;
+      if (dto.forwardEnabled) existing.forwardEnabledAt = new Date();
+    }
     // Secret: encrypt only when a new value is sent; omitting keeps existing.
     if (dto.customAppSecret !== undefined) {
       existing.customAppSecretEnc = packEncrypted(
@@ -107,6 +119,11 @@ export class AmaConfigService {
       expectedScope: row.expectedScope ?? null,
       categorySecretIsSet: !!row.categorySecretEnc?.length,
       categorySlug: row.categorySlug ?? null,
+      forwardEnabled: row.forwardEnabled ?? false,
+      forwardTypes: String(row.forwardTypes ?? '')
+        .split(',')
+        .filter(Boolean),
+      forwardEnabledAt: row.forwardEnabledAt ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };

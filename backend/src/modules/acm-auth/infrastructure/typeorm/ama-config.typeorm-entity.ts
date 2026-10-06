@@ -49,7 +49,12 @@ export class AmaConfigTypeormEntity {
   customAppSecretEnc?: Buffer | null;
 
   /** 기대 scope (예 'custom_app:context'). 토큰 scope 비교용. */
-  @Column({ name: 'amc_expected_scope', type: 'varchar', length: 60, nullable: true })
+  @Column({
+    name: 'amc_expected_scope',
+    type: 'varchar',
+    length: 60,
+    nullable: true,
+  })
   expectedScope?: string | null;
 
   /**
@@ -61,8 +66,31 @@ export class AmaConfigTypeormEntity {
   categorySecretEnc?: Buffer | null;
 
   /** 기대 eccSlug (커스텀카테고리 slug, 예 'tpi-academy'). 토큰 eccSlug 비교용. */
-  @Column({ name: 'amc_category_slug', type: 'varchar', length: 60, nullable: true })
+  @Column({
+    name: 'amc_category_slug',
+    type: 'varchar',
+    length: 60,
+    nullable: true,
+  })
   categorySlug?: string | null;
+
+  /** REQ-261006 — ACM 알림을 AMA 알림으로 전달 */
+  @Column({ name: 'amc_forward_enabled', type: 'boolean', default: false })
+  forwardEnabled!: boolean;
+  /** 전달 대상 outbox 이벤트 종류 CSV */
+  @Column({
+    name: 'amc_forward_types',
+    type: 'text',
+    default: 'CSL_CREATED,CSL_STAGE',
+  })
+  forwardTypes!: string;
+  /** 켠 시각 — 이후 발생 이벤트만 전달 */
+  @Column({
+    name: 'amc_forward_enabled_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  forwardEnabledAt?: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
