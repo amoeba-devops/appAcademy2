@@ -115,7 +115,34 @@
       "MEDIUM": "Medium",
       "HIGH": "High"
     },
-    "site": "Site"
+    "site": "Site",
+    "manage": {
+      "title": "Customer complaints",
+      "edit": "Edit",
+      "detail": "Complaint details",
+      "search": "Search title or content",
+      "searchButton": "Search",
+      "all": "All",
+      "qnaSearch": "Search Q&A title",
+      "noLink": "No linked Q&A",
+      "currentLink": "Linked Q&A",
+      "loadError": "Unable to load. Please retry.",
+      "saveError": "Unable to save. Check the fields and try again.",
+      "conflict": "This complaint was changed by another user. Close and reload the list before editing.",
+      "statisticsPending": "Saved. Statistics refresh is pending; do not submit again.",
+      "invalidRange": "Select a valid date range of at most 366 days.",
+      "loading": "Loading…",
+      "retry": "Retry",
+      "total": "{{count}} complaints",
+      "updated": "Updated",
+      "created": "Created",
+      "actions": "Actions",
+      "untitled": "Untitled",
+      "empty": "No complaints found.",
+      "previous": "Previous",
+      "next": "Next",
+      "manualNote": "Only individually registered complaints are listed. Manually entered dashboard totals may differ."
+    }
   },
   "empty": {
     "noData": "No data for this month."

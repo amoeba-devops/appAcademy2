@@ -115,7 +115,34 @@
       "MEDIUM": "보통",
       "HIGH": "높음"
     },
-    "site": "사이트"
+    "site": "사이트",
+    "manage": {
+      "title": "고객불만",
+      "edit": "수정",
+      "detail": "고객불만 상세",
+      "search": "제목 또는 내용 검색",
+      "searchButton": "검색",
+      "all": "전체",
+      "qnaSearch": "Q&A 제목 검색",
+      "noLink": "연결 없음",
+      "currentLink": "연결된 Q&A",
+      "loadError": "목록을 불러오지 못했습니다. 다시 시도해 주세요.",
+      "saveError": "저장하지 못했습니다. 입력 내용을 확인해 주세요.",
+      "conflict": "다른 사용자가 수정했습니다. 창을 닫고 목록을 새로 불러온 후 수정해 주세요.",
+      "statisticsPending": "저장되었습니다. 통계 갱신이 지연되고 있습니다. 다시 저장하지 마세요.",
+      "invalidRange": "최대 366일 이내의 올바른 조회 기간을 선택해 주세요.",
+      "loading": "불러오는 중…",
+      "retry": "다시 시도",
+      "total": "총 {{count}}건",
+      "updated": "수정일시",
+      "created": "등록일시",
+      "actions": "관리",
+      "untitled": "제목 없음",
+      "empty": "등록된 고객불만이 없습니다.",
+      "previous": "이전",
+      "next": "다음",
+      "manualNote": "개별 등록된 고객불만만 표시됩니다. 대시보드에 수동 입력한 합계와는 다를 수 있습니다."
+    }
   },
   "empty": {
     "noData": "해당 월에 데이터가 없습니다."

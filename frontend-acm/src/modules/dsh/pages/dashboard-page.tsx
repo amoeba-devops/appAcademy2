@@ -412,6 +412,7 @@ export function DashboardPage() {
           >
             {t('actions.manualInput')}
           </Button>
+          <a className="text-sm underline" href={`/admin/complaints?${new URLSearchParams({ from, to, site })}`}>{t('complaint.manage.title')}</a>
           <Button onClick={() => setComplaintOpen(true)}>{t('actions.addComplaint')}</Button>
         </div>
       </div>

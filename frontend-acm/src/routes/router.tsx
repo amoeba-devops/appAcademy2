@@ -1,3 +1,4 @@
+import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
 import { PaymentPage } from '@/modules/pay/payment-page';
 import { NotificationInboxPage } from '@/modules/notifications/components-inbox';
 import { AdPlatformsPage } from '@/modules/cfg/pages/ad-platforms-page';
@@ -211,6 +212,7 @@ export const router = createBrowserRouter([
       { path: 'stf', element: <StfListPage /> },
       { path: 'cal', element: <CalMonthPage /> },
       // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
+      { path: 'complaints', element: <ComplaintsPage /> },
       { path: 'cal-stats', element: <CalStatsPage /> },
       { path: 'cal-stats/:tchId', element: <CalTeacherStatsPage /> },
       { path: 'cal/:evtId', element: <CalEventDetailPage /> },

@@ -103,7 +103,13 @@ export class TenantService {
         ALL_MENU_KEYS.indexOf(a.key as never) -
           ALL_MENU_KEYS.indexOf(b.key as never),
     );
-    return items;
+    // Newly introduced menu follows class statistics even with a saved custom order.
+    if (!byKey.has('complaints')) {
+      const index = items.findIndex((item) => item.key === 'complaints');
+      const [complaints] = items.splice(index, 1);
+      items.splice(items.findIndex((item) => item.key === 'calStats') + 1, 0, complaints);
+    }
+    return items.map((item, order) => ({ ...item, order }));
   }
 
   /** Compact list of hidden keys for the caller's own tenant (admin shell). */

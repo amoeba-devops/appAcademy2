@@ -115,7 +115,34 @@
       "MEDIUM": "中",
       "HIGH": "高"
     },
-    "site": "站点"
+    "site": "站点",
+    "manage": {
+      "title": "客户投诉",
+      "edit": "编辑",
+      "detail": "投诉详情",
+      "search": "搜索标题或内容",
+      "searchButton": "搜索",
+      "all": "全部",
+      "qnaSearch": "搜索问答标题",
+      "noLink": "无关联问答",
+      "currentLink": "关联问答",
+      "loadError": "加载失败，请重试。",
+      "saveError": "保存失败，请检查输入。",
+      "conflict": "其他用户已修改此投诉。请关闭并重新加载列表后编辑。",
+      "statisticsPending": "已保存。统计更新延迟，请勿重复提交。",
+      "invalidRange": "请选择不超过366天的有效日期范围。",
+      "loading": "加载中…",
+      "retry": "重试",
+      "total": "共 {{count}} 条投诉",
+      "updated": "修改时间",
+      "created": "创建时间",
+      "actions": "操作",
+      "untitled": "无标题",
+      "empty": "暂无投诉。",
+      "previous": "上一页",
+      "next": "下一页",
+      "manualNote": "仅显示单独登记的投诉。仪表板手动输入的总数可能不同。"
+    }
   },
   "empty": {
     "noData": "该月份暂无数据。"
