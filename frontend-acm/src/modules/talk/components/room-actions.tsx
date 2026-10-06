@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -59,13 +59,29 @@ export function RoomActions({
   });
   return (
     <>
+      {mode === "admin" && channel.mine && channel.type === "GROUP" && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded border px-2 py-1.5 text-xs hover:bg-gray-100"
+          onClick={(event) => {
+            trigger.current = event.currentTarget;
+            change.reset();
+            setName(channel.name);
+            setAction("rename");
+          }}
+        >
+          <Pencil size={14} aria-hidden="true" />
+          {t("talk.renameRoom")}
+        </button>
+      )}
       <button
-        ref={trigger}
         type="button"
         aria-label={t("talk.roomActions")}
         aria-haspopup="dialog"
         className="rounded border p-1.5 hover:bg-gray-100"
-        onClick={() => {
+        onClick={(event) => {
+          trigger.current = event.currentTarget;
           change.reset();
           setName(channel.name);
           setSuccessor("");
