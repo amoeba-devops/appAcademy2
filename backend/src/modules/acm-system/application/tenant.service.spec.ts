@@ -57,6 +57,27 @@ describe('TenantService — menu visibility', () => {
     expect(cfg.find((c) => c.key === 'csl')?.visible).toBe(false);
   });
 
+  it('inserts the new complaints menu after saved class statistics position', async () => {
+    menuRepo.find.mockResolvedValueOnce([
+      { menuKey: 'calStats', order: 50, visible: true },
+      { menuKey: 'csl', order: 0, visible: false },
+    ]);
+    const cfg = await svc.getMenuConfig('tenant');
+    const index = cfg.findIndex((item) => item.key === 'calStats');
+    expect(cfg[index + 1].key).toBe('complaints');
+    expect(cfg.find((item) => item.key === 'csl')?.visible).toBe(false);
+  });
+
+  it('preserves an explicitly configured complaints position and visibility', async () => {
+    menuRepo.find.mockResolvedValueOnce([
+      { menuKey: 'complaints', order: 0, visible: false },
+      { menuKey: 'calStats', order: 50, visible: true },
+    ]);
+    const cfg = await svc.getMenuConfig('tenant');
+    expect(cfg.findIndex((item) => item.key === 'complaints')).toBeLessThan(cfg.findIndex((item) => item.key === 'calStats'));
+    expect(cfg.find((item) => item.key === 'complaints')?.visible).toBe(false);
+  });
+
   it('getHiddenKeys: never returns always-on keys even if stored hidden', async () => {
     menuRepo.find.mockResolvedValueOnce([
       { entId: 'x', menuKey: 'dashboard', visible: false } as AcmTenantMenuTypeormEntity,

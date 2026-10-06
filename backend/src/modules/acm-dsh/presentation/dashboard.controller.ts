@@ -35,6 +35,7 @@ import { UpsertDailyKpiManualDto } from '../application/dto/daily-kpi-manual.dto
 import {
   CreateComplaintDto,
   UpdateComplaintDto,
+  SearchComplaintsDto,
 } from '../application/dto/complaint.dto';
 import { Ga4SyncService } from '../application/ga4-sync.service';
 import { parseSiteParam } from '../application/dsh-site.util';
@@ -341,6 +342,21 @@ export class DashboardController {
   }
 
   // -------- Complaints --------
+  @Get('complaints/search')
+  searchComplaints(@CurrentUser() user: AcmCurrentUser, @Query() dto: SearchComplaintsDto) {
+    return this.complaint.search(user.entId, dto);
+  }
+
+  @Get('complaints/qna-options')
+  complaintQnaOptions(@CurrentUser() user: AcmCurrentUser, @Query('search') search?: string) {
+    return this.complaint.qnaOptions(user.entId, search);
+  }
+
+  @Get('complaints/:id')
+  complaintDetail(@CurrentUser() user: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.complaint.detail(user.entId, id);
+  }
+
   @Get('complaints')
   listComplaints(
     @CurrentUser() user: AcmCurrentUser,

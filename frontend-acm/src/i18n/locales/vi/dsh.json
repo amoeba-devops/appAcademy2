@@ -115,7 +115,34 @@
       "MEDIUM": "Trung bình",
       "HIGH": "Cao"
     },
-    "site": "Site"
+    "site": "Site",
+    "manage": {
+      "title": "Khiếu nại khách hàng",
+      "edit": "Sửa",
+      "detail": "Chi tiết khiếu nại",
+      "search": "Tìm tiêu đề hoặc nội dung",
+      "searchButton": "Tìm kiếm",
+      "all": "Tất cả",
+      "qnaSearch": "Tìm tiêu đề hỏi đáp",
+      "noLink": "Không liên kết",
+      "currentLink": "Hỏi đáp liên kết",
+      "loadError": "Không tải được. Vui lòng thử lại.",
+      "saveError": "Không lưu được. Kiểm tra thông tin và thử lại.",
+      "conflict": "Người khác đã sửa khiếu nại. Đóng và tải lại danh sách trước khi sửa.",
+      "statisticsPending": "Đã lưu. Thống kê đang chờ cập nhật; không gửi lại.",
+      "invalidRange": "Chọn khoảng ngày hợp lệ tối đa 366 ngày.",
+      "loading": "Đang tải…",
+      "retry": "Thử lại",
+      "total": "{{count}} khiếu nại",
+      "updated": "Cập nhật",
+      "created": "Ngày tạo",
+      "actions": "Thao tác",
+      "untitled": "Không có tiêu đề",
+      "empty": "Không có khiếu nại.",
+      "previous": "Trước",
+      "next": "Tiếp",
+      "manualNote": "Chỉ hiển thị khiếu nại được đăng ký riêng. Tổng nhập thủ công trên bảng điều khiển có thể khác."
+    }
   },
   "empty": {
     "noData": "Không có dữ liệu cho tháng này."
