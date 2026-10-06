@@ -1,7 +1,17 @@
+import { createPortal } from "react-dom";
+import { AdminSupportSlot } from "@/components/layout/admin-content-layout";
+import { TalkParticipantsPanel } from "./talk-participants-panel";
+import { useAuthStore } from "@/stores/auth.store";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useTalkIdentity } from "../hooks/use-talk-identity";
 import { RoomActions } from "./room-actions";
 import { useSearchParams } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,7 +23,8 @@ import {
   Plus,
   Search,
   Send,
-  Settings2,
+  Crown,
+  Users,
   Trash2,
   User,
   X,
@@ -31,7 +42,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 
 /**
  * REQ-260728C — 로비채팅 공용 UI (AMA amoeba-talk 레이아웃 참조).
- * mode='admin' → 개설/DM/멤버관리/방삭제 노출, mode='portal' → 참여 전용.
+ * Group owners manage members; both operators and teachers can DM room peers.
  */
 
 function fmtBytes(bytes: number): string {
@@ -60,6 +71,16 @@ function KindBadge({ kind }: { kind: "USER" | "TEACHER" }) {
 
 export function TalkChat({ mode }: { mode: TalkMode }) {
   const identity = useTalkIdentity(mode);
+  const support = useContext(AdminSupportSlot);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
+  const session = useAuthStore((s) =>
+    mode === "admin" ? s.user : s.portal.user,
+  );
+  const self = session
+    ? "refId" in session
+      ? { kind: "TEACHER" as const, refId: session.refId }
+      : { kind: "USER" as const, refId: session.id }
+    : null;
   const [scope, setScope] = useState<"active" | "archived">("active");
   const { t } = useTranslation("common");
   const qc = useQueryClient();
@@ -67,7 +88,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
   const linkedChannel = params.get("channelId");
   const linkedMessage = params.get("messageId");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [modal, setModal] = useState<"channel" | "dm" | "members" | null>(null);
+  const [modal, setModal] = useState<"channel" | "dm" | null>(null);
 
   const { data: channels = [] } = useQuery({
     queryKey: ["talk-channels", mode, identity, scope],
@@ -125,161 +146,202 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
     }
   }, [identity, setParams]);
 
+  const onOpenDm = (channel: TalkChannel) => {
+    setScope("active");
+    setParams({});
+    setActiveId(channel.id);
+    setParticipantsOpen(false);
+    qc.setQueryData(["talk-channel", mode, identity, channel.id], channel);
+    void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
+  };
+  const participants =
+    active && self ? (
+      <TalkParticipantsPanel
+        key={identity + active.id}
+        mode={mode}
+        channel={active}
+        self={self}
+        onOpenDm={onOpenDm}
+      />
+    ) : (
+      <p className="rounded-lg border bg-surface p-4 text-sm text-secondary">
+        {t("talk.selectChannel")}
+      </p>
+    );
+
   return (
-    <div
-      className={`${mode === "admin" ? "admin-chat-layout " : ""}flex h-[calc(100vh-190px)] min-h-[420px] overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
-    >
-      {/* 채널 목록 */}
-      <aside
-        className={`${activeId ? "hidden md:flex" : "flex"} w-full md:w-60 shrink-0 flex-col border-r border-[var(--border-subtle)]`}
+    <>
+      {mode === "admin" &&
+        support?.target &&
+        createPortal(participants, support.target)}
+      {mode === "portal" && (
+        <Dialog open={participantsOpen} onOpenChange={setParticipantsOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t("talk.participantsTitle")}</DialogTitle>
+            </DialogHeader>
+            {participants}
+          </DialogContent>
+        </Dialog>
+      )}
+      <div
+        className={`${mode === "admin" ? "admin-chat-layout " : ""}flex h-[calc(100vh-190px)] min-h-[420px] overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
       >
-        {mode === "admin" && (
-          <div className="flex gap-1.5 border-b border-[var(--border-subtle)] p-2">
-            <button
-              type="button"
-              onClick={() => setModal("channel")}
-              className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
-            >
-              <Plus size={12} /> {t("talk.newChannel", "새 채널")}
-            </button>
-            <button
-              type="button"
-              onClick={() => setModal("dm")}
-              className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
-            >
-              <Plus size={12} /> {t("talk.newDm", "새 DM")}
-            </button>
-          </div>
-        )}
-        <div className="flex gap-2 border-b p-2">
-          {(["active", "archived"] as const).map((value) => (
-            <button
-              type="button"
-              key={value}
-              aria-pressed={scope === value}
-              className={`rounded px-2 py-1 text-sm ${scope === value ? "bg-blue-100 text-blue-800" : ""}`}
-              onClick={() => {
-                setScope(value);
-                clearActive();
-              }}
-            >
-              {t(value === "active" ? "talk.rooms" : "talk.archivedRooms")}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1 overflow-y-auto p-1.5">
-          {channels.length === 0 ? (
-            <p className="px-2 py-6 text-center text-xs text-secondary">
-              {t("talk.noChannels", "대화방이 없습니다.")}
-            </p>
-          ) : (
-            channels.map((c) => (
+        {/* 채널 목록 */}
+        <aside
+          className={`${activeId ? "hidden md:flex" : "flex"} w-full md:w-60 shrink-0 flex-col border-r border-[var(--border-subtle)]`}
+        >
+          {mode === "admin" && (
+            <div className="flex gap-1.5 border-b border-[var(--border-subtle)] p-2">
               <button
-                key={c.id}
                 type="button"
-                onClick={() => {
-                  setActiveId(c.id);
-                  setParams({});
-                }}
-                className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm ${
-                  c.id === activeId
-                    ? "bg-accent-600 text-white"
-                    : "text-primary hover:bg-[var(--gray-50)]"
-                }`}
+                onClick={() => setModal("channel")}
+                className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
               >
-                {c.type === "GROUP" ? (
-                  <Hash size={14} className="shrink-0 opacity-70" />
-                ) : (
-                  <User size={14} className="shrink-0 opacity-70" />
-                )}
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate">{c.name}</span>
-                  {c.lastMessagePreview && (
-                    <span
-                      className={`block truncate text-[11px] ${
-                        c.id === activeId ? "text-white/70" : "text-secondary"
-                      }`}
-                    >
-                      {c.lastMessagePreview}
+                <Plus size={12} /> {t("talk.newChannel", "새 채널")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setModal("dm")}
+                className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+              >
+                <Plus size={12} /> {t("talk.newDm", "새 DM")}
+              </button>
+            </div>
+          )}
+          <div className="flex gap-2 border-b p-2">
+            {(["active", "archived"] as const).map((value) => (
+              <button
+                type="button"
+                key={value}
+                aria-pressed={scope === value}
+                className={`rounded px-2 py-1 text-sm ${scope === value ? "bg-blue-100 text-blue-800" : ""}`}
+                onClick={() => {
+                  setScope(value);
+                  clearActive();
+                }}
+              >
+                {t(value === "active" ? "talk.rooms" : "talk.archivedRooms")}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-y-auto p-1.5">
+            {channels.length === 0 ? (
+              <p className="px-2 py-6 text-center text-xs text-secondary">
+                {t("talk.noChannels", "대화방이 없습니다.")}
+              </p>
+            ) : (
+              channels.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveId(c.id);
+                    setParams({});
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm ${
+                    c.id === activeId
+                      ? "bg-accent-600 text-white"
+                      : "text-primary hover:bg-[var(--gray-50)]"
+                  }`}
+                >
+                  {c.type === "GROUP" ? (
+                    <Hash size={14} className="shrink-0 opacity-70" />
+                  ) : (
+                    <User size={14} className="shrink-0 opacity-70" />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{c.name}</span>
+                    {c.type === "GROUP" &&
+                      c.members.find((m) => m.role === "OWNER") && (
+                        <span
+                          className="flex items-center gap-1 truncate text-[11px]"
+                          title={t("talk.ownerName", {
+                            name: c.members.find((m) => m.role === "OWNER")!
+                              .name,
+                          })}
+                        >
+                          <Crown size={12} aria-label={t("talk.owner")} />
+                          {c.members.find((m) => m.role === "OWNER")!.name}
+                          {c.mine ? ` (${t("talk.you")})` : ""}
+                        </span>
+                      )}
+                    {c.lastMessagePreview && (
+                      <span
+                        className={`block truncate text-[11px] ${
+                          c.id === activeId ? "text-white/70" : "text-secondary"
+                        }`}
+                      >
+                        {c.lastMessagePreview}
+                      </span>
+                    )}
+                  </span>
+                  {c.unreadCount > 0 && (
+                    <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      {c.unreadCount > 99 ? "99+" : c.unreadCount}
                     </span>
                   )}
-                </span>
-                {c.unreadCount > 0 && (
-                  <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                    {c.unreadCount > 99 ? "99+" : c.unreadCount}
-                  </span>
-                )}
+                </button>
+              ))
+            )}
+          </div>
+        </aside>
+
+        {/* 대화창 */}
+        {active ? (
+          <ChatPane
+            key={identity + active.id}
+            mode={mode}
+            channel={active}
+            onDismiss={clearActive}
+            targetMessageId={linkedChannel === active.id ? linkedMessage : null}
+            onShowParticipants={() =>
+              mode === "admin" ? support?.show() : setParticipantsOpen(true)
+            }
+          />
+        ) : (
+          <div
+            className={`${activeId ? "flex" : "hidden md:flex"} flex-1 flex-col items-center justify-center gap-2 text-secondary`}
+          >
+            {activeId && (
+              <button type="button" onClick={clearActive}>
+                {t("talk.backToRooms")}
               </button>
-            ))
-          )}
-        </div>
-      </aside>
+            )}
+            <MessageCircle size={28} className="opacity-40" />
+            <p className="text-sm">
+              {detail.isError
+                ? t("inbox.unavailable")
+                : t("talk.selectChannel", "대화방을 선택하세요.")}
+            </p>
+          </div>
+        )}
 
-      {/* 대화창 */}
-      {active ? (
-        <ChatPane
-          key={identity + active.id}
-          mode={mode}
-          channel={active}
-          onDismiss={clearActive}
-          targetMessageId={linkedChannel === active.id ? linkedMessage : null}
-          onManageMembers={
-            mode === "admin" ? () => setModal("members") : undefined
-          }
-        />
-      ) : (
-        <div
-          className={`${activeId ? "flex" : "hidden md:flex"} flex-1 flex-col items-center justify-center gap-2 text-secondary`}
-        >
-          {activeId && (
-            <button type="button" onClick={clearActive}>
-              {t("talk.backToRooms")}
-            </button>
-          )}
-          <MessageCircle size={28} className="opacity-40" />
-          <p className="text-sm">
-            {detail.isError
-              ? t("inbox.unavailable")
-              : t("talk.selectChannel", "대화방을 선택하세요.")}
-          </p>
-        </div>
-      )}
-
-      {/* admin 전용 모달 */}
-      {mode === "admin" && modal === "channel" && (
-        <ChannelModal
-          onClose={() => setModal(null)}
-          onCreated={(c) => {
-            setModal(null);
-            setActiveId(c.id);
-            void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
-            void qc.invalidateQueries({ queryKey: ["talk-channel", mode] });
-          }}
-        />
-      )}
-      {mode === "admin" && modal === "dm" && (
-        <DmModal
-          onClose={() => setModal(null)}
-          onCreated={(c) => {
-            setModal(null);
-            setActiveId(c.id);
-            void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
-            void qc.invalidateQueries({ queryKey: ["talk-channel", mode] });
-          }}
-        />
-      )}
-      {mode === "admin" && modal === "members" && active && (
-        <ChannelModal
-          channel={active}
-          onClose={() => setModal(null)}
-          onCreated={() => {
-            setModal(null);
-            void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
-            void qc.invalidateQueries({ queryKey: ["talk-channel", mode] });
-          }}
-        />
-      )}
-    </div>
+        {/* admin 전용 모달 */}
+        {mode === "admin" && modal === "channel" && (
+          <ChannelModal
+            onClose={() => setModal(null)}
+            onCreated={(c) => {
+              setModal(null);
+              setActiveId(c.id);
+              void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
+              void qc.invalidateQueries({ queryKey: ["talk-channel", mode] });
+            }}
+          />
+        )}
+        {mode === "admin" && modal === "dm" && (
+          <DmModal
+            onClose={() => setModal(null)}
+            onCreated={(c) => {
+              setModal(null);
+              setActiveId(c.id);
+              void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
+              void qc.invalidateQueries({ queryKey: ["talk-channel", mode] });
+            }}
+          />
+        )}
+      </div>
+    </>
   );
 }
 
@@ -288,13 +350,13 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
 function ChatPane({
   mode,
   channel,
-  onManageMembers,
+  onShowParticipants,
   onDismiss,
   targetMessageId,
 }: {
   mode: TalkMode;
   channel: TalkChannel;
-  onManageMembers?: () => void;
+  onShowParticipants: () => void;
   onDismiss: () => void;
   targetMessageId?: string | null;
 }) {
@@ -458,15 +520,14 @@ function ChatPane({
             {memberNames}
           </div>
         </div>
-        {onManageMembers && channel.type === "GROUP" && channel.mine && (
-          <button
-            type="button"
-            onClick={onManageMembers}
-            className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
-          >
-            <Settings2 size={12} /> {t("talk.manageMembers", "멤버관리")}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onShowParticipants}
+          className="inline-flex items-center gap-1 rounded border px-2 py-1 text-xs"
+        >
+          <Users size={14} />
+          {t("talk.participantsTitle")} {channel.members.length}
+        </button>
         <RoomActions mode={mode} channel={channel} onDismiss={onDismiss} />
       </div>
 
@@ -728,59 +789,37 @@ function ChatPane({
   );
 }
 
-// ── admin 모달: 새 채널 / 멤버관리 (channel 전달 시 수정 모드) ─────────────
+// ── admin 모달: 새 채널 ─────────────
 
 function ChannelModal({
-  channel,
   onClose,
   onCreated,
 }: {
-  channel?: TalkChannel;
   onClose: () => void;
   onCreated: (c: TalkChannel) => void;
 }) {
   const { t } = useTranslation("common");
-  const isEdit = !!channel;
-  const [name, setName] = useState(channel?.name ?? "");
+  const [name, setName] = useState("");
   const [selected, setSelected] = useState<Map<string, TalkMemberInput>>(
-    () =>
-      new Map(
-        (channel?.members ?? [])
-          .filter((m) => m.role !== "OWNER")
-          .map((m) => [
-            `${m.kind}:${m.refId}`,
-            { kind: m.kind, refId: m.refId },
-          ]),
-      ),
+    new Map(),
   );
   const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: () =>
-      isEdit
-        ? talkApi.updateMembers(channel.id, Array.from(selected.values()))
-        : talkApi.createChannel(name, Array.from(selected.values())),
+      talkApi.createChannel(name, Array.from(selected.values())),
     onSuccess: onCreated,
     onError: (e) => setError(errMsg(e)),
   });
 
   return (
-    <TalkModal
-      title={
-        isEdit
-          ? t("talk.manageMembers", "멤버관리")
-          : t("talk.newChannel", "새 채널")
-      }
-      onClose={onClose}
-    >
-      {!isEdit && (
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t("talk.channelNamePlaceholder", "방 이름")}
-          className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
-        />
-      )}
+    <TalkModal title={t("talk.newChannel", "새 채널")} onClose={onClose}>
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={t("talk.channelNamePlaceholder", "방 이름")}
+        className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
+      />
       <CandidatePicker
         multi
         selectedKeys={new Set(selected.keys())}
@@ -805,14 +844,12 @@ function ChannelModal({
         </button>
         <button
           type="button"
-          disabled={
-            (!isEdit && !name.trim()) || selected.size === 0 || save.isPending
-          }
+          disabled={!name.trim() || selected.size === 0 || save.isPending}
           onClick={() => save.mutate()}
           className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {save.isPending && <Loader2 size={13} className="animate-spin" />}
-          {isEdit ? t("actions.save", "저장") : t("talk.create", "개설")}
+          {t("talk.create", "개설")}
         </button>
       </div>
     </TalkModal>

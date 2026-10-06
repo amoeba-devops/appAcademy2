@@ -1,3 +1,4 @@
+import { MemberTargetDto } from './room.dto';
 import { ArchiveRoomDto, LeaveRoomDto } from './room.dto';
 import {
   Body,
@@ -58,6 +59,14 @@ export class TalkPortalController {
     return this.svc.listMyChannels(u.entId, this.actor(u), scope);
   }
 
+  @Post('channels/:id/dm')
+  memberDm(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: MemberTargetDto,
+  ) {
+    return this.svc.startMemberDm(u.entId, this.actor(u), id, dto);
+  }
   @Get('channels/:id')
   channel(
     @PortalUser() u: PortalAuthUser,

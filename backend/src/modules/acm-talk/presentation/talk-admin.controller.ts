@@ -1,3 +1,4 @@
+import { InviteMembersDto, MemberTargetDto, MemberPathDto } from './room.dto';
 import { ArchiveRoomDto, LeaveRoomDto, RenameRoomDto } from './room.dto';
 import {
   Body,
@@ -112,6 +113,30 @@ export class TalkAdminController {
     return this.svc.deleteChannel(u.entId, u.id, id);
   }
 
+  @Post('channels/:id/dm')
+  memberDm(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: MemberTargetDto,
+  ) {
+    return this.svc.startMemberDm(u.entId, this.actor(u), id, dto);
+  }
+  @Post('channels/:id/invitations')
+  invite(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: InviteMembersDto,
+  ) {
+    return this.svc.inviteMembers(u.entId, this.actor(u), id, dto.members);
+  }
+  @Delete('channels/:id/members/:kind/:refId')
+  removeMember(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param() target: MemberPathDto,
+  ) {
+    return this.svc.removeMember(u.entId, this.actor(u), id, target);
+  }
   @Get('channels/:id')
   channel(
     @CurrentUser() u: AcmCurrentUser,

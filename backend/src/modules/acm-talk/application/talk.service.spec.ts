@@ -60,17 +60,7 @@ describe('TalkService', () => {
             entity === TalkChannelTypeormEntity ? channelRepo : memberRepo,
           save: async (_entity: unknown, value: unknown) =>
             messageRepo.save(value),
-          query: async (sql: string) =>
-            sql.includes('FOR SHARE')
-              ? opts.member
-                ? [
-                    {
-                      tlm_kind: opts.member.kind,
-                      tlm_ref_id: opts.member.refId,
-                    },
-                  ]
-                : []
-              : [],
+          query: async (sql: string) => (opts.dsRows ? opts.dsRows(sql) : []),
         } as unknown as EntityManager),
       query: jest.fn(async (sql: string) =>
         opts.dsRows ? opts.dsRows(sql) : [],
@@ -94,9 +84,11 @@ describe('TalkService', () => {
     return { svc, channelRepo, memberRepo, messageRepo, ds, store, sse, qb };
   }
 
-  const OP = 'op-1';
+  const OP = '22222222-2222-4222-8222-222222222222';
   const teacherRows = (sql: string) =>
-    sql.includes('amb_acm_tch_teacher') ? [{ id: 't1', name: '김강사' }] : [];
+    sql.includes('amb_acm_tch_teacher')
+      ? [{ id: '11111111-1111-4111-8111-111111111111', name: '김강사' }]
+      : [];
 
   const groupChannel = (): any => ({
     id: 'chn-1',
@@ -153,17 +145,25 @@ describe('TalkService', () => {
       channel: groupChannel(),
       members: [
         activeMember(),
-        activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
+        activeMember({
+          kind: 'TEACHER',
+          refId: '11111111-1111-4111-8111-111111111111',
+          role: 'MEMBER',
+        }),
       ],
       dsRows: teacherRows,
     });
     await svc.createChannel('e1', OP, '수학팀', [
-      { kind: 'TEACHER', refId: 't1' },
+      { kind: 'TEACHER', refId: '11111111-1111-4111-8111-111111111111' },
     ]);
     const saved = (memberRepo.save as jest.Mock).mock.calls[0][0];
     expect(saved).toEqual([
       expect.objectContaining({ kind: 'USER', refId: OP, role: 'OWNER' }),
-      expect.objectContaining({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
+      expect.objectContaining({
+        kind: 'TEACHER',
+        refId: '11111111-1111-4111-8111-111111111111',
+        role: 'MEMBER',
+      }),
     ]);
   });
 
@@ -173,16 +173,22 @@ describe('TalkService', () => {
       channel: dm,
       members: [
         activeMember(),
-        activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
+        activeMember({
+          kind: 'TEACHER',
+          refId: '11111111-1111-4111-8111-111111111111',
+          role: 'MEMBER',
+        }),
       ],
       dsRows: (sql) =>
         sql.includes("tlc_type = 'DIRECT'")
           ? [{ tlc_id: 'chn-1' }]
-          : teacherRows(sql),
+          : sql.includes('amb_acm_user')
+            ? [{ id: OP, name: '운영자' }]
+            : teacherRows(sql),
     });
     const view = await svc.findOrCreateDm('e1', OP, {
       kind: 'TEACHER',
-      refId: 't1',
+      refId: '11111111-1111-4111-8111-111111111111',
     });
     expect(view.id).toBe('chn-1');
     expect(channelRepo.save).not.toHaveBeenCalled(); // 새 방 생성 없음
@@ -232,7 +238,7 @@ describe('TalkService', () => {
     expect(memberRepo.update).toHaveBeenCalled(); // 발신자 read 포인터
     expect(sse.emit).toHaveBeenCalledWith(
       'e1',
-      ['USER:op-1'],
+      ['USER:22222222-2222-4222-8222-222222222222'],
       expect.objectContaining({ type: 'message:new', channelId: 'chn-1' }),
     );
   });
@@ -303,7 +309,11 @@ describe('TalkService', () => {
   it('deleteMessage is sender-only', async () => {
     const { svc } = build({
       channel: groupChannel(),
-      member: activeMember({ kind: 'TEACHER', refId: 't1', role: 'MEMBER' }),
+      member: activeMember({
+        kind: 'TEACHER',
+        refId: '11111111-1111-4111-8111-111111111111',
+        role: 'MEMBER',
+      }),
       message: {
         id: 'msg-1',
         entId: 'e1',
@@ -314,7 +324,11 @@ describe('TalkService', () => {
       },
     });
     await expect(
-      svc.deleteMessage('e1', { kind: 'TEACHER', refId: 't1' }, 'msg-1'),
+      svc.deleteMessage(
+        'e1',
+        { kind: 'TEACHER', refId: '11111111-1111-4111-8111-111111111111' },
+        'msg-1',
+      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
@@ -364,7 +378,9 @@ describe('TalkService', () => {
       dsRows: teacherRows,
     });
     await expect(
-      svc.updateMembers('e1', OP, 'chn-1', [{ kind: 'TEACHER', refId: 't1' }]),
+      svc.updateMembers('e1', OP, 'chn-1', [
+        { kind: 'TEACHER', refId: '11111111-1111-4111-8111-111111111111' },
+      ]),
     ).rejects.toBeInstanceOf(BadRequestException);
 
     const { svc: svc2, memberRepo: mr2 } = build({
@@ -375,7 +391,7 @@ describe('TalkService', () => {
     void mr2;
     await expect(
       svc2.updateMembers('e1', 'other-op', 'chn-1', [
-        { kind: 'TEACHER', refId: 't1' },
+        { kind: 'TEACHER', refId: '11111111-1111-4111-8111-111111111111' },
       ]),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });

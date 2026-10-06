@@ -18,8 +18,19 @@ export class TalkChannelTypeormEntity {
   name!: string;
 
   /** 개설 운영자 (amb_acm_user.usr_id). */
-  @Column({ name: 'tlc_created_by', type: 'uuid' })
-  createdBy!: string;
+  @Column({ name: 'tlc_created_by', type: 'uuid', nullable: true })
+  createdBy!: string | null;
+
+  @Column({
+    name: 'tlc_creator_kind',
+    type: 'varchar',
+    length: 10,
+    default: 'USER',
+  })
+  creatorKind!: 'USER' | 'TEACHER';
+
+  @Column({ name: 'tlc_creator_ref', type: 'uuid' })
+  creatorRef!: string;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;
