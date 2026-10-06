@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CHAT-RENAME-FIX-1.0.0
 version: 1.0.0
-status: Implemented - Not Deployed
+status: Deployed
 created: 2026-10-06
 change_log:
   - version: 1.0.0
@@ -29,4 +29,13 @@ change_log:
 
 ## 4. Delivery (적용 상태)
 
-`fix/chat-rename-button-261006` 브랜치에 구현했다. 운영 배포는 아직 진행하지 않았다. 소스는 기존 IDE 변경을 보존하는 독립 작업 디렉터리 `/private/tmp/acm-complaints-261006`에 있으며, 보고서와 캡처는 IDE에도 복사했다.
+`fix/chat-rename-button-261006` 브랜치에 구현했다. 사용자의 운영 반영 요청에 따라 아래 버전으로 배포했다. 소스는 기존 IDE 변경을 보존하는 독립 작업 디렉터리 `/private/tmp/acm-complaints-261006`에 있으며, 보고서와 캡처는 IDE에도 복사했다.
+
+## 5. Production Deployment (운영 반영)
+
+- PR #308 병합, 운영 SHA `515b08a7a47e0bb81b1eb3d938e4f4d76a803ea9`.
+- 2026-10-06 22:41:11 KST / 20:41:11 ICT 반영.
+- PR CI `37471421161`, main CI `37472020820`, staging CD `37472021033`, production CD `37472678603` 성공.
+- 스테이징 및 운영 정적 UI를 대상으로 모든 API 요청을 격리 fixture로 처리하는 브라우저 검증 수행. 방장 직접 제목 변경/저장 및 일반 운영자·강사 버튼 미노출 확인. 실사용자 로그인이나 운영 데이터 변경은 하지 않았다.
+- 운영 backend health OK, `/admin/chat` HTTP 200, 초기 backend 오류 로그 0건, 컨테이너 재시작 0회.
+- DB 변경 없음. 직전 운영 이미지 `4272877`이 복구 기준이다.
