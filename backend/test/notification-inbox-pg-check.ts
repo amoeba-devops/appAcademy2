@@ -36,6 +36,7 @@ async function main() {
     readFileSync('../sql/acm/1025-notification-inbox.sql', 'utf8'),
   );
   await ds.query(readFileSync('../sql/acm/999y-chat-room-management.sql', 'utf8'));
+  await ds.query(readFileSync('../sql/acm/999z-chat-participants.sql', 'utf8'));
   const ent = randomUUID(),
     other = randomUUID(),
     actor = randomUUID(),

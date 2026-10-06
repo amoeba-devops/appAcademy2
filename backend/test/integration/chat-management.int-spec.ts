@@ -76,7 +76,7 @@ describe('Chat management / PostgreSQL', () => {
       synchronize: true,
     }).initialize();
     await ds.query(`CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_status text,usr_role text);
-      CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_name text,tch_user_id uuid,deleted_at timestamptz);
+      CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_name text,tch_user_id uuid,tch_status text DEFAULT 'ACTIVE',deleted_at timestamptz);
       CREATE TABLE amb_acm_portal_account(pac_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,pac_kind text,pac_ref_id uuid,pac_status text,pac_locked_at timestamptz);
       CREATE TABLE amb_acm_csl_inquiry(inq_id uuid,ent_id uuid,deleted_at timestamptz);
       CREATE TABLE amb_acm_cal_event(evt_id uuid,ent_id uuid,deleted_at timestamptz);`);
@@ -103,6 +103,7 @@ describe('Chat management / PostgreSQL', () => {
       [ent, operator.refId, nob_id, randomUUID()],
     );
     await ds.query(sql('999y-chat-room-management.sql'));
+    await ds.query(sql('999z-chat-participants.sql'));
     await ds.query(sql('999y-chat-room-management.sql'));
     const [legacy] = await ds.query(
       'SELECT usr_id,nin_recipient_id,nin_recipient_kind,nin_read_at FROM amb_acm_notification_inbox',
@@ -357,15 +358,13 @@ describe('Chat management / PostgreSQL', () => {
       false,
     );
     expect(
-      await ds
-        .getRepository(Member)
-        .countBy({
-          entId: ent,
-          channelId: c.id,
-          kind: 'TEACHER',
-          refId: teacher.refId,
-          leftAt: IsNull(),
-        }),
+      await ds.getRepository(Member).countBy({
+        entId: ent,
+        channelId: c.id,
+        kind: 'TEACHER',
+        refId: teacher.refId,
+        leftAt: IsNull(),
+      }),
     ).toBe(1);
   });
   it('requires an active operator successor for a group owner, supports last-member leave', async () => {
@@ -415,14 +414,12 @@ describe('Chat management / PostgreSQL', () => {
       talk.sendMessage(ent, teacher, c.id, 'after commit'),
     ).rejects.toThrow();
     expect(
-      await ds
-        .getRepository(Member)
-        .countBy({
-          channelId: c.id,
-          kind: 'TEACHER',
-          refId: teacher.refId,
-          leftAt: IsNull(),
-        }),
+      await ds.getRepository(Member).countBy({
+        channelId: c.id,
+        kind: 'TEACHER',
+        refId: teacher.refId,
+        leftAt: IsNull(),
+      }),
     ).toBe(0);
     expect(
       await ds.getRepository(Message).countBy({ channelId: c.id }),
@@ -494,5 +491,151 @@ describe('Chat management / PostgreSQL', () => {
         [teacher.refId],
       );
     }
+  });
+  it('adds and removes individual members without replacing unrelated participants, including the last member', async () => {
+    const c = await room([operator]);
+    await Promise.all([
+      talk.inviteMembers(ent, owner, c.id, [teacher, teacher]),
+      talk.inviteMembers(ent, owner, c.id, [teacher2]),
+    ]);
+    expect((await talk.getChannelView(ent, c.id, owner)).members).toHaveLength(
+      4,
+    );
+    await expect(
+      talk.inviteMembers(ent, operator, c.id, [teacher]),
+    ).rejects.toThrow('NOT_OWNER');
+    await expect(
+      talk.removeMember(ent, operator, c.id, teacher),
+    ).rejects.toThrow('NOT_OWNER');
+    await expect(talk.removeMember(ent, owner, c.id, owner)).rejects.toThrow(
+      'CANNOT_REMOVE_OWNER',
+    );
+    await expect(
+      talk.inviteMembers(ent, owner, c.id, [outsider]),
+    ).rejects.toThrow('INVALID_MEMBER');
+    const msg = await talk.sendMessage(ent, owner, c.id, '@Teacher hello', [
+      teacher,
+    ]);
+    await inbox.deliver();
+    const note = (await inbox.list(teacherInbox)).items[0];
+    await talk.removeMember(ent, owner, c.id, teacher);
+    await expect(talk.message(ent, teacher, c.id, msg.id)).rejects.toThrow();
+    await expect(inbox.read(teacherInbox, note.id)).rejects.toThrow();
+    expect((await talk.getChannelView(ent, c.id, owner)).members).toHaveLength(
+      3,
+    );
+    await talk.removeMember(ent, owner, c.id, teacher2);
+    await talk.removeMember(ent, owner, c.id, operator);
+    expect((await talk.getChannelView(ent, c.id, owner)).members).toHaveLength(
+      1,
+    );
+    await talk.inviteMembers(ent, owner, c.id, [teacher]);
+    expect(
+      (await talk.getChannelView(ent, c.id, teacher)).members,
+    ).toHaveLength(2);
+  });
+  it('enforces invite/remove DTOs and owner permissions over HTTP', async () => {
+    const c = await room([operator]);
+    const http = app.getHttpServer();
+    await request(http)
+      .post(`/acm/talk/channels/${c.id}/invitations`)
+      .set(auth(owner))
+      .send({ members: [] })
+      .expect(400);
+    await request(http)
+      .post(`/acm/talk/channels/${c.id}/invitations`)
+      .set(auth(operator))
+      .send({ members: [teacher] })
+      .expect(403);
+    await request(http)
+      .post(`/acm/talk/channels/${c.id}/invitations`)
+      .set(auth(owner))
+      .send({ members: [teacher] })
+      .expect(201);
+    await request(http)
+      .delete(`/acm/talk/channels/${c.id}/members/TEACHER/${teacher.refId}`)
+      .set(auth(operator))
+      .expect(403);
+    await request(http)
+      .delete(`/acm/talk/channels/${c.id}/members/WRONG/${teacher.refId}`)
+      .set(auth(owner))
+      .expect(400);
+    await request(http)
+      .delete(`/acm/talk/channels/${c.id}/members/TEACHER/${teacher.refId}`)
+      .set(auth(owner))
+      .expect(200);
+    await request(http)
+      .delete(`/acm/talk/channels/${c.id}/members/USER/${owner.refId}`)
+      .set(auth(owner))
+      .expect(400);
+  });
+  it('supports all member DM directions and reuses concurrent/reversed requests without altering the other archive', async () => {
+    const c = await room();
+    const pair = await Promise.all([
+      talk.startMemberDm(ent, teacher, c.id, operator),
+      talk.startMemberDm(ent, operator, c.id, teacher),
+      talk.findOrCreateDm(ent, operator.refId, teacher),
+    ]);
+    expect(new Set(pair.map((d) => d.id)).size).toBe(1);
+    await talk.archiveChannel(ent, operator, pair[0].id, true);
+    await talk.archiveChannel(ent, teacher, pair[0].id, true);
+    const restored = await talk.startMemberDm(ent, teacher, c.id, operator);
+    expect(restored.archived).toBe(false);
+    expect(
+      (await talk.getChannelView(ent, pair[0].id, operator)).archived,
+    ).toBe(true);
+    const teachers = await talk.startMemberDm(ent, teacher, c.id, teacher2);
+    const row = await ds
+      .getRepository(Channel)
+      .findOneByOrFail({ id: teachers.id });
+    expect(row).toMatchObject({
+      createdBy: null,
+      creatorKind: 'TEACHER',
+      creatorRef: teacher.refId,
+    });
+    expect(teachers.members.every((m) => m.role === 'MEMBER')).toBe(true);
+    await talk.leaveChannel(ent, teacher2, teachers.id);
+    expect(
+      (await talk.startMemberDm(ent, teacher, c.id, teacher2)).id,
+    ).not.toBe(teachers.id);
+  });
+  it('restricts teacher DM initiation to active peers in the source room', async () => {
+    const c = await room([teacher, operator]);
+    await expect(
+      talk.startMemberDm(ent, teacher, c.id, teacher),
+    ).rejects.toThrow('CANNOT_DM_SELF');
+    await expect(
+      talk.startMemberDm(ent, teacher, c.id, teacher2),
+    ).rejects.toThrow('TARGET_NOT_MEMBER');
+    await expect(
+      talk.startMemberDm(otherEnt, teacher, c.id, operator),
+    ).rejects.toThrow();
+    await request(app.getHttpServer())
+      .post(`/portal/talk/channels/${c.id}/dm`)
+      .set(auth(teacher))
+      .send(operator)
+      .expect(201);
+    await talk.removeMember(ent, owner, c.id, teacher);
+    await expect(
+      talk.startMemberDm(ent, teacher, c.id, operator),
+    ).rejects.toThrow();
+  });
+  it('preserves legacy creator writes and migration reapplication', async () => {
+    const c = await room();
+    await ds.query(sql('999z-chat-participants.sql'));
+    const row = await ds.getRepository(Channel).findOneByOrFail({ id: c.id });
+    expect(row).toMatchObject({
+      createdBy: owner.refId,
+      creatorKind: 'USER',
+      creatorRef: owner.refId,
+    });
+    const id = randomUUID();
+    await ds.query(
+      "INSERT INTO amb_acm_talk_channel(tlc_id,ent_id,tlc_type,tlc_name,tlc_created_by) VALUES($1,$2,'GROUP','legacy writer',$3)",
+      [id, ent, owner.refId],
+    );
+    expect(
+      (await ds.getRepository(Channel).findOneByOrFail({ id })).creatorRef,
+    ).toBe(owner.refId);
   });
 });

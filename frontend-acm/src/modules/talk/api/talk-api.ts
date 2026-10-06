@@ -86,6 +86,31 @@ export const talkApi = {
     await apiClient.post(`${base(mode)}/channels/${id}/leave`, { successorId });
   },
 
+  inviteMembers: async (channelId: string, members: TalkMemberInput[]) =>
+    (
+      await apiClient.post<TalkChannel>(
+        `/acm/talk/channels/${channelId}/invitations`,
+        { members },
+      )
+    ).data,
+  removeMember: async (channelId: string, target: TalkMemberInput) =>
+    (
+      await apiClient.delete<TalkChannel>(
+        `/acm/talk/channels/${channelId}/members/${target.kind}/${target.refId}`,
+      )
+    ).data,
+  memberDm: async (
+    mode: TalkMode,
+    channelId: string,
+    target: TalkMemberInput,
+  ) =>
+    (
+      await apiClient.post<TalkChannel>(
+        `${base(mode)}/channels/${channelId}/dm`,
+        target,
+      )
+    ).data,
+
   // 콘솔 전용 — 개설·DM·멤버관리.
   candidates: async () =>
     (await apiClient.get<TalkCandidate[]>("/acm/talk/candidates")).data,

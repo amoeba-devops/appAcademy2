@@ -149,7 +149,7 @@ export class TalkService {
     const teachers: Array<{ ref_id: string; name: string }> =
       await this.ds.query(
         `SELECT tch_id AS ref_id, tch_name AS name FROM amb_acm_tch_teacher
-          WHERE ent_id = $1 AND deleted_at IS NULL ORDER BY tch_name`,
+          WHERE ent_id = $1 AND deleted_at IS NULL AND tch_status='ACTIVE' ORDER BY tch_name`,
         [entId],
       );
     return [
@@ -297,6 +297,8 @@ export class TalkService {
         type: 'GROUP',
         name: cleanName,
         createdBy: operatorUserId,
+        creatorKind: 'USER',
+        creatorRef: operatorUserId,
       }),
     );
     await this.memberRepo.save([
@@ -324,69 +326,221 @@ export class TalkService {
     });
   }
 
-  /** DM find-or-create — 운영자 전용. 동일 두 멤버 DIRECT 방 재사용. */
+  /** Existing operator directory DM entry point. */
   async findOrCreateDm(
     entId: string,
     operatorUserId: string,
     target: TalkMemberInput,
-  ): Promise<TalkChannelView> {
-    const me: TalkActor = { kind: 'USER', refId: operatorUserId };
-    if (target.kind === 'USER' && target.refId === operatorUserId) {
+  ) {
+    return this.openDm(entId, { kind: 'USER', refId: operatorUserId }, target);
+  }
+
+  /** All participants may start a DM, but portal callers must share this room. */
+  async startMemberDm(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    target: TalkMemberInput,
+  ) {
+    return this.openDm(entId, actor, target, channelId);
+  }
+
+  private async openDm(
+    entId: string,
+    actor: TalkActor,
+    target: TalkMemberInput,
+    sourceId?: string,
+  ) {
+    if (
+      !target ||
+      !['USER', 'TEACHER'].includes(target.kind) ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        target.refId,
+      )
+    )
+      throw new BadRequestException('INVALID_TARGET');
+    if (actorKey(actor) === actorKey(target))
       throw new BadRequestException('CANNOT_DM_SELF');
-    }
-    const [cleanTarget] = await this.validateMembers(entId, [target], me);
-    if (!cleanTarget) throw new BadRequestException('INVALID_TARGET');
+    const channelId = await this.ds.transaction(async (manager) => {
+      // Both directory and member-panel entry points use the same pair lock.
+      const pair = [actorKey(actor), actorKey(target)].sort().join('|');
+      await manager.query(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1,0))',
+        [`${entId}|${pair}`],
+      );
+      if (sourceId) {
+        const { members } = await this.lockChannel(
+          manager,
+          entId,
+          sourceId,
+          actor,
+        );
+        if (!members.some((m) => actorKey(m) === actorKey(target)))
+          throw new ForbiddenException('TARGET_NOT_MEMBER');
+      }
+      await this.assertActiveTargets(manager, entId, [actor, target], true);
+      const rows: { tlc_id: string }[] = await manager.query(
+        `SELECT c.tlc_id FROM amb_acm_talk_channel c
+        JOIN amb_acm_talk_member a ON a.ent_id=c.ent_id AND a.tlc_id=c.tlc_id AND a.tlm_left_at IS NULL AND a.tlm_kind=$2 AND a.tlm_ref_id=$3
+        JOIN amb_acm_talk_member b ON b.ent_id=c.ent_id AND b.tlc_id=c.tlc_id AND b.tlm_left_at IS NULL AND b.tlm_kind=$4 AND b.tlm_ref_id=$5
+        WHERE c.ent_id=$1 AND c.tlc_type = 'DIRECT' AND c.deleted_at IS NULL ORDER BY c.created_at,c.tlc_id LIMIT 1 FOR UPDATE OF c`,
+        [entId, actor.kind, actor.refId, target.kind, target.refId],
+      );
+      const members = manager.getRepository(TalkMemberTypeormEntity);
+      if (rows.length) {
+        // Recheck after the channel lock: a concurrent leave may have committed.
+        const live = await members.find({
+          where: { entId, channelId: rows[0].tlc_id, leftAt: IsNull() },
+        });
+        if (
+          [actor, target].every((a) =>
+            live.some((m) => actorKey(m) === actorKey(a)),
+          )
+        ) {
+          await members.update(
+            {
+              entId,
+              channelId: rows[0].tlc_id,
+              kind: actor.kind,
+              refId: actor.refId,
+              leftAt: IsNull(),
+            },
+            { archivedAt: null },
+          );
+          return rows[0].tlc_id;
+        }
+      }
+      const names = await this.resolveNames(entId, [actor, target]);
+      const channels = manager.getRepository(TalkChannelTypeormEntity);
+      const channel = await channels.save(
+        channels.create({
+          entId,
+          type: 'DIRECT',
+          name: [actor, target]
+            .map((a) => names.get(actorKey(a)) ?? '-')
+            .join(', ')
+            .slice(0, 100),
+          createdBy: actor.kind === 'USER' ? actor.refId : null,
+          creatorKind: actor.kind,
+          creatorRef: actor.refId,
+        }),
+      );
+      await members.save(
+        [actor, target].map((a) =>
+          members.create({
+            entId,
+            channelId: channel.id,
+            kind: a.kind,
+            refId: a.refId,
+            role: a === actor && a.kind === 'USER' ? 'OWNER' : 'MEMBER',
+          }),
+        ),
+      );
+      return channel.id;
+    });
+    await this.emitChannelUpdate(entId, channelId);
+    return this.getChannelView(entId, channelId, actor);
+  }
 
-    // 아메바톡 findOrCreateDm SQL 패턴 — 두 멤버가 동시 재적 중인 DIRECT 방.
-    const rows: Array<{ tlc_id: string }> = await this.ds.query(
-      `SELECT c.tlc_id
-         FROM amb_acm_talk_channel c
-         JOIN amb_acm_talk_member a
-           ON a.tlc_id = c.tlc_id AND a.ent_id = c.ent_id AND a.tlm_left_at IS NULL
-          AND a.tlm_kind = $2 AND a.tlm_ref_id = $3
-         JOIN amb_acm_talk_member b
-           ON b.tlc_id = c.tlc_id AND b.ent_id = c.ent_id AND b.tlm_left_at IS NULL
-          AND b.tlm_kind = $4 AND b.tlm_ref_id = $5
-        WHERE c.ent_id = $1 AND c.tlc_type = 'DIRECT' AND c.deleted_at IS NULL
-        LIMIT 1`,
-      [entId, 'USER', operatorUserId, cleanTarget.kind, cleanTarget.refId],
-    );
-    if (rows.length > 0) {
-      return this.getChannelView(entId, rows[0].tlc_id, me);
+  private async assertActiveTargets(
+    manager: EntityManager,
+    entId: string,
+    targets: TalkMemberInput[],
+    requirePortal = false,
+  ) {
+    const users = targets.filter((t) => t.kind === 'USER').map((t) => t.refId);
+    const teachers = targets
+      .filter((t) => t.kind === 'TEACHER')
+      .map((t) => t.refId);
+    if (users.length) {
+      const rows: { id: string }[] = await manager.query(
+        "SELECT usr_id AS id FROM amb_acm_user WHERE ent_id=$1 AND usr_id=ANY($2::uuid[]) AND usr_status='ACTIVE' AND usr_role IN ('ADMIN','APP_ADMIN')",
+        [entId, users],
+      );
+      if (new Set(rows.map((r) => r.id)).size !== new Set(users).size)
+        throw new BadRequestException('INVALID_MEMBER');
     }
+    if (teachers.length) {
+      const rows: { id: string }[] = await manager.query(
+        `SELECT t.tch_id AS id FROM amb_acm_tch_teacher t WHERE t.ent_id=$1 AND t.tch_id=ANY($2::uuid[]) AND t.deleted_at IS NULL AND t.tch_status='ACTIVE'
+        ${requirePortal ? "AND EXISTS(SELECT 1 FROM amb_acm_portal_account p WHERE p.ent_id=t.ent_id AND p.pac_kind='TEACHER' AND p.pac_ref_id=t.tch_id AND p.pac_status='ACTIVE' AND p.pac_locked_at IS NULL)" : ''}`,
+        [entId, teachers],
+      );
+      if (new Set(rows.map((r) => r.id)).size !== new Set(teachers).size)
+        throw new BadRequestException('INVALID_MEMBER');
+    }
+  }
 
-    const nameMap = await this.resolveNames(entId, [
-      { kind: 'USER', refId: operatorUserId },
-      cleanTarget,
-    ]);
-    const channel = await this.channelRepo.save(
-      this.channelRepo.create({
+  async inviteMembers(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    targets: TalkMemberInput[],
+  ) {
+    const keys = await this.ds.transaction(async (manager) => {
+      const { channel, members } = await this.lockChannel(
+        manager,
         entId,
-        type: 'DIRECT',
-        name: `${nameMap.get(actorKey(me)) ?? '-'}, ${
-          nameMap.get(actorKey(cleanTarget)) ?? '-'
-        }`.slice(0, 100),
-        createdBy: operatorUserId,
-      }),
-    );
-    await this.memberRepo.save([
-      this.memberRepo.create({
+        channelId,
+        actor,
+        true,
+      );
+      if (channel.type !== 'GROUP')
+        throw new BadRequestException('DM_MEMBERS_FIXED');
+      const unique = [
+        ...new Map(targets.map((t) => [actorKey(t), t])).values(),
+      ];
+      await this.assertActiveTargets(manager, entId, unique);
+      const additions = unique.filter(
+        (t) => !members.some((m) => actorKey(m) === actorKey(t)),
+      );
+      const repo = manager.getRepository(TalkMemberTypeormEntity);
+      if (additions.length)
+        await repo.save(
+          additions.map((t) =>
+            repo.create({
+              entId,
+              channelId,
+              kind: t.kind,
+              refId: t.refId,
+              role: 'MEMBER',
+            }),
+          ),
+        );
+      return [...members.map(actorKey), ...additions.map(actorKey)];
+    });
+    this.sse.emit(entId, keys, { type: 'channel:update', channelId });
+    return this.getChannelView(entId, channelId, actor);
+  }
+
+  async removeMember(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    target: TalkMemberInput,
+  ) {
+    const keys = await this.ds.transaction(async (manager) => {
+      const { channel, members } = await this.lockChannel(
+        manager,
         entId,
-        channelId: channel.id,
-        kind: 'USER',
-        refId: operatorUserId,
-        role: 'OWNER',
-      }),
-      this.memberRepo.create({
-        entId,
-        channelId: channel.id,
-        kind: cleanTarget.kind,
-        refId: cleanTarget.refId,
-        role: 'MEMBER',
-      }),
-    ]);
-    await this.emitChannelUpdate(entId, channel.id);
-    return this.getChannelView(entId, channel.id, me);
+        channelId,
+        actor,
+        true,
+      );
+      if (channel.type !== 'GROUP')
+        throw new BadRequestException('DM_MEMBERS_FIXED');
+      const member = members.find((m) => actorKey(m) === actorKey(target));
+      if (!member) throw new NotFoundException('MEMBER_NOT_FOUND');
+      if (member.role === 'OWNER' || actorKey(member) === actorKey(actor))
+        throw new BadRequestException('CANNOT_REMOVE_OWNER');
+      await manager
+        .getRepository(TalkMemberTypeormEntity)
+        .update(member.id, { leftAt: new Date() });
+      return members.map(actorKey);
+    });
+    this.closeDownloads(entId, channelId, [actorKey(target)]);
+    this.sse.emit(entId, keys, { type: 'channel:update', channelId });
+    return this.getChannelView(entId, channelId, actor);
   }
 
   /** GROUP 멤버 교체(OWNER 제외 전체) — OWNER 운영자 전용. */
