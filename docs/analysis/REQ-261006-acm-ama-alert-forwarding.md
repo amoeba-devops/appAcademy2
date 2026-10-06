@@ -1,7 +1,7 @@
 ---
 document_id: NTF-REQ-261006
-version: 0.1.0
-status: REVIEW (기능 검토 — 구현 여부·방식 결정 대기)
+version: 1.0.0
+status: CONFIRMED (2026-10-06 사용자 결정 — A 추진, AMA 백로그, 신규상담·단계변경 우선, SSO 재진입) → PLN-261006 / SPEC-261006
 date: 2026-10-06
 related:
   - docs/analysis/REQ-261001-acm-notification-inbox.md (ACM 통합 알림함 — 발생 이벤트 원천)
@@ -9,6 +9,7 @@ related:
   - docs/analysis/ACM-AMA-SSO-REQ-1.0.0.md (ACM↔AMA 연동 경계)
   - ambManagement: apps/api/src/domain/notification, domain/open-api, domain/oauth
 change_log:
+  - 2026-10-06 v1.0.0 사용자 결정 반영 — Q-1 A, Q-2 AMA 백로그(SPEC-261006), Q-3 CSL_CREATED·CSL_STAGE 우선, Q-5 returnTo SSO 재진입 (Claude Code)
   - 2026-10-06 v0.1.0 기능 존재 여부 검토 + 구현 방안 3안 비교 (Claude Code)
 ---
 
