@@ -13,9 +13,8 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { MailConfigService } from '../application/mail-config.service';
 import { TenantMailerService } from '../application/tenant-mailer.service';
 import { TestMailDto, UpdateMailConfigDto } from '../application/dto/mail-config.dto';
@@ -23,7 +22,7 @@ import { TestMailDto, UpdateMailConfigDto } from '../application/dto/mail-config
 /** REQ-260902B — 테넌트 메일(SMTP) 설정 (관리자 /admin/config/mail). */
 @ApiTags('acm-system')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @Controller('acm/admin/mail-config')
 export class MailConfigController {
   constructor(
@@ -32,21 +31,21 @@ export class MailConfigController {
   ) {}
 
   @Get()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '메일(SMTP) 설정 조회 — 비밀번호는 isSet만' })
   get(@CurrentUser() u: AcmCurrentUser) {
     return this.svc.findByEntId(u.entId);
   }
 
   @Put()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '메일(SMTP) 설정 저장 (부분 갱신)' })
   update(@CurrentUser() u: AcmCurrentUser, @Body() dto: UpdateMailConfigDto) {
     return this.svc.upsertByEntId(u.entId, dto);
   }
 
   @Post('test')
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '테스트 메일 발송 — 저장된 테넌트 설정 기준' })
   async test(@CurrentUser() u: AcmCurrentUser, @Body() dto: TestMailDto) {
     try {

@@ -9,24 +9,23 @@ import {
 import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
 import type { PortalAuthUser } from '../../acm-auth/application/portal-account.service';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { VideoConfigService } from '../application/video-config.service';
 import type { VideoProvider } from '../infrastructure/typeorm/video-config.typeorm-entity';
 class UpdateVideoConfigDto {
   @IsIn(['GOOGLE_MEET', 'BODASCHOOL']) provider!: VideoProvider;
 }
 @Controller('admin/cal/video/config')
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 export class VideoConfigController {
   constructor(private readonly svc: VideoConfigService) {}
   @Get()
-  @Roles('ADMIN')
+
   get(@CurrentUser() u: AcmCurrentUser) {
     return this.svc.get(u.entId);
   }
   @Put()
-  @Roles('ADMIN')
+
   update(@CurrentUser() u: AcmCurrentUser, @Body() dto: UpdateVideoConfigDto) {
     return this.svc.update(u.entId, u.id, dto.provider);
   }

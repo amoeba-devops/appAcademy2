@@ -8,8 +8,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { BodaConfigService } from '../application/boda-config.service';
 import {
   BodaConfigResponseDto,
@@ -25,14 +24,14 @@ import {
  */
 @ApiTags('acm-cal-boda-config')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal/boda/config')
 export class BodaConfigController {
   constructor(private readonly svc: BodaConfigService) {}
 
   @Get()
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary: 'GET tenant BODA config (secrets never returned)',
     description:
@@ -45,7 +44,7 @@ export class BodaConfigController {
   }
 
   @Put()
-  @Roles('ADMIN')
+
   @ApiOperation({
     summary: 'Upsert tenant BODA config',
     description:

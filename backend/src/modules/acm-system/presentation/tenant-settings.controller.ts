@@ -6,9 +6,8 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { TenantSettingsService } from '../application/tenant-settings.service';
 
 export class UpdateTenantSettingsDto {
@@ -33,8 +32,8 @@ export class TenantSettingsController {
   }
 
   @Put('acm/admin/tenant-settings')
-  @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
-  @Roles('ADMIN')
+  @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+
   @ApiOperation({ summary: '테넌트 타임존 설정 저장 (ADMIN)' })
   update(@CurrentUser() u: AcmCurrentUser, @Body() dto: UpdateTenantSettingsDto) {
     return this.svc.setTimezone(u.entId, dto.timezone);

@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -51,7 +52,7 @@ const KEY = 'boda-config';
 
 export function useBodaConfig() {
   return useQuery({
-    queryKey: [KEY],
+    queryKey: [KEY, ...useConfigScope()],
     queryFn: async () => {
       // GET returns null in initial-setup state (no row yet).
       const res = await apiClient.get<BodaConfig | null>('/admin/cal/boda/config');

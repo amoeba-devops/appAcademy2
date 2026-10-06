@@ -1,3 +1,4 @@
+import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
 import { PaymentPage } from '@/modules/pay/payment-page';
 import { NotificationInboxPage } from '@/modules/notifications/components-inbox';
@@ -232,6 +233,7 @@ export const router = createBrowserRouter([
       // REQ-260728C — 로비채팅 (운영자)
       { path: 'chat', element: <AdminChatPage /> },
       // REQ-260621 — Configuration: landing card menu + per-integration pages.
+      { element: <RequireConfigAdmin />, children: [
       { path: 'config', element: <ConfigLandingPage /> },
       { path: 'config/ama', element: <AmaConfigPage /> },
       { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
@@ -243,6 +245,7 @@ export const router = createBrowserRouter([
       { path: 'config/ad-platforms', element: <AdPlatformsPage /> },
       { path: 'config/ai', element: <AiConfigPage /> },
       { path: 'config/ga4', element: <Ga4ConfigPage /> },
+      ] },
     ],
   },
 

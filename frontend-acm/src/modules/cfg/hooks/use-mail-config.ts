@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -34,7 +35,7 @@ const KEY = 'mail-config';
 
 export function useMailConfig() {
   return useQuery({
-    queryKey: [KEY],
+    queryKey: [KEY, ...useConfigScope()],
     queryFn: async () =>
       (await apiClient.get<MailConfig>('/acm/admin/mail-config')).data,
   });

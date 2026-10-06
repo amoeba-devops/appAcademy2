@@ -20,9 +20,8 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { KakaoConfigService } from '../application/kakao-config.service';
 import { SolapiAlimtalkService } from '../application/solapi-alimtalk.service';
 
@@ -65,7 +64,7 @@ export class KakaoTestDto {
 /** REQ-260903E — 카카오 알림톡(Solapi) 설정 (관리자 /admin/config/kakao). */
 @ApiTags('acm-system')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @Controller('acm/admin/kakao-config')
 export class KakaoConfigController {
   constructor(
@@ -74,21 +73,21 @@ export class KakaoConfigController {
   ) {}
 
   @Get()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '알림톡 설정 조회 — API Secret 은 isSet만' })
   get(@CurrentUser() u: AcmCurrentUser) {
     return this.svc.findByEntId(u.entId);
   }
 
   @Put()
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '알림톡 설정 저장 (부분 갱신)' })
   update(@CurrentUser() u: AcmCurrentUser, @Body() dto: UpdateKakaoConfigDto) {
     return this.svc.upsertByEntId(u.entId, dto);
   }
 
   @Post('test')
-  @Roles('ADMIN')
+
   @ApiOperation({ summary: '알림톡 테스트 발송 — 저장된 설정·샘플 변수' })
   async test(@CurrentUser() u: AcmCurrentUser, @Body() dto: KakaoTestDto) {
     try {

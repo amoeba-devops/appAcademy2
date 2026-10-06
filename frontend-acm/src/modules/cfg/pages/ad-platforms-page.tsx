@@ -1,3 +1,4 @@
+import { useConfigScope } from '../hooks/use-config-access';
 import { formatAdMicros } from "../lib/ad-cost-format";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,12 +46,12 @@ export function AdPlatformsPage() {
   const [to, setTo] = useState(day(-1));
   const oauthHandled = useRef(false);
   const q = useQuery({
-    queryKey: ["ad-connections"],
+    queryKey: ["ad-connections", ...useConfigScope()],
     queryFn: async () => (await apiClient.get<AdConnection[]>(root)).data,
     refetchInterval: 30000,
   });
   const runs = useQuery({
-    queryKey: ["ad-runs", history],
+    queryKey: ["ad-runs", history, ...useConfigScope()],
     enabled: !!history,
     queryFn: async () =>
       (await apiClient.get<AdRun[]>(`${root}/${history}/runs`)).data,

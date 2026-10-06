@@ -15,8 +15,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { RolesGuard } from '../../acm-common/guards/roles.guard';
-import { Roles } from '../../acm-common/decorators/roles.decorator';
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { AdsService } from './ads.service';
 import {
   SaveConnectionDto,
@@ -26,8 +25,8 @@ import {
   OAuthFinishDto,
 } from './ads.dto';
 @Controller('acm/admin/ad-connections')
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, RolesGuard)
-@Roles('ADMIN')
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+
 export class AdsController {
   constructor(
     private readonly svc: AdsService,

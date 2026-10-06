@@ -1,3 +1,4 @@
+import { ConfigAccessController } from './presentation/config-access.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -54,6 +55,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     ),
   ],
   controllers: [
+    ConfigAccessController,
     SystemUserController,
     SystemTenantController,
     MeMenuController,

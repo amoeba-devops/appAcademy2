@@ -1,3 +1,4 @@
+import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
 import { UseInterceptors } from '@nestjs/common';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
@@ -60,7 +61,7 @@ export class BodaDemoController {
   // -----------------------------------------------------------------
 
   @Post('boda/config/demo-seed')
-  @Roles('ADMIN', 'TEACHER')
+  @UseGuards(ConfigAdminGuard)
   @ApiOperation({
     summary: '[demo] Insert/refresh a minimal BODA config for this tenant',
   })

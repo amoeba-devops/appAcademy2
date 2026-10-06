@@ -1,3 +1,4 @@
+import { useConfigScope } from './use-config-access';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 
@@ -12,7 +13,7 @@ export interface AiConfigInput {
   orgProjectId?: string; isActive: boolean;
 }
 const key = ['ai-config'];
-export const useAiConfig = () => useQuery({ queryKey: key, queryFn: async () => (await apiClient.get<AiConfig>('/acm/admin/ai-config')).data });
+export const useAiConfig = () => useQuery({ queryKey: [...key, ...useConfigScope()], queryFn: async () => (await apiClient.get<AiConfig>('/acm/admin/ai-config')).data });
 export function useSaveAiConfig() { const qc = useQueryClient(); return useMutation({ mutationFn: async (input: AiConfigInput) => (await apiClient.put<AiConfig>('/acm/admin/ai-config', input)).data, onSuccess: () => qc.invalidateQueries({ queryKey: key }) }); }
 export function useTestAiConfig() { const qc = useQueryClient(); return useMutation({ mutationFn: async (input: Omit<AiConfigInput, 'isActive'>) => (await apiClient.post<AiConfig>('/acm/admin/ai-config/test', input)).data, onSuccess: () => qc.invalidateQueries({ queryKey: key }) }); }
 export function useRemoveAiKey() { const qc = useQueryClient(); return useMutation({ mutationFn: async () => (await apiClient.delete<AiConfig>('/acm/admin/ai-config/api-key')).data, onSuccess: () => qc.invalidateQueries({ queryKey: key }) }); }

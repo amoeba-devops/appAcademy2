@@ -1148,5 +1148,23 @@
     "actions": "Actions",
     "baseline": "Baseline",
     "knownWithdrawn": "Known withdrawals"
+  },
+  "configAccess": {
+    "loading": "Checking access…",
+    "denied": "Configuration access denied",
+    "required": "Configuration administrator permission is required.",
+    "loadError": "Unable to load data.",
+    "retry": "Retry",
+    "menuTitle": "Sidebar menu visibility",
+    "level": "Configuration administrator",
+    "scope": "Applies to all users in your academy. Hiding a menu does not change access to business data.",
+    "permissionOnly": "Permission holders only",
+    "fixed": "Always visible",
+    "unsaved": "You have unsaved changes.",
+    "saved": "Saved.",
+    "cancel": "Discard changes",
+    "saving": "Saving…",
+    "save": "Save",
+    "saveError": "Unable to save. Check your permission and connection, then retry."
   }
 }
