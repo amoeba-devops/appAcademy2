@@ -1,3 +1,4 @@
+import { NotificationBell } from '@/modules/notifications/components-inbox';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -39,7 +40,7 @@ export function PortalShell() {
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-surface px-4 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-surface px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-primary">{t('portalApp.title')}</span>
           {user && (
@@ -50,6 +51,7 @@ export function PortalShell() {
         </div>
         <div className="flex items-center gap-3">
           {/* REQ-260728B FR-6 — 포털 앱에서도 언어 선택 (ko/en/vi/zh-CN) */}
+          {user?.kind === 'TEACHER' && <NotificationBell mode="portal" />}
           <LanguageSwitcher />
           <button
             onClick={logout}
@@ -61,8 +63,8 @@ export function PortalShell() {
       </header>
 
       {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
-      <div className="flex max-w-5xl gap-4 px-3 py-4">
-        <nav className="w-40 shrink-0 space-y-1">
+      <div className="flex max-w-5xl flex-col gap-4 px-3 py-4 sm:flex-row">
+        <nav className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1">
           {NAV.filter((n) => !n.teacherOnly || user?.kind === 'TEACHER').map((n) => {
             const Icon = n.icon;
             return (
@@ -71,7 +73,7 @@ export function PortalShell() {
                 to={n.to}
                 end={n.end}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-md px-3 py-2 text-sm ${
+                  `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
                     isActive
                       ? 'bg-accent-600 text-white'
                       : 'text-secondary hover:bg-[var(--gray-100)]'

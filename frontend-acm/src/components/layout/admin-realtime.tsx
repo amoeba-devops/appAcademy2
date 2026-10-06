@@ -39,6 +39,11 @@ export function AdminRealtime() {
   const onTalkEvent = useCallback(
     (e: TalkSseEvent) => {
       void qc.invalidateQueries({ queryKey: ['talk-channels', 'admin'] });
+      void qc.invalidateQueries({ queryKey: ['talk-channel', 'admin'] });
+      if (e.type === 'channel:update') {
+        void qc.invalidateQueries({ queryKey: ['notification-inbox'] });
+        if (e.channelId) qc.removeQueries({ queryKey: ['talk-message-target', 'admin', e.channelId] });
+      }
       if (e.channelId) {
         // 즉시 표시 — message:new 페이로드를 메시지 캐시에 직접 append
         // (mine 은 클라이언트 재계산, 렌더 측 dedupe·정렬이 중복을 흡수).
@@ -49,7 +54,7 @@ export function AdminRealtime() {
             mine: raw.senderKind === 'USER' && raw.senderRefId === user.id,
           };
           qc.setQueryData<{ messages: TalkMessage[]; nextCursor: string | null }>(
-            ['talk-messages', 'admin', e.channelId],
+            ['talk-messages', 'admin', e.channelId, `${user.entId}:${user.id}`],
             (old) =>
               old ? { ...old, messages: [msg, ...old.messages] } : old,
           );

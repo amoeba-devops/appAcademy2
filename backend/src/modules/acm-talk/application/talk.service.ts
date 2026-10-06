@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import type { Readable } from 'stream';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -75,6 +75,8 @@ export interface TalkChannelView {
   unreadCount: number;
   lastMessageAt: string | null;
   lastMessagePreview: string | null;
+  archived: boolean;
+  canSend: boolean;
   mine: boolean; // 내가 OWNER 인지
 }
 
@@ -112,6 +114,15 @@ const actorKey = (a: { kind: TalkMemberKind; refId: string }) =>
 
 @Injectable()
 export class TalkService {
+  private readonly downloads = new Map<string, Set<Readable>>();
+  private closeDownloads(entId: string, channelId: string, keys: string[]) {
+    for (const key of keys) {
+      const id = `${entId}:${channelId}:${key}`;
+      for (const stream of this.downloads.get(id) ?? []) stream.destroy();
+      this.downloads.delete(id);
+    }
+  }
+
   constructor(
     @InjectRepository(TalkChannelTypeormEntity, ACM_DS)
     private readonly channelRepo: Repository<TalkChannelTypeormEntity>,
@@ -160,6 +171,7 @@ export class TalkService {
   async listMyChannels(
     entId: string,
     actor: TalkActor,
+    scope: string = 'active',
   ): Promise<TalkChannelView[]> {
     const myMemberships = await this.memberRepo.find({
       where: {
@@ -170,7 +182,16 @@ export class TalkService {
       },
     });
     if (myMemberships.length === 0) return [];
-    const channelIds = myMemberships.map((m) => m.channelId);
+    if (!['active', 'archived', 'all'].includes(scope))
+      throw new BadRequestException('INVALID_SCOPE');
+    const channelIds = myMemberships
+      .filter(
+        (m) =>
+          scope === 'all' ||
+          (scope === 'archived' ? !!m.archivedAt : !m.archivedAt),
+      )
+      .map((m) => m.channelId);
+    if (!channelIds.length) return [];
     const channels = await this.channelRepo.find({
       where: { entId, id: In(channelIds), deletedAt: IsNull() },
     });
@@ -227,6 +248,8 @@ export class TalkService {
         }));
       const last = lastByChannel.get(c.id);
       return {
+        archived: !!myMemberships.find((m) => m.channelId === c.id)?.archivedAt,
+        canSend: c.type !== 'DIRECT' || members.length === 2,
         id: c.id,
         type: c.type,
         name: c.name,
@@ -259,8 +282,7 @@ export class TalkService {
     name: string,
     members: TalkMemberInput[],
   ): Promise<TalkChannelView> {
-    const cleanName = (name ?? '').trim();
-    if (!cleanName) throw new BadRequestException('NAME_REQUIRED');
+    const cleanName = this.cleanChannelName(name);
     const cleanMembers = await this.validateMembers(entId, members, {
       kind: 'USER',
       refId: operatorUserId,
@@ -375,51 +397,53 @@ export class TalkService {
     members: TalkMemberInput[],
   ): Promise<TalkChannelView> {
     const me: TalkActor = { kind: 'USER', refId: operatorUserId };
-    const channel = await this.getOwnedChannel(
-      entId,
-      channelId,
-      operatorUserId,
-    );
-    if (channel.type !== 'GROUP') {
-      throw new BadRequestException('DM_MEMBERS_FIXED');
-    }
-    const cleanMembers = await this.validateMembers(entId, members, me);
-    if (cleanMembers.length === 0) {
-      throw new BadRequestException('MEMBER_REQUIRED');
-    }
-
-    const current = await this.memberRepo.find({
-      where: { entId, channelId, leftAt: IsNull() },
-    });
-    const nextKeys = new Set(cleanMembers.map(actorKey));
-    const now = new Date();
-    // 제외: OWNER 는 유지, 목록에 없는 MEMBER 는 left 처리.
-    for (const m of current) {
-      if (m.role === 'OWNER') continue;
-      if (!nextKeys.has(actorKey(m))) {
-        m.leftAt = now;
-        await this.memberRepo.save(m);
-      }
-    }
-    // 추가: 재적 중이 아닌 신규 멤버 삽입.
-    const currentKeys = new Set(
-      current.filter((m) => !m.leftAt).map((m) => actorKey(m)),
-    );
-    const toAdd = cleanMembers.filter((m) => !currentKeys.has(actorKey(m)));
-    if (toAdd.length > 0) {
-      await this.memberRepo.save(
-        toAdd.map((m) =>
-          this.memberRepo.create({
-            entId,
-            channelId,
-            kind: m.kind,
-            refId: m.refId,
-            role: 'MEMBER' as const,
-          }),
-        ),
+    const keys = await this.ds.transaction(async (manager) => {
+      const { channel, members: current } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        me,
+        true,
       );
-    }
-    await this.emitChannelUpdate(entId, channelId);
+      const cleanMembers = await this.validateMembers(entId, members, me);
+      if (!cleanMembers.length)
+        throw new BadRequestException('MEMBER_REQUIRED');
+      if (channel.type !== 'GROUP')
+        throw new BadRequestException('DM_MEMBERS_FIXED');
+      const repo = manager.getRepository(TalkMemberTypeormEntity);
+      const nextKeys = new Set(cleanMembers.map(actorKey));
+      for (const m of current) {
+        if (m.role !== 'OWNER' && !nextKeys.has(actorKey(m))) {
+          await repo.update(m.id, { leftAt: new Date() });
+        }
+      }
+      const currentKeys = new Set(current.map(actorKey));
+      const additions = cleanMembers.filter(
+        (m) => !currentKeys.has(actorKey(m)),
+      );
+      if (additions.length)
+        await repo.save(
+          additions.map((m) =>
+            repo.create({
+              entId,
+              channelId,
+              kind: m.kind,
+              refId: m.refId,
+              role: 'MEMBER',
+            }),
+          ),
+        );
+      return {
+        all: [
+          ...new Set([...current.map(actorKey), ...cleanMembers.map(actorKey)]),
+        ],
+        removed: current
+          .filter((m) => m.role !== 'OWNER' && !nextKeys.has(actorKey(m)))
+          .map(actorKey),
+      };
+    });
+    this.closeDownloads(entId, channelId, keys.removed);
+    this.sse.emit(entId, keys.all, { type: 'channel:update', channelId });
     return this.getChannelView(entId, channelId, me);
   }
 
@@ -429,15 +453,142 @@ export class TalkService {
     operatorUserId: string,
     channelId: string,
   ): Promise<void> {
-    const channel = await this.getOwnedChannel(
-      entId,
-      channelId,
-      operatorUserId,
-    );
-    // 삭제 이벤트는 삭제 전 멤버에게 전파.
+    const keys = await this.ds.transaction(async (manager) => {
+      const { channel, members } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        { kind: 'USER', refId: operatorUserId },
+        true,
+      );
+      await manager
+        .getRepository(TalkChannelTypeormEntity)
+        .update(channel.id, { deletedAt: new Date() });
+      return members.map(actorKey);
+    });
+    this.closeDownloads(entId, channelId, keys);
+    this.sse.emit(entId, keys, { type: 'channel:update', channelId });
+  }
+
+  async renameChannel(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    name: string,
+  ) {
+    const clean = this.cleanChannelName(name);
+    await this.ds.transaction(async (manager) => {
+      const { channel } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        actor,
+        true,
+      );
+      if (channel.type !== 'GROUP')
+        throw new BadRequestException('DM_NAME_FIXED');
+      await manager
+        .getRepository(TalkChannelTypeormEntity)
+        .update(channel.id, { name: clean });
+    });
     await this.emitChannelUpdate(entId, channelId);
-    channel.deletedAt = new Date();
-    await this.channelRepo.save(channel);
+    return this.getChannelView(entId, channelId, actor);
+  }
+
+  async archiveChannel(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    archived: boolean,
+  ) {
+    await this.ds.transaction(async (manager) => {
+      const { members } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        actor,
+      );
+      const me = members.find((m) => actorKey(m) === actorKey(actor))!;
+      await manager
+        .getRepository(TalkMemberTypeormEntity)
+        .update(me.id, { archivedAt: archived ? new Date() : null });
+    });
+    this.sse.emit(entId, [actorKey(actor)], {
+      type: 'channel:update',
+      channelId,
+    });
+    return this.getChannelView(entId, channelId, actor);
+  }
+
+  async leaveChannel(
+    entId: string,
+    actor: TalkActor,
+    channelId: string,
+    successorId?: string,
+  ) {
+    const keys = await this.ds.transaction(async (manager) => {
+      const { channel, members } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        actor,
+      );
+      const me = members.find((m) => actorKey(m) === actorKey(actor))!;
+      const remaining = members.filter((m) => m.id !== me.id);
+      if (channel.type === 'GROUP' && me.role === 'OWNER' && remaining.length) {
+        const successor = remaining.find(
+          (m) => m.kind === 'USER' && m.refId === successorId,
+        );
+        if (!successor) throw new BadRequestException('SUCCESSOR_REQUIRED');
+        const users: { id: string }[] = await manager.query(
+          "SELECT usr_id AS id FROM amb_acm_user WHERE ent_id=$1 AND usr_id=$2 AND usr_status='ACTIVE' AND usr_role IN ('ADMIN','APP_ADMIN')",
+          [entId, successor.refId],
+        );
+        if (!users.length) throw new BadRequestException('INVALID_SUCCESSOR');
+        await manager
+          .getRepository(TalkMemberTypeormEntity)
+          .update(successor.id, { role: 'OWNER' });
+      }
+      await manager
+        .getRepository(TalkMemberTypeormEntity)
+        .update(me.id, { leftAt: new Date(), role: 'MEMBER' });
+      return members.map(actorKey);
+    });
+    this.closeDownloads(entId, channelId, [actorKey(actor)]);
+    this.sse.emit(entId, keys, { type: 'channel:update', channelId });
+  }
+
+  private cleanChannelName(name: string): string {
+    if (typeof name !== 'string' || !name.trim())
+      throw new BadRequestException('NAME_REQUIRED');
+    if (name.trim().length > 100)
+      throw new BadRequestException('NAME_TOO_LONG');
+    return name.trim();
+  }
+
+  // All membership changes and sends acquire the same channel lock first.
+  private async lockChannel(
+    manager: EntityManager,
+    entId: string,
+    channelId: string,
+    actor: TalkActor,
+    owner = false,
+  ) {
+    const channel = await manager
+      .getRepository(TalkChannelTypeormEntity)
+      .findOne({
+        where: { entId, id: channelId, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
+      });
+    if (!channel) throw new NotFoundException('CHANNEL_NOT_FOUND');
+    const members = await manager
+      .getRepository(TalkMemberTypeormEntity)
+      .find({ where: { entId, channelId, leftAt: IsNull() } });
+    const me = members.find((m) => actorKey(m) === actorKey(actor));
+    if (!me) throw new ForbiddenException('NOT_CHANNEL_MEMBER');
+    if (owner && (me.kind !== 'USER' || me.role !== 'OWNER'))
+      throw new ForbiddenException('NOT_OWNER');
+    return { channel, members };
   }
 
   // ── Messages ──────────────────────────────────────────────────────────
@@ -541,23 +692,16 @@ export class TalkService {
     }
     const names = await this.resolveNames(entId, [...targets, actor]);
     const saved = await this.ds.transaction(async (manager) => {
-      const members: { tlm_kind: string; tlm_ref_id: string }[] =
-        await manager.query(
-          'SELECT tlm_kind,tlm_ref_id FROM amb_acm_talk_member WHERE ent_id=$1 AND tlc_id=$2 AND tlm_left_at IS NULL FOR SHARE',
-          [entId, channelId],
-        );
-      if (
-        !members.some(
-          (m) => m.tlm_kind === actor.kind && m.tlm_ref_id === actor.refId,
-        )
-      )
-        throw new ForbiddenException('NOT_CHANNEL_MEMBER');
+      const { channel, members } = await this.lockChannel(
+        manager,
+        entId,
+        channelId,
+        actor,
+      );
+      if (channel.type === 'DIRECT' && members.length !== 2)
+        throw new BadRequestException('DM_PARTICIPANT_LEFT');
       for (const t of targets) {
-        if (
-          !members.some(
-            (m) => m.tlm_kind === t.kind && m.tlm_ref_id === t.refId,
-          )
-        )
+        if (!members.some((m) => m.kind === t.kind && m.refId === t.refId))
           throw new BadRequestException('MENTION_NOT_MEMBER');
         const name = names.get(actorKey(t));
         if (!name || !trimmed.includes('@' + name))
@@ -585,6 +729,11 @@ export class TalkService {
         targetId: saved.id,
         recipientIds: targets
           .filter((t) => t.kind === 'USER')
+          .map((t) => t.refId),
+        teacherRecipientIds: targets
+          .filter(
+            (t) => t.kind === 'TEACHER' && actorKey(t) !== actorKey(actor),
+          )
           .map((t) => t.refId),
         payload: { channelId, senderName: names.get(actorKey(actor)) ?? '' },
       });
@@ -617,20 +766,31 @@ export class TalkService {
     const key = `talk/${entId}/${randomUUID()}-${safe}`;
     await this.store.putObject({ key, body: file.buffer, mime: file.mimetype });
 
-    const saved = await this.messageRepo.save(
-      this.messageRepo.create({
+    const saved = await this.ds.transaction(async (manager) => {
+      const { channel, members } = await this.lockChannel(
+        manager,
         entId,
         channelId,
-        senderKind: actor.kind,
-        senderRef: actor.refId,
-        type: 'FILE',
-        content: '',
-        filename,
-        mime: file.mimetype,
-        sizeBytes: String(file.size),
-        s3Key: key,
-      }),
-    );
+        actor,
+      );
+      if (channel.type === 'DIRECT' && members.length !== 2)
+        throw new BadRequestException('DM_PARTICIPANT_LEFT');
+      return manager.save(
+        TalkMessageTypeormEntity,
+        this.messageRepo.create({
+          entId,
+          channelId,
+          senderKind: actor.kind,
+          senderRef: actor.refId,
+          type: 'FILE',
+          content: '',
+          filename,
+          mime: file.mimetype,
+          sizeBytes: String(file.size),
+          s3Key: key,
+        }),
+      );
+    });
     await this.afterSend(entId, channelId, actor, saved);
     const nameMap = await this.resolveNames(entId, [actor]);
     return this.toMessageView(saved, actor, nameMap);
@@ -649,6 +809,25 @@ export class TalkService {
     }
     await this.assertMember(entId, msg.channelId, actor);
     const obj = await this.store.getObjectStream(msg.s3Key);
+    try {
+      await this.ds.transaction(async (manager) => {
+        await this.lockChannel(manager, entId, msg.channelId, actor);
+        const key = `${entId}:${msg.channelId}:${actorKey(actor)}`;
+        const streams = this.downloads.get(key) ?? new Set<Readable>();
+        streams.add(obj.stream);
+        this.downloads.set(key, streams);
+        const cleanup = () => {
+          streams.delete(obj.stream);
+          if (!streams.size && this.downloads.get(key) === streams)
+            this.downloads.delete(key);
+        };
+        obj.stream.once('close', cleanup);
+        obj.stream.once('end', cleanup);
+      });
+    } catch (error) {
+      obj.stream.destroy();
+      throw error;
+    }
     return {
       stream: obj.stream,
       mime: msg.mime ?? 'application/octet-stream',
@@ -661,18 +840,17 @@ export class TalkService {
     actor: TalkActor,
     channelId: string,
   ): Promise<void> {
-    const member = await this.memberRepo.findOne({
-      where: {
+    await this.assertMember(entId, channelId, actor);
+    await this.memberRepo.update(
+      {
         entId,
         channelId,
         kind: actor.kind,
         refId: actor.refId,
         leftAt: IsNull(),
       },
-    });
-    if (!member) throw new ForbiddenException('NOT_A_MEMBER');
-    member.lastReadAt = new Date();
-    await this.memberRepo.save(member);
+      { lastReadAt: new Date() },
+    );
   }
 
   /** 본인 메시지만 soft delete. */
@@ -685,6 +863,7 @@ export class TalkService {
       where: { id: messageId, entId, deletedAt: IsNull() },
     });
     if (!msg) throw new NotFoundException('MESSAGE_NOT_FOUND');
+    await this.assertMember(entId, msg.channelId, actor);
     if (msg.senderKind !== actor.kind || msg.senderRef !== actor.refId) {
       throw new ForbiddenException('NOT_SENDER');
     }
@@ -706,17 +885,36 @@ export class TalkService {
     actor: TalkActor,
     saved: TalkMessageTypeormEntity,
   ): Promise<void> {
-    // 발신자 읽음 포인터 갱신 (아메바톡과 동일).
-    await this.memberRepo.update(
-      { entId, channelId, kind: actor.kind, refId: actor.refId },
-      { lastReadAt: new Date() },
-    );
-    const keys = await this.memberKeys(entId, channelId);
+    // Serialize recipient lookup and emission with leave/member changes. A
+    // snapshot taken before leave must not emit message content after revocation.
     const nameMap = await this.resolveNames(entId, [actor]);
-    this.sse.emit(entId, keys, {
-      type: 'message:new',
-      channelId,
-      data: this.toMessageView(saved, { kind: 'USER', refId: '' }, nameMap),
+    await this.ds.transaction(async (manager) => {
+      const channel = await manager
+        .getRepository(TalkChannelTypeormEntity)
+        .findOne({
+          where: { entId, id: channelId, deletedAt: IsNull() },
+          lock: { mode: 'pessimistic_write' },
+        });
+      if (!channel) return;
+      const members = manager.getRepository(TalkMemberTypeormEntity);
+      await members.update(
+        {
+          entId,
+          channelId,
+          kind: actor.kind,
+          refId: actor.refId,
+          leftAt: IsNull(),
+        },
+        { lastReadAt: new Date() },
+      );
+      const current = await members.find({
+        where: { entId, channelId, leftAt: IsNull() },
+      });
+      this.sse.emit(entId, current.map(actorKey), {
+        type: 'message:new',
+        channelId,
+        data: this.toMessageView(saved, { kind: 'USER', refId: '' }, nameMap),
+      });
     });
   }
 
@@ -761,38 +959,15 @@ export class TalkService {
     this.sse.emit(entId, keys, { type: 'channel:update', channelId });
   }
 
-  private async getChannelView(
+  async getChannelView(
     entId: string,
     channelId: string,
     actor: TalkActor,
   ): Promise<TalkChannelView> {
-    const views = await this.listMyChannels(entId, actor);
+    const views = await this.listMyChannels(entId, actor, 'all');
     const view = views.find((v) => v.id === channelId);
     if (!view) throw new NotFoundException('CHANNEL_NOT_FOUND');
     return view;
-  }
-
-  private async getOwnedChannel(
-    entId: string,
-    channelId: string,
-    operatorUserId: string,
-  ): Promise<TalkChannelTypeormEntity> {
-    const channel = await this.channelRepo.findOne({
-      where: { id: channelId, entId, deletedAt: IsNull() },
-    });
-    if (!channel) throw new NotFoundException('CHANNEL_NOT_FOUND');
-    const owner = await this.memberRepo.findOne({
-      where: {
-        entId,
-        channelId,
-        kind: 'USER',
-        refId: operatorUserId,
-        role: 'OWNER',
-        leftAt: IsNull(),
-      },
-    });
-    if (!owner) throw new ForbiddenException('NOT_OWNER');
-    return channel;
   }
 
   private async assertMember(

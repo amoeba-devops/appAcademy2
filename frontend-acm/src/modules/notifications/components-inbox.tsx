@@ -20,20 +20,40 @@ import {
 import { Button } from "@/components/ui/button";
 import type { InboxItem, InboxPage } from "./types-inbox";
 
-const base = "/acm/notifications/inbox";
-function useInboxKey() {
-  const user = useAuthStore((s) => s.user);
-  return ["notification-inbox", user?.entId, user?.id] as const;
+type InboxMode = "admin" | "portal";
+const inboxBase = (mode: InboxMode) =>
+  mode === "portal"
+    ? "/portal/notifications/inbox"
+    : "/acm/notifications/inbox";
+function useInboxSession(mode: InboxMode) {
+  const user = useAuthStore((s) =>
+    mode === "portal" ? s.portal.user : s.user,
+  );
+  const token = useAuthStore((s) =>
+    mode === "portal" ? s.portal.token : s.token,
+  );
+  return {
+    user,
+    token,
+    key: ["notification-inbox", mode, user?.entId, user?.id] as const,
+  };
 }
-export function NotificationBell() {
+export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
   const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
-  const token = useAuthStore((s) => s.token);
-  const user = useAuthStore((s) => s.user);
-  const key = useInboxKey();
+  const { user, token, key } = useInboxSession(mode);
+  const base = inboxBase(mode);
   const qc = useQueryClient();
-  useEffect(()=>()=>{qc.removeQueries({queryKey:['notification-inbox',user?.entId,user?.id]});},[qc,user?.entId,user?.id]);
-  const enabled = !!user;
+  useEffect(
+    () => () => {
+      qc.removeQueries({
+        queryKey: ["notification-inbox", mode, user?.entId, user?.id],
+      });
+    },
+    [qc, mode, user?.entId, user?.id],
+  );
+  const enabled =
+    !!user && (mode === "admin" || ("kind" in user && user.kind === "TEACHER"));
   const count = useQuery({
     queryKey: [...key, "count"],
     queryFn: async () =>
@@ -47,9 +67,9 @@ export function NotificationBell() {
   });
   const refresh = useCallback(() => {
     void qc.invalidateQueries({
-      queryKey: ["notification-inbox", user?.entId, user?.id],
+      queryKey: ["notification-inbox", mode, user?.entId, user?.id],
     });
-  }, [qc, user?.entId, user?.id]);
+  }, [qc, mode, user?.entId, user?.id]);
   useSseStream("/api" + base + "/events", token, refresh, enabled);
   if (!enabled) return null;
   const n = count.data?.unreadCount ?? 0;
@@ -85,7 +105,7 @@ export function NotificationBell() {
           <DialogHeader>
             <DialogTitle>{t("inbox.title")}</DialogTitle>
           </DialogHeader>
-          <InboxList compact onNavigate={() => setOpen(false)} />
+          <InboxList mode={mode} compact onNavigate={() => setOpen(false)} />
         </DialogContent>
       </Dialog>
     </>
@@ -111,13 +131,16 @@ function Summary({ item }: { item: InboxItem }) {
 }
 export function InboxList({
   compact = false,
+  mode = "admin",
   onNavigate,
 }: {
   compact?: boolean;
+  mode?: InboxMode;
   onNavigate?: () => void;
 }) {
   const { t, i18n } = useTranslation("common");
-  const key = useInboxKey();
+  const { key } = useInboxSession(mode);
+  const base = inboxBase(mode);
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(false);
@@ -237,7 +260,7 @@ export function InboxList({
               </li>
             ))}
           </ul>
-          {query.hasNextPage && !compact && (
+          {query.hasNextPage && (!compact || mode === "portal") && (
             <Button
               variant="outline"
               disabled={query.isFetchingNextPage}
@@ -248,7 +271,7 @@ export function InboxList({
           )}
         </>
       )}
-      {compact && (
+      {compact && mode === "admin" && (
         <Button
           variant="outline"
           className="w-full"

@@ -1,3 +1,4 @@
+import { PortalInboxController } from './presentation/portal-inbox.controller';
 import { InboxService } from './application/inbox.service';
 import { InboxController } from './presentation/inbox.controller';
 import { Module } from '@nestjs/common';
@@ -29,6 +30,7 @@ import { AdminEventsController } from './presentation/admin-events.controller';
   ],
   controllers: [
     InboxController,
+    PortalInboxController,
     NotificationLogController,
     AdminEventsController,
   ],
