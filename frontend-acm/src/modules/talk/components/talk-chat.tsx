@@ -506,7 +506,7 @@ function ChatPane({
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       {/* 헤더 */}
-      <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] px-4 py-2.5">
         <button type="button" onClick={onDismiss} className="md:hidden text-xs">
           {t("talk.backToRooms")}
         </button>

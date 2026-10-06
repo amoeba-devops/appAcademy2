@@ -7,7 +7,7 @@ const path = require("node:path");
 const base = process.env.CHAT_UI_URL || "http://127.0.0.1:5173";
 const screenshots = path.resolve(
   __dirname,
-  "../../docs/report/assets/chat-participants-261006",
+  "../../docs/report/assets/chat-rename-button-261006",
 );
 fs.mkdirSync(screenshots, { recursive: true });
 const ids = {
@@ -234,6 +234,17 @@ const ids = {
           });
           throw e;
         });
+      const rename = page.getByRole('button', { name: '방 제목 변경', exact: true });
+      if (mode === 'admin') {
+        await rename.click();
+        await page.getByLabel('방 제목', { exact: true }).fill('바뀐 단체방');
+        await page.getByRole('button', { name: '저장', exact: true }).click();
+        await page.getByRole('button', { name: /바뀐 단체방/ }).waitFor();
+        await rename.click();
+        await page.getByLabel('방 제목', { exact: true }).fill('강사 운영 단체방');
+        await page.getByRole('button', { name: '저장', exact: true }).click();
+        await page.getByRole('button', { name: /강사 운영 단체방/ }).waitFor();
+      } else assert.equal(await rename.count(), 0);
       const roomButton = page.getByRole("button", { name: /강사 운영 단체방/ });
       assert.equal(await roomButton.locator("svg.lucide-crown").count(), 1);
       if (mode === "portal")
