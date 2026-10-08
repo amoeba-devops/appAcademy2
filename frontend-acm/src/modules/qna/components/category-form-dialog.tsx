@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -138,7 +139,7 @@ export function CategoryFormDialog({ open, initial, onClose, onSaved }: Props) {
             </label>
             <div className="flex items-center gap-2 text-sm">
               <span>{t('categories.sortOrder')}</span>
-              <input
+              <NumericInput
                 type="number"
                 className="w-20 border border-[var(--border-subtle)] rounded px-2 py-1 bg-surface"
                 value={sortOrder}

@@ -1,4 +1,5 @@
 {
+  "numericInput": { "invalid": "Enter a valid number." },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"

@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -279,7 +280,7 @@ export function OperatingPanel({
           {data?.metrics.filter(k=>!["ops_new_st","ops_returning_st","ops_referral_st"].includes(k)).map((k) => (
             <label key={k} className="block text-xs">
               {t(`ops.${k}`)}
-              <input
+              <NumericInput
                 className="w-20 border rounded ml-2"
                 type="number"
                 min="0"
