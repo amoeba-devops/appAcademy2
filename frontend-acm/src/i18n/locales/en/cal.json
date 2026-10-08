@@ -369,6 +369,8 @@
     "unassigned": "Unassigned"
   },
   "repeat": {
+    "endRequired": "Repeat end date (required)",
+    "endRequiredHint": "Choose a repeat end date on or after the start date.",
     "title": "Repeat",
     "kind": {
       "NONE": "Does not repeat",

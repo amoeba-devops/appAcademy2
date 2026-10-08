@@ -32,6 +32,7 @@ import type {
 } from './dto/recurrence.dto';
 import {
   expandRecurrence,
+  validateRegistrationEnd,
   generationHorizon,
   recurrenceRule,
   wallTime,
@@ -75,6 +76,7 @@ export class RecurrenceService {
   ) {}
   async preview(entId: string, dto: RecurrencePreviewDto) {
     const timezone = await this.tz.getTimezone(entId);
+    validateRegistrationEnd(dto.event.evtStartAt, timezone, dto.rule);
     // A preview searches far enough for five yearly-spaced monthly occurrences.
     const horizon = new Date(dto.event.evtStartAt);
     horizon.setUTCFullYear(horizon.getUTCFullYear() + 150);

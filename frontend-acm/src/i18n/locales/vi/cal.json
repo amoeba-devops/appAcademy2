@@ -369,6 +369,8 @@
     "unassigned": "Chưa phân công"
   },
   "repeat": {
+    "endRequired": "Ngày kết thúc lặp lại (bắt buộc)",
+    "endRequiredHint": "Chọn ngày kết thúc lặp lại từ ngày bắt đầu trở đi.",
     "title": "Lặp lại",
     "kind": {
       "NONE": "Không lặp lại",
