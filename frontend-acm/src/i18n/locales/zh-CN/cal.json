@@ -369,6 +369,8 @@
     "unassigned": "未分配"
   },
   "repeat": {
+    "endRequired": "重复结束日期（必填）",
+    "endRequiredHint": "请选择不早于开始日期的重复结束日期。",
     "title": "重复",
     "kind": {
       "NONE": "不重复",

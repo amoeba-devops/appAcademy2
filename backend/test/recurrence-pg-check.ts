@@ -100,8 +100,8 @@ async function main() {
       kind: 'DAILY',
       interval: 1,
       excludeWeekends: true,
-      end: 'COUNT',
-      count: 5,
+      end: 'UNTIL',
+      until: '2030-10-10',
     },
   };
   const list = () =>
@@ -227,8 +227,8 @@ async function main() {
       rule: {
         ...dto.rule,
         kind: 'MONTHLY' as const,
-        end: 'NEVER' as const,
-        count: undefined,
+        end: 'UNTIL' as const,
+        until: '2040-01-01',
       },
     };
     const inf = await svc.create(u, infinite);
@@ -284,7 +284,8 @@ async function main() {
         kind: 'MONTHLY',
         interval: 1,
         excludeWeekends: false,
-        end: 'NEVER',
+        end: 'UNTIL',
+        until: '2040-01-01',
       },
     });
     await ds.query(
@@ -294,7 +295,7 @@ async function main() {
     const pending = await svc.create(u, {
       requestId: randomUUID(),
       event: { ...dto.event, evtCategory: 'REGULAR_CLASS', evtMeetingProvider: 'GOOGLE_MEET', evtMeetingUrl: '' },
-      rule: { kind: 'DAILY', interval: 1, excludeWeekends: false, end: 'COUNT', count: 2 },
+      rule: { kind: 'DAILY', interval: 1, excludeWeekends: false, end: 'UNTIL', until: '2030-10-05' },
     });
     const pendingRows: {evt_id: string; evt_meeting_url: string | null}[] = await ds.query('SELECT e.evt_id,e.evt_meeting_url FROM amb_acm_cal_event e JOIN amb_acm_cal_recurrence_occurrence o ON o.evt_id=e.evt_id WHERE o.crs_id=$1 ORDER BY e.evt_start_at', [pending.id]);
     assert.equal(pendingRows.length, 2);

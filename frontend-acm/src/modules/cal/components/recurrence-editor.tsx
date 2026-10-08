@@ -56,9 +56,16 @@ export function RecurrenceEditor({
     evtStartAt: start ? localInputToIso(start, tz) : '',
     evtEndAt: end ? localInputToIso(end, tz) : '',
   };
+  const hasEnd =
+    !value ||
+    (value.kind === 'DATES'
+      ? !!value.dates?.length
+      : value.end === 'UNTIL' &&
+        !!value.until &&
+        value.until >= start.slice(0, 10));
   const preview = useQuery({
     queryKey: ['cal', 'repeat-preview', event, value, tz],
-    enabled: !!value && !!event.evtStartAt && !!event.evtEndAt,
+    enabled: !!value && hasEnd && !!event.evtStartAt && !!event.evtEndAt,
     retry: false,
     queryFn: async () =>
       (
@@ -71,7 +78,10 @@ export function RecurrenceEditor({
   // Parent save button must track the exact current rule, including in-flight preview.
   const valid =
     !value ||
-    (!preview.isFetching && !preview.isError && !!preview.data?.items.length);
+    (hasEnd &&
+      !preview.isFetching &&
+      !preview.isError &&
+      !!preview.data?.items.length);
   // Use an effect so no state update is made during render.
   usePreviewValidity(valid, onValid);
   const set = (patch: Partial<RepeatRule>) =>
@@ -92,7 +102,7 @@ export function RecurrenceEditor({
                   kind,
                   interval: 1,
                   excludeWeekends: false,
-                  end: 'NEVER',
+                  end: kind === 'DATES' ? 'NEVER' : 'UNTIL',
                   ...(kind === 'WEEKLY'
                     ? { weekdays: [new Date(start).getDay()] }
                     : {}),
@@ -208,49 +218,28 @@ export function RecurrenceEditor({
             </div>
           ) : (
             <div className="flex flex-wrap items-center gap-2">
-              <label>
-                {t('repeat.end')}{' '}
-                <select
-                  className={input}
-                  value={value.end}
-                  onChange={(e) => {
-                    const end = e.target.value as RepeatRule['end'];
-                    set({
-                      end,
-                      until:
-                        end === 'UNTIL'
-                          ? (value.until ?? start.slice(0, 10))
-                          : undefined,
-                      count: end === 'COUNT' ? (value.count ?? 10) : undefined,
-                    });
-                  }}
-                >
-                  {['NEVER', 'UNTIL', 'COUNT'].map((k) => (
-                    <option key={k} value={k}>
-                      {t(`repeat.endKind.${k}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {value.end === 'UNTIL' && (
+              <label className="flex items-center gap-2">
+                {t('repeat.endRequired')}
                 <input
-                  aria-label={t('repeat.endKind.UNTIL')}
+                  aria-label={t('repeat.endRequired')}
                   className={input}
                   type="date"
+                  required
+                  min={start.slice(0, 10)}
                   value={value.until ?? ''}
-                  onChange={(e) => set({ until: e.target.value })}
+                  onChange={(e) =>
+                    set({
+                      end: 'UNTIL',
+                      until: e.target.value,
+                      count: undefined,
+                    })
+                  }
                 />
-              )}{' '}
-              {value.end === 'COUNT' && (
-                <input
-                  aria-label={t('repeat.endKind.COUNT')}
-                  className={`${input} w-24`}
-                  type="number"
-                  min={1}
-                  max={100000}
-                  value={value.count ?? 10}
-                  onChange={(e) => set({ count: Number(e.target.value) })}
-                />
+              </label>
+              {!hasEnd && (
+                <p role="alert" className="text-sm text-red-700">
+                  {t('repeat.endRequiredHint')}
+                </p>
               )}
             </div>
           )}
@@ -259,7 +248,7 @@ export function RecurrenceEditor({
             {value.kind === 'DAILY' &&
               `${t(value.excludeWeekends ? 'repeat.exclude' : 'repeat.include')} · `}
             {value.kind === 'DATES'
-              ? value.dates?.length
+              ? `${value.dates?.length ?? 0} · ${t('repeat.end')}: ${[...(value.dates ?? [])].sort().at(-1) ?? '—'}`
               : `${t(`repeat.endKind.${value.end}`)} ${value.end === 'COUNT' ? (value.count ?? '') : value.end === 'UNTIL' ? (value.until ?? '') : ''}`}{' '}
             · {tz}
           </p>
@@ -268,7 +257,9 @@ export function RecurrenceEditor({
             className="rounded bg-[var(--gray-50)] p-2 text-xs"
           >
             <strong>{t('repeat.preview')}</strong>
-            {preview.isFetching ? (
+            {!hasEnd ? (
+              <p>{t('repeat.endRequiredHint')}</p>
+            ) : preview.isFetching ? (
               <p>{t('common:status.loading')}</p>
             ) : preview.isError ? (
               <p className="text-red-700">{t('repeat.invalid')}</p>

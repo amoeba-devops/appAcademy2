@@ -38,6 +38,23 @@ export function recurrenceRule(rule: RecurrenceRuleDto): string {
     .filter(Boolean)
     .join(';');
 }
+/** New manual registrations require an explicit end; persisted legacy rules remain readable. */
+export function validateRegistrationEnd(
+  start: string,
+  tz: string,
+  rule: RecurrenceRuleDto,
+): void {
+  if (rule.kind === 'DATES') return; // Explicit dates are intrinsically bounded.
+  if (rule.end !== 'UNTIL' || !/^\d{4}-\d{2}-\d{2}$/.test(rule.until ?? ''))
+    throw new BadRequestException('REPEAT_UNTIL_REQUIRED');
+  const date = new Date(rule.until + 'T00:00:00Z');
+  if (!Number.isFinite(+date) || date.toISOString().slice(0, 10) !== rule.until)
+    throw new BadRequestException('REPEAT_UNTIL_INVALID');
+  if (!Number.isFinite(+new Date(start)))
+    throw new BadRequestException('END_BEFORE_START');
+  if (rule.until! < wallTime(start, tz).slice(0, 10))
+    throw new BadRequestException('REPEAT_UNTIL_BEFORE_START');
+}
 export function expandRecurrence(
   start: string,
   end: string,

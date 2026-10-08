@@ -369,6 +369,8 @@
     "unassigned": "미지정"
   },
   "repeat": {
+    "endRequired": "반복 종료일 (필수)",
+    "endRequiredHint": "시작일 이후(당일 포함)의 반복 종료일을 지정하세요.",
     "title": "반복",
     "kind": {
       "NONE": "반복 없음",
