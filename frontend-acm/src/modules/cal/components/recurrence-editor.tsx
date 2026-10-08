@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -124,7 +125,7 @@ export function RecurrenceEditor({
           {value.kind !== 'DATES' && (
             <label className="flex items-center gap-2">
               {t('repeat.interval')}
-              <input
+              <NumericInput
                 aria-label={t('repeat.interval')}
                 className={`${input} w-20`}
                 type="number"

@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { TuitionInput } from './tuition-input';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -150,7 +151,7 @@ export function EnrollmentPanel({
     },
   });
 
-  const { register, handleSubmit, reset, watch, setValue } =
+  const { control,  register, handleSubmit, reset, watch, setValue } =
     useForm<FormValues>({
       defaultValues: {
         paymentNoticeStatus: '',
@@ -399,7 +400,6 @@ export function EnrollmentPanel({
                   한 줄에 같이 두어 운영자가 빠르게 전환할 수 있도록 함.
                 */}
                 <ClassMinutesField
-                  register={register('classMinutes')}
                   currentValue={watch('classMinutes')}
                   setValue={(next) =>
                     setValue('classMinutes', next, { shouldDirty: true })
@@ -475,12 +475,12 @@ export function EnrollmentPanel({
                     defaultValue: '결제금액',
                   })}
                 >
-                  <Input
+                  <Controller control={control} name={'paymentAmount'} render={({field}) => (<Input
                     type="number"
                     min={0}
                     max={50000000}
-                    {...register('paymentAmount')}
-                  />
+                    {...field} value={field.value ?? ''}
+                  />)} />
                 </Field>
                 <Field
                   label={t('detail.enrollment.paymentMemoInput', {
@@ -741,14 +741,12 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
  * click overwrites the input.
  */
 function ClassMinutesField({
-  register,
   currentValue,
   setValue,
   presetLabel,
   freeInputPlaceholder,
   suffix,
 }: {
-  register: React.InputHTMLAttributes<HTMLInputElement>;
   currentValue: string;
   setValue: (next: string) => void;
   presetLabel: string;
@@ -783,7 +781,8 @@ function ClassMinutesField({
       <Input
         type="number"
         min={1}
-        {...register}
+        value={currentValue}
+        onChange={(event) => setValue(event.target.value)}
         placeholder={freeInputPlaceholder}
       />
     </div>

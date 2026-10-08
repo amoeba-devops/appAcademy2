@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -192,11 +193,11 @@ export function GuidelineCreateDialog() {
             <div className="space-y-2">
               {fields.map((f, i) => (
                 <div key={f.id} className="grid grid-cols-12 gap-2 items-start">
-                  <Input
+                  <Controller control={control} name={`workflowSteps.${i}.step_num`} render={({field}) => (<Input
                     type="number"
-                    {...register(`workflowSteps.${i}.step_num`)}
+                    {...field} value={field.value ?? ''}
                     className="col-span-2"
-                  />
+                  />)} />
                   <select
                     {...register(`workflowSteps.${i}.role`)}
                     className="col-span-3 rounded-md border border-[var(--border-subtle)] bg-surface px-2 py-2 text-sm"
