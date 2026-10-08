@@ -363,24 +363,30 @@ export function ClassStatusSummaryPanel({
               label={t("detail.enrollment.teacherAssignments")}
               value={assignedTeachers || "—"}
             />
-            <Info
-              label={t("detail.enrollment.sessionCount")}
-              value={enrollment?.sessionCount?.toString() ?? "—"}
-            />
+            {isAttending && (
+              <Info
+                label={t("detail.enrollment.sessionCount")}
+                value={enrollment?.sessionCount?.toString() ?? "—"}
+              />
+            )}
             <Info
               label={t("detail.enrollment.classMinutes")}
               value={
                 enrollment?.classMinutes ? `${enrollment.classMinutes}분` : "—"
               }
             />
-            <Info
-              label={t("detail.enrollment.startDate")}
-              value={enrollment?.startDate ?? "—"}
-            />
-            <Info
-              label={t("detail.enrollment.endDate")}
-              value={enrollment?.endDate ?? "—"}
-            />
+            {(isAttending || enrollment?.startDate?.trim()) && (
+              <Info
+                label={t("detail.enrollment.startDate")}
+                value={enrollment?.startDate ?? "—"}
+              />
+            )}
+            {(isAttending || enrollment?.endDate?.trim()) && (
+              <Info
+                label={t("detail.enrollment.endDate")}
+                value={enrollment?.endDate ?? "—"}
+              />
+            )}
           </div>
 
           <SummaryBlock
