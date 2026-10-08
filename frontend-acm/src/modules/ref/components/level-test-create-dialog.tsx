@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -141,7 +142,7 @@ export function LevelTestCreateDialog() {
             </div>
             <div>
               <Label>{t('form.defaultDurationMin')}</Label>
-              <Input type="number" {...register('defaultDurationMin')} />
+              <Controller control={control} name={'defaultDurationMin'} render={({field}) => (<Input type="number" {...field} value={field.value ?? ''} />)} />
             </div>
             <div className="col-span-2">
               <Label>{t('form.resourceUrl')}</Label>
@@ -186,11 +187,11 @@ export function LevelTestCreateDialog() {
             <div className="space-y-2">
               {fields.map((f, i) => (
                 <div key={f.id} className="grid grid-cols-12 gap-2 items-start">
-                  <Input
+                  <Controller control={control} name={`procedureSteps.${i}.step_num`} render={({field}) => (<Input
                     type="number"
-                    {...register(`procedureSteps.${i}.step_num`)}
+                    {...field} value={field.value ?? ''}
                     className="col-span-2"
-                  />
+                  />)} />
                   <Input
                     {...register(`procedureSteps.${i}.description`)}
                     className="col-span-9"

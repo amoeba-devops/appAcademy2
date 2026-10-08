@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
@@ -85,7 +86,7 @@ export function GradeBandFormDialog({ open, schoolId, initial, onClose, onSaved 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-secondary mb-1">{t('gradeBands.min')}</label>
-              <input
+              <NumericInput
                 type="number"
                 min={1}
                 max={13}
@@ -96,7 +97,7 @@ export function GradeBandFormDialog({ open, schoolId, initial, onClose, onSaved 
             </div>
             <div>
               <label className="block text-xs text-secondary mb-1">{t('gradeBands.max')}</label>
-              <input
+              <NumericInput
                 type="number"
                 min={1}
                 max={13}

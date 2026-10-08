@@ -1,3 +1,5 @@
+import { Controller } from 'react-hook-form';
+import { NumericInput } from '@/components/ui/numeric-input';
 import {
   CLASS_FIELDS,
   emptyClassInfo,
@@ -447,19 +449,19 @@ export function StdFormModal({
                         ][i],
                       )}
                     </label>
-                    <input
-                      placeholder={t("detail.enterValue")}
-                      type="number"
-                      {...register(name, {
+                    <Controller control={control} name={name} rules={{
                         validate: (v) =>
                           v === "" ||
                           (Number(v) >= 100 && Number(v) <= 350) ||
                           (t("form.error.mapRange", {
                             defaultValue: "MAP 점수는 100~350 사이여야 합니다.",
                           }) as string),
-                      })}
+                      }} render={({field}) => (<NumericInput
+                      placeholder={t("detail.enterValue")}
+                      type="number"
+                      {...field} value={field.value ?? ''}
                       className={inputClass}
-                    />
+                    />)} />
                     {errors[name] && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors[name]?.message}

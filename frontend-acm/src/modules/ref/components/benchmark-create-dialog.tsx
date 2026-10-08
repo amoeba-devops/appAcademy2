@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -180,15 +181,15 @@ export function BenchmarkCreateDialog() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <Label>{t('form.mapReadingScore')}</Label>
-                  <Input
+                  <Controller control={control} name={'mapReadingScore'} render={({field}) => (<Input
                     type="number"
                     step="0.1"
-                    {...register('mapReadingScore')}
-                  />
+                    {...field} value={field.value ?? ''}
+                  />)} />
                 </div>
                 <div>
                   <Label>{t('form.mapMathScore')}</Label>
-                  <Input type="number" step="0.1" {...register('mapMathScore')} />
+                  <Controller control={control} name={'mapMathScore'} render={({field}) => (<Input type="number" step="0.1" {...field} value={field.value ?? ''} />)} />
                 </div>
                 <label className="flex items-center gap-2 mt-6">
                   <input type="checkbox" {...register('mapNoUpperBound')} />
@@ -202,7 +203,7 @@ export function BenchmarkCreateDialog() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>{t('form.generalPct')}</Label>
-                  <Input type="number" step="0.01" {...register('generalPct')} />
+                  <Controller control={control} name={'generalPct'} render={({field}) => (<Input type="number" step="0.01" {...field} value={field.value ?? ''} />)} />
                 </div>
                 {examType === 'ISEE' && (
                   <div>
@@ -212,11 +213,11 @@ export function BenchmarkCreateDialog() {
                 )}
                 <div>
                   <Label>{t('form.premiumPrivatePct')}</Label>
-                  <Input
+                  <Controller control={control} name={'premiumPrivatePct'} render={({field}) => (<Input
                     type="number"
                     step="0.01"
-                    {...register('premiumPrivatePct')}
-                  />
+                    {...field} value={field.value ?? ''}
+                  />)} />
                 </div>
                 {examType === 'ISEE' && (
                   <div>
@@ -226,7 +227,7 @@ export function BenchmarkCreateDialog() {
                 )}
                 <div>
                   <Label>{t('form.topBoardingPct')}</Label>
-                  <Input type="number" step="0.01" {...register('topBoardingPct')} />
+                  <Controller control={control} name={'topBoardingPct'} render={({field}) => (<Input type="number" step="0.01" {...field} value={field.value ?? ''} />)} />
                 </div>
                 {examType === 'ISEE' && (
                   <div>
@@ -264,18 +265,18 @@ export function BenchmarkCreateDialog() {
                     placeholder={t('form.gradeLabel')}
                     className="col-span-3"
                   />
-                  <Input
+                  <Controller control={control} name={`grades.${i}.gradeMin`} render={({field}) => (<Input
                     type="number"
-                    {...register(`grades.${i}.gradeMin`)}
+                    {...field} value={field.value ?? ''}
                     placeholder={t('form.gradeMin')}
                     className="col-span-2"
-                  />
-                  <Input
+                  />)} />
+                  <Controller control={control} name={`grades.${i}.gradeMax`} render={({field}) => (<Input
                     type="number"
-                    {...register(`grades.${i}.gradeMax`)}
+                    {...field} value={field.value ?? ''}
                     placeholder={t('form.gradeMax')}
                     className="col-span-2"
-                  />
+                  />)} />
                   <select
                     {...register(`grades.${i}.curriculumSystem`)}
                     className="col-span-4 rounded-md border border-[var(--border-subtle)] bg-surface px-2 py-2 text-sm"
