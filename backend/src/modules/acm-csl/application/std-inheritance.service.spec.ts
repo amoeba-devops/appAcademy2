@@ -1,3 +1,4 @@
+import { IsNull } from 'typeorm';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -15,6 +16,7 @@ describe('StdInheritanceService', () => {
   let svc: StdInheritanceService;
   let stdFind: jest.Mock;
   let stdSave: jest.Mock;
+  let linkedFind: jest.Mock;
   let decrypt: jest.Mock;
 
   function makeInq(opts: { withPhone?: boolean } = {}): InquiryTypeormEntity {
@@ -32,8 +34,11 @@ describe('StdInheritanceService', () => {
     }
     return base as unknown as InquiryTypeormEntity;
   }
-  function makeMt(overrides: Partial<MapTestTypeormEntity> = {}): MapTestTypeormEntity {
+  function makeMt(
+    overrides: Partial<MapTestTypeormEntity> = {},
+  ): MapTestTypeormEntity {
     return {
+      testType: 'MAP',
       id: 'mt-1',
       entId: 'e1',
       inqId: 'inq-1',
@@ -46,7 +51,8 @@ describe('StdInheritanceService', () => {
 
   beforeEach(async () => {
     stdFind = jest.fn();
-    stdSave = jest.fn((row) => Promise.resolve(row));
+    stdSave = jest.fn().mockResolvedValue([{ std_id: 'std-1' }]);
+    linkedFind = jest.fn();
     decrypt = jest.fn().mockReturnValue('홍길동');
 
     const mod = await Test.createTestingModule({
@@ -55,7 +61,7 @@ describe('StdInheritanceService', () => {
         { provide: AesGcmService, useValue: { decrypt } },
         {
           provide: getRepositoryToken(StudentTypeormEntity, ACM_DS),
-          useValue: { find: stdFind, save: stdSave },
+          useValue: { find: stdFind, query: stdSave, findOne: linkedFind },
         },
       ],
     }).compile();
@@ -63,6 +69,38 @@ describe('StdInheritanceService', () => {
     svc = mod.get(StdInheritanceService);
   });
 
+  it('uses explicit scoped link without decrypting name', async () => {
+    linkedFind.mockResolvedValue({ id: 'linked', mapReading: null });
+    await svc.inheritMapScoresOnClassStart(
+      { ...makeInq(), stdId: 'linked' },
+      makeMt(),
+    );
+    expect(linkedFind).toHaveBeenCalledWith({
+      where: { id: 'linked', entId: 'e1', deletedAt: IsNull() },
+    });
+    expect(decrypt).not.toHaveBeenCalled();
+  });
+  it('never falls back for an invalid explicit link', async () => {
+    linkedFind.mockResolvedValue(null);
+    expect(
+      await svc.inheritMapScoresOnClassStart(
+        { ...makeInq(), stdId: 'missing' },
+        makeMt(),
+      ),
+    ).toEqual({ matched: 0, applied: false });
+    expect(stdFind).not.toHaveBeenCalled();
+    expect(stdSave).not.toHaveBeenCalled();
+  });
+  it.each([{ testType: 'SSAT' }, { entId: 'other' }, { inqId: 'other' }])(
+    'ignores unrelated scores %p',
+    async (change) => {
+      await svc.inheritMapScoresOnClassStart(
+        makeInq(),
+        makeMt(change as Partial<MapTestTypeormEntity>),
+      );
+      expect(stdSave).not.toHaveBeenCalled();
+    },
+  );
   it('no map-test row → matched=0 applied=false (no decrypt, no find)', async () => {
     const r = await svc.inheritMapScoresOnClassStart(makeInq(), null);
     expect(r).toEqual({ matched: 0, applied: false });
@@ -106,9 +144,13 @@ describe('StdInheritanceService', () => {
     ]);
     const r = await svc.inheritMapScoresOnClassStart(makeInq(), makeMt());
     expect(r).toEqual({ matched: 1, applied: true, stdId: 'std-1' });
-    expect(stdSave).toHaveBeenCalledWith(
-      expect.objectContaining({ mapReading: 220, mapMath: 210, mapLanguage: 200 }),
-    );
+    expect(stdSave).toHaveBeenCalledWith(expect.stringContaining('COALESCE'), [
+      'e1',
+      'std-1',
+      220,
+      210,
+      200,
+    ]);
   });
 
   it('1 match, STD has Math already → only Reading + Language inherited (operator value preserved)', async () => {
@@ -117,9 +159,13 @@ describe('StdInheritanceService', () => {
     ]);
     const r = await svc.inheritMapScoresOnClassStart(makeInq(), makeMt());
     expect(r.applied).toBe(true);
-    expect(stdSave).toHaveBeenCalledWith(
-      expect.objectContaining({ mapReading: 220, mapMath: 195, mapLanguage: 200 }),
-    );
+    expect(stdSave).toHaveBeenCalledWith(expect.stringContaining('COALESCE'), [
+      'e1',
+      'std-1',
+      220,
+      210,
+      200,
+    ]);
   });
 
   it('1 match, all STD fields populated → no save (idempotent)', async () => {
@@ -147,7 +193,12 @@ describe('StdInheritanceService', () => {
     stdFind.mockResolvedValueOnce([]);
     await svc.inheritMapScoresOnClassStart(makeInq(), makeMt());
     expect(stdFind).toHaveBeenCalledWith({
-      where: { entId: 'e1', name: '홍길동', status: 'ACTIVE' },
+      where: {
+        entId: 'e1',
+        name: '홍길동',
+        status: 'ACTIVE',
+        deletedAt: IsNull(),
+      },
     });
   });
 
@@ -155,46 +206,109 @@ describe('StdInheritanceService', () => {
 
   describe('T-19 v2 — name+phone tiered matching', () => {
     it('tier 1: 2 name matches + 1 phone match → applies to phone-match row', async () => {
-      decrypt.mockReturnValueOnce('홍길동').mockReturnValueOnce('010-1234-5678');
+      decrypt
+        .mockReturnValueOnce('홍길동')
+        .mockReturnValueOnce('010-1234-5678');
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: '02-555-0000', mapReading: null, mapMath: null, mapLanguage: null },
-        { id: 'std-2', phone: '010-1234-5678', mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: '02-555-0000',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
+        {
+          id: 'std-2',
+          phone: '010-1234-5678',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
-      const r = await svc.inheritMapScoresOnClassStart(makeInq({ withPhone: true }), makeMt());
+      const r = await svc.inheritMapScoresOnClassStart(
+        makeInq({ withPhone: true }),
+        makeMt(),
+      );
       expect(r).toEqual({ matched: 1, applied: true, stdId: 'std-2' });
       expect(stdSave).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'std-2', mapReading: 220, mapMath: 210, mapLanguage: 200 }),
+        expect.stringContaining('COALESCE'),
+        ['e1', 'std-2', 220, 210, 200],
       );
     });
 
     it('tier 1: phone normalization equates +82 vs 010 forms', async () => {
-      decrypt.mockReturnValueOnce('홍길동').mockReturnValueOnce('+82 10-1234-5678');
+      decrypt
+        .mockReturnValueOnce('홍길동')
+        .mockReturnValueOnce('+82 10-1234-5678');
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: '02-555-0000', mapReading: null, mapMath: null, mapLanguage: null },
-        { id: 'std-2', phone: '010-1234-5678', mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: '02-555-0000',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
+        {
+          id: 'std-2',
+          phone: '010-1234-5678',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
-      const r = await svc.inheritMapScoresOnClassStart(makeInq({ withPhone: true }), makeMt());
+      const r = await svc.inheritMapScoresOnClassStart(
+        makeInq({ withPhone: true }),
+        makeMt(),
+      );
       expect(r.stdId).toBe('std-2');
       expect(r.applied).toBe(true);
     });
 
     it('tier 1: 2 phone matches → ambiguous, no save', async () => {
-      decrypt.mockReturnValueOnce('홍길동').mockReturnValueOnce('010-1234-5678');
+      decrypt
+        .mockReturnValueOnce('홍길동')
+        .mockReturnValueOnce('010-1234-5678');
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: '010-1234-5678', mapReading: null, mapMath: null, mapLanguage: null },
-        { id: 'std-2', phone: '01012345678',   mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: '010-1234-5678',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
+        {
+          id: 'std-2',
+          phone: '01012345678',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
-      const r = await svc.inheritMapScoresOnClassStart(makeInq({ withPhone: true }), makeMt());
+      const r = await svc.inheritMapScoresOnClassStart(
+        makeInq({ withPhone: true }),
+        makeMt(),
+      );
       expect(r).toEqual({ matched: 2, applied: false });
       expect(stdSave).not.toHaveBeenCalled();
     });
 
     it('tier 2 fallback: phone present but no phone hit + 1 name match → applies', async () => {
-      decrypt.mockReturnValueOnce('홍길동').mockReturnValueOnce('010-9999-8888');
+      decrypt
+        .mockReturnValueOnce('홍길동')
+        .mockReturnValueOnce('010-9999-8888');
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: '010-1111-2222', mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: '010-1111-2222',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
-      const r = await svc.inheritMapScoresOnClassStart(makeInq({ withPhone: true }), makeMt());
+      const r = await svc.inheritMapScoresOnClassStart(
+        makeInq({ withPhone: true }),
+        makeMt(),
+      );
       expect(r).toEqual({ matched: 1, applied: true, stdId: 'std-1' });
     });
 
@@ -202,22 +316,35 @@ describe('StdInheritanceService', () => {
       // decrypt is only called for name now (no phone components on inq).
       decrypt.mockReturnValueOnce('홍길동');
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: null, mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: null,
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
       const r = await svc.inheritMapScoresOnClassStart(makeInq(), makeMt());
       expect(r).toEqual({ matched: 1, applied: true, stdId: 'std-1' });
     });
 
     it('phone decrypt failure → falls back to tier 2 (name-only)', async () => {
-      decrypt
-        .mockReturnValueOnce('홍길동')
-        .mockImplementationOnce(() => {
-          throw new Error('GCM auth tag mismatch');
-        });
+      decrypt.mockReturnValueOnce('홍길동').mockImplementationOnce(() => {
+        throw new Error('GCM auth tag mismatch');
+      });
       stdFind.mockResolvedValueOnce([
-        { id: 'std-1', phone: '010-1234-5678', mapReading: null, mapMath: null, mapLanguage: null },
+        {
+          id: 'std-1',
+          phone: '010-1234-5678',
+          mapReading: null,
+          mapMath: null,
+          mapLanguage: null,
+        },
       ]);
-      const r = await svc.inheritMapScoresOnClassStart(makeInq({ withPhone: true }), makeMt());
+      const r = await svc.inheritMapScoresOnClassStart(
+        makeInq({ withPhone: true }),
+        makeMt(),
+      );
       expect(r.applied).toBe(true);
       expect(r.stdId).toBe('std-1');
     });

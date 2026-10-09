@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
 import { StudentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student.typeorm-entity';
@@ -11,6 +11,8 @@ import { MapTestTypeormEntity } from '../infrastructure/typeorm/map-test.typeorm
  * REQ-260626 Q-CSL-102 / T-19 — copy CSL-side MAP scores onto the
  * matching STD student row when an inquiry advances to CLASS_STARTED.
  *
+ * Explicit stdId links are preferred and tenant/deletion checked.
+ * The legacy matching rule below is used only without an explicit link.
  * Matching rule (T-19 v2, REQ-260511 §D7 — tiered fallback):
  *   1. Inquiry's student name (decrypted via AES-GCM) must be set.
  *   2. **Tier 1 (preferred)** — when the inquiry has a phone:
@@ -56,9 +58,22 @@ export class StdInheritanceService {
     inq: InquiryTypeormEntity,
     mt: MapTestTypeormEntity | null,
   ): Promise<{ matched: number; applied: boolean; stdId?: string }> {
-    if (!mt) {
+    if (
+      !mt ||
+      mt.testType !== 'MAP' ||
+      mt.entId !== inq.entId ||
+      mt.inqId !== inq.id
+    ) {
       this.log.debug(`inq ${inq.id}: no map-test row — nothing to inherit`);
       return { matched: 0, applied: false };
+    }
+
+    if (inq.stdId) {
+      const linked = await this.students.findOne({
+        where: { id: inq.stdId, entId: inq.entId, deletedAt: IsNull() },
+      });
+      if (!linked) return { matched: 0, applied: false };
+      return this.fillMissingScores(inq, mt, linked);
     }
 
     const studentName = this.crypto.decrypt({
@@ -72,7 +87,12 @@ export class StdInheritanceService {
     }
 
     const nameMatches = await this.students.find({
-      where: { entId: inq.entId, name: studentName, status: 'ACTIVE' },
+      where: {
+        entId: inq.entId,
+        name: studentName,
+        status: 'ACTIVE',
+        deletedAt: IsNull(),
+      },
     });
 
     if (nameMatches.length === 0) {
@@ -110,32 +130,42 @@ export class StdInheritanceService {
     this.log.debug(
       `inq ${inq.id} → std ${std.id}: matched via tier ${tier} (${tier === 1 ? 'name+phone' : 'name-only'})`,
     );
-    let dirty = false;
-    if (std.mapReading == null && mt.scoreReading != null) {
-      std.mapReading = mt.scoreReading;
-      dirty = true;
-    }
-    if (std.mapMath == null && mt.scoreMath != null) {
-      std.mapMath = mt.scoreMath;
-      dirty = true;
-    }
-    if (std.mapLanguage == null && mt.scoreLanguage != null) {
-      std.mapLanguage = mt.scoreLanguage;
-      dirty = true;
-    }
+    return this.fillMissingScores(inq, mt, std);
+  }
 
-    if (!dirty) {
-      this.log.debug(
-        `inq ${inq.id} → std ${std.id}: no MAP fields to copy (already populated or mpt empty)`,
-      );
+  private async fillMissingScores(
+    inq: InquiryTypeormEntity,
+    mt: MapTestTypeormEntity,
+    std: StudentTypeormEntity,
+  ) {
+    if (
+      !(
+        (std.mapReading == null && mt.scoreReading != null) ||
+        (std.mapMath == null && mt.scoreMath != null) ||
+        (std.mapLanguage == null && mt.scoreLanguage != null)
+      )
+    ) {
       return { matched: 1, applied: false, stdId: std.id };
     }
-
-    await this.students.save(std);
-    this.log.log(
-      `inq ${inq.id} → std ${std.id}: inherited MAP scores R=${std.mapReading} M=${std.mapMath} L=${std.mapLanguage}`,
+    const rows: { std_id: string }[] = await this.students.query(
+      `WITH updated AS (UPDATE amb_acm_std_student SET
+        std_map_reading=COALESCE(std_map_reading,$3),
+        std_map_math=COALESCE(std_map_math,$4),
+        std_map_language=COALESCE(std_map_language,$5), updated_at=now()
+       WHERE ent_id=$1 AND std_id=$2 AND deleted_at IS NULL
+       AND ((std_map_reading IS NULL AND $3::int IS NOT NULL)
+         OR (std_map_math IS NULL AND $4::int IS NOT NULL)
+         OR (std_map_language IS NULL AND $5::int IS NOT NULL))
+       RETURNING std_id) SELECT std_id FROM updated`,
+      [
+        inq.entId,
+        std.id,
+        mt.scoreReading ?? null,
+        mt.scoreMath ?? null,
+        mt.scoreLanguage ?? null,
+      ],
     );
-    return { matched: 1, applied: true, stdId: std.id };
+    return { matched: 1, applied: rows.length > 0, stdId: std.id };
   }
 
   /**

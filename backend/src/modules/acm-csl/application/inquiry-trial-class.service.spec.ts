@@ -26,11 +26,18 @@ describe('InquiryService — demo class + feedback', () => {
   let tcFindOne: jest.Mock;
   let tcSave: jest.Mock;
   let inqFindOne: jest.Mock;
+  const mapFind = jest.fn();
+  const mapSave = jest.fn(async (row: unknown) => row);
+  const inherit = jest.fn();
 
   beforeEach(async () => {
+    inherit.mockReset();
+    mapFind.mockReset();
     tcFindOne = jest.fn();
     tcSave = jest.fn((row) => Promise.resolve(row));
-    inqFindOne = jest.fn().mockResolvedValue({ id: 'inq-1', entId: 'e1', deletedAt: null });
+    inqFindOne = jest
+      .fn()
+      .mockResolvedValue({ id: 'inq-1', entId: 'e1', deletedAt: null });
 
     const mod = await Test.createTestingModule({
       providers: [
@@ -38,18 +45,33 @@ describe('InquiryService — demo class + feedback', () => {
         { provide: AesGcmService, useValue: { decrypt: jest.fn() } },
         { provide: EventEmitter2, useValue: { emit: jest.fn() } },
         { provide: getDataSourceToken(ACM_DS), useValue: {} },
-        { provide: getRepositoryToken(InquiryTypeormEntity, ACM_DS), useValue: { findOne: inqFindOne } },
-        { provide: getRepositoryToken(MapTestTypeormEntity, ACM_DS), useValue: {} },
+        {
+          provide: getRepositoryToken(InquiryTypeormEntity, ACM_DS),
+          useValue: { findOne: inqFindOne },
+        },
+        {
+          provide: getRepositoryToken(MapTestTypeormEntity, ACM_DS),
+          useValue: { findOne: mapFind, save: mapSave },
+        },
         {
           provide: getRepositoryToken(TrialClassTypeormEntity, ACM_DS),
           useValue: { findOne: tcFindOne, save: tcSave },
         },
-        { provide: getRepositoryToken(EnrollmentTypeormEntity, ACM_DS), useValue: {} },
-        { provide: getRepositoryToken(CancellationTypeormEntity, ACM_DS), useValue: {} },
-        { provide: getRepositoryToken(TransitionTypeormEntity, ACM_DS), useValue: {} },
+        {
+          provide: getRepositoryToken(EnrollmentTypeormEntity, ACM_DS),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(CancellationTypeormEntity, ACM_DS),
+          useValue: {},
+        },
+        {
+          provide: getRepositoryToken(TransitionTypeormEntity, ACM_DS),
+          useValue: {},
+        },
         {
           provide: StdInheritanceService,
-          useValue: { inheritMapScoresOnClassStart: jest.fn() },
+          useValue: { inheritMapScoresOnClassStart: inherit },
         },
         {
           provide: CslEnrollmentRegistrationService,
@@ -65,6 +87,51 @@ describe('InquiryService — demo class + feedback', () => {
     svc = mod.get(InquiryService);
   });
 
+  it.each(['legacy', 'typed'])(
+    'syncs linked MAP result via %s',
+    async (route) => {
+      inqFindOne.mockResolvedValue({
+        id: 'inq-1',
+        entId: 'e1',
+        stdId: 'std-1',
+      });
+      mapFind.mockResolvedValue({ id: 'map', testType: 'MAP' });
+      if (route === 'legacy')
+        await svc.recordLevelTestResult(
+          'e1',
+          'inq-1',
+          { testType: 'MAP', scoreReading: 181, scoreMath: 216 },
+          'actor',
+        );
+      else
+        await svc.recordLevelTestResultByType(
+          'e1',
+          'inq-1',
+          'MAP',
+          { scoreReading: 181, scoreMath: 216 },
+          'actor',
+        );
+      expect(inherit).toHaveBeenCalledWith(
+        expect.objectContaining({ stdId: 'std-1' }),
+        expect.objectContaining({
+          testType: 'MAP',
+          scoreReading: 181,
+          scoreMath: 216,
+        }),
+      );
+    },
+  );
+  it('does not match an unlinked late result by name', async () => {
+    mapFind.mockResolvedValue({ id: 'map', testType: 'MAP' });
+    await svc.recordLevelTestResultByType(
+      'e1',
+      'inq-1',
+      'MAP',
+      { scoreReading: 181 },
+      'actor',
+    );
+    expect(inherit).not.toHaveBeenCalled();
+  });
   it('updateTrialClass — 404 when tcl not in tenant', async () => {
     tcFindOne.mockResolvedValueOnce(null);
     await expect(
@@ -74,24 +141,44 @@ describe('InquiryService — demo class + feedback', () => {
 
   it('updateTrialClass — patches independent fields', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1', heldAt: '2026-07-01',
-      completed: false, teacherId: null, heldTime: null, note: null, calEventId: null,
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
+      heldAt: '2026-07-01',
+      completed: false,
+      teacherId: null,
+      heldTime: null,
+      note: null,
+      calEventId: null,
     });
     await svc.updateTrialClass('e1', 'inq-1', 'tcl-1', {
-      teacherId: 'tch-1', heldTime: '14:30', completed: true,
+      teacherId: 'tch-1',
+      heldTime: '14:30',
+      completed: true,
     });
     expect(tcSave).toHaveBeenCalledWith(
       expect.objectContaining({
-        teacherId: 'tch-1', heldTime: '14:30', completed: true,
+        teacherId: 'tch-1',
+        heldTime: '14:30',
+        completed: true,
       }),
     );
   });
 
   it('writeFeedback — stamps authoredBy/At + flips completed=true', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1', completed: false,
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
+      completed: false,
     });
-    await svc.writeFeedback('e1', 'inq-1', 'tcl-1', '학생이 잘 따라옴', 'teacher-1');
+    await svc.writeFeedback(
+      'e1',
+      'inq-1',
+      'tcl-1',
+      '학생이 잘 따라옴',
+      'teacher-1',
+    );
     expect(tcSave).toHaveBeenLastCalledWith(
       expect.objectContaining({
         feedbackBody: '학생이 잘 따라옴',
@@ -103,7 +190,10 @@ describe('InquiryService — demo class + feedback', () => {
 
   it('confirmFeedback — 400 when feedbackBody empty (state machine guard)', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1', feedbackBody: null,
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
+      feedbackBody: null,
     });
     await expect(
       svc.confirmFeedback('e1', 'inq-1', 'tcl-1', 'admin-1'),
@@ -112,7 +202,10 @@ describe('InquiryService — demo class + feedback', () => {
 
   it('confirmFeedback — stamps confirmedBy/At when body present', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1', feedbackBody: 'ok',
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
+      feedbackBody: 'ok',
     });
     await svc.confirmFeedback('e1', 'inq-1', 'tcl-1', 'admin-1');
     expect(tcSave).toHaveBeenLastCalledWith(
@@ -125,7 +218,10 @@ describe('InquiryService — demo class + feedback', () => {
 
   it('markFeedbackDelivered — 400 when not yet confirmed', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1', feedbackConfirmedAt: null,
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
+      feedbackConfirmedAt: null,
     });
     await expect(
       svc.markFeedbackDelivered('e1', 'inq-1', 'tcl-1'),
@@ -134,7 +230,9 @@ describe('InquiryService — demo class + feedback', () => {
 
   it('markFeedbackDelivered — stamps deliveredAt after confirm', async () => {
     tcFindOne.mockResolvedValueOnce({
-      id: 'tcl-1', entId: 'e1', inqId: 'inq-1',
+      id: 'tcl-1',
+      entId: 'e1',
+      inqId: 'inq-1',
       feedbackConfirmedAt: new Date(),
     });
     await svc.markFeedbackDelivered('e1', 'inq-1', 'tcl-1');
