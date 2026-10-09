@@ -91,7 +91,9 @@
       "mapRange": "MAP 점수는 100~350 사이여야 합니다.",
       "nameDuplicate": "같은 이름의 학생이 이미 등록되어 있습니다(재원·비활성·퇴원 포함). 기존 학생을 수정하거나 이름을 구분해 주세요."
     },
-    "teachersHint": "최대 {{max}}명 · 첫 번째가 대표 강사"
+    "teachersHint": "최대 {{max}}명 · 첫 번째가 대표 강사",
+    "emailOptional": "(선택)",
+    "emailOptionalHint": "이메일 없이 학생 등록이 가능합니다."
   },
   "import": {
     "title": "엑셀 업로드 (학생 일괄 등록)",

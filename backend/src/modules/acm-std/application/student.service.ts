@@ -80,7 +80,7 @@ export class StudentService {
   }
 
   /**
-   * PLN-260714 — 학생 이메일은 필수(포털계정 로그인ID) + 테넌트 내 중복 불가.
+   * PLN-260714 — 학생 이메일은 선택 입력이며, 입력 시 테넌트 내 중복 불가.
    * 소프트삭제된 학생은 제외, 대소문자 무시 비교.
    */
   private async assertEmailUnique(
@@ -376,8 +376,6 @@ export class StudentService {
 
   async create(entId: string, dto: CreateStudentDto, actorId?: string) {
     const email = dto.stdEmail?.trim();
-    if (!email && dto.stdStatus !== 'WITHDRAWN')
-      throw new BadRequestException('EMAIL_REQUIRED');
     if (email) await this.assertEmailUnique(entId, email, null);
     await this.assertNameUnique(entId, dto.stdName, null);
 
@@ -490,18 +488,11 @@ export class StudentService {
         if (dto.stdGender !== undefined) entity.gender = dto.stdGender;
         if (dto.stdBirthDate !== undefined) entity.birthDate = dto.stdBirthDate;
         if (dto.stdPhone !== undefined) entity.phone = dto.stdPhone;
-        // PLN-260714 — 수정 후에도 이메일은 반드시 존재해야 하고, 중복이면 저장 불가.
+        // Omitted email preserves the value; an explicit empty value clears it.
         if (dto.stdEmail !== undefined) {
           const email = dto.stdEmail?.trim();
-          if (!email && (dto.stdStatus ?? entity.status) !== 'WITHDRAWN')
-            throw new BadRequestException('EMAIL_REQUIRED');
           if (email) await this.assertEmailUnique(entId, email, id);
-          entity.email = email;
-        } else if (
-          !entity.email?.trim() &&
-          (dto.stdStatus ?? entity.status) !== 'WITHDRAWN'
-        ) {
-          throw new BadRequestException('EMAIL_REQUIRED');
+          entity.email = email || null;
         }
         if (dto.stdResidence !== undefined) entity.residence = dto.stdResidence;
         if (dto.stdSchool !== undefined) entity.school = dto.stdSchool;

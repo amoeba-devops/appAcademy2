@@ -91,7 +91,9 @@
       "mapRange": "MAP 分数必须在 100~350 之间。",
       "nameDuplicate": "已存在同名学生（含非活跃/退学）。请修改现有学生或区分姓名。"
     },
-    "teachersHint": "最多 {{max}} 名 · 第一位为主要负责教师"
+    "teachersHint": "最多 {{max}} 名 · 第一位为主要负责教师",
+    "emailOptional": "（选填）",
+    "emailOptionalHint": "无需电子邮箱也可注册学生。"
   },
   "import": {
     "title": "Excel导入（批量）",

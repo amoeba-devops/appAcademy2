@@ -165,6 +165,7 @@ export function StdFormModal({
       if (k === "stdParents") return;
       if (v !== "") dto[k] = v;
     });
+    dto.stdEmail = values.stdEmail.trim() || null;
     if (isEdit) dto.stdSite = values.stdSite || null;
     // REQ-260903B — 담당강사 복수: 전체 목록 동기화(빈 배열 = 전부 해제).
     dto.stdTeacherIds = selectedTeachers.map((tch) => tch.id);
@@ -359,18 +360,13 @@ export function StdFormModal({
               </div>
               <div>
                 <label className={labelClass}>
-                  {t("field.email", "이메일")}
-                  {!isWithdrawn ? " *" : ""}
+                  {t("field.email", "이메일")} {t("form.emailOptional")}
                 </label>
                 <input
                   placeholder={t("detail.enterValue")}
                   type="email"
                   {...register("stdEmail", {
-                    required:
-                      !isWithdrawn &&
-                      (t("form.error.emailRequired", {
-                        defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
-                      }) as string),
+                    setValueAs: (value: string) => value.trim(),
                     pattern: {
                       value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                       message: t("form.error.emailInvalid", {
@@ -380,6 +376,9 @@ export function StdFormModal({
                   })}
                   className={inputClass}
                 />
+                <p className="mt-1 text-xs text-slate-500">
+                  {t("form.emailOptionalHint")}
+                </p>
                 {errors.stdEmail && (
                   <p className="mt-1 text-xs text-red-600">
                     {errors.stdEmail.message}
