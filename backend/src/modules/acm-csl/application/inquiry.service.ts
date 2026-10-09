@@ -603,7 +603,7 @@ export class InquiryService {
     dto: RecordLevelTestResultDto,
     actorId: string,
   ) {
-    await this.getOrThrow(entId, inqId);
+    const inquiry = await this.getOrThrow(entId, inqId);
     // REQ-260903D — 결과는 해당 testType 행에만 기록 (비결정적 findOne 제거).
     const mt = await this.mapTests.findOne({
       where: { inqId, entId, testType: dto.testType },
@@ -641,7 +641,11 @@ export class InquiryService {
 
     mt.resultEnteredBy = actorId;
     mt.resultEnteredAt = new Date();
-    return this.mapTests.save(mt);
+    const saved = await this.mapTests.save(mt);
+    if (inquiry.stdId && saved.testType === 'MAP') {
+      await this.stdInheritance.inheritMapScoresOnClassStart(inquiry, saved);
+    }
+    return saved;
   }
 
   getMapTest(entId: string, inqId: string) {
@@ -736,7 +740,7 @@ export class InquiryService {
     },
     actorId: string,
   ): Promise<MapTestTypeormEntity> {
-    await this.getOrThrow(entId, inqId);
+    const inquiry = await this.getOrThrow(entId, inqId);
     const mt = await this.mapTests.findOne({
       where: { entId, inqId, testType },
     });
@@ -764,7 +768,11 @@ export class InquiryService {
     }
     mt.resultEnteredBy = actorId;
     mt.resultEnteredAt = new Date();
-    return this.mapTests.save(mt);
+    const saved = await this.mapTests.save(mt);
+    if (inquiry.stdId && saved.testType === 'MAP') {
+      await this.stdInheritance.inheritMapScoresOnClassStart(inquiry, saved);
+    }
+    return saved;
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -1322,9 +1330,9 @@ export class InquiryService {
       // transition; we already saved the inquiry above.
       try {
         const mt = await this.mapTests.findOne({
-          where: { entId, inqId: inq.id },
+          where: { entId, inqId: inq.id, testType: 'MAP' },
         });
-        await this.stdInheritance.inheritMapScoresOnClassStart(inq, mt);
+        await this.stdInheritance.inheritMapScoresOnClassStart(await this.getOrThrow(entId, inq.id), mt);
       } catch (e) {
         // Swallow — surface a structured event so an operator dashboard
         // can flag inquiries whose STD inheritance failed. The transition
