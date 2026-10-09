@@ -1,7 +1,7 @@
 ---
 document_id: STD-CSL-SCORES-ANALYSIS-1.0.0
 version: 1.0.0
-status: Implemented; targeted data corrected; code not deployed
+status: Deployed
 change_log:
   - version: 1.0.0
     description: Investigated missing linked consultation MAP scores.

@@ -1,7 +1,7 @@
 ---
 document_id: STD-CSL-SCORES-BUG-FIX-1.0.0
 version: 1.0.0
-status: Implemented; targeted data corrected; code not deployed
+status: Deployed
 change_log:
   - version: 1.0.0
     description: Investigated missing linked consultation MAP scores.
@@ -9,7 +9,7 @@ change_log:
 # Missing Student MAP Scores (학생 MAP 점수 누락)
 
 ## 1. Status (상태)
-구현 및 대상 학생 점수 보정 완료. 재발 방지 코드는 운영 미배포.
+구현 및 대상 학생 점수 보정 완료. 재발 방지 코드 운영 배포 완료.
 
 ## 2. Findings (결과)
 상담 #109의 MAP 181/216점이 학생 점수에는 없음. 등록 이후 점수 저장의 학생 동기화가 없고, 등록 전환 조회도 MAP 유형 조건이 누락됨.
@@ -35,4 +35,14 @@ change_log:
 실행 시 상담·MAP·학생 행을 잠그고 같은 테넌트 연결, 미삭제 학생, MAP 원본 Reading=181/Math=216 및 단일 결과를 재확인.
 트랜잭션 전: Reading NULL, Math NULL, Language NULL.
 트랜잭션 후: Reading 181, Math 216, Language NULL. UPDATE 1 / COMMIT 확인.
-다른 학생이나 기존 입력 점수는 변경하지 않음. 자동 재발 방지 코드는 별도 PR이며 아직 운영 미배포.
+다른 학생이나 기존 입력 점수는 변경하지 않음. 자동 재발 방지 코드 배포 결과는 아래 7절 참조.
+
+## 7. Production Deployment (운영 배포)
+- PR #315, merge 144df306e78f021e3f60bfd79fb790193fae71d4.
+- 배포 시각: 2026-10-10 08:18:42 KST / 06:18:42 ICT.
+- PR CI 37953763531, main CI 38003352162, staging 38003352159 모두 성공.
+- Production https://github.com/amoeba-devops/appAcademy2/actions/runs/38003727465 성공.
+- frontend/backend 이미지 144df30 running, restarts=0. Health OK, 학생 상세 페이지 HTTP 200, 기동 후 초기 backend error lines=0.
+- 운영에서 실제 상담 점수 입력 요청은 재실행하지 않았다. 저장 기능은 단위/통합 테스트로 검증하고 운영은 배포·서비스 상태만 확인했다.
+- 이번 배포에 DB migration/추가 학생 데이터 보정 없음. 직전 정상 이미지 2a5d2a1을 롤백 기준으로 보관.
+- 로컬 상담 회귀 테스트 총 117개 및 PostgreSQL 통합 테스트 3개 통과.
