@@ -1,7 +1,7 @@
 ---
 document_id: STD-OPTIONAL-EMAIL-REQ-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed
 change_log:
   - version: 1.0.0
     description: Student email optional requirement analysis.

@@ -1,7 +1,7 @@
 ---
 document_id: STD-OPTIONAL-EMAIL-RPT-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed
 change_log:
   - version: 1.0.0
     description: Optional student email implementation and validation results.
@@ -25,4 +25,15 @@ change_log:
 ## 3. Delivery (전달)
 - 별도 브랜치 fix/std-optional-email-261009.
 - 숫자 콤마 PR #312와 분리하여 main 기준 작업.
-- 운영 미배포. 원본 IDE 작업의 기존 소스 및 staged 변경은 유지하고 문서만 복사.
+- 운영 배포 완료. 원본 IDE 작업의 기존 소스 및 staged 변경은 유지하고 문서만 복사.
+
+## 4. Production Deployment (운영 배포)
+- PR #313 merged: 44933cbd2869b14d2404f57bf32ae718881c3048.
+- 배포 시각: 2026-10-09 12:44:46 KST / 10:44:46 ICT.
+- PR CI 37879945984, main CI 37880285633, staging 37880285570: success.
+- Production workflow: https://github.com/amoeba-devops/appAcademy2/actions/runs/37880632299 — success.
+- 운영 frontend/backend 이미지 44933cb, running, restarts=0.
+- Backend health OK, /admin/std HTTP 200, 기동 후 초기 backend error lines=0.
+- 운영 인증 사용자 등록 흐름은 실행하지 않았으며 실제 학생 데이터 변경 없음. 15분 장기 모니터링 결과가 아닌 초기 점검 결과.
+- 롤백 기준: 건강 점검 실패 또는 이번 변경으로 인한 학생 저장 장애 발생 시 직전 이미지 0be036d로 복구.
+- 숫자 콤마 PR #312는 이번 배포에 포함하지 않음.
