@@ -37,6 +37,8 @@ export function OperatingPeriodEditor({
       apiClient.put(url, { ...edit, id: edit?.id ?? undefined, replaceMaster }),
     onSuccess: async () => {
       setEdit(null);
+      if (kind === "STUDENT")
+        qc.invalidateQueries({ queryKey: ["std"] });
       if (kind === "TEACHER")
         qc.invalidateQueries({ queryKey: ["tch", "teachers"] });
       qc.invalidateQueries({ queryKey: ["dsh"] });

@@ -45,7 +45,12 @@ export function useUpdateStudent(id: string) {
       const res = await apiClient.put<StudentDetail>(`/acm/std/students/${id}`, dto);
       return res.data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'students'] }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: [KEY, 'students'] }),
+        qc.invalidateQueries({ queryKey: ['dsh'] }),
+      ]);
+    },
   });
 }
 

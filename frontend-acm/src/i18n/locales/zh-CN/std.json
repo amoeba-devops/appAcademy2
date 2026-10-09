@@ -89,7 +89,10 @@
       "emailInvalid": "邮箱格式不正确。",
       "save": "保存失败。",
       "mapRange": "MAP 分数必须在 100~350 之间。",
-      "nameDuplicate": "已存在同名学生（含非活跃/退学）。请修改现有学生或区分姓名。"
+      "nameDuplicate": "已存在同名学生（含非活跃/退学）。请修改现有学生或区分姓名。",
+      "STUDENT_END_PRECEDES_START": "结束日期不能早于开始日期。",
+      "STUDENT_EDIT_PERIOD_REQUIRED": "无法确定要修改的在读期间。请在学生详情中选择对应期间修改。",
+      "STUDENT_OVERLAPPING_PERIOD": "日期与其他在读期间重叠，请检查。"
     },
     "teachersHint": "最多 {{max}} 名 · 第一位为主要负责教师",
     "emailOptional": "（选填）",

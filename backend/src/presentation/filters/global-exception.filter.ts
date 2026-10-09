@@ -17,18 +17,25 @@ const PG_UNIQUE_VIOLATION = '23505';
  */
 function pgErrorOf(
   exception: unknown,
-): { code?: string; constraint?: string } | null {
+): { code?: string; constraint?: string; message?: string } | null {
   if (!exception || typeof exception !== 'object') return null;
   const e = exception as {
+    message?: unknown;
     code?: unknown;
     constraint?: unknown;
-    driverError?: { code?: unknown; constraint?: unknown };
+    driverError?: { code?: unknown; constraint?: unknown; message?: unknown };
   };
   const src = e.driverError ?? e;
   const code = typeof src.code === 'string' ? src.code : undefined;
   const constraint =
     typeof src.constraint === 'string' ? src.constraint : undefined;
-  return code ? { code, constraint } : null;
+  return code
+    ? {
+        code,
+        constraint,
+        message: typeof src.message === 'string' ? src.message : undefined,
+      }
+    : null;
 }
 
 @Catch()
@@ -45,7 +52,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let code = 'INTERNAL_ERROR';
 
     const pg = pgErrorOf(exception);
+    const studentDateErrors = [
+      'STUDENT_END_PRECEDES_START',
+      'STUDENT_EDIT_PERIOD_REQUIRED',
+      'STUDENT_OVERLAPPING_PERIOD',
+    ];
     if (
+      !(exception instanceof HttpException) &&
+      pg?.code === '23514' &&
+      studentDateErrors.includes(pg.message ?? '')
+    ) {
+      code = pg.message!;
+      message = code;
+      status =
+        code === 'STUDENT_END_PRECEDES_START'
+          ? HttpStatus.BAD_REQUEST
+          : HttpStatus.CONFLICT;
+    } else if (
       !(exception instanceof HttpException) &&
       pg?.code === PG_UNIQUE_VIOLATION
     ) {
