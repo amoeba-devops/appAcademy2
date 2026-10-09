@@ -50,6 +50,12 @@ describe('operating periods PostgreSQL', () => {
       ),
     );
     await ds.query(
+      readFileSync(
+        resolve(__dirname, '../../../../sql/acm/999zz-acm-std-date-sync.sql'),
+        'utf8',
+      ),
+    );
+    await ds.query(
       'ALTER TABLE amb_acm_std_student ADD std_admission_date date',
     );
     await ds.query(`ALTER TABLE amb_acm_dsh_daily_kpi ADD dkp_marketing_visitor int, ADD dkp_last_recompute_reason text, ADD dkp_updated_at timestamptz, ADD dkp_marketing_cost int;
@@ -69,6 +75,113 @@ describe('operating periods PostgreSQL', () => {
       `INSERT INTO amb_acm_std_student VALUES($1,$2,'TPI','2024-12-02',NULL,NULL,'2024-12-01')`,
       [id, a],
     );
+  });
+  async function period(
+    start: string,
+    end: string | null = null,
+    cancelled = false,
+  ) {
+    const [row] = await ds.query(
+      `INSERT INTO amb_acm_dsh_operating_period(ent_id,kind,subject_id,site,start_date,end_date,source_key,cancelled) VALUES($1,'STUDENT',$2,'TPI',$3,$4,gen_random_uuid()::text,$5) RETURNING opr_id`,
+      [a, id, start, end, cancelled],
+    );
+    return row.opr_id;
+  }
+  it('repairs a single mismatched period when changing student dates', async () => {
+    const pid = await period('2026-11-02');
+    await ds.query(
+      `UPDATE amb_acm_std_student SET std_start_date='2026-10-10' WHERE std_id=$1`,
+      [id],
+    );
+    const [p] = await ds.query(
+      `SELECT start_date::text,revision FROM amb_acm_dsh_operating_period WHERE opr_id=$1`,
+      [pid],
+    );
+    expect(p).toEqual({ start_date: '2026-10-10', revision: 2 });
+  });
+  it('syncs a single mismatched period edit back to student dates', async () => {
+    const pid = await period('2026-11-02');
+    await service.savePeriod(a, a, 'STUDENT', id, {
+      id: pid,
+      revision: 1,
+      start: '2026-10-12',
+    });
+    const [s] = await ds.query(
+      `SELECT std_start_date::text FROM amb_acm_std_student WHERE std_id=$1`,
+      [id],
+    );
+    expect(s.std_start_date).toBe('2026-10-12');
+  });
+  it('rejects ambiguous and cancelled-only periods without changing the master', async () => {
+    await period('2026-01-01', '2026-02-01');
+    await period('2026-03-01', '2026-04-01');
+    await expect(
+      ds.query(
+        `UPDATE amb_acm_std_student SET std_start_date='2026-01-02' WHERE std_id=$1`,
+        [id],
+      ),
+    ).rejects.toThrow('STUDENT_EDIT_PERIOD_REQUIRED');
+    await ds.query(`UPDATE amb_acm_dsh_operating_period SET cancelled=true`);
+    await expect(
+      ds.query(
+        `UPDATE amb_acm_std_student SET std_start_date='2026-01-02' WHERE std_id=$1`,
+        [id],
+      ),
+    ).rejects.toThrow('STUDENT_EDIT_PERIOD_REQUIRED');
+    expect(
+      (
+        await ds.query(
+          `SELECT std_start_date::text FROM amb_acm_std_student WHERE std_id=$1`,
+          [id],
+        )
+      )[0].std_start_date,
+    ).toBe('2024-12-02');
+  });
+  it('only edits the matching period and rejects overlap or reversed dates', async () => {
+    const current = await period('2024-12-02', '2025-01-01');
+    await period('2026-03-01', '2026-04-01');
+    await ds.query(
+      `UPDATE amb_acm_std_student SET std_start_date='2024-12-03',std_end_date='2025-01-01' WHERE std_id=$1`,
+      [id],
+    );
+    expect(
+      (
+        await ds.query(
+          `SELECT start_date::text FROM amb_acm_dsh_operating_period WHERE opr_id=$1`,
+          [current],
+        )
+      )[0].start_date,
+    ).toBe('2024-12-03');
+    await expect(
+      ds.query(
+        `UPDATE amb_acm_std_student SET std_end_date='2026-04-02' WHERE std_id=$1`,
+        [id],
+      ),
+    ).rejects.toThrow('STUDENT_OVERLAPPING_PERIOD');
+    await expect(
+      ds.query(
+        `UPDATE amb_acm_std_student SET std_end_date='2024-01-01' WHERE std_id=$1`,
+        [id],
+      ),
+    ).rejects.toThrow('STUDENT_END_PRECEDES_START');
+  });
+  it('does not overwrite representative dates when editing another historical period', async () => {
+    await period('2024-12-02', '2025-01-01');
+    const other = await period('2026-03-01', '2026-04-01');
+    await service.savePeriod(a, a, 'STUDENT', id, {
+      id: other,
+      revision: 1,
+      start: '2026-03-02',
+      end: '2026-04-01',
+    });
+    expect(
+      (
+        await ds.query(
+          `SELECT std_start_date::text FROM amb_acm_std_student WHERE std_id=$1`,
+          [id],
+        )
+      )[0].std_start_date,
+    ).toBe('2024-12-02');
   });
   it('reads master dates live and keeps ALL equal to sites', async () => {
     expect(

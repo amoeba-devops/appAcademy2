@@ -36,6 +36,16 @@ describe('GlobalExceptionFilter', () => {
     });
   });
 
+  it.each([
+    ['STUDENT_END_PRECEDES_START', 400],
+    ['STUDENT_EDIT_PERIOD_REQUIRED', 409],
+    ['STUDENT_OVERLAPPING_PERIOD', 409],
+  ])('maps %s to a user-correctable response', (message, status) => {
+    const out = run({ driverError: { code: '23514', message } });
+    expect(out.status).toBe(status);
+    expect(out.body).toMatchObject({ error: { code: message, message } });
+  });
+
   it('keeps HttpException status/code', () => {
     const out = run(new NotFoundException('STUDENT_NOT_FOUND'));
     expect(out.status).toBe(404);

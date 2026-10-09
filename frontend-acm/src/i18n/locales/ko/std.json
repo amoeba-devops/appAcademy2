@@ -89,7 +89,10 @@
       "emailInvalid": "올바른 이메일 형식이 아닙니다.",
       "save": "저장에 실패했습니다.",
       "mapRange": "MAP 점수는 100~350 사이여야 합니다.",
-      "nameDuplicate": "같은 이름의 학생이 이미 등록되어 있습니다(재원·비활성·퇴원 포함). 기존 학생을 수정하거나 이름을 구분해 주세요."
+      "nameDuplicate": "같은 이름의 학생이 이미 등록되어 있습니다(재원·비활성·퇴원 포함). 기존 학생을 수정하거나 이름을 구분해 주세요.",
+      "STUDENT_END_PRECEDES_START": "종료일은 시작일보다 빠를 수 없습니다.",
+      "STUDENT_EDIT_PERIOD_REQUIRED": "수정할 재원기간이 불명확합니다. 학생 상세의 재원기간에서 해당 기간을 선택해 수정해 주세요.",
+      "STUDENT_OVERLAPPING_PERIOD": "다른 재원기간과 날짜가 겹칩니다. 재원기간을 확인해 주세요."
     },
     "teachersHint": "최대 {{max}}명 · 첫 번째가 대표 강사",
     "emailOptional": "(선택)",

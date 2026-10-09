@@ -89,7 +89,10 @@
       "emailInvalid": "Định dạng email không hợp lệ.",
       "save": "Lưu thất bại.",
       "mapRange": "Điểm MAP phải nằm trong khoảng 100~350.",
-      "nameDuplicate": "Đã có học sinh trùng tên (kể cả không hoạt động/đã nghỉ). Hãy sửa học sinh hiện có hoặc phân biệt tên."
+      "nameDuplicate": "Đã có học sinh trùng tên (kể cả không hoạt động/đã nghỉ). Hãy sửa học sinh hiện có hoặc phân biệt tên.",
+      "STUDENT_END_PRECEDES_START": "Ngày kết thúc không thể trước ngày bắt đầu.",
+      "STUDENT_EDIT_PERIOD_REQUIRED": "Không xác định được kỳ học cần sửa. Hãy chọn kỳ học trong thông tin học sinh.",
+      "STUDENT_OVERLAPPING_PERIOD": "Ngày trùng với kỳ học khác. Vui lòng kiểm tra các kỳ học."
     },
     "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính",
     "emailOptional": "(không bắt buộc)",

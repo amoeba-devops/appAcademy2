@@ -226,7 +226,9 @@ export function StdFormModal({
         (apiErr?.code === "UNIQUE_VIOLATION" &&
           String(rawMsg ?? "").includes("uq_acm_std_ent_name"));
       setServerError(
-        isNameDuplicate
+        typeof code === "string" && code.startsWith("STUDENT_")
+          ? t(`form.error.${code}`, { defaultValue: String(rawMsg ?? code) })
+          : isNameDuplicate
           ? t("form.error.nameDuplicate", {
               defaultValue:
                 "같은 이름의 학생이 이미 등록되어 있습니다(재원·비활성·퇴원 포함). 기존 학생을 수정하거나 이름을 구분해 주세요.",
