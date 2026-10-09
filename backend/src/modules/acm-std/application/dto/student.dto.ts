@@ -18,7 +18,7 @@ import {
   ValidateNested,
   ValidateIf,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export const STD_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 export const STD_STATUSES = ['ACTIVE', 'INACTIVE', 'WITHDRAWN'] as const;
@@ -145,9 +145,12 @@ export class CreateStudentDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() || null : value,
+  )
   @IsEmail()
   @MaxLength(200)
-  stdEmail?: string;
+  stdEmail?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -347,9 +350,12 @@ export class UpdateStudentDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.trim() || null : value,
+  )
   @IsEmail()
   @MaxLength(200)
-  stdEmail?: string;
+  stdEmail?: string | null;
 
   @ApiPropertyOptional()
   @IsOptional()

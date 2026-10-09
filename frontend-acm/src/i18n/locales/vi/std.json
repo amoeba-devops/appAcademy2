@@ -91,7 +91,9 @@
       "mapRange": "Điểm MAP phải nằm trong khoảng 100~350.",
       "nameDuplicate": "Đã có học sinh trùng tên (kể cả không hoạt động/đã nghỉ). Hãy sửa học sinh hiện có hoặc phân biệt tên."
     },
-    "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính"
+    "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính",
+    "emailOptional": "(không bắt buộc)",
+    "emailOptionalHint": "Có thể đăng ký học sinh mà không cần địa chỉ email."
   },
   "import": {
     "title": "Nhập Excel (Hàng loạt)",

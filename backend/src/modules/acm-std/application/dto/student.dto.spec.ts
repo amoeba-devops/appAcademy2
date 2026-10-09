@@ -125,3 +125,36 @@ describe('teacher class information HTTP contract', () => {
     },
   );
 });
+
+describe('optional student email HTTP contract', () => {
+  for (const metatype of [CreateStudentDto, UpdateStudentDto]) {
+    const base = { stdName: 'Fixture', stdSite: 'TPI' };
+    it.each([undefined, null, '', '   '])(
+      `${metatype.name} accepts empty email %p`,
+      async (stdEmail) => {
+        const result = await pipe.transform(
+          { ...base, stdEmail },
+          { type: 'body', metatype },
+        );
+        expect(result.stdEmail).toBe(stdEmail === undefined ? undefined : null);
+      },
+    );
+    it(`${metatype.name} trims valid emails and rejects malformed values`, async () => {
+      const result = await pipe.transform(
+        { ...base, stdEmail: '  fixture@example.test  ' },
+        { type: 'body', metatype },
+      );
+      expect(result.stdEmail).toBe('fixture@example.test');
+      for (const stdEmail of [
+        'invalid',
+        123,
+        {},
+        'x'.repeat(201) + '@example.test',
+      ]) {
+        await expect(
+          pipe.transform({ ...base, stdEmail }, { type: 'body', metatype }),
+        ).rejects.toThrow();
+      }
+    });
+  }
+});
