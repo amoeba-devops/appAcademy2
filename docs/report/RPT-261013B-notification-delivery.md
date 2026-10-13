@@ -49,7 +49,7 @@ change_log:
 ![기기 알림 설정](assets/notifications-261013/settings-390.png)
 
 ## 6. Deployment and Limits (배포 및 검증 제한)
-- 기반 운영 버전 a95390c. 작업 브랜치 feat/notification-delivery-261013. 기존 IDE의 미커밋 소스는 수정하지 않고 독립 복제본에서 작업; 문서·화면 증빙만 복사.
+- PR [#317](https://github.com/amoeba-devops/appAcademy2/pull/317), 구현 커밋 `3fe3ddc`. 기반 운영 버전 a95390c. 작업 브랜치 feat/notification-delivery-261013. 기존 IDE의 미커밋 소스는 수정하지 않고 독립 복제본에서 작업; 문서·화면 증빙만 복사.
 - 기존 talk/inbox 스키마 이후 `sql/acm/1030-notification-delivery.sql` 적용. 알림 유형 확장, 지연 알림 단계 기록, 메일 발송 기록, Push 구독/전달 기록, 메시지 저장 시각 기본값 변경. 운영 적용 전 백업/스테이징 검증 필요.
 - Backend 환경 변수 `WEB_PUSH_PUBLIC_KEY`, `WEB_PUSH_PRIVATE_KEY`, `WEB_PUSH_SUBJECT` 모두 설정해야 기기 푸시 활성화. production/staging compose와 예제 환경 파일에 연결. VAPID 키는 최초 한 번 발급 후 재사용하고 private key는 운영 비밀 설정으로 보관. 코드/보고서에 키 값 없음.
 - 키 미구성 상태에서도 종 알림/읽음/메일 기능은 동작하며 기기 알림 설정에는 준비되지 않음 안내. 이번 작업에서 운영 키 생성·운영 DB 변경·배포는 하지 않음.
