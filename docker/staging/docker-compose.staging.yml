@@ -103,6 +103,9 @@ services:
       postgres-acm:
         condition: service_healthy
     environment:
+      WEB_PUSH_PUBLIC_KEY: ${WEB_PUSH_PUBLIC_KEY:-}
+      WEB_PUSH_PRIVATE_KEY: ${WEB_PUSH_PRIVATE_KEY:-}
+      WEB_PUSH_SUBJECT: ${WEB_PUSH_SUBJECT:-}
       NODE_ENV: production
       PORT: 4000
       REDIS_HOST: redis

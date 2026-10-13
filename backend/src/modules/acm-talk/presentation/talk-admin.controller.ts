@@ -1,3 +1,4 @@
+import { ReadMessageDto } from './read-message.dto';
 import { InviteMembersDto, MemberTargetDto, MemberPathDto } from './room.dto';
 import { ArchiveRoomDto, LeaveRoomDto, RenameRoomDto } from './room.dto';
 import {
@@ -247,8 +248,9 @@ export class TalkAdminController {
   read(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReadMessageDto,
   ) {
-    return this.svc.markRead(u.entId, this.actor(u), id);
+    return this.svc.markRead(u.entId, this.actor(u), id, dto.messageId);
   }
 
   @Delete('messages/:id')

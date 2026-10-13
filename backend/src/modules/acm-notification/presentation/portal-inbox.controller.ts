@@ -1,5 +1,8 @@
+import { PushService } from '../application/push.service';
+import { PushSubscriptionDto } from './push.dto';
 import {
   Body,
+  Delete,
   Controller,
   ForbiddenException,
   Get,
@@ -23,10 +26,28 @@ class ReadAllDto {
 @Controller('portal/notifications/inbox')
 @UseGuards(PortalJwtAuthGuard)
 export class PortalInboxController {
-  constructor(private readonly inbox: InboxService) {}
+  constructor(
+    private readonly inbox: InboxService,
+    private readonly push: PushService,
+  ) {}
   private actor(u: PortalAuthUser): InboxActor {
     if (u.kind !== 'TEACHER') throw new ForbiddenException('TEACHER_ONLY');
     return { entId: u.entId, id: u.refId, kind: 'TEACHER' };
+  }
+  @Get('push-config') pushConfig() {
+    return this.push.info();
+  }
+  @Post('push-subscriptions') subscribe(
+    @PortalUser() u: PortalAuthUser,
+    @Body() dto: PushSubscriptionDto,
+  ) {
+    return this.push.subscribe(this.actor(u), dto);
+  }
+  @Delete('push-subscriptions/:id') unsubscribe(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.push.remove(this.actor(u), id);
   }
   @Get() list(
     @PortalUser() u: PortalAuthUser,

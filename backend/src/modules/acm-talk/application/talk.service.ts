@@ -891,6 +891,28 @@ export class TalkService {
           .map((t) => t.refId),
         payload: { channelId, senderName: names.get(actorKey(actor)) ?? '' },
       });
+      const others = members.filter(
+        (m) =>
+          actorKey(m) !== actorKey(actor) &&
+          !targets.some((t) => actorKey(t) === actorKey(m)),
+      );
+      await enqueueInbox(manager, {
+        entId,
+        actorId: actor.kind === 'USER' ? actor.refId : null,
+        type: 'CHAT_MESSAGE',
+        targetId: saved.id,
+        recipientIds: others
+          .filter((m) => m.kind === 'USER')
+          .map((m) => m.refId),
+        teacherRecipientIds: others
+          .filter((m) => m.kind === 'TEACHER')
+          .map((m) => m.refId),
+        payload: {
+          channelId,
+          title: channel.name ?? '',
+          senderName: names.get(actorKey(actor)) ?? '',
+        },
+      });
       return saved;
     });
     await this.afterSend(entId, channelId, actor, saved);
@@ -929,7 +951,7 @@ export class TalkService {
       );
       if (channel.type === 'DIRECT' && members.length !== 2)
         throw new BadRequestException('DM_PARTICIPANT_LEFT');
-      return manager.save(
+      const saved = await manager.save(
         TalkMessageTypeormEntity,
         this.messageRepo.create({
           entId,
@@ -944,6 +966,21 @@ export class TalkService {
           s3Key: key,
         }),
       );
+      const others = members.filter((m) => actorKey(m) !== actorKey(actor));
+      await enqueueInbox(manager, {
+        entId,
+        actorId: actor.kind === 'USER' ? actor.refId : null,
+        type: 'CHAT_MESSAGE',
+        targetId: saved.id,
+        recipientIds: others
+          .filter((m) => m.kind === 'USER')
+          .map((m) => m.refId),
+        teacherRecipientIds: others
+          .filter((m) => m.kind === 'TEACHER')
+          .map((m) => m.refId),
+        payload: { channelId, title: channel.name ?? '' },
+      });
+      return saved;
     });
     await this.afterSend(entId, channelId, actor, saved);
     const nameMap = await this.resolveNames(entId, [actor]);
@@ -993,18 +1030,25 @@ export class TalkService {
     entId: string,
     actor: TalkActor,
     channelId: string,
+    messageId?: string,
   ): Promise<void> {
     await this.assertMember(entId, channelId, actor);
-    await this.memberRepo.update(
-      {
-        entId,
-        channelId,
-        kind: actor.kind,
-        refId: actor.refId,
-        leftAt: IsNull(),
-      },
-      { lastReadAt: new Date() },
-    );
+    if (!messageId) return; // Older clients must not mark unseen messages using server wall clock.
+    await this.ds.transaction(async (m) => {
+      const rows: { at: string }[] = await m.query(
+        `SELECT created_at::text AS at FROM amb_acm_talk_message WHERE ent_id=$1 AND tlc_id=$2 AND tms_id=$3 AND deleted_at IS NULL`,
+        [entId, channelId, messageId],
+      );
+      if (!rows.length) throw new NotFoundException('MESSAGE_NOT_FOUND');
+      await m.query(
+        `UPDATE amb_acm_talk_member SET tlm_last_read_at=GREATEST(tlm_last_read_at,$5::timestamptz) WHERE ent_id=$1 AND tlc_id=$2 AND tlm_kind=$3 AND tlm_ref_id=$4 AND tlm_left_at IS NULL`,
+        [entId, channelId, actor.kind, actor.refId, rows[0].at],
+      );
+      await m.query(
+        `UPDATE amb_acm_notification_inbox n SET nin_read_at=COALESCE(n.nin_read_at,now()) WHERE n.ent_id=$1 AND n.nin_recipient_kind=$3 AND n.nin_recipient_id=$4 AND n.nin_type IN ('CHAT_MESSAGE','CHAT_MENTION') AND EXISTS(SELECT 1 FROM amb_acm_talk_message msg WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.tlc_id=$2 AND msg.created_at<=$5::timestamptz)`,
+        [entId, channelId, actor.kind, actor.refId, rows[0].at],
+      );
+    });
   }
 
   /** 본인 메시지만 soft delete. */
@@ -1051,16 +1095,7 @@ export class TalkService {
         });
       if (!channel) return;
       const members = manager.getRepository(TalkMemberTypeormEntity);
-      await members.update(
-        {
-          entId,
-          channelId,
-          kind: actor.kind,
-          refId: actor.refId,
-          leftAt: IsNull(),
-        },
-        { lastReadAt: new Date() },
-      );
+      // Sending is not evidence that earlier incoming messages were viewed.
       const current = await members.find({
         where: { entId, channelId, leftAt: IsNull() },
       });

@@ -5,7 +5,9 @@ export interface InboxItem {
     | "CSL_STAGE"
     | "CAL_CREATED"
     | "CAL_UPDATED"
-    | "CHAT_MENTION";
+    | "CHAT_MENTION"
+    | "CHAT_MESSAGE"
+    | "REVIEW_OVERDUE";
   targetId: string;
   payload: {
     seqNo?: number;
@@ -15,6 +17,8 @@ export interface InboxItem {
     count?: number;
     senderName?: string;
     channelId?: string;
+    hours?: number;
+    missing?: string;
   };
   readAt: string | null;
   createdAt: string;

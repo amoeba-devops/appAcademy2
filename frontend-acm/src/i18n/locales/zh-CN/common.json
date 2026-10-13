@@ -941,7 +941,9 @@
       "CSL_STAGE": "咨询状态已更改",
       "CAL_CREATED": "已创建课程日程",
       "CAL_UPDATED": "课程日程已更改",
-      "CHAT_MENTION": "有人在聊天中提及您"
+      "CHAT_MENTION": "有人在聊天中提及您",
+      "CHAT_MESSAGE": "新聊天消息",
+      "REVIEW_OVERDUE": "课程反馈/作业逾期"
     }
   },
   "pay": {
@@ -1218,5 +1220,39 @@
     "saving": "保存中…",
     "save": "保存",
     "saveError": "保存失败。请检查权限和连接后重试。"
+  },
+  "reviewMail": {
+    "open": "向家长发送邮件",
+    "saveFirst": "请先保存反馈。",
+    "savedOnly": "向选中的家长分别发送已保存的反馈。",
+    "retry": "重试",
+    "noSmtp": "需要配置邮件服务器。",
+    "noEmail": "没有关联的家长或邮箱。",
+    "failed": "无法确认发送结果。再次发送前请检查发送记录。",
+    "send": "发送邮件",
+    "SENT": "已发送",
+    "FAILED": "失败",
+    "NO_EMAIL": "无邮箱",
+    "NO_PHONE": "无电话号码",
+    "history": "发送记录",
+    "retryFailed": "重发失败的收件人",
+    "uncertain": "处理中或结果未确认"
+  },
+  "push": {
+    "title": "通知设置",
+    "on": "在此设备上启用",
+    "off": "关闭",
+    "enabled": "已连接",
+    "disabled": "未连接",
+    "unsupported": "此浏览器不支持推送。",
+    "blocked": "请在浏览器设置中允许通知。",
+    "ios": "在 iPhone/iPad 上，将 ACM 添加到主屏幕后在已安装的应用中开启通知。",
+    "unconfigured": "服务器推送配置尚未完成。",
+    "failed": "连接失败。请检查权限和网络后重试。",
+    "close": "关闭"
+  },
+  "reviewMissing": {
+    "feedback": "反馈",
+    "homework": "作业"
   }
 }

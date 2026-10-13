@@ -1,3 +1,4 @@
+import { reviewMissing } from '../../acm-cal/application/review-completion';
 import {
   BadRequestException,
   Injectable,
@@ -22,7 +23,8 @@ const VISIBLE = `u.usr_status='ACTIVE' AND (
  OR (n.nin_type LIKE 'CAL_%' AND (u.usr_role IN ('ADMIN','STAFF','APP_ADMIN') OR
    (u.usr_role='TEACHER' AND EXISTS(SELECT 1 FROM amb_acm_tch_teacher t WHERE t.ent_id=n.ent_id AND t.tch_user_id=u.usr_id AND t.deleted_at IS NULL)))
    AND EXISTS(SELECT 1 FROM amb_acm_cal_event e WHERE e.ent_id=n.ent_id AND e.evt_id=n.nin_target_id AND e.deleted_at IS NULL))
- OR (n.nin_type='CHAT_MENTION' AND u.usr_role IN ('ADMIN','APP_ADMIN') AND EXISTS(
+ OR (n.nin_type='REVIEW_OVERDUE' AND u.usr_role IN ('ADMIN','APP_ADMIN') AND EXISTS(SELECT 1 FROM amb_acm_cal_event e WHERE e.ent_id=n.ent_id AND e.evt_id=n.nin_target_id AND e.deleted_at IS NULL))
+ OR (n.nin_type IN ('CHAT_MENTION','CHAT_MESSAGE') AND u.usr_role IN ('ADMIN','APP_ADMIN') AND EXISTS(
    SELECT 1 FROM amb_acm_talk_message msg JOIN amb_acm_talk_channel c ON c.ent_id=msg.ent_id AND c.tlc_id=msg.tlc_id
    JOIN amb_acm_talk_member member ON member.ent_id=c.ent_id AND member.tlc_id=c.tlc_id
    WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.deleted_at IS NULL AND c.deleted_at IS NULL
@@ -37,11 +39,11 @@ const TEACHER_FROM = `FROM amb_acm_notification_inbox n
  ON p.ent_id=t.ent_id AND p.pac_ref_id=t.tch_id AND p.pac_kind='TEACHER'
  WHERE t.ent_id=n.ent_id AND t.tch_id=$2 AND t.deleted_at IS NULL
  AND p.pac_status='ACTIVE' AND p.pac_locked_at IS NULL)
- AND n.nin_type='CHAT_MENTION' AND EXISTS(
+ AND ((n.nin_type='REVIEW_OVERDUE' AND EXISTS(SELECT 1 FROM amb_acm_cal_event e WHERE e.ent_id=n.ent_id AND e.evt_id=n.nin_target_id AND e.evt_assignee_tch_id=$2 AND e.deleted_at IS NULL)) OR (n.nin_type IN ('CHAT_MENTION','CHAT_MESSAGE') AND EXISTS(
  SELECT 1 FROM amb_acm_talk_message msg JOIN amb_acm_talk_channel c ON c.ent_id=msg.ent_id AND c.tlc_id=msg.tlc_id
  JOIN amb_acm_talk_member member ON member.ent_id=c.ent_id AND member.tlc_id=c.tlc_id
  WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.deleted_at IS NULL AND c.deleted_at IS NULL
- AND member.tlm_kind='TEACHER' AND member.tlm_ref_id=$2 AND member.tlm_left_at IS NULL)`;
+ AND member.tlm_kind='TEACHER' AND member.tlm_ref_id=$2 AND member.tlm_left_at IS NULL)))`;
 const from = (u: InboxActor) =>
   u.kind === 'TEACHER' ? TEACHER_FROM : USER_FROM;
 const eventId = (u: InboxActor) =>
@@ -77,8 +79,9 @@ export class InboxService {
             FROM amb_acm_notification_outbox o CROSS JOIN LATERAL jsonb_array_elements(o.nob_recipients) r
             WHERE o.nob_id=ANY($1::uuid[])
           ) INSERT INTO amb_acm_notification_inbox
-          (ent_id,usr_id,nin_recipient_kind,nin_recipient_id,nob_id,nin_type,nin_target_id,nin_payload)
-          SELECT o.ent_id,CASE WHEN o.kind='USER' THEN o.ref END,o.kind,o.ref,o.nob_id,o.nob_type,o.nob_target_id,o.nob_payload
+          (ent_id,usr_id,nin_recipient_kind,nin_recipient_id,nob_id,nin_type,nin_target_id,nin_payload,nin_read_at)
+          SELECT o.ent_id,CASE WHEN o.kind='USER' THEN o.ref END,o.kind,o.ref,o.nob_id,o.nob_type,o.nob_target_id,o.nob_payload,
+          CASE WHEN o.nob_type IN ('CHAT_MESSAGE','CHAT_MENTION') AND EXISTS(SELECT 1 FROM amb_acm_talk_message msg JOIN amb_acm_talk_member member ON member.ent_id=msg.ent_id AND member.tlc_id=msg.tlc_id WHERE msg.ent_id=o.ent_id AND msg.tms_id=o.nob_target_id AND member.tlm_kind=o.kind AND member.tlm_ref_id=o.ref AND member.tlm_last_read_at>=msg.created_at) THEN now() END
           FROM targets o WHERE (o.kind='USER' AND EXISTS(SELECT 1 FROM amb_acm_user u WHERE u.ent_id=o.ent_id AND u.usr_id=o.ref AND u.usr_status='ACTIVE'))
           OR (o.kind='TEACHER' AND EXISTS(SELECT 1 FROM amb_acm_tch_teacher t JOIN amb_acm_portal_account p
             ON p.ent_id=t.ent_id AND p.pac_ref_id=t.tch_id AND p.pac_kind='TEACHER'
@@ -158,6 +161,47 @@ export class InboxService {
     );
     return row;
   }
+  async unreadItem(u: InboxActor, id: string): Promise<InboxRow | undefined> {
+    const rows: InboxRow[] = await this.ds.query(
+      `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload ${from(u)} AND n.nin_id=$3 AND n.nin_read_at IS NULL`,
+      [u.entId, u.id, id],
+    );
+    const item = rows[0];
+    if (item?.type === 'REVIEW_OVERDUE') {
+      const [review]: {
+        feedbackHtml: string | null;
+        homeworkStatus: string | null;
+        homeworkHtml: string | null;
+        files: number;
+        teacherId: string;
+        endAt: Date;
+      }[] = await this.ds.query(
+        `SELECT r.rvw_feedback_html AS "feedbackHtml",r.rvw_homework_status AS "homeworkStatus",r.rvw_homework_html AS "homeworkHtml",e.evt_assignee_tch_id AS "teacherId",e.evt_end_at AS "endAt",(SELECT count(*)::int FROM amb_acm_cal_event_attachment a WHERE a.ent_id=e.ent_id AND a.evt_id=e.evt_id AND a.cea_kind='HOMEWORK' AND a.deleted_at IS NULL) AS files FROM amb_acm_cal_event e LEFT JOIN amb_acm_cal_event_review r ON r.ent_id=e.ent_id AND r.evt_id=e.evt_id WHERE e.ent_id=$1 AND e.evt_id=$2 AND e.deleted_at IS NULL`,
+        [u.entId, item.targetId],
+      );
+      if (
+        !review ||
+        review.teacherId !== item.payload.teacherId ||
+        Date.now() - review.endAt.getTime() <
+          Number(item.payload.hours) * 3600000 ||
+        !reviewMissing(review, review.files).length
+      )
+        return undefined;
+    }
+    return item;
+  }
+  href(
+    u: InboxActor,
+    n: Pick<InboxRow, 'type' | 'targetId' | 'payload'>,
+  ): string {
+    return n.type === 'REVIEW_OVERDUE'
+      ? `${u.kind === 'TEACHER' ? '/portal/calendar' : '/admin/cal'}/${n.targetId}#review`
+      : n.type.startsWith('CSL_')
+        ? `/admin/csl/${n.targetId}`
+        : n.type.startsWith('CAL_')
+          ? `/admin/cal/${n.targetId}`
+          : `${u.kind === 'TEACHER' ? '/portal' : '/admin'}/chat?channelId=${encodeURIComponent(String(n.payload.channelId))}&messageId=${n.targetId}`;
+  }
   async read(u: InboxActor, id: string) {
     const rows: InboxRow[] = await this.ds.query(
       `SELECT n.nin_id AS id,n.nin_type AS type,n.nin_target_id AS "targetId",n.nin_payload AS payload ${from(u)} AND n.nin_id=$3`,
@@ -170,14 +214,9 @@ export class InboxService {
     );
     this.changes.next({ entId: u.entId, userId: eventId(u) });
     const n = rows[0];
-    return {
-      href: n.type.startsWith('CSL_')
-        ? `/admin/csl/${n.targetId}`
-        : n.type.startsWith('CAL_')
-          ? `/admin/cal/${n.targetId}`
-          : `${u.kind === 'TEACHER' ? '/portal' : '/admin'}/chat?channelId=${encodeURIComponent(String(n.payload.channelId))}&messageId=${n.targetId}`,
-    };
+    return { href: this.href(u, n) };
   }
+
   async readAll(u: InboxActor, asOf: string) {
     if (typeof asOf !== 'string' || !Number.isFinite(Date.parse(asOf)))
       throw new BadRequestException('INVALID_CUTOFF');

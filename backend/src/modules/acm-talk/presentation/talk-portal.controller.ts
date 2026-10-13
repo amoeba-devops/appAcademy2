@@ -1,3 +1,4 @@
+import { ReadMessageDto } from './read-message.dto';
 import { MemberTargetDto } from './room.dto';
 import { ArchiveRoomDto, LeaveRoomDto } from './room.dto';
 import {
@@ -168,8 +169,9 @@ export class TalkPortalController {
   read(
     @PortalUser() u: PortalAuthUser,
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReadMessageDto,
   ) {
-    return this.svc.markRead(u.entId, this.actor(u), id);
+    return this.svc.markRead(u.entId, this.actor(u), id, dto.messageId);
   }
 
   @Delete('messages/:id')

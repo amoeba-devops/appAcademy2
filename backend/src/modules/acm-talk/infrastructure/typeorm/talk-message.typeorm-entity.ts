@@ -50,7 +50,11 @@ export class TalkMessageTypeormEntity {
   @Column({ name: 'tms_s3_key', type: 'varchar', length: 500, nullable: true })
   s3Key?: string | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'clock_timestamp()',
+  })
   createdAt!: Date;
 
   @Column({ name: 'deleted_at', type: 'timestamptz', nullable: true })

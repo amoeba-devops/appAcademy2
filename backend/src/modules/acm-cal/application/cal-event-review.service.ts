@@ -1,3 +1,4 @@
+import { hasReviewContent, reviewMissing } from './review-completion';
 import {
   BadRequestException,
   ForbiddenException,
@@ -94,13 +95,19 @@ export class CalEventReviewService {
     const ids = Array.from(new Set(evtIds.filter(Boolean)));
     if (ids.length === 0) return map;
     const rows = await this.repo.find({ where: { entId, evtId: In(ids) } });
+    const counts: { evtId: string; count: number }[] =
+      await this.repo.manager.query(
+        `SELECT evt_id AS "evtId",count(*)::int AS count FROM amb_acm_cal_event_attachment WHERE ent_id=$1 AND evt_id=ANY($2::uuid[]) AND cea_kind='HOMEWORK' AND deleted_at IS NULL GROUP BY evt_id`,
+        [entId, ids],
+      );
+    const files = new Map(counts.map((c) => [c.evtId, c.count]));
     for (const r of rows) {
-      const hasFeedback = !!r.feedbackHtml?.trim();
+      const hasFeedback = hasReviewContent(r.feedbackHtml);
       const hs = r.homeworkStatus ?? null;
       map.set(r.evtId, {
         hasFeedback,
         homeworkStatus: hs,
-        classDone: hasFeedback && hs !== null,
+        classDone: reviewMissing(r, files.get(r.evtId) ?? 0).length === 0,
       });
     }
     return map;

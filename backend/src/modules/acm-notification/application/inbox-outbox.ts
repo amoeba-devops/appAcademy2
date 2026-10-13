@@ -5,7 +5,9 @@ export type InboxEventType =
   | 'CSL_STAGE'
   | 'CAL_CREATED'
   | 'CAL_UPDATED'
-  | 'CHAT_MENTION';
+  | 'CHAT_MENTION'
+  | 'CHAT_MESSAGE'
+  | 'REVIEW_OVERDUE';
 export interface InboxEvent {
   entId: string;
   actorId?: string | null;
@@ -25,7 +27,8 @@ export async function enqueueInbox(
     `
     SELECT DISTINCT u.usr_id AS id FROM amb_acm_user u
     WHERE u.ent_id=$1 AND u.usr_status='ACTIVE' AND u.usr_id IS DISTINCT FROM $2::uuid
-      AND CASE WHEN $3='CHAT_MENTION' THEN u.usr_role IN ('ADMIN','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
+      AND CASE WHEN $3 IN ('CHAT_MENTION','CHAT_MESSAGE') THEN u.usr_role IN ('ADMIN','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
+      WHEN $3='REVIEW_OVERDUE' THEN u.usr_role IN ('ADMIN','APP_ADMIN')
       ELSE u.usr_role IN ('ADMIN','STAFF','APP_ADMIN') OR
         ($3 LIKE 'CAL_%' AND u.usr_role='TEACHER' AND EXISTS (
           SELECT 1 FROM amb_acm_tch_teacher t WHERE t.ent_id=u.ent_id AND t.tch_user_id=u.usr_id
@@ -39,7 +42,8 @@ export async function enqueueInbox(
     ],
   );
   const teachers: { id: string }[] =
-    event.type === 'CHAT_MENTION' && event.teacherRecipientIds?.length
+    ['CHAT_MENTION', 'CHAT_MESSAGE', 'REVIEW_OVERDUE'].includes(event.type) &&
+    event.teacherRecipientIds?.length
       ? await m.query(
           `SELECT t.tch_id AS id FROM amb_acm_tch_teacher t
         WHERE t.ent_id=$1 AND t.tch_id=ANY($2::uuid[]) AND t.deleted_at IS NULL

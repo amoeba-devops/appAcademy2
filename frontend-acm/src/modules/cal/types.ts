@@ -1,30 +1,35 @@
 // CAL module types — mirrors backend DTO.
 
 export const CAL_CATEGORIES = [
-  'MEETING',
-  'LEVEL_TEST',
-  'DEMO_CLASS',
-  'REGULAR_CLASS',
-  'OTHER',
+  "MEETING",
+  "LEVEL_TEST",
+  "DEMO_CLASS",
+  "REGULAR_CLASS",
+  "OTHER",
 ] as const;
 export type CalCategory = (typeof CAL_CATEGORIES)[number];
 
-export const CAL_PROVIDERS = ['NONE', 'GOOGLE_MEET', 'BODASCHOOL', 'OTHER'] as const;
+export const CAL_PROVIDERS = [
+  "NONE",
+  "GOOGLE_MEET",
+  "BODASCHOOL",
+  "OTHER",
+] as const;
 export type CalMeetingProvider = (typeof CAL_PROVIDERS)[number];
 /** BODA 룸 유형 — 1:1(699) vs 1:N 그룹(881). @see FIX-260724 */
-export const CAL_BODA_ROOM_TYPES = ['ONE_TO_ONE', 'ONE_TO_MANY'] as const;
+export const CAL_BODA_ROOM_TYPES = ["ONE_TO_ONE", "ONE_TO_MANY"] as const;
 export type CalBodaRoomType = (typeof CAL_BODA_ROOM_TYPES)[number];
 
-export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
+export type CalSource = "MANUAL" | "CLS_SESSION" | "INSTANT";
 
-export const CAL_INVITEE_KINDS = ['STUDENT', 'TEACHER', 'PARENT'] as const;
+export const CAL_INVITEE_KINDS = ["STUDENT", "TEACHER", "PARENT"] as const;
 export type CalInviteeKind = (typeof CAL_INVITEE_KINDS)[number];
 
 export type CalInviteeNotifyStatus =
-  | 'SENT'
-  | 'SKIPPED_NO_EMAIL'
-  | 'SKIPPED_NO_SMTP'
-  | 'FAILED';
+  | "SENT"
+  | "SKIPPED_NO_EMAIL"
+  | "SKIPPED_NO_SMTP"
+  | "FAILED";
 
 export interface CalInviteeView {
   id: string;
@@ -67,7 +72,7 @@ export interface CalLinkedAttachment {
 }
 
 export interface CalCslLink {
-  kind: 'DEMO_CLASS' | 'LEVEL_TEST';
+  kind: "DEMO_CLASS" | "LEVEL_TEST";
   inqId: string;
   refId: string;
   feedbackBody?: string | null;
@@ -76,6 +81,7 @@ export interface CalCslLink {
 
 /** PLN-260718 P2 — file attachment on a calendar event. */
 export interface CalEventAttachment {
+  kind?: "GENERAL" | "HOMEWORK";
   id: string;
   filename: string;
   mime: string;
@@ -91,7 +97,7 @@ export interface CalEvent {
   title: string;
   description?: string | null;
   startAt: string; // ISO
-  endAt: string;   // ISO
+  endAt: string; // ISO
   allDay: boolean;
   locationText?: string | null;
   meetingProvider: CalMeetingProvider;
@@ -122,7 +128,7 @@ export interface CalEvent {
   attachments?: CalEventAttachment[];
   /** PLN-260728F B — 수업완료 플래그 (목록 enrich). */
   hasFeedback?: boolean;
-  homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
+  homeworkStatus?: "ASSIGNED" | "NONE" | null;
   classDone?: boolean;
   notifySummary?: NotifySummary | null;
 }

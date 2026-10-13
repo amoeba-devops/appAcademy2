@@ -1,11 +1,12 @@
-import { useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/stores/auth.store';
-import { useToast } from '@/components/ui/toast';
-import { useSseStream } from '@/lib/use-sse-stream';
-import type { TalkMessage, TalkSseEvent } from '@/modules/talk/api/talk-api';
+import { hasDevicePush } from "@/modules/notifications/push-settings";
+import { useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/stores/auth.store";
+import { useToast } from "@/components/ui/toast";
+import { useSseStream } from "@/lib/use-sse-stream";
+import type { TalkMessage, TalkSseEvent } from "@/modules/talk/api/talk-api";
 
 /**
  * REQ-260903C — 관리자 콘솔 전역 실시간 구독 (AppShell 마운트).
@@ -14,7 +15,7 @@ import type { TalkMessage, TalkSseEvent } from '@/modules/talk/api/talk-api';
  *    신규상담 접수 sticky 알림 + 상담 목록 자동 갱신.
  */
 interface AdminSseEvent {
-  type: 'csl:new-inquiry' | 'heartbeat';
+  type: "csl:new-inquiry" | "heartbeat";
   data?: {
     inqId: string;
     actorId?: string | null;
@@ -27,96 +28,114 @@ interface AdminSseEvent {
 const CHAT_PREVIEW_LEN = 40;
 
 export function AdminRealtime() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const qc = useQueryClient();
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
-  const isTalkRole = user?.role === 'ADMIN' || user?.role === 'APP_ADMIN';
+  const isTalkRole = user?.role === "ADMIN" || user?.role === "APP_ADMIN";
 
   const onTalkEvent = useCallback(
     (e: TalkSseEvent) => {
-      void qc.invalidateQueries({ queryKey: ['talk-channels', 'admin'] });
-      void qc.invalidateQueries({ queryKey: ['talk-channel', 'admin'] });
-      if (e.type === 'channel:update') {
-        void qc.invalidateQueries({ queryKey: ['notification-inbox'] });
-        if (e.channelId) qc.removeQueries({ queryKey: ['talk-message-target', 'admin', e.channelId] });
+      void qc.invalidateQueries({ queryKey: ["talk-channels", "admin"] });
+      void qc.invalidateQueries({ queryKey: ["talk-channel", "admin"] });
+      if (e.type === "channel:update") {
+        void qc.invalidateQueries({ queryKey: ["notification-inbox"] });
+        if (e.channelId)
+          qc.removeQueries({
+            queryKey: ["talk-message-target", "admin", e.channelId],
+          });
       }
       if (e.channelId) {
         // 즉시 표시 — message:new 페이로드를 메시지 캐시에 직접 append
         // (mine 은 클라이언트 재계산, 렌더 측 dedupe·정렬이 중복을 흡수).
-        if (e.type === 'message:new' && e.data && user) {
+        if (e.type === "message:new" && e.data && user) {
           const raw = e.data as TalkMessage & { senderRefId?: string };
           const msg: TalkMessage = {
             ...raw,
-            mine: raw.senderKind === 'USER' && raw.senderRefId === user.id,
+            mine: raw.senderKind === "USER" && raw.senderRefId === user.id,
           };
-          qc.setQueryData<{ messages: TalkMessage[]; nextCursor: string | null }>(
-            ['talk-messages', 'admin', e.channelId, `${user.entId}:${user.id}`],
-            (old) =>
-              old ? { ...old, messages: [msg, ...old.messages] } : old,
+          qc.setQueryData<{
+            messages: TalkMessage[];
+            nextCursor: string | null;
+          }>(
+            ["talk-messages", "admin", e.channelId, `${user.entId}:${user.id}`],
+            (old) => (old ? { ...old, messages: [msg, ...old.messages] } : old),
           );
           // 채팅 화면 밖이면 미리보기 토스트 (내 메시지 제외).
-          if (!msg.mine && !location.pathname.startsWith('/admin/chat')) {
+          if (
+            !msg.mine &&
+            !hasDevicePush(`${user.entId}:USER:${user.id}`) &&
+            !(
+              location.pathname.startsWith("/admin/chat") &&
+              new URLSearchParams(location.search).get("channelId") ===
+                e.channelId &&
+              document.visibilityState === "visible" &&
+              document.hasFocus()
+            )
+          ) {
             const preview =
-              msg.type === 'FILE'
-                ? (msg.filename ?? t('realtime.filePreview', '파일'))
+              msg.type === "FILE"
+                ? (msg.filename ?? t("realtime.filePreview", "파일"))
                 : msg.content.slice(0, CHAT_PREVIEW_LEN);
             toast.info(
-              t('realtime.newChat', {
-                defaultValue: '💬 {{name}}: {{preview}}',
+              t("realtime.newChat", {
+                defaultValue: "💬 {{name}}: {{preview}}",
                 name: msg.senderName,
                 preview,
               }),
               {
-                actionLabel: t('realtime.openChat', '채팅 열기'),
-                onAction: () => navigate('/admin/chat'),
+                actionLabel: t("realtime.openChat", "채팅 열기"),
+                onAction: () =>
+                  navigate(
+                    `/admin/chat?channelId=${encodeURIComponent(e.channelId!)}&messageId=${encodeURIComponent(msg.id)}`,
+                  ),
               },
             );
           }
         }
         void qc.invalidateQueries({
-          queryKey: ['talk-messages', 'admin', e.channelId],
+          queryKey: ["talk-messages", "admin", e.channelId],
         });
       }
     },
-    [qc, user, location.pathname, t, toast, navigate],
+    [qc, user, location.pathname, location.search, t, toast, navigate],
   );
 
   const onAdminEvent = useCallback(
     (e: AdminSseEvent) => {
-      if (e.type === 'csl:new-inquiry' && e.data) {
+      if (e.type === "csl:new-inquiry" && e.data) {
         // Own actions update the list without producing a self-notification.
-        void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
-        if(e.data.actorId===user?.id || user?.role==='TEACHER') return;
+        void qc.invalidateQueries({ queryKey: ["csl", "list"] });
+        if (e.data.actorId === user?.id || user?.role === "TEACHER") return;
         // 알림 필수 — sticky (수동 닫기 전 유지).
         toast.info(
-          t('realtime.newInquiry', {
-            defaultValue: '🔔 신규상담 접수 #{{seqNo}}',
+          t("realtime.newInquiry", {
+            defaultValue: "🔔 신규상담 접수 #{{seqNo}}",
             seqNo: e.data.seqNo,
           }),
           {
             sticky: true,
-            actionLabel: t('realtime.openInquiries', '상담 목록 열기'),
+            actionLabel: t("realtime.openInquiries", "상담 목록 열기"),
             onAction: () => navigate(`/admin/csl/${e.data!.inqId}`),
           },
         );
-        void qc.invalidateQueries({ queryKey: ['csl', 'list'] });
+        void qc.invalidateQueries({ queryKey: ["csl", "list"] });
       }
     },
     [toast, t, navigate, qc, user?.id, user?.role],
   );
 
   useSseStream<TalkSseEvent>(
-    '/api/acm/talk/events',
+    "/api/acm/talk/events",
     token,
     onTalkEvent,
     isTalkRole,
   );
   useSseStream<AdminSseEvent>(
-    '/api/acm/notifications/events',
+    "/api/acm/notifications/events",
     token,
     onAdminEvent,
     !!user,
