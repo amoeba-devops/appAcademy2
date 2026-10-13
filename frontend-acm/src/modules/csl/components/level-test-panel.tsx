@@ -378,7 +378,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
       )}
 
       <div className="grid gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] p-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <Label className="text-sm font-semibold">
               {t('detail.levelTest.addTypeLabel', {
@@ -444,7 +444,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
       </div>
 
       {/* Unified PDF */}
-      <div className="flex justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
+      <div className="flex flex-wrap justify-end gap-2 border-t border-[var(--border-subtle)] pt-3">
         <Button
           type="button"
           variant="outline"

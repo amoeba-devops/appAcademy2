@@ -216,7 +216,7 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
         <h3 className="text-xs font-semibold text-secondary mb-2">
           {t("detail.trial.addNew")}
         </h3>
-        <div className="grid grid-cols-[1fr_140px_1fr_auto] gap-2 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)_auto] gap-2 items-end">
           <div className="grid gap-1">
             <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
             <Input
@@ -388,7 +388,7 @@ function DemoClassRow({
 
       {/* Edit row — date + time + teacher. REQ-260903F: 날짜 수정 허용 +
           변경 시 연동 캘린더 일정이 자동 동기화된다. */}
-      <div className="grid grid-cols-[150px_120px_1fr_auto] gap-2 items-end mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[150px_120px_minmax(0,1fr)_auto] gap-2 items-end mb-3">
         <div className="grid gap-1">
           <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
           <Input

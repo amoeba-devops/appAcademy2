@@ -548,7 +548,7 @@ export function IntakeStagePanel({
 
 
       {/* 5. Save + advance */}
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
         <Button
           type="button"
           variant="outline"
@@ -560,6 +560,7 @@ export function IntakeStagePanel({
         {onAfterAdvance && (
           <Button
             type="button"
+            className="h-auto min-h-11 max-w-full whitespace-normal py-2 md:min-h-0"
             onClick={() => save.mutate({ advance: true })}
             disabled={save.isPending}
           >
@@ -976,7 +977,7 @@ function SiteOverrideRow({ inqId, inq }: { inqId: string; inq: Inquiry }) {
   return (
     <div className="grid grid-cols-[120px_1fr] gap-1 items-center">
       <span className="text-xs text-secondary">{t('detail.intake.field.siteOverride')}</span>
-      <span className="flex items-center gap-2 text-sm">
+      <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
         <select
           className="h-7 rounded-md border border-[var(--border-subtle)] bg-surface px-2 text-xs"
           value={inq.siteOverride ?? ''}

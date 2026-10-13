@@ -97,7 +97,7 @@ export function MapApplyListPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">{t('mapApply.title')}</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowImport(true)}>
             <Upload size={14} className="mr-1" />
             {t('mapApply.actions.import')}

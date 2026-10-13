@@ -234,9 +234,9 @@ export function CslDetailBody({
     : (selectedStage ?? inq.currentStage);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid min-w-0 gap-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           {onBack && (
             <button
@@ -296,7 +296,7 @@ export function CslDetailBody({
             </p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex min-w-0 flex-wrap items-start gap-2 lg:max-w-[55%]">
           {inq.currentStage === "PAYMENT" && (
             <label className="text-xs">
               {t("std:site.label")}
@@ -334,7 +334,7 @@ export function CslDetailBody({
             ))}
           {/* REQ-260922E — 다음 단계로 가기 전에 무엇을 입력해야 하는지 미리 안내 */}
           {!isDropped && allowedForward.length > 0 && (
-            <div className="basis-full text-xs text-secondary">
+            <div data-testid="transition-hints" className="hidden basis-full text-xs text-secondary md:block">
               {allowedForward.map((s) => (
                 <p key={`hint-${s}`}>
                   <span className="font-medium">{t(`stage.${s}`)}</span>
@@ -384,8 +384,8 @@ export function CslDetailBody({
         onSelect={(stage) => setSelectedStage(stage)}
       />
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <div className="grid gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="grid min-w-0 grid-cols-1 gap-4">
           {effectiveSelected === "INTAKE" && (
             <IntakeStagePanel
               inqId={inq.id}
