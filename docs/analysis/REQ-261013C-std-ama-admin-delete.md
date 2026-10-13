@@ -1,7 +1,7 @@
 ---
 document_id: ACM-STD-DELETE-REQ-1.0.0
 version: 1.1.0
-status: Implemented; not deployed
+status: Deployed to production
 change_log:
   - version: 1.1.0
     description: User requested inactive management, test-only permanent deletion and retained deletion history.
