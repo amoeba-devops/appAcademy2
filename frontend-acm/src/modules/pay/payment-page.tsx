@@ -945,7 +945,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
               </table>
             </div>
             {!data.data.items.length && <p>{tr("empty")}</p>}
-            <div className="flex gap-3 items-center">
+            <div className="flex flex-wrap gap-3 items-center">
               <span>
                 {tr("count")}: {data.data.summary.count}
               </span>

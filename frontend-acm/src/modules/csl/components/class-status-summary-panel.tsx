@@ -532,10 +532,10 @@ function Info({
 }) {
   return (
     <div
-      className={compact ? "grid gap-1" : "grid grid-cols-[120px_1fr] gap-1"}
+      className={compact ? "grid gap-1" : "grid grid-cols-1 gap-1 sm:grid-cols-[120px_minmax(0,1fr)]"}
     >
       <span className="text-xs text-secondary">{label}</span>
-      <span className="text-sm whitespace-pre-wrap break-words">{value}</span>
+      <span className="min-w-0 text-sm whitespace-pre-wrap break-words">{value}</span>
     </div>
   );
 }

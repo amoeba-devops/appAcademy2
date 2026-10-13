@@ -265,7 +265,7 @@ export function SchoolListPage() {
           </table>
         </div>
       )}
-      <div className="flex justify-end items-center gap-3 text-sm">
+      <div className="flex flex-wrap justify-end items-center gap-3 text-sm">
         <button disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
           {t("catalog.previous")}
         </button>
@@ -399,7 +399,7 @@ export function SchoolChildModal({
               ? t("gradeBands.title", { school: school.name })
               : t("schedules.title", { school: school.name })}
           </h2>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {tab === "bands" && (
               <button
                 onClick={() => setBandForm({ open: true, initial: null })}

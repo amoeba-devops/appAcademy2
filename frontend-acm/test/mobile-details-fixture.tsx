@@ -1,0 +1,34 @@
+// Synthetic local fixture: all requests intercepted, no live API or persisted writes.
+import {createRoot} from 'react-dom/client';
+import {MemoryRouter} from 'react-router-dom';
+import {QueryClient,QueryClientProvider} from '@tanstack/react-query';
+import {CslDetailBody} from '../src/modules/csl/pages/csl-detail-page';
+import {MapApplyListPage} from '../src/modules/csl/pages/map-apply-list-page';
+import {SchoolListPage} from '../src/modules/sch/pages/school-list-page';
+import {StdListPage} from '../src/modules/std/pages/std-list-page';
+import {TchListPage} from '../src/modules/tch/pages/tch-list-page';
+import {AdminContentLayout} from '../src/components/layout/admin-content-layout';
+import {ConfirmProvider} from '../src/components/ui/confirm-dialog';
+import {ToastProvider} from '../src/components/ui/toast';
+import {useAuthStore} from '../src/stores/auth.store';
+import {apiClient} from '../src/lib/api-client';
+import {AxiosError} from 'axios';
+import i18n from '../src/i18n';
+import '../src/styles/globals.css';
+const params=new URLSearchParams(location.search);
+void i18n.changeLanguage(params.get('locale')||'ko');
+const stage=params.get('stage')||'INTAKE',page=params.get('page')||'csl';
+const inquiry={id:'fixture-inquiry',seqNo:999,studentName:'모바일검증학생 Alexandra Long Student Name',parentName:'테스트 학부모',parentPhone:'010-0000-0000',parentEmail:'parent@example.invalid',phoneStatus:'PROVIDED',isAnonymous:false,schoolFreetext:'테스트 국제학교',grade:'G7',kind:'TUTORING',inflowType:'PHONE',sourceSite:'TPI',applyType:'BOTH',applyPurposes:[],consultDone:'NO',currentStage:stage,registeredAt:'2026-10-13',updatedAt:'2026-10-13T00:00:00Z',birthdate:'2013-01-01',gender:'F'};
+useAuthStore.setState({token:null,user:{id:'fixture-user',entId:'fixture-tenant',role:'ADMIN',authSource:'ama'},portal:{token:null,user:null},parent:{token:null,user:null}});
+apiClient.defaults.adapter=async(config)=>{
+ const url=config.url||'';let data:unknown=[];
+ if(config.method!=='get')throw new AxiosError('Fixture validation error','ERR_BAD_REQUEST',config,undefined,{data:{message:'GATE_TRIAL_SKIP_REQUIRES_MAP'},status:400,statusText:'Bad Request',headers:{},config});
+ if(url==='/acm/csl/inquiries/fixture-inquiry')data=inquiry;
+ else if(url.endsWith('/enrollment')||url.endsWith('/map-test'))data=null;
+ else if(url.includes('/deletion/access'))data={canDelete:true};
+ else if(url.includes('/teachers')||url.includes('/students')||url.includes('/schools')||url.includes('/map-applications'))data={items:[],total:0};
+ else if(url.endsWith('/attachments'))data=[{id:'file-test',filename:'긴파일명_테스트학생의레벨테스트결과_abcdefghijklmnopqrstuvwxyz012345678901234567890.pdf',sizeBytes:12000,mime:'application/pdf',category:'GENERAL',createdAt:'2026-10-13T00:00:00Z'}];
+ return {data:{success:true,data},status:200,statusText:'OK',headers:{},config};
+};
+const views:Record<string,React.ReactNode>={csl:<CslDetailBody inqId="fixture-inquiry" onBack={()=>{}}/>,map:<MapApplyListPage/>,school:<SchoolListPage/>,student:<StdListPage/>,teacher:<TchListPage/>};
+createRoot(document.getElementById('root')!).render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><MemoryRouter initialEntries={['/admin/'+page]}><ToastProvider><ConfirmProvider><div className="admin-shell"><header className="h-14 border-b px-3 flex items-center">ACM · 합성 데이터 모바일 검증</header><main className="p-3"><AdminContentLayout>{views[page]}</AdminContentLayout></main></div></ConfirmProvider></ToastProvider></MemoryRouter></QueryClientProvider>);

@@ -32,7 +32,7 @@ export function CslStageStepper({
   const selectedIdx = selectedStage ? ORDER.indexOf(selectedStage) : currentIdx;
 
   return (
-    <ol className="flex items-center gap-2 overflow-x-auto pb-2">
+    <ol className="flex min-w-0 max-w-full items-center gap-2 overflow-x-auto pb-2">
       {ORDER.map((s, i) => {
         // "Done" = past stages relative to currentStage (server truth)
         const done = currentIdx > i;
@@ -43,7 +43,7 @@ export function CslStageStepper({
         const clickable = !!onSelect && reachable;
 
         return (
-          <li key={s} className="flex items-center gap-2">
+          <li key={s} className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               disabled={!clickable}
@@ -55,7 +55,7 @@ export function CslStageStepper({
                   : undefined
               }
               className={
-                `flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition ` +
+                `flex min-h-11 md:min-h-0 items-center gap-2 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition ` +
                 (active
                   ? 'border-accent-500 bg-accent-50 text-accent-700 font-medium ring-2 ring-accent-200'
                   : done

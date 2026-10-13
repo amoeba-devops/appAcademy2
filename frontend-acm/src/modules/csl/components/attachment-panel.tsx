@@ -226,7 +226,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
           <div className="grid gap-1 text-[11px]">
             {Object.entries(progress).map(([name, pct]) => (
               <div key={name} className="flex items-center gap-2">
-                <span className="truncate flex-1">{name}</span>
+                <span className="min-w-0 truncate flex-1">{name}</span>
                 <span className="w-12 text-right text-secondary">{Math.round(pct)}%</span>
               </div>
             ))}
@@ -252,9 +252,9 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="flex items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1.5"
+                className="flex min-w-0 flex-wrap items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1.5"
               >
-                <span className="text-xs flex-1 truncate">{r.filename}</span>
+                <span className="min-w-0 basis-full break-all text-xs md:basis-auto md:flex-1 md:truncate">{r.filename}</span>
                 <span className="text-[10px] text-secondary">
                   {(Number(r.sizeBytes) / 1024).toFixed(0)} KB
                 </span>

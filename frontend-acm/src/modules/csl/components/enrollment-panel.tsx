@@ -514,7 +514,7 @@ export function EnrollmentPanel({
           </>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="submit"
             variant={isCounselStage ? 'outline' : 'default'}
@@ -659,8 +659,8 @@ function TeacherAssignmentsBlock({
         ))}
       </ul>
 
-      <div className="flex gap-2 items-end">
-        <div className="grid gap-1 flex-1">
+      <div className="flex flex-wrap gap-2 items-end">
+        <div className="grid min-w-0 basis-full gap-1 md:basis-auto md:flex-1">
           <Label className="text-xs">
             {t('detail.enrollment.assignTeacher')}
           </Label>
@@ -758,7 +758,7 @@ function ClassMinutesField({
   const presets = [60, 90, 120];
   return (
     <div className="grid gap-1.5">
-      <div className="flex gap-1.5 items-center">
+      <div className="flex flex-wrap gap-1.5 items-center">
         <span className="text-[11px] text-secondary mr-1">{presetLabel}:</span>
         {presets.map((m) => {
           const active = currentValue === String(m);
