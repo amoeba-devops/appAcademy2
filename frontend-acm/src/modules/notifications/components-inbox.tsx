@@ -1,3 +1,4 @@
+import { PushSettings, PushSessionSync } from "./push-settings";
 import { useCallback, useEffect, useState } from "react";
 import {
   useInfiniteQuery,
@@ -6,7 +7,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/auth.store";
 import { apiClient } from "@/lib/api-client";
@@ -41,9 +42,52 @@ function useInboxSession(mode: InboxMode) {
 export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
   const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
+  const [settings, setSettings] = useState(false);
   const { user, token, key } = useInboxSession(mode);
   const base = inboxBase(mode);
   const qc = useQueryClient();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [linkError, setLinkError] = useState(false);
+  useEffect(() => {
+    const id = new URLSearchParams(location.search).get("notificationId");
+    if (!id || !user || !token) return;
+    let active = true;
+    void apiClient
+      .patch<{ href: string }>(`${base}/${encodeURIComponent(id)}/read`)
+      .then((res) => {
+        if (!active) return;
+        void qc.invalidateQueries({ queryKey: ["notification-inbox", mode] });
+        navigate(res.data.href, { replace: true });
+      })
+      .catch(() => {
+        if (!active) return;
+        const params = new URLSearchParams(location.search);
+        params.delete("notificationId");
+        navigate(
+          location.pathname +
+            (params.size ? "?" + params.toString() : "") +
+            location.hash,
+          { replace: true },
+        );
+        setLinkError(true);
+        setOpen(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [
+    base,
+    mode,
+    user,
+    token,
+    location.search,
+    location.pathname,
+    location.hash,
+    navigate,
+    qc,
+  ]);
+
   useEffect(
     () => () => {
       qc.removeQueries({
@@ -100,11 +144,29 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
           </span>
         )}
       </button>
+      <PushSessionSync mode={mode} />
+      <Dialog open={settings} onOpenChange={setSettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("push.title")}</DialogTitle>
+          </DialogHeader>
+          <PushSettings mode={mode} />
+        </DialogContent>
+      </Dialog>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="left-auto right-4 top-16 w-[calc(100vw-2rem)] max-w-lg translate-x-0 translate-y-0">
           <DialogHeader>
             <DialogTitle>{t("inbox.title")}</DialogTitle>
           </DialogHeader>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              setSettings(true);
+            }}
+          >
+            {t("push.title")}
+          </Button>
+          {linkError && <p role="alert">{t("inbox.unavailable")}</p>}
           <InboxList mode={mode} compact onNavigate={() => setOpen(false)} />
         </DialogContent>
       </Dialog>
@@ -123,6 +185,12 @@ function Summary({ item }: { item: InboxItem }) {
         {p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
         {p.fromStage && p.toStage
           ? ` · ${t("csl:stage." + p.fromStage, { defaultValue: p.fromStage })} → ${t("csl:stage." + p.toStage, { defaultValue: p.toStage })}`
+          : ""}
+        {p.hours
+          ? ` · ${p.hours}h · ${String(p.missing ?? "")
+              .split(",")
+              .map((k) => t("reviewMissing." + k))
+              .join(", ")}`
           : ""}
         {p.count ? ` · ${t("inbox.occurrences", { count: p.count })}` : ""}
       </span>

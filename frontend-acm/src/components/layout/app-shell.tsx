@@ -1,8 +1,9 @@
-import { useConfigAccess } from '@/modules/cfg/hooks/use-config-access';
-import { NotificationBell } from '@/modules/notifications/components-inbox';
+import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
+import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
+import { NotificationBell } from "@/modules/notifications/components-inbox";
 import { AdminContentLayout } from "./admin-content-layout";
 import { StudentNavigation } from "@/modules/std/components/student-navigation";
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Link,
   NavLink,
@@ -10,7 +11,7 @@ import {
   Outlet,
   useLocation,
   useNavigate,
-} from 'react-router-dom';
+} from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -38,49 +39,49 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { clsx } from 'clsx';
-import { useQuery } from '@tanstack/react-query';
-import { LanguageSwitcher } from '@/components/layout/language-switcher';
-import { AdminRealtime } from '@/components/layout/admin-realtime';
-import { useAuthStore } from '@/stores/auth.store';
-import { useMyMenus } from '@/modules/system/hooks/use-my-menus';
-import { talkApi } from '@/modules/talk/api/talk-api';
-import { useUiStore } from '@/stores/ui.store';
-import { me as fetchMe } from '@/modules/auth/api/auth-api';
-import { useIsDesktop, useIsMobile } from '@/hooks/use-media-query';
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { clsx } from "clsx";
+import { useQuery } from "@tanstack/react-query";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { AdminRealtime } from "@/components/layout/admin-realtime";
+import { useAuthStore } from "@/stores/auth.store";
+import { useMyMenus } from "@/modules/system/hooks/use-my-menus";
+import { talkApi } from "@/modules/talk/api/talk-api";
+import { useUiStore } from "@/stores/ui.store";
+import { me as fetchMe } from "@/modules/auth/api/auth-api";
+import { useIsDesktop, useIsMobile } from "@/hooks/use-media-query";
 
 const NAV = [
-  { to: '/admin/dashboard', icon: LayoutDashboard, key: 'dashboard' },
-  { to: '/admin/csl', icon: Users, key: 'csl' },
+  { to: "/admin/dashboard", icon: LayoutDashboard, key: "dashboard" },
+  { to: "/admin/csl", icon: Users, key: "csl" },
   // CSL-PLN-260916 — 맵테스트 신청 목록
-  { to: '/admin/test', icon: FileText, key: 'mapApply' },
-  { to: '/admin/std', icon: UserRound, key: 'std' },
-  { to: '/admin/std/parents', icon: Users2, key: 'parents' },
-  { to: '/admin/cls', icon: GraduationCap, key: 'cls' },
-  { to: '/admin/tch', icon: UserCog, key: 'tch' },
-  { to: '/admin/stf', icon: Briefcase, key: 'stf' },
-  { to: '/admin/cal', icon: CalendarDays, key: 'cal' },
+  { to: "/admin/test", icon: FileText, key: "mapApply" },
+  { to: "/admin/std", icon: UserRound, key: "std" },
+  { to: "/admin/std/parents", icon: Users2, key: "parents" },
+  { to: "/admin/cls", icon: GraduationCap, key: "cls" },
+  { to: "/admin/tch", icon: UserCog, key: "tch" },
+  { to: "/admin/stf", icon: Briefcase, key: "stf" },
+  { to: "/admin/cal", icon: CalendarDays, key: "cal" },
   // PLN-260729-2 — 수업통계 대시보드
-  { to: '/admin/cal-stats', icon: BarChart3, key: 'calStats' },
-  { to: '/admin/complaints', icon: MessageCircleQuestion, key: 'complaints' },
-  { to: '/admin/sch', icon: School, key: 'sch' },
-  { to: '/admin/ref', icon: BookOpen, key: 'ref' },
-  { to: '/admin/posts', icon: Newspaper, key: 'posts' },
-  { to: '/admin/notifications', icon: Bell, key: 'notifications' },
-  { to: '/admin/enrollments', icon: ClipboardList, key: 'enrollments' },
-  { to: '/admin/pay', icon: Wallet, key: 'pay' },
-  { to: '/admin/map', icon: BookOpenCheck, key: 'map' },
-  { to: '/admin/qna', icon: MessageCircleQuestion, key: 'qna' },
+  { to: "/admin/cal-stats", icon: BarChart3, key: "calStats" },
+  { to: "/admin/complaints", icon: MessageCircleQuestion, key: "complaints" },
+  { to: "/admin/sch", icon: School, key: "sch" },
+  { to: "/admin/ref", icon: BookOpen, key: "ref" },
+  { to: "/admin/posts", icon: Newspaper, key: "posts" },
+  { to: "/admin/notifications", icon: Bell, key: "notifications" },
+  { to: "/admin/enrollments", icon: ClipboardList, key: "enrollments" },
+  { to: "/admin/pay", icon: Wallet, key: "pay" },
+  { to: "/admin/map", icon: BookOpenCheck, key: "map" },
+  { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna" },
   // REQ-260728C — 로비채팅 (운영자↔강사)
-  { to: '/admin/chat', icon: MessagesSquare, key: 'chat' },
-  { to: '/admin/config', icon: Settings, key: 'config' },
+  { to: "/admin/chat", icon: MessagesSquare, key: "chat" },
+  { to: "/admin/config", icon: Settings, key: "config" },
 ] as const;
 
 export function AppShell() {
-  const { t } = useTranslation('common');
-  const { t: tAuth } = useTranslation('auth');
+  const { t } = useTranslation("common");
+  const { t: tAuth } = useTranslation("auth");
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
   const navigate = useNavigate();
@@ -110,10 +111,10 @@ export function AppShell() {
   useEffect(() => {
     if (!drawerOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setDrawerOpen(false);
+      if (e.key === "Escape") setDrawerOpen(false);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [drawerOpen]);
 
   // REQ-260621 v1.1 / PLN-260728E — per-tenant 메뉴 가시성 + 순서(UI-only).
@@ -137,13 +138,18 @@ export function AppShell() {
     return keys;
   })();
   const rank = new Map(orderedKeys.map((k, i) => [k, i]));
-  const visibleNav = NAV.filter((n) => (n.key === 'config' ? configAccess.allowed : !hiddenSet.has(n.key)) && (n.key !== 'pay' || ['ADMIN','APP_ADMIN','STAFF'].includes(user?.role ?? '')))
+  const visibleNav = NAV.filter(
+    (n) =>
+      (n.key === "config" ? configAccess.allowed : !hiddenSet.has(n.key)) &&
+      (n.key !== "pay" ||
+        ["ADMIN", "APP_ADMIN", "STAFF"].includes(user?.role ?? "")),
+  )
     .slice()
     .sort((a, b) => (rank.get(a.key) ?? 999) - (rank.get(b.key) ?? 999));
 
   const onLogout = () => {
     clear();
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
 
   // FIX-260914 — 세션에 authSource 가 없는 사용자는 /me 로 한 번 보충한다.
@@ -169,10 +175,15 @@ export function AppShell() {
   }, [token, user, setAuth]);
 
   // REQ-260903C — 사이드바 채팅 미읽음 배지 (전역, 이벤트 시 invalidate 로 갱신).
-  const isTalkRole = user?.role === 'ADMIN' || user?.role === 'APP_ADMIN';
+  const isTalkRole = user?.role === "ADMIN" || user?.role === "APP_ADMIN";
   const { data: talkChannels } = useQuery({
-    queryKey: ['talk-channels', 'admin', `${user?.entId ?? ''}:${user?.id ?? ''}`, 'active'],
-    queryFn: () => talkApi.channels('admin'),
+    queryKey: [
+      "talk-channels",
+      "admin",
+      `${user?.entId ?? ""}:${user?.id ?? ""}`,
+      "active",
+    ],
+    queryFn: () => talkApi.channels("admin"),
     enabled: isTalkRole,
     refetchInterval: 60_000,
     refetchIntervalInBackground: true,
@@ -199,7 +210,7 @@ export function AppShell() {
               type="button"
               onClick={() => setDrawerOpen(true)}
               className="-ml-1 rounded-md p-2 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
-              aria-label={t('nav.openMenu', '메뉴 열기')}
+              aria-label={t("nav.openMenu", "메뉴 열기")}
               aria-expanded={drawerOpen}
             >
               <Menu size={20} />
@@ -212,13 +223,13 @@ export function AppShell() {
                 className="-ml-1 rounded-md p-2 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
                 aria-label={
                   iconOnly
-                    ? t('nav.expandMenu', '메뉴 펼치기')
-                    : t('nav.collapseMenu', '메뉴 접기')
+                    ? t("nav.expandMenu", "메뉴 펼치기")
+                    : t("nav.collapseMenu", "메뉴 접기")
                 }
                 title={
                   iconOnly
-                    ? t('nav.expandMenu', '메뉴 펼치기')
-                    : t('nav.collapseMenu', '메뉴 접기')
+                    ? t("nav.expandMenu", "메뉴 펼치기")
+                    : t("nav.collapseMenu", "메뉴 접기")
                 }
               >
                 {iconOnly ? (
@@ -235,6 +246,7 @@ export function AppShell() {
           </Link>
         </div>
         <div className="flex min-w-0 items-center gap-1 sm:gap-3">
+          <ChatUnreadLink mode="admin" />
           <NotificationBell />
           <LanguageSwitcher />
         </div>
@@ -251,12 +263,13 @@ export function AppShell() {
 
       <aside
         className={clsx(
-          'fixed left-0 top-header bottom-0 z-20 bg-surface border-r border-[var(--border-subtle)] flex flex-col transition-[width,transform] duration-200',
-          iconOnly ? 'w-sidebar-icon' : 'w-sidebar',
+          "fixed left-0 top-header bottom-0 z-20 bg-surface border-r border-[var(--border-subtle)] flex flex-col transition-[width,transform] duration-200",
+          iconOnly ? "w-sidebar-icon" : "w-sidebar",
           // 모바일은 드로어 — 닫히면 화면 밖으로 밀어둔다.
-          isMobile && (drawerOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'),
+          isMobile &&
+            (drawerOpen ? "translate-x-0 shadow-xl" : "-translate-x-full"),
         )}
-        aria-label={t('nav.mainMenu', '주 메뉴')}
+        aria-label={t("nav.mainMenu", "주 메뉴")}
         aria-hidden={isMobile && !drawerOpen}
       >
         {isMobile && (
@@ -264,71 +277,82 @@ export function AppShell() {
             type="button"
             onClick={() => setDrawerOpen(false)}
             className="absolute right-2 top-2 rounded-md p-1.5 text-secondary hover:bg-[var(--gray-100)]"
-            aria-label={t('nav.closeMenu', '메뉴 닫기')}
+            aria-label={t("nav.closeMenu", "메뉴 닫기")}
           >
             <X size={18} />
           </button>
         )}
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
-          {visibleNav.map(({ to, icon: Icon, key }) => key === "std" ? <StudentNavigation key={to} iconOnly={iconOnly} onNavigate={() => setDrawerOpen(false)} /> : (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors',
-                  iconOnly ? 'justify-center px-0' : 'px-3',
-                  isActive
-                    ? 'bg-accent-50 text-accent-700'
-                    : 'text-secondary hover:bg-[var(--gray-100)]',
-                )
-              }
-              title={iconOnly ? t(`nav.${key}`) : undefined}
-              aria-label={iconOnly ? t(`nav.${key}`) : undefined}
-            >
-              <span className="relative shrink-0">
-                <Icon size={18} />
-                {/* 아이콘 모드에서는 숫자 배지가 들어갈 자리가 없어 점으로 줄인다. */}
-                {iconOnly && key === 'chat' && chatUnread > 0 && (
-                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
-                )}
-              </span>
-              {!iconOnly && (
-                <>
-                  <span className="flex-1">{t(`nav.${key}`)}</span>
-                  {key === 'chat' && chatUnread > 0 && (
-                    <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
-                      {chatUnread > 99 ? '99+' : chatUnread}
-                    </span>
+          {visibleNav.map(({ to, icon: Icon, key }) =>
+            key === "std" ? (
+              <StudentNavigation
+                key={to}
+                iconOnly={iconOnly}
+                onNavigate={() => setDrawerOpen(false)}
+              />
+            ) : (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  clsx(
+                    "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+                    iconOnly ? "justify-center px-0" : "px-3",
+                    isActive
+                      ? "bg-accent-50 text-accent-700"
+                      : "text-secondary hover:bg-[var(--gray-100)]",
+                  )
+                }
+                title={iconOnly ? t(`nav.${key}`) : undefined}
+                aria-label={iconOnly ? t(`nav.${key}`) : undefined}
+              >
+                <span className="relative shrink-0">
+                  <Icon size={18} />
+                  {/* 아이콘 모드에서는 숫자 배지가 들어갈 자리가 없어 점으로 줄인다. */}
+                  {iconOnly && key === "chat" && chatUnread > 0 && (
+                    <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-red-500" />
                   )}
-                </>
-              )}
-            </NavLink>
-          ))}
+                </span>
+                {!iconOnly && (
+                  <>
+                    <span className="flex-1">{t(`nav.${key}`)}</span>
+                    {key === "chat" && chatUnread > 0 && (
+                      <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-semibold text-white">
+                        {chatUnread > 99 ? "99+" : chatUnread}
+                      </span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ),
+          )}
         </nav>
 
         {/* REQ-260621 — user info + logout pinned to the sidebar bottom. */}
         <div className="border-t border-[var(--border-subtle)] px-2 py-3">
-          {user?.role === 'APP_ADMIN' && (
+          {user?.role === "APP_ADMIN" && (
             <NavLink
               to="/system/admin"
               className={({ isActive }) =>
                 clsx(
-                  'mb-2 flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors',
-                  iconOnly ? 'justify-center px-0' : 'px-3',
+                  "mb-2 flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+                  iconOnly ? "justify-center px-0" : "px-3",
                   isActive
-                    ? 'bg-accent-50 text-accent-700'
-                    : 'text-secondary hover:bg-[var(--gray-100)]',
+                    ? "bg-accent-50 text-accent-700"
+                    : "text-secondary hover:bg-[var(--gray-100)]",
                 )
               }
             >
               <ShieldCheck size={18} />
-              {!iconOnly && t('nav.systemAdmin')}
+              {!iconOnly && t("nav.systemAdmin")}
             </NavLink>
           )}
           {/* 아이콘 모드에서는 이메일을 숨긴다 — 64px 안에서 읽을 수 없다. */}
           {user?.email && !iconOnly && (
-            <div className="px-3 pb-2 text-xs text-secondary truncate" title={user.email}>
+            <div
+              className="px-3 pb-2 text-xs text-secondary truncate"
+              title={user.email}
+            >
               {user.email}
             </div>
           )}
@@ -336,26 +360,28 @@ export function AppShell() {
             type="button"
             onClick={onLogout}
             className={clsx(
-              'flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-secondary transition-colors hover:bg-[var(--gray-100)] hover:text-primary',
-              iconOnly ? 'justify-center px-0' : 'px-3',
+              "flex w-full items-center gap-3 rounded-md py-2 text-sm font-medium text-secondary transition-colors hover:bg-[var(--gray-100)] hover:text-primary",
+              iconOnly ? "justify-center px-0" : "px-3",
             )}
-            aria-label={tAuth('session.logout')}
-            title={iconOnly ? tAuth('session.logout') : undefined}
+            aria-label={tAuth("session.logout")}
+            title={iconOnly ? tAuth("session.logout") : undefined}
           >
             <LogOut size={18} />
-            {!iconOnly && tAuth('session.logout')}
+            {!iconOnly && tAuth("session.logout")}
           </button>
         </div>
       </aside>
 
       <main
         className={clsx(
-          'mt-header p-3 sm:p-4 lg:p-6 transition-[margin] duration-200',
+          "mt-header p-3 sm:p-4 lg:p-6 transition-[margin] duration-200",
           // 모바일은 드로어라 본문을 밀지 않는다.
-          isMobile ? 'ml-0' : iconOnly ? 'ml-sidebar-icon' : 'ml-sidebar',
+          isMobile ? "ml-0" : iconOnly ? "ml-sidebar-icon" : "ml-sidebar",
         )}
       >
-        <AdminContentLayout><Outlet /></AdminContentLayout>
+        <AdminContentLayout>
+          <Outlet />
+        </AdminContentLayout>
       </main>
     </div>
   );

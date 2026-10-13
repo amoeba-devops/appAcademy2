@@ -941,7 +941,9 @@
       "CSL_STAGE": "Trạng thái tư vấn đã thay đổi",
       "CAL_CREATED": "Đã tạo lịch học",
       "CAL_UPDATED": "Lịch học đã thay đổi",
-      "CHAT_MENTION": "Bạn được nhắc đến trong trò chuyện"
+      "CHAT_MENTION": "Bạn được nhắc đến trong trò chuyện",
+      "CHAT_MESSAGE": "Tin nhắn mới",
+      "REVIEW_OVERDUE": "Nhận xét/bài tập quá hạn"
     }
   },
   "pay": {
@@ -1218,5 +1220,39 @@
     "saving": "Đang lưu…",
     "save": "Lưu",
     "saveError": "Không lưu được. Kiểm tra quyền và kết nối rồi thử lại."
+  },
+  "reviewMail": {
+    "open": "Gửi email cho phụ huynh",
+    "saveFirst": "Vui lòng lưu nhận xét trước.",
+    "savedOnly": "Gửi nhận xét đã lưu riêng cho từng phụ huynh được chọn.",
+    "retry": "Thử lại",
+    "noSmtp": "Cần cấu hình máy chủ email.",
+    "noEmail": "Chưa liên kết phụ huynh hoặc thiếu email.",
+    "failed": "Không xác nhận được kết quả. Kiểm tra lịch sử trước khi gửi lại.",
+    "send": "Gửi email",
+    "SENT": "Đã gửi",
+    "FAILED": "Thất bại",
+    "NO_EMAIL": "Thiếu email",
+    "NO_PHONE": "Thiếu số điện thoại",
+    "history": "Lịch sử gửi",
+    "retryFailed": "Gửi lại cho người nhận thất bại",
+    "uncertain": "Đang gửi hoặc chưa xác nhận"
+  },
+  "push": {
+    "title": "Cài đặt thông báo",
+    "on": "Bật trên thiết bị này",
+    "off": "Tắt",
+    "enabled": "Đã kết nối",
+    "disabled": "Chưa kết nối",
+    "unsupported": "Trình duyệt không hỗ trợ thông báo đẩy.",
+    "blocked": "Cho phép thông báo trong cài đặt trình duyệt.",
+    "ios": "Trên iPhone/iPad, thêm ACM vào màn hình chính rồi bật thông báo trong ứng dụng đã cài.",
+    "unconfigured": "Máy chủ chưa cấu hình thông báo đẩy.",
+    "failed": "Kết nối thất bại. Kiểm tra quyền và mạng rồi thử lại.",
+    "close": "Đóng"
+  },
+  "reviewMissing": {
+    "feedback": "Nhận xét",
+    "homework": "Bài tập"
   }
 }

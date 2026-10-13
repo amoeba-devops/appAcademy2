@@ -196,8 +196,10 @@ export const talkApi = {
     URL.revokeObjectURL(url);
   },
 
-  markRead: async (mode: TalkMode, channelId: string) => {
-    await apiClient.post(`${base(mode)}/channels/${channelId}/read`);
+  markRead: async (mode: TalkMode, channelId: string, messageId: string) => {
+    await apiClient.post(`${base(mode)}/channels/${channelId}/read`, {
+      messageId,
+    });
   },
 
   deleteMessage: async (mode: TalkMode, messageId: string) => {

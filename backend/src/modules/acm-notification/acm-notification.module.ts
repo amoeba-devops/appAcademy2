@@ -1,3 +1,5 @@
+import { PushService } from './application/push.service';
+import { ReviewReminderService } from './application/review-reminder.service';
 import { PortalInboxController } from './presentation/portal-inbox.controller';
 import { InboxService } from './application/inbox.service';
 import { InboxController } from './presentation/inbox.controller';
@@ -40,6 +42,8 @@ import { AmaOpenNotificationModule } from '../../infrastructure/external/ama/ope
     AmaForwardController, // REQ-261006
   ],
   providers: [
+    ReviewReminderService,
+    PushService,
     InboxService,
     AmaForwardService, // REQ-261006
     NotificationService,

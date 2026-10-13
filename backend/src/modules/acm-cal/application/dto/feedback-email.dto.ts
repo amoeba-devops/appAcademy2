@@ -1,8 +1,10 @@
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayUnique,
   ArrayNotEmpty,
   IsArray,
+  IsISO8601,
   IsOptional,
   IsString,
   IsUUID,
@@ -22,6 +24,7 @@ export class FeedbackEmailRecipientDto {
 export class SendFeedbackEmailDto {
   @IsArray()
   @ArrayNotEmpty()
+  @ArrayUnique((r: FeedbackEmailRecipientDto) => `${r.stdId}:${r.parId}`)
   @ArrayMaxSize(100)
   @ValidateNested({ each: true })
   @Type(() => FeedbackEmailRecipientDto)
@@ -31,4 +34,9 @@ export class SendFeedbackEmailDto {
   @IsString()
   @MaxLength(200)
   subject?: string;
+}
+
+export class PortalFeedbackEmailDto extends SendFeedbackEmailDto {
+  @IsUUID() requestId!: string;
+  @IsISO8601() @MaxLength(40) expectedUpdatedAt!: string;
 }

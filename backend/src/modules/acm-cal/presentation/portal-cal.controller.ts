@@ -1,3 +1,5 @@
+import { FeedbackMailerService } from '../application/feedback-mailer.service';
+import { PortalFeedbackEmailDto } from '../application/dto/feedback-email.dto';
 import { RecurrenceService } from '../application/recurrence.service';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
@@ -48,12 +50,60 @@ import { ListCalEventsQueryDto } from '../application/dto/cal-event.dto';
 export class PortalCalController {
   constructor(
     private readonly svc: CalEventService,
+    private readonly feedbackMailer: FeedbackMailerService,
     private readonly recurrence: RecurrenceService,
     private readonly attachmentSvc: CalEventAttachmentService,
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
     private readonly recordingSvc: BodaRecordingService,
   ) {}
+
+  private async assertReviewAuthor(u: PortalAuthUser, id: string) {
+    if (u.kind !== 'TEACHER') throw new ForbiddenException('TEACHER_ONLY');
+    await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
+    const event = await this.svc.getEventMeta(u.entId, id);
+    this.reviewSvc.assertAssignee(event.assigneeTchId, u.refId);
+  }
+
+  @Get(':id/review/recipients')
+  async feedbackRecipients(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.assertReviewAuthor(u, id);
+    const view = await this.feedbackMailer.listRecipients(u.entId, id);
+    return {
+      smtpConfigured: view.smtpConfigured,
+      hasFeedback: view.hasFeedback,
+      students: view.students.map((s) => ({
+        stdId: s.stdId,
+        stdName: s.stdName,
+        parents: s.parents.map((p) => ({
+          parId: p.parId,
+          name: p.name,
+          email: p.email,
+        })),
+      })),
+    };
+  }
+
+  @Get(':id/review/email-history')
+  async feedbackHistory(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    await this.assertReviewAuthor(u, id);
+    return this.feedbackMailer.teacherHistory(u.entId, id, u.refId);
+  }
+  @Post(':id/review/send-email')
+  async sendFeedback(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: PortalFeedbackEmailDto,
+  ) {
+    await this.assertReviewAuthor(u, id);
+    return this.feedbackMailer.sendForTeacher(u.entId, id, u.refId, dto);
+  }
 
   // ── 녹화본 (PLN-260728F C) ──────────────────────────────────────────
 

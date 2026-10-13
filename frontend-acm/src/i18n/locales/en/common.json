@@ -941,7 +941,9 @@
       "CSL_STAGE": "Consultation status changed",
       "CAL_CREATED": "Class schedule created",
       "CAL_UPDATED": "Class schedule updated",
-      "CHAT_MENTION": "You were mentioned in chat"
+      "CHAT_MENTION": "You were mentioned in chat",
+      "CHAT_MESSAGE": "New chat message",
+      "REVIEW_OVERDUE": "Class feedback/homework overdue"
     }
   },
   "pay": {
@@ -1218,5 +1220,39 @@
     "saving": "Saving…",
     "save": "Save",
     "saveError": "Unable to save. Check your permission and connection, then retry."
+  },
+  "reviewMail": {
+    "open": "Email parents",
+    "saveFirst": "Save the feedback first.",
+    "savedOnly": "Send the saved feedback individually to the selected parents.",
+    "retry": "Retry",
+    "noSmtp": "Email server setup is required.",
+    "noEmail": "No linked parent or email address.",
+    "failed": "Could not confirm delivery. Check the send history before sending again.",
+    "send": "Send email",
+    "SENT": "Sent",
+    "FAILED": "Failed",
+    "NO_EMAIL": "No email",
+    "NO_PHONE": "No phone",
+    "history": "Send history",
+    "retryFailed": "Retry failed recipients",
+    "uncertain": "In progress or unconfirmed"
+  },
+  "push": {
+    "title": "Notification settings",
+    "on": "Enable on this device",
+    "off": "Disable",
+    "enabled": "Connected",
+    "disabled": "Not connected",
+    "unsupported": "Push is not supported in this browser.",
+    "blocked": "Allow notifications in browser settings.",
+    "ios": "On iPhone/iPad, add ACM to the Home Screen and enable notifications from the installed app.",
+    "unconfigured": "Server push setup is not ready.",
+    "failed": "Connection failed. Check permission and network, then try again.",
+    "close": "Close"
+  },
+  "reviewMissing": {
+    "feedback": "Feedback",
+    "homework": "Homework"
   }
 }

@@ -208,7 +208,7 @@ describe('TalkService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
-  it('sendMessage validates content and emits SSE + updates read pointer', async () => {
+  it('sendMessage validates content and emits SSE without marking unseen messages read', async () => {
     const { svc, sse, memberRepo } = build({
       channel: groupChannel(),
       member: activeMember(),
@@ -235,7 +235,7 @@ describe('TalkService', () => {
       '안녕하세요',
     );
     expect(view).toMatchObject({ content: '안녕하세요', mine: true });
-    expect(memberRepo.update).toHaveBeenCalled(); // 발신자 read 포인터
+    expect(memberRepo.update).not.toHaveBeenCalled(); // Sending alone does not acknowledge unseen incoming messages
     expect(sse.emit).toHaveBeenCalledWith(
       'e1',
       ['USER:22222222-2222-4222-8222-222222222222'],

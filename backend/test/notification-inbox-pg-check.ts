@@ -35,8 +35,13 @@ async function main() {
   await ds.query(
     readFileSync('../sql/acm/1025-notification-inbox.sql', 'utf8'),
   );
-  await ds.query(readFileSync('../sql/acm/999y-chat-room-management.sql', 'utf8'));
+  await ds.query(
+    readFileSync('../sql/acm/999y-chat-room-management.sql', 'utf8'),
+  );
   await ds.query(readFileSync('../sql/acm/999z-chat-participants.sql', 'utf8'));
+  await ds.query(
+    readFileSync('../sql/acm/1030-notification-delivery.sql', 'utf8'),
+  );
   const ent = randomUUID(),
     other = randomUUID(),
     actor = randomUUID(),
@@ -305,20 +310,85 @@ async function main() {
       countBefore + 2,
       'failed room leaves no notification',
     );
-    const csl=Object.create(InquiryService.prototype) as InquiryService;
-    Object.assign(csl,{ds,inq:ds.getRepository(Inquiry),transitions:ds.getRepository(Transition),events:{emit:()=>{}},
-      crypto:{encrypt:(v:string)=>({ciphertext:Buffer.from(v),iv:Buffer.alloc(12),authTag:Buffer.alloc(16)}),decrypt:()=>''},
-      tenantSettings:{getTimezone:async()=> 'Asia/Seoul'},toView:(e:Inquiry)=>({id:e.id})});
-    const cslBefore=await outboxCount();
-    const consultation=await csl.create(ent,{studentName:'Synthetic student',inflowType:'PHONE',applyType:'BOTH',schoolFreetext:'Test school'},actor);
-    assert.equal(await outboxCount(),cslBefore+1,'consultation creation queues notification');
-    await csl.applyTransition(ent,await csl.getOrThrow(ent,consultation.id),'DROPPED','CANCEL','OTHER','test',actor);
-    assert.equal(await outboxCount(),cslBefore+2,'consultation state change queues notification');
-    const failing=Object.create(InquiryService.prototype) as InquiryService;
-    Object.assign(failing,{ds,inq:ds.getRepository(Inquiry),transitions:{create:()=>{throw Error('simulated audit write failure');}},events:{emit:()=>{}}});
-    await assert.rejects(failing.applyTransition(ent,await csl.getOrThrow(ent,consultation.id),'INTAKE','REACTIVATE',undefined,undefined,actor));
-    assert.equal((await csl.getOrThrow(ent,consultation.id)).currentStage,'DROPPED','failed transition rolls back state');
-    assert.equal(await outboxCount(),cslBefore+2,'failed transition leaves no notification');
+    const csl = Object.create(InquiryService.prototype) as InquiryService;
+    Object.assign(csl, {
+      ds,
+      inq: ds.getRepository(Inquiry),
+      transitions: ds.getRepository(Transition),
+      events: { emit: () => {} },
+      crypto: {
+        encrypt: (v: string) => ({
+          ciphertext: Buffer.from(v),
+          iv: Buffer.alloc(12),
+          authTag: Buffer.alloc(16),
+        }),
+        decrypt: () => '',
+      },
+      tenantSettings: { getTimezone: async () => 'Asia/Seoul' },
+      toView: (e: Inquiry) => ({ id: e.id }),
+    });
+    const cslBefore = await outboxCount();
+    const consultation = await csl.create(
+      ent,
+      {
+        studentName: 'Synthetic student',
+        inflowType: 'PHONE',
+        applyType: 'BOTH',
+        schoolFreetext: 'Test school',
+      },
+      actor,
+    );
+    assert.equal(
+      await outboxCount(),
+      cslBefore + 1,
+      'consultation creation queues notification',
+    );
+    await csl.applyTransition(
+      ent,
+      await csl.getOrThrow(ent, consultation.id),
+      'DROPPED',
+      'CANCEL',
+      'OTHER',
+      'test',
+      actor,
+    );
+    assert.equal(
+      await outboxCount(),
+      cslBefore + 2,
+      'consultation state change queues notification',
+    );
+    const failing = Object.create(InquiryService.prototype) as InquiryService;
+    Object.assign(failing, {
+      ds,
+      inq: ds.getRepository(Inquiry),
+      transitions: {
+        create: () => {
+          throw Error('simulated audit write failure');
+        },
+      },
+      events: { emit: () => {} },
+    });
+    await assert.rejects(
+      failing.applyTransition(
+        ent,
+        await csl.getOrThrow(ent, consultation.id),
+        'INTAKE',
+        'REACTIVATE',
+        undefined,
+        undefined,
+        actor,
+      ),
+    );
+    assert.equal(
+      (await csl.getOrThrow(ent, consultation.id)).currentStage,
+      'DROPPED',
+      'failed transition rolls back state',
+    );
+    assert.equal(
+      await outboxCount(),
+      cslBefore + 2,
+      'failed transition leaves no notification',
+    );
     console.log(
       'PASS: rollback, 5 event types, tenant/recipient isolation, delivery concurrency/deduplication, read ownership/cutoff, pagination, deletion, mentions/deep links, self exclusion, membership revocation',
     );

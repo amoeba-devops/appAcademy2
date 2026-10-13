@@ -175,7 +175,8 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
 
   return (
     <>
-      {mode === "admin" && !isMobile &&
+      {mode === "admin" &&
+        !isMobile &&
         support?.target &&
         createPortal(participants, support.target)}
       {(mode === "portal" || isMobile) && (
@@ -301,7 +302,9 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
             onDismiss={clearActive}
             targetMessageId={linkedChannel === active.id ? linkedMessage : null}
             onShowParticipants={() =>
-              mode === "admin" && !isMobile ? support?.show() : setParticipantsOpen(true)
+              mode === "admin" && !isMobile
+                ? support?.show()
+                : setParticipantsOpen(true)
             }
           />
         ) : (
@@ -439,20 +442,54 @@ function ChatPane({
     );
   }, [older, data]);
 
-  // 방 진입·새 메시지 수신 시 읽음 처리 + 하단 스크롤.
+  // Observe the latest message boundary, not a background-mounted component.
   const lastId = messages[messages.length - 1]?.id;
+  const followBottom = useRef(true);
   useEffect(() => {
     if (!lastId) return;
-    void talkApi
-      .markRead(mode, channel.id)
-      .then(() => {
-        void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
-      })
-      .catch(() => undefined);
-    if (!targetMessageId) {
-      const list = bottomRef.current?.parentElement;
-      if (list) list.scrollTop = list.scrollHeight;
-    }
+    const list = bottomRef.current?.parentElement;
+    if (!list) return;
+    const visible = () =>
+      document.visibilityState === "visible" &&
+      document.hasFocus() &&
+      list.getClientRects().length > 0;
+    let inFlight = false;
+    const acknowledge = () => {
+      if (
+        !visible() ||
+        list.scrollHeight - list.scrollTop - list.clientHeight > 40 ||
+        inFlight
+      )
+        return;
+      inFlight = true;
+      void talkApi
+        .markRead(mode, channel.id, lastId)
+        .then(() => {
+          void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
+          void qc.invalidateQueries({ queryKey: ["notification-inbox", mode] });
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          inFlight = false;
+        });
+    };
+    const onScroll = () => {
+      followBottom.current =
+        list.scrollHeight - list.scrollTop - list.clientHeight < 40;
+      acknowledge();
+    };
+    if (visible() && followBottom.current && !targetMessageId)
+      list.scrollTop = list.scrollHeight;
+    const frame = requestAnimationFrame(acknowledge);
+    list.addEventListener("scroll", onScroll);
+    document.addEventListener("visibilitychange", acknowledge);
+    window.addEventListener("focus", acknowledge);
+    return () => {
+      cancelAnimationFrame(frame);
+      list.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", acknowledge);
+      window.removeEventListener("focus", acknowledge);
+    };
   }, [mode, channel.id, lastId, qc, targetMessageId]);
 
   const loadOlder = useMutation({
@@ -581,7 +618,9 @@ function ChatPane({
             key={m.id}
             className={`flex ${m.mine ? "justify-end" : "justify-start"}`}
           >
-            <div className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${m.mine ? "text-right" : ""}`}>
+            <div
+              className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${m.mine ? "text-right" : ""}`}
+            >
               {!m.mine && (
                 <div className="mb-0.5 flex items-center gap-1 text-[11px] text-secondary">
                   <KindBadge kind={m.senderKind} />

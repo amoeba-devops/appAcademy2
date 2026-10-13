@@ -1,4 +1,9 @@
+import { createHash } from 'crypto';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { hasReviewContent } from './review-completion';
 import {
+  ConflictException,
   BadRequestException,
   Injectable,
   Logger,
@@ -64,6 +69,7 @@ export class FeedbackMailerService {
   private readonly log = new Logger(FeedbackMailerService.name);
 
   constructor(
+    @InjectDataSource(ACM_DS) private readonly ds: DataSource,
     @InjectRepository(CalEventTypeormEntity, ACM_DS)
     private readonly events: Repository<CalEventTypeormEntity>,
     @InjectRepository(CalEventReviewTypeormEntity, ACM_DS)
@@ -82,6 +88,79 @@ export class FeedbackMailerService {
     private readonly notifications: NotificationService,
   ) {}
 
+  async teacherHistory(entId: string, evtId: string, teacherId: string) {
+    return this.ds.query(
+      `SELECT created_at AS "createdAt",cfs_result AS result FROM amb_acm_cal_feedback_send WHERE ent_id=$1 AND evt_id=$2 AND tch_id=$3 ORDER BY created_at DESC LIMIT 10`,
+      [entId, evtId, teacherId],
+    );
+  }
+  async sendForTeacher(
+    entId: string,
+    evtId: string,
+    teacherId: string,
+    input: {
+      recipients: Array<{ stdId: string; parId: string }>;
+      subject?: string;
+      requestId: string;
+      expectedUpdatedAt: string;
+    },
+  ): Promise<{ results: FeedbackSendResult[] }> {
+    const hash = createHash('sha256')
+      .update(
+        JSON.stringify({
+          evtId,
+          recipients: input.recipients,
+          subject: input.subject,
+          version: input.expectedUpdatedAt,
+        }),
+      )
+      .digest('hex');
+    const [old]: {
+      hash: string;
+      result: { results: FeedbackSendResult[] } | null;
+    }[] = await this.ds.query(
+      `SELECT cfs_hash AS hash,cfs_result AS result FROM amb_acm_cal_feedback_send WHERE ent_id=$1 AND tch_id=$2 AND cfs_key=$3`,
+      [entId, teacherId, input.requestId],
+    );
+    if (old) {
+      if (old.hash !== hash) throw new ConflictException('SEND_KEY_REUSED');
+      if (old.result) return old.result;
+      throw new ConflictException('SEND_IN_PROGRESS_OR_UNCERTAIN');
+    }
+    const review = await this.reviews.findOne({ where: { entId, evtId } });
+    if (!review || review.updatedAt.toISOString() !== input.expectedUpdatedAt)
+      throw new ConflictException('FEEDBACK_CHANGED');
+    if (!hasReviewContent(review.feedbackHtml))
+      throw new UnprocessableEntityException('NO_FEEDBACK');
+    const claimed: unknown[] = await this.ds.query(
+      `INSERT INTO amb_acm_cal_feedback_send(ent_id,evt_id,tch_id,cfs_key,cfs_hash,cfs_feedback_updated_at,cfs_content_hash,cfs_recipients) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING RETURNING cfs_id`,
+      [
+        entId,
+        evtId,
+        teacherId,
+        input.requestId,
+        hash,
+        input.expectedUpdatedAt,
+        createHash('sha256').update(review.feedbackHtml!).digest('hex'),
+        JSON.stringify(input.recipients),
+      ],
+    );
+    if (!claimed.length)
+      throw new ConflictException('SEND_IN_PROGRESS_OR_UNCERTAIN');
+    // Keep the claim on ambiguous transport failure: never automatically resend potentially delivered mail.
+    const result = await this.sendFeedbackEmail(
+      entId,
+      evtId,
+      input,
+      review.feedbackHtml!,
+    );
+    await this.ds.query(
+      `UPDATE amb_acm_cal_feedback_send SET cfs_result=$4 WHERE ent_id=$1 AND tch_id=$2 AND cfs_key=$3`,
+      [entId, teacherId, input.requestId, result],
+    );
+    return result;
+  }
+
   async listRecipients(
     entId: string,
     evtId: string,
@@ -93,7 +172,7 @@ export class FeedbackMailerService {
     return {
       smtpConfigured: await this.mailer.isConfigured(entId),
       alimtalkConfigured: await this.alimtalk.isConfigured(entId),
-      hasFeedback: !!review?.feedbackHtml?.trim(),
+      hasFeedback: hasReviewContent(review?.feedbackHtml),
       students: await this.resolveStudents(entId, event.id),
     };
   }
@@ -105,13 +184,14 @@ export class FeedbackMailerService {
       recipients: Array<{ stdId: string; parId: string }>;
       subject?: string;
     },
+    savedFeedback?: string,
   ): Promise<{ results: FeedbackSendResult[] }> {
     const event = await this.getEvent(entId, evtId);
     const review = await this.reviews.findOne({
       where: { entId, evtId: event.id },
     });
-    const feedbackHtml = review?.feedbackHtml?.trim();
-    if (!feedbackHtml) {
+    const feedbackHtml = (savedFeedback ?? review?.feedbackHtml)?.trim();
+    if (!feedbackHtml || !hasReviewContent(feedbackHtml)) {
       throw new UnprocessableEntityException('NO_FEEDBACK');
     }
     if (!(await this.mailer.isConfigured(entId))) {
@@ -213,7 +293,11 @@ export class FeedbackMailerService {
       };
       if (!parent.phone) {
         await this.safeLog({ ...base, status: 'SKIPPED' });
-        results.push({ stdId: r.stdId, parId: parent.parId, status: 'NO_PHONE' });
+        results.push({
+          stdId: r.stdId,
+          parId: parent.parId,
+          status: 'NO_PHONE',
+        });
         continue;
       }
       try {
@@ -230,7 +314,11 @@ export class FeedbackMailerService {
         this.log.error(
           `feedback alimtalk failed evt=${event.id} par=${parent.parId} err=${msg}`,
         );
-        await this.safeLog({ ...base, status: 'FAILED', error: msg.slice(0, 500) });
+        await this.safeLog({
+          ...base,
+          status: 'FAILED',
+          error: msg.slice(0, 500),
+        });
         results.push({
           stdId: r.stdId,
           parId: parent.parId,
@@ -280,7 +368,11 @@ export class FeedbackMailerService {
       this.log.error(
         `feedback mail failed evt=${event.id} par=${parent.parId} err=${msg}`,
       );
-      await this.safeLog({ ...base, status: 'FAILED', error: msg.slice(0, 500) });
+      await this.safeLog({
+        ...base,
+        status: 'FAILED',
+        error: msg.slice(0, 500),
+      });
       return { stdId, parId: parent.parId, status: 'FAILED', error: msg };
     }
   }

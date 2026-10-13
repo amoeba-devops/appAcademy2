@@ -1,5 +1,8 @@
+import { PushService } from '../application/push.service';
+import { PushSubscriptionDto } from './push.dto';
 import {
   Body,
+  Delete,
   Controller,
   Get,
   Header,
@@ -27,7 +30,25 @@ class ReadAllDto {
 @UseGuards(AcmJwtAuthGuard, RolesGuard)
 @Roles('ADMIN', 'STAFF', 'APP_ADMIN', 'TEACHER')
 export class InboxController {
-  constructor(private readonly inbox: InboxService) {}
+  constructor(
+    private readonly inbox: InboxService,
+    private readonly push: PushService,
+  ) {}
+  @Get('push-config') pushConfig() {
+    return this.push.info();
+  }
+  @Post('push-subscriptions') subscribe(
+    @CurrentUser() u: AcmCurrentUser,
+    @Body() dto: PushSubscriptionDto,
+  ) {
+    return this.push.subscribe(u, dto);
+  }
+  @Delete('push-subscriptions/:id') unsubscribe(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.push.remove(u, id);
+  }
   @Get() list(
     @CurrentUser() u: AcmCurrentUser,
     @Query('cursor') cursor?: string,

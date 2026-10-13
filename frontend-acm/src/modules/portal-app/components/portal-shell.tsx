@@ -1,6 +1,7 @@
-import { NotificationBell } from '@/modules/notifications/components-inbox';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
+import { NotificationBell } from "@/modules/notifications/components-inbox";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   CalendarRange,
@@ -8,41 +9,55 @@ import {
   LogOut,
   MessagesSquare,
   Users,
-} from 'lucide-react';
-import { useAuthStore } from '@/stores/auth.store';
-import { LanguageSwitcher } from '@/components/layout/language-switcher';
+} from "lucide-react";
+import { useAuthStore } from "@/stores/auth.store";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 
 /**
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
  * PLN-260719 C — 강사(TEACHER)에게는 수업일정 아래 "수강생관리" 메뉴 추가.
  */
 const NAV = [
-  { to: '/portal/notices', icon: Bell, key: 'notices', end: false },
-  { to: '/portal/calendar', icon: CalendarRange, key: 'calendar', end: false },
-  { to: '/portal/students', icon: Users, key: 'students', end: false, teacherOnly: true },
-  { to: '/portal/materials', icon: FolderOpen, key: 'materials', end: false },
+  { to: "/portal/notices", icon: Bell, key: "notices", end: false },
+  { to: "/portal/calendar", icon: CalendarRange, key: "calendar", end: false },
+  {
+    to: "/portal/students",
+    icon: Users,
+    key: "students",
+    end: false,
+    teacherOnly: true,
+  },
+  { to: "/portal/materials", icon: FolderOpen, key: "materials", end: false },
   // REQ-260728C — 로비채팅 (강사 전용)
-  { to: '/portal/chat', icon: MessagesSquare, key: 'chat', end: false, teacherOnly: true },
+  {
+    to: "/portal/chat",
+    icon: MessagesSquare,
+    key: "chat",
+    end: false,
+    teacherOnly: true,
+  },
 ];
 
 export function PortalShell() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.portal.user);
   const clearPortal = useAuthStore((s) => s.clearPortal);
 
   const logout = () => {
     clearPortal();
-    navigate('/portal/login', { replace: true });
+    navigate("/portal/login", { replace: true });
   };
 
-  const roleLabel = user ? t(`portalApp.role.${user.kind}`) : '';
+  const roleLabel = user ? t(`portalApp.role.${user.kind}`) : "";
 
   return (
     <div className="min-h-screen bg-canvas">
       <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-surface px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-primary">{t('portalApp.title')}</span>
+          <span className="font-semibold text-primary">
+            {t("portalApp.title")}
+          </span>
           {user && (
             <span className="rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
               {roleLabel} · {user.loginId}
@@ -51,13 +66,18 @@ export function PortalShell() {
         </div>
         <div className="flex items-center gap-3">
           {/* REQ-260728B FR-6 — 포털 앱에서도 언어 선택 (ko/en/vi/zh-CN) */}
-          {user?.kind === 'TEACHER' && <NotificationBell mode="portal" />}
+          {user?.kind === "TEACHER" && (
+            <>
+              <ChatUnreadLink mode="portal" />
+              <NotificationBell mode="portal" />
+            </>
+          )}
           <LanguageSwitcher />
           <button
             onClick={logout}
             className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary"
           >
-            <LogOut size={14} /> {t('portalApp.logout')}
+            <LogOut size={14} /> {t("portalApp.logout")}
           </button>
         </div>
       </header>
@@ -65,25 +85,30 @@ export function PortalShell() {
       {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
       <div className="flex max-w-5xl flex-col gap-4 px-3 py-4 sm:flex-row">
         <nav className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1">
-          {NAV.filter((n) => !n.teacherOnly || user?.kind === 'TEACHER').map((n) => {
-            const Icon = n.icon;
-            return (
-              <NavLink
-                key={n.key}
-                to={n.to}
-                end={n.end}
-                className={({ isActive }) =>
-                  `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
-                    isActive
-                      ? 'bg-accent-600 text-white'
-                      : 'text-secondary hover:bg-[var(--gray-100)]'
-                  }`
-                }
-              >
-                <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}
-              </NavLink>
-            );
-          })}
+          {NAV.filter((n) => !n.teacherOnly || user?.kind === "TEACHER").map(
+            (n) => {
+              const Icon = n.icon;
+              return (
+                <NavLink
+                  key={n.key}
+                  to={n.to}
+                  end={n.end}
+                  className={({ isActive }) =>
+                    `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
+                      isActive
+                        ? "bg-accent-600 text-white"
+                        : "text-secondary hover:bg-[var(--gray-100)]"
+                    }`
+                  }
+                >
+                  <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}{" "}
+                  {n.key === "chat" && (
+                    <ChatUnreadLink mode="portal" badgeOnly />
+                  )}
+                </NavLink>
+              );
+            },
+          )}
         </nav>
         {/* PLN-260728E — 우측 컨텐츠 영역 흰 배경(채팅 페이지 참조). */}
         <main className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
