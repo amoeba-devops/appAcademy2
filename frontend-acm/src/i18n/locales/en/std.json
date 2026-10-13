@@ -247,5 +247,43 @@
     "assigned": "Selected · save to apply",
     "unlinkHint": "Up to 5 teachers. Unlinking preserves class information for reconnection.",
     "assignHint": "Choose a target teacher to fill empty fields only. Review before saving."
+  },
+  "deletion": {
+    "archived": "Inactive students",
+    "history": "Deletion history",
+    "delete": "Delete student",
+    "purge": "Permanently delete",
+    "archive": "Deactivate",
+    "archiveNotice": "Remove this student from normal lists and move to inactive students. Consultation, class and payment records will be retained.",
+    "warning": "Only permanently delete test students. Do not delete real students or their consultation, class or payment records. This deletes the student and the linked records and cannot be undone.",
+    "confirmTest": "I confirm this student and all linked records are test data.",
+    "typeName": "Enter the exact student name",
+    "cancel": "Cancel",
+    "loadError": "Unable to load. Refresh and try again.",
+    "actionError": "Operation failed. Refresh to check permissions and linked records before retrying.",
+    "forbidden": "Only AMA MASTER, OWNER and MANAGER administrators may access this page.",
+    "empty": "No records.",
+    "student": "Student",
+    "date": "Date",
+    "actor": "Staff member",
+    "action": "Action",
+    "manage": "Manage",
+    "review": "Review / permanently delete",
+    "previous": "Previous",
+    "next": "Next",
+    "counts": {
+      "consultations": "Consultations",
+      "classes": "Classes",
+      "events": "Calendar events",
+      "bills": "Bills",
+      "collections": "Payment entries"
+    },
+    "blocked": {
+      "SHARED_RECORDS": "Shared records are linked. Permanent deletion is blocked.",
+      "PAYMENT_OR_SETTLEMENT": "A payment order or settlement exists. Permanent deletion is blocked.",
+      "EXTERNAL_OR_RECURRING": "External or recurring class records need separate review. Permanent deletion is blocked.",
+      "ATTACHED_FILES": "Attached files need ownership review. Permanent deletion is blocked.",
+      "OTHER_LINKED_RECORDS": "Other related records need review. Permanent deletion is blocked."
+    }
   }
 }

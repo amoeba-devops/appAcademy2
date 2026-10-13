@@ -1,3 +1,4 @@
+import { StudentDeletionLinks } from './student-deletion';
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, UserRound } from "lucide-react";
@@ -72,7 +73,7 @@ export function StudentNavigation({ iconOnly, onNavigate }: { iconOnly: boolean;
             </DialogHeader>
             <nav aria-label={t("title")}>
               {root}
-              {children}
+              {children}<StudentDeletionLinks />
             </nav>
           </DialogContent>
         </Dialog>
@@ -105,7 +106,7 @@ export function StudentNavigation({ iconOnly, onNavigate }: { iconOnly: boolean;
       </div>
       {expanded && (
         <div id="student-submenus" className="ml-7 border-l pl-1">
-          {children}
+          {children}<StudentDeletionLinks />
         </div>
       )}
     </div>

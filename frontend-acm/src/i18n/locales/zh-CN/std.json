@@ -247,5 +247,43 @@
     "assigned": "已选择 · 保存后生效",
     "unlinkHint": "最多5位教师。解除关联后保留课程信息，重新关联时恢复。",
     "assignHint": "选择目标教师，仅填写空字段。请检查后保存。"
+  },
+  "deletion": {
+    "archived": "已停用学生",
+    "history": "删除记录",
+    "delete": "删除学生",
+    "purge": "永久删除",
+    "archive": "停用",
+    "archiveNotice": "从常规列表移至停用列表，保留咨询、课程及收款记录。",
+    "warning": "仅可永久删除测试学生。请勿删除真实学生或其咨询、课程及收款记录。删除后无法恢复。",
+    "confirmTest": "我确认该学生及所有关联记录均为测试数据。",
+    "typeName": "请输入完整学生姓名",
+    "cancel": "取消",
+    "loadError": "加载失败，请刷新后重试。",
+    "actionError": "操作失败，请刷新并检查权限及关联记录后重试。",
+    "forbidden": "仅 AMA MASTER、OWNER、MANAGER 管理员可访问。",
+    "empty": "暂无记录。",
+    "student": "学生",
+    "date": "处理时间",
+    "actor": "操作人",
+    "action": "操作类型",
+    "manage": "管理",
+    "review": "查看 / 永久删除",
+    "previous": "上一页",
+    "next": "下一页",
+    "counts": {
+      "consultations": "咨询",
+      "classes": "课程",
+      "events": "课程日程",
+      "bills": "账单",
+      "collections": "收款记录"
+    },
+    "blocked": {
+      "SHARED_RECORDS": "存在共享记录，无法永久删除。",
+      "PAYMENT_OR_SETTLEMENT": "存在支付订单或结算记录，无法永久删除。",
+      "EXTERNAL_OR_RECURRING": "外部关联或重复日程需要单独审核。",
+      "ATTACHED_FILES": "附件所有权需要审核，无法永久删除。",
+      "OTHER_LINKED_RECORDS": "其他关联记录需要审核，无法永久删除。"
+    }
   }
 }

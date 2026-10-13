@@ -247,5 +247,43 @@
     "assigned": "Đã chọn · lưu để áp dụng",
     "unlinkHint": "Tối đa 5 giáo viên. Thông tin được giữ lại khi bỏ liên kết.",
     "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu."
+  },
+  "deletion": {
+    "archived": "Học sinh đã vô hiệu hóa",
+    "history": "Lịch sử xóa",
+    "delete": "Xóa học sinh",
+    "purge": "Xóa vĩnh viễn",
+    "archive": "Vô hiệu hóa",
+    "archiveNotice": "Chuyển học sinh khỏi danh sách thông thường sang danh sách vô hiệu hóa. Giữ lại hồ sơ tư vấn, lớp học và thanh toán.",
+    "warning": "Chỉ xóa vĩnh viễn học sinh thử nghiệm. Không xóa học sinh thật hoặc hồ sơ tư vấn, lớp học, thanh toán thật. Không thể khôi phục dữ liệu đã xóa.",
+    "confirmTest": "Tôi xác nhận học sinh và mọi hồ sơ liên quan đều là dữ liệu thử nghiệm.",
+    "typeName": "Nhập chính xác tên học sinh",
+    "cancel": "Hủy",
+    "loadError": "Không thể tải. Vui lòng tải lại trang.",
+    "actionError": "Thao tác thất bại. Tải lại để kiểm tra quyền và hồ sơ liên quan.",
+    "forbidden": "Chỉ quản trị AMA MASTER, OWNER, MANAGER được truy cập.",
+    "empty": "Không có hồ sơ.",
+    "student": "Học sinh",
+    "date": "Thời gian",
+    "actor": "Người thực hiện",
+    "action": "Thao tác",
+    "manage": "Quản lý",
+    "review": "Xem / xóa vĩnh viễn",
+    "previous": "Trước",
+    "next": "Sau",
+    "counts": {
+      "consultations": "Tư vấn",
+      "classes": "Lớp học",
+      "events": "Lịch học",
+      "bills": "Hóa đơn",
+      "collections": "Thu tiền"
+    },
+    "blocked": {
+      "SHARED_RECORDS": "Có hồ sơ dùng chung. Không thể xóa vĩnh viễn.",
+      "PAYMENT_OR_SETTLEMENT": "Có đơn thanh toán hoặc quyết toán. Không thể xóa vĩnh viễn.",
+      "EXTERNAL_OR_RECURRING": "Cần kiểm tra lịch lặp hoặc dữ liệu liên kết bên ngoài.",
+      "ATTACHED_FILES": "Cần kiểm tra quyền sở hữu tệp đính kèm trước khi xóa.",
+      "OTHER_LINKED_RECORDS": "Cần kiểm tra các hồ sơ liên quan khác trước khi xóa."
+    }
   }
 }
