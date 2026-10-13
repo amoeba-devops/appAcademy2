@@ -71,7 +71,7 @@ export function ParentSubform({ control, register }: ParentSubformProps) {
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>
                 {t("field.parentName", "이름")} *
@@ -120,7 +120,7 @@ export function ParentSubform({ control, register }: ParentSubformProps) {
                 className={inputClass}
               />
             </div>
-            <div className="col-span-2 flex items-center gap-2">
+            <div className="sm:col-span-2 flex items-center gap-2">
               <input
                 placeholder={t("detail.enterValue")}
                 type="checkbox"

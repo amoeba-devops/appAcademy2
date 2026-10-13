@@ -604,7 +604,7 @@ function IntakeReadOnlyBox({
       <div className="text-xs font-semibold text-secondary">
         {t('detail.intake.readOnlyHeader')}
       </div>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
         <Row label={t('detail.intake.field.student')} value={inq.studentName} />
         <Row label={t('form.studentNameEn')} value={inq.studentNameEn ?? ''} />
         <Row label={t('detail.intake.field.kind', '구분')} value={t(`kind.${inq.kind ?? 'TUTORING'}`)} />

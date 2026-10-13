@@ -55,7 +55,7 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
         }
       }}
     >
-      <DialogContent className="top-[8vh] max-w-xl max-h-[85vh] translate-y-0 overflow-hidden flex flex-col">
+      <DialogContent className="top-[8vh] max-w-xl max-h-[85dvh] translate-y-0 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{t('invitee.pickerTitle', '참석자 선택')}</DialogTitle>
         </DialogHeader>

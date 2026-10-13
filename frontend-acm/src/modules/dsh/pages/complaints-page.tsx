@@ -78,7 +78,7 @@ export function ComplaintsPage() {
   });
   return (
     <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-semibold">{t("complaint.manage.title")}</h1>
         <Button
           onClick={() => {
@@ -274,7 +274,7 @@ export function ComplaintsPage() {
           if (!value) setDetailId(undefined);
         }}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("complaint.manage.detail")}</DialogTitle>
           </DialogHeader>

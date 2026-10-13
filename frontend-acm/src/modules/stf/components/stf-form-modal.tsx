@@ -187,7 +187,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
@@ -223,7 +223,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
             <legend className="text-xs font-semibold text-secondary px-1">
               {t('form.sectionBasic')}
             </legend>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.name')} *</label>
                 <input
@@ -288,7 +288,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
                 {t('field.createAccount')}
               </label>
               {wantsAccount && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>{t('field.password')} *</label>
                     <input
@@ -307,7 +307,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
                       className={inputClass}
                     />
                   </div>
-                  <p className="col-span-2 text-xs text-secondary">{t('hint.passwordPolicy')}</p>
+                  <p className="sm:col-span-2 text-xs text-secondary">{t('hint.passwordPolicy')}</p>
                 </div>
               )}
             </fieldset>
@@ -318,7 +318,7 @@ export function StfFormModal({ open, onClose, initial }: Props) {
               <legend className="text-xs font-semibold text-amber-800 px-1">
                 {t('form.sectionResetPassword')}
               </legend>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>{t('field.newPassword')}</label>
                   <input

@@ -29,14 +29,14 @@ export const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         // PLN-260914 — 모바일에서는 좌우 여백을 남기고 화면 높이를 넘지 않게 스크롤.
-        'fixed left-1/2 top-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-surface p-4 sm:p-6 shadow-lg sm:w-full',
-        'max-h-[90vh] overflow-y-auto overscroll-contain',
+        'acm-dialog fixed left-1/2 top-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-[var(--border-subtle)] bg-surface p-4 sm:p-6 shadow-lg sm:w-full',
+        'max-h-[90dvh] overflow-y-auto overscroll-contain',
         className,
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100">
+      <DialogPrimitive.Close className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-sm opacity-70 hover:opacity-100">
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -51,7 +51,7 @@ export const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLD
 DialogHeader.displayName = 'DialogHeader';
 
 export const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-row justify-end gap-2 pt-4', className)} {...props} />
+  <div className={cn('flex flex-wrap justify-end gap-2 pt-4', className)} {...props} />
 );
 DialogFooter.displayName = 'DialogFooter';
 

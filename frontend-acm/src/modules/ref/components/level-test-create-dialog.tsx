@@ -91,7 +91,7 @@ export function LevelTestCreateDialog() {
       <DialogTrigger asChild>
         <Button>{t('actions.create')}</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('tabs.levelTests')}</DialogTitle>
         </DialogHeader>
@@ -99,7 +99,7 @@ export function LevelTestCreateDialog() {
           onSubmit={handleSubmit((d) => mutation.mutate(d))}
           className="space-y-4 py-2"
         >
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{t('form.examType')}</Label>
               <select
@@ -143,7 +143,7 @@ export function LevelTestCreateDialog() {
               <Label>{t('form.defaultDurationMin')}</Label>
               <Input type="number" {...register('defaultDurationMin')} />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <Label>{t('form.resourceUrl')}</Label>
               <Input {...register('resourceUrl')} placeholder="https://..." />
               {errors.resourceUrl && (
@@ -152,11 +152,11 @@ export function LevelTestCreateDialog() {
                 </p>
               )}
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <Label>{t('form.resourceNote')}</Label>
               <Input {...register('resourceNote')} />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <Label>{t('form.assignmentRuleText')}</Label>
               <textarea
                 {...register('assignmentRuleText')}
@@ -189,7 +189,7 @@ export function LevelTestCreateDialog() {
                   <Input
                     type="number"
                     {...register(`procedureSteps.${i}.step_num`)}
-                    className="col-span-2"
+                    className="sm:col-span-2"
                   />
                   <Input
                     {...register(`procedureSteps.${i}.description`)}

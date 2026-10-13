@@ -58,14 +58,14 @@ export function ParentEditModal({
 
   return (
     <Dialog open={!!parent} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('parentList.editTitle', '학부모 정보 수정')}</DialogTitle>
         </DialogHeader>
 
         {parent && (
           <div className="mt-3 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.parentName', '이름')} *</label>
                 <input

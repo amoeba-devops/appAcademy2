@@ -135,7 +135,7 @@ export function BenchmarkCreateDialog() {
       <DialogTrigger asChild>
         <Button>{t('actions.create')}</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('tabs.benchmarks')}</DialogTitle>
         </DialogHeader>
@@ -199,7 +199,7 @@ export function BenchmarkCreateDialog() {
           ) : (
             <div className="rounded-md border border-[var(--border-subtle)] p-3 space-y-3">
               <p className="text-sm font-medium">{t(`sbmExamType.${examType}`)}</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>{t('form.generalPct')}</Label>
                   <Input type="number" step="0.01" {...register('generalPct')} />

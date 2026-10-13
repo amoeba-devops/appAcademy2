@@ -82,7 +82,7 @@ export function GradeBandFormDialog({ open, schoolId, initial, onClose, onSaved 
               maxLength={80}
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-secondary mb-1">{t('gradeBands.min')}</label>
               <input

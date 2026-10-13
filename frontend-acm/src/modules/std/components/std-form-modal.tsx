@@ -251,7 +251,7 @@ export function StdFormModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? t("form.titleEdit") : t("form.titleCreate")}
@@ -296,7 +296,7 @@ export function StdFormModal({
             <legend className="text-xs font-semibold text-secondary px-1">
               {t("form.sectionBasic")}
             </legend>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass} htmlFor="std-site">
                   {t("site.label")}
@@ -568,7 +568,7 @@ export function StdFormModal({
                 className="w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 py-2 text-sm text-primary placeholder:italic placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-accent-500/40 resize-none"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t("field.status")}</label>
                 <select {...register("stdStatus")} className={inputClass}>

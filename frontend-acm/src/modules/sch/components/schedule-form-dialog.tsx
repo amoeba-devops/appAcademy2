@@ -86,7 +86,7 @@ export function ScheduleFormDialog({ open, schoolId, initial, onClose, onSaved }
           <button onClick={onClose} className="text-secondary hover:text-primary">✕</button>
         </div>
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-secondary mb-1">{t('schedules.year')}</label>
               <input
@@ -111,7 +111,7 @@ export function ScheduleFormDialog({ open, schoolId, initial, onClose, onSaved }
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-secondary mb-1">{t('schedules.open')}</label>
               <input

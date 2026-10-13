@@ -1148,7 +1148,7 @@ function CreateDialog({
         if (!v && !busy) close();
       }}
     >
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{tr("create")}</DialogTitle>
         </DialogHeader>
@@ -1288,7 +1288,7 @@ function CreateDialog({
             ))}
           </div>
         </section>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {["month", "due", "title", "memo"].map((k) => (
             <label key={k}>
               {tr(k)}
@@ -1504,7 +1504,7 @@ function DetailDialog({
         if (!v && !busy) close();
       }}
     >
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {tr("detail")} {b?.studentName} · {b?.month}

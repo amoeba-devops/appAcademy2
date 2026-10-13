@@ -109,7 +109,7 @@ export function StdImportModal({
       open={open}
       onOpenChange={(value) => !value && !pending && onClose()}
     >
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("site.preview")}</DialogTitle>
         </DialogHeader>

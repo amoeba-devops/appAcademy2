@@ -560,7 +560,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
@@ -583,7 +583,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
               <input {...register('evtTitle', { required: true })} className={inputClass} />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.category')}</label>
                 <select {...register('evtCategory')} className={inputClass}>
