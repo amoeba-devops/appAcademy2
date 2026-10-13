@@ -127,7 +127,7 @@ export function SchoolFormDialog({ open, initial, onClose, onSaved }: Props) {
         if (!v && !busy) onClose();
       }}
     >
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-surface">
+      <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto bg-surface">
         <DialogTitle>{t(value.id ? "editSchool" : "newSchool")}</DialogTitle>
         <form onSubmit={submit} className="space-y-5">
           <fieldset disabled={busy} className="space-y-4">

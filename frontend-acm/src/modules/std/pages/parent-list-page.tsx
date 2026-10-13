@@ -87,7 +87,7 @@ export function ParentListPage() {
 
       {/* Filter */}
       <div className="flex items-center gap-2">
-        <div className="relative w-80">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-secondary" />
           <input
             value={q}

@@ -1,0 +1,80 @@
+[
+  {
+    "width": 360,
+    "measurements": [
+      {
+        "bottom": 732,
+        "width": 336
+      },
+      {
+        "bottom": 721,
+        "width": 231
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "measurements": [
+      {
+        "bottom": 732,
+        "width": 366
+      },
+      {
+        "bottom": 721,
+        "width": 261
+      }
+    ]
+  },
+  {
+    "width": 430,
+    "measurements": [
+      {
+        "bottom": 732,
+        "width": 406
+      },
+      {
+        "bottom": 721,
+        "width": 301
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "measurements": [
+      {
+        "bottom": 658,
+        "width": 744
+      },
+      {
+        "bottom": 647,
+        "width": 399
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "measurements": [
+      {
+        "bottom": 658,
+        "width": 896
+      },
+      {
+        "bottom": 647,
+        "width": 551
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "measurements": [
+      {
+        "bottom": 658,
+        "width": 896
+      },
+      {
+        "bottom": 647,
+        "width": 551
+      }
+    ]
+  }
+]

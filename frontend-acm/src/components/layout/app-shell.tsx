@@ -188,7 +188,7 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-primary">
+    <div className="admin-shell min-h-screen bg-canvas text-primary">
       <AdminRealtime />
       <header className="fixed inset-x-0 top-0 z-30 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-3 sm:px-6">
         <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export function AppShell() {
             ACM
           </Link>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-3">
           <NotificationBell />
           <LanguageSwitcher />
         </div>

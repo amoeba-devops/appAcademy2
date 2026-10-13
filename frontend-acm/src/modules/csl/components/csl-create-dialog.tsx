@@ -307,7 +307,7 @@ export function CslCreateDialog() {
           </div>
 
           {/* Inflow + apply type */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label={`${t('form.inflowType')} *`}>
               <Select {...register('inflowType')}>
                 {INFLOW_TYPES.map((c) => (

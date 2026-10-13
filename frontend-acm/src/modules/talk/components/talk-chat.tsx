@@ -1,3 +1,5 @@
+import { useIsMobile } from "@/hooks/use-media-query";
+import { useChatViewport } from "../hooks/use-chat-viewport";
 import { createPortal } from "react-dom";
 import { AdminSupportSlot } from "@/components/layout/admin-content-layout";
 import { TalkParticipantsPanel } from "./talk-participants-panel";
@@ -154,6 +156,8 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
     qc.setQueryData(["talk-channel", mode, identity, channel.id], channel);
     void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
   };
+  const isMobile = useIsMobile();
+  const chatViewportRef = useChatViewport(isMobile);
   const participants =
     active && self ? (
       <TalkParticipantsPanel
@@ -171,10 +175,10 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
 
   return (
     <>
-      {mode === "admin" &&
+      {mode === "admin" && !isMobile &&
         support?.target &&
         createPortal(participants, support.target)}
-      {mode === "portal" && (
+      {(mode === "portal" || isMobile) && (
         <Dialog open={participantsOpen} onOpenChange={setParticipantsOpen}>
           <DialogContent>
             <DialogHeader>
@@ -185,7 +189,8 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
         </Dialog>
       )}
       <div
-        className={`${mode === "admin" ? "admin-chat-layout " : ""}flex h-[calc(100vh-190px)] min-h-[420px] overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
+        ref={chatViewportRef}
+        className={`${mode === "admin" ? "admin-chat-layout " : ""}talk-chat-viewport flex h-[calc(100dvh-190px)] min-h-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
       >
         {/* 채널 목록 */}
         <aside
@@ -296,7 +301,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
             onDismiss={clearActive}
             targetMessageId={linkedChannel === active.id ? linkedMessage : null}
             onShowParticipants={() =>
-              mode === "admin" ? support?.show() : setParticipantsOpen(true)
+              mode === "admin" && !isMobile ? support?.show() : setParticipantsOpen(true)
             }
           />
         ) : (
@@ -444,7 +449,10 @@ function ChatPane({
         void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
       })
       .catch(() => undefined);
-    if (!targetMessageId) bottomRef.current?.scrollIntoView({ block: "end" });
+    if (!targetMessageId) {
+      const list = bottomRef.current?.parentElement;
+      if (list) list.scrollTop = list.scrollHeight;
+    }
   }, [mode, channel.id, lastId, qc, targetMessageId]);
 
   const loadOlder = useMutation({
@@ -504,14 +512,14 @@ function ChatPane({
   const memberNames = channel.members.map((m) => m.name).join(", ");
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {/* 헤더 */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] px-4 py-2.5">
+      <div className="shrink-0 flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] px-4 py-2.5">
         <button type="button" onClick={onDismiss} className="md:hidden text-xs">
           {t("talk.backToRooms")}
         </button>
         {channel.type === "GROUP" ? <Hash size={15} /> : <User size={15} />}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-[calc(100%-5rem)] md:basis-auto">
           <div className="truncate text-sm font-medium text-primary">
             {channel.name}
           </div>
@@ -546,7 +554,7 @@ function ChatPane({
         </div>
       )}
       {/* 메시지 목록 */}
-      <div className="flex-1 space-y-2 overflow-y-auto px-4 py-3">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 py-3 sm:px-4">
         {nextCursor && (
           <div className="text-center">
             <button
@@ -573,7 +581,7 @@ function ChatPane({
             key={m.id}
             className={`flex ${m.mine ? "justify-end" : "justify-start"}`}
           >
-            <div className={`max-w-[75%] ${m.mine ? "text-right" : ""}`}>
+            <div className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${m.mine ? "text-right" : ""}`}>
               {!m.mine && (
                 <div className="mb-0.5 flex items-center gap-1 text-[11px] text-secondary">
                   <KindBadge kind={m.senderKind} />
@@ -583,7 +591,7 @@ function ChatPane({
                 </div>
               )}
               <div
-                className={`inline-block rounded-lg px-3 py-1.5 text-sm ${
+                className={`inline-block max-w-full [overflow-wrap:anywhere] rounded-lg px-3 py-1.5 text-sm ${
                   m.mine
                     ? "bg-accent-600 text-white"
                     : "bg-[var(--gray-100)] text-primary"
@@ -650,7 +658,7 @@ function ChatPane({
         </p>
       )}
       {/* 컴포저 */}
-      <div className="border-t border-[var(--border-subtle)] p-2.5">
+      <div className="talk-composer shrink-0 border-t border-[var(--border-subtle)] p-2.5">
         {error && <p className="mb-1 text-xs text-red-600">{error}</p>}
         {candidates.length > 0 && (
           <div

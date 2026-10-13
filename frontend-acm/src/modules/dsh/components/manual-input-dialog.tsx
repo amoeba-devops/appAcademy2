@@ -257,7 +257,7 @@ export function ManualInputDialog({
         if (!o) close(); else onOpenChange(o);
       }}
     >
-      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto p-0">
+      <DialogContent className="sm:max-w-4xl max-h-[85dvh] overflow-y-auto p-0">
         <form onSubmit={handleSubmit((d) => mutation.mutate(d))}>
           <DialogHeader className="p-4 pb-2 sticky top-0 bg-surface z-10 border-b border-[var(--border-subtle)]">
             <DialogTitle>{t('manualInput.title')}</DialogTitle>

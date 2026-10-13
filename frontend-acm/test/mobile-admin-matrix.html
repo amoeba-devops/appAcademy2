@@ -1,0 +1,7 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>ACM 모바일 검증</title></head><body style="font-family:system-ui;margin:12px"><h2>모바일 합성 데이터 검증</h2><p>운영 API 연결 없이 실제 채팅·학생 등록 컴포넌트를 표시합니다.</p><nav id="sizes"></nav><p id="result" role="status"></p><iframe id="frame" title="ACM 테스트 화면" style="height:740px;border:1px solid #ccc" src="/test/mobile-admin-fixture.html"></iframe><script>
+const frame=document.getElementById('frame'),result=document.getElementById('result');
+for(const width of [320,360,390,430,768,1024,1280]){const b=document.createElement('button');b.textContent=width+'px';b.onclick=()=>{frame.style.width=width+'px';check()};document.getElementById('sizes').append(b)}
+const short=document.createElement('button');short.textContent='키보드 높이 모사';short.onclick=()=>{frame.style.height=frame.style.height==='400px'?'740px':'400px';check()};document.getElementById('sizes').append(short);
+function check(){setTimeout(()=>{const d=frame.contentDocument;const pane=d.querySelector('.talk-chat-viewport'),input=d.querySelector('.talk-composer input:not([type=file])');if(!pane||!input){result.textContent='대화창 로딩 중 또는 목록 화면';return}const r=input.getBoundingClientRect();result.textContent=JSON.stringify({width:frame.clientWidth,height:frame.clientHeight,noPageOverflow:d.documentElement.scrollWidth<=frame.clientWidth+1,inputVisible:r.width>0&&r.bottom<=frame.clientHeight+1,paneHeight:Math.round(pane.getBoundingClientRect().height)});},600)}
+frame.style.width='390px';frame.onload=check;
+</script></body></html>

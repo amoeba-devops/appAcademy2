@@ -96,7 +96,7 @@ export function CalStatsModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[85dvh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('stats.title', '수업통계')}</DialogTitle>
         </DialogHeader>

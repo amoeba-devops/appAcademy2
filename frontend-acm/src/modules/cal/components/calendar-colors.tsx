@@ -217,7 +217,7 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
         )}
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('colors.settings')}</DialogTitle>
           </DialogHeader>

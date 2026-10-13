@@ -135,7 +135,7 @@ export function ComplaintDialog({
         onOpenChange(o);
       }}
     >
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {t(complaint ? "complaint.manage.edit" : "complaint.title")}

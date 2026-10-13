@@ -112,7 +112,7 @@ export function MpqFormModal({ open, onClose, editId }: MpqFormModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t('form.titleEdit') : t('form.titleCreate')}</DialogTitle>
         </DialogHeader>
@@ -183,7 +183,7 @@ export function MpqFormModal({ open, onClose, editId }: MpqFormModalProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {fields.map((f, i) => (
               <div key={f.id}>
                 <label className={labelClass}>
@@ -197,7 +197,7 @@ export function MpqFormModal({ open, onClose, editId }: MpqFormModalProps) {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>{t('form.answer')}</label>
               <select className={inputClass} {...register('mpqAnswerIndex')}>

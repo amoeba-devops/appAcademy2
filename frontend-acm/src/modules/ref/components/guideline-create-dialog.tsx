@@ -108,7 +108,7 @@ export function GuidelineCreateDialog() {
       <DialogTrigger asChild>
         <Button>{t('actions.create')}</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('tabs.guidelines')}</DialogTitle>
         </DialogHeader>
@@ -116,7 +116,7 @@ export function GuidelineCreateDialog() {
           onSubmit={handleSubmit((d) => mutation.mutate(d))}
           className="space-y-4 py-2"
         >
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>{t('form.code')}</Label>
               <Input {...register('code')} placeholder="MAP_PREP_L1" />

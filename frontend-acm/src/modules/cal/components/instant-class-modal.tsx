@@ -163,7 +163,7 @@ export function InstantClassModal({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && !isPending && onClose()}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap size={18} className="text-amber-500" />

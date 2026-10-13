@@ -93,7 +93,7 @@ export function SessionFeedbackDialog({ open, onOpenChange, session, students }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-3xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('actions.writeFeedback')}</DialogTitle>
         </DialogHeader>

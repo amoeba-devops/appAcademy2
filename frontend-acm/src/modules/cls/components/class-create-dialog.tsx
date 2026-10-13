@@ -391,7 +391,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
         onOpenChange(true);
       }}
     >
-      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+      <DialogContent className="max-h-[90dvh] max-w-4xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('create.title', { defaultValue: '수업 생성' })}</DialogTitle>
         </DialogHeader>

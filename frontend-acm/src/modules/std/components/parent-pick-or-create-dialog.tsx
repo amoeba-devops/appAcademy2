@@ -192,7 +192,7 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={labelClass}>{t('field.parentName', '이름')} *</label>
                 <input
@@ -234,7 +234,7 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
                   className={inputClass}
                 />
               </div>
-              <label className="col-span-2 flex items-center gap-2 text-xs text-secondary">
+              <label className="sm:col-span-2 flex items-center gap-2 text-xs text-secondary">
                 <input
                   type="checkbox"
                   checked={!!form.spIsPrimary}

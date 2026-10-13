@@ -1,3 +1,5 @@
+import { useIsMobile } from "@/hooks/use-media-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   createContext,
   useEffect,
@@ -102,6 +104,9 @@ export function AdminSupportPanel({
 
 export function AdminContentLayout({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
+  const mobile = useIsMobile();
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  useEffect(() => setMobilePanelOpen(false), [pathname, mobile]);
   const { t } = useTranslation("common");
   const user = useAuthStore((state) => state.user);
   const storageKey = user ? `acm:admin-support:${user.entId}:${user.id}` : null;
@@ -147,8 +152,9 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
   return (
     <AdminSupportSlot.Provider
       value={{
-        target: isChat ? chatTarget : null,
+        target: isChat && !mobile ? chatTarget : null,
         show: () => {
+          if (mobile) { setMobilePanelOpen(true); return; }
           setHidden(false);
           requestAnimationFrame(() =>
             chatTarget?.scrollIntoView({
@@ -163,12 +169,12 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
         ref={containerRef}
         className={`admin-content-container ${hidden ? "admin-support-hidden" : ""} ${availableWidth >= 1176 ? "admin-content-wide" : ""} ${availableWidth < 640 ? "admin-content-narrow" : ""}`}
       >
-        {hidden && (
+        {(mobile ? !isChat : hidden) && (
           <div className="mb-3 flex justify-end">
             <button
               type="button"
-              onClick={() => setHidden(false)}
-              aria-expanded={false}
+              onClick={() => mobile ? setMobilePanelOpen(true) : setHidden(false)}
+              aria-expanded={mobile ? mobilePanelOpen : false}
               aria-controls="admin-support-panel"
               className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-surface px-3 py-1.5 text-sm text-secondary focus-visible:outline focus-visible:outline-2"
             >
@@ -177,14 +183,22 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
             </button>
           </div>
         )}
+        {mobile && !isChat && (
+          <Dialog open={mobilePanelOpen} onOpenChange={setMobilePanelOpen}>
+            <DialogContent>
+              <DialogHeader><DialogTitle>{t("adminLayout.showPanel")}</DialogTitle></DialogHeader>
+              <AdminSupportPanel onHide={() => setMobilePanelOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        )}
         <div className="admin-content-grid">
           <div className="admin-page-content">{children}</div>
-          <div hidden={hidden}>
+          {!mobile && <div hidden={hidden}>
             <AdminSupportPanel
               chatRef={isChat ? setChatTarget : undefined}
               onHide={() => setHidden(true)}
             />
-          </div>
+          </div>}
         </div>
       </div>
     </AdminSupportSlot.Provider>
