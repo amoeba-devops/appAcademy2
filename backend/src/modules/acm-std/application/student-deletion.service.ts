@@ -11,6 +11,14 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { createHash } from 'crypto';
 
+export interface DeletionListRow {
+  id: string;
+  name: string;
+  actorName: string;
+  occurredAt: string;
+  action?: string;
+  counts?: Record<string, number>;
+}
 export interface Student {
   id: string;
   name: string;
@@ -66,7 +74,7 @@ export class StudentDeletionService {
     const select = history
       ? `sdh_id AS id,std_id AS "studentId",sdh_student_name AS name,sdh_action AS action,sdh_actor_name AS "actorName",sdh_actor_id AS "actorId",created_at AS "occurredAt",sdh_counts AS counts`
       : `std_id AS id,std_name AS name,std_archived_at AS "occurredAt",(SELECT h.sdh_actor_name FROM amb_acm_std_deletion_history h WHERE h.ent_id=s.ent_id AND h.std_id=s.std_id AND h.sdh_action='ARCHIVE' ORDER BY h.created_at DESC LIMIT 1) AS "actorName"`;
-    const items = await this.ds.query(
+    const items = await this.ds.query<DeletionListRow[]>(
       `SELECT ${select} FROM ${table} s WHERE ${where} ORDER BY ${history ? 'created_at' : 'std_archived_at'} DESC,${history ? 'sdh_id' : 'std_id'} LIMIT 50 OFFSET $2`,
       [u.entId, offset],
     );
@@ -127,7 +135,7 @@ export class StudentDeletionService {
     const s = await this.student(m, u, id),
       ent = u.entId;
     const ids = async (sql: string, p: unknown[]) =>
-      ((await m.query(sql, p)) as { id: string }[]).map((r) => r.id);
+      (await m.query<{ id: string }[]>(sql, p)).map((r) => r.id);
     const inquiries = await ids(
       'SELECT inq_id AS id FROM amb_acm_csl_inquiry WHERE ent_id=$1 AND inq_std_id=$2',
       [ent, id],
@@ -150,12 +158,12 @@ export class StudentDeletionService {
     );
     const blocked: string[] = [];
     const check = async (code: string, sql: string, p: unknown[]) => {
-      if ((await m.query(sql, p)).length) blocked.push(code);
+      if ((await m.query<unknown[]>(sql, p)).length) blocked.push(code);
     };
     await check(
       'SHARED_RECORDS',
       `SELECT 1 FROM amb_acm_cal_invitee WHERE evt_id=ANY($3::uuid[]) AND inv_kind='STUDENT' AND (inv_ref_id<>$2 OR ent_id<>$1)
-      UNION ALL SELECT 1 FROM amb_acm_cls_class_students WHERE cls_id=ANY($4::uuid[]) AND (ent_id<>$1 OR (cst_student_user_id IS DISTINCT FROM $2 AND (cst_inq_id IS NULL OR NOT(cst_inq_id=ANY($5::uuid[])))))
+      UNION ALL SELECT 1 FROM amb_acm_cls_class_students WHERE cls_id=ANY($4::uuid[]) AND (ent_id<>$1 OR ((cst_student_user_id IS NOT NULL AND cst_student_user_id<>$2) OR (cst_inq_id IS NOT NULL AND NOT(cst_inq_id=ANY($5::uuid[]))) OR (cst_student_user_id IS NULL AND cst_inq_id IS NULL)))
       UNION ALL SELECT 1 FROM amb_acm_cls_classes WHERE cls_id=ANY($4::uuid[]) AND (ent_id<>$1 OR (cls_inq_id IS NOT NULL AND NOT(cls_inq_id=ANY($5::uuid[]))))
       UNION ALL SELECT 1 FROM amb_acm_cls_enrollment WHERE cls_id=ANY($4::uuid[]) AND (ent_id<>$1 OR std_id<>$2)
       UNION ALL SELECT 1 FROM amb_acm_csl_map_test WHERE mpt_cal_event_id=ANY($3::uuid[]) AND NOT(inq_id=ANY($5::uuid[]))

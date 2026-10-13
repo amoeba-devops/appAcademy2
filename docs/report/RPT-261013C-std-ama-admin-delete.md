@@ -38,3 +38,5 @@ change_log:
 - backend/src/modules/acm-std/application/deleted-file-cleanup.service.ts
 - backend/src/modules/acm-std/presentation/student-deletion.controller.ts
 - frontend-acm/src/modules/std/components/student-deletion.tsx
+
+- Draft PR: [#318](https://github.com/amoeba-devops/appAcademy2/pull/318). 작업 브랜치 `feat/ama-student-deletion-261013`.
