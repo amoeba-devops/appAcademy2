@@ -1,8 +1,10 @@
 ---
 document_id: ACM-MOBILE-RPT-1.0.0
-version: 1.0.0
-status: Implemented; not deployed
+version: 1.1.0
+status: Deployed
 change_log:
+  - version: 1.1.0
+    description: Production deployment a95390c verified on 2026-10-13.
   - version: 1.0.0
     description: Mobile chat and shared admin layout improvements with browser evidence.
 ---
@@ -52,4 +54,13 @@ Chrome 로컬 합성 fixture 사용. API adapter로 요청을 전부 가로채�
 운영 모바일 로그인 세션에서 최초 미노출 현상을 재현하지는 못했다. 코드상 충돌 높이/배치와 합성 데이터에서 확인한 메시지 넘침·전체 페이지 스크롤을 수정했다.
 실제 iOS Safari/Android Chrome 기기·소프트 키보드 검증은 미실시. 400px 검증은 viewport 축소 모사이며 실제 OS 키보드 테스트가 아니다.
 모든 메뉴의 개별 생성·수정·저장 업무를 브라우저에서 전수 실행하지 않았다. 공통 컴포넌트 및 대표 동선을 확인하고 나머지는 코드 점검했다.
-백엔드/API/DB 변경 없음. 운영 미배포.
+백엔드/API/DB 변경 없음.
+
+## 6. Production Deployment (운영 배포)
+- PR [#316](https://github.com/amoeba-devops/appAcademy2/pull/316), 운영 버전 `a95390c5f6f194458feeb4383cea37f2c03ca5f6`.
+- 배포 시각: 2026-10-13 16:38:15 KST / 14:38:15 ICT.
+- [Main CI](https://github.com/amoeba-devops/appAcademy2/actions/runs/38363376024), [Staging](https://github.com/amoeba-devops/appAcademy2/actions/runs/38363375958), [Production](https://github.com/amoeba-devops/appAcademy2/actions/runs/38363851635) 모두 성공. 운영 smoke 검증 활성화.
+- 배포 후 백엔드/프론트엔드 이미지 버전 일치, running 및 재시작 0회 확인.
+- API health 정상, `/admin/chat` HTTP 200, 시작 이후 백엔드 오류 로그 0건(배포 직후 확인).
+- 운영 실기기 로그인/소프트 키보드 검증은 미실시. HTTP 200은 인증 후 채팅 동작 검증을 의미하지 않음.
+- 이전 운영 버전: `144df30`. DB 변경 없음.
