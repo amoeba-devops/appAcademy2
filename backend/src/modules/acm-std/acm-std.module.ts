@@ -1,3 +1,7 @@
+import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-store.client';
+import { DeletedFileCleanupService } from './application/deleted-file-cleanup.service';
+import { StudentDeletionService } from './application/student-deletion.service';
+import { StudentDeletionController } from './presentation/student-deletion.controller';
 import { WithdrawnImportService } from './application/withdrawn-import.service';
 import { WithdrawnImportController } from './presentation/withdrawn-import.controller';
 import { SiteImportService } from './application/site-import.service';
@@ -35,6 +39,7 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
     AmaModule,
   ],
   controllers: [
+    StudentDeletionController,
     WithdrawnImportController,
     StudentController,
     ParentController,
@@ -42,6 +47,9 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
     PortalTeacherStudentsController, // PLN-260719 C — 강사 포털 수강생관리
   ],
   providers: [
+    ObjectStoreClient,
+    DeletedFileCleanupService,
+    StudentDeletionService,
     WithdrawnImportService,
     StudentService,
     ImportService,

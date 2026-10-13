@@ -1,3 +1,4 @@
+import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
 import { PaymentPage } from '@/modules/pay/payment-page';
@@ -208,6 +209,8 @@ export const router = createBrowserRouter([
       { path: 'std/santa-croce', element: <StdListPage key="santa" fixedSite="SANTACROCE" /> },
       { path: 'std/withdrawn', element: <StdListPage key="withdrawn" withdrawn /> },
       { path: 'std/parents', element: <ParentListPage /> },
+      { path: 'std/archived', element: <StudentDeletionPage key="archived" /> },
+      { path: 'std/deletion-history', element: <StudentDeletionPage key="history" history /> },
       { path: 'std/:id', element: <StdDetailPage /> },
       { path: 'tch', element: <TchListPage /> },
       { path: 'stf', element: <StfListPage /> },

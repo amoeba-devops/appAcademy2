@@ -247,5 +247,43 @@
     "assigned": "배정 선택됨 · 저장 시 반영",
     "unlinkHint": "최대 5명 · 강사 연결을 해제해도 수업정보는 보관되며 재연결 시 복원됩니다.",
     "assignHint": "대상 강사 카드에서 배정을 선택하면 빈 항목만 채웁니다. 내용을 검토한 뒤 저장하세요."
+  },
+  "deletion": {
+    "archived": "비활성화 목록",
+    "history": "삭제 이력",
+    "delete": "학생 삭제",
+    "purge": "완전삭제",
+    "archive": "비활성화",
+    "archiveNotice": "일반 학생 목록에서 제외하고 비활성화 목록으로 이동합니다. 상담·수업·수납 기록은 보존됩니다.",
+    "warning": "테스트로 작성한 학생만 완전삭제하세요. 실제 학생의 상담·수업·수납 기록이 있는 경우 삭제하지 마세요. 학생과 연결 기록이 삭제되며 되돌릴 수 없습니다.",
+    "confirmTest": "학생과 연결된 모든 기록이 테스트 데이터임을 확인했습니다.",
+    "typeName": "학생 이름을 정확히 입력하세요",
+    "cancel": "취소",
+    "loadError": "불러오지 못했습니다. 새로고침 후 다시 시도하세요.",
+    "actionError": "처리하지 못했습니다. 새로고침하여 권한과 연결 기록을 확인 후 다시 시도하세요.",
+    "forbidden": "AMA MASTER·OWNER·MANAGER 관리자만 접근할 수 있습니다.",
+    "empty": "기록이 없습니다.",
+    "student": "학생",
+    "date": "처리일시",
+    "actor": "담당자",
+    "action": "처리유형",
+    "manage": "관리",
+    "review": "내용 확인 / 완전삭제",
+    "previous": "이전",
+    "next": "다음",
+    "counts": {
+      "consultations": "상담",
+      "classes": "수업",
+      "events": "수업 일정",
+      "bills": "청구",
+      "collections": "수납 기록"
+    },
+    "blocked": {
+      "SHARED_RECORDS": "다른 학생과 공유하는 기록이 있어 완전삭제할 수 없습니다.",
+      "PAYMENT_OR_SETTLEMENT": "결제 주문 또는 정산 기록이 있어 완전삭제할 수 없습니다.",
+      "EXTERNAL_OR_RECURRING": "외부 연동 또는 반복 수업 기록의 별도 검토가 필요하여 완전삭제할 수 없습니다.",
+      "ATTACHED_FILES": "첨부파일의 소유 관계 검토가 필요하여 완전삭제할 수 없습니다.",
+      "OTHER_LINKED_RECORDS": "추가 연결 기록의 검토가 필요하여 완전삭제할 수 없습니다."
+    }
   }
 }

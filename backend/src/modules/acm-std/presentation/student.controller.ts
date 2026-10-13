@@ -1,3 +1,4 @@
+import { StudentDeletionService } from '../application/student-deletion.service';
 import { BadRequestException } from '@nestjs/common';
 import { SiteImportService } from '../application/site-import.service';
 import { CommitSiteImportDto } from '../application/dto/site-import.dto';
@@ -52,6 +53,7 @@ import {
 @Controller('acm/std/students')
 export class StudentController {
   constructor(
+    private readonly deletion: StudentDeletionService,
     private readonly siteImporter: SiteImportService,
     private readonly students: StudentService,
     private readonly importer: ImportService,
@@ -171,6 +173,6 @@ export class StudentController {
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.students.remove(u.entId, id);
+    return this.deletion.archive(u, id);
   }
 }

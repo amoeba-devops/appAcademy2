@@ -715,17 +715,6 @@ export class StudentService {
     });
   }
 
-  async remove(entId: string, id: string) {
-    const entity = await this.repo.findOne({
-      where: { id, entId, deletedAt: IsNull() },
-    });
-    if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
-    entity.deletedAt = new Date();
-    entity.updatedAt = new Date();
-    await this.repo.save(entity);
-    return { id };
-  }
-
   private toSummary(e: StudentTypeormEntity) {
     return {
       id: e.id,

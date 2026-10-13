@@ -1,3 +1,4 @@
+import { StudentDeleteButton } from '../components/student-deletion';
 import { StatusHistoryPanel } from "../components/status-history-panel";
 import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
@@ -149,7 +150,8 @@ export function StdDetailPage() {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <StudentDeleteButton id={student.id} />
           <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
             <Pencil size={14} className="mr-1" />
             {t("actions.edit")}
