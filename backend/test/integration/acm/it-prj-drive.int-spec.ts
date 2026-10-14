@@ -385,7 +385,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
       content: sheet,
     });
     expect(created.content).toEqual(sheet);
-    const doc = {
+    const doc: { type: string; content: unknown[] } = {
       type: 'doc',
       content: [
         {
@@ -415,6 +415,18 @@ describe('Project / shared Drive isolation and durable operations', () => {
         },
       ],
     };
+    doc.content.push({
+      type: 'orderedList',
+      attrs: { start: 1, type: null },
+      content: [
+        {
+          type: 'listItem',
+          content: [
+            { type: 'paragraph', content: [{ type: 'text', text: '목록' }] },
+          ],
+        },
+      ],
+    });
     const stored = await projects.saveDocument(owner, projectId, {
       title: 'Document table',
       documentType: 'DOC',

@@ -162,6 +162,12 @@ export function validateContent(
             (typeof v !== 'string' || !['left', 'center', 'right'].includes(v))
           )
             fail();
+        } else if (k === 'type' && n.type === 'orderedList') {
+          if (
+            v !== null &&
+            (typeof v !== 'string' || !['1', 'a', 'A', 'i', 'I'].includes(v))
+          )
+            fail();
         } else if (k === 'language') {
           if (v !== null && typeof v !== 'string') fail();
         } else fail();
