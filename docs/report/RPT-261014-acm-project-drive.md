@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PROJECT-RPT-1.0.0
 version: 1.0.0
-status: Implemented; not deployed
+status: Deployed; Google OAuth configuration pending
 change_log:
   - version: 1.0.0
     description: Lightweight projects and shared Google Drive implementation.
@@ -27,7 +27,7 @@ change_log:
 - 문서 탭 320/390/768/1280px 문서 가로 넘침 없음. 모바일 정보 패널 열기/닫기 확인.
 
 ## 3. Limits and Deployment (검증 한계·배포)
-운영 미배포, 실제 Google OAuth 동의/Docs/Sheets 생성/공유 드라이브 접근/실파일 업로드는 미실행. Google 통신은 통합 테스트에서 mock으로 검증했으며 실제 앱 설정 후 [운영 설정 절차](../deployment/SETUP-261014-project-google-drive.md)의 연결 검증이 필요하다. 브라우저 테스트는 메모리 내 합성 응답으로 실제 API 저장 검증을 대체하지 않는다. iOS/Android 실기기 미검증.
+운영 배포 완료. 실제 Google OAuth 동의/Docs/Sheets 생성/공유 드라이브 접근/실파일 업로드는 미실행. Google 통신은 통합 테스트에서 mock으로 검증했으며 실제 앱 설정 후 [운영 설정 절차](../deployment/SETUP-261014-project-google-drive.md)의 연결 검증이 필요하다. 브라우저 테스트는 메모리 내 합성 응답으로 실제 API 저장 검증을 대체하지 않는다. iOS/Android 실기기 미검증.
 
 SQL 1032와 OAuth 환경변수 5개를 배포 시 적용한다. 실제 공용 계정 인증은 계정 소유자가 수행한다. Google 파일 공유 권한은 ACM 권한과 별개로 유지한다. 기존 파일 전체 동기화/영구삭제 없음. 신규 UI 본문은 한국어 기준이며 좌측 메뉴명은 기존 4개 locale에 추가했다.
 
@@ -35,3 +35,11 @@ SQL 1032와 OAuth 환경변수 5개를 배포 시 적용한다. 실제 공용 �
 ![데스크톱 문서 탭](assets/project-drive-261014/documents-desktop.png)
 ![모바일 문서 탭](assets/project-drive-261014/documents-mobile.png)
 ![연결 설정 및 오류 안내](assets/project-drive-261014/connection.png)
+
+## 5. Production Deployment (운영 배포)
+- 2026-10-14 13:23:42 KST / 11:23:42 ICT 완료. PR #320, commit `6ce049c2a90bac91786601d803d7437742fc0542`.
+- [Staging run](https://github.com/amoeba-devops/appAcademy2/actions/runs/38510865729), [Production run](https://github.com/amoeba-devops/appAcademy2/actions/runs/38511112087): success.
+- 두 환경 SQL `1032-project-drive.sql` 적용 OK, 운영 `.last-deploy` SHA 일치, API health OK, `/admin/projects` HTTP 200 및 최신 bundle 경로 확인.
+- PR CI에서 신규 `it-prj-drive` 통합 테스트 PASS. 전체 비차단 통합 단계에는 기존 PII 테스트 설정 누락, PushService 테스트 의존성 누락, tac-postgres-acm 이미지 부재 오류가 남아 있다. 전체 테스트 통과로 해석하지 않는다.
+- 운영 환경 파일의 Google OAuth 설정 5개는 모두 미설정임을 값 노출 없이 확인했다. 프로젝트/이슈/노트 기능은 배포됐으며, Google Drive 활성화는 설정 절차의 앱 설정과 공용 계정 소유자 인증이 필요하다. 실제 Google 파일 생성/업로드 검증은 미실행.
+- 직전 운영 버전: `010d51a9f08e7c3acf2db7d9b24fdc14d1b93ee4`.

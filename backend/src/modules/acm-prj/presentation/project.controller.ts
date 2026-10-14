@@ -1,3 +1,4 @@
+import { DocumentDto } from '../application/document.dto';
 import {
   BadRequestException,
   Body,
@@ -116,6 +117,21 @@ export class ProjectController {
     @Body() d: ItemDto,
   ) {
     return this.projects.saveItem(u, id, d, item);
+  }
+  @Post('projects/:id/documents') document(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: DocumentDto,
+  ) {
+    return this.projects.saveDocument(u, id, d);
+  }
+  @Put('projects/:id/documents/:item') editDocument(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('item', ParseUUIDPipe) item: string,
+    @Body() d: DocumentDto,
+  ) {
+    return this.projects.saveDocument(u, id, d, item);
   }
   @Delete('projects/:id/items/:item/link') unlink(
     @CurrentUser() u: AcmCurrentUser,

@@ -1,4 +1,5 @@
-import {ProjectListPage,ProjectDetailPage,DriveConnectionPage} from '@/modules/prj/project-page';
+import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
+import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
@@ -219,7 +220,8 @@ export const router = createBrowserRouter([
       // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
       { path: 'projects', element: <ProjectListPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
-      { path: 'config/drive', element: <DriveConnectionPage /> },
+      { path: 'config/drive', element: <SharedDrivePage /> },
+      { path: 'drive', element: <SharedDrivePage /> },
       { path: 'complaints', element: <ComplaintsPage /> },
       { path: 'cal-stats', element: <CalStatsPage /> },
       { path: 'cal-stats/:tchId', element: <CalTeacherStatsPage /> },
