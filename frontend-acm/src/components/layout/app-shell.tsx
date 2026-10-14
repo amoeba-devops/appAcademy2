@@ -14,6 +14,7 @@ import {
 } from "react-router-dom";
 import {
   LayoutDashboard,
+  FolderKanban,
   Users,
   FileText,
   Users2,
@@ -65,6 +66,7 @@ const NAV = [
   { to: "/admin/cal", icon: CalendarDays, key: "cal" },
   // PLN-260729-2 — 수업통계 대시보드
   { to: "/admin/cal-stats", icon: BarChart3, key: "calStats" },
+  { to: "/admin/projects", icon: FolderKanban, key: "projects" },
   { to: "/admin/complaints", icon: MessageCircleQuestion, key: "complaints" },
   { to: "/admin/sch", icon: School, key: "sch" },
   { to: "/admin/ref", icon: BookOpen, key: "ref" },
