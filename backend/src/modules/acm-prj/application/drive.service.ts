@@ -34,7 +34,7 @@ const fixedId = (s: string) => {
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
 };
 export function safeReturn(path: string) {
-  return /^\/admin\/(projects(?:\/[a-f0-9-]{36})?|config\/drive)(?:\?tab=(?:issues|documents|files|notes))?$/.test(
+  return /^\/admin\/(projects(?:\/[a-f0-9-]{36})?|drive|config\/drive)(?:\?tab=(?:issues|documents|files|notes))?$/.test(
     path,
   )
     ? path
@@ -375,7 +375,7 @@ export class ProjectDriveService {
     if (f.trashed || f.mimeType === FOLDER)
       throw new BadRequestException('문서 또는 파일을 선택하세요.');
     return this.ds.query<Record<string, unknown>[]>(
-      `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_kind,pit_title,created_by,drive_file_id,drive_mime,drive_size,drive_account_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(ent_id,prj_id,drive_file_id) WHERE deleted_at IS NULL AND drive_file_id IS NOT NULL DO UPDATE SET pit_title=excluded.pit_title,drive_size=excluded.drive_size,updated_at=now() RETURNING *`,
+      `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_kind,pit_title,created_by,drive_file_id,drive_mime,drive_size,drive_account_id,document_type,storage_type) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,CASE WHEN $7::varchar='application/vnd.google-apps.spreadsheet' THEN 'SHEET' WHEN $7::varchar='application/vnd.google-apps.document' THEN 'DOC' ELSE 'FILE' END,'DRIVE_FILE') ON CONFLICT(ent_id,prj_id,drive_file_id) WHERE deleted_at IS NULL AND drive_file_id IS NOT NULL DO UPDATE SET pit_title=excluded.pit_title,drive_size=excluded.drive_size,updated_at=now() RETURNING *`,
       [
         u.entId,
         id,

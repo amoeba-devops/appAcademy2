@@ -1,5 +1,8 @@
+import { DocumentDto } from './document.dto';
+import { googleUrl, validateContent } from './document-content';
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -135,7 +138,7 @@ export class ProjectService {
     ];
     const [row] = itemId
       ? await this.ds.query<Record<string, unknown>[]>(
-          `WITH changed AS (UPDATE amb_acm_prj_item SET pit_title=$3,pit_body=$4,pit_status=$5,assignee_id=$6,due_date=$7,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$8 AND pit_kind=$9 AND deleted_at IS NULL RETURNING *) SELECT * FROM changed`,
+          `WITH changed AS (UPDATE amb_acm_prj_item SET pit_title=$3,pit_body=$4,pit_status=$5,assignee_id=$6,due_date=$7,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$8 AND pit_kind=$9 AND content IS NULL AND deleted_at IS NULL RETURNING *) SELECT * FROM changed`,
           [...values, itemId, d.kind],
         )
       : await this.ds.query<Record<string, unknown>[]>(
@@ -145,6 +148,52 @@ export class ProjectService {
     if (!row) throw new NotFoundException();
     await this.ds.query(
       `UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=$2`,
+      [u.entId, id],
+    );
+    return row;
+  }
+  async saveDocument(
+    u: AcmCurrentUser,
+    id: string,
+    d: DocumentDto,
+    itemId?: string,
+  ) {
+    await this.access(u, id, false, true);
+    if (!d.title.trim()) throw new BadRequestException('제목을 입력하세요.');
+    const content =
+      d.storageType === 'LOCAL'
+        ? validateContent(d.content, d.documentType)
+        : null;
+    const url =
+      d.storageType === 'GOOGLE_LINK'
+        ? googleUrl(d.url ?? '', d.documentType)
+        : null;
+    const kind = d.documentType === 'MEMO' ? 'NOTE' : 'DOCUMENT';
+    const values = [
+      u.entId,
+      id,
+      d.title.trim(),
+      kind,
+      d.documentType,
+      d.storageType,
+      content ? JSON.stringify(content) : null,
+      url,
+    ];
+    const [row] = itemId
+      ? await this.ds.query<Record<string, unknown>[]>(
+          `WITH changed AS (UPDATE amb_acm_prj_item SET pit_title=$3,content=$7,external_url=$8,pit_body='',revision=revision+1,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_kind=$4 AND document_type=$5 AND storage_type=$6 AND pit_id=$9 AND revision=$10 AND deleted_at IS NULL RETURNING *) SELECT * FROM changed`,
+          [...values, itemId, d.revision],
+        )
+      : await this.ds.query<Record<string, unknown>[]>(
+          `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_title,pit_kind,document_type,storage_type,content,external_url,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+          [...values, u.id],
+        );
+    if (!row)
+      throw new ConflictException(
+        '문서가 변경되었거나 접근할 수 없습니다. 내용을 복사한 후 목록을 새로고침하세요.',
+      );
+    await this.ds.query(
+      'UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=$2',
       [u.entId, id],
     );
     return row;

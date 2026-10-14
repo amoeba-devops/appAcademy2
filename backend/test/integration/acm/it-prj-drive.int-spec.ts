@@ -1,3 +1,8 @@
+import { SharedDriveService } from '../../../src/modules/acm-prj/application/shared-drive.service';
+import {
+  googleUrl,
+  validateContent,
+} from '../../../src/modules/acm-prj/application/document-content';
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
@@ -66,6 +71,13 @@ describe('Project / shared Drive isolation and durable operations', () => {
         'utf8',
       ),
     );
+    for (let i = 0; i < 2; i++)
+      await ds.query(
+        readFileSync(
+          resolve(__dirname, '../../../../sql/acm/1033-project-workspace.sql'),
+          'utf8',
+        ),
+      );
     for (const u of [owner, member, outsider])
       await ds.query(`INSERT INTO amb_acm_user VALUES($1,$2,$3,'ACTIVE',$4)`, [
         u.id,
@@ -298,6 +310,221 @@ describe('Project / shared Drive isolation and durable operations', () => {
         (i) => i.drive_file_id === 'inside',
       ),
     ).toBe(true);
+  });
+  it('preserves legacy notes and stores rich documents with optimistic revisions', async () => {
+    const legacy = await projects.saveItem(owner, projectId, {
+      kind: 'NOTE',
+      title: 'Legacy',
+      body: '<b>plain text</b>',
+    });
+    await ds.query(
+      readFileSync(
+        resolve(__dirname, '../../../../sql/acm/1033-project-workspace.sql'),
+        'utf8',
+      ),
+    );
+    const before = (await projects.items(owner, projectId)).find(
+      (i) => i.pit_id === legacy.pit_id,
+    )!;
+    expect(before.pit_body).toBe('<b>plain text</b>');
+    expect(before.document_type).toBe('MEMO');
+    const d = {
+      title: 'Rich',
+      documentType: 'MEMO' as const,
+      storageType: 'LOCAL' as const,
+      content: {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              { type: 'text', text: 'hello', marks: [{ type: 'bold' }] },
+            ],
+          },
+        ],
+      },
+    };
+    const created = await projects.saveDocument(member, projectId, d);
+    expect(created.content).toEqual(d.content);
+    await projects.saveDocument(
+      member,
+      projectId,
+      { ...d, title: 'Changed', revision: 1 },
+      String(created.pit_id),
+    );
+    await expect(
+      projects.saveDocument(
+        owner,
+        projectId,
+        { ...d, revision: 1 },
+        String(created.pit_id),
+      ),
+    ).rejects.toThrow('변경');
+    await expect(
+      projects.saveDocument(outsider, projectId, d),
+    ).rejects.toThrow();
+    await expect(
+      projects.saveItem(
+        owner,
+        projectId,
+        { kind: 'NOTE', title: 'Overwrite' },
+        String(created.pit_id),
+      ),
+    ).rejects.toThrow();
+  });
+  it('stores local sheets and Google links without OAuth and rejects unsafe payloads', async () => {
+    const sheet = {
+      cells: [[{ value: '2' }, { value: '=A1*2', bold: true }]],
+      widths: [120, 150],
+      heights: [36],
+    };
+    const created = await projects.saveDocument(owner, projectId, {
+      title: 'Sheet',
+      documentType: 'SHEET',
+      storageType: 'LOCAL',
+      content: sheet,
+    });
+    expect(created.content).toEqual(sheet);
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'table',
+          content: [
+            {
+              type: 'tableRow',
+              content: [
+                {
+                  type: 'tableCell',
+                  attrs: {
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: null,
+                    align: null,
+                  },
+                  content: [
+                    {
+                      type: 'paragraph',
+                      content: [{ type: 'text', text: '본문' }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const stored = await projects.saveDocument(owner, projectId, {
+      title: 'Document table',
+      documentType: 'DOC',
+      storageType: 'LOCAL',
+      content: doc,
+    });
+    expect(stored.content).toEqual(doc);
+    const link = await projects.saveDocument(owner, projectId, {
+      title: 'Linked',
+      documentType: 'DOC',
+      storageType: 'GOOGLE_LINK',
+      url: 'https://docs.google.com/document/d/demo-id/edit?usp=sharing',
+    });
+    expect(link.external_url).toBe(
+      'https://docs.google.com/document/d/demo-id/edit',
+    );
+    expect(() =>
+      googleUrl(
+        'https://docs.google.com.evil.test/document/d/demo/edit',
+        'DOC',
+      ),
+    ).toThrow();
+    expect(() =>
+      googleUrl('https://docs.google.com/document/d/demo/edit', 'SHEET'),
+    ).toThrow();
+    expect(() =>
+      validateContent(
+        { type: 'doc', content: [{ type: 'image', attrs: { src: 'evil' } }] },
+        'MEMO',
+      ),
+    ).toThrow();
+    expect(() =>
+      validateContent(
+        {
+          type: 'doc',
+          content: [
+            {
+              type: 'text',
+              text: 'x',
+              marks: [{ type: 'link', attrs: { href: 'javascript:alert(1)' } }],
+            },
+          ],
+        },
+        'MEMO',
+      ),
+    ).toThrow();
+    expect(() =>
+      validateContent({ cells: [[{ value: 'x' }], []] }, 'SHEET'),
+    ).toThrow();
+  });
+  it('separates common folder ACLs, blocks private project exposure, and retains originals', async () => {
+    const shared = new SharedDriveService(drive);
+    jest.spyOn(drive, 'token').mockResolvedValue({
+      token: 'mock',
+      c: { account_id: 'account' } as Awaited<
+        ReturnType<typeof drive.connection>
+      >,
+    });
+    jest
+      .spyOn(drive, 'connection')
+      .mockResolvedValue({ account_id: 'account' } as Awaited<
+        ReturnType<typeof drive.connection>
+      >);
+    jest.mocked(google.file).mockImplementation(async (_t, id) => ({
+      id,
+      name: id,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: id === 'private-project' ? ['common'] : [],
+    }));
+    const folder = await shared.save(owner, {
+      fileId: 'common',
+      operatorAccess: 'NONE',
+      viewers: [member.id],
+      editors: [],
+    });
+    expect((await shared.list(member))[0].access).toBe('VIEW');
+    expect(await shared.list(outsider)).toHaveLength(0);
+    await expect(
+      shared.create(member, folder.drf_id, {
+        title: 'Denied',
+        kind: 'FOLDER',
+        operationId: randomUUID(),
+      }),
+    ).rejects.toThrow();
+    await expect(
+      shared.save(member, {
+        fileId: 'common',
+        operatorAccess: 'EDIT',
+        viewers: [],
+        editors: [],
+      }),
+    ).rejects.toThrow();
+    await ds.query(
+      "UPDATE amb_acm_prj_project SET drive_folder_id='private-project',drive_account_id='account' WHERE prj_id=$1",
+      [projectId],
+    );
+    await expect(
+      shared.save(owner, {
+        fileId: 'common',
+        operatorAccess: 'EDIT',
+        viewers: [],
+        editors: [],
+      }),
+    ).rejects.toThrow('겹치지');
+    await expect(
+      shared.open(member, folder.drf_id, 'private-project'),
+    ).rejects.toThrow();
+    await shared.unlink(owner, folder.drf_id);
+    expect(await shared.list(member)).toHaveLength(0);
+    jest.restoreAllMocks();
   });
   it('unlink preserves Google original and archive prevents writes', async () => {
     await drive.record(

@@ -1,0 +1,18 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const ts=require('typescript');
+const Module=require('node:module');
+const path=require('node:path');
+const filename=path.resolve(__dirname,'../src/modules/prj/sheet-model.ts');
+const mod=new Module(filename,module);
+mod._compile(ts.transpileModule(fs.readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);
+const {cellValue,displayCell,columnName}=mod.exports;
+const sheet=(rows)=>({cells:rows.map(row=>row.map(value=>({value})))});
+test('operator precedence, references, nested expressions',()=>assert.equal(cellValue(sheet([['3','=A1*(2+4)-1']]),0,1),17));
+test('SUM and AVERAGE ranges and argument lists',()=>{const s=sheet([['2','=SUM(A1:A2,4)'],['4','=AVERAGE(A1:A2)']]);assert.equal(cellValue(s,0,1),10);assert.equal(cellValue(s,1,1),3);});
+test('cycles and missing references are explicit errors',()=>{assert.equal(displayCell(sheet([['=B1','=A1']]),0,0),'#CYCLE!');assert.equal(displayCell(sheet([['=Z99']]),0,0),'#REF!');});
+test('division by zero and code execution syntax rejected',()=>{assert.equal(displayCell(sheet([['=1/0']]),0,0),'#DIV/0!');assert.equal(displayCell(sheet([['=globalThis.alert(1)']]),0,0),'#VALUE!');});
+test('text format does not evaluate formulas or strip leading zeroes',()=>{const s={cells:[[{value:'=1+1',format:'text'},{value:'001',format:'text'}]]};assert.equal(cellValue(s,0,0),'=1+1');assert.equal(cellValue(s,0,1),'001');});
+test('number formatting and column labels',()=>{assert.equal(displayCell(sheet([['1200']]),0,0),'1,200');assert.equal(columnName(26),'AA');});
+test('large nested expansion terminates within operation budget',()=>{const s=sheet([['=B1+B1','=C1+C1','=D1+D1','=E1+E1','=F1+F1','=G1+G1','=H1+H1','=I1+I1','=J1+J1','=K1+K1','=L1+L1','=M1+M1','=N1+N1','=O1+O1','1']]);assert.equal(displayCell(s,0,0),'#LIMIT!');});

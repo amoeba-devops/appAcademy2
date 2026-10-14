@@ -16,6 +16,11 @@ export interface Project {
   updated_at: string;
 }
 export interface Item {
+  document_type?: "MEMO" | "SHEET" | "DOC" | "FILE";
+  storage_type?: "LOCAL" | "GOOGLE_LINK" | "DRIVE_FILE";
+  content?: unknown;
+  external_url?: string;
+  revision?: number;
   pit_id: string;
   pit_kind: "ISSUE" | "NOTE" | "DOCUMENT" | "FILE";
   pit_title: string;
