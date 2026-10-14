@@ -40,6 +40,7 @@ export function ConfigLandingPage() {
       <p className="mb-6 text-sm text-secondary">{t('config.landing.description')}</p>
 
       <ConfigMenuVisibility />
+      <Link to="/admin/config/drive" className="mt-6 block rounded-lg border bg-surface p-5">Google Drive · 프로젝트 문서와 파일 연결</Link>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {CARDS.map(({ to, icon: Icon, titleKey, descKey }) => (
           <Link

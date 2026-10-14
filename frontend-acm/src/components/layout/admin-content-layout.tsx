@@ -128,6 +128,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
     }
   };
   const [chatTarget, setChatTarget] = useState<HTMLDivElement | null>(null);
+  const isProject = /^\/admin\/projects\/[^/]+$/.test(pathname);
   const isChat = pathname.replace(/\/$/, "") === "/admin/chat";
   const containerRef = useRef<HTMLDivElement>(null);
   const [availableWidth, setAvailableWidth] = useState(0);
@@ -152,7 +153,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
   return (
     <AdminSupportSlot.Provider
       value={{
-        target: isChat && !mobile ? chatTarget : null,
+        target: (isChat && !mobile) || isProject ? chatTarget : null,
         show: () => {
           if (mobile) { setMobilePanelOpen(true); return; }
           setHidden(false);
@@ -187,7 +188,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
           <Dialog open={mobilePanelOpen} onOpenChange={setMobilePanelOpen}>
             <DialogContent>
               <DialogHeader><DialogTitle>{t("adminLayout.showPanel")}</DialogTitle></DialogHeader>
-              <AdminSupportPanel onHide={() => setMobilePanelOpen(false)} />
+              <AdminSupportPanel chatRef={isProject ? setChatTarget : undefined} onHide={() => setMobilePanelOpen(false)} />
             </DialogContent>
           </Dialog>
         )}
@@ -195,7 +196,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
           <div className="admin-page-content">{children}</div>
           {!mobile && <div hidden={hidden}>
             <AdminSupportPanel
-              chatRef={isChat ? setChatTarget : undefined}
+              chatRef={isChat || isProject ? setChatTarget : undefined}
               onHide={() => setHidden(true)}
             />
           </div>}

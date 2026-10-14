@@ -1,0 +1,458 @@
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { createHash, randomBytes } from 'crypto';
+import { AesGcmService } from '../../acm-common/crypto/aes-gcm.service';
+import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
+import { hasConfigPermission } from '../../acm-common/guards/config-admin.guard';
+import {
+  DriveClient,
+  DriveWriteRejected,
+  GoogleFile,
+} from '../infrastructure/drive.client';
+import { ProjectService } from './project.service';
+import { CreateDriveDto } from './project.dto';
+interface Connection {
+  account_id: string;
+  account_email: string;
+  token_encrypted: Buffer;
+  token_iv: Buffer;
+  token_auth_tag: Buffer;
+  root_id: string | null;
+  root_name: string | null;
+}
+const FOLDER = 'application/vnd.google-apps.folder';
+const DOC = 'application/vnd.google-apps.document';
+const SHEET = 'application/vnd.google-apps.spreadsheet';
+const hash = (s: string) => createHash('sha256').update(s).digest('hex');
+const fixedId = (s: string) => {
+  const h = hash(s);
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+};
+export function safeReturn(path: string) {
+  return /^\/admin\/(projects(?:\/[a-f0-9-]{36})?|config\/drive)(?:\?tab=(?:issues|documents|files|notes))?$/.test(
+    path,
+  )
+    ? path
+    : '/admin/config/drive';
+}
+@Injectable()
+export class ProjectDriveService {
+  constructor(
+    readonly projects: ProjectService,
+    readonly google: DriveClient,
+    readonly crypto: AesGcmService,
+  ) {}
+  get ds() {
+    return this.projects.ds;
+  }
+  async admin(u: AcmCurrentUser) {
+    if (!(await hasConfigPermission(this.ds, u)))
+      throw new ForbiddenException(
+        '설정 관리자만 Google 연결을 관리할 수 있습니다.',
+      );
+  }
+  async connection(ent: string) {
+    const [r] = await this.ds.query<Connection[]>(
+      'SELECT * FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [ent],
+    );
+    if (!r) throw new BadRequestException('공용 Google Drive를 연결하세요.');
+    return r;
+  }
+  async token(ent: string) {
+    const c = await this.connection(ent);
+    const refresh = this.crypto.decrypt({
+      ciphertext: c.token_encrypted,
+      iv: c.token_iv,
+      authTag: c.token_auth_tag,
+    });
+    const t = await this.google.token({
+      grant_type: 'refresh_token',
+      refresh_token: refresh,
+    });
+    return { token: t.access_token, c };
+  }
+  async status(u: AcmCurrentUser) {
+    const [c] = await this.ds.query<Connection[]>(
+      'SELECT account_email,root_id,root_name FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [u.entId],
+    );
+    const canManage = await hasConfigPermission(this.ds, u);
+    return {
+      configured: this.google.ready(),
+      connected: !!c,
+      email: c?.account_email,
+      rootId: canManage ? c?.root_id : undefined,
+      rootReady: !!c?.root_id,
+      rootName: c?.root_name,
+      canManage,
+    };
+  }
+  async connect(u: AcmCurrentUser, path: string) {
+    await this.admin(u);
+    if (!this.google.ready())
+      throw new BadRequestException('운영 Google OAuth 앱 설정이 필요합니다.');
+    const state = randomBytes(32).toString('base64url'),
+      verifier = randomBytes(32).toString('base64url');
+    await this.ds.query<Record<string, unknown>[]>(
+      'DELETE FROM amb_acm_prj_oauth WHERE expires_at<now() OR (ent_id=$1 AND usr_id=$2)',
+      [u.entId, u.id],
+    );
+    await this.ds.query<Record<string, unknown>[]>(
+      `INSERT INTO amb_acm_prj_oauth(ent_id,usr_id,state_hash,verifier,return_path,expires_at) VALUES($1,$2,$3,$4,$5,now()+interval '10 minutes')`,
+      [u.entId, u.id, hash(state), verifier, safeReturn(path)],
+    );
+    return {
+      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: 'openid email https://www.googleapis.com/auth/drive.file', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
+    };
+  }
+  async callback(
+    state: string,
+    code: string | undefined,
+    browserState: string,
+  ) {
+    if (!browserState || hash(browserState) !== hash(state))
+      throw new BadRequestException(
+        '연결을 시작한 브라우저에서 다시 시도하세요.',
+      );
+    const [s] = await this.ds.query<
+      {
+        ent_id: string;
+        usr_id: string;
+        verifier: string;
+        return_path: string;
+      }[]
+    >(
+      `WITH consumed AS (DELETE FROM amb_acm_prj_oauth WHERE state_hash=$1 AND expires_at>now() RETURNING *) SELECT * FROM consumed`,
+      [hash(state)],
+    );
+    if (!s)
+      throw new BadRequestException(
+        '연결 요청이 만료되었습니다. 다시 연결하세요.',
+      );
+    const u = { entId: s.ent_id, id: s.usr_id };
+    await this.admin(u);
+    if (!code)
+      return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=cancelled`;
+    try {
+      const tokens = await this.google.token({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: this.google.setting('REDIRECT_URI'),
+        code_verifier: s.verifier,
+      });
+      if (!tokens.refresh_token) throw new Error('Missing refresh token');
+      const r = await fetch(
+        'https://openidconnect.googleapis.com/v1/userinfo',
+        {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+          signal: AbortSignal.timeout(15000),
+        },
+      );
+      if (!r.ok) throw new Error('Account check failed');
+      const account = (await r.json()) as {
+        sub: string;
+        email: string;
+        email_verified: boolean;
+      };
+      if (!account.sub || !account.email || !account.email_verified)
+        throw new Error('Unverified account');
+      const e = this.crypto.encrypt(tokens.refresh_token);
+      await this.ds.query<Record<string, unknown>[]>(
+        `INSERT INTO amb_acm_prj_drive(ent_id,account_id,account_email,token_encrypted,token_iv,token_auth_tag,connected_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(ent_id) DO UPDATE SET root_id=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_id ELSE NULL END,root_name=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_name ELSE NULL END,account_id=excluded.account_id,account_email=excluded.account_email,token_encrypted=excluded.token_encrypted,token_iv=excluded.token_iv,token_auth_tag=excluded.token_auth_tag,connected_by=excluded.connected_by,updated_at=now()`,
+        [
+          s.ent_id,
+          account.sub,
+          account.email,
+          e.ciphertext,
+          e.iv,
+          e.authTag,
+          s.usr_id,
+        ],
+      );
+      return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=connected`;
+    } catch {
+      return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=failed`;
+    }
+  }
+  async disconnect(u: AcmCurrentUser) {
+    await this.admin(u);
+    await this.ds.query<Record<string, unknown>[]>(
+      'DELETE FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [u.entId],
+    );
+    await this.ds.query<Record<string, unknown>[]>(
+      'DELETE FROM amb_acm_prj_oauth WHERE ent_id=$1',
+      [u.entId],
+    );
+    return { ok: true };
+  }
+  // Only CONFIG_ADMIN receives a short-lived token for Google's first-party Picker.
+  async picker(u: AcmCurrentUser) {
+    await this.admin(u);
+    if (
+      !this.google.setting('PICKER_KEY') ||
+      !this.google.setting('PROJECT_NUMBER')
+    )
+      throw new BadRequestException('Google Picker 앱 설정이 필요합니다.');
+    const { token } = await this.token(u.entId);
+    return {
+      token,
+      key: this.google.setting('PICKER_KEY'),
+      appId: this.google.setting('PROJECT_NUMBER'),
+    };
+  }
+  async once(
+    ent: string,
+    prj: string | null,
+    operationId: string,
+    token: string,
+    payload: Record<string, unknown>,
+    upload?: Express.Multer.File,
+  ): Promise<GoogleFile> {
+    const fingerprint = hash(
+      JSON.stringify(payload) +
+        (upload ? hash(upload.buffer.toString('base64')) : ''),
+    );
+    const inserted = await this.ds.query<{ pop_id: string }[]>(
+      `INSERT INTO amb_acm_prj_operation(pop_id,ent_id,prj_id,fingerprint) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING pop_id`,
+      [operationId, ent, prj, fingerprint],
+    );
+    if (!inserted.length) {
+      const [op] = await this.ds.query<
+        {
+          fingerprint: string;
+          result: GoogleFile | null;
+          created_at: Date;
+          state: string;
+        }[]
+      >(
+        'SELECT fingerprint,result,created_at,state FROM amb_acm_prj_operation WHERE pop_id=$1 AND ent_id=$2 AND prj_id IS NOT DISTINCT FROM $3',
+        [operationId, ent, prj],
+      );
+      if (!op || op.fingerprint !== fingerprint)
+        throw new ConflictException('다른 요청에 사용된 작업 번호입니다.');
+      if (op.result) return op.result;
+      if (op.state === 'REJECTED') {
+        const retry = await this.ds.query<{ pop_id: string }[]>(
+          `WITH claimed AS (UPDATE amb_acm_prj_operation SET state='PENDING',created_at=now(),updated_at=now() WHERE pop_id=$1 AND ent_id=$2 AND state='REJECTED' RETURNING pop_id) SELECT * FROM claimed`,
+          [operationId, ent],
+        );
+        if (!retry.length)
+          throw new ConflictException('다른 요청이 재시도 중입니다.');
+      } else {
+        if (Date.now() - new Date(op.created_at).getTime() < 90000)
+          throw new ConflictException(
+            '작업 결과를 확인 중입니다. 잠시 후 다시 시도하세요.',
+          );
+        const found = await this.google.list(
+          token,
+          `trashed=false and appProperties has { key='acmOperation' and value='${operationId}' }`,
+        );
+        if (found.files.length) {
+          await this.ds.query<Record<string, unknown>[]>(
+            'UPDATE amb_acm_prj_operation SET result=$2,state=$3,updated_at=now() WHERE pop_id=$1',
+            [operationId, JSON.stringify(found.files[0]), 'DONE'],
+          );
+          return found.files[0];
+        }
+        throw new ConflictException(
+          '이전 Google 요청의 결과가 불확실합니다. 중복 생성을 막기 위해 관리자 확인이 필요합니다.',
+        );
+      }
+    }
+    const metadata = {
+      ...payload,
+      appProperties: { acmOperation: operationId },
+    };
+    let file: GoogleFile;
+    try {
+      file = upload
+        ? await this.google.upload(token, metadata, upload)
+        : await this.google.create(token, metadata);
+    } catch (error) {
+      if (error instanceof DriveWriteRejected)
+        await this.ds.query(
+          `UPDATE amb_acm_prj_operation SET state='REJECTED',updated_at=now() WHERE pop_id=$1 AND ent_id=$2`,
+          [operationId, ent],
+        );
+      throw error;
+    }
+    await this.ds.query<Record<string, unknown>[]>(
+      'UPDATE amb_acm_prj_operation SET result=$2,state=$3,updated_at=now() WHERE pop_id=$1 AND ent_id=$4',
+      [operationId, JSON.stringify(file), 'DONE', ent],
+    );
+    return file;
+  }
+  async root(u: AcmCurrentUser, fileId?: string) {
+    await this.admin(u);
+    const { token, c } = await this.token(u.entId);
+    const f = fileId
+      ? await this.google.file(token, fileId)
+      : await this.once(
+          u.entId,
+          null,
+          fixedId(`root:${u.entId}:${c.account_id}`),
+          token,
+          { name: 'ACM Projects', mimeType: FOLDER },
+        );
+    const verified = await this.google.file(token, f.id);
+    if (
+      verified.trashed ||
+      verified.mimeType !== FOLDER ||
+      !verified.capabilities?.canAddChildren
+    )
+      throw new BadRequestException('파일을 생성할 수 있는 폴더를 선택하세요.');
+    await this.ds.query<Record<string, unknown>[]>(
+      'UPDATE amb_acm_prj_drive SET root_id=$2,root_name=$3,updated_at=now() WHERE ent_id=$1 AND account_id=$4',
+      [u.entId, f.id, f.name, c.account_id],
+    );
+    return { ok: true };
+  }
+  async folder(u: AcmCurrentUser, id: string, token: string, c: Connection) {
+    const p = await this.projects.access(u, id, false, true);
+    if (p.drive_folder_id) {
+      if (p.drive_account_id !== c.account_id)
+        throw new ConflictException(
+          '이 프로젝트는 이전 Google 계정에 연결되어 있습니다. 기존 계정으로 다시 연결하세요.',
+        );
+      return p.drive_folder_id;
+    }
+    if (!c.root_id)
+      throw new BadRequestException(
+        '먼저 Google Drive 저장 위치를 선택하세요.',
+      );
+    const f = await this.once(
+      u.entId,
+      id,
+      fixedId(`folder:${u.entId}:${id}:${c.account_id}`),
+      token,
+      {
+        name: `${p.prj_title} (${id.slice(0, 8)})`,
+        mimeType: FOLDER,
+        parents: [c.root_id],
+      },
+    );
+    await this.ds.query<Record<string, unknown>[]>(
+      'UPDATE amb_acm_prj_project SET drive_folder_id=$3,drive_account_id=$4 WHERE ent_id=$1 AND prj_id=$2 AND drive_folder_id IS NULL',
+      [u.entId, id, f.id, c.account_id],
+    );
+    return f.id;
+  }
+  async descendant(token: string, id: string, root: string) {
+    let current = id;
+    for (let depth = 0; depth < 30; depth++) {
+      if (current === root) return;
+      const f = await this.google.file(token, current);
+      if (f.trashed || !f.parents?.[0]) break;
+      current = f.parents[0];
+    }
+    throw new ForbiddenException('프로젝트 폴더 내부만 접근할 수 있습니다.');
+  }
+  async browse(u: AcmCurrentUser, id: string, parent?: string, page?: string) {
+    const p = await this.projects.access(u, id);
+    const { token, c } = await this.token(u.entId);
+    if (!p.drive_folder_id) return { files: [] };
+    if (p.drive_account_id !== c.account_id)
+      throw new ConflictException('기존 Google 계정으로 다시 연결하세요.');
+    const folder = parent ?? p.drive_folder_id;
+    await this.descendant(token, folder, p.drive_folder_id);
+    return {
+      ...(await this.google.list(
+        token,
+        `trashed=false and '${folder}' in parents`,
+        page,
+      )),
+      rootId: p.drive_folder_id,
+    };
+  }
+  async record(u: AcmCurrentUser, id: string, f: GoogleFile, account: string) {
+    if (f.trashed || f.mimeType === FOLDER)
+      throw new BadRequestException('문서 또는 파일을 선택하세요.');
+    return this.ds.query<Record<string, unknown>[]>(
+      `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_kind,pit_title,created_by,drive_file_id,drive_mime,drive_size,drive_account_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT(ent_id,prj_id,drive_file_id) WHERE deleted_at IS NULL AND drive_file_id IS NOT NULL DO UPDATE SET pit_title=excluded.pit_title,drive_size=excluded.drive_size,updated_at=now() RETURNING *`,
+      [
+        u.entId,
+        id,
+        [DOC, SHEET].includes(f.mimeType) ? 'DOCUMENT' : 'FILE',
+        f.name.slice(0, 200),
+        u.id,
+        f.id,
+        f.mimeType,
+        f.size ?? null,
+        account,
+      ],
+    );
+  }
+  async link(u: AcmCurrentUser, id: string, file: string) {
+    const p = await this.projects.access(u, id, false, true);
+    const { token, c } = await this.token(u.entId);
+    if (!(await hasConfigPermission(this.ds, u))) {
+      if (!p.drive_folder_id || p.drive_account_id !== c.account_id)
+        throw new ForbiddenException();
+      await this.descendant(token, file, p.drive_folder_id);
+    }
+    const f = await this.google.file(token, file);
+    return this.record(u, id, f, c.account_id);
+  }
+  async create(
+    u: AcmCurrentUser,
+    id: string,
+    d: CreateDriveDto,
+    upload?: Express.Multer.File,
+  ) {
+    await this.projects.access(u, id, false, true);
+    if (!d.title.trim()) throw new BadRequestException('이름을 입력하세요.');
+    const { token, c } = await this.token(u.entId);
+    const root = await this.folder(u, id, token, c);
+    const parent = d.parentId ?? root;
+    await this.descendant(token, parent, root);
+    const f = await this.once(
+      u.entId,
+      id,
+      d.operationId,
+      token,
+      {
+        name: d.title.trim(),
+        mimeType: upload
+          ? 'application/octet-stream'
+          : d.kind === 'FOLDER'
+            ? FOLDER
+            : d.kind === 'SHEET'
+              ? SHEET
+              : DOC,
+        parents: [parent],
+      },
+      upload,
+    );
+    if (f.mimeType !== FOLDER) await this.record(u, id, f, c.account_id);
+    return f;
+  }
+  async open(u: AcmCurrentUser, id: string, itemId: string) {
+    await this.projects.access(u, id);
+    const [item] = await this.ds.query<
+      { drive_file_id: string; drive_account_id: string }[]
+    >(
+      'SELECT drive_file_id,drive_account_id FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND deleted_at IS NULL',
+      [u.entId, id, itemId],
+    );
+    if (!item?.drive_file_id) throw new NotFoundException();
+    const { token, c } = await this.token(u.entId);
+    if (item.drive_account_id !== c.account_id)
+      throw new ConflictException('기존 Google 계정으로 다시 연결하세요.');
+    const f = await this.google.file(token, item.drive_file_id);
+    if (f.trashed) throw new NotFoundException('원본 파일이 삭제되었습니다.');
+    await this.ds.query<Record<string, unknown>[]>(
+      'UPDATE amb_acm_prj_item SET pit_title=$4,drive_size=$5 WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3',
+      [u.entId, id, itemId, f.name.slice(0, 200), f.size ?? null],
+    );
+    return {
+      url: `https://drive.google.com/file/d/${encodeURIComponent(f.id)}/view`,
+    };
+  }
+}
