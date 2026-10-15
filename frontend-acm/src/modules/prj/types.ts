@@ -55,6 +55,11 @@ export interface DriveStatus {
   rootId?: string;
   rootReady: boolean;
   rootName?: string;
+  // REQ-261016 — 회사 Workspace 연동 상태
+  domain?: string | null;
+  needsReconnect?: boolean;
+  connectedAt?: string | null;
+  connectedByName?: string | null;
 }
 export interface DriveFile {
   id: string;

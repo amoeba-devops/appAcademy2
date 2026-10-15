@@ -134,7 +134,7 @@ export class ProjectController {
     @CurrentUser() u: AcmCurrentUser,
     @Body() d: RootDto,
   ) {
-    return this.drive.root(u, d.fileId);
+    return this.drive.root(u, d.fileId, d.name);
   }
   @Get('projects') list(@CurrentUser() u: AcmCurrentUser) {
     return this.projects.list(u);

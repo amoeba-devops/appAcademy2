@@ -1,10 +1,11 @@
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { errorText } from "./project-page";
-import type { Item } from "./types";
+import { errorText, useScope } from "./project-page";
+import type { DriveStatus, Item } from "./types";
 export const phases: Record<string, string> = {
   PLANNING: "기획",
   DESIGN: "디자인",
@@ -211,6 +212,16 @@ function FileUpload({
     [progress, setProgress] = useState(0),
     [error, setError] = useState(""),
     [operationId] = useState(() => crypto.randomUUID());
+  // REQ-261016 — 저장소 선택: Drive 연결 전에는 ACM 저장소, 연결 후 선택(기본 Drive).
+  const { t } = useTranslation("common");
+  const drive = useQuery({
+    queryKey: ["prj-drive", ...useScope()],
+    queryFn: async () =>
+      (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
+  });
+  const driveReady = !!drive.data?.rootReady;
+  const [storage, setStorage] = useState<"DRIVE" | "ACM" | "">("");
+  const chosen = storage || (driveReady ? "DRIVE" : "ACM");
   function choose(f?: File) {
     if (!f || attempted) return;
     setFile(f);
@@ -240,6 +251,7 @@ function FileUpload({
               form.append("description", description);
               form.append("phase", phase);
               form.append("operationId", operationId);
+              form.append("storage", chosen);
               await apiClient.post(`/acm/prj/projects/${project}/files`, form, {
                 timeout: 90000,
                 onUploadProgress: (e) =>
@@ -256,10 +268,38 @@ function FileUpload({
             }
           }}
         >
-          <p className="text-sm text-secondary">
-            연결된 Google Drive에 저장합니다. 연결되지 않았다면 ACM 파일
-            저장소를 사용합니다.
-          </p>
+          <fieldset className="grid gap-1 text-sm" disabled={attempted}>
+            <legend className="mb-1 font-medium">{t("drive.storage.label")}</legend>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="storage"
+                checked={chosen === "DRIVE"}
+                disabled={!driveReady}
+                onChange={() => setStorage("DRIVE")}
+              />
+              {t("drive.storage.drive")}
+              {driveReady && drive.data?.rootName && (
+                <span className="text-secondary">({drive.data.rootName})</span>
+              )}
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="storage"
+                checked={chosen === "ACM"}
+                onChange={() => setStorage("ACM")}
+              />
+              {t("drive.storage.acm")}
+            </label>
+            {!driveReady && (
+              <p className="text-xs text-secondary">
+                {drive.data?.needsReconnect
+                  ? t("drive.storage.reconnectHint")
+                  : t("drive.storage.notConnectedHint")}
+              </p>
+            )}
+          </fieldset>
           <label
             className="rounded border-2 border-dashed p-6"
             onDragOver={(e) => e.preventDefault()}

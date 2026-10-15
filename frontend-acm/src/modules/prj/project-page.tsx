@@ -3,6 +3,7 @@ import { DocumentPermissions } from "./document-permissions";
 import { ProjectFiles } from "./project-files";
 import { ProjectOverview } from "./project-overview";
 import { projectDocumentPath } from "./document-page";
+import { DriveConnection } from "./drive-connection";
 import { IssueFormDialog } from "./issues/issue-form-dialog";
 import type { Issue } from "./issues/issue-model";
 import {
@@ -377,141 +378,8 @@ export function DriveConnectionPage() {
     </section>
   );
 }
-export function DriveConnection() {
-  const qc = useQueryClient(),
-    w = useWork();
-  const [params] = useSearchParams();
-  const q = useQuery({
-    queryKey: ["prj-drive", ...useScope()],
-    queryFn: async () =>
-      (await apiClient.get<DriveStatus>(base + "/drive")).data,
-  });
-  const c = q.data;
-  const refresh = () => qc.invalidateQueries({ queryKey: ["prj-drive"] });
-  return (
-    <div className="grid gap-3 rounded-lg border bg-surface p-4">
-      <h2 className="font-semibold">학원 공용 Google Drive</h2>
-      <p className="text-sm">계정 연결 → 저장 위치 선택 → 완료</p>
-      <Notice
-        text={
-          w.error ||
-          (q.error ? errorText(q.error) : "") ||
-          (params.get("drive") === "failed"
-            ? "Google 연결을 완료하지 못했습니다. 다시 시도하세요."
-            : "")
-        }
-      />
-      {params.get("drive") === "cancelled" && (
-        <p>연결을 취소했습니다. 다시 연결할 수 있습니다.</p>
-      )}
-      {c && (
-        <>
-          <p>
-            {c.connected ? `연결 계정: ${c.email}` : "연결된 계정이 없습니다."}
-          </p>
-          {c.connected && (
-            <p>저장 위치: {c.rootName ?? "저장 위치를 선택하세요."}</p>
-          )}
-          {!c.configured && (
-            <p>
-              운영 Google OAuth 앱 설정이 필요합니다. 관리자에게 문의하세요.
-            </p>
-          )}
-          {c.canManage ? (
-            <div className="flex flex-wrap gap-2">
-              <Button
-                disabled={w.busy || !c.configured}
-                onClick={() =>
-                  void w.run(async () => {
-                    const { data } = await apiClient.post<{ url: string }>(
-                      base + "/drive/connect",
-                      { returnPath: location.pathname + location.search },
-                    );
-                    location.assign(data.url);
-                  })
-                }
-              >
-                {c.connected ? "다시 연결 / 계정 변경" : "Google 계정으로 연결"}
-              </Button>
-              {c.connected && (
-                <>
-                  <Button
-                    variant="outline"
-                    disabled={w.busy}
-                    onClick={() =>
-                      void w.run(async () => {
-                        await apiClient.put(base + "/drive/root", {});
-                        await refresh();
-                      })
-                    }
-                  >
-                    프로젝트 기본 저장 폴더 사용
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={w.busy}
-                    onClick={() =>
-                      void w.run(async () => {
-                        const id = await pickGoogle(true);
-                        if (id) {
-                          await apiClient.put(base + "/drive/root", {
-                            fileId: id,
-                          });
-                          await refresh();
-                        }
-                      })
-                    }
-                  >
-                    기존 폴더 선택
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={w.busy}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "연결을 해제하면 문서 생성과 업로드가 중단됩니다. Google 원본과 프로젝트 기록은 보존됩니다.",
-                        )
-                      )
-                        void w.run(async () => {
-                          await apiClient.delete(base + "/drive");
-                          await refresh();
-                        });
-                    }}
-                  >
-                    연결 해제
-                  </Button>
-                </>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm">
-              계정 연결 및 저장 위치 변경은 설정 관리자가 할 수 있습니다.
-            </p>
-          )}
-          {c.rootId && (
-            <a
-              className="underline"
-              target="_blank"
-              rel="noreferrer"
-              href={
-                "https://drive.google.com/drive/folders/" +
-                encodeURIComponent(c.rootId)
-              }
-            >
-              저장 폴더 열기
-            </a>
-          )}
-          <p className="text-xs text-secondary">
-            저장 위치 변경은 새 프로젝트에 적용됩니다. 계정을 변경하면 이전
-            계정의 자료는 접근이 제한될 수 있습니다. Google 문서 공유 권한은
-            별도로 관리됩니다.
-          </p>
-        </>
-      )}
-    </div>
-  );
-}
+// REQ-261016 — 회사 Workspace 연동 패널은 drive-connection.tsx 로 이동.
+export { DriveConnection };
 export function ProjectDetailPage() {
   const { id = "" } = useParams(),
     [params, setParams] = useSearchParams(),

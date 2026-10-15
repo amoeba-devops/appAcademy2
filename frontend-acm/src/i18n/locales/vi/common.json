@@ -1446,5 +1446,56 @@
     "saved": "Đã lưu.",
     "saveError": "Không lưu được.",
     "changePassword": "Đổi mật khẩu"
+  },
+  "drive": {
+    "title": "Google Drive của công ty",
+    "operatorOnly": "Chỉ dành cho người vận hành dịch vụ",
+    "steps": {
+      "1": "Đăng nhập tài khoản Google công ty",
+      "2": "Chọn thư mục chung",
+      "3": "Sẵn sàng"
+    },
+    "result": {
+      "failed": "Không thể hoàn tất kết nối Google. Vui lòng thử lại.",
+      "workspaceRequired": "Chỉ có thể kết nối tài khoản Google Workspace của công ty. Không dùng được Gmail cá nhân (@gmail.com).",
+      "cancelled": "Đã hủy kết nối. Bạn có thể kết nối lại."
+    },
+    "notConfigured": "Máy chủ chưa cấu hình ứng dụng Google OAuth. Vui lòng liên hệ quản trị viên.",
+    "account": {
+      "title": "Tài khoản Google công ty",
+      "none": "Chưa kết nối tài khoản. Sau khi đăng nhập bằng tài khoản công ty, tệp tải lên hoặc tạo trong trung tâm sẽ được lưu vào thư mục chung.",
+      "ok": "Đã kết nối",
+      "needsReconnect": "Cần kết nối lại",
+      "connectedAt": "Kết nối lúc {{at}} bởi {{by}}",
+      "reconnectHint": "Ủy quyền Google đã hết hạn hoặc bị thu hồi. Trước khi kết nối lại, tệp tải lên sẽ lưu vào kho ACM.",
+      "login": "Đăng nhập bằng tài khoản Google công ty",
+      "reconnect": "Kết nối lại / đổi tài khoản",
+      "disconnect": "Ngắt kết nối",
+      "disconnectConfirm": "Ngắt kết nối sẽ dừng lưu vào Google Drive; tệp tải lên sẽ lưu vào kho ACM. Bản gốc Google và dữ liệu dự án được giữ nguyên.",
+      "workspaceOnly": "Chỉ kết nối được tài khoản Google Workspace thuộc tên miền công ty."
+    },
+    "readOnly": "Chỉ người vận hành dịch vụ mới kết nối và đặt thư mục chung.",
+    "folder": {
+      "title": "Thư mục chung",
+      "structure": "Lưu trong thư mục chung / thư mục con theo dự án",
+      "open": "Mở trong Google",
+      "change": "Thay đổi",
+      "changeNote": "Thay đổi áp dụng cho thư mục dự án tạo sau này. Tệp hiện có không bị di chuyển.",
+      "create": "Tạo thư mục mới",
+      "nameLabel": "Tên thư mục",
+      "namePlaceholder": "Để trống = \"ACM - tên trung tâm\"",
+      "pick": "Chọn thư mục có sẵn (từ Google Drive)",
+      "cancel": "Hủy",
+      "submit": "Đặt thư mục chung",
+      "none": "Chưa đặt thư mục chung."
+    },
+    "note": "ACM chỉ xử lý các tệp do ACM tạo hoặc được chọn. Để mở tệp trên Google, nhân viên cần được chia sẻ thư mục chung từ tài khoản công ty.",
+    "storage": {
+      "label": "Lưu vào",
+      "drive": "Google Drive của công ty",
+      "acm": "Kho ACM",
+      "notConnectedHint": "Khi Google Drive công ty được kết nối, bạn có thể chọn nơi lưu.",
+      "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM."
+    }
   }
 }
