@@ -1,9 +1,12 @@
 ---
-document_id: ACM-SYS-GOOGLE-OAUTH-REQ-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-SYS-GOOGLE-OAUTH-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-16
 change_log:
+  - version: 1.1.0
+    date: 2026-10-16
+    description: Defaults approved for Q1–Q3 / 제안 기본값 승인
   - version: 1.0.0
     date: 2026-10-16
     description: System settings menu with Google OAuth app guide and registration / 시스템 설정 · Google OAuth 앱 설정
@@ -49,3 +52,6 @@ change_log:
 | Q1 | 저장값과 환경변수 우선순위 | 시스템 설정 저장값 우선, 없으면 환경변수 |
 | Q2 | 값 삭제(초기화) 허용 | 허용. 삭제하면 환경변수로 돌아가며 확인창을 띄운다 |
 | Q3 | 스테이징 | 서버별 DB라서 스테이징은 스테이징 화면에서 따로 등록한다(리디렉션 URI 기본값은 현재 접속 도메인) |
+
+## 6. Decisions (확정 · 2026-10-16)
+Q1–Q3 제안 기본값 승인: 저장값 우선(없으면 환경변수), 초기화 허용(확인창), 스테이징은 별도 등록.

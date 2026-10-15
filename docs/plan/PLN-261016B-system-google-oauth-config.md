@@ -1,9 +1,12 @@
 ---
-document_id: ACM-SYS-GOOGLE-OAUTH-PLN-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-SYS-GOOGLE-OAUTH-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-16
 change_log:
+  - version: 1.1.0
+    date: 2026-10-16
+    description: Defaults approved for Q1–Q3 / 제안 기본값 승인
   - version: 1.0.0
     date: 2026-10-16
     description: Implementation plan with UI mockups for REQ-261016B / 시스템 설정 Google OAuth 구현 계획
@@ -73,4 +76,4 @@ Google OAuth 앱 설정                       적용 출처: [시스템 설정 �
 - 실제 Google 확인은 사용자가 값을 등록한 뒤 [연결 확인]과 테넌트 연결로 한다.
 
 ## 4. Review Gate (검토)
-CLAUDE.md 9.2에 따라 REQ Q1–Q3 확인 후 구현한다.
+2026-10-16 사용자가 제안 기본값을 승인했다. 구현을 진행한다.
