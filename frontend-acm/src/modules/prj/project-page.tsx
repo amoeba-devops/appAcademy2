@@ -2,7 +2,7 @@ import { DocumentTable } from "./document-table";
 import { DocumentPermissions } from "./document-permissions";
 import { ProjectFiles } from "./project-files";
 import { ProjectOverview } from "./project-overview";
-import { DocumentEditor, type DocumentType } from "./document-editor";
+import { projectDocumentPath } from "./document-page";
 import {
   useContext,
   useEffect,
@@ -531,10 +531,16 @@ export function ProjectDetailPage() {
   const docType = ["MEMO", "SHEET", "DOC", "FILE"].includes(requestedType)
     ? requestedType
     : "MEMO";
-  const [createMode, setCreateMode] = useState<"LOCAL" | "GOOGLE_LINK">(
-    "LOCAL",
-  );
-  const [docEdit, setDocEdit] = useState<Item | "new" | null>(null);
+  const navigate = useNavigate(),
+    openDoc = (doc: Item | "new", mode?: "LOCAL" | "GOOGLE_LINK") =>
+      navigate(
+        projectDocumentPath(
+          id,
+          doc === "new" ? "new" : doc.pit_id,
+          docType,
+          doc === "new" ? mode : undefined,
+        ),
+      );
   const [editing, setEditing] = useState(false),
     [itemEdit, setItemEdit] = useState<Item | "new" | null>(null),
     [search, setSearch] = useState(""),
@@ -561,18 +567,21 @@ export function ProjectDetailPage() {
     const doc = params.get("doc");
     const found = items.data?.find((i) => i.pit_id === doc);
     if (found && !found.drive_file_id && found.pit_kind !== "FILE") {
-      setDocEdit(found);
-      const next = new URLSearchParams(params);
-      next.delete("doc");
-      setParams(next, { replace: true });
+      navigate(projectDocumentPath(id, found.pit_id, docType), {
+        replace: true,
+      });
+      return;
     }
     if (params.get("create") === "1") {
-      if (docType !== "FILE") setDocEdit("new");
+      if (docType !== "FILE") {
+        navigate(projectDocumentPath(id, "new", docType), { replace: true });
+        return;
+      }
       const next = new URLSearchParams(params);
       next.delete("create");
       setParams(next, { replace: true });
     }
-  }, [params, items.data, docType, setParams]);
+  }, [params, items.data, docType, setParams, navigate, id]);
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["prj"] });
   };
@@ -784,8 +793,7 @@ export function ProjectDetailPage() {
                       {docType !== "FILE" && (
                         <Button
                           onClick={() => {
-                            setCreateMode("LOCAL");
-                            setDocEdit("new");
+                            openDoc("new", "LOCAL");
                           }}
                         >
                           {docType === "SHEET"
@@ -799,8 +807,7 @@ export function ProjectDetailPage() {
                         <Button
                           variant="outline"
                           onClick={() => {
-                            setCreateMode("GOOGLE_LINK");
-                            setDocEdit("new");
+                            openDoc("new", "GOOGLE_LINK");
                           }}
                         >
                           {docType === "SHEET"
@@ -862,7 +869,7 @@ export function ProjectDetailPage() {
                   items={rows}
                   project={project}
                   manage={manage}
-                  onEdit={setDocEdit}
+                  onEdit={openDoc}
                 />
               ) : (
                 <div className="grid gap-3">
@@ -976,7 +983,7 @@ export function ProjectDetailPage() {
                             onClick={() =>
                               i.pit_kind === "ISSUE"
                                 ? setItemEdit(i)
-                                : setDocEdit(i)
+                                : openDoc(i)
                             }
                           >
                             {readOnly ? "내용 보기" : "보기 / 수정"}
@@ -990,21 +997,6 @@ export function ProjectDetailPage() {
             </>
           )}
         </>
-      )}
-      {docEdit && (
-        <DocumentEditor
-          project={id}
-          item={docEdit === "new" ? undefined : docEdit}
-          type={docType as DocumentType}
-          initialMode={createMode}
-          readOnly={
-            readOnly ||
-            (!manage &&
-              docEdit !== "new" &&
-              !!docEdit.viewer_ids?.includes(user?.id ?? ""))
-          }
-          close={() => setDocEdit(null)}
-        />
       )}
       {editing && (
         <ProjectEditor project={project} close={() => setEditing(false)} />

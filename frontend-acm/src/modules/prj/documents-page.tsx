@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
+import { projectDocumentPath } from "./document-page";
 import { apiClient } from "@/lib/api-client";
 import { useScope, errorText } from "./project-page";
 import { documentKind } from "./project-overview";
@@ -170,7 +171,11 @@ export function DocumentsPage() {
         {project && (
           <Link
             className="rounded bg-blue-600 p-2 text-white"
-            to={`/admin/projects/${project}?tab=documents&type=${kind.toLowerCase()}&create=1`}
+            to={
+              kind === "FILE"
+                ? `/admin/projects/${project}?tab=documents&type=file`
+                : projectDocumentPath(project, "new", kind)
+            }
           >
             + 작성
           </Link>
@@ -204,7 +209,11 @@ export function DocumentsPage() {
                 <td className="max-w-xs px-4 py-3">
                   <Link
                     className="text-blue-600"
-                    to={`/admin/projects/${i.prj_id}?tab=documents&type=${kind.toLowerCase()}&doc=${i.pit_id}`}
+                    to={
+                      kind !== "FILE" && !i.drive_file_id
+                        ? projectDocumentPath(i.prj_id, i.pit_id, kind)
+                        : `/admin/projects/${i.prj_id}?tab=documents&type=${kind.toLowerCase()}&doc=${i.pit_id}`
+                    }
                   >
                     {i.pit_title}
                   </Link>

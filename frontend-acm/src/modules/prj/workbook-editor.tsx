@@ -289,7 +289,7 @@ export function WorkbookEditor({
         </a>
       )}
       {error && <p role="alert">{error}</p>}
-      <div className="h-[60dvh] min-h-96 w-full overflow-hidden rounded border">
+      <div className="h-[70dvh] min-h-96 w-full overflow-hidden rounded border">
         <Workbook
           key={generation}
           ref={ref}
