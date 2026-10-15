@@ -32,7 +32,11 @@ export interface Item {
   pit_kind: "ISSUE" | "NOTE" | "DOCUMENT" | "FILE";
   pit_title: string;
   pit_body: string;
-  pit_status: "TODO" | "DOING" | "DONE";
+  pit_status: "OPEN" | "IN_PROGRESS" | "DONE" | "REJECTED";
+  pit_issue_type?: "TASK" | "FEATURE" | "BUG" | "OPINION" | "OTHER";
+  pit_priority?: number;
+  start_date?: string | null;
+  prj_id?: string;
   assignee_id: string | null;
   due_date: string | null;
   creator_name: string;
@@ -64,4 +68,8 @@ export const statusNames: Record<string, string> = {
   ARCHIVED: "보관",
   TODO: "할 일",
   DOING: "진행중",
+  // REQ-261015C — 이슈 간소화 모드
+  OPEN: "열림",
+  IN_PROGRESS: "진행중",
+  REJECTED: "반려",
 };

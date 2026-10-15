@@ -17,7 +17,7 @@ interface RoleMenuItem {
   alwaysOn: boolean;
   locked: Role[];
 }
-const GROUP_OF_WORK = new Set(["chat", "projects", "documents", "drive"]);
+const GROUP_OF_WORK = new Set(["chat", "myWork", "issues", "projects", "documents", "drive"]);
 
 /** REQ-261015C — /admin/tenant 테넌트 설정 (테넌트 마스터 전용). */
 export function TenantSettingsPage() {

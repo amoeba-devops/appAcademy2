@@ -86,6 +86,16 @@ describe('Project / shared Drive isolation and durable operations', () => {
         'utf8',
       ),
     );
+    // REQ-261015C — 이슈 확장(상태·유형·우선순위·댓글·이력). set_acm_updated_at 필요.
+    await ds.query(`CREATE OR REPLACE FUNCTION set_acm_updated_at() RETURNS TRIGGER LANGUAGE plpgsql AS $$
+      BEGIN NEW.updated_at = NOW(); RETURN NEW; END $$;`);
+    for (let i = 0; i < 2; i++)
+      await ds.query(
+        readFileSync(
+          resolve(__dirname, '../../../../sql/acm/1036-prj-issue-extend.sql'),
+          'utf8',
+        ),
+      );
     await ds.query('ALTER TABLE amb_acm_user ADD COLUMN usr_email text');
     for (const u of [owner, member, outsider])
       await ds.query(

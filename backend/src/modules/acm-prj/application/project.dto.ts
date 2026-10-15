@@ -1,8 +1,12 @@
+import { ISSUE_STATUSES, ISSUE_TYPES } from './issue.dto';
 import {
   ArrayMaxSize,
   IsArray,
   IsIn,
+  IsInt,
   IsISO8601,
+  Max,
+  Min,
   IsOptional,
   IsString,
   IsUUID,
@@ -29,9 +33,13 @@ export class ItemDto {
   @IsIn(['ISSUE', 'NOTE']) kind!: 'ISSUE' | 'NOTE';
   @IsString() @MinLength(1) @MaxLength(200) title!: string;
   @IsOptional() @IsString() @MaxLength(50000) body?: string;
-  @IsOptional() @IsIn(['TODO', 'DOING', 'DONE']) status?: string;
+  @IsOptional() @IsIn(ISSUE_STATUSES) status?: string;
   @IsOptional() @IsUUID() assigneeId?: string | null;
   @IsOptional() @IsISO8601({ strict: true }) dueDate?: string | null;
+  // REQ-261015C — 이슈 확장 필드
+  @IsOptional() @IsIn(ISSUE_TYPES) issueType?: string;
+  @IsOptional() @IsInt() @Min(1) @Max(5) priority?: number;
+  @IsOptional() @IsISO8601({ strict: true }) startDate?: string | null;
 }
 export class DriveFileDto {
   @IsString() @Matches(/^[a-zA-Z0-9_-]{1,200}$/) fileId!: string;

@@ -257,7 +257,9 @@
       "work": "Quản lý công việc",
       "settings": "Cài đặt"
     },
-    "tenantConfig": "Cài đặt tenant"
+    "tenantConfig": "Cài đặt tenant",
+    "myWork": "Công việc của tôi",
+    "issues": "Vấn đề"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -1285,5 +1287,139 @@
       "reset": "Đặt lại (hiện tất cả)",
       "resetConfirm": "Đặt lại menu của tất cả các cấp về mặc định (hiện tất cả)?"
     }
+  },
+  "issues": {
+    "title": "Vấn đề",
+    "add": "Tạo vấn đề",
+    "addComment": "Thêm bình luận",
+    "backToList": "Danh sách vấn đề",
+    "commentPlaceholder": "Nhập bình luận",
+    "comments": "Bình luận",
+    "created": "Tạo mới",
+    "delete": "Xóa",
+    "deleteCommentConfirm": "Xóa bình luận này?",
+    "deleteConfirm": "Xóa vấn đề này?",
+    "edit": "Sửa",
+    "edited": "đã sửa",
+    "empty": "Không có vấn đề phù hợp.",
+    "fields": {
+      "assignee": "Người phụ trách",
+      "createdAt": "Ngày tạo",
+      "description": "Mô tả",
+      "doneAt": "Hoàn thành lúc",
+      "dueDate": "Hạn chót",
+      "period": "Thời gian",
+      "priority": "Ưu tiên",
+      "project": "Dự án",
+      "reporter": "Người tạo",
+      "startDate": "Ngày bắt đầu",
+      "status": "Trạng thái",
+      "title": "Tiêu đề",
+      "type": "Loại",
+      "updatedAt": "Ngày cập nhật"
+    },
+    "filters": {
+      "allAssignees": "Tất cả người phụ trách",
+      "allPriorities": "Tất cả mức ưu tiên",
+      "allProjects": "Tất cả dự án"
+    },
+    "form": {
+      "cancel": "Hủy",
+      "createTitle": "Tạo vấn đề",
+      "discard": "Bỏ thay đổi chưa lưu?",
+      "editTitle": "Sửa vấn đề",
+      "pickProject": "Chọn dự án",
+      "save": "Lưu",
+      "saving": "Đang lưu…"
+    },
+    "loading": "Đang tải…",
+    "noDescription": "Không có mô tả.",
+    "notFound": "Không tìm thấy vấn đề.",
+    "pageSize": "Số dòng mỗi trang",
+    "perPage": "{{count}} / trang",
+    "scope": {
+      "all": "Tất cả",
+      "assigned": "Giao cho tôi",
+      "created": "Tôi tạo"
+    },
+    "search": "Tìm",
+    "searchPlaceholder": "Tìm theo tiêu đề",
+    "sortLabel": "Sắp xếp",
+    "sort": {
+      "created_desc": "Mới tạo nhất",
+      "updated_desc": "Mới cập nhật",
+      "due_asc": "Hạn gần nhất",
+      "due_desc": "Hạn xa nhất",
+      "priority_asc": "Ưu tiên cao nhất"
+    },
+    "status": {
+      "OPEN": "Mở",
+      "IN_PROGRESS": "Đang làm",
+      "DONE": "Hoàn thành",
+      "REJECTED": "Từ chối"
+    },
+    "statusNote": "Ghi chú trạng thái (tùy chọn)",
+    "tabs": {
+      "description": "Mô tả",
+      "history": "Lịch sử"
+    },
+    "total": "Tổng {{count}}",
+    "transition": {
+      "OPEN": "Mở lại",
+      "IN_PROGRESS": "Bắt đầu",
+      "DONE": "Hoàn thành",
+      "REJECTED": "Từ chối"
+    },
+    "type": {
+      "TASK": "Công việc",
+      "FEATURE": "Tính năng",
+      "BUG": "Lỗi",
+      "OPINION": "Ý kiến",
+      "OTHER": "Khác"
+    },
+    "priority": {
+      "1": "Khẩn cấp",
+      "2": "Cao",
+      "3": "Trung bình",
+      "4": "Thấp",
+      "5": "Rất thấp"
+    },
+    "unassigned": "Chưa giao",
+    "view": {
+      "list": "Danh sách",
+      "kanban": "Kanban"
+    }
+  },
+  "myWork": {
+    "title": "Công việc của tôi",
+    "subtitle": "{{total}} đang mở · {{overdue}} trễ hạn",
+    "kpi": {
+      "assigned": "Được giao",
+      "overdue": "Trễ hạn",
+      "today": "Hạn hôm nay",
+      "week": "Hạn tuần này",
+      "doneToday": "Xong hôm nay"
+    },
+    "relation": {
+      "assigned": "Được giao",
+      "created": "Tôi tạo"
+    },
+    "sections": {
+      "now": "Xử lý hôm nay ({{count}})",
+      "later": "Sau này ({{count}})",
+      "done": "Xong hôm nay ({{count}})"
+    },
+    "bucket": {
+      "OVERDUE": "Trễ hạn",
+      "TODAY": "Hôm nay"
+    },
+    "due": "Hạn {{date}}",
+    "noDue": "Không có hạn",
+    "start": "Bắt đầu",
+    "complete": "Xong",
+    "empty": "Không có mục nào.",
+    "emptyNow": "Hôm nay không có việc đến hạn.",
+    "openFull": "Mở vấn đề",
+    "selectHint": "Chọn một mục để xem chi tiết."
   }
 }
