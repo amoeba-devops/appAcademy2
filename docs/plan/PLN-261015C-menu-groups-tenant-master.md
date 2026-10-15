@@ -1,9 +1,12 @@
 ---
-document_id: ACM-MENU-TENANT-PLN-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-MENU-TENANT-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-15
 change_log:
+  - version: 1.1.0
+    date: 2026-10-15
+    description: User decisions on Q1–Q7 recorded; approved for implementation / 미결 사항 확정·구현 승인
   - version: 1.0.0
     date: 2026-10-15
     description: Implementation plan with UI mockups for REQ-261015C / 메뉴 그룹·테넌트마스터 구현 계획
@@ -143,4 +146,4 @@ change_log:
 - 다국어: 4개 언어 키가 모두 있는지, 390px 모바일 사이드바와 표의 가로 넘침이 없는지 확인한다.
 
 ## 5. Review Gate (검토)
-CLAUDE.md 9.2에 따라 이 계획과 REQ의 미결 사항(Q1–Q7) 확인 후 WP1부터 구현한다.
+2026-10-15 사용자가 Q1–Q7을 확정하고(REQ §6) 구현을 승인했다. WP1부터 순서대로 PR을 만든다. Q6 결정에 따라 등급별 메뉴는 숨김만 적용한다.

@@ -1,9 +1,12 @@
 ---
-document_id: ACM-MENU-TENANT-REQ-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-MENU-TENANT-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-15
 change_log:
+  - version: 1.1.0
+    date: 2026-10-15
+    description: User decisions on Q1–Q7 recorded; approved for implementation / 미결 사항 확정·구현 승인
   - version: 1.0.0
     date: 2026-10-15
     description: Menu groups, work management (my work / issues), service vs tenant settings, tenant master, per-role menu visibility, user timezone, system user tenant filter / 메뉴 그룹·업무관리·테넌트마스터·등급별 메뉴·사용자 타임존
@@ -109,3 +112,14 @@ change_log:
 | Q5 | "TPI 테넌트"의 실체 | 테넌트 `…0001`(code tpi, "Trinity Academy"). 학생 사이트 TPI만의 권한이 아님 |
 | Q6 | 숨긴 메뉴의 API 차단 | 1차는 화면 노출과 직접 URL 안내까지. API 차단은 모듈별로 2차 |
 | Q7 | 콘솔 사용자(강사·직원)의 타임존 | 포함. 콘솔 프로필 메뉴에 같은 설정 제공 |
+
+## 6. Decisions (확정 · 2026-10-15)
+| Q | 결정 |
+|---|---|
+| Q1 | 기존 기타 메뉴는 학원관리 그룹 하단에 둔다 |
+| Q2 | 권장안대로. 서비스 설정: AMA 연동·화상·메일·카카오·AI·광고·GA4. 테넌트 설정: 등급별 메뉴 노출·기본 타임존 |
+| Q3 | 이슈 기반만. AMA 연동 없이 ACM 프로젝트·이슈만 사용 |
+| Q4 | 간소화 모드 OPEN/IN_PROGRESS/DONE(+REJECTED). 기존 TODO→OPEN, DOING→IN_PROGRESS |
+| Q5 | 테넌트 `…0001`(code tpi)이 맞다 |
+| Q6 | 메뉴 숨김만. 직접 URL 안내·API 차단은 하지 않는다 |
+| Q7 | 콘솔 사용자 타임존 설정 포함 |
