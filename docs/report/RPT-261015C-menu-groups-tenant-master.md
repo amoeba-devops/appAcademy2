@@ -1,9 +1,12 @@
 ---
-document_id: ACM-MENU-TENANT-RPT-1.0.0
-version: 1.0.0
-status: Implemented on staging; production deploy pending
+document_id: ACM-MENU-TENANT-RPT-1.1.0
+version: 1.1.0
+status: Deployed to production (29227d2); v1.1 fix pending
 created: 2026-10-15
 change_log:
+  - version: 1.1.0
+    date: 2026-10-15
+    description: Tenant master sees all system-allowed menus regardless of role / 테넌트 마스터는 허가 메뉴 전체 노출
   - version: 1.0.0
     date: 2026-10-15
     description: WP1–WP5 implementation report / 메뉴 그룹·테넌트 마스터·이슈·내 업무·사용자 타임존 구현 보고
@@ -25,6 +28,7 @@ change_log:
 - Q4 간소화 모드: 기존 TODO→OPEN, DOING→IN_PROGRESS로 변환했다. 허용 전이는 OPEN→진행/완료/반려, 진행→완료/열림, 완료·반려→열림이다.
 - Q2: 기본 타임존 저장은 테넌트 마스터와 서비스 운영자 모두 가능하다(서버 `TenantSettingsGuard`). 화면은 테넌트 설정에만 있고, `/admin/config/general`은 테넌트 설정으로 이동한다.
 - 수납 메뉴는 기존 정책대로 강사 등급에 열 수 없다(매트릭스에서 잠김).
+- v1.1 추가 요구: 테넌트 마스터 본인은 등급별 숨김과 수납 등급 제한을 받지 않고, 시스템 어드민이 허가한 메뉴를 모두 본다. 서비스 설정은 계속 서비스 운영자 권한으로만 노출한다.
 
 ## 3. Timezone Display Scope (타임존 병기 적용 범위)
 - 적용:

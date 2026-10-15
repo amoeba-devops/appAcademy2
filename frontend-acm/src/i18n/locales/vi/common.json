@@ -1282,7 +1282,7 @@
       "STAFF": "Nhân viên"
     },
     "menus": {
-      "description": "Chỉ hiển thị các menu được quản trị viên hệ thống cho phép. Chọn menu bên trái hiển thị cho từng cấp. Ẩn menu không thay đổi quyền truy cập dữ liệu.",
+      "description": "Chỉ hiển thị các menu được quản trị viên hệ thống cho phép. Chọn menu bên trái hiển thị cho từng cấp. Ẩn menu không thay đổi quyền truy cập dữ liệu. Tenant master luôn thấy tất cả menu được cho phép, không phụ thuộc cấp.",
       "menu": "Menu",
       "fixed": "Luôn hiển thị",
       "locked": "Theo chính sách, không thể mở cho cấp này",

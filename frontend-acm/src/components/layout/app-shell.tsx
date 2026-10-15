@@ -177,6 +177,8 @@ export function AppShell() {
           ? configAccess.tenantAllowed
           : !hiddenSet.has(n.key)) &&
       (n.key !== "pay" ||
+        // REQ-261015C — 테넌트 마스터는 허가된 메뉴를 모두 본다.
+        configAccess.tenantAllowed ||
         ["ADMIN", "APP_ADMIN", "STAFF"].includes(user?.role ?? "")),
   )
     .slice()

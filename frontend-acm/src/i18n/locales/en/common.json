@@ -1282,7 +1282,7 @@
       "STAFF": "Staff"
     },
     "menus": {
-      "description": "Only menus allowed by the system administrator are listed. Choose which sidebar menus each role sees. Hiding a menu does not change data access permissions.",
+      "description": "Only menus allowed by the system administrator are listed. Choose which sidebar menus each role sees. Hiding a menu does not change data access permissions. Tenant masters always see every allowed menu regardless of role.",
       "menu": "Menu",
       "fixed": "Always visible",
       "locked": "Not available to this role by policy",
