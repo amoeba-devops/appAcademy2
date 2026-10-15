@@ -11,6 +11,7 @@ import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorat
 import { hasConfigPermission } from '../../acm-common/guards/config-admin.guard';
 import {
   DriveClient,
+  DriveReconnectRequired,
   DriveWriteRejected,
   GoogleFile,
 } from '../infrastructure/drive.client';
@@ -24,6 +25,15 @@ interface Connection {
   token_auth_tag: Buffer;
   root_id: string | null;
   root_name: string | null;
+}
+/** REQ-261016 — access token 캐시(테넌트·계정·암호문 단위). 만료 60초 전까지 재사용. */
+const tokenCache = new Map<
+  string,
+  { key: string; token: string; expiresAt: number }
+>();
+/** 테스트·재연결용 캐시 초기화. */
+export function resetDriveTokenCache() {
+  tokenCache.clear();
 }
 const FOLDER = 'application/vnd.google-apps.folder';
 const DOC = 'application/vnd.google-apps.document';
@@ -66,20 +76,49 @@ export class ProjectDriveService {
   }
   async token(ent: string) {
     const c = await this.connection(ent);
+    const key = `${c.account_id}:${c.token_iv.toString('base64')}`;
+    const cached = tokenCache.get(ent);
+    if (cached && cached.key === key && cached.expiresAt > Date.now())
+      return { token: cached.token, c };
     const refresh = this.crypto.decrypt({
       ciphertext: c.token_encrypted,
       iv: c.token_iv,
       authTag: c.token_auth_tag,
     });
-    const t = await this.google.token({
-      grant_type: 'refresh_token',
-      refresh_token: refresh,
-    });
-    return { token: t.access_token, c };
+    try {
+      const t = await this.google.token({
+        grant_type: 'refresh_token',
+        refresh_token: refresh,
+      });
+      tokenCache.set(ent, {
+        key,
+        token: t.access_token,
+        expiresAt: Date.now() + Math.max(0, (t.expires_in ?? 3600) - 60) * 1000,
+      });
+      return { token: t.access_token, c };
+    } catch (error) {
+      if (error instanceof DriveReconnectRequired) {
+        tokenCache.delete(ent);
+        await this.ds.query(
+          'UPDATE amb_acm_prj_drive SET needs_reconnect=true,last_error_at=now() WHERE ent_id=$1',
+          [ent],
+        );
+      }
+      throw error;
+    }
   }
   async status(u: AcmCurrentUser) {
-    const [c] = await this.ds.query<Connection[]>(
-      'SELECT account_email,root_id,root_name FROM amb_acm_prj_drive WHERE ent_id=$1',
+    const [c] = await this.ds.query<
+      (Connection & {
+        account_domain: string | null;
+        needs_reconnect: boolean;
+        updated_at: Date;
+        connected_by_name: string | null;
+      })[]
+    >(
+      `SELECT d.account_email,d.root_id,d.root_name,d.account_domain,d.needs_reconnect,d.updated_at,u.usr_name AS connected_by_name
+         FROM amb_acm_prj_drive d LEFT JOIN amb_acm_user u ON u.ent_id=d.ent_id AND u.usr_id=d.connected_by
+        WHERE d.ent_id=$1`,
       [u.entId],
     );
     const canManage = await hasConfigPermission(this.ds, u);
@@ -87,8 +126,13 @@ export class ProjectDriveService {
       configured: this.google.ready(),
       connected: !!c,
       email: c?.account_email,
+      domain: c?.account_domain ?? null,
+      needsReconnect: !!c?.needs_reconnect,
+      connectedAt: c?.updated_at ?? null,
+      connectedByName: c?.connected_by_name ?? null,
       rootId: canManage ? c?.root_id : undefined,
-      rootReady: !!c?.root_id,
+      // 재연결이 필요하면 Drive 저장을 막고 ACM 저장소만 쓰게 한다.
+      rootReady: !!c?.root_id && !c?.needs_reconnect,
       rootName: c?.root_name,
       canManage,
     };
@@ -108,7 +152,7 @@ export class ProjectDriveService {
       [u.entId, u.id, hash(state), verifier, safeReturn(path)],
     );
     return {
-      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: 'openid email https://www.googleapis.com/auth/drive.file', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
+      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: 'openid email https://www.googleapis.com/auth/drive.file', hd: '*', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
     };
   }
   async callback(
@@ -159,12 +203,16 @@ export class ProjectDriveService {
         sub: string;
         email: string;
         email_verified: boolean;
+        hd?: string;
       };
       if (!account.sub || !account.email || !account.email_verified)
         throw new Error('Unverified account');
+      // REQ-261016 — Google Workspace(회사 도메인) 계정만 허용. 일반 Gmail 은 hd 가 없다.
+      if (!account.hd)
+        return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=workspace_required`;
       const e = this.crypto.encrypt(tokens.refresh_token);
       await this.ds.query<Record<string, unknown>[]>(
-        `INSERT INTO amb_acm_prj_drive(ent_id,account_id,account_email,token_encrypted,token_iv,token_auth_tag,connected_by) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(ent_id) DO UPDATE SET root_id=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_id ELSE NULL END,root_name=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_name ELSE NULL END,account_id=excluded.account_id,account_email=excluded.account_email,token_encrypted=excluded.token_encrypted,token_iv=excluded.token_iv,token_auth_tag=excluded.token_auth_tag,connected_by=excluded.connected_by,updated_at=now()`,
+        `INSERT INTO amb_acm_prj_drive(ent_id,account_id,account_email,token_encrypted,token_iv,token_auth_tag,connected_by,account_domain) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(ent_id) DO UPDATE SET root_id=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_id ELSE NULL END,root_name=CASE WHEN amb_acm_prj_drive.account_id=excluded.account_id THEN amb_acm_prj_drive.root_name ELSE NULL END,account_id=excluded.account_id,account_email=excluded.account_email,token_encrypted=excluded.token_encrypted,token_iv=excluded.token_iv,token_auth_tag=excluded.token_auth_tag,connected_by=excluded.connected_by,account_domain=excluded.account_domain,needs_reconnect=false,last_error_at=NULL,updated_at=now()`,
         [
           s.ent_id,
           account.sub,
@@ -173,8 +221,10 @@ export class ProjectDriveService {
           e.iv,
           e.authTag,
           s.usr_id,
+          account.hd,
         ],
       );
+      tokenCache.delete(s.ent_id);
       return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=connected`;
     } catch {
       return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=failed`;
@@ -182,6 +232,7 @@ export class ProjectDriveService {
   }
   async disconnect(u: AcmCurrentUser) {
     await this.admin(u);
+    tokenCache.delete(u.entId);
     await this.ds.query<Record<string, unknown>[]>(
       'DELETE FROM amb_acm_prj_drive WHERE ent_id=$1',
       [u.entId],
@@ -289,17 +340,27 @@ export class ProjectDriveService {
     );
     return file;
   }
-  async root(u: AcmCurrentUser, fileId?: string) {
+  async root(u: AcmCurrentUser, fileId?: string, name?: string) {
     await this.admin(u);
     const { token, c } = await this.token(u.entId);
+    let folderName = name?.trim();
+    if (!fileId && !folderName) {
+      // REQ-261016 — 기본 공용폴더 이름: "ACM - {테넌트명}".
+      const [t] = await this.ds.query<{ tnt_name: string }[]>(
+        'SELECT tnt_name FROM amb_acm_tenant WHERE tnt_ent_id=$1',
+        [u.entId],
+      );
+      folderName = `ACM - ${t?.tnt_name ?? 'Academy'}`;
+    }
     const f = fileId
       ? await this.google.file(token, fileId)
       : await this.once(
           u.entId,
           null,
-          fixedId(`root:${u.entId}:${c.account_id}`),
+          // 같은 계정·같은 이름이면 같은 작업 ID → 중복 생성 없이 재사용.
+          fixedId(`root:${u.entId}:${c.account_id}:${folderName}`),
           token,
-          { name: 'ACM Projects', mimeType: FOLDER },
+          { name: folderName, mimeType: FOLDER },
         );
     const verified = await this.google.file(token, f.id);
     if (

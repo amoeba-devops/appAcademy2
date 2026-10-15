@@ -16,10 +16,12 @@ import { randomUUID } from 'crypto';
 import { ProjectService } from '../../../src/modules/acm-prj/application/project.service';
 import {
   ProjectDriveService,
+  resetDriveTokenCache,
   safeReturn,
 } from '../../../src/modules/acm-prj/application/drive.service';
 import {
   DriveClient,
+  DriveReconnectRequired,
   DriveWriteRejected,
 } from '../../../src/modules/acm-prj/infrastructure/drive.client';
 import { AesGcmService } from '../../../src/modules/acm-common/crypto/aes-gcm.service';
@@ -83,6 +85,13 @@ describe('Project / shared Drive isolation and durable operations', () => {
     await ds.query(
       readFileSync(
         resolve(__dirname, '../../../../sql/acm/1034-project-parity.sql'),
+        'utf8',
+      ),
+    );
+    // REQ-261016 — 회사 Workspace 연동 상태 컬럼.
+    await ds.query(
+      readFileSync(
+        resolve(__dirname, '../../../../sql/acm/1038-drive-company-folder.sql'),
         'utf8',
       ),
     );
@@ -412,17 +421,38 @@ describe('Project / shared Drive isolation and durable operations', () => {
       access_token: 'access',
       refresh_token: 'secret-refresh',
     });
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          sub: 'account',
-          email: 'academy@example.invalid',
-          email_verified: true,
-        }),
-        { status: 200 },
-      ),
-    );
+    // REQ-261016 — 일반 Gmail(hd 없음)은 거부, Workspace(hd)만 연결.
+    const fetchMock = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            sub: 'personal',
+            email: 'someone@gmail.com',
+            email_verified: true,
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            sub: 'account',
+            email: 'academy@example.invalid',
+            email_verified: true,
+            hd: 'example.invalid',
+          }),
+          { status: 200 },
+        ),
+      );
     try {
+      const personal = await drive.connect(owner, '/admin/projects');
+      expect(new URL(personal.url).searchParams.get('hd')).toBe('*');
+      const personalState = new URL(personal.url).searchParams.get('state')!;
+      expect(await drive.callback(personalState, 'code', personalState)).toBe(
+        '/admin/projects?drive=workspace_required',
+      );
+      expect((await drive.status(owner)).connected).toBe(false);
       const result = await drive.connect(owner, '/admin/projects');
       const state = new URL(result.url).searchParams.get('state')!;
       expect(await drive.callback(state, 'code', state)).toBe(
@@ -433,7 +463,11 @@ describe('Project / shared Drive isolation and durable operations', () => {
         [ent],
       );
       expect(saved.token_encrypted.toString()).not.toContain('secret-refresh');
-      expect((await drive.status(owner)).email).toBe('academy@example.invalid');
+      expect(await drive.status(owner)).toMatchObject({
+        email: 'academy@example.invalid',
+        domain: 'example.invalid',
+        needsReconnect: false,
+      });
       expect(JSON.stringify(await drive.status(member))).not.toContain(
         'secret-refresh',
       );
@@ -492,6 +526,98 @@ describe('Project / shared Drive isolation and durable operations', () => {
         (i) => i.drive_file_id === 'inside',
       ),
     ).toBe(true);
+  });
+  it('names the company shared folder and recovers from expired Google auth without 401', async () => {
+    await ds.query(
+      `CREATE TABLE IF NOT EXISTS amb_acm_tenant(tnt_ent_id uuid PRIMARY KEY, tnt_name text)`,
+    );
+    await ds.query(
+      `INSERT INTO amb_acm_tenant VALUES($1,'Test Academy') ON CONFLICT DO NOTHING`,
+      [ent],
+    );
+    resetDriveTokenCache();
+    jest
+      .mocked(google.token)
+      .mockResolvedValue({ access_token: 'access', expires_in: 3600 });
+    jest.mocked(google.create).mockResolvedValueOnce({
+      id: 'company-root',
+      name: 'ACM - Test Academy',
+      mimeType: 'application/vnd.google-apps.folder',
+    });
+    jest.mocked(google.file).mockResolvedValue({
+      id: 'company-root',
+      name: 'ACM - Test Academy',
+      mimeType: 'application/vnd.google-apps.folder',
+      capabilities: { canAddChildren: true },
+    });
+    await expect(drive.root(member)).rejects.toThrow();
+    await drive.root(owner);
+    expect(jest.mocked(google.create).mock.lastCall?.[1]).toMatchObject({
+      name: 'ACM - Test Academy',
+    });
+    expect(await drive.status(owner)).toMatchObject({
+      rootReady: true,
+      rootName: 'ACM - Test Academy',
+    });
+    // 토큰 캐시: 연속 호출에도 refresh 는 한 번.
+    const calls = jest.mocked(google.token).mock.calls.length;
+    await drive.token(ent);
+    await drive.token(ent);
+    expect(jest.mocked(google.token).mock.calls.length).toBe(calls);
+    // 만료·철회 → 409(로그아웃 유발 401 아님) + 재연결 필요 표시, Drive 저장 중지.
+    resetDriveTokenCache();
+    jest
+      .mocked(google.token)
+      .mockRejectedValueOnce(new DriveReconnectRequired());
+    await expect(drive.token(ent)).rejects.toMatchObject({ status: 409 });
+    expect(await drive.status(owner)).toMatchObject({
+      needsReconnect: true,
+      rootReady: false,
+    });
+    await ds.query(
+      'UPDATE amb_acm_prj_drive SET needs_reconnect=false WHERE ent_id=$1',
+      [ent],
+    );
+  });
+  it('lets users choose Drive or ACM storage once connected, ACM only before', async () => {
+    const store = {
+      isConfigured: () => true,
+      buildKey: (e: string, id: string, name: string) => `${e}/${id}/${name}`,
+      putObject: jest.fn().mockResolvedValue(undefined),
+    } as unknown as ObjectStoreClient;
+    const file = {
+      size: 4,
+      buffer: Buffer.from('test'),
+      originalname: 'a.pdf',
+      mimetype: 'application/pdf',
+    } as Express.Multer.File;
+    const driveCreate = jest.fn().mockResolvedValue({ id: 'drive-file' });
+    const svc = (rootReady: boolean) =>
+      new ProjectFileService(
+        projects,
+        {
+          status: async () => ({ rootReady }),
+          create: driveCreate,
+        } as unknown as ProjectDriveService,
+        store,
+      );
+    const dto = (storage?: 'DRIVE' | 'ACM') => ({
+      title: 'a.pdf',
+      phase: 'ETC',
+      operationId: randomUUID(),
+      storage,
+    });
+    await expect(
+      svc(false).upload(owner, projectId, dto('DRIVE'), file),
+    ).rejects.toMatchObject({ status: 409 });
+    await svc(false).upload(owner, projectId, dto(), file);
+    expect(store.putObject).toHaveBeenCalledTimes(1);
+    expect(driveCreate).not.toHaveBeenCalled();
+    await svc(true).upload(owner, projectId, dto(), file);
+    expect(driveCreate).toHaveBeenCalledTimes(1);
+    await svc(true).upload(owner, projectId, dto('ACM'), file);
+    expect(store.putObject).toHaveBeenCalledTimes(2);
+    expect(driveCreate).toHaveBeenCalledTimes(1);
   });
   it('retains references on disconnect and refuses unauthorized disconnect', async () => {
     await expect(drive.disconnect(member)).rejects.toThrow();

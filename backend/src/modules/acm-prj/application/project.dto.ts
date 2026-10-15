@@ -52,6 +52,8 @@ export class CreateDriveDto {
 }
 export class RootDto {
   @IsOptional() @Matches(/^[a-zA-Z0-9_-]{1,200}$/) fileId?: string;
+  /** REQ-261016 — 새 공용폴더 이름(미지정 시 "ACM - {테넌트명}"). */
+  @IsOptional() @IsString() @MinLength(1) @MaxLength(100) name?: string;
 }
 export class ConnectDto {
   @IsString() @MaxLength(500) returnPath!: string;

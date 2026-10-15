@@ -1,8 +1,10 @@
 ---
-document_id: ACM-PROJECT-DRIVE-SETUP-1.0.0
-version: 1.0.0
+document_id: ACM-PROJECT-DRIVE-SETUP-1.1.0
+version: 1.1.0
 status: Ready for configuration
 change_log:
+  - version: 1.1.0
+    description: REQ-261016 company Google Workspace only, named shared folder, storage choice, reconnect handling.
   - version: 1.0.0
     description: Shared-account OAuth and Picker deployment configuration.
 ---
@@ -37,7 +39,30 @@ OAuth 승인된 리디렉션 URI에 위 콜백을 정확히 등록한다. 승인
 
 중복 방지: 요청 ID/내용 해시/결과를 DB에 기록한다. Google 응답이 불확실하면 90초 후 동일 요청으로 appProperties를 조회하여 기존 파일을 회수하며 무조건 다시 만들지 않는다. 결과를 찾지 못하면 관리자 확인 상태로 유지한다. 운영자는 해당 작업 ID와 Google 파일 존재를 확인하고 재처리 여부를 결정한다. 브라우저는 세션 동안 같은 입력의 요청 ID를 보존한다.
 
-## 4. References (공식 근거)
+## 4. Company Workspace Setup (회사 Workspace 연동 · REQ-261016)
+1. **Google Cloud 콘솔** (회사 Workspace 관리자 계정 권장)
+   - 프로젝트를 만들고 **Google Drive API**와 **Google Picker API**를 사용 설정한다.
+   - OAuth 동의 화면 사용자 유형은 **내부(Internal)**로 한다. 회사 도메인 사용자만 동의할 수 있고, 앱 검증·테스트 사용자 7일 토큰 만료 제약이 없다.
+   - 사용자 인증 정보 → OAuth 클라이언트 ID(웹 애플리케이션)를 만든다.
+     - 승인된 JavaScript 원본: `https://acm.amoeba.site`
+     - 승인된 리디렉션 URI: `https://acm.amoeba.site/api/acm/prj/drive/callback`
+   - API 키를 만들고 HTTP 리퍼러를 `https://acm.amoeba.site/*`, API를 Picker API로 제한한다(Picker용).
+2. **운영 서버** `docker/production/.env.production`(파일 예시는 `.env.production.example`)에 아래 5개 값을 입력한다.
+   - `ACM_GOOGLE_CLIENT_ID`
+   - `ACM_GOOGLE_CLIENT_SECRET`
+   - `ACM_GOOGLE_REDIRECT_URI`
+   - `ACM_GOOGLE_PICKER_KEY`
+   - `ACM_GOOGLE_PROJECT_NUMBER`: 프로젝트 번호, 숫자
+
+   입력 후 backend를 재생성한다. 이때 `DEPLOY_SHA`를 반드시 지정한다. 비밀값은 Git에 커밋하지 않는다.
+3. **ACM 연결:** 서비스 운영자가 `/admin/config/drive` → [회사 Google 계정으로 로그인] → 공용폴더 이름 입력(비우면 `ACM - 학원명`) 또는 기존 폴더 선택 → [공용폴더 지정].
+4. **동작**
+   - 일반 Gmail(@gmail.com)은 연결이 거부된다(`hd` 클레임 없음).
+   - 업로드 시 저장 위치로 회사 Google Drive(기본)와 ACM 저장소 중 하나를 고른다. 미연결이거나 재연결이 필요하면 ACM 저장소만 쓸 수 있다.
+   - Google 인증이 만료되면 "재연결 필요"로 표시하며 ACM 로그아웃은 일어나지 않는다.
+5. **공유:** 직원이 Google에서 파일을 열 수 있게 회사 계정 Drive에서 공용폴더를 직원 또는 그룹에 공유한다. ACM은 공유 설정을 바꾸지 않는다.
+
+## 5. References (공식 근거)
 - https://developers.google.com/workspace/drive/api/guides/api-specific-auth
 - https://developers.google.com/workspace/drive/picker/guides/web-picker
 - https://developers.google.com/workspace/drive/api/guides/create-file

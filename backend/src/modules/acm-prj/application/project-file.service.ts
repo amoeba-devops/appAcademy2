@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
   ServiceUnavailableException,
@@ -28,7 +29,15 @@ export class ProjectFileService {
     if (/\.(html?|svg|js|exe|sh|bat)$/i.test(file.originalname))
       throw new BadRequestException('지원하지 않는 파일 형식입니다.');
     const status = await this.drive.status(u);
-    if (status.rootReady) {
+    // REQ-261016 — 연결 전에는 ACM 저장소, 연결 후에는 선택(기본 Drive).
+    const storage = d.storage ?? (status.rootReady ? 'DRIVE' : 'ACM');
+    if (storage === 'DRIVE' && !status.rootReady)
+      throw new ConflictException({
+        code: 'DRIVE_NOT_READY',
+        message:
+          '회사 Google Drive 공용폴더가 준비되지 않았습니다. ACM 저장소를 선택하세요.',
+      });
+    if (storage === 'DRIVE') {
       const result = await this.drive.create(
         u,
         id,

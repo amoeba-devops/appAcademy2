@@ -1446,5 +1446,56 @@
     "saved": "Saved.",
     "saveError": "Could not save.",
     "changePassword": "Change password"
+  },
+  "drive": {
+    "title": "Company Google Drive",
+    "operatorOnly": "Service operator only",
+    "steps": {
+      "1": "Sign in with company Google account",
+      "2": "Set shared folder",
+      "3": "Ready"
+    },
+    "result": {
+      "failed": "Could not complete the Google connection. Please try again.",
+      "workspaceRequired": "Only company Google Workspace accounts can be connected. Personal Gmail (@gmail.com) accounts are not allowed.",
+      "cancelled": "Connection cancelled. You can connect again."
+    },
+    "notConfigured": "The Google OAuth app is not configured for this server. Contact the administrator.",
+    "account": {
+      "title": "Company Google account",
+      "none": "No account connected. After signing in with the company account, files uploaded or created in this academy are saved to its shared folder.",
+      "ok": "Connected",
+      "needsReconnect": "Reconnect required",
+      "connectedAt": "Connected {{at}} by {{by}}",
+      "reconnectHint": "Google authorization expired or was revoked. Until you reconnect, uploads are saved to ACM storage.",
+      "login": "Sign in with company Google account",
+      "reconnect": "Reconnect / change account",
+      "disconnect": "Disconnect",
+      "disconnectConfirm": "Disconnecting stops saving to Google Drive; uploads will go to ACM storage. Google originals and project records are kept.",
+      "workspaceOnly": "Only Google Workspace accounts on a company domain can be connected."
+    },
+    "readOnly": "Only the service operator can connect and set the shared folder.",
+    "folder": {
+      "title": "Shared folder",
+      "structure": "Saved as shared folder / one subfolder per project",
+      "open": "Open in Google",
+      "change": "Change",
+      "changeNote": "Changes apply to project folders created afterwards. Existing files are not moved.",
+      "create": "Create new folder",
+      "nameLabel": "Folder name",
+      "namePlaceholder": "Blank = \"ACM - academy name\"",
+      "pick": "Choose existing folder (from Google Drive)",
+      "cancel": "Cancel",
+      "submit": "Set shared folder",
+      "none": "No shared folder set yet."
+    },
+    "note": "ACM only handles files it created or that were picked. To open files in Google, staff need the shared folder shared with them from the company account.",
+    "storage": {
+      "label": "Save to",
+      "drive": "Company Google Drive",
+      "acm": "ACM storage",
+      "notConnectedHint": "Once the company Google Drive is connected, you can choose where to save.",
+      "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage."
+    }
   }
 }

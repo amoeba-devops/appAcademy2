@@ -45,6 +45,8 @@ export class ProjectFileDto {
   @IsIn(['PLANNING', 'DESIGN', 'DEVELOPMENT', 'OPERATION', 'ETC'])
   phase!: string;
   @IsUUID() operationId!: string;
+  /** REQ-261016 — 저장소 선택. 미지정 시 Drive 준비되면 DRIVE, 아니면 ACM. */
+  @IsOptional() @IsIn(['DRIVE', 'ACM']) storage?: 'DRIVE' | 'ACM';
 }
 
 export class DocumentPermissionDto {

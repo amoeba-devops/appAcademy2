@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
 import {
   BadGatewayException,
+  ConflictException,
   Injectable,
   ServiceUnavailableException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 export interface GoogleFile {
@@ -16,6 +16,16 @@ export interface GoogleFile {
   capabilities?: { canAddChildren?: boolean };
 }
 export class DriveWriteRejected extends BadGatewayException {}
+/** Google refresh token 이 만료·철회됨. ACM 세션과 무관하므로 409. */
+export class DriveReconnectRequired extends ConflictException {
+  constructor() {
+    super({
+      code: 'DRIVE_RECONNECT_REQUIRED',
+      message:
+        'Google Drive 연결이 만료되었습니다. 서비스 운영자가 다시 연결해야 합니다.',
+    });
+  }
+}
 const definitiveRejection = (status: number) =>
   [400, 401, 403, 404, 413, 422, 429].includes(status);
 @Injectable()
@@ -31,9 +41,11 @@ export class DriveClient {
       this.setting('REDIRECT_URI')
     );
   }
-  async token(
-    body: Record<string, string>,
-  ): Promise<{ access_token: string; refresh_token?: string }> {
+  async token(body: Record<string, string>): Promise<{
+    access_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+  }> {
     if (!this.ready())
       throw new ServiceUnavailableException('Google 연결 설정이 필요합니다.');
     const r = await fetch('https://oauth2.googleapis.com/token', {
@@ -46,11 +58,12 @@ export class DriveClient {
       }),
       signal: AbortSignal.timeout(15000),
     });
-    if (!r.ok)
-      throw new UnauthorizedException('Google 계정을 다시 연결하세요.');
+    // REQ-261016 — 401 은 프론트에서 ACM 세션 만료로 처리되어 로그아웃된다. 409 로 구분한다.
+    if (!r.ok) throw new DriveReconnectRequired();
     return r.json() as Promise<{
       access_token: string;
       refresh_token?: string;
+      expires_in?: number;
     }>;
   }
   async request<T>(

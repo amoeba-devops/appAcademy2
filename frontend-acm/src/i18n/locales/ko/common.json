@@ -1446,5 +1446,56 @@
     "saved": "저장되었습니다.",
     "saveError": "저장하지 못했습니다.",
     "changePassword": "비밀번호 변경"
+  },
+  "drive": {
+    "title": "회사 Google Drive 연동",
+    "operatorOnly": "서비스 운영자 전용",
+    "steps": {
+      "1": "회사 Google 계정 로그인",
+      "2": "공용폴더 지정",
+      "3": "사용"
+    },
+    "result": {
+      "failed": "Google 연결을 완료하지 못했습니다. 다시 시도하세요.",
+      "workspaceRequired": "회사 Google Workspace 계정만 연결할 수 있습니다. 일반 Gmail(@gmail.com) 계정은 사용할 수 없습니다.",
+      "cancelled": "연결을 취소했습니다. 다시 연결할 수 있습니다."
+    },
+    "notConfigured": "운영 Google OAuth 앱 설정이 필요합니다. 관리자에게 문의하세요.",
+    "account": {
+      "title": "회사 Google 계정",
+      "none": "연결된 계정이 없습니다. 회사 계정으로 로그인하면 이 학원의 업로드·작성 파일이 해당 계정의 공용폴더에 저장됩니다.",
+      "ok": "정상",
+      "needsReconnect": "재연결 필요",
+      "connectedAt": "연결 {{at}} · 연결자 {{by}}",
+      "reconnectHint": "Google 인증이 만료되었거나 권한이 철회되었습니다. 다시 연결하기 전까지 업로드는 ACM 저장소에 저장됩니다.",
+      "login": "회사 Google 계정으로 로그인",
+      "reconnect": "다시 연결 / 계정 변경",
+      "disconnect": "연결 해제",
+      "disconnectConfirm": "연결을 해제하면 Google Drive 저장이 중단되고 업로드는 ACM 저장소에 저장됩니다. Google 원본과 프로젝트 기록은 보존됩니다.",
+      "workspaceOnly": "회사 도메인의 Google Workspace 계정만 연결할 수 있습니다."
+    },
+    "readOnly": "연동과 공용폴더 설정은 서비스 운영자가 할 수 있습니다.",
+    "folder": {
+      "title": "공용폴더",
+      "structure": "공용폴더 / 프로젝트별 하위폴더에 저장",
+      "open": "Google에서 열기",
+      "change": "변경",
+      "changeNote": "변경은 이후 새로 만드는 프로젝트 폴더에 적용됩니다. 기존 파일은 이동하지 않습니다.",
+      "create": "새 폴더 만들기",
+      "nameLabel": "폴더 이름",
+      "namePlaceholder": "비우면 \"ACM - 학원명\"",
+      "pick": "기존 폴더 선택 (Google Drive에서 선택)",
+      "cancel": "취소",
+      "submit": "공용폴더 지정",
+      "none": "공용폴더가 아직 지정되지 않았습니다."
+    },
+    "note": "ACM은 직접 만들거나 선택한 파일만 다룹니다. 직원이 Google에서 파일을 열려면 회사 계정에서 공용폴더를 공유해야 합니다.",
+    "storage": {
+      "label": "저장 위치",
+      "drive": "회사 Google Drive",
+      "acm": "ACM 저장소",
+      "notConnectedHint": "회사 Google Drive가 연결되면 저장 위치를 선택할 수 있습니다.",
+      "reconnectHint": "Google Drive 재연결이 필요해 ACM 저장소에 저장합니다."
+    }
   }
 }
