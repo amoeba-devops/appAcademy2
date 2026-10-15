@@ -1,9 +1,12 @@
 ---
-document_id: ACM-DRIVE-COMPANY-PLN-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-DRIVE-COMPANY-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-16
 change_log:
+  - version: 1.1.0
+    date: 2026-10-16
+    description: Q1–Q6 decisions recorded (Workspace only, Drive/ACM storage choice) / 미결 사항 확정
   - version: 1.0.0
     date: 2026-10-16
     description: Implementation plan with UI mockups for REQ-261016 / 회사 지메일 공용폴더 구현 계획
@@ -49,11 +52,11 @@ Google Drive 연동                                  [서비스 운영자 전용
 (인증 만료 시) ⚠ Google 연결이 만료되었습니다. [다시 연결]
 ```
 
-### 1.4 프로젝트 > 문서 > 파일 (미연결 상태, Q3)
+### 1.4 파일 업로드 — 저장소 선택 (Q3)
 ```text
-[업로드] (비활성)  ⓘ 회사 Google Drive가 연결되지 않아 업로드할 수 없습니다.
-                    서비스 운영자에게 /admin/config/drive 연동을 요청하세요.
-기존 파일 목록은 그대로 열람·다운로드 가능
+저장 위치  ● Google Drive (ACM - Trinity Academy / 프로젝트 폴더)
+           ○ ACM 저장소
+(Drive 미연결 시) 저장 위치: ACM 저장소 — 회사 Google Drive가 연결되면 선택할 수 있습니다.
 ```
 
 ## 2. Implementation (구현)
@@ -63,7 +66,8 @@ Google Drive 연동                                  [서비스 운영자 전용
 | 2 | 연결 정보 | `amb_acm_prj_drive`에 `connected_at`·`connected_by` 표시와 `last_error`·`needs_reconnect` 추가(마이그레이션 1038) |
 | 3 | 장애 처리 | Google 토큰 갱신 실패를 401 대신 409 `DRIVE_RECONNECT_REQUIRED`로 바꾸고 `needs_reconnect=true`로 기록. ACM 로그아웃을 방지한다 |
 | 4 | 토큰 캐시 | access token을 만료 1분 전까지 메모리에 캐시해 호출마다 반복되는 갱신을 없앤다 |
-| 5 | 저장 위치 강제 (Q3) | 공용폴더가 없으면 프로젝트 업로드를 409 `DRIVE_NOT_READY`로 거부한다. ObjectStore 대체 저장을 중단하되 기존 파일 다운로드는 유지한다 |
+| 5 | 저장소 선택 (Q3) | 업로드 DTO에 `storage: DRIVE \| ACM` 추가. 연결 전에는 ACM 저장소만 허용하고, 연결 후 기본값은 DRIVE. DRIVE를 골랐는데 공용폴더가 없으면 409 `DRIVE_NOT_READY` |
+| 5b | Workspace 전용 (Q2) | 인증 URL에 `hd=*`. 콜백에서 userinfo `hd`가 없으면 연결 거부(`drive=workspace_required`). `account_domain` 저장·표시 |
 | 6 | 저장 구조 (Q1) | 공용폴더 / 프로젝트별 하위폴더(기존 로직 유지). 드라이브 메뉴 업로드·작성은 해당 폴더 |
 | 7 | 설정 화면 | 1.1–1.3 단계형 UI, 4개 언어 i18n, 운영 미설정·인증 만료 안내 |
 | 8 | 운영 문서 | SETUP 문서에 Workspace(Internal) / 일반 Gmail(External 게시) 절차와 `.env.production` 항목 추가. `.env.production.example`에 키 이름 추가(값 없음) |
@@ -77,7 +81,7 @@ Google Drive 연동                                  [서비스 운영자 전용
 ## 4. Verification (검증)
 - 통합 테스트:
   - 폴더 이름 지정과 재사용
-  - 미연결 업로드 409
+  - 저장소 선택(연결 전 ACM만, 연결 후 DRIVE/ACM), Workspace 아닌 계정 거부
   - 토큰 갱신 실패 시 409 + `needs_reconnect`, 재연결 시 해제
   - 비운영자 연결·설정 403
   - 타 테넌트 격리
@@ -85,4 +89,4 @@ Google Drive 연동                                  [서비스 운영자 전용
 - 실제 Google 연동은 OAuth 클라이언트 설정 후 스테이징·운영에서 수동으로 확인한다.
 
 ## 5. Review Gate (검토)
-CLAUDE.md 9.2에 따라 REQ의 Q1–Q6 확인 후 구현한다.
+2026-10-16 사용자가 Q1–Q6을 확정했다(REQ §7). 구현을 진행한다.

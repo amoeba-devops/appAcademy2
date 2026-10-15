@@ -1,9 +1,12 @@
 ---
-document_id: ACM-DRIVE-COMPANY-REQ-1.0.0
-version: 1.0.0
-status: Pending review
+document_id: ACM-DRIVE-COMPANY-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-16
 change_log:
+  - version: 1.1.0
+    date: 2026-10-16
+    description: Q1–Q6 decisions recorded (Workspace only, Drive/ACM storage choice) / 미결 사항 확정
   - version: 1.0.0
     date: 2026-10-16
     description: Company Gmail OAuth connection and tenant shared folder for all files / 회사 지메일 연동·테넌트 공용폴더 단일 저장
@@ -33,7 +36,7 @@ change_log:
   - 프로젝트 파일 업로드
   - Google Docs/Sheets 새로 만들기
   - 드라이브 메뉴에서의 업로드·작성
-- **FR-4 미연결 시 동작:** 공용폴더가 없을 때의 업로드 처리는 Q3에 따른다.
+- **FR-4 저장소 선택:** Drive 연결 전에는 ACM 저장소에 저장한다. 연결 후에는 업로드할 때 Google Drive(공용폴더)와 ACM 저장소 중에서 고른다(기본 Google Drive).
 - **FR-5 장애 처리:** Google 인증 만료나 권한 철회 시 ACM 로그아웃 없이 "재연결 필요" 안내를 표시하고, 서비스 운영자에게 재연결을 유도한다.
 - **FR-6 권한:** 연동·폴더 설정·해제는 서비스 운영자만 한다. 일반 사용자는 프로젝트·폴더 권한 범위에서만 파일을 조회·업로드한다. ACM은 Google 공유 권한을 자동으로 변경하지 않는다.
 
@@ -65,3 +68,13 @@ change_log:
 | Q4 | ACM 편집기로 작성한 메모·시트·문서 | DB 저장 유지. 공동 편집·버전 충돌 방지 기능이 DB 기반이라서다. "Google에서 새로 만들기"로 만든 문서만 Drive에 저장 |
 | Q5 | 기존 파일 이관 | 이미 ObjectStore에 저장된 프로젝트 파일은 이관하지 않고 그대로 둔다(필요 시 별도 작업) |
 | Q6 | 다른 모듈 첨부 | 상담·일정·자료실 첨부는 이번 범위에서 제외(프로젝트·문서·드라이브만) |
+
+## 7. Decisions (확정 · 2026-10-16)
+| Q | 결정 |
+|---|---|
+| Q1 | 공용폴더 안에 프로젝트별 하위폴더 |
+| Q2 | **Google Workspace 계정만 허용**. 일반 @gmail.com은 연결 거부(OAuth `hd` 클레임 확인, 계정 선택 시 `hd=*` 힌트) |
+| Q3 | Drive와 ACM 저장소 모두 지원. 연결 전에는 ACM 저장소, 연결 후에는 업로드 시 선택(기본 Drive) |
+| Q4 | ACM 편집기 문서는 DB 저장 유지. "Google에서 새로 만들기" 문서만 Drive |
+| Q5 | 기존 파일 이관하지 않음 |
+| Q6 | 상담·일정·자료실 첨부는 제외 |
