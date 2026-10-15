@@ -104,7 +104,11 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
       await hasUserPermission(db, { id: teacher, entId: TPI }, 'TENANT_MASTER'),
     ).toBe(false);
     expect(
-      await hasUserPermission(db, { id: master, entId: OTHER }, 'TENANT_MASTER'),
+      await hasUserPermission(
+        db,
+        { id: master, entId: OTHER },
+        'TENANT_MASTER',
+      ),
     ).toBe(false);
     expect(await svc.masters(TPI)).toHaveLength(1);
   });

@@ -41,6 +41,8 @@ import {
   PanelLeftOpen,
   X,
   Building2,
+  CircleDot,
+  ListTodo,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -83,6 +85,9 @@ const NAV = [
   { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna", group: "academy" },
   // REQ-260728C — 로비채팅 (운영자↔강사)
   { to: "/admin/chat", icon: MessagesSquare, key: "chat", group: "work" },
+  // REQ-261015C — 내 업무 / 이슈 (ACM 프로젝트 이슈)
+  { to: "/admin/my-work", icon: ListTodo, key: "myWork", group: "work" },
+  { to: "/admin/issues", icon: CircleDot, key: "issues", group: "work" },
   { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
   { to: "/admin/documents", icon: FolderKanban, key: "documents", group: "work" },
   { to: "/admin/drive", icon: FolderKanban, key: "drive", group: "work" },

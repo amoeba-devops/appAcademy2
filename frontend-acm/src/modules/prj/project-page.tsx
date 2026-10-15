@@ -3,6 +3,8 @@ import { DocumentPermissions } from "./document-permissions";
 import { ProjectFiles } from "./project-files";
 import { ProjectOverview } from "./project-overview";
 import { projectDocumentPath } from "./document-page";
+import { IssueFormDialog } from "./issues/issue-form-dialog";
+import type { Issue } from "./issues/issue-model";
 import {
   useContext,
   useEffect,
@@ -762,7 +764,7 @@ export function ProjectDetailPage() {
                       onChange={(e) => setFilter(e.target.value)}
                     >
                       <option value="">전체 상태</option>
-                      {["TODO", "DOING", "DONE"].map((s) => (
+                      {["OPEN", "IN_PROGRESS", "DONE", "REJECTED"].map((s) => (
                         <option key={s} value={s}>
                           {statusNames[s]}
                         </option>
@@ -982,7 +984,7 @@ export function ProjectDetailPage() {
                             variant="outline"
                             onClick={() =>
                               i.pit_kind === "ISSUE"
-                                ? setItemEdit(i)
+                                ? navigate(`/admin/issues/${i.pit_id}`)
                                 : openDoc(i)
                             }
                           >
@@ -1001,7 +1003,15 @@ export function ProjectDetailPage() {
       {editing && (
         <ProjectEditor project={project} close={() => setEditing(false)} />
       )}{" "}
-      {itemEdit && (
+      {/* REQ-261015C — 이슈는 공통 이슈 폼(유형·우선순위·기간)으로 등록한다. */}
+      {itemEdit && kind === "ISSUE" && (
+        <IssueFormDialog
+          projectId={id}
+          issue={itemEdit === "new" ? undefined : (itemEdit as unknown as Issue)}
+          close={() => setItemEdit(null)}
+        />
+      )}
+      {itemEdit && kind !== "ISSUE" && (
         <ItemEditor
           project={project}
           item={itemEdit === "new" ? undefined : itemEdit}
@@ -1045,13 +1055,13 @@ function ItemEditor({
     w = useWork();
   const [title, setTitle] = useState(item?.pit_title ?? ""),
     [body, setBody] = useState(item?.pit_body ?? ""),
-    [status, setStatus] = useState(item?.pit_status ?? "TODO"),
+    [status, setStatus] = useState(item?.pit_status ?? "OPEN"),
     [assignee, setAssignee] = useState(item?.assignee_id ?? ""),
     [due, setDue] = useState(item?.due_date?.slice(0, 10) ?? "");
   const dirty =
     title !== (item?.pit_title ?? "") ||
     body !== (item?.pit_body ?? "") ||
-    status !== (item?.pit_status ?? "TODO") ||
+    status !== (item?.pit_status ?? "OPEN") ||
     assignee !== (item?.assignee_id ?? "") ||
     due !== (item?.due_date?.slice(0, 10) ?? "");
   function dismiss() {
@@ -1122,7 +1132,7 @@ function ItemEditor({
                     setStatus(e.target.value as Item["pit_status"])
                   }
                 >
-                  {["TODO", "DOING", "DONE"].map((s) => (
+                  {["OPEN", "IN_PROGRESS", "DONE"].map((s) => (
                     <option key={s} value={s}>
                       {statusNames[s]}
                     </option>

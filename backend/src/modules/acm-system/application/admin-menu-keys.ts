@@ -30,6 +30,8 @@ export const TOGGLEABLE_MENU_KEYS = [
   'qna',
   // REQ-261015C — 업무관리 그룹
   'chat',
+  'myWork',
+  'issues',
   'projects',
   'documents',
   'drive',

@@ -257,7 +257,9 @@
       "work": "Work",
       "settings": "Settings"
     },
-    "tenantConfig": "Tenant settings"
+    "tenantConfig": "Tenant settings",
+    "myWork": "My work",
+    "issues": "Issues"
   },
   "lang": {
     "label": "Language",
@@ -1285,5 +1287,139 @@
       "reset": "Reset (show all)",
       "resetConfirm": "Reset menus for all roles to the default (all visible)?"
     }
+  },
+  "issues": {
+    "title": "Issues",
+    "add": "New issue",
+    "addComment": "Add comment",
+    "backToList": "Issue list",
+    "commentPlaceholder": "Write a comment",
+    "comments": "Comments",
+    "created": "Created",
+    "delete": "Delete",
+    "deleteCommentConfirm": "Delete this comment?",
+    "deleteConfirm": "Delete this issue?",
+    "edit": "Edit",
+    "edited": "edited",
+    "empty": "No issues match the filters.",
+    "fields": {
+      "assignee": "Assignee",
+      "createdAt": "Created",
+      "description": "Description",
+      "doneAt": "Completed",
+      "dueDate": "Due date",
+      "period": "Period",
+      "priority": "Priority",
+      "project": "Project",
+      "reporter": "Reporter",
+      "startDate": "Start date",
+      "status": "Status",
+      "title": "Title",
+      "type": "Type",
+      "updatedAt": "Updated"
+    },
+    "filters": {
+      "allAssignees": "All assignees",
+      "allPriorities": "All priorities",
+      "allProjects": "All projects"
+    },
+    "form": {
+      "cancel": "Cancel",
+      "createTitle": "New issue",
+      "discard": "Discard unsaved changes?",
+      "editTitle": "Edit issue",
+      "pickProject": "Select project",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "loading": "Loading…",
+    "noDescription": "No description.",
+    "notFound": "Issue not found.",
+    "pageSize": "Page size",
+    "perPage": "{{count}} / page",
+    "scope": {
+      "all": "All",
+      "assigned": "Assigned to me",
+      "created": "Created by me"
+    },
+    "search": "Search",
+    "searchPlaceholder": "Search title",
+    "sortLabel": "Sort",
+    "sort": {
+      "created_desc": "Newest",
+      "updated_desc": "Recently updated",
+      "due_asc": "Due soonest",
+      "due_desc": "Due latest",
+      "priority_asc": "Highest priority"
+    },
+    "status": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done",
+      "REJECTED": "Rejected"
+    },
+    "statusNote": "Status note (optional)",
+    "tabs": {
+      "description": "Description",
+      "history": "History"
+    },
+    "total": "{{count}} total",
+    "transition": {
+      "OPEN": "Reopen",
+      "IN_PROGRESS": "Start",
+      "DONE": "Complete",
+      "REJECTED": "Reject"
+    },
+    "type": {
+      "TASK": "Task",
+      "FEATURE": "Feature",
+      "BUG": "Bug",
+      "OPINION": "Opinion",
+      "OTHER": "Other"
+    },
+    "priority": {
+      "1": "Highest",
+      "2": "High",
+      "3": "Medium",
+      "4": "Low",
+      "5": "Lowest"
+    },
+    "unassigned": "Unassigned",
+    "view": {
+      "list": "List",
+      "kanban": "Kanban"
+    }
+  },
+  "myWork": {
+    "title": "My work",
+    "subtitle": "{{total}} open · {{overdue}} overdue",
+    "kpi": {
+      "assigned": "Assigned",
+      "overdue": "Overdue",
+      "today": "Due today",
+      "week": "Due this week",
+      "doneToday": "Done today"
+    },
+    "relation": {
+      "assigned": "Assigned",
+      "created": "Created by me"
+    },
+    "sections": {
+      "now": "Handle today ({{count}})",
+      "later": "Later ({{count}})",
+      "done": "Done today ({{count}})"
+    },
+    "bucket": {
+      "OVERDUE": "Overdue",
+      "TODAY": "Today"
+    },
+    "due": "Due {{date}}",
+    "noDue": "No due date",
+    "start": "Start",
+    "complete": "Done",
+    "empty": "Nothing here.",
+    "emptyNow": "Nothing due today.",
+    "openFull": "Open issue",
+    "selectHint": "Select an item to see details."
   }
 }

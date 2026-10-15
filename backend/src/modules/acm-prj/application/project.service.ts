@@ -12,6 +12,7 @@ import { DataSource, EntityManager } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { ProjectDto, ItemDto } from './project.dto';
+import { canTransition } from './issue.dto';
 export interface Project {
   prj_id: string;
   ent_id: string;
@@ -209,29 +210,55 @@ export class ProjectService {
       );
       if (!m) throw new BadRequestException('프로젝트 참여자를 선택하세요.');
     }
+    if (d.startDate && d.dueDate && d.startDate > d.dueDate)
+      throw new BadRequestException('시작일은 마감일보다 늦을 수 없습니다.');
+    // REQ-261015C — 이슈 상태 전이 검사 + 이력.
+    let before: string | undefined;
+    if (itemId && d.kind === 'ISSUE') {
+      const [cur] = await this.ds.query<{ pit_status: string }[]>(
+        `SELECT pit_status FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='ISSUE' AND deleted_at IS NULL`,
+        [u.entId, id, itemId],
+      );
+      if (!cur) throw new NotFoundException();
+      before = cur.pit_status;
+      if (d.status && !canTransition(before, d.status))
+        throw new BadRequestException('허용되지 않는 상태 변경입니다.');
+    }
+    const status = d.status ?? before ?? 'OPEN';
     const values = [
       u.entId,
       id,
       d.title.trim(),
       d.body ?? '',
-      d.status ?? 'TODO',
+      status,
       d.assigneeId ?? null,
       d.dueDate ?? null,
+      d.issueType ?? 'TASK',
+      d.priority ?? 3,
+      d.startDate ?? null,
     ];
-    const [row] = itemId
-      ? await this.ds.query<Record<string, unknown>[]>(
-          `WITH changed AS (UPDATE amb_acm_prj_item SET pit_title=$3,pit_body=$4,pit_status=$5,assignee_id=$6,due_date=$7,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$8 AND pit_kind=$9 AND content IS NULL AND deleted_at IS NULL RETURNING *) SELECT * FROM changed`,
-          [...values, itemId, d.kind],
-        )
-      : await this.ds.query<Record<string, unknown>[]>(
-          `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_title,pit_body,pit_status,assignee_id,due_date,pit_kind,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
-          [...values, d.kind, u.id],
+    const row = await this.ds.transaction(async (m) => {
+      const [saved] = itemId
+        ? await m.query<Record<string, unknown>[]>(
+            `WITH changed AS (UPDATE amb_acm_prj_item SET pit_title=$3,pit_body=$4,pit_status=$5::varchar,assignee_id=$6,due_date=$7,pit_issue_type=$8,pit_priority=$9,start_date=$10,pit_done_at=CASE WHEN $5::varchar='DONE' THEN COALESCE(pit_done_at,now()) ELSE NULL END,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$11 AND pit_kind=$12 AND content IS NULL AND deleted_at IS NULL RETURNING *) SELECT * FROM changed`,
+            [...values, itemId, d.kind],
+          )
+        : await m.query<Record<string, unknown>[]>(
+            `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_title,pit_body,pit_status,assignee_id,due_date,pit_issue_type,pit_priority,start_date,pit_done_at,pit_kind,created_by) VALUES($1,$2,$3,$4,$5::varchar,$6,$7,$8,$9,$10,CASE WHEN $5::varchar='DONE' THEN now() END,$11,$12) RETURNING *`,
+            [...values, d.kind, u.id],
+          );
+      if (!saved) throw new NotFoundException();
+      if (d.kind === 'ISSUE' && before !== status)
+        await m.query(
+          `INSERT INTO amb_acm_prj_issue_status_log(ent_id,pit_id,from_status,to_status,changed_by) VALUES($1,$2,$3,$4,$5)`,
+          [u.entId, saved.pit_id, before ?? null, status, u.id],
         );
-    if (!row) throw new NotFoundException();
-    await this.ds.query(
-      `UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=$2`,
-      [u.entId, id],
-    );
+      await m.query(
+        `UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=$2`,
+        [u.entId, id],
+      );
+      return saved;
+    });
     return row;
   }
   async saveDocument(

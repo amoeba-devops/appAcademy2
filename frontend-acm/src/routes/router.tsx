@@ -2,6 +2,9 @@ import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
 import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
 import { ProjectDocumentPage } from '@/modules/prj/document-page';
+import { IssuesPage } from '@/modules/prj/issues/issues-page';
+import { IssueDetailPage } from '@/modules/prj/issues/issue-detail-page';
+import { MyWorkPage } from '@/modules/prj/issues/my-work-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { RequireTenantMaster } from '@/modules/cfg/components/require-tenant-master';
@@ -222,6 +225,10 @@ export const router = createBrowserRouter([
       { path: 'cal', element: <CalMonthPage /> },
       // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
       { path: 'documents', element: <DocumentsPage /> },
+      // REQ-261015C — 내 업무 / 이슈
+      { path: 'my-work', element: <MyWorkPage /> },
+      { path: 'issues', element: <IssuesPage /> },
+      { path: 'issues/:id', element: <IssueDetailPage /> },
       { path: 'projects', element: <ProjectListPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'projects/:id/documents/:docId', element: <ProjectDocumentPage /> },

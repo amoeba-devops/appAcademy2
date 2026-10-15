@@ -257,7 +257,9 @@
       "work": "업무관리",
       "settings": "설정"
     },
-    "tenantConfig": "테넌트 설정"
+    "tenantConfig": "테넌트 설정",
+    "myWork": "내 업무",
+    "issues": "이슈"
   },
   "lang": {
     "label": "언어",
@@ -1285,5 +1287,139 @@
       "reset": "초기화(전체 노출)",
       "resetConfirm": "모든 등급의 메뉴를 기본(전체 노출)으로 되돌릴까요?"
     }
+  },
+  "issues": {
+    "title": "이슈",
+    "add": "이슈 등록",
+    "addComment": "댓글 등록",
+    "backToList": "이슈 목록",
+    "commentPlaceholder": "댓글을 입력하세요",
+    "comments": "댓글",
+    "created": "등록",
+    "delete": "삭제",
+    "deleteCommentConfirm": "댓글을 삭제할까요?",
+    "deleteConfirm": "이슈를 삭제할까요?",
+    "edit": "수정",
+    "edited": "수정됨",
+    "empty": "조건에 맞는 이슈가 없습니다.",
+    "fields": {
+      "assignee": "담당자",
+      "createdAt": "등록일",
+      "description": "설명",
+      "doneAt": "완료일시",
+      "dueDate": "마감일",
+      "period": "기간",
+      "priority": "우선순위",
+      "project": "프로젝트",
+      "reporter": "등록자",
+      "startDate": "시작일",
+      "status": "상태",
+      "title": "제목",
+      "type": "유형",
+      "updatedAt": "수정일"
+    },
+    "filters": {
+      "allAssignees": "전체 담당자",
+      "allPriorities": "전체 우선순위",
+      "allProjects": "전체 프로젝트"
+    },
+    "form": {
+      "cancel": "취소",
+      "createTitle": "이슈 등록",
+      "discard": "저장하지 않은 변경을 버릴까요?",
+      "editTitle": "이슈 수정",
+      "pickProject": "프로젝트 선택",
+      "save": "저장",
+      "saving": "저장 중…"
+    },
+    "loading": "불러오는 중…",
+    "noDescription": "설명이 없습니다.",
+    "notFound": "이슈를 찾을 수 없습니다.",
+    "pageSize": "페이지 크기",
+    "perPage": "{{count}}개씩",
+    "scope": {
+      "all": "전체",
+      "assigned": "내 배정",
+      "created": "내 등록"
+    },
+    "search": "검색",
+    "searchPlaceholder": "제목 검색",
+    "sortLabel": "정렬",
+    "sort": {
+      "created_desc": "등록 최신순",
+      "updated_desc": "수정 최신순",
+      "due_asc": "마감 빠른순",
+      "due_desc": "마감 늦은순",
+      "priority_asc": "우선순위 높은순"
+    },
+    "status": {
+      "OPEN": "열림",
+      "IN_PROGRESS": "진행",
+      "DONE": "완료",
+      "REJECTED": "반려"
+    },
+    "statusNote": "상태 변경 메모(선택)",
+    "tabs": {
+      "description": "설명",
+      "history": "이력"
+    },
+    "total": "총 {{count}}건",
+    "transition": {
+      "OPEN": "다시 열기",
+      "IN_PROGRESS": "진행 시작",
+      "DONE": "완료",
+      "REJECTED": "반려"
+    },
+    "type": {
+      "TASK": "작업",
+      "FEATURE": "기능",
+      "BUG": "버그",
+      "OPINION": "의견",
+      "OTHER": "기타"
+    },
+    "priority": {
+      "1": "긴급",
+      "2": "높음",
+      "3": "보통",
+      "4": "낮음",
+      "5": "매우 낮음"
+    },
+    "unassigned": "미배정",
+    "view": {
+      "list": "목록",
+      "kanban": "칸반"
+    }
+  },
+  "myWork": {
+    "title": "내 업무",
+    "subtitle": "진행 중 {{total}}건 · 지연 {{overdue}}건",
+    "kpi": {
+      "assigned": "배정된 이슈",
+      "overdue": "지연",
+      "today": "오늘 마감",
+      "week": "이번 주 마감",
+      "doneToday": "오늘 완료"
+    },
+    "relation": {
+      "assigned": "배정됨",
+      "created": "내가 등록"
+    },
+    "sections": {
+      "now": "오늘 처리 ({{count}})",
+      "later": "이후 ({{count}})",
+      "done": "오늘 완료 ({{count}})"
+    },
+    "bucket": {
+      "OVERDUE": "지연",
+      "TODAY": "오늘"
+    },
+    "due": "마감 {{date}}",
+    "noDue": "마감 없음",
+    "start": "시작",
+    "complete": "완료",
+    "empty": "항목이 없습니다.",
+    "emptyNow": "오늘 처리할 이슈가 없습니다.",
+    "openFull": "전체 보기",
+    "selectHint": "항목을 선택하면 상세가 표시됩니다."
   }
 }

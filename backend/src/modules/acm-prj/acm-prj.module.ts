@@ -4,6 +4,8 @@ import { SharedDriveService } from './application/shared-drive.service';
 import { SharedDriveController } from './presentation/shared-drive.controller';
 import { Module } from '@nestjs/common';
 import { ProjectService } from './application/project.service';
+import { IssueService } from './application/issue.service';
+import { IssueController } from './presentation/issue.controller';
 import { ProjectDriveService } from './application/drive.service';
 import { DriveClient } from './infrastructure/drive.client';
 import {
@@ -16,11 +18,13 @@ import {
     ObjectStoreClient,
     SharedDriveService,
     ProjectService,
+    IssueService,
     ProjectDriveService,
     DriveClient,
   ],
   controllers: [
     SharedDriveController,
+    IssueController,
     ProjectController,
     ProjectOAuthController,
   ],
