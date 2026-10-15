@@ -38,7 +38,8 @@
       "calendar": "수업일정",
       "materials": "문서/자료실",
       "students": "수강생관리",
-      "chat": "로비채팅"
+      "chat": "로비채팅",
+      "me": "마이페이지"
     },
     "login": {
       "title": "학원 포털 로그인",
@@ -259,7 +260,8 @@
     },
     "tenantConfig": "테넌트 설정",
     "myWork": "내 업무",
-    "issues": "이슈"
+    "issues": "이슈",
+    "myPage": "마이페이지"
   },
   "lang": {
     "label": "언어",
@@ -1421,5 +1423,28 @@
     "emptyNow": "오늘 처리할 이슈가 없습니다.",
     "openFull": "전체 보기",
     "selectHint": "항목을 선택하면 상세가 표시됩니다."
+  },
+  "myPage": {
+    "title": "마이페이지",
+    "loading": "불러오는 중…",
+    "loadError": "정보를 불러오지 못했습니다.",
+    "name": "이름",
+    "loginId": "로그인 ID",
+    "role": "구분",
+    "roles": {
+      "ADMIN": "관리자",
+      "TEACHER": "강사",
+      "STAFF": "직원",
+      "APP_ADMIN": "앱 관리자"
+    },
+    "timezone": "타임존",
+    "followTenant": "학원 기본 타임존 따름 — {{tz}}",
+    "timezoneHint": "일시는 학원 기본 타임존으로 표시되며, 내 타임존이 다르면 괄호 안에 함께 표시됩니다.",
+    "preview": "현재 시각 미리보기: {{now}}",
+    "save": "저장",
+    "saving": "저장 중…",
+    "saved": "저장되었습니다.",
+    "saveError": "저장하지 못했습니다.",
+    "changePassword": "비밀번호 변경"
   }
 }

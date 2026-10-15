@@ -34,7 +34,9 @@ function isPortalEndpoint(url: string): boolean {
     // REQ-260728C — 로비채팅 (강사 포털).
     url.startsWith("/portal/talk") ||
     url.startsWith("/portal/notifications") ||
-    url === "/portal/auth/change-password"
+    url === "/portal/auth/change-password" ||
+    // REQ-261015C — 포털 마이페이지(사용자 타임존).
+    url === "/portal/me"
   );
 }
 

@@ -115,3 +115,91 @@ export function useTenantTz(): string {
   });
   return data?.timezone || DEFAULT_TZ;
 }
+
+// ── REQ-261015C — 사용자 타임존 병기 ─────────────────────────────────────────
+
+/** "Asia/Ho_Chi_Minh" → "Ho Chi Minh" (짧은 도시 표기). */
+export function tzCity(tz: string): string {
+  return (tz.split('/').pop() ?? tz).replace(/_/g, ' ');
+}
+
+/** tz 기준 포맷. 잘못된 tz 는 DEFAULT_TZ 로 대체한다. */
+export function formatInTz(
+  date: Date | string,
+  tz: string,
+  locale: string,
+  opts: Intl.DateTimeFormatOptions,
+): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  try {
+    return new Intl.DateTimeFormat(locale, { ...opts, timeZone: tz }).format(d);
+  } catch {
+    return new Intl.DateTimeFormat(locale, { ...opts, timeZone: DEFAULT_TZ }).format(d);
+  }
+}
+
+/**
+ * 테넌트 기본 타임존 기준으로 표시하고, 사용자 타임존이 다르면 괄호로 병기한다.
+ * 예) "10/16 19:00 (10/16 17:00 Ho Chi Minh)". 표시 결과가 같으면 한 번만.
+ */
+export function formatDual(
+  date: Date | string,
+  zones: { tenantTz: string; userTz?: string | null },
+  locale: string,
+  opts: Intl.DateTimeFormatOptions,
+): string {
+  const base = formatInTz(date, zones.tenantTz, locale, opts);
+  const userTz = zones.userTz;
+  if (!userTz || userTz === zones.tenantTz) return base;
+  const mine = formatInTz(date, userTz, locale, opts);
+  return mine === base ? base : `${base} (${mine} ${tzCity(userTz)})`;
+}
+
+/** 시작–종료를 한 덩어리로 병기: "19:00–20:00 (17:00–18:00 Ho Chi Minh)". */
+export function formatDualRange(
+  start: Date | string,
+  end: Date | string,
+  zones: { tenantTz: string; userTz?: string | null },
+  locale: string,
+  startOpts: Intl.DateTimeFormatOptions,
+  endOpts: Intl.DateTimeFormatOptions = startOpts,
+): string {
+  const range = (tz: string) =>
+    `${formatInTz(start, tz, locale, startOpts)}–${formatInTz(end, tz, locale, endOpts)}`;
+  const base = range(zones.tenantTz);
+  const userTz = zones.userTz;
+  if (!userTz || userTz === zones.tenantTz) return base;
+  const mine = range(userTz);
+  return mine === base ? base : `${base} (${mine} ${tzCity(userTz)})`;
+}
+
+const DATE_OPTS: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  weekday: 'short',
+};
+const HM_OPTS: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+
+/**
+ * 일정 일시 표시(시작~종료). 종일은 테넌트 기준 날짜만, 시간 일정은 사용자 타임존 병기.
+ * 같은 날 종료면 종료는 시:분만 표시한다.
+ */
+export function formatEventWhen(
+  startAt: string,
+  endAt: string,
+  allDay: boolean,
+  zones: { tenantTz: string; userTz?: string | null },
+  locale: string,
+): string {
+  const ymd = (v: string) =>
+    formatInTz(v, zones.tenantTz, 'en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  if (allDay) {
+    // 종일 일정의 endAt 은 다음날 0시(배타)일 수 있어 1ms 빼서 마지막 날을 구한다.
+    const last = new Date(new Date(endAt).getTime() - 1).toISOString();
+    const s = formatInTz(startAt, zones.tenantTz, locale, DATE_OPTS);
+    return ymd(startAt) >= ymd(last) ? s : `${s} ~ ${formatInTz(last, zones.tenantTz, locale, DATE_OPTS)}`;
+  }
+  const full = { ...DATE_OPTS, ...HM_OPTS };
+  return formatDualRange(startAt, endAt, zones, locale, full, ymd(startAt) === ymd(endAt) ? HM_OPTS : full);
+}

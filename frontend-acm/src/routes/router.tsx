@@ -5,6 +5,7 @@ import { ProjectDocumentPage } from '@/modules/prj/document-page';
 import { IssuesPage } from '@/modules/prj/issues/issues-page';
 import { IssueDetailPage } from '@/modules/prj/issues/issue-detail-page';
 import { MyWorkPage } from '@/modules/prj/issues/my-work-page';
+import { MyProfilePage } from '@/modules/me/my-profile-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { RequireTenantMaster } from '@/modules/cfg/components/require-tenant-master';
@@ -190,6 +191,8 @@ export const router = createBrowserRouter([
       { path: 'materials/docs/:docId', element: <PortalDocPage /> },
       // REQ-260728C — 로비채팅 (강사 전용)
       { path: 'chat', element: <PortalChatPage /> },
+      // REQ-261015C — 포털 마이페이지(사용자 타임존)
+      { path: 'me', element: <MyProfilePage mode="portal" /> },
     ],
   },
 
@@ -227,6 +230,8 @@ export const router = createBrowserRouter([
       { path: 'documents', element: <DocumentsPage /> },
       // REQ-261015C — 내 업무 / 이슈
       { path: 'my-work', element: <MyWorkPage /> },
+      // REQ-261015C — 콘솔 마이페이지(사용자 타임존)
+      { path: 'me', element: <MyProfilePage mode="console" /> },
       { path: 'issues', element: <IssuesPage /> },
       { path: 'issues/:id', element: <IssueDetailPage /> },
       { path: 'projects', element: <ProjectListPage /> },
