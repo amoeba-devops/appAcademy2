@@ -3,7 +3,9 @@
   "backToAdmin": "返回控制台",
   "nav": {
     "users": "用户管理",
-    "tenants": "租户管理"
+    "tenants": "租户管理",
+    "settings": "系统设置",
+    "googleOauth": "Google OAuth 应用"
   },
   "actions": {
     "cancel": "取消",
@@ -129,6 +131,79 @@
       "grant": "指定",
       "revoke": "解除",
       "revokeConfirm": "解除 {{email}} 的租户主管权限？"
+    }
+  },
+  "google": {
+    "title": "Google OAuth 应用设置",
+    "description": "所有租户共用的 Google 应用（OAuth 客户端和 Picker API 密钥）。只需注册一次，各租户在 /admin/config/drive 用自己的公司 Google Workspace 账号登录。",
+    "source": {
+      "label": "当前来源",
+      "SYSTEM": "系统设置",
+      "ENV": "服务器环境变量",
+      "NONE": "未配置"
+    },
+    "guide": {
+      "title": "Google Cloud 设置指南",
+      "open": "打开",
+      "project": {
+        "title": "创建项目",
+        "body": "用 Amoeba（服务运营方）账号登录 Google Cloud 控制台，创建或选择 ACM 专用项目。"
+      },
+      "apis": {
+        "title": "启用 API",
+        "body": "在“API 和服务 → 库”中分别启用“Google Drive API”和“Google Picker API”。"
+      },
+      "consent": {
+        "title": "OAuth 同意屏幕",
+        "body": "用户类型：外部（External）——因为多个公司（租户）会登录。\n填写应用名称、支持邮箱和开发者联系方式，并将下方域名添加为已授权域名。\n添加下方 3 个范围。drive.file 属于非敏感范围，无需安全评估。\n将发布状态设为“推送到生产环境”。若保持测试状态，租户需每 7 天重新连接。\n个人 Gmail 由 ACM 拒绝（仅限 Workspace）。"
+      },
+      "client": {
+        "title": "创建 OAuth 客户端 ID",
+        "body": "凭据 → 创建凭据 → OAuth 客户端 ID → 应用类型“Web 应用”。\n准确填写下方来源和重定向 URI，创建后将 Client ID 和 Client Secret 粘贴到下方表单。"
+      },
+      "apiKey": {
+        "title": "为 Picker 创建 API 密钥",
+        "body": "创建凭据 → API 密钥。将应用限制设为“网站（HTTP 引荐来源）”并添加下方值；API 限制仅选“Google Picker API”。"
+      },
+      "projectNumber": {
+        "title": "查看项目编号",
+        "body": "控制台首页 → 复制“项目信息”卡片中的数字“项目编号”（不是文字形式的项目 ID）。"
+      }
+    },
+    "copy": {
+      "button": "复制",
+      "domain": "已授权域名",
+      "scopes": "范围",
+      "origin": "已获授权的 JavaScript 来源",
+      "redirect": "已获授权的重定向 URI",
+      "referrer": "HTTP 引荐来源"
+    },
+    "copied": "已复制",
+    "form": {
+      "title": "注册",
+      "clientIdHint": "以 …apps.googleusercontent.com 结尾",
+      "secretHint": "创建客户端时显示的 Secret（GOCSPX-…）。加密保存，不会再次显示。",
+      "secretKept": "已保存。仅在更改时输入（留空则保留）。",
+      "redirectHint": "必须与第 4 步填写的重定向 URI 完全一致。",
+      "pickerHint": "以 AIza… 开头的 API 密钥",
+      "pickerKept": "已保存 {{masked}} — 仅在更改时输入。",
+      "projectNumberHint": "数字项目编号",
+      "clientChangeWarning": "更改 Client ID 可能会中断各租户现有的 Drive 连接，租户需在 /admin/config/drive 重新连接。",
+      "updated": "最后更新 {{at}} · {{by}}",
+      "saveError": "保存失败，请检查输入格式。",
+      "saved": "已保存，无需重启即刻生效。",
+      "clear": "重置（使用环境变量）",
+      "clearConfirm": "删除已保存的 Google OAuth 设置并使用服务器环境变量？若未设置环境变量，Drive 连接将停止工作。"
+    },
+    "test": {
+      "button": "验证",
+      "running": "验证中…",
+      "OK": "Google 已确认 Client ID、Secret 和重定向 URI。",
+      "INVALID_CLIENT": "Client ID 或 Secret 不正确。",
+      "REDIRECT_MISMATCH": "重定向 URI 与 Google 客户端中登记的不一致。",
+      "NOT_CONFIGURED": "请先注册数值。",
+      "GOOGLE_UNAVAILABLE": "无法连接 Google，请稍后再试。",
+      "UNKNOWN": "无法验证，请再次检查数值。"
     }
   }
 }

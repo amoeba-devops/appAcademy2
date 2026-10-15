@@ -3,7 +3,9 @@
   "backToAdmin": "Về bảng điều khiển",
   "nav": {
     "users": "Quản lý người dùng",
-    "tenants": "Pháp nhân"
+    "tenants": "Pháp nhân",
+    "settings": "Cài đặt hệ thống",
+    "googleOauth": "Ứng dụng Google OAuth"
   },
   "actions": {
     "cancel": "Hủy",
@@ -129,6 +131,79 @@
       "grant": "Chỉ định",
       "revoke": "Gỡ bỏ",
       "revokeConfirm": "Gỡ quyền tenant master của {{email}}?"
+    }
+  },
+  "google": {
+    "title": "Cài đặt ứng dụng Google OAuth",
+    "description": "Ứng dụng Google (OAuth client và Picker API key) dùng chung cho mọi tenant. Chỉ cần đăng ký một lần; mỗi tenant đăng nhập bằng tài khoản Google Workspace công ty tại /admin/config/drive.",
+    "source": {
+      "label": "Đang dùng",
+      "SYSTEM": "Cài đặt hệ thống",
+      "ENV": "Biến môi trường máy chủ",
+      "NONE": "Chưa cấu hình"
+    },
+    "guide": {
+      "title": "Hướng dẫn cấu hình Google Cloud",
+      "open": "Mở",
+      "project": {
+        "title": "Tạo dự án",
+        "body": "Đăng nhập Google Cloud Console bằng tài khoản Amoeba (đơn vị vận hành) và tạo hoặc chọn một dự án riêng cho ACM."
+      },
+      "apis": {
+        "title": "Bật API",
+        "body": "Trong APIs & Services → Library, bật \"Google Drive API\" và \"Google Picker API\"."
+      },
+      "consent": {
+        "title": "Màn hình đồng ý OAuth",
+        "body": "Loại người dùng: External — vì nhiều công ty (tenant) đăng nhập.\nNhập tên ứng dụng, email hỗ trợ, liên hệ nhà phát triển và thêm tên miền bên dưới vào miền được ủy quyền.\nThêm 3 scope bên dưới. drive.file không nhạy cảm nên không cần đánh giá bảo mật.\nĐặt trạng thái xuất bản \"Push to production\". Nếu để thử nghiệm, tenant phải kết nối lại mỗi 7 ngày.\nACM tự từ chối Gmail cá nhân (chỉ Workspace)."
+      },
+      "client": {
+        "title": "Tạo OAuth client ID",
+        "body": "Credentials → Create credentials → OAuth client ID → loại \"Web application\".\nNhập chính xác origin và redirect URI bên dưới, tạo xong thì dán Client ID và Client Secret vào biểu mẫu bên dưới."
+      },
+      "apiKey": {
+        "title": "Tạo API key cho Picker",
+        "body": "Create credentials → API key. Chọn giới hạn \"Websites (HTTP referrers)\" và thêm giá trị bên dưới. Giới hạn API chỉ \"Google Picker API\"."
+      },
+      "projectNumber": {
+        "title": "Tìm số dự án",
+        "body": "Dashboard → sao chép \"Project number\" (dạng số) trong thẻ Project info (không phải project ID dạng chữ)."
+      }
+    },
+    "copy": {
+      "button": "Sao chép",
+      "domain": "Miền được ủy quyền",
+      "scopes": "Scope",
+      "origin": "Authorized JavaScript origin",
+      "redirect": "Authorized redirect URI",
+      "referrer": "HTTP referrer"
+    },
+    "copied": "Đã sao chép",
+    "form": {
+      "title": "Đăng ký",
+      "clientIdHint": "Kết thúc bằng …apps.googleusercontent.com",
+      "secretHint": "Secret hiển thị khi tạo client (GOCSPX-…). Được mã hóa và không hiển thị lại.",
+      "secretKept": "Đã lưu. Chỉ nhập khi muốn đổi (để trống sẽ giữ nguyên).",
+      "redirectHint": "Phải trùng khớp chính xác với redirect URI ở bước 4.",
+      "pickerHint": "API key bắt đầu bằng AIza…",
+      "pickerKept": "Đã lưu {{masked}} — chỉ nhập khi muốn đổi.",
+      "projectNumberHint": "Số dự án dạng số",
+      "clientChangeWarning": "Đổi Client ID có thể làm mất kết nối Drive của các tenant. Mỗi tenant có thể cần kết nối lại tại /admin/config/drive.",
+      "updated": "Cập nhật lần cuối {{at}} · {{by}}",
+      "saveError": "Không lưu được. Kiểm tra định dạng nhập.",
+      "saved": "Đã lưu. Áp dụng ngay, không cần khởi động lại.",
+      "clear": "Đặt lại (dùng biến môi trường)",
+      "clearConfirm": "Xóa cài đặt Google OAuth đã lưu và dùng biến môi trường máy chủ? Nếu không có, kết nối Drive sẽ ngừng hoạt động."
+    },
+    "test": {
+      "button": "Kiểm tra",
+      "running": "Đang kiểm tra…",
+      "OK": "Google đã xác nhận Client ID, Secret và redirect URI.",
+      "INVALID_CLIENT": "Client ID hoặc Secret không đúng.",
+      "REDIRECT_MISMATCH": "Redirect URI không khớp với giá trị đã đăng ký.",
+      "NOT_CONFIGURED": "Hãy đăng ký giá trị trước.",
+      "GOOGLE_UNAVAILABLE": "Không kết nối được Google. Vui lòng thử lại sau.",
+      "UNKNOWN": "Không xác minh được. Hãy kiểm tra lại giá trị."
     }
   }
 }
