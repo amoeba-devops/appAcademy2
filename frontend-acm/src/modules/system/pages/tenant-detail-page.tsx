@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/lib/api-client';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
@@ -46,6 +48,7 @@ export function TenantDetailPage() {
         initialStatus={tenant.status}
       />
       <TenantUsersSection entId={tenant.entId} />
+      <TenantMastersSection entId={tenant.entId} />
       <TenantMenusSection entId={tenant.entId} />
     </div>
   );
@@ -297,6 +300,93 @@ function TenantMenusSection({ entId }: { entId: string }) {
           </div>
         </>
       )}
+    </section>
+  );
+}
+
+/** REQ-261015C — 테넌트 마스터 지정/해제 (테넌트 설정 메뉴 권한). */
+interface TenantMaster {
+  id: string;
+  email: string;
+  name: string;
+}
+function TenantMastersSection({ entId }: { entId: string }) {
+  const { t } = useTranslation('system');
+  const toast = useToast();
+  const qc = useQueryClient();
+  const key = ['system-tenant-masters', entId];
+  const base = `/acm/system/tenants/${entId}/masters`;
+  const masters = useQuery({
+    queryKey: key,
+    queryFn: async () => (await apiClient.get<TenantMaster[]>(base)).data,
+  });
+  const { data: users } = useSystemUsers({ entId, limit: 100 });
+  const [pick, setPick] = useState('');
+  const change = useMutation({
+    mutationFn: async (a: { grant: boolean; userId: string }) =>
+      a.grant
+        ? (await apiClient.post<TenantMaster[]>(base, { userId: a.userId })).data
+        : (await apiClient.delete<TenantMaster[]>(`${base}/${a.userId}`)).data,
+    onSuccess: (data) => {
+      qc.setQueryData(key, data);
+      setPick('');
+    },
+    onError: () => toast.error(t('users.errors.saveFailed')),
+  });
+  const masterIds = new Set(masters.data?.map((m) => m.id));
+  return (
+    <section>
+      <SectionTitle>{t('tenants.masters.title')}</SectionTitle>
+      <p className="mb-3 text-sm text-secondary">{t('tenants.masters.description')}</p>
+      <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
+        {masters.isLoading && <p className="text-sm text-secondary">{t('users.loading')}</p>}
+        {masters.data?.length === 0 && (
+          <p className="text-sm text-secondary">{t('tenants.masters.empty')}</p>
+        )}
+        <ul className="divide-y divide-[var(--border-subtle)]">
+          {masters.data?.map((m) => (
+            <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+              <span className="min-w-0 truncate">
+                <span className="font-medium text-primary">{m.email}</span>{' '}
+                <span className="text-secondary">{m.name}</span>
+              </span>
+              <Button
+                variant="outline"
+                disabled={change.isPending}
+                onClick={() => {
+                  if (window.confirm(t('tenants.masters.revokeConfirm', { email: m.email })))
+                    change.mutate({ grant: false, userId: m.id });
+                }}
+              >
+                {t('tenants.masters.revoke')}
+              </Button>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <select
+            value={pick}
+            onChange={(e) => setPick(e.target.value)}
+            className={`${selectCls} max-w-xs`}
+            aria-label={t('tenants.masters.pick')}
+          >
+            <option value="">{t('tenants.masters.pick')}</option>
+            {users?.items
+              .filter((u) => !masterIds.has(u.id) && u.status === 'ACTIVE')
+              .map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.email} · {u.name}
+                </option>
+              ))}
+          </select>
+          <Button
+            disabled={!pick || change.isPending}
+            onClick={() => change.mutate({ grant: true, userId: pick })}
+          >
+            {t('tenants.masters.grant')}
+          </Button>
+        </div>
+      </div>
     </section>
   );
 }

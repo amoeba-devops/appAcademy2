@@ -120,6 +120,15 @@
     },
     "errors": {
       "createFailed": "登记租户失败。"
+    },
+    "masters": {
+      "title": "租户主管",
+      "description": "租户主管管理租户设置（按等级的菜单显示、默认时区）。",
+      "empty": "尚未指定租户主管。",
+      "pick": "选择用户",
+      "grant": "指定",
+      "revoke": "解除",
+      "revokeConfirm": "解除 {{email}} 的租户主管权限？"
     }
   }
 }

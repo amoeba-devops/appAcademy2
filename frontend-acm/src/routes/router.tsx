@@ -4,6 +4,8 @@ import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
 import { ProjectDocumentPage } from '@/modules/prj/document-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
+import { RequireTenantMaster } from '@/modules/cfg/components/require-tenant-master';
+import { TenantSettingsPage } from '@/modules/cfg/pages/tenant-settings-page';
 import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
 import { PaymentPage } from '@/modules/pay/payment-page';
 import { NotificationInboxPage } from '@/modules/notifications/components-inbox';
@@ -75,7 +77,6 @@ import { ConfigLandingPage } from '@/modules/cfg/pages/config-landing-page';
 import { AmaConfigPage } from '@/modules/cfg/pages/ama-config-page';
 import { BodaConfigPage } from '@/modules/cfg/pages/boda-config-page';
 import { MailConfigPage } from '@/modules/cfg/pages/mail-config-page';
-import { GeneralConfigPage } from '@/modules/cfg/pages/general-config-page';
 import { KakaoConfigPage } from '@/modules/cfg/pages/kakao-config-page';
 import { Ga4ConfigPage } from '@/modules/cfg/pages/ga4-config-page';
 import { SystemShell } from '@/components/layout/system-shell';
@@ -246,13 +247,17 @@ export const router = createBrowserRouter([
       // REQ-260728C — 로비채팅 (운영자)
       { path: 'chat', element: <AdminChatPage /> },
       // REQ-260621 — Configuration: landing card menu + per-integration pages.
+      { element: <RequireTenantMaster />, children: [
+        { path: 'tenant', element: <TenantSettingsPage /> },
+      ] },
       { element: <RequireConfigAdmin />, children: [
       { path: 'config', element: <ConfigLandingPage /> },
       { path: 'config/ama', element: <AmaConfigPage /> },
       { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
       { path: 'config/video', element: <BodaConfigPage /> },
       { path: 'config/mail', element: <MailConfigPage /> },
-      { path: 'config/general', element: <GeneralConfigPage /> },
+      // REQ-261015C — 기본 타임존은 테넌트 설정으로 이동.
+      { path: 'config/general', element: <Navigate to="/admin/tenant?tab=general" replace /> },
       { path: 'config/kakao', element: <KakaoConfigPage /> },
       // PLN-260912 — GA4 방문자 동기화
       { path: 'config/ad-platforms', element: <AdPlatformsPage /> },

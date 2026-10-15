@@ -5,7 +5,7 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { TenantService } from '../application/tenant.service';
+import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
 
 /**
  * REQ-260621 v1.1 — the admin shell asks which sidebar menus are hidden for the
@@ -17,7 +17,7 @@ import { TenantService } from '../application/tenant.service';
 @UseGuards(AcmJwtAuthGuard)
 @Controller('acm/me')
 export class MeMenuController {
-  constructor(private readonly svc: TenantService) {}
+  constructor(private readonly svc: TenantRoleMenuService) {}
 
   @Get('menus')
   @ApiOperation({
@@ -26,6 +26,7 @@ export class MeMenuController {
   async menus(
     @CurrentUser() user: AcmCurrentUser,
   ): Promise<{ hidden: string[]; order: string[] }> {
-    return this.svc.getMenuNav(user.entId);
+    // REQ-261015C — 테넌트 허가 AND 등급별 노출(테넌트 마스터 설정).
+    return this.svc.navFor(user.entId, user.role);
   }
 }

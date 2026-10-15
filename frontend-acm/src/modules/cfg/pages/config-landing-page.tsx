@@ -1,7 +1,6 @@
-import { ConfigMenuVisibility } from '../components/config-menu-visibility';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BarChart3, Bot, Globe, Mail, MessageCircle, Settings, Video, ChevronRight } from 'lucide-react';
+import { BarChart3, Bot, Mail, MessageCircle, Settings, Video, ChevronRight } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 /**
@@ -23,7 +22,6 @@ const CARDS: ConfigCard[] = [
   { to: '/admin/config/ama', icon: Settings, titleKey: 'config.cards.ama.title', descKey: 'config.cards.ama.description' },
   { to: '/admin/config/video', icon: Video, titleKey: 'video.title', descKey: 'video.description' },
   { to: '/admin/config/mail', icon: Mail, titleKey: 'config.cards.mail.title', descKey: 'config.cards.mail.description' },
-  { to: '/admin/config/general', icon: Globe, titleKey: 'config.cards.general.title', descKey: 'config.cards.general.description' },
   { to: '/admin/config/kakao', icon: MessageCircle, titleKey: 'config.cards.kakao.title', descKey: 'config.cards.kakao.description' },
   { to: '/admin/config/ga4', icon: BarChart3, titleKey: 'config.cards.ga4.title', descKey: 'config.cards.ga4.description' },
 ];
@@ -39,7 +37,6 @@ export function ConfigLandingPage() {
       </header>
       <p className="mb-6 text-sm text-secondary">{t('config.landing.description')}</p>
 
-      <ConfigMenuVisibility />
       <Link to="/admin/config/drive" className="mt-6 block rounded-lg border bg-surface p-5">Google Drive · 프로젝트 문서와 파일 연결</Link>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {CARDS.map(({ to, icon: Icon, titleKey, descKey }) => (

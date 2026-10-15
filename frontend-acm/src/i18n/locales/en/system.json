@@ -120,6 +120,15 @@
     },
     "errors": {
       "createFailed": "Failed to register tenant."
+    },
+    "masters": {
+      "title": "Tenant masters",
+      "description": "Tenant masters manage tenant settings (menu visibility by role, default timezone).",
+      "empty": "No tenant master assigned.",
+      "pick": "Select user",
+      "grant": "Assign",
+      "revoke": "Remove",
+      "revokeConfirm": "Remove tenant master permission from {{email}}?"
     }
   }
 }

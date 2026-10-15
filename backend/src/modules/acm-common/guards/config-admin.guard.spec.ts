@@ -25,7 +25,7 @@ describe('ConfigAdminGuard', () => {
     await expect(guard.canActivate(request)).resolves.toBe(true);
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining("u.usr_status='ACTIVE'"),
-      ['tenant', 'user'],
+      ['tenant', 'user', 'CONFIG_ADMIN'],
     );
     await expect(guard.canActivate(request)).rejects.toBeInstanceOf(
       ForbiddenException,

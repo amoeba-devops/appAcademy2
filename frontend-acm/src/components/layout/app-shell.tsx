@@ -40,6 +40,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  Building2,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -85,6 +86,8 @@ const NAV = [
   { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
   { to: "/admin/documents", icon: FolderKanban, key: "documents", group: "work" },
   { to: "/admin/drive", icon: FolderKanban, key: "drive", group: "work" },
+  // REQ-261015C — 테넌트 설정(테넌트 마스터) / 서비스 설정(서비스 운영자). 권한으로만 노출.
+  { to: "/admin/tenant", icon: Building2, key: "tenantConfig", group: "settings" },
   { to: "/admin/config", icon: Settings, key: "config", group: "settings" },
 ] as const satisfies readonly {
   to: string;
@@ -163,7 +166,11 @@ export function AppShell() {
   const rank = new Map(orderedKeys.map((k, i) => [k, i]));
   const visibleNav = NAV.filter(
     (n) =>
-      (n.key === "config" ? configAccess.allowed : !hiddenSet.has(n.key)) &&
+      (n.key === "config"
+        ? configAccess.allowed
+        : n.key === "tenantConfig"
+          ? configAccess.tenantAllowed
+          : !hiddenSet.has(n.key)) &&
       (n.key !== "pay" ||
         ["ADMIN", "APP_ADMIN", "STAFF"].includes(user?.role ?? "")),
   )
