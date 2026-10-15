@@ -1,3 +1,4 @@
+import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
 import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
@@ -218,6 +219,7 @@ export const router = createBrowserRouter([
       { path: 'stf', element: <StfListPage /> },
       { path: 'cal', element: <CalMonthPage /> },
       // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
+      { path: 'documents', element: <DocumentsPage /> },
       { path: 'projects', element: <ProjectListPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'config/drive', element: <SharedDrivePage /> },

@@ -67,6 +67,7 @@ const NAV = [
   // PLN-260729-2 — 수업통계 대시보드
   { to: "/admin/cal-stats", icon: BarChart3, key: "calStats" },
   { to: "/admin/projects", icon: FolderKanban, key: "projects" },
+  { to: "/admin/documents", icon: FolderKanban, key: "documents" },
   { to: "/admin/drive", icon: FolderKanban, key: "drive" },
   { to: "/admin/complaints", icon: MessageCircleQuestion, key: "complaints" },
   { to: "/admin/sch", icon: School, key: "sch" },

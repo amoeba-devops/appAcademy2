@@ -149,7 +149,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
     observer.observe(container);
     return () => observer.disconnect();
   }, [isDashboard]);
-  if (isDashboard) return <>{children}</>;
+  if (isDashboard || isProject || pathname === "/admin/documents") return <>{children}</>;
   return (
     <AdminSupportSlot.Provider
       value={{

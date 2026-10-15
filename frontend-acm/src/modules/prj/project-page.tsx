@@ -1,5 +1,15 @@
+import { DocumentTable } from "./document-table";
+import { DocumentPermissions } from "./document-permissions";
+import { ProjectFiles } from "./project-files";
+import { ProjectOverview } from "./project-overview";
 import { DocumentEditor, type DocumentType } from "./document-editor";
-import { useContext, useState, type FormEvent, type ReactNode } from "react";
+import {
+  useContext,
+  useEffect,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import {
   Link,
@@ -213,6 +223,11 @@ function ProjectEditor({
     [owner, setOwner] = useState(project?.owner_id ?? user?.id ?? ""),
     [members, setMembers] = useState(project?.members?.map((m) => m.id) ?? []),
     [status, setStatus] = useState(project?.prj_status ?? "ACTIVE");
+  const [managers, setManagers] = useState(
+    project?.members
+      ?.filter((m) => m.member_role === "MANAGER")
+      .map((m) => m.id) ?? [],
+  );
   const people = useQuery({
     queryKey: ["prj-people", ...useScope()],
     queryFn: async () => (await apiClient.get<Person[]>(base + "/people")).data,
@@ -225,6 +240,9 @@ function ProjectEditor({
         description,
         ownerId: owner,
         memberIds: members,
+        managerIds: managers.filter(
+          (id) => members.includes(id) || id === owner,
+        ),
         status,
       };
       const r = project
@@ -278,6 +296,27 @@ function ProjectEditor({
               ))}
             </select>
           </Field>
+          <fieldset className="max-h-36 overflow-auto rounded border p-2">
+            <legend>프로젝트 매니저</legend>
+            {people.data
+              ?.filter((p) => members.includes(p.id) && p.id !== owner)
+              .map((p) => (
+                <label className="flex gap-2 p-2" key={p.id}>
+                  <input
+                    type="checkbox"
+                    checked={managers.includes(p.id)}
+                    onChange={(e) =>
+                      setManagers((v) =>
+                        e.target.checked
+                          ? [...v, p.id]
+                          : v.filter((id) => id !== p.id),
+                      )
+                    }
+                  />
+                  {p.name}
+                </label>
+              ))}
+          </fieldset>
           <fieldset className="max-h-44 overflow-y-auto rounded border p-2">
             <legend>참여자</legend>
             {people.data?.map((p) => (
@@ -492,6 +531,9 @@ export function ProjectDetailPage() {
   const docType = ["MEMO", "SHEET", "DOC", "FILE"].includes(requestedType)
     ? requestedType
     : "MEMO";
+  const [createMode, setCreateMode] = useState<"LOCAL" | "GOOGLE_LINK">(
+    "LOCAL",
+  );
   const [docEdit, setDocEdit] = useState<Item | "new" | null>(null);
   const [editing, setEditing] = useState(false),
     [itemEdit, setItemEdit] = useState<Item | "new" | null>(null),
@@ -515,6 +557,22 @@ export function ProjectDetailPage() {
     queryFn: async () =>
       (await apiClient.get<DriveStatus>(base + "/drive")).data,
   });
+  useEffect(() => {
+    const doc = params.get("doc");
+    const found = items.data?.find((i) => i.pit_id === doc);
+    if (found && !found.drive_file_id && found.pit_kind !== "FILE") {
+      setDocEdit(found);
+      const next = new URLSearchParams(params);
+      next.delete("doc");
+      setParams(next, { replace: true });
+    }
+    if (params.get("create") === "1") {
+      if (docType !== "FILE") setDocEdit("new");
+      const next = new URLSearchParams(params);
+      next.delete("create");
+      setParams(next, { replace: true });
+    }
+  }, [params, items.data, docType, setParams]);
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["prj"] });
   };
@@ -524,7 +582,7 @@ export function ProjectDetailPage() {
       <Notice text={p.error ? errorText(p.error) : "프로젝트가 없습니다."} />
     );
   const project = p.data,
-    manage = project.owner_id === user?.id,
+    manage = project.can_manage ?? project.owner_id === user?.id,
     readOnly = project.prj_status === "ARCHIVED";
   const info = (
     <div className="grid gap-3">
@@ -577,7 +635,8 @@ export function ProjectDetailPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-secondary">
-            PRJ-{id.slice(0, 8)} · {statusNames[project.prj_status]}
+            {project.prj_code ?? `PRJ-${id.slice(0, 8)}`} ·{" "}
+            {statusNames[project.prj_status]}
           </p>
           <h1 className="break-words text-xl font-bold">{project.prj_title}</h1>
           <p className="whitespace-pre-wrap break-words text-sm">
@@ -595,7 +654,7 @@ export function ProjectDetailPage() {
           </Button>
         </div>
       </div>
-      {slot?.target ? createPortal(info, slot.target) : slot ? null : info}
+      {slot?.target ? createPortal(info, slot.target) : null}
       <nav className="flex min-w-0 gap-2 overflow-x-auto border-b pb-2">
         {[
           ["overview", "개요", ""],
@@ -604,8 +663,8 @@ export function ProjectDetailPage() {
         ].map(([key, label, k]) => (
           <Button
             key={key}
-            className="shrink-0"
-            variant={tab === key ? "default" : "outline"}
+            className={`shrink-0 rounded-none border-0 border-b-2 bg-transparent shadow-none ${tab === key ? "border-blue-600 text-blue-600" : "border-transparent text-secondary"}`}
+            variant="outline"
             onClick={() => {
               setParams({ tab: key });
               setFilter("");
@@ -631,52 +690,15 @@ export function ProjectDetailPage() {
         </p>
       )}
       {tab === "overview" ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded border p-4">
-            <h2 className="font-semibold">프로젝트 개요</h2>
-            <p className="whitespace-pre-wrap">
-              {project.prj_description || "설명 없음"}
-            </p>
-            <p>
-              담당자:{" "}
-              {project.members?.find((m) => m.id === project.owner_id)?.name}
-            </p>
-            <p>
-              참여자 {project.members?.length}명 ·{" "}
-              {statusNames[project.prj_status]}
-            </p>
-            {["TODO", "DOING", "DONE"].map((st) => (
-              <p key={st}>
-                {statusNames[st]}:{" "}
-                {
-                  (items.data ?? []).filter(
-                    (i) => i.pit_kind === "ISSUE" && i.pit_status === st,
-                  ).length
-                }
-              </p>
-            ))}
-          </div>
-          <div className="rounded border p-4">
-            <h2 className="font-semibold">최근 수정 문서</h2>
-            {(items.data ?? [])
-              .filter((i) => i.pit_kind !== "ISSUE")
-              .slice(0, 5)
-              .map((i) => (
-                <button
-                  key={i.pit_id}
-                  className="block p-2 text-left underline"
-                  onClick={() =>
-                    setParams({
-                      tab: "documents",
-                      type: classify(i).toLowerCase(),
-                    })
-                  }
-                >
-                  {i.pit_title}
-                </button>
-              ))}
-          </div>
-        </div>
+        <ProjectOverview
+          project={project}
+          items={items.data ?? []}
+          manage={manage}
+          onManage={() => setEditing(true)}
+          onBrowse={(type) =>
+            setParams({ tab: "documents", type: type.toLowerCase() })
+          }
+        />
       ) : (
         <>
           {tab === "documents" && (
@@ -706,220 +728,266 @@ export function ProjectDetailPage() {
               ))}
             </nav>
           )}
-          <div className="flex flex-wrap gap-2">
-            <Input
-              className="max-w-xs"
-              aria-label="제목 검색"
-              placeholder="제목 검색"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+          {kind === "FILE" ? (
+            <ProjectFiles
+              project={id}
+              items={items.data ?? []}
+              readOnly={readOnly}
             />
-            {kind === "ISSUE" && (
-              <>
-                <select
-                  aria-label="이슈 상태"
-                  className={input + " !w-auto"}
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                >
-                  <option value="">전체 상태</option>
-                  {["TODO", "DOING", "DONE"].map((s) => (
-                    <option key={s} value={s}>
-                      {statusNames[s]}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  aria-label="담당자 필터"
-                  className={input + " !w-auto"}
-                  value={assignee}
-                  onChange={(e) => setAssignee(e.target.value)}
-                >
-                  <option value="">전체 담당자</option>
-                  {project.members?.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
-            {!readOnly &&
-              (kind === "ISSUE" ? (
-                <Button onClick={() => setItemEdit("new")}>+ 이슈 등록</Button>
-              ) : (
-                <>
-                  {docType !== "FILE" && (
-                    <Button onClick={() => setDocEdit("new")}>+ 작성</Button>
-                  )}
-                  {(docType === "FILE" ||
-                    docType === "DOC" ||
-                    docType === "SHEET") && (
-                    <Button variant="outline" onClick={() => setNewDoc(true)}>
-                      {docType === "FILE"
-                        ? "파일 업로드 / 폴더"
-                        : "Google에서 새로 만들기"}
-                    </Button>
-                  )}
-                  {docType === "FILE" && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setDriveModal(true)}
-                    >
-                      프로젝트 파일 탐색
-                    </Button>
-                  )}
-                  {docType === "FILE" && drive.data?.canManage && (
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        void w.run(async () => {
-                          const fileId = await pickGoogle();
-                          if (fileId) {
-                            await apiClient.post(
-                              base + "/projects/" + id + "/drive/link",
-                              { fileId },
-                            );
-                            await refresh();
-                          }
-                        })
-                      }
-                    >
-                      Drive 파일 연결
-                    </Button>
-                  )}
-                </>
-              ))}
-            <Button variant="outline" onClick={() => void refresh()}>
-              새로고침
-            </Button>
-          </div>
-          {kind === "FILE" && !drive.data?.rootReady && (
-            <div className="rounded border p-3">
-              공용 Drive 계정과 저장 위치를 연결하세요.{" "}
-              <Link className="underline" to="/admin/drive">
-                드라이브로 이동
-              </Link>
-            </div>
-          )}
-          {items.isLoading ? (
-            <p>불러오는 중…</p>
-          ) : !rows.length ? (
-            <p>등록된 항목이 없습니다.</p>
           ) : (
-            <div className="grid gap-3">
-              {rows.map((i) => (
-                <article
-                  key={i.pit_id}
-                  className="grid min-w-0 gap-2 rounded-lg border bg-surface p-4 md:grid-cols-[minmax(0,1fr)_auto]"
-                >
-                  <div className="min-w-0">
-                    <h2 className="break-words font-semibold">{i.pit_title}</h2>
-                    <p className="text-xs text-secondary">
-                      {i.creator_name} ·{" "}
-                      {new Date(i.updated_at).toLocaleDateString()}{" "}
-                      {i.pit_kind === "ISSUE"
-                        ? `· ${statusNames[i.pit_status]} · ${project.members?.find((m) => m.id === i.assignee_id)?.name ?? "미배정"} · ${i.due_date ?? "기한 없음"}`
-                        : i.drive_mime?.includes("spreadsheet")
-                          ? "· Google 시트"
-                          : i.drive_mime?.includes("document")
-                            ? "· Google 문서"
-                            : ""}
-                    </p>
-                    {i.pit_body && (
-                      <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm">
-                        {i.pit_body}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-start gap-2">
-                    {i.drive_file_id ? (
-                      <>
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Input
+                  className="max-w-xs"
+                  aria-label="제목 검색"
+                  placeholder="제목 검색"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                {kind === "ISSUE" && (
+                  <>
+                    <select
+                      aria-label="이슈 상태"
+                      className={input + " !w-auto"}
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                    >
+                      <option value="">전체 상태</option>
+                      {["TODO", "DOING", "DONE"].map((s) => (
+                        <option key={s} value={s}>
+                          {statusNames[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      aria-label="담당자 필터"
+                      className={input + " !w-auto"}
+                      value={assignee}
+                      onChange={(e) => setAssignee(e.target.value)}
+                    >
+                      <option value="">전체 담당자</option>
+                      {project.members?.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+                {!readOnly &&
+                  (kind === "ISSUE" ? (
+                    <Button onClick={() => setItemEdit("new")}>
+                      + 이슈 등록
+                    </Button>
+                  ) : (
+                    <>
+                      {docType !== "FILE" && (
                         <Button
-                          disabled={w.busy}
                           onClick={() => {
-                            const win = window.open("about:blank", "_blank");
-                            if (win) win.opener = null;
-                            void w.run(async () => {
-                              try {
-                                const { data } = await apiClient.get<{
-                                  url: string;
-                                }>(
-                                  base +
-                                    "/projects/" +
-                                    id +
-                                    "/items/" +
-                                    i.pit_id +
-                                    "/open",
-                                );
-                                if (win) win.location.href = data.url;
-                                else location.assign(data.url);
-                              } catch (e) {
-                                win?.close();
-                                throw e;
-                              }
-                            });
+                            setCreateMode("LOCAL");
+                            setDocEdit("new");
                           }}
                         >
-                          열기
+                          {docType === "SHEET"
+                            ? "+ 스프레드시트 작성"
+                            : docType === "DOC"
+                              ? "+ ACM 문서 작성"
+                              : "+ 메모 작성"}
                         </Button>
+                      )}
+                      {(docType === "SHEET" || docType === "DOC") && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setCreateMode("GOOGLE_LINK");
+                            setDocEdit("new");
+                          }}
+                        >
+                          {docType === "SHEET"
+                            ? "기존 구글시트 링크 등록"
+                            : "기존 구글독스 링크 등록"}
+                        </Button>
+                      )}
+                      {(docType === "FILE" ||
+                        docType === "DOC" ||
+                        docType === "SHEET") && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setNewDoc(true)}
+                        >
+                          {docType === "FILE"
+                            ? "파일 업로드 / 폴더"
+                            : "Google에서 새로 만들기"}
+                        </Button>
+                      )}
+                      {docType === "FILE" && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setDriveModal(true)}
+                        >
+                          프로젝트 파일 탐색
+                        </Button>
+                      )}
+                      {docType === "FILE" && drive.data?.canManage && (
                         <Button
                           variant="outline"
                           onClick={() =>
                             void w.run(async () => {
-                              await navigator.clipboard.writeText(
-                                "https://drive.google.com/file/d/" +
-                                  i.drive_file_id +
-                                  "/view",
-                              );
+                              const fileId = await pickGoogle();
+                              if (fileId) {
+                                await apiClient.post(
+                                  base + "/projects/" + id + "/drive/link",
+                                  { fileId },
+                                );
+                                await refresh();
+                              }
                             })
                           }
                         >
-                          링크 복사
+                          Drive 파일 연결
                         </Button>
-                        {!readOnly && (
+                      )}
+                    </>
+                  ))}
+                <Button variant="outline" onClick={() => void refresh()}>
+                  새로고침
+                </Button>
+              </div>
+              {items.isLoading ? (
+                <p>불러오는 중…</p>
+              ) : !rows.length ? (
+                <p>등록된 항목이 없습니다.</p>
+              ) : kind !== "ISSUE" ? (
+                <DocumentTable
+                  items={rows}
+                  project={project}
+                  manage={manage}
+                  onEdit={setDocEdit}
+                />
+              ) : (
+                <div className="grid gap-3">
+                  {rows.map((i) => (
+                    <article
+                      key={i.pit_id}
+                      className="grid min-w-0 gap-2 rounded-lg border bg-surface p-4 md:grid-cols-[minmax(0,1fr)_auto]"
+                    >
+                      <div className="min-w-0">
+                        <h2 className="break-words font-semibold">
+                          {i.pit_title}
+                        </h2>
+                        <p className="text-xs text-secondary">
+                          {i.creator_name} ·{" "}
+                          {new Date(i.updated_at).toLocaleDateString()}{" "}
+                          {i.pit_kind === "ISSUE"
+                            ? `· ${statusNames[i.pit_status]} · ${project.members?.find((m) => m.id === i.assignee_id)?.name ?? "미배정"} · ${i.due_date ?? "기한 없음"}`
+                            : i.drive_mime?.includes("spreadsheet")
+                              ? "· Google 시트"
+                              : i.drive_mime?.includes("document")
+                                ? "· Google 문서"
+                                : ""}
+                        </p>
+                        {i.pit_body && (
+                          <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm">
+                            {i.pit_body}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-start gap-2">
+                        {manage && i.pit_kind !== "ISSUE" && (
+                          <DocumentPermissions project={project} item={i} />
+                        )}
+                        {i.drive_file_id ? (
+                          <>
+                            <Button
+                              disabled={w.busy}
+                              onClick={() => {
+                                const win = window.open(
+                                  "about:blank",
+                                  "_blank",
+                                );
+                                if (win) win.opener = null;
+                                void w.run(async () => {
+                                  try {
+                                    const { data } = await apiClient.get<{
+                                      url: string;
+                                    }>(
+                                      base +
+                                        "/projects/" +
+                                        id +
+                                        "/items/" +
+                                        i.pit_id +
+                                        "/open",
+                                    );
+                                    if (win) win.location.href = data.url;
+                                    else location.assign(data.url);
+                                  } catch (e) {
+                                    win?.close();
+                                    throw e;
+                                  }
+                                });
+                              }}
+                            >
+                              열기
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() =>
+                                void w.run(async () => {
+                                  await navigator.clipboard.writeText(
+                                    "https://drive.google.com/file/d/" +
+                                      i.drive_file_id +
+                                      "/view",
+                                  );
+                                })
+                              }
+                            >
+                              링크 복사
+                            </Button>
+                            {!readOnly && (
+                              <Button
+                                variant="outline"
+                                disabled={w.busy}
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      "ACM 연결을 해제합니다. Google 원본 파일은 삭제되지 않습니다.",
+                                    )
+                                  )
+                                    void w.run(async () => {
+                                      await apiClient.delete(
+                                        base +
+                                          "/projects/" +
+                                          id +
+                                          "/items/" +
+                                          i.pit_id +
+                                          "/link",
+                                      );
+                                      await refresh();
+                                    });
+                                }}
+                              >
+                                연결 해제
+                              </Button>
+                            )}
+                          </>
+                        ) : (
                           <Button
                             variant="outline"
-                            disabled={w.busy}
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  "ACM 연결을 해제합니다. Google 원본 파일은 삭제되지 않습니다.",
-                                )
-                              )
-                                void w.run(async () => {
-                                  await apiClient.delete(
-                                    base +
-                                      "/projects/" +
-                                      id +
-                                      "/items/" +
-                                      i.pit_id +
-                                      "/link",
-                                  );
-                                  await refresh();
-                                });
-                            }}
+                            onClick={() =>
+                              i.pit_kind === "ISSUE"
+                                ? setItemEdit(i)
+                                : setDocEdit(i)
+                            }
                           >
-                            연결 해제
+                            {readOnly ? "내용 보기" : "보기 / 수정"}
                           </Button>
                         )}
-                      </>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          i.pit_kind === "ISSUE"
-                            ? setItemEdit(i)
-                            : setDocEdit(i)
-                        }
-                      >
-                        {readOnly ? "내용 보기" : "보기 / 수정"}
-                      </Button>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </>
       )}
@@ -928,7 +996,13 @@ export function ProjectDetailPage() {
           project={id}
           item={docEdit === "new" ? undefined : docEdit}
           type={docType as DocumentType}
-          readOnly={readOnly}
+          initialMode={createMode}
+          readOnly={
+            readOnly ||
+            (!manage &&
+              docEdit !== "new" &&
+              !!docEdit.viewer_ids?.includes(user?.id ?? ""))
+          }
           close={() => setDocEdit(null)}
         />
       )}

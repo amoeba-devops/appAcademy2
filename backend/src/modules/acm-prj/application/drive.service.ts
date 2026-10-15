@@ -372,6 +372,11 @@ export class ProjectDriveService {
     };
   }
   async record(u: AcmCurrentUser, id: string, f: GoogleFile, account: string) {
+    const [existing] = await this.ds.query<{ pit_id: string }[]>(
+      'SELECT pit_id FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND drive_file_id=$3 AND deleted_at IS NULL',
+      [u.entId, id, f.id],
+    );
+    if (existing) await this.projects.itemWrite(u, id, existing.pit_id);
     if (f.trashed || f.mimeType === FOLDER)
       throw new BadRequestException('문서 또는 파일을 선택하세요.');
     return this.ds.query<Record<string, unknown>[]>(
@@ -420,7 +425,9 @@ export class ProjectDriveService {
       {
         name: d.title.trim(),
         mimeType: upload
-          ? 'application/octet-stream'
+          ? d.kind === 'SHEET'
+            ? SHEET
+            : 'application/octet-stream'
           : d.kind === 'FOLDER'
             ? FOLDER
             : d.kind === 'SHEET'

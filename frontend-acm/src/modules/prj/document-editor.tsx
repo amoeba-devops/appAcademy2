@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TableKit } from "@tiptap/extension-table";
@@ -13,7 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Item } from "./types";
-import { SheetEditor } from "./sheet-editor";
+import type { WorkbookDocument } from "./workbook-editor";
+const WorkbookEditor = lazy(() =>
+  import("./workbook-editor").then((m) => ({ default: m.WorkbookEditor })),
+);
 import { blankSheet, type Sheet } from "./sheet-model";
 const names = { MEMO: "메모", SHEET: "시트(스프레드시트)", DOC: "문서(Docs)" };
 export type DocumentType = keyof typeof names;
@@ -180,22 +183,29 @@ export function DocumentEditor({
   item,
   type,
   readOnly,
+  initialMode,
   close,
 }: {
   project: string;
   item?: Item;
   type: DocumentType;
+  initialMode?: "LOCAL" | "GOOGLE_LINK";
   readOnly: boolean;
   close: () => void;
 }) {
   const qc = useQueryClient();
+  const snapshotRef = useRef<(() => WorkbookDocument) | null>(null);
   const [title, setTitle] = useState(item?.pit_title ?? ""),
     [mode, setMode] = useState(
-      item?.storage_type === "GOOGLE_LINK" ? "GOOGLE_LINK" : "LOCAL",
+      item?.storage_type === "GOOGLE_LINK" ||
+        (!item &&
+          (initialMode === "GOOGLE_LINK" || (!initialMode && type === "DOC")))
+        ? "GOOGLE_LINK"
+        : "LOCAL",
     ),
     [url, setUrl] = useState(item?.external_url ?? ""),
-    [content, setContent] = useState<JSONContent | Sheet>(
-      (item?.content as JSONContent | Sheet) ??
+    [content, setContent] = useState<JSONContent | Sheet | WorkbookDocument>(
+      (item?.content as JSONContent | Sheet | WorkbookDocument) ??
         (type === "SHEET"
           ? blankSheet()
           : {
@@ -242,21 +252,29 @@ export function DocumentEditor({
         </DialogHeader>
         <form
           className="grid min-w-0 gap-3"
+          onInputCapture={() => {
+            if (!readOnly) setDirty(true);
+          }}
           onSubmit={async (e) => {
             e.preventDefault();
             setBusy(true);
             setError("");
             try {
+              const savedContent =
+                type === "SHEET" && mode === "LOCAL" && snapshotRef.current
+                  ? snapshotRef.current()
+                  : content;
               if (
                 mode === "LOCAL" &&
-                new TextEncoder().encode(JSON.stringify(content)).length > 60000
+                new TextEncoder().encode(JSON.stringify(savedContent)).length >
+                  60000
               )
                 throw new Error("문서 크기는 60KB 이하로 작성하세요.");
               const data = {
                 title,
                 documentType: type,
                 storageType: mode,
-                content: mode === "LOCAL" ? content : undefined,
+                content: mode === "LOCAL" ? savedContent : undefined,
                 url: mode === "GOOGLE_LINK" ? url : undefined,
                 revision: item?.revision,
               };
@@ -341,6 +359,22 @@ export function DocumentEditor({
                 Google 원본 접근 권한이 필요합니다. 링크 등록은 문서 내용을
                 복사하거나 공유 권한을 변경하지 않습니다.
               </p>
+              {item?.external_url &&
+                /^https:\/\/docs\.google\.com\/(spreadsheets|document)\/d\/[\w-]+\/edit(?:#gid=\d+)?$/.test(
+                  item.external_url,
+                ) && (
+                  <iframe
+                    title={title || "Google 문서"}
+                    className="h-[60dvh] w-full rounded border"
+                    src={item.external_url.replace(/\/edit(?=#|$)/, "/preview")}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
+              <p className="text-xs text-secondary">
+                미리보기가 표시되지 않으면 Google 계정의 접근 권한을 확인하고 새
+                탭에서 열어 주세요.
+              </p>
               {item?.external_url && (
                 <a
                   className="underline"
@@ -353,14 +387,19 @@ export function DocumentEditor({
               )}
             </>
           ) : type === "SHEET" ? (
-            <SheetEditor
-              value={content as Sheet}
-              readOnly={readOnly || busy}
-              onChange={(v) => {
-                setContent(v);
-                setDirty(true);
-              }}
-            />
+            <Suspense fallback={<p>편집기 불러오는 중…</p>}>
+              <WorkbookEditor
+                project={project}
+                snapshotRef={snapshotRef}
+                title={title}
+                value={content as Sheet | WorkbookDocument}
+                readOnly={readOnly || busy}
+                onChange={(v) => {
+                  setContent(v);
+                  setDirty(true);
+                }}
+              />
+            </Suspense>
           ) : (
             <RichDocument
               initial={content as JSONContent}
