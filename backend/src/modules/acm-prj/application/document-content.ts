@@ -9,14 +9,28 @@ const object = (v: unknown): Record<string, unknown> =>
 export function googleUrl(value: string, type: string) {
   const path =
     type === 'SHEET' ? 'spreadsheets' : type === 'DOC' ? 'document' : fail();
-  const match = value.match(
+  let parsed: URL;
+  try {
+    parsed = new URL(value.trim());
+  } catch {
+    throw new BadRequestException('올바른 Google 문서 링크를 입력하세요.');
+  }
+  const match = parsed.pathname.match(
     new RegExp(
-      `^https://docs\\.google\\.com/${path}/d/([a-zA-Z0-9_-]{1,200})(?:/[^\\s]*)?$`,
+      `^/${path}/d/([a-zA-Z0-9_-]{1,200})(?:/(?:edit|view|preview|copy))?/?$`,
     ),
   );
-  if (!match)
+  if (
+    parsed.origin !== 'https://docs.google.com' ||
+    parsed.username ||
+    parsed.password ||
+    !match
+  )
     throw new BadRequestException('올바른 Google 문서 링크를 입력하세요.');
-  return `https://docs.google.com/${path}/d/${match[1]}/edit`;
+  const gid =
+    parsed.searchParams.get('gid') ??
+    new URLSearchParams(parsed.hash.slice(1)).get('gid');
+  return `https://docs.google.com/${path}/d/${match[1]}/edit${type === 'SHEET' && gid && /^\d+$/.test(gid) ? `#gid=${gid}` : ''}`;
 }
 export function validateContent(
   value: unknown,

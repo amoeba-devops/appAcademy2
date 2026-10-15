@@ -531,6 +531,9 @@ export function ProjectDetailPage() {
   const docType = ["MEMO", "SHEET", "DOC", "FILE"].includes(requestedType)
     ? requestedType
     : "MEMO";
+  const [createMode, setCreateMode] = useState<"LOCAL" | "GOOGLE_LINK">(
+    "LOCAL",
+  );
   const [docEdit, setDocEdit] = useState<Item | "new" | null>(null);
   const [editing, setEditing] = useState(false),
     [itemEdit, setItemEdit] = useState<Item | "new" | null>(null),
@@ -779,8 +782,30 @@ export function ProjectDetailPage() {
                   ) : (
                     <>
                       {docType !== "FILE" && (
-                        <Button onClick={() => setDocEdit("new")}>
-                          + 작성
+                        <Button
+                          onClick={() => {
+                            setCreateMode("LOCAL");
+                            setDocEdit("new");
+                          }}
+                        >
+                          {docType === "SHEET"
+                            ? "+ 스프레드시트 작성"
+                            : docType === "DOC"
+                              ? "+ ACM 문서 작성"
+                              : "+ 메모 작성"}
+                        </Button>
+                      )}
+                      {(docType === "SHEET" || docType === "DOC") && (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setCreateMode("GOOGLE_LINK");
+                            setDocEdit("new");
+                          }}
+                        >
+                          {docType === "SHEET"
+                            ? "기존 구글시트 링크 등록"
+                            : "기존 구글독스 링크 등록"}
                         </Button>
                       )}
                       {(docType === "FILE" ||
@@ -971,6 +996,7 @@ export function ProjectDetailPage() {
           project={id}
           item={docEdit === "new" ? undefined : docEdit}
           type={docType as DocumentType}
+          initialMode={createMode}
           readOnly={
             readOnly ||
             (!manage &&

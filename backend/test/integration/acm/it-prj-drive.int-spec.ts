@@ -249,6 +249,35 @@ describe('Project / shared Drive isolation and durable operations', () => {
       p.prj_id,
     ]);
   });
+  it('normalizes existing Google links and rejects lookalike hosts', () => {
+    expect(
+      googleUrl(
+        ' https://docs.google.com/spreadsheets/d/demo?usp=sharing&gid=123 ',
+        'SHEET',
+      ),
+    ).toBe('https://docs.google.com/spreadsheets/d/demo/edit#gid=123');
+    expect(
+      googleUrl(
+        'https://docs.google.com/document/d/demo/edit?usp=sharing',
+        'DOC',
+      ),
+    ).toBe('https://docs.google.com/document/d/demo/edit');
+    expect(() =>
+      googleUrl(
+        'https://docs.google.com.evil.example/document/d/demo/edit',
+        'DOC',
+      ),
+    ).toThrow();
+    expect(() =>
+      googleUrl('https://user@docs.google.com/document/d/demo/edit', 'DOC'),
+    ).toThrow();
+    expect(() =>
+      googleUrl('http://docs.google.com/document/d/demo/edit', 'DOC'),
+    ).toThrow();
+    expect(() =>
+      googleUrl('https://docs.google.com/document/d/demo/edit', 'SHEET'),
+    ).toThrow();
+  });
   afterAll(async () => {
     await ds?.destroy();
     await container?.stop();

@@ -187,7 +187,7 @@ export function DocumentTable({
             <iframe
               title={preview.pit_title}
               className="h-[70dvh] w-full border"
-              src={url.replace(/\/edit$/, "/preview")}
+              src={url.replace(/\/edit(?=#|$)/, "/preview")}
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
               referrerPolicy="no-referrer"
             />

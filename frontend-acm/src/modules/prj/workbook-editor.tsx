@@ -82,11 +82,12 @@ export function WorkbookEditor({
   snapshotRef: RefObject<(() => WorkbookDocument) | null>;
 }) {
   const qc = useQueryClient();
+  const [generation, setGeneration] = useState(0);
   const [googleCopy, setGoogleCopy] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [operationId, setOperationId] = useState(() => crypto.randomUUID());
-  const [initial] = useState(() => toWorkbook(value)),
+  const [initial, setInitial] = useState(() => toWorkbook(value)),
     ref = useRef<WorkbookInstance>(null),
     [error, setError] = useState("");
   snapshotRef.current = () => {
@@ -131,6 +132,45 @@ export function WorkbookEditor({
   return (
     <div className="min-w-0">
       <div className="mb-2 flex items-center justify-between gap-2">
+        {!readOnly && (
+          <label className="cursor-pointer rounded border px-3 py-2 text-sm">
+            XLSX 가져오기
+            <input
+              className="sr-only"
+              type="file"
+              accept=".xlsx"
+              disabled={sharing}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                if (
+                  !confirm(
+                    "현재 시트를 가져온 파일로 교체할까요? 저장 전에는 기존 문서가 유지됩니다.",
+                  )
+                )
+                  return;
+                setSharing(true);
+                setError("");
+                try {
+                  const { importWorkbook } = await import("./workbook-import");
+                  const result = await importWorkbook(await file.arrayBuffer());
+                  setInitial(result);
+                  setGeneration((v) => v + 1);
+                  onChange(result);
+                } catch (e) {
+                  setError(
+                    e instanceof Error
+                      ? e.message
+                      : "파일을 가져오지 못했습니다.",
+                  );
+                } finally {
+                  setSharing(false);
+                }
+              }}
+            />
+          </label>
+        )}
         <span className="text-xs text-secondary">
           셀 편집 후 Enter로 확정하세요. 저장 한도 60KB.
         </span>
@@ -154,7 +194,8 @@ export function WorkbookEditor({
             const upload = event.currentTarget.dataset.google === "true";
             setSharing(true);
             try {
-              const ExcelJS = await import("exceljs");
+              const module = await import("exceljs");
+              const ExcelJS = module.default ?? module;
               const wb = new ExcelJS.Workbook();
               for (const [
                 index,
@@ -250,6 +291,7 @@ export function WorkbookEditor({
       {error && <p role="alert">{error}</p>}
       <div className="h-[60dvh] min-h-96 w-full overflow-hidden rounded border">
         <Workbook
+          key={generation}
           ref={ref}
           data={initial.sheets}
           allowEdit={!readOnly}

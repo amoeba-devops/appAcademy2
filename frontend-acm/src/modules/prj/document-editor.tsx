@@ -183,11 +183,13 @@ export function DocumentEditor({
   item,
   type,
   readOnly,
+  initialMode,
   close,
 }: {
   project: string;
   item?: Item;
   type: DocumentType;
+  initialMode?: "LOCAL" | "GOOGLE_LINK";
   readOnly: boolean;
   close: () => void;
 }) {
@@ -195,7 +197,9 @@ export function DocumentEditor({
   const snapshotRef = useRef<(() => WorkbookDocument) | null>(null);
   const [title, setTitle] = useState(item?.pit_title ?? ""),
     [mode, setMode] = useState(
-      item?.storage_type === "GOOGLE_LINK" || (!item && type === "DOC")
+      item?.storage_type === "GOOGLE_LINK" ||
+        (!item &&
+          (initialMode === "GOOGLE_LINK" || (!initialMode && type === "DOC")))
         ? "GOOGLE_LINK"
         : "LOCAL",
     ),
@@ -356,13 +360,13 @@ export function DocumentEditor({
                 복사하거나 공유 권한을 변경하지 않습니다.
               </p>
               {item?.external_url &&
-                /^https:\/\/docs\.google\.com\/(spreadsheets|document)\/d\/[\w-]+\/edit$/.test(
+                /^https:\/\/docs\.google\.com\/(spreadsheets|document)\/d\/[\w-]+\/edit(?:#gid=\d+)?$/.test(
                   item.external_url,
                 ) && (
                   <iframe
                     title={title || "Google 문서"}
                     className="h-[60dvh] w-full rounded border"
-                    src={item.external_url.replace(/\/edit$/, "/preview")}
+                    src={item.external_url.replace(/\/edit(?=#|$)/, "/preview")}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                     referrerPolicy="no-referrer"
                   />
