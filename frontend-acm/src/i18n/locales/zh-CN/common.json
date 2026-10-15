@@ -38,7 +38,8 @@
       "calendar": "课程表",
       "materials": "文档/资料",
       "students": "学生管理",
-      "chat": "大厅聊天"
+      "chat": "大厅聊天",
+      "me": "我的页面"
     },
     "login": {
       "title": "学院门户登录",
@@ -259,7 +260,8 @@
     },
     "tenantConfig": "租户设置",
     "myWork": "我的工作",
-    "issues": "问题"
+    "issues": "问题",
+    "myPage": "我的页面"
   },
   "lang": {
     "label": "语言",
@@ -1421,5 +1423,28 @@
     "emptyNow": "今天没有待处理的问题。",
     "openFull": "查看问题",
     "selectHint": "选择一项以查看详情。"
+  },
+  "myPage": {
+    "title": "我的页面",
+    "loading": "加载中…",
+    "loadError": "无法加载信息。",
+    "name": "姓名",
+    "loginId": "登录 ID",
+    "role": "角色",
+    "roles": {
+      "ADMIN": "管理员",
+      "TEACHER": "教师",
+      "STAFF": "职员",
+      "APP_ADMIN": "应用管理员"
+    },
+    "timezone": "时区",
+    "followTenant": "跟随学院默认时区 — {{tz}}",
+    "timezoneHint": "时间按学院时区显示；若您的时区不同，将在括号中同时显示。",
+    "preview": "当前时间预览：{{now}}",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "已保存。",
+    "saveError": "保存失败。",
+    "changePassword": "修改密码"
   }
 }

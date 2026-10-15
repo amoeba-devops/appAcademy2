@@ -429,13 +429,15 @@ export function AppShell() {
             </NavLink>
           )}
           {/* 아이콘 모드에서는 이메일을 숨긴다 — 64px 안에서 읽을 수 없다. */}
+          {/* REQ-261015C — 이메일 → 마이페이지(사용자 타임존) */}
           {user?.email && !iconOnly && (
-            <div
-              className="px-3 pb-2 text-xs text-secondary truncate"
-              title={user.email}
+            <Link
+              to="/admin/me"
+              className="block px-3 pb-2 text-xs text-secondary truncate hover:text-primary hover:underline"
+              title={t("nav.myPage")}
             >
               {user.email}
-            </div>
+            </Link>
           )}
           <button
             type="button"

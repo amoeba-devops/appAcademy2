@@ -28,7 +28,8 @@ import { CalEventModal, teacherJoinUrl } from "../components/cal-event-modal";
 import { FeedbackEmailDialog } from "../components/feedback-email-dialog";
 import { copyHtmlToClipboard } from "../lib/copy-html";
 import { formatTime } from "../lib/date-utils";
-import { useTenantTz } from "@/lib/tz";
+import { formatDual, useTenantTz } from "@/lib/tz";
+import { useMyZones } from "@/modules/me/use-my-zones";
 
 /**
  * PLN-260729-2 — 관리자 수업일정 상세 "페이지" (/admin/cal/:evtId).
@@ -87,25 +88,25 @@ export function CalEventDetailPage() {
       ).data,
   });
 
+  // REQ-261015C — 테넌트 기본 타임존 기준 + 사용자 타임존(다르면) 병기.
+  const userTz = useMyZones("console").userTz;
   const fmtFull = (iso: string) =>
-    new Intl.DateTimeFormat(i18n.language, {
+    formatDual(iso, { tenantTz: tz, userTz }, i18n.language, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
       weekday: "short",
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: tz,
-    }).format(new Date(iso));
+    });
   const fmtShort = (iso: string | null) =>
     iso
-      ? new Intl.DateTimeFormat(i18n.language, {
+      ? formatDual(iso, { tenantTz: tz, userTz }, i18n.language, {
           month: "2-digit",
           day: "2-digit",
           hour: "2-digit",
           minute: "2-digit",
-          timeZone: tz,
-        }).format(new Date(iso))
+        })
       : "—";
 
   const sanitizedFeedback = useMemo(

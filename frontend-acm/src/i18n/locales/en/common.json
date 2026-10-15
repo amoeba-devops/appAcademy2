@@ -38,7 +38,8 @@
       "calendar": "Schedule",
       "materials": "Docs & Files",
       "students": "My Students",
-      "chat": "Lobby Chat"
+      "chat": "Lobby Chat",
+      "me": "My page"
     },
     "login": {
       "title": "Academy Portal Login",
@@ -259,7 +260,8 @@
     },
     "tenantConfig": "Tenant settings",
     "myWork": "My work",
-    "issues": "Issues"
+    "issues": "Issues",
+    "myPage": "My page"
   },
   "lang": {
     "label": "Language",
@@ -1421,5 +1423,28 @@
     "emptyNow": "Nothing due today.",
     "openFull": "Open issue",
     "selectHint": "Select an item to see details."
+  },
+  "myPage": {
+    "title": "My page",
+    "loading": "Loading…",
+    "loadError": "Could not load your profile.",
+    "name": "Name",
+    "loginId": "Login ID",
+    "role": "Role",
+    "roles": {
+      "ADMIN": "Admin",
+      "TEACHER": "Teacher",
+      "STAFF": "Staff",
+      "APP_ADMIN": "App admin"
+    },
+    "timezone": "Time zone",
+    "followTenant": "Use academy default — {{tz}}",
+    "timezoneHint": "Times are shown in the academy time zone; if yours differs, it is shown in parentheses.",
+    "preview": "Preview (now): {{now}}",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "saveError": "Could not save.",
+    "changePassword": "Change password"
   }
 }

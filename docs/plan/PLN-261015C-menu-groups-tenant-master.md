@@ -1,7 +1,7 @@
 ---
 document_id: ACM-MENU-TENANT-PLN-1.1.0
 version: 1.1.0
-status: Approved
+status: Implemented (staging)
 created: 2026-10-15
 change_log:
   - version: 1.1.0
@@ -147,3 +147,6 @@ change_log:
 
 ## 5. Review Gate (검토)
 2026-10-15 사용자가 Q1–Q7을 확정하고(REQ §6) 구현을 승인했다. WP1부터 순서대로 PR을 만든다. Q6 결정에 따라 등급별 메뉴는 숨김만 적용한다.
+
+## 6. Implementation Status (구현 현황)
+WP1–WP5 구현 완료. 결과와 남은 사항은 [RPT-261015C](../report/RPT-261015C-menu-groups-tenant-master.md)에 기록한다.

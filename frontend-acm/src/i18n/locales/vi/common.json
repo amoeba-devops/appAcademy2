@@ -38,7 +38,8 @@
       "calendar": "Lịch học",
       "materials": "Tài liệu",
       "students": "Học sinh của tôi",
-      "chat": "Trò chuyện sảnh"
+      "chat": "Trò chuyện sảnh",
+      "me": "Trang của tôi"
     },
     "login": {
       "title": "Đăng nhập cổng học viện",
@@ -259,7 +260,8 @@
     },
     "tenantConfig": "Cài đặt tenant",
     "myWork": "Công việc của tôi",
-    "issues": "Vấn đề"
+    "issues": "Vấn đề",
+    "myPage": "Trang của tôi"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -1421,5 +1423,28 @@
     "emptyNow": "Hôm nay không có việc đến hạn.",
     "openFull": "Mở vấn đề",
     "selectHint": "Chọn một mục để xem chi tiết."
+  },
+  "myPage": {
+    "title": "Trang của tôi",
+    "loading": "Đang tải…",
+    "loadError": "Không tải được thông tin.",
+    "name": "Tên",
+    "loginId": "ID đăng nhập",
+    "role": "Vai trò",
+    "roles": {
+      "ADMIN": "Quản trị viên",
+      "TEACHER": "Giáo viên",
+      "STAFF": "Nhân viên",
+      "APP_ADMIN": "Quản trị ứng dụng"
+    },
+    "timezone": "Múi giờ",
+    "followTenant": "Theo múi giờ mặc định của trung tâm — {{tz}}",
+    "timezoneHint": "Thời gian hiển thị theo múi giờ của trung tâm; nếu múi giờ của bạn khác, sẽ hiện thêm trong ngoặc.",
+    "preview": "Xem trước (hiện tại): {{now}}",
+    "save": "Lưu",
+    "saving": "Đang lưu…",
+    "saved": "Đã lưu.",
+    "saveError": "Không lưu được.",
+    "changePassword": "Đổi mật khẩu"
   }
 }

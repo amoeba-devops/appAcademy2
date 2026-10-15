@@ -9,6 +9,7 @@ import {
   LogOut,
   MessagesSquare,
   Users,
+  UserCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -36,6 +37,8 @@ const NAV = [
     end: false,
     teacherOnly: true,
   },
+  // REQ-261015C — 마이페이지(사용자 타임존)
+  { to: "/portal/me", icon: UserCircle, key: "me", end: false },
 ];
 
 export function PortalShell() {

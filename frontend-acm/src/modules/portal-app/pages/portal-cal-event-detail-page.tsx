@@ -1,4 +1,6 @@
 import { hasReviewContent, reviewMissing } from "@/lib/review-completion";
+import { formatEventWhen } from "@/lib/tz";
+import { useMyZones } from "@/modules/me/use-my-zones";
 import { TeacherFeedbackEmail } from "../components/teacher-feedback-email";
 import {
   useVideoConfig,
@@ -41,30 +43,10 @@ export function PortalCalEventDetailPage() {
 
   const video = useVideoConfig(true);
   const isBoda = video.bodaEnabled && event?.meetingProvider === "BODASCHOOL";
-  const fmtFull = (iso: string, withTime: boolean) =>
-    new Intl.DateTimeFormat(i18n.language, {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      weekday: "short",
-      ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
-    }).format(new Date(iso));
-  const when = event ? fmtFull(event.startAt, !event.allDay) : "";
-  const sameDay =
-    event &&
-    new Date(event.startAt).toDateString() ===
-      new Date(event.endAt).toDateString();
-  const endLabel = event
-    ? event.allDay
-      ? sameDay
-        ? ""
-        : fmtFull(event.endAt, false)
-      : sameDay
-        ? new Date(event.endAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : fmtFull(event.endAt, true)
+  // REQ-261015C — 테넌트 기본 타임존 기준 + 사용자 타임존 병기.
+  const zones = useMyZones("portal");
+  const when = event
+    ? formatEventWhen(event.startAt, event.endAt, event.allDay, zones, i18n.language)
     : "";
   const KIND_BADGE: Record<string, string> = {
     STUDENT: "bg-blue-100 text-blue-700",
@@ -100,7 +82,6 @@ export function PortalCalEventDetailPage() {
               </span>{" "}
               {when}
               {event.allDay && ` (${t("cal:field.allDay", "종일")})`}
-              {endLabel && ` ~ ${endLabel}`}
             </div>
             {event.ownerName && (
               <div>

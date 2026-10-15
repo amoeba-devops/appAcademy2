@@ -24,6 +24,7 @@ import { Ga4ConfigService } from './application/ga4-config.service';
 import { SystemUserController } from './presentation/system-user.controller';
 import { SystemTenantController } from './presentation/system-tenant.controller';
 import { MeMenuController } from './presentation/me-menu.controller';
+import { MeProfileController } from './presentation/me-profile.controller';
 import { TenantMasterController } from './presentation/tenant-master.controller';
 import { TenantRoleMenuService } from './application/tenant-role-menu.service';
 import { MailConfigController } from './presentation/mail-config.controller';
@@ -61,6 +62,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     SystemUserController,
     SystemTenantController,
     MeMenuController,
+    MeProfileController,
     TenantMasterController,
     MailConfigController,
     TenantSettingsController,

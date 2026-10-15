@@ -26,6 +26,7 @@ import { AmaUserController } from './presentation/ama-user.controller';
 import { AmaConfigController } from './presentation/ama-config.controller';
 import { ParentAuthController } from './presentation/parent-auth.controller';
 import { PortalMyController } from './presentation/portal-my.controller';
+import { PortalMeController } from './presentation/portal-me.controller';
 import { PortalAuthController } from './presentation/portal-auth.controller';
 import { PortalAccountAdminController } from './presentation/portal-account-admin.controller';
 import { PortalAccountTypeormEntity } from './infrastructure/typeorm/portal-account.typeorm-entity';
@@ -164,6 +165,7 @@ const amaOAuthProvider: Provider = {
     ParentAuthController,
     PortalMyController,
     PortalAuthController,
+    PortalMeController,
     PortalAccountAdminController,
   ],
   providers: [

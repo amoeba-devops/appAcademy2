@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { portalApi, type PortalCalEvent } from '../api/portal-api';
+import { formatEventWhen, formatInTz, formatDualRange, tzCity } from '@/lib/tz';
+import { useMyZones } from '@/modules/me/use-my-zones';
 
 type ViewMode = 'month' | 'week' | 'day' | 'list';
 
@@ -195,9 +197,26 @@ function eventsOn(events: PortalCalEvent[], day: Date) {
     .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
 }
 
-function timeLabel(e: PortalCalEvent) {
-  if (e.allDay) return '';
-  return new Date(e.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const HM = { hour: '2-digit', minute: '2-digit' } as const;
+/** REQ-261015C — 테넌트 기본 타임존 기준 시각 + 사용자 타임존 병기. */
+function usePortalTime() {
+  const { i18n } = useTranslation();
+  const zones = useMyZones('portal');
+  const locale = i18n.language;
+  const label = (e: PortalCalEvent) =>
+    e.allDay ? '' : formatInTz(e.startAt, zones.tenantTz, locale, HM);
+  return {
+    zones,
+    locale,
+    label,
+    /** 사용자 타임존 시각(다를 때만). */
+    userLabel: (e: PortalCalEvent) => {
+      if (e.allDay || !zones.userTz || zones.userTz === zones.tenantTz) return '';
+      const mine = formatInTz(e.startAt, zones.userTz, locale, HM);
+      return mine === label(e) ? '' : `${mine} ${tzCity(zones.userTz)}`;
+    },
+    range: (e: PortalCalEvent) => formatDualRange(e.startAt, e.endAt, zones, locale, HM),
+  };
 }
 
 function MonthGrid({
@@ -213,6 +232,7 @@ function MonthGrid({
 }) {
   const video = useVideoConfig(true);
   const { t } = useTranslation('cal');
+  const time = usePortalTime();
   const overflowTrigger = useRef<HTMLButtonElement | null>(null);
   const eventTrigger = useRef<HTMLButtonElement | null>(null);
   const [overflowDay, setOverflowDay] = useState<Date | null>(null);
@@ -254,7 +274,7 @@ function MonthGrid({
               >
                 {canEnterVideo(e, video.bodaEnabled) && <Video size={10} className="shrink-0" />}
                 <span className="truncate">
-                  {timeLabel(e)} {e.title}
+                  {time.label(e)} {e.title}
                 </span>
                 {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
                 {e.classDone && (
@@ -282,7 +302,7 @@ function MonthGrid({
           {overflowDay && eventsOn(events, overflowDay).map((event) => (
             <li key={event.id}>
               <button type="button" onClick={(e) => { eventTrigger.current = e.currentTarget; setOverflowEvent(event); }} className="w-full rounded-md border border-[var(--border-subtle)] p-3 text-left hover:bg-accent-50 focus-visible:outline focus-visible:outline-2">
-                <span className="block text-xs text-secondary">{event.allDay ? t('overflow.allDay') : `${timeLabel(event)}–${new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}</span>
+                <span className="block text-xs text-secondary">{event.allDay ? t('overflow.allDay') : time.range(event)}</span>
                 <span className="block break-words font-medium">{event.title}</span>
                 {event.primaryStudentName && <span className="block text-sm text-secondary">{event.primaryStudentName}</span>}
               </button>
@@ -334,13 +354,17 @@ function Agenda({
 function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalEvent) => void }) {
   const video = useVideoConfig(true);
   const { t } = useTranslation('common');
+  const time = usePortalTime();
   return (
     <button
       type="button"
       onClick={() => onSelect(e)}
       className="flex w-full items-center gap-3 border-b border-[var(--border-subtle)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--gray-50)]"
     >
-      <span className="w-16 shrink-0 text-sm text-secondary">{timeLabel(e) || '—'}</span>
+      <span className="w-20 shrink-0 text-sm text-secondary">
+        {time.label(e) || '—'}
+        {time.userLabel(e) && <span className="block text-[11px]">({time.userLabel(e)})</span>}
+      </span>
       <span className="min-w-0 flex-1 truncate text-sm text-primary">
         {e.title}
         {/* PLN-260729 3 — 제목 옆 학생명 */}
@@ -443,19 +467,10 @@ function EventDetailModal({
   const navigate = useNavigate();
   const isBoda = !!event && canEnterVideo(event, video.bodaEnabled);
 
+  const zones = useMyZones('portal');
   const when = event
-    ? new Intl.DateTimeFormat(i18n.language, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        weekday: 'short',
-        ...(event.allDay ? {} : { hour: '2-digit', minute: '2-digit' }),
-      }).format(new Date(event.startAt))
+    ? formatEventWhen(event.startAt, event.endAt, event.allDay, zones, i18n.language)
     : '';
-  const endTime =
-    event && !event.allDay
-      ? new Date(event.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '';
 
   return (
     <Dialog open={!!event} onOpenChange={(o) => !o && onClose()}>
@@ -469,7 +484,6 @@ function EventDetailModal({
               <div>
                 <span className="text-secondary">{t('portalApp.cal.when', '일시')}</span>{' '}
                 {when}
-                {endTime && ` ~ ${endTime}`}
               </div>
               {event.assigneeName && (
                 <div>
