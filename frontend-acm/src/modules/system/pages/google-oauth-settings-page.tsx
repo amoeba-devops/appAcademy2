@@ -89,6 +89,10 @@ export function GoogleOauthSettingsPage() {
       link: 'https://console.cloud.google.com/apis/credentials/consent',
       copies: [
         [t('google.copy.domain'), new URL(origin).hostname.split('.').slice(-2).join('.')],
+        // REQ-261016C — 브랜딩 필수 링크(게시 버튼 활성화 조건)
+        [t('google.copy.homepage'), `${origin}/web/acm/`],
+        [t('google.copy.privacy'), `${origin}/web/acm/privacy.html`],
+        [t('google.copy.terms'), `${origin}/web/acm/terms.html`],
         [t('google.copy.scopes'), SCOPES],
       ],
     },

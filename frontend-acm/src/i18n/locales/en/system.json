@@ -155,7 +155,7 @@
       },
       "consent": {
         "title": "OAuth consent screen",
-        "body": "User type: External — because several companies (tenants) sign in.\nEnter app name, support email and developer contact, and add the domain below as an authorized domain.\nAdd the 3 scopes below. drive.file is non-sensitive, so no security assessment is needed.\nSet publishing status to \"Push to production\". In testing status, tenants must reconnect every 7 days.\nACM itself rejects personal Gmail accounts (Workspace only)."
+        "body": "User type: External — because several companies (tenants) sign in.\nBranding: enter app name \"ACM\", support email and optional logo, then the app home page, privacy policy and terms of service links and the authorized domain below. If these are empty, the \"Publish app\" button stays disabled.\nData access (Scopes): add the 3 scopes below. drive.file is non-sensitive, so no security assessment is needed.\nAudience: click \"Publish app\" to move to production. In testing status, tenants must reconnect every 7 days.\nACM itself rejects personal Gmail accounts (Workspace only)."
       },
       "client": {
         "title": "Create OAuth client ID",
@@ -176,7 +176,10 @@
       "scopes": "Scopes",
       "origin": "Authorized JavaScript origin",
       "redirect": "Authorized redirect URI",
-      "referrer": "HTTP referrer"
+      "referrer": "HTTP referrer",
+      "homepage": "App home page",
+      "privacy": "Privacy policy link",
+      "terms": "Terms of service link"
     },
     "copied": "Copied",
     "form": {

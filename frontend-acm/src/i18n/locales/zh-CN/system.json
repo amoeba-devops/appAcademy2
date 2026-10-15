@@ -155,7 +155,7 @@
       },
       "consent": {
         "title": "OAuth 同意屏幕",
-        "body": "用户类型：外部（External）——因为多个公司（租户）会登录。\n填写应用名称、支持邮箱和开发者联系方式，并将下方域名添加为已授权域名。\n添加下方 3 个范围。drive.file 属于非敏感范围，无需安全评估。\n将发布状态设为“推送到生产环境”。若保持测试状态，租户需每 7 天重新连接。\n个人 Gmail 由 ACM 拒绝（仅限 Workspace）。"
+        "body": "用户类型：外部（External）——因为多个公司（租户）会登录。\n品牌信息（Branding）：填写应用名称“ACM”、支持邮箱、可选徽标，并填写下方应用首页、隐私权政策、服务条款链接和已授权域名。若这些为空，“发布应用（Publish app）”按钮将不可用。\n数据访问（Scopes）：添加下方 3 个范围。drive.file 属于非敏感范围，无需安全评估。\n受众（Audience）：点击“发布应用”切换到生产环境。若保持测试状态，租户需每 7 天重新连接。\n个人 Gmail 由 ACM 拒绝（仅限 Workspace）。"
       },
       "client": {
         "title": "创建 OAuth 客户端 ID",
@@ -176,7 +176,10 @@
       "scopes": "范围",
       "origin": "已获授权的 JavaScript 来源",
       "redirect": "已获授权的重定向 URI",
-      "referrer": "HTTP 引荐来源"
+      "referrer": "HTTP 引荐来源",
+      "homepage": "应用首页",
+      "privacy": "隐私权政策链接",
+      "terms": "服务条款链接"
     },
     "copied": "已复制",
     "form": {
