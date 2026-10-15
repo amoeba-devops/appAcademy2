@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACM — Academy Management</title>
+  <meta name="description" content="ACM is an academy management service by Amoeba Company for consultations, students, classes, payments and project documents. 학원 운영 관리 서비스 ACM.">
+  <link rel="icon" href="/acm-icon-192.png">
+  <link rel="stylesheet" href="/web/acm/legal.css">
+</head>
+<body>
+<header class="site">
+  <div class="inner">
+    <a class="brand" href="/web/acm/"><img src="/acm-icon-192.png" alt="">ACM</a>
+    <nav class="links" aria-label="ACM">
+      <a href="/web/acm/" aria-current="page">Home</a>
+      <a href="/web/acm/privacy.html">Privacy Policy · 개인정보처리방침</a>
+      <a href="/web/acm/terms.html">Terms of Service · 서비스 약관</a>
+      <a href="/admin/login">Sign in</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <h1>ACM — Academy Management</h1>
+  <p class="muted">Operated by Amoeba Company (아메바컴퍼니) · <a href="mailto:support@amoeba.site">support@amoeba.site</a></p>
+
+  <p>ACM is a multi-tenant web service that helps private academies (hagwon) run their daily operations: new-student consultations, student and parent records, teachers and class schedules, tuition payments, notices, and internal projects, issues and documents. Each academy (tenant) uses ACM through its own administrator account.</p>
+  <p>ACM은 학원 운영을 위한 멀티 테넌트 웹 서비스입니다. 신규 상담, 학생·학부모 관리, 강사·수업 일정, 수납, 공지, 그리고 업무용 프로젝트·이슈·문서를 하나의 화면에서 관리합니다. 각 학원(테넌트)은 자체 관리자 계정으로 ACM을 사용합니다.</p>
+
+  <div class="cards">
+    <div class="card"><h3>Academy operations · 학원 운영</h3><p>Consultations, students, parents, teachers, class statistics, complaints and payments.<br>상담·학생·학부모·강사·수업통계·고객불만·수납.</p></div>
+    <div class="card"><h3>Work management · 업무관리</h3><p>Lobby chat, my work, issues, projects, documents and drive.<br>로비채팅·내 업무·이슈·프로젝트·문서·드라이브.</p></div>
+    <div class="card"><h3>Portal · 포털</h3><p>Students, parents and teachers see schedules, notices and materials.<br>학생·학부모·강사용 일정·공지·자료실.</p></div>
+  </div>
+
+  <h2 id="google">How ACM uses Google · Google 연동</h2>
+  <p>An academy's service operator may connect the academy's <strong>company Google Workspace account</strong> so that files uploaded or created in ACM projects are saved in a shared folder in that account's Google Drive. Personal Gmail accounts are not accepted.</p>
+  <ul>
+    <li><strong>Scopes requested:</strong> <code>openid</code>, <code>email</code>, <code>https://www.googleapis.com/auth/drive.file</code>.</li>
+    <li><strong>openid / email</strong> — to identify which company account is connected and to show its address and domain to the academy's administrators.</li>
+    <li><strong>drive.file</strong> — to create the academy's shared folder, create Google Docs/Sheets, upload files into that folder, and open files the user explicitly picks with Google Picker. ACM cannot see other files in the account's Drive.</li>
+    <li>ACM does not read Gmail, contacts or calendars, does not change Google sharing settings, and does not use Google user data for advertising or to train AI models.</li>
+  </ul>
+  <p>학원의 서비스 운영자는 학원의 <strong>회사 Google Workspace 계정</strong>을 연결할 수 있습니다. 연결하면 ACM 프로젝트에서 업로드·작성한 파일이 해당 계정 Google Drive의 공용폴더에 저장됩니다. 일반 Gmail 계정은 연결할 수 없습니다. 요청 권한은 계정 확인(openid, email)과 ACM이 만들거나 사용자가 직접 선택한 파일에 한정된 Drive 권한(drive.file)뿐입니다. 자세한 내용은 <a href="/web/acm/privacy.html#google">개인정보처리방침</a>을 참고하세요.</p>
+
+  <div class="callout">
+    <strong>Google API Services User Data Policy.</strong> ACM's use and transfer of information received from Google APIs to any other app will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">Google API Services User Data Policy</a>, including the Limited Use requirements.
+  </div>
+
+  <h2>Contact · 문의</h2>
+  <p>Amoeba Company (아메바컴퍼니) — <a href="mailto:support@amoeba.site">support@amoeba.site</a> (KST 09:00–18:00, Mon–Fri)</p>
+</main>
+<footer class="site">
+  <div class="inner">
+    <span>© 2026 Amoeba Company</span>
+    <a href="/web/acm/privacy.html">Privacy Policy · 개인정보처리방침</a>
+    <a href="/web/acm/terms.html">Terms of Service · 서비스 약관</a>
+  </div>
+</footer>
+</body>
+</html>
