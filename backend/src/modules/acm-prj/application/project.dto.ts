@@ -18,6 +18,11 @@ export class ProjectDto {
   @ArrayMaxSize(100)
   @IsUUID('all', { each: true })
   memberIds!: string[];
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  managerIds?: string[];
   @IsOptional() @IsIn(['ACTIVE', 'DONE', 'ARCHIVED']) status?: string;
 }
 export class ItemDto {

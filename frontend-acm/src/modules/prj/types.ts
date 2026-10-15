@@ -1,8 +1,12 @@
 export interface Person {
   id: string;
   name: string;
+  email?: string;
+  member_role?: "MANAGER"|"MEMBER";
 }
 export interface Project {
+  can_manage?:boolean;
+  prj_code?:string;
   prj_id: string;
   prj_title: string;
   prj_description: string;
@@ -16,6 +20,9 @@ export interface Project {
   updated_at: string;
 }
 export interface Item {
+  viewer_ids?: string[];
+  file_phase?: string;
+  download_count?:number;
   document_type?: "MEMO" | "SHEET" | "DOC" | "FILE";
   storage_type?: "LOCAL" | "GOOGLE_LINK" | "DRIVE_FILE";
   content?: unknown;
@@ -40,6 +47,7 @@ export interface DriveStatus {
   connected: boolean;
   canManage: boolean;
   email?: string;
+  member_role?: "MANAGER"|"MEMBER";
   rootId?: string;
   rootReady: boolean;
   rootName?: string;

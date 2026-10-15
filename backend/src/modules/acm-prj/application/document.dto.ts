@@ -32,3 +32,24 @@ export class SharedFolderDto {
   @IsUUID('all', { each: true })
   editors!: string[];
 }
+
+export class ProjectRelationDto {
+  @IsIn(['CLIENT', 'CHAT']) kind!: 'CLIENT' | 'CHAT';
+  @IsString() @MinLength(1) @MaxLength(200) name!: string;
+  @IsOptional() @IsUUID() refId?: string;
+}
+
+export class ProjectFileDto {
+  @IsString() @MinLength(1) @MaxLength(200) title!: string;
+  @IsOptional() @IsString() @MaxLength(2000) description?: string;
+  @IsIn(['PLANNING', 'DESIGN', 'DEVELOPMENT', 'OPERATION', 'ETC'])
+  phase!: string;
+  @IsUUID() operationId!: string;
+}
+
+export class DocumentPermissionDto {
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  viewers!: string[];
+}

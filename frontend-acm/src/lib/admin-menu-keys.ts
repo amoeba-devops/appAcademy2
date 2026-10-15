@@ -17,6 +17,7 @@ export const TOGGLEABLE_MENU_KEYS = [
   'calStats',
   'complaints',
   'projects',
+  'documents',
   'drive',
   'sch',
   'ref',

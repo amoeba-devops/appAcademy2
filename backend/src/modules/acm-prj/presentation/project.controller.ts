@@ -1,4 +1,10 @@
-import { DocumentDto } from '../application/document.dto';
+import { ProjectFileService } from '../application/project-file.service';
+import {
+  DocumentPermissionDto,
+  ProjectFileDto,
+  ProjectRelationDto,
+  DocumentDto,
+} from '../application/document.dto';
 import {
   BadRequestException,
   Body,
@@ -42,8 +48,63 @@ import {
 export class ProjectController {
   constructor(
     readonly projects: ProjectService,
+    readonly files: ProjectFileService,
     readonly drive: ProjectDriveService,
   ) {}
+  @Post('projects/:id/files')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+    }),
+  )
+  uploadFile(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: ProjectFileDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('파일을 선택하세요.');
+    return this.files.upload(u, id, d, file);
+  }
+  @Get('projects/:id/files/:item/download')
+  downloadFile(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('item', ParseUUIDPipe) item: string,
+  ) {
+    return this.files.download(u, id, item);
+  }
+  @Put('projects/:id/items/:item/permissions') permissions(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('item', ParseUUIDPipe) item: string,
+    @Body() d: DocumentPermissionDto,
+  ) {
+    return this.projects.permissions(u, id, item, d.viewers);
+  }
+  @Get('documents') documents(@CurrentUser() u: AcmCurrentUser) {
+    return this.projects.allDocuments(u);
+  }
+  @Get('projects/:id/relations') relations(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.projects.relations(u, id);
+  }
+  @Post('projects/:id/relations') relation(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: ProjectRelationDto,
+  ) {
+    return this.projects.relation(u, id, d);
+  }
+  @Delete('projects/:id/relations/:relation') removeRelation(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('relation', ParseUUIDPipe) relation: string,
+  ) {
+    return this.projects.removeRelation(u, id, relation);
+  }
   @Get('people') people(@CurrentUser() u: AcmCurrentUser) {
     return this.projects.people(u);
   }

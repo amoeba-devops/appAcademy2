@@ -1,0 +1,262 @@
+import { apiClient } from "@/lib/api-client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState, type RefObject } from "react";
+import { Workbook, type WorkbookInstance } from "@fortune-sheet/react";
+import type { Sheet as FortuneSheet } from "@fortune-sheet/core";
+import "@fortune-sheet/react/dist/index.css";
+import type { Sheet } from "./sheet-model";
+export interface WorkbookDocument {
+  version: 2;
+  sheets: FortuneSheet[];
+}
+export function toWorkbook(value: Sheet | WorkbookDocument): WorkbookDocument {
+  if ("version" in value && value.version === 2) return value;
+  const old = value as Sheet;
+  return {
+    version: 2,
+    sheets: [
+      {
+        id: "sheet-1",
+        name: "Sheet1",
+        row: Math.max(50, old.cells.length),
+        column: 50,
+        celldata: old.cells.flatMap((row, r) =>
+          row.flatMap((cell, c) =>
+            cell.value
+              ? [
+                  {
+                    r,
+                    c,
+                    v: {
+                      v: cell.value.startsWith("=")
+                        ? ""
+                        : cell.format === "text"
+                          ? cell.value
+                          : Number.isFinite(Number(cell.value))
+                            ? Number(cell.value)
+                            : cell.value,
+                      ...(cell.value.startsWith("=") ? { f: cell.value } : {}),
+                      bl: cell.bold ? 1 : 0,
+                    },
+                  },
+                ]
+              : [],
+          ),
+        ),
+        config: {
+          columnlen: Object.fromEntries(
+            (old.widths ?? []).map((v, i) => [i, v]),
+          ),
+          rowlen: Object.fromEntries((old.heights ?? []).map((v, i) => [i, v])),
+        },
+      },
+    ],
+  };
+}
+export function snapshot(sheets: FortuneSheet[]): WorkbookDocument {
+  return {
+    version: 2,
+    sheets: sheets.map(({ data, celldata, ...sheet }) => ({
+      ...sheet,
+      celldata: data
+        ? data.flatMap((row, r) =>
+            (row ?? []).flatMap((v, c) => (v ? [{ r, c, v }] : [])),
+          )
+        : (celldata ?? []),
+    })),
+  };
+}
+export function WorkbookEditor({
+  value,
+  readOnly,
+  onChange,
+  title,
+  snapshotRef,
+  project,
+}: {
+  value: Sheet | WorkbookDocument;
+  readOnly: boolean;
+  onChange: (v: WorkbookDocument) => void;
+  title: string;
+  project: string;
+  snapshotRef: RefObject<(() => WorkbookDocument) | null>;
+}) {
+  const qc = useQueryClient();
+  const [googleCopy, setGoogleCopy] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const [operationId, setOperationId] = useState(() => crypto.randomUUID());
+  const [initial] = useState(() => toWorkbook(value)),
+    ref = useRef<WorkbookInstance>(null),
+    [error, setError] = useState("");
+  snapshotRef.current = () => {
+    const result = snapshot(ref.current?.getAllSheets() ?? initial.sheets);
+    const input = document.getElementById("luckysheet-rich-text-editor");
+    const box = document.querySelector<HTMLElement>(".luckysheet-input-box");
+    if (
+      input &&
+      (box?.style.zIndex === "19" || document.activeElement === input) &&
+      ref.current
+    ) {
+      const selection = ref.current.getSelection()?.[0];
+      const sheet = result.sheets.find(
+        (s) => s.id === ref.current?.getSheet().id,
+      );
+      if (selection && sheet) {
+        const r = selection.row[0],
+          c = selection.column[0],
+          text = input.innerText.replace(/\u200b/g, "").replace(/\n+$/, "");
+        const cells = sheet.celldata ?? [],
+          at = cells.findIndex((cell) => cell.r === r && cell.c === c),
+          old = at >= 0 ? cells[at].v : {};
+        const style = { ...old };
+        delete style.f;
+        const cell = {
+          r,
+          c,
+          v: {
+            ...style,
+            ...(text.startsWith("=")
+              ? { f: text, v: "" }
+              : { v: text, m: text }),
+          },
+        };
+        if (at >= 0) cells[at] = cell;
+        else cells.push(cell);
+        sheet.celldata = cells;
+      }
+    }
+    return result;
+  };
+  return (
+    <div className="min-w-0">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-xs text-secondary">
+          셀 편집 후 Enter로 확정하세요. 저장 한도 60KB.
+        </span>
+        {!readOnly && (
+          <label className="text-sm">
+            <input
+              type="checkbox"
+              checked={googleCopy}
+              disabled={sharing}
+              onChange={(e) => setGoogleCopy(e.target.checked)}
+            />{" "}
+            Google 시트로 사본 생성
+          </label>
+        )}
+        <button
+          type="button"
+          disabled={sharing}
+          data-google={googleCopy && !readOnly}
+          className="rounded border px-3 py-2 text-sm"
+          onClick={async (event) => {
+            const upload = event.currentTarget.dataset.google === "true";
+            setSharing(true);
+            try {
+              const ExcelJS = await import("exceljs");
+              const wb = new ExcelJS.Workbook();
+              for (const [
+                index,
+                s,
+              ] of snapshotRef.current!().sheets.entries()) {
+                const ws = wb.addWorksheet(
+                  `${index + 1}-${s.name}`
+                    .replace(/[\\/*?:\[\]]/g, "_")
+                    .slice(0, 31),
+                );
+                for (const cell of s.celldata ?? []) {
+                  if (!cell.v) continue;
+                  const target = ws.getCell(cell.r + 1, cell.c + 1);
+                  if (cell.v.f)
+                    target.value = {
+                      formula: cell.v.f.replace(/^=/, ""),
+                      result:
+                        typeof cell.v.v === "number" ? cell.v.v : undefined,
+                    };
+                  else
+                    target.value =
+                      typeof cell.v.v === "number" ||
+                      typeof cell.v.v === "boolean"
+                        ? cell.v.v
+                        : String(cell.v.v ?? "");
+                  target.font = {
+                    bold: cell.v.bl === 1,
+                    italic: cell.v.it === 1,
+                  };
+                }
+              }
+              const bytes = await wb.xlsx.writeBuffer();
+              if (upload) {
+                const form = new FormData();
+                form.append(
+                  "file",
+                  new Blob([new Uint8Array(bytes)], {
+                    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  }),
+                  `${title || "spreadsheet"}.xlsx`,
+                );
+                form.append("title", title || "Spreadsheet");
+                form.append("kind", "SHEET");
+                form.append("operationId", operationId);
+                const { data } = await apiClient.post<{ id: string }>(
+                  `/acm/prj/projects/${project}/drive/upload`,
+                  form,
+                  { timeout: 90000 },
+                );
+                setOperationId(crypto.randomUUID());
+                setShareUrl(
+                  `https://docs.google.com/spreadsheets/d/${data.id}/edit`,
+                );
+                await qc.invalidateQueries({ queryKey: ["prj"] });
+                return;
+              }
+              const url = URL.createObjectURL(
+                new Blob([new Uint8Array(bytes)], {
+                  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                }),
+              );
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `${title || "spreadsheet"}.xlsx`;
+              a.click();
+              setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch {
+              setError(
+                "내보내기에 실패했습니다. Google 연결 및 저장 위치를 확인하세요.",
+              );
+            } finally {
+              setSharing(false);
+            }
+          }}
+        >
+          {sharing
+            ? "처리 중…"
+            : googleCopy && !readOnly
+              ? "Google 시트 생성"
+              : "XLSX 다운로드"}
+        </button>
+      </div>
+      {shareUrl && (
+        <a
+          className="text-blue-600 underline"
+          href={shareUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          생성한 Google 시트 열기
+        </a>
+      )}
+      {error && <p role="alert">{error}</p>}
+      <div className="h-[60dvh] min-h-96 w-full overflow-hidden rounded border">
+        <Workbook
+          ref={ref}
+          data={initial.sheets}
+          allowEdit={!readOnly}
+          showToolbar={!readOnly}
+          onChange={(s) => onChange(snapshot(s))}
+        />
+      </div>
+    </div>
+  );
+}

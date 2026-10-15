@@ -1,3 +1,5 @@
+import { ProjectFileService } from '../../../src/modules/acm-prj/application/project-file.service';
+import { ObjectStoreClient } from '../../../src/modules/acm-csl/infrastructure/external/object-store.client';
 import { SharedDriveService } from '../../../src/modules/acm-prj/application/shared-drive.service';
 import {
   googleUrl,
@@ -78,13 +80,18 @@ describe('Project / shared Drive isolation and durable operations', () => {
           'utf8',
         ),
       );
+    await ds.query(
+      readFileSync(
+        resolve(__dirname, '../../../../sql/acm/1034-project-parity.sql'),
+        'utf8',
+      ),
+    );
+    await ds.query('ALTER TABLE amb_acm_user ADD COLUMN usr_email text');
     for (const u of [owner, member, outsider])
-      await ds.query(`INSERT INTO amb_acm_user VALUES($1,$2,$3,'ACTIVE',$4)`, [
-        u.id,
-        u.entId,
-        u.id,
-        u.role,
-      ]);
+      await ds.query(
+        `INSERT INTO amb_acm_user(usr_id,ent_id,usr_name,usr_status,usr_role) VALUES($1,$2,$3,'ACTIVE',$4)`,
+        [u.id, u.entId, u.id, u.role],
+      );
     await ds.query(
       `INSERT INTO amb_acm_user_permission VALUES($1,$2,'CONFIG_ADMIN')`,
       [ent, owner.id],
@@ -95,6 +102,152 @@ describe('Project / shared Drive isolation and durable operations', () => {
       google,
       new AesGcmService(new ConfigService({ ACM_PII_KEY: 'ab'.repeat(32) })),
     );
+  });
+  it('validates versioned workbooks and preserves legacy sheets', () => {
+    const workbook = {
+      version: 2,
+      sheets: [
+        { id: 'one', name: 'Sheet1', celldata: [{ r: 0, c: 0, v: { v: 12 } }] },
+      ],
+    };
+    expect(validateContent(workbook, 'SHEET')).toEqual(workbook);
+    expect(() =>
+      validateContent(
+        {
+          version: 2,
+          sheets: [
+            { id: 'x', name: 'S', celldata: [{ r: -1, c: 0, v: { v: 1 } }] },
+          ],
+        },
+        'SHEET',
+      ),
+    ).toThrow();
+    expect(() =>
+      validateContent(
+        {
+          version: 2,
+          sheets: [{ id: 'x', name: 'S', celldata: [], images: [] }],
+        },
+        'SHEET',
+      ),
+    ).toThrow();
+    expect(
+      validateContent({ cells: [[{ value: '12' }]] }, 'SHEET'),
+    ).toBeDefined();
+  });
+  it('blocks viewers from editing, preserves owner and hides other tenant documents', async () => {
+    const p = await projects.save(owner, {
+      title: 'Permissions',
+      ownerId: owner.id,
+      memberIds: [member.id],
+    });
+    const d = await projects.saveDocument(owner, p.prj_id, {
+      title: 'Read me',
+      documentType: 'MEMO',
+      storageType: 'LOCAL',
+      content: { type: 'doc', content: [{ type: 'paragraph' }] },
+    });
+    await projects.permissions(owner, p.prj_id, String(d.pit_id), [member.id]);
+    await expect(
+      projects.itemWrite(member, p.prj_id, String(d.pit_id)),
+    ).rejects.toThrow();
+    await expect(
+      projects.itemWrite(owner, p.prj_id, String(d.pit_id)),
+    ).resolves.toBeUndefined();
+    await expect(
+      projects.permissions(member, p.prj_id, String(d.pit_id), []),
+    ).rejects.toThrow();
+    await expect(
+      projects.permissions(owner, p.prj_id, String(d.pit_id), [outsider.id]),
+    ).rejects.toThrow();
+    expect(
+      (await projects.allDocuments(outsider)).some(
+        (row: { pit_id: string }) => row.pit_id === d.pit_id,
+      ),
+    ).toBe(false);
+    await ds.query('DELETE FROM amb_acm_prj_item WHERE prj_id=$1', [p.prj_id]);
+    await ds.query('DELETE FROM amb_acm_prj_member WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
+    await ds.query('DELETE FROM amb_acm_prj_project WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
+  });
+  it('uploads local files idempotently and isolates download URLs', async () => {
+    const p = await projects.save(owner, {
+      title: 'Files',
+      ownerId: owner.id,
+      memberIds: [],
+    });
+    const store = {
+      isConfigured: () => true,
+      buildKey: (ent: string, id: string, name: string) =>
+        `${ent}/${id}/${name}`,
+      putObject: jest.fn().mockResolvedValue(undefined),
+      presignGet: jest
+        .fn()
+        .mockResolvedValue('https://storage.example/download'),
+    } as unknown as ObjectStoreClient;
+    const svc = new ProjectFileService(
+      projects,
+      {
+        status: async () => ({ rootReady: false }),
+      } as unknown as ProjectDriveService,
+      store,
+    );
+    const op = randomUUID();
+    const dto = { title: 'example.pdf', phase: 'ETC', operationId: op };
+    const file = {
+      size: 4,
+      buffer: Buffer.from('test'),
+      originalname: 'example.pdf',
+      mimetype: 'application/pdf',
+    } as Express.Multer.File;
+    await svc.upload(owner, p.prj_id, dto, file);
+    await svc.upload(owner, p.prj_id, dto, file);
+    expect(store.putObject).toHaveBeenCalledTimes(1);
+    await expect(svc.download(outsider, p.prj_id, op)).rejects.toThrow();
+    expect((await svc.download(owner, p.prj_id, op)).url).toBe(
+      'https://storage.example/download',
+    );
+    await projects.unlink(owner, p.prj_id, op);
+    await expect(svc.download(owner, p.prj_id, op)).rejects.toThrow();
+    await expect(svc.upload(owner, p.prj_id, dto, file)).rejects.toThrow();
+    await ds.query('DELETE FROM amb_acm_prj_item WHERE prj_id=$1', [p.prj_id]);
+    await ds.query('DELETE FROM amb_acm_prj_member WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
+    await ds.query('DELETE FROM amb_acm_prj_project WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
+  });
+  it('allows assigned project managers while preserving tenant boundaries', async () => {
+    const p = await projects.save(owner, {
+      title: 'Managers',
+      ownerId: owner.id,
+      memberIds: [member.id],
+      managerIds: [member.id],
+    });
+    expect((await projects.access(member, p.prj_id, true)).can_manage).toBe(
+      true,
+    );
+    await projects.save(
+      member,
+      {
+        title: 'Managed',
+        ownerId: owner.id,
+        memberIds: [member.id],
+        managerIds: [member.id],
+      },
+      p.prj_id,
+    );
+    await expect(projects.access(outsider, p.prj_id, true)).rejects.toThrow();
+    await ds.query('DELETE FROM amb_acm_prj_member WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
+    await ds.query('DELETE FROM amb_acm_prj_project WHERE prj_id=$1', [
+      p.prj_id,
+    ]);
   });
   afterAll(async () => {
     await ds?.destroy();
