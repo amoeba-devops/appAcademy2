@@ -1,8 +1,10 @@
 ---
-document_id: ACM-PROJECT-DRIVE-SETUP-1.1.0
-version: 1.1.0
+document_id: ACM-PROJECT-DRIVE-SETUP-1.2.0
+version: 1.2.0
 status: Ready for configuration
 change_log:
+  - version: 1.2.0
+    description: REQ-261016B register OAuth app in /system/settings/google-oauth; consent screen corrected to External + published (multi-tenant).
   - version: 1.1.0
     description: REQ-261016 company Google Workspace only, named shared folder, storage choice, reconnect handling.
   - version: 1.0.0
@@ -42,12 +44,13 @@ OAuth 승인된 리디렉션 URI에 위 콜백을 정확히 등록한다. 승인
 ## 4. Company Workspace Setup (회사 Workspace 연동 · REQ-261016)
 1. **Google Cloud 콘솔** (회사 Workspace 관리자 계정 권장)
    - 프로젝트를 만들고 **Google Drive API**와 **Google Picker API**를 사용 설정한다.
-   - OAuth 동의 화면 사용자 유형은 **내부(Internal)**로 한다. 회사 도메인 사용자만 동의할 수 있고, 앱 검증·테스트 사용자 7일 토큰 만료 제약이 없다.
+   - OAuth 동의 화면 사용자 유형은 **외부(External)**로 하고 **프로덕션으로 게시**한다. 여러 회사(테넌트)가 로그인하므로 내부(Internal)로 두면 다른 회사 계정은 로그인할 수 없다. `drive.file`은 민감하지 않은 범위라 보안 심사(CASA)가 필요 없다. 테스트 상태로 두면 refresh token이 7일 후 만료된다. 일반 Gmail 거부는 ACM이 `hd`로 처리한다.
    - 사용자 인증 정보 → OAuth 클라이언트 ID(웹 애플리케이션)를 만든다.
      - 승인된 JavaScript 원본: `https://acm.amoeba.site`
      - 승인된 리디렉션 URI: `https://acm.amoeba.site/api/acm/prj/drive/callback`
    - API 키를 만들고 HTTP 리퍼러를 `https://acm.amoeba.site/*`, API를 Picker API로 제한한다(Picker용).
-2. **운영 서버** `docker/production/.env.production`(파일 예시는 `.env.production.example`)에 아래 5개 값을 입력한다.
+2. **ACM 등록(권장):** APP_ADMIN으로 `/system/settings/google-oauth`에 5개 값을 등록하고 [연결 확인]으로 검증한다. 저장 즉시 적용되며 환경변수보다 우선한다. 화면에 단계별 가이드와 복사 버튼이 있다.
+   **대체 수단:** 운영 서버 `docker/production/.env.production`(파일 예시는 `.env.production.example`)에 아래 5개 값을 입력한다.
    - `ACM_GOOGLE_CLIENT_ID`
    - `ACM_GOOGLE_CLIENT_SECRET`
    - `ACM_GOOGLE_REDIRECT_URI`

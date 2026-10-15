@@ -88,6 +88,7 @@ import { RequireAppAdmin } from '@/components/layout/require-app-admin';
 import { SystemAdminPage } from '@/modules/system/pages/system-admin-page';
 import { TenantListPage } from '@/modules/system/pages/tenant-list-page';
 import { TenantDetailPage } from '@/modules/system/pages/tenant-detail-page';
+import { GoogleOauthSettingsPage } from '@/modules/system/pages/google-oauth-settings-page';
 
 /** Preserve query string while redirecting (used for legacy login URL compat). */
 function RedirectWithSearch({ to }: { to: string }) {
@@ -292,6 +293,9 @@ export const router = createBrowserRouter([
       { path: 'admin', element: <SystemAdminPage /> },
       { path: 'tenants', element: <TenantListPage /> },
       { path: 'tenants/:entId', element: <TenantDetailPage /> },
+      // REQ-261016B — 시스템 설정 · Google OAuth 앱
+      { path: 'settings', element: <Navigate to="/system/settings/google-oauth" replace /> },
+      { path: 'settings/google-oauth', element: <GoogleOauthSettingsPage /> },
     ],
   },
 

@@ -5,7 +5,10 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+  GoogleAppConfigService,
+  type GoogleAppKey,
+} from '../application/google-app-config.service';
 export interface GoogleFile {
   id: string;
   name: string;
@@ -30,9 +33,10 @@ const definitiveRejection = (status: number) =>
   [400, 401, 403, 404, 413, 422, 429].includes(status);
 @Injectable()
 export class DriveClient {
-  constructor(readonly config: ConfigService) {}
-  setting(k: string) {
-    return this.config.get<string>(`ACM_GOOGLE_${k}`) ?? '';
+  constructor(readonly app: GoogleAppConfigService) {}
+  /** REQ-261016B — 시스템 설정 저장값 우선, 없으면 ACM_GOOGLE_* 환경변수. */
+  setting(k: GoogleAppKey) {
+    return this.app.get(k);
   }
   ready() {
     return !!(

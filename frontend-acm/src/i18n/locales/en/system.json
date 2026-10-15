@@ -3,7 +3,9 @@
   "backToAdmin": "Back to console",
   "nav": {
     "users": "User management",
-    "tenants": "Tenants"
+    "tenants": "Tenants",
+    "settings": "System settings",
+    "googleOauth": "Google OAuth app"
   },
   "actions": {
     "cancel": "Cancel",
@@ -129,6 +131,79 @@
       "grant": "Assign",
       "revoke": "Remove",
       "revokeConfirm": "Remove tenant master permission from {{email}}?"
+    }
+  },
+  "google": {
+    "title": "Google OAuth app settings",
+    "description": "The Google app (OAuth client and Picker API key) shared by all tenants. Register it once; each tenant then signs in with its own company Google Workspace account at /admin/config/drive.",
+    "source": {
+      "label": "In use",
+      "SYSTEM": "System settings",
+      "ENV": "Server environment",
+      "NONE": "Not configured"
+    },
+    "guide": {
+      "title": "Google Cloud setup guide",
+      "open": "Open",
+      "project": {
+        "title": "Create a project",
+        "body": "Sign in to Google Cloud Console with the Amoeba (service operator) account and create or select a project dedicated to ACM."
+      },
+      "apis": {
+        "title": "Enable APIs",
+        "body": "In APIs & Services → Library, enable \"Google Drive API\" and \"Google Picker API\"."
+      },
+      "consent": {
+        "title": "OAuth consent screen",
+        "body": "User type: External — because several companies (tenants) sign in.\nEnter app name, support email and developer contact, and add the domain below as an authorized domain.\nAdd the 3 scopes below. drive.file is non-sensitive, so no security assessment is needed.\nSet publishing status to \"Push to production\". In testing status, tenants must reconnect every 7 days.\nACM itself rejects personal Gmail accounts (Workspace only)."
+      },
+      "client": {
+        "title": "Create OAuth client ID",
+        "body": "Credentials → Create credentials → OAuth client ID → application type \"Web application\".\nEnter the origin and redirect URI below exactly, create it, then paste the Client ID and Client Secret into the form below."
+      },
+      "apiKey": {
+        "title": "Create API key for Picker",
+        "body": "Create credentials → API key. Set application restriction to \"Websites (HTTP referrers)\" and add the value below. Restrict the API to \"Google Picker API\" only."
+      },
+      "projectNumber": {
+        "title": "Find the project number",
+        "body": "Dashboard → copy the numeric \"Project number\" from the Project info card (not the text project ID)."
+      }
+    },
+    "copy": {
+      "button": "Copy",
+      "domain": "Authorized domain",
+      "scopes": "Scopes",
+      "origin": "Authorized JavaScript origin",
+      "redirect": "Authorized redirect URI",
+      "referrer": "HTTP referrer"
+    },
+    "copied": "Copied",
+    "form": {
+      "title": "Registration",
+      "clientIdHint": "Ends with …apps.googleusercontent.com",
+      "secretHint": "The secret shown when creating the client (GOCSPX-…). Stored encrypted and never shown again.",
+      "secretKept": "Saved. Enter only to change it (blank keeps it).",
+      "redirectHint": "Must exactly match the redirect URI entered in step 4.",
+      "pickerHint": "API key starting with AIza…",
+      "pickerKept": "Saved {{masked}} — enter only to change.",
+      "projectNumberHint": "Numeric project number",
+      "clientChangeWarning": "Changing the Client ID may break existing tenant Drive connections. Each tenant may need to reconnect at /admin/config/drive.",
+      "updated": "Last updated {{at}} · {{by}}",
+      "saveError": "Could not save. Check the input format.",
+      "saved": "Saved. Applied immediately without restart.",
+      "clear": "Reset (use environment)",
+      "clearConfirm": "Delete the saved Google OAuth settings and use the server environment values? If none are set, Drive connections stop working."
+    },
+    "test": {
+      "button": "Verify",
+      "running": "Verifying…",
+      "OK": "Google accepted the Client ID, secret and redirect URI.",
+      "INVALID_CLIENT": "The Client ID or secret is invalid.",
+      "REDIRECT_MISMATCH": "The redirect URI does not match the one registered in the Google client.",
+      "NOT_CONFIGURED": "Register the values first.",
+      "GOOGLE_UNAVAILABLE": "Could not reach Google. Try again later.",
+      "UNKNOWN": "Could not verify. Check the values again."
     }
   }
 }

@@ -3,6 +3,9 @@ import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-sto
 import { SharedDriveService } from './application/shared-drive.service';
 import { SharedDriveController } from './presentation/shared-drive.controller';
 import { Module } from '@nestjs/common';
+import { AcmAuditModule } from '../acm-audit/acm-audit.module';
+import { GoogleAppConfigService } from './application/google-app-config.service';
+import { SystemGoogleOauthController } from './presentation/system-google-oauth.controller';
 import { ProjectService } from './application/project.service';
 import { IssueService } from './application/issue.service';
 import { IssueController } from './presentation/issue.controller';
@@ -13,7 +16,9 @@ import {
   ProjectOAuthController,
 } from './presentation/project.controller';
 @Module({
+  imports: [AcmAuditModule],
   providers: [
+    GoogleAppConfigService,
     ProjectFileService,
     ObjectStoreClient,
     SharedDriveService,
@@ -23,6 +28,7 @@ import {
     DriveClient,
   ],
   controllers: [
+    SystemGoogleOauthController,
     SharedDriveController,
     IssueController,
     ProjectController,

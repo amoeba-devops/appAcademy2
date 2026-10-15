@@ -1,5 +1,5 @@
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Users, Building2, ArrowLeft, LogOut } from 'lucide-react';
+import { ShieldCheck, Users, Building2, ArrowLeft, LogOut, Settings, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
@@ -8,6 +8,10 @@ import { useAuthStore } from '@/stores/auth.store';
 const NAV = [
   { to: '/system/admin', icon: Users, key: 'users' },
   { to: '/system/tenants', icon: Building2, key: 'tenants' },
+] as const;
+// REQ-261016B — 시스템 설정 그룹
+const SETTINGS_NAV = [
+  { to: '/system/settings/google-oauth', icon: KeyRound, key: 'googleOauth' },
 ] as const;
 
 /**
@@ -63,6 +67,27 @@ export function SystemShell() {
               }
             >
               <Icon size={18} />
+              {t(`nav.${key}`)}
+            </NavLink>
+          ))}
+          <div className="mt-3 flex items-center gap-2 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-secondary">
+            <Settings size={14} />
+            {t('nav.settings')}
+          </div>
+          {SETTINGS_NAV.map(({ to, icon: Icon, key }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                clsx(
+                  'flex items-center gap-3 rounded-md py-2 pl-6 pr-3 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-accent-50 text-accent-700'
+                    : 'text-secondary hover:bg-[var(--gray-100)]',
+                )
+              }
+            >
+              <Icon size={16} />
               {t(`nav.${key}`)}
             </NavLink>
           ))}
