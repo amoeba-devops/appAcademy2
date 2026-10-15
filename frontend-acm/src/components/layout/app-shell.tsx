@@ -40,6 +40,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { clsx } from "clsx";
@@ -53,35 +55,52 @@ import { useUiStore } from "@/stores/ui.store";
 import { me as fetchMe } from "@/modules/auth/api/auth-api";
 import { useIsDesktop, useIsMobile } from "@/hooks/use-media-query";
 
+// REQ-261015C — 메뉴 그룹. 그룹 안 순서는 테넌트 저장 순서(기본: 표준 키 순서)를 따른다.
+type NavGroup = "academy" | "work" | "settings";
+const NAV_GROUPS: NavGroup[] = ["academy", "work", "settings"];
 const NAV = [
-  { to: "/admin/dashboard", icon: LayoutDashboard, key: "dashboard" },
-  { to: "/admin/csl", icon: Users, key: "csl" },
-  // CSL-PLN-260916 — 맵테스트 신청 목록
-  { to: "/admin/test", icon: FileText, key: "mapApply" },
-  { to: "/admin/std", icon: UserRound, key: "std" },
-  { to: "/admin/std/parents", icon: Users2, key: "parents" },
-  { to: "/admin/cls", icon: GraduationCap, key: "cls" },
-  { to: "/admin/tch", icon: UserCog, key: "tch" },
-  { to: "/admin/stf", icon: Briefcase, key: "stf" },
-  { to: "/admin/cal", icon: CalendarDays, key: "cal" },
+  { to: "/admin/dashboard", icon: LayoutDashboard, key: "dashboard", group: "academy" },
+  { to: "/admin/csl", icon: Users, key: "csl", group: "academy" },
+  { to: "/admin/std", icon: UserRound, key: "std", group: "academy" },
+  { to: "/admin/std/parents", icon: Users2, key: "parents", group: "academy" },
+  { to: "/admin/tch", icon: UserCog, key: "tch", group: "academy" },
   // PLN-260729-2 — 수업통계 대시보드
-  { to: "/admin/cal-stats", icon: BarChart3, key: "calStats" },
-  { to: "/admin/projects", icon: FolderKanban, key: "projects" },
-  { to: "/admin/documents", icon: FolderKanban, key: "documents" },
-  { to: "/admin/drive", icon: FolderKanban, key: "drive" },
-  { to: "/admin/complaints", icon: MessageCircleQuestion, key: "complaints" },
-  { to: "/admin/sch", icon: School, key: "sch" },
-  { to: "/admin/ref", icon: BookOpen, key: "ref" },
-  { to: "/admin/posts", icon: Newspaper, key: "posts" },
-  { to: "/admin/notifications", icon: Bell, key: "notifications" },
-  { to: "/admin/enrollments", icon: ClipboardList, key: "enrollments" },
-  { to: "/admin/pay", icon: Wallet, key: "pay" },
-  { to: "/admin/map", icon: BookOpenCheck, key: "map" },
-  { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna" },
+  { to: "/admin/cal-stats", icon: BarChart3, key: "calStats", group: "academy" },
+  { to: "/admin/complaints", icon: MessageCircleQuestion, key: "complaints", group: "academy" },
+  { to: "/admin/pay", icon: Wallet, key: "pay", group: "academy" },
+  // CSL-PLN-260916 — 맵테스트 신청 목록
+  { to: "/admin/test", icon: FileText, key: "mapApply", group: "academy" },
+  { to: "/admin/cls", icon: GraduationCap, key: "cls", group: "academy" },
+  { to: "/admin/stf", icon: Briefcase, key: "stf", group: "academy" },
+  { to: "/admin/cal", icon: CalendarDays, key: "cal", group: "academy" },
+  { to: "/admin/sch", icon: School, key: "sch", group: "academy" },
+  { to: "/admin/ref", icon: BookOpen, key: "ref", group: "academy" },
+  { to: "/admin/posts", icon: Newspaper, key: "posts", group: "academy" },
+  { to: "/admin/notifications", icon: Bell, key: "notifications", group: "academy" },
+  { to: "/admin/enrollments", icon: ClipboardList, key: "enrollments", group: "academy" },
+  { to: "/admin/map", icon: BookOpenCheck, key: "map", group: "academy" },
+  { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna", group: "academy" },
   // REQ-260728C — 로비채팅 (운영자↔강사)
-  { to: "/admin/chat", icon: MessagesSquare, key: "chat" },
-  { to: "/admin/config", icon: Settings, key: "config" },
-] as const;
+  { to: "/admin/chat", icon: MessagesSquare, key: "chat", group: "work" },
+  { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
+  { to: "/admin/documents", icon: FolderKanban, key: "documents", group: "work" },
+  { to: "/admin/drive", icon: FolderKanban, key: "drive", group: "work" },
+  { to: "/admin/config", icon: Settings, key: "config", group: "settings" },
+] as const satisfies readonly {
+  to: string;
+  icon: unknown;
+  key: string;
+  group: NavGroup;
+}[];
+const GROUP_STATE_KEY = "acm.nav.collapsedGroups";
+function readCollapsedGroups(): NavGroup[] {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(GROUP_STATE_KEY) ?? "[]");
+    return Array.isArray(v) ? (v.filter((g) => NAV_GROUPS.includes(g)) as NavGroup[]) : [];
+  } catch {
+    return [];
+  }
+}
 
 export function AppShell() {
   const { t } = useTranslation("common");
@@ -150,6 +169,25 @@ export function AppShell() {
   )
     .slice()
     .sort((a, b) => (rank.get(a.key) ?? 999) - (rank.get(b.key) ?? 999));
+
+  const [collapsedGroups, setCollapsedGroups] =
+    useState<NavGroup[]>(readCollapsedGroups);
+  const toggleGroup = (g: NavGroup) =>
+    setCollapsedGroups((prev) => {
+      const next = prev.includes(g)
+        ? prev.filter((x) => x !== g)
+        : [...prev, g];
+      try {
+        localStorage.setItem(GROUP_STATE_KEY, JSON.stringify(next));
+      } catch {
+        // 저장 실패는 무시 — 다음 방문에 기본(펼침)으로 보인다.
+      }
+      return next;
+    });
+  // 현재 경로가 접힌 그룹 안에 있으면 그 그룹은 펼친 것으로 본다.
+  const activeGroup = visibleNav.find((n) =>
+    location.pathname.startsWith(n.to),
+  )?.group;
 
   const onLogout = () => {
     clear();
@@ -287,7 +325,31 @@ export function AppShell() {
           </button>
         )}
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
-          {visibleNav.map(({ to, icon: Icon, key }) =>
+          {NAV_GROUPS.map((group) => {
+            const items = visibleNav.filter((n) => n.group === group);
+            if (!items.length) return null;
+            const collapsed =
+              !iconOnly &&
+              group !== "settings" &&
+              collapsedGroups.includes(group) &&
+              activeGroup !== group;
+            return (
+              <div key={group} className="flex flex-col gap-1">
+                {iconOnly || group === "settings" ? (
+                  <div className="mx-2 my-1 border-t border-[var(--border-subtle)]" />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group)}
+                    aria-expanded={!collapsed}
+                    className="mt-2 flex items-center justify-between rounded-md px-3 py-1 text-xs font-semibold uppercase tracking-wide text-secondary hover:bg-[var(--gray-100)] first:mt-0"
+                  >
+                    {t(`nav.group.${group}`)}
+                    {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                )}
+                {!collapsed &&
+          items.map(({ to, icon: Icon, key }) =>
             key === "std" ? (
               <StudentNavigation
                 key={to}
@@ -330,6 +392,9 @@ export function AppShell() {
               </NavLink>
             ),
           )}
+              </div>
+            );
+          })}
         </nav>
 
         {/* REQ-260621 — user info + logout pinned to the sidebar bottom. */}

@@ -52,8 +52,12 @@ export interface UpdateSystemUserInput {
 const KEY = 'system-users';
 const BASE = '/acm/system/users';
 
-export function useSystemUsers(params: ListSystemUsersQuery = {}) {
+export function useSystemUsers(
+  params: ListSystemUsersQuery = {},
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: [KEY, params],
     queryFn: async () => {
       const res = await apiClient.get<ListSystemUsersResponse>(BASE, { params });

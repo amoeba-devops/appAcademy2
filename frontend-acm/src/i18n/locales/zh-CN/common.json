@@ -251,7 +251,12 @@
     "collapseMenu": "收起菜单",
     "mainMenu": "主菜单",
     "mapApply": "MAP 测试申请",
-    "pay": "收费管理"
+    "pay": "收费管理",
+    "group": {
+      "academy": "学院管理",
+      "work": "工作管理",
+      "settings": "设置"
+    }
   },
   "lang": {
     "label": "语言",

@@ -23,7 +23,7 @@
   },
   "users": {
     "title": "用户管理",
-    "description": "管理 ACM 所有租户的用户账号。",
+    "description": "按租户管理用户账号。",
     "searchPlaceholder": "搜索邮箱或姓名",
     "allRoles": "全部角色",
     "add": "添加用户",
@@ -80,7 +80,9 @@
       "createdAt": "创建时间",
       "yes": "是",
       "no": "否"
-    }
+    },
+    "selectTenant": "选择租户",
+    "selectTenantFirst": "选择租户后显示用户列表。"
   },
   "tenants": {
     "title": "租户管理",

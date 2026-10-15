@@ -251,7 +251,12 @@
     "collapseMenu": "메뉴 접기",
     "mainMenu": "주 메뉴",
     "mapApply": "맵테스트 신청",
-    "pay": "수납관리"
+    "pay": "수납관리",
+    "group": {
+      "academy": "학원관리",
+      "work": "업무관리",
+      "settings": "설정"
+    }
   },
   "lang": {
     "label": "언어",
