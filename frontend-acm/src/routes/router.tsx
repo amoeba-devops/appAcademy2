@@ -1,6 +1,7 @@
 import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
 import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
+import { ProjectDocumentPage } from '@/modules/prj/document-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { ComplaintsPage } from '@/modules/dsh/pages/complaints-page';
@@ -222,6 +223,7 @@ export const router = createBrowserRouter([
       { path: 'documents', element: <DocumentsPage /> },
       { path: 'projects', element: <ProjectListPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
+      { path: 'projects/:id/documents/:docId', element: <ProjectDocumentPage /> },
       { path: 'config/drive', element: <SharedDrivePage /> },
       { path: 'drive', element: <SharedDrivePage /> },
       { path: 'complaints', element: <ComplaintsPage /> },

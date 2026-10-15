@@ -4,12 +4,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { TableKit } from "@tiptap/extension-table";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useBlocker } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Item } from "./types";
@@ -223,6 +218,24 @@ export function DocumentEditor({
     [dirty, setDirty] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const dirtyRef = useRef(false),
+    leavingRef = useRef(false);
+  dirtyRef.current = dirty;
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      dirtyRef.current &&
+      !leavingRef.current &&
+      currentLocation.pathname !== nextLocation.pathname,
+  );
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    if (window.confirm("저장하지 않은 변경을 버릴까요?")) blocker.proceed();
+    else blocker.reset();
+  }, [blocker]);
+  const leave = () => {
+    leavingRef.current = true;
+    close();
+  };
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (dirty) {
@@ -235,22 +248,24 @@ export function DocumentEditor({
   }, [dirty]);
   const dismiss = () => {
     if (!busy && (!dirty || window.confirm("저장하지 않은 변경을 버릴까요?")))
-      close();
+      leave();
   };
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) dismiss();
-      }}
-    >
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-5xl max-h-[94dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {names[type]} {item ? "보기 / 수정" : "작성"}
-          </DialogTitle>
-        </DialogHeader>
-        <form
+    <div className="grid min-w-0 gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          aria-label="문서 목록으로"
+          onClick={dismiss}
+        >
+          ←
+        </Button>
+        <h1 className="min-w-0 truncate text-lg font-semibold">
+          {names[type]} {item ? (readOnly ? "보기" : "보기 / 수정") : "작성"}
+        </h1>
+      </div>
+      <form
           className="grid min-w-0 gap-3"
           onInputCapture={() => {
             if (!readOnly) setDirty(true);
@@ -283,7 +298,7 @@ export function DocumentEditor({
               else await apiClient.post(path, data);
               setDirty(false);
               await qc.invalidateQueries({ queryKey: ["prj"] });
-              close();
+              leave();
             } catch (e) {
               const x = e as {
                 message?: string;
@@ -365,7 +380,7 @@ export function DocumentEditor({
                 ) && (
                   <iframe
                     title={title || "Google 문서"}
-                    className="h-[60dvh] w-full rounded border"
+                    className="h-[75dvh] w-full rounded border"
                     src={item.external_url.replace(/\/edit(?=#|$)/, "/preview")}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                     referrerPolicy="no-referrer"
@@ -430,7 +445,6 @@ export function DocumentEditor({
             )}
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }
