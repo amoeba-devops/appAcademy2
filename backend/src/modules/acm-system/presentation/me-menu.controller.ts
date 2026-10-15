@@ -1,4 +1,8 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { ACM_DS } from '../../acm-common/datasource';
+import { hasUserPermission } from '../../acm-common/guards/config-admin.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import {
@@ -17,7 +21,10 @@ import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
 @UseGuards(AcmJwtAuthGuard)
 @Controller('acm/me')
 export class MeMenuController {
-  constructor(private readonly svc: TenantRoleMenuService) {}
+  constructor(
+    private readonly svc: TenantRoleMenuService,
+    @InjectDataSource(ACM_DS) private readonly ds: DataSource,
+  ) {}
 
   @Get('menus')
   @ApiOperation({
@@ -27,6 +34,11 @@ export class MeMenuController {
     @CurrentUser() user: AcmCurrentUser,
   ): Promise<{ hidden: string[]; order: string[] }> {
     // REQ-261015C — 테넌트 허가 AND 등급별 노출(테넌트 마스터 설정).
-    return this.svc.navFor(user.entId, user.role);
+    // 테넌트 마스터 본인은 등급 숨김 없이 허가된 메뉴를 모두 본다.
+    return this.svc.navFor(
+      user.entId,
+      user.role,
+      await hasUserPermission(this.ds, user, 'TENANT_MASTER'),
+    );
   }
 }

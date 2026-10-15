@@ -148,6 +148,9 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
     expect(staff.hidden).not.toContain('csl');
     // APP_ADMIN 등 등급 외 역할은 테넌트 허가만 적용.
     expect((await svc.navFor(TPI, 'APP_ADMIN')).hidden).toEqual(['qna']);
+    // 테넌트 마스터는 등급 숨김 없이 시스템 허가 메뉴를 모두 본다.
+    expect((await svc.navFor(TPI, 'STAFF', true)).hidden).toEqual(['qna']);
+    expect((await svc.navFor(TPI, 'TEACHER', true)).hidden).toEqual(['qna']);
     // 다른 테넌트에는 영향이 없다.
     expect((await svc.navFor(OTHER, 'TEACHER')).hidden).toEqual([]);
   });

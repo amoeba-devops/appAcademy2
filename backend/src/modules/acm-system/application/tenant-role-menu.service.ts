@@ -158,9 +158,11 @@ export class TenantRoleMenuService {
   async navFor(
     entId: string,
     role: string | undefined,
+    tenantMaster = false,
   ): Promise<{ hidden: string[]; order: string[] }> {
     const nav = await this.tenants.getMenuNav(entId);
-    if (!isMenuRole(role)) return nav;
+    // 테넌트 마스터는 시스템 어드민이 허가한 메뉴를 등급과 무관하게 모두 본다.
+    if (tenantMaster || !isMenuRole(role)) return nav;
     const rows = await this.ds.query<{ trm_menu_key: string }[]>(
       `SELECT trm_menu_key FROM amb_acm_tenant_role_menu
         WHERE ent_id=$1 AND trm_role=$2 AND trm_visible = false`,
