@@ -251,7 +251,12 @@
     "collapseMenu": "Thu gọn menu",
     "mainMenu": "Menu chính",
     "mapApply": "Đăng ký MAP test",
-    "pay": "Quản lý thu phí"
+    "pay": "Quản lý thu phí",
+    "group": {
+      "academy": "Quản lý học viện",
+      "work": "Quản lý công việc",
+      "settings": "Cài đặt"
+    }
   },
   "lang": {
     "label": "Ngôn ngữ",

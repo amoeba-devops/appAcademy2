@@ -23,7 +23,7 @@
   },
   "users": {
     "title": "User Management",
-    "description": "Manage ACM user accounts across all tenants.",
+    "description": "Manage user accounts per tenant.",
     "searchPlaceholder": "Search email or name",
     "allRoles": "All roles",
     "add": "Add user",
@@ -80,7 +80,9 @@
       "createdAt": "Created",
       "yes": "Yes",
       "no": "No"
-    }
+    },
+    "selectTenant": "Select tenant",
+    "selectTenantFirst": "Select a tenant to see its users."
   },
   "tenants": {
     "title": "Tenant Management",

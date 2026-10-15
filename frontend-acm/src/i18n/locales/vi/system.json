@@ -23,7 +23,7 @@
   },
   "users": {
     "title": "Quản lý người dùng",
-    "description": "Quản lý tài khoản người dùng ACM trên tất cả pháp nhân.",
+    "description": "Quản lý tài khoản người dùng theo từng tenant.",
     "searchPlaceholder": "Tìm email hoặc tên",
     "allRoles": "Tất cả vai trò",
     "add": "Thêm người dùng",
@@ -80,7 +80,9 @@
       "createdAt": "Tạo lúc",
       "yes": "Có",
       "no": "Không"
-    }
+    },
+    "selectTenant": "Chọn tenant",
+    "selectTenantFirst": "Chọn tenant để xem danh sách người dùng."
   },
   "tenants": {
     "title": "Quản lý pháp nhân",

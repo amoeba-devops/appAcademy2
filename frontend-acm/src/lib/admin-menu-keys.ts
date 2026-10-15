@@ -6,28 +6,30 @@
 export const ALWAYS_ON_MENU_KEYS = ['dashboard'] as const;
 
 export const TOGGLEABLE_MENU_KEYS = [
+  // REQ-261015C — 학원관리 그룹 (요청 순서 → 기존 기타 메뉴)
   'csl',
-  'mapApply', // CSL-PLN-260916
   'std',
   'parents',
-  'cls',
   'tch',
-  'stf',
-  'cal',
   'calStats',
   'complaints',
-  'projects',
-  'documents',
-  'drive',
+  'pay',
+  'mapApply', // CSL-PLN-260916
+  'cls',
+  'stf',
+  'cal',
   'sch',
   'ref',
   'posts',
   'notifications',
   'enrollments',
-  'pay',
   'map',
   'qna',
+  // REQ-261015C — 업무관리 그룹
   'chat',
+  'projects',
+  'documents',
+  'drive',
   'config',
 ] as const;
 

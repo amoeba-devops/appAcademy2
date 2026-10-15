@@ -23,7 +23,7 @@
   },
   "users": {
     "title": "사용자 관리",
-    "description": "ACM에 등록된 전체 테넌트의 사용자 계정을 관리합니다.",
+    "description": "테넌트별 사용자 계정을 관리합니다.",
     "searchPlaceholder": "이메일·이름 검색",
     "allRoles": "전체 권한",
     "add": "사용자 추가",
@@ -80,7 +80,9 @@
       "createdAt": "생성일",
       "yes": "예",
       "no": "아니오"
-    }
+    },
+    "selectTenant": "테넌트 선택",
+    "selectTenantFirst": "테넌트를 선택하면 사용자 목록이 표시됩니다."
   },
   "tenants": {
     "title": "테넌트 관리",

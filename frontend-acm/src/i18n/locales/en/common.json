@@ -251,7 +251,12 @@
     "collapseMenu": "Collapse menu",
     "mainMenu": "Main menu",
     "mapApply": "MAP test applications",
-    "pay": "Collections"
+    "pay": "Collections",
+    "group": {
+      "academy": "Academy",
+      "work": "Work",
+      "settings": "Settings"
+    }
   },
   "lang": {
     "label": "Language",

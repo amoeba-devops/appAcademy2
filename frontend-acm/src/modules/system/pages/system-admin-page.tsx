@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useTenants } from '@/modules/system/hooks/use-system-tenants';
 import { useTranslation } from 'react-i18next';
 import { Plus, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,12 +15,17 @@ import { UserDetailDrawer } from '@/modules/system/components/user-detail-drawer
 export function SystemAdminPage() {
   const { t } = useTranslation('system');
 
+  // REQ-261015C — 테넌트를 먼저 선택해야 사용자 목록을 조회한다(URL ?entId= 유지).
+  const [params, setParams] = useSearchParams();
+  const entId = params.get('entId') ?? '';
+  const tenants = useTenants();
   const [q, setQ] = useState('');
   const [roleFilter, setRoleFilter] = useState<'' | SystemUserRole>('');
   const { data, isLoading, isError } = useSystemUsers({
     q: q.trim() || undefined,
     role: roleFilter || undefined,
-  });
+    entId: entId || undefined,
+  }, { enabled: !!entId });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -32,6 +39,24 @@ export function SystemAdminPage() {
       <p className="mb-6 text-sm text-secondary">{t('users.description')}</p>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        <select
+          value={entId}
+          onChange={(e) => {
+            const next = new URLSearchParams(params);
+            if (e.target.value) next.set('entId', e.target.value);
+            else next.delete('entId');
+            setParams(next, { replace: true });
+          }}
+          className={`${selectCls} max-w-[16rem]`}
+          aria-label={t('users.columns.tenant')}
+        >
+          <option value="">{t('users.selectTenant')}</option>
+          {tenants.data?.map((tn) => (
+            <option key={tn.entId} value={tn.entId}>
+              {tn.name}
+            </option>
+          ))}
+        </select>
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -72,7 +97,14 @@ export function SystemAdminPage() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && (
+            {!entId && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-secondary">
+                  {t('users.selectTenantFirst')}
+                </td>
+              </tr>
+            )}
+            {entId && isLoading && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-secondary">
                   {t('users.loading')}
@@ -125,7 +157,12 @@ export function SystemAdminPage() {
         </table>
       </div>
 
-      {createOpen && <CreateUserDialog onClose={() => setCreateOpen(false)} />}
+      {createOpen && (
+        <CreateUserDialog
+          onClose={() => setCreateOpen(false)}
+          defaultEntId={entId || undefined}
+        />
+      )}
       {detailId && <UserDetailDrawer id={detailId} onClose={() => setDetailId(null)} />}
     </div>
   );
