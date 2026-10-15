@@ -239,7 +239,7 @@
     "drive": "Drive",
     "complaints": "Khiếu nại khách hàng",
     "map": "Câu hỏi MAP cũ",
-    "config": "Cấu hình",
+    "config": "Cài đặt dịch vụ",
     "posts": "Tin tức & Bài viết",
     "notifications": "Thông báo",
     "enrollments": "Đăng ký học",
@@ -256,7 +256,8 @@
       "academy": "Quản lý học viện",
       "work": "Quản lý công việc",
       "settings": "Cài đặt"
-    }
+    },
+    "tenantConfig": "Cài đặt tenant"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -1262,5 +1263,27 @@
   "reviewMissing": {
     "feedback": "Nhận xét",
     "homework": "Bài tập"
+  },
+  "tenantConfig": {
+    "title": "Cài đặt tenant",
+    "denied": "Không có quyền truy cập cài đặt tenant",
+    "required": "Cần quyền tenant master.",
+    "tabs": {
+      "menus": "Hiển thị menu",
+      "general": "Chung"
+    },
+    "roles": {
+      "ADMIN": "Quản trị viên",
+      "TEACHER": "Giáo viên",
+      "STAFF": "Nhân viên"
+    },
+    "menus": {
+      "description": "Chỉ hiển thị các menu được quản trị viên hệ thống cho phép. Chọn menu bên trái hiển thị cho từng cấp. Ẩn menu không thay đổi quyền truy cập dữ liệu.",
+      "menu": "Menu",
+      "fixed": "Luôn hiển thị",
+      "locked": "Theo chính sách, không thể mở cho cấp này",
+      "reset": "Đặt lại (hiện tất cả)",
+      "resetConfirm": "Đặt lại menu của tất cả các cấp về mặc định (hiện tất cả)?"
+    }
   }
 }

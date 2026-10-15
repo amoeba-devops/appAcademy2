@@ -13,7 +13,10 @@ export function useConfigAccess() {
     enabled: !!scope[0] && !!scope[1],
     queryFn: async () =>
       (
-        await apiClient.get<{ canManageConfig: boolean }>(
+        await apiClient.get<{
+          canManageConfig: boolean;
+          canManageTenant?: boolean;
+        }>(
           "/acm/me/config-access",
         )
       ).data,
@@ -25,5 +28,7 @@ export function useConfigAccess() {
   return {
     ...query,
     allowed: !query.isError && query.data?.canManageConfig === true,
+    // REQ-261015C — 테넌트 마스터(테넌트 설정 메뉴).
+    tenantAllowed: !query.isError && query.data?.canManageTenant === true,
   };
 }

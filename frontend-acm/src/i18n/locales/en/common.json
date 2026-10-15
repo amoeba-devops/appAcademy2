@@ -239,7 +239,7 @@
     "drive": "Drive",
     "complaints": "Customer complaints",
     "map": "MAP Past Questions",
-    "config": "Configuration",
+    "config": "Service settings",
     "posts": "News & Posts",
     "notifications": "Notifications",
     "enrollments": "Enrollments",
@@ -256,7 +256,8 @@
       "academy": "Academy",
       "work": "Work",
       "settings": "Settings"
-    }
+    },
+    "tenantConfig": "Tenant settings"
   },
   "lang": {
     "label": "Language",
@@ -1262,5 +1263,27 @@
   "reviewMissing": {
     "feedback": "Feedback",
     "homework": "Homework"
+  },
+  "tenantConfig": {
+    "title": "Tenant settings",
+    "denied": "No access to tenant settings",
+    "required": "Tenant master permission is required.",
+    "tabs": {
+      "menus": "Menu visibility",
+      "general": "General"
+    },
+    "roles": {
+      "ADMIN": "Admin",
+      "TEACHER": "Teacher",
+      "STAFF": "Staff"
+    },
+    "menus": {
+      "description": "Only menus allowed by the system administrator are listed. Choose which sidebar menus each role sees. Hiding a menu does not change data access permissions.",
+      "menu": "Menu",
+      "fixed": "Always visible",
+      "locked": "Not available to this role by policy",
+      "reset": "Reset (show all)",
+      "resetConfirm": "Reset menus for all roles to the default (all visible)?"
+    }
   }
 }

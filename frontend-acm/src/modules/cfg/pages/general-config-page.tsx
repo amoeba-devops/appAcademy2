@@ -14,7 +14,7 @@ import {
  * /admin/config/general — 테넌트 일반 설정: 타임존 (REQ-260903).
  * 서비스 국가 한국 기본(Asia/Seoul). 수업일정 등 모든 시간 표시·입력 기준.
  */
-const TZ_OPTIONS = [
+export const TZ_OPTIONS = [
   'Asia/Seoul',
   'Asia/Tokyo',
   'Asia/Shanghai',
@@ -26,7 +26,7 @@ const TZ_OPTIONS = [
   'America/New_York',
 ];
 
-function tzLabel(tz: string, locale: string): string {
+export function tzLabel(tz: string, locale: string): string {
   try {
     const offset =
       new Intl.DateTimeFormat(locale, {
@@ -41,7 +41,8 @@ function tzLabel(tz: string, locale: string): string {
   }
 }
 
-export function GeneralConfigPage() {
+/** REQ-261015C — `embedded`: 테넌트 설정 탭 안에서 제목/뒤로가기 없이 사용. */
+export function GeneralConfigPage({ embedded = false }: { embedded?: boolean }) {
   const { t, i18n } = useTranslation('common');
   const toast = useToast();
   const { data, isLoading, isError } = useTenantSettings();
@@ -88,6 +89,8 @@ export function GeneralConfigPage() {
 
   return (
     <div className="w-full min-w-0">
+      {!embedded && (
+      <>
       <Link
         to="/admin/config"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
@@ -102,6 +105,8 @@ export function GeneralConfigPage() {
         </h1>
       </header>
 
+      </>
+      )}
       <p className="mb-6 text-sm text-secondary">{t('config.general.description')}</p>
 
       {isLoading ? (

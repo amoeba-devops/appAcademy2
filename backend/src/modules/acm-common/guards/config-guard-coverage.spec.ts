@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { GUARDS_METADATA } from '@nestjs/common/constants';
 import { ConfigAdminGuard } from './config-admin.guard';
+import { TenantSettingsGuard } from './tenant-master.guard';
 import { AmaConfigController } from '../../acm-auth/presentation/ama-config.controller';
 import { BodaConfigController } from '../../acm-cal/presentation/boda-config.controller';
 import {
@@ -40,7 +41,8 @@ describe('Configuration endpoint coverage', () => {
         GUARDS_METADATA,
         TenantSettingsController.prototype.update,
       ),
-    ).toContain(ConfigAdminGuard);
+      // REQ-261015C — 기본 타임존은 테넌트 설정(테넌트 마스터 또는 서비스 운영자).
+    ).toContain(TenantSettingsGuard);
     expect(
       Reflect.getMetadata(
         GUARDS_METADATA,

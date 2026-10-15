@@ -7,7 +7,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
+import { TenantSettingsGuard } from '../../acm-common/guards/tenant-master.guard';
 import { TenantSettingsService } from '../application/tenant-settings.service';
 
 export class UpdateTenantSettingsDto {
@@ -32,9 +32,9 @@ export class TenantSettingsController {
   }
 
   @Put('acm/admin/tenant-settings')
-  @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
-
-  @ApiOperation({ summary: '테넌트 타임존 설정 저장 (ADMIN)' })
+  // REQ-261015C — 기본 타임존은 테넌트 설정(테넌트 마스터). 서비스 운영자도 허용.
+  @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, TenantSettingsGuard)
+  @ApiOperation({ summary: '테넌트 타임존 설정 저장 (테넌트 마스터/서비스 운영자)' })
   update(@CurrentUser() u: AcmCurrentUser, @Body() dto: UpdateTenantSettingsDto) {
     return this.svc.setTimezone(u.entId, dto.timezone);
   }

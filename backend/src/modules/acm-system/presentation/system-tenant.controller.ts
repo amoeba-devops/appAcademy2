@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -14,7 +15,17 @@ import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { Roles } from '../../acm-common/decorators/roles.decorator';
 import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
+import { IsUUID } from 'class-validator';
 import { TenantService } from '../application/tenant.service';
+import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
+import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
+
+export class GrantTenantMasterDto {
+  @IsUUID() userId!: string;
+}
 import {
   CreateTenantDto,
   UpdateTenantDto,
@@ -31,7 +42,36 @@ import {
 @Roles('APP_ADMIN')
 @Controller('acm/system/tenants')
 export class SystemTenantController {
-  constructor(private readonly svc: TenantService) {}
+  constructor(
+    private readonly svc: TenantService,
+    private readonly roleMenus: TenantRoleMenuService,
+  ) {}
+
+  // REQ-261015C — 테넌트 마스터 지정/해제.
+  @Get(':entId/masters')
+  @ApiOperation({ summary: 'List tenant masters (APP_ADMIN)' })
+  masters(@Param('entId', ParseUUIDPipe) entId: string) {
+    return this.roleMenus.masters(entId);
+  }
+
+  @Post(':entId/masters')
+  @ApiOperation({ summary: 'Grant tenant master (APP_ADMIN)' })
+  grantMaster(
+    @Param('entId', ParseUUIDPipe) entId: string,
+    @Body() dto: GrantTenantMasterDto,
+    @CurrentUser() user: AcmCurrentUser,
+  ) {
+    return this.roleMenus.grantMaster(entId, dto.userId, user.id);
+  }
+
+  @Delete(':entId/masters/:userId')
+  @ApiOperation({ summary: 'Revoke tenant master (APP_ADMIN)' })
+  revokeMaster(
+    @Param('entId', ParseUUIDPipe) entId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ) {
+    return this.roleMenus.revokeMaster(entId, userId);
+  }
 
   @Get()
   @ApiOperation({ summary: 'List tenants (APP_ADMIN)' })

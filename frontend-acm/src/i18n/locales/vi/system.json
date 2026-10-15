@@ -120,6 +120,15 @@
     },
     "errors": {
       "createFailed": "Đăng ký pháp nhân thất bại."
+    },
+    "masters": {
+      "title": "Tenant master",
+      "description": "Tenant master quản lý cài đặt tenant (hiển thị menu theo cấp, múi giờ mặc định).",
+      "empty": "Chưa chỉ định tenant master.",
+      "pick": "Chọn người dùng",
+      "grant": "Chỉ định",
+      "revoke": "Gỡ bỏ",
+      "revokeConfirm": "Gỡ quyền tenant master của {{email}}?"
     }
   }
 }
