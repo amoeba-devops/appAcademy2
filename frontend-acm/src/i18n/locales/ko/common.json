@@ -956,7 +956,9 @@
       "CAL_UPDATED": "수업일정이 변경되었습니다",
       "CHAT_MENTION": "채팅에서 나를 멘션했습니다",
       "CHAT_MESSAGE": "새 채팅",
-      "REVIEW_OVERDUE": "수업 피드백·숙제 미완료"
+      "REVIEW_OVERDUE": "수업 피드백·숙제 미완료",
+      "ISSUE_MENTION": "이슈에서 나를 멘션했습니다",
+      "ISSUE_MENTION_COMMENT": "이슈 댓글에서 나를 멘션했습니다"
     }
   },
   "pay": {
@@ -1722,5 +1724,112 @@
     },
     "notReadyHint": "회사 Google Drive 공용폴더가 아직 지정되지 않아 Google 문서 생성·Drive 업로드를 사용할 수 없습니다. 파일은 ACM 저장소로 업로드할 수 있습니다.",
     "goSettings": "Drive 연동 설정으로 이동"
+  },
+  "docsCreate": {
+    "title": "새로 만들기",
+    "project": "프로젝트",
+    "noProject": "참여 중인 프로젝트가 없습니다",
+    "kind": "종류",
+    "kinds": {
+      "MEMO": "메모",
+      "SHEET": "스프레드시트",
+      "DOC": "문서",
+      "FILE": "파일"
+    },
+    "method": "방식",
+    "methods": {
+      "LOCAL": "ACM에서 작성",
+      "GOOGLE_LINK": "기존 Google 링크 등록",
+      "GOOGLE_NEW": "Google에서 새로 만들기",
+      "UPLOAD": "파일 업로드 (회사 Drive 또는 ACM 저장소)"
+    },
+    "driveRequired": "회사 Drive 공용폴더 설정 필요",
+    "cancel": "취소",
+    "next": "다음"
+  },
+  "driveUi": {
+    "title": "드라이브",
+    "subtitle": "Google Drive의 회사 문서를 탐색하고 검색하세요.",
+    "account": "학원 공용 계정: {{email}}",
+    "notConnected": "Google Drive 계정이 연결되지 않았습니다.",
+    "readOnly": "읽기 전용",
+    "canEdit": "편집 가능",
+    "manageConnection": "연결 관리",
+    "linkFolder": "폴더 연결",
+    "searchPlaceholder": "문서 검색...",
+    "searchResults": "검색 결과",
+    "noResults": "검색 결과가 없습니다.",
+    "allFolders": "전체 폴더",
+    "breadcrumb": "경로",
+    "sharedFolder": "공용 폴더",
+    "shareTargets": "공유 대상",
+    "unlink": "폴더 연결 해제 (Drive에서 삭제되지 않음)",
+    "unlinkConfirm": "ACM에서 연결을 해제할까요? Google 원본은 보존됩니다.",
+    "noFolders": "등록된 폴더가 없습니다.",
+    "noFoldersHint": "Google Drive 폴더를 등록하여 문서를 탐색하세요.",
+    "emptyFolder": "이 폴더에 파일이 없습니다.",
+    "loadMore": "더 보기",
+    "newFolder": "새 폴더",
+    "newFolderPrompt": "새 폴더 이름을 입력하세요",
+    "sortLabel": "정렬",
+    "sortDir": "정렬 방향",
+    "sort": {
+      "date": "작성일순",
+      "size": "파일크기순",
+      "type": "종류별",
+      "owner": "작성자별"
+    },
+    "view": {
+      "list": "리스트 보기",
+      "grid": "카드 보기"
+    },
+    "select": {
+      "start": "선택",
+      "cancel": "선택 취소",
+      "all": "전체 선택",
+      "clear": "해제",
+      "count": "{{count}}개 선택"
+    },
+    "actions": {
+      "more": "더 보기",
+      "rename": "이름 변경",
+      "move": "이동",
+      "trash": "휴지통으로 이동"
+    },
+    "rename": {
+      "prompt": "새 이름을 입력하세요",
+      "done": "이름을 변경했습니다."
+    },
+    "move": {
+      "titleOne": "\"{{name}}\" 이동",
+      "titleMany": "{{count}}개 항목 이동",
+      "here": "여기로 이동",
+      "noSubfolders": "하위 폴더가 없습니다.",
+      "done": "{{folder}}(으)로 이동했습니다."
+    },
+    "trash": {
+      "confirmOne": "\"{{name}}\"을(를) 휴지통으로 이동할까요? Google Drive 휴지통에서 복구할 수 있습니다.",
+      "confirmMany": "{{count}}개 항목을 휴지통으로 이동할까요? Google Drive 휴지통에서 복구할 수 있습니다.",
+      "done": "{{count}}개 항목을 휴지통으로 이동했습니다."
+    },
+    "bulk": {
+      "partial": "완료 {{ok}}건 · 실패 {{fail}}건"
+    },
+    "upload": {
+      "button": "업로드",
+      "tooLarge": "50MB 이하 파일만 업로드 가능합니다.",
+      "failed": "업로드에 실패했습니다."
+    },
+    "detail": {
+      "type": "유형",
+      "size": "크기",
+      "modified": "수정일",
+      "owner": "소유자",
+      "openInDrive": "Google Drive에서 열기",
+      "preview": "미리보기",
+      "download": "다운로드"
+    },
+    "cancel": "취소",
+    "close": "닫기"
   }
 }

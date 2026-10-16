@@ -141,6 +141,18 @@ describe('InstantEventService', () => {
     );
   });
 
+  it('REQ-261016E: invitee mail is opt-in (default off)', async () => {
+    arrangeSuccessfulCreate();
+    await svc.create('ent-1', 'u-teacher', 'TEACHER', { durationMin: 60 });
+    expect(calCreate.mock.calls[0][3].evtNotifyInvitees).toBe(false);
+    arrangeSuccessfulCreate();
+    await svc.create('ent-1', 'u-teacher', 'TEACHER', {
+      durationMin: 60,
+      notifyInvitees: true,
+    });
+    expect(calCreate.mock.calls[1][3].evtNotifyInvitees).toBe(true);
+  });
+
   it('autogenerates title when omitted', async () => {
     arrangeSuccessfulCreate();
     await svc.create('ent-1', 'u-teacher', 'TEACHER', { durationMin: 60 });

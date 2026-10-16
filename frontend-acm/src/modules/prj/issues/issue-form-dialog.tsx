@@ -348,7 +348,12 @@ export function IssueFormDialog({
           {/* Row 4: 설명 */}
           <div>
             <span className={label}>{t("issues.fields.description")}</span>
-            <IssueRichEditor value={form.body} onChange={(v) => set("body", v)} placeholder={t("issues.form.descriptionPlaceholder")} />
+            <IssueRichEditor
+              value={form.body}
+              onChange={(v) => set("body", v)}
+              placeholder={t("issues.form.descriptionPlaceholder")}
+              mentionCandidates={members}
+            />
           </div>
 
           {/* Row 5: 우선순위 / 담당자 */}

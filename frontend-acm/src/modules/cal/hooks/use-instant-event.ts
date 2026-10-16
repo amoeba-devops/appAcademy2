@@ -20,6 +20,8 @@ export interface CreateInstantEventInput {
   title?: string;
   durationMin: 30 | 60 | 90 | 120;
   invitees?: InstantInviteeInput[];
+  /** REQ-261016E — true 일 때만 참석자 메일 발송 */
+  notifyInvitees?: boolean;
 }
 
 export interface CreateInstantEventResponse {

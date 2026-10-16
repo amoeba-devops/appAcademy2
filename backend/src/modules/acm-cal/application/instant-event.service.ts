@@ -87,6 +87,7 @@ export class InstantEventService {
       evtMeetingProvider: 'BODASCHOOL',
       // evtMeetingUrl 은 BODASCHOOL 일 때 backend 가 launcherUrl 로 자동 채움
       evtInvitees: dto.invitees ?? [],
+      evtNotifyInvitees: dto.notifyInvitees === true,
       evtAssigneeTchId: dto.assigneeTchId ?? undefined,
     });
 

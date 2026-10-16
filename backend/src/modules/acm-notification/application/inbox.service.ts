@@ -29,6 +29,10 @@ const VISIBLE = `u.usr_status='ACTIVE' AND (
    JOIN amb_acm_talk_member member ON member.ent_id=c.ent_id AND member.tlc_id=c.tlc_id
    WHERE msg.ent_id=n.ent_id AND msg.tms_id=n.nin_target_id AND msg.deleted_at IS NULL AND c.deleted_at IS NULL
      AND member.tlm_kind='USER' AND member.tlm_ref_id=u.usr_id AND member.tlm_left_at IS NULL))
+ OR (n.nin_type='ISSUE_MENTION' AND u.usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') AND EXISTS(
+   SELECT 1 FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id
+   WHERE i.ent_id=n.ent_id AND i.pit_id=n.nin_target_id AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL
+     AND (p.owner_id=u.usr_id OR EXISTS(SELECT 1 FROM amb_acm_prj_member pm WHERE pm.ent_id=p.ent_id AND pm.prj_id=p.prj_id AND pm.usr_id=u.usr_id))))
 )`;
 const USER_FROM = `FROM amb_acm_notification_inbox n JOIN amb_acm_user u ON u.ent_id=n.ent_id AND u.usr_id=n.usr_id
  WHERE n.ent_id=$1 AND n.usr_id=$2 AND ${VISIBLE}`;
@@ -194,6 +198,9 @@ export class InboxService {
     u: InboxActor,
     n: Pick<InboxRow, 'type' | 'targetId' | 'payload'>,
   ): string {
+    // REQ-261016E — 이슈 멘션: 이슈 상세(댓글이면 해당 댓글 위치)
+    if (n.type === 'ISSUE_MENTION')
+      return `/admin/issues/${n.targetId}${n.payload.commentId ? `#comment-${String(n.payload.commentId)}` : ''}`;
     return n.type === 'REVIEW_OVERDUE'
       ? `${u.kind === 'TEACHER' ? '/portal/calendar' : '/admin/cal'}/${n.targetId}#review`
       : n.type.startsWith('CSL_')

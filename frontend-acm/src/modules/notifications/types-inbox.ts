@@ -7,7 +7,8 @@ export interface InboxItem {
     | "CAL_UPDATED"
     | "CHAT_MENTION"
     | "CHAT_MESSAGE"
-    | "REVIEW_OVERDUE";
+    | "REVIEW_OVERDUE"
+    | "ISSUE_MENTION";
   targetId: string;
   payload: {
     seqNo?: number;
@@ -19,6 +20,8 @@ export interface InboxItem {
     channelId?: string;
     hours?: number;
     missing?: string;
+    /** REQ-261016E — 댓글 멘션이면 댓글 ID */
+    commentId?: string | null;
   };
   readAt: string | null;
   createdAt: string;

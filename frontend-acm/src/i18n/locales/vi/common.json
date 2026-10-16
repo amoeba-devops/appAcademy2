@@ -956,7 +956,9 @@
       "CAL_UPDATED": "Lịch học đã thay đổi",
       "CHAT_MENTION": "Bạn được nhắc đến trong trò chuyện",
       "CHAT_MESSAGE": "Tin nhắn mới",
-      "REVIEW_OVERDUE": "Nhận xét/bài tập quá hạn"
+      "REVIEW_OVERDUE": "Nhận xét/bài tập quá hạn",
+      "ISSUE_MENTION": "Đã nhắc đến bạn trong một vấn đề",
+      "ISSUE_MENTION_COMMENT": "Đã nhắc đến bạn trong bình luận vấn đề"
     }
   },
   "pay": {
@@ -1722,5 +1724,112 @@
     },
     "notReadyHint": "Chưa đặt thư mục chung trên Google Drive công ty nên chưa thể tạo tệp Google hoặc tải lên Drive. Bạn vẫn có thể tải tệp lên kho ACM.",
     "goSettings": "Đến cài đặt Drive"
+  },
+  "docsCreate": {
+    "title": "Tạo mới",
+    "project": "Dự án",
+    "noProject": "Bạn chưa thuộc dự án nào",
+    "kind": "Loại",
+    "kinds": {
+      "MEMO": "Ghi chú",
+      "SHEET": "Bảng tính",
+      "DOC": "Tài liệu",
+      "FILE": "Tệp"
+    },
+    "method": "Cách tạo",
+    "methods": {
+      "LOCAL": "Soạn trong ACM",
+      "GOOGLE_LINK": "Liên kết tệp Google có sẵn",
+      "GOOGLE_NEW": "Tạo mới trên Google",
+      "UPLOAD": "Tải tệp lên (Drive công ty hoặc kho ACM)"
+    },
+    "driveRequired": "Cần thiết lập thư mục chung Drive công ty",
+    "cancel": "Hủy",
+    "next": "Tiếp"
+  },
+  "driveUi": {
+    "title": "Drive",
+    "subtitle": "Duyệt và tìm tài liệu công ty trên Google Drive.",
+    "account": "Tài khoản học viện: {{email}}",
+    "notConnected": "Chưa kết nối tài khoản Google Drive.",
+    "readOnly": "Chỉ xem",
+    "canEdit": "Có thể sửa",
+    "manageConnection": "Quản lý kết nối",
+    "linkFolder": "Liên kết thư mục",
+    "searchPlaceholder": "Tìm tài liệu...",
+    "searchResults": "Kết quả tìm kiếm",
+    "noResults": "Không có kết quả.",
+    "allFolders": "Tất cả thư mục",
+    "breadcrumb": "Đường dẫn",
+    "sharedFolder": "Thư mục chung",
+    "shareTargets": "Đối tượng chia sẻ",
+    "unlink": "Hủy liên kết thư mục (không xóa trên Drive)",
+    "unlinkConfirm": "Hủy liên kết thư mục khỏi ACM? Bản gốc trên Google được giữ nguyên.",
+    "noFolders": "Chưa có thư mục nào được đăng ký.",
+    "noFoldersHint": "Đăng ký thư mục Google Drive để duyệt tài liệu.",
+    "emptyFolder": "Thư mục này không có tệp.",
+    "loadMore": "Xem thêm",
+    "newFolder": "Thư mục mới",
+    "newFolderPrompt": "Nhập tên thư mục mới",
+    "sortLabel": "Sắp xếp",
+    "sortDir": "Chiều sắp xếp",
+    "sort": {
+      "date": "Ngày",
+      "size": "Dung lượng",
+      "type": "Loại",
+      "owner": "Người tạo"
+    },
+    "view": {
+      "list": "Dạng danh sách",
+      "grid": "Dạng thẻ"
+    },
+    "select": {
+      "start": "Chọn",
+      "cancel": "Hủy chọn",
+      "all": "Chọn tất cả",
+      "clear": "Bỏ chọn",
+      "count": "Đã chọn {{count}}"
+    },
+    "actions": {
+      "more": "Thêm",
+      "rename": "Đổi tên",
+      "move": "Di chuyển",
+      "trash": "Chuyển vào thùng rác"
+    },
+    "rename": {
+      "prompt": "Nhập tên mới",
+      "done": "Đã đổi tên."
+    },
+    "move": {
+      "titleOne": "Di chuyển \"{{name}}\"",
+      "titleMany": "Di chuyển {{count}} mục",
+      "here": "Chuyển đến đây",
+      "noSubfolders": "Không có thư mục con.",
+      "done": "Đã chuyển đến {{folder}}."
+    },
+    "trash": {
+      "confirmOne": "Chuyển \"{{name}}\" vào thùng rác? Có thể khôi phục từ thùng rác Google Drive.",
+      "confirmMany": "Chuyển {{count}} mục vào thùng rác? Có thể khôi phục từ thùng rác Google Drive.",
+      "done": "Đã chuyển {{count}} mục vào thùng rác."
+    },
+    "bulk": {
+      "partial": "Xong {{ok}} · Lỗi {{fail}}"
+    },
+    "upload": {
+      "button": "Tải lên",
+      "tooLarge": "Chỉ tải lên tệp tối đa 50MB.",
+      "failed": "Tải lên thất bại."
+    },
+    "detail": {
+      "type": "Loại",
+      "size": "Dung lượng",
+      "modified": "Ngày sửa",
+      "owner": "Chủ sở hữu",
+      "openInDrive": "Mở trong Google Drive",
+      "preview": "Xem trước",
+      "download": "Tải xuống"
+    },
+    "cancel": "Hủy",
+    "close": "Đóng"
   }
 }

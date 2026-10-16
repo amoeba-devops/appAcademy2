@@ -632,9 +632,11 @@ export class CalEventService {
       return saved;
     });
 
-    const notifySummary: NotifySummary | null = added.length
-      ? await this.notifier.notifyAdded(entId, saved, added)
-      : null;
+    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송).
+    const notifySummary: NotifySummary | null =
+      added.length && dto.evtNotifyInvitees === true
+        ? await this.notifier.notifyAdded(entId, saved, added)
+        : null;
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
     const assigneeMap = await this.lookupAssignees(entId, [
@@ -808,9 +810,11 @@ export class CalEventService {
       return saved;
     });
 
-    const notifySummary: NotifySummary | null = added.length
-      ? await this.notifier.notifyAdded(entId, saved, added)
-      : null;
+    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송).
+    const notifySummary: NotifySummary | null =
+      added.length && dto.evtNotifyInvitees === true
+        ? await this.notifier.notifyAdded(entId, saved, added)
+        : null;
 
     const ownerMap = await this.lookupOwners(entId, [saved.ownerUserId]);
     const assigneeMap = await this.lookupAssignees(entId, [

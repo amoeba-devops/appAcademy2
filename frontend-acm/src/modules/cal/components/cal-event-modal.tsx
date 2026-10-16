@@ -181,6 +181,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   // REQ-260728 — 삭제 사유 입력 프롬프트.
   const [deletePrompt, setDeletePrompt] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
+  // REQ-261016E — 참석자 메일은 선택했을 때만 발송(기본 미발송)
+  const [notifyInvitees, setNotifyInvitees] = useState(false);
   const [invitees, setInvitees] = useState<
     Array<{
       kind: 'STUDENT' | 'TEACHER' | 'PARENT';
@@ -435,6 +437,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         kind: invitee.kind,
         refId: invitee.refId,
       }));
+      dto.evtNotifyInvitees = notifyInvitees;
     } else {
       dto.evtInvitees = [];
     }
@@ -913,12 +916,18 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                         {invitee.kind[0]}
                       </span>
                       <span className="text-primary">{invitee.name}</span>
-                      {invitee.notifyStatus && (
+                      {invitee.notifyStatus ? (
                         <span
                           className={`rounded px-1 py-0.5 text-[9px] font-medium ${badgeColor}`}
                         >
                           {invitee.notifyStatus}
                         </span>
+                      ) : (
+                        isEdit && (
+                          <span className="rounded bg-gray-100 px-1 py-0.5 text-[9px] font-medium text-gray-500">
+                            {t('invitee.notSent', '미발송')}
+                          </span>
+                        )
                       )}
                       {!isReadOnly && (
                         <button
@@ -947,6 +956,24 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   <Plus className="mr-1 h-3 w-3" />
                   {t('invitee.addBtn', '참석자 추가')}
                 </Button>
+              )}
+              {!isReadOnly && invitees.length > 0 && !(repeatMeta.data && isEdit) && (
+                <label className="flex items-start gap-2 pt-1 text-xs text-primary">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={notifyInvitees}
+                    onChange={(e) => setNotifyInvitees(e.target.checked)}
+                  />
+                  <span>
+                    {t('invitee.notifyOnSave', '저장 시 참석자에게 메일 보내기')}
+                    <span className="block text-secondary">
+                      {isEdit
+                        ? t('invitee.notifyOnSaveEditHint', '새로 추가된 참석자에게만 보냅니다.')
+                        : t('invitee.notifyOnSaveHint', '선택하지 않으면 메일을 보내지 않습니다.')}
+                    </span>
+                  </span>
+                </label>
               )}
             </fieldset>
           )}

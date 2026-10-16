@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Mention, { type MentionOptions } from "@tiptap/extension-mention";
+import type { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
 import { Bold, Code, Italic, List, ListOrdered, Quote, Strikethrough } from "lucide-react";
 
 /**
@@ -32,20 +34,101 @@ export const isBlankHtml = (v: string) => !v.replace(/<[^>]*>/g, "").replace(/&n
 const prose =
   "doc-prose max-w-none text-sm text-gray-800 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_a]:text-indigo-600 [&_a]:underline";
 
+/** REQ-261016E — 멘션 후보(프로젝트 참여자). */
+export interface MentionCandidate {
+  id: string;
+  name: string;
+  email?: string;
+}
+const MENTION_CLASS = "rounded bg-indigo-50 px-1 font-medium text-indigo-700";
+/** 보기·편집 공통 멘션 노드: `<span data-type="mention" data-id data-label>@이름</span>` */
+const mentionNode = (suggestion?: MentionOptions["suggestion"]) =>
+  Mention.configure({
+    HTMLAttributes: { class: MENTION_CLASS },
+    renderText: ({ node }) => `@${node.attrs.label ?? node.attrs.id}`,
+    renderHTML: ({ options, node }) => ["span", options.HTMLAttributes, `@${node.attrs.label ?? node.attrs.id}`],
+    ...(suggestion ? { suggestion } : {}),
+  });
+
+interface MenuState {
+  items: MentionCandidate[];
+  index: number;
+  left: number;
+  top: number;
+  command: (c: MentionCandidate) => void;
+}
+
 export function IssueRichEditor({
   value,
   onChange,
   placeholder,
   compact = false,
+  mentionCandidates,
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
   /** REQ-261016D — 댓글용 낮은 높이 */
   compact?: boolean;
+  /** REQ-261016E — 있으면 `@` 멘션 사용 */
+  mentionCandidates?: MentionCandidate[];
 }) {
+  const candidates = useRef<MentionCandidate[]>([]);
+  candidates.current = mentionCandidates ?? [];
+  const [menu, setMenu] = useState<MenuState | null>(null);
+  const menuRef = useRef<MenuState | null>(null);
+  menuRef.current = menu;
+  const show = (p: SuggestionProps<MentionCandidate>, keep = false) => {
+    const rect = p.clientRect?.();
+    setMenu((m) => ({
+      items: p.items,
+      index: keep && m ? Math.min(m.index, Math.max(0, p.items.length - 1)) : 0,
+      left: rect?.left ?? 0,
+      top: (rect?.bottom ?? 0) + 4,
+      command: (c) => p.command({ id: c.id, label: c.name }),
+    }));
+  };
   const editor = useEditor({
-    extensions: [StarterKit.configure({ link: { openOnClick: false, autolink: true } })],
+    extensions: [
+      StarterKit.configure({ link: { openOnClick: false, autolink: true } }),
+      ...(mentionCandidates
+        ? [
+            mentionNode({
+              char: "@",
+              items: ({ query }: { query: string }) => {
+                const q = query.trim().toLowerCase();
+                return candidates.current
+                  .filter((c) => !q || c.name.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q))
+                  .slice(0, 8);
+              },
+              render: () => ({
+                onStart: (p: SuggestionProps<MentionCandidate>) => show(p),
+                onUpdate: (p: SuggestionProps<MentionCandidate>) => show(p, true),
+                onKeyDown: ({ event }: SuggestionKeyDownProps) => {
+                  const m = menuRef.current;
+                  if (!m) return false;
+                  if (event.key === "Escape") {
+                    setMenu(null);
+                    return true;
+                  }
+                  if (!m.items.length) return false;
+                  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                    const d = event.key === "ArrowDown" ? 1 : -1;
+                    setMenu({ ...m, index: (m.index + d + m.items.length) % m.items.length });
+                    return true;
+                  }
+                  if (event.key === "Enter" || event.key === "Tab") {
+                    m.command(m.items[m.index]);
+                    return true;
+                  }
+                  return false;
+                },
+                onExit: () => setMenu(null),
+              }),
+            }),
+          ]
+        : []),
+    ],
     content: toHtml(value) || "<p></p>",
     onUpdate: ({ editor: e }) => onChange(e.isEmpty ? "" : e.getHTML()),
     editorProps: {
@@ -89,6 +172,34 @@ export function IssueRichEditor({
         )}
         <EditorContent editor={editor} />
       </div>
+      {menu && (
+        <ul
+          role="listbox"
+          className="fixed z-[200] max-h-56 w-64 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg"
+          style={{ left: menu.left, top: menu.top }}
+        >
+          {menu.items.length ? (
+            menu.items.map((c, i) => (
+              <li key={c.id} role="option" aria-selected={i === menu.index}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => menu.command(c)}
+                  className={`flex w-full items-center gap-2 px-3 py-1.5 text-left ${i === menu.index ? "bg-indigo-50" : "hover:bg-gray-50"}`}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
+                    {c.name.slice(0, 1)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-gray-800">{c.name}</span>
+                  {c.email && <span className="truncate text-xs text-gray-400">{c.email}</span>}
+                </button>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-1.5 text-xs text-gray-400">—</li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
@@ -98,7 +209,7 @@ export function IssueRichView({ html, className = "" }: { html: string; classNam
   const editor = useEditor(
     {
       editable: false,
-      extensions: [StarterKit.configure({ link: { openOnClick: true } })],
+      extensions: [StarterKit.configure({ link: { openOnClick: true } }), mentionNode()],
       content: toHtml(html),
       editorProps: { attributes: { class: `${prose} ${className}` } },
     },

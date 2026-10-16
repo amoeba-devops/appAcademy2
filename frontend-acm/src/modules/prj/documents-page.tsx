@@ -1,14 +1,18 @@
-import { phases } from "./project-files";
+import { useTranslation } from "react-i18next";
+import { FileUpload, phases } from "./project-files";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { projectDocumentPath } from "./document-page";
 import { apiClient } from "@/lib/api-client";
-import { useScope, errorText } from "./project-page";
+import { CreateFile, useScope, errorText } from "./project-page";
 import { documentKind } from "./project-overview";
-import type { Item, Project } from "./types";
+import type { DriveStatus, Item, Project } from "./types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 export function DocumentsPage() {
+  const { t } = useTranslation("common");
   const user = useAuthStore((s) => s.user);
   const [role, setRole] = useState("");
   const [phase, setPhase] = useState("");
@@ -17,7 +21,8 @@ export function DocumentsPage() {
     [search, setSearch] = useState(""),
     [sort, setSort] = useState("updated"),
     [share, setShare] = useState(""),
-    [project, setProject] = useState("");
+    [project, setProject] = useState(""),
+    [creating, setCreating] = useState(false);
   const tab = params.get("tab") ?? "memo";
   const kind =
     tab === "spreadsheet"
@@ -168,21 +173,22 @@ export function DocumentsPage() {
           <option value="linked">Google 연동</option>
           <option value="local">ACM 저장</option>
         </select>
-        {project && (
-          <Link
-            className="rounded bg-blue-600 p-2 text-white"
-            to={
-              kind === "FILE"
-                ? `/admin/projects/${project}?tab=documents&type=file`
-                : projectDocumentPath(project, "new", kind)
-            }
-          >
-            + 작성
-          </Link>
-        )}
+        {/* REQ-261016E — 문서 화면에서 바로 작성: 프로젝트·종류·방식 선택 */}
+        <button
+          type="button"
+          className="rounded bg-blue-600 p-2 text-white"
+          onClick={() => setCreating(true)}
+        >
+          + {t("docsCreate.title")}
+        </button>
       </div>
-      {!project && (
-        <p className="text-sm text-secondary">작성할 프로젝트를 선택하세요.</p>
+      {creating && (
+        <NewDocumentDialog
+          projects={(projects.data ?? []).filter((p) => p.prj_status !== "ARCHIVED")}
+          initialProject={project}
+          initialKind={kind}
+          close={() => setCreating(false)}
+        />
       )}
       {q.error && <p role="alert">{errorText(q.error)}</p>}
       <div className="overflow-x-auto rounded-xl border bg-surface">
@@ -259,5 +265,132 @@ function CopyId({ id }: { id: string }) {
     >
       {message || "문서 ID 복사"}
     </button>
+  );
+}
+
+type DocKind = "MEMO" | "SHEET" | "DOC" | "FILE";
+type Method = "LOCAL" | "GOOGLE_LINK" | "GOOGLE_NEW" | "UPLOAD";
+const KINDS: DocKind[] = ["MEMO", "SHEET", "DOC", "FILE"];
+const METHODS: Record<DocKind, Method[]> = {
+  MEMO: ["LOCAL"],
+  SHEET: ["LOCAL", "GOOGLE_LINK", "GOOGLE_NEW"],
+  DOC: ["LOCAL", "GOOGLE_LINK", "GOOGLE_NEW"],
+  FILE: ["UPLOAD"],
+};
+
+/**
+ * REQ-261016E — /admin/documents 에서 바로 작성. 프로젝트·종류·방식을 고르면
+ * 프로젝트 화면과 같은 작성 경로(ACM 편집기, Google 링크, Google 새로 만들기, 파일 업로드)로 간다.
+ */
+function NewDocumentDialog({
+  projects,
+  initialProject,
+  initialKind,
+  close,
+}: {
+  projects: Project[];
+  initialProject: string;
+  initialKind: DocKind;
+  close: () => void;
+}) {
+  const { t } = useTranslation("common");
+  const navigate = useNavigate();
+  const scope = useScope();
+  const [prj, setPrj] = useState(
+    projects.some((p) => p.prj_id === initialProject) ? initialProject : (projects[0]?.prj_id ?? ""),
+  );
+  const [kind, setKind] = useState<DocKind>(initialKind);
+  const [method, setMethod] = useState<Method>(METHODS[initialKind][0]);
+  const [step, setStep] = useState<"pick" | "google" | "upload">("pick");
+  const drive = useQuery({
+    queryKey: ["prj-drive", ...scope],
+    queryFn: async () => (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
+  });
+  const driveReady = !!drive.data?.rootReady;
+  if (step === "google")
+    return <CreateFile project={prj} documents initialKind={kind === "SHEET" ? "SHEET" : "DOCUMENT"} close={close} />;
+  if (step === "upload") return <FileUpload project={prj} close={close} />;
+  const next = () => {
+    if (method === "LOCAL" || method === "GOOGLE_LINK") {
+      close();
+      navigate(projectDocumentPath(prj, "new", kind, method));
+    } else setStep(method === "GOOGLE_NEW" ? "google" : "upload");
+  };
+  return (
+    <Dialog open onOpenChange={(v) => !v && close()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("docsCreate.title")}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 text-sm">
+          <label className="grid gap-1">
+            <span className="font-medium">{t("docsCreate.project")}</span>
+            <select className="rounded border p-2" value={prj} onChange={(e) => setPrj(e.target.value)}>
+              {!projects.length && <option value="">{t("docsCreate.noProject")}</option>}
+              {projects.map((p) => (
+                <option key={p.prj_id} value={p.prj_id}>
+                  {p.prj_code ? `[${p.prj_code}] ` : ""}
+                  {p.prj_title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <fieldset className="grid gap-1">
+            <legend className="mb-1 font-medium">{t("docsCreate.kind")}</legend>
+            <div className="flex flex-wrap gap-2">
+              {KINDS.map((k) => (
+                <label
+                  key={k}
+                  className={`cursor-pointer rounded-full border px-3 py-1 ${kind === k ? "border-accent-500 bg-accent-50 text-accent-700" : "text-secondary"}`}
+                >
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="doc-kind"
+                    checked={kind === k}
+                    onChange={() => {
+                      setKind(k);
+                      setMethod(METHODS[k][0]);
+                    }}
+                  />
+                  {t(`docsCreate.kinds.${k}`)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset className="grid gap-1.5">
+            <legend className="mb-1 font-medium">{t("docsCreate.method")}</legend>
+            {METHODS[kind].map((m) => {
+              const disabled = m === "GOOGLE_NEW" && !driveReady;
+              return (
+                <label key={m} className={`flex items-center gap-2 ${disabled ? "text-gray-400" : ""}`}>
+                  <input
+                    type="radio"
+                    name="doc-method"
+                    disabled={disabled}
+                    checked={method === m}
+                    onChange={() => setMethod(m)}
+                  />
+                  {t(`docsCreate.methods.${m}`)}
+                  {disabled && (
+                    <Link to="/admin/config/drive" className="text-xs text-accent-700 underline">
+                      {t("docsCreate.driveRequired")}
+                    </Link>
+                  )}
+                </label>
+              );
+            })}
+          </fieldset>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={close}>
+              {t("docsCreate.cancel")}
+            </Button>
+            <Button disabled={!prj} onClick={next}>
+              {t("docsCreate.next")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
