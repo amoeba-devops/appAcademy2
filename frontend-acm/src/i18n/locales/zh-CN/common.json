@@ -1318,7 +1318,13 @@
       "status": "状态",
       "title": "标题",
       "type": "类型",
-      "updatedAt": "更新日期"
+      "updatedAt": "更新日期",
+      "parentIssue": "上级问题",
+      "participants": "相关人员",
+      "attachments": "附件",
+      "doneRatio": "进度",
+      "resolution": "解决方法",
+      "source": "来源"
     },
     "filters": {
       "allAssignees": "全部负责人",
@@ -1332,7 +1338,30 @@
       "editTitle": "编辑问题",
       "pickProject": "选择项目",
       "save": "保存",
-      "saving": "保存中…"
+      "saving": "保存中…",
+      "searchProjectPlaceholder": "搜索项目...",
+      "parentIssuePlaceholder": "搜索上级问题...",
+      "titlePlaceholder": "请输入问题标题",
+      "descriptionPlaceholder": "请详细描述问题",
+      "assigneePlaceholder": "搜索负责人...",
+      "participantAdd": "添加相关人员",
+      "fileAttachment": "文件附件",
+      "tabFileUpload": "上传文件",
+      "tabUrlRegister": "URL",
+      "uploading": "上传中...",
+      "dragDropText": "将文件拖到此处或点击选择",
+      "uploadHint": "保存到项目文件（公司 Google Drive 或 ACM 存储，最大 20MB）",
+      "pickProjectFirst": "请先选择项目",
+      "urlPlaceholder": "请输入要附加的 URL（如 Google Drive、网页链接）",
+      "urlHint": "可输入 Google Drive 链接或外部 URL",
+      "urlAdd": "添加",
+      "resolutionPlaceholder": "请说明解决方法",
+      "doneRatio": "进度",
+      "uploadFailed": "文件上传失败",
+      "draftFound": "发现自动保存的草稿。",
+      "draftRestore": "恢复",
+      "draftDiscard": "删除",
+      "noMatch": "没有搜索结果"
     },
     "loading": "加载中…",
     "noDescription": "无描述。",
@@ -1345,7 +1374,7 @@
       "created": "我创建的"
     },
     "search": "搜索",
-    "searchPlaceholder": "搜索标题",
+    "searchPlaceholder": "搜索标题或编号（ISS-n）",
     "sortLabel": "排序",
     "sort": {
       "created_desc": "最新创建",
@@ -1390,39 +1419,219 @@
     "view": {
       "list": "列表",
       "kanban": "看板"
-    }
+    },
+    "migratedFrom": "从 AMA {{ref}} 迁移"
   },
   "myWork": {
     "title": "我的工作",
-    "subtitle": "进行中 {{total}} · 逾期 {{overdue}}",
+    "newWork": "新建工作",
+    "searchPlaceholder": "搜索工作...",
+    "subtitle": "我负责 {{total}} 项 · 其中逾期 {{overdue}} 项",
+    "view": {
+      "today": "今天",
+      "project": "我的项目",
+      "kanban": "看板"
+    },
     "kpi": {
-      "assigned": "分配给我",
+      "assignedIssues": "我负责的问题",
+      "assignedIssuesSub": "进行中的负责问题",
+      "assignedToday": "今日分配",
+      "assignedTodaySub": "今天新收到的问题",
       "overdue": "逾期",
-      "today": "今天截止",
-      "week": "本周截止",
-      "doneToday": "今天完成"
+      "overdueSub": "立即处理",
+      "today": "今日到期",
+      "todaySub": "按我负责",
+      "week": "7天内到期",
+      "weekSub": "按我负责",
+      "doneToday": "今日完成",
+      "doneTodaySub": "按我负责"
     },
     "relation": {
-      "assigned": "分配给我",
-      "created": "我创建的"
+      "label": "关系",
+      "ASSIGNED": "我负责",
+      "REPORTER": "我创建",
+      "PARTICIPANT": "参与",
+      "hint": "各关系的数量可能重叠"
     },
-    "sections": {
-      "now": "今天处理 ({{count}})",
-      "later": "之后 ({{count}})",
-      "done": "今天完成 ({{count}})"
+    "relationList": {
+      "REPORTER": "我创建的工作 · 同时显示当前负责人和状态",
+      "PARTICIPANT": "我参与的工作"
     },
-    "bucket": {
+    "filter": {
+      "all": "全部",
+      "project": "项目"
+    },
+    "type": {
+      "ISSUE": "问题"
+    },
+    "noProject": "无项目",
+    "focus": {
+      "title": "今日处理",
+      "hint": "逾期 · 今日到期",
+      "filtered": "仅看{{reason}}",
+      "clearFilter": "查看全部",
+      "empty": "今天没有需要处理的工作。",
+      "emptyStats": "进行中 {{open}} · 未定日期 {{noDue}}",
+      "showRest": "查看其他工作"
+    },
+    "rest": {
+      "title": "其他工作",
+      "hint": "分配给我的问题和我创建的问题",
+      "legend": "□ 选择后批量完成 · ○ 完成"
+    },
+    "origin": {
+      "ASSIGNED_BY_OTHERS": "分配给我的问题",
+      "MY_OWN": "我创建并负责的问题",
+      "CREATED_AWAITING": "我创建的问题 · 等待响应",
+      "DONE_TODAY": "今日完成"
+    },
+    "originHint": {
+      "ASSIGNED_BY_OTHERS": "他人创建并交给我的问题",
+      "MY_OWN": "我创建且由我负责的问题",
+      "CREATED_AWAITING": "我创建但尚未开始的问题（非我负责）",
+      "DONE_TODAY": ""
+    },
+    "originSummary": {
+      "overdue": "逾期 {{count}}",
+      "today": "今天 {{count}}"
+    },
+    "reason": {
       "OVERDUE": "逾期",
-      "TODAY": "今天"
+      "TODAY": "今日到期"
     },
-    "due": "截止 {{date}}",
-    "noDue": "无截止日期",
-    "start": "开始",
-    "complete": "完成",
-    "empty": "暂无内容。",
-    "emptyNow": "今天没有待处理的问题。",
-    "openFull": "查看问题",
-    "selectHint": "选择一项以查看详情。"
+    "action": {
+      "START": "开始",
+      "complete": "完成"
+    },
+    "badge": "负责",
+    "assigneeLine": "负责人：{{name}}",
+    "noAssignee": "无负责人",
+    "role": {
+      "ASSIGNEE": "负责",
+      "REPORTER": "我创建",
+      "PARTICIPANT": "参与"
+    },
+    "due": {
+      "late": "D+{{n}}",
+      "today": "今天",
+      "soon": "D-{{n}}",
+      "none": "无期限"
+    },
+    "assignedAge": "分配 {{date}} - 已过 {{days}} 天",
+    "createdAge": "{{date}} - 已过 {{days}} 天",
+    "days": "{{n}}天",
+    "assignedAgeTitle": "分配给我的日期 · 经过天数",
+    "createdAgeTitle": "问题创建日期 · 经过天数",
+    "selectAll": "全选",
+    "deselectAll": "取消选择",
+    "pick": "选择后批量完成",
+    "saveBar": {
+      "selected": "已选 {{count}} 项",
+      "clear": "取消选择",
+      "complete": "完成处理"
+    },
+    "filterEmpty": "没有符合所选关系、项目或搜索条件的工作。",
+    "resetFilter": "重置筛选",
+    "emptyInvolved": "无",
+    "card": {
+      "ASSIGNED_TODAY": "仅看今日分配 {{count}} 项",
+      "DONE_TODAY": "仅看今日完成 {{count}} 项",
+      "WEEK": "仅看7天内到期 {{count}} 项",
+      "empty": "没有相关工作",
+      "clear": "查看全部"
+    },
+    "panel": {
+      "detail": "工作详情"
+    },
+    "detailTab": {
+      "info": "详情",
+      "history": "记录"
+    },
+    "detail": {
+      "empty": "选择工作后显示详情。",
+      "project": "项目",
+      "parentIssue": "上级问题",
+      "author": "创建人",
+      "roles": "我的角色",
+      "due": "截止",
+      "assignedAt": "分配日期",
+      "createdAt": "创建日期",
+      "dateAge": "{{date}}（已过 {{days}} 天）",
+      "complete": "完成处理",
+      "open": "全屏打开",
+      "progress": "进度"
+    },
+    "kanban": {
+      "col": {
+        "WAITING": "等待",
+        "DOING": "进行中",
+        "DONE": "完成（今天）"
+      },
+      "colHint": {
+        "WAITING": "打开",
+        "DOING": "进行中",
+        "DONE": "完成"
+      },
+      "notice": "看板仅显示我负责的问题。点击卡片在右侧查看详情。",
+      "empty": "无",
+      "own": "我创建",
+      "assignedByOthers": "被分配",
+      "assignedDays": "分配 {{n}} 天"
+    },
+    "projects": {
+      "title": "我的项目",
+      "statusActive": "进行中",
+      "statusAll": "全部状态",
+      "search": "搜索项目",
+      "col": {
+        "project": "项目",
+        "status": "状态",
+        "role": "我的角色",
+        "focus": "今日处理"
+      },
+      "role": {
+        "OWNER": "负责人",
+        "MANAGER": "管理员",
+        "MEMBER": "成员"
+      },
+      "status": {
+        "ACTIVE": "进行中",
+        "DONE": "完成",
+        "ARCHIVED": "归档"
+      },
+      "empty": "您不属于任何项目",
+      "selected": "{{name}} · {{count}} 项",
+      "openProject": "打开项目",
+      "emptyWork": "该项目没有相关工作"
+    },
+    "complete": {
+      "titleIssueOne": "完成此问题？",
+      "titleMany": "完成所选的 {{count}} 项工作？",
+      "issueStatus": "问题完成状态",
+      "skipNote": "无法从当前状态直接完成的问题将被跳过并在结果中告知。",
+      "cancel": "取消",
+      "confirm": "完成",
+      "confirmMany": "完成 {{count}} 项",
+      "running": "处理中 {{done}}/{{total}}",
+      "tooMany": "一次最多可完成 {{max}} 项。",
+      "failLine": "{{title}} — {{reason}}",
+      "keepPicked": "失败的工作保持选中。",
+      "doneTitle": "已完成",
+      "doneMsg": "已完成 {{count}} 项。",
+      "partialTitle": "部分完成",
+      "partialMsg": "完成 {{ok}} 项 · 失败 {{fail}} 项",
+      "failedTitle": "未能完成"
+    },
+    "started": {
+      "title": "已开始工作",
+      "msg": "已将问题“{{title}}”改为进行中。",
+      "failTitle": "无法开始"
+    },
+    "created": {
+      "title": "已创建",
+      "msg": "已创建问题“{{title}}”。"
+    },
+    "confirm": "确定"
   },
   "myPage": {
     "title": "我的页面",

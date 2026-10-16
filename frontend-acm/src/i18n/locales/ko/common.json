@@ -1318,7 +1318,13 @@
       "status": "상태",
       "title": "제목",
       "type": "유형",
-      "updatedAt": "수정일"
+      "updatedAt": "수정일",
+      "parentIssue": "상위 이슈",
+      "participants": "관련자",
+      "attachments": "첨부",
+      "doneRatio": "진행률",
+      "resolution": "해결 방법",
+      "source": "출처"
     },
     "filters": {
       "allAssignees": "전체 담당자",
@@ -1332,7 +1338,30 @@
       "editTitle": "이슈 수정",
       "pickProject": "프로젝트 선택",
       "save": "저장",
-      "saving": "저장 중…"
+      "saving": "저장 중…",
+      "searchProjectPlaceholder": "프로젝트 검색...",
+      "parentIssuePlaceholder": "상위 이슈 검색...",
+      "titlePlaceholder": "이슈 제목을 입력하세요",
+      "descriptionPlaceholder": "이슈를 상세히 설명해주세요",
+      "assigneePlaceholder": "담당자 검색...",
+      "participantAdd": "관련자 추가",
+      "fileAttachment": "파일 첨부",
+      "tabFileUpload": "파일 업로드",
+      "tabUrlRegister": "URL 등록",
+      "uploading": "업로드 중...",
+      "dragDropText": "파일을 여기에 드래그하거나 클릭하여 선택",
+      "uploadHint": "프로젝트 파일(회사 Google Drive 또는 ACM 저장소)에 저장됩니다 (최대 20MB)",
+      "pickProjectFirst": "프로젝트를 먼저 선택하세요",
+      "urlPlaceholder": "첨부할 URL을 입력하세요 (예: Google Drive, 웹 링크)",
+      "urlHint": "Google Drive 링크 또는 외부 URL을 입력할 수 있습니다",
+      "urlAdd": "추가",
+      "resolutionPlaceholder": "해결 방법을 설명해주세요",
+      "doneRatio": "진행률",
+      "uploadFailed": "파일 업로드에 실패했습니다",
+      "draftFound": "작성 중이던 임시저장 데이터가 있습니다.",
+      "draftRestore": "복원",
+      "draftDiscard": "삭제",
+      "noMatch": "검색 결과가 없습니다"
     },
     "loading": "불러오는 중…",
     "noDescription": "설명이 없습니다.",
@@ -1345,7 +1374,7 @@
       "created": "내 등록"
     },
     "search": "검색",
-    "searchPlaceholder": "제목 검색",
+    "searchPlaceholder": "제목·번호(ISS-n) 검색",
     "sortLabel": "정렬",
     "sort": {
       "created_desc": "등록 최신순",
@@ -1390,39 +1419,219 @@
     "view": {
       "list": "목록",
       "kanban": "칸반"
-    }
+    },
+    "migratedFrom": "AMA {{ref}}에서 이전"
   },
   "myWork": {
     "title": "내 업무",
-    "subtitle": "진행 중 {{total}}건 · 지연 {{overdue}}건",
+    "newWork": "새 업무",
+    "searchPlaceholder": "업무 검색...",
+    "subtitle": "내 담당 {{total}}건 · 그중 지연 {{overdue}}건",
+    "view": {
+      "today": "오늘",
+      "project": "내 프로젝트",
+      "kanban": "칸반"
+    },
     "kpi": {
-      "assigned": "배정된 이슈",
-      "overdue": "지연",
+      "assignedIssues": "내 담당 이슈",
+      "assignedIssuesSub": "진행 중인 담당 이슈",
+      "assignedToday": "오늘 배정",
+      "assignedTodaySub": "오늘 새로 받은 이슈",
+      "overdue": "담당 지연",
+      "overdueSub": "즉시 처리",
       "today": "오늘 마감",
-      "week": "이번 주 마감",
-      "doneToday": "오늘 완료"
+      "todaySub": "내 담당 기준",
+      "week": "7일 내 마감",
+      "weekSub": "내 담당 기준",
+      "doneToday": "오늘 완료",
+      "doneTodaySub": "내 담당 기준"
     },
     "relation": {
-      "assigned": "배정됨",
-      "created": "내가 등록"
+      "label": "관계",
+      "ASSIGNED": "내 담당",
+      "REPORTER": "내가 생성",
+      "PARTICIPANT": "참여",
+      "hint": "관계별 건수는 서로 겹칠 수 있습니다"
     },
-    "sections": {
-      "now": "오늘 처리 ({{count}})",
-      "later": "이후 ({{count}})",
-      "done": "오늘 완료 ({{count}})"
+    "relationList": {
+      "REPORTER": "내가 만든 업무 · 현재 담당자와 상태를 함께 표시",
+      "PARTICIPANT": "참여 중인 업무"
     },
-    "bucket": {
+    "filter": {
+      "all": "전체",
+      "project": "프로젝트"
+    },
+    "type": {
+      "ISSUE": "이슈"
+    },
+    "noProject": "프로젝트 없음",
+    "focus": {
+      "title": "오늘 처리",
+      "hint": "지연 · 오늘 마감",
+      "filtered": "{{reason}}만 보기",
+      "clearFilter": "전체 보기",
+      "empty": "오늘 처리할 업무가 없습니다.",
+      "emptyStats": "진행 중 {{open}} · 일정 미정 {{noDue}}",
+      "showRest": "그 밖의 업무 보기"
+    },
+    "rest": {
+      "title": "그 밖의 업무",
+      "hint": "어사인된 이슈와 내가 만든 이슈",
+      "legend": "□ 골라서 일괄 완료 · ○ 완료"
+    },
+    "origin": {
+      "ASSIGNED_BY_OTHERS": "배정받은 이슈",
+      "MY_OWN": "내가 작성한 내 이슈",
+      "CREATED_AWAITING": "내가 만든 이슈 · 응답 대기",
+      "DONE_TODAY": "오늘 완료"
+    },
+    "originHint": {
+      "ASSIGNED_BY_OTHERS": "다른 사람이 작성해 나에게 맡긴 이슈",
+      "MY_OWN": "내가 만들고 내가 맡은 이슈",
+      "CREATED_AWAITING": "내가 만들었고 아직 시작되지 않은 이슈 (담당 아님)",
+      "DONE_TODAY": ""
+    },
+    "originSummary": {
+      "overdue": "지연 {{count}}",
+      "today": "오늘 {{count}}"
+    },
+    "reason": {
       "OVERDUE": "지연",
-      "TODAY": "오늘"
+      "TODAY": "오늘 마감"
     },
-    "due": "마감 {{date}}",
-    "noDue": "마감 없음",
-    "start": "시작",
-    "complete": "완료",
-    "empty": "항목이 없습니다.",
-    "emptyNow": "오늘 처리할 이슈가 없습니다.",
-    "openFull": "전체 보기",
-    "selectHint": "항목을 선택하면 상세가 표시됩니다."
+    "action": {
+      "START": "시작",
+      "complete": "완료"
+    },
+    "badge": "담당",
+    "assigneeLine": "담당: {{name}}",
+    "noAssignee": "담당 없음",
+    "role": {
+      "ASSIGNEE": "담당",
+      "REPORTER": "내가 만든",
+      "PARTICIPANT": "참여"
+    },
+    "due": {
+      "late": "D+{{n}}",
+      "today": "오늘",
+      "soon": "D-{{n}}",
+      "none": "기한 없음"
+    },
+    "assignedAge": "배정 {{date}} - {{days}}일 경과",
+    "createdAge": "{{date}} - {{days}}일 경과",
+    "days": "{{n}}일",
+    "assignedAgeTitle": "나에게 배정된 날짜 · 경과일수",
+    "createdAgeTitle": "이슈 등록일 · 경과일수",
+    "selectAll": "전체 선택",
+    "deselectAll": "선택 해제",
+    "pick": "골라서 일괄 완료",
+    "saveBar": {
+      "selected": "선택 {{count}}건",
+      "clear": "선택 해제",
+      "complete": "완료 처리"
+    },
+    "filterEmpty": "선택한 관계·프로젝트·검색에 맞는 업무가 없습니다.",
+    "resetFilter": "필터 초기화",
+    "emptyInvolved": "없습니다",
+    "card": {
+      "ASSIGNED_TODAY": "오늘 배정 {{count}}건만 보기",
+      "DONE_TODAY": "오늘 완료 {{count}}건만 보기",
+      "WEEK": "7일 내 마감 {{count}}건만 보기",
+      "empty": "해당 업무가 없습니다",
+      "clear": "전체 보기"
+    },
+    "panel": {
+      "detail": "업무 상세"
+    },
+    "detailTab": {
+      "info": "상세",
+      "history": "이력"
+    },
+    "detail": {
+      "empty": "업무를 선택하면 상세가 표시됩니다.",
+      "project": "프로젝트",
+      "parentIssue": "상위 이슈",
+      "author": "작성자",
+      "roles": "내 역할",
+      "due": "마감",
+      "assignedAt": "배정일",
+      "createdAt": "등록일",
+      "dateAge": "{{date}} ({{days}}일 경과)",
+      "complete": "완료 처리",
+      "open": "전체 화면으로 열기",
+      "progress": "진행률"
+    },
+    "kanban": {
+      "col": {
+        "WAITING": "대기",
+        "DOING": "진행중",
+        "DONE": "완료(오늘)"
+      },
+      "colHint": {
+        "WAITING": "열림",
+        "DOING": "진행",
+        "DONE": "완료"
+      },
+      "notice": "칸반은 내 담당 이슈만 표시합니다. 카드를 누르면 오른쪽에 상세가 열립니다.",
+      "empty": "없음",
+      "own": "내가 작성",
+      "assignedByOthers": "배정받은",
+      "assignedDays": "배정 {{n}}일"
+    },
+    "projects": {
+      "title": "내 프로젝트",
+      "statusActive": "진행 중",
+      "statusAll": "전체 상태",
+      "search": "프로젝트 검색",
+      "col": {
+        "project": "프로젝트",
+        "status": "상태",
+        "role": "내 역할",
+        "focus": "오늘 처리"
+      },
+      "role": {
+        "OWNER": "담당자",
+        "MANAGER": "관리자",
+        "MEMBER": "멤버"
+      },
+      "status": {
+        "ACTIVE": "진행 중",
+        "DONE": "완료",
+        "ARCHIVED": "보관"
+      },
+      "empty": "소속된 프로젝트가 없습니다",
+      "selected": "{{name}} · {{count}}건",
+      "openProject": "프로젝트 열기",
+      "emptyWork": "이 프로젝트에 해당하는 업무가 없습니다"
+    },
+    "complete": {
+      "titleIssueOne": "이 이슈를 완료할까요?",
+      "titleMany": "선택한 업무 {{count}}건을 완료할까요?",
+      "issueStatus": "이슈 완료 상태",
+      "skipNote": "현재 상태에서 바로 완료할 수 없는 이슈는 건너뛰고 결과에 알려드립니다.",
+      "cancel": "취소",
+      "confirm": "완료",
+      "confirmMany": "완료 {{count}}건",
+      "running": "처리 중 {{done}}/{{total}}",
+      "tooMany": "한 번에 최대 {{max}}건까지 완료할 수 있습니다.",
+      "failLine": "{{title}} — {{reason}}",
+      "keepPicked": "실패한 업무는 선택을 유지했습니다.",
+      "doneTitle": "완료 처리했습니다",
+      "doneMsg": "{{count}}건을 완료했습니다.",
+      "partialTitle": "일부만 완료했습니다",
+      "partialMsg": "완료 {{ok}}건 · 실패 {{fail}}건",
+      "failedTitle": "완료하지 못했습니다"
+    },
+    "started": {
+      "title": "업무를 시작했습니다",
+      "msg": "'{{title}}' 이슈를 진행 중으로 변경했습니다.",
+      "failTitle": "시작하지 못했습니다"
+    },
+    "created": {
+      "title": "등록했습니다",
+      "msg": "'{{title}}' 이슈를 등록했습니다."
+    },
+    "confirm": "확인"
   },
   "myPage": {
     "title": "마이페이지",

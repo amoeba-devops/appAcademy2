@@ -2,20 +2,24 @@ import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, Link as LinkIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { errorText, useScope } from "../project-page";
 import { IssueFormDialog } from "./issue-form-dialog";
+import { IssueRichView, isBlankHtml } from "./issue-rich-text";
 import { StatusBadge } from "./issues-page";
 import {
   day,
   issueBase,
   PRIORITY_BADGE,
+  refLabel,
+  sourceRef,
   TRANSITIONS,
   useIssue,
+  type IssueAttachment,
   type IssueComment,
   type IssueStatus,
   type IssueStatusLog,
@@ -68,6 +72,9 @@ export function IssueDetailPage() {
         <div className="grid min-w-0 content-start gap-4">
           <header className="flex flex-wrap items-start gap-2">
             <h1 className="min-w-0 flex-1 break-words text-xl font-semibold text-primary">
+              {i.pit_ref_no && (
+                <span className="mr-2 font-mono text-base font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>
+              )}
               {i.pit_title}
             </h1>
             {!archived && (
@@ -107,7 +114,37 @@ export function IssueDetailPage() {
             {i.pit_done_at && (
               <Meta label={t("issues.fields.doneAt")}>{new Date(i.pit_done_at).toLocaleString()}</Meta>
             )}
+            <Meta label={t("issues.fields.doneRatio")}>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1.5 w-16 overflow-hidden rounded-full bg-gray-100">
+                  <span className="block h-full rounded-full bg-green-500" style={{ width: `${i.pit_done_ratio}%` }} />
+                </span>
+                <span className="font-mono">{i.pit_done_ratio}%</span>
+              </span>
+            </Meta>
+            {i.pit_parent_id && (
+              <Meta label={t("issues.fields.parentIssue")}>
+                <Link className="text-indigo-600 hover:underline" to={`/admin/issues/${i.pit_parent_id}`}>
+                  {refLabel(i.parent_ref_no)} {i.parent_title}
+                </Link>
+              </Meta>
+            )}
+            {i.participant_ids.length > 0 && (
+              <Meta label={t("issues.fields.participants")}>
+                {i.participant_ids.map((p) => i.members.find((m) => m.id === p)?.name ?? "—").join(", ")}
+              </Meta>
+            )}
+            {i.pit_source && (
+              <Meta label={t("issues.fields.source")}>{t("issues.migratedFrom", { ref: sourceRef(i) })}</Meta>
+            )}
           </dl>
+          {i.attachments.length > 0 && <Attachments prj={i.prj_id} items={i.attachments} />}
+          {i.pit_resolution && (
+            <section className="rounded-lg border bg-surface p-4 text-sm">
+              <h2 className="mb-1 text-xs text-secondary">{t("issues.fields.resolution")}</h2>
+              <p className="whitespace-pre-wrap break-words">{i.pit_resolution}</p>
+            </section>
+          )}
           <div className="flex gap-1 border-b" role="tablist">
             {(["description", "history"] as const).map((k) => (
               <button
@@ -126,9 +163,13 @@ export function IssueDetailPage() {
             ))}
           </div>
           {tab === "description" ? (
-            <p className="min-h-16 whitespace-pre-wrap break-words text-sm">
-              {i.pit_body || <span className="text-secondary">{t("issues.noDescription")}</span>}
-            </p>
+            <div className="min-h-16 break-words">
+              {isBlankHtml(i.pit_body) ? (
+                <p className="text-sm text-secondary">{t("issues.noDescription")}</p>
+              ) : (
+                <IssueRichView html={i.pit_body} />
+              )}
+            </div>
           ) : (
             <StatusHistory id={id} />
           )}
@@ -171,6 +212,46 @@ export function IssueDetailPage() {
       </div>
       {editing && <IssueFormDialog issue={i} close={() => setEditing(false)} />}
     </div>
+  );
+}
+
+/** REQ-261016C — 첨부: 프로젝트 파일은 다운로드 경로(ACM 저장소 서명 URL·Drive)로, URL 은 새 창. */
+function Attachments({ prj, items }: { prj: string; items: IssueAttachment[] }) {
+  const { t } = useTranslation("common");
+  const [error, setError] = useState("");
+  const open = async (a: IssueAttachment) => {
+    setError("");
+    if (a.pia_url) {
+      window.open(a.pia_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    try {
+      const { url } = (await apiClient.get<{ url: string }>(`${issueBase}/projects/${prj}/files/${a.file_item_id}/download`)).data;
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      setError(errorText(err));
+    }
+  };
+  return (
+    <section className="rounded-lg border bg-surface p-4 text-sm">
+      <h2 className="mb-2 text-xs text-secondary">{t("issues.fields.attachments")}</h2>
+      <ul className="space-y-1">
+        {items.map((a) => (
+          <li key={a.pia_id}>
+            <button
+              type="button"
+              disabled={!a.pia_url && !a.file_available}
+              onClick={() => void open(a)}
+              className="inline-flex max-w-full items-center gap-2 text-indigo-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+            >
+              {a.pia_url ? <LinkIcon className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
+              <span className="truncate">{a.pia_name}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {error && <p role="alert" className="mt-1 text-red-600">{error}</p>}
+    </section>
   );
 }
 
