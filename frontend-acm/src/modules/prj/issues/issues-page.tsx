@@ -18,6 +18,7 @@ import {
   issueBase,
   PRIORITIES,
   PRIORITY_BADGE,
+  refLabel,
   STATUS_BADGE,
   TRANSITIONS,
   type Issue,
@@ -261,6 +262,7 @@ export function IssuesPage() {
                         className="line-clamp-2 font-medium text-primary hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {i.pit_ref_no && <span className="mr-1.5 font-mono text-xs font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>}
                         {i.pit_title}
                       </Link>
                     </td>
@@ -414,6 +416,7 @@ function Kanban({
                     className="grid gap-1 rounded border bg-surface p-2 text-sm shadow-sm"
                   >
                     <Link to={`/admin/issues/${i.pit_id}`} className="font-medium hover:underline">
+                      {i.pit_ref_no && <span className="mr-1.5 font-mono text-xs font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>}
                       {i.pit_title}
                     </Link>
                     <p className="truncate text-xs text-secondary">

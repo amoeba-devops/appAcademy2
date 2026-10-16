@@ -55,11 +55,46 @@ export interface Issue {
   pit_done_at: string | null;
   created_at: string;
   updated_at: string;
+  // REQ-261016C
+  pit_ref_no: number | null;
+  pit_parent_id: string | null;
+  parent_title: string | null;
+  parent_ref_no: number | null;
+  pit_done_ratio: number;
+  pit_resolution: string;
+  assigned_at: string | null;
+  pit_source: string | null;
+  pit_source_ref: string | null;
+  participant_ids: string[];
+}
+export interface IssueAttachment {
+  pia_id: string;
+  file_item_id: string | null;
+  pia_url: string | null;
+  pia_name: string;
+  pia_size: number | string | null;
+  file_available: boolean;
 }
 export interface IssueDetail extends Issue {
   can_manage: boolean;
   members: { id: string; name: string; email?: string }[];
+  attachments: IssueAttachment[];
 }
+
+/** 화면 번호 ISS-n (AMA ref 번호 자리). */
+export const refLabel = (n: number | null | undefined) => (n ? `ISS-${n}` : "");
+/** 이전 출처 표시: 'TPI01#ISN-8' → 'ISN-8' */
+export const sourceRef = (i: Pick<Issue, "pit_source_ref">) =>
+  i.pit_source_ref?.split("#").pop() ?? "";
+
+/** AMA 이슈 유형 칩 색 (IssueFormModal 상위 이슈 목록과 동일). */
+export const TYPE_CHIP: Record<IssueType, string> = {
+  BUG: "bg-red-100 text-red-700",
+  FEATURE: "bg-blue-100 text-blue-700",
+  TASK: "bg-green-100 text-green-700",
+  OPINION: "bg-gray-100 text-gray-700",
+  OTHER: "bg-gray-100 text-gray-700",
+};
 export interface IssueComment {
   pic_id: string;
   author_id: string;

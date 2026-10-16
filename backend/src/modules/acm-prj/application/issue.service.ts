@@ -18,11 +18,15 @@ import { ProjectService } from './project.service';
 
 /** 접근 가능한 프로젝트(담당자 또는 참여자) 조건. p = 프로젝트 alias, $2 = 사용자. */
 const ACCESSIBLE = `(p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2))`;
-const ISSUE_SELECT = `SELECT i.pit_id,i.prj_id,i.pit_title,i.pit_body,i.pit_status,i.pit_issue_type,i.pit_priority,i.assignee_id,i.created_by,i.start_date,i.due_date,i.pit_done_at,i.created_at,i.updated_at,p.prj_title,p.prj_status,a.usr_name AS assignee_name,c.usr_name AS creator_name
+const ISSUE_SELECT = `SELECT i.pit_id,i.prj_id,i.pit_title,i.pit_body,i.pit_status,i.pit_issue_type,i.pit_priority,i.assignee_id,i.created_by,i.start_date,i.due_date,i.pit_done_at,i.created_at,i.updated_at,p.prj_title,p.prj_status,a.usr_name AS assignee_name,c.usr_name AS creator_name,
+    i.pit_ref_no,i.pit_parent_id,i.pit_done_ratio,i.pit_resolution,i.assigned_at,i.pit_source,i.pit_source_ref,
+    pa.pit_title AS parent_title,pa.pit_ref_no AS parent_ref_no,
+    COALESCE((SELECT array_agg(x.usr_id) FROM amb_acm_prj_issue_participant x WHERE x.ent_id=i.ent_id AND x.pit_id=i.pit_id),'{}') AS participant_ids
   FROM amb_acm_prj_item i
   JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id
   LEFT JOIN amb_acm_user a ON a.ent_id=i.ent_id AND a.usr_id=i.assignee_id
-  LEFT JOIN amb_acm_user c ON c.ent_id=i.ent_id AND c.usr_id=i.created_by`;
+  LEFT JOIN amb_acm_user c ON c.ent_id=i.ent_id AND c.usr_id=i.created_by
+  LEFT JOIN amb_acm_prj_item pa ON pa.ent_id=i.ent_id AND pa.pit_id=i.pit_parent_id AND pa.deleted_at IS NULL`;
 const SORTS: Record<string, string> = {
   created_desc: 'i.created_at DESC',
   updated_desc: 'i.updated_at DESC',
@@ -72,8 +76,17 @@ export class IssueService {
     };
     if (q.scope === 'assigned') where.push('i.assignee_id=$2');
     if (q.scope === 'created') where.push('i.created_by=$2');
-    if (q.q?.trim())
-      add(`i.pit_title ILIKE ?`, `%${q.q.trim().replace(/[\\%_]/g, '\\$&')}%`);
+    if (q.q?.trim()) {
+      // 제목 또는 번호(ISS-12 / 12)
+      const ref = /^(?:ISS-)?(\d{1,9})$/i.exec(q.q.trim())?.[1];
+      params.push(
+        `%${q.q.trim().replace(/[\\%_]/g, '\\$&')}%`,
+        ref ? Number(ref) : null,
+      );
+      where.push(
+        `(i.pit_title ILIKE $${params.length - 1} OR i.pit_ref_no = $${params.length}::int)`,
+      );
+    }
     const types = list(q.types, ISSUE_TYPES);
     if (types.length) add('i.pit_issue_type = ANY(?::text[])', types);
     const statuses = list(q.statuses, ISSUE_STATUSES);
@@ -116,7 +129,20 @@ export class IssueService {
       ...issue,
       can_manage: project.can_manage,
       members: project.members,
+      attachments: await this.attachments(u.entId, id),
     };
+  }
+
+  /** REQ-261016C — 첨부 목록. 파일은 프로젝트 파일 다운로드 경로로 연다. */
+  private attachments(entId: string, id: string) {
+    return this.ds.query<Record<string, unknown>[]>(
+      `SELECT a.pia_id,a.file_item_id,a.pia_url,a.pia_name,COALESCE(a.pia_size,f.drive_size) AS pia_size,a.created_at,
+              (f.pit_id IS NOT NULL AND f.deleted_at IS NULL) AS file_available
+         FROM amb_acm_prj_issue_attachment a
+         LEFT JOIN amb_acm_prj_item f ON f.ent_id=a.ent_id AND f.pit_id=a.file_item_id
+        WHERE a.ent_id=$1 AND a.pit_id=$2 AND a.deleted_at IS NULL ORDER BY a.created_at`,
+      [entId, id],
+    );
   }
 
   async changeStatus(u: AcmCurrentUser, id: string, status: string, note = '') {
@@ -222,14 +248,15 @@ export class IssueService {
   }
 
   /**
-   * 내 업무 — 내게 배정되었거나 내가 등록한 미완료 이슈 + 최근 36시간 내 완료 이슈.
-   * 지연/오늘/이후 구분은 테넌트 타임존 기준으로 화면에서 계산한다.
+   * 내 업무 — 내게 배정되었거나 내가 등록했거나 참여 중인 미완료 이슈 + 최근 36시간 내 완료 이슈.
+   * 지연/오늘/이후 구분과 역할(담당·등록·참여)은 테넌트 타임존 기준으로 화면에서 계산한다.
    */
   async myWork(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
       `${ISSUE_SELECT}
         WHERE i.ent_id=$1 AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND ${ACCESSIBLE}
-          AND (i.assignee_id=$2 OR i.created_by=$2)
+          AND (i.assignee_id=$2 OR i.created_by=$2
+               OR EXISTS(SELECT 1 FROM amb_acm_prj_issue_participant x WHERE x.ent_id=i.ent_id AND x.pit_id=i.pit_id AND x.usr_id=$2))
           AND p.prj_status<>'ARCHIVED'
           AND (i.pit_status IN ('OPEN','IN_PROGRESS')
                OR (i.pit_status='DONE' AND i.pit_done_at > now() - interval '36 hours'))

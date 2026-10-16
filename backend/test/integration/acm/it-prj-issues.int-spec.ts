@@ -71,6 +71,9 @@ describe('ACM project issues (PostgreSQL)', () => {
     );
     await ds.query(sql('1036-prj-issue-extend.sql'));
     await ds.query(sql('1036-prj-issue-extend.sql'));
+    // REQ-261016C — 번호·상위·참여자·첨부. 두 번 적용해도 번호가 바뀌지 않아야 한다.
+    await ds.query(sql('1040-prj-issue-ama-parity.sql'));
+    await ds.query(sql('1040-prj-issue-ama-parity.sql'));
   }, 120_000);
 
   afterAll(async () => {
@@ -176,12 +179,121 @@ describe('ACM project issues (PostgreSQL)', () => {
     ]);
   });
 
+  it('numbers issues per tenant and searches by number', async () => {
+    const rows = await ds.query<{ pit_title: string; pit_ref_no: number }[]>(
+      `SELECT pit_title,pit_ref_no FROM amb_acm_prj_item WHERE pit_kind='ISSUE' ORDER BY pit_ref_no`,
+    );
+    expect(rows.map((r) => r.pit_ref_no)).toEqual([1, 2, 3]);
+    expect(rows[2].pit_title).toBe('출결 알림 누락');
+    const byRef = await issues.list(member, { q: 'ISS-3' });
+    expect(byRef.items.map((i) => i.pit_title)).toEqual(['출결 알림 누락']);
+  });
+
+  it('parent issue, participants, progress, attachments and assignment time', async () => {
+    const child = await projects.saveItem(owner, projectId, {
+      kind: 'ISSUE',
+      title: '하위 작업',
+      assigneeId: owner.id,
+      parentId: issueId,
+      participantIds: [member.id, owner.id],
+      doneRatio: 40,
+      attachments: [{ url: 'https://example.com/spec', name: 'spec' }],
+    });
+    const childId = child.pit_id as string;
+    const detail = (await issues.get(member, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
+    expect(detail).toMatchObject({
+      pit_parent_id: issueId,
+      parent_title: '출결 알림 누락',
+      pit_done_ratio: 40,
+      participant_ids: [member.id], // 담당자는 참여자에서 제외
+    });
+    expect(detail.attachments).toEqual([
+      expect.objectContaining({
+        pia_url: 'https://example.com/spec',
+        pia_name: 'spec',
+      }),
+    ]);
+    expect(detail.assigned_at).toBeTruthy();
+    // 참여자에게는 내 업무에 보인다
+    expect((await issues.myWork(member)).map((i) => i.pit_title)).toContain(
+      '하위 작업',
+    );
+
+    // 순환·자기 자신·비참여자는 거부
+    await expect(
+      projects.saveItem(
+        member,
+        projectId,
+        { kind: 'ISSUE', title: '출결 알림 누락', parentId: childId },
+        issueId,
+      ),
+    ).rejects.toThrow();
+    await expect(
+      projects.saveItem(
+        owner,
+        projectId,
+        { kind: 'ISSUE', title: '하위 작업', parentId: childId },
+        childId,
+      ),
+    ).rejects.toThrow();
+    await expect(
+      projects.saveItem(owner, projectId, {
+        kind: 'ISSUE',
+        title: 'x',
+        participantIds: [outsider.id],
+      }),
+    ).rejects.toThrow();
+
+    // 생략한 항목은 유지, 담당 변경 시 배정 시각 갱신, 첨부 목록 교체
+    await ds.query(
+      `UPDATE amb_acm_prj_item SET assigned_at=now()-interval '3 days' WHERE pit_id=$1`,
+      [childId],
+    );
+    await projects.saveItem(
+      owner,
+      projectId,
+      { kind: 'ISSUE', title: '하위 작업', assigneeId: owner.id },
+      childId,
+    );
+    const kept = (await issues.get(owner, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
+    expect(kept.pit_done_ratio).toBe(40);
+    expect(kept.participant_ids).toEqual([member.id]);
+    expect(
+      Date.now() - new Date(kept.assigned_at as string).getTime(),
+    ).toBeGreaterThan(2 * 86_400_000);
+    await projects.saveItem(
+      owner,
+      projectId,
+      {
+        kind: 'ISSUE',
+        title: '하위 작업',
+        assigneeId: member.id,
+        attachments: [],
+      },
+      childId,
+    );
+    const moved = (await issues.get(owner, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
+    expect(
+      Date.now() - new Date(moved.assigned_at as string).getTime(),
+    ).toBeLessThan(60_000);
+    expect(moved.attachments).toHaveLength(0);
+  });
+
   it('delete is limited to the reporter or a project manager', async () => {
     const [legacy] = await ds.query<{ pit_id: string }[]>(
       `SELECT pit_id FROM amb_acm_prj_item WHERE pit_title='legacy todo'`,
     );
     await expect(issues.remove(member, legacy.pit_id)).rejects.toThrow();
     await issues.remove(owner, legacy.pit_id);
-    expect((await issues.list(owner, {})).total).toBe(2);
+    expect((await issues.list(owner, {})).total).toBe(3);
   });
 });

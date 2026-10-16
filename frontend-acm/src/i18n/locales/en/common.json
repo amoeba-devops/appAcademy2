@@ -1318,7 +1318,13 @@
       "status": "Status",
       "title": "Title",
       "type": "Type",
-      "updatedAt": "Updated"
+      "updatedAt": "Updated",
+      "parentIssue": "Parent issue",
+      "participants": "Participants",
+      "attachments": "Attachments",
+      "doneRatio": "Progress",
+      "resolution": "Resolution",
+      "source": "Source"
     },
     "filters": {
       "allAssignees": "All assignees",
@@ -1332,7 +1338,30 @@
       "editTitle": "Edit issue",
       "pickProject": "Select project",
       "save": "Save",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "searchProjectPlaceholder": "Search projects...",
+      "parentIssuePlaceholder": "Search parent issue...",
+      "titlePlaceholder": "Enter issue title",
+      "descriptionPlaceholder": "Describe the issue in detail",
+      "assigneePlaceholder": "Search assignee...",
+      "participantAdd": "Add participant",
+      "fileAttachment": "File Attachment",
+      "tabFileUpload": "File Upload",
+      "tabUrlRegister": "URL",
+      "uploading": "Uploading...",
+      "dragDropText": "Drag files here or click to browse",
+      "uploadHint": "Saved to project files (company Google Drive or ACM storage, max 20MB)",
+      "pickProjectFirst": "Select a project first",
+      "urlPlaceholder": "Enter URL to attach (e.g. Google Drive, web link)",
+      "urlHint": "You can enter a Google Drive link or external URL",
+      "urlAdd": "Add",
+      "resolutionPlaceholder": "Describe the resolution",
+      "doneRatio": "Progress",
+      "uploadFailed": "File upload failed",
+      "draftFound": "An auto-saved draft was found.",
+      "draftRestore": "Restore",
+      "draftDiscard": "Discard",
+      "noMatch": "No results"
     },
     "loading": "Loading…",
     "noDescription": "No description.",
@@ -1345,7 +1374,7 @@
       "created": "Created by me"
     },
     "search": "Search",
-    "searchPlaceholder": "Search title",
+    "searchPlaceholder": "Search title or number (ISS-n)",
     "sortLabel": "Sort",
     "sort": {
       "created_desc": "Newest",
@@ -1390,39 +1419,219 @@
     "view": {
       "list": "List",
       "kanban": "Kanban"
-    }
+    },
+    "migratedFrom": "Migrated from AMA {{ref}}"
   },
   "myWork": {
-    "title": "My work",
-    "subtitle": "{{total}} open · {{overdue}} overdue",
+    "title": "My Work",
+    "newWork": "New work",
+    "searchPlaceholder": "Search work...",
+    "subtitle": "{{total}} assigned to me · {{overdue}} overdue",
+    "view": {
+      "today": "Today",
+      "project": "My projects",
+      "kanban": "Kanban"
+    },
     "kpi": {
-      "assigned": "Assigned",
+      "assignedIssues": "My issues",
+      "assignedIssuesSub": "Open issues assigned to me",
+      "assignedToday": "Assigned today",
+      "assignedTodaySub": "Newly received today",
       "overdue": "Overdue",
+      "overdueSub": "Handle now",
       "today": "Due today",
-      "week": "Due this week",
-      "doneToday": "Done today"
+      "todaySub": "Assigned to me",
+      "week": "Due in 7 days",
+      "weekSub": "Assigned to me",
+      "doneToday": "Done today",
+      "doneTodaySub": "Assigned to me"
     },
     "relation": {
-      "assigned": "Assigned",
-      "created": "Created by me"
+      "label": "Relation",
+      "ASSIGNED": "Assigned",
+      "REPORTER": "Created by me",
+      "PARTICIPANT": "Participating",
+      "hint": "Counts may overlap between relations"
     },
-    "sections": {
-      "now": "Handle today ({{count}})",
-      "later": "Later ({{count}})",
-      "done": "Done today ({{count}})"
+    "relationList": {
+      "REPORTER": "Work I created · shows current assignee and status",
+      "PARTICIPANT": "Work I participate in"
     },
-    "bucket": {
+    "filter": {
+      "all": "All",
+      "project": "Project"
+    },
+    "type": {
+      "ISSUE": "Issue"
+    },
+    "noProject": "No project",
+    "focus": {
+      "title": "Handle today",
+      "hint": "Overdue · Due today",
+      "filtered": "Only {{reason}}",
+      "clearFilter": "Show all",
+      "empty": "Nothing to handle today.",
+      "emptyStats": "In progress {{open}} · No due date {{noDue}}",
+      "showRest": "Show other work"
+    },
+    "rest": {
+      "title": "Other work",
+      "hint": "Issues assigned to me and issues I created",
+      "legend": "□ pick to complete in bulk · ○ complete"
+    },
+    "origin": {
+      "ASSIGNED_BY_OTHERS": "Assigned to me",
+      "MY_OWN": "My own issues",
+      "CREATED_AWAITING": "Created by me · awaiting",
+      "DONE_TODAY": "Done today"
+    },
+    "originHint": {
+      "ASSIGNED_BY_OTHERS": "Issues others wrote and assigned to me",
+      "MY_OWN": "Issues I created and own",
+      "CREATED_AWAITING": "Issues I created that have not started (not mine)",
+      "DONE_TODAY": ""
+    },
+    "originSummary": {
+      "overdue": "{{count}} overdue",
+      "today": "{{count}} today"
+    },
+    "reason": {
       "OVERDUE": "Overdue",
-      "TODAY": "Today"
+      "TODAY": "Due today"
     },
-    "due": "Due {{date}}",
-    "noDue": "No due date",
-    "start": "Start",
-    "complete": "Done",
-    "empty": "Nothing here.",
-    "emptyNow": "Nothing due today.",
-    "openFull": "Open issue",
-    "selectHint": "Select an item to see details."
+    "action": {
+      "START": "Start",
+      "complete": "Complete"
+    },
+    "badge": "Mine",
+    "assigneeLine": "Assignee: {{name}}",
+    "noAssignee": "Unassigned",
+    "role": {
+      "ASSIGNEE": "Assignee",
+      "REPORTER": "Creator",
+      "PARTICIPANT": "Participant"
+    },
+    "due": {
+      "late": "D+{{n}}",
+      "today": "Today",
+      "soon": "D-{{n}}",
+      "none": "No due date"
+    },
+    "assignedAge": "Assigned {{date}} - {{days}}d ago",
+    "createdAge": "{{date}} - {{days}}d ago",
+    "days": "{{n}}d",
+    "assignedAgeTitle": "Date assigned to me · days elapsed",
+    "createdAgeTitle": "Issue created · days elapsed",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect",
+    "pick": "Pick to complete in bulk",
+    "saveBar": {
+      "selected": "{{count}} selected",
+      "clear": "Clear",
+      "complete": "Complete"
+    },
+    "filterEmpty": "No work matches the selected relation, project or search.",
+    "resetFilter": "Reset filters",
+    "emptyInvolved": "None",
+    "card": {
+      "ASSIGNED_TODAY": "Only {{count}} assigned today",
+      "DONE_TODAY": "Only {{count}} done today",
+      "WEEK": "Only {{count}} due in 7 days",
+      "empty": "No matching work",
+      "clear": "Show all"
+    },
+    "panel": {
+      "detail": "Work detail"
+    },
+    "detailTab": {
+      "info": "Detail",
+      "history": "History"
+    },
+    "detail": {
+      "empty": "Select an item to see its detail.",
+      "project": "Project",
+      "parentIssue": "Parent issue",
+      "author": "Author",
+      "roles": "My role",
+      "due": "Due",
+      "assignedAt": "Assigned",
+      "createdAt": "Created",
+      "dateAge": "{{date}} ({{days}}d ago)",
+      "complete": "Complete",
+      "open": "Open full page",
+      "progress": "Progress"
+    },
+    "kanban": {
+      "col": {
+        "WAITING": "Waiting",
+        "DOING": "In progress",
+        "DONE": "Done (today)"
+      },
+      "colHint": {
+        "WAITING": "Open",
+        "DOING": "In progress",
+        "DONE": "Done"
+      },
+      "notice": "Kanban shows only issues assigned to me. Click a card to open its detail on the right.",
+      "empty": "None",
+      "own": "Mine",
+      "assignedByOthers": "Assigned",
+      "assignedDays": "Assigned {{n}}d"
+    },
+    "projects": {
+      "title": "My projects",
+      "statusActive": "Active",
+      "statusAll": "All statuses",
+      "search": "Search projects",
+      "col": {
+        "project": "Project",
+        "status": "Status",
+        "role": "My role",
+        "focus": "Today"
+      },
+      "role": {
+        "OWNER": "Owner",
+        "MANAGER": "Manager",
+        "MEMBER": "Member"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "DONE": "Done",
+        "ARCHIVED": "Archived"
+      },
+      "empty": "You are not in any project",
+      "selected": "{{name}} · {{count}}",
+      "openProject": "Open project",
+      "emptyWork": "No work in this project"
+    },
+    "complete": {
+      "titleIssueOne": "Complete this issue?",
+      "titleMany": "Complete {{count}} selected items?",
+      "issueStatus": "Issue completion status",
+      "skipNote": "Issues that cannot be completed from their current status are skipped and reported.",
+      "cancel": "Cancel",
+      "confirm": "Complete",
+      "confirmMany": "Complete {{count}}",
+      "running": "Processing {{done}}/{{total}}",
+      "tooMany": "You can complete up to {{max}} at once.",
+      "failLine": "{{title}} — {{reason}}",
+      "keepPicked": "Failed items stay selected.",
+      "doneTitle": "Completed",
+      "doneMsg": "Completed {{count}}.",
+      "partialTitle": "Partially completed",
+      "partialMsg": "{{ok}} done · {{fail}} failed",
+      "failedTitle": "Could not complete"
+    },
+    "started": {
+      "title": "Started",
+      "msg": "Moved '{{title}}' to in progress.",
+      "failTitle": "Could not start"
+    },
+    "created": {
+      "title": "Created",
+      "msg": "Created issue '{{title}}'."
+    },
+    "confirm": "OK"
   },
   "myPage": {
     "title": "My page",

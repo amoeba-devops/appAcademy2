@@ -214,16 +214,21 @@ export class ProjectService {
       throw new BadRequestException('시작일은 마감일보다 늦을 수 없습니다.');
     // REQ-261015C — 이슈 상태 전이 검사 + 이력.
     let before: string | undefined;
+    let prevAssignee: string | null = null;
     if (itemId && d.kind === 'ISSUE') {
-      const [cur] = await this.ds.query<{ pit_status: string }[]>(
-        `SELECT pit_status FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='ISSUE' AND deleted_at IS NULL`,
+      const [cur] = await this.ds.query<
+        { pit_status: string; assignee_id: string | null }[]
+      >(
+        `SELECT pit_status,assignee_id FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='ISSUE' AND deleted_at IS NULL`,
         [u.entId, id, itemId],
       );
       if (!cur) throw new NotFoundException();
       before = cur.pit_status;
+      prevAssignee = cur.assignee_id;
       if (d.status && !canTransition(before, d.status))
         throw new BadRequestException('허용되지 않는 상태 변경입니다.');
     }
+    if (d.kind === 'ISSUE') await this.checkIssueLinks(u, id, d, itemId);
     const status = d.status ?? before ?? 'OPEN';
     const values = [
       u.entId,
@@ -248,6 +253,15 @@ export class ProjectService {
             [...values, d.kind, u.id],
           );
       if (!saved) throw new NotFoundException();
+      if (d.kind === 'ISSUE')
+        await this.saveIssueExtras(
+          m,
+          u,
+          id,
+          saved.pit_id as string,
+          d,
+          !itemId || prevAssignee !== (d.assigneeId ?? null),
+        );
       if (d.kind === 'ISSUE' && before !== status)
         await m.query(
           `INSERT INTO amb_acm_prj_issue_status_log(ent_id,pit_id,from_status,to_status,changed_by) VALUES($1,$2,$3,$4,$5)`,
@@ -260,6 +274,138 @@ export class ProjectService {
       return saved;
     });
     return row;
+  }
+  /**
+   * REQ-261016C — 상위 이슈(같은 프로젝트, 순환 금지)·참여자(프로젝트 참여자, 담당 제외) 검사.
+   */
+  private async checkIssueLinks(
+    u: AcmCurrentUser,
+    id: string,
+    d: ItemDto,
+    itemId?: string,
+  ) {
+    if (d.parentId) {
+      if (d.parentId === itemId)
+        throw new BadRequestException(
+          '자기 자신을 상위 이슈로 지정할 수 없습니다.',
+        );
+      const chain = await this.ds.query<{ pit_id: string }[]>(
+        `WITH RECURSIVE up AS (
+           SELECT pit_id,pit_parent_id,prj_id,1 AS depth FROM amb_acm_prj_item
+            WHERE ent_id=$1 AND pit_id=$2 AND pit_kind='ISSUE' AND deleted_at IS NULL
+           UNION ALL
+           SELECT i.pit_id,i.pit_parent_id,i.prj_id,up.depth+1 FROM amb_acm_prj_item i JOIN up ON i.pit_id=up.pit_parent_id
+            WHERE i.ent_id=$1 AND up.depth<50)
+         SELECT pit_id FROM up WHERE prj_id=$3`,
+        [u.entId, d.parentId, id],
+      );
+      if (!chain.length)
+        throw new BadRequestException(
+          '같은 프로젝트의 이슈만 상위 이슈로 지정할 수 있습니다.',
+        );
+      if (itemId && chain.some((c) => c.pit_id === itemId))
+        throw new BadRequestException(
+          '하위 이슈를 상위 이슈로 지정할 수 없습니다.',
+        );
+    }
+    const participants = (d.participantIds ?? []).filter(
+      (p) => p !== d.assigneeId,
+    );
+    if (participants.length) {
+      const rows = await this.ds.query<{ usr_id: string }[]>(
+        `SELECT usr_id FROM amb_acm_prj_member WHERE ent_id=$1 AND prj_id=$2 AND usr_id=ANY($3::uuid[])`,
+        [u.entId, id, participants],
+      );
+      if (rows.length !== new Set(participants).size)
+        throw new BadRequestException('프로젝트 참여자만 지정할 수 있습니다.');
+    }
+  }
+  /** 참여자·첨부·진행률·상위 이슈·해결 내용·배정 시각. 생략한 항목은 그대로 둔다. */
+  private async saveIssueExtras(
+    m: EntityManager,
+    u: AcmCurrentUser,
+    id: string,
+    pitId: string,
+    d: ItemDto,
+    reassigned: boolean,
+  ) {
+    await m.query(
+      `UPDATE amb_acm_prj_item SET
+         pit_parent_id=CASE WHEN $3 THEN $4::uuid ELSE pit_parent_id END,
+         pit_done_ratio=COALESCE($5::smallint,pit_done_ratio),
+         pit_resolution=COALESCE($6::text,pit_resolution),
+         assigned_at=CASE WHEN assignee_id IS NULL THEN NULL
+                          WHEN assigned_at IS NULL OR $7::boolean THEN now()
+                          ELSE assigned_at END
+       WHERE ent_id=$1 AND pit_id=$2`,
+      [
+        u.entId,
+        pitId,
+        d.parentId !== undefined,
+        d.parentId ?? null,
+        d.doneRatio ?? null,
+        d.resolution ?? null,
+        reassigned,
+      ],
+    );
+    if (d.participantIds) {
+      const ids = [...new Set(d.participantIds)].filter(
+        (p) => p !== d.assigneeId,
+      );
+      await m.query(
+        `DELETE FROM amb_acm_prj_issue_participant WHERE ent_id=$1 AND pit_id=$2 AND NOT (usr_id=ANY($3::uuid[]))`,
+        [u.entId, pitId, ids],
+      );
+      await m.query(
+        `INSERT INTO amb_acm_prj_issue_participant(ent_id,pit_id,usr_id) SELECT $1,$2,unnest($3::uuid[]) ON CONFLICT DO NOTHING`,
+        [u.entId, pitId, ids],
+      );
+    }
+    if (d.attachments) {
+      const keep: string[] = [];
+      for (const a of d.attachments) {
+        let fileItemId: string | null = null;
+        let size: number | null = null;
+        if (a.fileItemId || a.driveFileId) {
+          const [f] = await m.query<
+            { pit_id: string; drive_size: string | null }[]
+          >(
+            `SELECT pit_id,drive_size FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND deleted_at IS NULL AND (pit_id=$3::uuid OR drive_file_id=$4) LIMIT 1`,
+            [u.entId, id, a.fileItemId ?? null, a.driveFileId ?? null],
+          );
+          if (!f)
+            throw new BadRequestException('첨부 파일을 찾을 수 없습니다.');
+          fileItemId = f.pit_id;
+          size = f.drive_size == null ? null : Number(f.drive_size);
+        } else if (!a.url) {
+          throw new BadRequestException('첨부 파일 또는 URL을 지정하세요.');
+        }
+        const [existing] = await m.query<{ pia_id: string }[]>(
+          `SELECT pia_id FROM amb_acm_prj_issue_attachment WHERE ent_id=$1 AND pit_id=$2 AND deleted_at IS NULL AND (file_item_id=$3::uuid OR (file_item_id IS NULL AND pia_url=$4)) LIMIT 1`,
+          [u.entId, pitId, fileItemId, a.url ?? null],
+        );
+        if (existing) keep.push(existing.pia_id);
+        else {
+          const [row] = await m.query<{ pia_id: string }[]>(
+            `INSERT INTO amb_acm_prj_issue_attachment(ent_id,pit_id,file_item_id,pia_url,pia_name,pia_size,created_by) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING pia_id`,
+            [
+              u.entId,
+              pitId,
+              fileItemId,
+              fileItemId ? null : a.url,
+              a.name.trim(),
+              size,
+              u.id,
+            ],
+          );
+          keep.push(row.pia_id);
+        }
+      }
+      await m.query(
+        `UPDATE amb_acm_prj_issue_attachment SET deleted_at=now() WHERE ent_id=$1 AND pit_id=$2 AND deleted_at IS NULL AND NOT (pia_id=ANY($3::uuid[]))`,
+        [u.entId, pitId, keep],
+      );
+    }
   }
   async saveDocument(
     u: AcmCurrentUser,

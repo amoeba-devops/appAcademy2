@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ISSUE_STATUSES, ISSUE_TYPES } from './issue.dto';
 import {
   ArrayMaxSize,
@@ -5,6 +6,8 @@ import {
   IsIn,
   IsInt,
   IsISO8601,
+  IsUrl,
+  ValidateNested,
   Max,
   Min,
   IsOptional,
@@ -40,6 +43,31 @@ export class ItemDto {
   @IsOptional() @IsIn(ISSUE_TYPES) issueType?: string;
   @IsOptional() @IsInt() @Min(1) @Max(5) priority?: number;
   @IsOptional() @IsISO8601({ strict: true }) startDate?: string | null;
+  // REQ-261016C — AMA 이슈 작성 화면 동일화
+  @IsOptional() @IsUUID() parentId?: string | null;
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(50)
+  @IsUUID('all', { each: true })
+  participantIds?: string[];
+  @IsOptional() @IsInt() @Min(0) @Max(100) doneRatio?: number;
+  @IsOptional() @IsString() @MaxLength(10000) resolution?: string;
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => IssueAttachmentDto)
+  attachments?: IssueAttachmentDto[];
+}
+/** 첨부: 프로젝트 파일(ACM 저장소 pit_id 또는 Drive 파일 ID) 또는 URL 중 하나. */
+export class IssueAttachmentDto {
+  @IsOptional() @IsUUID() fileItemId?: string;
+  @IsOptional() @Matches(/^[a-zA-Z0-9_-]{1,200}$/) driveFileId?: string;
+  @IsOptional()
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  @MaxLength(1000)
+  url?: string;
+  @IsString() @MinLength(1) @MaxLength(255) name!: string;
 }
 export class DriveFileDto {
   @IsString() @Matches(/^[a-zA-Z0-9_-]{1,200}$/) fileId!: string;

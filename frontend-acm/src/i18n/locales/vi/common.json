@@ -1318,7 +1318,13 @@
       "status": "Trạng thái",
       "title": "Tiêu đề",
       "type": "Loại",
-      "updatedAt": "Ngày cập nhật"
+      "updatedAt": "Ngày cập nhật",
+      "parentIssue": "Vấn đề cha",
+      "participants": "Người liên quan",
+      "attachments": "Tệp đính kèm",
+      "doneRatio": "Tiến độ",
+      "resolution": "Giải pháp",
+      "source": "Nguồn"
     },
     "filters": {
       "allAssignees": "Tất cả người phụ trách",
@@ -1332,7 +1338,30 @@
       "editTitle": "Sửa vấn đề",
       "pickProject": "Chọn dự án",
       "save": "Lưu",
-      "saving": "Đang lưu…"
+      "saving": "Đang lưu…",
+      "searchProjectPlaceholder": "Tìm kiếm dự án...",
+      "parentIssuePlaceholder": "Tìm kiếm vấn đề cha...",
+      "titlePlaceholder": "Nhập tiêu đề vấn đề",
+      "descriptionPlaceholder": "Mô tả chi tiết vấn đề",
+      "assigneePlaceholder": "Tìm người phụ trách...",
+      "participantAdd": "Thêm người liên quan",
+      "fileAttachment": "Tệp đính kèm",
+      "tabFileUpload": "Tải tệp lên",
+      "tabUrlRegister": "URL",
+      "uploading": "Đang tải lên...",
+      "dragDropText": "Kéo tệp vào đây hoặc nhấp để chọn",
+      "uploadHint": "Lưu vào tệp dự án (Google Drive công ty hoặc kho ACM, tối đa 20MB)",
+      "pickProjectFirst": "Hãy chọn dự án trước",
+      "urlPlaceholder": "Nhập URL để đính kèm (ví dụ: Google Drive, liên kết web)",
+      "urlHint": "Bạn có thể nhập liên kết Google Drive hoặc URL bên ngoài",
+      "urlAdd": "Thêm",
+      "resolutionPlaceholder": "Mô tả giải pháp",
+      "doneRatio": "Tiến độ",
+      "uploadFailed": "Tải tệp lên thất bại",
+      "draftFound": "Có bản nháp đã được lưu tự động.",
+      "draftRestore": "Khôi phục",
+      "draftDiscard": "Xóa",
+      "noMatch": "Không có kết quả"
     },
     "loading": "Đang tải…",
     "noDescription": "Không có mô tả.",
@@ -1345,7 +1374,7 @@
       "created": "Tôi tạo"
     },
     "search": "Tìm",
-    "searchPlaceholder": "Tìm theo tiêu đề",
+    "searchPlaceholder": "Tìm tiêu đề hoặc số (ISS-n)",
     "sortLabel": "Sắp xếp",
     "sort": {
       "created_desc": "Mới tạo nhất",
@@ -1390,39 +1419,219 @@
     "view": {
       "list": "Danh sách",
       "kanban": "Kanban"
-    }
+    },
+    "migratedFrom": "Chuyển từ AMA {{ref}}"
   },
   "myWork": {
     "title": "Công việc của tôi",
-    "subtitle": "{{total}} đang mở · {{overdue}} trễ hạn",
+    "newWork": "Công việc mới",
+    "searchPlaceholder": "Tìm công việc...",
+    "subtitle": "Tôi phụ trách {{total}} · trễ hạn {{overdue}}",
+    "view": {
+      "today": "Hôm nay",
+      "project": "Dự án của tôi",
+      "kanban": "Kanban"
+    },
     "kpi": {
-      "assigned": "Được giao",
+      "assignedIssues": "Vấn đề của tôi",
+      "assignedIssuesSub": "Vấn đề đang phụ trách",
+      "assignedToday": "Giao hôm nay",
+      "assignedTodaySub": "Mới nhận hôm nay",
       "overdue": "Trễ hạn",
+      "overdueSub": "Xử lý ngay",
       "today": "Hạn hôm nay",
-      "week": "Hạn tuần này",
-      "doneToday": "Xong hôm nay"
+      "todaySub": "Tôi phụ trách",
+      "week": "Hạn trong 7 ngày",
+      "weekSub": "Tôi phụ trách",
+      "doneToday": "Xong hôm nay",
+      "doneTodaySub": "Tôi phụ trách"
     },
     "relation": {
-      "assigned": "Được giao",
-      "created": "Tôi tạo"
+      "label": "Quan hệ",
+      "ASSIGNED": "Tôi phụ trách",
+      "REPORTER": "Tôi tạo",
+      "PARTICIPANT": "Tham gia",
+      "hint": "Số lượng giữa các quan hệ có thể trùng nhau"
     },
-    "sections": {
-      "now": "Xử lý hôm nay ({{count}})",
-      "later": "Sau này ({{count}})",
-      "done": "Xong hôm nay ({{count}})"
+    "relationList": {
+      "REPORTER": "Công việc tôi tạo · hiển thị người phụ trách và trạng thái",
+      "PARTICIPANT": "Công việc tôi tham gia"
     },
-    "bucket": {
+    "filter": {
+      "all": "Tất cả",
+      "project": "Dự án"
+    },
+    "type": {
+      "ISSUE": "Vấn đề"
+    },
+    "noProject": "Không có dự án",
+    "focus": {
+      "title": "Xử lý hôm nay",
+      "hint": "Trễ hạn · Hạn hôm nay",
+      "filtered": "Chỉ {{reason}}",
+      "clearFilter": "Xem tất cả",
+      "empty": "Hôm nay không có việc cần xử lý.",
+      "emptyStats": "Đang làm {{open}} · Chưa có hạn {{noDue}}",
+      "showRest": "Xem công việc khác"
+    },
+    "rest": {
+      "title": "Công việc khác",
+      "hint": "Vấn đề được giao và vấn đề tôi tạo",
+      "legend": "□ chọn để hoàn thành hàng loạt · ○ hoàn thành"
+    },
+    "origin": {
+      "ASSIGNED_BY_OTHERS": "Được giao",
+      "MY_OWN": "Vấn đề tôi tạo và phụ trách",
+      "CREATED_AWAITING": "Tôi tạo · chờ phản hồi",
+      "DONE_TODAY": "Xong hôm nay"
+    },
+    "originHint": {
+      "ASSIGNED_BY_OTHERS": "Người khác tạo và giao cho tôi",
+      "MY_OWN": "Tôi tạo và tôi phụ trách",
+      "CREATED_AWAITING": "Tôi tạo, chưa bắt đầu (không phải tôi phụ trách)",
+      "DONE_TODAY": ""
+    },
+    "originSummary": {
+      "overdue": "Trễ {{count}}",
+      "today": "Hôm nay {{count}}"
+    },
+    "reason": {
       "OVERDUE": "Trễ hạn",
-      "TODAY": "Hôm nay"
+      "TODAY": "Hạn hôm nay"
     },
-    "due": "Hạn {{date}}",
-    "noDue": "Không có hạn",
-    "start": "Bắt đầu",
-    "complete": "Xong",
-    "empty": "Không có mục nào.",
-    "emptyNow": "Hôm nay không có việc đến hạn.",
-    "openFull": "Mở vấn đề",
-    "selectHint": "Chọn một mục để xem chi tiết."
+    "action": {
+      "START": "Bắt đầu",
+      "complete": "Hoàn thành"
+    },
+    "badge": "Phụ trách",
+    "assigneeLine": "Phụ trách: {{name}}",
+    "noAssignee": "Chưa giao",
+    "role": {
+      "ASSIGNEE": "Phụ trách",
+      "REPORTER": "Người tạo",
+      "PARTICIPANT": "Tham gia"
+    },
+    "due": {
+      "late": "D+{{n}}",
+      "today": "Hôm nay",
+      "soon": "D-{{n}}",
+      "none": "Không có hạn"
+    },
+    "assignedAge": "Giao {{date}} - {{days}} ngày",
+    "createdAge": "{{date}} - {{days}} ngày",
+    "days": "{{n}} ngày",
+    "assignedAgeTitle": "Ngày được giao · số ngày",
+    "createdAgeTitle": "Ngày tạo · số ngày",
+    "selectAll": "Chọn tất cả",
+    "deselectAll": "Bỏ chọn",
+    "pick": "Chọn để hoàn thành hàng loạt",
+    "saveBar": {
+      "selected": "Đã chọn {{count}}",
+      "clear": "Bỏ chọn",
+      "complete": "Hoàn thành"
+    },
+    "filterEmpty": "Không có công việc phù hợp với quan hệ, dự án hoặc tìm kiếm.",
+    "resetFilter": "Đặt lại bộ lọc",
+    "emptyInvolved": "Không có",
+    "card": {
+      "ASSIGNED_TODAY": "Chỉ {{count}} được giao hôm nay",
+      "DONE_TODAY": "Chỉ {{count}} xong hôm nay",
+      "WEEK": "Chỉ {{count}} hạn trong 7 ngày",
+      "empty": "Không có công việc",
+      "clear": "Xem tất cả"
+    },
+    "panel": {
+      "detail": "Chi tiết công việc"
+    },
+    "detailTab": {
+      "info": "Chi tiết",
+      "history": "Lịch sử"
+    },
+    "detail": {
+      "empty": "Chọn một mục để xem chi tiết.",
+      "project": "Dự án",
+      "parentIssue": "Vấn đề cha",
+      "author": "Người tạo",
+      "roles": "Vai trò",
+      "due": "Hạn",
+      "assignedAt": "Ngày giao",
+      "createdAt": "Ngày tạo",
+      "dateAge": "{{date}} ({{days}} ngày)",
+      "complete": "Hoàn thành",
+      "open": "Mở toàn trang",
+      "progress": "Tiến độ"
+    },
+    "kanban": {
+      "col": {
+        "WAITING": "Chờ",
+        "DOING": "Đang làm",
+        "DONE": "Xong (hôm nay)"
+      },
+      "colHint": {
+        "WAITING": "Mở",
+        "DOING": "Đang làm",
+        "DONE": "Xong"
+      },
+      "notice": "Kanban chỉ hiển thị vấn đề tôi phụ trách. Nhấn thẻ để xem chi tiết bên phải.",
+      "empty": "Không có",
+      "own": "Tôi tạo",
+      "assignedByOthers": "Được giao",
+      "assignedDays": "Giao {{n}} ngày"
+    },
+    "projects": {
+      "title": "Dự án của tôi",
+      "statusActive": "Đang hoạt động",
+      "statusAll": "Mọi trạng thái",
+      "search": "Tìm dự án",
+      "col": {
+        "project": "Dự án",
+        "status": "Trạng thái",
+        "role": "Vai trò",
+        "focus": "Hôm nay"
+      },
+      "role": {
+        "OWNER": "Phụ trách",
+        "MANAGER": "Quản lý",
+        "MEMBER": "Thành viên"
+      },
+      "status": {
+        "ACTIVE": "Đang hoạt động",
+        "DONE": "Hoàn thành",
+        "ARCHIVED": "Lưu trữ"
+      },
+      "empty": "Bạn chưa thuộc dự án nào",
+      "selected": "{{name}} · {{count}}",
+      "openProject": "Mở dự án",
+      "emptyWork": "Không có công việc trong dự án này"
+    },
+    "complete": {
+      "titleIssueOne": "Hoàn thành vấn đề này?",
+      "titleMany": "Hoàn thành {{count}} mục đã chọn?",
+      "issueStatus": "Trạng thái hoàn thành",
+      "skipNote": "Vấn đề không thể hoàn thành từ trạng thái hiện tại sẽ được bỏ qua và báo lại.",
+      "cancel": "Hủy",
+      "confirm": "Hoàn thành",
+      "confirmMany": "Hoàn thành {{count}}",
+      "running": "Đang xử lý {{done}}/{{total}}",
+      "tooMany": "Tối đa {{max}} mục mỗi lần.",
+      "failLine": "{{title}} — {{reason}}",
+      "keepPicked": "Các mục thất bại vẫn được chọn.",
+      "doneTitle": "Đã hoàn thành",
+      "doneMsg": "Đã hoàn thành {{count}}.",
+      "partialTitle": "Hoàn thành một phần",
+      "partialMsg": "Xong {{ok}} · Lỗi {{fail}}",
+      "failedTitle": "Không thể hoàn thành"
+    },
+    "started": {
+      "title": "Đã bắt đầu",
+      "msg": "Đã chuyển '{{title}}' sang đang làm.",
+      "failTitle": "Không thể bắt đầu"
+    },
+    "created": {
+      "title": "Đã tạo",
+      "msg": "Đã tạo vấn đề '{{title}}'."
+    },
+    "confirm": "OK"
   },
   "myPage": {
     "title": "Trang của tôi",
