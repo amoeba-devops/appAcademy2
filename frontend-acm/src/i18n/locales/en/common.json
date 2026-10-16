@@ -1361,7 +1361,11 @@
       "draftFound": "An auto-saved draft was found.",
       "draftRestore": "Restore",
       "draftDiscard": "Discard",
-      "noMatch": "No results"
+      "noMatch": "No results",
+      "assigneeInDetail": "Change the assignee on the issue detail page.",
+      "participantsHint": "Check related people among project members.",
+      "unassignedOption": "Unassigned",
+      "me": "(me)"
     },
     "loading": "Loading…",
     "noDescription": "No description.",
@@ -1402,10 +1406,7 @@
       "REJECTED": "Reject"
     },
     "type": {
-      "TASK": "Task",
-      "FEATURE": "Feature",
-      "BUG": "Bug",
-      "OPINION": "Opinion",
+      "TASK": "Work request",
       "OTHER": "Other"
     },
     "priority": {
@@ -1420,7 +1421,19 @@
       "list": "List",
       "kanban": "Kanban"
     },
-    "migratedFrom": "Migrated from AMA {{ref}}"
+    "migratedFrom": "Migrated from AMA {{ref}}",
+    "assign": {
+      "title": "Assignee",
+      "current": "Current: {{name}}",
+      "none": "Unassigned",
+      "pick": "Select the person to assign",
+      "assign": "Assign",
+      "unassign": "Unassign",
+      "confirm": "Assign this issue to {{name}}?",
+      "confirmUnassign": "Remove the assignee?",
+      "currentTag": "Current"
+    },
+    "historyAssignee": "Assignee changed: {{from}} → {{to}}"
   },
   "myWork": {
     "title": "My Work",

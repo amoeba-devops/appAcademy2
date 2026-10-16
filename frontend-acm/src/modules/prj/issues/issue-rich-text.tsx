@@ -17,6 +17,15 @@ export function toHtml(v: string) {
     .map((p) => `<p>${p.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</p>`)
     .join("");
 }
+/** 목록 미리보기용 — 문단·줄바꿈은 줄바꿈으로, 나머지 태그는 제거(비활성 문서로 파싱). */
+export function plainText(v: string) {
+  if (!isHtml(v)) return v;
+  const doc = new DOMParser().parseFromString(
+    v.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|li|h[1-6]|blockquote)>/gi, "\n"),
+    "text/html",
+  );
+  return (doc.body.textContent ?? "").replace(/\n{3,}/g, "\n\n").trim();
+}
 /** 빈 문단만 있으면 빈 값. */
 export const isBlankHtml = (v: string) => !v.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
 
@@ -27,10 +36,13 @@ export function IssueRichEditor({
   value,
   onChange,
   placeholder,
+  compact = false,
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  /** REQ-261016D — 댓글용 낮은 높이 */
+  compact?: boolean;
 }) {
   const editor = useEditor({
     extensions: [StarterKit.configure({ link: { openOnClick: false, autolink: true } })],
@@ -38,7 +50,7 @@ export function IssueRichEditor({
     onUpdate: ({ editor: e }) => onChange(e.isEmpty ? "" : e.getHTML()),
     editorProps: {
       attributes: {
-        class: `${prose} min-h-[120px] max-h-[300px] overflow-y-auto px-3 py-2 focus:outline-none`,
+        class: `${prose} ${compact ? "min-h-[72px] max-h-[240px]" : "min-h-[120px] max-h-[300px]"} overflow-y-auto px-3 py-2 focus:outline-none`,
         "aria-label": placeholder ?? "",
         "data-placeholder": placeholder ?? "",
       },

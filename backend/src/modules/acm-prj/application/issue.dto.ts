@@ -18,13 +18,8 @@ export const ISSUE_STATUSES = [
   'REJECTED',
 ] as const;
 export type IssueStatus = (typeof ISSUE_STATUSES)[number];
-export const ISSUE_TYPES = [
-  'TASK',
-  'FEATURE',
-  'BUG',
-  'OPINION',
-  'OTHER',
-] as const;
+/** REQ-261016D — 업무요청(TASK) · 기타(OTHER) 2종. */
+export const ISSUE_TYPES = ['TASK', 'OTHER'] as const;
 export const ISSUE_SORTS = [
   'created_desc',
   'updated_desc',
@@ -73,5 +68,18 @@ export class IssueStatusDto {
 }
 
 export class IssueCommentDto {
-  @IsString() @MinLength(1) @MaxLength(10000) body!: string;
+  /** REQ-261016D — 리치 텍스트(HTML) 댓글. */
+  @IsString() @MinLength(1) @MaxLength(50000) body!: string;
 }
+
+/** REQ-261016D — 담당자 지정(null = 담당 해제). */
+export class IssueAssigneeDto {
+  @IsOptional() @IsUUID() assigneeId?: string | null;
+}
+
+/** 태그·공백만 있는 HTML 은 빈 내용으로 본다. */
+export const isBlankHtml = (v: string) =>
+  !v
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .trim();

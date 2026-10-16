@@ -171,10 +171,19 @@ function StatusHistory({ id }: { id: string }) {
           <p className="text-gray-400">
             {new Date(l.created_at).toLocaleString()} · {l.changed_by_name ?? "—"}
           </p>
-          <p className="text-gray-700">
-            {l.from_status ? t(`issues.status.${l.from_status}`) : t("issues.created")} →{" "}
-            <strong>{t(`issues.status.${l.to_status}`)}</strong>
-          </p>
+          {l.psl_kind === "ASSIGNEE" ? (
+            <p className="text-gray-700">
+              {t("issues.historyAssignee", {
+                from: l.from_user_name ?? t("issues.unassigned"),
+                to: l.to_user_name ?? t("issues.unassigned"),
+              })}
+            </p>
+          ) : (
+            <p className="text-gray-700">
+              {l.from_status ? t(`issues.status.${l.from_status}`) : t("issues.created")} →{" "}
+              <strong>{t(`issues.status.${l.to_status}`)}</strong>
+            </p>
+          )}
           {l.psl_note && <p className="whitespace-pre-wrap text-gray-500">{l.psl_note}</p>}
         </li>
       ))}

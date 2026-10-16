@@ -1361,7 +1361,11 @@
       "draftFound": "发现自动保存的草稿。",
       "draftRestore": "恢复",
       "draftDiscard": "删除",
-      "noMatch": "没有搜索结果"
+      "noMatch": "没有搜索结果",
+      "assigneeInDetail": "负责人请在问题详情页变更。",
+      "participantsHint": "请在项目成员中勾选相关人员。",
+      "unassignedOption": "未分配",
+      "me": "（我）"
     },
     "loading": "加载中…",
     "noDescription": "无描述。",
@@ -1402,10 +1406,7 @@
       "REJECTED": "驳回"
     },
     "type": {
-      "TASK": "任务",
-      "FEATURE": "功能",
-      "BUG": "缺陷",
-      "OPINION": "意见",
+      "TASK": "工作请求",
       "OTHER": "其他"
     },
     "priority": {
@@ -1420,7 +1421,19 @@
       "list": "列表",
       "kanban": "看板"
     },
-    "migratedFrom": "从 AMA {{ref}} 迁移"
+    "migratedFrom": "从 AMA {{ref}} 迁移",
+    "assign": {
+      "title": "负责人",
+      "current": "当前：{{name}}",
+      "none": "未分配",
+      "pick": "请选择要指定的人",
+      "assign": "指定",
+      "unassign": "取消负责",
+      "confirm": "将负责人指定为 {{name}}？",
+      "confirmUnassign": "取消负责人？",
+      "currentTag": "当前负责"
+    },
+    "historyAssignee": "负责人变更：{{from}} → {{to}}"
   },
   "myWork": {
     "title": "我的工作",
