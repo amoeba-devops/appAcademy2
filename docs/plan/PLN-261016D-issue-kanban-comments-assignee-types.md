@@ -1,7 +1,7 @@
 ---
 document_id: ACM-ISSUE-KANBAN-COMMENT-ASSIGNEE-PLN-1.1.0
 version: 1.1.0
-status: Approved
+status: Deployed
 created: 2026-10-16
 related: REQ-261016D-issue-kanban-comments-assignee-types
 change_log:
