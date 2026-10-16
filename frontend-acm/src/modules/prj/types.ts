@@ -33,7 +33,8 @@ export interface Item {
   pit_title: string;
   pit_body: string;
   pit_status: "OPEN" | "IN_PROGRESS" | "DONE" | "REJECTED";
-  pit_issue_type?: "TASK" | "FEATURE" | "BUG" | "OPINION" | "OTHER";
+  pit_issue_type?: "TASK" | "OTHER";
+  pit_ref_no?: number | null;
   pit_priority?: number;
   start_date?: string | null;
   prj_id?: string;

@@ -1361,7 +1361,11 @@
       "draftFound": "Có bản nháp đã được lưu tự động.",
       "draftRestore": "Khôi phục",
       "draftDiscard": "Xóa",
-      "noMatch": "Không có kết quả"
+      "noMatch": "Không có kết quả",
+      "assigneeInDetail": "Đổi người phụ trách tại trang chi tiết vấn đề.",
+      "participantsHint": "Đánh dấu người liên quan trong thành viên dự án.",
+      "unassignedOption": "Chưa giao",
+      "me": "(tôi)"
     },
     "loading": "Đang tải…",
     "noDescription": "Không có mô tả.",
@@ -1402,10 +1406,7 @@
       "REJECTED": "Từ chối"
     },
     "type": {
-      "TASK": "Công việc",
-      "FEATURE": "Tính năng",
-      "BUG": "Lỗi",
-      "OPINION": "Ý kiến",
+      "TASK": "Yêu cầu công việc",
       "OTHER": "Khác"
     },
     "priority": {
@@ -1420,7 +1421,19 @@
       "list": "Danh sách",
       "kanban": "Kanban"
     },
-    "migratedFrom": "Chuyển từ AMA {{ref}}"
+    "migratedFrom": "Chuyển từ AMA {{ref}}",
+    "assign": {
+      "title": "Người phụ trách",
+      "current": "Hiện tại: {{name}}",
+      "none": "Chưa giao",
+      "pick": "Chọn người cần giao",
+      "assign": "Giao",
+      "unassign": "Bỏ giao",
+      "confirm": "Giao vấn đề này cho {{name}}?",
+      "confirmUnassign": "Bỏ người phụ trách?",
+      "currentTag": "Hiện tại"
+    },
+    "historyAssignee": "Đổi người phụ trách: {{from}} → {{to}}"
   },
   "myWork": {
     "title": "Công việc của tôi",

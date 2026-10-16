@@ -1361,7 +1361,11 @@
       "draftFound": "작성 중이던 임시저장 데이터가 있습니다.",
       "draftRestore": "복원",
       "draftDiscard": "삭제",
-      "noMatch": "검색 결과가 없습니다"
+      "noMatch": "검색 결과가 없습니다",
+      "assigneeInDetail": "담당자는 이슈 상세 화면에서 변경합니다.",
+      "participantsHint": "프로젝트 참여자 중 관련자를 체크하세요.",
+      "unassignedOption": "미배정",
+      "me": "(나)"
     },
     "loading": "불러오는 중…",
     "noDescription": "설명이 없습니다.",
@@ -1402,10 +1406,7 @@
       "REJECTED": "반려"
     },
     "type": {
-      "TASK": "작업",
-      "FEATURE": "기능",
-      "BUG": "버그",
-      "OPINION": "의견",
+      "TASK": "업무요청",
       "OTHER": "기타"
     },
     "priority": {
@@ -1420,7 +1421,19 @@
       "list": "목록",
       "kanban": "칸반"
     },
-    "migratedFrom": "AMA {{ref}}에서 이전"
+    "migratedFrom": "AMA {{ref}}에서 이전",
+    "assign": {
+      "title": "담당자",
+      "current": "현재: {{name}}",
+      "none": "미배정",
+      "pick": "변경할 사람을 선택하세요",
+      "assign": "지정",
+      "unassign": "담당 해제",
+      "confirm": "{{name}}(으)로 담당자를 지정할까요?",
+      "confirmUnassign": "담당자를 해제할까요?",
+      "currentTag": "현재 담당"
+    },
+    "historyAssignee": "담당자 변경: {{from}} → {{to}}"
   },
   "myWork": {
     "title": "내 업무",

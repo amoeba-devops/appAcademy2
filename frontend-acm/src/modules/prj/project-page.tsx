@@ -5,6 +5,8 @@ import { ProjectOverview } from "./project-overview";
 import { projectDocumentPath } from "./document-page";
 import { DriveConnection } from "./drive-connection";
 import { IssueFormDialog } from "./issues/issue-form-dialog";
+import { IssueKanban } from "./issues/issue-kanban";
+import { isBlankHtml, plainText } from "./issues/issue-rich-text";
 import type { Issue } from "./issues/issue-model";
 import {
   useContext,
@@ -420,6 +422,22 @@ export function ProjectDetailPage() {
     [assignee, setAssignee] = useState(""),
     [driveModal, setDriveModal] = useState(false),
     [newDoc, setNewDoc] = useState(false);
+  // REQ-261016D — 이슈 탭 목록/칸반 전환(브라우저에 기억)
+  const [issueView, setIssueView] = useState<"list" | "kanban">(() => {
+    try {
+      return localStorage.getItem("acm-project-issue-view") === "kanban" ? "kanban" : "list";
+    } catch {
+      return "list";
+    }
+  });
+  const switchIssueView = (v: "list" | "kanban") => {
+    setIssueView(v);
+    try {
+      localStorage.setItem("acm-project-issue-view", v);
+    } catch {
+      /* ignore */
+    }
+  };
   const p = useQuery({
     queryKey: ["prj", id, ...useScope()],
     queryFn: async () =>
@@ -627,6 +645,23 @@ export function ProjectDetailPage() {
                 />
                 {kind === "ISSUE" && (
                   <>
+                    <div className="inline-flex rounded border p-0.5" role="tablist">
+                      {(["list", "kanban"] as const).map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          role="tab"
+                          aria-selected={issueView === v}
+                          onClick={() => switchIssueView(v)}
+                          className={
+                            "rounded px-3 py-1 text-sm " +
+                            (issueView === v ? "bg-accent-50 text-accent-700" : "text-secondary")
+                          }
+                        >
+                          {t(`issues.view.${v}`)}
+                        </button>
+                      ))}
+                    </div>
                     <select
                       aria-label="이슈 상태"
                       className={input + " !w-auto"}
@@ -762,6 +797,24 @@ export function ProjectDetailPage() {
                   manage={manage}
                   onEdit={openDoc}
                 />
+              ) : issueView === "kanban" ? (
+                <IssueKanban
+                  showProject={false}
+                  readOnly={readOnly}
+                  items={rows.map((i) => ({
+                    ...i,
+                    pit_ref_no: i.pit_ref_no ?? null,
+                    pit_issue_type: i.pit_issue_type ?? "TASK",
+                    pit_priority: i.pit_priority ?? 3,
+                    assignee_name: project.members?.find((m) => m.id === i.assignee_id)?.name ?? null,
+                  }))}
+                  onMove={(issueId, next) =>
+                    void w.run(async () => {
+                      await apiClient.patch(`${base}/issues/${issueId}/status`, { status: next });
+                      await refresh();
+                    })
+                  }
+                />
               ) : (
                 <div className="grid gap-3">
                   {rows.map((i) => (
@@ -784,9 +837,10 @@ export function ProjectDetailPage() {
                                 ? "· Google 문서"
                                 : ""}
                         </p>
-                        {i.pit_body && (
+                        {!isBlankHtml(i.pit_body) && (
+                          // REQ-261016D — HTML 설명은 태그를 뺀 텍스트로 미리보기
                           <p className="mt-2 line-clamp-3 whitespace-pre-wrap break-words text-sm">
-                            {i.pit_body}
+                            {plainText(i.pit_body)}
                           </p>
                         )}
                       </div>

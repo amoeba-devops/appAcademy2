@@ -5,7 +5,8 @@ import { useScope } from "../project-page";
 /** REQ-261015C — AMA 간소화 모드 이슈 모델 (백엔드 issue.dto.ts 와 동일). */
 export const ISSUE_STATUSES = ["OPEN", "IN_PROGRESS", "DONE", "REJECTED"] as const;
 export type IssueStatus = (typeof ISSUE_STATUSES)[number];
-export const ISSUE_TYPES = ["TASK", "FEATURE", "BUG", "OPINION", "OTHER"] as const;
+/** REQ-261016D — 업무요청(TASK) · 기타(OTHER) 2종. */
+export const ISSUE_TYPES = ["TASK", "OTHER"] as const;
 export type IssueType = (typeof ISSUE_TYPES)[number];
 export const PRIORITIES = [1, 2, 3, 4, 5] as const;
 export const TRANSITIONS: Record<IssueStatus, IssueStatus[]> = {
@@ -89,10 +90,7 @@ export const sourceRef = (i: Pick<Issue, "pit_source_ref">) =>
 
 /** AMA 이슈 유형 칩 색 (IssueFormModal 상위 이슈 목록과 동일). */
 export const TYPE_CHIP: Record<IssueType, string> = {
-  BUG: "bg-red-100 text-red-700",
-  FEATURE: "bg-blue-100 text-blue-700",
   TASK: "bg-green-100 text-green-700",
-  OPINION: "bg-gray-100 text-gray-700",
   OTHER: "bg-gray-100 text-gray-700",
 };
 export interface IssueComment {
@@ -105,8 +103,12 @@ export interface IssueComment {
 }
 export interface IssueStatusLog {
   psl_id: string;
+  /** REQ-261016D — 상태 변경 / 담당자 변경 */
+  psl_kind: "STATUS" | "ASSIGNEE";
   from_status: IssueStatus | null;
-  to_status: IssueStatus;
+  to_status: IssueStatus | null;
+  from_user_name: string | null;
+  to_user_name: string | null;
   psl_note: string;
   changed_by_name: string | null;
   created_at: string;

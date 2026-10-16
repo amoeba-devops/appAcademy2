@@ -225,6 +225,8 @@ export class ProjectService {
       if (!cur) throw new NotFoundException();
       before = cur.pit_status;
       prevAssignee = cur.assignee_id;
+      // REQ-261016D — 수정 창에는 담당자 칸이 없다. 생략하면 현재 담당자를 유지한다.
+      if (d.assigneeId === undefined) d = { ...d, assigneeId: prevAssignee };
       if (d.status && !canTransition(before, d.status))
         throw new BadRequestException('허용되지 않는 상태 변경입니다.');
     }

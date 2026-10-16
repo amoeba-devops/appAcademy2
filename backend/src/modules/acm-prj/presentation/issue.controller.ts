@@ -21,6 +21,7 @@ import {
 } from '../../acm-common/decorators/current-user.decorator';
 import { IssueService } from '../application/issue.service';
 import {
+  IssueAssigneeDto,
   IssueCommentDto,
   IssueListQuery,
   IssueStatusDto,
@@ -54,6 +55,14 @@ export class IssueController {
     @Body() d: IssueStatusDto,
   ) {
     return this.issues.changeStatus(u, id, d.status, d.note);
+  }
+  /** REQ-261016D — 담당자 지정/해제. */
+  @Patch('issues/:id/assignee') assignee(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: IssueAssigneeDto,
+  ) {
+    return this.issues.changeAssignee(u, id, d.assigneeId ?? null);
   }
   @Delete('issues/:id') remove(
     @CurrentUser() u: AcmCurrentUser,

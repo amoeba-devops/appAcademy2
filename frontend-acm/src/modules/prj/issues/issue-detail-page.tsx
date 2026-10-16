@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { errorText, useScope } from "../project-page";
 import { IssueFormDialog } from "./issue-form-dialog";
-import { IssueRichView, isBlankHtml } from "./issue-rich-text";
+import { IssueRichEditor, IssueRichView, isBlankHtml } from "./issue-rich-text";
 import { StatusBadge } from "./issues-page";
 import {
   day,
@@ -21,6 +21,7 @@ import {
   useIssue,
   type IssueAttachment,
   type IssueComment,
+  type IssueDetail,
   type IssueStatus,
   type IssueStatusLog,
 } from "./issue-model";
@@ -208,10 +209,106 @@ export function IssueDetailPage() {
           )}
           {status.error && <p role="alert" className="text-red-600">{errorText(status.error)}</p>}
           {remove.error && <p role="alert" className="text-red-600">{errorText(remove.error)}</p>}
+          <AssigneePanel issue={i} readOnly={archived} />
         </aside>
       </div>
       {editing && <IssueFormDialog issue={i} close={() => setEditing(false)} />}
     </div>
+  );
+}
+
+/**
+ * REQ-261016D — 담당자 지정: 검색 대신 참여자 목록에서 먼저 선택하고 [지정]으로 변경한다.
+ */
+function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: boolean }) {
+  const { t } = useTranslation("common");
+  const qc = useQueryClient();
+  const [picked, setPicked] = useState<string | null>(null);
+  const change = useMutation({
+    mutationFn: async (assigneeId: string | null) =>
+      apiClient.patch(`${issueBase}/issues/${issue.pit_id}/assignee`, { assigneeId }),
+    onSuccess: async () => {
+      setPicked(null);
+      await qc.invalidateQueries({ queryKey: ["prj"] });
+    },
+  });
+  const current = issue.members.find((m) => m.id === issue.assignee_id);
+  const target = issue.members.find((m) => m.id === picked);
+  return (
+    <section className="grid gap-2 border-t pt-3" aria-label={t("issues.assign.title")}>
+      <div className="flex items-center justify-between">
+        <span className="text-secondary">{t("issues.assign.title")}</span>
+        <span className="font-medium">{current?.name ?? issue.assignee_name ?? t("issues.assign.none")}</span>
+      </div>
+      {!readOnly && (
+        <>
+          <p className="text-xs text-secondary">{t("issues.assign.pick")}</p>
+          <ul className="grid max-h-60 gap-1 overflow-y-auto" role="radiogroup">
+            {issue.members.map((m) => {
+              const isCurrent = m.id === issue.assignee_id;
+              const on = picked === m.id;
+              return (
+                <li key={m.id}>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    disabled={isCurrent || change.isPending}
+                    onClick={() => setPicked(m.id)}
+                    className={clsx(
+                      "flex w-full items-center gap-2 rounded-lg border px-2 py-1.5 text-left",
+                      on ? "border-indigo-500 bg-indigo-50" : "border-transparent hover:bg-[var(--gray-50)]",
+                      isCurrent && "cursor-default opacity-70",
+                    )}
+                  >
+                    <span
+                      className={clsx(
+                        "h-3.5 w-3.5 shrink-0 rounded-full border",
+                        on ? "border-indigo-600 bg-indigo-600 ring-2 ring-inset ring-white" : "border-gray-300",
+                      )}
+                    />
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
+                      {m.name.slice(0, 1)}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{m.name}</span>
+                      {m.email && <span className="block truncate text-xs text-secondary">{m.email}</span>}
+                    </span>
+                    {isCurrent && (
+                      <span className="shrink-0 rounded-full bg-indigo-600 px-1.5 text-[10.5px] font-semibold text-white">
+                        {t("issues.assign.currentTag")}
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="flex flex-wrap justify-end gap-2">
+            {issue.assignee_id && (
+              <Button
+                variant="outline"
+                disabled={change.isPending}
+                onClick={() => {
+                  if (window.confirm(t("issues.assign.confirmUnassign"))) change.mutate(null);
+                }}
+              >
+                {t("issues.assign.unassign")}
+              </Button>
+            )}
+            <Button
+              disabled={!target || change.isPending}
+              onClick={() => {
+                if (target && window.confirm(t("issues.assign.confirm", { name: target.name }))) change.mutate(target.id);
+              }}
+            >
+              {t("issues.assign.assign")}
+            </Button>
+          </div>
+        </>
+      )}
+      {change.error && <p role="alert" className="text-red-600">{errorText(change.error)}</p>}
+    </section>
   );
 }
 
@@ -278,10 +375,19 @@ function StatusHistory({ id }: { id: string }) {
       {logs.data?.map((l) => (
         <li key={l.psl_id} className="rounded border bg-surface px-3 py-2">
           <span className="text-secondary">{new Date(l.created_at).toLocaleString()} · {l.changed_by_name ?? "—"}</span>
-          <div>
-            {l.from_status ? t(`issues.status.${l.from_status}`) : t("issues.created")} →{" "}
-            <strong>{t(`issues.status.${l.to_status}`)}</strong>
-          </div>
+          {l.psl_kind === "ASSIGNEE" ? (
+            <div>
+              {t("issues.historyAssignee", {
+                from: l.from_user_name ?? t("issues.unassigned"),
+                to: l.to_user_name ?? t("issues.unassigned"),
+              })}
+            </div>
+          ) : (
+            <div>
+              {l.from_status ? t(`issues.status.${l.from_status}`) : t("issues.created")} →{" "}
+              <strong>{t(`issues.status.${l.to_status}`)}</strong>
+            </div>
+          )}
           {l.psl_note && <p className="whitespace-pre-wrap text-secondary">{l.psl_note}</p>}
         </li>
       ))}
@@ -356,19 +462,13 @@ function Comments({
           </div>
           {edit?.id === c.pic_id ? (
             <div className="grid gap-2">
-              <textarea
-                rows={3}
-                maxLength={10000}
-                className="w-full rounded border bg-surface p-2"
-                value={edit.body}
-                onChange={(e) => setEdit({ id: c.pic_id, body: e.target.value })}
-              />
+              <IssueRichEditor compact value={edit.body} onChange={(v) => setEdit({ id: c.pic_id, body: v })} />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEdit(null)}>
                   {t("issues.form.cancel")}
                 </Button>
                 <Button
-                  disabled={!edit.body.trim() || write.isPending}
+                  disabled={isBlankHtml(edit.body) || write.isPending}
                   onClick={() => write.mutate({ method: "put", id: c.pic_id, body: edit.body })}
                 >
                   {t("issues.form.save")}
@@ -376,7 +476,7 @@ function Comments({
               </div>
             </div>
           ) : (
-            <p className="whitespace-pre-wrap break-words">{c.pic_body}</p>
+            <IssueRichView html={c.pic_body} />
           )}
         </article>
       ))}
@@ -385,20 +485,12 @@ function Comments({
           className="grid gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            if (draft.trim()) write.mutate({ method: "post", body: draft });
+            if (!isBlankHtml(draft)) write.mutate({ method: "post", body: draft });
           }}
         >
-          <textarea
-            rows={3}
-            maxLength={10000}
-            placeholder={t("issues.commentPlaceholder")}
-            aria-label={t("issues.commentPlaceholder")}
-            className="w-full rounded border bg-surface p-2 text-sm"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-          />
+          <IssueRichEditor compact value={draft} onChange={setDraft} placeholder={t("issues.commentPlaceholder")} />
           <div className="flex justify-end">
-            <Button disabled={!draft.trim() || write.isPending}>{t("issues.addComment")}</Button>
+            <Button disabled={isBlankHtml(draft) || write.isPending}>{t("issues.addComment")}</Button>
           </div>
         </form>
       )}

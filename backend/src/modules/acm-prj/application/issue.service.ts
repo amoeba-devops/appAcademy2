@@ -12,6 +12,7 @@ import {
   canTransition,
   ISSUE_STATUSES,
   ISSUE_TYPES,
+  isBlankHtml,
   type IssueListQuery,
 } from './issue.dto';
 import { ProjectService } from './project.service';
@@ -165,6 +166,43 @@ export class IssueService {
     return this.row(u, id);
   }
 
+  /**
+   * REQ-261016D — 담당자 지정/해제. 프로젝트 참여자만, 배정 시각 갱신, 담당 이력 기록.
+   * 새 담당자가 관련자였다면 관련자에서 뺀다.
+   */
+  async changeAssignee(
+    u: AcmCurrentUser,
+    id: string,
+    assigneeId: string | null,
+  ) {
+    const issue = await this.row(u, id);
+    await this.projects.access(u, issue.prj_id, false, true);
+    if (issue.assignee_id === assigneeId) return this.get(u, id);
+    if (assigneeId) {
+      const [m] = await this.ds.query<unknown[]>(
+        `SELECT 1 FROM amb_acm_prj_member WHERE ent_id=$1 AND prj_id=$2 AND usr_id=$3`,
+        [u.entId, issue.prj_id, assigneeId],
+      );
+      if (!m) throw new BadRequestException('프로젝트 참여자를 선택하세요.');
+    }
+    await this.ds.transaction(async (m) => {
+      await m.query(
+        `UPDATE amb_acm_prj_item SET assignee_id=$3,assigned_at=CASE WHEN $3::uuid IS NULL THEN NULL ELSE now() END,updated_at=now() WHERE ent_id=$1 AND pit_id=$2`,
+        [u.entId, id, assigneeId],
+      );
+      if (assigneeId)
+        await m.query(
+          `DELETE FROM amb_acm_prj_issue_participant WHERE ent_id=$1 AND pit_id=$2 AND usr_id=$3`,
+          [u.entId, id, assigneeId],
+        );
+      await m.query(
+        `INSERT INTO amb_acm_prj_issue_status_log(ent_id,pit_id,psl_kind,from_user_id,to_user_id,changed_by) VALUES($1,$2,'ASSIGNEE',$3,$4,$5)`,
+        [u.entId, id, issue.assignee_id, assigneeId, u.id],
+      );
+    });
+    return this.get(u, id);
+  }
+
   /** 삭제: 등록자 또는 프로젝트 관리자. 소프트 삭제. */
   async remove(u: AcmCurrentUser, id: string) {
     const issue = await this.row(u, id);
@@ -183,9 +221,12 @@ export class IssueService {
   async statusLogs(u: AcmCurrentUser, id: string) {
     await this.row(u, id);
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT l.psl_id,l.from_status,l.to_status,l.psl_note,l.created_at,u.usr_name AS changed_by_name
+      `SELECT l.psl_id,l.psl_kind,l.from_status,l.to_status,l.psl_note,l.created_at,u.usr_name AS changed_by_name,
+              fu.usr_name AS from_user_name,tu.usr_name AS to_user_name
          FROM amb_acm_prj_issue_status_log l
          LEFT JOIN amb_acm_user u ON u.ent_id=l.ent_id AND u.usr_id=l.changed_by
+         LEFT JOIN amb_acm_user fu ON fu.ent_id=l.ent_id AND fu.usr_id=l.from_user_id
+         LEFT JOIN amb_acm_user tu ON tu.ent_id=l.ent_id AND tu.usr_id=l.to_user_id
         WHERE l.ent_id=$1 AND l.pit_id=$2 ORDER BY l.created_at DESC`,
       [u.entId, id],
     );
@@ -206,7 +247,7 @@ export class IssueService {
     const issue = await this.row(u, id);
     if (issue.prj_status === 'ARCHIVED')
       throw new BadRequestException('보관된 프로젝트는 수정할 수 없습니다.');
-    if (!body.trim()) throw new BadRequestException('내용을 입력하세요.');
+    if (isBlankHtml(body)) throw new BadRequestException('내용을 입력하세요.');
     await this.ds.query(
       `INSERT INTO amb_acm_prj_issue_comment(ent_id,pit_id,author_id,pic_body) VALUES($1,$2,$3,$4)`,
       [u.entId, id, u.id, body.trim()],
@@ -238,7 +279,8 @@ export class IssueService {
     } else {
       if (c.author_id !== u.id)
         throw new ForbiddenException('작성자만 수정할 수 있습니다.');
-      if (!body.trim()) throw new BadRequestException('내용을 입력하세요.');
+      if (isBlankHtml(body))
+        throw new BadRequestException('내용을 입력하세요.');
       await this.ds.query(
         `UPDATE amb_acm_prj_issue_comment SET pic_body=$3 WHERE ent_id=$1 AND pic_id=$2`,
         [u.entId, commentId, body.trim()],

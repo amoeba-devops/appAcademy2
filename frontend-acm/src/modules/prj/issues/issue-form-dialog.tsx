@@ -5,7 +5,7 @@ import { ExternalLink, FileText, Link as LinkIcon, Loader2, RotateCcw, Search, T
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { errorText, useScope } from "../project-page";
-import type { Person, Project } from "../types";
+import type { Project } from "../types";
 import { IssueRichEditor, isBlankHtml } from "./issue-rich-text";
 import {
   day,
@@ -194,7 +194,7 @@ export function IssueFormDialog({
         body: isBlankHtml(form.body) ? "" : form.body,
         issueType: form.issueType,
         priority: Number(form.priority),
-        assigneeId: form.assigneeId || null,
+        ...(issue ? {} : { assigneeId: form.assigneeId || null }),
         participantIds: form.participantIds.filter((p) => p !== form.assigneeId),
         parentId: form.parentId || null,
         startDate: form.startDate || null,
@@ -363,60 +363,76 @@ export function IssueFormDialog({
                 ))}
               </select>
             </label>
-            <div className="relative">
-              <span className={label}>{t("issues.fields.assignee")}</span>
-              <SearchCombo
-                value={form.assigneeId}
-                selectedLabel={members.find((m) => m.id === form.assigneeId)?.name ?? ""}
-                locked={!form.prj}
-                lockedText={form.prj ? "" : t("issues.form.pickProjectFirst")}
-                placeholder={t("issues.form.assigneePlaceholder")}
-                emptyText={t("issues.form.noMatch")}
-                options={(q) => personOptions(members, q)}
-                onChange={(id) => {
-                  setForm((f) => ({ ...f, assigneeId: id, participantIds: f.participantIds.filter((p) => p !== id) }));
-                  setDirty(true);
-                }}
-              />
-            </div>
+            {/* REQ-261016D — 검색 없이 참여자 목록에서 선택. 수정 시 담당 변경은 상세의 [지정]으로 */}
+            {issue ? (
+              <div>
+                <span className={label}>{t("issues.fields.assignee")}</span>
+                <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                  {members.find((m) => m.id === form.assigneeId)?.name ?? issue.assignee_name ?? t("issues.unassigned")}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">{t("issues.form.assigneeInDetail")}</p>
+              </div>
+            ) : (
+              <label className="block">
+                <span className={label}>{t("issues.fields.assignee")}</span>
+                <select
+                  className={input}
+                  value={form.assigneeId}
+                  disabled={!form.prj}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setForm((f) => ({ ...f, assigneeId: id, participantIds: f.participantIds.filter((p) => p !== id) }));
+                    setDirty(true);
+                  }}
+                >
+                  <option value="">{form.prj ? t("issues.form.unassignedOption") : t("issues.form.pickProjectFirst")}</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                      {m.id === me ? ` ${t("issues.form.me")}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
 
-          {/* Row 5.5: 관련자 */}
-          <div className="relative">
-            <span className={label}>{t("issues.fields.participants")}</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {form.participantIds.map((id) => (
-                <span key={id} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs text-indigo-700">
-                  {members.find((m) => m.id === id)?.name ?? "—"}
-                  <button
-                    type="button"
-                    aria-label={t("issues.delete")}
-                    onClick={() => set("participantIds", form.participantIds.filter((p) => p !== id))}
-                    className="text-indigo-400 hover:text-indigo-700"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <div className="min-w-[12rem] flex-1">
-                <SearchCombo
-                  value=""
-                  selectedLabel=""
-                  locked={!form.prj}
-                  lockedText={form.prj ? "" : t("issues.form.pickProjectFirst")}
-                  placeholder={t("issues.form.participantAdd")}
-                  emptyText={t("issues.form.noMatch")}
-                  options={(q) =>
-                    personOptions(
-                      members.filter((m) => m.id !== form.assigneeId && !form.participantIds.includes(m.id)),
-                      q,
-                    )
-                  }
-                  onChange={(id) => id && set("participantIds", [...form.participantIds, id])}
-                />
-              </div>
-            </div>
-          </div>
+          {/* Row 5.5: 관련자 — REQ-261016D 목록 체크 */}
+          <fieldset>
+            <legend className={label}>{t("issues.fields.participants")}</legend>
+            {!form.prj ? (
+              <p className="text-xs text-gray-400">{t("issues.form.pickProjectFirst")}</p>
+            ) : (
+              <>
+                <p className="mb-1.5 text-xs text-gray-400">{t("issues.form.participantsHint")}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {members
+                    .filter((m) => m.id !== form.assigneeId)
+                    .map((m) => {
+                      const on = form.participantIds.includes(m.id);
+                      return (
+                        <label
+                          key={m.id}
+                          className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
+                            on ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="accent-indigo-600"
+                            checked={on}
+                            onChange={() =>
+                              set("participantIds", on ? form.participantIds.filter((p) => p !== m.id) : [...form.participantIds, m.id])
+                            }
+                          />
+                          {m.name}
+                        </label>
+                      );
+                    })}
+                </div>
+              </>
+            )}
+          </fieldset>
 
           {/* Row 6: 파일 첨부 */}
           <Attachments
@@ -490,23 +506,6 @@ export function IssueFormDialog({
       </div>
     </div>
   );
-}
-
-function personOptions(people: Person[], q: string) {
-  return people
-    .filter((m) => !q || m.name.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q))
-    .map((m) => ({
-      id: m.id,
-      node: (
-        <>
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
-            {m.name.slice(0, 1)}
-          </span>
-          <span className="flex-1 truncate text-gray-700">{m.name}</span>
-          {m.email && <span className="truncate text-xs text-gray-400">{m.email}</span>}
-        </>
-      ),
-    }));
 }
 
 /** AMA 검색 콤보: 선택 시 회색 칩 + ✕, 아니면 돋보기 입력 + 드롭다운. */

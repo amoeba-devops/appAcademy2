@@ -74,6 +74,9 @@ describe('ACM project issues (PostgreSQL)', () => {
     // REQ-261016C — 번호·상위·참여자·첨부. 두 번 적용해도 번호가 바뀌지 않아야 한다.
     await ds.query(sql('1040-prj-issue-ama-parity.sql'));
     await ds.query(sql('1040-prj-issue-ama-parity.sql'));
+    // REQ-261016D — 유형 2종 + 담당 이력. 두 번 적용해도 안전해야 한다.
+    await ds.query(sql('1042-prj-issue-types-assignee-log.sql'));
+    await ds.query(sql('1042-prj-issue-types-assignee-log.sql'));
   }, 120_000);
 
   afterAll(async () => {
@@ -95,7 +98,7 @@ describe('ACM project issues (PostgreSQL)', () => {
     const row = await projects.saveItem(member, projectId, {
       kind: 'ISSUE',
       title: '출결 알림 누락',
-      issueType: 'BUG',
+      issueType: 'OTHER',
       priority: 2,
       assigneeId: member.id,
       dueDate: '2026-10-20',
@@ -104,7 +107,7 @@ describe('ACM project issues (PostgreSQL)', () => {
     issueId = row.pit_id as string;
     expect(row).toMatchObject({
       pit_status: 'OPEN',
-      pit_issue_type: 'BUG',
+      pit_issue_type: 'OTHER',
       pit_priority: 2,
     });
     expect(await issues.statusLogs(member, issueId)).toHaveLength(1);
@@ -122,7 +125,7 @@ describe('ACM project issues (PostgreSQL)', () => {
     const all = await issues.list(member, {});
     expect(all.total).toBe(3);
     const bugs = await issues.list(member, {
-      types: 'BUG',
+      types: 'OTHER',
       sort: 'priority_asc',
     });
     expect(bugs.items.map((i) => i.pit_title)).toEqual(['출결 알림 누락']);
@@ -286,6 +289,59 @@ describe('ACM project issues (PostgreSQL)', () => {
       Date.now() - new Date(moved.assigned_at as string).getTime(),
     ).toBeLessThan(60_000);
     expect(moved.attachments).toHaveLength(0);
+  });
+
+  it('issue types are limited to TASK and OTHER', async () => {
+    await expect(
+      ds.query(
+        `UPDATE amb_acm_prj_item SET pit_issue_type='BUG' WHERE pit_id=$1`,
+        [issueId],
+      ),
+    ).rejects.toThrow();
+  });
+
+  it('assignee is changed by select-then-assign with history', async () => {
+    const before = await issues.get(member, issueId);
+    expect(before.assignee_id).toBe(member.id);
+    await expect(
+      issues.changeAssignee(member, issueId, outsider.id),
+    ).rejects.toThrow();
+    const after = (await issues.changeAssignee(
+      member,
+      issueId,
+      owner.id,
+    )) as Record<string, unknown>;
+    expect(after.assignee_id).toBe(owner.id);
+    expect(after.assigned_at).toBeTruthy();
+    // 수정(PUT)에서 담당자를 생략하면 유지된다
+    await projects.saveItem(
+      owner,
+      projectId,
+      { kind: 'ISSUE', title: '출결 알림 누락', issueType: 'OTHER' },
+      issueId,
+    );
+    expect((await issues.get(owner, issueId)).assignee_id).toBe(owner.id);
+    const cleared = await issues.changeAssignee(owner, issueId, null);
+    expect(cleared.assignee_id).toBeNull();
+    const logs = await issues.statusLogs(owner, issueId);
+    const assigns = logs.filter((l) => l.psl_kind === 'ASSIGNEE');
+    expect(assigns).toHaveLength(2);
+    expect(assigns[1]).toMatchObject({
+      from_user_name: 'staff',
+      to_user_name: 'admin',
+    });
+  });
+
+  it('comments accept rich text and reject empty HTML', async () => {
+    const list = await issues.addComment(
+      member,
+      issueId,
+      '<p><strong>확인</strong> 완료</p>',
+    );
+    expect(list.at(-1)?.pic_body).toBe('<p><strong>확인</strong> 완료</p>');
+    await expect(
+      issues.addComment(member, issueId, '<p> </p><p>&nbsp;</p>'),
+    ).rejects.toThrow();
   });
 
   it('delete is limited to the reporter or a project manager', async () => {
