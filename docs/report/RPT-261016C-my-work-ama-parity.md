@@ -1,9 +1,12 @@
 ---
 document_id: ACM-MY-WORK-AMA-PARITY-RPT-1.0.0
-version: 1.0.0
-status: Implemented
+version: 1.1.0
+status: Deployed
 created: 2026-10-16
 change_log:
+  - version: 1.1.0
+    date: 2026-10-16
+    description: Staging/production deployed, migration verified / 양환경 배포·이전 확인
   - version: 1.0.0
     date: 2026-10-16
     description: My Work / issue form AMA parity + AMA TPI01 issue migration report / 내 업무·이슈 작성 AMA 동일화 및 이슈 이전 구현 보고
@@ -15,9 +18,9 @@ change_log:
 ## 1. Status (상태)
 | 항목 | 상태 |
 |------|------|
-| 구현·테스트 | 완료 (브랜치 `feat/prj-issue-ama-parity`, 커밋 `c46a96a`) |
-| PR·배포 | **미진행** — push·PR·staging·production 배포는 승인 후 진행 |
-| 이슈 3건 운영 반영 | 배포 시 `sql/acm/1041` 이 자동 적용되어 반영 (현재 acm.amoeba.site 에는 없음) |
+| 구현·테스트 | 완료 — PR #337 머지 `16f4bca` |
+| 배포 | **staging·production 완료**(2026-10-16). CD 로그 `1040`·`1041` apply OK, smoke 200 |
+| 이슈 3건 운영 반영 | **완료** — acm.amoeba.site 테넌트 …0001 ‘학원운영’에 ISS-3·4·5 |
 | 결정 사항 | Q1 AMA 전용 기능 1차 제외 · Q2 같은 이름 프로젝트 · Q3 멘션·AI 번역 2차 · Q4 AMA 운영 DB SELECT 1회 |
 
 ## 2. Changes (구현)
@@ -77,7 +80,20 @@ AMA 운영 DB에서 TPI01(`928f5fe4-…`) 이슈를 **SELECT로만** 추출했�
 | # | 내용 | 담당 |
 |---|------|------|
 | 1 | ~~ACM 계정 확인~~ — **확인 완료(2026-10-16):** tpimorgan·tpijung·tpiyeri 모두 테넌트 …0001 에 ACTIVE·AMA 연동 계정이 있어 생성 불필요. 운영과 같은 조건(계정 3개·‘학원운영’ 프로젝트)으로 로컬 리허설 → 담당·등록·관련자 모두 매칭, 대체 없음 | 완료 |
-| 2 | push → PR → staging 확인 → production 배포(`cd-production.yml`) → acm.amoeba.site `/admin/my-work`에서 3건 확인 | 승인 후 진행 |
+| 2 | ~~배포~~ 완료 — 아래 §6 | 완료 |
 | 3 | 오늘의 미션·개인 할 일·내 성과·멘션·AI 번역은 **진행하지 않기로 결정**(2026-10-16) | — |
 | 4 | 참고: `1035`가 사전순으로 `999x`보다 먼저 실행되어 빈 DB에서 실패(기존 문제, 운영 영향 없음) | 별도 FIX |
 | 5 | 로컬 정리: `acm-postgres`의 `db_acm_issue_test` 삭제 가능 | 사용자 |
+
+## 6. Deployment (배포 결과)
+- PR #337 → main `16f4bca` → CD Staging 성공(1040·1041 apply OK) → CD Production(run 38902169475) 성공, smoke 200.
+- `/admin/my-work` 200, `/api/acm/prj/my-work` 무인증 401(라우트 배포 확인).
+- 운영 DB 확인(읽기 전용):
+
+| ACM | AMA | 프로젝트 | 상태 | 등록 → 담당 | 관련자 | 마감 | 진행률 | 댓글 | 대체 |
+|-----|-----|----------|------|-------------|--------|------|--------|------|------|
+| ISS-3 | ISN-8 | 학원운영 | 진행 | tpimorgan → tpijung | — | 10-05 | 0% | 5 | 없음 |
+| ISS-4 | ISN-18 | 학원운영 | 진행 | tpimorgan → tpiyeri | tpijung | — | 0% | 0 | 없음 |
+| ISS-5 | ISN-23 | 학원운영 | 진행 | tpimorgan → tpiyeri | tpijung, tpimorgan | 10-14 | 100% | 3 | 없음 |
+
+- 새 프로젝트는 만들어지지 않았다(기존 ‘학원운영’ 사용). ISS-1·2 는 기존 ACM 이슈(번호 백필).
