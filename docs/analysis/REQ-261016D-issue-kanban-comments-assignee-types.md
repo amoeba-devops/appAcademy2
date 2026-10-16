@@ -1,7 +1,7 @@
 ---
 document_id: ACM-ISSUE-KANBAN-COMMENT-ASSIGNEE-REQ-1.1.0
 version: 1.1.0
-status: Approved
+status: Deployed
 created: 2026-10-16
 change_log:
   - version: 1.1.0
