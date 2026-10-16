@@ -1487,7 +1487,8 @@
       "pick": "Choose existing folder (from Google Drive)",
       "cancel": "Cancel",
       "submit": "Set shared folder",
-      "none": "No shared folder set yet."
+      "none": "No shared folder set yet.",
+      "pickHint": "A shared drive itself cannot be selected. Double-click the shared drive to open it, then select a folder inside. If no suitable folder exists, create one in Google Drive first."
     },
     "note": "ACM only handles files it created or that were picked. To open files in Google, staff need the shared folder shared with them from the company account.",
     "storage": {
@@ -1496,6 +1497,8 @@
       "acm": "ACM storage",
       "notConnectedHint": "Once the company Google Drive is connected, you can choose where to save.",
       "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage."
-    }
+    },
+    "notReadyHint": "The company Google Drive shared folder is not set yet, so creating Google files and uploading to Drive are unavailable. You can still upload files to ACM storage.",
+    "goSettings": "Go to Drive settings"
   }
 }

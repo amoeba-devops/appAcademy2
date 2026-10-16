@@ -1487,7 +1487,8 @@
       "pick": "Chọn thư mục có sẵn (từ Google Drive)",
       "cancel": "Hủy",
       "submit": "Đặt thư mục chung",
-      "none": "Chưa đặt thư mục chung."
+      "none": "Chưa đặt thư mục chung.",
+      "pickHint": "Không thể chọn trực tiếp cấp cao nhất của shared drive. Nhấp đúp để mở shared drive rồi chọn thư mục bên trong. Nếu chưa có thư mục phù hợp, hãy tạo trước trong Google Drive."
     },
     "note": "ACM chỉ xử lý các tệp do ACM tạo hoặc được chọn. Để mở tệp trên Google, nhân viên cần được chia sẻ thư mục chung từ tài khoản công ty.",
     "storage": {
@@ -1496,6 +1497,8 @@
       "acm": "Kho ACM",
       "notConnectedHint": "Khi Google Drive công ty được kết nối, bạn có thể chọn nơi lưu.",
       "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM."
-    }
+    },
+    "notReadyHint": "Chưa đặt thư mục chung trên Google Drive công ty nên chưa thể tạo tệp Google hoặc tải lên Drive. Bạn vẫn có thể tải tệp lên kho ACM.",
+    "goSettings": "Đến cài đặt Drive"
   }
 }
