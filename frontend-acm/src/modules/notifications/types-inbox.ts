@@ -8,7 +8,8 @@ export interface InboxItem {
     | "CHAT_MENTION"
     | "CHAT_MESSAGE"
     | "REVIEW_OVERDUE"
-    | "ISSUE_MENTION";
+    | "ISSUE_MENTION"
+    | "PASSWORD_RESET_REQUEST";
   targetId: string;
   payload: {
     seqNo?: number;

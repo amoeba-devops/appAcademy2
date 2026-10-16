@@ -6,6 +6,8 @@ export interface AcmUser {
   id: string;
   entId: string;
   email?: string;
+  /** REQ-261017 — 좌측 하단 표시용 이름(로그인 응답·me 보정) */
+  name?: string;
   role?: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
   /** 요구 260914G — AMA 연동 계정만 쓰는 동작(상담 삭제) 노출 판단용. */
   authSource?: 'local' | 'ama';

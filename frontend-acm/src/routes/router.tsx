@@ -6,6 +6,7 @@ import { IssuesPage } from '@/modules/prj/issues/issues-page';
 import { IssueDetailPage } from '@/modules/prj/issues/issue-detail-page';
 import { MyWorkPage } from '@/modules/prj/issues/my-work-page';
 import { MyProfilePage } from '@/modules/me/my-profile-page';
+import { PasswordRequestsPage } from '@/modules/auth/pages/password-requests-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { RequireTenantMaster } from '@/modules/cfg/components/require-tenant-master';
@@ -233,6 +234,8 @@ export const router = createBrowserRouter([
       { path: 'my-work', element: <MyWorkPage /> },
       // REQ-261015C — 콘솔 마이페이지(사용자 타임존)
       { path: 'me', element: <MyProfilePage mode="console" /> },
+      // REQ-261017 — 비밀번호 재발급 요청(관리자)
+      { path: 'password-requests', element: <PasswordRequestsPage /> },
       { path: 'issues', element: <IssuesPage /> },
       { path: 'issues/:id', element: <IssueDetailPage /> },
       { path: 'projects', element: <ProjectListPage /> },

@@ -80,7 +80,10 @@ done
 [[ "$acm_pg_ready" == "1" ]] || die "postgres-acm did not become responsive in 60s."
 
 mkdir -p "$REPO_DIR/sql/_applied/acm"
-for sql_file in $(find "$REPO_DIR/sql/acm" -maxdepth 1 -type f -name '*.sql' | sort); do
+# REQ-261017 — 버전 순 + 의존 역순 3개 명시 배치(빈 DB 새 환경에서도 적용되게). 마커는 그대로라 기존 환경은 영향 없음.
+acm_sql_list="$(bash "$REPO_DIR/scripts/acm-migration-order.sh" "$REPO_DIR/sql/acm")" || die "acm-migration-order.sh failed"
+[[ -n "$acm_sql_list" ]] || die "No ACM migrations found under sql/acm"
+for sql_file in $acm_sql_list; do
     fname="$(basename "$sql_file")"
     marker="$REPO_DIR/sql/_applied/acm/$fname.sha256"
     current_hash="$(sha256sum "$sql_file" | awk '{print $1}')"

@@ -261,7 +261,8 @@
     "tenantConfig": "Cài đặt tenant",
     "myWork": "Công việc của tôi",
     "issues": "Vấn đề",
-    "myPage": "Trang của tôi"
+    "myPage": "Trang của tôi",
+    "passwordRequests": "Yêu cầu mật khẩu"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -958,7 +959,8 @@
       "CHAT_MESSAGE": "Tin nhắn mới",
       "REVIEW_OVERDUE": "Nhận xét/bài tập quá hạn",
       "ISSUE_MENTION": "Đã nhắc đến bạn trong một vấn đề",
-      "ISSUE_MENTION_COMMENT": "Đã nhắc đến bạn trong bình luận vấn đề"
+      "ISSUE_MENTION_COMMENT": "Đã nhắc đến bạn trong bình luận vấn đề",
+      "PASSWORD_RESET_REQUEST": "Có yêu cầu cấp lại mật khẩu"
     }
   },
   "pay": {
@@ -1669,7 +1671,18 @@
     "saving": "Đang lưu…",
     "saved": "Đã lưu.",
     "saveError": "Không lưu được.",
-    "changePassword": "Đổi mật khẩu"
+    "changePassword": "Đổi mật khẩu",
+    "joinedAt": "Ngày tham gia",
+    "bio": "Giới thiệu bản thân",
+    "bioPlaceholder": "Môn phụ trách, kinh nghiệm, giới thiệu ngắn…",
+    "emergency": {
+      "title": "Liên hệ khẩn cấp",
+      "name": "Họ tên",
+      "relation": "Quan hệ",
+      "relationPlaceholder": "VD: Vợ/chồng, Cha mẹ",
+      "phone": "Số điện thoại",
+      "phoneInvalid": "Số điện thoại chỉ gồm chữ số, +, -, dấu ngoặc và khoảng trắng."
+    }
   },
   "drive": {
     "title": "Google Drive của công ty",

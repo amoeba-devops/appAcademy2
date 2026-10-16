@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { randomInt } from 'crypto';
+import { generateTempPassword } from './temp-password';
 import { ACM_DS } from '../../acm-common/datasource';
 import {
   PortalAccountTypeormEntity,
@@ -54,10 +55,6 @@ const ID_PREFIX: Record<PortalKind, string> = {
   PARENT: 'p',
   TEACHER: 't',
 };
-// Temp-password alphabet (letters + digits, ambiguous chars removed).
-const PW_LETTERS = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-const PW_DIGITS = '23456789';
-const PW_ALL = PW_LETTERS + PW_DIGITS;
 
 @Injectable()
 export class PortalAccountService {
@@ -427,21 +424,6 @@ function randomString(alphabet: string, len: number): string {
   let out = '';
   for (let i = 0; i < len; i++) out += alphabet[randomInt(alphabet.length)];
   return out;
-}
-
-/** 10-char temp password guaranteed to satisfy the letter+digit policy. */
-function generateTempPassword(): string {
-  const chars = [
-    PW_LETTERS[randomInt(PW_LETTERS.length)],
-    PW_DIGITS[randomInt(PW_DIGITS.length)],
-  ];
-  for (let i = 0; i < 8; i++) chars.push(PW_ALL[randomInt(PW_ALL.length)]);
-  // Fisher-Yates shuffle so the guaranteed letter/digit aren't always first.
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = randomInt(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join('');
 }
 
 function assertPasswordPolicy(pw: string): void {

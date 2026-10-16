@@ -5,6 +5,8 @@ import { AxiosError } from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
+import { ForgotPasswordDialog } from "../components/forgot-password-dialog";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useAuthStore } from "@/stores/auth.store";
 import { SUPPORTED_LANGS, type SupportedLang } from "@/i18n";
@@ -91,6 +93,7 @@ export function LoginPage() {
           id: user.id,
           entId: user.entId,
           email: user.email,
+          name: user.name,
           role: user.role,
           // 요구 260914G — 세션에 담지 않으면 AMA 전용 동작(상담 삭제)이
           // 로그인해도 나타나지 않는다.
@@ -129,6 +132,9 @@ export function LoginPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // REQ-261017 — 비밀번호 찾기(관리자에게 재발급 요청)
+  const [forgot, setForgot] = useState(false);
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -139,6 +145,7 @@ export function LoginPage() {
         id: user.id,
         entId: user.entId,
         email: user.email,
+        name: user.name,
         role: user.role,
         authSource: user.authSource,
         mustChangePassword: user.mustChangePassword,
@@ -156,7 +163,14 @@ export function LoginPage() {
       );
     } catch (err) {
       if (err instanceof AxiosError) {
+        const body = err.response?.data as
+          | { code?: string; error?: { code?: string } }
+          | undefined;
+        const code = body?.error?.code ?? body?.code;
         if (err.response?.status === 429) setError(t("login.rateLimited"));
+        // REQ-261017 — 잠김·임시 비밀번호 만료는 따로 안내
+        else if (code === "ACCOUNT_LOCKED") setError(t("login.locked"));
+        else if (code === "TEMP_PASSWORD_EXPIRED") setError(t("login.tempExpired"));
         else if (err.response?.status === 401 || err.response?.status === 400)
           setError(t("login.error"));
         else setError(t("login.network"));
@@ -240,9 +254,8 @@ export function LoginPage() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="login-password">{t("login.password")}</Label>
-                <Input
+                <PasswordInput
                   id="login-password"
-                  type="password"
                   autoComplete="current-password"
                   required
                   minLength={8}
@@ -250,6 +263,13 @@ export function LoginPage() {
                   placeholder={t("login.passwordPlaceholder")}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setForgot(true)}
+                  className="self-end text-xs text-accent-700 hover:underline"
+                >
+                  {t("login.forgot")}
+                </button>
               </div>
 
               {error && (
@@ -269,6 +289,9 @@ export function LoginPage() {
                 {submitting ? t("login.submitting") : t("login.submit")}
               </Button>
             </form>
+            {forgot && (
+              <ForgotPasswordDialog initialEmail={email.trim()} close={() => setForgot(false)} />
+            )}
           </div>
         </main>
       </div>
