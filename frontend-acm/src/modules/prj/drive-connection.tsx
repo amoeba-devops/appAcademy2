@@ -230,6 +230,9 @@ export function DriveConnection() {
                     />
                     {t("drive.folder.pick")}
                   </label>
+                  {mode === "pick" && (
+                    <p className="pl-6 text-xs text-secondary">{t("drive.folder.pickHint")}</p>
+                  )}
                   <div className="flex justify-end gap-2">
                     {changing && (
                       <Button type="button" variant="outline" onClick={() => setChanging(false)}>

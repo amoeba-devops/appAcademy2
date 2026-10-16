@@ -1487,7 +1487,8 @@
       "pick": "选择已有文件夹（从 Google Drive 选择）",
       "cancel": "取消",
       "submit": "设为共享文件夹",
-      "none": "尚未设置共享文件夹。"
+      "none": "尚未设置共享文件夹。",
+      "pickHint": "不能直接选择共享云端硬盘本身。请双击打开共享云端硬盘，再选择其中的文件夹。若没有合适的文件夹，请先在 Google Drive 中创建。"
     },
     "note": "ACM 只处理其创建或被选择的文件。员工要在 Google 中打开文件，需要公司账号共享该文件夹。",
     "storage": {
@@ -1496,6 +1497,8 @@
       "acm": "ACM 存储",
       "notConnectedHint": "连接公司 Google Drive 后即可选择保存位置。",
       "reconnectHint": "Google Drive 需要重新连接，因此保存到 ACM 存储。"
-    }
+    },
+    "notReadyHint": "尚未设置公司 Google Drive 共享文件夹，暂不能创建 Google 文件或上传到 Drive。仍可将文件上传到 ACM 存储。",
+    "goSettings": "前往 Drive 设置"
   }
 }

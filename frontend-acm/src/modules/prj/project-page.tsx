@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import {
   Link,
   useNavigate,
@@ -381,6 +382,7 @@ export function DriveConnectionPage() {
 // REQ-261016 — 회사 Workspace 연동 패널은 drive-connection.tsx 로 이동.
 export { DriveConnection };
 export function ProjectDetailPage() {
+  const { t } = useTranslation("common");
   const { id = "" } = useParams(),
     [params, setParams] = useSearchParams(),
     qc = useQueryClient(),
@@ -688,8 +690,15 @@ export function ProjectDetailPage() {
                       {(docType === "FILE" ||
                         docType === "DOC" ||
                         docType === "SHEET") && (
+                        // FIX-261016C — Drive 공용폴더가 없으면 Google 생성/업로드를 막고 안내한다.
                         <Button
                           variant="outline"
+                          disabled={!drive.data?.rootReady}
+                          title={
+                            drive.data?.rootReady
+                              ? undefined
+                              : t("drive.notReadyHint")
+                          }
                           onClick={() => setNewDoc(true)}
                         >
                           {docType === "FILE"
@@ -697,6 +706,18 @@ export function ProjectDetailPage() {
                             : "Google에서 새로 만들기"}
                         </Button>
                       )}
+                      {(docType === "FILE" ||
+                        docType === "DOC" ||
+                        docType === "SHEET") &&
+                        drive.data &&
+                        !drive.data.rootReady && (
+                          <p className="w-full text-xs text-secondary">
+                            {t("drive.notReadyHint")}{" "}
+                            <Link className="underline" to="/admin/config/drive">
+                              {t("drive.goSettings")}
+                            </Link>
+                          </p>
+                        )}
                       {docType === "FILE" && (
                         <Button
                           variant="outline"
