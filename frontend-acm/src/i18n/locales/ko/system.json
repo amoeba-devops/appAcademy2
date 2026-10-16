@@ -11,7 +11,8 @@
     "cancel": "취소",
     "save": "저장",
     "saving": "저장 중…",
-    "create": "생성"
+    "create": "생성",
+    "edit": "수정"
   },
   "roles": {
     "APP_ADMIN": "앱 관리자",

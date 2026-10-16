@@ -11,7 +11,8 @@
     "cancel": "Hủy",
     "save": "Lưu",
     "saving": "Đang lưu…",
-    "create": "Tạo"
+    "create": "Tạo",
+    "edit": "Sửa"
   },
   "roles": {
     "APP_ADMIN": "Quản trị ứng dụng",
