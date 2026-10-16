@@ -11,6 +11,8 @@ import { AcmTenantMenuTypeormEntity } from '../../../src/modules/acm-system/infr
 import { TenantService } from '../../../src/modules/acm-system/application/tenant.service';
 import { TenantRoleMenuService } from '../../../src/modules/acm-system/application/tenant-role-menu.service';
 import { hasUserPermission } from '../../../src/modules/acm-common/guards/config-admin.guard';
+import { SystemUserService } from '../../../src/modules/acm-system/application/system-user.service';
+import type { AcmAuthService } from '../../../src/modules/acm-auth/application/acm-auth.service';
 
 // REQ-261015C WP2 — 테넌트 마스터 + 등급별 메뉴 노출.
 const TPI = '00000000-0000-0000-0000-000000000001';
@@ -54,6 +56,8 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
     for (const f of [
       '500-acm-auth.sql',
       '505-migration-user-role.sql',
+      '510-acm-ama-sso.sql',
+      '510-migration-app-admin-role.sql',
       '520-acm-tenant.sql',
       '920-acm-ama-config.sql',
       '992-acm-tenant-postgres-only.sql',
@@ -63,6 +67,11 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
       '999x-config-admin-permission.sql',
     ])
       await db.query(sql(f));
+    // 사용자 엔티티 전체 컬럼(830/880 의 사용자 부분만).
+    await db.query(
+      `ALTER TABLE amb_acm_user ADD COLUMN IF NOT EXISTS usr_locked_at TIMESTAMPTZ,
+         ADD COLUMN IF NOT EXISTS usr_ama_job_role VARCHAR(40)`,
+    );
     const insert = async (ent: string, email: string, role: string) =>
       (
         await db.query<{ usr_id: string }[]>(
@@ -164,6 +173,33 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
     expect(rows).toHaveLength(0);
   });
 
+  it('system admin lists a fixed-id tenant and edits supplemental permissions', async () => {
+    const users = new SystemUserService(
+      db.getRepository(AcmUserTypeormEntity),
+      db.getRepository(AcmTenantTypeormEntity),
+      {} as AcmAuthService,
+    );
+    // REQ-261016D — 고정 ID 테넌트 필터 + 보조 권한 표시·교체.
+    const list = await users.list({ entId: TPI });
+    expect(list.items.find((u) => u.id === master)?.permissions).toEqual([
+      'TENANT_MASTER',
+    ]);
+    const view = await users.setPermissions(
+      teacher,
+      ['CONFIG_ADMIN', 'TENANT_MASTER'],
+      master,
+    );
+    expect(view.permissions).toEqual(['CONFIG_ADMIN', 'TENANT_MASTER']);
+    expect(
+      await hasUserPermission(db, { id: teacher, entId: TPI }, 'CONFIG_ADMIN'),
+    ).toBe(true);
+    expect(
+      (await users.setPermissions(teacher, [], master)).permissions,
+    ).toEqual([]);
+    expect(
+      await hasUserPermission(db, { id: teacher, entId: TPI }, 'TENANT_MASTER'),
+    ).toBe(false);
+  });
   it('grants and revokes masters only for users of that tenant', async () => {
     await svc.grantMaster(TPI, teacher);
     expect((await svc.masters(TPI)).map((m) => m.id)).toContain(teacher);

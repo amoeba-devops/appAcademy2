@@ -84,7 +84,14 @@
       "no": "Không"
     },
     "selectTenant": "Chọn tenant",
-    "selectTenantFirst": "Chọn tenant để xem danh sách người dùng."
+    "selectTenantFirst": "Chọn tenant để xem danh sách người dùng.",
+    "permissions": {
+      "label": "Quyền bổ sung",
+      "CONFIG_ADMIN": "Người vận hành dịch vụ",
+      "CONFIG_ADMIN_hint": "Cài đặt dịch vụ (/admin/config) và kết nối Google Drive",
+      "TENANT_MASTER": "Tenant master",
+      "TENANT_MASTER_hint": "Cài đặt tenant (/admin/tenant), hiển thị menu theo cấp, thấy mọi menu được phép"
+    }
   },
   "tenants": {
     "title": "Quản lý pháp nhân",

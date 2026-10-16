@@ -17,6 +17,7 @@ import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
 import { IsUUID } from 'class-validator';
 import { TenantService } from '../application/tenant.service';
+import { ParseEntIdPipe } from '../../acm-common/validators/ent-id';
 import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
 import {
   CurrentUser,
@@ -50,14 +51,14 @@ export class SystemTenantController {
   // REQ-261015C — 테넌트 마스터 지정/해제.
   @Get(':entId/masters')
   @ApiOperation({ summary: 'List tenant masters (APP_ADMIN)' })
-  masters(@Param('entId', ParseUUIDPipe) entId: string) {
+  masters(@Param('entId', ParseEntIdPipe) entId: string) {
     return this.roleMenus.masters(entId);
   }
 
   @Post(':entId/masters')
   @ApiOperation({ summary: 'Grant tenant master (APP_ADMIN)' })
   grantMaster(
-    @Param('entId', ParseUUIDPipe) entId: string,
+    @Param('entId', ParseEntIdPipe) entId: string,
     @Body() dto: GrantTenantMasterDto,
     @CurrentUser() user: AcmCurrentUser,
   ) {
@@ -67,7 +68,7 @@ export class SystemTenantController {
   @Delete(':entId/masters/:userId')
   @ApiOperation({ summary: 'Revoke tenant master (APP_ADMIN)' })
   revokeMaster(
-    @Param('entId', ParseUUIDPipe) entId: string,
+    @Param('entId', ParseEntIdPipe) entId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
   ) {
     return this.roleMenus.revokeMaster(entId, userId);
@@ -87,14 +88,14 @@ export class SystemTenantController {
 
   @Get(':entId')
   @ApiOperation({ summary: 'Get tenant detail (APP_ADMIN)' })
-  get(@Param('entId', ParseUUIDPipe) entId: string) {
+  get(@Param('entId', ParseEntIdPipe) entId: string) {
     return this.svc.get(entId);
   }
 
   @Patch(':entId')
   @ApiOperation({ summary: 'Update tenant name / status (APP_ADMIN)' })
   update(
-    @Param('entId', ParseUUIDPipe) entId: string,
+    @Param('entId', ParseEntIdPipe) entId: string,
     @Body() dto: UpdateTenantDto,
   ) {
     return this.svc.update(entId, dto);
@@ -102,14 +103,14 @@ export class SystemTenantController {
 
   @Get(':entId/menus')
   @ApiOperation({ summary: 'Get per-tenant admin-menu visibility (APP_ADMIN)' })
-  getMenus(@Param('entId', ParseUUIDPipe) entId: string) {
+  getMenus(@Param('entId', ParseEntIdPipe) entId: string) {
     return this.svc.getMenuConfig(entId);
   }
 
   @Put(':entId/menus')
   @ApiOperation({ summary: 'Set per-tenant admin-menu visibility (APP_ADMIN)' })
   setMenus(
-    @Param('entId', ParseUUIDPipe) entId: string,
+    @Param('entId', ParseEntIdPipe) entId: string,
     @Body() dto: UpdateTenantMenusDto,
   ) {
     return this.svc.setMenuConfig(entId, dto.items);

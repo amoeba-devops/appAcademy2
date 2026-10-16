@@ -91,6 +91,7 @@ export function SystemAdminPage() {
               <th className="px-4 py-3">{t('users.columns.email')}</th>
               <th className="px-4 py-3">{t('users.columns.name')}</th>
               <th className="px-4 py-3">{t('users.columns.role')}</th>
+              <th className="px-4 py-3">{t('users.permissions.label')}</th>
               <th className="px-4 py-3">{t('users.columns.tenant')}</th>
               <th className="px-4 py-3">{t('users.columns.status')}</th>
               <th className="px-4 py-3">{t('users.columns.lastLogin')}</th>
@@ -99,21 +100,21 @@ export function SystemAdminPage() {
           <tbody>
             {!entId && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-secondary">
+                <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                   {t('users.selectTenantFirst')}
                 </td>
               </tr>
             )}
             {entId && isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-secondary">
+                <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                   {t('users.loading')}
                 </td>
               </tr>
             )}
             {isError && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-red-600">
+                <td colSpan={7} className="px-4 py-8 text-center text-red-600">
                   {t('users.errors.loadFailed')}
                 </td>
               </tr>
@@ -130,6 +131,18 @@ export function SystemAdminPage() {
                   <span className="rounded bg-accent-50 px-2 py-0.5 text-xs font-medium text-accent-700">
                     {t(`roles.${u.role}`)}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {(u.permissions ?? []).map((p) => (
+                      <span
+                        key={p}
+                        className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+                      >
+                        {t(`users.permissions.${p}`)}
+                      </span>
+                    ))}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-secondary" title={u.entId}>
                   {u.tenantName ?? `${u.entId.slice(0, 8)}…`}
@@ -148,7 +161,7 @@ export function SystemAdminPage() {
             ))}
             {data && data.items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-secondary">
+                <td colSpan={7} className="px-4 py-8 text-center text-secondary">
                   {t('users.empty')}
                 </td>
               </tr>
