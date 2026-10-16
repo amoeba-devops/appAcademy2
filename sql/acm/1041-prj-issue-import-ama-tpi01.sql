@@ -1,6 +1,6 @@
 -- REQ-261016C — AMA 테넌트 TPI01 이슈 ISN-8·18·23 을 ACM 테넌트 …0001(Trinity Academy) 이슈로 이전.
 -- 원본: AMA 운영 DB 읽기 전용 추출(2026-10-16). 사람은 이메일로 ACM 사용자와 매칭, 없으면 테넌트 마스터로 대체하고 본문에 원래 이메일을 남긴다.
--- 프로젝트: AMA 프로젝트명과 같은 ACM 프로젝트(없으면 생성). AMA 프로젝트가 없는 ISN-18 은 '학원 운영'에 둔다.
+-- 프로젝트: AMA 프로젝트명과 같은 ACM 프로젝트(공백 무시, 운영은 '학원운영'; 없으면 생성). AMA 프로젝트가 없는 ISN-18 은 '학원 운영'에 둔다.
 -- 멱등: (ent_id, pit_source='AMA', pit_source_ref) 가 이미 있으면 건너뛴다. 테넌트 마스터 계정이 없는 환경(스테이징 등)은 아무 것도 하지 않는다.
 
 CREATE OR REPLACE FUNCTION acm_tmp_user(p_email TEXT) RETURNS UUID AS $$
@@ -26,7 +26,7 @@ BEGIN
 
   -- ── ISN-8: 김준연 학생 컨설팅 프로세스 완료 시기 체크
   IF NOT EXISTS (SELECT 1 FROM amb_acm_prj_item WHERE ent_id = v_ent AND pit_source = 'AMA' AND pit_source_ref = 'TPI01#ISN-8') THEN
-    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND prj_title = '학원 운영' ORDER BY created_at LIMIT 1;
+    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND replace(prj_title, ' ', '') = replace('학원 운영', ' ', '') ORDER BY created_at LIMIT 1;
     IF v_prj IS NULL THEN
       v_owner := COALESCE(acm_tmp_user('tpimorgan@tpiglobal.network'), v_fallback);
       INSERT INTO amb_acm_prj_project (ent_id, prj_title, prj_description, owner_id) VALUES (v_ent, '학원 운영', '', v_owner) RETURNING prj_id INTO v_prj;
@@ -66,7 +66,7 @@ USC supplement (초안 작업 중)' || CASE WHEN acm_tmp_user('tpijung@tpiglobal
 
   -- ── ISN-18: 데일리 학생 팔로업 컨택트
   IF NOT EXISTS (SELECT 1 FROM amb_acm_prj_item WHERE ent_id = v_ent AND pit_source = 'AMA' AND pit_source_ref = 'TPI01#ISN-18') THEN
-    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND prj_title = '학원 운영' ORDER BY created_at LIMIT 1;
+    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND replace(prj_title, ' ', '') = replace('학원 운영', ' ', '') ORDER BY created_at LIMIT 1;
     IF v_prj IS NULL THEN
       v_owner := COALESCE(acm_tmp_user('tpimorgan@tpiglobal.network'), v_fallback);
       INSERT INTO amb_acm_prj_project (ent_id, prj_title, prj_description, owner_id) VALUES (v_ent, '학원 운영', '', v_owner) RETURNING prj_id INTO v_prj;
@@ -94,7 +94,7 @@ USC supplement (초안 작업 중)' || CASE WHEN acm_tmp_user('tpijung@tpiglobal
 
   -- ── ISN-23: 학생이 수업에 불참했을 경우, TPI 측에서 해당 부분에 연락을 하지 않아도 책임이 없도록 가이드 변경
   IF NOT EXISTS (SELECT 1 FROM amb_acm_prj_item WHERE ent_id = v_ent AND pit_source = 'AMA' AND pit_source_ref = 'TPI01#ISN-23') THEN
-    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND prj_title = '학원 운영' ORDER BY created_at LIMIT 1;
+    SELECT prj_id INTO v_prj FROM amb_acm_prj_project WHERE ent_id = v_ent AND replace(prj_title, ' ', '') = replace('학원 운영', ' ', '') ORDER BY created_at LIMIT 1;
     IF v_prj IS NULL THEN
       v_owner := COALESCE(acm_tmp_user('tpimorgan@tpiglobal.network'), v_fallback);
       INSERT INTO amb_acm_prj_project (ent_id, prj_title, prj_description, owner_id) VALUES (v_ent, '학원 운영', '', v_owner) RETURNING prj_id INTO v_prj;
