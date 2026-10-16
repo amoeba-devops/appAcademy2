@@ -1,9 +1,12 @@
 ---
-document_id: ACM-AUTH-PW-MYPAGE-FRESH-REQ-1.1.0
-version: 1.1.0
-status: Approved
+document_id: ACM-AUTH-PW-MYPAGE-FRESH-REQ-1.2.0
+version: 1.2.0
+status: Deployed
 created: 2026-10-17
 change_log:
+  - version: 1.2.0
+    date: 2026-10-17
+    description: Implemented and deployed to production (PR #344, dbdb1ac) — see RPT-261017 / 구현·배포 완료
   - version: 1.1.0
     date: 2026-10-17
     description: Q1 tenant admins, Q2 24h, Q3 keep manual reset, Q4 allow AMA accounts, Q5 one emergency contact; implement and deploy approved / 결정 반영
