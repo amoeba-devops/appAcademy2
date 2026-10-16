@@ -200,7 +200,10 @@ describe('ACM project issues (PostgreSQL)', () => {
       attachments: [{ url: 'https://example.com/spec', name: 'spec' }],
     });
     const childId = child.pit_id as string;
-    const detail = await issues.get(member, childId);
+    const detail = (await issues.get(member, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
     expect(detail).toMatchObject({
       pit_parent_id: issueId,
       parent_title: '출결 알림 누락',
@@ -255,7 +258,10 @@ describe('ACM project issues (PostgreSQL)', () => {
       { kind: 'ISSUE', title: '하위 작업', assigneeId: owner.id },
       childId,
     );
-    const kept = await issues.get(owner, childId);
+    const kept = (await issues.get(owner, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
     expect(kept.pit_done_ratio).toBe(40);
     expect(kept.participant_ids).toEqual([member.id]);
     expect(
@@ -272,7 +278,10 @@ describe('ACM project issues (PostgreSQL)', () => {
       },
       childId,
     );
-    const moved = await issues.get(owner, childId);
+    const moved = (await issues.get(owner, childId)) as Record<
+      string,
+      unknown
+    > & { attachments: unknown[] };
     expect(
       Date.now() - new Date(moved.assigned_at as string).getTime(),
     ).toBeLessThan(60_000);
