@@ -55,7 +55,7 @@ describe('consultation profile editing (PostgreSQL)', () => {
       synchronize: true,
     }).initialize();
     await ds.query(
-      `CREATE SEQUENCE test_seq; CREATE FUNCTION acm_csl_next_seq_no(uuid) RETURNS bigint LANGUAGE sql AS 'SELECT nextval(''test_seq'')'; CREATE UNIQUE INDEX test_apply_inq ON amb_acm_csl_map_apply(ent_id, inq_id); CREATE TABLE amb_acm_sch_school(sch_id uuid, ent_id uuid, deleted_at timestamptz)`,
+      `CREATE SEQUENCE test_seq; CREATE FUNCTION acm_csl_next_seq_no(uuid) RETURNS bigint LANGUAGE sql AS 'SELECT nextval(''test_seq'')'; CREATE UNIQUE INDEX test_apply_inq ON amb_acm_csl_map_apply(ent_id, inq_id); CREATE TABLE amb_acm_sch_school(sch_id uuid, ent_id uuid, deleted_at timestamptz); CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY, ent_id uuid, usr_name text, usr_email text, usr_status text, usr_role text); CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY, ent_id uuid, tch_user_id uuid, deleted_at timestamptz); CREATE TABLE amb_acm_notification_outbox(nob_id uuid PRIMARY KEY DEFAULT gen_random_uuid(), ent_id uuid, nob_type varchar(32), nob_target_id uuid, nob_actor_id uuid, nob_payload jsonb, nob_recipients jsonb, created_at timestamptz DEFAULT now())`,
     );
     const module = await Test.createTestingModule({
       providers: [

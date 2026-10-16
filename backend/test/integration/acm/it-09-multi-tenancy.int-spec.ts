@@ -29,6 +29,8 @@ describe('IT-09 multi-tenancy isolation', () => {
       .get('/api/acm/csl/inquiries')
       .set({ 'x-test-user': TEST_USER_ID, 'x-test-ent': ENT_B, 'x-test-roles': 'staff' })
       .expect(200);
-    expect(list.body.length).toBe(0);
+    // 목록 응답은 배열 또는 페이지 객체({ items | data, total })
+    const rows = Array.isArray(list.body) ? list.body : (list.body.items ?? list.body.data ?? []);
+    expect(rows).toHaveLength(0);
   });
 });
