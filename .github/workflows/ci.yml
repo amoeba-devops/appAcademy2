@@ -77,14 +77,27 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
+      # 통합 테스트 공통 설정(test/integration/acm/setup.ts)은 pg_bigm 이 든 운영과 같은 이미지를
+      # 쓴다(never-pull). CI 에서 직접 빌드하고 GHA 캐시로 재사용한다.
+      - uses: docker/setup-buildx-action@v4
+      - name: Build ACM Postgres test image (pg_bigm)
+        uses: docker/build-push-action@v7
+        with:
+          context: docker/production
+          file: docker/production/Dockerfile.postgres-acm
+          tags: tac-postgres-acm:pg16-bigm
+          load: true
+          cache-from: type=gha,scope=postgres-acm
+          cache-to: type=gha,mode=max,scope=postgres-acm
+
       - name: e2e (Nest AppModule boot)
         run: npm run test:e2e
         # TEMP: marked non-blocking until CI gains full ACM_PG_* and ACM_PII_KEY env.
         continue-on-error: true
 
+      # 필수 단계: 실패하면 PR 이 막힌다(이전에는 continue-on-error 로 실패가 가려졌다).
       - name: ACM integration (Testcontainers)
         run: npx jest --config ./test/jest-int.json --runInBand
-        continue-on-error: true
 
   # ──────────────────────────────────────────────────────────────────
   # Frontend-acm — lint + typecheck + build

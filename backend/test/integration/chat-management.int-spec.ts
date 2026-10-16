@@ -31,6 +31,7 @@ import {
 } from '../../src/modules/acm-notification/application/inbox.service';
 import { enqueueInbox } from '../../src/modules/acm-notification/application/inbox-outbox';
 import { InboxController } from '../../src/modules/acm-notification/presentation/inbox.controller';
+import { PushService } from '../../src/modules/acm-notification/application/push.service';
 import { PortalInboxController } from '../../src/modules/acm-notification/presentation/portal-inbox.controller';
 import { AcmJwtAuthGuard } from '../../src/modules/acm-auth/guards/acm-jwt-auth.guard';
 import { PortalJwtAuthGuard } from '../../src/modules/acm-auth/guards/portal-jwt-auth.guard';
@@ -79,7 +80,7 @@ describe('Chat management / PostgreSQL', () => {
       CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_name text,tch_user_id uuid,tch_status text DEFAULT 'ACTIVE',deleted_at timestamptz);
       CREATE TABLE amb_acm_portal_account(pac_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,pac_kind text,pac_ref_id uuid,pac_status text,pac_locked_at timestamptz);
       CREATE TABLE amb_acm_csl_inquiry(inq_id uuid,ent_id uuid,deleted_at timestamptz);
-      CREATE TABLE amb_acm_cal_event(evt_id uuid,ent_id uuid,deleted_at timestamptz);`);
+      CREATE TABLE amb_acm_cal_event(evt_id uuid,ent_id uuid,evt_assignee_tch_id uuid,deleted_at timestamptz);`);
     await ds.query(sql('1025-notification-inbox.sql'));
     // Seed a pre-migration unread notification to verify preservation.
     await ds.query(
@@ -105,6 +106,13 @@ describe('Chat management / PostgreSQL', () => {
     await ds.query(sql('999y-chat-room-management.sql'));
     await ds.query(sql('999z-chat-participants.sql'));
     await ds.query(sql('999y-chat-room-management.sql'));
+    // 알림 종류 확장(1030: CHAT_MESSAGE·REVIEW_OVERDUE, 1043: ISSUE_MENTION)과
+    // ISSUE_MENTION 표시 조건이 참조하는 프로젝트 테이블(최소 컬럼).
+    await ds.query(`CREATE TABLE IF NOT EXISTS amb_acm_prj_project(prj_id uuid,ent_id uuid,owner_id uuid);
+      CREATE TABLE IF NOT EXISTS amb_acm_prj_member(ent_id uuid,prj_id uuid,usr_id uuid);
+      CREATE TABLE IF NOT EXISTS amb_acm_prj_item(pit_id uuid,ent_id uuid,prj_id uuid,pit_kind text,deleted_at timestamptz);`);
+    for (const f of ['1030-notification-delivery.sql', '1043-issue-mention-notification.sql'])
+      await ds.query(sql(f));
     const [legacy] = await ds.query(
       'SELECT usr_id,nin_recipient_id,nin_recipient_kind,nin_read_at FROM amb_acm_notification_inbox',
     );
@@ -153,6 +161,11 @@ describe('Chat management / PostgreSQL', () => {
         { provide: TalkService, useValue: talk },
         { provide: TalkSseService, useValue: sse },
         { provide: InboxService, useValue: inbox },
+        // 웹 푸시(REQ-261013B)는 이 테스트 범위 밖 — 컨트롤러 의존성만 채운다.
+        {
+          provide: PushService,
+          useValue: { info: jest.fn(), subscribe: jest.fn(), remove: jest.fn() },
+        },
       ],
     })
       .overrideGuard(AcmJwtAuthGuard)
@@ -177,7 +190,7 @@ describe('Chat management / PostgreSQL', () => {
   });
   beforeEach(async () => {
     await ds.query(
-      'TRUNCATE amb_acm_notification_inbox,amb_acm_notification_outbox,amb_acm_talk_message,amb_acm_talk_member,amb_acm_talk_channel',
+      'TRUNCATE amb_acm_notification_inbox,amb_acm_notification_outbox,amb_acm_talk_message,amb_acm_talk_member,amb_acm_talk_channel CASCADE',
     );
     emitted.mockClear();
   });
@@ -198,15 +211,21 @@ describe('Chat management / PostgreSQL', () => {
     await inbox.deliver();
     await inbox.deliver();
     expect((await inbox.count(teacherInbox)).unreadCount).toBe(1);
-    expect((await inbox.count(operatorInbox)).unreadCount).toBe(1);
+    // REQ-261013B 이후 방 참여자는 일반 메시지 알림(CHAT_MESSAGE)도 받는다:
+    // 운영자 = 소유자 메시지 1건 + 교사의 멘션 1건(같은 메시지 중복 없음).
+    expect((await inbox.count(operatorInbox)).unreadCount).toBe(2);
     expect(
       (await inbox.count({ entId: ent, id: teacher2.refId, kind: 'TEACHER' }))
         .unreadCount,
-    ).toBe(1);
+    ).toBe(2); // 소유자 메시지(CHAT_MESSAGE) + 교사의 멘션
     const [{ c: total }] = await ds.query(
       'SELECT count(*)::int c FROM amb_acm_notification_inbox',
     );
-    expect(total).toBe(3);
+    // 소유자 = 교사 메시지(CHAT_MESSAGE) 1건. 합계: 교사 1 + 운영자 2 + 교사2 2 + 소유자 1 (본인·중복 제외)
+    expect(
+      (await inbox.count({ entId: ent, id: owner.refId })).unreadCount,
+    ).toBe(1);
+    expect(total).toBe(6);
     const notification = (await inbox.list(teacherInbox)).items[0];
     expect((await inbox.read(teacherInbox, notification.id)).href).toContain(
       '/portal/chat?channelId=' + c.id,

@@ -2,8 +2,8 @@ import request from 'supertest';
 import { bootAcmTestEnv, teardownAcmTestEnv, AcmTestEnv, TEST_ENT_ID, TEST_USER_ID, TEST_ADMIN_ID } from './setup';
 
 /**
- * IT-02 — Inquiry stage state machine.
- * Verifies: ACTIVE → ENROLLED forward; FORWARD-only enforcement; admin BACKWARD override; cancel → reactivate.
+ * IT-02 — Inquiry stage pipeline (현재 단계 모델: INTAKE → MAP_TEST → TRIAL_CLASS → … / DROPPED).
+ * Verifies: 등록 = INTAKE, 정방향 전이, 직원 역방향 금지, 관리자 역방향 허용, 이력, 중단 → 재개.
  */
 describe('IT-02 inquiry state machine', () => {
   let env: AcmTestEnv;
@@ -18,7 +18,9 @@ describe('IT-02 inquiry state machine', () => {
     'x-test-roles': role,
   });
 
-  it('creates inquiry in ACTIVE state', async () => {
+  const stageOf = (b: Record<string, unknown>) => b.currentStage ?? b.stage;
+
+  it('creates inquiry in INTAKE stage', async () => {
     const res = await request(env.app.getHttpServer())
       .post('/api/acm/csl/inquiries')
       .set(auth())
@@ -32,7 +34,7 @@ describe('IT-02 inquiry state machine', () => {
         applyType: 'COUNSELING_ONLY',
       })
       .expect(201);
-    expect(res.body.status).toBe('ACTIVE');
+    expect(stageOf(res.body)).toBe('INTAKE');
     inqId = res.body.id;
   });
 
@@ -40,17 +42,25 @@ describe('IT-02 inquiry state machine', () => {
     await request(env.app.getHttpServer())
       .post(`/api/acm/csl/inquiries/${inqId}/transitions/backward`)
       .set(auth('staff'))
-      .send({ toStatus: 'ACTIVE', reasonCode: 'CORRECTION', note: 'test' })
+      .send({ toStage: 'INTAKE', reason: 'correction', note: 'test' })
       .expect(403);
   });
 
-  it('forwards to ENROLLED', async () => {
+  it('rejects a transition that skips the pipeline', async () => {
+    await request(env.app.getHttpServer())
+      .post(`/api/acm/csl/inquiries/${inqId}/transitions`)
+      .set(auth())
+      .send({ toStage: 'PAYMENT' })
+      .expect(400);
+  });
+
+  it('forwards INTAKE → MAP_TEST', async () => {
     const res = await request(env.app.getHttpServer())
       .post(`/api/acm/csl/inquiries/${inqId}/transitions`)
       .set(auth())
-      .send({ toStatus: 'ENROLLED' })
+      .send({ toStage: 'MAP_TEST' })
       .expect(201);
-    expect(res.body.status).toBe('ENROLLED');
+    expect(stageOf(res.body)).toBe('MAP_TEST');
   });
 
   it('logs transition history (C-10)', async () => {
@@ -59,15 +69,14 @@ describe('IT-02 inquiry state machine', () => {
       .set(auth())
       .expect(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThanOrEqual(1);
-    expect(res.body[res.body.length - 1].toStatus).toBe('ENROLLED');
+    expect(JSON.stringify(res.body)).toContain('MAP_TEST');
   });
 
-  it('admin can backward override ENROLLED → ACTIVE', async () => {
+  it('admin can backward override MAP_TEST → INTAKE', async () => {
     await request(env.app.getHttpServer())
       .post(`/api/acm/csl/inquiries/${inqId}/transitions/backward`)
       .set(auth('admin'))
-      .send({ toStatus: 'ACTIVE', reasonCode: 'CORRECTION', note: 'admin correction' })
+      .send({ toStage: 'INTAKE', reason: 'admin correction' })
       .expect(201);
   });
 
@@ -75,12 +84,12 @@ describe('IT-02 inquiry state machine', () => {
     await request(env.app.getHttpServer())
       .post(`/api/acm/csl/inquiries/${inqId}/cancellations`)
       .set(auth())
-      .send({ reasonCode: 'NO_RESPONSE' })
+      .send({ reasonCode: 'SIMPLE_INQUIRY_END' })
       .expect(201);
     const r = await request(env.app.getHttpServer())
       .post(`/api/acm/csl/inquiries/${inqId}/reactivate`)
       .set(auth())
       .expect(201);
-    expect(['ACTIVE','ENROLLED','NOT_ENROLLED','SUSPENDED']).toContain(r.body.status);
+    expect(stageOf(r.body)).toBe('INTAKE');
   });
 });

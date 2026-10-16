@@ -17,7 +17,8 @@ describe('IT-AUTH acm-auth login + me + protected access', () => {
   beforeAll(async () => { env = await bootAcmTestEnv(); }, 240_000);
   afterAll(async () => { await teardownAcmTestEnv(env); });
 
-  const SEED_EMAIL = 'admin@acm.local';
+  // sql/acm/500 이 시드 관리자 이메일을 admin@acm.local → admin@tpi.co.kr 로 바꾼다.
+  const SEED_EMAIL = 'admin@tpi.co.kr';
   const SEED_PASSWORD = 'acm20261234';
 
   it('AC-1: POST /api/acm/auth/login with seed credentials returns a JWT', async () => {
