@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AxiosError } from 'axios';
 import { KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { PasswordInput } from '@/components/ui/password-input';
 import { Label } from '@/components/ui/label';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { useAuthStore } from '@/stores/auth.store';
@@ -89,9 +89,8 @@ export function ChangePasswordPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="currentPassword">{t('changePassword.current')}</Label>
-              <Input
+              <PasswordInput
                 id="currentPassword"
-                type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 autoComplete="current-password"
@@ -99,9 +98,8 @@ export function ChangePasswordPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="newPassword">{t('changePassword.new')}</Label>
-              <Input
+              <PasswordInput
                 id="newPassword"
-                type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
@@ -110,9 +108,8 @@ export function ChangePasswordPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="confirmPassword">{t('changePassword.confirm')}</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
                 autoComplete="new-password"

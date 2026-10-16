@@ -261,7 +261,8 @@
     "tenantConfig": "Tenant settings",
     "myWork": "My work",
     "issues": "Issues",
-    "myPage": "My page"
+    "myPage": "My page",
+    "passwordRequests": "Password requests"
   },
   "lang": {
     "label": "Language",
@@ -958,7 +959,8 @@
       "CHAT_MESSAGE": "New chat message",
       "REVIEW_OVERDUE": "Class feedback/homework overdue",
       "ISSUE_MENTION": "Mentioned you in an issue",
-      "ISSUE_MENTION_COMMENT": "Mentioned you in an issue comment"
+      "ISSUE_MENTION_COMMENT": "Mentioned you in an issue comment",
+      "PASSWORD_RESET_REQUEST": "A password reset was requested"
     }
   },
   "pay": {
@@ -1669,7 +1671,18 @@
     "saving": "Saving…",
     "saved": "Saved.",
     "saveError": "Could not save.",
-    "changePassword": "Change password"
+    "changePassword": "Change password",
+    "joinedAt": "Joined",
+    "bio": "About me",
+    "bioPlaceholder": "Subjects, experience, a short introduction…",
+    "emergency": {
+      "title": "Emergency contact",
+      "name": "Name",
+      "relation": "Relationship",
+      "relationPlaceholder": "e.g. Spouse, Parent",
+      "phone": "Phone",
+      "phoneInvalid": "Phone may contain only digits, +, -, parentheses and spaces."
+    }
   },
   "drive": {
     "title": "Company Google Drive",

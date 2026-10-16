@@ -45,6 +45,7 @@ import {
   ListTodo,
   ChevronDown,
   ChevronRight,
+  KeyRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { clsx } from "clsx";
@@ -94,6 +95,8 @@ const NAV = [
   // REQ-261015C — 테넌트 설정(테넌트 마스터) / 서비스 설정(서비스 운영자). 권한으로만 노출.
   { to: "/admin/tenant", icon: Building2, key: "tenantConfig", group: "settings" },
   { to: "/admin/config", icon: Settings, key: "config", group: "settings" },
+  // REQ-261017 — 비밀번호 재발급 요청(관리자 전용)
+  { to: "/admin/password-requests", icon: KeyRound, key: "passwordRequests", group: "settings" },
 ] as const satisfies readonly {
   to: string;
   icon: unknown;
@@ -175,7 +178,9 @@ export function AppShell() {
         ? configAccess.allowed
         : n.key === "tenantConfig"
           ? configAccess.tenantAllowed
-          : !hiddenSet.has(n.key)) &&
+          : n.key === "passwordRequests"
+            ? ["ADMIN", "APP_ADMIN"].includes(user?.role ?? "")
+            : !hiddenSet.has(n.key)) &&
       (n.key !== "pay" ||
         // REQ-261015C — 테넌트 마스터는 허가된 메뉴를 모두 본다.
         configAccess.tenantAllowed ||
@@ -214,13 +219,18 @@ export function AppShell() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const token = useAuthStore((s) => s.token);
   useEffect(() => {
-    if (!token || !user || user.authSource) return;
+    // REQ-261017 — 이름(좌측 하단 표시)도 없으면 함께 보충한다.
+    if (!token || !user || (user.authSource && user.name)) return;
     let cancelled = false;
     void (async () => {
       try {
         const res = await fetchMe();
-        if (cancelled || !res.user.authSource) return;
-        setAuth(token, { ...user, authSource: res.user.authSource });
+        if (cancelled) return;
+        setAuth(token, {
+          ...user,
+          authSource: res.user.authSource ?? user.authSource,
+          name: res.user.name || user.name || user.email?.split("@")[0],
+        });
       } catch {
         // 보충 실패는 조용히 넘긴다 — 다음 로그인에 정상 채워진다.
       }
@@ -430,17 +440,31 @@ export function AppShell() {
               {!iconOnly && t("nav.systemAdmin")}
             </NavLink>
           )}
-          {/* 아이콘 모드에서는 이메일을 숨긴다 — 64px 안에서 읽을 수 없다. */}
-          {/* REQ-261015C — 이메일 → 마이페이지(사용자 타임존) */}
-          {user?.email && !iconOnly && (
-            <Link
-              to="/admin/me"
-              className="block px-3 pb-2 text-xs text-secondary truncate hover:text-primary hover:underline"
-              title={t("nav.myPage")}
-            >
-              {user.email}
-            </Link>
-          )}
+          {/* REQ-261017 — 이메일 대신 이름 + 옆에 ‘마이페이지’ 텍스트. 아이콘 모드는 사용자 아이콘만. */}
+          {user &&
+            (iconOnly ? (
+              <Link
+                to="/admin/me"
+                className="mb-1 flex justify-center rounded-md py-2 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
+                aria-label={t("nav.myPage")}
+                title={user.name || user.email}
+              >
+                <UserRound size={18} />
+              </Link>
+            ) : (
+              <div className="flex items-center gap-2 px-3 pb-2 text-xs">
+                <UserRound size={14} className="shrink-0 text-secondary" />
+                <span className="min-w-0 truncate font-medium text-primary" title={user.email}>
+                  {user.name || user.email?.split("@")[0]}
+                </span>
+                <Link
+                  to="/admin/me"
+                  className="ml-auto shrink-0 text-accent-700 hover:underline"
+                >
+                  {t("nav.myPage")}
+                </Link>
+              </div>
+            ))}
           <button
             type="button"
             onClick={onLogout}

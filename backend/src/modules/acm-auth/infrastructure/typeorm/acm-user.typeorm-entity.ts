@@ -46,6 +46,10 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'usr_must_change_password', type: 'boolean', default: false })
   mustChangePassword!: boolean;
 
+  /** REQ-261017 — 임시 비밀번호 만료 시각(관리자 발급 24시간). 변경하면 비운다. */
+  @Column({ name: 'usr_temp_password_expires_at', type: 'timestamptz', nullable: true })
+  tempPasswordExpiresAt?: Date | null;
+
   @Column({ name: 'auth_source', type: 'varchar', length: 16, default: 'local' })
   authSource!: string;
 

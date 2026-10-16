@@ -90,6 +90,20 @@ jobs:
           cache-from: type=gha,scope=postgres-acm
           cache-to: type=gha,mode=max,scope=postgres-acm
 
+      # REQ-261017 — 새 환경 구축 검사: 빈 DB 에 sql/acm 전체를 배포와 같은 순서·psql 로 적용.
+      # 새 마이그레이션이 순서를 깨거나 빈 DB 에서 실패하면 여기서 막힌다.
+      - name: Fresh install (empty DB) migration check
+        working-directory: .
+        run: |
+          docker run -d --name acm-fresh -e POSTGRES_PASSWORD=t -e POSTGRES_DB=db_acm tac-postgres-acm:pg16-bigm
+          for i in $(seq 1 30); do docker exec acm-fresh pg_isready -U postgres -d db_acm && break; sleep 2; done
+          sleep 2
+          for f in $(bash scripts/acm-migration-order.sh sql/acm); do
+            echo "apply $(basename "$f")"
+            docker exec -i acm-fresh psql -q -U postgres -d db_acm -v ON_ERROR_STOP=1 < "$f"
+          done
+          docker rm -f acm-fresh
+
       - name: e2e (Nest AppModule boot)
         run: npm run test:e2e
         # TEMP: marked non-blocking until CI gains full ACM_PG_* and ACM_PII_KEY env.

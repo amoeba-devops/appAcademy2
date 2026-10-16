@@ -12,7 +12,18 @@ export interface MyProfile {
   role?: string;
   timezone: string | null;
   tenantTimezone: string;
+  /** REQ-261017 — 콘솔 전용 */
+  authSource?: string;
+  hasPassword?: boolean;
+  createdAt?: string;
+  emergencyName?: string | null;
+  emergencyRelation?: string | null;
+  emergencyPhone?: string | null;
+  bio?: string | null;
 }
+export type MyProfileUpdate = Partial<
+  Pick<MyProfile, "timezone" | "emergencyName" | "emergencyRelation" | "emergencyPhone" | "bio">
+>;
 export type ProfileMode = "portal" | "console";
 const url = (mode: ProfileMode) =>
   mode === "portal" ? "/portal/me" : "/acm/me/profile";
@@ -33,8 +44,8 @@ export function useMyProfile(mode: ProfileMode) {
 export function useSaveMyProfile(mode: ProfileMode) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (timezone: string | null) =>
-      (await apiClient.put<MyProfile>(url(mode), { timezone })).data,
+    mutationFn: async (body: MyProfileUpdate) =>
+      (await apiClient.put<MyProfile>(url(mode), body)).data,
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["my-profile", mode] });
     },

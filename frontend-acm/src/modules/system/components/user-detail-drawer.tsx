@@ -18,6 +18,7 @@ import {
   type SystemUser,
   type SystemUserPermission,
 } from '@/modules/system/hooks/use-system-users';
+import { IssueTempPasswordButton } from '@/modules/auth/components/temp-password';
 import { EditUserDialog, ResetPasswordDialog } from './user-dialogs';
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
@@ -110,6 +111,8 @@ export function UserDetailDrawer({ id, onClose }: { id: string; onClose: () => v
                   <Pencil size={16} className="mr-1.5" />
                   {t('actions.edit')}
                 </Button>
+                {/* REQ-261017 — 임시 비밀번호 발급 */}
+                <IssueTempPasswordButton userId={user.id} email={user.email} />
                 <Button variant="outline" onClick={() => setResetting(true)}>
                   <KeyRound size={16} className="mr-1.5" />
                   {t('users.password.title')}

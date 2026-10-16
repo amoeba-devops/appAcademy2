@@ -261,7 +261,8 @@
     "tenantConfig": "租户设置",
     "myWork": "我的工作",
     "issues": "问题",
-    "myPage": "我的页面"
+    "myPage": "我的页面",
+    "passwordRequests": "密码请求"
   },
   "lang": {
     "label": "语言",
@@ -958,7 +959,8 @@
       "CHAT_MESSAGE": "新聊天消息",
       "REVIEW_OVERDUE": "课程反馈/作业逾期",
       "ISSUE_MENTION": "在问题中提到了你",
-      "ISSUE_MENTION_COMMENT": "在问题评论中提到了你"
+      "ISSUE_MENTION_COMMENT": "在问题评论中提到了你",
+      "PASSWORD_RESET_REQUEST": "收到密码重置请求"
     }
   },
   "pay": {
@@ -1669,7 +1671,18 @@
     "saving": "保存中…",
     "saved": "已保存。",
     "saveError": "保存失败。",
-    "changePassword": "修改密码"
+    "changePassword": "修改密码",
+    "joinedAt": "加入日期",
+    "bio": "自我介绍",
+    "bioPlaceholder": "负责科目、经历、简短介绍等…",
+    "emergency": {
+      "title": "紧急联系人",
+      "name": "姓名",
+      "relation": "关系",
+      "relationPlaceholder": "例：配偶、父母",
+      "phone": "电话",
+      "phoneInvalid": "电话只能包含数字、+、-、括号和空格。"
+    }
   },
   "drive": {
     "title": "公司 Google Drive",

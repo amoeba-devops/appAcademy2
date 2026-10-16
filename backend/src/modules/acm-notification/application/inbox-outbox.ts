@@ -8,7 +8,8 @@ export type InboxEventType =
   | 'CHAT_MENTION'
   | 'CHAT_MESSAGE'
   | 'REVIEW_OVERDUE'
-  | 'ISSUE_MENTION';
+  | 'ISSUE_MENTION'
+  | 'PASSWORD_RESET_REQUEST';
 export interface InboxEvent {
   entId: string;
   actorId?: string | null;
@@ -30,6 +31,7 @@ export async function enqueueInbox(
     WHERE u.ent_id=$1 AND u.usr_status='ACTIVE' AND u.usr_id IS DISTINCT FROM $2::uuid
       AND CASE WHEN $3 IN ('CHAT_MENTION','CHAT_MESSAGE') THEN u.usr_role IN ('ADMIN','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
       WHEN $3='ISSUE_MENTION' THEN u.usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
+      WHEN $3='PASSWORD_RESET_REQUEST' THEN u.usr_role IN ('ADMIN','APP_ADMIN')
       WHEN $3='REVIEW_OVERDUE' THEN u.usr_role IN ('ADMIN','APP_ADMIN')
       ELSE u.usr_role IN ('ADMIN','STAFF','APP_ADMIN') OR
         ($3 LIKE 'CAL_%' AND u.usr_role='TEACHER' AND EXISTS (

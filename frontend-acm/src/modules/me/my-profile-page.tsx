@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatDual } from "@/lib/tz";
 import { TZ_OPTIONS, tzLabel } from "@/modules/cfg/pages/general-config-page";
 import { useMyProfile, useSaveMyProfile, type ProfileMode } from "./use-my-zones";
+import { ExtraProfileSection, PasswordSection } from "./console-profile-sections";
 
 /**
  * REQ-261015C — 마이페이지. 포털(/portal/me: 학생·강사·학부모) / 콘솔(/admin/me).
@@ -58,6 +59,19 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
                 <dd>{p.kind ? t(`portalApp.role.${p.kind}`) : t(`myPage.roles.${p.role}`, p.role ?? "")}</dd>
               </div>
             )}
+            {p.createdAt && (
+              <div>
+                <dt className="text-xs text-secondary">{t("myPage.joinedAt")}</dt>
+                <dd>
+                  {new Intl.DateTimeFormat(i18n.language, {
+                    timeZone: tenantTz,
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  }).format(new Date(p.createdAt))}
+                </dd>
+              </div>
+            )}
           </dl>
           <section className="grid gap-3 rounded-lg border bg-surface p-4 text-sm">
             <h2 className="font-semibold">{t("myPage.timezone")}</h2>
@@ -90,12 +104,18 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
               )}
               <Button
                 disabled={save.isPending || tz === (p.timezone ?? "")}
-                onClick={() => save.mutate(tz || null)}
+                onClick={() => save.mutate({ timezone: tz || null })}
               >
                 {save.isPending ? t("myPage.saving") : t("myPage.save")}
               </Button>
             </div>
           </section>
+          {mode === "console" && (
+            <>
+              <ExtraProfileSection profile={p} />
+              <PasswordSection hasPassword={p.hasPassword !== false} />
+            </>
+          )}
           {mode === "portal" && (
             <Link className="text-sm text-accent-700 hover:underline" to="/portal/change-password">
               {t("myPage.changePassword")} →

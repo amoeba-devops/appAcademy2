@@ -25,6 +25,11 @@ import { SystemUserController } from './presentation/system-user.controller';
 import { SystemTenantController } from './presentation/system-tenant.controller';
 import { MeMenuController } from './presentation/me-menu.controller';
 import { MeProfileController } from './presentation/me-profile.controller';
+import {
+  PasswordResetAdminController,
+  PasswordResetPublicController,
+} from './presentation/password-reset.controller';
+import { PasswordResetService } from './application/password-reset.service';
 import { TenantMasterController } from './presentation/tenant-master.controller';
 import { TenantRoleMenuService } from './application/tenant-role-menu.service';
 import { MailConfigController } from './presentation/mail-config.controller';
@@ -63,6 +68,9 @@ import { AiConfigController } from './presentation/ai-config.controller';
     SystemTenantController,
     MeMenuController,
     MeProfileController,
+    // REQ-261017 — 비밀번호 재발급 요청·임시 비밀번호
+    PasswordResetPublicController,
+    PasswordResetAdminController,
     TenantMasterController,
     MailConfigController,
     TenantSettingsController,
@@ -84,6 +92,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     SiteTagProbe, // PLN-260914C
     Ga4ConfigService,
     AiConfigService,
+    PasswordResetService,
   ],
   exports: [
     TenantMailerService,

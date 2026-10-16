@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { IssueTempPasswordButton } from '@/modules/auth/components/temp-password';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast';
@@ -338,7 +339,9 @@ export function StfFormModal({ open, onClose, initial }: Props) {
                   />
                 </div>
               </div>
-              <div className="flex justify-end">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {/* REQ-261017 — 임시 비밀번호 발급(메일 또는 1회 표시, 24시간) */}
+                {initial?.userId && <IssueTempPasswordButton userId={initial.userId} />}
                 <Button
                   type="button"
                   variant="outline"

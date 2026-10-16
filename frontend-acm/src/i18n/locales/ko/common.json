@@ -261,7 +261,8 @@
     "tenantConfig": "테넌트 설정",
     "myWork": "내 업무",
     "issues": "이슈",
-    "myPage": "마이페이지"
+    "myPage": "마이페이지",
+    "passwordRequests": "비밀번호 요청"
   },
   "lang": {
     "label": "언어",
@@ -958,7 +959,8 @@
       "CHAT_MESSAGE": "새 채팅",
       "REVIEW_OVERDUE": "수업 피드백·숙제 미완료",
       "ISSUE_MENTION": "이슈에서 나를 멘션했습니다",
-      "ISSUE_MENTION_COMMENT": "이슈 댓글에서 나를 멘션했습니다"
+      "ISSUE_MENTION_COMMENT": "이슈 댓글에서 나를 멘션했습니다",
+      "PASSWORD_RESET_REQUEST": "비밀번호 재발급 요청이 접수되었습니다"
     }
   },
   "pay": {
@@ -1669,7 +1671,18 @@
     "saving": "저장 중…",
     "saved": "저장되었습니다.",
     "saveError": "저장하지 못했습니다.",
-    "changePassword": "비밀번호 변경"
+    "changePassword": "비밀번호 변경",
+    "joinedAt": "가입일",
+    "bio": "자기소개",
+    "bioPlaceholder": "담당 과목, 경력, 소개 등을 자유롭게 적어 주세요.",
+    "emergency": {
+      "title": "비상연락망",
+      "name": "이름",
+      "relation": "관계",
+      "relationPlaceholder": "예: 배우자, 부모",
+      "phone": "연락처",
+      "phoneInvalid": "연락처는 숫자, +, -, 괄호, 공백만 입력할 수 있습니다."
+    }
   },
   "drive": {
     "title": "회사 Google Drive 연동",

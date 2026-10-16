@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { DataSource } from 'typeorm';
 import { MailerModule } from '../../../src/infrastructure/mailer/mailer.module';
 import { AcmCommonModule } from '../../../src/modules/acm-common/acm-common.module';
@@ -33,51 +34,36 @@ const PG_IMAGE = process.env.ACM_TEST_PG_IMAGE ?? 'tac-postgres-acm:pg16-bigm';
 const NEVER_PULL = { shouldPull: () => false };
 
 /**
- * 모든 sql/acm 마이그레이션을 버전 순(100 < 999x < 1000)으로 적용한다.
- * 손으로 관리하던 목록이 새 마이그레이션을 놓쳐 통합 테스트가 깨지던 문제를 없앤다.
- * 일부 999* 파일은 이후 번호(1006·1007·1025 등)에 의존하므로, 실패한 파일은 끝에서 한 번 더 적용한다
- * (모든 마이그레이션은 멱등이어야 한다).
+ * REQ-261017 — 배포와 같은 순서(scripts/acm-migration-order.sh: 버전 순 + 의존 역순 3개 명시 배치)로
+ * sql/acm 전체를 적용한다. 손으로 관리하던 목록이 새 마이그레이션을 놓치던 문제를 없앤다.
  */
 export function acmSqlFiles(): string[] {
-  const key = (n: string) => {
-    const m = /^(\d+)([a-z]*)/.exec(n);
-    return m ? [Number(m[1]), m[2], n] : [Number.MAX_SAFE_INTEGER, '', n];
-  };
-  return fs
-    .readdirSync(SQL_DIR)
-    .filter((f) => f.endsWith('.sql'))
-    .sort((a, b) => {
-      const [an, as, af] = key(a);
-      const [bn, bs, bf] = key(b);
-      return (
-        (an as number) - (bn as number) ||
-        String(as).localeCompare(String(bs)) ||
-        String(af).localeCompare(String(bf))
-      );
-    });
+  const script = path.resolve(
+    __dirname,
+    '../../../../scripts/acm-migration-order.sh',
+  );
+  return execFileSync('bash', [script, SQL_DIR], { encoding: 'utf8' })
+    .split('\n')
+    .filter(Boolean)
+    .map((p) => path.basename(p));
 }
 /** psql 전용 메타 명령(`\\set ON_ERROR_STOP on` 등)은 드라이버로 실행할 수 없어 뺀다. */
 const readSql = (f: string) =>
   fs.readFileSync(path.resolve(SQL_DIR, f), 'utf8').replace(/^\s*\\.*$/gm, '');
 export async function applyAcmMigrations(ds: DataSource): Promise<void> {
-  // 한 연결에서 순서대로 적용. 파일 안의 BEGIN…COMMIT 이 실패하면 ROLLBACK 으로 연결을 되살린다.
+  // 한 연결에서 순서대로 적용. 실패하면 파일 이름과 함께 바로 알린다(순서 문제를 숨기지 않는다).
   const qr = ds.createQueryRunner();
   await qr.connect();
-  const run = async (f: string) => {
-    try {
-      await qr.query(readSql(f));
-      return null;
-    } catch (e) {
-      await qr.query('ROLLBACK').catch(() => undefined);
-      return e as Error;
-    }
-  };
   try {
-    const failed: string[] = [];
-    for (const f of acmSqlFiles()) if (await run(f)) failed.push(f);
-    for (const f of failed) {
-      const e = await run(f);
-      if (e) throw new Error(`Migration ${f} failed: ${e.message}`);
+    for (const f of acmSqlFiles()) {
+      try {
+        await qr.query(readSql(f));
+      } catch (e) {
+        await qr.query('ROLLBACK').catch(() => undefined);
+        throw new Error(`Migration ${f} failed: ${(e as Error).message}`, {
+          cause: e,
+        });
+      }
     }
   } finally {
     await qr.release();
@@ -146,7 +132,13 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
     .overrideProvider(AMA_PLATFORM_CLIENT)
     .useValue({
       assertMember: (entityId: string, userId: string) =>
-        Promise.resolve({ userId, entityId, level: 'MEMBER', name: 'IT user', email: '' }),
+        Promise.resolve({
+          userId,
+          entityId,
+          level: 'MEMBER',
+          name: 'IT user',
+          email: '',
+        }),
       searchUsers: () => Promise.resolve([]),
     })
     .compile();

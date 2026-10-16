@@ -28,6 +28,7 @@ import { SubscriptionCheckService } from './subscription-check.service';
 import { UserMembershipGuard } from './user-membership.guard';
 import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
+import { generateTempPassword } from './temp-password';
 
 /** REQ-260609C/D — AMA token verification mode. */
 type AmaVerifyMode = 'local' | 'ama_session' | 'local_config';
@@ -99,6 +100,18 @@ export class AcmAuthService {
     if (!ok || !user) {
       this.recordFailure(email);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // REQ-261017 — 만료된 임시 비밀번호는 거부(다시 요청하도록 안내).
+    if (
+      user.mustChangePassword &&
+      user.tempPasswordExpiresAt &&
+      user.tempPasswordExpiresAt.getTime() < Date.now()
+    ) {
+      throw new HttpException(
+        { code: 'TEMP_PASSWORD_EXPIRED', message: 'Temporary password expired' },
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     this.failures.delete(email);
@@ -196,7 +209,31 @@ export class AcmAuthService {
     }
     u.passwordHash = await bcrypt.hash(plainPassword, 12);
     u.mustChangePassword = true;
+    u.tempPasswordExpiresAt = null; // 직접 입력한 비밀번호는 만료 없음
     await this.userRepo.save(u);
+  }
+
+  /**
+   * REQ-261017 — 관리자 임시 비밀번호 발급: 생성·해시 저장·다음 로그인 시 변경 필수·24시간 만료.
+   * 평문은 호출자(메일 발송 또는 1회 표시)에게만 돌려주고 저장·로그하지 않는다.
+   */
+  async issueTempPassword(
+    userId: string,
+    validHours = 24,
+  ): Promise<{ password: string; expiresAt: Date }> {
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u) {
+      throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    const password = generateTempPassword();
+    const expiresAt = new Date(Date.now() + validHours * 3600_000);
+    u.passwordHash = await bcrypt.hash(password, 12);
+    u.mustChangePassword = true;
+    u.tempPasswordExpiresAt = expiresAt;
+    u.lockedAt = null;
+    await this.userRepo.save(u);
+    this.failures.delete(u.email);
+    return { password, expiresAt };
   }
 
   /**
@@ -219,6 +256,7 @@ export class AcmAuthService {
     this.assertPasswordPolicy(newPassword);
     u.passwordHash = await bcrypt.hash(newPassword, 12);
     u.mustChangePassword = false;
+    u.tempPasswordExpiresAt = null;
     await this.userRepo.save(u);
   }
 

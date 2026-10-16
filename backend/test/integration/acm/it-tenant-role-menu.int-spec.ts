@@ -70,7 +70,8 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
     // 사용자 엔티티 전체 컬럼(830/880 의 사용자 부분만).
     await db.query(
       `ALTER TABLE amb_acm_user ADD COLUMN IF NOT EXISTS usr_locked_at TIMESTAMPTZ,
-         ADD COLUMN IF NOT EXISTS usr_ama_job_role VARCHAR(40)`,
+         ADD COLUMN IF NOT EXISTS usr_ama_job_role VARCHAR(40),
+         ADD COLUMN IF NOT EXISTS usr_temp_password_expires_at TIMESTAMPTZ`,
     );
     const insert = async (ent: string, email: string, role: string) =>
       (
