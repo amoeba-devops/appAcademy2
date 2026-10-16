@@ -956,7 +956,9 @@
       "CAL_UPDATED": "Class schedule updated",
       "CHAT_MENTION": "You were mentioned in chat",
       "CHAT_MESSAGE": "New chat message",
-      "REVIEW_OVERDUE": "Class feedback/homework overdue"
+      "REVIEW_OVERDUE": "Class feedback/homework overdue",
+      "ISSUE_MENTION": "Mentioned you in an issue",
+      "ISSUE_MENTION_COMMENT": "Mentioned you in an issue comment"
     }
   },
   "pay": {
@@ -1722,5 +1724,112 @@
     },
     "notReadyHint": "The company Google Drive shared folder is not set yet, so creating Google files and uploading to Drive are unavailable. You can still upload files to ACM storage.",
     "goSettings": "Go to Drive settings"
+  },
+  "docsCreate": {
+    "title": "New",
+    "project": "Project",
+    "noProject": "You are not in any project",
+    "kind": "Type",
+    "kinds": {
+      "MEMO": "Memo",
+      "SHEET": "Spreadsheet",
+      "DOC": "Document",
+      "FILE": "File"
+    },
+    "method": "Method",
+    "methods": {
+      "LOCAL": "Write in ACM",
+      "GOOGLE_LINK": "Link an existing Google file",
+      "GOOGLE_NEW": "Create in Google",
+      "UPLOAD": "Upload a file (company Drive or ACM storage)"
+    },
+    "driveRequired": "Company Drive shared folder required",
+    "cancel": "Cancel",
+    "next": "Next"
+  },
+  "driveUi": {
+    "title": "Drive",
+    "subtitle": "Browse and search company documents in Google Drive.",
+    "account": "Academy account: {{email}}",
+    "notConnected": "No Google Drive account is connected.",
+    "readOnly": "Read only",
+    "canEdit": "Can edit",
+    "manageConnection": "Manage connection",
+    "linkFolder": "Link folder",
+    "searchPlaceholder": "Search documents...",
+    "searchResults": "Search results",
+    "noResults": "No results found.",
+    "allFolders": "All folders",
+    "breadcrumb": "Path",
+    "sharedFolder": "Shared folder",
+    "shareTargets": "Share targets",
+    "unlink": "Unlink folder (not deleted from Drive)",
+    "unlinkConfirm": "Unlink this folder from ACM? The Google original is kept.",
+    "noFolders": "No folders are registered.",
+    "noFoldersHint": "Register a Google Drive folder to browse documents.",
+    "emptyFolder": "This folder has no files.",
+    "loadMore": "Load more",
+    "newFolder": "New folder",
+    "newFolderPrompt": "Enter a new folder name",
+    "sortLabel": "Sort",
+    "sortDir": "Sort direction",
+    "sort": {
+      "date": "Date",
+      "size": "File size",
+      "type": "Type",
+      "owner": "Owner"
+    },
+    "view": {
+      "list": "List view",
+      "grid": "Card view"
+    },
+    "select": {
+      "start": "Select",
+      "cancel": "Cancel",
+      "all": "Select all",
+      "clear": "Clear",
+      "count": "{{count}} selected"
+    },
+    "actions": {
+      "more": "More",
+      "rename": "Rename",
+      "move": "Move",
+      "trash": "Move to Trash"
+    },
+    "rename": {
+      "prompt": "Enter a new name",
+      "done": "Renamed."
+    },
+    "move": {
+      "titleOne": "Move \"{{name}}\"",
+      "titleMany": "Move {{count}} items",
+      "here": "Move here",
+      "noSubfolders": "No subfolders.",
+      "done": "Moved to {{folder}}."
+    },
+    "trash": {
+      "confirmOne": "Move \"{{name}}\" to Trash? You can restore it from Google Drive Trash.",
+      "confirmMany": "Move {{count}} items to Trash? You can restore them from Google Drive Trash.",
+      "done": "Moved {{count}} items to Trash."
+    },
+    "bulk": {
+      "partial": "{{ok}} done · {{fail}} failed"
+    },
+    "upload": {
+      "button": "Upload",
+      "tooLarge": "Only files up to 50MB can be uploaded.",
+      "failed": "Upload failed."
+    },
+    "detail": {
+      "type": "Type",
+      "size": "Size",
+      "modified": "Modified",
+      "owner": "Owner",
+      "openInDrive": "Open in Google Drive",
+      "preview": "Preview",
+      "download": "Download"
+    },
+    "cancel": "Cancel",
+    "close": "Close"
   }
 }

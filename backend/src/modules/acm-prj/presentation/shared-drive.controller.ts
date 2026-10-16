@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -24,6 +25,11 @@ import {
 import { SharedDriveService } from '../application/shared-drive.service';
 import { SharedFolderDto } from '../application/document.dto';
 import { CreateDriveDto } from '../application/project.dto';
+import {
+  DriveFilesDto,
+  DriveMoveDto,
+  DriveRenameDto,
+} from '../application/shared-drive.dto';
 const fileId = (s: string) => {
   if (!/^[\w-]{1,200}$/.test(s)) throw new BadRequestException();
   return s;
@@ -38,6 +44,11 @@ export class SharedDriveController {
   }
   @Post() save(@CurrentUser() u: AcmCurrentUser, @Body() d: SharedFolderDto) {
     return this.service.save(u, d);
+  }
+  /** REQ-261016E — 볼 수 있는 연결 폴더 안 이름 검색(':id' 보다 먼저 선언). */
+  @Get('search') search(@CurrentUser() u: AcmCurrentUser, @Query('q') q = '') {
+    if (q.length > 100) throw new BadRequestException();
+    return this.service.search(u, q);
   }
   @Get(':id/permissions') permissions(
     @CurrentUser() u: AcmCurrentUser,
@@ -73,6 +84,35 @@ export class SharedDriveController {
   ) {
     return this.service.open(u, id, fileId(file));
   }
+  @Get(':id/files/:file') detail(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('file') file: string,
+  ) {
+    return this.service.detail(u, id, fileId(file));
+  }
+  @Patch(':id/files/:file') rename(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('file') file: string,
+    @Body() d: DriveRenameDto,
+  ) {
+    return this.service.rename(u, id, fileId(file), d.name);
+  }
+  @Post(':id/move') move(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: DriveMoveDto,
+  ) {
+    return this.service.move(u, id, d.fileIds, d.targetId);
+  }
+  @Post(':id/trash') trash(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: DriveFilesDto,
+  ) {
+    return this.service.trash(u, id, d.fileIds);
+  }
   @Delete(':id') unlink(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -82,7 +122,8 @@ export class SharedDriveController {
   @Post(':id/upload')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+      // REQ-261016E — AMA 와 같은 50MB(nginx client_max_body_size 55M)
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 },
     }),
   )
   upload(

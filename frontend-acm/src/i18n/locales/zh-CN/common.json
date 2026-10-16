@@ -956,7 +956,9 @@
       "CAL_UPDATED": "课程日程已更改",
       "CHAT_MENTION": "有人在聊天中提及您",
       "CHAT_MESSAGE": "新聊天消息",
-      "REVIEW_OVERDUE": "课程反馈/作业逾期"
+      "REVIEW_OVERDUE": "课程反馈/作业逾期",
+      "ISSUE_MENTION": "在问题中提到了你",
+      "ISSUE_MENTION_COMMENT": "在问题评论中提到了你"
     }
   },
   "pay": {
@@ -1722,5 +1724,112 @@
     },
     "notReadyHint": "尚未设置公司 Google Drive 共享文件夹，暂不能创建 Google 文件或上传到 Drive。仍可将文件上传到 ACM 存储。",
     "goSettings": "前往 Drive 设置"
+  },
+  "docsCreate": {
+    "title": "新建",
+    "project": "项目",
+    "noProject": "您未参与任何项目",
+    "kind": "类型",
+    "kinds": {
+      "MEMO": "备忘",
+      "SHEET": "电子表格",
+      "DOC": "文档",
+      "FILE": "文件"
+    },
+    "method": "方式",
+    "methods": {
+      "LOCAL": "在 ACM 中编写",
+      "GOOGLE_LINK": "关联现有 Google 文件",
+      "GOOGLE_NEW": "在 Google 中新建",
+      "UPLOAD": "上传文件（公司 Drive 或 ACM 存储）"
+    },
+    "driveRequired": "需要设置公司 Drive 共享文件夹",
+    "cancel": "取消",
+    "next": "下一步"
+  },
+  "driveUi": {
+    "title": "云盘",
+    "subtitle": "浏览和搜索 Google Drive 中的公司文档。",
+    "account": "学院公共账号：{{email}}",
+    "notConnected": "尚未连接 Google Drive 账号。",
+    "readOnly": "只读",
+    "canEdit": "可编辑",
+    "manageConnection": "连接管理",
+    "linkFolder": "关联文件夹",
+    "searchPlaceholder": "搜索文档...",
+    "searchResults": "搜索结果",
+    "noResults": "没有搜索结果。",
+    "allFolders": "全部文件夹",
+    "breadcrumb": "路径",
+    "sharedFolder": "公共文件夹",
+    "shareTargets": "共享对象",
+    "unlink": "取消关联文件夹（不会从 Drive 删除）",
+    "unlinkConfirm": "要从 ACM 取消关联吗？Google 原文件会保留。",
+    "noFolders": "没有已登记的文件夹。",
+    "noFoldersHint": "登记 Google Drive 文件夹即可浏览文档。",
+    "emptyFolder": "此文件夹中没有文件。",
+    "loadMore": "查看更多",
+    "newFolder": "新建文件夹",
+    "newFolderPrompt": "请输入新文件夹名称",
+    "sortLabel": "排序",
+    "sortDir": "排序方向",
+    "sort": {
+      "date": "按日期",
+      "size": "按文件大小",
+      "type": "按类型",
+      "owner": "按创建者"
+    },
+    "view": {
+      "list": "列表视图",
+      "grid": "卡片视图"
+    },
+    "select": {
+      "start": "选择",
+      "cancel": "取消选择",
+      "all": "全选",
+      "clear": "清除",
+      "count": "已选 {{count}} 项"
+    },
+    "actions": {
+      "more": "更多",
+      "rename": "重命名",
+      "move": "移动",
+      "trash": "移到回收站"
+    },
+    "rename": {
+      "prompt": "请输入新名称",
+      "done": "已重命名。"
+    },
+    "move": {
+      "titleOne": "移动“{{name}}”",
+      "titleMany": "移动 {{count}} 项",
+      "here": "移到此处",
+      "noSubfolders": "没有子文件夹。",
+      "done": "已移动到 {{folder}}。"
+    },
+    "trash": {
+      "confirmOne": "将“{{name}}”移到回收站？可在 Google Drive 回收站中恢复。",
+      "confirmMany": "将 {{count}} 项移到回收站？可在 Google Drive 回收站中恢复。",
+      "done": "已将 {{count}} 项移到回收站。"
+    },
+    "bulk": {
+      "partial": "成功 {{ok}} 项 · 失败 {{fail}} 项"
+    },
+    "upload": {
+      "button": "上传",
+      "tooLarge": "仅可上传 50MB 以内的文件。",
+      "failed": "上传失败。"
+    },
+    "detail": {
+      "type": "类型",
+      "size": "大小",
+      "modified": "修改日期",
+      "owner": "所有者",
+      "openInDrive": "在 Google Drive 中打开",
+      "preview": "预览",
+      "download": "下载"
+    },
+    "cancel": "取消",
+    "close": "关闭"
   }
 }

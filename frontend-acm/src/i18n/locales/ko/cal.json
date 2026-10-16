@@ -116,7 +116,11 @@
     "add": "추가",
     "addBtn": "참석자 추가",
     "notifyResult": "알림 결과",
-    "pickerHint": "수업에 참여할 학생을 추가하세요. 다른 강사도 추가 가능합니다."
+    "pickerHint": "수업에 참여할 학생을 추가하세요. 다른 강사도 추가 가능합니다.",
+    "notSent": "미발송",
+    "notifyOnSave": "저장 시 참석자에게 메일 보내기",
+    "notifyOnSaveEditHint": "새로 추가된 참석자에게만 보냅니다.",
+    "notifyOnSaveHint": "선택하지 않으면 메일을 보내지 않습니다."
   },
   "hint": {
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",

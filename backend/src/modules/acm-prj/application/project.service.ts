@@ -13,6 +13,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorator';
 import { ProjectDto, ItemDto } from './project.dto';
 import { canTransition } from './issue.dto';
+import { notifyIssueMentions } from './issue-mentions';
 export interface Project {
   prj_id: string;
   ent_id: string;
@@ -215,16 +216,18 @@ export class ProjectService {
     // REQ-261015C — 이슈 상태 전이 검사 + 이력.
     let before: string | undefined;
     let prevAssignee: string | null = null;
+    let prevBody = '';
     if (itemId && d.kind === 'ISSUE') {
       const [cur] = await this.ds.query<
-        { pit_status: string; assignee_id: string | null }[]
+        { pit_status: string; assignee_id: string | null; pit_body: string }[]
       >(
-        `SELECT pit_status,assignee_id FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='ISSUE' AND deleted_at IS NULL`,
+        `SELECT pit_status,assignee_id,pit_body FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='ISSUE' AND deleted_at IS NULL`,
         [u.entId, id, itemId],
       );
       if (!cur) throw new NotFoundException();
       before = cur.pit_status;
       prevAssignee = cur.assignee_id;
+      prevBody = cur.pit_body ?? '';
       // REQ-261016D — 수정 창에는 담당자 칸이 없다. 생략하면 현재 담당자를 유지한다.
       if (d.assigneeId === undefined) d = { ...d, assigneeId: prevAssignee };
       if (d.status && !canTransition(before, d.status))
@@ -264,6 +267,15 @@ export class ProjectService {
           d,
           !itemId || prevAssignee !== (d.assigneeId ?? null),
         );
+      // REQ-261016E — 설명에 새로 멘션된 사람에게 알림
+      if (d.kind === 'ISSUE')
+        await notifyIssueMentions(m, {
+          entId: u.entId,
+          actorId: u.id,
+          issueId: saved.pit_id as string,
+          before: prevBody,
+          after: d.body ?? '',
+        });
       if (d.kind === 'ISSUE' && before !== status)
         await m.query(
           `INSERT INTO amb_acm_prj_issue_status_log(ent_id,pit_id,from_status,to_status,changed_by) VALUES($1,$2,$3,$4,$5)`,

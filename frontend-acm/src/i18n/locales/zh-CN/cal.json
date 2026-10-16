@@ -116,7 +116,11 @@
     "add": "添加",
     "addBtn": "添加参会人",
     "notifyResult": "通知结果",
-    "pickerHint": "添加参加本课的学生。也可添加其他讲师。"
+    "pickerHint": "添加参加本课的学生。也可添加其他讲师。",
+    "notSent": "未发送",
+    "notifyOnSave": "保存时向参与者发送邮件",
+    "notifyOnSaveEditHint": "仅向新添加的参与者发送。",
+    "notifyOnSaveHint": "不勾选则不发送邮件。"
   },
   "hint": {
     "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",

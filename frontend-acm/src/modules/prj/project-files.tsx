@@ -195,7 +195,8 @@ export function ProjectFiles({
     </section>
   );
 }
-function FileUpload({
+/** REQ-261016E — 문서 화면에서도 쓰도록 export. */
+export function FileUpload({
   project,
   close,
 }: {

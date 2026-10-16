@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -65,6 +66,12 @@ export class CreateInstantEventDto {
   @Type(() => InstantInviteeDto)
   @IsOptional()
   invitees?: InstantInviteeDto[];
+
+  /** REQ-261016E — true 일 때만 참석자 메일 발송(기본 미발송). */
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  notifyInvitees?: boolean;
 }
 
 /**

@@ -41,6 +41,8 @@ describe('ACM project issues (PostgreSQL)', () => {
     }).initialize();
     await ds.query(
       `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_email text,usr_status text,usr_role text);
+       CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_user_id uuid,deleted_at timestamptz);
+       CREATE TABLE amb_acm_notification_outbox(nob_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,nob_type varchar(32),nob_target_id uuid,nob_actor_id uuid,nob_payload jsonb,nob_recipients jsonb,created_at timestamptz DEFAULT now());
        CREATE FUNCTION set_acm_updated_at() RETURNS TRIGGER LANGUAGE plpgsql AS $$
          BEGIN NEW.updated_at = NOW(); RETURN NEW; END $$;`,
     );
@@ -332,6 +334,50 @@ describe('ACM project issues (PostgreSQL)', () => {
     });
   });
 
+  it('mentions notify only newly mentioned project members, never the author', async () => {
+    const tag = (u: AcmCurrentUser) =>
+      `<span data-type="mention" data-id="${u.id}" data-label="x">@x</span>`;
+    const outbox = async () =>
+      ds.query<
+        { nob_payload: Record<string, unknown>; nob_recipients: unknown }[]
+      >(
+        `SELECT nob_payload,nob_recipients FROM amb_acm_notification_outbox WHERE nob_type='ISSUE_MENTION' ORDER BY created_at`,
+      );
+    await ds.query(`DELETE FROM amb_acm_notification_outbox`);
+    // 설명: member(참여자) + outsider(비참여) + owner 본인 → member 만
+    const created = await projects.saveItem(owner, projectId, {
+      kind: 'ISSUE',
+      title: '멘션 테스트',
+      body: `<p>${tag(member)} ${tag(outsider)} ${tag(owner)}</p>`,
+    });
+    let rows = await outbox();
+    expect(rows).toHaveLength(1);
+    expect(JSON.stringify(rows[0].nob_recipients)).toContain(member.id);
+    expect(JSON.stringify(rows[0].nob_recipients)).not.toContain(outsider.id);
+    // 같은 멘션으로 다시 저장해도 재알림 없음
+    await projects.saveItem(
+      owner,
+      projectId,
+      {
+        kind: 'ISSUE',
+        title: '멘션 테스트',
+        body: `<p>${tag(member)} 수정</p>`,
+      },
+      created.pit_id as string,
+    );
+    expect(await outbox()).toHaveLength(1);
+    // 댓글 멘션 → commentId 포함
+    await issues.addComment(
+      owner,
+      created.pit_id as string,
+      `<p>${tag(member)}</p>`,
+    );
+    rows = await outbox();
+    expect(rows).toHaveLength(2);
+    expect(rows[1].nob_payload.commentId).toBeTruthy();
+    expect(String(rows[1].nob_payload.title)).toContain('멘션 테스트');
+  });
+
   it('comments accept rich text and reject empty HTML', async () => {
     const list = await issues.addComment(
       member,
@@ -350,6 +396,6 @@ describe('ACM project issues (PostgreSQL)', () => {
     );
     await expect(issues.remove(member, legacy.pit_id)).rejects.toThrow();
     await issues.remove(owner, legacy.pit_id);
-    expect((await issues.list(owner, {})).total).toBe(3);
+    expect((await issues.list(owner, {})).total).toBe(4);
   });
 });

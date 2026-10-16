@@ -41,6 +41,8 @@ export function InstantClassModal({ open, onClose }: Props) {
   const { t } = useTranslation('cal');
   const tz = useTenantTz();
   const [title, setTitle] = useState('');
+  // REQ-261016E — 참석자 메일은 선택했을 때만(기본 미발송)
+  const [notifyInvitees, setNotifyInvitees] = useState(false);
   const [duration, setDuration] = useState<Duration>(90);
   // PLN-260729 1.3 — 담당강사 지정(개설 권한). 미지정 시 등록자(운영자)만 개설 가능.
   const [assigneeTchId, setAssigneeTchId] = useState('');
@@ -126,6 +128,7 @@ export function InstantClassModal({ open, onClose }: Props) {
           kind: 'STUDENT' as const,
           refId,
         })),
+        notifyInvitees,
       });
       // Open launcher in a new tab so the teacher's current page (calendar)
       // stays put. autoStart=1 already on the URL → launcher will dispatch
@@ -294,6 +297,17 @@ export function InstantClassModal({ open, onClose }: Props) {
                   );
                 })}
               </div>
+            )}
+            {selectedCount > 0 && (
+              <label className="mt-2 flex items-center gap-2 text-xs text-primary">
+                <input
+                  type="checkbox"
+                  checked={notifyInvitees}
+                  onChange={(e) => setNotifyInvitees(e.target.checked)}
+                  disabled={isPending}
+                />
+                {t('invitee.notifyOnSave', '저장 시 참석자에게 메일 보내기')}
+              </label>
             )}
             {/* PLN-260729-2 — 학생 검색 (/admin/std 학생 대상) */}
             <div className="relative mt-2">

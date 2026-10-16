@@ -1,9 +1,9 @@
-import { driveOperation } from "./drive-operation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Eye, FolderOpen, HardDrive, Link2, Search, Settings, Unlink, Users } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -12,146 +12,245 @@ import {
 } from "@/components/ui/dialog";
 import { DriveConnection, errorText, useScope, useWork } from "./project-page";
 import { pickGoogle } from "./google-picker";
-import type { DriveStatus, DriveFile, Person } from "./types";
-interface Folder {
-  drf_id: string;
-  title: string;
-  file_id: string;
-  operator_access: string;
-  access: "VIEW" | "EDIT";
-}
-const base = "/acm/drive/folders";
+import type { DriveStatus, Person } from "./types";
+import { driveBase, isFolder, sortItems, type DriveItem, type Folder } from "./drive/drive-model";
+import { FileDetailModal, FileItems, FolderView, useViewPrefs, ViewTools } from "./drive/drive-browser";
+/**
+ * REQ-261016E — /admin/drive: AMA /drive 와 같은 한 화면 구성.
+ * 헤더(제목·부제·읽기 전용·전체 검색) → 폴더 카드 → 폴더 안 탐색(경로·정렬·목록/카드·선택·새 폴더·업로드).
+ * ACM 고유: 연결 관리(회사 Google 계정)·폴더 연결·공유 대상 권한.
+ */
 export function SharedDrivePage() {
+  const { t } = useTranslation("common");
   const scope = useScope(),
     qc = useQueryClient(),
     w = useWork();
   const [manage, setManage] = useState(false),
-    [folder, setFolder] = useState<Folder | null>(null),
     [permissions, setPermissions] = useState<Folder | "new" | null>(null),
+    [open, setOpen] = useState<Folder | null>(null),
+    [trail, setTrail] = useState<{ id: string; name: string }[]>([]),
     [search, setSearch] = useState(""),
-    [cards, setCards] = useState(true);
+    [term, setTerm] = useState(""),
+    [detail, setDetail] = useState<DriveItem | null>(null),
+    [toast, setToast] = useState<{ ok: boolean; message: string } | null>(null);
+  const prefs = useViewPrefs();
+  useEffect(() => {
+    const timer = setTimeout(() => setTerm(search.trim()), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), toast.ok ? 3000 : 6000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+  const notify = (ok: boolean, message: string) => setToast({ ok, message });
   const status = useQuery({
     queryKey: ["prj-drive", ...scope],
-    queryFn: async () =>
-      (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
+    queryFn: async () => (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
   });
   const folders = useQuery({
     queryKey: ["shared-drive", ...scope],
-    queryFn: async () => (await apiClient.get<Folder[]>(base)).data,
+    queryFn: async () => (await apiClient.get<Folder[]>(driveBase)).data,
   });
+  const searching = term.length >= 2;
+  const results = useQuery({
+    enabled: searching,
+    queryKey: ["shared-drive", "search", term, ...scope],
+    queryFn: async () => (await apiClient.get<{ files: DriveItem[] }>(`${driveBase}/search`, { params: { q: term } })).data.files,
+  });
+  const readOnly = open ? open.access !== "EDIT" : !!folders.data?.length && folders.data.every((f) => f.access !== "EDIT");
+  const openFolder = (f: Folder, path: { id: string; name: string }[] = []) => {
+    setOpen(f);
+    setTrail(path);
+    setSearch("");
+    setTerm("");
+  };
   return (
-    <section className="grid min-w-0 gap-4">
-      <div className="flex flex-wrap justify-between gap-2">
-        <h1 className="text-xl font-bold">드라이브</h1>
-        <Button variant="outline" onClick={() => setManage(!manage)}>
-          연결 관리
-        </Button>
-      </div>
-      <p>
-        {status.data?.connected
-          ? `학원 공용 계정: ${status.data.email}`
-          : "Google Drive 계정이 연결되지 않았습니다."}
-      </p>
-      {(manage || !status.data?.connected) && <DriveConnection />}
-      <div className="flex flex-wrap gap-2">
-        <Input
-          className="max-w-xs"
-          aria-label="폴더 검색"
-          placeholder="공용 폴더 검색"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Button variant="outline" onClick={() => setCards(!cards)}>
-          {cards ? "목록 보기" : "카드 보기"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() =>
-            void qc.invalidateQueries({ queryKey: ["shared-drive"] })
-          }
-        >
-          새로고침
-        </Button>
-        {status.data?.canManage && (
-          <Button
-            disabled={!status.data.connected}
-            onClick={() => setPermissions("new")}
+    <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+      {/* 헤더 */}
+      <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
+        <div className="flex flex-wrap items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-bold text-gray-900">{t("driveUi.title")}</h1>
+              {readOnly && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                  <Eye className="h-3 w-3" />
+                  {t("driveUi.readOnly")}
+                </span>
+              )}
+            </div>
+            <p className="mt-0.5 text-sm text-gray-500">{t("driveUi.subtitle")}</p>
+            <p className="mt-0.5 text-xs text-gray-400">
+              {status.data?.connected ? t("driveUi.account", { email: status.data.email }) : t("driveUi.notConnected")}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            onClick={() => setManage(!manage)}
           >
-            폴더 연결
-          </Button>
+            <Settings className="h-4 w-4" />
+            {t("driveUi.manageConnection")}
+          </button>
+          {status.data?.canManage && (
+            <button
+              type="button"
+              disabled={!status.data.connected}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              onClick={() => setPermissions("new")}
+            >
+              <Link2 className="h-4 w-4" />
+              {t("driveUi.linkFolder")}
+            </button>
+          )}
+        </div>
+        <div className="relative mt-3">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t("driveUi.searchPlaceholder")}
+            aria-label={t("driveUi.searchPlaceholder")}
+            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+          />
+        </div>
+      </div>
+
+      {/* 본문 */}
+      <div className="min-h-[60vh] flex-1 overflow-y-auto px-6 py-4">
+        {(manage || (status.data && !status.data.connected)) && (
+          <div className="mb-4 rounded-xl border border-gray-200 p-4">
+            <DriveConnection />
+          </div>
+        )}
+        {(w.error || folders.error) && (
+          <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {w.error || errorText(folders.error)}
+          </p>
+        )}
+        {searching ? (
+          <>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-medium text-gray-700">{t("driveUi.searchResults")}</span>
+              <div className="flex items-center gap-2">
+                <ViewTools {...prefs} />
+              </div>
+            </div>
+            {results.isLoading ? (
+              <div className="flex justify-center py-12">
+                <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+              </div>
+            ) : results.error ? (
+              <p role="alert" className="text-sm text-red-600">{errorText(results.error)}</p>
+            ) : !results.data?.length ? (
+              <p className="py-12 text-center text-sm text-gray-500">{t("driveUi.noResults")}</p>
+            ) : (
+              <FileItems
+                items={sortItems(results.data, prefs.sort, prefs.dir)}
+                view={prefs.view}
+                selecting={false}
+                selected={new Set()}
+                toggle={() => undefined}
+                canEdit={false}
+                showFolder
+                onOpen={(f) => {
+                  const owner = folders.data?.find((x) => x.drf_id === f.drfId);
+                  if (!owner) return;
+                  if (isFolder(f)) openFolder(owner, [{ id: f.id, name: f.name }]);
+                  else setDetail(f);
+                }}
+                onRename={() => undefined}
+                onMove={() => undefined}
+                onTrash={() => undefined}
+              />
+            )}
+          </>
+        ) : open ? (
+          <FolderView folder={open} trail={trail} setTrail={setTrail} onExit={() => setOpen(null)} notify={notify} />
+        ) : folders.isLoading ? (
+          <div className="flex justify-center py-12">
+            <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+          </div>
+        ) : !folders.data?.length ? (
+          <div className="flex flex-col items-center py-12 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <FolderOpen className="h-8 w-8 text-gray-400" />
+            </span>
+            <p className="mt-3 text-sm font-medium text-gray-700">{t("driveUi.noFolders")}</p>
+            <p className="mt-1 text-sm text-gray-500">{t("driveUi.noFoldersHint")}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {folders.data.map((f) => (
+              <div
+                key={f.drf_id}
+                role="button"
+                tabIndex={0}
+                onClick={() => openFolder(f)}
+                onKeyDown={(e) => e.key === "Enter" && openFolder(f)}
+                className="group flex cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 hover:border-purple-300 hover:bg-purple-50"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+                  <FolderOpen className="h-6 w-6 text-purple-600" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-gray-900">{f.title}</span>
+                  <span className="mt-1 inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                      <HardDrive className="h-3 w-3" />
+                      {t("driveUi.sharedFolder")}
+                    </span>
+                    <span className={`text-[11px] ${f.access === "EDIT" ? "text-indigo-600" : "text-gray-400"}`}>
+                      {f.access === "EDIT" ? t("driveUi.canEdit") : t("driveUi.readOnly")}
+                    </span>
+                  </span>
+                </span>
+                {status.data?.canManage && (
+                  <span className="flex items-center gap-1 opacity-0 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      title={t("driveUi.shareTargets")}
+                      aria-label={t("driveUi.shareTargets")}
+                      onClick={() => setPermissions(f)}
+                      className="rounded-md p-2 text-gray-400 hover:bg-purple-100 hover:text-purple-600"
+                    >
+                      <Users className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      title={t("driveUi.unlink")}
+                      aria-label={t("driveUi.unlink")}
+                      disabled={w.busy}
+                      onClick={() => {
+                        if (window.confirm(t("driveUi.unlinkConfirm")))
+                          void w.run(async () => {
+                            await apiClient.delete(`${driveBase}/${f.drf_id}`);
+                            await qc.invalidateQueries({ queryKey: ["shared-drive"] });
+                          });
+                      }}
+                      className="rounded-md p-2 text-gray-400 hover:bg-amber-50 hover:text-amber-600"
+                    >
+                      <Unlink className="h-4 w-4" />
+                    </button>
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
-      {(w.error || folders.error) && (
-        <p role="alert" className="text-red-600">
-          {w.error || errorText(folders.error)}
-        </p>
-      )}
-      {folders.isLoading ? (
-        <p>불러오는 중…</p>
-      ) : !folders.data?.length ? (
-        <p>
-          연결된 공용 폴더가 없습니다. 설정 관리자가 폴더를 연결하고 열람·편집
-          대상을 지정할 수 있습니다.
-        </p>
-      ) : (
-        <div
-          className={`grid gap-3 ${cards ? "md:grid-cols-2 xl:grid-cols-3" : ""}`}
-        >
-          {folders.data
-            .filter((f) => f.title.toLowerCase().includes(search.toLowerCase()))
-            .map((f) => (
-              <article
-                key={f.drf_id}
-                className="min-w-0 rounded-lg border bg-surface p-4"
-              >
-                <h2 className="break-words font-semibold">{f.title}</h2>
-                <p className="text-xs">
-                  {f.access === "EDIT" ? "편집 가능" : "읽기 전용"}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Button onClick={() => setFolder(f)}>열기</Button>
-                  {status.data?.canManage && (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={() => setPermissions(f)}
-                      >
-                        공유 대상
-                      </Button>
-                      <Button
-                        variant="outline"
-                        disabled={w.busy}
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "ACM에서 연결을 해제할까요? Google 원본은 보존됩니다.",
-                            )
-                          )
-                            void w.run(async () => {
-                              await apiClient.delete(`${base}/${f.drf_id}`);
-                              await qc.invalidateQueries({
-                                queryKey: ["shared-drive"],
-                              });
-                            });
-                        }}
-                      >
-                        연결 해제
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </article>
-            ))}
+      {permissions && <FolderPermissions folder={permissions === "new" ? undefined : permissions} close={() => setPermissions(null)} />}
+      {detail?.drfId && <FileDetailModal folder={detail.drfId} file={detail} close={() => setDetail(null)} />}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2">
+          <div
+            role="status"
+            className={`max-w-md whitespace-pre-line rounded-xl px-4 py-2.5 text-sm text-white shadow-2xl ${toast.ok ? "bg-green-600" : "bg-red-600"}`}
+          >
+            {toast.message}
+          </div>
         </div>
-      )}
-      {permissions && (
-        <FolderPermissions
-          folder={permissions === "new" ? undefined : permissions}
-          close={() => setPermissions(null)}
-        />
-      )}
-      {folder && (
-        <SharedBrowser folder={folder} close={() => setFolder(null)} />
       )}
     </section>
   );
@@ -182,7 +281,7 @@ function FolderPermissions({
     queryFn: async () =>
       (
         await apiClient.get<{ usr_id: string; access: string }[]>(
-          `${base}/${folder!.drf_id}/permissions`,
+          `${driveBase}/${folder!.drf_id}/permissions`,
         )
       ).data,
   });
@@ -266,7 +365,7 @@ function FolderPermissions({
           }
           onClick={() =>
             void w.run(async () => {
-              await apiClient.post(base, {
+              await apiClient.post(driveBase, {
                 fileId,
                 operatorAccess,
                 viewers: Object.keys(selected).filter(
@@ -283,248 +382,6 @@ function FolderPermissions({
         >
           저장
         </Button>
-      </DialogContent>
-    </Dialog>
-  );
-}
-function SharedBrowser({
-  folder,
-  close,
-}: {
-  folder: Folder;
-  close: () => void;
-}) {
-  const scope = useScope(),
-    w = useWork();
-  const [trail, setTrail] = useState<{ id: string; name: string }[]>([
-      { id: folder.file_id, name: folder.title },
-    ]),
-    [page, setPage] = useState<string | undefined>(),
-    [search, setSearch] = useState(""),
-    [sort, setSort] = useState("name"),
-    [desc, setDesc] = useState(false),
-    [cards, setCards] = useState(false),
-    [title, setTitle] = useState(""),
-    [file, setFile] = useState<File | null>(null);
-  const parent = trail[trail.length - 1].id;
-  const q = useQuery({
-    queryKey: ["shared-drive", folder.drf_id, parent, page, ...scope],
-    queryFn: async () =>
-      (
-        await apiClient.get<{ files: DriveFile[]; nextPageToken?: string }>(
-          `${base}/${folder.drf_id}`,
-          { params: { parent, page } },
-        )
-      ).data,
-  });
-  const rows = (q.data?.files ?? [])
-    .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
-    .sort(
-      (a, b) =>
-        (sort === "size"
-          ? Number(a.size ?? 0) - Number(b.size ?? 0)
-          : sort === "type"
-            ? a.mimeType.localeCompare(b.mimeType)
-            : a.name.localeCompare(b.name)) * (desc ? -1 : 1),
-    );
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open && !w.busy) close();
-      }}
-    >
-      <DialogContent className="w-[calc(100vw-1rem)] max-w-4xl max-h-[90dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{folder.title}</DialogTitle>
-        </DialogHeader>
-        <nav className="flex flex-wrap gap-2">
-          {trail.map((t, i) => (
-            <button
-              className="underline"
-              key={t.id}
-              onClick={() => {
-                setTrail(trail.slice(0, i + 1));
-                setPage(undefined);
-              }}
-            >
-              {i ? " / " : ""}
-              {t.name}
-            </button>
-          ))}
-        </nav>
-        <div className="flex flex-wrap gap-2">
-          <Input
-            className="max-w-xs"
-            placeholder="현재 페이지 파일 검색"
-            aria-label="파일 검색"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <select
-            aria-label="정렬"
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-          >
-            <option value="name">이름</option>
-            <option value="size">크기</option>
-            <option value="type">종류</option>
-          </select>
-          <Button variant="outline" onClick={() => setDesc(!desc)}>
-            {desc ? "내림차순" : "오름차순"}
-          </Button>
-          <Button variant="outline" onClick={() => setCards(!cards)}>
-            {cards ? "목록" : "카드"}
-          </Button>
-          <Button variant="outline" onClick={() => void q.refetch()}>
-            새로고침
-          </Button>
-        </div>
-        {folder.access === "EDIT" && (
-          <div className="grid gap-2 rounded border p-3">
-            <div className="flex flex-wrap gap-2">
-              <Input
-                className="max-w-xs"
-                placeholder="새 폴더 이름"
-                aria-label="새 폴더 이름"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                }}
-              />
-              <Button
-                disabled={w.busy || !title.trim()}
-                onClick={() =>
-                  void w.run(async () => {
-                    const op = await driveOperation({
-                      folder: folder.drf_id,
-                      parent,
-                      title,
-                      kind: "FOLDER",
-                    });
-                    await apiClient.post(`${base}/${folder.drf_id}/create`, {
-                      title,
-                      kind: "FOLDER",
-                      parentId: parent,
-                      operationId: op.id,
-                    });
-                    op.done();
-                    setTitle("");
-                    await q.refetch();
-                  })
-                }
-              >
-                새 폴더
-              </Button>
-            </div>
-            <label>
-              파일 (최대 20MB)
-              <input
-                className="block max-w-full"
-                type="file"
-                onChange={(e) => {
-                  setFile(e.target.files?.[0] ?? null);
-                }}
-              />
-            </label>
-            <Button
-              disabled={w.busy || !file || file.size > 20 * 1024 * 1024}
-              onClick={() =>
-                void w.run(async () => {
-                  if (!file) return;
-                  const op = await driveOperation(
-                    { folder: folder.drf_id, parent, name: file.name },
-                    file,
-                  );
-                  const data = new FormData();
-                  data.append("file", file);
-                  data.append("title", file.name);
-                  data.append("kind", "DOCUMENT");
-                  data.append("parentId", parent);
-                  data.append("operationId", op.id);
-                  await apiClient.post(`${base}/${folder.drf_id}/upload`, data);
-                  op.done();
-                  setFile(null);
-                  await q.refetch();
-                })
-              }
-            >
-              업로드
-            </Button>
-          </div>
-        )}
-        {(w.error || q.error) && (
-          <p role="alert" className="text-red-600">
-            {w.error || errorText(q.error)}
-          </p>
-        )}
-        {q.isLoading ? (
-          <p>불러오는 중…</p>
-        ) : !rows.length ? (
-          <p>표시할 파일이 없습니다.</p>
-        ) : (
-          <div className={`grid gap-2 ${cards ? "sm:grid-cols-2" : ""}`}>
-            {rows.map((f) => (
-              <div
-                key={f.id}
-                className="flex min-w-0 items-center justify-between gap-2 rounded border p-3"
-              >
-                <div className="min-w-0">
-                  <p className="break-words">{f.name}</p>
-                  <p className="text-xs">
-                    {f.mimeType === "application/vnd.google-apps.folder"
-                      ? "폴더"
-                      : f.mimeType}{" "}
-                    {f.size ? `${Number(f.size).toLocaleString()} bytes` : ""}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  disabled={w.busy}
-                  onClick={() => {
-                    if (f.mimeType === "application/vnd.google-apps.folder") {
-                      setTrail([...trail, { id: f.id, name: f.name }]);
-                      setPage(undefined);
-                    } else {
-                      const win = window.open("about:blank", "_blank");
-                      if (win) win.opener = null;
-                      void w.run(async () => {
-                        try {
-                          const { data } = await apiClient.get<{ url: string }>(
-                            `${base}/${folder.drf_id}/open`,
-                            { params: { file: f.id } },
-                          );
-                          if (win) win.location.href = data.url;
-                          else location.assign(data.url);
-                        } catch (e) {
-                          win?.close();
-                          throw e;
-                        }
-                      });
-                    }
-                  }}
-                >
-                  열기
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="flex gap-2">
-          {page && (
-            <Button variant="outline" onClick={() => setPage(undefined)}>
-              처음
-            </Button>
-          )}
-          {q.data?.nextPageToken && (
-            <Button
-              variant="outline"
-              onClick={() => setPage(q.data?.nextPageToken)}
-            >
-              다음
-            </Button>
-          )}
-        </div>
       </DialogContent>
     </Dialog>
   );

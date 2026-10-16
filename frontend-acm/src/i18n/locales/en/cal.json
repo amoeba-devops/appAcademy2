@@ -116,7 +116,11 @@
     "add": "Add",
     "addBtn": "Add attendee",
     "notifyResult": "Notification result",
-    "pickerHint": "Add students for this class. Other teachers can also be added."
+    "pickerHint": "Add students for this class. Other teachers can also be added.",
+    "notSent": "Not sent",
+    "notifyOnSave": "Email attendees when saving",
+    "notifyOnSaveEditHint": "Only newly added attendees are emailed.",
+    "notifyOnSaveHint": "No email is sent unless checked."
   },
   "hint": {
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",

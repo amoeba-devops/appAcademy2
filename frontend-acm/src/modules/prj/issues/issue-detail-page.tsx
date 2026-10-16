@@ -1,7 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, Link as LinkIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { apiClient } from "@/lib/api-client";
@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 import { errorText, useScope } from "../project-page";
 import { IssueFormDialog } from "./issue-form-dialog";
-import { IssueRichEditor, IssueRichView, isBlankHtml } from "./issue-rich-text";
+import { IssueRichEditor, IssueRichView, isBlankHtml, type MentionCandidate } from "./issue-rich-text";
 import { StatusBadge } from "./issues-page";
 import {
   day,
@@ -174,7 +174,7 @@ export function IssueDetailPage() {
           ) : (
             <StatusHistory id={id} />
           )}
-          <Comments id={id} readOnly={archived} canModerate={i.can_manage} />
+          <Comments id={id} readOnly={archived} canModerate={i.can_manage} members={i.members} />
         </div>
         <aside className="grid content-start gap-3 rounded-lg border bg-surface p-4 text-sm">
           <div className="flex items-center justify-between">
@@ -399,10 +399,13 @@ function Comments({
   id,
   readOnly,
   canModerate,
+  members,
 }: {
   id: string;
   readOnly: boolean;
   canModerate: boolean;
+  /** REQ-261016E — 멘션 후보 */
+  members: MentionCandidate[];
 }) {
   const { t } = useTranslation("common");
   const scope = useScope();
@@ -415,6 +418,12 @@ function Comments({
     queryFn: async () => (await apiClient.get<IssueComment[]>(url)).data,
   });
   const [draft, setDraft] = useState("");
+  // REQ-261016E — 멘션 알림(#comment-…)으로 들어오면 해당 댓글로 이동
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash.startsWith("#comment-") || !comments.data) return;
+    document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [hash, comments.data]);
   const [edit, setEdit] = useState<{ id: string; body: string } | null>(null);
   const write = useMutation({
     mutationFn: async (a: { method: "post" | "put" | "delete"; id?: string; body?: string }) =>
@@ -437,7 +446,14 @@ function Comments({
         {t("issues.comments")} ({comments.data?.length ?? 0})
       </h2>
       {comments.data?.map((c) => (
-        <article key={c.pic_id} className="rounded border bg-surface p-3 text-sm">
+        <article
+          key={c.pic_id}
+          id={`comment-${c.pic_id}`}
+          className={clsx(
+            "scroll-mt-20 rounded border bg-surface p-3 text-sm",
+            hash === `#comment-${c.pic_id}` && "border-indigo-400 ring-2 ring-indigo-200",
+          )}
+        >
           <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-secondary">
             <span className="font-medium text-primary">{c.author_name ?? "—"}</span>
             <span>{new Date(c.created_at).toLocaleString()}</span>
@@ -462,7 +478,12 @@ function Comments({
           </div>
           {edit?.id === c.pic_id ? (
             <div className="grid gap-2">
-              <IssueRichEditor compact value={edit.body} onChange={(v) => setEdit({ id: c.pic_id, body: v })} />
+              <IssueRichEditor
+                compact
+                mentionCandidates={members}
+                value={edit.body}
+                onChange={(v) => setEdit({ id: c.pic_id, body: v })}
+              />
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEdit(null)}>
                   {t("issues.form.cancel")}
@@ -488,7 +509,13 @@ function Comments({
             if (!isBlankHtml(draft)) write.mutate({ method: "post", body: draft });
           }}
         >
-          <IssueRichEditor compact value={draft} onChange={setDraft} placeholder={t("issues.commentPlaceholder")} />
+          <IssueRichEditor
+            compact
+            mentionCandidates={members}
+            value={draft}
+            onChange={setDraft}
+            placeholder={t("issues.commentPlaceholder")}
+          />
           <div className="flex justify-end">
             <Button disabled={isBlankHtml(draft) || write.isPending}>{t("issues.addComment")}</Button>
           </div>

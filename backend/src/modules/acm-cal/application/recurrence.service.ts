@@ -155,7 +155,11 @@ export class RecurrenceService {
         return { series, created };
       }),
     );
-    const notifySummary = await this.notifyOnce(result.series);
+    // REQ-261016E — 반복 일정도 선택했을 때만 1회 발송.
+    const notifySummary =
+      dto.event.evtNotifyInvitees === true
+        ? await this.notifyOnce(result.series)
+        : null;
     return { id: result.series.crs_id, created: result.created, notifySummary };
   }
   private async lock(m: EntityManager, entId: string) {

@@ -15,6 +15,7 @@ import {
   isBlankHtml,
   type IssueListQuery,
 } from './issue.dto';
+import { notifyIssueMentions } from './issue-mentions';
 import { ProjectService } from './project.service';
 
 /** 접근 가능한 프로젝트(담당자 또는 참여자) 조건. p = 프로젝트 alias, $2 = 사용자. */
@@ -248,10 +249,21 @@ export class IssueService {
     if (issue.prj_status === 'ARCHIVED')
       throw new BadRequestException('보관된 프로젝트는 수정할 수 없습니다.');
     if (isBlankHtml(body)) throw new BadRequestException('내용을 입력하세요.');
-    await this.ds.query(
-      `INSERT INTO amb_acm_prj_issue_comment(ent_id,pit_id,author_id,pic_body) VALUES($1,$2,$3,$4)`,
-      [u.entId, id, u.id, body.trim()],
-    );
+    await this.ds.transaction(async (m) => {
+      const [c] = await m.query<{ pic_id: string }[]>(
+        `INSERT INTO amb_acm_prj_issue_comment(ent_id,pit_id,author_id,pic_body) VALUES($1,$2,$3,$4) RETURNING pic_id`,
+        [u.entId, id, u.id, body.trim()],
+      );
+      // REQ-261016E — 댓글 멘션 알림
+      await notifyIssueMentions(m, {
+        entId: u.entId,
+        actorId: u.id,
+        issueId: id,
+        before: '',
+        after: body,
+        commentId: c.pic_id,
+      });
+    });
     return this.comments(u, id);
   }
 
@@ -263,8 +275,8 @@ export class IssueService {
     body: string | null,
   ) {
     const issue = await this.row(u, id);
-    const [c] = await this.ds.query<{ author_id: string }[]>(
-      `SELECT author_id FROM amb_acm_prj_issue_comment WHERE ent_id=$1 AND pit_id=$2 AND pic_id=$3 AND deleted_at IS NULL`,
+    const [c] = await this.ds.query<{ author_id: string; pic_body: string }[]>(
+      `SELECT author_id,pic_body FROM amb_acm_prj_issue_comment WHERE ent_id=$1 AND pit_id=$2 AND pic_id=$3 AND deleted_at IS NULL`,
       [u.entId, id, commentId],
     );
     if (!c) throw new NotFoundException();
@@ -281,10 +293,21 @@ export class IssueService {
         throw new ForbiddenException('작성자만 수정할 수 있습니다.');
       if (isBlankHtml(body))
         throw new BadRequestException('내용을 입력하세요.');
-      await this.ds.query(
-        `UPDATE amb_acm_prj_issue_comment SET pic_body=$3 WHERE ent_id=$1 AND pic_id=$2`,
-        [u.entId, commentId, body.trim()],
-      );
+      await this.ds.transaction(async (m) => {
+        await m.query(
+          `UPDATE amb_acm_prj_issue_comment SET pic_body=$3 WHERE ent_id=$1 AND pic_id=$2`,
+          [u.entId, commentId, body.trim()],
+        );
+        // 수정으로 새로 멘션된 사람에게만 알림
+        await notifyIssueMentions(m, {
+          entId: u.entId,
+          actorId: u.id,
+          issueId: id,
+          before: c.pic_body,
+          after: body,
+          commentId,
+        });
+      });
     }
     return this.comments(u, id);
   }

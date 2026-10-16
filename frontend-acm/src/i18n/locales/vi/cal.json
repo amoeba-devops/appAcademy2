@@ -116,7 +116,11 @@
     "add": "Thêm",
     "addBtn": "Thêm người tham dự",
     "notifyResult": "Kết quả gửi thông báo",
-    "pickerHint": "Thêm học sinh tham gia lớp. Có thể thêm giáo viên khác."
+    "pickerHint": "Thêm học sinh tham gia lớp. Có thể thêm giáo viên khác.",
+    "notSent": "Chưa gửi",
+    "notifyOnSave": "Gửi email cho người tham dự khi lưu",
+    "notifyOnSaveEditHint": "Chỉ gửi cho người tham dự mới thêm.",
+    "notifyOnSaveHint": "Không gửi email nếu không chọn."
   },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",

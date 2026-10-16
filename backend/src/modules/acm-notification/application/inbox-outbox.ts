@@ -7,7 +7,8 @@ export type InboxEventType =
   | 'CAL_UPDATED'
   | 'CHAT_MENTION'
   | 'CHAT_MESSAGE'
-  | 'REVIEW_OVERDUE';
+  | 'REVIEW_OVERDUE'
+  | 'ISSUE_MENTION';
 export interface InboxEvent {
   entId: string;
   actorId?: string | null;
@@ -28,6 +29,7 @@ export async function enqueueInbox(
     SELECT DISTINCT u.usr_id AS id FROM amb_acm_user u
     WHERE u.ent_id=$1 AND u.usr_status='ACTIVE' AND u.usr_id IS DISTINCT FROM $2::uuid
       AND CASE WHEN $3 IN ('CHAT_MENTION','CHAT_MESSAGE') THEN u.usr_role IN ('ADMIN','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
+      WHEN $3='ISSUE_MENTION' THEN u.usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') AND u.usr_id=ANY($4::uuid[])
       WHEN $3='REVIEW_OVERDUE' THEN u.usr_role IN ('ADMIN','APP_ADMIN')
       ELSE u.usr_role IN ('ADMIN','STAFF','APP_ADMIN') OR
         ($3 LIKE 'CAL_%' AND u.usr_role='TEACHER' AND EXISTS (

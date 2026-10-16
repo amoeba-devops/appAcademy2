@@ -17,7 +17,17 @@ export interface GoogleFile {
   trashed?: boolean;
   parents?: string[];
   capabilities?: { canAddChildren?: boolean };
+  // REQ-261016E — 드라이브 화면(AMA 동일) 표시용
+  modifiedTime?: string;
+  createdTime?: string;
+  owners?: { displayName?: string; emailAddress?: string }[];
+  thumbnailLink?: string;
+  webViewLink?: string;
+  webContentLink?: string;
 }
+/** 목록·상세 공통 필드(REQ-261016E). */
+const LIST_FIELDS =
+  'id,name,mimeType,size,parents,trashed,modifiedTime,createdTime,owners(displayName,emailAddress),thumbnailLink,webViewLink';
 export class DriveWriteRejected extends BadGatewayException {}
 /** Google refresh token 이 만료·철회됨. ACM 세션과 무관하므로 409. */
 export class DriveReconnectRequired extends ConflictException {
@@ -109,7 +119,27 @@ export class DriveClient {
   list(t: string, q: string, pageToken?: string) {
     return this.request<{ files: GoogleFile[]; nextPageToken?: string }>(
       t,
-      `files?${new URLSearchParams({ q, fields: 'nextPageToken,files(id,name,mimeType,size,parents,trashed)', pageSize: '100', supportsAllDrives: 'true', includeItemsFromAllDrives: 'true', ...(pageToken ? { pageToken } : {}) })}`,
+      `files?${new URLSearchParams({ q, fields: `nextPageToken,files(${LIST_FIELDS})`, pageSize: '100', supportsAllDrives: 'true', includeItemsFromAllDrives: 'true', ...(pageToken ? { pageToken } : {}) })}`,
+    );
+  }
+  /** REQ-261016E — 파일 상세(소유자·수정일·링크). */
+  detail(t: string, id: string) {
+    return this.request<GoogleFile>(
+      t,
+      `files/${encodeURIComponent(id)}?supportsAllDrives=true&fields=${LIST_FIELDS},webContentLink`,
+    );
+  }
+  /** REQ-261016E — 이름 변경·이동(부모 교체)·휴지통. 영구 삭제는 하지 않는다. */
+  update(
+    t: string,
+    id: string,
+    body: Record<string, unknown>,
+    query: Record<string, string> = {},
+  ) {
+    return this.request<GoogleFile>(
+      t,
+      `files/${encodeURIComponent(id)}?${new URLSearchParams({ supportsAllDrives: 'true', fields: LIST_FIELDS, ...query })}`,
+      { method: 'PATCH', body: JSON.stringify(body) },
     );
   }
   create(t: string, body: Record<string, unknown>) {

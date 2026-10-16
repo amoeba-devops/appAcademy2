@@ -179,10 +179,15 @@ function Summary({ item }: { item: InboxItem }) {
   return (
     <>
       <span className="block font-medium">
-        {t("inbox.events." + item.type)}
+        {t(
+          "inbox.events." +
+            (item.type === "ISSUE_MENTION" && p.commentId ? "ISSUE_MENTION_COMMENT" : item.type),
+        )}
       </span>
       <span className="block truncate text-sm text-secondary">
-        {p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
+        {item.type === "ISSUE_MENTION"
+          ? [p.senderName, p.title].filter(Boolean).join(" · ")
+          : p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
         {p.fromStage && p.toStage
           ? ` · ${t("csl:stage." + p.fromStage, { defaultValue: p.fromStage })} → ${t("csl:stage." + p.toStage, { defaultValue: p.toStage })}`
           : ""}

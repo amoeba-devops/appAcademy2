@@ -53,6 +53,8 @@ describe('Project / shared Drive isolation and durable operations', () => {
     create: jest.fn(),
     list: jest.fn(),
     file: jest.fn(),
+    detail: jest.fn(),
+    update: jest.fn(),
   } as unknown as DriveClient;
   beforeAll(async () => {
     container = await new PostgreSqlContainer('postgres:16-alpine').start();
@@ -104,6 +106,14 @@ describe('Project / shared Drive isolation and durable operations', () => {
           resolve(__dirname, '../../../../sql/acm/1036-prj-issue-extend.sql'),
           'utf8',
         ),
+      );
+    // REQ-261016C/D — 이슈 번호·상위·참여자·첨부, 유형·담당 이력(saveItem 이 사용).
+    for (const f of [
+      '1040-prj-issue-ama-parity.sql',
+      '1042-prj-issue-types-assignee-log.sql',
+    ])
+      await ds.query(
+        readFileSync(resolve(__dirname, '../../../../sql/acm/' + f), 'utf8'),
       );
     await ds.query('ALTER TABLE amb_acm_user ADD COLUMN usr_email text');
     for (const u of [owner, member, outsider])
@@ -854,6 +864,106 @@ describe('Project / shared Drive isolation and durable operations', () => {
     ).rejects.toThrow();
     await shared.unlink(owner, folder.drf_id);
     expect(await shared.list(member)).toHaveLength(0);
+    jest.restoreAllMocks();
+  });
+  it('REQ-261016E: rename / move / trash / search stay inside the linked folder', async () => {
+    const shared = new SharedDriveService(drive);
+    jest.spyOn(drive, 'token').mockResolvedValue({
+      token: 'mock',
+      c: { account_id: 'account' } as Awaited<
+        ReturnType<typeof drive.connection>
+      >,
+    });
+    jest
+      .spyOn(drive, 'connection')
+      .mockResolvedValue({ account_id: 'account' } as Awaited<
+        ReturnType<typeof drive.connection>
+      >);
+    // root2 ─ sub ─ a.docx / root2 ─ b.pdf / outside (다른 폴더)
+    const parents: Record<string, string[]> = {
+      root2: [],
+      sub: ['root2'],
+      'a.docx': ['sub'],
+      'b.pdf': ['root2'],
+      outside: ['elsewhere'],
+    };
+    const FOLDER = 'application/vnd.google-apps.folder';
+    jest.mocked(google.file).mockImplementation(async (_t, id) => ({
+      id,
+      name: id,
+      mimeType: ['root2', 'sub'].includes(id) ? FOLDER : 'application/pdf',
+      parents: parents[id] ?? [],
+    }));
+    const update = jest
+      .mocked(google.update)
+      .mockImplementation(async (_t, id) => ({ id, name: id, mimeType: 'x' }));
+    const folder = await shared.save(owner, {
+      fileId: 'root2',
+      operatorAccess: 'NONE',
+      viewers: [member.id],
+      editors: [],
+    });
+    const id = folder.drf_id;
+    // 열람 권한은 변경 불가, 최상위 폴더는 변경 불가
+    await expect(shared.rename(member, id, 'a.docx', 'x')).rejects.toThrow();
+    await expect(shared.rename(owner, id, 'root2', 'x')).rejects.toThrow();
+    await shared.rename(owner, id, 'a.docx', ' 새 이름.docx ');
+    expect(update.mock.lastCall?.slice(1, 3)).toEqual([
+      'a.docx',
+      { name: '새 이름.docx' },
+    ]);
+    // 이동: 하위 → 상위 OK, 자기 하위로는 실패, 밖의 파일은 실패
+    update.mockClear();
+    const moved = await shared.move(
+      owner,
+      id,
+      ['a.docx', 'outside', 'sub'],
+      'sub',
+    );
+    expect(moved.succeeded).toEqual(['a.docx']);
+    expect(moved.failed.map((f) => f.fileId).sort()).toEqual([
+      'outside',
+      'sub',
+    ]);
+    expect(update.mock.calls[0][3]).toEqual({
+      addParents: 'sub',
+      removeParents: 'sub',
+    });
+    await expect(
+      shared.move(owner, id, ['b.pdf'], 'outside'),
+    ).rejects.toThrow();
+    // 휴지통(영구 삭제 아님)
+    update.mockClear();
+    const trashed = await shared.trash(owner, id, ['b.pdf', 'outside']);
+    expect(trashed).toMatchObject({ succeeded: ['b.pdf'] });
+    expect(update.mock.calls[0][2]).toEqual({ trashed: true });
+    // 검색: 연결 폴더 트리 안에서만
+    const list = jest
+      .mocked(google.list)
+      .mockImplementation(async (_t, q) =>
+        q.includes('mimeType=')
+          ? {
+              files: q.includes("'root2' in parents")
+                ? [{ id: 'sub', name: 'sub', mimeType: FOLDER }]
+                : [],
+            }
+          : {
+              files: [
+                { id: 'a.docx', name: '보고서', mimeType: 'application/pdf' },
+              ],
+            },
+      );
+    const found = await shared.search(member, "보고'서");
+    expect(found.files).toEqual([
+      expect.objectContaining({ id: 'a.docx', drfId: id }),
+    ]);
+    const nameQuery = list.mock.calls.find((c) =>
+      c[1].includes('name contains'),
+    )?.[1];
+    expect(nameQuery).toContain("name contains '보고\\'서'");
+    expect(nameQuery).toContain("'sub' in parents");
+    await expect(shared.search(member, 'a')).rejects.toThrow();
+    await shared.unlink(owner, id);
     jest.restoreAllMocks();
   });
   it('unlink preserves Google original and archive prevents writes', async () => {

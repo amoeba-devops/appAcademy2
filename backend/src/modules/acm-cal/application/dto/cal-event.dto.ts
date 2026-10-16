@@ -136,6 +136,12 @@ export class CreateCalEventDto {
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
+
+  /** REQ-261016E — true 일 때만 참석자 메일 발송(기본 미발송). */
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  evtNotifyInvitees?: boolean;
 }
 
 export class UpdateCalEventDto {
@@ -226,6 +232,12 @@ export class UpdateCalEventDto {
   @ValidateNested({ each: true })
   @Type(() => CalInviteeInputDto)
   evtInvitees?: CalInviteeInputDto[];
+
+  /** REQ-261016E — true 일 때만 참석자 메일 발송(기본 미발송). */
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  evtNotifyInvitees?: boolean;
 
   /** Optional reason; actor and changes are still audited. */
   @ApiPropertyOptional({ description: '수정 사유 (선택, 입력 시 2~500자)' })
