@@ -84,7 +84,14 @@
       "no": "否"
     },
     "selectTenant": "选择租户",
-    "selectTenantFirst": "选择租户后显示用户列表。"
+    "selectTenantFirst": "选择租户后显示用户列表。",
+    "permissions": {
+      "label": "附加权限",
+      "CONFIG_ADMIN": "服务运营者",
+      "CONFIG_ADMIN_hint": "服务设置（/admin/config）与 Google Drive 连接",
+      "TENANT_MASTER": "租户主管",
+      "TENANT_MASTER_hint": "租户设置（/admin/tenant）、按等级的菜单显示，可见所有已允许菜单"
+    }
   },
   "tenants": {
     "title": "租户管理",

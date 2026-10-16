@@ -11,9 +11,12 @@ import {
 import { useToast } from '@/components/ui/toast';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
+  SYSTEM_USER_PERMISSIONS,
+  useSetSystemUserPermissions,
   useSystemUser,
   useSetSystemUserLock,
   type SystemUser,
+  type SystemUserPermission,
 } from '@/modules/system/hooks/use-system-users';
 import { EditUserDialog, ResetPasswordDialog } from './user-dialogs';
 
@@ -70,6 +73,10 @@ export function UserDetailDrawer({ id, onClose }: { id: string; onClose: () => v
               <div className="divide-y divide-[var(--border-subtle)]">
                 <Row label={t('users.fields.name')} value={user.name} />
                 <Row label={t('users.columns.role')} value={t(`roles.${user.role}`)} />
+                <Row
+                  label={t('users.permissions.label')}
+                  value={<PermissionEditor user={user} />}
+                />
                 <Row
                   label={t('users.columns.status')}
                   value={
@@ -128,5 +135,57 @@ export function UserDetailDrawer({ id, onClose }: { id: string; onClose: () => v
         <ResetPasswordDialog user={user} onClose={() => setResetting(false)} />
       )}
     </>
+  );
+}
+
+/** REQ-261016D — 보조 권한(서비스 운영자 / 테넌트 마스터) 지정. 소속 테넌트 범위로 적용된다. */
+function PermissionEditor({ user }: { user: SystemUser }) {
+  const { t } = useTranslation('system');
+  const toast = useToast();
+  const save = useSetSystemUserPermissions();
+  const current = user.permissions ?? [];
+  const [draft, setDraft] = useState<SystemUserPermission[]>(current);
+  const dirty =
+    draft.length !== current.length || draft.some((p) => !current.includes(p));
+  return (
+    <div className="grid gap-1 text-left">
+      {SYSTEM_USER_PERMISSIONS.map((p) => (
+        <label key={p} className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-1 h-4 w-4 accent-indigo-600"
+            checked={draft.includes(p)}
+            disabled={save.isPending}
+            onChange={(e) =>
+              setDraft((d) => (e.target.checked ? [...d, p] : d.filter((x) => x !== p)))
+            }
+          />
+          <span>
+            {t(`users.permissions.${p}`)}
+            <span className="block text-xs text-secondary">{t(`users.permissions.${p}_hint`)}</span>
+          </span>
+        </label>
+      ))}
+      {dirty && (
+        <div className="mt-1 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setDraft(current)} disabled={save.isPending}>
+            {t('actions.cancel')}
+          </Button>
+          <Button
+            disabled={save.isPending}
+            onClick={async () => {
+              try {
+                await save.mutateAsync({ id: user.id, permissions: draft });
+                toast.success(t('users.saved'));
+              } catch {
+                toast.error(t('users.errors.saveFailed'));
+              }
+            }}
+          >
+            {save.isPending ? t('actions.saving') : t('actions.save')}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

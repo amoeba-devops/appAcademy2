@@ -4,6 +4,9 @@ import { apiClient } from '@/lib/api-client';
 /** REQ-260621 — cross-tenant ACM user administration (APP_ADMIN only). */
 export type SystemUserRole = 'APP_ADMIN' | 'ADMIN' | 'TEACHER' | 'STAFF';
 export type SystemUserStatus = 'ACTIVE' | 'INACTIVE';
+/** REQ-261016D — 서비스 운영자 / 테넌트 마스터 */
+export const SYSTEM_USER_PERMISSIONS = ['CONFIG_ADMIN', 'TENANT_MASTER'] as const;
+export type SystemUserPermission = (typeof SYSTEM_USER_PERMISSIONS)[number];
 
 export interface SystemUser {
   id: string;
@@ -18,6 +21,8 @@ export interface SystemUser {
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  /** REQ-261016D — 보조 권한 */
+  permissions?: SystemUserPermission[];
 }
 
 export interface ListSystemUsersQuery {
@@ -92,6 +97,15 @@ export function useUpdateSystemUser() {
       const res = await apiClient.patch<SystemUser>(`${BASE}/${id}`, input);
       return res.data;
     },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+}
+
+export function useSetSystemUserPermissions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, permissions }: { id: string; permissions: SystemUserPermission[] }) =>
+      (await apiClient.put<SystemUser>(`${BASE}/${id}/permissions`, { permissions })).data,
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

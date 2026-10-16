@@ -7,13 +7,13 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Matches,
   MaxLength,
   Min,
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { IsEntId } from '../../../acm-common/validators/ent-id';
 
 /** PLN-260708 — tenant login code (slug): lowercase letters/digits/hyphen. */
 const TENANT_CODE_RE = /^[a-z0-9][a-z0-9-]*$/;
@@ -24,7 +24,7 @@ export type TenantStatus = (typeof TENANT_STATUSES)[number];
 
 export class CreateTenantDto {
   @ApiProperty({ format: 'uuid' })
-  @IsUUID()
+  @IsEntId()
   entId!: string;
 
   @ApiProperty({ example: 'Trinity Academy' })
@@ -38,11 +38,16 @@ export class CreateTenantDto {
   @IsIn(TENANT_STATUSES)
   status?: TenantStatus;
 
-  @ApiPropertyOptional({ example: 'trinity', description: '포털 로그인 학원 코드(slug)' })
+  @ApiPropertyOptional({
+    example: 'trinity',
+    description: '포털 로그인 학원 코드(slug)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(40)
-  @Matches(TENANT_CODE_RE, { message: 'code must be lowercase letters/digits/hyphen' })
+  @Matches(TENANT_CODE_RE, {
+    message: 'code must be lowercase letters/digits/hyphen',
+  })
   code?: string;
 }
 
@@ -59,11 +64,16 @@ export class UpdateTenantDto {
   @IsIn(TENANT_STATUSES)
   status?: TenantStatus;
 
-  @ApiPropertyOptional({ example: 'trinity', description: '포털 로그인 학원 코드(slug)' })
+  @ApiPropertyOptional({
+    example: 'trinity',
+    description: '포털 로그인 학원 코드(slug)',
+  })
   @IsOptional()
   @IsString()
   @MaxLength(40)
-  @Matches(TENANT_CODE_RE, { message: 'code must be lowercase letters/digits/hyphen' })
+  @Matches(TENANT_CODE_RE, {
+    message: 'code must be lowercase letters/digits/hyphen',
+  })
   code?: string;
 }
 

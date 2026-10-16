@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Put,
   Patch,
   Post,
   Query,
@@ -16,10 +17,15 @@ import { RolesGuard } from '../../acm-common/guards/roles.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
 import { SystemUserService } from '../application/system-user.service';
 import {
+  CurrentUser,
+  type AcmCurrentUser,
+} from '../../acm-common/decorators/current-user.decorator';
+import {
   CreateSystemUserDto,
   ListSystemUsersQueryDto,
   ResetSystemUserPasswordDto,
   UpdateSystemUserDto,
+  UpdateSystemUserPermissionsDto,
 } from '../application/dto/system-user.dto';
 
 /**
@@ -63,6 +69,17 @@ export class SystemUserController {
     @Body() dto: UpdateSystemUserDto,
   ) {
     return this.svc.update(id, dto);
+  }
+
+  // REQ-261016D — 서비스 운영자 / 테넌트 마스터 보조 권한 지정.
+  @Put(':id/permissions')
+  @ApiOperation({ summary: 'Set supplemental permissions (APP_ADMIN)' })
+  setPermissions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateSystemUserPermissionsDto,
+    @CurrentUser() actor: AcmCurrentUser,
+  ) {
+    return this.svc.setPermissions(id, dto.permissions, actor.id);
   }
 
   @Patch(':id/password')

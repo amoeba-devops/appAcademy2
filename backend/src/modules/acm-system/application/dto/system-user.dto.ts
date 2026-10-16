@@ -1,15 +1,22 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsEmail,
   IsIn,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { IsEntId } from '../../../acm-common/validators/ent-id';
 
-export const ACM_USER_ROLES = ['APP_ADMIN', 'ADMIN', 'TEACHER', 'STAFF'] as const;
+export const ACM_USER_ROLES = [
+  'APP_ADMIN',
+  'ADMIN',
+  'TEACHER',
+  'STAFF',
+] as const;
 export type AcmUserRole = (typeof ACM_USER_ROLES)[number];
 
 export const ACM_USER_STATUSES = ['ACTIVE', 'INACTIVE'] as const;
@@ -30,7 +37,7 @@ export class ListSystemUsersQueryDto {
 
   @ApiPropertyOptional({ description: 'Filter by tenant (ent_id)' })
   @IsOptional()
-  @IsUUID()
+  @IsEntId()
   entId?: string;
 
   @ApiPropertyOptional({ default: 1 })
@@ -46,7 +53,7 @@ export class ListSystemUsersQueryDto {
 
 export class CreateSystemUserDto {
   @ApiProperty({ format: 'uuid', description: 'Target tenant ent_id' })
-  @IsUUID()
+  @IsEntId()
   entId!: string;
 
   @ApiProperty({ example: 'admin@amoeba.group' })
@@ -111,4 +118,20 @@ export interface SystemUserView {
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  /** REQ-261016D — 보조 권한(서비스 운영자 CONFIG_ADMIN / 테넌트 마스터 TENANT_MASTER). */
+  permissions: string[];
+}
+
+export const SYSTEM_USER_PERMISSIONS = [
+  'CONFIG_ADMIN',
+  'TENANT_MASTER',
+] as const;
+export type SystemUserPermission = (typeof SYSTEM_USER_PERMISSIONS)[number];
+
+export class UpdateSystemUserPermissionsDto {
+  @ApiProperty({ enum: SYSTEM_USER_PERMISSIONS, isArray: true })
+  @IsArray()
+  @ArrayMaxSize(2)
+  @IsIn(SYSTEM_USER_PERMISSIONS, { each: true })
+  permissions!: SystemUserPermission[];
 }

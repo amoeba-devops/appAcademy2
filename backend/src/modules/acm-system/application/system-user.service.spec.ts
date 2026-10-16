@@ -40,6 +40,8 @@ describe('SystemUserService', () => {
       findOne: jest.fn(),
       save: jest.fn((x: unknown) => x),
       createQueryBuilder: jest.fn(() => qb),
+      // REQ-261016D — 보조 권한 조회(권한 없음).
+      manager: { query: jest.fn().mockResolvedValue([]) },
     } as unknown as jest.Mocked<Repository<AcmUserTypeormEntity>>;
     tenantRepo = {
       find: jest.fn().mockResolvedValue([

@@ -9,6 +9,7 @@ import { AcmTenantTypeormEntity } from '../infrastructure/typeorm/acm-tenant.typ
 import {
   CreateSystemUserDto,
   ListSystemUsersQueryDto,
+  SystemUserPermission,
   SystemUserView,
   UpdateSystemUserDto,
 } from './dto/system-user.dto';
@@ -32,9 +33,17 @@ export class SystemUserService {
 
   async list(
     q: ListSystemUsersQueryDto,
-  ): Promise<{ items: SystemUserView[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    items: SystemUserView[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = Math.max(1, Number.parseInt(q.page ?? '1', 10) || 1);
-    const limit = Math.min(100, Math.max(1, Number.parseInt(q.limit ?? '20', 10) || 20));
+    const limit = Math.min(
+      100,
+      Math.max(1, Number.parseInt(q.limit ?? '20', 10) || 20),
+    );
 
     const qb = this.userRepo.createQueryBuilder('u');
     if (q.q?.trim()) {
@@ -57,8 +66,11 @@ export class SystemUserService {
 
     const [rows, total] = await qb.getManyAndCount();
     const names = await this.tenantNames(rows.map((u) => u.entId));
+    const perms = await this.permissionsOf(rows);
     return {
-      items: rows.map((u) => this.toView(u, names.get(u.entId) ?? null)),
+      items: rows.map((u) =>
+        this.toView(u, names.get(u.entId) ?? null, perms.get(u.id) ?? []),
+      ),
       total,
       page,
       limit,
@@ -68,7 +80,11 @@ export class SystemUserService {
   async getDetail(id: string): Promise<SystemUserView> {
     const u = await this.getEntityOrThrow(id);
     const names = await this.tenantNames([u.entId]);
-    return this.toView(u, names.get(u.entId) ?? null);
+    return this.toView(
+      u,
+      names.get(u.entId) ?? null,
+      (await this.permissionsOf([u])).get(u.id) ?? [],
+    );
   }
 
   async create(dto: CreateSystemUserDto): Promise<SystemUserView> {
@@ -89,7 +105,11 @@ export class SystemUserService {
     if (dto.status !== undefined) u.status = dto.status;
     await this.userRepo.save(u);
     const names = await this.tenantNames([u.entId]);
-    return this.toView(u, names.get(u.entId) ?? null);
+    return this.toView(
+      u,
+      names.get(u.entId) ?? null,
+      (await this.permissionsOf([u])).get(u.id) ?? [],
+    );
   }
 
   async resetPassword(id: string, password: string): Promise<void> {
@@ -128,9 +148,54 @@ export class SystemUserService {
     return u;
   }
 
+  /** REQ-261016D — 사용자별 보조 권한(소속 테넌트 기준). */
+  private async permissionsOf(
+    users: Pick<AcmUserTypeormEntity, 'id' | 'entId'>[],
+  ): Promise<Map<string, string[]>> {
+    const map = new Map<string, string[]>();
+    if (!users.length) return map;
+    const rows = await this.userRepo.manager.query<
+      { usr_id: string; upr_permission: string }[]
+    >(
+      `SELECT p.usr_id, p.upr_permission FROM amb_acm_user_permission p
+        JOIN amb_acm_user u ON u.usr_id = p.usr_id AND u.ent_id = p.ent_id
+       WHERE p.usr_id = ANY($1::uuid[]) ORDER BY p.upr_permission`,
+      [users.map((u) => u.id)],
+    );
+    for (const r of rows)
+      map.set(r.usr_id, [...(map.get(r.usr_id) ?? []), r.upr_permission]);
+    return map;
+  }
+
+  /** REQ-261016D — 보조 권한 전체 교체(사용자 소속 테넌트 범위). */
+  async setPermissions(
+    id: string,
+    permissions: SystemUserPermission[],
+    grantedBy: string,
+  ): Promise<SystemUserView> {
+    const u = await this.getEntityOrThrow(id);
+    const wanted = [...new Set(permissions)];
+    await this.userRepo.manager.transaction(async (m) => {
+      await m.query(
+        `DELETE FROM amb_acm_user_permission
+          WHERE ent_id = $1 AND usr_id = $2 AND NOT (upr_permission = ANY($3::text[]))`,
+        [u.entId, u.id, wanted],
+      );
+      for (const p of wanted)
+        await m.query(
+          `INSERT INTO amb_acm_user_permission (ent_id, usr_id, upr_permission, upr_granted_by)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (ent_id, usr_id, upr_permission) DO NOTHING`,
+          [u.entId, u.id, p, grantedBy],
+        );
+    });
+    return this.getDetail(id);
+  }
+
   private toView(
     u: AcmUserTypeormEntity,
     tenantName: string | null,
+    permissions: string[] = [],
   ): SystemUserView {
     return {
       id: u.id,
@@ -145,6 +210,7 @@ export class SystemUserService {
       mustChangePassword: u.mustChangePassword ?? false,
       lastLoginAt: u.lastLoginAt ? u.lastLoginAt.toISOString() : null,
       createdAt: u.createdAt.toISOString(),
+      permissions,
     };
   }
 }
