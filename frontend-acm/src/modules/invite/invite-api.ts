@@ -43,3 +43,29 @@ export const inviteApi = {
   accept: async (token: string, password: string) =>
     (await apiClient.post<LoginResponse>(`/acm/auth/invites/${encodeURIComponent(token)}/accept`, { password })).data,
 };
+
+/** REQ-261018B — 등록 사용자 목록(읽기 전용). */
+export type RegisteredUserType = 'ALL' | 'ADMIN' | 'STAFF' | 'TEACHER' | 'STUDENT';
+export interface RegisteredUser {
+  source: 'CONSOLE' | 'PORTAL';
+  id: string;
+  ref_id: string | null;
+  type: Exclude<RegisteredUserType, 'ALL'>;
+  name: string;
+  login_id: string;
+  auth_source: string;
+  permissions: string[];
+  locked: boolean;
+  status: string;
+  created_at: string;
+  last_login_at: string | null;
+}
+export const registeredUserApi = {
+  list: async (type: RegisteredUserType, q: string) =>
+    (
+      await apiClient.get<{ users: RegisteredUser[]; counts: Record<RegisteredUserType, number> }>(
+        '/acm/admin/registered-users',
+        { params: { type, ...(q.trim() ? { q: q.trim() } : {}) } },
+      )
+    ).data,
+};

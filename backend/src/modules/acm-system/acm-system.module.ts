@@ -2,7 +2,9 @@ import { UserInviteService } from './application/user-invite.service';
 import {
   UserInviteAdminController,
   UserInvitePublicController,
+  RegisteredUserController,
 } from './presentation/user-invite.controller';
+import { RegisteredUserService } from './application/registered-user.service';
 import { ConfigAccessController } from './presentation/config-access.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -78,6 +80,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     PasswordResetAdminController,
     UserInviteAdminController,
     UserInvitePublicController,
+    RegisteredUserController,
     TenantMasterController,
     MailConfigController,
     TenantSettingsController,
@@ -101,6 +104,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     AiConfigService,
     PasswordResetService,
     UserInviteService,
+    RegisteredUserService,
   ],
   exports: [
     TenantMailerService,
