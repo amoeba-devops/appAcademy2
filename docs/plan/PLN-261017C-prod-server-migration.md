@@ -1,10 +1,13 @@
 ---
-document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-17
 related: REQ-261017C-prod-server-migration, SERVER-261017-staging-production, RUNBOOK-261017-fresh-environment
 change_log:
+  - version: 1.1.0
+    date: 2026-10-17
+    description: Approved; WP1–WP4 done, rehearsal results / 승인, 1~4단계 완료·리허설 결과
   - version: 1.0.0
     date: 2026-10-17
     description: Work plan with target layout and cutover steps / 작업 계획 + 서버 구성안 + 전환 절차
@@ -124,3 +127,20 @@ change_log:
 
 REQ 6장 Q1~Q6. 특히 **Q1 DNS 담당**, **Q2 전환 시각**, **Q4 보다스쿨·AMA IP 허용 목록**.
 WP1~WP4 는 결정 전에도 진행 가능(서비스 영향 없음).
+
+## 6. WP1–WP4 Results (1~4단계 결과, 2026-10-17)
+
+| 단계 | 결과 |
+| --- | --- |
+| WP1 | 패키지 업데이트·재부팅(kernel 5.15.0-198), unattended-upgrades, fail2ban(sshd), 스왑 4GB 파일 추가(기존 4.1GB 파티션 포함 총 8GB). SSH: 비밀번호 로그인 차단·root 키 전용 — 새 세션으로 root·appacademy 키 접속 확인, 비밀번호 시도 거부 확인. ufw 22·80·443 만 허용(5000 외부 차단 확인) |
+| WP2 | Docker 29.9.1 / Compose 5.6.0, nginx 1.18, certbot 1.21. docker 로그 20MB×5 회전. appacademy docker 그룹. 제한 sudo `/etc/sudoers.d/appacademy-deploy`(허용 명령만 무비밀번호, 그 외 거부 확인) |
+| WP3 | 저장소 체크아웃, `.env.production` 파일 대 파일 복사(해시 일치, 600). DB 이미지 빌드, 앱 이미지 `516523d` pull(운영과 이미지 ID 동일). **MinIO 이미지는 Docker Hub 에서 더 이상 받을 수 없어** 현재 서버에서 `docker save/load` 로 복사. 현재 서버의 `acm.amoeba.site` 인증서 일체(webroot 갱신 설정 포함)를 복사 → 전환 후 그대로 자동 갱신 |
+| WP4 | `scripts/backup-acm.sh`(PR #350) — 현재 서버 cron 교체(14일 보관, 공유 디스크), 새 서버 cron(`/backup`, 30일). 리허설: 현재 서버 백업으로 새 서버 복원 — 테이블 167개·행 28,521 **전부 일치**, MinIO 파일 65개·업로드 22개 일치, 실제 도메인·인증서로 로그인 200/API 401/404/매뉴얼 200, 번들 동일 |
+
+리허설 중 안전장치: 새 서버 컨테이너의 외부 통신 차단(iptables `DOCKER-USER`, 주석 `acm-rehearsal`) — 알림·메일·보다스쿨·AMA 중복 호출 방지. **전환 직전에 해제한다.**
+
+전환 소요 예측: DB 덤프 2초 + 복원 4초, 서버 간 직결(키 `from=211.110.140.172` 제한, 약 70MB/s)로 MinIO 증분 rsync 수 초 → **쓰기 중단 10~15분** (DNS 전파 별도).
+
+전환 시 추가 절차: ① 새 서버 rehearsal DB 를 비우고(`dropdb`/`createdb`) 최종 덤프 복원 ② iptables `acm-rehearsal` 규칙 삭제 ③ 서버 간 직결 키는 D+14 정리 때 제거.
+
+후속 과제: 새 환경 구축 시 MinIO 이미지 확보 방법(사설 레지스트리 또는 GHCR 미러) — RUNBOOK-261017 보완 필요.
