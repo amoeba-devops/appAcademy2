@@ -1949,5 +1949,26 @@
         "lastLogin": "마지막 로그인"
       }
     }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM 저장소",
+    "acmHint": "ACM 서버에만 저장 (Google Drive 에 보이지 않음)",
+    "openInDrive": "Google Drive 에서 폴더 열기",
+    "uploadTitle": "파일 업로드",
+    "pick": "파일 선택 또는 끌어 놓기 (최대 {{mb}}MB)",
+    "tooLarge": "{{mb}}MB 이하 파일만 올릴 수 있습니다.",
+    "driveUploadTo": "업로드 위치: {{path}}",
+    "driveProjectHint": "프로젝트 자료는 문서 › 파일에서 프로젝트별 폴더(공용 폴더 › 프로젝트명)에 저장됩니다.",
+    "cols": {
+      "title": "문서명",
+      "project": "프로젝트",
+      "location": "저장 위치",
+      "updated": "최종 수정",
+      "author": "작성자",
+      "size": "크기",
+      "mode": "저장 방식",
+      "actions": "작업"
+    }
   }
 }

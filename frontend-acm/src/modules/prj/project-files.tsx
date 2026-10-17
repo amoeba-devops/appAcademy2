@@ -2,10 +2,11 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { StorageLocation } from "./storage-location";
 import { apiClient } from "@/lib/api-client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { errorText, useScope } from "./project-page";
-import type { DriveStatus, Item } from "./types";
+import type { DriveStatus, Item, Project } from "./types";
 export const phases: Record<string, string> = {
   PLANNING: "기획",
   DESIGN: "디자인",
@@ -221,6 +222,11 @@ export function FileUpload({
       (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
   });
   const driveReady = !!drive.data?.rootReady;
+  // REQ-261018C — 저장 위치 경로(공용 폴더 › 프로젝트 폴더) 표시
+  const projectInfo = useQuery({
+    queryKey: ["prj", "list", ...useScope()],
+    queryFn: async () => (await apiClient.get<Project[]>("/acm/prj/projects")).data,
+  }).data?.find((p) => p.prj_id === project);
   const [storage, setStorage] = useState<"DRIVE" | "ACM" | "">("");
   const chosen = storage || (driveReady ? "DRIVE" : "ACM");
   function choose(f?: File) {
@@ -236,7 +242,7 @@ export function FileUpload({
       }}
     >
       <DialogContent>
-        <DialogTitle>파일 업로드</DialogTitle>
+        <DialogTitle>{t("storagePath.uploadTitle")}</DialogTitle>
         <form
           className="grid gap-3"
           onSubmit={async (e) => {
@@ -280,8 +286,15 @@ export function FileUpload({
                 onChange={() => setStorage("DRIVE")}
               />
               {t("drive.storage.drive")}
-              {driveReady && drive.data?.rootName && (
-                <span className="text-secondary">({drive.data.rootName})</span>
+              {driveReady && (
+                <span className="min-w-0 text-xs">
+                  <StorageLocation
+                    storage="DRIVE"
+                    rootName={drive.data?.rootName}
+                    folderName={projectInfo?.drive_folder_name ?? projectInfo?.prj_title}
+                    folderId={projectInfo?.drive_folder_id}
+                  />
+                </span>
               )}
             </label>
             <label className="flex items-center gap-2">
@@ -292,6 +305,7 @@ export function FileUpload({
                 onChange={() => setStorage("ACM")}
               />
               {t("drive.storage.acm")}
+              <span className="text-xs text-secondary">{t("storagePath.acmHint")}</span>
             </label>
             {!driveReady && (
               <p className="text-xs text-secondary">
@@ -309,7 +323,7 @@ export function FileUpload({
               choose(e.dataTransfer.files[0]);
             }}
           >
-            파일 선택 또는 끌어 놓기 (최대 20MB)
+            {t("storagePath.pick", { mb: 50 })}
             <input
               type="file"
               disabled={attempted}
@@ -353,11 +367,14 @@ export function FileUpload({
               ))}
             </select>
           </label>
+          {file && file.size > 50 * 1024 * 1024 && (
+            <p role="alert" className="text-sm text-red-600">{t("storagePath.tooLarge", { mb: 50 })}</p>
+          )}
           {error && <p role="alert">{error}</p>}
           <button
             className="rounded bg-blue-600 p-2 text-white"
             disabled={
-              busy || !file || !title.trim() || file.size > 20 * 1024 * 1024
+              busy || !file || !title.trim() || file.size > 50 * 1024 * 1024
             }
           >
             {busy

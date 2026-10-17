@@ -1949,5 +1949,26 @@
         "lastLogin": "Last sign-in"
       }
     }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM storage",
+    "acmHint": "Stored on the ACM server only (not visible in Google Drive)",
+    "openInDrive": "Open folder in Google Drive",
+    "uploadTitle": "Upload file",
+    "pick": "Choose or drop a file (up to {{mb}}MB)",
+    "tooLarge": "Files must be {{mb}}MB or smaller.",
+    "driveUploadTo": "Uploads go to: {{path}}",
+    "driveProjectHint": "Project files uploaded from Documents › Files are stored in per-project folders (shared folder › project name).",
+    "cols": {
+      "title": "Title",
+      "project": "Project",
+      "location": "Stored in",
+      "updated": "Last modified",
+      "author": "Author",
+      "size": "Size",
+      "mode": "Storage",
+      "actions": "Actions"
+    }
   }
 }

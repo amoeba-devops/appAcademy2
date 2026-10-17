@@ -17,6 +17,8 @@ export interface Project {
   issue_count?: number;
   recent_issues?: { pit_title: string; pit_status: string }[];
   drive_folder_id?: string;
+  /** REQ-261018C — 저장 위치 표시용 */
+  drive_folder_name?: string | null;
   updated_at: string;
 }
 export interface Item {
@@ -25,6 +27,10 @@ export interface Item {
   download_count?:number;
   document_type?: "MEMO" | "SHEET" | "DOC" | "FILE";
   storage_type?: "LOCAL" | "GOOGLE_LINK" | "DRIVE_FILE";
+  /** REQ-261018C — 문서 목록(/acm/prj/documents)의 저장 위치 */
+  prj_drive_folder_id?: string | null;
+  prj_drive_folder_name?: string | null;
+  drive_root_name?: string | null;
   content?: unknown;
   external_url?: string;
   revision?: number;

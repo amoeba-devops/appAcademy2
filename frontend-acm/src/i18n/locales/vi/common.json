@@ -1949,5 +1949,26 @@
         "lastLogin": "Đăng nhập gần nhất"
       }
     }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "Kho ACM",
+    "acmHint": "Chỉ lưu trên máy chủ ACM (không hiển thị trong Google Drive)",
+    "openInDrive": "Mở thư mục trong Google Drive",
+    "uploadTitle": "Tải tệp lên",
+    "pick": "Chọn hoặc kéo thả tệp (tối đa {{mb}}MB)",
+    "tooLarge": "Chỉ tải được tệp tối đa {{mb}}MB.",
+    "driveUploadTo": "Vị trí tải lên: {{path}}",
+    "driveProjectHint": "Tài liệu dự án tải lên ở Tài liệu › Tệp được lưu theo thư mục từng dự án (thư mục chung › tên dự án).",
+    "cols": {
+      "title": "Tên tài liệu",
+      "project": "Dự án",
+      "location": "Vị trí lưu",
+      "updated": "Sửa lần cuối",
+      "author": "Người tạo",
+      "size": "Kích thước",
+      "mode": "Cách lưu",
+      "actions": "Thao tác"
+    }
   }
 }

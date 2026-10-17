@@ -1,9 +1,12 @@
 ---
-document_id: ACM-DOC-STORAGE-PATH-REQ-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-DOC-STORAGE-PATH-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Approved (진행) / 승인
   - version: 1.0.0
     date: 2026-10-18
     description: Show where uploaded files are stored; align upload limit / 업로드 저장 위치 표시·용량 한도 통일

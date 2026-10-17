@@ -1,10 +1,13 @@
 ---
-document_id: ACM-DOC-STORAGE-PATH-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-DOC-STORAGE-PATH-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 related: REQ-261018C-document-storage-path
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Approved (진행) / 승인
   - version: 1.0.0
     date: 2026-10-18
     description: Work plan with UI mockups / 작업 계획 + 화면 구성안

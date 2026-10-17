@@ -81,7 +81,7 @@ export class ProjectService {
   }
   async allDocuments(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT i.*,p.prj_title,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
+      `SELECT i.*,p.prj_title,p.drive_folder_id AS prj_drive_folder_id,p.drive_folder_name AS prj_drive_folder_name,(SELECT d.root_name FROM amb_acm_prj_drive d WHERE d.ent_id=p.ent_id) AS drive_root_name,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
       [u.entId, u.id],
     );
   }
