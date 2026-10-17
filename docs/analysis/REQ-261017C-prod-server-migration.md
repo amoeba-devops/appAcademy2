@@ -1,9 +1,12 @@
 ---
-document_id: ACM-PROD-SERVER-MIGRATION-REQ-1.0.0
-version: 1.0.0
+document_id: ACM-PROD-SERVER-MIGRATION-REQ-1.1.0
+version: 1.1.0
 status: Approved
 created: 2026-10-17
 change_log:
+  - version: 1.1.0
+    date: 2026-10-17
+    description: Add primary domain acm.tpi.co.kr (acm.amoeba.site kept) / 메인 도메인 acm.tpi.co.kr 추가
   - version: 1.0.0
     date: 2026-10-17
     description: Move production from shared host 211.110.140.172 to dedicated 175.126.232.175 / 프로덕션 서버 이전 요구사항
@@ -48,6 +51,35 @@ change_log:
 | FR-10 | 배포 파이프라인: `cd-production.yml` 이 새 서버로 배포(GitHub `production` Environment 의 SSH 비밀 교체) |
 | FR-11 | 되돌리기: 전환 실패 시 DNS 를 원래 IP 로 되돌려 현재 서버로 복귀. 현재 서버는 전환 후 일정 기간 그대로 보존 |
 
+## 3A. Domain Addition (도메인 추가, v1.1.0)
+
+추가 요청: "도메인은 acm.tpi.co.kr (acm.amoeba.site 동시사용하나 acm.tpi.co.kr 을 메인으로 사용 예정) 을 추가할 것이다."
+
+| ID | 요구사항 |
+| --- | --- |
+| FR-12 | `acm.tpi.co.kr` 을 새 서버에 연결한다(hostcocoa DNS A 레코드 → 175.126.232.175) |
+| FR-13 | 두 도메인 모두 같은 서비스를 제공한다(`acm.amoeba.site` 도 계속 동작, 리디렉트 없음) |
+| FR-14 | 메인 도메인은 `acm.tpi.co.kr` — 메일·알림·AMA 전달 링크, 매뉴얼·약관 표기, 배포 확인(smoke)의 기준 주소 |
+| FR-15 | 각 도메인별 인증서·자동 갱신(`acm.tpi.co.kr` 은 별도 인증서) |
+| FR-16 | 외부 등록 주소 갱신: Google OAuth 리디렉트 URI, AMA 앱 URL, 보다스쿨 허용 도메인 |
+
+### 3A.1 Impact (영향 조사, 2026-10-17)
+
+| 대상 | 현재 | 조치 |
+| --- | --- | --- |
+| DNS | `tpi.co.kr` = hostcocoa 관리, `acm.tpi.co.kr` 없음, CAA 없음(Let's Encrypt 가능) | A 레코드 추가 — TPI 도메인 관리자 |
+| nginx | `server_name acm.amoeba.site` 1개, 인증서 1개 | `acm.tpi.co.kr` server 블록 + 별도 인증서. 현재 서버에는 그 인증서가 없으므로 **전환 후에 설정 반영**(그 전에 반영하면 현재 서버 배포의 `nginx -t` 가 실패) |
+| env | `FRONTEND_URL=https://acm.amoeba.site`, `ACM_PUBLIC_URL` 없음 | 전환 때 `FRONTEND_URL`·`ACM_PUBLIC_URL=https://acm.tpi.co.kr` |
+| API 호출 | 화면과 API 가 같은 도메인(같은 출처) | 두 도메인 모두 동작 — CORS 영향 없음 |
+| 메일·알림 링크 | `ACM_PUBLIC_URL ?? FRONTEND_URL` 사용 | env 변경으로 메인 도메인 링크 |
+| Google Drive OAuth | DB `amb_acm_sys_google_app.sga_redirect_uri` 1개 | 메인 도메인으로 변경 + Google 콘솔에 URI 추가 |
+| AMA SSO·알림 | AMA 에 등록된 ACM 앱 URL | AMA 측 앱 URL 에 `acm.tpi.co.kr` 추가/변경 요청 |
+| 보다스쿨 | 화상 SDK 가 ACM 화면 출처에서 로드 | 벤더에 `acm.tpi.co.kr` 허용 요청 |
+| 아임웹 상담 접수 | 스니펫이 `acm.amoeba.site` 로 전송 | 그대로 동작(두 도메인 유지). 나중에 바꿔도 됨 |
+| 로그인 상태·웹 푸시 | 브라우저에 도메인별로 저장 | 새 도메인에서는 **다시 로그인·알림 허용** 필요 — 사용자 안내 |
+| 배포 확인 | `cd-production.yml`·`deploy-production.sh` 가 `acm.amoeba.site` 확인 | 두 도메인 모두 확인 |
+| 매뉴얼·약관 | `/web/manual/*`, `/web/acm/terms·privacy` 에 `acm.amoeba.site` 표기 | `acm.tpi.co.kr` 로 표기 변경 |
+
 ## 4. Non-Functional (비기능)
 
 - 다운타임: 쓰기 중단(점검) 30분 이내, DNS 전파(TTL 300 으로 사전 단축) 포함 1시간 이내.
@@ -75,4 +107,7 @@ change_log:
 | Q3 | 현재 서버 보존 기간 | 전환 후 14일 동안 컨테이너 정지 상태로 보존, 이후 정리 |
 | Q4 | 보다스쿨·AMA 에 출발 IP 허용 목록이 있는가? | 전환 전 문의, 있으면 새 IP 추가 요청 |
 | Q5 | GitHub `production` 비밀 교체 | 저장소 관리자 권한 필요 — 사용자(amoeba-devops) 작업 |
-| Q6 | 스왑 4GB 추가(메모리 15GB 여유 확보용) | 추가 권장 |
+| Q6 | 스왑 4GB 추가(메모리 15GB 여유 확보용) | 완료(기존 파티션 포함 8GB) |
+| Q7 | `acm.tpi.co.kr` DNS 를 언제 연결하나? | **지금 바로** 새 서버로 연결 → 인증서 미리 발급·실도메인 시험. 전환 전까지는 "준비 중" 점검 화면만 보이게 함 |
+| Q8 | `acm.amoeba.site` 는 계속 앱을 그대로 보여주나, 메인으로 이동(리디렉트)시키나? | 요청대로 **둘 다 그대로 제공**. 리디렉트는 나중에 결정 |
+| Q9 | hostcocoa DNS 변경 담당 | TPI 도메인 관리자 |

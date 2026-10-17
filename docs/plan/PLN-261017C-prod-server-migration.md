@@ -1,10 +1,13 @@
 ---
-document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.1.0
-version: 1.1.0
+document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.2.0
+version: 1.2.0
 status: Approved
 created: 2026-10-17
 related: REQ-261017C-prod-server-migration, SERVER-261017-staging-production, RUNBOOK-261017-fresh-environment
 change_log:
+  - version: 1.2.0
+    date: 2026-10-17
+    description: Add primary domain acm.tpi.co.kr (WP4A, cutover/after steps) / 메인 도메인 추가 반영
   - version: 1.1.0
     date: 2026-10-17
     description: Approved; WP1–WP4 done, rehearsal results / 승인, 1~4단계 완료·리허설 결과
@@ -144,3 +147,38 @@ WP1~WP4 는 결정 전에도 진행 가능(서비스 영향 없음).
 전환 시 추가 절차: ① 새 서버 rehearsal DB 를 비우고(`dropdb`/`createdb`) 최종 덤프 복원 ② iptables `acm-rehearsal` 규칙 삭제 ③ 서버 간 직결 키는 D+14 정리 때 제거.
 
 후속 과제: 새 환경 구축 시 MinIO 이미지 확보 방법(사설 레지스트리 또는 GHCR 미러) — RUNBOOK-261017 보완 필요.
+
+## 7. Domain Addition — acm.tpi.co.kr (도메인 추가, v1.2.0)
+
+목표 구성:
+
+```
+acm.tpi.co.kr  (메인, hostcocoa DNS)  ─┐
+                                       ├─ 443 → 175.126.232.175 nginx ─ 같은 앱(5174 / 4000)
+acm.amoeba.site (보조, GoDaddy DNS) ───┘    인증서 2개: acm.tpi.co.kr, acm.amoeba.site
+메일·알림 링크 / 매뉴얼 / 배포 확인 기준 = https://acm.tpi.co.kr
+```
+
+### WP4A. 전환 전 (서비스 영향 없음)
+
+1. TPI 도메인 관리자: hostcocoa 에 `acm.tpi.co.kr` A → 175.126.232.175 (TTL 300).
+2. 새 서버 nginx 에 `acm.tpi.co.kr` 임시 블록: ACME 경로 + "준비 중" 점검 화면만(리허설 데이터 노출 방지).
+3. `certbot certonly --webroot -d acm.tpi.co.kr` → 자동 갱신 dry-run.
+4. 저장소 PR(머지는 **전환 당일**): `nginx-acm.conf` 에 `acm.tpi.co.kr` server 블록(공통 설정 include),
+   `deploy-production.sh`·`cd-production.yml` 확인 대상 두 도메인, 매뉴얼·약관 표기, compose 기본값.
+   — 현재 서버에는 `acm.tpi.co.kr` 인증서가 없어 미리 머지하면 배포의 `nginx -t` 가 실패한다.
+5. 외부 요청(사용자): Google 콘솔 리디렉트 URI 추가, AMA 앱 URL, 보다스쿨 허용 도메인.
+
+### WP5 추가 단계 (전환 당일)
+
+| 순서 | 작업 |
+| --- | --- |
+| T+15 이전 | 새 서버 env: `FRONTEND_URL`·`ACM_PUBLIC_URL=https://acm.tpi.co.kr` |
+| T+15 | 도메인 PR 머지 → 새 서버에 nginx 설정 반영(두 도메인 실서비스) |
+| T+30 | Google Drive 리디렉트 URI(DB `sga_redirect_uri`) 메인 도메인으로 변경 |
+| T+30 | 확인: 두 도메인 로그인 화면·API, 메일 링크 1건 |
+
+### WP6 추가
+
+- 사용자 안내: 새 주소 `https://acm.tpi.co.kr`, 새 주소에서는 다시 로그인·알림 허용 필요.
+- 아임웹 상담 접수 스니펫 주소는 그대로 두고(두 도메인 유지) 필요할 때 교체.
