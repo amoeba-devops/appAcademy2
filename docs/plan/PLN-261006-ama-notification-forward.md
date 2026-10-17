@@ -1,7 +1,7 @@
 ---
 document_id: NTF-PLN-261006
 version: 1.0.0
-status: IMPLEMENTED (ACM 측, PR 대기) — AMA 측 엔드포인트는 SPEC-261006 로 백로그 이관
+status: DEPLOYED (ACM 측 PR #306 4272877 — cd-staging·cd-production 2026-10-06, 전달 OFF 기본) — AMA 측 엔드포인트는 SPEC-261006 로 백로그 이관
 date: 2026-10-06
 depends_on: docs/analysis/REQ-261006-acm-ama-alert-forwarding.md
 change_log:
@@ -69,8 +69,11 @@ change_log:
 
 | 확인 | 결과 |
 |---|---|
-| backend tsc · eslint · jest(acm-notification·acm-auth) | (실행 결과 §6) |
-| frontend tsc · eslint · prettier | (실행 결과 §6) |
+| backend tsc · eslint(0 error) · jest(acm-notification·acm-auth) | ✅ 107 pass (+템플릿 3) |
+| frontend tsc · eslint · prettier | ✅ |
+| SQL 1025+1027 로컬 적용 | ✅ |
+| CI PR #306 · cd-staging · cd-production (4272877) | ✅ |
+| 프로덕션 | `amb_acm_ama_config` 전달 컬럼 생성(OFF, 기본 종류 CSL_CREATED,CSL_STAGE), forward 테이블 0행, `AmaOpenNotificationModule`·`AmaForwardController` 로드, health 200 |
 | 프로덕션 | SQL 1027 자동 적용 → 설정 화면 섹션 노출. **AMA 엔드포인트가 없으므로 전달은 OFF 유지**, [테스트 전송] 은 AMA 404 로 실패가 정상 |
 
 ## 6. Rollout
