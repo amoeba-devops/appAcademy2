@@ -147,12 +147,12 @@ fi
 # --- 8. Smoke test + manifest ------------------------------------------
 say "8. Smoke test"
 sleep 5
-echo "   --- https://acm.amoeba.site/ (TLS may not yet be issued) ---"
-curl -sIL --max-time 15 https://acm.amoeba.site/ 2>&1 | head -1 \
-    || warn "HTTPS smoke failed — check SSL cert (Phase 5)."
-echo "   --- http://acm.amoeba.site/ ---"
-curl -sI --max-time 10 http://acm.amoeba.site/ | head -1 \
-    || warn "HTTP smoke failed — check nginx + container."
+# REQ-261017C — 메인(acm-tpi.amoeba.site)·보조(acm.amoeba.site) 도메인 모두 확인
+for host in acm-tpi.amoeba.site acm.amoeba.site; do
+    echo "   --- https://$host/ ---"
+    curl -sIL --max-time 15 "https://$host/" 2>&1 | head -1 \
+        || warn "HTTPS smoke failed for $host — check cert / DNS."
+done
 echo "   --- http://127.0.0.1:4000/api/health (backend direct) ---"
 curl -sS --max-time 5 http://127.0.0.1:4000/api/health || warn "backend not healthy."
 
