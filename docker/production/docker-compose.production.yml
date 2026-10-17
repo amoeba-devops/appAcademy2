@@ -1,5 +1,5 @@
 # app-academy — Production stack
-# Host: appacademy@211.110.140.172 (acm.amoeba.site)
+# Host: appacademy@175.126.232.175 (acm-tpi.amoeba.site 메인 · acm.amoeba.site) — REQ-261017C
 # Usage:
 #   docker compose -f docker/production/docker-compose.production.yml \
 #                  --env-file docker/production/.env.production \
