@@ -1,3 +1,4 @@
+import { AcmSeedPasswordService } from './application/acm-seed-password.service';
 import { Module, Provider } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -170,6 +171,7 @@ const amaOAuthProvider: Provider = {
   ],
   providers: [
     AcmAuthService,
+    AcmSeedPasswordService,
     ParentAuthService,
     ParentPortalService,
     SubscriptionCheckService,

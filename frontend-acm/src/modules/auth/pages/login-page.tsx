@@ -171,6 +171,7 @@ export function LoginPage() {
         // REQ-261017 — 잠김·임시 비밀번호 만료는 따로 안내
         else if (code === "ACCOUNT_LOCKED") setError(t("login.locked"));
         else if (code === "TEMP_PASSWORD_EXPIRED") setError(t("login.tempExpired"));
+        else if (code === "SEED_PASSWORD_DISABLED") setError(t("login.seedDisabled"));
         else if (err.response?.status === 401 || err.response?.status === 400)
           setError(t("login.error"));
         else setError(t("login.network"));
