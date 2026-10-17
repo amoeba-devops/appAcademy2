@@ -8,6 +8,7 @@ import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { useConfigScope } from "../hooks/use-config-access";
 import { GeneralConfigPage } from "./general-config-page";
+import { ConfigCardGrid, INTEGRATION_CARDS } from "../components/integration-cards";
 
 const ROLES = ["ADMIN", "TEACHER", "STAFF"] as const;
 type Role = (typeof ROLES)[number];
@@ -23,7 +24,9 @@ const GROUP_OF_WORK = new Set(["chat", "myWork", "issues", "projects", "document
 export function TenantSettingsPage() {
   const { t } = useTranslation("common");
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "general" ? "general" : "menus";
+  // REQ-261018 — 연동 설정 탭(AI·AMA·화상강의·카카오·GA4)
+  const raw = params.get("tab");
+  const tab = raw === "general" || raw === "integrations" ? raw : "menus";
   return (
     <div className="w-full min-w-0">
       <header className="mb-4 flex items-center gap-2">
@@ -33,7 +36,7 @@ export function TenantSettingsPage() {
         </h1>
       </header>
       <div className="mb-6 flex gap-1 border-b" role="tablist">
-        {(["menus", "general"] as const).map((k) => (
+        {(["menus", "general", "integrations"] as const).map((k) => (
           <button
             key={k}
             type="button"
@@ -51,7 +54,16 @@ export function TenantSettingsPage() {
           </button>
         ))}
       </div>
-      {tab === "menus" ? <RoleMenuMatrix /> : <GeneralConfigPage embedded />}
+      {tab === "menus" ? (
+        <RoleMenuMatrix />
+      ) : tab === "general" ? (
+        <GeneralConfigPage embedded />
+      ) : (
+        <section aria-label={t("tenantConfig.tabs.integrations")}>
+          <p className="mb-4 text-sm text-secondary">{t("tenantConfig.integrationsDesc")}</p>
+          <ConfigCardGrid cards={INTEGRATION_CARDS} />
+        </section>
+      )}
     </div>
   );
 }

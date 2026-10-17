@@ -440,6 +440,10 @@
       "ga4": {
         "title": "GA4 방문자",
         "description": "Google Analytics 4 일별 방문자 자동 수집 — 대시보드 Marketing·방문자"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "프로젝트 문서와 파일을 회사 Google Drive 에 연결합니다."
       }
     },
     "mail": {
@@ -1278,7 +1282,8 @@
     "required": "테넌트 마스터 권한이 필요합니다.",
     "tabs": {
       "menus": "메뉴 노출",
-      "general": "일반"
+      "general": "일반",
+      "integrations": "연동 설정"
     },
     "roles": {
       "ADMIN": "관리자",
@@ -1292,7 +1297,8 @@
       "locked": "정책상 이 등급에는 열 수 없습니다",
       "reset": "초기화(전체 노출)",
       "resetConfirm": "모든 등급의 메뉴를 기본(전체 노출)으로 되돌릴까요?"
-    }
+    },
+    "integrationsDesc": "AI 엔진, AMA 연동, 화상강의, 카카오 알림톡, GA4 방문자 설정을 관리합니다."
   },
   "issues": {
     "title": "이슈",
@@ -1844,5 +1850,68 @@
     },
     "cancel": "취소",
     "close": "닫기"
+  },
+  "invite": {
+    "title": "사용자 초대",
+    "cardDescription": "이메일로 관리자·직원을 초대합니다.",
+    "description": "초대 메일의 링크에서 비밀번호를 정하면 가입이 완료됩니다. 링크는 72시간 동안 한 번만 쓸 수 있습니다.",
+    "new": "초대하기",
+    "send": "초대 메일 보내기",
+    "sending": "보내는 중…",
+    "loading": "불러오는 중…",
+    "empty": "초대 내역이 없습니다.",
+    "status": {
+      "PENDING": "대기",
+      "ACCEPTED": "수락",
+      "EXPIRED": "만료",
+      "REVOKED": "취소",
+      "ALL": "전체"
+    },
+    "roles": {
+      "ADMIN": "관리자",
+      "STAFF": "직원"
+    },
+    "configAdmin": "서비스 운영자",
+    "invitedBy": "초대 {{by}} · {{at}}",
+    "acceptedAt": "수락 {{at}}",
+    "expiresAt": "{{at}} 까지",
+    "resend": "재발송",
+    "revoke": "취소",
+    "revokeTitle": "초대를 취소할까요?",
+    "revokeDesc": "보낸 링크는 더 이상 쓸 수 없습니다.",
+    "fields": {
+      "email": "이메일",
+      "name": "이름",
+      "role": "역할",
+      "grantConfigAdmin": "서비스 운영자 권한도 부여",
+      "grantConfigAdminHint": "서비스 설정(사용자 초대·메일 등)을 관리할 수 있습니다. 테넌트 마스터 권한은 초대로 줄 수 없습니다."
+    },
+    "resultTitle": "초대를 보냈습니다",
+    "mailSent": "초대 메일을 보냈습니다.",
+    "mailNotSent": "메일이 설정되지 않았거나 발송에 실패했습니다. 아래 초대 링크를 직접 전달하세요.",
+    "copy": "복사",
+    "onceOnly": "이 창을 닫으면 링크를 다시 볼 수 없습니다(재발송하면 새 링크가 만들어집니다).",
+    "validUntil": "유효기간: {{until}}까지",
+    "errors": {
+      "exists": "이미 가입된 이메일입니다.",
+      "email": "이메일 형식을 확인하세요.",
+      "name": "이름을 입력하세요.",
+      "handled": "이미 처리된 초대입니다.",
+      "failed": "처리하지 못했습니다. 다시 시도하세요.",
+      "load": "초대 목록을 불러오지 못했습니다."
+    },
+    "accept": {
+      "title": "ACM 초대",
+      "intro": "{{tenant}} 에서 {{name}} 님을 {{role}}(으)로 초대했습니다. 비밀번호를 정하면 바로 시작할 수 있습니다.",
+      "password": "비밀번호",
+      "confirm": "비밀번호 확인",
+      "policy": "8자 이상, 영문과 숫자를 포함해야 합니다.",
+      "mismatch": "비밀번호가 일치하지 않습니다.",
+      "submit": "가입하고 시작하기",
+      "submitting": "가입 중…",
+      "invalid": "초대 링크가 만료되었거나 이미 사용되었습니다. 관리자에게 다시 요청하세요.",
+      "rateLimited": "요청이 많습니다. 잠시 후 다시 시도하세요.",
+      "failed": "가입하지 못했습니다. 다시 시도하세요."
+    }
   }
 }

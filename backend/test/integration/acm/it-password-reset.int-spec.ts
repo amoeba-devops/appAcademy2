@@ -142,6 +142,16 @@ describe('IT-PASSWORD-RESET temp password flow', () => {
     const [{ prr_id }] = await env.ds.query<{ prr_id: string }[]>(
       `SELECT prr_id FROM amb_acm_password_reset_request WHERE prr_status='REQUESTED'`,
     );
+    // 쿨다운이 지난 대기 요청을 다시 요청하면 기존 요청을 갱신(UPDATE)하고, 알림 대상은 그 요청 id 여야 한다.
+    await env.ds.query(
+      `UPDATE amb_acm_password_reset_request SET prr_requested_at = now() - interval '1 hour' WHERE prr_id=$1`,
+      [prr_id],
+    );
+    await svc.request(EMAIL);
+    const targets = await env.ds.query<{ nob_target_id: string | null }[]>(
+      `SELECT nob_target_id FROM amb_acm_notification_outbox WHERE nob_type='PASSWORD_RESET_REQUEST' ORDER BY created_at DESC LIMIT 1`,
+    );
+    expect(targets[0]?.nob_target_id).toBe(prr_id);
     await svc.reject(admin(), prr_id);
     const [{ prr_status }] = await env.ds.query<{ prr_status: string }[]>(
       `SELECT prr_status FROM amb_acm_password_reset_request WHERE prr_id=$1`,

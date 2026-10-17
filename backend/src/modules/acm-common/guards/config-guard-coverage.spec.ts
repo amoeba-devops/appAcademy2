@@ -21,18 +21,25 @@ import { TenantSettingsController } from '../../acm-system/presentation/tenant-s
 import { BodaDemoController } from '../../acm-cal/presentation/boda-demo.controller';
 
 describe('Configuration endpoint coverage', () => {
+  it.each([MailConfigController, AdsController])(
+    '%p requires service operator permission',
+    (controller) => {
+      expect(Reflect.getMetadata(GUARDS_METADATA, controller)).toContain(
+        ConfigAdminGuard,
+      );
+    },
+  );
+  // REQ-261018 — 테넌트 마스터 전용 노출(서비스 운영자도 API 는 허용)
   it.each([
     AmaConfigController,
     BodaConfigController,
     VideoConfigController,
-    MailConfigController,
     KakaoConfigController,
     Ga4ConfigController,
     AiConfigController,
-    AdsController,
-  ])('%p requires configuration permission', (controller) => {
+  ])('%p requires tenant settings permission', (controller) => {
     expect(Reflect.getMetadata(GUARDS_METADATA, controller)).toContain(
-      ConfigAdminGuard,
+      TenantSettingsGuard,
     );
   });
   it('protects settings mutation and legacy demo-seed while retaining business read endpoints', () => {

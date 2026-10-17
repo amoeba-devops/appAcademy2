@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useIntegrationBackLink } from '../components/require-tenant-settings';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Loader2, MessageCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import {
  */
 export function KakaoConfigPage() {
   const { t } = useTranslation('common');
+  const backTo = useIntegrationBackLink();
   const toast = useToast();
   const { data, isLoading, isError } = useKakaoConfig();
   const update = useUpdateKakaoConfig();
@@ -102,7 +104,7 @@ export function KakaoConfigPage() {
   return (
     <div className="w-full min-w-0">
       <Link
-        to="/admin/config"
+        to={backTo}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
       >
         <ArrowLeft size={16} />

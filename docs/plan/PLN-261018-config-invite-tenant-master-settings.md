@@ -1,10 +1,13 @@
 ---
-document_id: ACM-CFG-INVITE-TM-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-CFG-INVITE-TM-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 related: REQ-261018-config-invite-tenant-master-settings
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Decisions — Q1 integrations tab, Q2 ADMIN/STAFF, Q3 hide links only (API open to operators), Q4 no tenant master by invite / 결정 반영
   - version: 1.0.0
     date: 2026-10-18
     description: Work plan with UI mockups / 작업 계획 + 화면 구성안

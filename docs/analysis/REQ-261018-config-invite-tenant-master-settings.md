@@ -1,9 +1,12 @@
 ---
-document_id: ACM-CFG-INVITE-TM-REQ-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-CFG-INVITE-TM-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Decisions — Q1 integrations tab, Q2 ADMIN/STAFF, Q3 hide links only (API open to operators), Q4 no tenant master by invite / 결정 반영
   - version: 1.0.0
     date: 2026-10-18
     description: Service operator user invite + 5 integration settings restricted to tenant master / 서비스 운영자 사용자 초대 + 연동 설정 5종 테넌트 마스터 전용
@@ -45,3 +48,12 @@ change_log:
 | Q2 | 초대할 수 있는 역할 | **관리자·직원·강사** 중 선택. 강사는 교사 정보와 연결이 필요하므로 가입 후 교사 관리에서 연결 |
 | Q3 | 서비스 운영자가 5개 설정을 **완전히 못 보게** 할까(API 포함) | 요청대로 **완전히 차단**. 지금 서비스 운영자 2명은 이 5개를 못 보게 된다 |
 | Q4 | 초대 시 서비스 운영자·테넌트 마스터 권한을 같이 줄 수 있나 | 주지 않는다(역할만). 권한 부여는 기존 방식 유지 |
+
+## 5. Decisions (결정, 2026-10-18)
+
+| Q | 결정 |
+| --- | --- |
+| Q1 | 권장안 — 테넌트 설정 "연동 설정" 탭, 화면 주소 유지 |
+| Q2 | 관리자·직원만 (강사 제외) |
+| Q3 | **링크만 숨김** — 서비스 운영자 화면에서 카드를 빼되 주소로 들어오면 열린다. API 는 테넌트 마스터 또는 서비스 운영자(`TenantSettingsGuard`) |
+| Q4 | 테넌트 마스터 권한은 초대로 줄 수 없음. 서비스 운영자 권한은 선택(기본 꺼짐) |
