@@ -14,6 +14,7 @@ import {
   DriveReconnectRequired,
   DriveWriteRejected,
   GoogleFile,
+  googleStatusOf,
 } from '../infrastructure/drive.client';
 import { ProjectService } from './project.service';
 import { CreateDriveDto } from './project.dto';
@@ -409,7 +410,15 @@ export class ProjectDriveService {
     let current = id;
     for (let depth = 0; depth < 30; depth++) {
       if (current === root) return;
-      const f = await this.google.file(token, current);
+      let f: GoogleFile;
+      try {
+        f = await this.google.file(token, current);
+      } catch (e) {
+        // 상위 폴더가 연결 계정에 보이지 않으면(공유받은 폴더의 바깥) root 아래가 아니다.
+        const status = googleStatusOf(e);
+        if (depth > 0 && (status === 403 || status === 404)) break;
+        throw e;
+      }
       if (f.trashed || !f.parents?.[0]) break;
       current = f.parents[0];
     }

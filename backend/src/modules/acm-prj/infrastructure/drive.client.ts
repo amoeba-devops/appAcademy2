@@ -39,6 +39,11 @@ export class DriveReconnectRequired extends ConflictException {
     });
   }
 }
+/** Google Drive 응답 코드(요청 실패 시 예외에 붙는다). */
+export const googleStatusOf = (e: unknown): number | undefined =>
+  typeof e === 'object' && e !== null && 'googleStatus' in e
+    ? (e as { googleStatus?: number }).googleStatus
+    : undefined;
 const definitiveRejection = (status: number) =>
   [400, 401, 403, 404, 413, 422, 429].includes(status);
 @Injectable()
@@ -94,8 +99,8 @@ export class DriveClient {
       },
       signal: AbortSignal.timeout(20000),
     });
-    if (!r.ok)
-      throw new (
+    if (!r.ok) {
+      const err = new (
         init.method === 'POST' && definitiveRejection(r.status)
           ? DriveWriteRejected
           : BadGatewayException
@@ -108,6 +113,10 @@ export class DriveClient {
               ? 'Google 파일이 없거나 접근할 수 없습니다.'
               : 'Google Drive 요청을 완료하지 못했습니다.',
       );
+      // 호출 측이 Google 응답 코드로 분기할 수 있게 남긴다(예: 보이지 않는 상위 폴더).
+      Object.assign(err, { googleStatus: r.status });
+      throw err;
+    }
     return r.json() as Promise<T>;
   }
   file(t: string, id: string) {
