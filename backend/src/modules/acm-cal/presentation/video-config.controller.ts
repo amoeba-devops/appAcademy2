@@ -9,14 +9,15 @@ import {
 import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
 import type { PortalAuthUser } from '../../acm-auth/application/portal-account.service';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
+// REQ-261018 — 테넌트 마스터(또는 서비스 운영자). 서비스 운영자 화면에서는 링크만 숨긴다.
+import { TenantSettingsGuard } from '../../acm-common/guards/tenant-master.guard';
 import { VideoConfigService } from '../application/video-config.service';
 import type { VideoProvider } from '../infrastructure/typeorm/video-config.typeorm-entity';
 class UpdateVideoConfigDto {
   @IsIn(['GOOGLE_MEET', 'BODASCHOOL']) provider!: VideoProvider;
 }
 @Controller('admin/cal/video/config')
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, TenantSettingsGuard)
 export class VideoConfigController {
   constructor(private readonly svc: VideoConfigService) {}
   @Get()

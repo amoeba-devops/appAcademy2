@@ -440,6 +440,10 @@
       "ga4": {
         "title": "GA4 Visitors",
         "description": "Auto-collect daily visitors from Google Analytics 4 — Dashboard Marketing · Visitor"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "Connect project documents and files to the company Google Drive."
       }
     },
     "mail": {
@@ -1278,7 +1282,8 @@
     "required": "Tenant master permission is required.",
     "tabs": {
       "menus": "Menu visibility",
-      "general": "General"
+      "general": "General",
+      "integrations": "Integrations"
     },
     "roles": {
       "ADMIN": "Admin",
@@ -1292,7 +1297,8 @@
       "locked": "Not available to this role by policy",
       "reset": "Reset (show all)",
       "resetConfirm": "Reset menus for all roles to the default (all visible)?"
-    }
+    },
+    "integrationsDesc": "Manage AI engine, AMA, video classes, Kakao notifications and GA4 visitor settings."
   },
   "issues": {
     "title": "Issues",
@@ -1844,5 +1850,68 @@
     },
     "cancel": "Cancel",
     "close": "Close"
+  },
+  "invite": {
+    "title": "Invite users",
+    "cardDescription": "Invite administrators and staff by email.",
+    "description": "Invitees finish signing up by setting a password from the link in the email. Links are valid for 72 hours and can be used once.",
+    "new": "Invite",
+    "send": "Send invitation",
+    "sending": "Sending…",
+    "loading": "Loading…",
+    "empty": "No invitations.",
+    "status": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "EXPIRED": "Expired",
+      "REVOKED": "Revoked",
+      "ALL": "All"
+    },
+    "roles": {
+      "ADMIN": "Administrator",
+      "STAFF": "Staff"
+    },
+    "configAdmin": "Service operator",
+    "invitedBy": "Invited by {{by}} · {{at}}",
+    "acceptedAt": "Accepted {{at}}",
+    "expiresAt": "Until {{at}}",
+    "resend": "Resend",
+    "revoke": "Revoke",
+    "revokeTitle": "Revoke this invitation?",
+    "revokeDesc": "The link that was sent will stop working.",
+    "fields": {
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "grantConfigAdmin": "Also grant service operator permission",
+      "grantConfigAdminHint": "Can manage service settings (invites, mail, …). Tenant master permission cannot be granted by invitation."
+    },
+    "resultTitle": "Invitation sent",
+    "mailSent": "The invitation email was sent.",
+    "mailNotSent": "Mail is not configured or could not be sent. Share the invitation link below directly.",
+    "copy": "Copy",
+    "onceOnly": "The link cannot be shown again after you close this window (resending creates a new link).",
+    "validUntil": "Valid until {{until}}",
+    "errors": {
+      "exists": "This email is already registered.",
+      "email": "Check the email format.",
+      "name": "Enter a name.",
+      "handled": "This invitation has already been handled.",
+      "failed": "Could not complete. Please try again.",
+      "load": "Could not load invitations."
+    },
+    "accept": {
+      "title": "ACM invitation",
+      "intro": "{{tenant}} invited {{name}} as {{role}}. Set a password to get started.",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "policy": "At least 8 characters with letters and numbers.",
+      "mismatch": "Passwords do not match.",
+      "submit": "Sign up and start",
+      "submitting": "Signing up…",
+      "invalid": "This invitation link has expired or was already used. Ask your administrator for a new one.",
+      "rateLimited": "Too many requests. Please try again shortly.",
+      "failed": "Could not sign up. Please try again."
+    }
   }
 }

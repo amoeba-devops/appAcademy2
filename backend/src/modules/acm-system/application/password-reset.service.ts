@@ -61,12 +61,14 @@ export class PasswordResetService {
           [u.ent_id, u.usr_id, REQUEST_COOLDOWN_SEC],
         );
         if (pending?.recent) return;
+        // UPDATE … RETURNING 은 TypeORM 에서 [rows, count] 로 돌아온다 — 기존 id 를 그대로 쓴다.
         const [row] = pending
-          ? await m.query<{ prr_id: string }[]>(
+          ? (await m.query(
               `UPDATE amb_acm_password_reset_request SET prr_requested_at = now(), prr_ip_hash = $2
-                WHERE prr_id = $1 RETURNING prr_id`,
+                WHERE prr_id = $1`,
               [pending.prr_id, ipHash],
-            )
+            ),
+            [{ prr_id: pending.prr_id }])
           : await m.query<{ prr_id: string }[]>(
               `INSERT INTO amb_acm_password_reset_request (ent_id, usr_id, prr_ip_hash)
                VALUES ($1, $2, $3) RETURNING prr_id`,

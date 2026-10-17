@@ -440,6 +440,10 @@
       "ga4": {
         "title": "Khách truy cập GA4",
         "description": "Tự động thu thập khách truy cập hằng ngày từ Google Analytics 4 — Dashboard Marketing · Visitor"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "Kết nối tài liệu và tệp dự án với Google Drive của công ty."
       }
     },
     "mail": {
@@ -1278,7 +1282,8 @@
     "required": "Cần quyền tenant master.",
     "tabs": {
       "menus": "Hiển thị menu",
-      "general": "Chung"
+      "general": "Chung",
+      "integrations": "Tích hợp"
     },
     "roles": {
       "ADMIN": "Quản trị viên",
@@ -1292,7 +1297,8 @@
       "locked": "Theo chính sách, không thể mở cho cấp này",
       "reset": "Đặt lại (hiện tất cả)",
       "resetConfirm": "Đặt lại menu của tất cả các cấp về mặc định (hiện tất cả)?"
-    }
+    },
+    "integrationsDesc": "Quản lý cài đặt AI, AMA, lớp học video, thông báo Kakao và khách truy cập GA4."
   },
   "issues": {
     "title": "Vấn đề",
@@ -1844,5 +1850,68 @@
     },
     "cancel": "Hủy",
     "close": "Đóng"
+  },
+  "invite": {
+    "title": "Mời người dùng",
+    "cardDescription": "Mời quản trị viên và nhân viên qua email.",
+    "description": "Người được mời hoàn tất đăng ký bằng cách đặt mật khẩu từ liên kết trong email. Liên kết có hiệu lực 72 giờ và chỉ dùng một lần.",
+    "new": "Mời",
+    "send": "Gửi lời mời",
+    "sending": "Đang gửi…",
+    "loading": "Đang tải…",
+    "empty": "Chưa có lời mời.",
+    "status": {
+      "PENDING": "Đang chờ",
+      "ACCEPTED": "Đã nhận",
+      "EXPIRED": "Hết hạn",
+      "REVOKED": "Đã hủy",
+      "ALL": "Tất cả"
+    },
+    "roles": {
+      "ADMIN": "Quản trị viên",
+      "STAFF": "Nhân viên"
+    },
+    "configAdmin": "Người vận hành dịch vụ",
+    "invitedBy": "Mời bởi {{by}} · {{at}}",
+    "acceptedAt": "Đã nhận {{at}}",
+    "expiresAt": "Đến {{at}}",
+    "resend": "Gửi lại",
+    "revoke": "Hủy",
+    "revokeTitle": "Hủy lời mời này?",
+    "revokeDesc": "Liên kết đã gửi sẽ không dùng được nữa.",
+    "fields": {
+      "email": "Email",
+      "name": "Họ tên",
+      "role": "Vai trò",
+      "grantConfigAdmin": "Cấp thêm quyền người vận hành dịch vụ",
+      "grantConfigAdminHint": "Có thể quản lý cài đặt dịch vụ (mời, email…). Không thể cấp quyền tenant master qua lời mời."
+    },
+    "resultTitle": "Đã gửi lời mời",
+    "mailSent": "Đã gửi email mời.",
+    "mailNotSent": "Chưa cấu hình email hoặc gửi thất bại. Hãy trực tiếp gửi liên kết mời dưới đây.",
+    "copy": "Sao chép",
+    "onceOnly": "Sau khi đóng cửa sổ này sẽ không xem lại được liên kết (gửi lại sẽ tạo liên kết mới).",
+    "validUntil": "Hiệu lực đến {{until}}",
+    "errors": {
+      "exists": "Email này đã được đăng ký.",
+      "email": "Kiểm tra định dạng email.",
+      "name": "Nhập họ tên.",
+      "handled": "Lời mời này đã được xử lý.",
+      "failed": "Không thể hoàn tất. Vui lòng thử lại.",
+      "load": "Không tải được danh sách lời mời."
+    },
+    "accept": {
+      "title": "Lời mời ACM",
+      "intro": "{{tenant}} đã mời {{name}} với vai trò {{role}}. Đặt mật khẩu để bắt đầu.",
+      "password": "Mật khẩu",
+      "confirm": "Xác nhận mật khẩu",
+      "policy": "Ít nhất 8 ký tự, gồm chữ và số.",
+      "mismatch": "Mật khẩu không khớp.",
+      "submit": "Đăng ký và bắt đầu",
+      "submitting": "Đang đăng ký…",
+      "invalid": "Liên kết mời đã hết hạn hoặc đã được dùng. Hãy yêu cầu quản trị viên gửi lại.",
+      "rateLimited": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
+      "failed": "Không thể đăng ký. Vui lòng thử lại."
+    }
   }
 }

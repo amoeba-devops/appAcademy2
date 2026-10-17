@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useIntegrationBackLink } from '../components/require-tenant-settings';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -61,6 +62,7 @@ function fmtDate(iso: string | null | undefined): string {
  */
 export function Ga4ConfigPage() {
   const { t } = useTranslation('common');
+  const backTo = useIntegrationBackLink();
   const toast = useToast();
   const { data, isLoading, isError } = useGa4Config();
   const update = useUpdateGa4Config();
@@ -204,7 +206,7 @@ export function Ga4ConfigPage() {
   return (
     <div className="w-full min-w-0">
       <Link
-        to="/admin/config"
+        to={backTo}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
       >
         <ArrowLeft size={16} />

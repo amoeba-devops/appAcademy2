@@ -22,7 +22,8 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
+// REQ-261018 — 테넌트 마스터(또는 서비스 운영자). 서비스 운영자 화면에서는 링크만 숨긴다.
+import { TenantSettingsGuard } from '../../acm-common/guards/tenant-master.guard';
 import { Ga4ConfigService } from '../application/ga4-config.service';
 import {
   GA4_METRICS,
@@ -66,7 +67,7 @@ export class UpdateGa4ConfigDto {
 /** PLN-260912 — GA4 방문자 동기화 설정 (관리자 /admin/config/ga4). */
 @ApiTags('acm-system')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, TenantSettingsGuard)
 @Controller('acm/admin/ga4-config')
 export class Ga4ConfigController {
   constructor(private readonly svc: Ga4ConfigService) {}
