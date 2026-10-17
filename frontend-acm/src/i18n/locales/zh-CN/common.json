@@ -1949,5 +1949,26 @@
         "lastLogin": "最近登录"
       }
     }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM 存储",
+    "acmHint": "仅保存在 ACM 服务器（Google Drive 中不可见）",
+    "openInDrive": "在 Google Drive 中打开文件夹",
+    "uploadTitle": "上传文件",
+    "pick": "选择或拖放文件（最大 {{mb}}MB）",
+    "tooLarge": "文件不能超过 {{mb}}MB。",
+    "driveUploadTo": "上传位置：{{path}}",
+    "driveProjectHint": "在“文档 › 文件”上传的项目资料会按项目保存在各自文件夹（共享文件夹 › 项目名称）中。",
+    "cols": {
+      "title": "文档名",
+      "project": "项目",
+      "location": "存储位置",
+      "updated": "最后修改",
+      "author": "作者",
+      "size": "大小",
+      "mode": "存储方式",
+      "actions": "操作"
+    }
   }
 }

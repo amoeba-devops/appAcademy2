@@ -1178,8 +1178,8 @@ export function CreateFile({
 
               if (kind === "UPLOAD") {
                 if (!file) throw new Error("파일을 선택하세요.");
-                if (file.size > 20 * 1024 * 1024)
-                  throw new Error("20MB 이하 파일을 선택하세요.");
+                if (file.size > 50 * 1024 * 1024)
+                  throw new Error("50MB 이하 파일을 선택하세요.");
                 sessionStorage.setItem(operationKey, operation);
                 setAttempted(true);
                 const form = new FormData();

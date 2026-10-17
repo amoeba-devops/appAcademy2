@@ -54,7 +54,7 @@ export class ProjectController {
   @Post('projects/:id/files')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 }, // REQ-261018C — 드라이브와 같은 50MB
     }),
   )
   uploadFile(
@@ -82,7 +82,8 @@ export class ProjectController {
   ) {
     return this.projects.permissions(u, id, item, d.viewers);
   }
-  @Get('documents') documents(@CurrentUser() u: AcmCurrentUser) {
+  @Get('documents') async documents(@CurrentUser() u: AcmCurrentUser) {
+    await this.drive.backfillFolderNames(u.entId);
     return this.projects.allDocuments(u);
   }
   @Get('projects/:id/relations') relations(
@@ -136,7 +137,8 @@ export class ProjectController {
   ) {
     return this.drive.root(u, d.fileId, d.name);
   }
-  @Get('projects') list(@CurrentUser() u: AcmCurrentUser) {
+  @Get('projects') async list(@CurrentUser() u: AcmCurrentUser) {
+    await this.drive.backfillFolderNames(u.entId);
     return this.projects.list(u);
   }
   @Post('projects') create(
@@ -243,7 +245,7 @@ export class ProjectController {
   @Post('projects/:id/drive/upload')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 }, // REQ-261018C — 드라이브와 같은 50MB
     }),
   )
   upload(

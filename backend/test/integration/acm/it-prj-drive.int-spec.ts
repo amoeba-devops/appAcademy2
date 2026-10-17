@@ -111,6 +111,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
     for (const f of [
       '1040-prj-issue-ama-parity.sql',
       '1042-prj-issue-types-assignee-log.sql',
+      '1047-prj-drive-folder-name.sql',
     ])
       await ds.query(
         readFileSync(resolve(__dirname, '../../../../sql/acm/' + f), 'utf8'),
@@ -938,21 +939,19 @@ describe('Project / shared Drive isolation and durable operations', () => {
     expect(trashed).toMatchObject({ succeeded: ['b.pdf'] });
     expect(update.mock.calls[0][2]).toEqual({ trashed: true });
     // 검색: 연결 폴더 트리 안에서만
-    const list = jest
-      .mocked(google.list)
-      .mockImplementation(async (_t, q) =>
-        q.includes('mimeType=')
-          ? {
-              files: q.includes("'root2' in parents")
-                ? [{ id: 'sub', name: 'sub', mimeType: FOLDER }]
-                : [],
-            }
-          : {
-              files: [
-                { id: 'a.docx', name: '보고서', mimeType: 'application/pdf' },
-              ],
-            },
-      );
+    const list = jest.mocked(google.list).mockImplementation(async (_t, q) =>
+      q.includes('mimeType=')
+        ? {
+            files: q.includes("'root2' in parents")
+              ? [{ id: 'sub', name: 'sub', mimeType: FOLDER }]
+              : [],
+          }
+        : {
+            files: [
+              { id: 'a.docx', name: '보고서', mimeType: 'application/pdf' },
+            ],
+          },
+    );
     const found = await shared.search(member, "보고'서");
     expect(found.files).toEqual([
       expect.objectContaining({ id: 'a.docx', drfId: id }),
@@ -1002,5 +1001,48 @@ describe('Project / shared Drive isolation and durable operations', () => {
       projects.saveItem(member, projectId, { kind: 'NOTE', title: 'Blocked' }),
     ).rejects.toThrow();
     expect(await projects.access(member, projectId)).toBeDefined();
+  });
+  it('REQ-261018C: stores the project folder name for the storage path and backfills old projects', async () => {
+    const [row] = await ds.query<{ account_id: string }[]>(
+      'SELECT account_id FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [ent],
+    );
+    const account = row?.account_id ?? 'account';
+    if (!row)
+      await ds.query(
+        `INSERT INTO amb_acm_prj_drive(ent_id,account_id,account_email,token_encrypted,token_iv,token_auth_tag,connected_by)
+         VALUES($1,$2,'a@x.com','\\x00','\\x00','\\x00',$3)`,
+        [ent, account, owner.id],
+      );
+    await ds.query(
+      'UPDATE amb_acm_prj_drive SET needs_reconnect=false, root_name=$2 WHERE ent_id=$1',
+      [ent, 'TPI-New'],
+    );
+    await ds.query(
+      "UPDATE amb_acm_prj_project SET drive_folder_id='old-folder',drive_account_id=$2,drive_folder_name=NULL WHERE prj_id=$1",
+      [projectId, account],
+    );
+    const tokenSpy = jest
+      .spyOn(drive, 'token')
+      .mockResolvedValue({ token: 't', c: {} } as never);
+    jest.mocked(google.file).mockResolvedValueOnce({
+      id: 'old-folder',
+      name: '학원운영 (abcd1234)',
+      mimeType: 'application/vnd.google-apps.folder',
+    } as never);
+    await drive.backfillFolderNames(ent);
+    const docs = await projects.allDocuments(owner);
+    const [p] = await ds.query<{ drive_folder_name: string }[]>(
+      'SELECT drive_folder_name FROM amb_acm_prj_project WHERE prj_id=$1',
+      [projectId],
+    );
+    expect(p.drive_folder_name).toBe('학원운영 (abcd1234)');
+    if (docs.length)
+      expect(docs[0]).toMatchObject({ drive_root_name: 'TPI-New' });
+    // 이미 이름이 있으면 다시 조회하지 않는다.
+    jest.mocked(google.file).mockClear();
+    await drive.backfillFolderNames(ent);
+    expect(google.file).not.toHaveBeenCalled();
+    tokenSpy.mockRestore();
   });
 });

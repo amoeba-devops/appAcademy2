@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { FileUpload, phases } from "./project-files";
+import { StorageLocation } from "./storage-location";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -196,12 +197,14 @@ export function DocumentsPage() {
           <thead className="border-b bg-gray-50">
             <tr>
               {[
-                "문서명",
-                "프로젝트",
-                "최종 수정",
-                "작성자",
-                kind === "FILE" ? "크기" : "저장 방식",
-                "작업",
+                t("storagePath.cols.title"),
+                t("storagePath.cols.project"),
+                // REQ-261018C — 파일은 실제 저장 위치를 보여준다.
+                ...(kind === "FILE" ? [t("storagePath.cols.location")] : []),
+                t("storagePath.cols.updated"),
+                t("storagePath.cols.author"),
+                kind === "FILE" ? t("storagePath.cols.size") : t("storagePath.cols.mode"),
+                t("storagePath.cols.actions"),
               ].map((h) => (
                 <th className="whitespace-nowrap px-4 py-3" key={h}>
                   {h}
@@ -225,6 +228,16 @@ export function DocumentsPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3">{i.prj_title}</td>
+                {kind === "FILE" && (
+                  <td className="max-w-[18rem] px-4 py-3 text-xs">
+                    <StorageLocation
+                      storage={i.storage_type === "LOCAL" ? "ACM" : "DRIVE"}
+                      rootName={i.drive_root_name}
+                      folderName={i.prj_drive_folder_name ?? i.prj_title}
+                      folderId={i.prj_drive_folder_id}
+                    />
+                  </td>
+                )}
                 <td className="whitespace-nowrap px-4 py-3">
                   {new Date(i.updated_at).toLocaleString()}
                 </td>

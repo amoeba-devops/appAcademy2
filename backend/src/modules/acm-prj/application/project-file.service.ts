@@ -24,8 +24,8 @@ export class ProjectFileService {
     file: Express.Multer.File,
   ) {
     await this.projects.access(u, id, false, true);
-    if (!file.size || file.size > 20 * 1024 * 1024 || !d.title.trim())
-      throw new BadRequestException('제목과 20MB 이하 파일을 확인하세요.');
+    if (!file.size || file.size > 50 * 1024 * 1024 || !d.title.trim())
+      throw new BadRequestException('제목과 50MB 이하 파일을 확인하세요.');
     if (/\.(html?|svg|js|exe|sh|bat)$/i.test(file.originalname))
       throw new BadRequestException('지원하지 않는 파일 형식입니다.');
     const status = await this.drive.status(u);

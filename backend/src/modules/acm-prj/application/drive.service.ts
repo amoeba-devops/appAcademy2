@@ -401,10 +401,41 @@ export class ProjectDriveService {
       },
     );
     await this.ds.query<Record<string, unknown>[]>(
-      'UPDATE amb_acm_prj_project SET drive_folder_id=$3,drive_account_id=$4 WHERE ent_id=$1 AND prj_id=$2 AND drive_folder_id IS NULL',
-      [u.entId, id, f.id, c.account_id],
+      'UPDATE amb_acm_prj_project SET drive_folder_id=$3,drive_account_id=$4,drive_folder_name=$5 WHERE ent_id=$1 AND prj_id=$2 AND drive_folder_id IS NULL',
+      [u.entId, id, f.id, c.account_id, f.name ?? null],
     );
     return f.id;
+  }
+  /**
+   * REQ-261018C — 저장 위치 표시용 프로젝트 폴더 이름. 이름이 비어 있는 기존 프로젝트만 Google 에서 한 번 읽어 저장한다.
+   * 실패(미연결·권한 등)는 표시만 못 할 뿐이므로 무시한다.
+   */
+  async backfillFolderNames(entId: string) {
+    try {
+      const rows = await this.ds.query<
+        { prj_id: string; drive_folder_id: string }[]
+      >(
+        `SELECT p.prj_id, p.drive_folder_id FROM amb_acm_prj_project p
+           JOIN amb_acm_prj_drive d ON d.ent_id=p.ent_id AND d.account_id=p.drive_account_id AND NOT d.needs_reconnect
+          WHERE p.ent_id=$1 AND p.drive_folder_id IS NOT NULL AND p.drive_folder_name IS NULL
+          LIMIT 20`,
+        [entId],
+      );
+      if (!rows.length) return;
+      const { token } = await this.token(entId);
+      for (const r of rows) {
+        const f = await this.google
+          .file(token, r.drive_folder_id)
+          .catch(() => null);
+        if (f?.name)
+          await this.ds.query(
+            'UPDATE amb_acm_prj_project SET drive_folder_name=$3 WHERE ent_id=$1 AND prj_id=$2',
+            [entId, r.prj_id, f.name],
+          );
+      }
+    } catch {
+      // 표시용 정보 — 실패해도 목록 조회는 계속한다.
+    }
   }
   async descendant(token: string, id: string, root: string) {
     let current = id;
