@@ -1,10 +1,13 @@
 ---
-document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.2.0
-version: 1.2.0
+document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.3.0
+version: 1.3.0
 status: Approved
 created: 2026-10-17
 related: REQ-261017C-prod-server-migration, SERVER-261017-staging-production, RUNBOOK-261017-fresh-environment
 change_log:
+  - version: 1.3.0
+    date: 2026-10-17
+    description: Interim main domain acm-tpi.amoeba.site, cert issued, domain PR #351 (draft), cutover runbook / 임시 메인 도메인·전환 런북
   - version: 1.2.0
     date: 2026-10-17
     description: Add primary domain acm.tpi.co.kr (WP4A, cutover/after steps) / 메인 도메인 추가 반영
@@ -182,3 +185,19 @@ acm.amoeba.site (보조, GoDaddy DNS) ───┘    인증서 2개: acm.tpi.co
 
 - 사용자 안내: 새 주소 `https://acm.tpi.co.kr`, 새 주소에서는 다시 로그인·알림 허용 필요.
 - 아임웹 상담 접수 스니펫 주소는 그대로 두고(두 도메인 유지) 필요할 때 교체.
+
+## 8. Interim Main Domain — acm-tpi.amoeba.site (임시 메인 도메인, v1.3.0)
+
+요청: "acm-tpi.amoeba.site 를 175.126.232.175 로 등록. 새 프로덕션에 acm.tpi.co.kr 세팅전까지는 acm-tpi.amoeba.site 를 사용한다."
+
+| 항목 | 상태 (2026-10-17) |
+| --- | --- |
+| DNS | `acm-tpi.amoeba.site` A → 175.126.232.175 (GoDaddy, TTL 600) — 등록 확인 |
+| 인증서 | 새 서버에서 발급(webroot), 만료 2027-01-15, 자동 갱신 dry-run 성공 |
+| 전환 전 화면 | 새 서버 임시 설정 `acm-tpi-prelaunch.conf` — "점검 중" 화면만(리허설 데이터 비노출, noindex) |
+| 저장소 | PR #351(draft): nginx 두 도메인·배포 확인 두 도메인 — **전환 당일 머지** |
+| 전환 후 메인 | `FRONTEND_URL`·`ACM_PUBLIC_URL=https://acm-tpi.amoeba.site` |
+| 이후 | `acm.tpi.co.kr` 준비되면 같은 방식(DNS → 인증서 → nginx 블록 → env) 으로 메인 교체. 매뉴얼·약관 표기·Google 리디렉트 URI 는 최종 메인 때 한 번만 변경 |
+
+전환 당일 절차: [RUNBOOK-261017C-prod-cutover](../deployment/RUNBOOK-261017C-prod-cutover.md).
+주의: 새 서버 `acm.amoeba.site` 인증서는 DNS 전환 전엔 갱신 불가 — 자동 갱신 시작(만료 30일 전, 약 10-27) 이후 실패 로그가 남으니 **11-20 이전 전환 권장**.
