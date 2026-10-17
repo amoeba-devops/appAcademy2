@@ -31,6 +31,11 @@ import {
   UserInviteService,
   type InviteRole,
 } from '../application/user-invite.service';
+import {
+  REGISTERED_USER_TYPES,
+  RegisteredUserService,
+  type RegisteredUserType,
+} from '../application/registered-user.service';
 
 export class CreateInviteDto {
   @IsEmail() @MaxLength(200) email!: string;
@@ -45,6 +50,10 @@ export class InviteListQuery {
 }
 export class AcceptInviteDto {
   @IsString() @MinLength(8) @MaxLength(120) password!: string;
+}
+export class RegisteredUserQuery {
+  @IsOptional() @IsIn(REGISTERED_USER_TYPES) type?: RegisteredUserType;
+  @IsOptional() @IsString() @MaxLength(100) q?: string;
 }
 class InviteTokenParam {
   @IsString() @MinLength(20) @MaxLength(100) token!: string;
@@ -83,6 +92,20 @@ export class UserInviteAdminController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.invites.revoke(u, id);
+  }
+}
+
+/** REQ-261018B — 등록 사용자 목록(서비스 운영자, 읽기 전용). */
+@ApiTags('acm-system')
+@ApiBearerAuth()
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+@Controller('acm/admin/registered-users')
+export class RegisteredUserController {
+  constructor(private readonly users: RegisteredUserService) {}
+
+  @Get()
+  list(@CurrentUser() u: AcmCurrentUser, @Query() q: RegisteredUserQuery) {
+    return this.users.list(u.entId, q.type, q.q);
   }
 }
 

@@ -1912,6 +1912,42 @@
       "invalid": "This invitation link has expired or was already used. Ask your administrator for a new one.",
       "rateLimited": "Too many requests. Please try again shortly.",
       "failed": "Could not sign up. Please try again."
+    },
+    "tabs": {
+      "users": "Registered users",
+      "invites": "Invitations"
+    },
+    "users": {
+      "types": {
+        "ALL": "All",
+        "ADMIN": "Administrators",
+        "STAFF": "Staff",
+        "TEACHER": "Teachers",
+        "STUDENT": "Students"
+      },
+      "search": "Search name or email",
+      "empty": "No users match.",
+      "loadError": "Could not load users.",
+      "login": {
+        "local": "Local",
+        "ama": "AMA",
+        "portal": "Portal"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "Service operator",
+        "TENANT_MASTER": "Tenant master"
+      },
+      "locked": "Locked",
+      "inactive": "Inactive",
+      "cols": {
+        "name": "Name",
+        "loginId": "Email / login ID",
+        "type": "Type",
+        "login": "Sign-in",
+        "flags": "Permissions · status",
+        "createdAt": "Joined",
+        "lastLogin": "Last sign-in"
+      }
     }
   }
 }

@@ -1912,6 +1912,42 @@
       "invalid": "초대 링크가 만료되었거나 이미 사용되었습니다. 관리자에게 다시 요청하세요.",
       "rateLimited": "요청이 많습니다. 잠시 후 다시 시도하세요.",
       "failed": "가입하지 못했습니다. 다시 시도하세요."
+    },
+    "tabs": {
+      "users": "등록 사용자",
+      "invites": "초대 내역"
+    },
+    "users": {
+      "types": {
+        "ALL": "전체",
+        "ADMIN": "관리자",
+        "STAFF": "직원",
+        "TEACHER": "강사",
+        "STUDENT": "학생"
+      },
+      "search": "이름·이메일 검색",
+      "empty": "조건에 맞는 사용자가 없습니다.",
+      "loadError": "사용자 목록을 불러오지 못했습니다.",
+      "login": {
+        "local": "로컬",
+        "ama": "AMA",
+        "portal": "포털"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "서비스 운영자",
+        "TENANT_MASTER": "테넌트 마스터"
+      },
+      "locked": "잠김",
+      "inactive": "비활성",
+      "cols": {
+        "name": "이름",
+        "loginId": "이메일 / 로그인 ID",
+        "type": "구분",
+        "login": "로그인",
+        "flags": "권한·상태",
+        "createdAt": "가입일",
+        "lastLogin": "마지막 로그인"
+      }
     }
   }
 }

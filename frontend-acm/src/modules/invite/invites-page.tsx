@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Check, Copy, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { errorCode } from '@/modules/auth/components/temp-password';
+import { RegisteredUsers } from './registered-users';
 import { inviteApi, type InviteRole, type InviteSendResult, type InviteStatus } from './invite-api';
 
 const FILTERS: (InviteStatus | '')[] = ['PENDING', 'ACCEPTED', 'EXPIRED', 'REVOKED', ''];
@@ -19,13 +20,70 @@ const BADGE: Record<InviteStatus, string> = {
   REVOKED: 'bg-gray-100 text-gray-700',
 };
 
-/** REQ-261018 — /admin/config/invites 사용자 초대(서비스 운영자). */
+type PageTab = 'users' | 'invites';
+
+/** REQ-261018 / 261018B — /admin/config/invites 사용자 초대 + 등록 사용자(서비스 운영자). */
 export function InvitesPage() {
+  const { t } = useTranslation('common');
+  const qc = useQueryClient();
+  const [params, setParams] = useSearchParams();
+  const tab: PageTab = params.get('tab') === 'invites' ? 'invites' : 'users';
+  const [creating, setCreating] = useState(false);
+  const [result, setResult] = useState<InviteSendResult | null>(null);
+  return (
+    <div className="grid w-full min-w-0 gap-4">
+      <Link to="/admin/config" className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary">
+        <ArrowLeft size={16} />
+        {t('config.backToList')}
+      </Link>
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <UserPlus size={20} className="text-accent-700" />
+          <h1 className="text-xl font-semibold text-primary">{t('invite.title')}</h1>
+        </div>
+        <Button onClick={() => setCreating(true)}>
+          <UserPlus size={16} className="mr-1.5" />
+          {t('invite.new')}
+        </Button>
+      </header>
+      <div className="flex gap-1 border-b" role="tablist">
+        {(['users', 'invites'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={tab === k}
+            onClick={() => setParams(k === 'users' ? {} : { tab: k })}
+            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
+              tab === k ? 'border-accent-600 text-accent-700' : 'border-transparent text-secondary hover:text-primary'
+            }`}
+          >
+            {t(`invite.tabs.${k}`)}
+          </button>
+        ))}
+      </div>
+      {tab === 'users' ? <RegisteredUsers /> : <InviteHistory />}
+      {creating && (
+        <CreateInviteDialog
+          close={() => setCreating(false)}
+          done={(r) => {
+            setCreating(false);
+            setResult(r);
+            void qc.invalidateQueries({ queryKey: ['invites'] });
+          }}
+        />
+      )}
+      {result && <InviteResultDialog result={result} close={() => setResult(null)} />}
+    </div>
+  );
+}
+
+/** REQ-261018 — 초대 내역 탭. */
+function InviteHistory() {
   const { t, i18n } = useTranslation('common');
   const confirm = useConfirm();
   const qc = useQueryClient();
   const [status, setStatus] = useState<InviteStatus | ''>('PENDING');
-  const [creating, setCreating] = useState(false);
   const [result, setResult] = useState<InviteSendResult | null>(null);
   const [error, setError] = useState('');
   const list = useQuery({
@@ -46,21 +104,7 @@ export function InvitesPage() {
   const revoke = useMutation({ mutationFn: inviteApi.revoke, onSuccess: () => void refresh(), onError: fail });
   const fmt = (v: string) => new Date(v).toLocaleString(i18n.language);
   return (
-    <div className="grid w-full min-w-0 gap-4">
-      <Link to="/admin/config" className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary">
-        <ArrowLeft size={16} />
-        {t('config.backToList')}
-      </Link>
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <UserPlus size={20} className="text-accent-700" />
-          <h1 className="text-xl font-semibold text-primary">{t('invite.title')}</h1>
-        </div>
-        <Button onClick={() => setCreating(true)}>
-          <UserPlus size={16} className="mr-1.5" />
-          {t('invite.new')}
-        </Button>
-      </header>
+    <div className="grid min-w-0 gap-4">
       <p className="text-sm text-secondary">{t('invite.description')}</p>
       <div role="tablist" className="flex flex-wrap gap-1">
         {FILTERS.map((s) => (
@@ -131,16 +175,6 @@ export function InvitesPage() {
             </li>
           ))}
         </ul>
-      )}
-      {creating && (
-        <CreateInviteDialog
-          close={() => setCreating(false)}
-          done={(r) => {
-            setCreating(false);
-            setResult(r);
-            void refresh();
-          }}
-        />
       )}
       {result && <InviteResultDialog result={result} close={() => setResult(null)} />}
     </div>

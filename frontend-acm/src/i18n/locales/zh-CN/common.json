@@ -1912,6 +1912,42 @@
       "invalid": "邀请链接已过期或已被使用。请联系管理员重新发送。",
       "rateLimited": "请求过多，请稍后再试。",
       "failed": "注册失败，请重试。"
+    },
+    "tabs": {
+      "users": "已注册用户",
+      "invites": "邀请记录"
+    },
+    "users": {
+      "types": {
+        "ALL": "全部",
+        "ADMIN": "管理员",
+        "STAFF": "员工",
+        "TEACHER": "教师",
+        "STUDENT": "学生"
+      },
+      "search": "搜索姓名或邮箱",
+      "empty": "没有符合条件的用户。",
+      "loadError": "无法加载用户列表。",
+      "login": {
+        "local": "本地",
+        "ama": "AMA",
+        "portal": "门户"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "服务运营者",
+        "TENANT_MASTER": "租户主管"
+      },
+      "locked": "已锁定",
+      "inactive": "已停用",
+      "cols": {
+        "name": "姓名",
+        "loginId": "邮箱 / 登录 ID",
+        "type": "类型",
+        "login": "登录方式",
+        "flags": "权限 · 状态",
+        "createdAt": "加入日期",
+        "lastLogin": "最近登录"
+      }
     }
   }
 }

@@ -1,9 +1,12 @@
 ---
-document_id: ACM-CFG-USER-LIST-REQ-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-CFG-USER-LIST-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Approved as proposed (Q1 students with issued login accounts only) / 제안대로 승인
   - version: 1.0.0
     date: 2026-10-18
     description: Registered user list on the invite page / 사용자 초대 화면에 등록 사용자 목록
@@ -42,3 +45,7 @@ change_log:
 | Q2 | 강사 = 콘솔 계정(3) + 포털 강사 계정(5)? | **둘 다** 보여주고 "콘솔"·"포털" 로그인 방식으로 구분 |
 | Q3 | 목록에서 잠금·역할 변경 등 관리 기능? | **읽기 전용**(관리는 기존 화면). 필요하면 2차 |
 | Q4 | 학부모 포털 계정(8)도 포함? | 요청 범위 밖 — **제외** |
+
+## 4. Decisions (결정, 2026-10-18)
+
+Q1 로그인 계정이 발급된 학생만 · Q2 콘솔·포털 강사 모두 · Q3 읽기 전용 · Q4 학부모 제외 — 모두 제안대로.

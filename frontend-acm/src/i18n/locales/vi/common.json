@@ -1912,6 +1912,42 @@
       "invalid": "Liên kết mời đã hết hạn hoặc đã được dùng. Hãy yêu cầu quản trị viên gửi lại.",
       "rateLimited": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
       "failed": "Không thể đăng ký. Vui lòng thử lại."
+    },
+    "tabs": {
+      "users": "Người dùng đã đăng ký",
+      "invites": "Lời mời"
+    },
+    "users": {
+      "types": {
+        "ALL": "Tất cả",
+        "ADMIN": "Quản trị viên",
+        "STAFF": "Nhân viên",
+        "TEACHER": "Giáo viên",
+        "STUDENT": "Học sinh"
+      },
+      "search": "Tìm theo tên hoặc email",
+      "empty": "Không có người dùng phù hợp.",
+      "loadError": "Không tải được danh sách người dùng.",
+      "login": {
+        "local": "Nội bộ",
+        "ama": "AMA",
+        "portal": "Cổng"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "Người vận hành dịch vụ",
+        "TENANT_MASTER": "Tenant master"
+      },
+      "locked": "Đã khóa",
+      "inactive": "Ngừng hoạt động",
+      "cols": {
+        "name": "Họ tên",
+        "loginId": "Email / ID đăng nhập",
+        "type": "Loại",
+        "login": "Đăng nhập",
+        "flags": "Quyền · trạng thái",
+        "createdAt": "Ngày tham gia",
+        "lastLogin": "Đăng nhập gần nhất"
+      }
     }
   }
 }
