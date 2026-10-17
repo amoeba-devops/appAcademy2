@@ -1970,5 +1970,19 @@
       "mode": "Cách lưu",
       "actions": "Thao tác"
     }
+  },
+  "pwa": {
+    "install": "Cài ứng dụng",
+    "installTitle": "Cài ứng dụng ACM",
+    "installDesc": "Mở trực tiếp từ màn hình chính và nhận thông báo.",
+    "iosGuideBefore": "Trong Safari, chạm",
+    "iosGuideAfter": "[Chia sẻ] → [Thêm vào MH chính].",
+    "share": "Chia sẻ",
+    "iosPushNote": "Trên iPhone, chỉ ứng dụng đã cài mới nhận được thông báo.",
+    "updateAvailable": "Đã có phiên bản mới.",
+    "reload": "Tải lại",
+    "startTitle": "Chào mừng đến với ACM",
+    "startConsole": "Đăng nhập bảng điều khiển (quản trị · nhân viên · giáo viên)",
+    "startPortal": "Đăng nhập cổng (học sinh · phụ huynh · giáo viên)"
   }
 }

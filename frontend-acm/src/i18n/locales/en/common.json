@@ -1970,5 +1970,19 @@
       "mode": "Storage",
       "actions": "Actions"
     }
+  },
+  "pwa": {
+    "install": "Install app",
+    "installTitle": "Install the ACM app",
+    "installDesc": "Open it from your home screen and receive notifications.",
+    "iosGuideBefore": "In Safari, tap",
+    "iosGuideAfter": "[Share] → [Add to Home Screen].",
+    "share": "Share",
+    "iosPushNote": "On iPhone, notifications work only in the installed app.",
+    "updateAvailable": "A new version is available.",
+    "reload": "Reload",
+    "startTitle": "Welcome to ACM",
+    "startConsole": "Console sign-in (admins · staff · teachers)",
+    "startPortal": "Portal sign-in (students · parents · teachers)"
   }
 }

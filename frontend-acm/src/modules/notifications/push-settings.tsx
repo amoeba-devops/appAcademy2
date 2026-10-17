@@ -97,7 +97,7 @@ export function PushSettings({ mode }: { mode: "admin" | "portal" }) {
       if (!q.data?.publicKey) throw new Error("not configured");
       if ((await Notification.requestPermission()) !== "granted")
         throw new Error("permission");
-      const reg = await navigator.serviceWorker.register("/acm-push-sw.js", {
+      const reg = await navigator.serviceWorker.register("/acm-sw.js", {
         scope: "/",
       });
       await navigator.serviceWorker.ready;

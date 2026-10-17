@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#2563eb" />
+<title>ACM</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f8fafc; --card:#fff; --text:#0f172a; --muted:#64748b; --accent:#2563eb; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b1220; --card:#111a2e; --text:#e2e8f0; --muted:#94a3b8; } }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--text);
+         font-family: Pretendard, Inter, system-ui, -apple-system, "Segoe UI", sans-serif; padding:16px; box-sizing:border-box; }
+  .card { background:var(--card); border-radius:12px; padding:32px 24px; max-width:360px; width:100%; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  img { width:56px; height:56px; border-radius:12px; }
+  h1 { font-size:18px; margin:16px 0 8px; }
+  p { color:var(--muted); font-size:14px; line-height:1.5; margin:0 0 20px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:10px 20px; font-size:14px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="card" role="alert">
+  <img src="/acm-icon-192.png" alt="" />
+  <h1 id="t"></h1>
+  <p id="d"></p>
+  <button id="b" type="button"></button>
+</div>
+<script>
+  // REQ-261018D — 오프라인 안내(4개 언어). 업무 데이터는 저장하지 않는다.
+  var M = {
+    ko: ["인터넷에 연결되지 않았습니다", "네트워크 연결을 확인한 뒤 다시 시도하세요.", "다시 시도"],
+    en: ["You're offline", "Check your network connection and try again.", "Try again"],
+    vi: ["Không có kết nối mạng", "Hãy kiểm tra kết nối mạng rồi thử lại.", "Thử lại"],
+    zh: ["网络未连接", "请检查网络连接后重试。", "重试"]
+  };
+  var saved = ""; try { saved = localStorage.getItem("i18nextLng") || ""; } catch (e) {}
+  var lang = (saved || navigator.language || "ko").slice(0, 2);
+  var m = M[lang] || M.ko;
+  document.documentElement.lang = lang;
+  document.getElementById("t").textContent = m[0];
+  document.getElementById("d").textContent = m[1];
+  var b = document.getElementById("b"); b.textContent = m[2];
+  b.onclick = function () { location.reload(); };
+  window.addEventListener("online", function () { location.reload(); });
+</script>
+</body>
+</html>

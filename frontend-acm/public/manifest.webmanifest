@@ -2,23 +2,23 @@
   "id": "/",
   "name": "ACM",
   "short_name": "ACM",
-  "start_url": "/",
+  "description": "ACM — Academy management console and portal",
+  "lang": "ko",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "icons": [
-    {
-      "src": "/acm-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/acm-icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "/acm-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/acm-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/acm-icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/acm-icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "대시보드", "short_name": "대시보드", "url": "/admin/dashboard", "icons": [{ "src": "/acm-icon-192.png", "sizes": "192x192" }] },
+    { "name": "수업일정", "short_name": "일정", "url": "/admin/cal", "icons": [{ "src": "/acm-icon-192.png", "sizes": "192x192" }] },
+    { "name": "알림함", "short_name": "알림", "url": "/admin/notification-inbox", "icons": [{ "src": "/acm-icon-192.png", "sizes": "192x192" }] }
   ]
 }
