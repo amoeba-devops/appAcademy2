@@ -29,6 +29,7 @@ import { UserMembershipGuard } from './user-membership.guard';
 import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
 import { generateTempPassword } from './temp-password';
+import { isPublicSeedHash } from './public-seed-password';
 
 /** REQ-260609C/D — AMA token verification mode. */
 type AmaVerifyMode = 'local' | 'ama_session' | 'local_config';
@@ -56,6 +57,8 @@ export class AcmAuthService {
   private readonly logger = new Logger(AcmAuthService.name);
   private readonly failures = new Map<string, FailureWindow>();
   private readonly verifyMode: AmaVerifyMode;
+  /** REQ-261017B — 운영 모드에서는 공개 시드 비밀번호 로그인을 막는다. */
+  private readonly isProduction: boolean;
 
   constructor(
     @InjectRepository(AcmUserTypeormEntity, ACM_DS)
@@ -77,6 +80,7 @@ export class AcmAuthService {
         ? (mode as AmaVerifyMode)
         : 'local';
     this.logger.log(`AMA token verify mode = ${this.verifyMode}`);
+    this.isProduction = config.get<string>('NODE_ENV') === 'production';
   }
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
@@ -100,6 +104,24 @@ export class AcmAuthService {
     if (!ok || !user) {
       this.recordFailure(email);
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // REQ-261017B — 저장소에 공개된 시드 비밀번호: 운영은 거부, 그 외는 변경 강제.
+    if (isPublicSeedHash(user.passwordHash)) {
+      if (this.isProduction) {
+        this.logger.warn(`public seed password login refused user=${user.id}`);
+        throw new HttpException(
+          {
+            code: 'SEED_PASSWORD_DISABLED',
+            message: 'The default seed password is disabled. Set ACM_INITIAL_ADMIN_PASSWORD.',
+          },
+          HttpStatus.UNAUTHORIZED,
+        );
+      }
+      if (!user.mustChangePassword) {
+        user.mustChangePassword = true;
+        await this.userRepo.update(user.id, { mustChangePassword: true });
+      }
     }
 
     // REQ-261017 — 만료된 임시 비밀번호는 거부(다시 요청하도록 안내).
