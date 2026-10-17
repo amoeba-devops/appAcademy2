@@ -25,6 +25,7 @@ change_log:
 | --- | --- | --- |
 | 0-1 | GoDaddy `acm.amoeba.site` TTL 600 → 300 | U |
 | 0-2 | 보다스쿨·AMA: 출발 IP 허용 목록 확인, `acm-tpi.amoeba.site` 도메인 허용·앱 URL 추가 요청 | U |
+| 0-2a | 점검 화면 PR(`migration.html`) 머지 확인 | C |
 | 0-3 | 새 서버 상태 점검: 컨테이너·인증서 2개·백업 cron·직결 키 (`ssh acm-new 'docker ps'`) | C |
 | 0-4 | 사용자 공지: 점검 시각, 새 주소 `https://acm-tpi.amoeba.site`(다시 로그인·알림 허용 필요) | U |
 
@@ -32,7 +33,8 @@ change_log:
 
 ```bash
 # 1-1 현재 서버: 점검 화면으로 전환(root). 되돌리기는 7장.
-ssh amb-mail 'install -d /var/www/maintenance && cp /home/appacademy/app-academy/docker/maintenance/maintenance.html /var/www/maintenance/ \
+ssh acm-prod 'cd ~/app-academy && git fetch -q origin && git checkout origin/main -- docker/maintenance'   # migration.html 받기
+ssh amb-mail 'install -d /var/www/maintenance && cp /home/appacademy/app-academy/docker/maintenance/migration.html /var/www/maintenance/maintenance.html \
   && cp /home/appacademy/app-academy/docker/maintenance/nginx-acm-maintenance.conf /etc/nginx/sites-available/acm-maintenance.conf \
   && ln -sf /etc/nginx/sites-available/acm-maintenance.conf /etc/nginx/sites-enabled/acm.amoeba.site \
   && nginx -t && systemctl reload nginx'
