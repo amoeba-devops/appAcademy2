@@ -8,6 +8,7 @@ import { MyWorkPage } from '@/modules/prj/issues/my-work-page';
 import { MyProfilePage } from '@/modules/me/my-profile-page';
 import { InvitesPage } from '@/modules/invite/invites-page';
 import { InviteAcceptPage } from '@/modules/invite/invite-accept-page';
+import { AppStartPage } from '@/components/pwa/app-start-page';
 import { RequireTenantSettings } from '@/modules/cfg/components/require-tenant-settings';
 import { PasswordRequestsPage } from '@/modules/auth/pages/password-requests-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
@@ -125,6 +126,8 @@ export const router = createBrowserRouter([
   { path: '/login', element: <RedirectWithSearch to="/admin/login" /> },
   // REQ-261018 — 초대 수락(로그인 전)
   { path: '/invite', element: <InviteAcceptPage /> },
+  // REQ-261018D — 설치한 앱의 시작 화면(로그인 상태로 분기)
+  { path: '/app', element: <AppStartPage /> },
   { path: '/login/parent', element: <RedirectWithSearch to="/parent/login" /> },
 
   // ── Public web forms (legacy paths, kept) ───────────────────────────

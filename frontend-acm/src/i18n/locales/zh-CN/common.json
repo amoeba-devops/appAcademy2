@@ -1970,5 +1970,19 @@
       "mode": "存储方式",
       "actions": "操作"
     }
+  },
+  "pwa": {
+    "install": "安装应用",
+    "installTitle": "安装 ACM 应用",
+    "installDesc": "可从主屏幕直接打开并接收通知。",
+    "iosGuideBefore": "在 Safari 中点击",
+    "iosGuideAfter": "[分享] → [添加到主屏幕]。",
+    "share": "分享",
+    "iosPushNote": "在 iPhone 上，只有已安装的应用才能接收通知。",
+    "updateAvailable": "有新版本可用。",
+    "reload": "刷新",
+    "startTitle": "欢迎使用 ACM",
+    "startConsole": "运营后台登录（管理员 · 员工 · 教师）",
+    "startPortal": "门户登录（学生 · 家长 · 教师）"
   }
 }

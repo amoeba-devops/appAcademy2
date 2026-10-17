@@ -1,10 +1,13 @@
 ---
-document_id: ACM-PWA-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-PWA-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-18
 related: REQ-261018D-acm-pwa
 change_log:
+  - version: 1.1.0
+    date: 2026-10-18
+    description: Approved as proposed (Q1 one app, Q2 offline notice only, Q3 keep name/icon, Q4 reinstall on domain change) / 제안대로 승인
   - version: 1.0.0
     date: 2026-10-18
     description: Work plan with UI mockups / 작업 계획 + 화면 구성안

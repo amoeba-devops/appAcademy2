@@ -48,6 +48,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { InstallAppNavButton } from "@/components/pwa/install-app";
 import { clsx } from "clsx";
 import { useQuery } from "@tanstack/react-query";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -465,6 +466,8 @@ export function AppShell() {
                 </Link>
               </div>
             ))}
+          {/* REQ-261018D — 앱 설치(설치 가능할 때만) */}
+          <InstallAppNavButton iconOnly={iconOnly} />
           <button
             type="button"
             onClick={onLogout}

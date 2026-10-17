@@ -30,6 +30,18 @@ server {
     # nginx default of 1MB caused 413 on resume PDFs >1MB.
     client_max_body_size 55M;
 
+    # REQ-261018D — 서비스 워커·manifest·오프라인 화면은 항상 새로 확인(아래 7일 immutable 캐시보다 우선).
+    location ~ ^/(acm-sw\.js|acm-push-sw\.js|manifest\.webmanifest|offline\.html)$ {
+        root /usr/share/nginx/html;
+        types {
+            application/javascript js;
+            application/manifest+json webmanifest;
+            text/html html;
+        }
+        add_header Cache-Control "no-cache" always;
+        add_header X-Content-Type-Options nosniff always;
+        try_files $uri =404;
+    }
     # Static assets — long cache, immutable hash filenames from Vite.
     location ~* \.(?:js|css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|avif)$ {
         root /usr/share/nginx/html;
