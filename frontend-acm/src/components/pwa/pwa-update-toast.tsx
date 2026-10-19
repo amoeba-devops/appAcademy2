@@ -10,7 +10,8 @@ export function PwaUpdateToast() {
   return (
     <div
       role="status"
-      className="fixed inset-x-4 bottom-4 z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-lg border bg-surface px-4 py-3 text-sm shadow-lg"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+      className="fixed inset-x-4 z-[60] mx-auto flex max-w-md items-center justify-between gap-3 rounded-lg border bg-surface px-4 py-3 text-sm shadow-lg"
     >
       <span>{t('pwa.updateAvailable')}</span>
       <button
