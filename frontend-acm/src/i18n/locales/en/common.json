@@ -38,7 +38,7 @@
       "calendar": "Schedule",
       "materials": "Docs & Files",
       "students": "My Students",
-      "chat": "Lobby Chat",
+      "chat": "Chat",
       "me": "My page"
     },
     "login": {
@@ -1222,7 +1222,8 @@
     "site": "Site",
     "actions": "Actions",
     "baseline": "Baseline",
-    "knownWithdrawn": "Known withdrawals"
+    "knownWithdrawn": "Known withdrawals",
+    "historyNoticeSummary": "History incomplete — view details"
   },
   "configAccess": {
     "loading": "Checking access…",

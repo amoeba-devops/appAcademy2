@@ -36,13 +36,14 @@ export function FloatingCta() {
   ];
 
   return (
+    // TST-261019 M5 — 휴대폰(<md)은 하단 고정 1줄 바(안전영역 여백 포함), md 이상은 기존 오른쪽 세로 버튼.
     <div
-      className="fixed right-3 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-2 sm:right-4"
+      className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 gap-1.5 border-t border-slate-200 bg-white/95 px-2 pb-[calc(0.375rem+env(safe-area-inset-bottom))] pt-1.5 backdrop-blur md:inset-x-auto md:bottom-auto md:right-4 md:top-1/2 md:flex md:-translate-y-1/2 md:flex-col md:gap-2 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none"
       aria-label={t('floating.aria-label')}
     >
       {BUTTONS.map((btn) => {
         const base =
-          'flex h-16 w-16 flex-col items-center justify-center rounded-xl border text-[11px] font-semibold shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl sm:h-[72px] sm:w-[72px]';
+          'flex h-12 min-w-0 flex-col items-center justify-center rounded-lg border text-[11px] font-semibold leading-tight shadow-sm transition-all md:h-[72px] md:w-[72px] md:rounded-xl md:shadow-lg md:hover:-translate-y-0.5 md:hover:shadow-xl';
         const variant =
           btn.variant === 'primary'
             ? 'bg-accent-600 border-blue-600 text-white'
@@ -59,17 +60,17 @@ export function FloatingCta() {
             aria-label={btn.label}
             className={className}
           >
-            <span className="mb-1 text-xl sm:text-2xl" aria-hidden="true">
+            <span className="text-base md:mb-1 md:text-2xl" aria-hidden="true">
               {btn.icon}
             </span>
-            {btn.label}
+            <span className="max-w-full truncate px-0.5">{btn.label}</span>
           </a>
         ) : (
           <Link key={btn.label} to={btn.href} aria-label={btn.label} className={className}>
-            <span className="mb-1 text-xl sm:text-2xl" aria-hidden="true">
+            <span className="text-base md:mb-1 md:text-2xl" aria-hidden="true">
               {btn.icon}
             </span>
-            {btn.label}
+            <span className="max-w-full truncate px-0.5">{btn.label}</span>
           </Link>
         );
       })}
