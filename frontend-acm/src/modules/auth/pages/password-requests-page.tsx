@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
+import { UnderlineTabs } from '@/components/ui/tabs';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useAuthStore } from '@/stores/auth.store';
 import {
@@ -37,6 +39,7 @@ const BADGE: Record<ResetRequestRow['prr_status'], string> = {
 
 export function PasswordRequestsPage() {
   const { t, i18n } = useTranslation('auth');
+  const { t: tc } = useTranslation('common');
   const role = useAuthStore((s) => s.user?.role);
   const confirm = useConfirm();
   const qc = useQueryClient();
@@ -86,114 +89,106 @@ export function PasswordRequestsPage() {
   const fmt = (v: string) => new Date(v).toLocaleString(i18n.language);
   if (!canIssueTempPassword(role)) return <p role="alert">{t('requests.forbidden')}</p>;
   return (
-    <div className="grid w-full min-w-0 gap-4">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <KeyRound size={20} className="text-accent-700" />
-          <h1 className="text-xl font-semibold text-primary">{t('requests.title')}</h1>
-        </div>
-        <div role="tablist" className="flex flex-wrap gap-1">
-          {STATUSES.map((s) => (
-            <button
-              key={s || 'ALL'}
-              role="tab"
-              aria-selected={status === s}
-              onClick={() => setStatus(s)}
-              className={`rounded-full border px-3 py-1 text-xs ${
-                status === s ? 'border-accent-700 bg-accent-700 text-white' : 'bg-surface text-secondary'
-              }`}
-            >
-              {t(`requests.status.${s || 'ALL'}`)}
-            </button>
-          ))}
-        </div>
-      </header>
-      <p className="text-sm text-secondary">{t('requests.desc')}</p>
-      {error && (
-        <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
-          {error}
-        </p>
-      )}
-      {list.isLoading && <p>{t('requests.loading')}</p>}
-      {list.isError && <p role="alert">{t('requests.loadError')}</p>}
-      {list.data && list.data.length === 0 && (
-        <p className="rounded-lg border bg-surface p-6 text-center text-sm text-secondary">{t('requests.empty')}</p>
-      )}
-      {list.data && list.data.length > 0 && (
-        <ul className="grid gap-2">
-          {list.data.map((r) => (
-            <li
-              key={r.prr_id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-surface p-3 text-sm"
-            >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{r.usr_name}</span>
-                  <span className="truncate text-secondary">{r.usr_email}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-xs ${BADGE[r.prr_status]}`}>
-                    {t(`requests.status.${r.prr_status}`)}
-                  </span>
-                  {r.auth_source === 'AMA' && (
-                    <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700">AMA</span>
-                  )}
+    <div className="w-full min-w-0">
+      <PageHeader
+        icon={KeyRound}
+        title={tc('nav.passwordRequests')}
+        description={t('requests.desc')}
+        tabs={
+          <UnderlineTabs
+            items={STATUSES.map((s) => ({ key: s, label: t(`requests.status.${s || 'ALL'}`) }))}
+            value={status}
+            onChange={setStatus}
+          />
+        }
+      />
+      <div className="grid min-w-0 gap-4">
+        {error && (
+          <p role="alert" className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            {error}
+          </p>
+        )}
+        {list.isLoading && <p>{t('requests.loading')}</p>}
+        {list.isError && <p role="alert">{t('requests.loadError')}</p>}
+        {list.data && list.data.length === 0 && (
+          <p className="rounded-lg border bg-surface p-6 text-center text-sm text-secondary">{t('requests.empty')}</p>
+        )}
+        {list.data && list.data.length > 0 && (
+          <ul className="grid gap-2">
+            {list.data.map((r) => (
+              <li
+                key={r.prr_id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-surface p-3 text-sm"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{r.usr_name}</span>
+                    <span className="truncate text-secondary">{r.usr_email}</span>
+                    <span className={`rounded px-1.5 py-0.5 text-xs ${BADGE[r.prr_status]}`}>
+                      {t(`requests.status.${r.prr_status}`)}
+                    </span>
+                    {r.auth_source === 'AMA' && (
+                      <span className="rounded bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700">AMA</span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-secondary">
+                    {t('requests.requestedAt', { at: fmt(r.prr_requested_at) })}
+                    {r.handled_at &&
+                      ` · ${t('requests.handled', {
+                        at: fmt(r.handled_at),
+                        by: r.handled_by_name ?? '—',
+                      })}`}
+                    {r.prr_status === 'ISSUED' && ` · ${r.prr_mail_sent ? t('requests.mailed') : t('requests.shown')}`}
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-secondary">
-                  {t('requests.requestedAt', { at: fmt(r.prr_requested_at) })}
-                  {r.handled_at &&
-                    ` · ${t('requests.handled', {
-                      at: fmt(r.handled_at),
-                      by: r.handled_by_name ?? '—',
-                    })}`}
-                  {r.prr_status === 'ISSUED' && ` · ${r.prr_mail_sent ? t('requests.mailed') : t('requests.shown')}`}
-                </p>
-              </div>
-              {r.prr_status === 'REQUESTED' && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    disabled={issue.isPending || reject.isPending}
-                    onClick={async () => {
-                      setError('');
-                      if (
-                        await confirm({
-                          title: t('temp.confirmTitle'),
-                          description: t('temp.confirmDesc'),
-                          confirmLabel: t('temp.issue'),
-                        })
-                      )
-                        issue.mutate(r);
-                    }}
-                  >
-                    {t('temp.issue')}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={issue.isPending || reject.isPending}
-                    onClick={async () => {
-                      setError('');
-                      if (
-                        await confirm({
-                          title: t('requests.rejectTitle'),
-                          description: t('requests.rejectDesc'),
-                          confirmLabel: t('requests.reject'),
-                          variant: 'destructive',
-                        })
-                      )
-                        reject.mutate(r);
-                    }}
-                  >
-                    {t('requests.reject')}
-                  </Button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-      {result && (
-        <TempPasswordResultDialog result={result.r} email={result.email} close={() => setResult(null)} />
-      )}
+                {r.prr_status === 'REQUESTED' && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      disabled={issue.isPending || reject.isPending}
+                      onClick={async () => {
+                        setError('');
+                        if (
+                          await confirm({
+                            title: t('temp.confirmTitle'),
+                            description: t('temp.confirmDesc'),
+                            confirmLabel: t('temp.issue'),
+                          })
+                        )
+                          issue.mutate(r);
+                      }}
+                    >
+                      {t('temp.issue')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={issue.isPending || reject.isPending}
+                      onClick={async () => {
+                        setError('');
+                        if (
+                          await confirm({
+                            title: t('requests.rejectTitle'),
+                            description: t('requests.rejectDesc'),
+                            confirmLabel: t('requests.reject'),
+                            variant: 'destructive',
+                          })
+                        )
+                          reject.mutate(r);
+                      }}
+                    >
+                      {t('requests.reject')}
+                    </Button>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {result && (
+          <TempPasswordResultDialog result={result.r} email={result.email} close={() => setResult(null)} />
+        )}
+      </div>
     </div>
   );
 }

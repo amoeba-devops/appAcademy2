@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
+import { FilterBar, ResultBar } from '@/components/ui/section';
 import { useTeachers } from '../hooks/use-teachers';
 import { TchTable } from '../components/tch-table';
 import { TchFormModal } from '../components/tch-form-modal';
@@ -9,6 +11,7 @@ import type { TeacherDetail } from '../types';
 
 export function TchListPage() {
   const { t } = useTranslation('tch');
+  const { t: tc } = useTranslation('common');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<string>('ACTIVE');
   const [showForm, setShowForm] = useState(false);
@@ -31,15 +34,19 @@ export function TchListPage() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <Button size="sm" onClick={() => { setEditing(undefined); setShowForm(true); }}>
-          <Plus size={14} className="mr-1" />
-          {t('actions.create')}
-        </Button>
-      </div>
+      <PageHeader
+        icon={UserCog}
+        title={tc('nav.tch')}
+        description={tc('pageHeader.tch.desc')}
+        actions={
+          <Button size="sm" onClick={() => { setEditing(undefined); setShowForm(true); }}>
+            <Plus size={14} className="mr-1" />
+            {t('actions.create')}
+          </Button>
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <FilterBar>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary" />
           <input
@@ -59,13 +66,9 @@ export function TchListPage() {
           <option value="RESIGNED">{t('status.RESIGNED')}</option>
           <option value="ALL">{t('filter.all')}</option>
         </select>
-      </div>
+      </FilterBar>
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm text-secondary">
-          {t('table.total', { count: data?.total ?? 0 })}
-        </p>
-      </div>
+      <ResultBar>{t('table.total', { count: data?.total ?? 0 })}</ResultBar>
 
       <TchTable items={data?.items ?? []} isLoading={isLoading} onRowClick={onEdit} />
 

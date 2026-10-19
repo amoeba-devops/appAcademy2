@@ -1992,5 +1992,39 @@
     "googleDesc": "Chỉ xóa khỏi ACM; bản gốc trên Google Drive vẫn được giữ.",
     "done": "Đã xóa.",
     "failed": "Không thể xóa. Hãy kiểm tra quyền."
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "Quản lý các yêu cầu tư vấn đã tiếp nhận theo từng giai đoạn."
+    },
+    "std": {
+      "desc": "Quản lý học sinh và thông tin lớp học theo từng cơ sở."
+    },
+    "stdWithdrawn": {
+      "desc": "Xem học sinh đã nghỉ học và cho học sinh quay lại."
+    },
+    "parents": {
+      "desc": "Quản lý thông tin liên hệ của phụ huynh và học sinh được liên kết."
+    },
+    "tch": {
+      "desc": "Quản lý thông tin giáo viên, lớp phụ trách và tài khoản cổng thông tin."
+    },
+    "complaints": {
+      "desc": "Ghi nhận khiếu nại và quản lý trạng thái xử lý."
+    },
+    "projects": {
+      "desc": "Quản lý các dự án bạn tham gia hoặc phụ trách cùng tài liệu và vấn đề.",
+      "create": "Tạo dự án",
+      "joined": "Dự án tham gia",
+      "owned": "Dự án phụ trách",
+      "driveConnect": "Kết nối Google Drive"
+    },
+    "issues": {
+      "desc": "Quản lý vấn đề của dự án theo trạng thái."
+    },
+    "inbox": {
+      "title": "Hộp thông báo",
+      "desc": "Xem các thông báo bạn đã nhận."
+    }
   }
 }

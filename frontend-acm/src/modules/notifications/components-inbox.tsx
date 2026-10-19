@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import type { InboxItem, InboxPage } from "./types-inbox";
 
 type InboxMode = "admin" | "portal";
@@ -362,8 +363,12 @@ export function InboxList({
 export function NotificationInboxPage() {
   const { t } = useTranslation("common");
   return (
-    <section className="mx-auto max-w-3xl space-y-4">
-      <h1 className="text-xl font-semibold">{t("inbox.title")}</h1>
+    <section className="mx-auto max-w-3xl">
+      <PageHeader
+        icon={Bell}
+        title={t("pageHeader.inbox.title")}
+        description={t("pageHeader.inbox.desc")}
+      />
       <InboxList />
     </section>
   );
