@@ -8,7 +8,8 @@
     "registerFeedback": "Đăng ký làm phản hồi",
     "enterLink": "Vào lớp",
     "copyLink": "Sao chép liên kết",
-    "copyLinkDone": "Đã sao chép liên kết."
+    "copyLinkDone": "Đã sao chép liên kết.",
+    "refresh": "Làm mới"
   },
   "view": {
     "day": "Ngày",
@@ -16,7 +17,8 @@
     "month": "Tháng",
     "list": "Danh sách",
     "showAll": "Xem tất cả",
-    "countSuffix": ""
+    "countSuffix": "",
+    "empty": "Chưa có lịch nào."
   },
   "category": {
     "CLASS": "Lớp học",
@@ -179,7 +181,8 @@
     "recordSyncBtn": "Đồng bộ nhật ký",
     "reconcileDone": "Đã đồng bộ nhật ký. ({{inserted}} mục mới)",
     "reconcileFailed": "Đồng bộ nhật ký thất bại.",
-    "recordEmpty": "Chưa nhận được nhật ký ra/vào từ BODA School. Nhật ký tự động cập nhật khoảng 10 phút sau khi lớp kết thúc, hoặc nhấn [Đồng bộ nhật ký] để lấy ngay."
+    "recordEmpty": "Chưa nhận được nhật ký ra/vào từ BODA School. Nhật ký tự động cập nhật khoảng 10 phút sau khi lớp kết thúc, hoặc nhấn [Đồng bộ nhật ký] để lấy ngay.",
+    "minutes": "{{m}} phút"
   },
   "instant": {
     "btnLabel": "Mở lớp tức thì",
@@ -205,7 +208,8 @@
     "searchPlaceholder": "Tìm học sinh theo tên/email",
     "searchNoResult": "Không có kết quả.",
     "searchAdd": "Thêm",
-    "searchRemove": "Bỏ"
+    "searchRemove": "Bỏ",
+    "optional": "tùy chọn"
   },
   "filter": {
     "label": "Bộ lọc",
@@ -238,7 +242,11 @@
       "empty": "Không thể tải lên tệp rỗng.",
       "size": "Tệp phải nhỏ hơn hoặc bằng 20MB.",
       "count": "Tối đa {{max}} tệp đính kèm."
-    }
+    },
+    "materialsEmpty": "Chưa có tài liệu nào.",
+    "view": "Xem",
+    "previewFailed": "Không thể xem trước tài liệu.",
+    "downloadFailed": "Không thể tải tài liệu xuống."
   },
   "review": {
     "done": "Xong",
@@ -251,7 +259,10 @@
     "homeworkLabel": "Bài tập",
     "noFeedbackYet": "Chưa có phản hồi",
     "textFeedback": "Phản hồi",
-    "textHomework": "Bài tập"
+    "textHomework": "Bài tập",
+    "descriptionRequired": "Vui lòng nhập mô tả trước.",
+    "feedbackRegistered": "Đã lưu làm nhận xét của giáo viên.",
+    "feedbackRegisterFailed": "Lưu nhận xét thất bại."
   },
   "stats": {
     "title": "Thống kê lớp học",
@@ -276,7 +287,8 @@
       "28d": "28 ngày qua",
       "90d": "90 ngày qua",
       "custom": "Chọn khoảng"
-    }
+    },
+    "classDone": "Đã hoàn thành buổi học"
   },
   "detail": {
     "backToCal": "Về lịch học",
@@ -420,5 +432,20 @@
     "open": "Xem tất cả {{count}} lịch ngày {{date}}",
     "title": "{{date}} · {{count}} lịch",
     "allDay": "Cả ngày"
+  },
+  "ics": {
+    "sourceCalendar": "Lịch gốc",
+    "timezone": "Múi giờ",
+    "timezoneSource": "Theo lịch gốc",
+    "repeat": "Lặp lại",
+    "stopped": "Đã kết thúc",
+    "unbounded": "Không có ngày kết thúc · giữ quy tắc gốc",
+    "keepSourceEnd": "Giữ điều kiện kết thúc gốc",
+    "single": "Lịch đơn lẻ",
+    "editScopeHint": "Việc sửa/xóa chỉ áp dụng cho buổi này.",
+    "stopTitle": "Dừng lặp lại từ buổi này",
+    "stopDescription": "Xóa các buổi từ thời điểm bắt đầu của lịch này trở đi và dừng tự động tạo. Các buổi trước đó được giữ lại.",
+    "stopConfirm": "Dừng lặp lại",
+    "stopFailed": "Dừng lặp lại thất bại. Vui lòng thử lại."
   }
 }

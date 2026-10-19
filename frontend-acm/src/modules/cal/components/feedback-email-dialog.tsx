@@ -238,16 +238,13 @@ export function FeedbackEmailDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-1.5">
               <Mail size={16} />
-              {t('cal:feedbackEmail.title', '피드백 메일 발송')}
+              {t('cal:feedbackEmail.title')}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3">
             <p className="text-xs text-secondary">
-              {t(
-                'cal:feedbackEmail.recipientsTitle',
-                '수신 대상 — 참여 학생의 연결 학부모',
-              )}
+              {t('cal:feedbackEmail.recipientsTitle')}
             </p>
 
             <div className="max-h-72 space-y-1 overflow-y-auto rounded-md border border-[var(--border-subtle)] p-2">
@@ -258,7 +255,7 @@ export function FeedbackEmailDialog({
               )}
               {!isLoading && (data?.students.length ?? 0) === 0 && (
                 <p className="p-2 text-xs text-secondary">
-                  {t('cal:feedbackEmail.noStudents', '참여 학생이 없습니다.')}
+                  {t('cal:feedbackEmail.noStudents')}
                 </p>
               )}
               {data?.students.map((s) =>
@@ -271,7 +268,7 @@ export function FeedbackEmailDialog({
                       <AlertTriangle size={14} className="text-amber-500" />
                       <span className="font-medium">{s.stdName}</span>
                       <span className="text-xs text-secondary">
-                        {t('cal:feedbackEmail.noParent', '연결된 학부모 없음')}
+                        {t('cal:feedbackEmail.noParent')}
                       </span>
                     </span>
                     <Button
@@ -281,7 +278,7 @@ export function FeedbackEmailDialog({
                       onClick={() => setMatchingStdId(s.stdId)}
                     >
                       <Search size={12} className="mr-1" />
-                      {t('cal:feedbackEmail.findParent', '학부모 찾기·연결')}
+                      {t('cal:feedbackEmail.findParent')}
                     </Button>
                   </div>
                 ) : (
@@ -317,7 +314,7 @@ export function FeedbackEmailDialog({
                             {p.name}
                             {p.isPrimary && (
                               <span className="ml-1 rounded bg-accent-600/10 px-1 py-0.5 text-[10px] font-semibold text-accent-700">
-                                {t('cal:feedbackEmail.primaryBadge', '대표')}
+                                {t('cal:feedbackEmail.primaryBadge')}
                               </span>
                             )}
                           </span>
@@ -350,7 +347,7 @@ export function FeedbackEmailDialog({
 
             <div>
               <label className="mb-1 block text-xs text-secondary">
-                {t('cal:feedbackEmail.subjectLabel', '제목')}
+                {t('cal:feedbackEmail.subjectLabel')}
               </label>
               <input
                 value={subject}
@@ -364,16 +361,13 @@ export function FeedbackEmailDialog({
             {smtpBlocked && (
               <p className="flex items-center gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 <AlertTriangle size={13} />
-                {t(
-                  'cal:feedbackEmail.smtpNotConfigured',
-                  '메일 서버(SMTP)가 설정되지 않아 발송할 수 없습니다.',
-                )}
+                {t('cal:feedbackEmail.smtpNotConfigured')}
               </p>
             )}
             {data && !data.hasFeedback && (
               <p className="flex items-center gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
                 <AlertTriangle size={13} />
-                {t('cal:feedbackEmail.noFeedback', '작성된 피드백이 없습니다.')}
+                {t('cal:feedbackEmail.noFeedback')}
               </p>
             )}
           </div>
@@ -384,7 +378,7 @@ export function FeedbackEmailDialog({
               onClick={onClose}
               disabled={sendMut.isPending || sendAlimMut.isPending}
             >
-              {t('common:actions.cancel', '취소')}
+              {t('common:actions.cancel')}
             </Button>
             {data?.alimtalkConfigured && (
               <Button
@@ -401,7 +395,7 @@ export function FeedbackEmailDialog({
                   <Loader2 size={13} className="mr-1 animate-spin" />
                 )}
                 {sendAlimMut.isPending
-                  ? t('cal:feedbackEmail.sending', '발송 중…')
+                  ? t('cal:feedbackEmail.sending')
                   : t('cal:feedbackEmail.sendAlimtalk', {
                       count: selected.withPhone,
                     })}
@@ -421,7 +415,7 @@ export function FeedbackEmailDialog({
                 <Loader2 size={13} className="mr-1 animate-spin" />
               )}
               {sendMut.isPending
-                ? t('cal:feedbackEmail.sending', '발송 중…')
+                ? t('cal:feedbackEmail.sending')
                 : t('cal:feedbackEmail.send', {
                     count: selectedRecipients.length,
                   })}

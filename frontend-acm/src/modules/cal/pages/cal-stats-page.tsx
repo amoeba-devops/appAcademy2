@@ -190,7 +190,7 @@ export function PeriodControls() {
             className={`rounded px-2.5 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
           >
             {u === 'week' || u === 'month'
-              ? t(`view.${u}`, u === 'week' ? '주' : '월')
+              ? t(`view.${u}`)
               : t(`stats.unit.${u}`, u)}
           </button>
         ))}
@@ -261,22 +261,22 @@ export function CalStatsPage() {
         <div className="space-y-5">
           {/* 전체 요약 + 수업상태별 */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard label={t('stats.classes2', '전체 수업')} value={`${data.total.count}`} />
-            <StatCard label={t('stats.hours', '수업시간')} value={`${statsHours(data.total.minutes)}h`} />
+            <StatCard label={t('stats.classes2')} value={`${data.total.count}`} />
+            <StatCard label={t('stats.hours')} value={`${statsHours(data.total.minutes)}h`} />
             <StatCard
-              label={t('stats.done', '수업완료')}
+              label={t('stats.done')}
               value={`${data.total.done}`}
               hint={`${statsDonePct(data.total)}%`}
               tone="success"
             />
             <StatCard
-              label={t('stats.notDone', '미완료')}
+              label={t('stats.notDone')}
               value={`${data.total.count - data.total.done}`}
               tone="warning"
             />
           </div>
           <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-sm text-secondary">
-            <span className="mr-2 text-xs font-semibold">{t('stats.byCategory', '수업종류별')}:</span>
+            <span className="mr-2 text-xs font-semibold">{t('stats.byCategory')}:</span>
             <CatLine b={data.total} />
           </div>
 
@@ -284,13 +284,13 @@ export function CalStatsPage() {
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-primary">
-                {t('stats.byTeacher', '강사별 수업통계')}
+                {t('stats.byTeacher')}
               </span>
               <UnderlineTabs
-                label={t('stats.byTeacher', '강사별 수업통계')}
+                label={t('stats.byTeacher')}
                 items={[
-                  { key: 'card', label: t('stats.cardView', '카드뷰') },
-                  { key: 'list', label: t('stats.listView', '리스트보기') },
+                  { key: 'card', label: t('stats.cardView') },
+                  { key: 'list', label: t('stats.listView') },
                 ]}
                 value={view}
                 onChange={setView}
@@ -299,7 +299,7 @@ export function CalStatsPage() {
 
             {data.teachers.length === 0 ? (
               <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
-                {t('stats.empty', '해당 기간 수업이 없습니다.')}
+                {t('stats.empty')}
               </p>
             ) : view === 'card' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -312,12 +312,12 @@ export function CalStatsPage() {
                     className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-left hover:border-accent-400 disabled:cursor-default"
                   >
                     <div className="mb-1 truncate text-sm font-semibold text-primary">
-                      {tch.tchId ? tch.name : t('stats.unassigned', '미지정')}
+                      {tch.tchId ? tch.name : t('stats.unassigned')}
                     </div>
                     <div className="text-lg font-bold text-primary">
                       {tch.count}
                       <span className="ml-1 text-xs font-normal text-secondary">
-                        {t('stats.classes', '건')}
+                        {t('stats.classes')}
                       </span>
                       <span className="ml-2 text-sm font-semibold">
                         {statsHours(tch.minutes)}
@@ -325,7 +325,7 @@ export function CalStatsPage() {
                       </span>
                     </div>
                     <div className="mt-0.5 text-[11px] text-emerald-700">
-                      {t('stats.done', '수업완료')} {tch.done} ({statsDonePct(tch)}%)
+                      {t('stats.done')} {tch.done} ({statsDonePct(tch)}%)
                     </div>
                     <div className="mt-0.5 text-[11px] text-secondary">
                       <CatLine b={tch} />
@@ -338,11 +338,11 @@ export function CalStatsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--gray-50)] text-xs text-secondary">
                     <tr>
-                      <th className="px-3 py-2 text-left">{t('stats.teacher', '강사')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.classes2', '수업수')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.hours', '수업시간')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.done', '수업완료')}</th>
-                      <th className="px-3 py-2 text-left">{t('stats.byCategory', '종류별')}</th>
+                      <th className="px-3 py-2 text-left">{t('stats.teacher')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.classes2')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.hours')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.done')}</th>
+                      <th className="px-3 py-2 text-left">{t('stats.byCategory')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -353,7 +353,7 @@ export function CalStatsPage() {
                         className={tch.tchId ? 'cursor-pointer hover:bg-[var(--gray-50)]' : ''}
                       >
                         <td className="px-3 py-2 font-medium">
-                          {tch.tchId ? tch.name : t('stats.unassigned', '미지정')}
+                          {tch.tchId ? tch.name : t('stats.unassigned')}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{tch.count}</td>
                         <td className="px-3 py-2 text-right tabular-nums">

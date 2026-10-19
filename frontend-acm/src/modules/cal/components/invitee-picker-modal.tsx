@@ -57,11 +57,11 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
     >
       <DialogContent className="top-[8vh] max-w-xl max-h-[85dvh] translate-y-0 overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>{t('invitee.pickerTitle', '참석자 선택')}</DialogTitle>
+          <DialogTitle>{t('invitee.pickerTitle')}</DialogTitle>
         </DialogHeader>
 
         <p className="mb-2 text-xs text-secondary">
-          {t('invitee.pickerHint', '수업에 참여할 학생을 추가하세요. 다른 강사도 추가 가능합니다.')}
+          {t('invitee.pickerHint')}
         </p>
 
         <div className="flex gap-2 mb-3">
@@ -70,25 +70,25 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
             onChange={(e) => setKind(e.target.value as CalInviteeKind)}
             className="h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
           >
-            <option value="STUDENT">{t('invitee.kindStudent', '학생')}</option>
-            <option value="TEACHER">{t('invitee.kindTeacher', '강사')}</option>
-            <option value="PARENT">{t('invitee.kindParent', '학부모')}</option>
+            <option value="STUDENT">{t('invitee.kindStudent')}</option>
+            <option value="TEACHER">{t('invitee.kindTeacher')}</option>
+            <option value="PARENT">{t('invitee.kindParent')}</option>
           </select>
           <input
             type="text"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={t('invitee.searchPlaceholder', '이름·이메일 검색')}
+            placeholder={t('invitee.searchPlaceholder')}
             className="flex-1 h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
           />
         </div>
 
         <div className="flex-1 overflow-y-auto border border-[var(--border-subtle)] rounded-md">
           {isFetching && (
-            <p className="text-xs text-secondary p-3">{t('common:status.loading', '로딩 중…')}</p>
+            <p className="text-xs text-secondary p-3">{t('common:status.loading')}</p>
           )}
           {!isFetching && candidates.length === 0 && (
-            <p className="text-xs text-secondary p-3">{t('invitee.empty', '결과가 없습니다.')}</p>
+            <p className="text-xs text-secondary p-3">{t('invitee.empty')}</p>
           )}
           <ul className="divide-y divide-[var(--border-subtle)]">
             {candidates.map((c) => {
@@ -124,7 +124,7 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
                     <span className="text-xs text-secondary">{c.email}</span>
                   ) : (
                     <span className="text-xs text-amber-700">
-                      {t('invitee.noEmail', '(이메일 없음)')}
+                      {t('invitee.noEmail')}
                     </span>
                   )}
                   {c.subInfo && (
@@ -140,10 +140,10 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
 
         <DialogFooter className="mt-3">
           <Button type="button" variant="outline" size="sm" onClick={onClose}>
-            {t('common:actions.cancel', '취소')}
+            {t('common:actions.cancel')}
           </Button>
           <Button type="button" size="sm" onClick={handleConfirm} disabled={picked.size === 0}>
-            {t('invitee.add', '추가')} ({picked.size})
+            {t('invitee.add')} ({picked.size})
           </Button>
         </DialogFooter>
       </DialogContent>

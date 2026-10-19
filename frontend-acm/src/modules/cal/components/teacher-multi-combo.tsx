@@ -45,7 +45,7 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
   const add = (tch: TeacherDetail) => {
     if (selectedIds.has(tch.id)) return;
     if (value.length >= max) {
-      setWarn(t('filter.maxSelected', { defaultValue: '최대 {{n}}명까지 선택할 수 있습니다.', n: max }));
+      setWarn(t('filter.maxSelected', { n: max }));
       return;
     }
     setWarn(null);
@@ -81,7 +81,7 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
         className="flex h-7 items-center gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-canvas px-2 text-xs text-secondary hover:bg-[var(--gray-50)]"
       >
         <Plus size={12} />
-        <span>{t('filter.addTeacher', '강사 추가')}</span>
+        <span>{t('filter.addTeacher')}</span>
       </button>
 
       {open && (
@@ -93,7 +93,7 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('filter.searchTeacher', '강사 이름 검색')}
+                placeholder={t('filter.searchTeacher')}
                 className="h-7 w-full bg-transparent text-xs focus:outline-none"
               />
             </div>
@@ -101,12 +101,12 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
           <div className="max-h-64 overflow-y-auto py-1">
             {isLoading && (
               <p className="px-3 py-1.5 text-xs text-secondary">
-                {t('common:status.loading', '로딩…')}
+                {t('common:status.loading')}
               </p>
             )}
             {!isLoading && candidates.length === 0 && (
               <p className="px-3 py-1.5 text-xs text-secondary">
-                {t('invitee.empty', '결과가 없습니다.')}
+                {t('invitee.empty')}
               </p>
             )}
             {candidates.map((tch) => {
