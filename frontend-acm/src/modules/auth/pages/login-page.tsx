@@ -1,3 +1,4 @@
+import { SessionExpiredNotice } from "@/components/common/session-expired-notice";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -236,6 +237,7 @@ export function LoginPage() {
               {t("login.title")}
             </h1>
             <p className="text-sm text-secondary mb-6">{t("login.subtitle")}</p>
+            <SessionExpiredNotice />
 
             <form
               onSubmit={onSubmit}
