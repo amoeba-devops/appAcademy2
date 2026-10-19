@@ -184,7 +184,7 @@ export function InstantClassModal({ open, onClose }: Props) {
           <div>
             <label className="block text-xs text-secondary mb-1">
               {t('instant.titleLabel')}{' '}
-              <span className="text-secondary">({t('common:status.optional', '선택')})</span>
+              <span className="text-secondary">({t('instant.optional')})</span>
             </label>
             <input
               type="text"
@@ -200,14 +200,14 @@ export function InstantClassModal({ open, onClose }: Props) {
           {/* PLN-260729 1.3 — 담당강사 지정 (개설 권한) */}
           <div>
             <label className="block text-xs text-secondary mb-1">
-              {t('instant.assigneeLabel', '담당강사 (개설 권한)')}
+              {t('instant.assigneeLabel')}
             </label>
             <select
               value={assigneeTchId}
               onChange={(e) => setAssigneeTchId(e.target.value)}
               className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
             >
-              <option value="">{t('instant.assigneeNone', '- 미지정 (등록자가 개설) -')}</option>
+              <option value="">{t('instant.assigneeNone')}</option>
               {instTeachers.map((tch) => (
                 <option key={tch.id} value={tch.id}>
                   {tch.name}
@@ -306,7 +306,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                   onChange={(e) => setNotifyInvitees(e.target.checked)}
                   disabled={isPending}
                 />
-                {t('invitee.notifyOnSave', '저장 시 참석자에게 메일 보내기')}
+                {t('invitee.notifyOnSave')}
               </label>
             )}
             {/* PLN-260729-2 — 학생 검색 (/admin/std 학생 대상) */}
@@ -319,7 +319,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                 type="text"
                 value={studentQuery}
                 onChange={(e) => setStudentQuery(e.target.value)}
-                placeholder={t('instant.searchPlaceholder', '학생 이름/이메일 검색')}
+                placeholder={t('instant.searchPlaceholder')}
                 className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent-500/40"
                 disabled={isPending}
               />
@@ -332,7 +332,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                   </p>
                 ) : (candidates.data ?? []).length === 0 ? (
                   <p className="px-3 py-2 text-xs text-secondary">
-                    {t('instant.searchNoResult', '검색 결과가 없습니다.')}
+                    {t('instant.searchNoResult')}
                   </p>
                 ) : (
                   (candidates.data ?? []).map((c) => {
@@ -356,7 +356,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                           )}
                         </span>
                         <span className="text-[10px] text-accent-600">
-                          {checked ? t('instant.searchRemove', '해제') : t('instant.searchAdd', '추가')}
+                          {checked ? t('instant.searchRemove') : t('instant.searchAdd')}
                         </span>
                       </button>
                     );
@@ -371,7 +371,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                     key={c.refId}
                     type="button"
                     onClick={() => toggleStudent(c.refId)}
-                    title={t('instant.searchRemove', '해제')}
+                    title={t('instant.searchRemove')}
                     className="inline-flex items-center gap-1 rounded-full border border-accent-200 bg-accent-50 px-2 py-0.5 text-[11px] text-accent-700 hover:bg-accent-100"
                   >
                     {c.name} ×

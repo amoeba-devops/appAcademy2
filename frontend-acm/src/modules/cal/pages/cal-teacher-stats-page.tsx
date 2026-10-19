@@ -56,14 +56,14 @@ export function CalTeacherStatsPage() {
           <Link
             to={`/admin/cal-stats${window.location.search}`}
             className="rounded p-1 text-secondary hover:bg-[var(--gray-100)] hover:text-primary"
-            title={t('stats.back', '수업통계로')}
+            title={t('stats.back')}
           >
             <ArrowLeft size={18} />
           </Link>
           <h1 className="text-2xl font-semibold">
-            {teacher?.name ?? t('stats.teacher', '강사')}
+            {teacher?.name ?? t('stats.teacher')}
             <span className="ml-2 text-base font-normal text-secondary">
-              {t('stats.title', '수업통계')}
+              {t('stats.title')}
             </span>
           </h1>
         </div>
@@ -76,7 +76,7 @@ export function CalTeacherStatsPage() {
             <span className="text-2xl font-bold text-primary">
               {teacher.count}
               <span className="ml-1 text-sm font-normal text-secondary">
-                {t('stats.classes', '건')}
+                {t('stats.classes')}
               </span>
             </span>
             <span className="text-lg font-semibold text-primary">
@@ -84,7 +84,7 @@ export function CalTeacherStatsPage() {
               <span className="ml-0.5 text-sm font-normal text-secondary">h</span>
             </span>
             <span className="text-sm text-emerald-700">
-              {t('stats.done', '수업완료')} {teacher.done} ({statsDonePct(teacher)}%)
+              {t('stats.done')} {teacher.done} ({statsDonePct(teacher)}%)
             </span>
             <span className="text-xs text-secondary">
               <CatLine b={teacher} />
@@ -96,7 +96,7 @@ export function CalTeacherStatsPage() {
       {/* 기간 내 수업 목록 → 일정 상세 */}
       {byDate.length === 0 ? (
         <p className="rounded-md border border-[var(--border-subtle)] p-8 text-center text-sm text-secondary">
-          {t('stats.empty', '해당 기간 수업이 없습니다.')}
+          {t('stats.empty')}
         </p>
       ) : (
         <div className="space-y-4">
@@ -127,10 +127,10 @@ export function CalTeacherStatsPage() {
                     {ev.classDone && (
                       <span
                         className="flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-700"
-                        title={t('list.classDone', '수업완료')}
+                        title={t('stats.classDone')}
                       >
                         <CheckCircle2 size={14} />
-                        {t('list.classDone', '수업완료')}
+                        {t('stats.classDone')}
                       </span>
                     )}
                   </button>

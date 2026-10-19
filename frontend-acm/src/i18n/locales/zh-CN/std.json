@@ -96,7 +96,8 @@
     },
     "teachersHint": "最多 {{max}} 名 · 第一位为主要负责教师",
     "emailOptional": "（选填）",
-    "emailOptionalHint": "无需电子邮箱也可注册学生。"
+    "emailOptionalHint": "无需电子邮箱也可注册学生。",
+    "gradeInputPlaceholder": "G5、G8、初一…"
   },
   "import": {
     "title": "Excel导入（批量）",
@@ -230,7 +231,57 @@
     "current": "当前值 → 来源值",
     "keep": "保留现有值",
     "supplement": "补充空值",
-    "datesTitle": "入学与退学信息"
+    "datesTitle": "入学与退学信息",
+    "fields": {
+      "name": "姓名",
+      "gender": "性别",
+      "attendanceNo": "考勤编号",
+      "school": "学校",
+      "grade": "年级",
+      "classGroup": "班级",
+      "studentPhone": "学生电话",
+      "homePhone": "家庭电话",
+      "nickname": "昵称",
+      "birthday": "生日",
+      "postalCode": "邮政编码",
+      "address1": "地址1",
+      "address2": "地址2",
+      "track": "文科/理科",
+      "siblings": "兄弟姐妹",
+      "graduationYear": "毕业年份",
+      "studentEmail": "学生邮箱",
+      "guardianPhone": "监护人电话",
+      "guardianRelation": "监护人关系",
+      "guardianName": "监护人姓名",
+      "guardianAttendanceAlert": "监护人考勤通知",
+      "otherGuardianPhone": "其他监护人电话",
+      "otherGuardianName": "其他监护人姓名",
+      "otherGuardianAttendanceAlert": "其他监护人考勤通知",
+      "admissionDate": "入学日期",
+      "admissionReason": "入学动机",
+      "isEnrolled": "是否在读",
+      "withdrawnDate": "退学日期",
+      "withdrawnReason": "退学原因",
+      "isOnLeave": "是否休学",
+      "leaveReason": "休学原因",
+      "memo": "备注",
+      "classes": "课程",
+      "homeroomTeacher": "班主任",
+      "cashReceiptNo": "现金收据号码",
+      "cashReceiptType": "现金收据类型",
+      "billingDay": "收费基准账单日",
+      "discountAmount": "折扣金额",
+      "discountType": "折扣类型",
+      "studentUid": "学生编号",
+      "otherPayment": "其他收费",
+      "studentCategory": "学生分类",
+      "extra1": "其他项目1",
+      "extra2": "其他项目2",
+      "points": "积分",
+      "credits": "储值金",
+      "autoPayEnrolled": "是否申请自动付款",
+      "registeredDate": "登记日期"
+    }
   },
   "navigation": {
     "integrated": "查看全部校区",
@@ -285,5 +336,11 @@
       "ATTACHED_FILES": "附件所有权需要审核，无法永久删除。",
       "OTHER_LINKED_RECORDS": "其他关联记录需要审核，无法永久删除。"
     }
+  },
+  "relation": {
+    "FATHER": "父亲",
+    "MOTHER": "母亲",
+    "GUARDIAN": "监护人",
+    "OTHER": "其他"
   }
 }

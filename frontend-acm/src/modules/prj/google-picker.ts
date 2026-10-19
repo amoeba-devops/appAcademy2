@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api-client";
+import i18next from "i18next";
 interface PickerView {
   setIncludeFolders(v: boolean): PickerView;
   setSelectFolderEnabled(v: boolean): PickerView;
@@ -48,7 +49,7 @@ function load() {
       window.gapi?.load("picker", {
         callback: resolve,
         onerror: () =>
-          reject(new Error("Google 선택기를 불러오지 못했습니다.")),
+          reject(new Error(i18next.t("prj:googlePicker.loadFailed"))),
       });
     if (window.gapi) return ready();
     const s = document.createElement("script");
@@ -56,7 +57,7 @@ function load() {
     s.onload = ready;
     s.onerror = () => {
       loading = undefined;
-      reject(new Error("Google 선택기를 불러오지 못했습니다."));
+      reject(new Error(i18next.t("prj:googlePicker.loadFailed")));
     };
     document.head.appendChild(s);
   }));
@@ -96,7 +97,7 @@ export async function pickGoogle(folder = false): Promise<string | null> {
   }>("/acm/prj/drive/picker");
   return new Promise((resolve, reject) => {
     const g = window.google;
-    if (!g) return reject(new Error("Google 선택기를 사용할 수 없습니다."));
+    if (!g) return reject(new Error(i18next.t("prj:googlePicker.unavailable")));
     const view = () => {
       const v = new g.picker.DocsView()
         .setIncludeFolders(true)

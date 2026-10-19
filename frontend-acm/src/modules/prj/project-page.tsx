@@ -19,6 +19,7 @@ import {
 import { createPortal } from "react-dom";
 import { FolderKanban } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import {
   Link,
   useNavigate,
@@ -46,7 +47,7 @@ import {
   type Person,
   type DriveStatus,
   type DriveFile,
-  statusNames,
+  statusName,
 } from "./types";
 const base = "/acm/prj";
 const input = "w-full min-w-0 rounded border bg-surface p-2 text-base";
@@ -59,7 +60,7 @@ export function errorText(e: unknown) {
     x.response?.data?.error?.message ??
     x.response?.data?.message ??
     x.message ??
-    "요청을 완료하지 못했습니다."
+    i18next.t("prj:common.requestFailed")
   );
 }
 export function useScope() {
@@ -102,6 +103,7 @@ function Field({ title, children }: { title: string; children: ReactNode }) {
 }
 export function ProjectListPage() {
   const { t: tc } = useTranslation("common");
+  const { t: tp } = useTranslation("prj");
   const q = useQuery({
     queryKey: ["prj", ...useScope()],
     queryFn: async () =>
@@ -155,38 +157,38 @@ export function ProjectListPage() {
       <div className="grid min-w-0 gap-4">
         <div className="flex flex-wrap gap-2">
           <Input
-            aria-label="프로젝트 검색"
-            placeholder="프로젝트 검색"
+            aria-label={tp("projectList.search")}
+            placeholder={tp("projectList.search")}
             className="max-w-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
-            aria-label="프로젝트 상태"
+            aria-label={tp("projectList.statusFilter")}
             className={input + " !w-auto"}
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">전체 (보관 제외)</option>
-            <option value="ACTIVE">진행중</option>
-            <option value="DONE">완료</option>
-            <option value="ARCHIVED">보관함</option>
+            <option value="">{tp("projectList.allExceptArchived")}</option>
+            <option value="ACTIVE">{tp("status.ACTIVE")}</option>
+            <option value="DONE">{tp("status.DONE")}</option>
+            <option value="ARCHIVED">{tp("projectList.archiveBox")}</option>
           </select>
           <select
-            aria-label="정렬"
+            aria-label={tp("common.sort")}
             className={input + " !w-auto"}
             value={sort}
             onChange={(e) => setSort(e.target.value)}
           >
-            <option value="updated">최근 수정순</option>
-            <option value="issues">이슈 많은 순</option>
+            <option value="updated">{tp("projectList.sortUpdated")}</option>
+            <option value="issues">{tp("projectList.sortIssues")}</option>
           </select>
         </div>
         <Notice text={q.error ? errorText(q.error) : ""} />
         {q.isLoading ? (
-          <p>불러오는 중…</p>
+          <p>{tp("common.loading")}</p>
         ) : !rows.length ? (
-          <p>등록된 프로젝트가 없습니다.</p>
+          <p>{tp("projectList.empty")}</p>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {rows.map((p) => (
@@ -197,23 +199,28 @@ export function ProjectListPage() {
               >
                 <div className="flex justify-between gap-2 text-xs text-secondary">
                   <span>PRJ-{p.prj_id.slice(0, 8)}</span>
-                  <span>{statusNames[p.prj_status]}</span>
+                  <span>{statusName(p.prj_status)}</span>
                 </div>
                 <h2 className="my-3 break-words text-lg font-semibold">
                   {p.prj_title}
                 </h2>
                 <p className="text-sm">
-                  참여자 {p.member_count}명 · 이슈 {p.issue_count}개
+                  {tp("projectList.cardSummary", {
+                    members: p.member_count,
+                    issues: p.issue_count,
+                  })}
                 </p>
                 <ul className="mt-3 grid gap-1 text-sm">
                   {p.recent_issues?.map((i, n) => (
                     <li className="truncate" key={n}>
-                      {statusNames[i.pit_status]} · {i.pit_title}
+                      {statusName(i.pit_status)} · {i.pit_title}
                     </li>
                   ))}
                 </ul>
                 <p className="mt-3 text-xs text-secondary">
-                  최근 수정 {new Date(p.updated_at).toLocaleDateString()}
+                  {tp("projectList.updatedAt", {
+                    date: new Date(p.updated_at).toLocaleDateString(),
+                  })}
                 </p>
               </Link>
             ))}
@@ -235,6 +242,7 @@ function ProjectEditor({
     qc = useQueryClient(),
     nav = useNavigate(),
     w = useWork();
+  const { t: tp } = useTranslation("prj");
   const [title, setTitle] = useState(project?.prj_title ?? ""),
     [description, setDescription] = useState(project?.prj_description ?? ""),
     [owner, setOwner] = useState(project?.owner_id ?? user?.id ?? ""),
@@ -278,11 +286,13 @@ function ProjectEditor({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {project ? "프로젝트 수정 · 참여자 관리" : "프로젝트 생성"}
+            {project
+              ? tp("projectEditor.titleEdit")
+              : tp("projectEditor.titleCreate")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={save} className="grid gap-3">
-          <Field title="프로젝트명">
+          <Field title={tp("projectEditor.name")}>
             <Input
               required
               maxLength={200}
@@ -290,7 +300,7 @@ function ProjectEditor({
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
-          <Field title="설명">
+          <Field title={tp("projectEditor.description")}>
             <textarea
               className={input}
               maxLength={10000}
@@ -298,14 +308,14 @@ function ProjectEditor({
               onChange={(e) => setDescription(e.target.value)}
             />
           </Field>
-          <Field title="담당자">
+          <Field title={tp("projectEditor.owner")}>
             <select
               required
               className={input}
               value={owner}
               onChange={(e) => setOwner(e.target.value)}
             >
-              <option value="">선택</option>
+              <option value="">{tp("common.select")}</option>
               {people.data?.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -314,7 +324,7 @@ function ProjectEditor({
             </select>
           </Field>
           <fieldset className="max-h-36 overflow-auto rounded border p-2">
-            <legend>프로젝트 매니저</legend>
+            <legend>{tp("projectEditor.managers")}</legend>
             {people.data
               ?.filter((p) => members.includes(p.id) && p.id !== owner)
               .map((p) => (
@@ -335,7 +345,7 @@ function ProjectEditor({
               ))}
           </fieldset>
           <fieldset className="max-h-44 overflow-y-auto rounded border p-2">
-            <legend>참여자</legend>
+            <legend>{tp("projectEditor.members")}</legend>
             {people.data?.map((p) => (
               <label key={p.id} className="flex min-h-11 items-center gap-2">
                 <input
@@ -354,7 +364,7 @@ function ProjectEditor({
             ))}
           </fieldset>
           {project && (
-            <Field title="상태">
+            <Field title={tp("projectEditor.status")}>
               <select
                 className={input}
                 value={status}
@@ -364,7 +374,7 @@ function ProjectEditor({
               >
                 {["ACTIVE", "DONE", "ARCHIVED"].map((s) => (
                   <option key={s} value={s}>
-                    {statusNames[s]}
+                    {statusName(s)}
                   </option>
                 ))}
               </select>
@@ -374,7 +384,7 @@ function ProjectEditor({
             text={w.error || (people.error ? errorText(people.error) : "")}
           />
           <Button disabled={w.busy || people.isLoading} type="submit">
-            {w.busy ? "저장 중…" : "저장"}
+            {w.busy ? tp("common.saving") : tp("common.save")}
           </Button>
         </form>
       </DialogContent>
@@ -382,12 +392,13 @@ function ProjectEditor({
   );
 }
 export function DriveConnectionPage() {
+  const { t: tp } = useTranslation("prj");
   return (
     <section className="grid gap-4">
-      <h1 className="text-xl font-bold">Google Drive 연결</h1>
+      <h1 className="text-xl font-bold">{tp("driveConnectionPage.title")}</h1>
       <DriveConnection />
       <Link to="/admin/projects" className="underline">
-        프로젝트로 돌아가기
+        {tp("driveConnectionPage.back")}
       </Link>
     </section>
   );
@@ -396,6 +407,7 @@ export function DriveConnectionPage() {
 export { DriveConnection };
 export function ProjectDetailPage() {
   const { t } = useTranslation("common");
+  const { t: tp } = useTranslation("prj");
   const { id = "" } = useParams(),
     [params, setParams] = useSearchParams(),
     qc = useQueryClient(),
@@ -486,19 +498,23 @@ export function ProjectDetailPage() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["prj"] });
   };
-  if (p.isLoading) return <p>불러오는 중…</p>;
+  if (p.isLoading) return <p>{tp("common.loading")}</p>;
   if (!p.data)
     return (
-      <Notice text={p.error ? errorText(p.error) : "프로젝트가 없습니다."} />
+      <Notice
+        text={p.error ? errorText(p.error) : tp("common.noProject")}
+      />
     );
   const project = p.data,
     manage = project.can_manage ?? project.owner_id === user?.id,
     readOnly = project.prj_status === "ARCHIVED";
   const info = (
     <div className="grid gap-3">
-      <h2 className="font-semibold">프로젝트 정보</h2>
-      <p>{statusNames[project.prj_status]}</p>
-      <h3>참여자 {project.members?.length}명</h3>
+      <h2 className="font-semibold">{tp("projectDetail.infoTitle")}</h2>
+      <p>{statusName(project.prj_status)}</p>
+      <h3>
+        {tp("projectDetail.memberCount", { n: project.members?.length ?? "" })}
+      </h3>
       {project.members?.map((m) => (
         <p key={m.id}>
           {m.id === project.owner_id ? "👑 " : ""}
@@ -507,7 +523,7 @@ export function ProjectDetailPage() {
       ))}
       {manage && (
         <Button variant="outline" onClick={() => setEditing(true)}>
-          참여자 관리
+          {tp("projectDetail.manageMembers")}
         </Button>
       )}
     </div>
@@ -552,7 +568,7 @@ export function ProjectDetailPage() {
         meta={
           <span>
             {project.prj_code ?? `PRJ-${id.slice(0, 8)}`} ·{" "}
-            {statusNames[project.prj_status]}
+            {statusName(project.prj_status)}
           </span>
         }
         actions={
@@ -600,7 +616,7 @@ export function ProjectDetailPage() {
       <Notice text={w.error || (items.error ? errorText(items.error) : "")} />
       {readOnly && (
         <p>
-          보관된 프로젝트입니다. 담당자가 상태를 변경하면 수정할 수 있습니다.
+          {tp("projectDetail.archivedNotice")}
         </p>
       )}
       {tab === "overview" ? (
@@ -617,15 +633,10 @@ export function ProjectDetailPage() {
         <>
           {tab === "documents" && (
             <nav
-              aria-label="문서 분류"
+              aria-label={tp("projectDetail.docCategory")}
               className="flex min-w-0 gap-2 overflow-x-auto"
             >
-              {[
-                ["MEMO", "메모"],
-                ["SHEET", "시트(스프레드시트)"],
-                ["DOC", "문서(Docs)"],
-                ["FILE", "파일"],
-              ].map(([value, label]) => (
+              {["MEMO", "SHEET", "DOC", "FILE"].map((value) => (
                 <Button
                   key={value}
                   className="shrink-0"
@@ -637,7 +648,7 @@ export function ProjectDetailPage() {
                     setAssignee("");
                   }}
                 >
-                  {label}
+                  {tp(`docType.${value}`)}
                 </Button>
               ))}
             </nav>
@@ -653,8 +664,8 @@ export function ProjectDetailPage() {
               <div className="flex flex-wrap gap-2">
                 <Input
                   className="max-w-xs"
-                  aria-label="제목 검색"
-                  placeholder="제목 검색"
+                  aria-label={tp("projectDetail.searchTitle")}
+                  placeholder={tp("projectDetail.searchTitle")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -678,25 +689,25 @@ export function ProjectDetailPage() {
                       ))}
                     </div>
                     <select
-                      aria-label="이슈 상태"
+                      aria-label={tp("projectDetail.issueStatus")}
                       className={input + " !w-auto"}
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}
                     >
-                      <option value="">전체 상태</option>
+                      <option value="">{tp("projectDetail.allStatuses")}</option>
                       {["OPEN", "IN_PROGRESS", "DONE", "REJECTED"].map((s) => (
                         <option key={s} value={s}>
-                          {statusNames[s]}
+                          {statusName(s)}
                         </option>
                       ))}
                     </select>
                     <select
-                      aria-label="담당자 필터"
+                      aria-label={tp("projectDetail.assigneeFilter")}
                       className={input + " !w-auto"}
                       value={assignee}
                       onChange={(e) => setAssignee(e.target.value)}
                     >
-                      <option value="">전체 담당자</option>
+                      <option value="">{tp("projectDetail.allAssignees")}</option>
                       {project.members?.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.name}
@@ -708,7 +719,7 @@ export function ProjectDetailPage() {
                 {!readOnly &&
                   (kind === "ISSUE" ? (
                     <Button onClick={() => setItemEdit("new")}>
-                      + 이슈 등록
+                      + {tp("projectDetail.newIssue")}
                     </Button>
                   ) : (
                     <>
@@ -718,11 +729,12 @@ export function ProjectDetailPage() {
                             openDoc("new", "LOCAL");
                           }}
                         >
+                          +{" "}
                           {docType === "SHEET"
-                            ? "+ 스프레드시트 작성"
+                            ? tp("projectDetail.newSheet")
                             : docType === "DOC"
-                              ? "+ ACM 문서 작성"
-                              : "+ 메모 작성"}
+                              ? tp("projectDetail.newAcmDoc")
+                              : tp("projectDetail.newMemo")}
                         </Button>
                       )}
                       {(docType === "SHEET" || docType === "DOC") && (
@@ -733,8 +745,8 @@ export function ProjectDetailPage() {
                           }}
                         >
                           {docType === "SHEET"
-                            ? "기존 구글시트 링크 등록"
-                            : "기존 구글독스 링크 등록"}
+                            ? tp("projectDetail.linkGoogleSheet")
+                            : tp("projectDetail.linkGoogleDoc")}
                         </Button>
                       )}
                       {(docType === "FILE" ||
@@ -752,8 +764,8 @@ export function ProjectDetailPage() {
                           onClick={() => setNewDoc(true)}
                         >
                           {docType === "FILE"
-                            ? "파일 업로드 / 폴더"
-                            : "Google에서 새로 만들기"}
+                            ? tp("projectDetail.uploadOrFolder")
+                            : tp("projectDetail.createInGoogle")}
                         </Button>
                       )}
                       {(docType === "FILE" ||
@@ -773,7 +785,7 @@ export function ProjectDetailPage() {
                           variant="outline"
                           onClick={() => setDriveModal(true)}
                         >
-                          프로젝트 파일 탐색
+                          {tp("projectDetail.browseFiles")}
                         </Button>
                       )}
                       {docType === "FILE" && drive.data?.canManage && (
@@ -792,19 +804,19 @@ export function ProjectDetailPage() {
                             })
                           }
                         >
-                          Drive 파일 연결
+                          {tp("projectDetail.linkDriveFile")}
                         </Button>
                       )}
                     </>
                   ))}
                 <Button variant="outline" onClick={() => void refresh()}>
-                  새로고침
+                  {tp("projectDetail.refresh")}
                 </Button>
               </div>
               {items.isLoading ? (
-                <p>불러오는 중…</p>
+                <p>{tp("common.loading")}</p>
               ) : !rows.length ? (
-                <p>등록된 항목이 없습니다.</p>
+                <p>{tp("common.noItems")}</p>
               ) : kind !== "ISSUE" ? (
                 <DocumentTable
                   items={rows}
@@ -845,11 +857,11 @@ export function ProjectDetailPage() {
                           {i.creator_name} ·{" "}
                           {new Date(i.updated_at).toLocaleDateString()}{" "}
                           {i.pit_kind === "ISSUE"
-                            ? `· ${statusNames[i.pit_status]} · ${project.members?.find((m) => m.id === i.assignee_id)?.name ?? "미배정"} · ${i.due_date ?? "기한 없음"}`
+                            ? `· ${statusName(i.pit_status)} · ${project.members?.find((m) => m.id === i.assignee_id)?.name ?? tp("common.unassigned")} · ${i.due_date ?? tp("projectDetail.noDue")}`
                             : i.drive_mime?.includes("spreadsheet")
-                              ? "· Google 시트"
+                              ? `· ${tp("projectDetail.googleSheet")}`
                               : i.drive_mime?.includes("document")
-                                ? "· Google 문서"
+                                ? `· ${tp("projectDetail.googleDoc")}`
                                 : ""}
                         </p>
                         {!isBlankHtml(i.pit_body) && (
@@ -894,7 +906,7 @@ export function ProjectDetailPage() {
                                 });
                               }}
                             >
-                              열기
+                              {tp("common.open")}
                             </Button>
                             <Button
                               variant="outline"
@@ -908,7 +920,7 @@ export function ProjectDetailPage() {
                                 })
                               }
                             >
-                              링크 복사
+                              {tp("projectDetail.copyLink")}
                             </Button>
                             {/* REQ-261019 — 작성자·담당자·테넌트 마스터 삭제(Google 원본 유지) */}
                             <DeleteItemButton projectId={id} item={i} onDeleted={refresh} />
@@ -922,7 +934,9 @@ export function ProjectDetailPage() {
                                 : openDoc(i)
                             }
                           >
-                            {readOnly ? "내용 보기" : "보기 / 수정"}
+                            {readOnly
+                              ? tp("projectDetail.viewContent")
+                              : tp("projectDetail.viewEdit")}
                           </Button>
                         )}
                         {!i.drive_file_id && i.pit_kind !== "ISSUE" && (
@@ -990,6 +1004,7 @@ function ItemEditor({
 }) {
   const qc = useQueryClient(),
     w = useWork();
+  const { t: tp } = useTranslation("prj");
   const [title, setTitle] = useState(item?.pit_title ?? ""),
     [body, setBody] = useState(item?.pit_body ?? ""),
     [status, setStatus] = useState(item?.pit_status ?? "OPEN"),
@@ -1006,7 +1021,7 @@ function ItemEditor({
       !w.busy &&
       (!dirty ||
         readOnly ||
-        window.confirm("저장하지 않은 변경을 닫으시겠습니까?"))
+        window.confirm(tp("itemEditor.confirmDiscard")))
     )
       close();
   }
@@ -1015,7 +1030,9 @@ function ItemEditor({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {kind === "NOTE" ? "노트" : "이슈"} {item ? "상세" : "등록"}
+            {tp(
+              `itemEditor.${kind === "NOTE" ? "note" : "issue"}${item ? "Detail" : "Create"}`,
+            )}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -1039,7 +1056,7 @@ function ItemEditor({
             });
           }}
         >
-          <Field title="제목">
+          <Field title={tp("itemEditor.title")}>
             <Input
               required
               maxLength={200}
@@ -1048,7 +1065,7 @@ function ItemEditor({
               onChange={(e) => setTitle(e.target.value)}
             />
           </Field>
-          <Field title="내용">
+          <Field title={tp("itemEditor.body")}>
             <textarea
               rows={8}
               maxLength={50000}
@@ -1060,7 +1077,7 @@ function ItemEditor({
           </Field>
           {kind === "ISSUE" && (
             <>
-              <Field title="상태">
+              <Field title={tp("itemEditor.status")}>
                 <select
                   className={input}
                   disabled={readOnly}
@@ -1071,19 +1088,19 @@ function ItemEditor({
                 >
                   {["OPEN", "IN_PROGRESS", "DONE"].map((s) => (
                     <option key={s} value={s}>
-                      {statusNames[s]}
+                      {statusName(s)}
                     </option>
                   ))}
                 </select>
               </Field>
-              <Field title="담당자">
+              <Field title={tp("itemEditor.assignee")}>
                 <select
                   className={input}
                   disabled={readOnly}
                   value={assignee}
                   onChange={(e) => setAssignee(e.target.value)}
                 >
-                  <option value="">미배정</option>
+                  <option value="">{tp("common.unassigned")}</option>
                   {project.members?.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name}
@@ -1091,7 +1108,7 @@ function ItemEditor({
                   ))}
                 </select>
               </Field>
-              <Field title="기한">
+              <Field title={tp("itemEditor.due")}>
                 <Input
                   type="date"
                   disabled={readOnly}
@@ -1104,7 +1121,7 @@ function ItemEditor({
           <Notice text={w.error} />
           {!readOnly && (
             <Button type="submit" disabled={w.busy}>
-              저장
+              {tp("common.save")}
             </Button>
           )}
         </form>
@@ -1127,6 +1144,7 @@ export function CreateFile({
 }) {
   const qc = useQueryClient(),
     w = useWork();
+  const { t: tp } = useTranslation("prj");
   const [title, setTitle] = useState(""),
     [kind, setKind] = useState(documents ? initialKind : "UPLOAD"),
     [file, setFile] = useState<File | null>(null),
@@ -1137,7 +1155,9 @@ export function CreateFile({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {documents ? "문서 만들기" : "파일 업로드 / 새 폴더"}
+            {documents
+              ? tp("createFile.titleDocs")
+              : tp("createFile.titleFiles")}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -1171,9 +1191,9 @@ export function CreateFile({
                 sessionStorage.getItem(operationKey) ?? crypto.randomUUID();
 
               if (kind === "UPLOAD") {
-                if (!file) throw new Error("파일을 선택하세요.");
+                if (!file) throw new Error(tp("createFile.selectFile"));
                 if (file.size > 50 * 1024 * 1024)
-                  throw new Error("50MB 이하 파일을 선택하세요.");
+                  throw new Error(tp("createFile.maxSize50"));
                 sessionStorage.setItem(operationKey, operation);
                 setAttempted(true);
                 const form = new FormData();
@@ -1204,7 +1224,7 @@ export function CreateFile({
             });
           }}
         >
-          <Field title="유형">
+          <Field title={tp("createFile.type")}>
             <select
               disabled={attempted}
               className={input}
@@ -1213,18 +1233,18 @@ export function CreateFile({
             >
               {documents ? (
                 <>
-                  <option value="DOCUMENT">Google 문서</option>
-                  <option value="SHEET">Google 스프레드시트</option>
+                  <option value="DOCUMENT">{tp("createFile.googleDoc")}</option>
+                  <option value="SHEET">{tp("createFile.googleSheet")}</option>
                 </>
               ) : (
                 <>
-                  <option value="UPLOAD">파일 업로드</option>
-                  <option value="FOLDER">새 폴더</option>
+                  <option value="UPLOAD">{tp("createFile.upload")}</option>
+                  <option value="FOLDER">{tp("createFile.folder")}</option>
                 </>
               )}
             </select>
           </Field>
-          <Field title="이름">
+          <Field title={tp("createFile.name")}>
             <Input
               required
               maxLength={200}
@@ -1234,7 +1254,7 @@ export function CreateFile({
             />
           </Field>
           {kind === "UPLOAD" && (
-            <Field title="파일 (최대 20MB)">
+            <Field title={tp("createFile.fileMax20")}>
               <input
                 type="file"
                 disabled={attempted}
@@ -1249,13 +1269,13 @@ export function CreateFile({
           {w.busy && (
             <p>
               {kind === "UPLOAD"
-                ? `업로드 ${progress}% · 저장 확인 중…`
-                : "Google에 생성 중…"}
+                ? tp("createFile.uploading", { progress })
+                : tp("createFile.creatingInGoogle")}
             </p>
           )}
           <Notice text={w.error} />
           <Button type="submit" disabled={w.busy}>
-            {attempted ? "결과 확인 / 재시도" : "생성"}
+            {attempted ? tp("createFile.retry") : tp("createFile.create")}
           </Button>
         </form>
       </DialogContent>
@@ -1273,6 +1293,7 @@ function DriveBrowser({
 }) {
   const qc = useQueryClient(),
     w = useWork();
+  const { t: tp } = useTranslation("prj");
   const [path, setPath] = useState<{ id: string; name: string }[]>([]),
     [page, setPage] = useState<string>(),
     [search, setSearch] = useState(""),
@@ -1303,7 +1324,7 @@ function DriveBrowser({
     <Dialog open onOpenChange={(v) => !v && close()}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>프로젝트 Drive 파일</DialogTitle>
+          <DialogTitle>{tp("driveBrowser.title")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-wrap gap-2">
           <Button
@@ -1313,7 +1334,7 @@ function DriveBrowser({
               setPage(undefined);
             }}
           >
-            전체 폴더
+            {tp("driveBrowser.allFolders")}
           </Button>
           {path.map((p, i) => (
             <Button
@@ -1330,26 +1351,28 @@ function DriveBrowser({
         </div>
         <div className="flex flex-wrap gap-2">
           <Input
-            aria-label="현재 페이지 파일 검색"
-            placeholder="현재 페이지 파일 검색"
+            aria-label={tp("driveBrowser.search")}
+            placeholder={tp("driveBrowser.search")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           <select
-            aria-label="정렬"
+            aria-label={tp("common.sort")}
             className={input}
             value={sort}
             onChange={(e) => setSort(e.target.value)}
           >
-            <option value="name">이름순</option>
-            <option value="size">파일크기순</option>
-            <option value="type">종류별</option>
+            <option value="name">{tp("driveBrowser.sortName")}</option>
+            <option value="size">{tp("driveBrowser.sortSize")}</option>
+            <option value="type">{tp("driveBrowser.sortType")}</option>
           </select>
           <Button variant="outline" onClick={() => setCards(!cards)}>
-            {cards ? "목록 보기" : "카드 보기"}
+            {cards ? tp("driveBrowser.listView") : tp("driveBrowser.cardView")}
           </Button>
           {!readOnly && (
-            <Button onClick={() => setCreate(true)}>새 폴더 / 업로드</Button>
+            <Button onClick={() => setCreate(true)}>
+              {tp("driveBrowser.newFolderUpload")}
+            </Button>
           )}
         </div>
         <Notice text={w.error || (q.error ? errorText(q.error) : "")} />
@@ -1371,7 +1394,7 @@ function DriveBrowser({
                     setPage(undefined);
                   }}
                 >
-                  폴더 열기
+                  {tp("driveBrowser.openFolder")}
                 </Button>
               ) : (
                 <Button
@@ -1387,21 +1410,21 @@ function DriveBrowser({
                     })
                   }
                 >
-                  프로젝트에 연결
+                  {tp("driveBrowser.linkToProject")}
                 </Button>
               )}
             </div>
           ))}
         </div>
-        {!rows.length && !q.isLoading && <p>이 폴더에 파일이 없습니다.</p>}
+        {!rows.length && !q.isLoading && <p>{tp("driveBrowser.empty")}</p>}
         {q.data?.nextPageToken && (
           <Button onClick={() => setPage(q.data?.nextPageToken)}>
-            다음 페이지
+            {tp("driveBrowser.nextPage")}
           </Button>
         )}
         {page && (
           <Button variant="outline" onClick={() => setPage(undefined)}>
-            첫 페이지
+            {tp("driveBrowser.firstPage")}
           </Button>
         )}
         {create && (

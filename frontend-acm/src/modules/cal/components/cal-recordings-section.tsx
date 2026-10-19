@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Download, Loader2, Play, RefreshCw, X } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
@@ -100,14 +101,13 @@ export function CalRecordingsSection({
       toast.success(
         res.counts.total > 0
           ? t('recordings.syncFound', {
-              defaultValue: '녹화본 {{count}}건을 확인했습니다.',
               count: res.counts.total,
             })
-          : t('recordings.syncEmpty', '보다스쿨에 저장된 녹화본이 없습니다.'),
+          : t('recordings.syncEmpty'),
       );
     },
     onError: () =>
-      toast.error(t('recordings.syncFailed', '녹화본 동기화에 실패했습니다.')),
+      toast.error(t('recordings.syncFailed')),
   });
 
   // 권한 없음(403)·룸 없음 → 섹션 자체를 감춘다.
@@ -132,7 +132,7 @@ export function CalRecordingsSection({
         });
       }
     } catch {
-      toast.error(t('recordings.openFailed', '녹화본을 열지 못했습니다.'));
+      toast.error(t('recordings.openFailed'));
     } finally {
       setBusyIdx(null);
     }
@@ -144,7 +144,7 @@ export function CalRecordingsSection({
     <div className="mt-4 rounded-md border border-[var(--border-subtle)] p-3">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold text-secondary">
-          🎬 {t('recordings.title', '수업 녹화본')}
+          🎬 {t('recordings.title')}
         </span>
         <span
           className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS_BADGE[data.status]}`}
@@ -154,7 +154,6 @@ export function CalRecordingsSection({
         {data.counts.pending > 0 && (
           <span className="text-[11px] text-secondary">
             {t('recordings.archiving', {
-              defaultValue: '서버 보관 중 {{count}}건',
               count: data.counts.pending,
             })}
           </span>
@@ -162,7 +161,6 @@ export function CalRecordingsSection({
         {data.counts.failed > 0 && (
           <span className="text-[11px] text-red-700">
             {t('recordings.archiveFailed', {
-              defaultValue: '보관 실패 {{count}}건',
               count: data.counts.failed,
             })}
           </span>
@@ -181,7 +179,7 @@ export function CalRecordingsSection({
             ) : (
               <RefreshCw size={12} className="mr-1" />
             )}
-            {t('recordings.syncBtn', '녹화본 동기화')}
+            {t('recordings.syncBtn')}
           </Button>
         )}
       </div>
@@ -189,10 +187,7 @@ export function CalRecordingsSection({
       {files.length === 0 ? (
         <p className="text-xs text-secondary">
           {t(`recordings.empty.${data.status}`, {
-            defaultValue: t(
-              'recordings.empty.NO_RECORDING',
-              '저장된 녹화본이 없습니다.',
-            ),
+            defaultValue: t('recordings.empty.NO_RECORDING'),
           })}
         </p>
       ) : (
@@ -203,10 +198,10 @@ export function CalRecordingsSection({
               className="flex flex-wrap items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
             >
               <span className="min-w-0 flex-1 truncate">
-                {r.title || `${t('recordings.file', '녹화')} #${r.recordIdx}`}
+                {r.title || `${t('recordings.file')} #${r.recordIdx}`}
               </span>
               <span className="shrink-0 text-[11px] text-secondary">
-                {formatSpan(r)}
+                {formatSpan(r, t)}
                 {r.archiveStatus === 'ARCHIVED' && r.sizeBytes
                   ? ` · ${formatSize(r.sizeBytes)}`
                   : ''}
@@ -214,9 +209,9 @@ export function CalRecordingsSection({
               {r.archiveStatus !== 'ARCHIVED' && (
                 <span
                   className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"
-                  title={t('recordings.notArchivedHint', '보관 완료 전 — 구간 이동 불가')}
+                  title={t('recordings.notArchivedHint')}
                 >
-                  {t('recordings.notArchived', '보다스쿨 원본')}
+                  {t('recordings.notArchived')}
                 </span>
               )}
               <Button
@@ -231,7 +226,7 @@ export function CalRecordingsSection({
                 ) : (
                   <Play size={12} className="mr-1" />
                 )}
-                {t('recordings.play', '재생')}
+                {t('recordings.play')}
               </Button>
               <Button
                 type="button"
@@ -242,7 +237,7 @@ export function CalRecordingsSection({
                 onClick={() => void open(r, true)}
               >
                 <Download size={12} className="mr-1" />
-                {t('recordings.download', '다운로드')}
+                {t('recordings.download')}
               </Button>
             </li>
           ))}
@@ -263,7 +258,7 @@ export function CalRecordingsSection({
             <div className="mb-2 flex items-center gap-2">
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                 {playing.item.title ||
-                  `${t('recordings.file', '녹화')} #${playing.item.recordIdx}`}
+                  `${t('recordings.file')} #${playing.item.recordIdx}`}
               </span>
               <Button
                 type="button"
@@ -275,11 +270,11 @@ export function CalRecordingsSection({
                 }
               >
                 <Download size={12} className="mr-1" />
-                {t('recordings.download', '다운로드')}
+                {t('recordings.download')}
               </Button>
               <button
                 type="button"
-                aria-label={t('common:actions.close', '닫기')}
+                aria-label={t('common:actions.close')}
                 className="rounded p-1 text-secondary hover:bg-[var(--gray-100)]"
                 onClick={() => setPlaying(null)}
               >
@@ -297,10 +292,7 @@ export function CalRecordingsSection({
                 ACM 보관본이 생기기 전까지는 구간 이동이 되지 않음을 알린다. */}
             {playing.item.archiveStatus !== 'ARCHIVED' && (
               <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
-                {t(
-                  'recordings.seekHint',
-                  '보관 완료 전에는 구간 이동(탐색)이 되지 않습니다. 보다스쿨 원본을 그대로 재생 중입니다.',
-                )}
+                {t('recordings.seekHint')}
               </p>
             )}
           </div>
@@ -311,7 +303,7 @@ export function CalRecordingsSection({
 }
 
 /** YYYY-MM-DDTHH:mm 형태를 MM/DD HH:mm 으로 — 보다가 준 원본 시각 그대로. */
-function formatSpan(r: RecordingItem): string {
+function formatSpan(r: RecordingItem, t: TFunction): string {
   const fmt = (iso: string | null) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -327,7 +319,7 @@ function formatSpan(r: RecordingItem): string {
   const end = fmt(r.endedAt);
   if (start && end) return `${start} ~ ${end}`;
   if (start) return start;
-  if (r.durationSec) return `${Math.round(r.durationSec / 60)}분`;
+  if (r.durationSec) return t('cal:boda.minutes', { m: Math.round(r.durationSec / 60) });
   return '';
 }
 

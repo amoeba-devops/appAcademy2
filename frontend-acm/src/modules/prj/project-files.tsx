@@ -7,13 +7,8 @@ import { apiClient } from "@/lib/api-client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { errorText, useScope } from "./project-page";
 import type { DriveStatus, Item, Project } from "./types";
-export const phases: Record<string, string> = {
-  PLANNING: "기획",
-  DESIGN: "디자인",
-  DEVELOPMENT: "개발",
-  OPERATION: "운영",
-  ETC: "기타",
-};
+/** 파일 단계 코드 (표시 라벨은 i18n `prj:phase.*`). */
+export const phases = ["PLANNING", "DESIGN", "DEVELOPMENT", "OPERATION", "ETC"];
 export function ProjectFiles({
   project,
   items,
@@ -23,6 +18,7 @@ export function ProjectFiles({
   items: Item[];
   readOnly: boolean;
 }) {
+  const { t: tp } = useTranslation("prj");
   const qc = useQueryClient(),
     [upload, setUpload] = useState(false),
     [search, setSearch] = useState(""),
@@ -53,34 +49,34 @@ export function ProjectFiles({
     <section className="grid min-w-0 gap-3">
       <div className="flex flex-wrap gap-2">
         <input
-          aria-label="파일 검색"
-          placeholder="파일명·설명·업로더 검색"
+          aria-label={tp("projectFiles.search")}
+          placeholder={tp("projectFiles.searchPlaceholder")}
           className="rounded border p-2"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          aria-label="파일 정렬"
+          aria-label={tp("projectFiles.sortLabel")}
           className="rounded border p-2"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
-          <option value="created">최근 등록순</option>
-          <option value="oldest">오래된 등록순</option>
-          <option value="name">이름순</option>
-          <option value="size">크기순</option>
-          <option value="downloads">다운로드 수순</option>
+          <option value="created">{tp("common.sortRecentCreated")}</option>
+          <option value="oldest">{tp("projectFiles.sortOldestCreated")}</option>
+          <option value="name">{tp("common.sortName")}</option>
+          <option value="size">{tp("common.sortSize")}</option>
+          <option value="downloads">{tp("common.sortDownloads")}</option>
         </select>
         <select
-          aria-label="단계"
+          aria-label={tp("common.phase")}
           className="rounded border p-2"
           value={phase}
           onChange={(e) => setPhase(e.target.value)}
         >
-          <option value="">전체 단계</option>
-          {Object.entries(phases).map(([v, l]) => (
+          <option value="">{tp("common.allPhases")}</option>
+          {phases.map((v) => (
             <option key={v} value={v}>
-              {l}
+              {tp(`phase.${v}`)}
             </option>
           ))}
         </select>
@@ -89,7 +85,7 @@ export function ProjectFiles({
             className="rounded bg-accent-600 px-3 py-2 text-white"
             onClick={() => setUpload(true)}
           >
-            + 파일 업로드
+            + {tp("projectFiles.upload")}
           </button>
         )}
       </div>
@@ -103,17 +99,17 @@ export function ProjectFiles({
           <thead className="bg-gray-50">
             <tr>
               {[
-                "파일명",
-                "설명",
-                "단계",
-                "업로더",
-                "등록일",
-                "크기",
-                "다운로드",
-                "작업",
+                "name",
+                "description",
+                "phase",
+                "uploader",
+                "createdAt",
+                "size",
+                "downloads",
+                "actions",
               ].map((v) => (
                 <th className="whitespace-nowrap p-3" key={v}>
-                  {v}
+                  {tp(`projectFiles.cols.${v}`)}
                 </th>
               ))}
             </tr>
@@ -123,7 +119,11 @@ export function ProjectFiles({
               <tr className="border-t" key={i.pit_id}>
                 <td className="p-3">{i.pit_title}</td>
                 <td className="p-3">{i.pit_body || "-"}</td>
-                <td className="p-3">{phases[i.file_phase ?? "ETC"]}</td>
+                <td className="p-3">
+                  {phases.includes(i.file_phase ?? "ETC")
+                    ? tp(`phase.${i.file_phase ?? "ETC"}`)
+                    : ""}
+                </td>
                 <td className="p-3">{i.creator_name}</td>
                 <td className="whitespace-nowrap p-3">
                   {new Date(i.created_at).toLocaleDateString()}
@@ -152,7 +152,7 @@ export function ProjectFiles({
                         }
                       }}
                     >
-                      다운로드
+                      {tp("projectFiles.download")}
                     </button>
                     {/* REQ-261019 — 작성자·담당자·테넌트 마스터만 삭제 */}
                     {!readOnly && <DeleteItemButton projectId={project} item={i} />}
@@ -164,7 +164,7 @@ export function ProjectFiles({
         </table>
         {!rows.length && (
           <p className="p-12 text-center text-secondary">
-            등록된 파일이 없습니다.
+            {tp("projectFiles.empty")}
           </p>
         )}
       </div>
@@ -194,6 +194,7 @@ export function FileUpload({
     [operationId] = useState(() => crypto.randomUUID());
   // REQ-261016 — 저장소 선택: Drive 연결 전에는 ACM 저장소, 연결 후 선택(기본 Drive).
   const { t } = useTranslation("common");
+  const { t: tp } = useTranslation("prj");
   const drive = useQuery({
     queryKey: ["prj-drive", ...useScope()],
     queryFn: async () =>
@@ -310,7 +311,7 @@ export function FileUpload({
             {file && <span className="block text-sm">{file.name}</span>}
           </label>
           <label>
-            제목
+            {tp("fileUpload.title")}
             <input
               className="block w-full rounded border p-2"
               required
@@ -321,7 +322,7 @@ export function FileUpload({
             />
           </label>
           <label>
-            설명
+            {tp("fileUpload.description")}
             <textarea
               className="block w-full rounded border p-2"
               maxLength={2000}
@@ -331,16 +332,16 @@ export function FileUpload({
             />
           </label>
           <label>
-            단계
+            {tp("common.phase")}
             <select
               className="block w-full rounded border p-2"
               value={phase}
               disabled={attempted}
               onChange={(e) => setPhase(e.target.value)}
             >
-              {Object.entries(phases).map(([v, l]) => (
+              {phases.map((v) => (
                 <option key={v} value={v}>
-                  {l}
+                  {tp(`phase.${v}`)}
                 </option>
               ))}
             </select>
@@ -356,10 +357,10 @@ export function FileUpload({
             }
           >
             {busy
-              ? `업로드 ${progress}% · 저장 확인 중…`
+              ? tp("fileUpload.uploading", { progress })
               : attempted
-                ? "결과 확인 / 재시도"
-                : "등록"}
+                ? tp("fileUpload.retry")
+                : tp("fileUpload.submit")}
           </button>
         </form>
       </DialogContent>

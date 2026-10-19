@@ -3,6 +3,7 @@ import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-con
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { CalendarDays, ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
@@ -211,10 +212,10 @@ function CalMonthContent() {
               size="sm"
               variant={showDeleted ? 'default' : 'outline'}
               onClick={() => setShowDeleted((v) => !v)}
-              title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
+              title={t('deleted.btnTitle')}
             >
               <Trash2 size={14} className="mr-1" />
-              {t('deleted.btnLabel', '삭제한 수업일정 보기')}
+              {t('deleted.btnLabel')}
             </Button>
             {canCreateInstant && (
               <Button
@@ -291,14 +292,14 @@ function CalMonthContent() {
         <div className="mb-3 flex flex-wrap items-start gap-3 rounded-md border border-[var(--border-subtle)] bg-surface p-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-secondary">
-              {t('filter.categoryLabel', '수업종류')}:
+              {t('filter.categoryLabel')}:
             </span>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
             >
-              <option value="">{t('filter.allView', '전체보기')}</option>
+              <option value="">{t('filter.allView')}</option>
               {(['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const).map(
                 (c) => (
                   <option key={c} value={c}>
@@ -310,16 +311,16 @@ function CalMonthContent() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-secondary">
-              {t('filter.ownerLabel', '강사')}:
+              {t('filter.ownerLabel')}:
             </span>
             <TeacherMultiCombo value={selectedTeachers} onChange={setSelectedTeachers} />
             {selectedTeachers.length === 0 && (
-              <span className="text-xs text-secondary">{t('filter.allView', '전체보기')}</span>
+              <span className="text-xs text-secondary">{t('filter.allView')}</span>
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-medium text-secondary">
-              {t('filter.studentLabel', '학생')}:
+              {t('filter.studentLabel')}:
             </span>
             <AttendeeFilter
               lockedKind="STUDENT"
@@ -329,7 +330,7 @@ function CalMonthContent() {
               onChange={setSelectedAttendees}
             />
             {selectedAttendees.length === 0 && (
-              <span className="text-xs text-secondary">{t('filter.allView', '전체보기')}</span>
+              <span className="text-xs text-secondary">{t('filter.allView')}</span>
             )}
           </div>
           {(selectedTeachers.length > 0 || selectedAttendees.length > 0) && (
@@ -341,7 +342,7 @@ function CalMonthContent() {
               }}
               className="text-xs text-accent-600 hover:underline"
             >
-              {t('filter.reset', '필터 초기화')}
+              {t('filter.reset')}
             </button>
           )}
         </div>
@@ -484,7 +485,7 @@ function MonthView({
                   }}
                   className="rounded bg-[var(--gray-100)] px-1 py-0.5 text-[10px] font-medium text-accent-700 hover:bg-accent-50"
                 >
-                  +{dayEvents.length - 4} {t('view.showAll', '모두보기')}
+                  +{dayEvents.length - 4} {t('view.showAll')}
                 </button>
               )}
             </div>
@@ -517,7 +518,7 @@ function DayEventsModal({
           <DialogTitle>
             {day ? formatFullDate(day, locale) : ''}{' '}
             <span className="text-sm font-normal text-secondary">
-              ({events.length}{t('view.countSuffix', '건')})
+              ({events.length}{t('view.countSuffix')})
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -570,17 +571,17 @@ function ListRow({
       </span>
       <span className="flex shrink-0 items-center gap-1.5 text-[11px]">
         {event.hasFeedback && (
-          <span className="text-accent-700">{t('review.textFeedback', '피드백')}</span>
+          <span className="text-accent-700">{t('review.textFeedback')}</span>
         )}
         {event.homeworkStatus === 'ASSIGNED' && (
-          <span className="text-accent-700">{t('review.textHomework', '과제제출')}</span>
+          <span className="text-accent-700">{t('review.textHomework')}</span>
         )}
         {event.homeworkStatus === 'NONE' && (
-          <span className="text-secondary">{t('review.noHomework', '과제없음')}</span>
+          <span className="text-secondary">{t('review.noHomework')}</span>
         )}
         {event.classDone && (
           <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-            {t('review.doneFull', '수업완료')}
+            {t('review.doneFull')}
           </span>
         )}
       </span>
@@ -607,6 +608,7 @@ function ListView({
   locale: string;
   onEventClick: (event: React.MouseEvent, calEvent: CalEvent) => void;
 }) {
+  const { t } = useTranslation('cal');
   const tz = useTenantTz();
   const groups = useMemo(() => {
     const map = new Map<string, { day: Date; items: CalEvent[] }>();
@@ -623,7 +625,7 @@ function ListView({
   if (groups.length === 0) {
     return (
       <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
-        등록된 일정이 없습니다.
+        {t('view.empty')}
       </p>
     );
   }
@@ -671,7 +673,7 @@ function CalendarEventCard({
   const { t } = useTranslation('cal');
   const color = useCalendarColor(event);
   const tz = useTenantTz();
-  const display = buildEventDisplayLine(event, locale, tz);
+  const display = buildEventDisplayLine(event, locale, t, tz);
   // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
   const video = useVideoConfig();
   const canEnter = canEnterVideo(event, video.bodaEnabled);
@@ -689,7 +691,7 @@ function CalendarEventCard({
         {/* PLN-260728F B — 캘린더 칸엔 수업완료만 표시 */}
         {event.classDone && (
           <span className="ml-1 rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
-            ✓{t('review.done', '완료')}
+            ✓{t('review.done')}
           </span>
         )}
       </div>
@@ -697,19 +699,19 @@ function CalendarEventCard({
       {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
         <div className="mt-0.5 flex items-center gap-1 text-[10px]">
           {event.hasFeedback && (
-            <span title={t('review.feedback', '피드백 작성됨')}>📝</span>
+            <span title={t('review.feedback')}>📝</span>
           )}
           {event.homeworkStatus === 'ASSIGNED' && (
-            <span title={t('review.homework', '과제 등록됨')}>📚</span>
+            <span title={t('review.homework')}>📚</span>
           )}
           {event.homeworkStatus === 'NONE' && (
             <span className="text-secondary">
-              {t('review.noHomework', '과제 없음')}
+              {t('review.noHomework')}
             </span>
           )}
           {event.classDone && (
             <span className="rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
-              {t('review.doneFull', '수업완료')}
+              {t('review.doneFull')}
             </span>
           )}
         </div>
@@ -722,8 +724,8 @@ function CalendarEventCard({
       {canEnter && (
         <button
           type="button"
-          title={t('actions.enterLink', '입장링크')}
-          aria-label={t('actions.enterLink', '입장링크')}
+          title={t('actions.enterLink')}
+          aria-label={t('actions.enterLink')}
           onClick={(e) => {
             e.stopPropagation();
             window.open(
@@ -741,34 +743,36 @@ function CalendarEventCard({
   );
 }
 
-function buildEventDisplayLine(event: CalEvent, locale: string, tz?: string): string {
-  const parsed = splitEventTitle(event);
+function buildEventDisplayLine(event: CalEvent, locale: string, t: TFunction, tz?: string): string {
+  const parsed = splitEventTitle(event, t);
   const student = event.primaryStudentName ?? parsed.studentName ?? '';
   const className = parsed.className ?? event.title;
   return `${formatTime(event.startAt, locale, tz)} | ${student} | ${className}`;
 }
 
-function splitEventTitle(event: CalEvent): {
+function splitEventTitle(event: CalEvent, t: TFunction): {
   className: string | null;
   studentName: string | null;
 } {
   const demoMatch = /^Demo Class\s+[-—]\s+(.+)$/i.exec(event.title);
   if (demoMatch?.[1]) {
     return {
-      className: '데모수업',
+      className: t('category.DEMO_CLASS'),
       studentName: demoMatch[1].trim(),
     };
   }
   const levelMatch = /^Level Test(?:\s+\((.+)\))?\s+[-—]\s+(.+)$/i.exec(event.title);
   if (levelMatch?.[2]) {
     return {
-      className: levelMatch[1] ? `레벨테스트 (${levelMatch[1]})` : '레벨테스트',
+      className: levelMatch[1]
+        ? `${t('category.LEVEL_TEST')} (${levelMatch[1]})`
+        : t('category.LEVEL_TEST'),
       studentName: levelMatch[2].trim(),
     };
   }
 
-  if (event.category === 'DEMO_CLASS') return { className: '데모수업', studentName: null };
-  if (event.category === 'LEVEL_TEST') return { className: '레벨테스트', studentName: null };
+  if (event.category === 'DEMO_CLASS') return { className: t('category.DEMO_CLASS'), studentName: null };
+  if (event.category === 'LEVEL_TEST') return { className: t('category.LEVEL_TEST'), studentName: null };
   if (event.category === 'REGULAR_CLASS') return { className: event.title, studentName: null };
   return { className: event.title, studentName: null };
 }
@@ -802,7 +806,7 @@ function DeletedEventsList({
   if (events.length === 0) {
     return (
       <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
-        {t('deleted.empty', '이 기간에 삭제한 수업일정이 없습니다.')}
+        {t('deleted.empty')}
       </p>
     );
   }
@@ -812,11 +816,11 @@ function DeletedEventsList({
       <table className="w-full text-sm">
         <thead className="bg-[var(--canvas-subtle)] text-left text-xs text-secondary">
           <tr>
-            <th className="px-3 py-2">{t('deleted.colTitle', '제목')}</th>
-            <th className="px-3 py-2">{t('deleted.colPeriod', '기간')}</th>
-            <th className="px-3 py-2">{t('deleted.colReason', '삭제 사유')}</th>
-            <th className="px-3 py-2">{t('deleted.colBy', '삭제자')}</th>
-            <th className="px-3 py-2">{t('deleted.colAt', '삭제 시각')}</th>
+            <th className="px-3 py-2">{t('deleted.colTitle')}</th>
+            <th className="px-3 py-2">{t('deleted.colPeriod')}</th>
+            <th className="px-3 py-2">{t('deleted.colReason')}</th>
+            <th className="px-3 py-2">{t('deleted.colBy')}</th>
+            <th className="px-3 py-2">{t('deleted.colAt')}</th>
           </tr>
         </thead>
         <tbody>

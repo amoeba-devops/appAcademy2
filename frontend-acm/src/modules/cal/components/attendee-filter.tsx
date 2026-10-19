@@ -19,11 +19,6 @@ const KIND_LABEL_KEY: Record<CalInviteeKind, string> = {
   TEACHER: 'filter.kindTeacher',
   PARENT: 'filter.kindParent',
 };
-const KIND_LABEL_DEFAULT: Record<CalInviteeKind, string> = {
-  STUDENT: '학생',
-  TEACHER: '강사',
-  PARENT: '학부모',
-};
 
 /** Multi-select attendee filter with kind tabs (STUDENT/TEACHER/PARENT). */
 export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, lockedKind }: Props) {
@@ -57,7 +52,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
   const add = (c: InviteeCandidate) => {
     if (selectedSet.has(selectedKey(c))) return;
     if (value.length >= max) {
-      setWarn(t('filter.maxSelected', { defaultValue: '최대 {{n}}명까지 선택할 수 있습니다.', n: max }));
+      setWarn(t('filter.maxSelected', { n: max }));
       return;
     }
     setWarn(null);
@@ -92,7 +87,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
                   : 'bg-canvas text-secondary hover:bg-[var(--gray-50)]'
               }`}
             >
-              {t(KIND_LABEL_KEY[k], KIND_LABEL_DEFAULT[k])}
+              {t(KIND_LABEL_KEY[k])}
             </button>
           ))}
         </div>
@@ -122,7 +117,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
           className="flex h-7 items-center gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-canvas px-2 text-xs text-secondary hover:bg-[var(--gray-50)]"
         >
           <Plus size={12} />
-          <span>{t('filter.addAttendee', '참석자 추가')}</span>
+          <span>{t('filter.addAttendee')}</span>
         </button>
 
         {open && (
@@ -134,7 +129,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder={t('filter.searchAttendee', '이름·이메일 검색')}
+                  placeholder={t('filter.searchAttendee')}
                   className="h-7 w-full bg-transparent text-xs focus:outline-none"
                 />
               </div>
@@ -142,12 +137,12 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
             <div className="max-h-64 overflow-y-auto py-1">
               {isLoading && (
                 <p className="px-3 py-1.5 text-xs text-secondary">
-                  {t('common:status.loading', '로딩…')}
+                  {t('common:status.loading')}
                 </p>
               )}
               {!isLoading && candidates.length === 0 && (
                 <p className="px-3 py-1.5 text-xs text-secondary">
-                  {t('invitee.empty', '결과가 없습니다.')}
+                  {t('invitee.empty')}
                 </p>
               )}
               {candidates.map((c) => {
@@ -170,7 +165,7 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
                     </span>
                     {!c.email && (
                       <span className="text-[10px] text-amber-600">
-                        {t('invitee.noEmail', '(이메일 없음)')}
+                        {t('invitee.noEmail')}
                       </span>
                     )}
                     {selected && (

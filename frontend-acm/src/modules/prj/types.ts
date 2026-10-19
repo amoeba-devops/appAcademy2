@@ -1,3 +1,4 @@
+import i18next from "i18next";
 export interface Person {
   id: string;
   name: string;
@@ -76,14 +77,20 @@ export interface DriveFile {
   mimeType: string;
   size?: string;
 }
-export const statusNames: Record<string, string> = {
-  ACTIVE: "진행중",
-  DONE: "완료",
-  ARCHIVED: "보관",
-  TODO: "할 일",
-  DOING: "진행중",
+const STATUS_KEYS = new Set([
+  "ACTIVE",
+  "DONE",
+  "ARCHIVED",
+  "TODO",
+  "DOING",
   // REQ-261015C — 이슈 간소화 모드
-  OPEN: "열림",
-  IN_PROGRESS: "진행중",
-  REJECTED: "반려",
-};
+  "OPEN",
+  "IN_PROGRESS",
+  "REJECTED",
+]);
+/** 상태 코드 → 표시 라벨 (i18n `prj:status.*`). 알 수 없는 코드는 빈 문자열. */
+export function statusName(status: string | null | undefined): string {
+  return status && STATUS_KEYS.has(status)
+    ? i18next.t(`prj:status.${status}`)
+    : "";
+}

@@ -456,14 +456,7 @@ export function EnrollmentPanel({
                     <option value="">{t('common:dash')}</option>
                     {PAYMENT_METHODS.map((method) => (
                       <option key={method} value={method}>
-                        {t(`detail.enrollment.method.${method}`, {
-                          defaultValue:
-                            method === 'BANK_TRANSFER'
-                              ? '계좌이체'
-                              : method === 'CARD'
-                                ? '카드'
-                                : '기타',
-                        })}
+                        {t(`detail.enrollment.method.${method}`)}
                       </option>
                     ))}
                   </Select>

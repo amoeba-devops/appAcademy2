@@ -98,7 +98,7 @@ export function CalStatsModal({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[85dvh] max-w-3xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t('stats.title', '수업통계')}</DialogTitle>
+          <DialogTitle>{t('stats.title')}</DialogTitle>
         </DialogHeader>
 
         {/* 기간 선택 */}
@@ -128,7 +128,7 @@ export function CalStatsModal({
                 onClick={() => setUnit(u)}
                 className={`rounded px-3 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
               >
-                {t(`view.${u}`, u === 'week' ? '주' : '월')}
+                {t(`view.${u}`)}
               </button>
             ))}
           </div>
@@ -141,13 +141,13 @@ export function CalStatsModal({
             {/* 전체 요약 */}
             <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-4">
               <div className="mb-1 text-xs font-semibold text-secondary">
-                {t('stats.total', '전체 수업통계')}
+                {t('stats.total')}
               </div>
               <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
                 <span className="text-2xl font-bold text-primary">
                   {data.total.count}
                   <span className="ml-1 text-sm font-normal text-secondary">
-                    {t('stats.classes', '건')}
+                    {t('stats.classes')}
                   </span>
                 </span>
                 <span className="text-lg font-semibold text-primary">
@@ -155,7 +155,7 @@ export function CalStatsModal({
                   <span className="ml-0.5 text-sm font-normal text-secondary">h</span>
                 </span>
                 <span className="text-sm text-emerald-700">
-                  {t('stats.done', '수업완료')} {data.total.done} ({donePct(data.total)}%)
+                  {t('stats.done')} {data.total.done} ({donePct(data.total)}%)
                 </span>
               </div>
               {catLine(data.total) && (
@@ -166,11 +166,11 @@ export function CalStatsModal({
             {/* 강사별 카드뷰 */}
             <div>
               <div className="mb-2 text-xs font-semibold text-secondary">
-                {t('stats.byTeacher', '강사별 수업통계')}
+                {t('stats.byTeacher')}
               </div>
               {data.teachers.length === 0 ? (
                 <p className="text-sm text-secondary">
-                  {t('stats.empty', '해당 기간 수업이 없습니다.')}
+                  {t('stats.empty')}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -180,12 +180,12 @@ export function CalStatsModal({
                       className="rounded-md border border-[var(--border-subtle)] p-3"
                     >
                       <div className="mb-1 truncate text-sm font-semibold text-primary">
-                        {tch.tchId ? tch.name : t('stats.unassigned', '미지정')}
+                        {tch.tchId ? tch.name : t('stats.unassigned')}
                       </div>
                       <div className="text-lg font-bold text-primary">
                         {tch.count}
                         <span className="ml-1 text-xs font-normal text-secondary">
-                          {t('stats.classes', '건')}
+                          {t('stats.classes')}
                         </span>
                         <span className="ml-2 text-sm font-semibold">
                           {hours(tch.minutes)}
@@ -193,7 +193,7 @@ export function CalStatsModal({
                         </span>
                       </div>
                       <div className="mt-0.5 text-[11px] text-emerald-700">
-                        {t('stats.done', '수업완료')} {tch.done} ({donePct(tch)}%)
+                        {t('stats.done')} {tch.done} ({donePct(tch)}%)
                       </div>
                       {catLine(tch) && (
                         <div className="mt-0.5 text-[11px] text-secondary">

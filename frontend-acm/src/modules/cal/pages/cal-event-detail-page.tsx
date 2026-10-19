@@ -150,7 +150,7 @@ export function CalEventDetailPage() {
         to="/admin/cal"
         className="mb-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
       >
-        <ChevronLeft size={12} /> {t("detail.backToCal", "수업일정으로")}
+        <ChevronLeft size={12} /> {t("detail.backToCal")}
       </Link>
 
       <article className="rounded-md border border-[var(--border-subtle)] bg-surface p-5">
@@ -170,7 +170,7 @@ export function CalEventDetailPage() {
               </span>
               {classDone && (
                 <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
-                  ✓ {t("review.doneFull", "수업완료")}
+                  ✓ {t("review.doneFull")}
                 </span>
               )}
             </div>
@@ -190,7 +190,7 @@ export function CalEventDetailPage() {
                 }
               >
                 <LogIn size={14} className="mr-1" />
-                {t("actions.enterLink", "입장링크")}
+                {t("actions.enterLink")}
               </Button>
             )}
             <Button
@@ -199,7 +199,7 @@ export function CalEventDetailPage() {
               onClick={() => setEditOpen(true)}
             >
               <Pencil size={14} className="mr-1" />
-              {t("common:actions.edit", "수정")}
+              {t("common:actions.edit")}
             </Button>
           </div>
         </div>
@@ -207,20 +207,20 @@ export function CalEventDetailPage() {
         <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
           <div>
             <dt className="text-xs text-secondary">
-              {t("field.startAt", "시작")}
+              {t("field.startAt")}
             </dt>
             <dd>{fmtFull(event.startAt)}</dd>
           </div>
           <div>
             <dt className="text-xs text-secondary">
-              {t("field.endAt", "종료")}
+              {t("field.endAt")}
             </dt>
             <dd>{fmtFull(event.endAt)}</dd>
           </div>
           {event.ownerName && (
             <div>
               <dt className="text-xs text-secondary">
-                {t("field.creator", "작성자")}
+                {t("field.creator")}
               </dt>
               <dd>{event.ownerName}</dd>
             </div>
@@ -228,7 +228,7 @@ export function CalEventDetailPage() {
           {event.assigneeName && (
             <div>
               <dt className="text-xs text-secondary">
-                {t("field.assignee", "담당 강사")}
+                {t("field.assignee")}
               </dt>
               <dd>{event.assigneeName}</dd>
             </div>
@@ -236,7 +236,7 @@ export function CalEventDetailPage() {
           {event.locationText && (
             <div>
               <dt className="text-xs text-secondary">
-                {t("field.locationText", "장소")}
+                {t("field.locationText")}
               </dt>
               <dd>{event.locationText}</dd>
             </div>
@@ -252,7 +252,7 @@ export function CalEventDetailPage() {
         {event.description && (
           <div className="mt-3">
             <div className="mb-1 text-xs text-secondary">
-              {t("field.description", "설명")}
+              {t("field.description")}
             </div>
             <div className="whitespace-pre-wrap rounded-md bg-[var(--canvas-subtle)] px-3 py-2 text-sm">
               {event.description}
@@ -263,7 +263,7 @@ export function CalEventDetailPage() {
         {(event.invitees ?? []).length > 0 && (
           <div className="mt-3">
             <div className="mb-1 text-xs text-secondary">
-              {t("form.sectionAttendees", "참석자")} ({event.invitees!.length})
+              {t("form.sectionAttendees")} ({event.invitees!.length})
             </div>
             <div className="flex flex-wrap gap-1.5">
               {event.invitees!.map((inv) => (
@@ -292,7 +292,7 @@ export function CalEventDetailPage() {
         {(event.attachments ?? []).length > 0 && (
           <div className="mt-3">
             <div className="mb-1 text-xs text-secondary">
-              {t("attach.section", "첨부자료")}
+              {t("attach.section")}
             </div>
             <ul className="grid gap-1">
               {event.attachments!.map((a) => (
@@ -308,7 +308,7 @@ export function CalEventDetailPage() {
                     onClick={() => void downloadAttachment(a.id, a.filename)}
                   >
                     <Download size={12} className="mr-1" />
-                    {t("attach.download", "다운로드")}
+                    {t("attach.download")}
                   </Button>
                 </li>
               ))}
@@ -324,7 +324,7 @@ export function CalEventDetailPage() {
           <div className="mt-4 rounded-md border border-[var(--border-subtle)] p-3">
             <div className="mb-1 flex items-center gap-2">
               <span className="text-xs font-semibold text-secondary">
-                🕐 {t("boda.recordTitle", "강의실 기록")}
+                🕐 {t("boda.recordTitle")}
               </span>
               {isBoda && (
                 <Button
@@ -341,33 +341,25 @@ export function CalEventDetailPage() {
                         });
                         toast.success(
                           t("boda.reconcileDone", {
-                            defaultValue:
-                              "기록을 동기화했습니다. (신규 {{inserted}}건)",
                             inserted: r.inserted,
                           }),
                         );
                       },
                       onError: () =>
                         toast.error(
-                          t(
-                            "boda.reconcileFailed",
-                            "기록 동기화에 실패했습니다.",
-                          ),
+                          t("boda.reconcileFailed"),
                         ),
                     })
                   }
                 >
                   <RefreshCw size={12} className="mr-1" />
-                  {t("boda.recordSyncBtn", "기록 동기화")}
+                  {t("boda.recordSyncBtn")}
                 </Button>
               )}
             </div>
             {!record && (
               <p className="text-xs text-secondary">
-                {t(
-                  "boda.recordEmpty",
-                  "아직 보다스쿨에서 수신된 입·퇴장 기록이 없습니다. 수업 종료 후 약 10분 뒤 자동 반영되며, [기록 동기화] 로 즉시 다시 가져올 수 있습니다.",
-                )}
+                {t("boda.recordEmpty")}
               </p>
             )}
             {record && (
@@ -376,53 +368,53 @@ export function CalEventDetailPage() {
                 모든 시각은 UTC instant 를 사용자 브라우저 타임존으로 렌더한다. */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
                   <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
-                    {t("boda.reservedRow", "예약")}
+                    {t("boda.reservedRow")}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.reservedStart", "예약시작")}
+                      {t("boda.reservedStart")}
                     </span>{" "}
                     {fmtShort(event.startAt)}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.reservedEnd", "예약종료")}
+                      {t("boda.reservedEnd")}
                     </span>{" "}
                     {fmtShort(event.endAt)}
                   </span>
                 </div>
                 <div className="mt-1.5 grid grid-cols-2 gap-x-6 gap-y-1 border-t border-[var(--border-subtle)] pt-1.5 text-sm sm:grid-cols-4">
                   <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
-                    {t("boda.actualRow", "실제")}
+                    {t("boda.actualRow")}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.openedAt", "개설")}
+                      {t("boda.openedAt")}
                     </span>{" "}
                     {fmtShort(record.openedAt)}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.startedAt", "시작")}
+                      {t("boda.startedAt")}
                     </span>{" "}
                     {fmtShort(record.startedAt)}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.endedAt", "종료")}
+                      {t("boda.endedAt")}
                     </span>{" "}
                     {fmtShort(record.endedAt)}
                   </span>
                   <span>
                     <span className="text-xs text-secondary">
-                      {t("boda.closedAt", "폐쇄")}
+                      {t("boda.closedAt")}
                     </span>{" "}
                     {fmtShort(record.closedAt)}
                   </span>
                 </div>
                 {record.participants.length > 0 && (
                   <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[11px] font-semibold text-secondary">
-                    {t("boda.joinListTitle", "실제 수업 입장시간")}
+                    {t("boda.joinListTitle")}
                   </div>
                 )}
                 {record.participants.length > 0 && (
@@ -448,9 +440,9 @@ export function CalEventDetailPage() {
                           {formatTime(p.joinedAt, i18n.language, tz)} →{" "}
                           {p.leftAt
                             ? formatTime(p.leftAt, i18n.language, tz)
-                            : t("boda.stillIn", "접속 중")}
+                            : t("boda.stillIn")}
                           {p.totalSeconds != null &&
-                            ` (${Math.round(p.totalSeconds / 60)}분)`}
+                            ` (${t("boda.minutes", { m: Math.round(p.totalSeconds / 60) })})`}
                         </span>
                       </li>
                     ))}
@@ -467,7 +459,7 @@ export function CalEventDetailPage() {
             {review.feedbackHtml && (
               <div className="rounded-md border border-[var(--border-subtle)] p-3">
                 <div className="mb-1 text-xs font-semibold text-secondary">
-                  📝 {t("review.feedbackLabel", "피드백")}
+                  📝 {t("review.feedbackLabel")}
                 </div>
                 <div
                   className="doc-prose max-w-none text-sm"
@@ -483,20 +475,17 @@ export function CalEventDetailPage() {
                       try {
                         await copyHtmlToClipboard(sanitizedFeedback);
                         toast.success(
-                          t(
-                            "feedbackEmail.copied",
-                            "피드백 내용을 복사했습니다.",
-                          ),
+                          t("feedbackEmail.copied"),
                         );
                       } catch {
                         toast.error(
-                          t("feedbackEmail.copyFailed", "복사에 실패했습니다."),
+                          t("feedbackEmail.copyFailed"),
                         );
                       }
                     }}
                   >
                     <ClipboardCopy size={13} className="mr-1" />
-                    {t("feedbackEmail.copyBtn", "내용 복사")}
+                    {t("feedbackEmail.copyBtn")}
                   </Button>
                   <Button
                     type="button"
@@ -504,19 +493,19 @@ export function CalEventDetailPage() {
                     onClick={() => setEmailOpen(true)}
                   >
                     <Mail size={13} className="mr-1" />
-                    {t("feedbackEmail.sendBtn", "학부모 메일 발송")}
+                    {t("feedbackEmail.sendBtn")}
                   </Button>
                 </div>
               </div>
             )}
             {review.homeworkStatus === "NONE" ? (
               <div className="rounded-md border border-[var(--border-subtle)] p-3 text-sm text-secondary">
-                📚 {t("review.noHomework", "과제 없음")}
+                📚 {t("review.noHomework")}
               </div>
             ) : review.homeworkStatus === "ASSIGNED" && review.homeworkHtml ? (
               <div className="rounded-md border border-[var(--border-subtle)] p-3">
                 <div className="mb-1 text-xs font-semibold text-secondary">
-                  📚 {t("review.homeworkLabel", "과제")}
+                  📚 {t("review.homeworkLabel")}
                 </div>
                 <div
                   className="doc-prose max-w-none text-sm"
@@ -534,7 +523,7 @@ export function CalEventDetailPage() {
         onClick={() => navigate(-1)}
         className="mt-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
       >
-        <ChevronLeft size={12} /> {t("detail.backHistory", "뒤로가기")}
+        <ChevronLeft size={12} /> {t("detail.backHistory")}
       </button>
 
       <CalEventModal

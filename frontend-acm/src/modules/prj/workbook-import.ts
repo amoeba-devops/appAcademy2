@@ -1,22 +1,21 @@
 import type { Sheet as FortuneSheet } from "@fortune-sheet/core";
 import type { WorkbookDocument } from "./workbook-editor";
+import i18next from "i18next";
 /** Import supported XLSX values/formulas without executing formulas or fetching links. */
 export async function importWorkbook(
   input: ArrayBuffer,
 ): Promise<WorkbookDocument> {
   if (input.byteLength > 20 * 1024 * 1024)
-    throw new Error("20MB 이하 XLSX 파일을 선택하세요.");
+    throw new Error(i18next.t("prj:workbookImport.maxSize"));
   const module = await import("exceljs");
   const { Workbook } = module.default ?? module;
   const workbook = new Workbook();
   await workbook.xlsx.load(input);
   if (!workbook.worksheets.length || workbook.worksheets.length > 20)
-    throw new Error("시트는 1~20개까지 가져올 수 있습니다.");
+    throw new Error(i18next.t("prj:workbookImport.sheetCount"));
   const sheets: FortuneSheet[] = workbook.worksheets.map((ws, index) => {
     if (ws.rowCount > 10000 || ws.columnCount > 500)
-      throw new Error(
-        "행 또는 열이 저장 범위를 초과했습니다. Google 링크로 등록하세요.",
-      );
+      throw new Error(i18next.t("prj:workbookImport.tooManyCells"));
     const celldata: NonNullable<FortuneSheet["celldata"]> = [];
     ws.eachRow((row, r) =>
       row.eachCell((cell, c) => {
@@ -60,8 +59,6 @@ export async function importWorkbook(
   });
   const result: WorkbookDocument = { version: 2, sheets };
   if (new TextEncoder().encode(JSON.stringify(result)).length > 60000)
-    throw new Error(
-      "변환한 시트가 저장 한도(60KB)를 초과합니다. Google 링크로 등록하세요.",
-    );
+    throw new Error(i18next.t("prj:workbookImport.tooLarge"));
   return result;
 }

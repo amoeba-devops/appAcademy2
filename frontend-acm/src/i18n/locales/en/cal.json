@@ -8,7 +8,8 @@
     "registerFeedback": "Register as feedback",
     "enterLink": "Join",
     "copyLink": "Copy link",
-    "copyLinkDone": "Link copied."
+    "copyLinkDone": "Link copied.",
+    "refresh": "Refresh"
   },
   "view": {
     "day": "Day",
@@ -16,7 +17,8 @@
     "month": "Month",
     "list": "List",
     "showAll": "View all",
-    "countSuffix": ""
+    "countSuffix": "",
+    "empty": "No events scheduled."
   },
   "category": {
     "CLASS": "Class",
@@ -179,7 +181,8 @@
     "recordSyncBtn": "Sync records",
     "reconcileDone": "Records synced. ({{inserted}} new)",
     "reconcileFailed": "Failed to sync records.",
-    "recordEmpty": "No join/leave records received from BODA School yet. They sync automatically about 10 minutes after class ends, or press [Sync records] to pull them now."
+    "recordEmpty": "No join/leave records received from BODA School yet. They sync automatically about 10 minutes after class ends, or press [Sync records] to pull them now.",
+    "minutes": "{{m}} min"
   },
   "instant": {
     "btnLabel": "Start instant class",
@@ -205,7 +208,8 @@
     "searchPlaceholder": "Search students by name/email",
     "searchNoResult": "No results found.",
     "searchAdd": "Add",
-    "searchRemove": "Remove"
+    "searchRemove": "Remove",
+    "optional": "optional"
   },
   "filter": {
     "label": "Filter",
@@ -238,7 +242,11 @@
       "empty": "Empty files cannot be uploaded.",
       "size": "Files must be 20MB or smaller.",
       "count": "Up to {{max}} attachments allowed."
-    }
+    },
+    "materialsEmpty": "No materials uploaded.",
+    "view": "View",
+    "previewFailed": "Failed to preview the material.",
+    "downloadFailed": "Failed to download the material."
   },
   "review": {
     "done": "Done",
@@ -251,7 +259,10 @@
     "homeworkLabel": "Homework",
     "noFeedbackYet": "No feedback yet",
     "textFeedback": "Feedback",
-    "textHomework": "Homework"
+    "textHomework": "Homework",
+    "descriptionRequired": "Please enter a description first.",
+    "feedbackRegistered": "Saved as teacher feedback.",
+    "feedbackRegisterFailed": "Failed to save feedback."
   },
   "stats": {
     "title": "Class stats",
@@ -276,7 +287,8 @@
       "28d": "Last 28 days",
       "90d": "Last 90 days",
       "custom": "Custom range"
-    }
+    },
+    "classDone": "Class completed"
   },
   "detail": {
     "backToCal": "Back to schedule",
@@ -420,5 +432,20 @@
     "open": "Show all {{count}} events on {{date}}",
     "title": "{{date}} · {{count}} events",
     "allDay": "All day"
+  },
+  "ics": {
+    "sourceCalendar": "Source calendar",
+    "timezone": "Time zone",
+    "timezoneSource": "Same as source event",
+    "repeat": "Repeat",
+    "stopped": "Ended",
+    "unbounded": "No end date · source rule kept",
+    "keepSourceEnd": "Source end condition kept",
+    "single": "Single event",
+    "editScopeHint": "Edits and deletions apply to this occurrence only.",
+    "stopTitle": "End repeat from this occurrence",
+    "stopDescription": "Deletes all occurrences from this event's start time onward and stops auto-generation. Earlier occurrences are kept.",
+    "stopConfirm": "End repeat",
+    "stopFailed": "Failed to end the repeat. Please try again."
   }
 }

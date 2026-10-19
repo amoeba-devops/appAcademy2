@@ -96,7 +96,8 @@
     },
     "teachersHint": "Up to {{max}} · the first is the primary teacher",
     "emailOptional": "(optional)",
-    "emailOptionalHint": "Students can be registered without an email address."
+    "emailOptionalHint": "Students can be registered without an email address.",
+    "gradeInputPlaceholder": "G5, G8, Grade 7…"
   },
   "import": {
     "title": "Excel Import (Bulk)",
@@ -230,7 +231,57 @@
     "current": "Current → Source",
     "keep": "Keep existing",
     "supplement": "Fill missing",
-    "datesTitle": "Admission and withdrawal"
+    "datesTitle": "Admission and withdrawal",
+    "fields": {
+      "name": "Name",
+      "gender": "Gender",
+      "attendanceNo": "Attendance no.",
+      "school": "School",
+      "grade": "Grade",
+      "classGroup": "Class",
+      "studentPhone": "Student phone",
+      "homePhone": "Home phone",
+      "nickname": "Nickname",
+      "birthday": "Birthday",
+      "postalCode": "Postal code",
+      "address1": "Address 1",
+      "address2": "Address 2",
+      "track": "Humanities/Sciences",
+      "siblings": "Siblings",
+      "graduationYear": "Graduation year",
+      "studentEmail": "Student email",
+      "guardianPhone": "Guardian phone",
+      "guardianRelation": "Guardian relation",
+      "guardianName": "Guardian name",
+      "guardianAttendanceAlert": "Guardian attendance alerts",
+      "otherGuardianPhone": "Other guardian phone",
+      "otherGuardianName": "Other guardian name",
+      "otherGuardianAttendanceAlert": "Other guardian attendance alerts",
+      "admissionDate": "Admission date",
+      "admissionReason": "Reason for enrolling",
+      "isEnrolled": "Currently enrolled",
+      "withdrawnDate": "Withdrawal date",
+      "withdrawnReason": "Withdrawal reason",
+      "isOnLeave": "On leave",
+      "leaveReason": "Leave reason",
+      "memo": "Memo",
+      "classes": "Classes",
+      "homeroomTeacher": "Homeroom teacher",
+      "cashReceiptNo": "Cash receipt number",
+      "cashReceiptType": "Cash receipt type",
+      "billingDay": "Billing day",
+      "discountAmount": "Discount amount",
+      "discountType": "Discount type",
+      "studentUid": "Student ID",
+      "otherPayment": "Other payments",
+      "studentCategory": "Student category",
+      "extra1": "Extra field 1",
+      "extra2": "Extra field 2",
+      "points": "Points",
+      "credits": "Store credit",
+      "autoPayEnrolled": "Auto-pay enrolled",
+      "registeredDate": "Registered date"
+    }
   },
   "navigation": {
     "integrated": "View all sites",
@@ -285,5 +336,11 @@
       "ATTACHED_FILES": "Attached files need ownership review. Permanent deletion is blocked.",
       "OTHER_LINKED_RECORDS": "Other related records need review. Permanent deletion is blocked."
     }
+  },
+  "relation": {
+    "FATHER": "Father",
+    "MOTHER": "Mother",
+    "GUARDIAN": "Guardian",
+    "OTHER": "Other"
   }
 }

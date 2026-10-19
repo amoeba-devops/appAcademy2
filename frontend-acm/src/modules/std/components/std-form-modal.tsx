@@ -408,7 +408,7 @@ export function StdFormModal({
                 <input
                   {...register("stdGrade")}
                   className={inputClass}
-                  placeholder="G5, G8, 중1…"
+                  placeholder={t("form.gradeInputPlaceholder")}
                 />
               </div>
             </div>
@@ -604,7 +604,7 @@ export function StdFormModal({
               {t("common:actions.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? t("common:status.saving") : t("common:actions.save")}
+              {isLoading ? t("common:actions.saving") : t("common:actions.save")}
             </Button>
           </DialogFooter>
         </form>
