@@ -2065,5 +2065,8 @@
         "issues": "Vấn đề"
       }
     }
+  },
+  "session": {
+    "expired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
   }
 }

@@ -1,10 +1,13 @@
 ---
-document_id: ACM-SESSION-TTL-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-SESSION-TTL-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-19
 related: REQ-261019B-session-ttl-by-client
 change_log:
+  - version: 1.1.0
+    date: 2026-10-19
+    description: Approved as proposed (Q1 mobile browser 4h, Q2 all logins, Q3 fixed from login, Q4 existing tokens keep) / 제안대로 승인
   - version: 1.0.0
     date: 2026-10-19
     description: Work plan with UI mockup / 작업 계획 + 화면 구성안

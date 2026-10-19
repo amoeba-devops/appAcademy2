@@ -1,9 +1,12 @@
 ---
-document_id: ACM-SESSION-TTL-REQ-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-SESSION-TTL-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-19
 change_log:
+  - version: 1.1.0
+    date: 2026-10-19
+    description: Approved as proposed (Q1 mobile browser 4h, Q2 all logins, Q3 fixed from login, Q4 existing tokens keep) / 제안대로 승인
   - version: 1.0.0
     date: 2026-10-19
     description: Login session length by client — PC 4h, mobile PWA 8h / 접속 환경별 로그인 유지 시간

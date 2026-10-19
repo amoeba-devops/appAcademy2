@@ -1,3 +1,4 @@
+import { SessionExpiredNotice } from '@/components/common/session-expired-notice';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +71,7 @@ export function PortalLoginPage() {
         onSubmit={onSubmit}
         className="w-full max-w-sm rounded-lg border border-[var(--border-subtle)] bg-surface p-8 shadow-sm"
       >
+        <SessionExpiredNotice />
         <h1 className="text-lg font-semibold text-primary">
           {t('portalApp.login.title')}
         </h1>

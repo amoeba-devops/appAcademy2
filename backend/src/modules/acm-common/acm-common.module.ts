@@ -1,4 +1,5 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { SessionClientMiddleware } from './session/session-client.middleware';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AesGcmService } from './crypto/aes-gcm.service';
 import { OwnEntityGuard } from './guards/own-entity.guard';
@@ -16,4 +17,9 @@ import { OwnEntityGuard } from './guards/own-entity.guard';
   providers: [AesGcmService, OwnEntityGuard],
   exports: [AesGcmService, OwnEntityGuard, EventEmitterModule],
 })
-export class AcmCommonModule {}
+export class AcmCommonModule implements NestModule {
+  // REQ-261019B — 모든 요청에서 접속 환경(PWA·웹)을 읽어 로그인 유지 시간에 쓴다.
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SessionClientMiddleware).forRoutes('*');
+  }
+}

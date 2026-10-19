@@ -133,7 +133,8 @@ const amaOAuthProvider: Provider = {
           'acm-dev-secret-change-in-production',
         ),
         signOptions: {
-          expiresIn: config.get<string>('ACM_JWT_EXPIRES_IN', '12h') as `${number}h`,
+          // REQ-261019B — 로그인 토큰은 발급 시 sessionSignOptions()(PWA 8h·웹 4h)로 정한다. 이 값은 기본값.
+          expiresIn: config.get<string>('ACM_JWT_EXPIRES_IN_WEB', '4h') as `${number}h`,
         },
       }),
     }),
