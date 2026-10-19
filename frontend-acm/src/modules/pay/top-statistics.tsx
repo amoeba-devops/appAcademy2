@@ -1,3 +1,4 @@
+import { Notice } from "@/components/ui/empty-state";
 import { useId, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -190,7 +191,9 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
               </table>
             </details>
             {points.some((p) => p.historyIncomplete || p.review > 0) && (
-              <div className="mt-3 rounded bg-amber-50 p-2 text-xs text-amber-900">
+              // UI-261019 — 주의 박스 표준(Notice)
+              <div className="mt-3 text-xs">
+              <Notice tone="warning">
                 {tr("historyNotice")}
                 {points.map((p) => (
                   <p key={p.month}>
@@ -201,6 +204,7 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
                 <Link className="underline" to="/admin/std">
                   {tr("historyLink")}
                 </Link>
+              </Notice>
               </div>
             )}
           </section>

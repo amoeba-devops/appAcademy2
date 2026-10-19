@@ -6,6 +6,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
+import { Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   Dialog,
   DialogContent,
@@ -326,24 +329,29 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const visible = (name: string) => columns.includes(name);
   return (
     <section className="space-y-4">
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">
-          {t("pay.title")} <span className="text-sm text-secondary">KRW</span>
-        </h1>
-        <button className={btn} onClick={() => setCreateOpen(true)}>
-          {tr("create")}
-        </button>
-        <button
-          className={btn}
-          disabled={dirty || busy}
-          onClick={() => {
-            setBatchStudent(null);
-            setBatchOpen(true);
-          }}
-        >
-          {tr("activeBatch")}
-        </button>
-      </header>
+      <PageHeader
+        icon={Wallet}
+        title={t("nav.pay")}
+        description={t("pageHeader.pay.desc")}
+        meta={<span>{t("pageHeader.pay.currency")}</span>}
+        actions={
+          <>
+            <Button
+              variant="outline"
+              disabled={dirty || busy}
+              onClick={() => {
+                setBatchStudent(null);
+                setBatchOpen(true);
+              }}
+            >
+              {tr("activeBatch")}
+            </Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              {tr("create")}
+            </Button>
+          </>
+        }
+      />
       <PaymentTopStatistics
         identity={identity}
         month={monthlyMonth}

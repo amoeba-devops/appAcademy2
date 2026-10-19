@@ -2,8 +2,11 @@ import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { UnderlineTabs } from '@/components/ui/tabs';
 import { fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
 import {
   addDays,
@@ -226,6 +229,7 @@ export function CatLine({ b }: { b: StatsBucket }) {
 
 export function CalStatsPage() {
   const { t } = useTranslation('cal');
+  const { t: tc } = useTranslation('common');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { range } = useStatsPeriod();
@@ -244,10 +248,12 @@ export function CalStatsPage() {
 
   return (
     <div className="w-full min-w-0">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('stats.title', '수업통계')}</h1>
-        <PeriodControls />
-      </div>
+      <PageHeader
+        icon={BarChart3}
+        title={tc('nav.calStats')}
+        description={tc('pageHeader.calStats.desc')}
+        actions={<PeriodControls />}
+      />
 
       {isLoading || !data ? (
         <p className="admin-list-surface py-10 text-center text-sm text-secondary">…</p>
@@ -260,13 +266,13 @@ export function CalStatsPage() {
             <StatCard
               label={t('stats.done', '수업완료')}
               value={`${data.total.done}`}
-              sub={`${statsDonePct(data.total)}%`}
-              tone="emerald"
+              hint={`${statsDonePct(data.total)}%`}
+              tone="success"
             />
             <StatCard
               label={t('stats.notDone', '미완료')}
               value={`${data.total.count - data.total.done}`}
-              tone="amber"
+              tone="warning"
             />
           </div>
           <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-sm text-secondary">
@@ -280,24 +286,15 @@ export function CalStatsPage() {
               <span className="text-sm font-semibold text-primary">
                 {t('stats.byTeacher', '강사별 수업통계')}
               </span>
-              <div className="inline-flex rounded-md border border-[var(--border-subtle)] p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setView('card')}
-                  className={`rounded p-1.5 ${view === 'card' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
-                  title={t('stats.cardView', '카드뷰')}
-                >
-                  <LayoutGrid size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView('list')}
-                  className={`rounded p-1.5 ${view === 'list' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
-                  title={t('stats.listView', '리스트보기')}
-                >
-                  <List size={14} />
-                </button>
-              </div>
+              <UnderlineTabs
+                label={t('stats.byTeacher', '강사별 수업통계')}
+                items={[
+                  { key: 'card', label: t('stats.cardView', '카드뷰') },
+                  { key: 'list', label: t('stats.listView', '리스트보기') },
+                ]}
+                value={view}
+                onChange={setView}
+              />
             </div>
 
             {data.teachers.length === 0 ? (
@@ -377,34 +374,6 @@ export function CalStatsPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  tone?: 'emerald' | 'amber';
-}) {
-  const toneCls =
-    tone === 'emerald'
-      ? 'text-emerald-700'
-      : tone === 'amber'
-        ? 'text-amber-700'
-        : 'text-primary';
-  return (
-    <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3">
-      <div className="text-xs text-secondary">{label}</div>
-      <div className={`text-2xl font-bold ${toneCls}`}>
-        {value}
-        {sub && <span className="ml-1 text-sm font-normal">{sub}</span>}
-      </div>
     </div>
   );
 }

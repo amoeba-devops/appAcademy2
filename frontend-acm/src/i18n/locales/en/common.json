@@ -2025,6 +2025,20 @@
     "inbox": {
       "title": "Inbox",
       "desc": "Check the notifications you have received."
+    },
+    "more": "More",
+    "dashboard": {
+      "desc": "Pick a period and site to see consultation, class, and student status."
+    },
+    "myWork": {
+      "desc": "See today's tasks and the issues assigned to you in one place."
+    },
+    "calStats": {
+      "desc": "See teacher and class progress by period."
+    },
+    "pay": {
+      "desc": "Manage monthly billing and payment status.",
+      "currency": "Currency: KRW"
     }
   }
 }
