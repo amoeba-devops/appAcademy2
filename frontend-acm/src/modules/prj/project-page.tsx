@@ -1,3 +1,4 @@
+import { DeleteItemButton } from "./delete-item-button";
 import { DocumentTable } from "./document-table";
 import { DocumentPermissions } from "./document-permissions";
 import { ProjectFiles } from "./project-files";
@@ -895,32 +896,8 @@ export function ProjectDetailPage() {
                             >
                               링크 복사
                             </Button>
-                            {!readOnly && (
-                              <Button
-                                variant="outline"
-                                disabled={w.busy}
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      "ACM 연결을 해제합니다. Google 원본 파일은 삭제되지 않습니다.",
-                                    )
-                                  )
-                                    void w.run(async () => {
-                                      await apiClient.delete(
-                                        base +
-                                          "/projects/" +
-                                          id +
-                                          "/items/" +
-                                          i.pit_id +
-                                          "/link",
-                                      );
-                                      await refresh();
-                                    });
-                                }}
-                              >
-                                연결 해제
-                              </Button>
-                            )}
+                            {/* REQ-261019 — 작성자·담당자·테넌트 마스터 삭제(Google 원본 유지) */}
+                            <DeleteItemButton projectId={id} item={i} onDeleted={refresh} />
                           </>
                         ) : (
                           <Button
@@ -933,6 +910,9 @@ export function ProjectDetailPage() {
                           >
                             {readOnly ? "내용 보기" : "보기 / 수정"}
                           </Button>
+                        )}
+                        {!i.drive_file_id && i.pit_kind !== "ISSUE" && (
+                          <DeleteItemButton projectId={id} item={i} onDeleted={refresh} />
                         )}
                       </div>
                     </article>

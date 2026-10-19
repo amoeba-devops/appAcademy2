@@ -1984,5 +1984,13 @@
     "startTitle": "ACM 에 오신 것을 환영합니다",
     "startConsole": "운영 콘솔 로그인 (관리자·직원·강사)",
     "startPortal": "포털 로그인 (학생·학부모·강사)"
+  },
+  "itemDelete": {
+    "button": "삭제",
+    "title": "'{{name}}'을(를) 삭제할까요?",
+    "localDesc": "목록에서 사라집니다.",
+    "googleDesc": "ACM 목록에서만 삭제되고 Google Drive 원본은 남습니다.",
+    "done": "삭제했습니다.",
+    "failed": "삭제하지 못했습니다. 권한을 확인하세요."
   }
 }

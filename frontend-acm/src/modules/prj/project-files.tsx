@@ -1,8 +1,8 @@
-import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { StorageLocation } from "./storage-location";
+import { DeleteItemButton } from "./delete-item-button";
 import { apiClient } from "@/lib/api-client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { errorText, useScope } from "./project-page";
@@ -23,7 +23,6 @@ export function ProjectFiles({
   items: Item[];
   readOnly: boolean;
 }) {
-  const user = useAuthStore((s) => s.user);
   const qc = useQueryClient(),
     [upload, setUpload] = useState(false),
     [search, setSearch] = useState(""),
@@ -155,29 +154,8 @@ export function ProjectFiles({
                     >
                       다운로드
                     </button>
-                    {!readOnly && !i.viewer_ids?.includes(user?.id ?? "") && (
-                      <button
-                        className="text-red-600"
-                        onClick={async () => {
-                          if (
-                            !confirm(
-                              "목록에서 제거할까요? 원본 파일은 보존됩니다.",
-                            )
-                          )
-                            return;
-                          try {
-                            await apiClient.delete(
-                              `/acm/prj/projects/${project}/items/${i.pit_id}/link`,
-                            );
-                            await qc.invalidateQueries({ queryKey: ["prj"] });
-                          } catch (e) {
-                            setError(errorText(e));
-                          }
-                        }}
-                      >
-                        제거
-                      </button>
-                    )}
+                    {/* REQ-261019 — 작성자·담당자·테넌트 마스터만 삭제 */}
+                    {!readOnly && <DeleteItemButton projectId={project} item={i} />}
                   </div>
                 </td>
               </tr>

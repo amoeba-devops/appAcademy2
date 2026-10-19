@@ -1984,5 +1984,13 @@
     "startTitle": "欢迎使用 ACM",
     "startConsole": "运营后台登录（管理员 · 员工 · 教师）",
     "startPortal": "门户登录（学生 · 家长 · 教师）"
+  },
+  "itemDelete": {
+    "button": "删除",
+    "title": "删除“{{name}}”？",
+    "localDesc": "将从列表中移除。",
+    "googleDesc": "仅从 ACM 中删除，Google Drive 原件会保留。",
+    "done": "已删除。",
+    "failed": "无法删除，请检查权限。"
   }
 }

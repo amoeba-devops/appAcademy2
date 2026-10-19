@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { FileUpload, phases } from "./project-files";
 import { StorageLocation } from "./storage-location";
+import { DeleteItemButton } from "./delete-item-button";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -250,7 +251,11 @@ export function DocumentsPage() {
                       : "ACM 문서"}
                 </td>
                 <td className="px-4 py-3">
-                  <CopyId id={i.pit_id} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CopyId id={i.pit_id} />
+                    {/* REQ-261019 — 작성자·프로젝트 담당자·테넌트 마스터 */}
+                    <DeleteItemButton projectId={i.prj_id} item={i} />
+                  </div>
                 </td>
               </tr>
             ))}

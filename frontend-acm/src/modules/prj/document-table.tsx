@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DocumentPermissions } from "./document-permissions";
+import { DeleteItemButton } from "./delete-item-button";
 import type { Item, Project } from "./types";
 import { documentKind } from "./project-overview";
 export function DocumentTable({
@@ -153,6 +154,10 @@ export function DocumentTable({
                     </button>
                     {manage && (
                       <DocumentPermissions project={project} item={i} />
+                    )}
+                    {/* REQ-261019 — 작성자·프로젝트 담당자·테넌트 마스터 */}
+                    {project.prj_status !== "ARCHIVED" && (
+                      <DeleteItemButton projectId={project.prj_id} item={i} />
                     )}
                   </div>
                 </td>

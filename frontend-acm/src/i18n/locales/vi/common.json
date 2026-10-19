@@ -1984,5 +1984,13 @@
     "startTitle": "Chào mừng đến với ACM",
     "startConsole": "Đăng nhập bảng điều khiển (quản trị · nhân viên · giáo viên)",
     "startPortal": "Đăng nhập cổng (học sinh · phụ huynh · giáo viên)"
+  },
+  "itemDelete": {
+    "button": "Xóa",
+    "title": "Xóa '{{name}}'?",
+    "localDesc": "Mục này sẽ bị xóa khỏi danh sách.",
+    "googleDesc": "Chỉ xóa khỏi ACM; bản gốc trên Google Drive vẫn được giữ.",
+    "done": "Đã xóa.",
+    "failed": "Không thể xóa. Hãy kiểm tra quyền."
   }
 }
