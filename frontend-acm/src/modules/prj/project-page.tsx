@@ -17,6 +17,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { FolderKanban } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   Link,
@@ -36,6 +37,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import { pickGoogle } from "./google-picker";
 import {
   type Project,
@@ -98,6 +101,7 @@ function Field({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 export function ProjectListPage() {
+  const { t: tc } = useTranslation("common");
   const q = useQuery({
     queryKey: ["prj", ...useScope()],
     queryFn: async () =>
@@ -122,95 +126,101 @@ export function ProjectListPage() {
         : b.updated_at.localeCompare(a.updated_at),
     );
   return (
-    <section className="grid min-w-0 gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold">프로젝트 관리</h1>
-        <Button onClick={() => setEdit(true)}>+ 프로젝트 생성</Button>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={mine ? "outline" : "default"}
-          onClick={() => setMine(false)}
-        >
-          참여 프로젝트
-        </Button>
-        <Button
-          variant={mine ? "default" : "outline"}
-          onClick={() => setMine(true)}
-        >
-          담당 프로젝트
-        </Button>
-        <Link className="p-2 underline" to="/admin/drive">
-          Google Drive 연결
-        </Link>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Input
-          aria-label="프로젝트 검색"
-          placeholder="프로젝트 검색"
-          className="max-w-xs"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <select
-          aria-label="프로젝트 상태"
-          className={input + " !w-auto"}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">전체 (보관 제외)</option>
-          <option value="ACTIVE">진행중</option>
-          <option value="DONE">완료</option>
-          <option value="ARCHIVED">보관함</option>
-        </select>
-        <select
-          aria-label="정렬"
-          className={input + " !w-auto"}
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-        >
-          <option value="updated">최근 수정순</option>
-          <option value="issues">이슈 많은 순</option>
-        </select>
-      </div>
-      <Notice text={q.error ? errorText(q.error) : ""} />
-      {q.isLoading ? (
-        <p>불러오는 중…</p>
-      ) : !rows.length ? (
-        <p>등록된 프로젝트가 없습니다.</p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {rows.map((p) => (
-            <Link
-              key={p.prj_id}
-              to={"/admin/projects/" + p.prj_id}
-              className="min-w-0 rounded-lg border bg-surface p-4 hover:border-blue-400"
-            >
-              <div className="flex justify-between gap-2 text-xs text-secondary">
-                <span>PRJ-{p.prj_id.slice(0, 8)}</span>
-                <span>{statusNames[p.prj_status]}</span>
-              </div>
-              <h2 className="my-3 break-words text-lg font-semibold">
-                {p.prj_title}
-              </h2>
-              <p className="text-sm">
-                참여자 {p.member_count}명 · 이슈 {p.issue_count}개
-              </p>
-              <ul className="mt-3 grid gap-1 text-sm">
-                {p.recent_issues?.map((i, n) => (
-                  <li className="truncate" key={n}>
-                    {statusNames[i.pit_status]} · {i.pit_title}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-3 text-xs text-secondary">
-                최근 수정 {new Date(p.updated_at).toLocaleDateString()}
-              </p>
-            </Link>
-          ))}
+    <section className="min-w-0">
+      <PageHeader
+        icon={FolderKanban}
+        title={tc("nav.projects")}
+        description={tc("pageHeader.projects.desc")}
+        actions={
+          <>
+            <Button asChild variant="outline">
+              <Link to="/admin/drive">{tc("pageHeader.projects.driveConnect")}</Link>
+            </Button>
+            <Button onClick={() => setEdit(true)}>
+              + {tc("pageHeader.projects.create")}
+            </Button>
+          </>
+        }
+        tabs={
+          <UnderlineTabs
+            items={[
+              { key: "joined", label: tc("pageHeader.projects.joined") },
+              { key: "owned", label: tc("pageHeader.projects.owned") },
+            ]}
+            value={mine ? "owned" : "joined"}
+            onChange={(key) => setMine(key === "owned")}
+          />
+        }
+      />
+      <div className="grid min-w-0 gap-4">
+        <div className="flex flex-wrap gap-2">
+          <Input
+            aria-label="프로젝트 검색"
+            placeholder="프로젝트 검색"
+            className="max-w-xs"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <select
+            aria-label="프로젝트 상태"
+            className={input + " !w-auto"}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">전체 (보관 제외)</option>
+            <option value="ACTIVE">진행중</option>
+            <option value="DONE">완료</option>
+            <option value="ARCHIVED">보관함</option>
+          </select>
+          <select
+            aria-label="정렬"
+            className={input + " !w-auto"}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+          >
+            <option value="updated">최근 수정순</option>
+            <option value="issues">이슈 많은 순</option>
+          </select>
         </div>
-      )}
-      {edit && <ProjectEditor close={() => setEdit(false)} />}
+        <Notice text={q.error ? errorText(q.error) : ""} />
+        {q.isLoading ? (
+          <p>불러오는 중…</p>
+        ) : !rows.length ? (
+          <p>등록된 프로젝트가 없습니다.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {rows.map((p) => (
+              <Link
+                key={p.prj_id}
+                to={"/admin/projects/" + p.prj_id}
+                className="min-w-0 rounded-lg border bg-surface p-4 hover:border-blue-400"
+              >
+                <div className="flex justify-between gap-2 text-xs text-secondary">
+                  <span>PRJ-{p.prj_id.slice(0, 8)}</span>
+                  <span>{statusNames[p.prj_status]}</span>
+                </div>
+                <h2 className="my-3 break-words text-lg font-semibold">
+                  {p.prj_title}
+                </h2>
+                <p className="text-sm">
+                  참여자 {p.member_count}명 · 이슈 {p.issue_count}개
+                </p>
+                <ul className="mt-3 grid gap-1 text-sm">
+                  {p.recent_issues?.map((i, n) => (
+                    <li className="truncate" key={n}>
+                      {statusNames[i.pit_status]} · {i.pit_title}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs text-secondary">
+                  최근 수정 {new Date(p.updated_at).toLocaleDateString()}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
+        {edit && <ProjectEditor close={() => setEdit(false)} />}
+      </div>
     </section>
   );
 }

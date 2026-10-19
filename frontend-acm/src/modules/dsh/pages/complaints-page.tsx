@@ -3,7 +3,10 @@ import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
+import { MessageCircleQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { FilterBar } from "@/components/ui/section";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -16,6 +19,7 @@ import type { Complaint } from "../types/complaint";
 
 export function ComplaintsPage() {
   const { t } = useTranslation("dsh");
+  const { t: tc } = useTranslation("common");
   const [params, setParams] = useSearchParams();
   const today = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Seoul",
@@ -77,74 +81,82 @@ export function ComplaintsPage() {
       (await apiClient.get<Complaint>(`/acm/dsh/complaints/${detailId}`)).data,
   });
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-semibold">{t("complaint.manage.title")}</h1>
-        <Button
-          onClick={() => {
-            setEditing(undefined);
-            setOpen(true);
-          }}
-        >
-          {t("actions.addComplaint")}
-        </Button>
-      </div>
+    <div className="space-y-4">
+      <PageHeader
+        icon={MessageCircleQuestion}
+        title={tc("nav.complaints")}
+        description={`${tc("pageHeader.complaints.desc")} ${t("complaint.manage.manualNote")}`}
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setOpen(true);
+            }}
+          >
+            {t("actions.addComplaint")}
+          </Button>
+        }
+      />
       <form
-        className="flex flex-wrap items-end gap-3"
         onSubmit={(e) => {
           e.preventDefault();
           change("search", search);
         }}
       >
-        {(["from", "to"] as const).map((key) => (
-          <label key={key} className="text-sm">
-            {t(`range.${key}`)}
-            <Input
-              type="date"
-              value={filters[key]}
-              onChange={(e) => change(key, e.target.value)}
-            />
-          </label>
-        ))}
-        {(
-          [
-            ["site", ["ALL", "COMMON", "TPI", "TRINITY", "SANTACROCE"]],
-            ["channel", ["", "PHONE", "EMAIL", "CHAT", "IN_PERSON", "OTHER"]],
-            ["severity", ["", "LOW", "MEDIUM", "HIGH"]],
-          ] as const
-        ).map(([key, options]) => (
-          <label className="text-sm" key={key}>
-            {t(`complaint.${key}`)}
-            <select
-              className="block h-9 rounded-md border bg-surface px-3"
-              value={filters[key]}
-              onChange={(e) => change(key, e.target.value)}
-            >
-              {options.map((value) => (
-                <option key={value} value={value}>
-                  {value
-                    ? t(
-                        key === "site"
-                          ? `site.tabs.${value}`
-                          : `complaint.${key === "channel" ? "channels" : "severities"}.${value}`,
-                      )
-                    : t("complaint.manage.all")}
-                </option>
-              ))}
-            </select>
-          </label>
-        ))}
-        <Input
-          className="w-60"
-          aria-label={t("complaint.manage.search")}
-          placeholder={t("complaint.manage.search")}
-          maxLength={200}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <Button type="submit" variant="outline">
-          {t("complaint.manage.searchButton")}
-        </Button>
+        <FilterBar
+          actions={
+            <Button type="submit" variant="outline">
+              {t("complaint.manage.searchButton")}
+            </Button>
+          }
+        >
+          {(["from", "to"] as const).map((key) => (
+            <label key={key} className="text-sm">
+              {t(`range.${key}`)}
+              <Input
+                type="date"
+                value={filters[key]}
+                onChange={(e) => change(key, e.target.value)}
+              />
+            </label>
+          ))}
+          {(
+            [
+              ["site", ["ALL", "COMMON", "TPI", "TRINITY", "SANTACROCE"]],
+              ["channel", ["", "PHONE", "EMAIL", "CHAT", "IN_PERSON", "OTHER"]],
+              ["severity", ["", "LOW", "MEDIUM", "HIGH"]],
+            ] as const
+          ).map(([key, options]) => (
+            <label className="text-sm" key={key}>
+              {t(`complaint.${key}`)}
+              <select
+                className="block h-9 rounded-md border bg-surface px-3"
+                value={filters[key]}
+                onChange={(e) => change(key, e.target.value)}
+              >
+                {options.map((value) => (
+                  <option key={value} value={value}>
+                    {value
+                      ? t(
+                          key === "site"
+                            ? `site.tabs.${value}`
+                            : `complaint.${key === "channel" ? "channels" : "severities"}.${value}`,
+                        )
+                      : t("complaint.manage.all")}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
+          <Input
+            className="w-60"
+            aria-label={t("complaint.manage.search")}
+            placeholder={t("complaint.manage.search")}
+            maxLength={200}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </FilterBar>
       </form>
       {!valid && <p role="alert">{t("complaint.manage.invalidRange")}</p>}
       {warning && (
@@ -263,9 +275,6 @@ export function ComplaintsPage() {
               {t("complaint.manage.next")}
             </Button>
           </div>
-          <p className="text-xs text-secondary">
-            {t("complaint.manage.manualNote")}
-          </p>
         </>
       )}
       <Dialog

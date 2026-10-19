@@ -1992,5 +1992,39 @@
     "googleDesc": "仅从 ACM 中删除，Google Drive 原件会保留。",
     "done": "已删除。",
     "failed": "无法删除，请检查权限。"
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "按阶段管理已受理的咨询。"
+    },
+    "std": {
+      "desc": "按校区管理学生及课程信息。"
+    },
+    "stdWithdrawn": {
+      "desc": "查看已退学的学生并办理复学。"
+    },
+    "parents": {
+      "desc": "管理家长联系方式及关联的学生。"
+    },
+    "tch": {
+      "desc": "管理教师信息、负责课程及门户账号。"
+    },
+    "complaints": {
+      "desc": "记录投诉并管理处理状态。"
+    },
+    "projects": {
+      "desc": "管理您参与或负责的项目及其文档和问题。",
+      "create": "创建项目",
+      "joined": "参与的项目",
+      "owned": "负责的项目",
+      "driveConnect": "连接 Google Drive"
+    },
+    "issues": {
+      "desc": "按状态管理项目问题。"
+    },
+    "inbox": {
+      "title": "通知中心",
+      "desc": "查看收到的通知。"
+    }
   }
 }

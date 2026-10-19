@@ -1992,5 +1992,39 @@
     "googleDesc": "It is removed from ACM only; the Google Drive original stays.",
     "done": "Deleted.",
     "failed": "Could not delete. Check your permission."
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "Manage incoming consultations by stage."
+    },
+    "std": {
+      "desc": "Manage students and class information for each site."
+    },
+    "stdWithdrawn": {
+      "desc": "View withdrawn students and reinstate them."
+    },
+    "parents": {
+      "desc": "Manage parent contacts and their linked students."
+    },
+    "tch": {
+      "desc": "Manage teacher details, assigned classes and portal accounts."
+    },
+    "complaints": {
+      "desc": "Record complaints and track their handling status."
+    },
+    "projects": {
+      "desc": "Manage the projects you join or own, along with their documents and issues.",
+      "create": "Create project",
+      "joined": "Joined projects",
+      "owned": "Owned projects",
+      "driveConnect": "Connect Google Drive"
+    },
+    "issues": {
+      "desc": "Manage project issues by status."
+    },
+    "inbox": {
+      "title": "Inbox",
+      "desc": "Check the notifications you have received."
+    }
   }
 }

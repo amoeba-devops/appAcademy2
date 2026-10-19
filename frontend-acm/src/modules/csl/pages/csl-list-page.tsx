@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { List, LayoutGrid } from 'lucide-react';
+import { List, LayoutGrid, Users } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { CslCreateDialog } from '@/modules/csl/components/csl-create-dialog';
 import {
@@ -27,6 +27,8 @@ import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
+import { ResultBar } from '@/components/ui/section';
 import { formatGrade, INQUIRY_KINDS, KIND_BADGE_CLASS, type InquiryKind } from '@/modules/csl/lib/grade';
 
 interface Inquiry extends KanbanInquiry {
@@ -214,50 +216,53 @@ export function CslListPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* 요구 260914G — 삭제 목록 보기 (AMA 연동 계정만 삭제/복구 가능) */}
-          {canDelete && view === 'list' && (
-            <Button
-              size="sm"
-              variant={showDeleted ? 'default' : 'outline'}
-              onClick={() => {
-                setShowDeleted((v) => !v);
-                setPage(1);
-              }}
-              title={t('delete.listBtnTitle', '삭제한 상담을 조회합니다')}
-            >
-              <Trash2 size={14} className="mr-1" />
-              {t('delete.listBtn', '삭제 목록 보기')}
-            </Button>
-          )}
-          <ViewToggle value={view} onChange={setView} />
-          <CslCreateDialog />
-        </div>
-      </div>
+      <PageHeader
+        icon={Users}
+        title={t('common:nav.csl')}
+        description={t('common:pageHeader.csl.desc')}
+        actions={
+          <>
+            {/* 요구 260914G — 삭제 목록 보기 (AMA 연동 계정만 삭제/복구 가능) */}
+            {canDelete && view === 'list' && (
+              <Button
+                size="sm"
+                variant={showDeleted ? 'default' : 'outline'}
+                onClick={() => {
+                  setShowDeleted((v) => !v);
+                  setPage(1);
+                }}
+                title={t('delete.listBtnTitle', '삭제한 상담을 조회합니다')}
+              >
+                <Trash2 size={14} className="mr-1" />
+                {t('delete.listBtn', '삭제 목록 보기')}
+              </Button>
+            )}
+            <ViewToggle value={view} onChange={setView} />
+            <CslCreateDialog />
+          </>
+        }
+      />
       <CslListFilters
         value={globalFilters}
         onChange={updateGlobalFilter}
         onReset={resetFilters}
       />
-      <div className="flex flex-wrap items-center justify-between mb-3 text-sm text-secondary gap-2">
-        <span>
-          {t('table.totalCount', {
-            count: total,
-            defaultValue: `총 ${total}건`,
-          })}
-        </span>
-        {view === 'list' && (
-          <span>
-            {t('pagination.pageStatus', {
-              page,
-              totalPages,
-              defaultValue: `${page} / ${totalPages} 페이지`,
-            })}
-          </span>
-        )}
-      </div>
+      <ResultBar
+        right={
+          view === 'list'
+            ? t('pagination.pageStatus', {
+                page,
+                totalPages,
+                defaultValue: `${page} / ${totalPages} 페이지`,
+              })
+            : undefined
+        }
+      >
+        {t('table.totalCount', {
+          count: total,
+          defaultValue: `총 ${total}건`,
+        })}
+      </ResultBar>
       {isLoading && <p className="text-secondary">{t('common:status.loading')}</p>}
       {!isLoading && view === 'kanban' && (
         <CslKanbanBoard inquiries={items} dateLocale={dateLocale} tz={tz} />
