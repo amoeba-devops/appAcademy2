@@ -274,6 +274,7 @@ function FolderPermissions({
   folder?: Folder;
   close: () => void;
 }) {
+  const { t: tp } = useTranslation("prj");
   const scope = useScope(),
     qc = useQueryClient(),
     w = useWork();
@@ -309,11 +310,10 @@ function FolderPermissions({
     >
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>공용 폴더 · 공유 대상</DialogTitle>
+          <DialogTitle>{tp("sharedDrive.dialogTitle")}</DialogTitle>
         </DialogHeader>
         <p className="text-sm">
-          프로젝트 자료와 겹치지 않는 폴더를 연결하세요. Google 공유 권한은
-          변경하지 않습니다.
+          {tp("sharedDrive.dialogDesc")}
         </p>
         <Button
           variant="outline"
@@ -325,18 +325,20 @@ function FolderPermissions({
             })
           }
         >
-          {fileId ? "폴더 선택됨" : "Google 폴더 선택"}
+          {fileId
+            ? tp("sharedDrive.folderSelected")
+            : tp("sharedDrive.selectGoogleFolder")}
         </Button>
         <label>
-          학원 운영자 (관리자·직원)
+          {tp("sharedDrive.operators")}
           <select
             className="w-full rounded border p-2"
             value={operatorAccess}
             onChange={(e) => setOperatorAccess(e.target.value)}
           >
-            <option value="NONE">공유 안 함</option>
-            <option value="VIEW">열람</option>
-            <option value="EDIT">편집</option>
+            <option value="NONE">{tp("sharedDrive.noShare")}</option>
+            <option value="VIEW">{tp("sharedDrive.view")}</option>
+            <option value="EDIT">{tp("sharedDrive.edit")}</option>
           </select>
         </label>
         <div className="max-h-64 overflow-auto">
@@ -350,16 +352,15 @@ function FolderPermissions({
                   setChoices({ ...selected, [p.id]: e.target.value })
                 }
               >
-                <option value="NONE">지정 안 함</option>
-                <option value="VIEW">열람</option>
-                <option value="EDIT">편집</option>
+                <option value="NONE">{tp("sharedDrive.notSet")}</option>
+                <option value="VIEW">{tp("sharedDrive.view")}</option>
+                <option value="EDIT">{tp("sharedDrive.edit")}</option>
               </select>
             </label>
           ))}
         </div>
         <p className="text-xs">
-          설정 관리자는 연결 및 공유 대상을 관리할 수 있습니다. 운영자 권한과
-          개인 권한 중 높은 권한이 적용됩니다.
+          {tp("sharedDrive.footnote")}
         </p>
         {(w.error || members.error || people.error) && (
           <p role="alert" className="text-red-600">
@@ -392,7 +393,7 @@ function FolderPermissions({
             })
           }
         >
-          저장
+          {tp("common.save")}
         </Button>
       </DialogContent>
     </Dialog>
