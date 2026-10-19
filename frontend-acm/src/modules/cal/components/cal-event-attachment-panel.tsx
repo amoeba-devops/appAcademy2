@@ -141,7 +141,7 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
     <fieldset className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4">
       <legend className="px-1 text-xs font-semibold text-secondary">
         {t('attach.section')}{' '}
-        <span className="font-normal text-[11px]">({rows.length}/{MAX_COUNT})</span>
+        <span className="font-normal text-xs">({rows.length}/{MAX_COUNT})</span>
       </legend>
 
       {!readOnly && (
@@ -182,7 +182,7 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
       )}
 
       {Object.entries(errors).length > 0 && (
-        <div className="grid gap-1 text-[11px] text-red-600">
+        <div className="grid gap-1 text-xs text-red-600">
           {Object.entries(errors).map(([name, err]) => (
             <div key={name}>
               <span className="font-medium">{name}</span>: {err}
@@ -192,7 +192,7 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
       )}
 
       {rows.length === 0 ? (
-        <p className="text-[11px] text-secondary">{t('attach.empty')}</p>
+        <p className="text-xs text-secondary">{t('attach.empty')}</p>
       ) : (
         <ul className="grid gap-1 text-sm">
           {rows.map((r) => (
@@ -201,7 +201,7 @@ export function CalEventAttachmentPanel({ evtId, readOnly }: Props) {
               className="flex items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-2 py-1.5"
             >
               <span className="min-w-0 flex-1 truncate text-xs">{r.filename}</span>
-              <span className="text-[10px] text-secondary">
+              <span className="text-xs text-secondary">
                 {(Number(r.sizeBytes) / 1024).toFixed(0)} KB
               </span>
               <Button

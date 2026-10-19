@@ -187,7 +187,7 @@ export function IssueRichEditor({
                   onClick={() => menu.command(c)}
                   className={`flex w-full items-center gap-2 px-3 py-1.5 text-left ${i === menu.index ? "bg-indigo-50" : "hover:bg-gray-50"}`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
                     {c.name.slice(0, 1)}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-gray-800">{c.name}</span>

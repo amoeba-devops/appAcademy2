@@ -164,19 +164,19 @@ export function AttendeeFilter({ kind, onKindChange, value, onChange, max = 10, 
                       )}
                     </span>
                     {!c.email && (
-                      <span className="text-[10px] text-amber-600">
+                      <span className="text-xs text-amber-600">
                         {t('invitee.noEmail')}
                       </span>
                     )}
                     {selected && (
-                      <span className="text-[10px] text-accent-600">✓</span>
+                      <span className="text-xs text-accent-600">✓</span>
                     )}
                   </button>
                 );
               })}
             </div>
             {warn && (
-              <p className="border-t border-[var(--border-subtle)] px-3 py-1.5 text-[11px] text-amber-600">
+              <p className="border-t border-[var(--border-subtle)] px-3 py-1.5 text-xs text-amber-600">
                 {warn}
               </p>
             )}

@@ -38,7 +38,7 @@
       "calendar": "Lịch học",
       "materials": "Tài liệu",
       "students": "Học sinh của tôi",
-      "chat": "Trò chuyện sảnh",
+      "chat": "Trò chuyện",
       "me": "Trang của tôi"
     },
     "login": {
@@ -1222,7 +1222,8 @@
     "site": "Cơ sở",
     "actions": "Thao tác",
     "baseline": "Trạng thái ban đầu",
-    "knownWithdrawn": "Nghỉ học đã xác nhận"
+    "knownWithdrawn": "Nghỉ học đã xác nhận",
+    "historyNoticeSummary": "Lịch sử chưa đầy đủ — xem chi tiết"
   },
   "configAccess": {
     "loading": "Đang kiểm tra quyền…",

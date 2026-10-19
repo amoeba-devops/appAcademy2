@@ -60,21 +60,21 @@ export function WorkDetailPanel({
       ) : (
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600">
+            <span className="rounded bg-rose-50 px-1.5 py-0.5 text-xs font-semibold text-rose-600">
               {t("myWork.type.ISSUE")}
             </span>
             {item.mine && (
-              <span className="rounded-full bg-accent-600 px-2 text-[10.5px] font-semibold text-white">{t("myWork.badge")}</span>
+              <span className="rounded-full bg-accent-600 px-2 text-xs font-semibold text-white">{t("myWork.badge")}</span>
             )}
-            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 text-[10.5px] text-gray-600">
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-2 text-xs text-gray-600">
               {t(`issues.status.${item.pit_status}`)}
             </span>
             {item.reasons.map((r) => (
-              <span key={r} className={`rounded-full border px-2 text-[10.5px] font-semibold ${REASON_CLASS[r]}`}>
+              <span key={r} className={`rounded-full border px-2 text-xs font-semibold ${REASON_CLASS[r]}`}>
                 {t(`myWork.reason.${r}`)}
               </span>
             ))}
-            {ref && <span className="font-mono text-[11px] text-gray-400">{ref}</span>}
+            {ref && <span className="font-mono text-xs text-gray-400">{ref}</span>}
           </div>
           <p className="break-words text-[15px] font-semibold leading-snug text-gray-900">{item.pit_title}</p>
           <dl className="grid grid-cols-[72px_1fr] gap-x-2 gap-y-1.5 text-xs">
@@ -233,7 +233,7 @@ export function MyWorkKanban({
               {t(`myWork.kanban.col.${col}`)}
               <span className="font-mono text-xs font-normal text-gray-400">{cards.length}</span>
             </div>
-            <p className="mt-0.5 text-[11px] text-gray-400">{t(`myWork.kanban.colHint.${col}`)}</p>
+            <p className="mt-0.5 text-xs text-gray-400">{t(`myWork.kanban.colHint.${col}`)}</p>
           </header>
           <div className="flex flex-col gap-2 p-2">
             {cards.map((i) => {
@@ -248,17 +248,17 @@ export function MyWorkKanban({
                   className={`flex flex-col gap-1 rounded-lg border bg-white px-2.5 py-2 text-left shadow-sm hover:border-indigo-300 ${selectedId === i.pit_id ? "border-indigo-400 ring-1 ring-indigo-300" : "border-gray-200"}`}
                 >
                   <div className="flex items-start gap-1.5 text-[13px] font-medium text-gray-900">
-                    {ref && <span className="shrink-0 font-mono text-[11px] font-normal text-gray-400">{ref}</span>}
+                    {ref && <span className="shrink-0 font-mono text-xs font-normal text-gray-400">{ref}</span>}
                     <span className="line-clamp-2">{i.pit_title}</span>
                   </div>
-                  <div className="truncate text-[11.5px] text-gray-500">
+                  <div className="truncate text-xs text-gray-500">
                     {i.prj_title} · {t(`issues.status.${i.pit_status}`)}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
                     <DueTag due={i.due_date} today={today} className="!min-w-0 text-left" />
                     {a && <span className="font-mono text-indigo-500">{t("myWork.kanban.assignedDays", { n: a.days })}</span>}
                     <span
-                      className={`rounded-full px-1.5 text-[10.5px] font-semibold ${own ? "bg-gray-100 text-gray-600" : "bg-indigo-50 text-indigo-700"}`}
+                      className={`rounded-full px-1.5 text-xs font-semibold ${own ? "bg-gray-100 text-gray-600" : "bg-indigo-50 text-indigo-700"}`}
                     >
                       {t(own ? "myWork.kanban.own" : "myWork.kanban.assignedByOthers")}
                     </span>
@@ -356,7 +356,7 @@ export function MyProjectsView({
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-gray-200">
-        <div className="hidden grid-cols-[1fr_88px_72px_64px_64px] gap-2 border-b border-gray-200 bg-gray-50 px-3 py-1.5 text-[11px] font-medium text-gray-500 sm:grid">
+        <div className="hidden grid-cols-[1fr_88px_72px_64px_64px] gap-2 border-b border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500 sm:grid">
           <span>{t("myWork.projects.col.project")}</span>
           <span>{t("myWork.projects.col.status")}</span>
           <span>{t("myWork.projects.col.role")}</span>

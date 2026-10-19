@@ -104,7 +104,7 @@ function InviteHistory() {
             role="tab"
             aria-selected={status === s}
             onClick={() => setStatus(s)}
-            className={`rounded-full border px-3 py-1 text-xs ${
+            className={`min-h-9 rounded-full border px-3 py-1 text-xs sm:min-h-0 ${
               status === s ? 'border-accent-700 bg-accent-700 text-white' : 'bg-surface text-secondary'
             }`}
           >

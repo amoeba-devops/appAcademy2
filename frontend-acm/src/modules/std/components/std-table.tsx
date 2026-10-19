@@ -76,7 +76,7 @@ export function StdTable({
       <button
         type="button"
         onClick={() => onSort(field)}
-        className="inline-flex items-center gap-1 uppercase tracking-wide hover:text-primary"
+        className="inline-flex min-h-9 items-center gap-1 uppercase tracking-wide hover:text-primary sm:min-h-0"
         aria-sort={
           sort.field === field
             ? sort.dir === "asc"
@@ -149,7 +149,7 @@ export function StdTable({
               <td className="px-4 py-3 font-medium">
                 <button
                   type="button"
-                  className="text-left hover:underline"
+                  className="min-h-9 text-left hover:underline sm:min-h-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     navigate(`/admin/std/${s.id}`, {
@@ -166,7 +166,7 @@ export function StdTable({
                 )}
                 {s.sourceInquiry && (
                   <span
-                    className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[10px] font-normal text-accent-700"
+                    className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-xs font-normal text-accent-700"
                     title={t("table.fromInquiry", "신규상담 연결")}
                   >
                     {t("table.fromInquiry", "신규상담 연결")} #

@@ -68,6 +68,20 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
       month: "short",
       timeZone: "UTC",
     }).format(new Date(`${m}-01T00:00:00Z`));
+  const historyNotice = (
+    <>
+      {tr("historyNotice")}
+      {points.map((p) => (
+        <p key={p.month}>
+          {p.month}: {tr("review")} {p.review} · {tr("knownPaused")}{" "}
+          {p.knownPaused} · {tr("knownWithdrawn")} {p.knownWithdrawn}
+        </p>
+      ))}
+      <Link className="underline" to="/admin/std">
+        {tr("historyLink")}
+      </Link>
+    </>
+  );
   return (
     <>
       <div
@@ -76,7 +90,8 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
         role="region"
         aria-label={tr("title")}
       >
-        <div className="grid min-w-[600px] grid-cols-3 divide-x">
+        {/* TST-261019 M6 — 휴대폰은 차트 3개 세로 배치, md 이상은 기존 3열. */}
+        <div className="grid grid-cols-1 divide-y md:min-w-[600px] md:grid-cols-3 md:divide-x md:divide-y-0">
           <section className="min-w-0 p-3">
             <h2 className="text-center text-sm font-semibold">
               {tr("population")}
@@ -192,20 +207,20 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
             </details>
             {points.some((p) => p.historyIncomplete || p.review > 0) && (
               // UI-261019 — 주의 박스 표준(Notice)
-              <div className="mt-3 text-xs">
-              <Notice tone="warning">
-                {tr("historyNotice")}
-                {points.map((p) => (
-                  <p key={p.month}>
-                    {p.month}: {tr("review")} {p.review} · {tr("knownPaused")}{" "}
-                    {p.knownPaused} · {tr("knownWithdrawn")} {p.knownWithdrawn}
-                  </p>
-                ))}
-                <Link className="underline" to="/admin/std">
-                  {tr("historyLink")}
-                </Link>
-              </Notice>
-              </div>
+              // TST-261019 M6 — 휴대폰은 한 줄 요약으로 접고(펼쳐 보기), md 이상은 기존처럼 펼쳐 표시.
+              <>
+                <div className="mt-3 hidden text-xs md:block">
+                  <Notice tone="warning">{historyNotice}</Notice>
+                </div>
+                <details className="mt-3 text-xs md:hidden">
+                  <summary className="cursor-pointer font-medium text-amber-800">
+                    {tr("historyNoticeSummary")}
+                  </summary>
+                  <div className="mt-2">
+                    <Notice tone="warning">{historyNotice}</Notice>
+                  </div>
+                </details>
+              </>
             )}
           </section>
           {result.collections.map((p) => (

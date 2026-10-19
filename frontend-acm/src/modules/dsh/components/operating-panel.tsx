@@ -141,7 +141,7 @@ export function OperatingPanel({
           <button
             onClick={open}
             disabled={!data || error}
-            className="text-xs underline"
+            className="text-xs underline min-h-9 sm:min-h-0"
           >
             {t("ops.edit")}
           </button>
@@ -209,7 +209,7 @@ export function OperatingPanel({
               ) : null,
             )}
           </svg>
-          <p className="text-[10px] text-secondary">
+          <p className="text-xs text-secondary">
             {t("ops.through", { date: data.actualThrough })}
           </p>
           {(data.quality.unverifiedManual > 0 ||
@@ -226,7 +226,7 @@ export function OperatingPanel({
             </details>
           )}
           <button
-            className="text-xs underline"
+            className="text-xs underline min-h-9 sm:min-h-0"
             onClick={() => {
               const header = [
                 "date",
@@ -301,7 +301,7 @@ export function OperatingPanel({
           >
             {t("ops.save")}
           </Button>
-          <button onClick={() => setEdit(false)}>{t("ops.close")}</button>
+          <button className="min-h-9 sm:min-h-0" onClick={() => setEdit(false)}>{t("ops.close")}</button>
         </div>
       )}
     </div>

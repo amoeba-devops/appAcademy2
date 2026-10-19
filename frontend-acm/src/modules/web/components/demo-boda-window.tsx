@@ -141,7 +141,7 @@ export function DemoBodaWindow({
             </p>
           </div>
           <span
-            className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ${statusColor(
+            className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium ${statusColor(
               localStatus,
             )}`}
           >
@@ -234,8 +234,8 @@ export function DemoBodaWindow({
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] text-secondary text-center">
-        evtId: <code className="text-[10px]">{evtId}</code> · meetKey: <code className="text-[10px]">{ctx.meetKey}</code>
+      <p className="mt-3 text-xs text-secondary text-center">
+        evtId: <code className="text-xs">{evtId}</code> · meetKey: <code className="text-xs">{ctx.meetKey}</code>
       </p>
     </div>
   );

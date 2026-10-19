@@ -143,7 +143,7 @@ export function MapApplyDetailPage() {
               className="h-8 w-[160px] text-sm"
             />
             {data.birthdateRaw && (
-              <span className="text-[11px] text-amber-700">
+              <span className="text-xs text-amber-700">
                 {t('mapApply.birthdateRaw', { raw: data.birthdateRaw })}
               </span>
             )}
@@ -214,7 +214,7 @@ export function MapApplyDetailPage() {
           label={t('mapApply.field.followupMemo')}
           value={data.followupMemo ?? '—'}
         />
-        <p className="mt-3 text-[11px] text-secondary">{t('mapApply.opsNote')}</p>
+        <p className="mt-3 text-xs text-secondary">{t('mapApply.opsNote')}</p>
       </section>
     </div>
   );

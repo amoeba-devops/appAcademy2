@@ -578,7 +578,7 @@ export function DashboardPage() {
                       <tr className="bg-surface-subtle">
                         <td
                           colSpan={totalCols}
-                          className="px-2 py-1 text-[11px] font-medium text-secondary border-t border-[var(--border-subtle)]"
+                          className="px-2 py-1 text-xs font-medium text-secondary border-t border-[var(--border-subtle)]"
                         >
                           {ym}
                         </td>
@@ -588,7 +588,7 @@ export function DashboardPage() {
                       className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-surface-subtle"
                       onClick={() => onRowClick(row.date)}
                     >
-                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}{row.date > (gridQ.data?.actualThrough ?? '') && <span className="block text-[10px] text-secondary">{t('quality.future')}</span>}</td>
+                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}{row.date > (gridQ.data?.actualThrough ?? '') && <span className="block text-xs text-secondary">{t('quality.future')}</span>}</td>
                       <td className="px-2 py-1">{row.dayOfWeekKr}</td>
                       {flatMetrics.map((md, i) => {
                         const field = METRIC_TO_FIELD[md.code];
@@ -606,10 +606,10 @@ export function DashboardPage() {
                             }
                             title={isVisitor ? row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' ? `GA ${row.marketingGa ?? '—'} + ${row.marketingAdjustment ?? 0}` : visitorCellTitle(row.date) : undefined}
                           >
-                            {lifeCodes.includes(md.code)?<button type="button" className="underline" disabled={lifeRows.get(row.date)?.[md.code]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}>{lifeRows.get(row.date)?.[md.code]?.calculated??'—'}{lifeRows.get(row.date)?.[md.code]?.quality==='PARTIAL'?' *':''}</button>:md.category==='OPERATING' ? ['ops_new_st','ops_returning_st','ops_referral_st'].includes(md.code)?<button type="button" className="underline" disabled={opsRows.get(row.date)?.[md.code as OpsMetric]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}><DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/></button>:<DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
-                            {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-[10px] text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
+                            {lifeCodes.includes(md.code)?<button type="button" className="underline min-h-9 min-w-9 sm:min-h-0 sm:min-w-0" disabled={lifeRows.get(row.date)?.[md.code]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}>{lifeRows.get(row.date)?.[md.code]?.calculated??'—'}{lifeRows.get(row.date)?.[md.code]?.quality==='PARTIAL'?' *':''}</button>:md.category==='OPERATING' ? ['ops_new_st','ops_returning_st','ops_referral_st'].includes(md.code)?<button type="button" className="underline min-h-9 min-w-9 sm:min-h-0 sm:min-w-0" disabled={opsRows.get(row.date)?.[md.code as OpsMetric]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}><DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/></button>:<DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
+                            {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-xs text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
                             {isManualVisitor && (
-                              <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
+                              <span className="ml-0.5 text-xs text-secondary" aria-label={t('visitor.manualMark')}>
                                 ✎
                               </span>
                             )}
@@ -638,7 +638,7 @@ export function DashboardPage() {
                       }
                     >
                       {lifeCodes.includes(md.code)?lifeQ.isError?'—':lifeQ.data?.summary[md.code]?.calculated??'—':md.category==='OPERATING' ? <DualValue cell={opsQ.isError?undefined:opsQ.data?.summary[md.code as OpsMetric]}/> : fmt(gridQ.data!.sums[md.code], md.format)}
-                      {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}
+                      {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-xs text-secondary">{t('quality.partial')}</span>}
                     </td>
                   );
                 })}

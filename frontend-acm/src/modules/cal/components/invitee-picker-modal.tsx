@@ -109,7 +109,7 @@ export function InviteePickerModal({ open, onClose, onPick, excludeKeys }: Props
                     className="h-4 w-4"
                   />
                   <span
-                    className={`text-[10px] font-mono uppercase px-1.5 py-0.5 rounded ${
+                    className={`text-xs font-mono uppercase px-1.5 py-0.5 rounded ${
                       c.kind === 'STUDENT'
                         ? 'bg-blue-100 text-blue-700'
                         : c.kind === 'TEACHER'

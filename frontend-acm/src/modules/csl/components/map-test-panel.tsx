@@ -296,7 +296,7 @@ export function MapTestPanel({
               {isIntake ? t('detail.mapTest.priorScores') : t('detail.mapTest.scores')}
             </Label>
             {isIntake && (
-              <p className="text-[11px] text-secondary -mt-2">
+              <p className="text-xs text-secondary -mt-2">
                 {t('detail.mapTest.priorScoresHint')}
               </p>
             )}
@@ -339,7 +339,7 @@ export function MapTestPanel({
         {isIntake && <TranscriptUploadStub />}
 
         {!isIntake && data?.resultEnteredAt && (
-          <p className="text-[11px] text-secondary">
+          <p className="text-xs text-secondary">
             {t('detail.mapTest.resultEntered', {
               when: new Date(data.resultEnteredAt).toLocaleString(),
             })}
@@ -473,7 +473,7 @@ function ResultPdfDownload({ inqId }: { inqId: string }) {
     <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-3">
       <div>
         <p className="text-sm font-medium">{t('detail.mapTest.resultPdf')}</p>
-        <p className="text-[11px] text-secondary">
+        <p className="text-xs text-secondary">
           {t('detail.mapTest.resultPdfHint')}
         </p>
       </div>
@@ -498,7 +498,7 @@ function TranscriptUploadStub() {
   return (
     <div className="grid gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
       <Label className="text-xs">{t('detail.mapTest.transcripts')}</Label>
-      <p className="text-[11px] text-secondary">
+      <p className="text-xs text-secondary">
         {t('detail.mapTest.transcriptsComingSoon')}
       </p>
       <input

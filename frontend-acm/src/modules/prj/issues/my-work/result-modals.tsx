@@ -140,7 +140,7 @@ export function CompleteConfirmModal({
         <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto text-xs text-gray-700">
           {targets.map((x) => (
             <li key={x.pit_id} className="flex items-center gap-1.5">
-              <span className="rounded bg-rose-50 px-1 text-[10px] font-semibold text-rose-600">
+              <span className="rounded bg-rose-50 px-1 text-xs font-semibold text-rose-600">
                 {t("myWork.type.ISSUE")}
               </span>
               <span className="truncate">{x.pit_title}</span>
@@ -164,7 +164,7 @@ export function CompleteConfirmModal({
               </label>
             ))}
           </div>
-          {!single && <p className="mt-1.5 text-[11px] text-gray-500">{t("myWork.complete.skipNote")}</p>}
+          {!single && <p className="mt-1.5 text-xs text-gray-500">{t("myWork.complete.skipNote")}</p>}
         </fieldset>
         {tooMany && (
           <p className="mt-2 text-xs text-red-600">{t("myWork.complete.tooMany", { max: MAX_BULK_COMPLETE })}</p>

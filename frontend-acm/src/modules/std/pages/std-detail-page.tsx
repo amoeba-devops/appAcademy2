@@ -353,7 +353,7 @@ export function StdDetailPage() {
                     </span>
                   )}
                   {p.isPrimary && (
-                    <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-[10px] font-semibold text-accent">
+                    <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 text-xs font-semibold text-accent">
                       <Star className="h-3 w-3" />
                       {t("field.parentPrimary", "대표학부모")}
                     </span>

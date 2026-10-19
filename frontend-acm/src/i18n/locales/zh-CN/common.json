@@ -38,7 +38,7 @@
       "calendar": "课程表",
       "materials": "文档/资料",
       "students": "学生管理",
-      "chat": "大厅聊天",
+      "chat": "聊天",
       "me": "我的页面"
     },
     "login": {
@@ -1222,7 +1222,8 @@
     "site": "校区",
     "actions": "操作",
     "baseline": "原有状态",
-    "knownWithdrawn": "已确认退学"
+    "knownWithdrawn": "已确认退学",
+    "historyNoticeSummary": "历史记录不完整 — 查看详情"
   },
   "configAccess": {
     "loading": "正在检查权限…",

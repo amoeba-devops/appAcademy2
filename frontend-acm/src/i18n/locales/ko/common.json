@@ -38,7 +38,7 @@
       "calendar": "수업일정",
       "materials": "문서/자료실",
       "students": "수강생관리",
-      "chat": "로비채팅",
+      "chat": "채팅",
       "me": "마이페이지"
     },
     "login": {
@@ -1222,7 +1222,8 @@
     "site": "사이트",
     "actions": "작업",
     "baseline": "기존 상태",
-    "knownWithdrawn": "확인된 퇴원"
+    "knownWithdrawn": "확인된 퇴원",
+    "historyNoticeSummary": "과거 이력 불완전 — 자세히 보기"
   },
   "configAccess": {
     "loading": "권한 확인 중…",
