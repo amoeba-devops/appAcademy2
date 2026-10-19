@@ -64,7 +64,7 @@ export function WorkDetailPanel({
               {t("myWork.type.ISSUE")}
             </span>
             {item.mine && (
-              <span className="rounded-full bg-indigo-600 px-2 text-[10.5px] font-semibold text-white">{t("myWork.badge")}</span>
+              <span className="rounded-full bg-accent-600 px-2 text-[10.5px] font-semibold text-white">{t("myWork.badge")}</span>
             )}
             <span className="rounded-full border border-gray-200 bg-gray-50 px-2 text-[10.5px] text-gray-600">
               {t(`issues.status.${item.pit_status}`)}

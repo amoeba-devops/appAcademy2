@@ -178,7 +178,7 @@ export function DocumentsPage() {
         {/* REQ-261016E — 문서 화면에서 바로 작성: 프로젝트·종류·방식 선택 */}
         <button
           type="button"
-          className="rounded bg-blue-600 p-2 text-white"
+          className="rounded bg-accent-600 p-2 text-white"
           onClick={() => setCreating(true)}
         >
           + {t("docsCreate.title")}

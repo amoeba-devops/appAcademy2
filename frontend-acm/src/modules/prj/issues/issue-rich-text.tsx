@@ -147,7 +147,7 @@ export function IssueRichEditor({
   }, [editor, value]);
   if (!editor) return null;
   const btn = (active: boolean) =>
-    `rounded p-1 ${active ? "bg-indigo-600 text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`;
+    `rounded p-1 ${active ? "bg-accent-600 text-white" : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`;
   const tools = [
     { icon: Bold, on: () => editor.chain().focus().toggleBold().run(), active: editor.isActive("bold"), label: "Bold" },
     { icon: Italic, on: () => editor.chain().focus().toggleItalic().run(), active: editor.isActive("italic"), label: "Italic" },

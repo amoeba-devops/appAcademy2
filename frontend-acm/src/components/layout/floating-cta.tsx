@@ -45,7 +45,7 @@ export function FloatingCta() {
           'flex h-16 w-16 flex-col items-center justify-center rounded-xl border text-[11px] font-semibold shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl sm:h-[72px] sm:w-[72px]';
         const variant =
           btn.variant === 'primary'
-            ? 'bg-blue-600 border-blue-600 text-white'
+            ? 'bg-accent-600 border-blue-600 text-white'
             : btn.variant === 'kakao'
               ? 'bg-[#FAE100] border-[#FAE100] text-[#3C1E1E]'
               : 'bg-white border-slate-200 text-slate-900';

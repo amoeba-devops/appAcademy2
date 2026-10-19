@@ -38,7 +38,7 @@ export function ActionResultModal({
             type="button"
             autoFocus
             onClick={onClose}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
           >
             {t("myWork.confirm")}
           </button>

@@ -62,7 +62,7 @@ export function DocumentPermissions({
             ))}
             {error && <p role="alert">{error}</p>}
             <button
-              className="rounded bg-blue-600 p-2 text-white"
+              className="rounded bg-accent-600 p-2 text-white"
               disabled={busy}
               onClick={async () => {
                 setBusy(true);

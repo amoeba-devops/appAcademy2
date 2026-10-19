@@ -154,7 +154,7 @@ export function CategoryFormDialog({ open, initial, onClose, onSaved }: Props) {
           <button
             onClick={submit}
             disabled={submitting || !code.trim() || !labelKr.trim()}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded disabled:opacity-50"
+            className="px-3 py-1.5 bg-accent-600 text-white rounded disabled:opacity-50"
           >
             {submitting ? tc('actions.saving') : tc('actions.save')}
           </button>

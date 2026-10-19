@@ -264,7 +264,7 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                     <span
                       className={clsx(
                         "h-3.5 w-3.5 shrink-0 rounded-full border",
-                        on ? "border-indigo-600 bg-indigo-600 ring-2 ring-inset ring-white" : "border-gray-300",
+                        on ? "border-indigo-600 bg-accent-600 ring-2 ring-inset ring-white" : "border-gray-300",
                       )}
                     />
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
@@ -275,7 +275,7 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                       {m.email && <span className="block truncate text-xs text-secondary">{m.email}</span>}
                     </span>
                     {isCurrent && (
-                      <span className="shrink-0 rounded-full bg-indigo-600 px-1.5 text-[10.5px] font-semibold text-white">
+                      <span className="shrink-0 rounded-full bg-accent-600 px-1.5 text-[10.5px] font-semibold text-white">
                         {t("issues.assign.currentTag")}
                       </span>
                     )}

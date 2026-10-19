@@ -86,7 +86,7 @@ export function ProjectFiles({
         </select>
         {!readOnly && (
           <button
-            className="rounded bg-blue-600 px-3 py-2 text-white"
+            className="rounded bg-accent-600 px-3 py-2 text-white"
             onClick={() => setUpload(true)}
           >
             + 파일 업로드
@@ -350,7 +350,7 @@ export function FileUpload({
           )}
           {error && <p role="alert">{error}</p>}
           <button
-            className="rounded bg-blue-600 p-2 text-white"
+            className="rounded bg-accent-600 p-2 text-white"
             disabled={
               busy || !file || !title.trim() || file.size > 50 * 1024 * 1024
             }

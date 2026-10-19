@@ -102,7 +102,7 @@ export function MyWorkRow({
         selected || picked ? "bg-indigo-50/70" : "bg-white"
       }`}
     >
-      {mineIssue && <span className="absolute inset-y-0 left-0 w-1 bg-indigo-600" aria-hidden />}
+      {mineIssue && <span className="absolute inset-y-0 left-0 w-1 bg-accent-600" aria-hidden />}
 
       {selectable && (
         <button
@@ -117,7 +117,7 @@ export function MyWorkRow({
           }}
           className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] ${
             picked
-              ? "border-indigo-600 bg-indigo-600 text-white"
+              ? "border-indigo-600 bg-accent-600 text-white"
               : "border-gray-300 bg-white hover:border-indigo-400 disabled:opacity-40"
           }`}
         >
@@ -167,7 +167,7 @@ export function MyWorkRow({
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-gray-500">
           {mineIssue && (
-            <span className="rounded-full bg-indigo-600 px-1.5 text-[10.5px] font-semibold text-white">
+            <span className="rounded-full bg-accent-600 px-1.5 text-[10.5px] font-semibold text-white">
               {t("myWork.badge")}
             </span>
           )}
