@@ -35,6 +35,15 @@
 }
 .admin-page-content, .admin-support-panel { min-width: 0; width: 100%; }
 .admin-page-content :where(table) { background: var(--bg-surface); }
+/* UI-261019 — 표 머리글 표준: 배경 gray-50, 12px/600 보조색. */
+.admin-page-content thead th {
+  background: var(--gray-50);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.admin-page-content thead { background: var(--gray-50); }
 .admin-list-surface {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);

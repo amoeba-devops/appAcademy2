@@ -68,7 +68,7 @@ export function ProjectRelations({
             </h2>
             {manage && (
               <button
-                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                className="rounded-lg bg-accent-600 px-3 py-2 text-sm text-white"
                 onClick={() => {
                   setKind(k);
                   setName("");
@@ -186,7 +186,7 @@ export function ProjectRelations({
               {error && <p role="alert">{error}</p>}
               <button
                 disabled={busy || !name.trim()}
-                className="rounded bg-blue-600 p-2 text-white"
+                className="rounded bg-accent-600 p-2 text-white"
               >
                 {busy ? "저장 중…" : "연결"}
               </button>

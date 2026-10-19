@@ -97,7 +97,7 @@ export function SharedDrivePage() {
             <button
               type="button"
               disabled={!status.data.connected}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               onClick={() => setPermissions("new")}
             >
               <Link2 className="h-4 w-4" />

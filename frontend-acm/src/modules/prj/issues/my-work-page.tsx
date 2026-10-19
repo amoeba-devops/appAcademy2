@@ -244,7 +244,7 @@ export function MyWorkPage() {
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="flex items-center gap-2 text-[15px] font-bold text-gray-900">
           {t("myWork.focus.title")}
-          <span className="rounded-full bg-indigo-600 px-2 text-xs font-semibold text-white">{focusShown.length}</span>
+          <span className="rounded-full bg-accent-600 px-2 text-xs font-semibold text-white">{focusShown.length}</span>
         </h2>
         <span className="text-xs text-gray-500">{t("myWork.focus.hint")}</span>
         {reasonFilter && (
@@ -426,7 +426,7 @@ export function MyWorkPage() {
                   type="button"
                   aria-pressed={view === v}
                   onClick={() => setView(v)}
-                  className={`rounded-md px-3 py-1 text-xs ${view === v ? "bg-indigo-600 font-semibold text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                  className={`rounded-md px-3 py-1 text-xs ${view === v ? "bg-accent-600 font-semibold text-white" : "text-gray-600 hover:bg-gray-100"}`}
                 >
                   {t(`myWork.view.${v}`)}
                 </button>
@@ -435,7 +435,7 @@ export function MyWorkPage() {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
+              className="inline-flex items-center gap-1 rounded-lg bg-accent-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-700"
             >
               <Plus className="h-3.5 w-3.5" />
               {t("myWork.newWork")}
@@ -477,7 +477,7 @@ export function MyWorkPage() {
                       setRelation(r);
                       setCardFilter(null);
                     }}
-                    className={`rounded-full border px-3 py-1 text-xs ${relation === r ? "border-indigo-600 bg-indigo-600 font-semibold text-white" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}
+                    className={`rounded-full border px-3 py-1 text-xs ${relation === r ? "border-indigo-600 bg-accent-600 font-semibold text-white" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}
                   >
                     {t(`myWork.relation.${r}`)} <span className="font-mono opacity-80">{relationItems(r).length}</span>
                   </button>

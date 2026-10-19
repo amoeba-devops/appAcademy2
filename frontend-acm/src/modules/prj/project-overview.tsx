@@ -113,7 +113,7 @@ export function ProjectOverview({
             {manage && (
               <button
                 onClick={onManage}
-                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                className="rounded-lg bg-accent-600 px-3 py-2 text-sm text-white"
               >
                 멤버 관리
               </button>
