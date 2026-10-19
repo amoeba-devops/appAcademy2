@@ -1984,5 +1984,13 @@
     "startTitle": "Welcome to ACM",
     "startConsole": "Console sign-in (admins · staff · teachers)",
     "startPortal": "Portal sign-in (students · parents · teachers)"
+  },
+  "itemDelete": {
+    "button": "Delete",
+    "title": "Delete '{{name}}'?",
+    "localDesc": "It will be removed from the list.",
+    "googleDesc": "It is removed from ACM only; the Google Drive original stays.",
+    "done": "Deleted.",
+    "failed": "Could not delete. Check your permission."
   }
 }

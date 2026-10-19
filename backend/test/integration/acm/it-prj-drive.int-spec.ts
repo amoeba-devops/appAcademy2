@@ -981,7 +981,18 @@ describe('Project / shared Drive isolation and durable operations', () => {
       drive_file_id: string;
     }[];
     const file = items.find((i) => i.drive_file_id === 'file-1')!;
-    await projects.unlink(member, projectId, file.pit_id);
+    // REQ-261019 — 작성자가 아닌 일반 참여자는 삭제(연결 해제) 불가, 프로젝트 소유자는 가능
+    await expect(
+      projects.unlink(member, projectId, file.pit_id),
+    ).rejects.toMatchObject({ status: 403 });
+    const listed = (await projects.items(member, projectId)) as {
+      pit_id: string;
+      can_delete: boolean;
+    }[];
+    expect(listed.find((i) => i.pit_id === file.pit_id)?.can_delete).toBe(
+      false,
+    );
+    await projects.unlink(owner, projectId, file.pit_id);
     const [stored] = await ds.query(
       'SELECT deleted_at FROM amb_acm_prj_item WHERE pit_id=$1',
       [file.pit_id],
@@ -1044,5 +1055,61 @@ describe('Project / shared Drive isolation and durable operations', () => {
     await drive.backfillFolderNames(ent);
     expect(google.file).not.toHaveBeenCalled();
     tokenSpy.mockRestore();
+  });
+  it('REQ-261019: authors, project leads and tenant masters delete from lists; issues excluded', async () => {
+    const [{ prj_id: pid }] = await ds.query<{ prj_id: string }[]>(
+      `INSERT INTO amb_acm_prj_project(ent_id,prj_title,owner_id) VALUES($1,'삭제 테스트',$2) RETURNING prj_id`,
+      [ent, owner.id],
+    );
+    await ds.query(
+      `INSERT INTO amb_acm_prj_member(ent_id,prj_id,usr_id,member_role) VALUES($1,$2,$3,'MEMBER')`,
+      [ent, pid, member.id],
+    );
+    const mk = async (by: string, kind = 'NOTE') =>
+      (
+        await ds.query<{ pit_id: string }[]>(
+          `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_title,pit_kind,created_by) VALUES($1,$2,'x',$3,$4) RETURNING pit_id`,
+          [ent, pid, kind, by],
+        )
+      )[0].pit_id;
+    const mine = await mk(member.id);
+    const ownersNote = await mk(owner.id);
+    const issue = await mk(member.id, 'ISSUE');
+    const docs = (await projects.allDocuments(member)) as {
+      pit_id: string;
+      can_delete: boolean;
+    }[];
+    expect(docs.find((d) => d.pit_id === mine)?.can_delete).toBe(true);
+    expect(docs.find((d) => d.pit_id === ownersNote)?.can_delete).toBe(false);
+    await projects.deleteItem(member, pid, mine);
+    await expect(
+      projects.deleteItem(member, pid, ownersNote),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(projects.deleteItem(owner, pid, issue)).rejects.toMatchObject({
+      status: 404,
+    });
+    // 테넌트 마스터는 참여 중인 프로젝트에서 남의 항목도 삭제
+    await ds.query(
+      `INSERT INTO amb_acm_user_permission VALUES($1,$2,'TENANT_MASTER')`,
+      [ent, member.id],
+    );
+    expect(
+      (
+        (await projects.items(member, pid)) as {
+          pit_id: string;
+          can_delete: boolean;
+        }[]
+      ).find((i) => i.pit_id === ownersNote)?.can_delete,
+    ).toBe(true);
+    await projects.deleteItem(member, pid, ownersNote);
+    const left = await ds.query<{ n: number }[]>(
+      `SELECT count(*)::int n FROM amb_acm_prj_item WHERE prj_id=$1 AND deleted_at IS NULL`,
+      [pid],
+    );
+    expect(left[0].n).toBe(1); // 이슈만 남음
+    await ds.query(
+      `DELETE FROM amb_acm_user_permission WHERE usr_id=$1 AND upr_permission='TENANT_MASTER'`,
+      [member.id],
+    );
   });
 });

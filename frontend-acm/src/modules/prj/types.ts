@@ -23,6 +23,8 @@ export interface Project {
 }
 export interface Item {
   viewer_ids?: string[];
+  /** REQ-261019 — 목록 삭제 가능(작성자·프로젝트 담당자·테넌트 마스터) */
+  can_delete?: boolean;
   file_phase?: string;
   download_count?:number;
   document_type?: "MEMO" | "SHEET" | "DOC" | "FILE";

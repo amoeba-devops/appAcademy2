@@ -1,10 +1,13 @@
 ---
-document_id: ACM-DOC-DELETE-PLN-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-DOC-DELETE-PLN-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-19
 related: REQ-261019-doc-delete-in-list
 change_log:
+  - version: 1.1.0
+    date: 2026-10-19
+    description: Approved as recommended (master = project owner/manager + tenant master; keep Google original; unlink merged) / 권장안 승인
   - version: 1.0.0
     date: 2026-10-19
     description: Work plan with UI mockup / 작업 계획 + 화면 구성안

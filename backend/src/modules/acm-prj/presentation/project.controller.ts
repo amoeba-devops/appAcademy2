@@ -196,6 +196,14 @@ export class ProjectController {
   ) {
     return this.projects.saveDocument(u, id, d, item);
   }
+  // REQ-261019 — 목록 삭제(작성자·프로젝트 담당자·테넌트 마스터)
+  @Delete('projects/:id/items/:item') removeItem(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('item', ParseUUIDPipe) item: string,
+  ) {
+    return this.projects.deleteItem(u, id, item);
+  }
   @Delete('projects/:id/items/:item/link') unlink(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,

@@ -1,9 +1,12 @@
 ---
-document_id: ACM-DOC-DELETE-REQ-1.0.0
-version: 1.0.0
-status: Draft
+document_id: ACM-DOC-DELETE-REQ-1.1.0
+version: 1.1.0
+status: Approved
 created: 2026-10-19
 change_log:
+  - version: 1.1.0
+    date: 2026-10-19
+    description: Approved as recommended (master = project owner/manager + tenant master; keep Google original; unlink merged) / 권장안 승인
   - version: 1.0.0
     date: 2026-10-19
     description: Delete button in document/file lists for author and master / 목록 삭제 버튼(작성자·마스터)
