@@ -284,9 +284,9 @@ function TenantMenusSection({ entId }: { entId: string }) {
                   className="h-4 w-4 rounded border-[var(--border-subtle)]"
                 />
                 <span className="text-primary">{tc(`nav.${it.key}`)}</span>
-                <span className="ml-2 text-[10px] text-secondary">{it.key}</span>
+                <span className="ml-2 text-xs text-secondary">{it.key}</span>
                 {it.alwaysOn && (
-                  <span className="ml-auto text-[10px] uppercase text-secondary">
+                  <span className="ml-auto text-xs uppercase text-secondary">
                     {t('tenants.menus.alwaysOn')}
                   </span>
                 )}

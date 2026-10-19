@@ -139,7 +139,7 @@ export function PeriodControls() {
           <button
             type="button"
             onClick={() => shift(-1)}
-            className="rounded p-1 hover:bg-[var(--gray-100)]"
+            className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
           >
             <ChevronLeft size={16} />
           </button>
@@ -147,7 +147,7 @@ export function PeriodControls() {
           <button
             type="button"
             onClick={() => shift(1)}
-            className="rounded p-1 hover:bg-[var(--gray-100)]"
+            className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
           >
             <ChevronRight size={16} />
           </button>
@@ -187,7 +187,7 @@ export function PeriodControls() {
             key={u}
             type="button"
             onClick={() => set(u)}
-            className={`rounded px-2.5 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+            className={`min-h-9 rounded px-2.5 py-1 sm:min-h-0 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
           >
             {u === 'week' || u === 'month'
               ? t(`view.${u}`)
@@ -324,10 +324,10 @@ export function CalStatsPage() {
                         <span className="text-xs font-normal text-secondary">h</span>
                       </span>
                     </div>
-                    <div className="mt-0.5 text-[11px] text-emerald-700">
+                    <div className="mt-0.5 text-xs text-emerald-700">
                       {t('stats.done')} {tch.done} ({statsDonePct(tch)}%)
                     </div>
-                    <div className="mt-0.5 text-[11px] text-secondary">
+                    <div className="mt-0.5 text-xs text-secondary">
                       <CatLine b={tch} />
                     </div>
                   </button>

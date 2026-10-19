@@ -115,7 +115,7 @@ export function IssueDetailPage() {
               <span className={PRIORITY_BADGE[i.pit_priority]}>{t(`issues.priority.${i.pit_priority}`)}</span>
             </Meta>
             <Meta label={t("issues.fields.project")}>
-              <Link className="hover:underline" to={`/admin/projects/${i.prj_id}?tab=issues`}>
+              <Link className="inline-flex min-h-9 items-center hover:underline sm:inline sm:min-h-0" to={`/admin/projects/${i.prj_id}?tab=issues`}>
                 {i.prj_title}
               </Link>
             </Meta>
@@ -139,7 +139,7 @@ export function IssueDetailPage() {
             </Meta>
             {i.pit_parent_id && (
               <Meta label={t("issues.fields.parentIssue")}>
-                <Link className="text-indigo-600 hover:underline" to={`/admin/issues/${i.pit_parent_id}`}>
+                <Link className="inline-flex min-h-9 items-center text-indigo-600 hover:underline sm:inline sm:min-h-0" to={`/admin/issues/${i.pit_parent_id}`}>
                   {refLabel(i.parent_ref_no)} {i.parent_title}
                 </Link>
               </Meta>
@@ -268,7 +268,7 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                         on ? "border-indigo-600 bg-accent-600 ring-2 ring-inset ring-white" : "border-gray-300",
                       )}
                     />
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
                       {m.name.slice(0, 1)}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -276,7 +276,7 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                       {m.email && <span className="block truncate text-xs text-secondary">{m.email}</span>}
                     </span>
                     {isCurrent && (
-                      <span className="shrink-0 rounded-full bg-accent-600 px-1.5 text-[10.5px] font-semibold text-white">
+                      <span className="shrink-0 rounded-full bg-accent-600 px-1.5 text-xs font-semibold text-white">
                         {t("issues.assign.currentTag")}
                       </span>
                     )}
@@ -340,7 +340,7 @@ function Attachments({ prj, items }: { prj: string; items: IssueAttachment[] }) 
               type="button"
               disabled={!a.pia_url && !a.file_available}
               onClick={() => void open(a)}
-              className="inline-flex max-w-full items-center gap-2 text-indigo-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+              className="inline-flex min-h-9 max-w-full items-center gap-2 text-indigo-600 sm:min-h-0 hover:underline disabled:text-gray-400 disabled:no-underline"
             >
               {a.pia_url ? <LinkIcon className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
               <span className="truncate">{a.pia_name}</span>
@@ -460,14 +460,14 @@ function Comments({
             <span>{new Date(c.created_at).toLocaleString()}</span>
             {c.updated_at !== c.created_at && <span>({t("issues.edited")})</span>}
             {!readOnly && c.author_id === user?.id && (
-              <button type="button" className="ml-auto hover:underline" onClick={() => setEdit({ id: c.pic_id, body: c.pic_body })}>
+              <button type="button" className="ml-auto min-h-9 hover:underline sm:min-h-0" onClick={() => setEdit({ id: c.pic_id, body: c.pic_body })}>
                 {t("issues.edit")}
               </button>
             )}
             {!readOnly && (c.author_id === user?.id || canModerate) && (
               <button
                 type="button"
-                className={clsx("hover:underline", c.author_id !== user?.id && "ml-auto")}
+                className={clsx("min-h-9 hover:underline sm:min-h-0", c.author_id !== user?.id && "ml-auto")}
                 onClick={() => {
                   if (window.confirm(t("issues.deleteCommentConfirm")))
                     write.mutate({ method: "delete", id: c.pic_id });

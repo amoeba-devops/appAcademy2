@@ -108,7 +108,7 @@ export function ClassroomEmbed({
   return (
     <div className="w-full">
       {iframeFailed && ctx.embedUrl && (
-        <div className="max-w-2xl mx-auto mb-3 px-3 py-2 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-[11px] text-center">
+        <div className="max-w-2xl mx-auto mb-3 px-3 py-2 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs text-center">
           {t('embed.iframeFallbackToast')}
         </div>
       )}

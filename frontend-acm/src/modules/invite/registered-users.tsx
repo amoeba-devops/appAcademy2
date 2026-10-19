@@ -61,7 +61,7 @@ export function RegisteredUsers() {
   const nameCell = (u: RegisteredUser) => {
     const to = manageLink(u);
     return to ? (
-      <Link to={to} className="font-medium text-accent-700 hover:underline">
+      <Link to={to} className="inline-flex min-h-9 items-center font-medium text-accent-700 hover:underline sm:inline sm:min-h-0">
         {u.name}
       </Link>
     ) : (
@@ -79,7 +79,7 @@ export function RegisteredUsers() {
               role="tab"
               aria-selected={type === k}
               onClick={() => setType(k)}
-              className={`rounded-full border px-3 py-1 text-xs ${
+              className={`min-h-9 rounded-full border px-3 py-1 text-xs sm:min-h-0 ${
                 type === k ? 'border-accent-700 bg-accent-700 text-white' : 'bg-surface text-secondary'
               }`}
             >

@@ -280,7 +280,7 @@ export function ManualInputDialog({
                   ))}
                 </div>
                 {isSiteRow && (
-                  <p className="text-[11px] text-secondary mt-1">{t('manualInput.siteHint')}</p>
+                  <p className="text-xs text-secondary mt-1">{t('manualInput.siteHint')}</p>
                 )}
               </div>
             </div>
@@ -321,7 +321,7 @@ export function ManualInputDialog({
                   })}
                 </div>
                 {sec.key === 'marketing' && !isSiteRow && (
-                  <p className="text-[11px] text-secondary mt-2">
+                  <p className="text-xs text-secondary mt-2">
                     {t('manualInput.effectAutoNote')}
                   </p>
                 )}

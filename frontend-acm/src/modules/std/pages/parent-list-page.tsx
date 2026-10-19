@@ -42,7 +42,7 @@ export function ParentListPage() {
     const count = p.childCount ?? 0;
     if (count === 0) {
       return (
-        <span className="rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700">
+        <span className="rounded-full bg-warning-50 px-2 py-0.5 text-xs font-semibold text-warning-700">
           {t('parentList.orphan', '고아 (자녀 없음)')}
         </span>
       );

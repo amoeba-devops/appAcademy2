@@ -54,10 +54,10 @@ export function SiteComparisonTable({ from, to }: Props) {
       data-testid="site-comparison"
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] uppercase tracking-wider font-semibold text-secondary">
+        <span className="text-xs uppercase tracking-wider font-semibold text-secondary">
           {t('site.comparison.title')}
         </span>
-        <span className="text-[11px] text-secondary">
+        <span className="text-xs text-secondary">
           {from} ~ {to}
         </span>
       </div>
@@ -102,7 +102,7 @@ export function SiteComparisonTable({ from, to }: Props) {
           </table>
         </div>
       )}
-      <p className="text-[11px] text-secondary mt-2">{t('site.comparison.note')}</p>
+      <p className="text-xs text-secondary mt-2">{t('site.comparison.note')}</p>
     </div>
   );
 }

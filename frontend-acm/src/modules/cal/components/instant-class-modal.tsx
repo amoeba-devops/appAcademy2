@@ -172,7 +172,7 @@ export function InstantClassModal({ open, onClose }: Props) {
             <Zap size={18} className="text-amber-500" />
             {t('instant.modalTitle')}
             {demoFromUrl && (
-              <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-amber-100 text-amber-800 border border-amber-300">
+              <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded text-xs font-semibold uppercase bg-amber-100 text-amber-800 border border-amber-300">
                 <Sparkles size={10} /> DEMO
               </span>
             )}
@@ -252,7 +252,7 @@ export function InstantClassModal({ open, onClose }: Props) {
               <label className="block text-xs text-secondary">
                 {t('instant.inviteLabel')}
               </label>
-              <span className="text-[11px] text-secondary">
+              <span className="text-xs text-secondary">
                 {t('instant.selectedCount', { count: selectedCount })}
               </span>
             </div>
@@ -283,7 +283,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                         <span className="text-primary">{s.name}</span>
                         {s.subLabel && (
                           <span
-                            className={`text-[10px] ${
+                            className={`text-xs ${
                               s.reason === 'CLASS' ? 'text-accent-600' : 'text-secondary'
                             }`}
                           >
@@ -352,10 +352,10 @@ export function InstantClassModal({ open, onClose }: Props) {
                         <span className="text-primary">
                           {c.name}
                           {c.email && (
-                            <span className="ml-1.5 text-[10px] text-secondary">{c.email}</span>
+                            <span className="ml-1.5 text-xs text-secondary">{c.email}</span>
                           )}
                         </span>
-                        <span className="text-[10px] text-accent-600">
+                        <span className="text-xs text-accent-600">
                           {checked ? t('instant.searchRemove') : t('instant.searchAdd')}
                         </span>
                       </button>
@@ -372,7 +372,7 @@ export function InstantClassModal({ open, onClose }: Props) {
                     type="button"
                     onClick={() => toggleStudent(c.refId)}
                     title={t('instant.searchRemove')}
-                    className="inline-flex items-center gap-1 rounded-full border border-accent-200 bg-accent-50 px-2 py-0.5 text-[11px] text-accent-700 hover:bg-accent-100"
+                    className="inline-flex items-center gap-1 rounded-full border border-accent-200 bg-accent-50 px-2 py-0.5 text-xs text-accent-700 hover:bg-accent-100"
                   >
                     {c.name} ×
                   </button>
@@ -382,7 +382,7 @@ export function InstantClassModal({ open, onClose }: Props) {
           </div>
 
           {/* Info banner */}
-          <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-[11px] text-blue-800">
+          <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-800">
             ℹ️ {t('instant.notifyHint')}
           </div>
 

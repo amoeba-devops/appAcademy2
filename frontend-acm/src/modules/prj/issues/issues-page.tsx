@@ -26,7 +26,7 @@ import {
   type IssueStatus,
 } from "./issue-model";
 
-const select = "rounded border bg-surface px-2 py-1.5 text-sm";
+const select = "min-h-9 rounded border bg-surface px-2 py-1.5 text-sm sm:min-h-0";
 
 /** REQ-261015C — /admin/issues : 접근 가능한 전체 프로젝트의 이슈 (AMA 이슈 화면 구성). */
 export function IssuesPage() {
@@ -118,7 +118,7 @@ export function IssuesPage() {
                 aria-selected={view === v}
                 onClick={() => patch({ view: v === "list" ? "" : v })}
                 className={clsx(
-                  "rounded px-3 py-1 text-sm",
+                  "min-h-9 rounded px-3 py-1 text-sm sm:min-h-0",
                   view === v ? "bg-accent-50 text-accent-700" : "text-secondary",
                 )}
               >
@@ -134,7 +134,7 @@ export function IssuesPage() {
                 aria-pressed={query.scope === v}
                 onClick={() => patch({ scope: v === "all" ? "" : v })}
                 className={clsx(
-                  "rounded px-3 py-1 text-sm",
+                  "min-h-9 rounded px-3 py-1 text-sm sm:min-h-0",
                   query.scope === v ? "bg-accent-50 text-accent-700" : "text-secondary",
                 )}
               >
@@ -360,7 +360,7 @@ function Chips<T extends string>({
           aria-pressed={active.includes(v)}
           onClick={() => onToggle(v)}
           className={clsx(
-            "rounded-full border px-2.5 py-0.5 text-xs",
+            "min-h-9 rounded-full border px-2.5 py-0.5 text-xs sm:min-h-0",
             active.includes(v)
               ? "border-accent-500 bg-accent-50 text-accent-700"
               : "text-secondary hover:bg-[var(--gray-100)]",

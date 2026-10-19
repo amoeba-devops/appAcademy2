@@ -255,13 +255,13 @@ export function MyWorkPage() {
           <button
             type="button"
             onClick={() => setCardFilter(null)}
-            className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11.5px] text-indigo-700 hover:bg-indigo-100"
+            className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700 hover:bg-indigo-100"
           >
             {t("myWork.focus.filtered", { reason: t(`myWork.reason.${reasonFilter}`) })} · {t("myWork.focus.clearFilter")} ✕
           </button>
         )}
         {focusSelectable.length > 0 && (
-          <button type="button" onClick={() => toggleSelectAll(focusShown)} className="ml-auto text-[11.5px] text-indigo-600 hover:underline">
+          <button type="button" onClick={() => toggleSelectAll(focusShown)} className="ml-auto text-xs text-indigo-600 hover:underline">
             {focusAllOn ? t("myWork.deselectAll") : t("myWork.selectAll")}
           </button>
         )}
@@ -331,21 +331,21 @@ export function MyWorkPage() {
                 className="flex items-center gap-2 text-[13px] font-semibold text-gray-800"
                 aria-expanded={!isCollapsed}
               >
-                <span className="w-2.5 text-[9px] text-gray-400">{isCollapsed ? "▶" : "▼"}</span>
+                <span className="w-2.5 text-xs text-gray-400">{isCollapsed ? "▶" : "▼"}</span>
                 <span className={`h-2 w-2 rounded-full ${ORIGIN_DOT[sec]}`} />
                 {t(`myWork.origin.${sec}`)}
                 <span className="font-mono text-xs font-normal text-gray-400">{items.length}</span>
-                <span className="text-[11.5px] font-normal text-gray-400">{t(`myWork.originHint.${sec}`)}</span>
+                <span className="text-xs font-normal text-gray-400">{t(`myWork.originHint.${sec}`)}</span>
               </button>
               {(overdueN > 0 || todayN > 0) && sec !== "DONE_TODAY" && (
-                <span className="text-[11.5px] font-semibold">
+                <span className="text-xs font-semibold">
                   {overdueN > 0 && <span className="text-red-600">{t("myWork.originSummary.overdue", { count: overdueN })}</span>}
                   {overdueN > 0 && todayN > 0 && <span className="text-gray-300"> · </span>}
                   {todayN > 0 && <span className="text-orange-600">{t("myWork.originSummary.today", { count: todayN })}</span>}
                 </span>
               )}
               {sec !== "DONE_TODAY" && selectable.length > 0 && (
-                <button type="button" onClick={() => toggleSelectAll(items)} className="ml-auto text-[11.5px] text-indigo-600 hover:underline">
+                <button type="button" onClick={() => toggleSelectAll(items)} className="ml-auto text-xs text-indigo-600 hover:underline">
                   {allOn ? t("myWork.deselectAll") : t("myWork.selectAll")}
                 </button>
               )}

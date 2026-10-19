@@ -226,7 +226,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
     <section className="rounded-lg border border-[var(--border-subtle)] bg-surface p-5 grid gap-5">
       <div>
         <h2 className="text-base font-semibold">{t('detail.levelTest.title')}</h2>
-        <p className="text-[11px] text-secondary mt-1">
+        <p className="text-xs text-secondary mt-1">
           {t('detail.levelTest.skipHint')}
         </p>
       </div>
@@ -385,7 +385,7 @@ export function LevelTestPanel({ inqId }: { inqId: string }) {
                 defaultValue: '시험종류 추가',
               })}
             </Label>
-            <p className="text-[11px] text-secondary mt-1">
+            <p className="text-xs text-secondary mt-1">
               {t('detail.levelTest.addTypeHint', {
                 defaultValue: '운영자가 시험 row 를 수동으로 추가할 수 있습니다.',
               })}

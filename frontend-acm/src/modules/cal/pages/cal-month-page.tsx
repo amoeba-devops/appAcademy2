@@ -245,7 +245,7 @@ function CalMonthContent() {
           <button
             type="button"
             onClick={() => shiftAnchor(-1)}
-            className="rounded-md p-1 hover:bg-[var(--gray-100)]"
+            className="rounded-md p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
             aria-label="prev"
           >
             <ChevronLeft size={16} />
@@ -254,7 +254,7 @@ function CalMonthContent() {
           <button
             type="button"
             onClick={() => shiftAnchor(1)}
-            className="rounded-md p-1 hover:bg-[var(--gray-100)]"
+            className="rounded-md p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
             aria-label="next"
           >
             <ChevronRight size={16} />
@@ -268,7 +268,7 @@ function CalMonthContent() {
                 key={option}
                 type="button"
                 onClick={() => setView(option)}
-                className={`rounded px-3 py-1.5 text-xs font-medium ${
+                className={`min-h-9 rounded px-3 py-1.5 text-xs font-medium sm:min-h-0 ${
                   view === option
                     ? 'bg-surface text-primary shadow-sm'
                     : 'text-secondary hover:text-primary'
@@ -297,7 +297,7 @@ function CalMonthContent() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
+              className="h-9 sm:h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
             >
               <option value="">{t('filter.allView')}</option>
               {(['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const).map(
@@ -340,7 +340,7 @@ function CalMonthContent() {
                 setSelectedTeachers([]);
                 setSelectedAttendees([]);
               }}
-              className="text-xs text-accent-600 hover:underline"
+              className="min-h-9 text-xs text-accent-600 hover:underline sm:min-h-0"
             >
               {t('filter.reset')}
             </button>
@@ -483,7 +483,7 @@ function MonthView({
                     clickEvent.stopPropagation();
                     onShowAll(day);
                   }}
-                  className="rounded bg-[var(--gray-100)] px-1 py-0.5 text-[10px] font-medium text-accent-700 hover:bg-accent-50"
+                  className="min-h-9 rounded bg-[var(--gray-100)] px-1 py-0.5 text-xs font-medium text-accent-700 sm:min-h-0 hover:bg-accent-50"
                 >
                   +{dayEvents.length - 4} {t('view.showAll')}
                 </button>
@@ -569,7 +569,7 @@ function ListRow({
           </span>
         )}
       </span>
-      <span className="flex shrink-0 items-center gap-1.5 text-[11px]">
+      <span className="flex shrink-0 items-center gap-1.5 text-xs">
         {event.hasFeedback && (
           <span className="text-accent-700">{t('review.textFeedback')}</span>
         )}
@@ -580,12 +580,12 @@ function ListRow({
           <span className="text-secondary">{t('review.noHomework')}</span>
         )}
         {event.classDone && (
-          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
             {t('review.doneFull')}
           </span>
         )}
       </span>
-      <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[10px] text-secondary">
+      <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
         {t(`category.${event.category}`, event.category)}
       </span>
       {(
@@ -695,9 +695,9 @@ function CalendarEventCard({
           </span>
         )}
       </div>
-      <div className="truncate text-[9px] opacity-80">{t(`category.${event.category}`, event.category)}</div>
+      <div className="truncate opacity-80">{t(`category.${event.category}`, event.category)}</div>
       {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
-        <div className="mt-0.5 flex items-center gap-1 text-[10px]">
+        <div className="mt-0.5 flex items-center gap-1 text-xs">
           {event.hasFeedback && (
             <span title={t('review.feedback')}>📝</span>
           )}
@@ -710,14 +710,14 @@ function CalendarEventCard({
             </span>
           )}
           {event.classDone && (
-            <span className="rounded bg-emerald-100 px-1 py-0.5 text-[9px] font-semibold text-emerald-800">
+            <span className="rounded bg-emerald-100 px-1 py-0.5 text-xs font-semibold text-emerald-800">
               {t('review.doneFull')}
             </span>
           )}
         </div>
       )}
       {(
-        <div className="truncate text-[10px] opacity-80">
+        <div className="truncate opacity-80">
           {event.assigneeName ?? t('colors.unassigned')}
         </div>
       )}

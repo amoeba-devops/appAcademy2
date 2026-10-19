@@ -125,7 +125,7 @@ export function MyTimetablePage() {
                 <span className="font-medium text-primary">
                   {t(`common:days-short.${dk}`)}
                 </span>
-                <span className="block text-secondary text-[10px]">{dateStr}</span>
+                <span className="block text-secondary text-xs">{dateStr}</span>
               </div>
             );
           })}

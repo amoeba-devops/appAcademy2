@@ -61,7 +61,7 @@ export function OperatingPeriodEditor({
           </span>
           <button
             type="button"
-            className="underline"
+            className="underline min-h-9 sm:min-h-0"
             onClick={() => {
               save.reset();
               setEdit(p);
@@ -143,7 +143,7 @@ export function OperatingPeriodEditor({
           >
             {t("ops.save")}
           </Button>
-          <button type="button" onClick={() => setEdit(null)}>
+          <button type="button" className="min-h-9 sm:min-h-0" onClick={() => setEdit(null)}>
             {t("ops.close")}
           </button>
         </div>

@@ -109,13 +109,13 @@ export function CslKanbanBoard({
                 <span className="text-sm font-semibold text-primary">
                   {t(`stage.${stage}`)}
                 </span>
-                <span className="text-[11px] text-secondary tabular-nums">
+                <span className="text-xs text-secondary tabular-nums">
                   {cards.length}
                 </span>
               </header>
               <div className="grid min-w-0 grid-cols-1 gap-2">
                 {cards.length === 0 && (
-                  <p className="text-[11px] text-secondary text-center py-4">
+                  <p className="text-xs text-secondary text-center py-4">
                     {t('kanban.emptyColumn')}
                   </p>
                 )}
@@ -148,7 +148,7 @@ export function CslKanbanBoard({
           <span className="text-sm font-semibold">
             {t('stage.DROPPED')}
           </span>
-          <span className="text-[11px] text-secondary tabular-nums">
+          <span className="text-xs text-secondary tabular-nums">
             ({droppedCount})
           </span>
         </button>
@@ -223,31 +223,31 @@ function KanbanCard({
     >
       <div className="flex items-baseline justify-between gap-2 mb-1">
         <span className="min-w-0 font-medium text-primary truncate">{displayName}</span>
-        <span className="shrink-0 text-[10px] text-secondary tabular-nums">
+        <span className="shrink-0 text-xs text-secondary tabular-nums">
           #{inq.seqNo}
         </span>
       </div>
-      <p className="text-[11px] text-secondary break-words">
+      <p className="text-xs text-secondary break-words">
         {siteLabel}{inq.grade && ` · ${t(`grade.${inq.grade}`, inq.grade)}`}
       </p>
-      {showSchool && <p className="text-[11px] text-secondary truncate" title={school}>{school}</p>}
+      {showSchool && <p className="text-xs text-secondary truncate" title={school}>{school}</p>}
       <div className="flex min-w-0 flex-wrap gap-1 mt-1.5 [&>span]:max-w-full [&>span]:break-words">
         {(inq.inflowType === 'PHONE' || inq.inflowType === 'KAKAO_CHANNEL') && (
-          <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
+          <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
             {t(`inflow.${inq.inflowType}`)}
           </span>
         )}
-        <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[9px] text-secondary">
+        <span className="rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
           {t(`applyType.${inq.applyType}`)}
         </span>
         {inq.linkedStudent && (
-          <span className="rounded border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[9px] text-accent-700">
+          <span className="rounded border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-xs text-accent-700">
             🎓 {t('kanban.enrolled', '수강등록')}
           </span>
         )}
       </div>
       {(registered || followup) && (
-        <p className="text-[10px] text-secondary mt-1.5 break-words">
+        <p className="text-xs text-secondary mt-1.5 break-words">
           {registered && (
             <>
               {registered.date}{registered.time && ` ${registered.time}`}

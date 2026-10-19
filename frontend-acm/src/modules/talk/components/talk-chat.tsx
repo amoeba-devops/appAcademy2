@@ -55,7 +55,7 @@ function fmtBytes(bytes: number): string {
 }
 
 const kindBadgeCls = (kind: "USER" | "TEACHER") =>
-  `rounded px-1 text-[9px] font-mono ${
+  `rounded px-1 text-xs font-mono ${
     kind === "USER"
       ? "bg-emerald-100 text-emerald-700"
       : "bg-purple-100 text-purple-700"
@@ -262,7 +262,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                     {c.type === "GROUP" &&
                       c.members.find((m) => m.role === "OWNER") && (
                         <span
-                          className="flex items-center gap-1 truncate text-[11px]"
+                          className="flex items-center gap-1 truncate text-xs"
                           title={t("talk.ownerName", {
                             name: c.members.find((m) => m.role === "OWNER")!
                               .name,
@@ -275,7 +275,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                       )}
                     {c.lastMessagePreview && (
                       <span
-                        className={`block truncate text-[11px] ${
+                        className={`block truncate text-xs ${
                           c.id === activeId ? "text-white/70" : "text-secondary"
                         }`}
                       >
@@ -284,7 +284,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                     )}
                   </span>
                   {c.unreadCount > 0 && (
-                    <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white">
                       {c.unreadCount > 99 ? "99+" : c.unreadCount}
                     </span>
                   )}
@@ -561,7 +561,7 @@ function ChatPane({
           <div className="truncate text-sm font-medium text-primary">
             {channel.name}
           </div>
-          <div className="truncate text-[11px] text-secondary">
+          <div className="truncate text-xs text-secondary">
             {t("talk.members")} {channel.members.length} ·{" "}
             {memberNames}
           </div>
@@ -623,7 +623,7 @@ function ChatPane({
               className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${m.mine ? "text-right" : ""}`}
             >
               {!m.mine && (
-                <div className="mb-0.5 flex items-center gap-1 text-[11px] text-secondary">
+                <div className="mb-0.5 flex items-center gap-1 text-xs text-secondary">
                   <KindBadge kind={m.senderKind} />
                   <span className="font-medium text-primary">
                     {m.senderName}
@@ -663,7 +663,7 @@ function ChatPane({
                   </span>
                 )}
               </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[10px] text-secondary">
+              <div className="mt-0.5 flex items-center gap-1 text-xs text-secondary">
                 <span className={m.mine ? "ml-auto" : ""}>
                   {fmtTime(m.createdAt)}
                 </span>
@@ -925,7 +925,7 @@ function DmModal({
         onToggle={(c) => setTarget({ kind: c.kind, refId: c.refId })}
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
-      <p className="text-[11px] text-secondary">
+      <p className="text-xs text-secondary">
         {t("talk.dmReuseHint")}
       </p>
       <div className="flex justify-end gap-2">

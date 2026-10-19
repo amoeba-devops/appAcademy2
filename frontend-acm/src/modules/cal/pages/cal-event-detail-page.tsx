@@ -169,7 +169,7 @@ export function CalEventDetailPage() {
                 {t(`category.${event.category}`, event.category)}
               </span>
               {classDone && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
                   ✓ {t("review.doneFull")}
                 </span>
               )}
@@ -272,7 +272,7 @@ export function CalEventDetailPage() {
                   className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-xs"
                 >
                   <span
-                    className={`rounded px-1 py-0.5 text-[9px] font-mono ${
+                    className={`rounded px-1 py-0.5 text-xs font-mono ${
                       inv.kind === "STUDENT"
                         ? "bg-blue-100 text-blue-700"
                         : inv.kind === "TEACHER"
@@ -367,7 +367,7 @@ export function CalEventDetailPage() {
                 {/* REQ-260729-3 — 예약(일정) 시간과 실제(강의실) 시간을 구분 표기.
                 모든 시각은 UTC instant 를 사용자 브라우저 타임존으로 렌더한다. */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
-                  <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
+                  <span className="col-span-2 sm:col-span-4 text-xs font-semibold text-secondary">
                     {t("boda.reservedRow")}
                   </span>
                   <span>
@@ -384,7 +384,7 @@ export function CalEventDetailPage() {
                   </span>
                 </div>
                 <div className="mt-1.5 grid grid-cols-2 gap-x-6 gap-y-1 border-t border-[var(--border-subtle)] pt-1.5 text-sm sm:grid-cols-4">
-                  <span className="col-span-2 sm:col-span-4 text-[11px] font-semibold text-secondary">
+                  <span className="col-span-2 sm:col-span-4 text-xs font-semibold text-secondary">
                     {t("boda.actualRow")}
                   </span>
                   <span>
@@ -413,7 +413,7 @@ export function CalEventDetailPage() {
                   </span>
                 </div>
                 {record.participants.length > 0 && (
-                  <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-[11px] font-semibold text-secondary">
+                  <div className="mt-2 border-t border-[var(--border-subtle)] pt-2 text-xs font-semibold text-secondary">
                     {t("boda.joinListTitle")}
                   </div>
                 )}
@@ -425,7 +425,7 @@ export function CalEventDetailPage() {
                         className="flex flex-wrap items-center gap-1.5"
                       >
                         <span
-                          className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                          className={`rounded px-1 py-0.5 text-xs font-medium ${
                             p.kind === "TEACHER"
                               ? "bg-purple-100 text-purple-700"
                               : p.kind === "STUDENT"

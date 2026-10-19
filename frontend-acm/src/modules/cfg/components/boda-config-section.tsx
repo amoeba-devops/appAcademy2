@@ -340,11 +340,11 @@ function SecretField({
       <Label htmlFor={id} className="flex items-center gap-2">
         {label}
         {isSet ? (
-          <span className="inline-flex items-center gap-0.5 text-[11px] text-green-700">
+          <span className="inline-flex items-center gap-0.5 text-xs text-green-700">
             <CheckCircle2 size={12} /> {t('config.boda.isSetTrue')}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-0.5 text-[11px] text-secondary">
+          <span className="inline-flex items-center gap-0.5 text-xs text-secondary">
             <XCircle size={12} /> {t('config.boda.isSetFalse')}
           </span>
         )}
@@ -361,7 +361,7 @@ function SecretField({
         }
         autoComplete="new-password"
       />
-      <p className="text-[11px] text-secondary">
+      <p className="text-xs text-secondary">
         {t('config.boda.secretHint')}
       </p>
     </div>

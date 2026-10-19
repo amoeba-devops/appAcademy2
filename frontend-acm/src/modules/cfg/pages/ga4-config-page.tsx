@@ -361,7 +361,7 @@ export function Ga4ConfigPage() {
                           <tr className="border-t border-[var(--border-subtle)] align-top">
                             <td className="px-2 py-1.5 font-medium whitespace-nowrap">
                               {t(`config.ga4.sites.name.${site}`)}
-                              <div className="text-[10px] text-secondary">{site}</div>
+                              <div className="text-xs text-secondary">{site}</div>
                             </td>
                             <td className="px-2 py-1.5 min-w-[200px]">
                               <Input
@@ -415,7 +415,7 @@ export function Ga4ConfigPage() {
                             <td className="px-2 py-1.5 whitespace-nowrap">
                               {st ? (
                                 <span
-                                  className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${LEVEL_CLASS[st.level]}`}
+                                  className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${LEVEL_CLASS[st.level]}`}
                                 >
                                   {t(`config.ga4.sites.level.${st.level}`)}
                                 </span>
@@ -427,7 +427,7 @@ export function Ga4ConfigPage() {
                           {advice && (
                             <tr>
                               <td />
-                              <td colSpan={7} className="px-2 pb-2 text-[11px] text-secondary">
+                              <td colSpan={7} className="px-2 pb-2 text-xs text-secondary">
                                 ↳ {advice}
                               </td>
                             </tr>

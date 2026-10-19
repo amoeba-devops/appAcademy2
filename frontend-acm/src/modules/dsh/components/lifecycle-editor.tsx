@@ -316,7 +316,7 @@ export function LifecycleEditor({
             ) : (
               <button
                 type="button"
-                className="underline ml-3"
+                className="underline ml-3 min-h-9 sm:min-h-0"
                 disabled={cancel.isPending}
                 onClick={() => cancel.mutate(r.id)}
               >

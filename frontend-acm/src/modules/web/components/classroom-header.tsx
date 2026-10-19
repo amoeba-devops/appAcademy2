@@ -62,7 +62,7 @@ export function ClassroomHeader({
         <GraduationCap size={18} className="text-accent-600 shrink-0" aria-hidden />
         <span className="truncate">{ctx.evtTitle}</span>
         {ctx.evtSource === 'INSTANT' && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase bg-amber-100 text-amber-800 border border-amber-300">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold uppercase bg-amber-100 text-amber-800 border border-amber-300">
             <Zap size={10} /> {t('header.instantBadge')}
           </span>
         )}
@@ -79,7 +79,7 @@ export function ClassroomHeader({
           {fmtTime(ctx.evtStartAt)} ~ {fmtTime(ctx.evtEndAt)}
         </span>
         <span
-          className={`inline-flex items-center px-2 py-0.5 rounded border text-[11px] font-medium ${badge.cls}`}
+          className={`inline-flex items-center px-2 py-0.5 rounded border text-xs font-medium ${badge.cls}`}
         >
           {t(`boda.statusValue.${status ?? ctx.status}`, {
             ns: 'cal',
@@ -106,7 +106,7 @@ export function ClassroomHeader({
             {visible.map((i) => (
               <span
                 key={`${i.kind}:${i.refId}`}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] text-[11px]"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[var(--canvas-subtle)] border border-[var(--border-subtle)] text-xs"
                 title={i.subLabel ? `${i.name} · ${i.subLabel}` : i.name}
               >
                 {i.kind === 'TEACHER' && (
@@ -117,7 +117,7 @@ export function ClassroomHeader({
                 )}
                 <span className="text-primary">{i.name}</span>
                 {i.subLabel && (
-                  <span className="text-[10px] text-secondary">· {i.subLabel}</span>
+                  <span className="text-xs text-secondary">· {i.subLabel}</span>
                 )}
               </span>
             ))}
@@ -125,7 +125,7 @@ export function ClassroomHeader({
               <button
                 type="button"
                 onClick={() => setShowAll(true)}
-                className="inline-flex items-center px-1.5 py-0.5 rounded border border-accent-300 bg-accent-50 text-accent-700 text-[11px] hover:bg-accent-100"
+                className="inline-flex items-center px-1.5 py-0.5 rounded border border-accent-300 bg-accent-50 text-accent-700 text-xs hover:bg-accent-100"
               >
                 {t('header.attendeesMoreBtn', { more: overflow })}
               </button>

@@ -79,7 +79,7 @@ export function SharedDrivePage() {
         meta={
           <>
             {readOnly && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+              <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
                 <Eye className="h-3 w-3" />
                 {t("driveUi.readOnly")}
               </span>
@@ -208,11 +208,11 @@ export function SharedDrivePage() {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold text-gray-900">{f.title}</span>
                     <span className="mt-1 inline-flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
                         <HardDrive className="h-3 w-3" />
                         {t("driveUi.sharedFolder")}
                       </span>
-                      <span className={`text-[11px] ${f.access === "EDIT" ? "text-indigo-600" : "text-gray-400"}`}>
+                      <span className={`text-xs ${f.access === "EDIT" ? "text-indigo-600" : "text-gray-400"}`}>
                         {f.access === "EDIT" ? t("driveUi.canEdit") : t("driveUi.readOnly")}
                       </span>
                     </span>

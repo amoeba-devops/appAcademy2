@@ -208,7 +208,7 @@ export function MyDashboardPage() {
                     <div
                       key={s.id}
                       className={clsx(
-                        'text-[10px] leading-tight rounded px-1 py-0.5',
+                        'text-xs leading-tight rounded px-1 py-0.5',
                         s.status === 'HELD'
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-[var(--gray-100)] text-secondary',

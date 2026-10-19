@@ -313,7 +313,7 @@ export function FeedbackEmailDialog({
                             )}
                             {p.name}
                             {p.isPrimary && (
-                              <span className="ml-1 rounded bg-accent-600/10 px-1 py-0.5 text-[10px] font-semibold text-accent-700">
+                              <span className="ml-1 rounded bg-accent-600/10 px-1 py-0.5 text-xs font-semibold text-accent-700">
                                 {t('cal:feedbackEmail.primaryBadge')}
                               </span>
                             )}

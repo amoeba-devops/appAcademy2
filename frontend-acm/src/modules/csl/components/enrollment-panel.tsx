@@ -501,7 +501,7 @@ export function EnrollmentPanel({
                 {t('detail.enrollment.tuitionPaid')}
               </label>
             </div>
-            <p className="text-[11px] text-secondary -mt-1">
+            <p className="text-xs text-secondary -mt-1">
               {t('detail.enrollment.tuitionPaidHint')}
             </p>
           </>
@@ -636,7 +636,7 @@ function TeacherAssignmentsBlock({
           >
             <span>
               {nameById.get(a.teacherId) ?? a.teacherId.slice(0, 8)}
-              <span className="ml-2 inline-block rounded bg-[var(--surface-strong)] px-2 py-0.5 text-[10px]">
+              <span className="ml-2 inline-block rounded bg-[var(--surface-strong)] px-2 py-0.5 text-xs">
                 {t(`detail.enrollment.assignRole.${a.role}`)}
               </span>
             </span>
@@ -752,7 +752,7 @@ function ClassMinutesField({
   return (
     <div className="grid gap-1.5">
       <div className="flex flex-wrap gap-1.5 items-center">
-        <span className="text-[11px] text-secondary mr-1">{presetLabel}:</span>
+        <span className="text-xs text-secondary mr-1">{presetLabel}:</span>
         {presets.map((m) => {
           const active = currentValue === String(m);
           return (

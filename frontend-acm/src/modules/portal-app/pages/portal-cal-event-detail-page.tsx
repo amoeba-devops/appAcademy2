@@ -118,7 +118,7 @@ export function PortalCalEventDetailPage() {
                     className="inline-flex items-center gap-1 rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-xs"
                   >
                     <span
-                      className={`rounded px-1 py-0.5 text-[9px] font-medium ${KIND_BADGE[i.kind] ?? "bg-gray-100 text-gray-700"}`}
+                      className={`rounded px-1 py-0.5 text-xs font-medium ${KIND_BADGE[i.kind] ?? "bg-gray-100 text-gray-700"}`}
                     >
                       {t(
                         `cal:invitee.kind${i.kind.charAt(0)}${i.kind.slice(1).toLowerCase()}`,
@@ -173,7 +173,7 @@ export function PortalCalEventDetailPage() {
                         <span className="min-w-0 flex-1 truncate">
                           {a.filename}
                         </span>
-                        <span className="shrink-0 text-[11px] text-secondary">
+                        <span className="shrink-0 text-xs text-secondary">
                           {(Number(a.sizeBytes) / 1024).toFixed(0)} KB
                         </span>
                         <button
@@ -267,7 +267,7 @@ function RecordingsSection({
               {r.title ||
                 `${t("portalApp.recordings.file", "녹화")} #${r.recordIdx}`}
             </span>
-            <span className="shrink-0 text-[11px] text-secondary">
+            <span className="shrink-0 text-xs text-secondary">
               {fmtDT(r.startedAt)}
               {r.endedAt ? ` ~ ${fmtDT(r.endedAt)}` : ""}
             </span>
@@ -395,7 +395,7 @@ function ReviewSection({
               <PenLine size={14} />
               {t("portalApp.review.feedback", "수업 피드백")}
               {canWrite && (
-                <span className="text-[10px] font-normal text-secondary">
+                <span className="text-xs font-normal text-secondary">
                   ({t("portalApp.review.forAdmin", "관리자 확인용")})
                 </span>
               )}
@@ -413,7 +413,7 @@ function ReviewSection({
             )}
           </div>
           {canWrite && (
-            <p className="mb-2 text-[11px] text-secondary">
+            <p className="mb-2 text-xs text-secondary">
               ℹ️{" "}
               {t(
                 "portalApp.review.mayShareToParent",
@@ -693,7 +693,7 @@ function ClassRecordSection({
             {rec.participants.map((p, i) => (
               <li key={i} className="flex flex-wrap items-center gap-1.5">
                 <span
-                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                  className={`rounded px-1 py-0.5 text-xs font-medium ${
                     p.kind === "TEACHER"
                       ? "bg-purple-100 text-purple-700"
                       : p.kind === "STUDENT"

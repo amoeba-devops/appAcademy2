@@ -761,7 +761,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                         {t('bodaRoomType.ONE_TO_MANY')}
                       </option>
                     </select>
-                    <p className="mt-1 text-[11px] text-secondary">
+                    <p className="mt-1 text-xs text-secondary">
                       {t('hint.bodaRoomType')}
                     </p>
                   </div>
@@ -899,7 +899,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-2 py-1 text-xs"
                     >
                       <span
-                        className={`rounded px-1 py-0.5 text-[9px] font-mono uppercase ${
+                        className={`rounded px-1 py-0.5 text-xs font-mono uppercase ${
                           invitee.kind === 'STUDENT'
                             ? 'bg-blue-100 text-blue-700'
                             : invitee.kind === 'TEACHER'
@@ -912,13 +912,13 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       <span className="text-primary">{invitee.name}</span>
                       {invitee.notifyStatus ? (
                         <span
-                          className={`rounded px-1 py-0.5 text-[9px] font-medium ${badgeColor}`}
+                          className={`rounded px-1 py-0.5 text-xs font-medium ${badgeColor}`}
                         >
                           {invitee.notifyStatus}
                         </span>
                       ) : (
                         isEdit && (
-                          <span className="rounded bg-gray-100 px-1 py-0.5 text-[9px] font-medium text-gray-500">
+                          <span className="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-500">
                             {t('invitee.notSent')}
                           </span>
                         )
@@ -1001,7 +1001,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       className="flex items-center gap-2 rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
                     >
                       <span className="min-w-0 flex-1 truncate">{attachment.filename}</span>
-                      <span className="text-[11px] text-secondary">
+                      <span className="text-xs text-secondary">
                         {(Number(attachment.sizeBytes) / 1024).toFixed(0)} KB
                       </span>
                       <Button
@@ -1242,14 +1242,14 @@ function AdminReviewView({
       <legend className="px-1 text-xs font-semibold text-secondary">
         {t('review.sectionTitle')}
         {classDone && (
-          <span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+          <span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
             ✓ {t('review.doneFull')}
           </span>
         )}
       </legend>
       {review.feedbackHtml ? (
         <div>
-          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+          <div className="mb-0.5 text-xs font-medium text-secondary">
             📝 {t('review.feedbackLabel')}
           </div>
           <div
@@ -1258,13 +1258,13 @@ function AdminReviewView({
           />
         </div>
       ) : (
-        <p className="text-[11px] text-secondary">{t('review.noFeedbackYet')}</p>
+        <p className="text-xs text-secondary">{t('review.noFeedbackYet')}</p>
       )}
       {review.homeworkStatus === 'NONE' ? (
         <p className="text-sm text-secondary">📚 {t('review.noHomework')}</p>
       ) : review.homeworkStatus === 'ASSIGNED' && review.homeworkHtml ? (
         <div>
-          <div className="mb-0.5 text-[11px] font-medium text-secondary">
+          <div className="mb-0.5 text-xs font-medium text-secondary">
             📚 {t('review.homeworkLabel')}
           </div>
           <div
@@ -1384,7 +1384,7 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
       <div className="flex items-center gap-2 text-xs">
         <span className="text-secondary">{t('boda.status')}:</span>
         <span
-          className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${badgeFor(
+          className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${badgeFor(
             data.status,
           )}`}
         >
@@ -1393,13 +1393,13 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
         <button
           type="button"
           onClick={() => refetch()}
-          className="ml-auto text-[11px] text-accent-600 hover:underline"
+          className="ml-auto text-xs text-accent-600 hover:underline"
         >
           {t('actions.refresh')}
         </button>
       </div>
 
-      <ul className="grid grid-cols-2 gap-x-3 space-y-0.5 text-[11px] text-secondary">
+      <ul className="grid grid-cols-2 gap-x-3 space-y-0.5 text-xs text-secondary">
         {data.openedAt && (
           <li>
             <span className="font-mono">{t('boda.openedAt')}:</span>{' '}
@@ -1430,21 +1430,21 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
       <CalRecordingsSection evtId={evtId} isBoda />
 
       {record && record.participants.length === 0 && (
-        <p className="text-[11px] text-secondary">
+        <p className="text-xs text-secondary">
           {t('boda.recordEmpty')}
         </p>
       )}
 
       {record && record.participants.length > 0 && (
         <div className="rounded border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] p-2">
-          <div className="mb-1 text-[11px] font-semibold text-secondary">
+          <div className="mb-1 text-xs font-semibold text-secondary">
             {t('boda.attendance')}
           </div>
-          <ul className="space-y-0.5 text-[11px]">
+          <ul className="space-y-0.5 text-xs">
             {record.participants.map((p, i) => (
               <li key={i} className="flex flex-wrap items-center gap-1.5">
                 <span
-                  className={`rounded px-1 py-0.5 text-[9px] font-medium ${
+                  className={`rounded px-1 py-0.5 text-xs font-medium ${
                     p.kind === 'TEACHER'
                       ? 'bg-purple-100 text-purple-700'
                       : p.kind === 'STUDENT'
@@ -1507,18 +1507,18 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
       </div>
 
       {reconMut.data && (
-        <p className="text-[11px] text-blue-700">
+        <p className="text-xs text-blue-700">
           {t('boda.reconcileResult')}: +{reconMut.data.inserted} /
           ~{reconMut.data.updated}
         </p>
       )}
       {closeMut.data && (
-        <p className="text-[11px] text-red-700">
+        <p className="text-xs text-red-700">
           {t('boda.forceCloseResult')} - {closeMut.data.status}
         </p>
       )}
       {(reconMut.error || closeMut.error) && (
-        <p className="text-[11px] text-red-600">
+        <p className="text-xs text-red-600">
           {(
             (reconMut.error || closeMut.error) as {
               response?: { data?: { message?: string } };

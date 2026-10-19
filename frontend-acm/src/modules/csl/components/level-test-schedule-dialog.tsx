@@ -197,12 +197,12 @@ export function LevelTestScheduleDialog({
               ))}
             </select>
             {teachers.length === 0 && (
-              <p className="text-[10px] text-red-600">
+              <p className="text-xs text-red-600">
                 {t('detail.levelTest.dialog.noTeachersHint')}
               </p>
             )}
           </div>
-          <p className="text-[11px] text-secondary">
+          <p className="text-xs text-secondary">
             {t('detail.levelTest.dialog.calHint')}
           </p>
           {reset.isError && <p role="alert" className="text-sm text-red-600">{t('detail.levelTest.dialog.resetFailed')}</p>}

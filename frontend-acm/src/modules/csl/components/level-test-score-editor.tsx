@@ -252,7 +252,7 @@ function DuolingoEditor({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {DUOLINGO_KEYS.map((k) => (
           <div key={k} className="grid gap-1">
-            <Label className="text-[11px] capitalize">{k} (10~160)</Label>
+            <Label className="text-xs capitalize">{k} (10~160)</Label>
             <Input
               type="number"
               min={10}
@@ -285,7 +285,7 @@ function ToeflEditor({
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         {TOEFL_KEYS.map((k) => (
           <div key={k} className="grid gap-1">
-            <Label className="text-[11px] capitalize">{k}</Label>
+            <Label className="text-xs capitalize">{k}</Label>
             <Input
               type="number"
               min={1}
@@ -316,7 +316,7 @@ function ToeflJrEditor({
       <Label className="text-xs">{t('detail.mapTest.toeflJr.label')}</Label>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div className="grid gap-1">
-          <Label className="text-[11px]">Total (0~5)</Label>
+          <Label className="text-xs">Total (0~5)</Label>
           <Input
             type="number"
             min={0}
@@ -327,7 +327,7 @@ function ToeflJrEditor({
         </div>
         {['listening', 'lfm', 'reading'].map((k) => (
           <div key={k} className="grid gap-1">
-            <Label className="text-[11px] uppercase">{k} (200~300)</Label>
+            <Label className="text-xs uppercase">{k} (200~300)</Label>
             <Input
               type="number"
               min={200}
@@ -389,7 +389,7 @@ function OtherEditor({
     <div className="grid gap-2">
       <Label className="text-xs">{t('detail.mapTest.other.label')}</Label>
       {entries.length === 0 && (
-        <p className="text-[11px] text-secondary">{t('detail.mapTest.other.empty')}</p>
+        <p className="text-xs text-secondary">{t('detail.mapTest.other.empty')}</p>
       )}
       {entries.map(([k, val], idx) => (
         <div key={`${k}-${idx}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">

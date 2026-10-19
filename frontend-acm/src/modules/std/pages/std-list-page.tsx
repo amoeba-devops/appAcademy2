@@ -332,6 +332,7 @@ export function StdListPage({
       )}
       <div className="mt-4 flex items-center justify-end gap-3">
         <select
+          className="min-h-9 sm:min-h-0"
           aria-label={t("site.pageSize")}
           value={limit}
           onChange={(e) => change({ limit: e.target.value })}

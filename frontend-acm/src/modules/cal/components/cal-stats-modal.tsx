@@ -192,11 +192,11 @@ export function CalStatsModal({
                           <span className="text-xs font-normal text-secondary">h</span>
                         </span>
                       </div>
-                      <div className="mt-0.5 text-[11px] text-emerald-700">
+                      <div className="mt-0.5 text-xs text-emerald-700">
                         {t('stats.done')} {tch.done} ({donePct(tch)}%)
                       </div>
                       {catLine(tch) && (
-                        <div className="mt-0.5 text-[11px] text-secondary">
+                        <div className="mt-0.5 text-xs text-secondary">
                           {catLine(tch)}
                         </div>
                       )}

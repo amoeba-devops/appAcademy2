@@ -305,11 +305,11 @@ export function PortalDocPage() {
                 {doc.shareTargets.map((s) => (
                   <span
                     key={`${s.kind}:${s.refId}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-[11px] text-secondary"
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--border-subtle)] px-2 py-0.5 text-xs text-secondary"
                   >
                     {s.name}
                     <span
-                      className={`rounded px-1 text-[9px] font-medium ${
+                      className={`rounded px-1 text-xs font-medium ${
                         s.role === 'EDITOR'
                           ? 'bg-accent-50 text-accent-700'
                           : 'bg-[var(--gray-100)] text-secondary'
@@ -378,7 +378,7 @@ function PendingAttachmentPicker({
         <span className="text-xs font-medium text-secondary">
           {t('portalApp.docs.attachments', '첨부파일')}
         </span>
-        <span className="text-[11px] text-secondary">
+        <span className="text-xs text-secondary">
           {t('portalApp.docs.attachmentLimitHint', '파일당 50MB · 최대 5개')}
         </span>
       </div>
@@ -469,7 +469,7 @@ function DocAttachments({
           {t('portalApp.docs.attachments', '첨부파일')} ({attachments.length})
         </span>
         {canManage && (
-          <span className="text-[11px] text-secondary">
+          <span className="text-xs text-secondary">
             {t('portalApp.docs.attachmentLimitHint', '파일당 50MB · 최대 5개')}
           </span>
         )}
@@ -485,7 +485,7 @@ function DocAttachments({
             type="button"
             disabled={downloadingId === a.id}
             onClick={() => void onDownload(a)}
-            className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-1.5 py-0.5 text-[11px] text-accent-700 hover:bg-[var(--gray-50)]"
+            className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-1.5 py-0.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
           >
             {downloadingId === a.id ? (
               <Loader2 size={11} className="animate-spin" />
@@ -607,7 +607,7 @@ function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }
                       v{r.seq}
                     </span>
                     {isLatest && (
-                      <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-[10px] text-accent-700">
+                      <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-xs text-accent-700">
                         {t('portalApp.docs.current', '현재')}
                       </span>
                     )}
@@ -619,7 +619,7 @@ function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }
                       <button
                         type="button"
                         onClick={() => setViewSeq(viewSeq === r.seq ? null : r.seq)}
-                        className={`shrink-0 rounded border px-1.5 py-0.5 text-[11px] ${
+                        className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${
                           viewSeq === r.seq
                             ? 'border-accent-600 bg-accent-600 text-white'
                             : 'border-[var(--border-subtle)] text-accent-700 hover:bg-[var(--gray-50)]'
@@ -655,7 +655,7 @@ function RevisionHistory({ docId, canEdit }: { docId: string; canEdit: boolean }
                       });
                       if (ok) restoreMut.mutate(snapshot.seq);
                     }}
-                    className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 text-[11px] text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                    className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-white px-2 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-50"
                   >
                     {restoreMut.isPending ? (
                       <Loader2 size={11} className="animate-spin" />
@@ -825,7 +825,7 @@ export function SharePanel({
                 className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--gray-50)] px-2 py-1 text-xs"
               >
                 <span
-                  className={`rounded px-1 text-[9px] font-mono ${
+                  className={`rounded px-1 text-xs font-mono ${
                     s.kind === 'TEACHER'
                       ? 'bg-purple-100 text-purple-700'
                       : 'bg-blue-100 text-blue-700'
@@ -840,7 +840,7 @@ export function SharePanel({
                   <select
                     value={s.role}
                     onChange={(e) => setRole(key, e.target.value as MaterialShareRole)}
-                    className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-[11px]"
+                    className="rounded border border-[var(--border-subtle)] bg-canvas px-1 py-0.5 text-xs"
                   >
                     <option value="VIEWER">{t('portalApp.docs.viewer', '뷰어')}</option>
                     <option value="EDITOR">{t('portalApp.docs.editor', '편집자')}</option>
@@ -878,7 +878,7 @@ export function SharePanel({
             className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs hover:bg-[var(--gray-50)]"
           >
             <span
-              className={`rounded px-1 text-[9px] font-mono ${
+              className={`rounded px-1 text-xs font-mono ${
                 c.kind === 'TEACHER'
                   ? 'bg-purple-100 text-purple-700'
                   : 'bg-blue-100 text-blue-700'

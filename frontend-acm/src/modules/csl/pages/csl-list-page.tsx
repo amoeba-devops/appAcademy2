@@ -443,7 +443,7 @@ export function CslListPage() {
                       : c.studentName}
                     {/* REQ-260921B — 구분 배지 */}
                     <span
-                      className={`ml-1.5 inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-normal ${
+                      className={`ml-1.5 inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-normal ${
                         KIND_BADGE_CLASS[c.kind ?? 'TUTORING']
                       }`}
                     >
@@ -451,7 +451,7 @@ export function CslListPage() {
                     </span>
                     {c.linkedStudent && (
                       <span
-                        className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-[10px] font-normal text-accent-700"
+                        className="ml-1.5 inline-flex items-center rounded-full border border-accent-200 bg-accent-50 px-1.5 py-0.5 text-xs font-normal text-accent-700"
                         title={c.linkedStudent.name}
                       >
                         🎓 {t('kanban.enrolled', '수강등록')}

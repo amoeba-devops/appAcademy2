@@ -147,19 +147,19 @@ export function CalRecordingsSection({
           🎬 {t('recordings.title')}
         </span>
         <span
-          className={`inline-flex items-center rounded border px-2 py-0.5 text-[11px] font-medium ${STATUS_BADGE[data.status]}`}
+          className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[data.status]}`}
         >
           {t(`recordings.status.${data.status}`, data.status)}
         </span>
         {data.counts.pending > 0 && (
-          <span className="text-[11px] text-secondary">
+          <span className="text-xs text-secondary">
             {t('recordings.archiving', {
               count: data.counts.pending,
             })}
           </span>
         )}
         {data.counts.failed > 0 && (
-          <span className="text-[11px] text-red-700">
+          <span className="text-xs text-red-700">
             {t('recordings.archiveFailed', {
               count: data.counts.failed,
             })}
@@ -200,7 +200,7 @@ export function CalRecordingsSection({
               <span className="min-w-0 flex-1 truncate">
                 {r.title || `${t('recordings.file')} #${r.recordIdx}`}
               </span>
-              <span className="shrink-0 text-[11px] text-secondary">
+              <span className="shrink-0 text-xs text-secondary">
                 {formatSpan(r, t)}
                 {r.archiveStatus === 'ARCHIVED' && r.sizeBytes
                   ? ` · ${formatSize(r.sizeBytes)}`
@@ -208,7 +208,7 @@ export function CalRecordingsSection({
               </span>
               {r.archiveStatus !== 'ARCHIVED' && (
                 <span
-                  className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] text-amber-800"
+                  className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-800"
                   title={t('recordings.notArchivedHint')}
                 >
                   {t('recordings.notArchived')}
@@ -291,7 +291,7 @@ export function CalRecordingsSection({
             {/* REQ-260920C B-3 — 보다 다운로드 API 는 Range 미지원(벤더 확인).
                 ACM 보관본이 생기기 전까지는 구간 이동이 되지 않음을 알린다. */}
             {playing.item.archiveStatus !== 'ARCHIVED' && (
-              <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
+              <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-xs text-amber-800">
                 {t('recordings.seekHint')}
               </p>
             )}
