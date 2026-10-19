@@ -78,3 +78,12 @@
   .acm-dialog :where(button) { min-height: 44px; }
   .acm-dialog :where(.grid) > * { min-width: 0; }
 }
+
+/* TST-261019 M1 — iPhone 은 16px 미만 입력칸을 누르면 화면을 확대한다. 휴대폰 폭에서는 입력 글자를 16px 로. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+  select:not([data-zoom-ok]),
+  textarea:not([data-zoom-ok]) {
+    font-size: 16px; /* 속성 선택자로 text-sm 등 클래스보다 우선 */
+  }
+}

@@ -47,6 +47,10 @@ export function DebugContextPanel({
     initialAmaToken ? decodeJwtPayload(initialAmaToken) : '(no token)',
   ].join('\n');
 
+  // TST-261019 M2 — 운영에서는 숨긴다(AMA 토큰 노출 방지). 개발 환경 또는 ?debug=1 일 때만.
+  if (!(import.meta.env.DEV || new URLSearchParams(initialQueryParams).get('debug') === '1'))
+    return null;
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content);
     setCopied(true);
@@ -54,7 +58,7 @@ export function DebugContextPanel({
   };
 
   return (
-    <div className="fixed bottom-0 right-4 z-50">
+    <div className="fixed right-4 z-50" style={{ bottom: "env(safe-area-inset-bottom, 0px)" }}>
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
