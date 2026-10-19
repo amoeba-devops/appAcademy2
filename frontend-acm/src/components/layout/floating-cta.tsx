@@ -1,8 +1,14 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TPI_SITE } from '@/modules/portal/content/tpi-content';
 
 export function FloatingCta() {
+  // TST-261019 — 휴대폰 하단 바가 있는 동안 외부 채팅 위젯(닫힌 상태)을 바 위로 올린다(globals.css).
+  useEffect(() => {
+    document.body.classList.add('has-mobile-cta');
+    return () => document.body.classList.remove('has-mobile-cta');
+  }, []);
   const { t } = useTranslation('portal');
   const BUTTONS = [
     {

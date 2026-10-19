@@ -87,3 +87,10 @@
     font-size: 16px; /* 속성 선택자로 text-sm 등 클래스보다 우선 */
   }
 }
+
+/* TST-261019 — 공개 홈 휴대폰 하단 바와 외부 채팅 위젯(ShopTalk iframe, 닫힌 상태 96px)이 겹치지 않게 */
+@media (max-width: 767px) {
+  body.has-mobile-cta #ivy-talktalk-frame[style*="width: 96px"] {
+    bottom: calc(52px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

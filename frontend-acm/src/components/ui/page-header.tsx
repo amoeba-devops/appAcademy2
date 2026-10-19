@@ -29,7 +29,7 @@ export function PageHeader({
       {back && (
         <Link
           to={back.to}
-          className="mb-3 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
+          className="mb-2 inline-flex min-h-9 items-center gap-1.5 text-sm text-secondary hover:text-primary sm:mb-3 sm:min-h-0"
         >
           <ArrowLeft size={16} aria-hidden="true" />
           {back.label}

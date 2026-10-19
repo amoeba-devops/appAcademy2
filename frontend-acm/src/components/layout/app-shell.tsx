@@ -308,7 +308,7 @@ export function AppShell() {
             )
           )}
           {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
-          <Link to="/admin" className="font-semibold text-lg text-accent-700">
+          <Link to="/admin" className="inline-flex min-h-10 items-center px-1 font-semibold text-lg text-accent-700 sm:min-h-0 sm:px-0">
             ACM
           </Link>
         </div>
