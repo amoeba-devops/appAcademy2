@@ -245,7 +245,7 @@
     "notifications": "Notifications",
     "enrollments": "Enrollments",
     "systemAdmin": "System Admin",
-    "chat": "Lobby Chat",
+    "chat": "Chat",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "expandMenu": "Expand menu",
@@ -2039,6 +2039,30 @@
     "pay": {
       "desc": "Manage monthly billing and payment status.",
       "currency": "Currency: KRW"
+    },
+    "config": {
+      "desc": "Set up user invitations and mail, ads and Drive integrations."
+    },
+    "myPage": {
+      "desc": "Manage your profile, emergency contacts and password."
+    },
+    "chat": {
+      "desc": "Talk with teachers and staff."
+    },
+    "cal": {
+      "desc": "Manage class and consultation schedules on a calendar."
+    },
+    "drive": {
+      "desc": "Manage files in the company Google Drive shared folders."
+    },
+    "projectDetail": {
+      "edit": "Edit project",
+      "info": "Project info",
+      "tabs": {
+        "overview": "Overview",
+        "documents": "Documents",
+        "issues": "Issues"
+      }
     }
   }
 }

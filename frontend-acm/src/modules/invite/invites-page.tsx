@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Check, Copy, UserPlus } from 'lucide-react';
+import { Check, Copy, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
+import { UnderlineTabs } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -32,36 +34,25 @@ export function InvitesPage() {
   const [result, setResult] = useState<InviteSendResult | null>(null);
   return (
     <div className="grid w-full min-w-0 gap-4">
-      <Link to="/admin/config" className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary">
-        <ArrowLeft size={16} />
-        {t('config.backToList')}
-      </Link>
-      <header className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <UserPlus size={20} className="text-accent-700" />
-          <h1 className="text-xl font-semibold text-primary">{t('invite.title')}</h1>
-        </div>
-        <Button onClick={() => setCreating(true)}>
-          <UserPlus size={16} className="mr-1.5" />
-          {t('invite.new')}
-        </Button>
-      </header>
-      <div className="flex gap-1 border-b" role="tablist">
-        {(['users', 'invites'] as const).map((k) => (
-          <button
-            key={k}
-            type="button"
-            role="tab"
-            aria-selected={tab === k}
-            onClick={() => setParams(k === 'users' ? {} : { tab: k })}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
-              tab === k ? 'border-accent-600 text-accent-700' : 'border-transparent text-secondary hover:text-primary'
-            }`}
-          >
-            {t(`invite.tabs.${k}`)}
-          </button>
-        ))}
-      </div>
+      <PageHeader
+        back={{ to: '/admin/config', label: t('nav.config') }}
+        icon={UserPlus}
+        title={t('invite.title')}
+        description={t('invite.cardDescription')}
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <UserPlus size={16} className="mr-1.5" />
+            {t('invite.new')}
+          </Button>
+        }
+        tabs={
+          <UnderlineTabs
+            items={(['users', 'invites'] as const).map((k) => ({ key: k, label: t(`invite.tabs.${k}`) }))}
+            value={tab}
+            onChange={(k) => setParams(k === 'users' ? {} : { tab: k })}
+          />
+        }
+      />
       {tab === 'users' ? <RegisteredUsers /> : <InviteHistory />}
       {creating && (
         <CreateInviteDialog

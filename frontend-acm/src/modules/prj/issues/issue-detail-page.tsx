@@ -2,11 +2,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, FileText, Link as LinkIcon } from "lucide-react";
+import { FileText, Link as LinkIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { Section } from "@/components/ui/section";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import { errorText, useScope } from "../project-page";
 import { IssueFormDialog } from "./issue-form-dialog";
 import { IssueRichEditor, IssueRichView, isBlankHtml, type MentionCandidate } from "./issue-rich-text";
@@ -62,22 +65,29 @@ export function IssueDetailPage() {
   const canDelete = !archived && (i.created_by === user?.id || i.can_manage);
   return (
     <div className="grid min-w-0 gap-4">
-      <Link
-        to="/admin/issues"
-        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
-      >
-        <ArrowLeft size={16} />
-        {t("issues.backToList")}
-      </Link>
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="grid min-w-0 content-start gap-4">
-          <header className="flex flex-wrap items-start gap-2">
-            <h1 className="min-w-0 flex-1 break-words text-xl font-semibold text-primary">
-              {i.pit_ref_no && (
-                <span className="mr-2 font-mono text-base font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>
-              )}
-              {i.pit_title}
-            </h1>
+      <PageHeader
+        back={{ to: "/admin/issues", label: t("nav.issues") }}
+        title={
+          <>
+            {i.pit_ref_no && (
+              <span className="mr-2 font-mono text-base font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>
+            )}
+            {i.pit_title}
+          </>
+        }
+        meta={
+          <>
+            <StatusBadge status={i.pit_status} />
+            <span>
+              {t("issues.fields.assignee")}: {i.assignee_name ?? t("issues.unassigned")}
+            </span>
+            <span>
+              {t("issues.fields.updatedAt")}: {new Date(i.updated_at).toLocaleString()}
+            </span>
+          </>
+        }
+        actions={
+          <>
             {!archived && (
               <Button variant="outline" onClick={() => setEditing(true)}>
                 {t("issues.edit")}
@@ -94,7 +104,11 @@ export function IssueDetailPage() {
                 {t("issues.delete")}
               </Button>
             )}
-          </header>
+          </>
+        }
+      />
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid min-w-0 content-start gap-4">
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border bg-surface p-4 text-sm sm:grid-cols-3">
             <Meta label={t("issues.fields.type")}>{t(`issues.type.${i.pit_issue_type}`)}</Meta>
             <Meta label={t("issues.fields.priority")}>
@@ -141,28 +155,15 @@ export function IssueDetailPage() {
           </dl>
           {i.attachments.length > 0 && <Attachments prj={i.prj_id} items={i.attachments} />}
           {i.pit_resolution && (
-            <section className="rounded-lg border bg-surface p-4 text-sm">
-              <h2 className="mb-1 text-xs text-secondary">{t("issues.fields.resolution")}</h2>
+            <Section title={t("issues.fields.resolution")} bodyClassName="p-4 text-sm">
               <p className="whitespace-pre-wrap break-words">{i.pit_resolution}</p>
-            </section>
+            </Section>
           )}
-          <div className="flex gap-1 border-b" role="tablist">
-            {(["description", "history"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={tab === k}
-                onClick={() => setTab(k)}
-                className={clsx(
-                  "-mb-px border-b-2 px-4 py-2 text-sm",
-                  tab === k ? "border-accent-600 text-accent-700" : "border-transparent text-secondary",
-                )}
-              >
-                {t(`issues.tabs.${k}`)}
-              </button>
-            ))}
-          </div>
+          <UnderlineTabs
+            items={(["description", "history"] as const).map((k) => ({ key: k, label: t(`issues.tabs.${k}`) }))}
+            value={tab}
+            onChange={setTab}
+          />
           {tab === "description" ? (
             <div className="min-h-16 break-words">
               {isBlankHtml(i.pit_body) ? (

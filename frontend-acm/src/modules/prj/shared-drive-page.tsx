@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Eye, FolderOpen, HardDrive, Link2, Search, Settings, Unlink, Users } from "lucide-react";
+import { Eye, FolderKanban, FolderOpen, HardDrive, Link2, Search, Settings, Unlink, Users } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,8 @@ import { FileDetailModal, FileItems, FolderView, useViewPrefs, ViewTools } from 
  */
 export function SharedDrivePage() {
   const { t } = useTranslation("common");
+  // UI-261019 P4 — /admin/config/drive 에서 열렸을 때만 "← 서비스 설정" 뒤로 링크.
+  const fromConfig = useLocation().pathname.startsWith("/admin/config/");
   const scope = useScope(),
     qc = useQueryClient(),
     w = useWork();
@@ -66,193 +70,201 @@ export function SharedDrivePage() {
     setTerm("");
   };
   return (
-    <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
-      {/* 헤더 */}
-      <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
-        <div className="flex flex-wrap items-start gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-gray-900">{t("driveUi.title")}</h1>
-              {readOnly && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
-                  <Eye className="h-3 w-3" />
-                  {t("driveUi.readOnly")}
-                </span>
-              )}
-            </div>
-            <p className="mt-0.5 text-sm text-gray-500">{t("driveUi.subtitle")}</p>
-            <p className="mt-0.5 text-xs text-gray-400">
+    <div className="min-w-0">
+      <PageHeader
+        back={fromConfig ? { to: "/admin/config", label: t("nav.config") } : undefined}
+        icon={FolderKanban}
+        title={t("nav.drive")}
+        description={t("pageHeader.drive.desc")}
+        meta={
+          <>
+            {readOnly && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
+                <Eye className="h-3 w-3" />
+                {t("driveUi.readOnly")}
+              </span>
+            )}
+            <span className="text-xs text-gray-400">
               {status.data?.connected ? t("driveUi.account", { email: status.data.email }) : t("driveUi.notConnected")}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            onClick={() => setManage(!manage)}
-          >
-            <Settings className="h-4 w-4" />
-            {t("driveUi.manageConnection")}
-          </button>
-          {status.data?.canManage && (
+            </span>
+          </>
+        }
+        actions={
+          <>
             <button
               type="button"
-              disabled={!status.data.connected}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
-              onClick={() => setPermissions("new")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              onClick={() => setManage(!manage)}
             >
-              <Link2 className="h-4 w-4" />
-              {t("driveUi.linkFolder")}
+              <Settings className="h-4 w-4" />
+              {t("driveUi.manageConnection")}
             </button>
-          )}
-        </div>
-        <div className="relative mt-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("driveUi.searchPlaceholder")}
-            aria-label={t("driveUi.searchPlaceholder")}
-            className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
-      </div>
-
-      {/* 본문 */}
-      <div className="min-h-[60vh] flex-1 overflow-y-auto px-6 py-4">
-        {(manage || (status.data && !status.data.connected)) && (
-          <div className="mb-4 rounded-xl border border-gray-200 p-4">
-            <DriveConnection />
-          </div>
-        )}
-        {(w.error || folders.error) && (
-          <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {w.error || errorText(folders.error)}
-          </p>
-        )}
-        {searching ? (
-          <>
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <span className="text-sm font-medium text-gray-700">{t("driveUi.searchResults")}</span>
-              <div className="flex items-center gap-2">
-                <ViewTools {...prefs} />
-              </div>
-            </div>
-            {results.isLoading ? (
-              <div className="flex justify-center py-12">
-                <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-              </div>
-            ) : results.error ? (
-              <p role="alert" className="text-sm text-red-600">{errorText(results.error)}</p>
-            ) : !results.data?.length ? (
-              <p className="py-12 text-center text-sm text-gray-500">{t("driveUi.noResults")}</p>
-            ) : (
-              <FileItems
-                items={sortItems(results.data, prefs.sort, prefs.dir)}
-                view={prefs.view}
-                selecting={false}
-                selected={new Set()}
-                toggle={() => undefined}
-                canEdit={false}
-                showFolder
-                onOpen={(f) => {
-                  const owner = folders.data?.find((x) => x.drf_id === f.drfId);
-                  if (!owner) return;
-                  if (isFolder(f)) openFolder(owner, [{ id: f.id, name: f.name }]);
-                  else setDetail(f);
-                }}
-                onRename={() => undefined}
-                onMove={() => undefined}
-                onTrash={() => undefined}
-              />
+            {status.data?.canManage && (
+              <button
+                type="button"
+                disabled={!status.data.connected}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+                onClick={() => setPermissions("new")}
+              >
+                <Link2 className="h-4 w-4" />
+                {t("driveUi.linkFolder")}
+              </button>
             )}
           </>
-        ) : open ? (
-          <FolderView folder={open} trail={trail} setTrail={setTrail} onExit={() => setOpen(null)} notify={notify} />
-        ) : folders.isLoading ? (
-          <div className="flex justify-center py-12">
-            <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-          </div>
-        ) : !folders.data?.length ? (
-          <div className="flex flex-col items-center py-12 text-center">
-            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-              <FolderOpen className="h-8 w-8 text-gray-400" />
-            </span>
-            <p className="mt-3 text-sm font-medium text-gray-700">{t("driveUi.noFolders")}</p>
-            <p className="mt-1 text-sm text-gray-500">{t("driveUi.noFoldersHint")}</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {folders.data.map((f) => (
-              <div
-                key={f.drf_id}
-                role="button"
-                tabIndex={0}
-                onClick={() => openFolder(f)}
-                onKeyDown={(e) => e.key === "Enter" && openFolder(f)}
-                className="group flex cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 hover:border-purple-300 hover:bg-purple-50"
-              >
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
-                  <FolderOpen className="h-6 w-6 text-purple-600" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-gray-900">{f.title}</span>
-                  <span className="mt-1 inline-flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
-                      <HardDrive className="h-3 w-3" />
-                      {t("driveUi.sharedFolder")}
-                    </span>
-                    <span className={`text-[11px] ${f.access === "EDIT" ? "text-indigo-600" : "text-gray-400"}`}>
-                      {f.access === "EDIT" ? t("driveUi.canEdit") : t("driveUi.readOnly")}
-                    </span>
-                  </span>
-                </span>
-                {status.data?.canManage && (
-                  <span className="flex items-center gap-1 opacity-0 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      title={t("driveUi.shareTargets")}
-                      aria-label={t("driveUi.shareTargets")}
-                      onClick={() => setPermissions(f)}
-                      className="rounded-md p-2 text-gray-400 hover:bg-purple-100 hover:text-purple-600"
-                    >
-                      <Users className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      title={t("driveUi.unlink")}
-                      aria-label={t("driveUi.unlink")}
-                      disabled={w.busy}
-                      onClick={() => {
-                        if (window.confirm(t("driveUi.unlinkConfirm")))
-                          void w.run(async () => {
-                            await apiClient.delete(`${driveBase}/${f.drf_id}`);
-                            await qc.invalidateQueries({ queryKey: ["shared-drive"] });
-                          });
-                      }}
-                      className="rounded-md p-2 text-gray-400 hover:bg-amber-50 hover:text-amber-600"
-                    >
-                      <Unlink className="h-4 w-4" />
-                    </button>
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      {permissions && <FolderPermissions folder={permissions === "new" ? undefined : permissions} close={() => setPermissions(null)} />}
-      {detail?.drfId && <FileDetailModal folder={detail.drfId} file={detail} close={() => setDetail(null)} />}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2">
-          <div
-            role="status"
-            className={`max-w-md whitespace-pre-line rounded-xl px-4 py-2.5 text-sm text-white shadow-2xl ${toast.ok ? "bg-green-600" : "bg-red-600"}`}
-          >
-            {toast.message}
+        }
+      />
+      <section className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+        {/* 검색 */}
+        <div className="shrink-0 border-b border-gray-200 bg-white px-6 py-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t("driveUi.searchPlaceholder")}
+              aria-label={t("driveUi.searchPlaceholder")}
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
           </div>
         </div>
-      )}
-    </section>
+
+        {/* 본문 */}
+        <div className="min-h-[60vh] flex-1 overflow-y-auto px-6 py-4">
+          {(manage || (status.data && !status.data.connected)) && (
+            <div className="mb-4 rounded-xl border border-gray-200 p-4">
+              <DriveConnection />
+            </div>
+          )}
+          {(w.error || folders.error) && (
+            <p role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {w.error || errorText(folders.error)}
+            </p>
+          )}
+          {searching ? (
+            <>
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-sm font-medium text-gray-700">{t("driveUi.searchResults")}</span>
+                <div className="flex items-center gap-2">
+                  <ViewTools {...prefs} />
+                </div>
+              </div>
+              {results.isLoading ? (
+                <div className="flex justify-center py-12">
+                  <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+                </div>
+              ) : results.error ? (
+                <p role="alert" className="text-sm text-red-600">{errorText(results.error)}</p>
+              ) : !results.data?.length ? (
+                <p className="py-12 text-center text-sm text-gray-500">{t("driveUi.noResults")}</p>
+              ) : (
+                <FileItems
+                  items={sortItems(results.data, prefs.sort, prefs.dir)}
+                  view={prefs.view}
+                  selecting={false}
+                  selected={new Set()}
+                  toggle={() => undefined}
+                  canEdit={false}
+                  showFolder
+                  onOpen={(f) => {
+                    const owner = folders.data?.find((x) => x.drf_id === f.drfId);
+                    if (!owner) return;
+                    if (isFolder(f)) openFolder(owner, [{ id: f.id, name: f.name }]);
+                    else setDetail(f);
+                  }}
+                  onRename={() => undefined}
+                  onMove={() => undefined}
+                  onTrash={() => undefined}
+                />
+              )}
+            </>
+          ) : open ? (
+            <FolderView folder={open} trail={trail} setTrail={setTrail} onExit={() => setOpen(null)} notify={notify} />
+          ) : folders.isLoading ? (
+            <div className="flex justify-center py-12">
+              <span className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
+            </div>
+          ) : !folders.data?.length ? (
+            <div className="flex flex-col items-center py-12 text-center">
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+                <FolderOpen className="h-8 w-8 text-gray-400" />
+              </span>
+              <p className="mt-3 text-sm font-medium text-gray-700">{t("driveUi.noFolders")}</p>
+              <p className="mt-1 text-sm text-gray-500">{t("driveUi.noFoldersHint")}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {folders.data.map((f) => (
+                <div
+                  key={f.drf_id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openFolder(f)}
+                  onKeyDown={(e) => e.key === "Enter" && openFolder(f)}
+                  className="group flex cursor-pointer items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 hover:border-purple-300 hover:bg-purple-50"
+                >
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+                    <FolderOpen className="h-6 w-6 text-purple-600" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-gray-900">{f.title}</span>
+                    <span className="mt-1 inline-flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                        <HardDrive className="h-3 w-3" />
+                        {t("driveUi.sharedFolder")}
+                      </span>
+                      <span className={`text-[11px] ${f.access === "EDIT" ? "text-indigo-600" : "text-gray-400"}`}>
+                        {f.access === "EDIT" ? t("driveUi.canEdit") : t("driveUi.readOnly")}
+                      </span>
+                    </span>
+                  </span>
+                  {status.data?.canManage && (
+                    <span className="flex items-center gap-1 opacity-0 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        title={t("driveUi.shareTargets")}
+                        aria-label={t("driveUi.shareTargets")}
+                        onClick={() => setPermissions(f)}
+                        className="rounded-md p-2 text-gray-400 hover:bg-purple-100 hover:text-purple-600"
+                      >
+                        <Users className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        title={t("driveUi.unlink")}
+                        aria-label={t("driveUi.unlink")}
+                        disabled={w.busy}
+                        onClick={() => {
+                          if (window.confirm(t("driveUi.unlinkConfirm")))
+                            void w.run(async () => {
+                              await apiClient.delete(`${driveBase}/${f.drf_id}`);
+                              await qc.invalidateQueries({ queryKey: ["shared-drive"] });
+                            });
+                        }}
+                        className="rounded-md p-2 text-gray-400 hover:bg-amber-50 hover:text-amber-600"
+                      >
+                        <Unlink className="h-4 w-4" />
+                      </button>
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {permissions && <FolderPermissions folder={permissions === "new" ? undefined : permissions} close={() => setPermissions(null)} />}
+        {detail?.drfId && <FileDetailModal folder={detail.drfId} file={detail} close={() => setDetail(null)} />}
+        {toast && (
+          <div className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2">
+            <div
+              role="status"
+              className={`max-w-md whitespace-pre-line rounded-xl px-4 py-2.5 text-sm text-white shadow-2xl ${toast.ok ? "bg-green-600" : "bg-red-600"}`}
+            >
+              {toast.message}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
   );
 }
 function FolderPermissions({

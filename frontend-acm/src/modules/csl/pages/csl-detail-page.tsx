@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Trash2 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -233,141 +234,163 @@ export function CslDetailBody({
     ? inq.currentStage
     : (selectedStage ?? inq.currentStage);
 
+  const titleNode = (
+    <span className="flex flex-wrap items-center gap-2">
+      {displayName}
+      {/* REQ-260921B — 구분 배지 */}
+      <span
+        className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${
+          KIND_BADGE_CLASS[inq.kind ?? "TUTORING"]
+        }`}
+      >
+        {t(`kind.${inq.kind ?? "TUTORING"}`)}
+      </span>
+    </span>
+  );
+  const metaNode = (
+    <div className="grid">
+      <p className="text-sm text-secondary mt-1">
+        #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)}
+        {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{" "}
+        {t(`applyType.${inq.applyType}`)}
+        {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
+        {inq.grade && ` (${formatGrade(t, inq.grade)})`}
+        {inq.birthdate &&
+          ` · ${t("form.birthdate", "생년월일")} ${inq.birthdate}`}
+        {inq.gender && ` (${t(`gender.${inq.gender}`)})`}
+      </p>
+      {(inq.parentName || inq.parentPhone) && (
+        <p className="text-sm text-secondary mt-1">
+          👪 {inq.parentName ?? "—"}
+          {inq.parentPhone && ` · ☎ ️ ${inq.parentPhone}`}
+        </p>
+      )}
+      {inq.linkedStudent && (
+        <p className="mt-1 text-sm">
+          <span className="text-secondary">
+            🎓 {t("detail.linkedStudent", "수강등록 연결")}:{" "}
+          </span>
+          <Link
+            to={`/admin/std/${inq.linkedStudent.id}`}
+            className="font-medium text-accent-700 hover:underline"
+          >
+            {inq.linkedStudent.name}
+          </Link>
+          <span className="ml-1 text-xs text-secondary">
+            (
+            {t(
+              `std:status.${inq.linkedStudent.status}`,
+              inq.linkedStudent.status,
+            )}
+            )
+          </span>
+        </p>
+      )}
+    </div>
+  );
+  const actionsNode = (
+    <>
+      {inq.currentStage === "PAYMENT" && (
+        <label className="text-xs">
+          {t("std:site.label")}
+          <select
+            aria-label={t("std:site.label")}
+            className="block rounded border p-2"
+            value={registrationSite ?? inq.sourceSite ?? ""}
+            onChange={(e) => setRegistrationSite(e.target.value)}
+          >
+            <option value="">{t("std:site.UNASSIGNED")}</option>
+            {STD_SITES.map((site) => (
+              <option key={site} value={site}>
+                {t(`std:site.${site}`)}
+              </option>
+            ))}
+          </select>
+          {inq.linkedStudent && (
+            <span>{t("std:site.existingPreserved")}</span>
+          )}
+        </label>
+      )}
+      {!isDropped &&
+        allowedForward.map((s) => (
+          <Button
+            key={s}
+            onClick={() => forward.mutate(s)}
+            disabled={
+              forward.isPending ||
+              (s === "CLASS_STARTED" &&
+                !(registrationSite ?? inq.sourceSite))
+            }
+          >
+            → {t(`stage.${s}`)}
+          </Button>
+        ))}
+      {/* REQ-260922E — 다음 단계로 가기 전에 무엇을 입력해야 하는지 미리 안내 */}
+      {!isDropped && allowedForward.length > 0 && (
+        <div data-testid="transition-hints" className="hidden basis-full text-xs text-secondary md:block">
+          {allowedForward.map((s) => (
+            <p key={`hint-${s}`}>
+              <span className="font-medium">{t(`stage.${s}`)}</span>
+              {" · "}
+              {t(`transition.hints.${s}`, { defaultValue: "" }) ||
+                t("transition.hints.none", "별도 입력 요건 없음")}
+            </p>
+          ))}
+        </div>
+      )}
+      {isDropped && (
+        <Button
+          onClick={() => reactivate.mutate()}
+          disabled={reactivate.isPending}
+        >
+          {t("detail.reactivate")}
+        </Button>
+      )}
+      {/* 요구 260914G — 삭제는 AMA 연동 계정만. 소프트 삭제라 목록의
+          '삭제 목록 보기' 에서 복구할 수 있다. */}
+      {canDelete && (
+        <Button
+          variant="outline"
+          className="border-red-300 text-red-600 hover:bg-red-50"
+          onClick={() => void onDelete()}
+          disabled={removing}
+        >
+          <Trash2 size={14} className="mr-1" />
+          {t("common:actions.delete", "삭제")}
+        </Button>
+      )}
+    </>
+  );
+
   return (
     <div className="grid min-w-0 gap-6">
-      {/* Header */}
-      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="text-xs text-secondary hover:text-primary mb-2"
-            >
-              {variant === "modal" ? "✕" : "←"}{" "}
-              {backLabel ?? t("detail.backToList")}
-            </button>
-          )}
-          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
-            {displayName}
-            {/* REQ-260921B — 구분 배지 */}
-            <span
-              className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${
-                KIND_BADGE_CLASS[inq.kind ?? "TUTORING"]
-              }`}
-            >
-              {t(`kind.${inq.kind ?? "TUTORING"}`)}
-            </span>
-          </h1>
-          <p className="text-sm text-secondary mt-1">
-            #{inq.seqNo} · {t(`inflow.${inq.inflowType}`)}
-            {inq.sourceSite && ` (${t(`sourceSite.${inq.sourceSite}`)})`} ·{" "}
-            {t(`applyType.${inq.applyType}`)}
-            {inq.schoolFreetext && ` · ${inq.schoolFreetext}`}
-            {inq.grade && ` (${formatGrade(t, inq.grade)})`}
-            {inq.birthdate &&
-              ` · ${t("form.birthdate", "생년월일")} ${inq.birthdate}`}
-            {inq.gender && ` (${t(`gender.${inq.gender}`)})`}
-          </p>
-          {(inq.parentName || inq.parentPhone) && (
-            <p className="text-sm text-secondary mt-1">
-              👪 {inq.parentName ?? "—"}
-              {inq.parentPhone && ` · ☎ ️ ${inq.parentPhone}`}
-            </p>
-          )}
-          {inq.linkedStudent && (
-            <p className="mt-1 text-sm">
-              <span className="text-secondary">
-                🎓 {t("detail.linkedStudent", "수강등록 연결")}:{" "}
-              </span>
-              <Link
-                to={`/admin/std/${inq.linkedStudent.id}`}
-                className="font-medium text-accent-700 hover:underline"
+      {/* Header — UI-261019 P4: 페이지는 PageHeader, 모달(칸반)은 기존 닫기 헤더 */}
+      {variant === "page" ? (
+        <PageHeader
+          back={{ to: "/admin/csl", label: t("common:nav.csl") }}
+          title={titleNode}
+          meta={metaNode}
+          actions={actionsNode}
+        />
+      ) : (
+        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-xs text-secondary hover:text-primary mb-2"
               >
-                {inq.linkedStudent.name}
-              </Link>
-              <span className="ml-1 text-xs text-secondary">
-                (
-                {t(
-                  `std:status.${inq.linkedStudent.status}`,
-                  inq.linkedStudent.status,
-                )}
-                )
-              </span>
-            </p>
-          )}
+                ✕ {backLabel ?? t("detail.backToList")}
+              </button>
+            )}
+            <h1 className="text-2xl font-semibold">{titleNode}</h1>
+            {metaNode}
+          </div>
+          <div className="flex min-w-0 flex-wrap items-start gap-2 lg:max-w-[55%]">
+            {actionsNode}
+          </div>
         </div>
-        <div className="flex min-w-0 flex-wrap items-start gap-2 lg:max-w-[55%]">
-          {inq.currentStage === "PAYMENT" && (
-            <label className="text-xs">
-              {t("std:site.label")}
-              <select
-                aria-label={t("std:site.label")}
-                className="block rounded border p-2"
-                value={registrationSite ?? inq.sourceSite ?? ""}
-                onChange={(e) => setRegistrationSite(e.target.value)}
-              >
-                <option value="">{t("std:site.UNASSIGNED")}</option>
-                {STD_SITES.map((site) => (
-                  <option key={site} value={site}>
-                    {t(`std:site.${site}`)}
-                  </option>
-                ))}
-              </select>
-              {inq.linkedStudent && (
-                <span>{t("std:site.existingPreserved")}</span>
-              )}
-            </label>
-          )}
-          {!isDropped &&
-            allowedForward.map((s) => (
-              <Button
-                key={s}
-                onClick={() => forward.mutate(s)}
-                disabled={
-                  forward.isPending ||
-                  (s === "CLASS_STARTED" &&
-                    !(registrationSite ?? inq.sourceSite))
-                }
-              >
-                → {t(`stage.${s}`)}
-              </Button>
-            ))}
-          {/* REQ-260922E — 다음 단계로 가기 전에 무엇을 입력해야 하는지 미리 안내 */}
-          {!isDropped && allowedForward.length > 0 && (
-            <div data-testid="transition-hints" className="hidden basis-full text-xs text-secondary md:block">
-              {allowedForward.map((s) => (
-                <p key={`hint-${s}`}>
-                  <span className="font-medium">{t(`stage.${s}`)}</span>
-                  {" · "}
-                  {t(`transition.hints.${s}`, { defaultValue: "" }) ||
-                    t("transition.hints.none", "별도 입력 요건 없음")}
-                </p>
-              ))}
-            </div>
-          )}
-          {isDropped && (
-            <Button
-              onClick={() => reactivate.mutate()}
-              disabled={reactivate.isPending}
-            >
-              {t("detail.reactivate")}
-            </Button>
-          )}
-          {/* 요구 260914G — 삭제는 AMA 연동 계정만. 소프트 삭제라 목록의
-              '삭제 목록 보기' 에서 복구할 수 있다. */}
-          {canDelete && (
-            <Button
-              variant="outline"
-              className="border-red-300 text-red-600 hover:bg-red-50"
-              onClick={() => void onDelete()}
-              disabled={removing}
-            >
-              <Trash2 size={14} className="mr-1" />
-              {t("common:actions.delete", "삭제")}
-            </Button>
-          )}
-        </div>
-      </div>
+      )}
 
       {errorMsg && (
         <div className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700">

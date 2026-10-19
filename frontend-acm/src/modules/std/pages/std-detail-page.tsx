@@ -6,10 +6,12 @@ import { CLASS_FIELDS } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
-import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
+import { useParams, useLocation, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Pencil, UserX, Plus, Star, Trash2 } from "lucide-react";
+import { Pencil, UserX, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { Section as UiSection } from "@/components/ui/section";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useStudent } from "../hooks/use-students";
 import {
@@ -56,16 +58,14 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
-      <h3 className="mb-3 text-[13px] font-bold text-secondary">{title}</h3>
+    <UiSection title={title}>
       <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-3">{children}</dl>
-    </div>
+    </UiSection>
   );
 }
 
 export function StdDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
   const { t } = useTranslation("std");
@@ -101,38 +101,34 @@ export function StdDetailPage() {
 
   return (
     <div className="w-full min-w-0 space-y-4 bg-canvas">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <button
-            onClick={() =>
-              navigate(
-                returnTo &&
-                  /^\/admin\/std(?:\/(?:tpi|trinity|santa-croce|withdrawn))?(?:\?[^#]*)?$/.test(
-                    returnTo,
-                  )
-                  ? returnTo
-                  : student.status === "WITHDRAWN"
-                    ? "/admin/std/withdrawn"
-                    : student.site
-                      ? `/admin/std/${{ TPI: "tpi", TRINITY: "trinity", SANTACROCE: "santa-croce" }[student.site]}`
-                      : "/admin/std",
-              )
-            }
-            className="mb-2 flex items-center gap-1 text-sm text-secondary hover:text-primary transition-colors"
-          >
-            <ArrowLeft size={14} />
-            {t("detail.back")}
-          </button>
-          <h1 className="text-2xl font-semibold">
+      {/* Header — UI-261019 P4 */}
+      <PageHeader
+        back={{
+          to:
+            returnTo &&
+            /^\/admin\/std(?:\/(?:tpi|trinity|santa-croce|withdrawn))?(?:\?[^#]*)?$/.test(
+              returnTo,
+            )
+              ? returnTo
+              : student.status === "WITHDRAWN"
+                ? "/admin/std/withdrawn"
+                : student.site
+                  ? `/admin/std/${{ TPI: "tpi", TRINITY: "trinity", SANTACROCE: "santa-croce" }[student.site]}`
+                  : "/admin/std",
+          label: t("common:nav.std"),
+        }}
+        title={
+          <>
             {student.name}
             {student.englishName && (
-              <span className="ml-2 text-lg text-secondary">
+              <span className="ml-2 text-lg font-normal text-secondary">
                 ({student.englishName})
               </span>
             )}
-          </h1>
-          <div className="mt-1 flex items-center gap-2">
+          </>
+        }
+        meta={
+          <>
             <StdStatusBadge status={student.status} />
             {student.sourceInquiry && (
               <Link
@@ -148,22 +144,24 @@ export function StdDetailPage() {
                 )}
               </Link>
             )}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <StudentDeleteButton id={student.id} />
-          <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
-            <Pencil size={14} className="mr-1" />
-            {t("actions.edit")}
-          </Button>
-          {student.status === "ACTIVE" && (
-            <Button variant="outline" size="sm" onClick={handleDeactivate}>
-              <UserX size={14} className="mr-1" />
-              {t("actions.deactivate")}
+          </>
+        }
+        actions={
+          <>
+            <StudentDeleteButton id={student.id} />
+            <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
+              <Pencil size={14} className="mr-1" />
+              {t("actions.edit")}
             </Button>
-          )}
-        </div>
-      </div>
+            {student.status === "ACTIVE" && (
+              <Button variant="outline" size="sm" onClick={handleDeactivate}>
+                <UserX size={14} className="mr-1" />
+                {t("actions.deactivate")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {/* 기본 인적사항 */}
       <Section title={t("form.sectionBasic")}>
@@ -306,10 +304,7 @@ export function StdDetailPage() {
       </Section>
 
       {/* 포털 계정 (PLN-260706) */}
-      <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
-        <h3 className="mb-3 text-[13px] font-bold text-secondary">
-          {t("common:portalAccount.title")}
-        </h3>
+      <UiSection title={t("common:portalAccount.title")}>
         <PortalAccountPanel
           kind="STUDENT"
           refId={id!}
@@ -319,14 +314,12 @@ export function StdDetailPage() {
               "학생 이메일을 등록해야 포털계정을 발급할 수 있습니다.",
           })}
         />
-      </div>
+      </UiSection>
 
       {/* 학부모 */}
-      <div className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-[13px] font-bold text-secondary">
-            {t("form.sectionParents", "학부모 정보")}
-          </h3>
+      <UiSection
+        title={t("form.sectionParents", "학부모 정보")}
+        actions={
           <Button
             size="sm"
             variant="outline"
@@ -335,7 +328,8 @@ export function StdDetailPage() {
             <Plus className="h-4 w-4 mr-1" />
             {t("form.addParent", "학부모 추가")}
           </Button>
-        </div>
+        }
+      >
         {(!student.parents || student.parents.length === 0) && (
           <p className="py-3 text-xs text-secondary">
             {t(
@@ -404,7 +398,7 @@ export function StdDetailPage() {
             </div>
           ))}
         </div>
-      </div>
+      </UiSection>
 
       <p className="text-xs text-secondary">
         {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { UserCircle } from "lucide-react";
+import { UserCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDual } from "@/lib/tz";
 import { TZ_OPTIONS, tzLabel } from "@/modules/cfg/pages/general-config-page";
 import { useMyProfile, useSaveMyProfile, type ProfileMode } from "./use-my-zones";
@@ -34,10 +35,18 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   const p = profile.data;
   return (
     <div className="grid w-full max-w-2xl min-w-0 gap-4">
-      <header className="flex items-center gap-2">
-        <UserCircle size={20} className="text-accent-700" />
-        <h1 className="text-xl font-semibold text-primary">{t("myPage.title")}</h1>
-      </header>
+      {mode === "console" ? (
+        <PageHeader
+          icon={UserRound}
+          title={t("nav.myPage")}
+          description={t("pageHeader.myPage.desc")}
+        />
+      ) : (
+        <header className="flex items-center gap-2">
+          <UserCircle size={20} className="text-accent-700" />
+          <h1 className="text-xl font-semibold text-primary">{t("myPage.title")}</h1>
+        </header>
+      )}
       {profile.isLoading && <p>{t("myPage.loading")}</p>}
       {profile.isError && <p role="alert">{t("myPage.loadError")}</p>}
       {p && (

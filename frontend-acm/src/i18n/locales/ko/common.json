@@ -245,7 +245,7 @@
     "notifications": "알림",
     "enrollments": "수강신청",
     "systemAdmin": "시스템 관리",
-    "chat": "로비채팅",
+    "chat": "채팅",
     "openMenu": "메뉴 열기",
     "closeMenu": "메뉴 닫기",
     "expandMenu": "메뉴 펼치기",
@@ -2039,6 +2039,30 @@
     "pay": {
       "desc": "월별 청구·납부 현황을 관리합니다.",
       "currency": "금액 단위: KRW"
+    },
+    "config": {
+      "desc": "사용자 초대와 메일·광고·Drive 연동을 설정합니다."
+    },
+    "myPage": {
+      "desc": "내 정보·비상연락망·비밀번호를 관리합니다."
+    },
+    "chat": {
+      "desc": "강사·직원과 대화합니다."
+    },
+    "cal": {
+      "desc": "수업과 상담 일정을 달력으로 관리합니다."
+    },
+    "drive": {
+      "desc": "회사 Google Drive 공유 폴더의 파일을 관리합니다."
+    },
+    "projectDetail": {
+      "edit": "프로젝트 수정",
+      "info": "프로젝트 정보",
+      "tabs": {
+        "overview": "개요",
+        "documents": "문서",
+        "issues": "이슈"
+      }
     }
   }
 }
