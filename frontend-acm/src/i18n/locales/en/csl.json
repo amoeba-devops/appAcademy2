@@ -33,7 +33,8 @@
     "dashboardSite": "Dashboard site",
     "manage": "Manage",
     "kind": "Type",
-    "birthdate": "Date of birth"
+    "birthdate": "Date of birth",
+    "totalCount": "{{count}} total"
   },
   "form": {
     "studentName": "Student name",
@@ -159,7 +160,8 @@
         "empty": "Empty files cannot be uploaded",
         "mime": "Only PDF/JPEG/PNG are allowed",
         "count": "Up to {{max}} files allowed"
-      }
+      },
+      "preview": "View"
     },
     "levelTest": {
       "title": "2. Level Test",
@@ -196,7 +198,14 @@
         "resetDescription": "Clear the date and time and delete the linked calendar event. The teacher, results and test status will be kept.",
         "resetDone": "Schedule reset.",
         "resetFailed": "Reset failed. Check for schedule changes, calendar permissions or external meetings, then refresh and retry."
-      }
+      },
+      "previewResult": "View result",
+      "previewPdf": "View PDF",
+      "addTypeLabel": "Add test type",
+      "addTypeHint": "Operators can add test rows manually.",
+      "otherNamePlaceholder": "Enter a test name",
+      "duplicateType": "This test type has already been added.",
+      "previewResultTitle": "Level test result preview"
     },
     "intake": {
       "title": "1. Intake",
@@ -230,7 +239,9 @@
         "gender": "Gender"
       },
       "applyPurposeOther": "Other (as submitted)",
-      "editBasic": "Edit basic info"
+      "editBasic": "Edit basic info",
+      "otherTestsText": "Other tests / notes",
+      "otherTestsPlaceholder": "Enter other scores such as AP / IB / PSAT as free text"
     },
     "backToList": "Back to list",
     "drop": "End consultation",
@@ -383,7 +394,8 @@
       "paymentMemo": "Memo",
       "method": {
         "CARD": "Card",
-        "BANK_TRANSFER": "Bank transfer"
+        "BANK_TRANSFER": "Bank transfer",
+        "OTHER": "Other"
       },
       "approvePayment": "Approve payment",
       "classStartedAt": "Class start date",
@@ -398,7 +410,13 @@
       "removeCourse": "Remove course",
       "tuitionInvalid": "Enter whole numbers from 0 to 50,000,000.",
       "tuitionTotal": "Total tuition for all selected courses.",
-      "loadError": "Could not load enrollment or courses. Refresh and try again."
+      "loadError": "Could not load enrollment or courses. Refresh and try again.",
+      "paymentSection": "Payment details",
+      "paymentDate": "Payment date",
+      "paymentMethodInput": "Payment method",
+      "paymentAmount": "Payment amount",
+      "paymentMemoInput": "Notes",
+      "classMinutesValue": "{{minutes}} min"
     },
     "classStatus": {
       "title": "6. Enrollment",
@@ -558,7 +576,20 @@
     "F": "Female"
   },
   "filters": {
-    "allKinds": "All types"
+    "allKinds": "All types",
+    "searchPlaceholder": "Search by student or parent name",
+    "registeredFrom": "Received from",
+    "registeredTo": "Received to",
+    "reset": "Reset",
+    "allInflows": "All channels",
+    "allApplyTypes": "All application types",
+    "allPurposes": "All purposes",
+    "allStages": "All stages",
+    "followup": {
+      "all": "All follow-ups",
+      "set": "Has follow-up",
+      "empty": "No follow-up"
+    }
   },
   "transition": {
     "failed": "Stage transition failed.",
@@ -582,5 +613,14 @@
       "CLASS_STARTED": "Confirm tuition paid in stage 5 and choose a registration site",
       "ATTENDING": "Student registered in student management (automatic on stage 6)"
     }
+  },
+  "pagination": {
+    "pageStatus": "Page {{page}} of {{totalPages}}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "filePreview": {
+    "loading": "Loading preview…",
+    "unsupported": "Preview is not available for this file type."
   }
 }

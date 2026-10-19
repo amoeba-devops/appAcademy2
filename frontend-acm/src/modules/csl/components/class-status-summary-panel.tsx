@@ -171,9 +171,7 @@ export function ClassStatusSummaryPanel({
   );
   const assignedTeachers = assignments
     .map((assignment) => {
-      const role = t(`detail.enrollment.assignRole.${assignment.role}`, {
-        defaultValue: assignment.role === "PRIMARY" ? "주" : "부",
-      });
+      const role = t(`detail.enrollment.assignRole.${assignment.role}`);
       const name =
         teacherName.get(assignment.teacherId) ?? assignment.teacherId;
       return `${role} ${name}`;
@@ -372,7 +370,11 @@ export function ClassStatusSummaryPanel({
             <Info
               label={t("detail.enrollment.classMinutes")}
               value={
-                enrollment?.classMinutes ? `${enrollment.classMinutes}분` : "—"
+                enrollment?.classMinutes
+                  ? t("detail.enrollment.classMinutesValue", {
+                      minutes: enrollment.classMinutes,
+                    })
+                  : "—"
               }
             />
             {(isAttending || enrollment?.startDate?.trim()) && (

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ export function FilePreviewDialog({
   src: string | null;
   mime: string | null;
 }) {
+  const { t } = useTranslation('csl');
   const isImage = !!mime && mime.startsWith('image/');
   const isPdf = mime === 'application/pdf';
 
@@ -30,7 +32,7 @@ export function FilePreviewDialog({
         <div className="h-full min-h-0 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)]">
           {!src ? (
             <div className="flex h-full items-center justify-center text-sm text-secondary">
-              미리보기 로딩 중
+              {t('filePreview.loading')}
             </div>
           ) : isImage ? (
             <div className="flex h-full items-center justify-center overflow-auto p-4">
@@ -44,7 +46,7 @@ export function FilePreviewDialog({
             <iframe title={title} src={src} className="h-full w-full rounded-md" />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-secondary">
-              미리보기를 지원하지 않는 형식입니다.
+              {t('filePreview.unsupported')}
             </div>
           )}
         </div>

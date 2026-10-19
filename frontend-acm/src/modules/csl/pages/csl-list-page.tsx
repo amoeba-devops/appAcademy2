@@ -253,14 +253,14 @@ export function CslListPage() {
             ? t('pagination.pageStatus', {
                 page,
                 totalPages,
-                defaultValue: `${page} / ${totalPages} 페이지`,
+                defaultValue: '{{page}} / {{totalPages}} 페이지',
               })
             : undefined
         }
       >
         {t('table.totalCount', {
           count: total,
-          defaultValue: `총 ${total}건`,
+          defaultValue: '총 {{count}}건',
         })}
       </ResultBar>
       {isLoading && <p className="text-secondary">{t('common:status.loading')}</p>}

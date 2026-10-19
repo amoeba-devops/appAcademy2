@@ -96,7 +96,8 @@
     },
     "teachersHint": "Tối đa {{max}} · người đầu tiên là giáo viên chính",
     "emailOptional": "(không bắt buộc)",
-    "emailOptionalHint": "Có thể đăng ký học sinh mà không cần địa chỉ email."
+    "emailOptionalHint": "Có thể đăng ký học sinh mà không cần địa chỉ email.",
+    "gradeInputPlaceholder": "G5, G8, Lớp 7…"
   },
   "import": {
     "title": "Nhập Excel (Hàng loạt)",
@@ -230,7 +231,57 @@
     "current": "Hiện tại → Nguồn",
     "keep": "Giữ giá trị hiện có",
     "supplement": "Bổ sung giá trị trống",
-    "datesTitle": "Thông tin nhập học và thôi học"
+    "datesTitle": "Thông tin nhập học và thôi học",
+    "fields": {
+      "name": "Họ tên",
+      "gender": "Giới tính",
+      "attendanceNo": "Mã điểm danh",
+      "school": "Trường",
+      "grade": "Khối lớp",
+      "classGroup": "Lớp",
+      "studentPhone": "SĐT học sinh",
+      "homePhone": "Điện thoại nhà",
+      "nickname": "Biệt danh",
+      "birthday": "Sinh nhật",
+      "postalCode": "Mã bưu chính",
+      "address1": "Địa chỉ 1",
+      "address2": "Địa chỉ 2",
+      "track": "Khối xã hội/tự nhiên",
+      "siblings": "Anh chị em",
+      "graduationYear": "Năm tốt nghiệp",
+      "studentEmail": "Email học sinh",
+      "guardianPhone": "SĐT người giám hộ",
+      "guardianRelation": "Quan hệ người giám hộ",
+      "guardianName": "Tên người giám hộ",
+      "guardianAttendanceAlert": "Thông báo điểm danh cho người giám hộ",
+      "otherGuardianPhone": "SĐT người giám hộ khác",
+      "otherGuardianName": "Tên người giám hộ khác",
+      "otherGuardianAttendanceAlert": "Thông báo điểm danh cho người giám hộ khác",
+      "admissionDate": "Ngày nhập học",
+      "admissionReason": "Lý do nhập học",
+      "isEnrolled": "Đang theo học",
+      "withdrawnDate": "Ngày nghỉ học",
+      "withdrawnReason": "Lý do nghỉ học",
+      "isOnLeave": "Đang tạm nghỉ",
+      "leaveReason": "Lý do tạm nghỉ",
+      "memo": "Ghi chú",
+      "classes": "Lớp học",
+      "homeroomTeacher": "Giáo viên chủ nhiệm",
+      "cashReceiptNo": "Số hóa đơn tiền mặt",
+      "cashReceiptType": "Loại hóa đơn tiền mặt",
+      "billingDay": "Ngày lập hóa đơn",
+      "discountAmount": "Số tiền giảm",
+      "discountType": "Loại giảm giá",
+      "studentUid": "Mã học sinh",
+      "otherPayment": "Khoản thu khác",
+      "studentCategory": "Phân loại học sinh",
+      "extra1": "Mục khác 1",
+      "extra2": "Mục khác 2",
+      "points": "Điểm thưởng",
+      "credits": "Tiền tích lũy",
+      "autoPayEnrolled": "Đăng ký thanh toán tự động",
+      "registeredDate": "Ngày đăng ký"
+    }
   },
   "navigation": {
     "integrated": "Xem tất cả cơ sở",
@@ -285,5 +336,11 @@
       "ATTACHED_FILES": "Cần kiểm tra quyền sở hữu tệp đính kèm trước khi xóa.",
       "OTHER_LINKED_RECORDS": "Cần kiểm tra các hồ sơ liên quan khác trước khi xóa."
     }
+  },
+  "relation": {
+    "FATHER": "Bố",
+    "MOTHER": "Mẹ",
+    "GUARDIAN": "Người giám hộ",
+    "OTHER": "Khác"
   }
 }

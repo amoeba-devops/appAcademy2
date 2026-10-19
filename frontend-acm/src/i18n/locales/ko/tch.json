@@ -99,7 +99,8 @@
     "sectionSubjects": "담당 과목 선택",
     "sectionAccount": "계정 발급",
     "sectionResetPassword": "비밀번호 재설정",
-    "sectionAccountLock": "로그인 계정 잠금"
+    "sectionAccountLock": "로그인 계정 잠금",
+    "sectionAmaPicker": "AMA 디렉터리"
   },
   "hint": {
     "passwordPolicy": "8자 이상, 영문·숫자를 모두 포함하세요.",
@@ -129,14 +130,19 @@
     "hint": "PDF / JPG / PNG · 최대 10 MB",
     "empty": "등록된 첨부파일이 없습니다.",
     "actions": {
-      "upload": "파일 업로드"
+      "upload": "파일 업로드",
+      "add": "파일 추가"
     },
     "confirm": {
       "delete": "이 파일을 삭제하시겠습니까?"
     },
     "error": {
       "mime": "허용되지 않는 파일 형식입니다 (PDF/JPG/PNG).",
-      "size": "파일 크기는 10 MB 이하여야 합니다."
+      "size": "파일 크기는 10 MB 이하여야 합니다.",
+      "uploadFailed": "첨부파일 업로드 실패: {{name}} ({{msg}})"
+    },
+    "staged": {
+      "empty": "추가된 파일이 없습니다"
     }
   },
   "profile": {

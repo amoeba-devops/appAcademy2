@@ -129,7 +129,7 @@ export function CslListFilters({
         />
         <div className="flex justify-end lg:justify-start">
           <Button type="button" variant="outline" onClick={onReset}>
-            {t('common:actions.reset', { defaultValue: '초기화' })}
+            {t('filters.reset', { defaultValue: '초기화' })}
           </Button>
         </div>
       </div>

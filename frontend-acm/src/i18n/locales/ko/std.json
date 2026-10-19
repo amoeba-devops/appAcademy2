@@ -96,7 +96,8 @@
     },
     "teachersHint": "최대 {{max}}명 · 첫 번째가 대표 강사",
     "emailOptional": "(선택)",
-    "emailOptionalHint": "이메일 없이 학생 등록이 가능합니다."
+    "emailOptionalHint": "이메일 없이 학생 등록이 가능합니다.",
+    "gradeInputPlaceholder": "G5, G8, 중1…"
   },
   "import": {
     "title": "엑셀 업로드 (학생 일괄 등록)",
@@ -230,7 +231,57 @@
     "current": "현재 값 → 원본 값",
     "keep": "기존 값 유지",
     "supplement": "빈 값 보완",
-    "datesTitle": "입학·퇴원 정보"
+    "datesTitle": "입학·퇴원 정보",
+    "fields": {
+      "name": "이름",
+      "gender": "성별",
+      "attendanceNo": "출결번호",
+      "school": "학교",
+      "grade": "학년",
+      "classGroup": "반",
+      "studentPhone": "원생연락처",
+      "homePhone": "집전화",
+      "nickname": "닉네임",
+      "birthday": "생일",
+      "postalCode": "우편번호",
+      "address1": "주소1",
+      "address2": "주소2",
+      "track": "문과/이과",
+      "siblings": "형제",
+      "graduationYear": "졸업연도",
+      "studentEmail": "원생이메일",
+      "guardianPhone": "보호자연락처",
+      "guardianRelation": "보호자구분",
+      "guardianName": "보호자이름",
+      "guardianAttendanceAlert": "보호자출결알림",
+      "otherGuardianPhone": "기타보호자연락처",
+      "otherGuardianName": "기타보호자이름",
+      "otherGuardianAttendanceAlert": "기타보호자출결알림",
+      "admissionDate": "입학일",
+      "admissionReason": "입학동기",
+      "isEnrolled": "재원여부",
+      "withdrawnDate": "퇴원일",
+      "withdrawnReason": "퇴원사유",
+      "isOnLeave": "휴원여부",
+      "leaveReason": "휴원사유",
+      "memo": "메모",
+      "classes": "수업",
+      "homeroomTeacher": "담임강사",
+      "cashReceiptNo": "현금영수증발급번호",
+      "cashReceiptType": "현금영수증발급구분",
+      "billingDay": "수납기준청구일",
+      "discountAmount": "할인액",
+      "discountType": "할인구분",
+      "studentUid": "원생고유번호",
+      "otherPayment": "기타수납",
+      "studentCategory": "원생분류",
+      "extra1": "기타항목1",
+      "extra2": "기타항목2",
+      "points": "포인트",
+      "credits": "적립금",
+      "autoPayEnrolled": "자동결제신청여부",
+      "registeredDate": "등록일"
+    }
   },
   "navigation": {
     "integrated": "전체 통합 보기",
@@ -285,5 +336,11 @@
       "ATTACHED_FILES": "첨부파일의 소유 관계 검토가 필요하여 완전삭제할 수 없습니다.",
       "OTHER_LINKED_RECORDS": "추가 연결 기록의 검토가 필요하여 완전삭제할 수 없습니다."
     }
+  },
+  "relation": {
+    "FATHER": "아버지",
+    "MOTHER": "어머니",
+    "GUARDIAN": "보호자",
+    "OTHER": "기타"
   }
 }
