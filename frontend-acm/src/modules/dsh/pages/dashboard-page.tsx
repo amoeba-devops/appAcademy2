@@ -10,6 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/ui/page-header';
+import { UnderlineTabs } from '@/components/ui/tabs';
+import { MoreMenu } from '@/components/ui/more-menu';
+import { LayoutDashboard } from 'lucide-react';
 import { ManualInputDialog } from '@/modules/dsh/components/manual-input-dialog';
 import { ComplaintDialog } from '@/modules/dsh/components/complaint-dialog';
 import {
@@ -382,65 +386,68 @@ export function DashboardPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {(role === 'ADMIN' || role === 'APP_ADMIN') && (
-            <Button
-              variant="outline"
-              onClick={onGa4Sync}
-              disabled={ga4Sync.isPending || !from || !to || from > to}
-              title={
-                gridQ.data?.ga4LastSyncAt
-                  ? new Date(gridQ.data.ga4LastSyncAt).toLocaleString()
-                  : undefined
-              }
-            >
-              {t('visitor.syncNow')}
+      <PageHeader
+        icon={LayoutDashboard}
+        title={t('common:nav.dashboard')}
+        description={t('common:pageHeader.dashboard.desc')}
+        meta={
+          gridQ.data ? (
+            <span className="text-xs">{t("visitor.lastDataDate", {date: gridQ.data.ga4LastDataDate ?? "—"})}</span>
+          ) : undefined
+        }
+        actions={
+          <>
+            <MoreMenu
+              label={t('common:pageHeader.more')}
+              items={[
+                ...(role === 'ADMIN' || role === 'APP_ADMIN'
+                  ? [
+                      {
+                        key: 'ga4Sync',
+                        label: t('visitor.syncNow'),
+                        onClick: onGa4Sync,
+                        disabled: ga4Sync.isPending || !from || !to || from > to,
+                        title: gridQ.data?.ga4LastSyncAt
+                          ? new Date(gridQ.data.ga4LastSyncAt).toLocaleString()
+                          : undefined,
+                      },
+                    ]
+                  : []),
+                {
+                  key: 'complaints',
+                  label: t('complaint.manage.title'),
+                  href: `/admin/complaints?${new URLSearchParams({ from, to, site })}`,
+                },
+                {
+                  key: 'addComplaint',
+                  label: t('actions.addComplaint'),
+                  onClick: () => setComplaintOpen(true),
+                },
+              ]}
+            />
+            <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
+              {t('actions.exportCsv')}
             </Button>
-          )}
-          {gridQ.data && <span className="text-xs text-secondary">{t("visitor.lastDataDate", {date: gridQ.data.ga4LastDataDate ?? "—"})}</span>}
-          <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
-            {t('actions.exportCsv')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setManualDate(isoToday());
-              setManualOpen(true);
-            }}
-          >
-            {t('actions.manualInput')}
-          </Button>
-          <a className="text-sm underline" href={`/admin/complaints?${new URLSearchParams({ from, to, site })}`}>{t('complaint.manage.title')}</a>
-          <Button onClick={() => setComplaintOpen(true)}>{t('actions.addComplaint')}</Button>
-        </div>
-      </div>
-
-      {/* PLN-260914B — site tabs */}
-      <div
-        className="flex flex-wrap gap-1 mb-3 border-b border-[var(--border-subtle)]"
-        role="tablist"
-        aria-label={t('site.label')}
-      >
-        {SITE_TABS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            role="tab"
-            aria-selected={site === s}
-            onClick={() => setSite(s)}
-            className={
-              'px-3 py-1.5 text-sm -mb-px border-b-2 transition-colors ' +
-              (site === s
-                ? 'border-[var(--accent-700,#4f46e5)] text-primary font-medium'
-                : 'border-transparent text-secondary hover:text-primary')
-            }
-          >
-            {t(`site.tabs.${s}`)}
-          </button>
-        ))}
-      </div>
+            <Button
+              onClick={() => {
+                setManualDate(isoToday());
+                setManualOpen(true);
+              }}
+            >
+              {t('actions.manualInput')}
+            </Button>
+          </>
+        }
+        tabs={
+          /* PLN-260914B — site tabs */
+          <UnderlineTabs
+            label={t('site.label')}
+            items={SITE_TABS.map((s) => ({ key: s, label: t(`site.tabs.${s}`) }))}
+            value={site}
+            onChange={setSite}
+          />
+        }
+      />
 
       <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-3 flex flex-wrap items-end gap-3">
         <div>

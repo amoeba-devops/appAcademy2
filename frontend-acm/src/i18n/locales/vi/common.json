@@ -2025,6 +2025,20 @@
     "inbox": {
       "title": "Hộp thông báo",
       "desc": "Xem các thông báo bạn đã nhận."
+    },
+    "more": "Thêm",
+    "dashboard": {
+      "desc": "Chọn khoảng thời gian và cơ sở để xem tình hình tư vấn, lớp học và học sinh."
+    },
+    "myWork": {
+      "desc": "Xem công việc cần xử lý hôm nay và các vấn đề được giao cho bạn."
+    },
+    "calStats": {
+      "desc": "Xem tình hình giảng dạy của giáo viên và lớp học theo từng giai đoạn."
+    },
+    "pay": {
+      "desc": "Quản lý tình hình lập hóa đơn và thanh toán hằng tháng.",
+      "currency": "Đơn vị tiền tệ: KRW"
     }
   }
 }
