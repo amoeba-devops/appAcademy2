@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { BarChart3, FolderOpen, Mail, Settings, UserPlus } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page-header';
 import { ConfigCardGrid, type ConfigCard } from '../components/integration-cards';
 
 /**
@@ -17,11 +18,7 @@ export function ConfigLandingPage() {
   const { t } = useTranslation('common');
   return (
     <div className="w-full min-w-0">
-      <header className="mb-6 flex items-center gap-2">
-        <Settings size={20} className="text-accent-700" />
-        <h1 className="text-xl font-semibold text-primary">{t('config.landing.title')}</h1>
-      </header>
-      <p className="mb-6 text-sm text-secondary">{t('config.landing.description')}</p>
+      <PageHeader icon={Settings} title={t('nav.config')} description={t('pageHeader.config.desc')} />
       <ConfigCardGrid cards={CARDS} />
     </div>
   );

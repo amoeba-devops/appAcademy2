@@ -3,8 +3,9 @@ import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-con
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import {
   Dialog,
   DialogContent,
@@ -200,36 +201,40 @@ function CalMonthContent() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            variant={showDeleted ? 'default' : 'outline'}
-            onClick={() => setShowDeleted((v) => !v)}
-            title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
-          >
-            <Trash2 size={14} className="mr-1" />
-            {t('deleted.btnLabel', '삭제한 수업일정 보기')}
-          </Button>
-          {canCreateInstant && (
+      <PageHeader
+        icon={CalendarDays}
+        title={t('common:nav.cal')}
+        description={t('common:pageHeader.cal.desc')}
+        actions={
+          <>
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => setInstantOpen(true)}
-              className="border-amber-300 text-amber-700 hover:bg-amber-50"
-              title={t('instant.btnTitle')}
+              variant={showDeleted ? 'default' : 'outline'}
+              onClick={() => setShowDeleted((v) => !v)}
+              title={t('deleted.btnTitle', '삭제한 수업일정을 조회합니다')}
             >
-              <Zap size={14} className="mr-1" />
-              {t('instant.btnLabel')}
+              <Trash2 size={14} className="mr-1" />
+              {t('deleted.btnLabel', '삭제한 수업일정 보기')}
             </Button>
-          )}
-          <Button size="sm" onClick={() => onDayClick(toZonedShift(new Date(), tz))}>
-            <Plus size={14} className="mr-1" />
-            {t('actions.create')}
-          </Button>
-        </div>
-      </div>
+            {canCreateInstant && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setInstantOpen(true)}
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                title={t('instant.btnTitle')}
+              >
+                <Zap size={14} className="mr-1" />
+                {t('instant.btnLabel')}
+              </Button>
+            )}
+            <Button size="sm" onClick={() => onDayClick(toZonedShift(new Date(), tz))}>
+              <Plus size={14} className="mr-1" />
+              {t('actions.create')}
+            </Button>
+          </>
+        }
+      />
 
       <CalendarColorToolbar events={events} />
       {video.bodaEnabled && <InstantClassModal open={instantOpen} onClose={() => setInstantOpen(false)} />}

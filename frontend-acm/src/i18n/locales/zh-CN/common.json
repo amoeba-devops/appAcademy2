@@ -245,7 +245,7 @@
     "notifications": "通知",
     "enrollments": "报名",
     "systemAdmin": "系统管理",
-    "chat": "大厅聊天",
+    "chat": "聊天",
     "openMenu": "打开菜单",
     "closeMenu": "关闭菜单",
     "expandMenu": "展开菜单",
@@ -2039,6 +2039,30 @@
     "pay": {
       "desc": "管理每月的账单和缴费情况。",
       "currency": "货币单位：KRW"
+    },
+    "config": {
+      "desc": "设置用户邀请以及邮件、广告、Drive 集成。"
+    },
+    "myPage": {
+      "desc": "管理个人信息、紧急联系人和密码。"
+    },
+    "chat": {
+      "desc": "与教师和员工交流。"
+    },
+    "cal": {
+      "desc": "在日历中管理课程和咨询日程。"
+    },
+    "drive": {
+      "desc": "管理公司 Google Drive 共享文件夹中的文件。"
+    },
+    "projectDetail": {
+      "edit": "编辑项目",
+      "info": "项目信息",
+      "tabs": {
+        "overview": "概览",
+        "documents": "文档",
+        "issues": "问题"
+      }
     }
   }
 }

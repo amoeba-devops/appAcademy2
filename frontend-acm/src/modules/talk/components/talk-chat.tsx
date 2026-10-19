@@ -191,7 +191,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
       )}
       <div
         ref={chatViewportRef}
-        className={`${mode === "admin" ? "admin-chat-layout " : ""}talk-chat-viewport flex h-[calc(100dvh-190px)] min-h-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
+        className={`${mode === "admin" ? "admin-chat-layout h-[calc(100dvh-222px)] " : "h-[calc(100dvh-190px)] "}talk-chat-viewport flex min-h-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
       >
         {/* 채널 목록 */}
         <aside

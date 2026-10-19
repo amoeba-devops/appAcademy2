@@ -539,60 +539,64 @@ export function ProjectDetailPage() {
   );
   return (
     <section className="grid min-w-0 gap-4">
-      <Link to="/admin/projects" className="underline">
-        ← 프로젝트 목록
-      </Link>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs text-secondary">
+      <PageHeader
+        back={{ to: "/admin/projects", label: t("nav.projects") }}
+        title={project.prj_title}
+        description={
+          project.prj_description ? (
+            <span className="whitespace-pre-wrap break-words">
+              {project.prj_description}
+            </span>
+          ) : undefined
+        }
+        meta={
+          <span>
             {project.prj_code ?? `PRJ-${id.slice(0, 8)}`} ·{" "}
             {statusNames[project.prj_status]}
-          </p>
-          <h1 className="break-words text-xl font-bold">{project.prj_title}</h1>
-          <p className="whitespace-pre-wrap break-words text-sm">
-            {project.prj_description}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {manage && (
-            <Button variant="outline" onClick={() => setEditing(true)}>
-              프로젝트 수정
+          </span>
+        }
+        actions={
+          <>
+            {manage && (
+              <Button variant="outline" onClick={() => setEditing(true)}>
+                {t("pageHeader.projectDetail.edit")}
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => slot?.show()}>
+              {t("pageHeader.projectDetail.info")}
             </Button>
-          )}
-          <Button variant="outline" onClick={() => slot?.show()}>
-            프로젝트 정보
-          </Button>
-        </div>
-      </div>
-      {slot?.target ? createPortal(info, slot.target) : null}
-      <nav className="flex min-w-0 gap-2 overflow-x-auto border-b pb-2">
-        {[
-          ["overview", "개요", ""],
-          ["documents", "문서", "DOCUMENT"],
-          ["issues", "이슈", "ISSUE"],
-        ].map(([key, label, k]) => (
-          <Button
-            key={key}
-            className={`shrink-0 rounded-none border-0 border-b-2 bg-transparent shadow-none ${tab === key ? "border-blue-600 text-blue-600" : "border-transparent text-secondary"}`}
-            variant="outline"
-            onClick={() => {
+          </>
+        }
+        tabs={
+          <UnderlineTabs
+            items={(
+              [
+                ["overview", ""],
+                ["documents", "DOCUMENT"],
+                ["issues", "ISSUE"],
+              ] as const
+            ).map(([key, k]) => ({
+              key,
+              label: t(`pageHeader.projectDetail.tabs.${key}`),
+              count: k
+                ? (items.data ?? []).filter((i) =>
+                    key === "documents"
+                      ? i.pit_kind !== "ISSUE"
+                      : i.pit_kind === k,
+                  ).length
+                : undefined,
+            }))}
+            value={tab as "overview" | "documents" | "issues"}
+            onChange={(key) => {
               setParams({ tab: key });
               setFilter("");
               setAssignee("");
               setSearch("");
             }}
-          >
-            {label}{" "}
-            {k
-              ? (items.data ?? []).filter((i) =>
-                  key === "documents"
-                    ? i.pit_kind !== "ISSUE"
-                    : i.pit_kind === k,
-                ).length
-              : ""}
-          </Button>
-        ))}
-      </nav>
+          />
+        }
+      />
+      {slot?.target ? createPortal(info, slot.target) : null}
       <Notice text={w.error || (items.error ? errorText(items.error) : "")} />
       {readOnly && (
         <p>

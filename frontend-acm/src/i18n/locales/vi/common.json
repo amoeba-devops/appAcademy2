@@ -245,7 +245,7 @@
     "notifications": "Thông báo",
     "enrollments": "Đăng ký học",
     "systemAdmin": "Quản trị hệ thống",
-    "chat": "Trò chuyện sảnh",
+    "chat": "Trò chuyện",
     "openMenu": "Mở menu",
     "closeMenu": "Đóng menu",
     "expandMenu": "Mở rộng menu",
@@ -2039,6 +2039,30 @@
     "pay": {
       "desc": "Quản lý tình hình lập hóa đơn và thanh toán hằng tháng.",
       "currency": "Đơn vị tiền tệ: KRW"
+    },
+    "config": {
+      "desc": "Thiết lập lời mời người dùng và tích hợp thư, quảng cáo, Drive."
+    },
+    "myPage": {
+      "desc": "Quản lý thông tin cá nhân, liên hệ khẩn cấp và mật khẩu."
+    },
+    "chat": {
+      "desc": "Trò chuyện với giáo viên và nhân viên."
+    },
+    "cal": {
+      "desc": "Quản lý lịch học và lịch tư vấn trên lịch."
+    },
+    "drive": {
+      "desc": "Quản lý tệp trong các thư mục dùng chung Google Drive của công ty."
+    },
+    "projectDetail": {
+      "edit": "Sửa dự án",
+      "info": "Thông tin dự án",
+      "tabs": {
+        "overview": "Tổng quan",
+        "documents": "Tài liệu",
+        "issues": "Vấn đề"
+      }
     }
   }
 }

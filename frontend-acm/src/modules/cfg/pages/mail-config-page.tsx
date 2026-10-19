@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Mail, Send } from 'lucide-react';
+import { Loader2, Mail, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/toast';
@@ -112,21 +112,12 @@ export function MailConfigPage() {
 
   return (
     <div className="w-full min-w-0">
-      <Link
-        to="/admin/config"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
-      >
-        <ArrowLeft size={16} />
-        {t('config.backToList')}
-      </Link>
-      <header className="mb-6 flex items-center gap-2">
-        <Mail size={20} className="text-accent-700" />
-        <h1 className="text-xl font-semibold text-primary">
-          {t('config.mail.title')}
-        </h1>
-      </header>
-
-      <p className="mb-6 text-sm text-secondary">{t('config.mail.description')}</p>
+      <PageHeader
+        back={{ to: '/admin/config', label: t('nav.config') }}
+        icon={Mail}
+        title={t('config.mail.title')}
+        description={t('config.mail.description')}
+      />
 
       {isLoading ? (
         <p className="text-sm text-secondary">{t('config.loading')}</p>
