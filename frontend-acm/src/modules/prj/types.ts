@@ -64,6 +64,8 @@ export interface DriveStatus {
   member_role?: "MANAGER"|"MEMBER";
   rootId?: string;
   rootReady: boolean;
+  /** FIX-261020C — ?projectId= 로 물으면: 이 프로젝트에 Drive 로 올릴 수 있는가 */
+  projectReady?: boolean;
   rootName?: string;
   // REQ-261016 — 회사 Workspace 연동 상태
   domain?: string | null;

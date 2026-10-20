@@ -1723,7 +1723,7 @@
       "login": "회사 Google 계정으로 로그인",
       "reconnect": "다시 연결 / 계정 변경",
       "disconnect": "연결 해제",
-      "disconnectConfirm": "연결을 해제하면 Google Drive 저장이 중단되고 업로드는 ACM 저장소에 저장됩니다. Google 원본과 프로젝트 기록은 보존됩니다.",
+      "disconnectConfirm": "연결을 해제하면 Google Drive 저장이 중단되고 업로드는 ACM 저장소에 저장됩니다. Google 원본과 프로젝트 기록은 보존됩니다. 공용폴더 지정도 해제되며, 같은 계정으로 다시 연결하면 자동으로 복원됩니다.",
       "workspaceOnly": "회사 도메인의 Google Workspace 계정만 연결할 수 있습니다."
     },
     "readOnly": "연동과 공용폴더 설정은 서비스 운영자가 할 수 있습니다.",
@@ -1748,10 +1748,13 @@
       "drive": "회사 Google Drive",
       "acm": "ACM 저장소",
       "notConnectedHint": "회사 Google Drive가 연결되면 저장 위치를 선택할 수 있습니다.",
-      "reconnectHint": "Google Drive 재연결이 필요해 ACM 저장소에 저장합니다."
+      "reconnectHint": "Google Drive 재연결이 필요해 ACM 저장소에 저장합니다.",
+      "rootMissingHint": "회사 Google Drive 공용폴더가 지정되지 않았습니다.",
+      "rootMissingAdmin": "Drive 연동 설정에서 공용폴더를 지정하세요."
     },
     "notReadyHint": "회사 Google Drive 공용폴더가 아직 지정되지 않아 Google 문서 생성·Drive 업로드를 사용할 수 없습니다. 파일은 ACM 저장소로 업로드할 수 있습니다.",
-    "goSettings": "Drive 연동 설정으로 이동"
+    "goSettings": "Drive 연동 설정으로 이동",
+    "askAdmin": "관리자에게 공용폴더 지정을 요청하세요."
   },
   "docsCreate": {
     "title": "새로 만들기",

@@ -1723,7 +1723,7 @@
       "login": "Đăng nhập bằng tài khoản Google công ty",
       "reconnect": "Kết nối lại / đổi tài khoản",
       "disconnect": "Ngắt kết nối",
-      "disconnectConfirm": "Ngắt kết nối sẽ dừng lưu vào Google Drive; tệp tải lên sẽ lưu vào kho ACM. Bản gốc Google và dữ liệu dự án được giữ nguyên.",
+      "disconnectConfirm": "Ngắt kết nối sẽ dừng lưu vào Google Drive; tệp tải lên sẽ lưu vào kho ACM. Bản gốc Google và dữ liệu dự án được giữ nguyên. Thiết lập thư mục dùng chung cũng bị xóa và sẽ tự khôi phục khi kết nối lại cùng tài khoản.",
       "workspaceOnly": "Chỉ kết nối được tài khoản Google Workspace thuộc tên miền công ty."
     },
     "readOnly": "Chỉ người vận hành dịch vụ mới kết nối và đặt thư mục chung.",
@@ -1748,10 +1748,13 @@
       "drive": "Google Drive của công ty",
       "acm": "Kho ACM",
       "notConnectedHint": "Khi Google Drive công ty được kết nối, bạn có thể chọn nơi lưu.",
-      "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM."
+      "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM.",
+      "rootMissingHint": "Chưa chọn thư mục dùng chung cho Google Drive công ty.",
+      "rootMissingAdmin": "Hãy chọn thư mục dùng chung trong cài đặt Drive."
     },
     "notReadyHint": "Chưa đặt thư mục chung trên Google Drive công ty nên chưa thể tạo tệp Google hoặc tải lên Drive. Bạn vẫn có thể tải tệp lên kho ACM.",
-    "goSettings": "Đến cài đặt Drive"
+    "goSettings": "Đến cài đặt Drive",
+    "askAdmin": "Hãy đề nghị quản trị viên chọn thư mục dùng chung."
   },
   "docsCreate": {
     "title": "Tạo mới",

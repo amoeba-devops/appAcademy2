@@ -1723,7 +1723,7 @@
       "login": "使用公司 Google 账号登录",
       "reconnect": "重新连接 / 更换账号",
       "disconnect": "断开连接",
-      "disconnectConfirm": "断开后将停止保存到 Google Drive，上传将保存到 ACM 存储。Google 原件和项目记录会保留。",
+      "disconnectConfirm": "断开后将停止保存到 Google Drive，上传将保存到 ACM 存储。Google 原件和项目记录会保留。共享文件夹设置也会清除，用同一账号重新连接时会自动恢复。",
       "workspaceOnly": "只能连接公司域名下的 Google Workspace 账号。"
     },
     "readOnly": "只有服务运营者可以连接并设置共享文件夹。",
@@ -1748,10 +1748,13 @@
       "drive": "公司 Google Drive",
       "acm": "ACM 存储",
       "notConnectedHint": "连接公司 Google Drive 后即可选择保存位置。",
-      "reconnectHint": "Google Drive 需要重新连接，因此保存到 ACM 存储。"
+      "reconnectHint": "Google Drive 需要重新连接，因此保存到 ACM 存储。",
+      "rootMissingHint": "尚未指定公司 Google Drive 共享文件夹。",
+      "rootMissingAdmin": "请在 Drive 设置中指定共享文件夹。"
     },
     "notReadyHint": "尚未设置公司 Google Drive 共享文件夹，暂不能创建 Google 文件或上传到 Drive。仍可将文件上传到 ACM 存储。",
-    "goSettings": "前往 Drive 设置"
+    "goSettings": "前往 Drive 设置",
+    "askAdmin": "请联系管理员指定共享文件夹。"
   },
   "docsCreate": {
     "title": "新建",
