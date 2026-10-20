@@ -163,7 +163,7 @@
       },
       "consent": {
         "title": "OAuth consent screen",
-        "body": "User type: External — because several companies (tenants) sign in.\nBranding: enter app name \"ACM\", support email and optional logo, then the app home page, privacy policy and terms of service links and the authorized domain below. If these are empty, the \"Publish app\" button stays disabled.\nData access (Scopes): add the 3 scopes below. drive.file is non-sensitive, so no security assessment is needed.\nAudience: click \"Publish app\" to move to production. In testing status, tenants must reconnect every 7 days.\nACM itself rejects personal Gmail accounts (Workspace only)."
+        "body": "User type: Internal is recommended. If the accounts that connect belong to the same company Workspace as the Google Cloud project, it works right away with no security assessment. Choose External only if Workspace accounts of other companies must connect too.\nBranding: enter app name \"ACM\", support email and optional logo, then the app home page, privacy policy and terms of service links and the authorized domain below.\nData access (Scopes): add the 3 scopes below. The full Google Drive scope (…/auth/drive) is needed to show files already in shared folders; Google classifies it as a restricted scope.\nWith External, click \"Publish app\" to move to production (testing status requires reconnecting every 7 days). Until a security assessment is done, connecting shows an 'unverified app' warning and is limited to 100 users.\nACM itself rejects personal Gmail accounts (Workspace only)."
       },
       "client": {
         "title": "Create OAuth client ID",

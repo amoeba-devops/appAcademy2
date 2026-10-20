@@ -1703,7 +1703,8 @@
     "result": {
       "failed": "Không thể hoàn tất kết nối Google. Vui lòng thử lại.",
       "workspaceRequired": "Chỉ có thể kết nối tài khoản Google Workspace của công ty. Không dùng được Gmail cá nhân (@gmail.com).",
-      "cancelled": "Đã hủy kết nối. Bạn có thể kết nối lại."
+      "cancelled": "Đã hủy kết nối. Bạn có thể kết nối lại.",
+      "scopeRequired": "Chưa cấp quyền truy cập Google Drive. Hãy kết nối lại và đánh dấu mục Google Drive trên màn hình đồng ý."
     },
     "notConfigured": "Máy chủ chưa cấu hình ứng dụng Google OAuth. Vui lòng liên hệ quản trị viên.",
     "account": {
@@ -1712,7 +1713,7 @@
       "ok": "Đã kết nối",
       "needsReconnect": "Cần kết nối lại",
       "connectedAt": "Kết nối lúc {{at}} bởi {{by}}",
-      "reconnectHint": "Ủy quyền Google đã hết hạn hoặc bị thu hồi. Trước khi kết nối lại, tệp tải lên sẽ lưu vào kho ACM.",
+      "reconnectHint": "Ủy quyền Google đã hết hạn hoặc thiếu quyền truy cập toàn bộ Drive cần để hiển thị tệp trong thư mục dùng chung. Hãy đăng nhập lại bằng 'Kết nối lại'. Trước khi kết nối lại, tệp tải lên sẽ được lưu vào kho ACM.",
       "login": "Đăng nhập bằng tài khoản Google công ty",
       "reconnect": "Kết nối lại / đổi tài khoản",
       "disconnect": "Ngắt kết nối",

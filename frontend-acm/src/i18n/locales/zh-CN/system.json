@@ -163,7 +163,7 @@
       },
       "consent": {
         "title": "OAuth 同意屏幕",
-        "body": "用户类型：外部（External）——因为多个公司（租户）会登录。\n品牌信息（Branding）：填写应用名称“ACM”、支持邮箱、可选徽标，并填写下方应用首页、隐私权政策、服务条款链接和已授权域名。若这些为空，“发布应用（Publish app）”按钮将不可用。\n数据访问（Scopes）：添加下方 3 个范围。drive.file 属于非敏感范围，无需安全评估。\n受众（Audience）：点击“发布应用”切换到生产环境。若保持测试状态，租户需每 7 天重新连接。\n个人 Gmail 由 ACM 拒绝（仅限 Workspace）。"
+        "body": "用户类型：建议选择内部（Internal）。如果连接的账号与 Google Cloud 项目属于同一公司 Workspace，无需安全评估即可直接使用。只有需要连接其他公司的 Workspace 账号时才选择外部（External）。\n品牌信息（Branding）：填写应用名称“ACM”、支持邮箱、可选徽标，并填写下方应用首页、隐私权政策、服务条款链接和已授权域名。\n数据访问（Scopes）：添加下方 3 个范围。完整的 Google Drive 范围（…/auth/drive）用于显示共享文件夹中已有的文件，Google 将其归类为受限范围。\n使用外部（External）时，需点击“发布应用（Publish app）”切换到生产环境（测试状态每 7 天需重新连接）；在完成安全评估之前，连接时会显示“未经验证的应用”警告，且限 100 名用户。\n个人 Gmail 由 ACM 拒绝（仅限 Workspace）。"
       },
       "client": {
         "title": "创建 OAuth 客户端 ID",
