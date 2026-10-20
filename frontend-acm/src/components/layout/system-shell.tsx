@@ -1,3 +1,4 @@
+import { forgetDevicePush } from '@/modules/notifications/push-settings';
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Users, Building2, ArrowLeft, LogOut, Settings, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,7 @@ export function SystemShell() {
   const navigate = useNavigate();
 
   const onLogout = () => {
+    forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clear();
     navigate('/login', { replace: true });
   };

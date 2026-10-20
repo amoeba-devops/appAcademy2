@@ -1,5 +1,7 @@
 {
-  "numericInput": { "invalid": "Enter a valid number." },
+  "numericInput": {
+    "invalid": "Enter a valid number."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -966,7 +968,8 @@
       "ISSUE_MENTION": "Mentioned you in an issue",
       "ISSUE_MENTION_COMMENT": "Mentioned you in an issue comment",
       "PASSWORD_RESET_REQUEST": "A password reset was requested"
-    }
+    },
+    "mentionBadge": "Mention"
   },
   "pay": {
     "title": "Collections",
@@ -1272,7 +1275,10 @@
     "ios": "On iPhone/iPad, add ACM to the Home Screen and enable notifications from the installed app.",
     "unconfigured": "Server push setup is not ready.",
     "failed": "Connection failed. Check permission and network, then try again.",
-    "close": "Close"
+    "close": "Close",
+    "banner": "Get notifications on this device — chat and consultation alerts right away",
+    "turnOn": "Turn on",
+    "dismiss": "Dismiss"
   },
   "reviewMissing": {
     "feedback": "Feedback",

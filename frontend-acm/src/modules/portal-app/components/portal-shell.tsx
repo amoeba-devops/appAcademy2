@@ -1,3 +1,4 @@
+import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -53,6 +54,7 @@ export function PortalShell() {
     useScrollHint<HTMLElement>(pathname);
 
   const logout = () => {
+    forgetDevicePush("portal"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clearPortal();
     navigate("/portal/login", { replace: true });
   };
