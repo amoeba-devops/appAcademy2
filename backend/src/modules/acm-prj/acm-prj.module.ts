@@ -1,3 +1,4 @@
+import { ProjectFileContentController } from './presentation/project-file-content.controller';
 import { ProjectFileService } from './application/project-file.service';
 import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-store.client';
 import { SharedDriveService } from './application/shared-drive.service';
@@ -28,6 +29,7 @@ import {
     DriveClient,
   ],
   controllers: [
+    ProjectFileContentController,
     SystemGoogleOauthController,
     SharedDriveController,
     IssueController,
