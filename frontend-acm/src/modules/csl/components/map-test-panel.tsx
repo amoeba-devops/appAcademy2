@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { LevelTestScoreEditor } from './level-test-score-editor';
 import { useForm } from 'react-hook-form';
@@ -105,7 +106,7 @@ export function MapTestPanel({
     },
   });
 
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { control,  register, handleSubmit, reset, watch } = useForm<FormValues>({
     defaultValues: {
       hasPriorScore: false,
       feeStatus: '',
@@ -306,31 +307,31 @@ export function MapTestPanel({
                 across all locales (per requirement: 한국어 모드에서도 영문 표기).
               */}
               <Field label="Reading">
-                <Input
+                <Controller control={control} name={'scoreReading'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreReading')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
               <Field label="Math">
-                <Input
+                <Controller control={control} name={'scoreMath'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreMath')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
               <Field label="Language Usage">
-                <Input
+                <Controller control={control} name={'scoreLanguage'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreLanguage')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
             </div>
           </>

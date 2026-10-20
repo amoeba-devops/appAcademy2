@@ -1,4 +1,5 @@
 {
+  "numericInput": { "invalid": "Vui lòng nhập số hợp lệ." },
   "app": {
     "name": "ACM v1.0a",
     "title": "Quản lý Học viện"

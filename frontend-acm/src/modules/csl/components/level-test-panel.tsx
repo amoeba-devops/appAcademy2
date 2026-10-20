@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -563,7 +564,7 @@ function ScoreEditorBlock({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* English-fixed labels per FR-CSL-102 */}
           <Field label="Reading">
-            <input
+            <NumericInput
               type="number"
               min={100}
               max={350}
@@ -574,7 +575,7 @@ function ScoreEditorBlock({
             />
           </Field>
           <Field label="Math">
-            <input
+            <NumericInput
               type="number"
               min={100}
               max={350}
@@ -585,7 +586,7 @@ function ScoreEditorBlock({
             />
           </Field>
           <Field label="Language Usage">
-            <input
+            <NumericInput
               type="number"
               min={100}
               max={350}
