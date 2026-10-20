@@ -1,5 +1,7 @@
 {
-  "numericInput": { "invalid": "Vui lòng nhập số hợp lệ." },
+  "numericInput": {
+    "invalid": "Vui lòng nhập số hợp lệ."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Quản lý Học viện"
@@ -966,7 +968,8 @@
       "ISSUE_MENTION": "Đã nhắc đến bạn trong một vấn đề",
       "ISSUE_MENTION_COMMENT": "Đã nhắc đến bạn trong bình luận vấn đề",
       "PASSWORD_RESET_REQUEST": "Có yêu cầu cấp lại mật khẩu"
-    }
+    },
+    "mentionBadge": "Nhắc tên"
   },
   "pay": {
     "title": "Quản lý thu phí",
@@ -1272,7 +1275,10 @@
     "ios": "Trên iPhone/iPad, thêm ACM vào màn hình chính rồi bật thông báo trong ứng dụng đã cài.",
     "unconfigured": "Máy chủ chưa cấu hình thông báo đẩy.",
     "failed": "Kết nối thất bại. Kiểm tra quyền và mạng rồi thử lại.",
-    "close": "Đóng"
+    "close": "Đóng",
+    "banner": "Nhận thông báo trên thiết bị này — tin nhắn và tư vấn ngay lập tức",
+    "turnOn": "Bật",
+    "dismiss": "Đóng"
   },
   "reviewMissing": {
     "feedback": "Nhận xét",

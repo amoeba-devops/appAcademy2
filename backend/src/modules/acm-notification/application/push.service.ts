@@ -1,3 +1,4 @@
+import { pushText } from './push-text';
 import {
   BadRequestException,
   Injectable,
@@ -133,8 +134,8 @@ export class PushService {
             await webpush.sendNotification(
               row.subscription,
               JSON.stringify({
-                title: 'ACM',
-                body: '새 알림이 도착했습니다. / New notification',
+                // REQ-261020C — 종류별 문구(본문 미포함)
+                ...pushText(item),
                 url: this.clickHref(u, item),
                 tag: row.inboxId,
                 actor: `${row.entId}:${row.kind}:${row.recipient}`,

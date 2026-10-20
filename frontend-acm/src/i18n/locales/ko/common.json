@@ -1,5 +1,7 @@
 {
-  "numericInput": { "invalid": "올바른 숫자를 입력하세요." },
+  "numericInput": {
+    "invalid": "올바른 숫자를 입력하세요."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -966,7 +968,8 @@
       "ISSUE_MENTION": "이슈에서 나를 멘션했습니다",
       "ISSUE_MENTION_COMMENT": "이슈 댓글에서 나를 멘션했습니다",
       "PASSWORD_RESET_REQUEST": "비밀번호 재발급 요청이 접수되었습니다"
-    }
+    },
+    "mentionBadge": "멘션"
   },
   "pay": {
     "title": "수납관리",
@@ -1272,7 +1275,10 @@
     "ios": "iPhone/iPad는 홈 화면에 추가한 ACM 앱에서 알림을 켜 주세요.",
     "unconfigured": "서버 푸시 설정이 준비되지 않았습니다.",
     "failed": "연결에 실패했습니다. 권한과 네트워크를 확인하고 다시 시도해 주세요.",
-    "close": "닫기"
+    "close": "닫기",
+    "banner": "이 기기에서 알림 받기 — 채팅·상담 알림을 바로 받아요",
+    "turnOn": "켜기",
+    "dismiss": "안내 닫기"
   },
   "reviewMissing": {
     "feedback": "피드백",

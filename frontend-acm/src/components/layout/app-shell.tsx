@@ -1,3 +1,4 @@
+import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
@@ -210,6 +211,7 @@ export function AppShell() {
   )?.group;
 
   const onLogout = () => {
+    forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clear();
     navigate("/login", { replace: true });
   };

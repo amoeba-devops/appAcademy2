@@ -889,7 +889,12 @@ export class TalkService {
             (t) => t.kind === 'TEACHER' && actorKey(t) !== actorKey(actor),
           )
           .map((t) => t.refId),
-        payload: { channelId, senderName: names.get(actorKey(actor)) ?? '' },
+        // REQ-261020C — 푸시·알림 목록에 채널명 표시
+        payload: {
+          channelId,
+          title: channel.name ?? '',
+          senderName: names.get(actorKey(actor)) ?? '',
+        },
       });
       const others = members.filter(
         (m) =>

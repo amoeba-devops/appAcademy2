@@ -1,5 +1,7 @@
 {
-  "numericInput": { "invalid": "请输入有效数字。" },
+  "numericInput": {
+    "invalid": "请输入有效数字。"
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -966,7 +968,8 @@
       "ISSUE_MENTION": "在问题中提到了你",
       "ISSUE_MENTION_COMMENT": "在问题评论中提到了你",
       "PASSWORD_RESET_REQUEST": "收到密码重置请求"
-    }
+    },
+    "mentionBadge": "提及"
   },
   "pay": {
     "title": "收费管理",
@@ -1272,7 +1275,10 @@
     "ios": "在 iPhone/iPad 上，将 ACM 添加到主屏幕后在已安装的应用中开启通知。",
     "unconfigured": "服务器推送配置尚未完成。",
     "failed": "连接失败。请检查权限和网络后重试。",
-    "close": "关闭"
+    "close": "关闭",
+    "banner": "在此设备接收通知 — 即时获取聊天和咨询提醒",
+    "turnOn": "开启",
+    "dismiss": "关闭提示"
   },
   "reviewMissing": {
     "feedback": "反馈",
