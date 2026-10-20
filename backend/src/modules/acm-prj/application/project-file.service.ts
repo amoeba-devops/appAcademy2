@@ -29,10 +29,11 @@ export class ProjectFileService {
       throw new BadRequestException('제목과 50MB 이하 파일을 확인하세요.');
     if (/\.(html?|svg|js|exe|sh|bat)$/i.test(file.originalname))
       throw new BadRequestException('지원하지 않는 파일 형식입니다.');
-    const status = await this.drive.status(u);
     // REQ-261016 — 연결 전에는 ACM 저장소, 연결 후에는 선택(기본 Drive).
-    const storage = d.storage ?? (status.rootReady ? 'DRIVE' : 'ACM');
-    if (storage === 'DRIVE' && !status.rootReady)
+    // FIX-261020C — 공용폴더가 없어도 이 프로젝트의 Drive 폴더가 있으면 Drive 로 올린다.
+    const driveReady = await this.drive.projectReady(u, id);
+    const storage = d.storage ?? (driveReady ? 'DRIVE' : 'ACM');
+    if (storage === 'DRIVE' && !driveReady)
       throw new ConflictException({
         code: 'DRIVE_NOT_READY',
         message:

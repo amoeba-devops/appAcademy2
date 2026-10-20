@@ -1723,7 +1723,7 @@
       "login": "Sign in with company Google account",
       "reconnect": "Reconnect / change account",
       "disconnect": "Disconnect",
-      "disconnectConfirm": "Disconnecting stops saving to Google Drive; uploads will go to ACM storage. Google originals and project records are kept.",
+      "disconnectConfirm": "Disconnecting stops saving to Google Drive; uploads will go to ACM storage. Google originals and project records are kept. The shared folder setting is also cleared and is restored automatically when you reconnect the same account.",
       "workspaceOnly": "Only Google Workspace accounts on a company domain can be connected."
     },
     "readOnly": "Only the service operator can connect and set the shared folder.",
@@ -1748,10 +1748,13 @@
       "drive": "Company Google Drive",
       "acm": "ACM storage",
       "notConnectedHint": "Once the company Google Drive is connected, you can choose where to save.",
-      "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage."
+      "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage.",
+      "rootMissingHint": "No shared root folder is set for the company Google Drive.",
+      "rootMissingAdmin": "Set the shared folder in Drive settings."
     },
     "notReadyHint": "The company Google Drive shared folder is not set yet, so creating Google files and uploading to Drive are unavailable. You can still upload files to ACM storage.",
-    "goSettings": "Go to Drive settings"
+    "goSettings": "Go to Drive settings",
+    "askAdmin": "Ask an administrator to set the shared folder."
   },
   "docsCreate": {
     "title": "New",

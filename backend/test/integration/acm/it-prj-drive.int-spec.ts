@@ -299,6 +299,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
       projects,
       {
         status: async () => ({ rootReady: false }),
+        projectReady: async () => false,
       } as unknown as ProjectDriveService,
       store,
     );
@@ -693,6 +694,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
         projects,
         {
           status: async () => ({ rootReady }),
+          projectReady: async () => rootReady,
           create: driveCreate,
         } as unknown as ProjectDriveService,
         store,

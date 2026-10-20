@@ -109,8 +109,15 @@ export class ProjectController {
   @Get('people') people(@CurrentUser() u: AcmCurrentUser) {
     return this.projects.people(u);
   }
-  @Get('drive') status(@CurrentUser() u: AcmCurrentUser) {
-    return this.drive.status(u);
+  @Get('drive') status(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query('projectId') projectId?: string,
+  ) {
+    // FIX-261020C — projectId 가 있으면 그 프로젝트 업로드 가능 여부(projectReady)도 준다.
+    return this.drive.status(
+      u,
+      projectId && /^[0-9a-f-]{36}$/i.test(projectId) ? projectId : undefined,
+    );
   }
   @Post('drive/connect') async connect(
     @CurrentUser() u: AcmCurrentUser,

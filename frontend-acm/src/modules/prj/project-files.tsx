@@ -196,11 +196,16 @@ export function FileUpload({
   const { t } = useTranslation("common");
   const { t: tp } = useTranslation("prj");
   const drive = useQuery({
-    queryKey: ["prj-drive", ...useScope()],
+    queryKey: ["prj-drive", ...useScope(), project],
     queryFn: async () =>
-      (await apiClient.get<DriveStatus>("/acm/prj/drive")).data,
+      (
+        await apiClient.get<DriveStatus>("/acm/prj/drive", {
+          params: { projectId: project },
+        })
+      ).data,
   });
-  const driveReady = !!drive.data?.rootReady;
+  // FIX-261020C — 공용폴더가 없어도 이 프로젝트의 Drive 폴더가 있으면 Drive 로 올린다.
+  const driveReady = !!(drive.data?.projectReady ?? drive.data?.rootReady);
   // REQ-261018C — 저장 위치 경로(공용 폴더 › 프로젝트 폴더) 표시
   const projectInfo = useQuery({
     queryKey: ["prj", "list", ...useScope()],
@@ -288,9 +293,12 @@ export function FileUpload({
             </label>
             {!driveReady && (
               <p className="text-xs text-secondary">
+                {/* FIX-261020C — 연결돼 있지만 공용폴더만 없을 때는 그 사실을 알린다 */}
                 {drive.data?.needsReconnect
                   ? t("drive.storage.reconnectHint")
-                  : t("drive.storage.notConnectedHint")}
+                  : drive.data?.connected
+                    ? `${t("drive.storage.rootMissingHint")} ${t(drive.data.canManage ? "drive.storage.rootMissingAdmin" : "drive.askAdmin")}`
+                    : t("drive.storage.notConnectedHint")}
               </p>
             )}
           </fieldset>

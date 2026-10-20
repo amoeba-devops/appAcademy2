@@ -472,10 +472,16 @@ export function ProjectDetailPage() {
       (await apiClient.get<Item[]>(base + "/projects/" + id + "/items")).data,
   });
   const drive = useQuery({
-    queryKey: ["prj-drive", ...useScope()],
+    queryKey: ["prj-drive", ...useScope(), id],
     queryFn: async () =>
-      (await apiClient.get<DriveStatus>(base + "/drive")).data,
+      (
+        await apiClient.get<DriveStatus>(base + "/drive", {
+          params: { projectId: id },
+        })
+      ).data,
   });
+  // FIX-261020C — 공용폴더가 없어도 이 프로젝트의 Drive 폴더가 있으면 사용 가능
+  const driveReady = !!(drive.data?.projectReady ?? drive.data?.rootReady);
   useEffect(() => {
     const doc = params.get("doc");
     const found = items.data?.find((i) => i.pit_id === doc);
@@ -755,12 +761,8 @@ export function ProjectDetailPage() {
                         // FIX-261016C — Drive 공용폴더가 없으면 Google 생성/업로드를 막고 안내한다.
                         <Button
                           variant="outline"
-                          disabled={!drive.data?.rootReady}
-                          title={
-                            drive.data?.rootReady
-                              ? undefined
-                              : t("drive.notReadyHint")
-                          }
+                          disabled={!driveReady}
+                          title={driveReady ? undefined : t("drive.notReadyHint")}
                           onClick={() => setNewDoc(true)}
                         >
                           {docType === "FILE"
@@ -772,12 +774,20 @@ export function ProjectDetailPage() {
                         docType === "DOC" ||
                         docType === "SHEET") &&
                         drive.data &&
-                        !drive.data.rootReady && (
+                        !driveReady && (
                           <p className="w-full text-xs text-secondary">
-                            {t("drive.notReadyHint")}{" "}
-                            <Link className="underline" to="/admin/config/drive">
-                              {t("drive.goSettings")}
-                            </Link>
+                            {t(
+                              drive.data.needsReconnect
+                                ? "drive.storage.reconnectHint"
+                                : "drive.notReadyHint",
+                            )}{" "}
+                            {drive.data.canManage ? (
+                              <Link className="underline" to="/admin/config/drive">
+                                {t("drive.goSettings")}
+                              </Link>
+                            ) : (
+                              t("drive.askAdmin")
+                            )}
                           </p>
                         )}
                       {docType === "FILE" && (
