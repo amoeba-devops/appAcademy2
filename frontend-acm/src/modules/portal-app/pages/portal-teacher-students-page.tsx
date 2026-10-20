@@ -178,7 +178,7 @@ function StudentDetail({ stdId }: { stdId: string }) {
                   className="rounded-md border border-[var(--border-subtle)] px-3 py-2 text-sm"
                 >
                   <div className="whitespace-pre-wrap text-primary">{r.body}</div>
-                  <div className="mt-0.5 text-[11px] text-secondary">
+                  <div className="mt-0.5 text-xs text-secondary">
                     {new Date(r.createdAt).toLocaleDateString(i18n.language)}
                   </div>
                 </li>
@@ -210,7 +210,7 @@ function StudentDetail({ stdId }: { stdId: string }) {
                   >
                     {e.title}
                   </Link>
-                  <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-[10px] text-secondary">
+                  <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
                     {t(`cal:category.${e.category}`, e.category)}
                   </span>
                 </li>

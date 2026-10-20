@@ -12,7 +12,7 @@ export type Reason = "OVERDUE" | "TODAY";
 export type Origin = "ASSIGNED_BY_OTHERS" | "MY_OWN" | "CREATED_AWAITING" | "DONE_TODAY";
 export const ORIGIN_ORDER: Origin[] = ["ASSIGNED_BY_OTHERS", "MY_OWN", "CREATED_AWAITING", "DONE_TODAY"];
 export const ORIGIN_DOT: Record<Origin, string> = {
-  ASSIGNED_BY_OTHERS: "bg-indigo-600",
+  ASSIGNED_BY_OTHERS: "bg-accent-600",
   MY_OWN: "bg-sky-500",
   CREATED_AWAITING: "bg-gray-400",
   DONE_TODAY: "bg-green-500",

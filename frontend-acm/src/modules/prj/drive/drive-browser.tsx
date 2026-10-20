@@ -43,7 +43,7 @@ import {
 } from "./drive-model";
 
 const btnPrimary =
-  "inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-lg bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50";
 const btnSecondary =
   "inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50";
 const SORTS: SortBy[] = ["date", "size", "type", "owner"];
@@ -616,6 +616,17 @@ export function FolderView({
           )}
         </div>
       </div>
+      {/* REQ-261018C — 업로드 위치 안내(프로젝트 자료는 문서 › 파일의 프로젝트 폴더에 따로 저장) */}
+      {canEdit && (
+        <div className="mb-3 grid gap-0.5 text-xs text-secondary">
+          <p>
+            {t("storagePath.driveUploadTo", {
+              path: [folder.title, ...trail.map((c) => c.name)].join(" › "),
+            })}
+          </p>
+          <p>{t("storagePath.driveProjectHint")}</p>
+        </div>
+      )}
       {uploads.length > 0 && (
         <div className="mb-4 space-y-1 rounded-lg border p-3">
           {uploads.map((u, i) => (

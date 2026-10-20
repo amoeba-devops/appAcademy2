@@ -72,6 +72,9 @@ export function DriveConnection() {
       {result === "workspace_required" && (
         <Alert text={t("drive.result.workspaceRequired")} />
       )}
+      {result === "scope_required" && (
+        <Alert text={t("drive.result.scopeRequired")} />
+      )}
       {result === "cancelled" && (
         <p className="text-sm text-secondary">{t("drive.result.cancelled")}</p>
       )}

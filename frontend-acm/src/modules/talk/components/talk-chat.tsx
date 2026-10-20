@@ -16,6 +16,7 @@ import { useSearchParams } from "react-router-dom";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 import {
   Download,
   Hash,
@@ -54,7 +55,7 @@ function fmtBytes(bytes: number): string {
 }
 
 const kindBadgeCls = (kind: "USER" | "TEACHER") =>
-  `rounded px-1 text-[9px] font-mono ${
+  `rounded px-1 text-xs font-mono ${
     kind === "USER"
       ? "bg-emerald-100 text-emerald-700"
       : "bg-purple-100 text-purple-700"
@@ -65,8 +66,8 @@ function KindBadge({ kind }: { kind: "USER" | "TEACHER" }) {
   return (
     <span className={kindBadgeCls(kind)}>
       {kind === "USER"
-        ? t("talk.kindOperator", "운영자")
-        : t("talk.kindTeacher", "강사")}
+        ? t("talk.kindOperator")
+        : t("talk.kindTeacher")}
     </span>
   );
 }
@@ -191,7 +192,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
       )}
       <div
         ref={chatViewportRef}
-        className={`${mode === "admin" ? "admin-chat-layout " : ""}talk-chat-viewport flex h-[calc(100dvh-190px)] min-h-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
+        className={`${mode === "admin" ? "admin-chat-layout h-[calc(100dvh-222px)] " : "h-[calc(100dvh-190px)] "}talk-chat-viewport flex min-h-0 overflow-hidden rounded-md border border-[var(--border-subtle)] bg-surface`}
       >
         {/* 채널 목록 */}
         <aside
@@ -204,14 +205,14 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                 onClick={() => setModal("channel")}
                 className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
               >
-                <Plus size={12} /> {t("talk.newChannel", "새 채널")}
+                <Plus size={12} /> {t("talk.newChannel")}
               </button>
               <button
                 type="button"
                 onClick={() => setModal("dm")}
                 className="inline-flex flex-1 items-center justify-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1.5 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
               >
-                <Plus size={12} /> {t("talk.newDm", "새 DM")}
+                <Plus size={12} /> {t("talk.newDm")}
               </button>
             </div>
           )}
@@ -234,7 +235,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
           <div className="flex-1 overflow-y-auto p-1.5">
             {channels.length === 0 ? (
               <p className="px-2 py-6 text-center text-xs text-secondary">
-                {t("talk.noChannels", "대화방이 없습니다.")}
+                {t("talk.noChannels")}
               </p>
             ) : (
               channels.map((c) => (
@@ -261,7 +262,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                     {c.type === "GROUP" &&
                       c.members.find((m) => m.role === "OWNER") && (
                         <span
-                          className="flex items-center gap-1 truncate text-[11px]"
+                          className="flex items-center gap-1 truncate text-xs"
                           title={t("talk.ownerName", {
                             name: c.members.find((m) => m.role === "OWNER")!
                               .name,
@@ -274,7 +275,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                       )}
                     {c.lastMessagePreview && (
                       <span
-                        className={`block truncate text-[11px] ${
+                        className={`block truncate text-xs ${
                           c.id === activeId ? "text-white/70" : "text-secondary"
                         }`}
                       >
@@ -283,7 +284,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                     )}
                   </span>
                   {c.unreadCount > 0 && (
-                    <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    <span className="shrink-0 rounded-full bg-red-500 px-1.5 py-0.5 text-xs font-medium text-white">
                       {c.unreadCount > 99 ? "99+" : c.unreadCount}
                     </span>
                   )}
@@ -320,7 +321,7 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
             <p className="text-sm">
               {detail.isError
                 ? t("inbox.unavailable")
-                : t("talk.selectChannel", "대화방을 선택하세요.")}
+                : t("talk.selectChannel")}
             </p>
           </div>
         )}
@@ -560,8 +561,8 @@ function ChatPane({
           <div className="truncate text-sm font-medium text-primary">
             {channel.name}
           </div>
-          <div className="truncate text-[11px] text-secondary">
-            {t("talk.members", "참여자")} {channel.members.length} ·{" "}
+          <div className="truncate text-xs text-secondary">
+            {t("talk.members")} {channel.members.length} ·{" "}
             {memberNames}
           </div>
         </div>
@@ -603,14 +604,14 @@ function ChatPane({
               {loadOlder.isPending ? (
                 <Loader2 size={12} className="inline animate-spin" />
               ) : (
-                t("talk.loadOlder", "이전 메시지 보기")
+                t("talk.loadOlder")
               )}
             </button>
           </div>
         )}
         {messages.length === 0 && (
           <p className="py-8 text-center text-xs text-secondary">
-            {t("talk.noMessages", "아직 메시지가 없습니다.")}
+            {t("talk.noMessages")}
           </p>
         )}
         {messages.map((m) => (
@@ -622,7 +623,7 @@ function ChatPane({
               className={`min-w-0 max-w-[85%] sm:max-w-[75%] ${m.mine ? "text-right" : ""}`}
             >
               {!m.mine && (
-                <div className="mb-0.5 flex items-center gap-1 text-[11px] text-secondary">
+                <div className="mb-0.5 flex items-center gap-1 text-xs text-secondary">
                   <KindBadge kind={m.senderKind} />
                   <span className="font-medium text-primary">
                     {m.senderName}
@@ -662,7 +663,7 @@ function ChatPane({
                   </span>
                 )}
               </div>
-              <div className="mt-0.5 flex items-center gap-1 text-[10px] text-secondary">
+              <div className="mt-0.5 flex items-center gap-1 text-xs text-secondary">
                 <span className={m.mine ? "ml-auto" : ""}>
                   {fmtTime(m.createdAt)}
                 </span>
@@ -671,10 +672,7 @@ function ChatPane({
                     type="button"
                     onClick={async () => {
                       const ok = await confirm({
-                        title: t(
-                          "talk.confirmDeleteMessage",
-                          "이 메시지를 삭제할까요?",
-                        ),
+                        title: t("talk.confirmDeleteMessage"),
                         variant: "destructive",
                       });
                       if (ok) delMsg.mutate(m.id);
@@ -755,7 +753,7 @@ function ChatPane({
             type="button"
             disabled={!channel.canSend || sendFile.isPending}
             onClick={() => fileRef.current?.click()}
-            title={t("talk.attachFile", "파일 전송 (≤50MB)")}
+            title={t("talk.attachFile")}
             className="rounded-md border border-[var(--border-subtle)] p-2 text-secondary hover:bg-[var(--gray-50)] disabled:opacity-50"
           >
             {sendFile.isPending ? (
@@ -815,7 +813,7 @@ function ChatPane({
               if (e.key === "Enter" && !send.isPending && text.trim())
                 send.mutate();
             }}
-            placeholder={t("talk.inputPlaceholder", "메시지 입력…")}
+            placeholder={t("talk.inputPlaceholder")}
             className="h-9 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
           />
           <button
@@ -860,11 +858,11 @@ function ChannelModal({
   });
 
   return (
-    <TalkModal title={t("talk.newChannel", "새 채널")} onClose={onClose}>
+    <TalkModal title={t("talk.newChannel")} onClose={onClose}>
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder={t("talk.channelNamePlaceholder", "방 이름")}
+        placeholder={t("talk.channelNamePlaceholder")}
         className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm"
       />
       <CandidatePicker
@@ -887,7 +885,7 @@ function ChannelModal({
           onClick={onClose}
           className="rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-secondary"
         >
-          {t("actions.cancel", "취소")}
+          {t("actions.cancel")}
         </button>
         <button
           type="button"
@@ -896,7 +894,7 @@ function ChannelModal({
           className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {save.isPending && <Loader2 size={13} className="animate-spin" />}
-          {t("talk.create", "개설")}
+          {t("talk.create")}
         </button>
       </div>
     </TalkModal>
@@ -921,17 +919,14 @@ function DmModal({
   });
 
   return (
-    <TalkModal title={t("talk.newDm", "새 DM")} onClose={onClose}>
+    <TalkModal title={t("talk.newDm")} onClose={onClose}>
       <CandidatePicker
         selectedKeys={new Set(target ? [`${target.kind}:${target.refId}`] : [])}
         onToggle={(c) => setTarget({ kind: c.kind, refId: c.refId })}
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
-      <p className="text-[11px] text-secondary">
-        {t(
-          "talk.dmReuseHint",
-          "같은 상대와의 기존 DM이 있으면 그 방으로 이동합니다.",
-        )}
+      <p className="text-xs text-secondary">
+        {t("talk.dmReuseHint")}
       </p>
       <div className="flex justify-end gap-2">
         <button
@@ -939,7 +934,7 @@ function DmModal({
           onClick={onClose}
           className="rounded-md border border-[var(--border-subtle)] px-3 py-1.5 text-sm text-secondary"
         >
-          {t("actions.cancel", "취소")}
+          {t("actions.cancel")}
         </button>
         <button
           type="button"
@@ -948,7 +943,7 @@ function DmModal({
           className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
         >
           {start.isPending && <Loader2 size={13} className="animate-spin" />}
-          {t("talk.startDm", "시작")}
+          {t("talk.startDm")}
         </button>
       </div>
     </TalkModal>
@@ -980,7 +975,7 @@ function CandidatePicker({
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={t("talk.searchMember", "이름 검색 (운영자/강사)")}
+          placeholder={t("talk.searchMember")}
           className="h-8 w-full bg-transparent text-xs focus:outline-none"
         />
       </div>
@@ -1010,7 +1005,7 @@ function CandidatePicker({
         })}
         {filtered.length === 0 && (
           <p className="px-2 py-2 text-xs text-secondary">
-            {t("talk.noResult", "결과가 없습니다.")}
+            {t("talk.noResult")}
           </p>
         )}
       </div>
@@ -1045,6 +1040,6 @@ function TalkModal({
 function errMsg(e: unknown): string {
   return (
     (e as { response?: { data?: { message?: string } } })?.response?.data
-      ?.message ?? "요청에 실패했습니다."
+      ?.message ?? i18next.t("talk:errors.requestFailed")
   );
 }

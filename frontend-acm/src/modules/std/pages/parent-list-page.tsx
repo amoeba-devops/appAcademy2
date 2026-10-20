@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Trash2, Pencil } from 'lucide-react';
+import { Search, Trash2, Pencil, Users2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/page-header';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { ParentEditModal } from '../components/parent-edit-modal';
 import {
@@ -16,6 +17,7 @@ const inputClass =
 
 export function ParentListPage() {
   const { t } = useTranslation('std');
+  const { t: tc } = useTranslation('common');
   const confirm = useConfirm();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
@@ -40,7 +42,7 @@ export function ParentListPage() {
     const count = p.childCount ?? 0;
     if (count === 0) {
       return (
-        <span className="rounded-full bg-warning-50 px-2 py-0.5 text-[10px] font-semibold text-warning-700">
+        <span className="rounded-full bg-warning-50 px-2 py-0.5 text-xs font-semibold text-warning-700">
           {t('parentList.orphan', '고아 (자녀 없음)')}
         </span>
       );
@@ -81,9 +83,11 @@ export function ParentListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('parentList.title', '학부모 관리')}</h1>
-      </div>
+      <PageHeader
+        icon={Users2}
+        title={tc('nav.parents')}
+        description={tc('pageHeader.parents.desc')}
+      />
 
       {/* Filter */}
       <div className="flex items-center gap-2">

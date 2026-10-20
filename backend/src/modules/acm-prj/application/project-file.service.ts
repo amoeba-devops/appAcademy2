@@ -1,3 +1,4 @@
+import { signFileTicket, verifyFileTicket } from './file-ticket';
 import {
   BadRequestException,
   ConflictException,
@@ -24,14 +25,15 @@ export class ProjectFileService {
     file: Express.Multer.File,
   ) {
     await this.projects.access(u, id, false, true);
-    if (!file.size || file.size > 20 * 1024 * 1024 || !d.title.trim())
-      throw new BadRequestException('제목과 20MB 이하 파일을 확인하세요.');
+    if (!file.size || file.size > 50 * 1024 * 1024 || !d.title.trim())
+      throw new BadRequestException('제목과 50MB 이하 파일을 확인하세요.');
     if (/\.(html?|svg|js|exe|sh|bat)$/i.test(file.originalname))
       throw new BadRequestException('지원하지 않는 파일 형식입니다.');
-    const status = await this.drive.status(u);
     // REQ-261016 — 연결 전에는 ACM 저장소, 연결 후에는 선택(기본 Drive).
-    const storage = d.storage ?? (status.rootReady ? 'DRIVE' : 'ACM');
-    if (storage === 'DRIVE' && !status.rootReady)
+    // FIX-261020C — 공용폴더가 없어도 이 프로젝트의 Drive 폴더가 있으면 Drive 로 올린다.
+    const driveReady = await this.drive.projectReady(u, id);
+    const storage = d.storage ?? (driveReady ? 'DRIVE' : 'ACM');
+    if (storage === 'DRIVE' && !driveReady)
       throw new ConflictException({
         code: 'DRIVE_NOT_READY',
         message:
@@ -109,12 +111,12 @@ export class ProjectFileService {
       [u.entId, id, itemId],
     );
     if (!item) throw new NotFoundException();
+    // ACM 저장소 파일은 서버가 직접 내려준다(5분 1회용 링크). 내부 MinIO 주소를 브라우저에 주지 않는다.
     const result = item.object_key
       ? {
-          url: await this.store.presignGet({
-            key: item.object_key,
-            filename: item.pit_title,
-          }),
+          url: `/api/acm/prj/files/content?t=${encodeURIComponent(
+            signFileTicket({ ent: u.entId, prj: id, item: itemId }),
+          )}`,
         }
       : await this.drive.open(u, id, itemId);
     await this.projects.ds.query(
@@ -123,4 +125,30 @@ export class ProjectFileService {
     );
     return result;
   }
+}
+
+/** 티켓으로 ACM 저장소 파일 내용을 연다(권한은 티켓 발급 시점에 확인됨). */
+export async function openTicketFile(
+  ds: ProjectService['ds'],
+  store: ObjectStoreClient,
+  ticket: string,
+) {
+  const t = verifyFileTicket(ticket);
+  const [item] = await ds.query<
+    {
+      object_key: string | null;
+      pit_title: string;
+      drive_mime: string | null;
+    }[]
+  >(
+    "SELECT object_key,pit_title,drive_mime FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='FILE' AND deleted_at IS NULL",
+    [t.ent, t.prj, t.item],
+  );
+  if (!item?.object_key) throw new NotFoundException();
+  const obj = await store.getObjectStream(item.object_key);
+  return {
+    ...obj,
+    filename: item.pit_title,
+    mime: item.drive_mime ?? obj.mime,
+  };
 }

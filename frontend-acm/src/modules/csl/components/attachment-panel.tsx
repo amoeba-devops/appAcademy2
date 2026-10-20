@@ -181,7 +181,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
       <div className="grid gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
         <Label className="text-xs">
           {t(`detail.attachment.category.${category}`)}{' '}
-          <span className="text-[11px] text-secondary">
+          <span className="text-xs text-secondary">
             ({rows.length}/{MAX_COUNT})
           </span>
         </Label>
@@ -223,7 +223,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
 
         {/* In-progress uploads */}
         {Object.entries(progress).length > 0 && (
-          <div className="grid gap-1 text-[11px]">
+          <div className="grid gap-1 text-xs">
             {Object.entries(progress).map(([name, pct]) => (
               <div key={name} className="flex items-center gap-2">
                 <span className="min-w-0 truncate flex-1">{name}</span>
@@ -235,7 +235,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
 
         {/* Validation errors */}
         {Object.entries(errors).length > 0 && (
-          <div className="grid gap-1 text-[11px] text-red-600">
+          <div className="grid gap-1 text-xs text-red-600">
             {Object.entries(errors).map(([name, err]) => (
               <div key={name}>
                 <span className="font-medium">{name}</span>: {err}
@@ -246,7 +246,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
 
         {/* List */}
         {rows.length === 0 ? (
-          <p className="text-[11px] text-secondary">{t('detail.attachment.empty')}</p>
+          <p className="text-xs text-secondary">{t('detail.attachment.empty')}</p>
         ) : (
           <ul className="grid gap-1 text-sm">
             {rows.map((r) => (
@@ -255,7 +255,7 @@ export function AttachmentPanel({ inqId, category, refId, readOnly }: Props) {
                 className="flex min-w-0 flex-wrap items-center gap-2 rounded border border-[var(--border-subtle)] bg-[var(--surface)] px-2 py-1.5"
               >
                 <span className="min-w-0 basis-full break-all text-xs md:basis-auto md:flex-1 md:truncate">{r.filename}</span>
-                <span className="text-[10px] text-secondary">
+                <span className="text-xs text-secondary">
                   {(Number(r.sizeBytes) / 1024).toFixed(0)} KB
                 </span>
                 <Button

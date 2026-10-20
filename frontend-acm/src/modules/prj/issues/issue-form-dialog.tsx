@@ -501,7 +501,7 @@ export function IssueFormDialog({
             <button
               type="submit"
               disabled={busy || !form.prj || !form.title.trim()}
-              className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" />}
               {issue ? t("issues.form.save") : t("issues.add")}

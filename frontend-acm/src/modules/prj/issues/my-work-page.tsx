@@ -2,8 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Plus, Search } from "lucide-react";
+import { ListTodo, Loader2, Plus, Search } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import { useAuthStore } from "@/stores/auth.store";
 import { todayYmd, useTenantTz } from "@/lib/tz";
 import { errorText, useScope } from "../project-page";
@@ -244,20 +248,20 @@ export function MyWorkPage() {
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="flex items-center gap-2 text-[15px] font-bold text-gray-900">
           {t("myWork.focus.title")}
-          <span className="rounded-full bg-indigo-600 px-2 text-xs font-semibold text-white">{focusShown.length}</span>
+          <span className="rounded-full bg-accent-600 px-2 text-xs font-semibold text-white">{focusShown.length}</span>
         </h2>
         <span className="text-xs text-gray-500">{t("myWork.focus.hint")}</span>
         {reasonFilter && (
           <button
             type="button"
             onClick={() => setCardFilter(null)}
-            className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11.5px] text-indigo-700 hover:bg-indigo-100"
+            className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs text-indigo-700 hover:bg-indigo-100"
           >
             {t("myWork.focus.filtered", { reason: t(`myWork.reason.${reasonFilter}`) })} · {t("myWork.focus.clearFilter")} ✕
           </button>
         )}
         {focusSelectable.length > 0 && (
-          <button type="button" onClick={() => toggleSelectAll(focusShown)} className="ml-auto text-[11.5px] text-indigo-600 hover:underline">
+          <button type="button" onClick={() => toggleSelectAll(focusShown)} className="ml-auto text-xs text-indigo-600 hover:underline">
             {focusAllOn ? t("myWork.deselectAll") : t("myWork.selectAll")}
           </button>
         )}
@@ -327,21 +331,21 @@ export function MyWorkPage() {
                 className="flex items-center gap-2 text-[13px] font-semibold text-gray-800"
                 aria-expanded={!isCollapsed}
               >
-                <span className="w-2.5 text-[9px] text-gray-400">{isCollapsed ? "▶" : "▼"}</span>
+                <span className="w-2.5 text-xs text-gray-400">{isCollapsed ? "▶" : "▼"}</span>
                 <span className={`h-2 w-2 rounded-full ${ORIGIN_DOT[sec]}`} />
                 {t(`myWork.origin.${sec}`)}
                 <span className="font-mono text-xs font-normal text-gray-400">{items.length}</span>
-                <span className="text-[11.5px] font-normal text-gray-400">{t(`myWork.originHint.${sec}`)}</span>
+                <span className="text-xs font-normal text-gray-400">{t(`myWork.originHint.${sec}`)}</span>
               </button>
               {(overdueN > 0 || todayN > 0) && sec !== "DONE_TODAY" && (
-                <span className="text-[11.5px] font-semibold">
+                <span className="text-xs font-semibold">
                   {overdueN > 0 && <span className="text-red-600">{t("myWork.originSummary.overdue", { count: overdueN })}</span>}
                   {overdueN > 0 && todayN > 0 && <span className="text-gray-300"> · </span>}
                   {todayN > 0 && <span className="text-orange-600">{t("myWork.originSummary.today", { count: todayN })}</span>}
                 </span>
               )}
               {sec !== "DONE_TODAY" && selectable.length > 0 && (
-                <button type="button" onClick={() => toggleSelectAll(items)} className="ml-auto text-[11.5px] text-indigo-600 hover:underline">
+                <button type="button" onClick={() => toggleSelectAll(items)} className="ml-auto text-xs text-indigo-600 hover:underline">
                   {allOn ? t("myWork.deselectAll") : t("myWork.selectAll")}
                 </button>
               )}
@@ -408,213 +412,205 @@ export function MyWorkPage() {
     all.length > 0 && (!!needle || !!projectFilter) && relation === "ASSIGNED" && !cardFilter && !focusAll.length && !hasRest;
 
   return (
-    <div className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white lg:min-h-[calc(100dvh-8rem)] lg:flex-row">
-      {/* 가운데 */}
-      <div className="flex min-w-0 flex-1 flex-col bg-gray-50/60">
-        <div className="flex flex-col gap-3 px-4 pb-4 pt-5 sm:px-5">
-          <div className="flex flex-wrap items-end gap-3">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">{t("myWork.title")}</h1>
-              <p className="mt-0.5 text-xs text-gray-500">
-                {t("myWork.subtitle", { total: mineOpen.length, overdue: mineOpen.filter((i) => i.reasons.includes("OVERDUE")).length })}
-              </p>
-            </div>
-            <div className="ml-auto flex gap-0.5 rounded-lg border border-gray-200 bg-white p-0.5">
-              {VIEW_MODES.map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  aria-pressed={view === v}
-                  onClick={() => setView(v)}
-                  className={`rounded-md px-3 py-1 text-xs ${view === v ? "bg-indigo-600 font-semibold text-white" : "text-gray-600 hover:bg-gray-100"}`}
-                >
-                  {t(`myWork.view.${v}`)}
-                </button>
+    <div className="min-w-0">
+      <PageHeader
+        icon={ListTodo}
+        title={t("nav.myWork")}
+        description={t("pageHeader.myWork.desc")}
+        meta={<span>{t("myWork.subtitle", { total: mineOpen.length, overdue: mineOpen.filter((i) => i.reasons.includes("OVERDUE")).length })}</span>}
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <Plus size={14} className="mr-1" />
+            {t("myWork.newWork")}
+          </Button>
+        }
+        tabs={
+          <UnderlineTabs
+            label={t("nav.myWork")}
+            items={VIEW_MODES.map((v) => ({ key: v, label: t(`myWork.view.${v}`) }))}
+            value={view}
+            onChange={setView}
+          />
+        }
+      />
+      <div className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-surface lg:min-h-[calc(100dvh-14rem)] lg:flex-row">
+        {/* 가운데 */}
+        <div className="flex min-w-0 flex-1 flex-col bg-gray-50/60">
+          <div className="flex flex-col gap-3 px-4 pb-4 pt-4 sm:px-5">
+            {/* KPI */}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-6">
+              {kpis.map((k) => (
+                <StatCard
+                  key={k.id}
+                  label={
+                    <span className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${k.tone}`} aria-hidden="true" />
+                      {k.label}
+                    </span>
+                  }
+                  value={k.value}
+                  hint={k.sub}
+                  tone={k.strong ? "accent" : "default"}
+                  onClick={k.filter ? () => focusOn(k.filter!) : undefined}
+                  active={!!k.filter && cardFilter === k.filter}
+                />
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-700"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t("myWork.newWork")}
-            </button>
-          </div>
 
-          {/* KPI */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-6">
-            {kpis.map((k) => (
-              <button
-                key={k.id}
-                type="button"
-                onClick={k.filter ? () => focusOn(k.filter!) : undefined}
-                aria-pressed={!!k.filter && cardFilter === k.filter}
-                className={`flex flex-col items-start rounded-xl border px-3 py-2 text-left ${k.strong ? "border-indigo-200 bg-indigo-50" : "border-gray-200 bg-white"} ${k.filter ? "hover:border-indigo-300" : "cursor-default"} ${k.filter && cardFilter === k.filter ? "ring-2 ring-indigo-500" : ""}`}
-              >
-                <span className="flex items-center gap-1.5 text-[11.5px] text-gray-500">
-                  <span className={`h-1.5 w-1.5 rounded-full ${k.tone}`} />
-                  {k.label}
-                </span>
-                <span className="font-mono text-[22px] font-semibold tabular-nums text-gray-900">{k.value}</span>
-                <span className="text-[11px] text-gray-400">{k.sub}</span>
-              </button>
-            ))}
-          </div>
+            {/* 관계 칩 — 칸반은 내 담당 이슈 전용이라 제외 */}
+            {view !== "kanban" && (
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <span className="shrink-0 text-xs text-gray-500">{t("myWork.relation.label")}</span>
+                <div className="flex shrink-0 gap-1" role="tablist" title={t("myWork.relation.hint")}>
+                  {RELATIONS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      role="tab"
+                      aria-selected={relation === r}
+                      onClick={() => {
+                        setRelation(r);
+                        setCardFilter(null);
+                      }}
+                      className={`rounded-full border px-3 py-1 text-xs ${relation === r ? "border-indigo-600 bg-accent-600 font-semibold text-white" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}
+                    >
+                      {t(`myWork.relation.${r}`)} <span className="font-mono opacity-80">{relationItems(r).length}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          {/* 관계 칩 — 칸반은 내 담당 이슈 전용이라 제외 */}
-          {view !== "kanban" && (
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <span className="shrink-0 text-xs text-gray-500">{t("myWork.relation.label")}</span>
-              <div className="flex shrink-0 gap-1" role="tablist" title={t("myWork.relation.hint")}>
-                {RELATIONS.map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    role="tab"
-                    aria-selected={relation === r}
-                    onClick={() => {
-                      setRelation(r);
-                      setCardFilter(null);
-                    }}
-                    className={`rounded-full border px-3 py-1 text-xs ${relation === r ? "border-indigo-600 bg-indigo-600 font-semibold text-white" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}
-                  >
-                    {t(`myWork.relation.${r}`)} <span className="font-mono opacity-80">{relationItems(r).length}</span>
-                  </button>
-                ))}
+            {/* 필터 */}
+            <div className="flex flex-wrap items-center gap-2">
+              {projectOptions.length > 0 && view !== "project" && (
+                <select
+                  value={projectFilter}
+                  onChange={(e) => setProjectFilter(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700"
+                  aria-label={t("myWork.filter.project")}
+                >
+                  <option value="">
+                    {t("myWork.filter.project")} · {t("myWork.filter.all")}
+                  </option>
+                  {projectOptions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("myWork.searchPlaceholder")}
+                  aria-label={t("myWork.searchPlaceholder")}
+                  className="w-48 rounded-lg border border-gray-200 bg-white py-1.5 pl-7 pr-2 text-xs text-gray-700"
+                />
               </div>
             </div>
-          )}
 
-          {/* 필터 */}
-          <div className="flex flex-wrap items-center gap-2">
-            {projectOptions.length > 0 && view !== "project" && (
-              <select
-                value={projectFilter}
-                onChange={(e) => setProjectFilter(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs text-gray-700"
-                aria-label={t("myWork.filter.project")}
-              >
-                <option value="">
-                  {t("myWork.filter.project")} · {t("myWork.filter.all")}
-                </option>
-                {projectOptions.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            )}
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t("myWork.searchPlaceholder")}
-                aria-label={t("myWork.searchPlaceholder")}
-                className="w-48 rounded-lg border border-gray-200 bg-white py-1.5 pl-7 pr-2 text-xs text-gray-700"
+            {work.error ? (
+              <p role="alert" className="text-sm text-red-600">
+                {errorText(work.error)}
+              </p>
+            ) : work.isLoading ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              </div>
+            ) : view === "kanban" ? (
+              <>
+                <p className="text-xs text-gray-500">{t("myWork.kanban.notice")}</p>
+                <MyWorkKanban items={filtered} tz={tz} today={today} selectedId={selectedId} onSelect={(i) => setSelectedId(i.pit_id)} />
+              </>
+            ) : nothingShown ? (
+              <div className="rounded-xl border border-dashed border-gray-200 bg-white px-3 py-8 text-center">
+                <p className="text-sm text-gray-600">{t("myWork.filterEmpty")}</p>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="mt-2 rounded-lg border border-indigo-200 px-3 py-1 text-xs text-indigo-600 hover:bg-indigo-50"
+                >
+                  {t("myWork.resetFilter")}
+                </button>
+              </div>
+            ) : view === "today" ? (
+              todayView
+            ) : (
+              <MyProjectsView
+                items={relationItems(relation).sort(urgency)}
+                relationLabel={t(`myWork.relation.${relation}`)}
+                showFocus={relation === "ASSIGNED"}
+                selected={projectKey}
+                onSelect={setProjectKey}
+                renderRows={(items) =>
+                  items.map((i) => renderRow(i, relation === "ASSIGNED" ? {} : { muted: true, showAssignee: relation === "REPORTER" }))
+                }
               />
-            </div>
+            )}
           </div>
 
-          {work.error ? (
-            <p role="alert" className="text-sm text-red-600">
-              {errorText(work.error)}
-            </p>
-          ) : work.isLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            </div>
-          ) : view === "kanban" ? (
-            <>
-              <p className="text-xs text-gray-500">{t("myWork.kanban.notice")}</p>
-              <MyWorkKanban items={filtered} tz={tz} today={today} selectedId={selectedId} onSelect={(i) => setSelectedId(i.pit_id)} />
-            </>
-          ) : nothingShown ? (
-            <div className="rounded-xl border border-dashed border-gray-200 bg-white px-3 py-8 text-center">
-              <p className="text-sm text-gray-600">{t("myWork.filterEmpty")}</p>
+          {/* 선택 바 */}
+          {pickedItems.length > 0 && (
+            <div className="sticky bottom-0 z-10 mt-auto flex flex-wrap items-center gap-3 border-t border-gray-200 bg-white px-5 py-3 shadow-[0_-6px_16px_rgba(0,0,0,0.06)]">
+              <span className="text-sm text-gray-800">{t("myWork.saveBar.selected", { count: pickedItems.length })}</span>
               <button
                 type="button"
-                onClick={resetFilters}
-                className="mt-2 rounded-lg border border-indigo-200 px-3 py-1 text-xs text-indigo-600 hover:bg-indigo-50"
+                onClick={() => setPicked(new Set())}
+                className="ml-auto rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
               >
-                {t("myWork.resetFilter")}
+                {t("myWork.saveBar.clear")}
+              </button>
+              <button
+                type="button"
+                disabled={!pickedItems.some((i) => !i.doneToday) || pickedItems.length > MAX_BULK_COMPLETE}
+                title={pickedItems.length > MAX_BULK_COMPLETE ? t("myWork.complete.tooMany", { max: MAX_BULK_COMPLETE }) : undefined}
+                onClick={() => setCompleteTargets(pickedItems.filter((i) => !i.doneToday))}
+                className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {t("myWork.saveBar.complete")}
               </button>
             </div>
-          ) : view === "today" ? (
-            todayView
-          ) : (
-            <MyProjectsView
-              items={relationItems(relation).sort(urgency)}
-              relationLabel={t(`myWork.relation.${relation}`)}
-              showFocus={relation === "ASSIGNED"}
-              selected={projectKey}
-              onSelect={setProjectKey}
-              renderRows={(items) =>
-                items.map((i) => renderRow(i, relation === "ASSIGNED" ? {} : { muted: true, showAssignee: relation === "REPORTER" }))
-              }
-            />
           )}
         </div>
 
-        {/* 선택 바 */}
-        {pickedItems.length > 0 && (
-          <div className="sticky bottom-0 z-10 mt-auto flex flex-wrap items-center gap-3 border-t border-gray-200 bg-white px-5 py-3 shadow-[0_-6px_16px_rgba(0,0,0,0.06)]">
-            <span className="text-sm text-gray-800">{t("myWork.saveBar.selected", { count: pickedItems.length })}</span>
-            <button
-              type="button"
-              onClick={() => setPicked(new Set())}
-              className="ml-auto rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
-            >
-              {t("myWork.saveBar.clear")}
-            </button>
-            <button
-              type="button"
-              disabled={!pickedItems.some((i) => !i.doneToday) || pickedItems.length > MAX_BULK_COMPLETE}
-              title={pickedItems.length > MAX_BULK_COMPLETE ? t("myWork.complete.tooMany", { max: MAX_BULK_COMPLETE }) : undefined}
-              onClick={() => setCompleteTargets(pickedItems.filter((i) => !i.doneToday))}
-              className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
-            >
-              {t("myWork.saveBar.complete")}
-            </button>
+        {/* 우측 패널 */}
+        <aside className="flex w-full shrink-0 flex-col border-t border-gray-200 bg-white lg:w-[340px] lg:border-l lg:border-t-0">
+          <div className="flex border-b border-gray-200">
+            <span className="flex-1 border-b-2 border-indigo-600 py-2.5 text-center text-xs font-semibold text-indigo-600">
+              {t("myWork.panel.detail")}
+            </span>
           </div>
-        )}
-      </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <WorkDetailPanel
+              key={selected?.pit_id ?? "none"}
+              item={selected}
+              tz={tz}
+              today={today}
+              busy={!!selected && busyId === selected.pit_id}
+              onComplete={(i) => setCompleteTargets([i])}
+              onOpenFull={(i) => openIssue(i.pit_id)}
+              onOpenIssue={openIssue}
+            />
+          </div>
+        </aside>
 
-      {/* 우측 패널 */}
-      <aside className="flex w-full shrink-0 flex-col border-t border-gray-200 bg-white lg:w-[340px] lg:border-l lg:border-t-0">
-        <div className="flex border-b border-gray-200">
-          <span className="flex-1 border-b-2 border-indigo-600 py-2.5 text-center text-xs font-semibold text-indigo-600">
-            {t("myWork.panel.detail")}
-          </span>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <WorkDetailPanel
-            key={selected?.pit_id ?? "none"}
-            item={selected}
-            tz={tz}
-            today={today}
-            busy={!!selected && busyId === selected.pit_id}
-            onComplete={(i) => setCompleteTargets([i])}
-            onOpenFull={(i) => openIssue(i.pit_id)}
-            onOpenIssue={openIssue}
+        {creating && (
+          <IssueFormDialog
+            close={() => setCreating(false)}
+            onSaved={(id, title) => {
+              setSelectedId(id);
+              setResult({ ok: true, title: t("myWork.created.title"), message: t("myWork.created.msg", { title }) });
+            }}
           />
-        </div>
-      </aside>
-
-      {creating && (
-        <IssueFormDialog
-          close={() => setCreating(false)}
-          onSaved={(id, title) => {
-            setSelectedId(id);
-            setResult({ ok: true, title: t("myWork.created.title"), message: t("myWork.created.msg", { title }) });
-          }}
-        />
-      )}
-      {completeTargets && (
-        <CompleteConfirmModal targets={completeTargets} onClose={() => setCompleteTargets(null)} onFinished={finishComplete} />
-      )}
-      <ActionResultModal result={result} onClose={closeResult} />
+        )}
+        {completeTargets && (
+          <CompleteConfirmModal targets={completeTargets} onClose={() => setCompleteTargets(null)} onFinished={finishComplete} />
+        )}
+        <ActionResultModal result={result} onClose={closeResult} />
+      </div>
     </div>
   );
 }

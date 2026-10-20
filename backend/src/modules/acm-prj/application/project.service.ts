@@ -1,3 +1,4 @@
+import { hasUserPermission } from '../../acm-common/guards/config-admin.guard';
 import { ProjectRelationDto, DocumentDto } from './document.dto';
 import { googleUrl, validateContent } from './document-content';
 import {
@@ -81,8 +82,8 @@ export class ProjectService {
   }
   async allDocuments(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT i.*,p.prj_title,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
-      [u.entId, u.id],
+      `SELECT i.*,(p.prj_status<>'ARCHIVED' AND (i.created_by=$2 OR p.owner_id=$2 OR $3::boolean OR EXISTS(SELECT 1 FROM amb_acm_prj_member mg WHERE mg.ent_id=p.ent_id AND mg.prj_id=p.prj_id AND mg.usr_id=$2 AND mg.member_role='MANAGER'))) AS can_delete,p.prj_title,p.drive_folder_id AS prj_drive_folder_id,p.drive_folder_name AS prj_drive_folder_name,(SELECT d.root_name FROM amb_acm_prj_drive d WHERE d.ent_id=p.ent_id) AS drive_root_name,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
+      [u.entId, u.id, await this.isTenantMaster(u)],
     );
   }
   async relations(u: AcmCurrentUser, id: string) {
@@ -194,11 +195,17 @@ export class ProjectService {
     });
   }
   async items(u: AcmCurrentUser, id: string) {
-    await this.access(u, id);
+    const p = await this.access(u, id);
+    // REQ-261019 — 목록 삭제 버튼: 작성자·프로젝트 소유자/담당자·테넌트 마스터(이슈 제외)
+    const master = !!p.can_manage || (await this.isTenantMaster(u));
+    const archived = p.prj_status === 'ARCHIVED';
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT i.*,u.usr_name AS creator_name FROM amb_acm_prj_item i LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND prj_id=$2 AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 1000`,
-      [u.entId, id],
+      `SELECT i.*,(NOT $5::boolean AND i.pit_kind<>'ISSUE' AND (i.created_by=$3 OR $4::boolean)) AS can_delete,u.usr_name AS creator_name FROM amb_acm_prj_item i LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND prj_id=$2 AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 1000`,
+      [u.entId, id, u.id, master, archived],
     );
+  }
+  private isTenantMaster(u: AcmCurrentUser) {
+    return hasUserPermission(this.ds, u, 'TENANT_MASTER');
   }
   async saveItem(u: AcmCurrentUser, id: string, d: ItemDto, itemId?: string) {
     await this.access(u, id, false, true);
@@ -468,11 +475,36 @@ export class ProjectService {
     );
     return row;
   }
-  async unlink(u: AcmCurrentUser, id: string, item: string) {
-    await this.itemWrite(u, id, item);
-    await this.ds.query<Record<string, unknown>[]>(
-      `UPDATE amb_acm_prj_item SET deleted_at=now(),updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind IN ('FILE','DOCUMENT') AND deleted_at IS NULL`,
+  /** 예전 "연결 해제" — 삭제와 같은 규칙(호환). */
+  unlink(u: AcmCurrentUser, id: string, item: string) {
+    return this.deleteItem(u, id, item);
+  }
+  /**
+   * REQ-261019 — 목록에서 메모·문서·파일 삭제(소프트 삭제, Google 원본은 그대로).
+   * 작성자, 프로젝트 소유자·담당자(MANAGER), 테넌트 마스터만. 보관된 프로젝트는 거부.
+   */
+  async deleteItem(u: AcmCurrentUser, id: string, item: string) {
+    const p = await this.access(u, id, false, true);
+    const [row] = await this.ds.query<{ created_by: string | null }[]>(
+      `SELECT created_by FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind<>'ISSUE' AND deleted_at IS NULL`,
       [u.entId, id, item],
+    );
+    if (!row) throw new NotFoundException();
+    if (
+      row.created_by !== u.id &&
+      !p.can_manage &&
+      !(await this.isTenantMaster(u))
+    )
+      throw new ForbiddenException(
+        '작성자나 프로젝트 담당자만 삭제할 수 있습니다.',
+      );
+    await this.ds.query(
+      `UPDATE amb_acm_prj_item SET deleted_at=now(),updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind<>'ISSUE' AND deleted_at IS NULL`,
+      [u.entId, id, item],
+    );
+    await this.ds.query(
+      'UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=$2',
+      [u.entId, id],
     );
     return { ok: true };
   }

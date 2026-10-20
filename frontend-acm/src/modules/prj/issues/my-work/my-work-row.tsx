@@ -34,7 +34,7 @@ export function DueTag({
             : info.date!.slice(5).replace("-", "/");
   return (
     <span
-      className={`min-w-[52px] shrink-0 text-right font-mono text-[11.5px] ${DUE_TONE_CLASS[info.tone]} ${className}`}
+      className={`min-w-[52px] shrink-0 text-right font-mono text-xs ${DUE_TONE_CLASS[info.tone]} ${className}`}
       title={info.date ?? undefined}
     >
       {label}
@@ -102,7 +102,7 @@ export function MyWorkRow({
         selected || picked ? "bg-indigo-50/70" : "bg-white"
       }`}
     >
-      {mineIssue && <span className="absolute inset-y-0 left-0 w-1 bg-indigo-600" aria-hidden />}
+      {mineIssue && <span className="absolute inset-y-0 left-0 w-1 bg-accent-600" aria-hidden />}
 
       {selectable && (
         <button
@@ -115,9 +115,9 @@ export function MyWorkRow({
             e.stopPropagation();
             onTogglePick?.(item);
           }}
-          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] ${
+          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-xs ${
             picked
-              ? "border-indigo-600 bg-indigo-600 text-white"
+              ? "border-indigo-600 bg-accent-600 text-white"
               : "border-gray-300 bg-white hover:border-indigo-400 disabled:opacity-40"
           }`}
         >
@@ -143,7 +143,7 @@ export function MyWorkRow({
       </button>
 
       <span
-        className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded bg-rose-50 text-[10px] font-semibold text-rose-600"
+        className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded bg-rose-50 text-xs font-semibold text-rose-600"
         title={t("myWork.type.ISSUE")}
       >
         {t("myWork.type.ISSUE").slice(0, 1)}
@@ -157,22 +157,22 @@ export function MyWorkRow({
         >
           {item.pit_priority <= 2 && (
             <span
-              className={`font-mono text-[10.5px] font-semibold ${item.pit_priority === 1 ? "text-red-600" : "text-orange-500"}`}
+              className={`font-mono text-xs font-semibold ${item.pit_priority === 1 ? "text-red-600" : "text-orange-500"}`}
             >
               P{item.pit_priority}
             </span>
           )}
-          {ref && <span className="font-mono text-[11px] font-normal text-gray-400">{ref}</span>}
+          {ref && <span className="font-mono text-xs font-normal text-gray-400">{ref}</span>}
           <span className="truncate">{item.pit_title}</span>
         </div>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] text-gray-500">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-500">
           {mineIssue && (
-            <span className="rounded-full bg-indigo-600 px-1.5 text-[10.5px] font-semibold text-white">
+            <span className="rounded-full bg-accent-600 px-1.5 text-xs font-semibold text-white">
               {t("myWork.badge")}
             </span>
           )}
           {reasons.map((r) => (
-            <span key={r} className={`rounded-full border px-1.5 text-[10.5px] font-semibold ${REASON_CLASS[r]}`}>
+            <span key={r} className={`rounded-full border px-1.5 text-xs font-semibold ${REASON_CLASS[r]}`}>
               {t(`myWork.reason.${r}`)}
             </span>
           ))}
@@ -211,7 +211,7 @@ export function MyWorkRow({
 
       {shown && (
         <span
-          className={`shrink-0 whitespace-nowrap font-mono text-[11px] ${assigned ? "text-indigo-500" : "text-gray-400"}`}
+          className={`shrink-0 whitespace-nowrap font-mono text-xs ${assigned ? "text-indigo-500" : "text-gray-400"}`}
           title={t(assigned ? "myWork.assignedAgeTitle" : "myWork.createdAgeTitle")}
         >
           <span className="hidden sm:inline">
@@ -229,7 +229,7 @@ export function MyWorkRow({
             e.stopPropagation();
             onStart?.(item);
           }}
-          className="shrink-0 rounded-md border border-indigo-300 px-2 py-0.5 text-[11.5px] font-semibold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+          className="shrink-0 rounded-md border border-indigo-300 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
         >
           {t("myWork.action.START")}
         </button>

@@ -11,9 +11,12 @@ import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorat
 import { hasConfigPermission } from '../../acm-common/guards/config-admin.guard';
 import {
   DriveClient,
+  DRIVE_SCOPE,
   DriveReconnectRequired,
+  hasDriveScope,
   DriveWriteRejected,
   GoogleFile,
+  googleStatusOf,
 } from '../infrastructure/drive.client';
 import { ProjectService } from './project.service';
 import { CreateDriveDto } from './project.dto';
@@ -90,6 +93,8 @@ export class ProjectDriveService {
         grant_type: 'refresh_token',
         refresh_token: refresh,
       });
+      // 예전(drive.file) 연결은 토큰은 살아 있어도 공유폴더 파일이 안 보인다 → 재연결 안내.
+      if (!hasDriveScope(t.scope)) throw new DriveReconnectRequired();
       tokenCache.set(ent, {
         key,
         token: t.access_token,
@@ -107,7 +112,7 @@ export class ProjectDriveService {
       throw error;
     }
   }
-  async status(u: AcmCurrentUser) {
+  async status(u: AcmCurrentUser, projectId?: string) {
     const [c] = await this.ds.query<
       (Connection & {
         account_domain: string | null;
@@ -135,7 +140,70 @@ export class ProjectDriveService {
       rootReady: !!c?.root_id && !c?.needs_reconnect,
       rootName: c?.root_name,
       canManage,
+      // FIX-261020C — 이 프로젝트에 Drive 로 올릴 수 있는가(공용폴더 또는 기존 프로젝트 폴더)
+      ...(projectId
+        ? { projectReady: await this.projectReady(u, projectId) }
+        : {}),
     };
+  }
+  /**
+   * FIX-261020C — 프로젝트 Drive 업로드 가능 여부.
+   * 공용폴더가 있으면 가능. 없더라도 이 프로젝트가 같은 계정의 Drive 폴더를 이미 갖고 있으면 그 폴더로 올린다.
+   */
+  async projectReady(u: AcmCurrentUser, projectId: string) {
+    const [c] = await this.ds.query<
+      { account_id: string; root_id: string | null; needs_reconnect: boolean }[]
+    >(
+      'SELECT account_id,root_id,needs_reconnect FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [u.entId],
+    );
+    if (!c || c.needs_reconnect) return false;
+    if (c.root_id) return true;
+    const [p] = await this.ds.query<
+      { drive_folder_id: string | null; drive_account_id: string | null }[]
+    >(
+      'SELECT drive_folder_id,drive_account_id FROM amb_acm_prj_project WHERE ent_id=$1 AND prj_id=$2',
+      [u.entId, projectId],
+    );
+    return !!p?.drive_folder_id && p.drive_account_id === c.account_id;
+  }
+  /**
+   * FIX-261020C — 연결 해제 후 같은 계정으로 다시 연결하면 공용폴더 지정이 사라진다(행 삭제).
+   * 그 계정으로 만든 프로젝트 폴더의 상위 폴더를 공용폴더로 되살린다. 실패는 무시(수동 지정 가능).
+   */
+  async restoreRoot(entId: string, accountId: string, token: string) {
+    const [c] = await this.ds.query<{ root_id: string | null }[]>(
+      'SELECT root_id FROM amb_acm_prj_drive WHERE ent_id=$1 AND account_id=$2',
+      [entId, accountId],
+    );
+    if (!c || c.root_id) return;
+    const folders = await this.ds.query<{ drive_folder_id: string }[]>(
+      `SELECT drive_folder_id FROM amb_acm_prj_project
+        WHERE ent_id=$1 AND drive_account_id=$2 AND drive_folder_id IS NOT NULL
+        ORDER BY created_at DESC LIMIT 5`,
+      [entId, accountId],
+    );
+    for (const f of folders) {
+      try {
+        const parentId = (await this.google.file(token, f.drive_folder_id))
+          .parents?.[0];
+        if (!parentId) continue;
+        const parent = await this.google.file(token, parentId);
+        if (
+          parent.trashed ||
+          parent.mimeType !== FOLDER ||
+          !parent.capabilities?.canAddChildren
+        )
+          continue;
+        await this.ds.query(
+          'UPDATE amb_acm_prj_drive SET root_id=$3,root_name=$4,updated_at=now() WHERE ent_id=$1 AND account_id=$2 AND root_id IS NULL',
+          [entId, accountId, parent.id, parent.name],
+        );
+        return;
+      } catch {
+        // 폴더가 지워졌거나 권한이 없으면 다음 후보
+      }
+    }
   }
   async connect(u: AcmCurrentUser, path: string) {
     await this.admin(u);
@@ -152,7 +220,7 @@ export class ProjectDriveService {
       [u.entId, u.id, hash(state), verifier, safeReturn(path)],
     );
     return {
-      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: 'openid email https://www.googleapis.com/auth/drive.file', hd: '*', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
+      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: `openid email ${DRIVE_SCOPE}`, hd: '*', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
     };
   }
   async callback(
@@ -191,6 +259,9 @@ export class ProjectDriveService {
         code_verifier: s.verifier,
       });
       if (!tokens.refresh_token) throw new Error('Missing refresh token');
+      // 동의 화면에서 Drive 권한 체크를 해제하면 파일을 볼 수 없다.
+      if (!hasDriveScope(tokens.scope))
+        return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=scope_required`;
       const r = await fetch(
         'https://openidconnect.googleapis.com/v1/userinfo',
         {
@@ -225,6 +296,7 @@ export class ProjectDriveService {
         ],
       );
       tokenCache.delete(s.ent_id);
+      await this.restoreRoot(s.ent_id, account.sub, tokens.access_token);
       return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=connected`;
     } catch {
       return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=failed`;
@@ -400,16 +472,55 @@ export class ProjectDriveService {
       },
     );
     await this.ds.query<Record<string, unknown>[]>(
-      'UPDATE amb_acm_prj_project SET drive_folder_id=$3,drive_account_id=$4 WHERE ent_id=$1 AND prj_id=$2 AND drive_folder_id IS NULL',
-      [u.entId, id, f.id, c.account_id],
+      'UPDATE amb_acm_prj_project SET drive_folder_id=$3,drive_account_id=$4,drive_folder_name=$5 WHERE ent_id=$1 AND prj_id=$2 AND drive_folder_id IS NULL',
+      [u.entId, id, f.id, c.account_id, f.name ?? null],
     );
     return f.id;
+  }
+  /**
+   * REQ-261018C — 저장 위치 표시용 프로젝트 폴더 이름. 이름이 비어 있는 기존 프로젝트만 Google 에서 한 번 읽어 저장한다.
+   * 실패(미연결·권한 등)는 표시만 못 할 뿐이므로 무시한다.
+   */
+  async backfillFolderNames(entId: string) {
+    try {
+      const rows = await this.ds.query<
+        { prj_id: string; drive_folder_id: string }[]
+      >(
+        `SELECT p.prj_id, p.drive_folder_id FROM amb_acm_prj_project p
+           JOIN amb_acm_prj_drive d ON d.ent_id=p.ent_id AND d.account_id=p.drive_account_id AND NOT d.needs_reconnect
+          WHERE p.ent_id=$1 AND p.drive_folder_id IS NOT NULL AND p.drive_folder_name IS NULL
+          LIMIT 20`,
+        [entId],
+      );
+      if (!rows.length) return;
+      const { token } = await this.token(entId);
+      for (const r of rows) {
+        const f = await this.google
+          .file(token, r.drive_folder_id)
+          .catch(() => null);
+        if (f?.name)
+          await this.ds.query(
+            'UPDATE amb_acm_prj_project SET drive_folder_name=$3 WHERE ent_id=$1 AND prj_id=$2',
+            [entId, r.prj_id, f.name],
+          );
+      }
+    } catch {
+      // 표시용 정보 — 실패해도 목록 조회는 계속한다.
+    }
   }
   async descendant(token: string, id: string, root: string) {
     let current = id;
     for (let depth = 0; depth < 30; depth++) {
       if (current === root) return;
-      const f = await this.google.file(token, current);
+      let f: GoogleFile;
+      try {
+        f = await this.google.file(token, current);
+      } catch (e) {
+        // 상위 폴더가 연결 계정에 보이지 않으면(공유받은 폴더의 바깥) root 아래가 아니다.
+        const status = googleStatusOf(e);
+        if (depth > 0 && (status === 403 || status === 404)) break;
+        throw e;
+      }
       if (f.trashed || !f.parents?.[0]) break;
       current = f.parents[0];
     }

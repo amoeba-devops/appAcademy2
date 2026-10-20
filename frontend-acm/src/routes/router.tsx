@@ -6,6 +6,10 @@ import { IssuesPage } from '@/modules/prj/issues/issues-page';
 import { IssueDetailPage } from '@/modules/prj/issues/issue-detail-page';
 import { MyWorkPage } from '@/modules/prj/issues/my-work-page';
 import { MyProfilePage } from '@/modules/me/my-profile-page';
+import { InvitesPage } from '@/modules/invite/invites-page';
+import { InviteAcceptPage } from '@/modules/invite/invite-accept-page';
+import { AppStartPage } from '@/components/pwa/app-start-page';
+import { RequireTenantSettings } from '@/modules/cfg/components/require-tenant-settings';
 import { PasswordRequestsPage } from '@/modules/auth/pages/password-requests-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
@@ -120,6 +124,10 @@ export const router = createBrowserRouter([
 
   // ── Legacy auth URL redirects (1-sprint backward-compat) ────────────
   { path: '/login', element: <RedirectWithSearch to="/admin/login" /> },
+  // REQ-261018 — 초대 수락(로그인 전)
+  { path: '/invite', element: <InviteAcceptPage /> },
+  // REQ-261018D — 설치한 앱의 시작 화면(로그인 상태로 분기)
+  { path: '/app', element: <AppStartPage /> },
   { path: '/login/parent', element: <RedirectWithSearch to="/parent/login" /> },
 
   // ── Public web forms (legacy paths, kept) ───────────────────────────
@@ -266,19 +274,23 @@ export const router = createBrowserRouter([
       { element: <RequireTenantMaster />, children: [
         { path: 'tenant', element: <TenantSettingsPage /> },
       ] },
+      // REQ-261018 — 연동 설정 5종: 테넌트 마스터에게만 링크 노출(서비스 운영자는 링크 없이 접근 가능)
+      { element: <RequireTenantSettings />, children: [
+        { path: 'config/ama', element: <AmaConfigPage /> },
+        { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
+        { path: 'config/video', element: <BodaConfigPage /> },
+        { path: 'config/kakao', element: <KakaoConfigPage /> },
+        { path: 'config/ai', element: <AiConfigPage /> },
+        { path: 'config/ga4', element: <Ga4ConfigPage /> },
+      ] },
       { element: <RequireConfigAdmin />, children: [
       { path: 'config', element: <ConfigLandingPage /> },
-      { path: 'config/ama', element: <AmaConfigPage /> },
-      { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
-      { path: 'config/video', element: <BodaConfigPage /> },
+      // REQ-261018 — 사용자 초대(서비스 운영자)
+      { path: 'config/invites', element: <InvitesPage /> },
       { path: 'config/mail', element: <MailConfigPage /> },
       // REQ-261015C — 기본 타임존은 테넌트 설정으로 이동.
       { path: 'config/general', element: <Navigate to="/admin/tenant?tab=general" replace /> },
-      { path: 'config/kakao', element: <KakaoConfigPage /> },
-      // PLN-260912 — GA4 방문자 동기화
       { path: 'config/ad-platforms', element: <AdPlatformsPage /> },
-      { path: 'config/ai', element: <AiConfigPage /> },
-      { path: 'config/ga4', element: <Ga4ConfigPage /> },
       ] },
     ],
   },

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-CAL-REPEAT-END-RPT-1.0.0
 version: 1.0.0
-status: Implemented - Not Deployed
+status: Deployed
 created: 2026-10-08
 change_log:
   - version: 1.0.0
@@ -32,4 +32,8 @@ change_log:
 
 ## 4. Delivery (적용)
 
-`fix/cal-repeat-required-end-261008` 브랜치, 독립 작업 디렉터리 `/private/tmp/acm-complaints-261006`. 기존 IDE의 변경/스테이징 파일은 보존했다. 문서와 캡처만 IDE에 복사한다. DB 스키마 변경 없음. 운영 배포는 아직 수행하지 않았다.
+`fix/cal-repeat-required-end-261008` 브랜치, 독립 작업 디렉터리 `/private/tmp/acm-complaints-261006`. 기존 IDE의 변경/스테이징 파일은 보존했다. 문서와 캡처만 IDE에 복사한다. DB 스키마 변경 없음. 사용자 후속 요청에 따라 아래 버전으로 운영 배포했다.
+
+## 5. Production Deployment (운영 배포)
+
+PR #310 병합 및 배포 SHA `0be036d5462a1b9b27ee5cbfc79609946c3eec95`. 2026-10-08 22:34:44 KST / 20:34:44 ICT 반영. Main CI `37784767197`, staging CD `37784767186`, production CD `37785368515` 모두 성공. 운영 `/admin/cal` HTTP 200, backend health OK, 초기 오류 로그 0건, 컨테이너 재시작 0회. 스키마 및 기존 일정 데이터 변경 없음. 운영은 배포 버전/상태/공개 응답으로 점검했으며 기존 무기한 일정은 일괄 수정하지 않았다. 이후 숫자 콤마 패치는 별도 브랜치에서 작업하며 이 배포에 포함하지 않았다.

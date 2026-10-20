@@ -40,7 +40,7 @@ export function MpqTable({ items, isLoading, onEdit, onDelete }: MpqTableProps) 
               <td className="px-3 py-3 text-secondary">
                 {q.externalNo}
                 {q.paired && (
-                  <span className="ml-1 text-[10px] uppercase tracking-wide text-accent-700">
+                  <span className="ml-1 text-xs uppercase tracking-wide text-accent-700">
                     {t('badges.paired')}
                   </span>
                 )}

@@ -33,7 +33,8 @@
     "dashboardSite": "Trang bảng điều khiển",
     "manage": "Quản lý",
     "kind": "Phân loại",
-    "birthdate": "Ngày sinh"
+    "birthdate": "Ngày sinh",
+    "totalCount": "Tổng {{count}} mục"
   },
   "form": {
     "studentName": "Tên học sinh",
@@ -159,7 +160,8 @@
         "empty": "Không thể tải lên tệp rỗng",
         "mime": "Chỉ chấp nhận PDF/JPEG/PNG",
         "count": "Tối đa {{max}} tệp"
-      }
+      },
+      "preview": "Xem"
     },
     "levelTest": {
       "title": "2. Bài kiểm tra trình độ",
@@ -196,7 +198,14 @@
         "resetDescription": "Xóa ngày, giờ và sự kiện lịch liên kết. Giữ nguyên giáo viên, kết quả và trạng thái bài kiểm tra.",
         "resetDone": "Đã xóa lịch hẹn.",
         "resetFailed": "Không thể xóa. Kiểm tra thay đổi lịch, quyền hoặc cuộc họp bên ngoài, rồi tải lại và thử lại."
-      }
+      },
+      "previewResult": "Xem kết quả",
+      "previewPdf": "Xem PDF",
+      "addTypeLabel": "Thêm loại bài thi",
+      "addTypeHint": "Người vận hành có thể thêm dòng bài thi thủ công.",
+      "otherNamePlaceholder": "Nhập tên bài thi",
+      "duplicateType": "Loại bài thi này đã được thêm.",
+      "previewResultTitle": "Xem trước kết quả kiểm tra trình độ"
     },
     "intake": {
       "title": "1. Tiếp nhận",
@@ -230,7 +239,9 @@
         "gender": "Giới tính"
       },
       "applyPurposeOther": "Khác (nguyên văn)",
-      "editBasic": "Sửa thông tin cơ bản"
+      "editBasic": "Sửa thông tin cơ bản",
+      "otherTestsText": "Bài thi khác / ghi chú",
+      "otherTestsPlaceholder": "Nhập các điểm khác như AP / IB / PSAT dưới dạng văn bản tự do"
     },
     "backToList": "Quay lại danh sách",
     "drop": "Kết thúc tư vấn",
@@ -383,7 +394,8 @@
       "paymentMemo": "Ghi chú",
       "method": {
         "CARD": "Thẻ",
-        "BANK_TRANSFER": "Chuyển khoản"
+        "BANK_TRANSFER": "Chuyển khoản",
+        "OTHER": "Khác"
       },
       "approvePayment": "Phê duyệt thanh toán",
       "classStartedAt": "Ngày bắt đầu học",
@@ -398,7 +410,13 @@
       "removeCourse": "Remove course",
       "tuitionInvalid": "Enter whole numbers from 0 to 50,000,000.",
       "tuitionTotal": "Total tuition for all selected courses.",
-      "loadError": "Could not load enrollment or courses. Refresh and try again."
+      "loadError": "Could not load enrollment or courses. Refresh and try again.",
+      "paymentSection": "Thông tin thanh toán",
+      "paymentDate": "Ngày thanh toán",
+      "paymentMethodInput": "Phương thức thanh toán",
+      "paymentAmount": "Số tiền thanh toán",
+      "paymentMemoInput": "Ghi chú",
+      "classMinutesValue": "{{minutes}} phút"
     },
     "classStatus": {
       "title": "6. Đăng ký học",
@@ -558,7 +576,20 @@
     "F": "Nữ"
   },
   "filters": {
-    "allKinds": "Tất cả phân loại"
+    "allKinds": "Tất cả phân loại",
+    "searchPlaceholder": "Tìm theo tên học sinh hoặc phụ huynh",
+    "registeredFrom": "Ngày tiếp nhận từ",
+    "registeredTo": "Ngày tiếp nhận đến",
+    "reset": "Đặt lại",
+    "allInflows": "Tất cả kênh",
+    "allApplyTypes": "Tất cả loại đăng ký",
+    "allPurposes": "Tất cả mục đích",
+    "allStages": "Tất cả giai đoạn",
+    "followup": {
+      "all": "Tất cả theo dõi",
+      "set": "Có theo dõi",
+      "empty": "Không có theo dõi"
+    }
   },
   "transition": {
     "failed": "Chuyển giai đoạn thất bại.",
@@ -582,5 +613,14 @@
       "CLASS_STARTED": "Xác nhận đã đóng học phí ở giai đoạn 5 và chọn cơ sở đăng ký",
       "ATTENDING": "Học sinh đã được đăng ký trong quản lý học sinh (tự động ở giai đoạn 6)"
     }
+  },
+  "pagination": {
+    "pageStatus": "Trang {{page}} / {{totalPages}}",
+    "prev": "Trước",
+    "next": "Sau"
+  },
+  "filePreview": {
+    "loading": "Đang tải bản xem trước…",
+    "unsupported": "Định dạng này không hỗ trợ xem trước."
   }
 }

@@ -179,10 +179,17 @@ export function validateContent(
     'hardBreak',
     'horizontalRule',
     'codeBlock',
+    'taskList',
+    'taskItem',
     ...(type === 'DOC'
-      ? ['table', 'tableRow', 'tableCell', 'tableHeader']
+      ? ['table', 'tableRow', 'tableCell', 'tableHeader', 'image']
       : []),
   ]);
+  // PLN-261020C — 이미지: ACM 문서 자산 고유 링크 또는 https 만.
+  const imageSrc =
+    /^(?:\/api\/acm\/prj\/doc-assets\/[0-9a-f-]{36}\/[A-Za-z0-9_-]{20,}|https:\/\/[^\s"'<>]+)$/i;
+  const color =
+    /^(?:#[0-9a-f]{3,8}|rgba?\(\s*[\d.]+%?\s*,\s*[\d.]+%?\s*,\s*[\d.]+%?\s*(?:,\s*[\d.]+\s*)?\))$/i;
   let count = 0;
   const walk = (v: unknown, depth: number) => {
     const n = object(v);
@@ -205,24 +212,42 @@ export function validateContent(
         'blockquote',
         'horizontalRule',
         'codeBlock',
-        ...(type === 'DOC' ? ['table'] : []),
+        'taskList',
+        ...(type === 'DOC' ? ['table', 'image'] : []),
       ],
       paragraph: ['text', 'hardBreak'],
       heading: ['text', 'hardBreak'],
       codeBlock: ['text'],
       bulletList: ['listItem'],
       orderedList: ['listItem'],
-      listItem: ['paragraph', 'bulletList', 'orderedList', 'blockquote'],
+      listItem: [
+        'paragraph',
+        'bulletList',
+        'orderedList',
+        'blockquote',
+        'taskList',
+      ],
+      taskList: ['taskItem'],
+      taskItem: ['paragraph', 'bulletList', 'orderedList', 'taskList'],
       blockquote: [
         'paragraph',
         'heading',
         'bulletList',
         'orderedList',
         'blockquote',
+        'taskList',
+        ...(type === 'DOC' ? ['image'] : []),
       ],
       table: ['tableRow'],
       tableRow: ['tableCell', 'tableHeader'],
-      tableCell: ['paragraph', 'heading', 'bulletList', 'orderedList'],
+      tableCell: [
+        'paragraph',
+        'heading',
+        'bulletList',
+        'orderedList',
+        'taskList',
+        'image',
+      ],
       tableHeader: ['paragraph', 'heading', 'bulletList', 'orderedList'],
     };
     if (
@@ -267,6 +292,18 @@ export function validateContent(
             fail();
         } else if (k === 'language') {
           if (v !== null && typeof v !== 'string') fail();
+        } else if (k === 'checked' && n.type === 'taskItem') {
+          if (typeof v !== 'boolean') fail();
+        } else if (n.type === 'image' && k === 'src') {
+          if (typeof v !== 'string' || !imageSrc.test(v)) fail();
+        } else if (n.type === 'image' && (k === 'alt' || k === 'title')) {
+          if (v !== null && (typeof v !== 'string' || v.length > 300)) fail();
+        } else if (n.type === 'image' && (k === 'width' || k === 'height')) {
+          if (
+            v !== null &&
+            (typeof v !== 'number' || !Number.isInteger(v) || v < 1 || v > 5000)
+          )
+            fail();
         } else fail();
       }
     }
@@ -275,21 +312,43 @@ export function validateContent(
       for (const mark of n.marks as unknown[]) {
         const m = object(mark);
         if (
-          !['bold', 'italic', 'strike', 'underline', 'code', 'link'].includes(
-            String(m.type),
-          )
+          ![
+            'bold',
+            'italic',
+            'strike',
+            'underline',
+            'code',
+            'link',
+            'textStyle',
+            'highlight',
+          ].includes(String(m.type))
         )
           fail();
+        if (m.type === 'textStyle' || m.type === 'highlight') {
+          const a = m.attrs === undefined ? {} : object(m.attrs);
+          for (const [k, v] of Object.entries(a))
+            if (
+              k !== 'color' ||
+              (v !== null && (typeof v !== 'string' || !color.test(v)))
+            )
+              fail();
+          continue;
+        }
         if (m.type === 'link') {
           const a = object(m.attrs);
           if (
             typeof a.href !== 'string' ||
-            !/^https?:\/\/[^\s]+$/i.test(a.href)
+            !(
+              /^https?:\/\/[^\s]+$/i.test(a.href) ||
+              /^\/api\/acm\/prj\/doc-assets\/[0-9a-f-]{36}\/[A-Za-z0-9_-]{20,}$/i.test(
+                a.href,
+              )
+            )
           )
             fail();
           if (
             Object.keys(a).some(
-              (k) => !['href', 'target', 'rel', 'class'].includes(k),
+              (k) => !['href', 'target', 'rel', 'class', 'title'].includes(k),
             )
           )
             fail();

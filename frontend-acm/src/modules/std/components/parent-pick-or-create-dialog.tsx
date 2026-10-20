@@ -20,10 +20,10 @@ const inputClass =
 const labelClass = 'block text-xs text-secondary mb-1';
 
 const RELATION_OPTIONS = [
-  { value: 'FATHER', label: '아버지' },
-  { value: 'MOTHER', label: '어머니' },
-  { value: 'GUARDIAN', label: '보호자' },
-  { value: 'OTHER', label: '기타' },
+  { value: 'FATHER', labelKey: 'relation.FATHER' },
+  { value: 'MOTHER', labelKey: 'relation.MOTHER' },
+  { value: 'GUARDIAN', labelKey: 'relation.GUARDIAN' },
+  { value: 'OTHER', labelKey: 'relation.OTHER' },
 ];
 
 interface Props {
@@ -212,7 +212,7 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
                   <option value="">—</option>
                   {RELATION_OPTIONS.map((o) => (
                     <option key={o.value} value={o.value}>
-                      {o.label}
+                      {t(o.labelKey)}
                     </option>
                   ))}
                 </select>

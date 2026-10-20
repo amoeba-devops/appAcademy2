@@ -1,3 +1,4 @@
+import i18next from "i18next";
 export interface Person {
   id: string;
   name: string;
@@ -17,14 +18,22 @@ export interface Project {
   issue_count?: number;
   recent_issues?: { pit_title: string; pit_status: string }[];
   drive_folder_id?: string;
+  /** REQ-261018C — 저장 위치 표시용 */
+  drive_folder_name?: string | null;
   updated_at: string;
 }
 export interface Item {
   viewer_ids?: string[];
+  /** REQ-261019 — 목록 삭제 가능(작성자·프로젝트 담당자·테넌트 마스터) */
+  can_delete?: boolean;
   file_phase?: string;
   download_count?:number;
   document_type?: "MEMO" | "SHEET" | "DOC" | "FILE";
   storage_type?: "LOCAL" | "GOOGLE_LINK" | "DRIVE_FILE";
+  /** REQ-261018C — 문서 목록(/acm/prj/documents)의 저장 위치 */
+  prj_drive_folder_id?: string | null;
+  prj_drive_folder_name?: string | null;
+  drive_root_name?: string | null;
   content?: unknown;
   external_url?: string;
   revision?: number;
@@ -55,6 +64,8 @@ export interface DriveStatus {
   member_role?: "MANAGER"|"MEMBER";
   rootId?: string;
   rootReady: boolean;
+  /** FIX-261020C — ?projectId= 로 물으면: 이 프로젝트에 Drive 로 올릴 수 있는가 */
+  projectReady?: boolean;
   rootName?: string;
   // REQ-261016 — 회사 Workspace 연동 상태
   domain?: string | null;
@@ -68,14 +79,20 @@ export interface DriveFile {
   mimeType: string;
   size?: string;
 }
-export const statusNames: Record<string, string> = {
-  ACTIVE: "진행중",
-  DONE: "완료",
-  ARCHIVED: "보관",
-  TODO: "할 일",
-  DOING: "진행중",
+const STATUS_KEYS = new Set([
+  "ACTIVE",
+  "DONE",
+  "ARCHIVED",
+  "TODO",
+  "DOING",
   // REQ-261015C — 이슈 간소화 모드
-  OPEN: "열림",
-  IN_PROGRESS: "진행중",
-  REJECTED: "반려",
-};
+  "OPEN",
+  "IN_PROGRESS",
+  "REJECTED",
+]);
+/** 상태 코드 → 표시 라벨 (i18n `prj:status.*`). 알 수 없는 코드는 빈 문자열. */
+export function statusName(status: string | null | undefined): string {
+  return status && STATUS_KEYS.has(status)
+    ? i18next.t(`prj:status.${status}`)
+    : "";
+}

@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { TuitionInput } from './tuition-input';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -150,7 +151,7 @@ export function EnrollmentPanel({
     },
   });
 
-  const { register, handleSubmit, reset, watch, setValue } =
+  const { control,  register, handleSubmit, reset, watch, setValue } =
     useForm<FormValues>({
       defaultValues: {
         paymentNoticeStatus: '',
@@ -399,7 +400,6 @@ export function EnrollmentPanel({
                   한 줄에 같이 두어 운영자가 빠르게 전환할 수 있도록 함.
                 */}
                 <ClassMinutesField
-                  register={register('classMinutes')}
                   currentValue={watch('classMinutes')}
                   setValue={(next) =>
                     setValue('classMinutes', next, { shouldDirty: true })
@@ -456,14 +456,7 @@ export function EnrollmentPanel({
                     <option value="">{t('common:dash')}</option>
                     {PAYMENT_METHODS.map((method) => (
                       <option key={method} value={method}>
-                        {t(`detail.enrollment.method.${method}`, {
-                          defaultValue:
-                            method === 'BANK_TRANSFER'
-                              ? '계좌이체'
-                              : method === 'CARD'
-                                ? '카드'
-                                : '기타',
-                        })}
+                        {t(`detail.enrollment.method.${method}`)}
                       </option>
                     ))}
                   </Select>
@@ -475,12 +468,12 @@ export function EnrollmentPanel({
                     defaultValue: '결제금액',
                   })}
                 >
-                  <Input
+                  <Controller control={control} name={'paymentAmount'} render={({field}) => (<Input
                     type="number"
                     min={0}
                     max={50000000}
-                    {...register('paymentAmount')}
-                  />
+                    {...field} value={field.value ?? ''}
+                  />)} />
                 </Field>
                 <Field
                   label={t('detail.enrollment.paymentMemoInput', {
@@ -508,7 +501,7 @@ export function EnrollmentPanel({
                 {t('detail.enrollment.tuitionPaid')}
               </label>
             </div>
-            <p className="text-[11px] text-secondary -mt-1">
+            <p className="text-xs text-secondary -mt-1">
               {t('detail.enrollment.tuitionPaidHint')}
             </p>
           </>
@@ -643,7 +636,7 @@ function TeacherAssignmentsBlock({
           >
             <span>
               {nameById.get(a.teacherId) ?? a.teacherId.slice(0, 8)}
-              <span className="ml-2 inline-block rounded bg-[var(--surface-strong)] px-2 py-0.5 text-[10px]">
+              <span className="ml-2 inline-block rounded bg-[var(--surface-strong)] px-2 py-0.5 text-xs">
                 {t(`detail.enrollment.assignRole.${a.role}`)}
               </span>
             </span>
@@ -741,14 +734,12 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
  * click overwrites the input.
  */
 function ClassMinutesField({
-  register,
   currentValue,
   setValue,
   presetLabel,
   freeInputPlaceholder,
   suffix,
 }: {
-  register: React.InputHTMLAttributes<HTMLInputElement>;
   currentValue: string;
   setValue: (next: string) => void;
   presetLabel: string;
@@ -759,7 +750,7 @@ function ClassMinutesField({
   return (
     <div className="grid gap-1.5">
       <div className="flex flex-wrap gap-1.5 items-center">
-        <span className="text-[11px] text-secondary mr-1">{presetLabel}:</span>
+        <span className="text-xs text-secondary mr-1">{presetLabel}:</span>
         {presets.map((m) => {
           const active = currentValue === String(m);
           return (
@@ -783,7 +774,8 @@ function ClassMinutesField({
       <Input
         type="number"
         min={1}
-        {...register}
+        value={currentValue}
+        onChange={(event) => setValue(event.target.value)}
         placeholder={freeInputPlaceholder}
       />
     </div>

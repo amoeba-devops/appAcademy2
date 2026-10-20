@@ -48,7 +48,7 @@ export function AttendeesModal({
               className="flex items-center gap-2 px-2 py-1.5 rounded border border-[var(--border-subtle)] text-xs"
             >
               <span
-                className={`text-[9px] font-mono uppercase px-1 py-0.5 rounded ${
+                className={`text-xs font-mono uppercase px-1 py-0.5 rounded ${
                   i.kind === 'STUDENT'
                     ? 'bg-blue-100 text-blue-700'
                     : i.kind === 'TEACHER'
@@ -62,20 +62,20 @@ export function AttendeesModal({
                 {i.name}
               </span>
               {i.subLabel && (
-                <span className="text-[10px] text-secondary truncate">
+                <span className="text-xs text-secondary truncate">
                   {i.subLabel}
                 </span>
               )}
               {i.notified ? (
                 <span
-                  className="inline-flex items-center gap-0.5 text-[10px] text-green-700"
+                  className="inline-flex items-center gap-0.5 text-xs text-green-700"
                   title={t('attendees.notifiedTrue')}
                 >
                   <CheckCircle2 size={10} />
                 </span>
               ) : (
                 <span
-                  className="inline-flex items-center gap-0.5 text-[10px] text-secondary"
+                  className="inline-flex items-center gap-0.5 text-xs text-secondary"
                   title={t('attendees.notifiedFalse')}
                 >
                   <Circle size={10} />

@@ -3,6 +3,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useIntegrationBackLink } from "../components/require-tenant-settings";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
@@ -16,9 +17,12 @@ import {
 } from "../hooks/use-video-config";
 export function BodaConfigPage() {
   const { t } = useTranslation("common");
+  const backTo = useIntegrationBackLink();
   const query = useVideoConfig();
   const user = useAuthStore((s) => s.user);
-  const canEdit = useConfigAccess().allowed;
+  const access = useConfigAccess();
+  // REQ-261018 — 테넌트 마스터도 편집(서버 TenantSettingsGuard)
+  const canEdit = access.allowed || access.tenantAllowed;
   const qc = useQueryClient();
   const [provider, setProvider] = useState<VideoProvider>("BODASCHOOL");
   const [dirty, setDirty] = useState(false);
@@ -47,7 +51,7 @@ export function BodaConfigPage() {
   return (
     <div className="w-full min-w-0 space-y-4">
       <Link
-        to="/admin/config"
+        to={backTo}
         className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
       >
         <ArrowLeft size={16} />

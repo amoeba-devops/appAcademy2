@@ -8,7 +8,8 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
+// REQ-261018 — 테넌트 마스터(또는 서비스 운영자). 서비스 운영자 화면에서는 링크만 숨긴다.
+import { TenantSettingsGuard } from '../../acm-common/guards/tenant-master.guard';
 import { BodaConfigService } from '../application/boda-config.service';
 import {
   BodaConfigResponseDto,
@@ -24,7 +25,7 @@ import {
  */
 @ApiTags('acm-cal-boda-config')
 @ApiBearerAuth()
-@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
+@UseGuards(AcmJwtAuthGuard, OwnEntityGuard, TenantSettingsGuard)
 @UseInterceptors(BodaPolicyInterceptor)
 @Controller('admin/cal/boda/config')
 export class BodaConfigController {

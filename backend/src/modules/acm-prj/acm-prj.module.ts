@@ -1,4 +1,10 @@
+import { ProjectFileContentController } from './presentation/project-file-content.controller';
 import { ProjectFileService } from './application/project-file.service';
+import { DocAssetService } from './application/doc-asset.service';
+import {
+  DocAssetContentController,
+  DocAssetUploadController,
+} from './presentation/doc-asset.controller';
 import { ObjectStoreClient } from '../acm-csl/infrastructure/external/object-store.client';
 import { SharedDriveService } from './application/shared-drive.service';
 import { SharedDriveController } from './presentation/shared-drive.controller';
@@ -20,6 +26,7 @@ import {
   providers: [
     GoogleAppConfigService,
     ProjectFileService,
+    DocAssetService,
     ObjectStoreClient,
     SharedDriveService,
     ProjectService,
@@ -28,6 +35,9 @@ import {
     DriveClient,
   ],
   controllers: [
+    ProjectFileContentController,
+    DocAssetContentController,
+    DocAssetUploadController,
     SystemGoogleOauthController,
     SharedDriveController,
     IssueController,

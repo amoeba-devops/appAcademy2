@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import { Workbook, type WorkbookInstance } from "@fortune-sheet/react";
 import type { Sheet as FortuneSheet } from "@fortune-sheet/core";
 import "@fortune-sheet/react/dist/index.css";
@@ -81,6 +82,7 @@ export function WorkbookEditor({
   project: string;
   snapshotRef: RefObject<(() => WorkbookDocument) | null>;
 }) {
+  const { t: tp } = useTranslation("prj");
   const qc = useQueryClient();
   const [generation, setGeneration] = useState(0);
   const [googleCopy, setGoogleCopy] = useState(false);
@@ -134,7 +136,7 @@ export function WorkbookEditor({
       <div className="mb-2 flex items-center justify-between gap-2">
         {!readOnly && (
           <label className="cursor-pointer rounded border px-3 py-2 text-sm">
-            XLSX 가져오기
+            {tp("workbook.importXlsx")}
             <input
               className="sr-only"
               type="file"
@@ -145,9 +147,7 @@ export function WorkbookEditor({
                 e.target.value = "";
                 if (!file) return;
                 if (
-                  !confirm(
-                    "현재 시트를 가져온 파일로 교체할까요? 저장 전에는 기존 문서가 유지됩니다.",
-                  )
+                  !confirm(tp("workbook.confirmReplace"))
                 )
                   return;
                 setSharing(true);
@@ -162,7 +162,7 @@ export function WorkbookEditor({
                   setError(
                     e instanceof Error
                       ? e.message
-                      : "파일을 가져오지 못했습니다.",
+                      : tp("workbook.importFailed"),
                   );
                 } finally {
                   setSharing(false);
@@ -172,7 +172,7 @@ export function WorkbookEditor({
           </label>
         )}
         <span className="text-xs text-secondary">
-          셀 편집 후 Enter로 확정하세요. 저장 한도 60KB.
+          {tp("workbook.editHint")}
         </span>
         {!readOnly && (
           <label className="text-sm">
@@ -182,7 +182,7 @@ export function WorkbookEditor({
               disabled={sharing}
               onChange={(e) => setGoogleCopy(e.target.checked)}
             />{" "}
-            Google 시트로 사본 생성
+            {tp("workbook.googleCopy")}
           </label>
         )}
         <button
@@ -263,19 +263,17 @@ export function WorkbookEditor({
               a.click();
               setTimeout(() => URL.revokeObjectURL(url), 1000);
             } catch {
-              setError(
-                "내보내기에 실패했습니다. Google 연결 및 저장 위치를 확인하세요.",
-              );
+              setError(tp("workbook.exportFailed"));
             } finally {
               setSharing(false);
             }
           }}
         >
           {sharing
-            ? "처리 중…"
+            ? tp("workbook.processing")
             : googleCopy && !readOnly
-              ? "Google 시트 생성"
-              : "XLSX 다운로드"}
+              ? tp("workbook.createGoogleSheet")
+              : tp("workbook.downloadXlsx")}
         </button>
       </div>
       {shareUrl && (
@@ -285,7 +283,7 @@ export function WorkbookEditor({
           target="_blank"
           rel="noreferrer"
         >
-          생성한 Google 시트 열기
+          {tp("workbook.openCreatedSheet")}
         </a>
       )}
       {error && <p role="alert">{error}</p>}

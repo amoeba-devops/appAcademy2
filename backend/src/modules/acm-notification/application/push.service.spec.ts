@@ -46,7 +46,9 @@ describe('push delivery', () => {
       },
       attempts: 1,
     };
-    const query = jest.fn(async (..._args: unknown[]) => []);
+    const query = jest.fn(
+      async (..._args: unknown[]): Promise<unknown[]> => [],
+    );
     const ds = {
       query,
       transaction: async (fn: (m: unknown) => Promise<unknown>) =>
@@ -85,6 +87,27 @@ describe('push delivery', () => {
     );
     expect(payload.actor).toBe('tenant:USER:user');
     expect(payload.body).not.toContain('private');
+  });
+  it('includes chat content in the push body (REQ-261020D)', async () => {
+    const { svc, query } = setup({
+      id: 'inbox',
+      type: 'CHAT_MESSAGE',
+      targetId: 'm',
+      payload: { senderName: '김선생', title: '수학팀' },
+    });
+    query.mockImplementation(async (...args: unknown[]) =>
+      String(args[0]).includes('amb_acm_talk_message')
+        ? [{ type: 'TEXT', content: '내일 보강 가능할까요?', filename: null }]
+        : [],
+    );
+    await svc.deliver();
+    const payload = JSON.parse(
+      String(jest.mocked(webpush.sendNotification).mock.calls[0][1]),
+    ) as { title: string; body: string };
+    expect(payload).toMatchObject({
+      title: '김선생님의 새 메시지 · 수학팀',
+      body: '내일 보강 가능할까요?',
+    });
   });
   it('removes expired endpoints and retains transient errors for retry', async () => {
     const { svc, query } = setup({ id: 'inbox' });

@@ -1,4 +1,7 @@
 {
+  "numericInput": {
+    "invalid": "Vui lòng nhập số hợp lệ."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Quản lý Học viện"
@@ -38,7 +41,7 @@
       "calendar": "Lịch học",
       "materials": "Tài liệu",
       "students": "Học sinh của tôi",
-      "chat": "Trò chuyện sảnh",
+      "chat": "Trò chuyện",
       "me": "Trang của tôi"
     },
     "login": {
@@ -245,7 +248,7 @@
     "notifications": "Thông báo",
     "enrollments": "Đăng ký học",
     "systemAdmin": "Quản trị hệ thống",
-    "chat": "Trò chuyện sảnh",
+    "chat": "Trò chuyện",
     "openMenu": "Mở menu",
     "closeMenu": "Đóng menu",
     "expandMenu": "Mở rộng menu",
@@ -440,6 +443,10 @@
       "ga4": {
         "title": "Khách truy cập GA4",
         "description": "Tự động thu thập khách truy cập hằng ngày từ Google Analytics 4 — Dashboard Marketing · Visitor"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "Kết nối tài liệu và tệp dự án với Google Drive của công ty."
       }
     },
     "mail": {
@@ -961,7 +968,8 @@
       "ISSUE_MENTION": "Đã nhắc đến bạn trong một vấn đề",
       "ISSUE_MENTION_COMMENT": "Đã nhắc đến bạn trong bình luận vấn đề",
       "PASSWORD_RESET_REQUEST": "Có yêu cầu cấp lại mật khẩu"
-    }
+    },
+    "mentionBadge": "Nhắc tên"
   },
   "pay": {
     "title": "Quản lý thu phí",
@@ -1218,7 +1226,8 @@
     "site": "Cơ sở",
     "actions": "Thao tác",
     "baseline": "Trạng thái ban đầu",
-    "knownWithdrawn": "Nghỉ học đã xác nhận"
+    "knownWithdrawn": "Nghỉ học đã xác nhận",
+    "historyNoticeSummary": "Lịch sử chưa đầy đủ — xem chi tiết"
   },
   "configAccess": {
     "loading": "Đang kiểm tra quyền…",
@@ -1266,7 +1275,10 @@
     "ios": "Trên iPhone/iPad, thêm ACM vào màn hình chính rồi bật thông báo trong ứng dụng đã cài.",
     "unconfigured": "Máy chủ chưa cấu hình thông báo đẩy.",
     "failed": "Kết nối thất bại. Kiểm tra quyền và mạng rồi thử lại.",
-    "close": "Đóng"
+    "close": "Đóng",
+    "banner": "Nhận thông báo trên thiết bị này — tin nhắn và tư vấn ngay lập tức",
+    "turnOn": "Bật",
+    "dismiss": "Đóng"
   },
   "reviewMissing": {
     "feedback": "Nhận xét",
@@ -1278,7 +1290,8 @@
     "required": "Cần quyền tenant master.",
     "tabs": {
       "menus": "Hiển thị menu",
-      "general": "Chung"
+      "general": "Chung",
+      "integrations": "Tích hợp"
     },
     "roles": {
       "ADMIN": "Quản trị viên",
@@ -1292,7 +1305,8 @@
       "locked": "Theo chính sách, không thể mở cho cấp này",
       "reset": "Đặt lại (hiện tất cả)",
       "resetConfirm": "Đặt lại menu của tất cả các cấp về mặc định (hiện tất cả)?"
-    }
+    },
+    "integrationsDesc": "Quản lý cài đặt AI, AMA, lớp học video, thông báo Kakao và khách truy cập GA4."
   },
   "issues": {
     "title": "Vấn đề",
@@ -1695,7 +1709,8 @@
     "result": {
       "failed": "Không thể hoàn tất kết nối Google. Vui lòng thử lại.",
       "workspaceRequired": "Chỉ có thể kết nối tài khoản Google Workspace của công ty. Không dùng được Gmail cá nhân (@gmail.com).",
-      "cancelled": "Đã hủy kết nối. Bạn có thể kết nối lại."
+      "cancelled": "Đã hủy kết nối. Bạn có thể kết nối lại.",
+      "scopeRequired": "Chưa cấp quyền truy cập Google Drive. Hãy kết nối lại và đánh dấu mục Google Drive trên màn hình đồng ý."
     },
     "notConfigured": "Máy chủ chưa cấu hình ứng dụng Google OAuth. Vui lòng liên hệ quản trị viên.",
     "account": {
@@ -1704,11 +1719,11 @@
       "ok": "Đã kết nối",
       "needsReconnect": "Cần kết nối lại",
       "connectedAt": "Kết nối lúc {{at}} bởi {{by}}",
-      "reconnectHint": "Ủy quyền Google đã hết hạn hoặc bị thu hồi. Trước khi kết nối lại, tệp tải lên sẽ lưu vào kho ACM.",
+      "reconnectHint": "Ủy quyền Google đã hết hạn hoặc thiếu quyền truy cập toàn bộ Drive cần để hiển thị tệp trong thư mục dùng chung. Hãy đăng nhập lại bằng 'Kết nối lại'. Trước khi kết nối lại, tệp tải lên sẽ được lưu vào kho ACM.",
       "login": "Đăng nhập bằng tài khoản Google công ty",
       "reconnect": "Kết nối lại / đổi tài khoản",
       "disconnect": "Ngắt kết nối",
-      "disconnectConfirm": "Ngắt kết nối sẽ dừng lưu vào Google Drive; tệp tải lên sẽ lưu vào kho ACM. Bản gốc Google và dữ liệu dự án được giữ nguyên.",
+      "disconnectConfirm": "Ngắt kết nối sẽ dừng lưu vào Google Drive; tệp tải lên sẽ lưu vào kho ACM. Bản gốc Google và dữ liệu dự án được giữ nguyên. Thiết lập thư mục dùng chung cũng bị xóa và sẽ tự khôi phục khi kết nối lại cùng tài khoản.",
       "workspaceOnly": "Chỉ kết nối được tài khoản Google Workspace thuộc tên miền công ty."
     },
     "readOnly": "Chỉ người vận hành dịch vụ mới kết nối và đặt thư mục chung.",
@@ -1733,10 +1748,13 @@
       "drive": "Google Drive của công ty",
       "acm": "Kho ACM",
       "notConnectedHint": "Khi Google Drive công ty được kết nối, bạn có thể chọn nơi lưu.",
-      "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM."
+      "reconnectHint": "Cần kết nối lại Google Drive nên tệp được lưu vào kho ACM.",
+      "rootMissingHint": "Chưa chọn thư mục dùng chung cho Google Drive công ty.",
+      "rootMissingAdmin": "Hãy chọn thư mục dùng chung trong cài đặt Drive."
     },
     "notReadyHint": "Chưa đặt thư mục chung trên Google Drive công ty nên chưa thể tạo tệp Google hoặc tải lên Drive. Bạn vẫn có thể tải tệp lên kho ACM.",
-    "goSettings": "Đến cài đặt Drive"
+    "goSettings": "Đến cài đặt Drive",
+    "askAdmin": "Hãy đề nghị quản trị viên chọn thư mục dùng chung."
   },
   "docsCreate": {
     "title": "Tạo mới",
@@ -1844,5 +1862,222 @@
     },
     "cancel": "Hủy",
     "close": "Đóng"
+  },
+  "invite": {
+    "title": "Mời người dùng",
+    "cardDescription": "Mời quản trị viên và nhân viên qua email.",
+    "description": "Người được mời hoàn tất đăng ký bằng cách đặt mật khẩu từ liên kết trong email. Liên kết có hiệu lực 72 giờ và chỉ dùng một lần.",
+    "new": "Mời",
+    "send": "Gửi lời mời",
+    "sending": "Đang gửi…",
+    "loading": "Đang tải…",
+    "empty": "Chưa có lời mời.",
+    "status": {
+      "PENDING": "Đang chờ",
+      "ACCEPTED": "Đã nhận",
+      "EXPIRED": "Hết hạn",
+      "REVOKED": "Đã hủy",
+      "ALL": "Tất cả"
+    },
+    "roles": {
+      "ADMIN": "Quản trị viên",
+      "STAFF": "Nhân viên"
+    },
+    "configAdmin": "Người vận hành dịch vụ",
+    "invitedBy": "Mời bởi {{by}} · {{at}}",
+    "acceptedAt": "Đã nhận {{at}}",
+    "expiresAt": "Đến {{at}}",
+    "resend": "Gửi lại",
+    "revoke": "Hủy",
+    "revokeTitle": "Hủy lời mời này?",
+    "revokeDesc": "Liên kết đã gửi sẽ không dùng được nữa.",
+    "fields": {
+      "email": "Email",
+      "name": "Họ tên",
+      "role": "Vai trò",
+      "grantConfigAdmin": "Cấp thêm quyền người vận hành dịch vụ",
+      "grantConfigAdminHint": "Có thể quản lý cài đặt dịch vụ (mời, email…). Không thể cấp quyền tenant master qua lời mời."
+    },
+    "resultTitle": "Đã gửi lời mời",
+    "mailSent": "Đã gửi email mời.",
+    "mailNotSent": "Chưa cấu hình email hoặc gửi thất bại. Hãy trực tiếp gửi liên kết mời dưới đây.",
+    "copy": "Sao chép",
+    "onceOnly": "Sau khi đóng cửa sổ này sẽ không xem lại được liên kết (gửi lại sẽ tạo liên kết mới).",
+    "validUntil": "Hiệu lực đến {{until}}",
+    "errors": {
+      "exists": "Email này đã được đăng ký.",
+      "email": "Kiểm tra định dạng email.",
+      "name": "Nhập họ tên.",
+      "handled": "Lời mời này đã được xử lý.",
+      "failed": "Không thể hoàn tất. Vui lòng thử lại.",
+      "load": "Không tải được danh sách lời mời."
+    },
+    "accept": {
+      "title": "Lời mời ACM",
+      "intro": "{{tenant}} đã mời {{name}} với vai trò {{role}}. Đặt mật khẩu để bắt đầu.",
+      "password": "Mật khẩu",
+      "confirm": "Xác nhận mật khẩu",
+      "policy": "Ít nhất 8 ký tự, gồm chữ và số.",
+      "mismatch": "Mật khẩu không khớp.",
+      "submit": "Đăng ký và bắt đầu",
+      "submitting": "Đang đăng ký…",
+      "invalid": "Liên kết mời đã hết hạn hoặc đã được dùng. Hãy yêu cầu quản trị viên gửi lại.",
+      "rateLimited": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
+      "failed": "Không thể đăng ký. Vui lòng thử lại."
+    },
+    "tabs": {
+      "users": "Người dùng đã đăng ký",
+      "invites": "Lời mời"
+    },
+    "users": {
+      "types": {
+        "ALL": "Tất cả",
+        "ADMIN": "Quản trị viên",
+        "STAFF": "Nhân viên",
+        "TEACHER": "Giáo viên",
+        "STUDENT": "Học sinh"
+      },
+      "search": "Tìm theo tên hoặc email",
+      "empty": "Không có người dùng phù hợp.",
+      "loadError": "Không tải được danh sách người dùng.",
+      "login": {
+        "local": "Nội bộ",
+        "ama": "AMA",
+        "portal": "Cổng"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "Người vận hành dịch vụ",
+        "TENANT_MASTER": "Tenant master"
+      },
+      "locked": "Đã khóa",
+      "inactive": "Ngừng hoạt động",
+      "cols": {
+        "name": "Họ tên",
+        "loginId": "Email / ID đăng nhập",
+        "type": "Loại",
+        "login": "Đăng nhập",
+        "flags": "Quyền · trạng thái",
+        "createdAt": "Ngày tham gia",
+        "lastLogin": "Đăng nhập gần nhất"
+      }
+    }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "Kho ACM",
+    "acmHint": "Chỉ lưu trên máy chủ ACM (không hiển thị trong Google Drive)",
+    "openInDrive": "Mở thư mục trong Google Drive",
+    "uploadTitle": "Tải tệp lên",
+    "pick": "Chọn hoặc kéo thả tệp (tối đa {{mb}}MB)",
+    "tooLarge": "Chỉ tải được tệp tối đa {{mb}}MB.",
+    "driveUploadTo": "Vị trí tải lên: {{path}}",
+    "driveProjectHint": "Tài liệu dự án tải lên ở Tài liệu › Tệp được lưu theo thư mục từng dự án (thư mục chung › tên dự án).",
+    "cols": {
+      "title": "Tên tài liệu",
+      "project": "Dự án",
+      "location": "Vị trí lưu",
+      "updated": "Sửa lần cuối",
+      "author": "Người tạo",
+      "size": "Kích thước",
+      "mode": "Cách lưu",
+      "actions": "Thao tác"
+    }
+  },
+  "pwa": {
+    "install": "Cài ứng dụng",
+    "installTitle": "Cài ứng dụng ACM",
+    "installDesc": "Mở trực tiếp từ màn hình chính và nhận thông báo.",
+    "iosGuideBefore": "Trong Safari, chạm",
+    "iosGuideAfter": "[Chia sẻ] → [Thêm vào MH chính].",
+    "share": "Chia sẻ",
+    "iosPushNote": "Trên iPhone, chỉ ứng dụng đã cài mới nhận được thông báo.",
+    "updateAvailable": "Đã có phiên bản mới.",
+    "reload": "Tải lại",
+    "startTitle": "Chào mừng đến với ACM",
+    "startConsole": "Đăng nhập bảng điều khiển (quản trị · nhân viên · giáo viên)",
+    "startPortal": "Đăng nhập cổng (học sinh · phụ huynh · giáo viên)"
+  },
+  "itemDelete": {
+    "button": "Xóa",
+    "title": "Xóa '{{name}}'?",
+    "localDesc": "Mục này sẽ bị xóa khỏi danh sách.",
+    "googleDesc": "Chỉ xóa khỏi ACM; bản gốc trên Google Drive vẫn được giữ.",
+    "done": "Đã xóa.",
+    "failed": "Không thể xóa. Hãy kiểm tra quyền."
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "Quản lý các yêu cầu tư vấn đã tiếp nhận theo từng giai đoạn."
+    },
+    "std": {
+      "desc": "Quản lý học sinh và thông tin lớp học theo từng cơ sở."
+    },
+    "stdWithdrawn": {
+      "desc": "Xem học sinh đã nghỉ học và cho học sinh quay lại."
+    },
+    "parents": {
+      "desc": "Quản lý thông tin liên hệ của phụ huynh và học sinh được liên kết."
+    },
+    "tch": {
+      "desc": "Quản lý thông tin giáo viên, lớp phụ trách và tài khoản cổng thông tin."
+    },
+    "complaints": {
+      "desc": "Ghi nhận khiếu nại và quản lý trạng thái xử lý."
+    },
+    "projects": {
+      "desc": "Quản lý các dự án bạn tham gia hoặc phụ trách cùng tài liệu và vấn đề.",
+      "create": "Tạo dự án",
+      "joined": "Dự án tham gia",
+      "owned": "Dự án phụ trách",
+      "driveConnect": "Kết nối Google Drive"
+    },
+    "issues": {
+      "desc": "Quản lý vấn đề của dự án theo trạng thái."
+    },
+    "inbox": {
+      "title": "Hộp thông báo",
+      "desc": "Xem các thông báo bạn đã nhận."
+    },
+    "more": "Thêm",
+    "dashboard": {
+      "desc": "Chọn khoảng thời gian và cơ sở để xem tình hình tư vấn, lớp học và học sinh."
+    },
+    "myWork": {
+      "desc": "Xem công việc cần xử lý hôm nay và các vấn đề được giao cho bạn."
+    },
+    "calStats": {
+      "desc": "Xem tình hình giảng dạy của giáo viên và lớp học theo từng giai đoạn."
+    },
+    "pay": {
+      "desc": "Quản lý tình hình lập hóa đơn và thanh toán hằng tháng.",
+      "currency": "Đơn vị tiền tệ: KRW"
+    },
+    "config": {
+      "desc": "Thiết lập lời mời người dùng và tích hợp thư, quảng cáo, Drive."
+    },
+    "myPage": {
+      "desc": "Quản lý thông tin cá nhân, liên hệ khẩn cấp và mật khẩu."
+    },
+    "chat": {
+      "desc": "Trò chuyện với giáo viên và nhân viên."
+    },
+    "cal": {
+      "desc": "Quản lý lịch học và lịch tư vấn trên lịch."
+    },
+    "drive": {
+      "desc": "Quản lý tệp trong các thư mục dùng chung Google Drive của công ty."
+    },
+    "projectDetail": {
+      "edit": "Sửa dự án",
+      "info": "Thông tin dự án",
+      "tabs": {
+        "overview": "Tổng quan",
+        "documents": "Tài liệu",
+        "issues": "Vấn đề"
+      }
+    }
+  },
+  "session": {
+    "expired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
   }
 }

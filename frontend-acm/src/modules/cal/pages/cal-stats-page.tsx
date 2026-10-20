@@ -2,8 +2,11 @@ import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { UnderlineTabs } from '@/components/ui/tabs';
 import { fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
 import {
   addDays,
@@ -136,7 +139,7 @@ export function PeriodControls() {
           <button
             type="button"
             onClick={() => shift(-1)}
-            className="rounded p-1 hover:bg-[var(--gray-100)]"
+            className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
           >
             <ChevronLeft size={16} />
           </button>
@@ -144,7 +147,7 @@ export function PeriodControls() {
           <button
             type="button"
             onClick={() => shift(1)}
-            className="rounded p-1 hover:bg-[var(--gray-100)]"
+            className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1"
           >
             <ChevronRight size={16} />
           </button>
@@ -184,10 +187,10 @@ export function PeriodControls() {
             key={u}
             type="button"
             onClick={() => set(u)}
-            className={`rounded px-2.5 py-1 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+            className={`min-h-9 rounded px-2.5 py-1 sm:min-h-0 ${unit === u ? 'bg-accent-600 text-white' : 'text-secondary'}`}
           >
             {u === 'week' || u === 'month'
-              ? t(`view.${u}`, u === 'week' ? '주' : '월')
+              ? t(`view.${u}`)
               : t(`stats.unit.${u}`, u)}
           </button>
         ))}
@@ -226,6 +229,7 @@ export function CatLine({ b }: { b: StatsBucket }) {
 
 export function CalStatsPage() {
   const { t } = useTranslation('cal');
+  const { t: tc } = useTranslation('common');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { range } = useStatsPeriod();
@@ -244,10 +248,12 @@ export function CalStatsPage() {
 
   return (
     <div className="w-full min-w-0">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">{t('stats.title', '수업통계')}</h1>
-        <PeriodControls />
-      </div>
+      <PageHeader
+        icon={BarChart3}
+        title={tc('nav.calStats')}
+        description={tc('pageHeader.calStats.desc')}
+        actions={<PeriodControls />}
+      />
 
       {isLoading || !data ? (
         <p className="admin-list-surface py-10 text-center text-sm text-secondary">…</p>
@@ -255,22 +261,22 @@ export function CalStatsPage() {
         <div className="space-y-5">
           {/* 전체 요약 + 수업상태별 */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard label={t('stats.classes2', '전체 수업')} value={`${data.total.count}`} />
-            <StatCard label={t('stats.hours', '수업시간')} value={`${statsHours(data.total.minutes)}h`} />
+            <StatCard label={t('stats.classes2')} value={`${data.total.count}`} />
+            <StatCard label={t('stats.hours')} value={`${statsHours(data.total.minutes)}h`} />
             <StatCard
-              label={t('stats.done', '수업완료')}
+              label={t('stats.done')}
               value={`${data.total.done}`}
-              sub={`${statsDonePct(data.total)}%`}
-              tone="emerald"
+              hint={`${statsDonePct(data.total)}%`}
+              tone="success"
             />
             <StatCard
-              label={t('stats.notDone', '미완료')}
+              label={t('stats.notDone')}
               value={`${data.total.count - data.total.done}`}
-              tone="amber"
+              tone="warning"
             />
           </div>
           <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-sm text-secondary">
-            <span className="mr-2 text-xs font-semibold">{t('stats.byCategory', '수업종류별')}:</span>
+            <span className="mr-2 text-xs font-semibold">{t('stats.byCategory')}:</span>
             <CatLine b={data.total} />
           </div>
 
@@ -278,31 +284,22 @@ export function CalStatsPage() {
           <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-semibold text-primary">
-                {t('stats.byTeacher', '강사별 수업통계')}
+                {t('stats.byTeacher')}
               </span>
-              <div className="inline-flex rounded-md border border-[var(--border-subtle)] p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setView('card')}
-                  className={`rounded p-1.5 ${view === 'card' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
-                  title={t('stats.cardView', '카드뷰')}
-                >
-                  <LayoutGrid size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setView('list')}
-                  className={`rounded p-1.5 ${view === 'list' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
-                  title={t('stats.listView', '리스트보기')}
-                >
-                  <List size={14} />
-                </button>
-              </div>
+              <UnderlineTabs
+                label={t('stats.byTeacher')}
+                items={[
+                  { key: 'card', label: t('stats.cardView') },
+                  { key: 'list', label: t('stats.listView') },
+                ]}
+                value={view}
+                onChange={setView}
+              />
             </div>
 
             {data.teachers.length === 0 ? (
               <p className="rounded-md border border-[var(--border-subtle)] bg-surface p-6 text-center text-sm text-secondary">
-                {t('stats.empty', '해당 기간 수업이 없습니다.')}
+                {t('stats.empty')}
               </p>
             ) : view === 'card' ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -315,22 +312,22 @@ export function CalStatsPage() {
                     className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 text-left hover:border-accent-400 disabled:cursor-default"
                   >
                     <div className="mb-1 truncate text-sm font-semibold text-primary">
-                      {tch.tchId ? tch.name : t('stats.unassigned', '미지정')}
+                      {tch.tchId ? tch.name : t('stats.unassigned')}
                     </div>
                     <div className="text-lg font-bold text-primary">
                       {tch.count}
                       <span className="ml-1 text-xs font-normal text-secondary">
-                        {t('stats.classes', '건')}
+                        {t('stats.classes')}
                       </span>
                       <span className="ml-2 text-sm font-semibold">
                         {statsHours(tch.minutes)}
                         <span className="text-xs font-normal text-secondary">h</span>
                       </span>
                     </div>
-                    <div className="mt-0.5 text-[11px] text-emerald-700">
-                      {t('stats.done', '수업완료')} {tch.done} ({statsDonePct(tch)}%)
+                    <div className="mt-0.5 text-xs text-emerald-700">
+                      {t('stats.done')} {tch.done} ({statsDonePct(tch)}%)
                     </div>
-                    <div className="mt-0.5 text-[11px] text-secondary">
+                    <div className="mt-0.5 text-xs text-secondary">
                       <CatLine b={tch} />
                     </div>
                   </button>
@@ -341,11 +338,11 @@ export function CalStatsPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--gray-50)] text-xs text-secondary">
                     <tr>
-                      <th className="px-3 py-2 text-left">{t('stats.teacher', '강사')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.classes2', '수업수')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.hours', '수업시간')}</th>
-                      <th className="px-3 py-2 text-right">{t('stats.done', '수업완료')}</th>
-                      <th className="px-3 py-2 text-left">{t('stats.byCategory', '종류별')}</th>
+                      <th className="px-3 py-2 text-left">{t('stats.teacher')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.classes2')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.hours')}</th>
+                      <th className="px-3 py-2 text-right">{t('stats.done')}</th>
+                      <th className="px-3 py-2 text-left">{t('stats.byCategory')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -356,7 +353,7 @@ export function CalStatsPage() {
                         className={tch.tchId ? 'cursor-pointer hover:bg-[var(--gray-50)]' : ''}
                       >
                         <td className="px-3 py-2 font-medium">
-                          {tch.tchId ? tch.name : t('stats.unassigned', '미지정')}
+                          {tch.tchId ? tch.name : t('stats.unassigned')}
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums">{tch.count}</td>
                         <td className="px-3 py-2 text-right tabular-nums">
@@ -377,34 +374,6 @@ export function CalStatsPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  sub,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  tone?: 'emerald' | 'amber';
-}) {
-  const toneCls =
-    tone === 'emerald'
-      ? 'text-emerald-700'
-      : tone === 'amber'
-        ? 'text-amber-700'
-        : 'text-primary';
-  return (
-    <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3">
-      <div className="text-xs text-secondary">{label}</div>
-      <div className={`text-2xl font-bold ${toneCls}`}>
-        {value}
-        {sub && <span className="ml-1 text-sm font-normal">{sub}</span>}
-      </div>
     </div>
   );
 }

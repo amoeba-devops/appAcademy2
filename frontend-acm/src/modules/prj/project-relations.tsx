@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { Building2, MessageSquare, X } from "lucide-react";
 import { useScope, errorText } from "./project-page";
@@ -18,6 +19,7 @@ export function ProjectRelations({
   project: string;
   manage: boolean;
 }) {
+  const { t: tp } = useTranslation("prj");
   const scope = useScope(),
     qc = useQueryClient(),
     [kind, setKind] = useState<"CLIENT" | "CHAT" | null>(null),
@@ -40,7 +42,7 @@ export function ProjectRelations({
       ).data,
   });
   async function remove(id: string) {
-    if (!confirm("프로젝트 연결을 해제할까요? 원본은 보존됩니다.")) return;
+    if (!confirm(tp("relations.confirmRemove"))) return;
     try {
       await apiClient.delete(`${base}/${id}`);
       await qc.invalidateQueries({ queryKey: ["prj", project, "relations"] });
@@ -64,18 +66,23 @@ export function ProjectRelations({
               ) : (
                 <MessageSquare size={17} />
               )}{" "}
-              {k === "CLIENT" ? "배정 고객사" : "관련 채팅방"}
+              {k === "CLIENT"
+                ? tp("relations.clientTitle")
+                : tp("relations.chatTitle")}
             </h2>
             {manage && (
               <button
-                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                className="rounded-lg bg-accent-600 px-3 py-2 text-sm text-white"
                 onClick={() => {
                   setKind(k);
                   setName("");
                   setError("");
                 }}
               >
-                + {k === "CLIENT" ? "고객사 추가" : "채팅방 연결"}
+                +{" "}
+                {k === "CLIENT"
+                  ? tp("relations.addClient")
+                  : tp("relations.linkChat")}
               </button>
             )}
           </header>
@@ -98,7 +105,7 @@ export function ProjectRelations({
                   </span>
                   {manage && (
                     <button
-                      aria-label={`${r.prr_name} 연결 해제`}
+                      aria-label={tp("relations.unlinkAria", { name: r.prr_name })}
                       onClick={() => void remove(r.prr_id)}
                     >
                       <X size={16} />
@@ -110,8 +117,8 @@ export function ProjectRelations({
           {!rows.isLoading && !rows.data?.some((r) => r.prr_kind === k) && (
             <p className="py-8 text-center text-sm text-gray-400">
               {k === "CLIENT"
-                ? "배정된 고객사가 없습니다"
-                : "연결된 채팅방이 없습니다"}
+                ? tp("relations.noClients")
+                : tp("relations.noChats")}
             </p>
           )}
           {rows.error && <p role="alert">{errorText(rows.error)}</p>}
@@ -126,7 +133,9 @@ export function ProjectRelations({
         >
           <DialogContent>
             <DialogTitle>
-              {kind === "CLIENT" ? "고객사 추가" : "채팅방 연결"}
+              {kind === "CLIENT"
+                ? tp("relations.addClient")
+                : tp("relations.linkChat")}
             </DialogTitle>
             <form
               className="grid gap-4"
@@ -156,7 +165,7 @@ export function ProjectRelations({
             >
               {kind === "CLIENT" ? (
                 <label>
-                  고객사명
+                  {tp("relations.clientName")}
                   <input
                     required
                     maxLength={200}
@@ -167,14 +176,14 @@ export function ProjectRelations({
                 </label>
               ) : (
                 <label>
-                  참여 중인 채팅방
+                  {tp("relations.myChats")}
                   <select
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="block w-full rounded border p-2"
                   >
-                    <option value="">선택하세요</option>
+                    <option value="">{tp("relations.selectPlaceholder")}</option>
                     {channels.data?.map((c) => (
                       <option value={c.id} key={c.id}>
                         {c.name}
@@ -186,9 +195,9 @@ export function ProjectRelations({
               {error && <p role="alert">{error}</p>}
               <button
                 disabled={busy || !name.trim()}
-                className="rounded bg-blue-600 p-2 text-white"
+                className="rounded bg-accent-600 p-2 text-white"
               >
-                {busy ? "저장 중…" : "연결"}
+                {busy ? tp("common.saving") : tp("relations.link")}
               </button>
             </form>
           </DialogContent>

@@ -30,6 +30,14 @@ const LIST_FIELDS =
   'id,name,mimeType,size,parents,trashed,modifiedTime,createdTime,owners(displayName,emailAddress),thumbnailLink,webViewLink';
 export class DriveWriteRejected extends BadGatewayException {}
 /** Google refresh token 이 만료·철회됨. ACM 세션과 무관하므로 409. */
+/**
+ * FIX-261020 — drive.file 은 ACM 이 만든 파일만 보여 Drive 에서 직접 올린 파일이 목록에 안 나온다.
+ * 공유폴더를 그대로 보여주려면 Drive 전체 범위가 필요하다.
+ */
+export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+/** Google 이 돌려준 scope 문자열(공백 구분)에 Drive 전체 범위가 있는지. 값이 없으면 판단하지 않는다. */
+export const hasDriveScope = (scope?: string) =>
+  scope === undefined || scope.split(' ').includes(DRIVE_SCOPE);
 export class DriveReconnectRequired extends ConflictException {
   constructor() {
     super({
@@ -39,6 +47,11 @@ export class DriveReconnectRequired extends ConflictException {
     });
   }
 }
+/** Google Drive 응답 코드(요청 실패 시 예외에 붙는다). */
+export const googleStatusOf = (e: unknown): number | undefined =>
+  typeof e === 'object' && e !== null && 'googleStatus' in e
+    ? (e as { googleStatus?: number }).googleStatus
+    : undefined;
 const definitiveRejection = (status: number) =>
   [400, 401, 403, 404, 413, 422, 429].includes(status);
 @Injectable()
@@ -59,6 +72,7 @@ export class DriveClient {
     access_token: string;
     refresh_token?: string;
     expires_in?: number;
+    scope?: string;
   }> {
     if (!this.ready())
       throw new ServiceUnavailableException('Google 연결 설정이 필요합니다.');
@@ -78,6 +92,7 @@ export class DriveClient {
       access_token: string;
       refresh_token?: string;
       expires_in?: number;
+      scope?: string;
     }>;
   }
   async request<T>(
@@ -94,8 +109,8 @@ export class DriveClient {
       },
       signal: AbortSignal.timeout(20000),
     });
-    if (!r.ok)
-      throw new (
+    if (!r.ok) {
+      const err = new (
         init.method === 'POST' && definitiveRejection(r.status)
           ? DriveWriteRejected
           : BadGatewayException
@@ -108,6 +123,10 @@ export class DriveClient {
               ? 'Google 파일이 없거나 접근할 수 없습니다.'
               : 'Google Drive 요청을 완료하지 못했습니다.',
       );
+      // 호출 측이 Google 응답 코드로 분기할 수 있게 남긴다(예: 보이지 않는 상위 폴더).
+      Object.assign(err, { googleStatus: r.status });
+      throw err;
+    }
     return r.json() as Promise<T>;
   }
   file(t: string, id: string) {

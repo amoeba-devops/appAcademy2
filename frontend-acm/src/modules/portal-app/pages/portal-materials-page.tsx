@@ -52,7 +52,7 @@ export function PortalMaterialsPage() {
         <button
           type="button"
           onClick={() => setTab('shared')}
-          className={`rounded px-3 py-1 ${tab === 'shared' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+          className={`min-h-9 rounded px-3 py-1 sm:min-h-0 ${tab === 'shared' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
         >
           {t('portalApp.materials.tabShared', '공유받은 게시물')}
         </button>
@@ -60,7 +60,7 @@ export function PortalMaterialsPage() {
           <button
             type="button"
             onClick={() => setTab('own')}
-            className={`rounded px-3 py-1 ${tab === 'own' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+            className={`min-h-9 rounded px-3 py-1 sm:min-h-0 ${tab === 'own' ? 'bg-accent-600 text-white' : 'text-secondary'}`}
           >
             {t('portalApp.materials.tabOwn', '내 게시물')}
           </button>
@@ -137,7 +137,7 @@ function CreateForm({ kind }: { kind: 'TEACHER' | 'STUDENT' }) {
         <span className="text-sm font-medium text-primary">
           {t('portalApp.materials.newPost', '새 게시물')}
         </span>
-        <button type="button" onClick={() => setOpen(false)} className="text-secondary">
+        <button type="button" onClick={() => setOpen(false)} className="p-2 text-secondary sm:p-0">
           <X size={16} />
         </button>
       </div>
@@ -236,7 +236,7 @@ function MaterialList({ scope }: { scope: Tab }) {
             key={f.key}
             type="button"
             onClick={() => setKindFilter(f.key)}
-            className={`rounded px-2.5 py-1 ${
+            className={`min-h-9 rounded px-2.5 py-1 sm:min-h-0 ${
               kindFilter === f.key ? 'bg-accent-600 text-white' : 'text-secondary'
             }`}
           >
@@ -282,7 +282,7 @@ function Pagination({
     (_, i) => start + i,
   );
   const navBtn =
-    'inline-flex h-7 w-7 items-center justify-center rounded border border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)] disabled:opacity-40';
+    'inline-flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded border border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)] disabled:opacity-40';
   return (
     <div className="mt-4 flex items-center justify-center gap-1 text-xs">
       <button
@@ -298,7 +298,7 @@ function Pagination({
           key={n}
           type="button"
           onClick={() => onChange(n)}
-          className={`inline-flex h-7 w-7 items-center justify-center rounded ${
+          className={`inline-flex h-9 w-9 sm:h-7 sm:w-7 items-center justify-center rounded ${
             n === page
               ? 'bg-accent-600 font-medium text-white'
               : 'border border-[var(--border-subtle)] text-secondary hover:bg-[var(--gray-50)]'
@@ -395,12 +395,12 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
               <span className="truncate text-sm font-medium text-primary">{post.title}</span>
             )}
             {isDoc && (
-              <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-[10px] font-medium text-accent-700">
+              <span className="shrink-0 rounded bg-accent-50 px-1.5 py-0.5 text-xs font-medium text-accent-700">
                 {t('portalApp.materials.docBadge', '문서')}
               </span>
             )}
             {post.isSubmission && (
-              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+              <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
                 {t('portalApp.materials.submission', '제출')}
               </span>
             )}
@@ -424,7 +424,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
             <button
               onClick={onDownload}
               disabled={downloading}
-              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+              className="inline-flex min-h-9 items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs sm:min-h-0 text-accent-700 hover:bg-[var(--gray-50)]"
             >
               {downloading ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
               {t('portalApp.materials.download')}
@@ -433,7 +433,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
           {post.mine && (
             <button
               onClick={openShare}
-              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs text-accent-700 hover:bg-[var(--gray-50)]"
+              className="inline-flex min-h-9 items-center gap-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs sm:min-h-0 text-accent-700 hover:bg-[var(--gray-50)]"
             >
               <Share2 size={12} />
               {t('portalApp.materials.shareBtn2', '공유')}
@@ -450,7 +450,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
                 if (ok) del.mutate();
               }}
               disabled={del.isPending}
-              className="rounded border border-[var(--border-subtle)] p-1 text-red-600 hover:bg-red-50"
+              className="rounded border border-[var(--border-subtle)] p-2.5 text-red-600 sm:p-1 hover:bg-red-50"
             >
               <Trash2 size={12} />
             </button>
@@ -469,7 +469,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
             <button
               type="button"
               onClick={() => setShowShare(false)}
-              className="rounded-md border border-[var(--border-subtle)] px-3 py-1 text-xs text-secondary"
+              className="min-h-9 rounded-md border border-[var(--border-subtle)] px-3 py-1 text-xs text-secondary sm:min-h-0"
             >
               {t('actions.cancel', '취소')}
             </button>
@@ -477,7 +477,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
               type="button"
               disabled={sharesMut.isPending}
               onClick={() => sharesMut.mutate()}
-              className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+              className="inline-flex min-h-9 items-center gap-1 rounded-md bg-accent-600 px-3 py-1 text-xs sm:min-h-0 text-white disabled:opacity-50"
             >
               {sharesMut.isPending && <Loader2 size={12} className="animate-spin" />}
               {t('portalApp.materials.shareSave', '공유 저장')}
@@ -489,7 +489,7 @@ function MaterialCard({ post, scope }: { post: PortalMaterialPost; scope: Tab })
       <button
         type="button"
         onClick={() => setShowComments((v) => !v)}
-        className="mt-2 inline-flex items-center gap-1 text-xs text-secondary hover:text-accent-700"
+        className="mt-2 inline-flex min-h-9 items-center gap-1 text-xs text-secondary sm:min-h-0 hover:text-accent-700"
       >
         <MessageSquare size={12} />
         {t('portalApp.materials.comments', '댓글')} ({post.commentCount})
@@ -550,13 +550,13 @@ export function CommentThread({ matId }: { matId: string }) {
             if (e.key === 'Enter' && body.trim()) add.mutate();
           }}
           placeholder={t('portalApp.materials.commentPlaceholder', '댓글 입력…')}
-          className="h-8 flex-1 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
+          className="h-9 sm:h-8 flex-1 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
         />
         <button
           type="button"
           disabled={!body.trim() || add.isPending}
           onClick={() => add.mutate()}
-          className="inline-flex items-center gap-1 rounded-md bg-accent-600 px-2 py-1.5 text-xs text-white disabled:opacity-50"
+          className="inline-flex min-h-9 items-center gap-1 rounded-md bg-accent-600 px-2 py-1.5 text-xs sm:min-h-0 text-white disabled:opacity-50"
         >
           {add.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
         </button>

@@ -1,178 +1,19 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { TableKit } from "@tiptap/extension-table";
+import type { JSONContent } from "@tiptap/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useBlocker } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Item } from "./types";
 import type { WorkbookDocument } from "./workbook-editor";
+import { RichDocument } from "./rich-document";
 const WorkbookEditor = lazy(() =>
   import("./workbook-editor").then((m) => ({ default: m.WorkbookEditor })),
 );
 import { blankSheet, type Sheet } from "./sheet-model";
-const names = { MEMO: "메모", SHEET: "시트(스프레드시트)", DOC: "문서(Docs)" };
-export type DocumentType = keyof typeof names;
-export function RichDocument({
-  initial,
-  onChange,
-  readOnly,
-  table,
-}: {
-  initial: JSONContent;
-  onChange: (v: JSONContent) => void;
-  readOnly: boolean;
-  table: boolean;
-}) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        link: { openOnClick: false, protocols: ["https", "http"] },
-      }),
-      ...(table ? [TableKit.configure({ table: { resizable: true } })] : []),
-    ],
-    content: initial,
-    editable: !readOnly,
-    onUpdate: ({ editor }) => onChange(editor.getJSON()),
-    editorProps: {
-      attributes: { class: "doc-prose min-h-64 max-w-none p-4 outline-none" },
-    },
-  });
-  useEffect(() => {
-    editor?.setEditable(!readOnly, false);
-  }, [editor, readOnly]);
-  if (!editor) return null;
-  const actions: [string, () => void][] = [
-    [
-      "굵게",
-      () => {
-        editor.chain().focus().toggleBold().run();
-      },
-    ],
-    [
-      "기울임",
-      () => {
-        editor.chain().focus().toggleItalic().run();
-      },
-    ],
-    [
-      "취소선",
-      () => {
-        editor.chain().focus().toggleStrike().run();
-      },
-    ],
-    [
-      "제목",
-      () => {
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
-      },
-    ],
-    [
-      "목록",
-      () => {
-        editor.chain().focus().toggleBulletList().run();
-      },
-    ],
-    [
-      "번호 목록",
-      () => {
-        editor.chain().focus().toggleOrderedList().run();
-      },
-    ],
-    [
-      "인용",
-      () => {
-        editor.chain().focus().toggleBlockquote().run();
-      },
-    ],
-    [
-      "링크",
-      () => {
-        const href = window.prompt(
-          "https:// 링크 주소 (빈 값은 해제)",
-          (editor.getAttributes("link").href as string) ?? "",
-        );
-        if (href === null) return;
-        if (!href) editor.chain().focus().unsetLink().run();
-        else if (/^https?:\/\/\S+$/i.test(href))
-          editor.chain().focus().setLink({ href }).run();
-      },
-    ],
-    [
-      "되돌리기",
-      () => {
-        editor.chain().focus().undo().run();
-      },
-    ],
-    [
-      "다시 실행",
-      () => {
-        editor.chain().focus().redo().run();
-      },
-    ],
-  ];
-  if (table)
-    actions.push(
-      [
-        "표 삽입",
-        () => {
-          editor
-            .chain()
-            .focus()
-            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-            .run();
-        },
-      ],
-      [
-        "행 추가",
-        () => {
-          editor.chain().focus().addRowAfter().run();
-        },
-      ],
-      [
-        "열 추가",
-        () => {
-          editor.chain().focus().addColumnAfter().run();
-        },
-      ],
-      [
-        "행 삭제",
-        () => {
-          editor.chain().focus().deleteRow().run();
-        },
-      ],
-      [
-        "열 삭제",
-        () => {
-          editor.chain().focus().deleteColumn().run();
-        },
-      ],
-      [
-        "표 삭제",
-        () => {
-          editor.chain().focus().deleteTable().run();
-        },
-      ],
-    );
-  return (
-    <div className="min-w-0 rounded border">
-      {!readOnly && (
-        <div className="flex flex-wrap gap-1 border-b p-2">
-          {actions.map(([name, fn]) => (
-            <Button key={name} type="button" variant="outline" onClick={fn}>
-              {name}
-            </Button>
-          ))}
-        </div>
-      )}
-      <div className="max-w-full overflow-auto [&_td]:border [&_th]:border [&_td]:p-2 [&_th]:p-2">
-        <EditorContent editor={editor} />
-      </div>
-    </div>
-  );
-}
+export type DocumentType = "MEMO" | "SHEET" | "DOC";
 export function DocumentEditor({
   project,
   item,
@@ -188,6 +29,7 @@ export function DocumentEditor({
   readOnly: boolean;
   close: () => void;
 }) {
+  const { t: tp } = useTranslation("prj");
   const qc = useQueryClient();
   const snapshotRef = useRef<(() => WorkbookDocument) | null>(null);
   const [title, setTitle] = useState(item?.pit_title ?? ""),
@@ -229,7 +71,7 @@ export function DocumentEditor({
   );
   useEffect(() => {
     if (blocker.state !== "blocked") return;
-    if (window.confirm("저장하지 않은 변경을 버릴까요?")) blocker.proceed();
+    if (window.confirm(tp("documentEditor.confirmDiscard"))) blocker.proceed();
     else blocker.reset();
   }, [blocker]);
   const leave = () => {
@@ -247,7 +89,7 @@ export function DocumentEditor({
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirty]);
   const dismiss = () => {
-    if (!busy && (!dirty || window.confirm("저장하지 않은 변경을 버릴까요?")))
+    if (!busy && (!dirty || window.confirm(tp("documentEditor.confirmDiscard"))))
       leave();
   };
   return (
@@ -256,20 +98,24 @@ export function DocumentEditor({
         <Button
           type="button"
           variant="outline"
-          aria-label="문서 목록으로"
+          aria-label={tp("documentEditor.backToList")}
           onClick={dismiss}
         >
           ←
         </Button>
         <h1 className="min-w-0 truncate text-lg font-semibold">
-          {names[type]} {item ? (readOnly ? "보기" : "보기 / 수정") : "작성"}
+          {tp(
+            item
+              ? readOnly
+                ? "documentEditor.headingView"
+                : "documentEditor.headingViewEdit"
+              : "documentEditor.headingCreate",
+            { type: tp(`docType.${type}`) },
+          )}
         </h1>
       </div>
       <form
           className="grid min-w-0 gap-3"
-          onInputCapture={() => {
-            if (!readOnly) setDirty(true);
-          }}
           onSubmit={async (e) => {
             e.preventDefault();
             setBusy(true);
@@ -284,7 +130,7 @@ export function DocumentEditor({
                 new TextEncoder().encode(JSON.stringify(savedContent)).length >
                   60000
               )
-                throw new Error("문서 크기는 60KB 이하로 작성하세요.");
+                throw new Error(tp("documentEditor.tooLarge"));
               const data = {
                 title,
                 documentType: type,
@@ -310,7 +156,7 @@ export function DocumentEditor({
                 x.response?.data?.error?.message ??
                   x.response?.data?.message ??
                   x.message ??
-                  "저장하지 못했습니다. 내용을 보존하고 다시 시도하세요.",
+                  tp("documentEditor.saveFailed"),
               );
             } finally {
               setBusy(false);
@@ -320,12 +166,12 @@ export function DocumentEditor({
           {type !== "MEMO" && !item && (
             <div className="flex flex-wrap gap-4">
               {[
-                ["LOCAL", "직접 작성"],
+                ["LOCAL", tp("documentEditor.modeLocal")],
                 [
                   "GOOGLE_LINK",
                   type === "SHEET"
-                    ? "구글시트 연동(링크)"
-                    : "구글독스 연동(링크)",
+                    ? tp("documentEditor.modeGoogleSheet")
+                    : tp("documentEditor.modeGoogleDoc"),
                 ],
               ].map(([v, label]) => (
                 <label key={v}>
@@ -343,7 +189,7 @@ export function DocumentEditor({
             </div>
           )}
           <label>
-            제목
+            {tp("documentEditor.title")}
             <Input
               required
               maxLength={200}
@@ -371,15 +217,14 @@ export function DocumentEditor({
                 />
               </label>
               <p className="text-sm">
-                Google 원본 접근 권한이 필요합니다. 링크 등록은 문서 내용을
-                복사하거나 공유 권한을 변경하지 않습니다.
+                {tp("documentEditor.googleAccessNote")}
               </p>
               {item?.external_url &&
                 /^https:\/\/docs\.google\.com\/(spreadsheets|document)\/d\/[\w-]+\/edit(?:#gid=\d+)?$/.test(
                   item.external_url,
                 ) && (
                   <iframe
-                    title={title || "Google 문서"}
+                    title={title || tp("documentEditor.googleDocFallbackTitle")}
                     className="h-[75dvh] w-full rounded border"
                     src={item.external_url.replace(/\/edit(?=#|$)/, "/preview")}
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -387,8 +232,7 @@ export function DocumentEditor({
                   />
                 )}
               <p className="text-xs text-secondary">
-                미리보기가 표시되지 않으면 Google 계정의 접근 권한을 확인하고 새
-                탭에서 열어 주세요.
+                {tp("documentEditor.previewHint")}
               </p>
               {item?.external_url && (
                 <a
@@ -397,12 +241,12 @@ export function DocumentEditor({
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Google에서 열기
+                  {tp("documentEditor.openInGoogle")}
                 </a>
               )}
             </>
           ) : type === "SHEET" ? (
-            <Suspense fallback={<p>편집기 불러오는 중…</p>}>
+            <Suspense fallback={<p>{tp("documentEditor.loadingEditor")}</p>}>
               <WorkbookEditor
                 project={project}
                 snapshotRef={snapshotRef}
@@ -418,7 +262,8 @@ export function DocumentEditor({
           ) : (
             <RichDocument
               initial={content as JSONContent}
-              table={type === "DOC"}
+              full={type === "DOC"}
+              project={project}
               readOnly={readOnly || busy}
               onChange={(v) => {
                 setContent(v);
@@ -433,14 +278,14 @@ export function DocumentEditor({
           )}
           <div className="sticky bottom-0 flex justify-end gap-2 bg-surface py-2">
             <span className="mr-auto text-sm">
-              {dirty ? "저장하지 않은 변경" : ""}
+              {dirty ? tp("documentEditor.unsaved") : ""}
             </span>
             <Button type="button" variant="outline" onClick={dismiss}>
-              닫기
+              {tp("documentEditor.close")}
             </Button>
             {!readOnly && (
               <Button disabled={busy || !title.trim()}>
-                {busy ? "저장 중…" : "저장"}
+                {busy ? tp("common.saving") : tp("common.save")}
               </Button>
             )}
           </div>

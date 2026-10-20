@@ -166,7 +166,7 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
           aria-label={t('colors.mode')}
           value={c.mode}
           onChange={(e) => c.setMode(e.target.value as Mode)}
-          className="rounded border bg-surface p-1"
+          className="min-h-9 rounded border bg-surface p-1 sm:min-h-0"
         >
           <option value="CATEGORY">{t('colors.category')}</option>
           <option value="ASSIGNEE">{t('colors.assignee')}</option>
@@ -261,7 +261,7 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
                         aria-label={`${row.name}: ${t(`colors.palette.${p}`)}`}
                         aria-pressed={selected === p}
                         onClick={() => choose(row.id, p)}
-                        className={`h-7 w-7 rounded-full border-2 ${selected === p ? 'ring-2 ring-accent-500 ring-offset-2' : ''}`}
+                        className={`h-9 w-9 sm:h-7 sm:w-7 rounded-full border-2 ${selected === p ? 'ring-2 ring-accent-500 ring-offset-2' : ''}`}
                         style={{
                           backgroundColor: CAL_PALETTE[p][0],
                           borderColor: CAL_PALETTE[p][1],

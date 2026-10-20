@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useIntegrationBackLink } from '../components/require-tenant-settings';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Bot, KeyRound, Loader2, PlugZap, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ const MODELS: Record<AiProvider, string[]> = {
 
 export function AiConfigPage() {
   const { t } = useTranslation('common'); const toast = useToast();
+  const backTo = useIntegrationBackLink();
   const query = useAiConfig(); const save = useSaveAiConfig(); const test = useTestAiConfig(); const remove = useRemoveAiKey();
   const [provider, setProvider] = useState<AiProvider>('OPENAI'); const [modelId, setModelId] = useState('');
   const [apiKey, setApiKey] = useState(''); const [baseUrl, setBaseUrl] = useState('');
@@ -25,7 +27,7 @@ export function AiConfigPage() {
   const invalid = !modelId.trim() || (provider === 'CUSTOM_OPENAI_COMPATIBLE' && !baseUrl.trim());
   const error = () => toast.error(t('aiConfig.failed'));
   return <main className="w-full min-w-0 space-y-5">
-    <Link to="/admin/config" className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"><ArrowLeft size={16}/>{t('config.backToList')}</Link>
+    <Link to={backTo} className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"><ArrowLeft size={16}/>{t('config.backToList')}</Link>
     <header className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-start gap-3"><Bot className="mt-0.5 text-accent-700"/><div><h1 className="text-xl font-semibold text-primary">{t('aiConfig.title')}</h1><p className="text-sm text-secondary">{t('aiConfig.description')}</p></div></div><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isActive} onChange={e=>setIsActive(e.target.checked)}/>{t('aiConfig.active')}</label></header>
     {query.isLoading ? <p>{t('config.loading')}</p> : <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <section className="space-y-5 rounded-lg border bg-white p-6">

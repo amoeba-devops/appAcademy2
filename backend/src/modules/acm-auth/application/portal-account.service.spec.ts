@@ -85,6 +85,7 @@ describe('PortalAccountService.login (tenant scope)', () => {
     expect(res.user).toMatchObject({ entId: 'ent-1', kind: 'STUDENT', refId: 'std-1' });
     expect(jwt.sign).toHaveBeenCalledWith(
       expect.objectContaining({ entId: 'ent-1', kind: 'STUDENT', refId: 'std-1' }),
+      { expiresIn: '4h' }, // REQ-261019B — 브라우저(헤더 없음) 4시간
     );
   });
 });

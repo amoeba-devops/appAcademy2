@@ -1,4 +1,7 @@
 {
+  "numericInput": {
+    "invalid": "Enter a valid number."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -38,7 +41,7 @@
       "calendar": "Schedule",
       "materials": "Docs & Files",
       "students": "My Students",
-      "chat": "Lobby Chat",
+      "chat": "Chat",
       "me": "My page"
     },
     "login": {
@@ -245,7 +248,7 @@
     "notifications": "Notifications",
     "enrollments": "Enrollments",
     "systemAdmin": "System Admin",
-    "chat": "Lobby Chat",
+    "chat": "Chat",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "expandMenu": "Expand menu",
@@ -440,6 +443,10 @@
       "ga4": {
         "title": "GA4 Visitors",
         "description": "Auto-collect daily visitors from Google Analytics 4 — Dashboard Marketing · Visitor"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "Connect project documents and files to the company Google Drive."
       }
     },
     "mail": {
@@ -961,7 +968,8 @@
       "ISSUE_MENTION": "Mentioned you in an issue",
       "ISSUE_MENTION_COMMENT": "Mentioned you in an issue comment",
       "PASSWORD_RESET_REQUEST": "A password reset was requested"
-    }
+    },
+    "mentionBadge": "Mention"
   },
   "pay": {
     "title": "Collections",
@@ -1218,7 +1226,8 @@
     "site": "Site",
     "actions": "Actions",
     "baseline": "Baseline",
-    "knownWithdrawn": "Known withdrawals"
+    "knownWithdrawn": "Known withdrawals",
+    "historyNoticeSummary": "History incomplete — view details"
   },
   "configAccess": {
     "loading": "Checking access…",
@@ -1266,7 +1275,10 @@
     "ios": "On iPhone/iPad, add ACM to the Home Screen and enable notifications from the installed app.",
     "unconfigured": "Server push setup is not ready.",
     "failed": "Connection failed. Check permission and network, then try again.",
-    "close": "Close"
+    "close": "Close",
+    "banner": "Get notifications on this device — chat and consultation alerts right away",
+    "turnOn": "Turn on",
+    "dismiss": "Dismiss"
   },
   "reviewMissing": {
     "feedback": "Feedback",
@@ -1278,7 +1290,8 @@
     "required": "Tenant master permission is required.",
     "tabs": {
       "menus": "Menu visibility",
-      "general": "General"
+      "general": "General",
+      "integrations": "Integrations"
     },
     "roles": {
       "ADMIN": "Admin",
@@ -1292,7 +1305,8 @@
       "locked": "Not available to this role by policy",
       "reset": "Reset (show all)",
       "resetConfirm": "Reset menus for all roles to the default (all visible)?"
-    }
+    },
+    "integrationsDesc": "Manage AI engine, AMA, video classes, Kakao notifications and GA4 visitor settings."
   },
   "issues": {
     "title": "Issues",
@@ -1695,7 +1709,8 @@
     "result": {
       "failed": "Could not complete the Google connection. Please try again.",
       "workspaceRequired": "Only company Google Workspace accounts can be connected. Personal Gmail (@gmail.com) accounts are not allowed.",
-      "cancelled": "Connection cancelled. You can connect again."
+      "cancelled": "Connection cancelled. You can connect again.",
+      "scopeRequired": "Google Drive access was not granted. Connect again and tick the Google Drive item on the consent screen."
     },
     "notConfigured": "The Google OAuth app is not configured for this server. Contact the administrator.",
     "account": {
@@ -1704,11 +1719,11 @@
       "ok": "Connected",
       "needsReconnect": "Reconnect required",
       "connectedAt": "Connected {{at}} by {{by}}",
-      "reconnectHint": "Google authorization expired or was revoked. Until you reconnect, uploads are saved to ACM storage.",
+      "reconnectHint": "Google authorization has expired, or the full Drive access needed to show shared-folder files is missing. Sign in again with 'Reconnect'. Until then, uploads are saved to ACM storage.",
       "login": "Sign in with company Google account",
       "reconnect": "Reconnect / change account",
       "disconnect": "Disconnect",
-      "disconnectConfirm": "Disconnecting stops saving to Google Drive; uploads will go to ACM storage. Google originals and project records are kept.",
+      "disconnectConfirm": "Disconnecting stops saving to Google Drive; uploads will go to ACM storage. Google originals and project records are kept. The shared folder setting is also cleared and is restored automatically when you reconnect the same account.",
       "workspaceOnly": "Only Google Workspace accounts on a company domain can be connected."
     },
     "readOnly": "Only the service operator can connect and set the shared folder.",
@@ -1733,10 +1748,13 @@
       "drive": "Company Google Drive",
       "acm": "ACM storage",
       "notConnectedHint": "Once the company Google Drive is connected, you can choose where to save.",
-      "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage."
+      "reconnectHint": "Google Drive needs reconnecting, so files are saved to ACM storage.",
+      "rootMissingHint": "No shared root folder is set for the company Google Drive.",
+      "rootMissingAdmin": "Set the shared folder in Drive settings."
     },
     "notReadyHint": "The company Google Drive shared folder is not set yet, so creating Google files and uploading to Drive are unavailable. You can still upload files to ACM storage.",
-    "goSettings": "Go to Drive settings"
+    "goSettings": "Go to Drive settings",
+    "askAdmin": "Ask an administrator to set the shared folder."
   },
   "docsCreate": {
     "title": "New",
@@ -1844,5 +1862,222 @@
     },
     "cancel": "Cancel",
     "close": "Close"
+  },
+  "invite": {
+    "title": "Invite users",
+    "cardDescription": "Invite administrators and staff by email.",
+    "description": "Invitees finish signing up by setting a password from the link in the email. Links are valid for 72 hours and can be used once.",
+    "new": "Invite",
+    "send": "Send invitation",
+    "sending": "Sending…",
+    "loading": "Loading…",
+    "empty": "No invitations.",
+    "status": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "EXPIRED": "Expired",
+      "REVOKED": "Revoked",
+      "ALL": "All"
+    },
+    "roles": {
+      "ADMIN": "Administrator",
+      "STAFF": "Staff"
+    },
+    "configAdmin": "Service operator",
+    "invitedBy": "Invited by {{by}} · {{at}}",
+    "acceptedAt": "Accepted {{at}}",
+    "expiresAt": "Until {{at}}",
+    "resend": "Resend",
+    "revoke": "Revoke",
+    "revokeTitle": "Revoke this invitation?",
+    "revokeDesc": "The link that was sent will stop working.",
+    "fields": {
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "grantConfigAdmin": "Also grant service operator permission",
+      "grantConfigAdminHint": "Can manage service settings (invites, mail, …). Tenant master permission cannot be granted by invitation."
+    },
+    "resultTitle": "Invitation sent",
+    "mailSent": "The invitation email was sent.",
+    "mailNotSent": "Mail is not configured or could not be sent. Share the invitation link below directly.",
+    "copy": "Copy",
+    "onceOnly": "The link cannot be shown again after you close this window (resending creates a new link).",
+    "validUntil": "Valid until {{until}}",
+    "errors": {
+      "exists": "This email is already registered.",
+      "email": "Check the email format.",
+      "name": "Enter a name.",
+      "handled": "This invitation has already been handled.",
+      "failed": "Could not complete. Please try again.",
+      "load": "Could not load invitations."
+    },
+    "accept": {
+      "title": "ACM invitation",
+      "intro": "{{tenant}} invited {{name}} as {{role}}. Set a password to get started.",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "policy": "At least 8 characters with letters and numbers.",
+      "mismatch": "Passwords do not match.",
+      "submit": "Sign up and start",
+      "submitting": "Signing up…",
+      "invalid": "This invitation link has expired or was already used. Ask your administrator for a new one.",
+      "rateLimited": "Too many requests. Please try again shortly.",
+      "failed": "Could not sign up. Please try again."
+    },
+    "tabs": {
+      "users": "Registered users",
+      "invites": "Invitations"
+    },
+    "users": {
+      "types": {
+        "ALL": "All",
+        "ADMIN": "Administrators",
+        "STAFF": "Staff",
+        "TEACHER": "Teachers",
+        "STUDENT": "Students"
+      },
+      "search": "Search name or email",
+      "empty": "No users match.",
+      "loadError": "Could not load users.",
+      "login": {
+        "local": "Local",
+        "ama": "AMA",
+        "portal": "Portal"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "Service operator",
+        "TENANT_MASTER": "Tenant master"
+      },
+      "locked": "Locked",
+      "inactive": "Inactive",
+      "cols": {
+        "name": "Name",
+        "loginId": "Email / login ID",
+        "type": "Type",
+        "login": "Sign-in",
+        "flags": "Permissions · status",
+        "createdAt": "Joined",
+        "lastLogin": "Last sign-in"
+      }
+    }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM storage",
+    "acmHint": "Stored on the ACM server only (not visible in Google Drive)",
+    "openInDrive": "Open folder in Google Drive",
+    "uploadTitle": "Upload file",
+    "pick": "Choose or drop a file (up to {{mb}}MB)",
+    "tooLarge": "Files must be {{mb}}MB or smaller.",
+    "driveUploadTo": "Uploads go to: {{path}}",
+    "driveProjectHint": "Project files uploaded from Documents › Files are stored in per-project folders (shared folder › project name).",
+    "cols": {
+      "title": "Title",
+      "project": "Project",
+      "location": "Stored in",
+      "updated": "Last modified",
+      "author": "Author",
+      "size": "Size",
+      "mode": "Storage",
+      "actions": "Actions"
+    }
+  },
+  "pwa": {
+    "install": "Install app",
+    "installTitle": "Install the ACM app",
+    "installDesc": "Open it from your home screen and receive notifications.",
+    "iosGuideBefore": "In Safari, tap",
+    "iosGuideAfter": "[Share] → [Add to Home Screen].",
+    "share": "Share",
+    "iosPushNote": "On iPhone, notifications work only in the installed app.",
+    "updateAvailable": "A new version is available.",
+    "reload": "Reload",
+    "startTitle": "Welcome to ACM",
+    "startConsole": "Console sign-in (admins · staff · teachers)",
+    "startPortal": "Portal sign-in (students · parents · teachers)"
+  },
+  "itemDelete": {
+    "button": "Delete",
+    "title": "Delete '{{name}}'?",
+    "localDesc": "It will be removed from the list.",
+    "googleDesc": "It is removed from ACM only; the Google Drive original stays.",
+    "done": "Deleted.",
+    "failed": "Could not delete. Check your permission."
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "Manage incoming consultations by stage."
+    },
+    "std": {
+      "desc": "Manage students and class information for each site."
+    },
+    "stdWithdrawn": {
+      "desc": "View withdrawn students and reinstate them."
+    },
+    "parents": {
+      "desc": "Manage parent contacts and their linked students."
+    },
+    "tch": {
+      "desc": "Manage teacher details, assigned classes and portal accounts."
+    },
+    "complaints": {
+      "desc": "Record complaints and track their handling status."
+    },
+    "projects": {
+      "desc": "Manage the projects you join or own, along with their documents and issues.",
+      "create": "Create project",
+      "joined": "Joined projects",
+      "owned": "Owned projects",
+      "driveConnect": "Connect Google Drive"
+    },
+    "issues": {
+      "desc": "Manage project issues by status."
+    },
+    "inbox": {
+      "title": "Inbox",
+      "desc": "Check the notifications you have received."
+    },
+    "more": "More",
+    "dashboard": {
+      "desc": "Pick a period and site to see consultation, class, and student status."
+    },
+    "myWork": {
+      "desc": "See today's tasks and the issues assigned to you in one place."
+    },
+    "calStats": {
+      "desc": "See teacher and class progress by period."
+    },
+    "pay": {
+      "desc": "Manage monthly billing and payment status.",
+      "currency": "Currency: KRW"
+    },
+    "config": {
+      "desc": "Set up user invitations and mail, ads and Drive integrations."
+    },
+    "myPage": {
+      "desc": "Manage your profile, emergency contacts and password."
+    },
+    "chat": {
+      "desc": "Talk with teachers and staff."
+    },
+    "cal": {
+      "desc": "Manage class and consultation schedules on a calendar."
+    },
+    "drive": {
+      "desc": "Manage files in the company Google Drive shared folders."
+    },
+    "projectDetail": {
+      "edit": "Edit project",
+      "info": "Project info",
+      "tabs": {
+        "overview": "Overview",
+        "documents": "Documents",
+        "issues": "Issues"
+      }
+    }
+  },
+  "session": {
+    "expired": "Your session has expired. Please sign in again."
   }
 }

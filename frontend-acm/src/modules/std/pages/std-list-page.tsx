@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +31,7 @@ export function StdListPage({
   withdrawn?: boolean;
 }) {
   const { t } = useTranslation("std");
+  const { t: tc } = useTranslation("common");
   const location = useLocation();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -171,59 +175,57 @@ export function StdListPage({
   });
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          {(fixedSite || withdrawn) && (
-            <Button variant="ghost" onClick={() => navigate("/admin/std")}>
-              {t("navigation.integrated")}
-            </Button>
-          )}
-          <h1 className="text-2xl font-semibold">
-            {withdrawn
-              ? t("navigation.withdrawnTitle")
-              : fixedSite
-                ? `${t(`site.${fixedSite}`)} · ${t("title")}`
-                : t("navigation.integratedTitle")}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          {canBulk && !withdrawn && (
-            <Button variant="outline" onClick={() => setShowImport(true)}>
-              {t("actions.import")}
-            </Button>
-          )}
-          <Button
-            onClick={() => {
-              setPrefill(
-                STD_SITES.includes(site as (typeof STD_SITES)[number])
-                  ? { stdSite: site as (typeof STD_SITES)[number] }
-                  : undefined,
-              );
-              setShowCreate(true);
-            }}
-          >
-            {t(withdrawn ? "navigation.createWithdrawn" : "actions.create")}
-          </Button>
-        </div>
-      </div>
-      {!fixedSite && (
-        <div
-          className="mb-4 flex gap-2 overflow-x-auto"
-          aria-label={t("site.label")}
-        >
-          {["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => (
+      <PageHeader
+        icon={UserRound}
+        title={tc("nav.std")}
+        description={
+          withdrawn
+            ? `${t("navigation.withdrawnTitle")} · ${tc("pageHeader.stdWithdrawn.desc")}`
+            : fixedSite
+              ? `${t(`site.${fixedSite}`)} · ${tc("pageHeader.std.desc")}`
+              : tc("pageHeader.std.desc")
+        }
+        back={
+          fixedSite || withdrawn
+            ? { to: "/admin/std", label: t("navigation.integrated") }
+            : undefined
+        }
+        actions={
+          <>
+            {canBulk && !withdrawn && (
+              <Button variant="outline" onClick={() => setShowImport(true)}>
+                {t("actions.import")}
+              </Button>
+            )}
             <Button
-              key={key}
-              variant={site === key ? "default" : "outline"}
-              aria-pressed={site === key}
-              onClick={() => change({ site: key })}
-              className="whitespace-nowrap"
+              onClick={() => {
+                setPrefill(
+                  STD_SITES.includes(site as (typeof STD_SITES)[number])
+                    ? { stdSite: site as (typeof STD_SITES)[number] }
+                    : undefined,
+                );
+                setShowCreate(true);
+              }}
             >
-              {t(`site.${key}`)} ({data?.siteCounts?.[key] ?? "—"})
+              {t(withdrawn ? "navigation.createWithdrawn" : "actions.create")}
             </Button>
-          ))}
-        </div>
-      )}
+          </>
+        }
+        tabs={
+          !fixedSite ? (
+            <UnderlineTabs
+              label={t("site.label")}
+              items={["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => ({
+                key,
+                label: t(`site.${key}`),
+                count: data?.siteCounts?.[key],
+              }))}
+              value={site}
+              onChange={(key) => change({ site: key })}
+            />
+          ) : undefined
+        }
+      />
       <StdFilters
         scope={withdrawn ? "WITHDRAWN" : "CURRENT"}
         value={filters}
@@ -330,6 +332,7 @@ export function StdListPage({
       )}
       <div className="mt-4 flex items-center justify-end gap-3">
         <select
+          className="min-h-9 sm:min-h-0"
           aria-label={t("site.pageSize")}
           value={limit}
           onChange={(e) => change({ limit: e.target.value })}

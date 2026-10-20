@@ -280,7 +280,7 @@ function LevelBadge({ level }: { level: AmaPlatformUser['level'] }) {
           : 'bg-amber-100 text-amber-800 border-amber-200';
   return (
     <span
-      className={`inline-flex items-center rounded border px-1.5 text-[10px] font-semibold uppercase tracking-wide ${styles}`}
+      className={`inline-flex items-center rounded border px-1.5 text-xs font-semibold uppercase tracking-wide ${styles}`}
     >
       {level}
     </span>

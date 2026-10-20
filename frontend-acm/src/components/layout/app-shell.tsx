@@ -1,3 +1,4 @@
+import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
@@ -48,6 +49,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { InstallAppNavButton } from "@/components/pwa/install-app";
 import { clsx } from "clsx";
 import { useQuery } from "@tanstack/react-query";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -209,6 +211,7 @@ export function AppShell() {
   )?.group;
 
   const onLogout = () => {
+    forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clear();
     navigate("/login", { replace: true });
   };
@@ -307,7 +310,7 @@ export function AppShell() {
             )
           )}
           {/* REQ-260621 — brand now links to the admin home, label simplified to "ACM". */}
-          <Link to="/admin" className="font-semibold text-lg text-accent-700">
+          <Link to="/admin" className="inline-flex min-h-10 items-center px-1 font-semibold text-lg text-accent-700 sm:min-h-0 sm:px-0">
             ACM
           </Link>
         </div>
@@ -465,6 +468,8 @@ export function AppShell() {
                 </Link>
               </div>
             ))}
+          {/* REQ-261018D — 앱 설치(설치 가능할 때만) */}
+          <InstallAppNavButton iconOnly={iconOnly} />
           <button
             type="button"
             onClick={onLogout}

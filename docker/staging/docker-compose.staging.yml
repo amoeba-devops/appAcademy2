@@ -126,7 +126,9 @@ services:
       ACM_GOOGLE_PICKER_KEY: ${ACM_GOOGLE_PICKER_KEY:-}
       ACM_GOOGLE_PROJECT_NUMBER: ${ACM_GOOGLE_PROJECT_NUMBER:-}
       ACM_JWT_SECRET: ${ACM_JWT_SECRET}
-      ACM_JWT_EXPIRES_IN: ${ACM_JWT_EXPIRES_IN:-12h}
+      # REQ-261019B — 로그인 유지: 설치한 앱 8h, 그 외 4h
+      ACM_JWT_EXPIRES_IN_WEB: ${ACM_JWT_EXPIRES_IN_WEB:-4h}
+      ACM_JWT_EXPIRES_IN_PWA: ${ACM_JWT_EXPIRES_IN_PWA:-8h}
       # AMA SSO verification mode — 'local_config' = verify Custom App/Category
       # tokens with the per-tenant secret from /admin/config (REQ-260609D, the
       # mode this deployment uses); 'ama_session' = OAuth gateway exchange +

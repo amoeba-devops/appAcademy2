@@ -1,4 +1,4 @@
-import { PushSettings, PushSessionSync } from "./push-settings";
+import { PushEnableBanner, PushSettings, PushSessionSync } from "./push-settings";
 import { useCallback, useEffect, useState } from "react";
 import {
   useInfiniteQuery,
@@ -6,7 +6,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/auth.store";
@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import type { InboxItem, InboxPage } from "./types-inbox";
 
 type InboxMode = "admin" | "portal";
@@ -158,16 +159,16 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
           <DialogHeader>
             <DialogTitle>{t("inbox.title")}</DialogTitle>
           </DialogHeader>
-          <Button
-            onClick={() => {
+          {linkError && <p role="alert">{t("inbox.unavailable")}</p>}
+          <InboxList
+            mode={mode}
+            compact
+            onNavigate={() => setOpen(false)}
+            onSettings={() => {
               setOpen(false);
               setSettings(true);
             }}
-          >
-            {t("push.title")}
-          </Button>
-          {linkError && <p role="alert">{t("inbox.unavailable")}</p>}
-          <InboxList mode={mode} compact onNavigate={() => setOpen(false)} />
+          />
         </DialogContent>
       </Dialog>
     </>
@@ -178,14 +179,20 @@ function Summary({ item }: { item: InboxItem }) {
   const p = item.payload;
   return (
     <>
-      <span className="block font-medium">
+      <span className="flex items-center gap-1.5 font-medium">
         {t(
           "inbox.events." +
             (item.type === "ISSUE_MENTION" && p.commentId ? "ISSUE_MENTION_COMMENT" : item.type),
         )}
+        {/* REQ-261020C — 멘션은 일반 알림과 구분 */}
+        {(item.type === "CHAT_MENTION" || item.type === "ISSUE_MENTION") && (
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+            {t("inbox.mentionBadge")}
+          </span>
+        )}
       </span>
       <span className="block truncate text-sm text-secondary">
-        {item.type === "ISSUE_MENTION"
+        {item.type === "ISSUE_MENTION" || item.type.startsWith("CHAT_")
           ? [p.senderName, p.title].filter(Boolean).join(" · ")
           : p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
         {p.fromStage && p.toStage
@@ -206,10 +213,13 @@ export function InboxList({
   compact = false,
   mode = "admin",
   onNavigate,
+  onSettings,
 }: {
   compact?: boolean;
   mode?: InboxMode;
   onNavigate?: () => void;
+  /** REQ-261020C — 머리 줄 ⚙(알림 설정) */
+  onSettings?: () => void;
 }) {
   const { t, i18n } = useTranslation("common");
   const { key } = useInboxSession(mode);
@@ -250,8 +260,10 @@ export function InboxList({
   const items = query.data?.pages.flatMap((p) => p.items) ?? [];
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex gap-2">
+      <PushEnableBanner mode={mode} />
+      {/* REQ-261020C — 전체/안 읽음 · 모두 읽음 · ⚙ 를 한 줄로 */}
+      <div className="flex flex-nowrap items-center justify-between gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button
             variant={unread ? "outline" : "default"}
             size="sm"
@@ -267,16 +279,30 @@ export function InboxList({
             {t("inbox.unread")}
           </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={
-            !query.data || all.isPending || !query.data.pages[0].unreadCount
-          }
-          onClick={() => all.mutate()}
-        >
-          {t("inbox.readAll")}
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={
+              !query.data || all.isPending || !query.data.pages[0].unreadCount
+            }
+            onClick={() => all.mutate()}
+          >
+            {t("inbox.readAll")}
+          </Button>
+          {onSettings && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2"
+              aria-label={t("push.title")}
+              title={t("push.title")}
+              onClick={onSettings}
+            >
+              <Settings size={16} />
+            </Button>
+          )}
+        </div>
       </div>
       {(open.isError || all.isError) && (
         <p role="alert" className="text-sm text-red-600">
@@ -361,10 +387,23 @@ export function InboxList({
 }
 export function NotificationInboxPage() {
   const { t } = useTranslation("common");
+  const [settings, setSettings] = useState(false);
   return (
-    <section className="mx-auto max-w-3xl space-y-4">
-      <h1 className="text-xl font-semibold">{t("inbox.title")}</h1>
-      <InboxList />
+    <section className="mx-auto max-w-3xl">
+      <PageHeader
+        icon={Bell}
+        title={t("pageHeader.inbox.title")}
+        description={t("pageHeader.inbox.desc")}
+      />
+      <InboxList onSettings={() => setSettings(true)} />
+      <Dialog open={settings} onOpenChange={setSettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("push.title")}</DialogTitle>
+          </DialogHeader>
+          <PushSettings mode="admin" />
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

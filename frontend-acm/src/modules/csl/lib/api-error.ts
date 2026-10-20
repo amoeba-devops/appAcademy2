@@ -28,29 +28,22 @@ export function apiErrorParts(e: unknown): { code?: string; message?: string } {
   return { code: data?.error?.code, message };
 }
 
-const TRANSITION_DEFAULTS: Record<string, string> = {
-  TRANSITION_NOT_ALLOWED: "현재 단계에서 이동할 수 없는 단계입니다.",
-  ANONYMOUS_CANNOT_PROGRESS:
-    "익명 상담은 학생 이름을 먼저 입력해야 다음 단계로 갈 수 있습니다.",
-  GATE_TRIAL_SKIP_REQUIRES_MAP:
-    "접수에서 바로 데모수업으로 가려면 이전 MAP 점수 또는 응시료 납부/면제 기록이 필요합니다.",
-  GATE_TRIAL_CLASS_REQUIRED:
-    "수강상담 단계로 가려면 데모수업 기록이 1건 이상 필요합니다. 3단계 패널에서 데모수업을 등록하세요.",
-  GATE_COUNSEL_NOT_DONE:
-    "결제 단계로 가려면 수강상담 완료(예)로 표시해야 합니다.",
-  GATE_TUITION_NOT_PAID:
-    "수업 시작 단계로 가려면 수강료 납부가 확인돼야 합니다.",
-  GATE_STUDENT_NOT_REGISTERED:
-    "수강중으로 바꾸려면 학생이 학생관리에 등록돼 있어야 합니다.",
-  SKIP_TRIAL_FORBIDDEN:
-    "데모수업 건너뛰기는 관리자(ADMIN·STAFF)만 할 수 있습니다.",
-  SKIP_TRIAL_ONLY_FOR_COUNSELING:
-    "데모수업 건너뛰기는 등록상담 단계로 갈 때만 가능합니다.",
-};
+/** `csl:transition.errors.<code>` 로 번역되는 단계 전환 오류 코드. */
+const TRANSITION_ERROR_CODES = new Set<string>([
+  "TRANSITION_NOT_ALLOWED",
+  "ANONYMOUS_CANNOT_PROGRESS",
+  "GATE_TRIAL_SKIP_REQUIRES_MAP",
+  "GATE_TRIAL_CLASS_REQUIRED",
+  "GATE_COUNSEL_NOT_DONE",
+  "GATE_TUITION_NOT_PAID",
+  "GATE_STUDENT_NOT_REGISTERED",
+  "SKIP_TRIAL_FORBIDDEN",
+  "SKIP_TRIAL_ONLY_FOR_COUNSELING",
+]);
 
 /**
  * 단계 전환 실패 문구. `csl:transition.errors.<code>` 키가 있으면 그것을,
- * 없으면 한국어 기본 문구, 그마저 없으면 서버 message → fallback.
+ * 없으면 서버 message → fallback.
  */
 export function transitionErrorMessage(
   t: TFunction,
@@ -58,10 +51,8 @@ export function transitionErrorMessage(
   fallback: string,
 ): string {
   const { code, message } = apiErrorParts(e);
-  if (code && TRANSITION_DEFAULTS[code]) {
-    return t(`csl:transition.errors.${code}`, {
-      defaultValue: TRANSITION_DEFAULTS[code],
-    });
+  if (code && TRANSITION_ERROR_CODES.has(code)) {
+    return t(`csl:transition.errors.${code}`);
   }
   return message ?? (e as ApiErrorLike)?.message ?? fallback;
 }

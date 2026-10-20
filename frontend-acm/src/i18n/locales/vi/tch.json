@@ -99,7 +99,8 @@
     "sectionSubjects": "Môn dạy",
     "sectionAccount": "Tài khoản",
     "sectionResetPassword": "Đặt lại mật khẩu",
-    "sectionAccountLock": "Khóa tài khoản"
+    "sectionAccountLock": "Khóa tài khoản",
+    "sectionAmaPicker": "Danh bạ AMA"
   },
   "hint": {
     "passwordPolicy": "Tối thiểu 8 ký tự, gồm chữ và số.",
@@ -129,14 +130,19 @@
     "hint": "PDF / JPG / PNG · Tối đa 10 MB",
     "empty": "Chưa có tệp.",
     "actions": {
-      "upload": "Tải tệp"
+      "upload": "Tải tệp",
+      "add": "Thêm tệp"
     },
     "confirm": {
       "delete": "Xóa tệp này?"
     },
     "error": {
       "mime": "Định dạng không hỗ trợ (PDF/JPG/PNG).",
-      "size": "Kích thước tối đa 10 MB."
+      "size": "Kích thước tối đa 10 MB.",
+      "uploadFailed": "Tải tệp đính kèm thất bại: {{name}} ({{msg}})"
+    },
+    "staged": {
+      "empty": "Chưa thêm tệp nào"
     }
   },
   "profile": {

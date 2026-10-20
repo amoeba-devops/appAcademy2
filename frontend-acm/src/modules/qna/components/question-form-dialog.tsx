@@ -122,7 +122,7 @@ export function QuestionFormDialog({ open, initial, categories, onClose, onSaved
           <button
             onClick={submit}
             disabled={submitting || subject.trim().length < 2 || !body.trim()}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded disabled:opacity-50"
+            className="px-3 py-1.5 bg-accent-600 text-white rounded disabled:opacity-50"
           >
             {submitting ? tc('actions.saving') : tc('actions.save')}
           </button>

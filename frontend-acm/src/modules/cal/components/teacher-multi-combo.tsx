@@ -45,7 +45,7 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
   const add = (tch: TeacherDetail) => {
     if (selectedIds.has(tch.id)) return;
     if (value.length >= max) {
-      setWarn(t('filter.maxSelected', { defaultValue: '최대 {{n}}명까지 선택할 수 있습니다.', n: max }));
+      setWarn(t('filter.maxSelected', { n: max }));
       return;
     }
     setWarn(null);
@@ -62,13 +62,13 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
       {value.map((tch) => (
         <span
           key={tch.id}
-          className="inline-flex h-7 items-center gap-1 rounded-full border border-[var(--border-subtle)] bg-[var(--gray-50)] px-2 text-xs"
+          className="inline-flex h-9 sm:h-7 items-center gap-1 rounded-full border border-[var(--border-subtle)] bg-[var(--gray-50)] px-2 text-xs"
         >
           <span className="truncate max-w-[120px]">{tch.name}</span>
           <button
             type="button"
             onClick={() => remove(tch.id)}
-            className="opacity-60 hover:opacity-100"
+            className="p-1 opacity-60 hover:opacity-100 sm:p-0"
             aria-label="remove"
           >
             <X size={12} />
@@ -78,10 +78,10 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex h-7 items-center gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-canvas px-2 text-xs text-secondary hover:bg-[var(--gray-50)]"
+        className="flex h-9 sm:h-7 items-center gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-canvas px-2 text-xs text-secondary hover:bg-[var(--gray-50)]"
       >
         <Plus size={12} />
-        <span>{t('filter.addTeacher', '강사 추가')}</span>
+        <span>{t('filter.addTeacher')}</span>
       </button>
 
       {open && (
@@ -93,20 +93,20 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={t('filter.searchTeacher', '강사 이름 검색')}
-                className="h-7 w-full bg-transparent text-xs focus:outline-none"
+                placeholder={t('filter.searchTeacher')}
+                className="h-9 sm:h-7 w-full bg-transparent text-xs focus:outline-none"
               />
             </div>
           </div>
           <div className="max-h-64 overflow-y-auto py-1">
             {isLoading && (
               <p className="px-3 py-1.5 text-xs text-secondary">
-                {t('common:status.loading', '로딩…')}
+                {t('common:status.loading')}
               </p>
             )}
             {!isLoading && candidates.length === 0 && (
               <p className="px-3 py-1.5 text-xs text-secondary">
-                {t('invitee.empty', '결과가 없습니다.')}
+                {t('invitee.empty')}
               </p>
             )}
             {candidates.map((tch) => {
@@ -117,7 +117,7 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
                   type="button"
                   disabled={selected}
                   onClick={() => add(tch)}
-                  className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-[var(--gray-50)] ${
+                  className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 sm:py-1.5 text-left text-xs hover:bg-[var(--gray-50)] ${
                     selected ? 'opacity-50' : ''
                   }`}
                 >
@@ -128,14 +128,14 @@ export function TeacherMultiCombo({ value, onChange, max = 10 }: Props) {
                     )}
                   </span>
                   {selected && (
-                    <span className="text-[10px] text-accent-600">✓</span>
+                    <span className="text-xs text-accent-600">✓</span>
                   )}
                 </button>
               );
             })}
           </div>
           {warn && (
-            <p className="border-t border-[var(--border-subtle)] px-3 py-1.5 text-[11px] text-amber-600">
+            <p className="border-t border-[var(--border-subtle)] px-3 py-1.5 text-xs text-amber-600">
               {warn}
             </p>
           )}

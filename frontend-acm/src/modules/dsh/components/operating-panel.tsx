@@ -1,3 +1,4 @@
+import { NumericInput } from '@/components/ui/numeric-input';
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -141,7 +142,7 @@ export function OperatingPanel({
           <button
             onClick={open}
             disabled={!data || error}
-            className="text-xs underline"
+            className="text-xs underline min-h-9 sm:min-h-0"
           >
             {t("ops.edit")}
           </button>
@@ -209,7 +210,7 @@ export function OperatingPanel({
               ) : null,
             )}
           </svg>
-          <p className="text-[10px] text-secondary">
+          <p className="text-xs text-secondary">
             {t("ops.through", { date: data.actualThrough })}
           </p>
           {(data.quality.unverifiedManual > 0 ||
@@ -226,7 +227,7 @@ export function OperatingPanel({
             </details>
           )}
           <button
-            className="text-xs underline"
+            className="text-xs underline min-h-9 sm:min-h-0"
             onClick={() => {
               const header = [
                 "date",
@@ -279,7 +280,7 @@ export function OperatingPanel({
           {data?.metrics.filter(k=>!["ops_new_st","ops_returning_st","ops_referral_st"].includes(k)).map((k) => (
             <label key={k} className="block text-xs">
               {t(`ops.${k}`)}
-              <input
+              <NumericInput
                 className="w-20 border rounded ml-2"
                 type="number"
                 min="0"
@@ -301,7 +302,7 @@ export function OperatingPanel({
           >
             {t("ops.save")}
           </Button>
-          <button onClick={() => setEdit(false)}>{t("ops.close")}</button>
+          <button className="min-h-9 sm:min-h-0" onClick={() => setEdit(false)}>{t("ops.close")}</button>
         </div>
       )}
     </div>

@@ -245,7 +245,7 @@ export function MapApplyListPage() {
                   <td className="whitespace-nowrap px-2 py-2">
                     {fmtDateTime(r.submittedAt)}
                     {r.origin === 'IMPORT' && (
-                      <span className="ml-1 text-[10px] text-secondary">
+                      <span className="ml-1 text-xs text-secondary">
                         ({t('mapApply.origin.IMPORT')})
                       </span>
                     )}
@@ -276,7 +276,7 @@ export function MapApplyListPage() {
                   </td>
                   <td className="whitespace-nowrap px-2 py-2">
                     <span
-                      className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${
+                      className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${
                         STAGE_CLASS[r.currentStage] ?? ''
                       }`}
                     >

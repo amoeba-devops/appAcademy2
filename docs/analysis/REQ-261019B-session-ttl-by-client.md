@@ -1,0 +1,44 @@
+---
+document_id: ACM-SESSION-TTL-REQ-1.1.0
+version: 1.1.0
+status: Approved
+created: 2026-10-19
+change_log:
+  - version: 1.1.0
+    date: 2026-10-19
+    description: Approved as proposed (Q1 mobile browser 4h, Q2 all logins, Q3 fixed from login, Q4 existing tokens keep) / 제안대로 승인
+  - version: 1.0.0
+    date: 2026-10-19
+    description: Login session length by client — PC 4h, mobile PWA 8h / 접속 환경별 로그인 유지 시간
+---
+# Login Session Length by Client (접속 환경별 로그인 유지 시간)
+
+요청 원문: "피씨 접속 로그인 유지는 4시간 / 모바일 PWA 로그인 유지는 8시간 적용"
+
+## 1. Current (현황, 2026-10-19)
+
+| 항목 | 현재 |
+| --- | --- |
+| 로그인 방식 | 로그인하면 토큰(JWT) 1개 발급, 갱신(refresh) 없음 |
+| 유지 시간 | **모든 로그인 12시간**(`ACM_JWT_EXPIRES_IN` 기본값 12h, 운영 env 미설정) — 콘솔·AMA SSO·포털(학생·강사·학부모)·학부모 로그인 동일 |
+| 만료 후 | 다음 화면 요청에서 401 → 해당 로그인 화면으로 이동(returnTo 유지). 만료 안내 문구 없음 |
+| 저장 | 브라우저 localStorage(`acm-auth`) |
+
+## 2. Requirements (요구사항)
+
+| ID | 요구사항 |
+| --- | --- |
+| FR-1 | PC(브라우저) 로그인 유지 **4시간** |
+| FR-2 | 휴대폰에 **설치한 앱(PWA)** 로그인 유지 **8시간** |
+| FR-3 | 시간이 지나면 자동 로그아웃 → 로그인 화면에 "로그인 시간이 지나 다시 로그인해 주세요" 안내(4개 언어), 로그인 후 보던 화면으로 복귀 |
+| FR-4 | 유지 시간은 운영 설정(env)으로 바꿀 수 있게(`ACM_JWT_EXPIRES_IN_WEB=4h`, `ACM_JWT_EXPIRES_IN_PWA=8h`) |
+| NFR | 토큰 위·변조 불가(서버가 서명), 앱 여부는 화면이 알려주는 값이라 PWA 로 위장하면 최대 8시간까지만 — 허용 범위 |
+
+## 3. Open Questions (확인 사항)
+
+| Q | 내용 | 제안 |
+| --- | --- | --- |
+| Q1 | 휴대폰 **브라우저**(앱 설치 안 함) 로그인은? | **4시간**(PC 와 같음 — 8시간은 설치한 앱만) |
+| Q2 | 적용 범위 | **모든 로그인**: 운영 콘솔(직접·AMA SSO), 포털(학생·강사), 학부모 |
+| Q3 | 기준 | **로그인한 시점부터 고정 시간**(사용 중이어도 연장 안 됨). 사용할 때마다 연장하려면 갱신 토큰 구조가 필요해 별도 작업 |
+| Q4 | 이미 로그인한 사람(12시간 토큰) | 강제 로그아웃 없이 **남은 시간까지 유지**, 다음 로그인부터 적용 |

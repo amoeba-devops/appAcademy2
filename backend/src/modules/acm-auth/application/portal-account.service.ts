@@ -1,3 +1,4 @@
+import { sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   HttpException,
   HttpStatus,
@@ -304,7 +305,7 @@ export class PortalAccountService {
       loginId: acc.loginId,
       mustChangePassword: acc.mustChangePassword,
     };
-    return this.jwt.sign(payload);
+    return this.jwt.sign(payload, sessionSignOptions());
   }
 
   /** Look up an active student's trimmed email, or null when absent. */

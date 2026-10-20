@@ -253,7 +253,7 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
               ))}
             </Select>
             {teachers.length === 0 && (
-              <p className="text-[10px] text-red-600">
+              <p className="text-xs text-red-600">
                 {t("detail.trial.noTeachersHint")}
               </p>
             )}
@@ -531,7 +531,7 @@ function FeedbackTimeline({
     return ts ? new Date(ts).toLocaleString(dateLocale) : "—";
   }
   return (
-    <ul className="grid gap-0.5 text-[11px] text-secondary">
+    <ul className="grid gap-0.5 text-xs text-secondary">
       <li>
         ✍ {t("detail.trial.authoredAt")}:{" "}
         <span className={tcl.feedbackAuthoredAt ? "text-primary" : ""}>
