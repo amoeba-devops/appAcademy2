@@ -11,7 +11,9 @@ import { AcmCurrentUser } from '../../acm-common/decorators/current-user.decorat
 import { hasConfigPermission } from '../../acm-common/guards/config-admin.guard';
 import {
   DriveClient,
+  DRIVE_SCOPE,
   DriveReconnectRequired,
+  hasDriveScope,
   DriveWriteRejected,
   GoogleFile,
   googleStatusOf,
@@ -91,6 +93,8 @@ export class ProjectDriveService {
         grant_type: 'refresh_token',
         refresh_token: refresh,
       });
+      // 예전(drive.file) 연결은 토큰은 살아 있어도 공유폴더 파일이 안 보인다 → 재연결 안내.
+      if (!hasDriveScope(t.scope)) throw new DriveReconnectRequired();
       tokenCache.set(ent, {
         key,
         token: t.access_token,
@@ -153,7 +157,7 @@ export class ProjectDriveService {
       [u.entId, u.id, hash(state), verifier, safeReturn(path)],
     );
     return {
-      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: 'openid email https://www.googleapis.com/auth/drive.file', hd: '*', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
+      url: `https://accounts.google.com/o/oauth2/v2/auth?${new URLSearchParams({ client_id: this.google.setting('CLIENT_ID'), redirect_uri: this.google.setting('REDIRECT_URI'), response_type: 'code', scope: `openid email ${DRIVE_SCOPE}`, hd: '*', access_type: 'offline', prompt: 'consent select_account', state, code_challenge: createHash('sha256').update(verifier).digest('base64url'), code_challenge_method: 'S256' })}`,
     };
   }
   async callback(
@@ -192,6 +196,9 @@ export class ProjectDriveService {
         code_verifier: s.verifier,
       });
       if (!tokens.refresh_token) throw new Error('Missing refresh token');
+      // 동의 화면에서 Drive 권한 체크를 해제하면 파일을 볼 수 없다.
+      if (!hasDriveScope(tokens.scope))
+        return `${s.return_path}${s.return_path.includes('?') ? '&' : '?'}drive=scope_required`;
       const r = await fetch(
         'https://openidconnect.googleapis.com/v1/userinfo',
         {

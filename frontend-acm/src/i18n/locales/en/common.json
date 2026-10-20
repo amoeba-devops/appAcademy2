@@ -1703,7 +1703,8 @@
     "result": {
       "failed": "Could not complete the Google connection. Please try again.",
       "workspaceRequired": "Only company Google Workspace accounts can be connected. Personal Gmail (@gmail.com) accounts are not allowed.",
-      "cancelled": "Connection cancelled. You can connect again."
+      "cancelled": "Connection cancelled. You can connect again.",
+      "scopeRequired": "Google Drive access was not granted. Connect again and tick the Google Drive item on the consent screen."
     },
     "notConfigured": "The Google OAuth app is not configured for this server. Contact the administrator.",
     "account": {
@@ -1712,7 +1713,7 @@
       "ok": "Connected",
       "needsReconnect": "Reconnect required",
       "connectedAt": "Connected {{at}} by {{by}}",
-      "reconnectHint": "Google authorization expired or was revoked. Until you reconnect, uploads are saved to ACM storage.",
+      "reconnectHint": "Google authorization has expired, or the full Drive access needed to show shared-folder files is missing. Sign in again with 'Reconnect'. Until then, uploads are saved to ACM storage.",
       "login": "Sign in with company Google account",
       "reconnect": "Reconnect / change account",
       "disconnect": "Disconnect",

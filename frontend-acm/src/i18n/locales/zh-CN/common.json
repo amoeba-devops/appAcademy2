@@ -1703,7 +1703,8 @@
     "result": {
       "failed": "未能完成 Google 连接，请重试。",
       "workspaceRequired": "只能连接公司 Google Workspace 账号，不能使用个人 Gmail（@gmail.com）。",
-      "cancelled": "已取消连接，可以重新连接。"
+      "cancelled": "已取消连接，可以重新连接。",
+      "scopeRequired": "未授予 Google Drive 访问权限。请重新连接，并在授权页面勾选 Google Drive 项。"
     },
     "notConfigured": "服务器尚未配置 Google OAuth 应用，请联系管理员。",
     "account": {
@@ -1712,7 +1713,7 @@
       "ok": "正常",
       "needsReconnect": "需要重新连接",
       "connectedAt": "{{at}} 由 {{by}} 连接",
-      "reconnectHint": "Google 授权已过期或被撤销。重新连接前，上传的文件将保存到 ACM 存储。",
+      "reconnectHint": "Google 授权已过期，或缺少显示共享文件夹文件所需的 Drive 完整权限。请通过“重新连接”重新登录。重新连接之前，上传的文件将保存到 ACM 存储。",
       "login": "使用公司 Google 账号登录",
       "reconnect": "重新连接 / 更换账号",
       "disconnect": "断开连接",

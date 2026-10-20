@@ -30,6 +30,14 @@ const LIST_FIELDS =
   'id,name,mimeType,size,parents,trashed,modifiedTime,createdTime,owners(displayName,emailAddress),thumbnailLink,webViewLink';
 export class DriveWriteRejected extends BadGatewayException {}
 /** Google refresh token 이 만료·철회됨. ACM 세션과 무관하므로 409. */
+/**
+ * FIX-261020 — drive.file 은 ACM 이 만든 파일만 보여 Drive 에서 직접 올린 파일이 목록에 안 나온다.
+ * 공유폴더를 그대로 보여주려면 Drive 전체 범위가 필요하다.
+ */
+export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive';
+/** Google 이 돌려준 scope 문자열(공백 구분)에 Drive 전체 범위가 있는지. 값이 없으면 판단하지 않는다. */
+export const hasDriveScope = (scope?: string) =>
+  scope === undefined || scope.split(' ').includes(DRIVE_SCOPE);
 export class DriveReconnectRequired extends ConflictException {
   constructor() {
     super({
@@ -64,6 +72,7 @@ export class DriveClient {
     access_token: string;
     refresh_token?: string;
     expires_in?: number;
+    scope?: string;
   }> {
     if (!this.ready())
       throw new ServiceUnavailableException('Google 연결 설정이 필요합니다.');
@@ -83,6 +92,7 @@ export class DriveClient {
       access_token: string;
       refresh_token?: string;
       expires_in?: number;
+      scope?: string;
     }>;
   }
   async request<T>(

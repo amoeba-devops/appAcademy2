@@ -20,7 +20,7 @@ interface GoogleAppView {
   updatedBy: string | null;
 }
 const URL_BASE = '/acm/system/google-oauth';
-const SCOPES = 'openid, email, https://www.googleapis.com/auth/drive.file';
+const SCOPES = 'openid, email, https://www.googleapis.com/auth/drive';
 
 function errText(e: unknown) {
   const x = e as { response?: { data?: { error?: { message?: string }; message?: string } } };
