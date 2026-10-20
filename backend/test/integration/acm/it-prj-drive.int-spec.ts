@@ -1,4 +1,8 @@
-import { ProjectFileService } from '../../../src/modules/acm-prj/application/project-file.service';
+import { Readable } from 'node:stream';
+import {
+  ProjectFileService,
+  openTicketFile,
+} from '../../../src/modules/acm-prj/application/project-file.service';
 import { ObjectStoreClient } from '../../../src/modules/acm-csl/infrastructure/external/object-store.client';
 import { SharedDriveService } from '../../../src/modules/acm-prj/application/shared-drive.service';
 import {
@@ -214,9 +218,15 @@ describe('Project / shared Drive isolation and durable operations', () => {
       buildKey: (ent: string, id: string, name: string) =>
         `${ent}/${id}/${name}`,
       putObject: jest.fn().mockResolvedValue(undefined),
-      presignGet: jest
-        .fn()
-        .mockResolvedValue('https://storage.example/download'),
+      presignGet: jest.fn(),
+      getObjectStream: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          stream: Readable.from([Buffer.from('test')]),
+          mime: 'application/pdf',
+          contentLength: 4,
+          partial: false,
+        }),
+      ),
     } as unknown as ObjectStoreClient;
     const svc = new ProjectFileService(
       projects,
@@ -237,9 +247,17 @@ describe('Project / shared Drive isolation and durable operations', () => {
     await svc.upload(owner, p.prj_id, dto, file);
     expect(store.putObject).toHaveBeenCalledTimes(1);
     await expect(svc.download(outsider, p.prj_id, op)).rejects.toThrow();
-    expect((await svc.download(owner, p.prj_id, op)).url).toBe(
-      'https://storage.example/download',
-    );
+    // REQ-261020 — 내부 MinIO 주소 대신 같은 서버의 5분 서명 링크, 내용은 서버가 스트림
+    const { url } = await svc.download(owner, p.prj_id, op);
+    expect(url).toMatch(/^\/api\/acm\/prj\/files\/content\?t=/);
+    expect(store.presignGet).not.toHaveBeenCalled();
+    const ticket = decodeURIComponent(url.split('t=')[1]);
+    const opened = await openTicketFile(ds, store, ticket);
+    expect(opened.filename).toBe('example.pdf');
+    let body = '';
+    for await (const chunk of opened.stream) body += String(chunk);
+    expect(body).toBe('test');
+    await expect(openTicketFile(ds, store, ticket + 'x')).rejects.toThrow();
     await projects.unlink(owner, p.prj_id, op);
     await expect(svc.download(owner, p.prj_id, op)).rejects.toThrow();
     await expect(svc.upload(owner, p.prj_id, dto, file)).rejects.toThrow();
