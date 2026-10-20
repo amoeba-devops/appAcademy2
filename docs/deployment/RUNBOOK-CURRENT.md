@@ -40,6 +40,8 @@ audience: Ops / Maintainer
 | Backend env example | `backend/.env.example` |
 | Current standard | `docs/standard/SPEC.md` |
 
+> 서버 사양·컨테이너·접속·백업 현황: [SERVER-261017-staging-production](SERVER-261017-staging-production.md)
+
 ## 3. Canonical host
 
 | 환경 | 호스트 |
