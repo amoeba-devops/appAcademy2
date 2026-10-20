@@ -1,4 +1,4 @@
-import { pushText } from './push-text';
+import { chatPreview, PREVIEW_MAX, pushText } from './push-text';
 
 describe('pushText (REQ-261020C)', () => {
   it('names the sender and channel for a chat mention', () => {
@@ -41,5 +41,34 @@ describe('pushText (REQ-261020C)', () => {
       }).body,
     ).toBe('A님이 이슈 댓글에서 나를 멘션했습니다 · 로그인 오류');
     expect(pushText({}).body).toBe('새 알림이 도착했습니다');
+  });
+  it('puts chat content in the body when a preview is given (REQ-261020D)', () => {
+    expect(
+      pushText(
+        {
+          type: 'CHAT_MENTION',
+          payload: { senderName: '김선생', title: '수학팀' },
+        },
+        '내일 3시 보강 가능할까요?',
+      ),
+    ).toEqual({
+      title: '김선생님이 채팅에서 나를 멘션했습니다 · 수학팀',
+      body: '내일 3시 보강 가능할까요?',
+    });
+    expect(
+      pushText({ type: 'CSL_STAGE', payload: { seqNo: 1 } }, 'ignored').title,
+    ).toBe('ACM');
+  });
+  it('builds a one-line preview: collapses whitespace, trims, shows files', () => {
+    expect(chatPreview({ type: 'TEXT', content: ' 안녕\n\n하세요  ' })).toBe(
+      '안녕 하세요',
+    );
+    expect(chatPreview({ type: 'FILE', filename: '시간표.pdf' })).toBe(
+      '📎 시간표.pdf',
+    );
+    const long = chatPreview({ type: 'TEXT', content: 'ㄱ'.repeat(200) });
+    expect(long).toHaveLength(PREVIEW_MAX);
+    expect(long.endsWith('…')).toBe(true);
+    expect(chatPreview(undefined)).toBe('');
   });
 });

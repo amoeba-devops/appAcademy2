@@ -1,9 +1,12 @@
 ---
-document_id: ACM-NOTIF-CHAT-PUSH-REQ-1.0.0
-version: 1.0.0
+document_id: ACM-NOTIF-CHAT-PUSH-REQ-1.1.0
+version: 1.1.0
 status: Approved
 created: 2026-10-20
 change_log:
+  - version: 1.1.0
+    date: 2026-10-20
+    description: REQ-261020D — chat content in lock-screen push / 채팅 내용 잠금 화면 노출
   - version: 1.0.0
     date: 2026-10-20
     description: Mobile chat push not delivered, chat mention in notifications, one-row inbox header / 모바일 채팅 알림·채팅 멘션·알림 화면 한 줄 정리
@@ -46,3 +49,15 @@ change_log:
 | --- | --- | --- |
 | Q1 | "알람에 채팅 멘션 추가"의 뜻 | 채팅 멘션은 이미 알림에 들어간다. FR-5(멘션 표시 구분) + FR-4(멘션 푸시 문구)로 해석. 다른 뜻이면 알려 주세요(예: 직원(STAFF)도 채팅 알림 받기) |
 | Q2 | 일반 채팅 메시지도 휴대폰 푸시를 보낼까? | 보냄(현재와 같음). 멘션만 받고 싶으면 개인 설정을 추가 — 이번 범위 밖으로 제안 |
+
+## 5. Addendum — REQ-261020D (채팅 내용 잠금 화면 노출, v1.1.0)
+
+요청 원문: "모바일 알림에서 내용까지 포함해서 잠금화면에 노출하기" — FR-4 의 "본문 미포함"을 바꾼다.
+
+| ID | 요구사항 |
+| --- | --- |
+| FR-4a | 채팅 푸시: 제목 = "○○님이 채팅에서 나를 멘션했습니다 · 채널" / "○○님의 새 메시지 · 채널", 본문 = **메시지 내용**(줄바꿈·공백 정리, 120자 초과 시 …). 파일은 "📎 파일명" |
+| FR-4b | 삭제된 메시지·내용 조회 실패 시 지금처럼 내용 없이 보낸다 |
+| FR-4c | 채팅 외 종류(상담·일정·이슈 등)는 변경 없음 |
+
+참고: 잠금 화면에 내용이 보이는 것은 휴대폰 설정(알림 미리보기 표시)에 따라 다르다 — iOS "미리보기 표시: 잠금 해제 시"면 잠금 화면에는 제목만 보인다.

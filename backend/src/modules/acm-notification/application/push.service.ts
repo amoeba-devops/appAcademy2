@@ -1,4 +1,4 @@
-import { pushText } from './push-text';
+import { chatPreview, pushText } from './push-text';
 import {
   BadRequestException,
   Injectable,
@@ -130,12 +130,34 @@ export class PushService {
         };
         const item = await this.inbox.unreadItem(u, row.inboxId);
         try {
+          // REQ-261020D — 채팅은 메시지 내용을 잠금 화면 미리보기로
+          const preview =
+            item?.type?.startsWith('CHAT_') && item.targetId
+              ? chatPreview(
+                  (
+                    await this.ds
+                      .query<
+                        {
+                          type: string;
+                          content: string;
+                          filename: string | null;
+                        }[]
+                      >(
+                        `SELECT tms_type AS type, tms_content AS content, tms_filename AS filename
+                         FROM amb_acm_talk_message WHERE ent_id=$1 AND tms_id=$2 AND deleted_at IS NULL`,
+                        [row.entId, item.targetId],
+                      )
+                      // 내용을 못 읽어도 알림은 보낸다(내용 없이)
+                      .catch(() => [])
+                  )[0],
+                )
+              : '';
           if (item)
             await webpush.sendNotification(
               row.subscription,
               JSON.stringify({
-                // REQ-261020C — 종류별 문구(본문 미포함)
-                ...pushText(item),
+                // REQ-261020C·D — 종류별 문구, 채팅은 내용 포함
+                ...pushText(item, preview),
                 url: this.clickHref(u, item),
                 tag: row.inboxId,
                 actor: `${row.entId}:${row.kind}:${row.recipient}`,
