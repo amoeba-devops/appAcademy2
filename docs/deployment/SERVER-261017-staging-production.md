@@ -1,11 +1,12 @@
 ---
 document_id: APP-ACADEMY-SERVER-INVENTORY-1.0.0
-version: 1.0.0
+version: 1.1.0
 status: Active
 created: 2026-10-17
 audience: Ops / Maintainer
 related: RUNBOOK-CURRENT, RUNBOOK-261017-fresh-environment, DEPLOY-SECRETS-SETUP
 change_log:
+  - 1.1.0 (2026-10-20): 프로덕션 새 서버(175.126.232.175) 전환 반영, 백업 복구, 구 서버 보존 정보
   - 1.0.0 (2026-10-17): 최초 작성 — 스테이징·프로덕션 서버 현황(프로덕션은 호스트 읽기 전용 점검, 스테이징은 저장소·외부 응답 기준)
 ---
 
@@ -18,17 +19,17 @@ change_log:
 
 | 항목 | Staging | Production |
 | --- | --- | --- |
-| URL | https://acm-stg.amoeba.site | https://acm.amoeba.site |
-| IP | 125.133.49.165 | 211.110.140.172 (hostname `qm391-0860`) |
-| 호스트 | 스테이징 전용(추정) | **공유 호스트** — 메일서버(amb-stalwart), sharptalk·btbz·ksr 스택과 함께 |
-| SSH 사용자 | `appacademy` | `appacademy` (root 작업은 별도 경로, 3.2) |
+| URL | https://acm-stg.amoeba.site | https://acm-tpi.amoeba.site (메인) · https://acm.amoeba.site |
+| IP | 125.133.49.165 | **175.126.232.175** (cafe24 `qm381-0103`) — 2026-10-17 전환. 구 서버 211.110.140.172 는 D+14(10-31)까지 보존 |
+| 호스트 | 스테이징 전용(추정) | ACM 전용 |
+| SSH 사용자 | `appacademy` | `appacademy`(키 전용, 제한 sudo) · root(키 전용) |
 | 배포 | `main` push → 자동 (`cd-staging.yml`) | 수동 `gh workflow run cd-production.yml -f sha=<short-sha>` |
-| 현재 배포 커밋 (10-17) | `516523d` | `516523d` |
+| 현재 배포 커밋 (10-20) | `332992f` | `332992f` |
 | 배포 스크립트 | `scripts/deploy-staging.sh` | `scripts/deploy-production.sh` |
 | Compose | `docker/staging/docker-compose.staging.yml` | `docker/production/docker-compose.production.yml` |
 | env 파일 (호스트) | `~/app-academy/docker/staging/.env.staging` | `~/app-academy/docker/production/.env.production` |
 | NODE_ENV | production | production |
-| TLS 인증서 | `*.amoeba.site` 와일드카드 (Let's Encrypt, 만료 2026-11-18) | `acm.amoeba.site` 단일 (Let's Encrypt, 만료 2026-11-26, 자동 갱신) |
+| TLS 인증서 | `*.amoeba.site` 와일드카드 (Let's Encrypt, 만료 2026-11-18) | `acm-tpi.amoeba.site`(만료 2027-01-15)·`acm.amoeba.site`(만료 2026-11-26) 각각, webroot 자동 갱신(dry-run 성공) |
 
 ## 2. Runtime Stack (구성)
 
@@ -47,26 +48,27 @@ change_log:
 - 호스트 nginx vhost: 저장소 `docker/production/nginx-acm.conf` → 호스트 `/etc/nginx/sites-available/acm.amoeba.site` (배포 스크립트가 동기화·reload).
 - 공개 경로: `/` SPA, `/admin/*`, `/portal/*`, `/web/manual/` 매뉴얼, `/api/*` 백엔드. Swagger(`/api/docs`)는 운영·스테이징 모두 비활성(404).
 
-### 2.1 Production host (2026-10-17 점검)
+### 2.1 Production host (175.126.232.175, 2026-10-20 점검)
 
 | 항목 | 값 |
 | --- | --- |
-| OS | Ubuntu 22.04.5 LTS, kernel 5.15 |
-| CPU / RAM | 4 vCPU / 31 GiB (사용 약 4 GiB) |
-| Disk `/` | 229 GB 중 135 GB 사용(62%) — 다른 스택과 공유 |
-| Docker / Compose | 29.5.2 / v5.1.4 |
+| OS | Ubuntu 22.04.5 LTS, kernel 5.15 (자동 보안 업데이트) |
+| CPU / RAM | 4 vCPU / 15 GiB (+스왑 8 GiB) |
+| Disk | `/` 224 GB (7% 사용), `/backup` 916 GB (백업 전용) |
+| Docker / Compose | 29.9.1 / v5.6.0 (컨테이너 로그 20 MB × 5 회전) |
+| 보안 | SSH 비밀번호 로그인 차단·root 키 전용, ufw 22·80·443, fail2ban |
 | 저장소 | `~/app-academy` (`amoeba-devops/appAcademy2`) |
-| 업로드·MinIO 데이터 | `DATA_DIR=/home/appacademy/app-academy/data` (약 740 MB) |
-| sudo | 비밀번호 필요 |
+| 업로드·MinIO 데이터 | `DATA_DIR=/home/appacademy/app-academy/data` |
+| sudo | appacademy 는 배포에 필요한 명령만 무비밀번호(`/etc/sudoers.d/appacademy-deploy`) — env `SUDO_PASS` 불필요 |
 
 ### 2.2 주요 비밀 아닌 설정값 (production)
 
 | 키 | 값 |
 | --- | --- |
-| `FRONTEND_URL` | `https://acm.amoeba.site` |
+| `FRONTEND_URL` | `https://acm.amoeba.site` — 수업 런처·광고 OAuth 리디렉트가 사용, 보다스쿨·Google 등록 변경 전까지 유지 |
 | `AMA_TOKEN_VERIFY_MODE` | `local_config` |
 | `BODA_MODE` | `http` (보다스쿨 실연동) |
-| `ACM_PUBLIC_URL` | 미설정 → 메일 링크는 `FRONTEND_URL` 사용 |
+| `ACM_PUBLIC_URL` | `https://acm-tpi.amoeba.site` (메일·알림 링크) |
 | `ACM_INITIAL_ADMIN_PASSWORD` | 미설정(정상 — 새 환경 첫 기동 때만 사용) |
 
 ## 3. Access (접속)
@@ -75,7 +77,8 @@ change_log:
 
 | 환경 | 명령 | 키 |
 | --- | --- | --- |
-| Production | `ssh acm-prod` (`~/.ssh/config` alias → `appacademy@acm.amoeba.site`) | `~/.ssh/id_ed25519_acm_prod` |
+| Production | `ssh acm-new` (appacademy) · `ssh acm-new-root` (root) | `~/.ssh/id_ed25519_acm_new` |
+| 구 서버(보존) | `ssh acm-prod` / `acm-old` → 211.110.140.172 | `~/.ssh/id_ed25519_acm_prod` |
 | Staging | `ssh appacademy@acm-stg.amoeba.site` | 개발 PC 에 등록된 키 없음 — GitHub `staging` Environment 의 deploy 키만 등록됨 |
 
 ### 3.2 Production root 작업
@@ -94,7 +97,7 @@ change_log:
 ### 3.4 DB 조회(읽기 전용, production)
 
 ```bash
-ssh acm-prod "docker exec -i tac-prod-postgres-acm sh -c 'psql -U \"\$POSTGRES_USER\" -d db_acm'" <<'SQL'
+ssh acm-new "docker exec -i tac-prod-postgres-acm sh -c 'psql -U \"\$POSTGRES_USER\" -d db_acm'" <<'SQL'
 SELECT count(*) FROM amb_acm_user;
 SQL
 ```
@@ -115,25 +118,26 @@ PR 머지 → main push
 - backend 만 다시 띄울 때 `DEPLOY_SHA` 를 꼭 붙인다. 없으면 옛 `:production` 이미지가 떠서 502.
 - 검증은 무자격 방식: 있는 API 401 / 없는 경로 404, CD 로그 `[apply]`·`[skip]`, 번들 grep.
 
-## 5. Backup (백업) — ⚠️ 조치 필요
+## 5. Backup (백업)
 
 | 항목 | 상태 |
 | --- | --- |
-| 자동 백업 cron (production) | `30 2 * * * scripts/backup-db.sh` — **스크립트가 7월 MySQL 제거(3189e78) 때 삭제돼 매일 실패 중**(로그 `/var/log/app-academy/backup.log` "No such file" 105회) |
-| 마지막 자동 백업 | `/var/backups/app-academy/production/db_tac-*.sql.gz` (2026-07-04, MySQL 시절) — **현재 PostgreSQL `db_acm` 자동 백업 없음** |
-| 수동 백업 | `~/app-academy-backups/db_acm-before-*.dump` — 큰 마이그레이션 전 수동 덤프(최신 2026-10-13, 합계 118 MB) |
-| MinIO 첨부·업로드 | 백업 없음(`DATA_DIR` 약 740 MB) |
-| 오프사이트(외부) 사본 | 없음 — 같은 디스크에만 있음 |
+| 자동 백업 | `scripts/backup-acm.sh` 매일 02:30 KST — `pg_dump -Fc db_acm` + MinIO·업로드 tar.gz, 검증 후 확정 |
+| 위치·보관 | 새 서버 `/backup/app-academy/production`, 30일 (구 서버 cron 은 `/var/backups/app-academy/production`, 14일 — D+14 정리 때 제거) |
+| 최근 결과 | 2026-10-20 02:30 DB 7.7 MB · MinIO 674 MB · 업로드 7.2 MB, 약 30초 |
+| 복원 검증 | 2026-10-17 리허설·전환 때 이 백업 형식으로 복원, 167 테이블 행 수 일치 |
+| 오프사이트 사본 | 없음 — 같은 서버의 별도 디스크(`/backup`)에만 있음. 외부 저장소 사본 권장 |
 | Staging | 미확인(호스트 접속 불가) |
 
-권장: PostgreSQL 일일 `pg_dump -Fc` + 보존 기간(예: 30일) 스크립트 복구, MinIO 데이터 포함, 외부 저장소(S3 등) 사본.
+> 7월 MySQL 제거 때 이전 백업 스크립트가 삭제돼 2026-10-17 까지 자동 백업이 없었다(PR #350 으로 복구).
 
 ## 6. Known Issues & Cautions (주의 사항)
 
-1. **DB 자동 백업 중단**(5장) — 가장 시급.
-2. **프로덕션 배포 승인 게이트 없음**, **`main` 필수 체크 미설정** — 둘 다 저장소 소유자(`amoeba-devops`) 권한 필요.
-3. 서버 계정 비밀번호가 과거 작업 메모에 평문으로 기록돼 있었다 — `appacademy` 비밀번호 **회전 권장**(staging·production 공통이었음).
-4. 프로덕션은 **공유 호스트** — 디스크·메모리를 다른 스택(메일서버 포함)과 나눠 쓴다. 대용량 작업 전 `df -h` 확인.
+1. ~~DB 자동 백업 중단~~ — 2026-10-17 복구(5장). 남은 것: 외부 저장소 사본.
+2. **프로덕션 배포 승인 게이트 없음**, **`main` 필수 체크 미설정** — 저장소 소유자(`amoeba-devops`) 권한 필요.
+3. 서버 계정 비밀번호가 과거 작업 메모에 평문으로 기록돼 있었다 — 스테이징·구 서버 `appacademy` 비밀번호 **회전 권장**(새 서버는 비밀번호 로그인 차단).
+4. 구 서버(211.110.140.172)는 공유 호스트. ACM 앱은 정지, nginx 는 새 서버로 프록시 중 — DNS 캐시 소진 후 프록시·새 서버 `acm-cutover-realip.conf` 제거, **D+14(2026-10-31)** 에 ACM 컨테이너·cron·서버 간 직결 키 정리([RUNBOOK-261017C](RUNBOOK-261017C-prod-cutover.md) 8장).
+4a. MinIO 이미지(`minio/minio`)는 Docker Hub 에서 더 이상 받을 수 없다 — 새 환경은 기존 서버에서 `docker save/load` 로 옮긴다(대체 레지스트리 마련 필요).
 5. 스테이징 공개 시드 계정: 운영 모드에서 공개 시드 비밀번호 로그인은 거부된다(REQ-261017B). 스테이징에 남아 있으면 `ACM_INITIAL_ADMIN_PASSWORD` 로 해제([RUNBOOK-261017](RUNBOOK-261017-fresh-environment.md) 4장).
 6. 옛 호스트명 정리: `app-academy-stg.amoeba.site` 는 DNS 없음, `tpi.amoeba.site` 는 다른 IP(18.138.206.18)로 바뀌어 응답 없음 — `staging.md`(Archived)의 호스트 표는 더 이상 유효하지 않다.
 7. TLS: production 은 certbot webroot + `systemctl reload nginx` 훅으로 자동 갱신(2026-08-28 만료 사고 후 전환). staging 와일드카드(만료 2026-11-18)는 DNS 인증이 필요한 형식이라 자동 갱신 여부를 스테이징 호스트에서 확인해야 한다.
