@@ -149,7 +149,32 @@
     "addColumn": "Thêm cột",
     "deleteRow": "Xóa hàng",
     "deleteColumn": "Xóa cột",
-    "deleteTable": "Xóa bảng"
+    "deleteTable": "Xóa bảng",
+    "toolbar": "Công cụ định dạng",
+    "underline": "Gạch chân",
+    "textColor": "Màu chữ",
+    "highlight": "Tô sáng",
+    "clearColor": "Xóa màu",
+    "taskList": "Danh sách kiểm",
+    "image": "Hình ảnh",
+    "imageUpload": "Tải tệp lên",
+    "imageUrl": "Nhập URL",
+    "imageUrlPrompt": "Địa chỉ ảnh https://",
+    "attach": "Đính kèm tệp",
+    "drive": "Tệp Google Drive",
+    "table": "Bảng",
+    "source": "Mã HTML",
+    "sourceHint": "Sửa HTML rồi nhấn lại nút Mã HTML để áp dụng. Thẻ không hỗ trợ sẽ bị bỏ.",
+    "placeholder": "Nhập nội dung…",
+    "dropHere": "Thả tệp vào đây",
+    "uploadFailed": "Không tải lên được. Ảnh (PNG, JPG, GIF, WEBP) tối đa 10MB, tệp tối đa 50MB.",
+    "drivePicker": {
+      "title": "Chèn tệp Google Drive",
+      "up": "Thư mục cha",
+      "loading": "Đang tải…",
+      "empty": "Thư mục này không có tệp.",
+      "failed": "Không tải được danh sách Drive."
+    }
   },
   "documentEditor": {
     "confirmDiscard": "Bỏ các thay đổi chưa lưu?",

@@ -149,7 +149,32 @@
     "addColumn": "Add column",
     "deleteRow": "Delete row",
     "deleteColumn": "Delete column",
-    "deleteTable": "Delete table"
+    "deleteTable": "Delete table",
+    "toolbar": "Formatting tools",
+    "underline": "Underline",
+    "textColor": "Text color",
+    "highlight": "Highlight",
+    "clearColor": "Clear color",
+    "taskList": "Checklist",
+    "image": "Image",
+    "imageUpload": "Upload file",
+    "imageUrl": "Enter URL",
+    "imageUrlPrompt": "https:// image address",
+    "attach": "Attach file",
+    "drive": "Google Drive file",
+    "table": "Table",
+    "source": "HTML source",
+    "sourceHint": "Edit the HTML, then click HTML source again to apply. Unsupported tags are removed.",
+    "placeholder": "Write something…",
+    "dropHere": "Drop files here",
+    "uploadFailed": "Upload failed. Images (PNG, JPG, GIF, WEBP) must be 10MB or less and files 50MB or less.",
+    "drivePicker": {
+      "title": "Insert a Google Drive file",
+      "up": "Parent folder",
+      "loading": "Loading…",
+      "empty": "No files in this folder.",
+      "failed": "Could not load the Drive list."
+    }
   },
   "documentEditor": {
     "confirmDiscard": "Discard unsaved changes?",

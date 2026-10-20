@@ -21,6 +21,18 @@
 .doc-prose strong { font-weight: 700; }
 .doc-prose s { text-decoration: line-through; }
 .doc-prose .ProseMirror:focus, .doc-prose:focus { outline: none; }
+.doc-prose u { text-decoration: underline; }
+.doc-prose mark { border-radius: 2px; padding: 0 1px; color: inherit; }
+.doc-prose a { color: var(--acm-accent-700, #4338ca); text-decoration: underline; }
+.doc-prose img { max-width: 100%; height: auto; border-radius: 4px; margin: 0.4em 0; }
+.doc-prose img.ProseMirror-selectednode { outline: 2px solid var(--acm-accent-500, #6366f1); }
+.doc-prose ul[data-type="taskList"] { list-style: none; padding-left: 0.2em; }
+.doc-prose ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5em; }
+.doc-prose ul[data-type="taskList"] li > label { margin-top: 0.45em; flex: none; }
+.doc-prose ul[data-type="taskList"] li > div { flex: 1 1 auto; min-width: 0; }
+.doc-prose ul[data-type="taskList"] li[data-checked="true"] > div { color: var(--text-secondary, #6b7280); text-decoration: line-through; }
+.doc-prose input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--acm-accent-600, #4f46e5); }
+.doc-prose p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; pointer-events: none; color: var(--text-tertiary, #9ca3af); }
 
 /* Admin business pages only. Dashboard and portal layouts never enter this scope. */
 .admin-content-container {
