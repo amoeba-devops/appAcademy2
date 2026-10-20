@@ -116,9 +116,6 @@ export function DocumentEditor({
       </div>
       <form
           className="grid min-w-0 gap-3"
-          onInputCapture={() => {
-            if (!readOnly) setDirty(true);
-          }}
           onSubmit={async (e) => {
             e.preventDefault();
             setBusy(true);
