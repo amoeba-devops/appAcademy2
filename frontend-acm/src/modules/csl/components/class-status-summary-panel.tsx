@@ -171,9 +171,7 @@ export function ClassStatusSummaryPanel({
   );
   const assignedTeachers = assignments
     .map((assignment) => {
-      const role = t(`detail.enrollment.assignRole.${assignment.role}`, {
-        defaultValue: assignment.role === "PRIMARY" ? "주" : "부",
-      });
+      const role = t(`detail.enrollment.assignRole.${assignment.role}`);
       const name =
         teacherName.get(assignment.teacherId) ?? assignment.teacherId;
       return `${role} ${name}`;
@@ -227,7 +225,7 @@ export function ClassStatusSummaryPanel({
                 })
               : t("detail.classStatus.title", { defaultValue: "6. 수강 등록" })}
           </h2>
-          <p className="mt-1 text-[11px] text-secondary">
+          <p className="mt-1 text-xs text-secondary">
             {t("detail.classStatus.subtitle", {
               defaultValue:
                 "접수 내용과 현재 운영 중인 수업 정보를 한 번에 확인합니다.",
@@ -245,7 +243,7 @@ export function ClassStatusSummaryPanel({
               <button
                 type="button"
                 onClick={() => navigate(`/admin/std/${inq.stdId}`)}
-                className="text-[11px] text-accent-600 hover:underline"
+                className="text-xs text-accent-600 hover:underline"
               >
                 {t("detail.classStatus.viewStudent", {
                   defaultValue: "학생관리에서 보기",
@@ -265,7 +263,7 @@ export function ClassStatusSummaryPanel({
               })}
             </Button>
             {inq && !inq.stdId && (
-              <span className="text-[11px] text-amber-600">
+              <span className="text-xs text-amber-600">
                 {t("detail.classStatus.noStudentYet", {
                   defaultValue: "학생 자동등록 대기 중 — 수강중 전환 불가",
                 })}
@@ -372,7 +370,11 @@ export function ClassStatusSummaryPanel({
             <Info
               label={t("detail.enrollment.classMinutes")}
               value={
-                enrollment?.classMinutes ? `${enrollment.classMinutes}분` : "—"
+                enrollment?.classMinutes
+                  ? t("detail.enrollment.classMinutesValue", {
+                      minutes: enrollment.classMinutes,
+                    })
+                  : "—"
               }
             />
             {(isAttending || enrollment?.startDate?.trim()) && (

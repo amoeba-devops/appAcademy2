@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -280,7 +281,7 @@ export function ManualInputDialog({
                   ))}
                 </div>
                 {isSiteRow && (
-                  <p className="text-[11px] text-secondary mt-1">{t('manualInput.siteHint')}</p>
+                  <p className="text-xs text-secondary mt-1">{t('manualInput.siteHint')}</p>
                 )}
               </div>
             </div>
@@ -309,19 +310,19 @@ export function ManualInputDialog({
                             className="bg-surface-subtle cursor-not-allowed"
                           />
                         ) : (
-                          <Input
+                          <Controller control={control} name={f} render={({field}) => (<Input
                             type="number"
                             min={0}
                             step={f === 'classTtClass' ? '0.5' : '1'}
-                            {...register(f, { valueAsNumber: true })}
-                          />
+                            {...field} value={field.value ?? ''} onChange={event => field.onChange(event.target.value === '' ? NaN : Number(event.target.value))}
+                          />)} />
                         )}
                       </div>
                     );
                   })}
                 </div>
                 {sec.key === 'marketing' && !isSiteRow && (
-                  <p className="text-[11px] text-secondary mt-2">
+                  <p className="text-xs text-secondary mt-2">
                     {t('manualInput.effectAutoNote')}
                   </p>
                 )}

@@ -3,10 +3,11 @@ import { formatAdMicros } from "../lib/ad-cost-format";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { isAxiosError } from "axios";
+import { BarChart3 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Input } from "@/components/ui/input";
 import {
   AD_PROVIDERS,
@@ -118,18 +119,17 @@ export function AdPlatformsPage() {
           : [];
   return (
     <main className="space-y-5 rounded-xl bg-gray-50 p-4">
-      <Link to="/admin/config" className="text-indigo-700">
-        ← {t("ads.settings")}
-      </Link>
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold">{t("ads.title")}</h1>
-          <p className="text-sm text-gray-600">{t("ads.schedule")}</p>
-        </div>
-        <Button onClick={() => open(null)} disabled={busy}>
-          {t("ads.add")}
-        </Button>
-      </header>
+      <PageHeader
+        back={{ to: "/admin/config", label: t("nav.config") }}
+        icon={BarChart3}
+        title={t("ads.title")}
+        description={t("ads.schedule")}
+        actions={
+          <Button onClick={() => open(null)} disabled={busy}>
+            {t("ads.add")}
+          </Button>
+        }
+      />
       {message && (
         <p role="status" className="rounded border bg-white p-3">
           {message}

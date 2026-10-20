@@ -252,7 +252,7 @@ export function IntakeStagePanel({
           {t('detail.intake.priorScoresHeader')}
         </Label>
         {!showMap && !showIsee && !showAdvanced && (
-          <p className="text-[11px] text-secondary">
+          <p className="text-xs text-secondary">
             {t('detail.intake.noPurposeScoreHint')}
           </p>
         )}
@@ -303,7 +303,7 @@ export function IntakeStagePanel({
             <legend className="text-xs font-medium px-1">
               {t('detail.intake.iseeIntakeHeader')}
             </legend>
-            <p className="text-[11px] text-secondary">
+            <p className="text-xs text-secondary">
               {t('detail.intake.iseeIntakeHint')}
             </p>
             <ResponsiveTable>
@@ -386,7 +386,7 @@ export function IntakeStagePanel({
             <legend className="text-xs font-medium px-1">
               {t('detail.intake.advancedHeader')}
             </legend>
-            <p className="text-[11px] text-secondary">
+            <p className="text-xs text-secondary">
               {t('detail.intake.advancedHint')}
             </p>
             <div className="grid gap-4">
@@ -396,7 +396,7 @@ export function IntakeStagePanel({
                     const row = ssatIntake[key] ?? {};
                     return (
                       <div key={key} className="grid gap-2">
-                        <Label className="text-[11px] capitalize">{key}</Label>
+                        <Label className="text-xs capitalize">{key}</Label>
                         <Input
                           type="number"
                           placeholder="Score"
@@ -992,7 +992,7 @@ function SiteOverrideRow({ inqId, inq }: { inqId: string; inq: Inquiry }) {
             </option>
           ))}
         </select>
-        <span className="text-[11px] text-secondary">
+        <span className="text-xs text-secondary">
           {t('siteOverride.effective', {
             site: effective ? t(`sourceSite.${effective}`) : t('siteOverride.common'),
           })}
@@ -1016,7 +1016,7 @@ function Row({
       <span className="text-xs text-secondary">{label}</span>
       <span className="text-sm">
         {value}
-        {extra && <span className="ml-1 text-[11px] text-secondary">{extra}</span>}
+        {extra && <span className="ml-1 text-xs text-secondary">{extra}</span>}
       </span>
     </div>
   );

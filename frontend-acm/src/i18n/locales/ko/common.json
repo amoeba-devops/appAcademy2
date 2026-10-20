@@ -1,4 +1,7 @@
 {
+  "numericInput": {
+    "invalid": "올바른 숫자를 입력하세요."
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -38,7 +41,7 @@
       "calendar": "수업일정",
       "materials": "문서/자료실",
       "students": "수강생관리",
-      "chat": "로비채팅",
+      "chat": "채팅",
       "me": "마이페이지"
     },
     "login": {
@@ -245,7 +248,7 @@
     "notifications": "알림",
     "enrollments": "수강신청",
     "systemAdmin": "시스템 관리",
-    "chat": "로비채팅",
+    "chat": "채팅",
     "openMenu": "메뉴 열기",
     "closeMenu": "메뉴 닫기",
     "expandMenu": "메뉴 펼치기",
@@ -440,6 +443,10 @@
       "ga4": {
         "title": "GA4 방문자",
         "description": "Google Analytics 4 일별 방문자 자동 수집 — 대시보드 Marketing·방문자"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "프로젝트 문서와 파일을 회사 Google Drive 에 연결합니다."
       }
     },
     "mail": {
@@ -961,7 +968,8 @@
       "ISSUE_MENTION": "이슈에서 나를 멘션했습니다",
       "ISSUE_MENTION_COMMENT": "이슈 댓글에서 나를 멘션했습니다",
       "PASSWORD_RESET_REQUEST": "비밀번호 재발급 요청이 접수되었습니다"
-    }
+    },
+    "mentionBadge": "멘션"
   },
   "pay": {
     "title": "수납관리",
@@ -1218,7 +1226,8 @@
     "site": "사이트",
     "actions": "작업",
     "baseline": "기존 상태",
-    "knownWithdrawn": "확인된 퇴원"
+    "knownWithdrawn": "확인된 퇴원",
+    "historyNoticeSummary": "과거 이력 불완전 — 자세히 보기"
   },
   "configAccess": {
     "loading": "권한 확인 중…",
@@ -1266,7 +1275,10 @@
     "ios": "iPhone/iPad는 홈 화면에 추가한 ACM 앱에서 알림을 켜 주세요.",
     "unconfigured": "서버 푸시 설정이 준비되지 않았습니다.",
     "failed": "연결에 실패했습니다. 권한과 네트워크를 확인하고 다시 시도해 주세요.",
-    "close": "닫기"
+    "close": "닫기",
+    "banner": "이 기기에서 알림 받기 — 채팅·상담 알림을 바로 받아요",
+    "turnOn": "켜기",
+    "dismiss": "안내 닫기"
   },
   "reviewMissing": {
     "feedback": "피드백",
@@ -1278,7 +1290,8 @@
     "required": "테넌트 마스터 권한이 필요합니다.",
     "tabs": {
       "menus": "메뉴 노출",
-      "general": "일반"
+      "general": "일반",
+      "integrations": "연동 설정"
     },
     "roles": {
       "ADMIN": "관리자",
@@ -1292,7 +1305,8 @@
       "locked": "정책상 이 등급에는 열 수 없습니다",
       "reset": "초기화(전체 노출)",
       "resetConfirm": "모든 등급의 메뉴를 기본(전체 노출)으로 되돌릴까요?"
-    }
+    },
+    "integrationsDesc": "AI 엔진, AMA 연동, 화상강의, 카카오 알림톡, GA4 방문자 설정을 관리합니다."
   },
   "issues": {
     "title": "이슈",
@@ -1695,7 +1709,8 @@
     "result": {
       "failed": "Google 연결을 완료하지 못했습니다. 다시 시도하세요.",
       "workspaceRequired": "회사 Google Workspace 계정만 연결할 수 있습니다. 일반 Gmail(@gmail.com) 계정은 사용할 수 없습니다.",
-      "cancelled": "연결을 취소했습니다. 다시 연결할 수 있습니다."
+      "cancelled": "연결을 취소했습니다. 다시 연결할 수 있습니다.",
+      "scopeRequired": "Google Drive 접근 권한이 허용되지 않았습니다. 다시 연결하고 동의 화면에서 Google Drive 항목을 체크하세요."
     },
     "notConfigured": "운영 Google OAuth 앱 설정이 필요합니다. 관리자에게 문의하세요.",
     "account": {
@@ -1704,11 +1719,11 @@
       "ok": "정상",
       "needsReconnect": "재연결 필요",
       "connectedAt": "연결 {{at}} · 연결자 {{by}}",
-      "reconnectHint": "Google 인증이 만료되었거나 권한이 철회되었습니다. 다시 연결하기 전까지 업로드는 ACM 저장소에 저장됩니다.",
+      "reconnectHint": "Google 인증이 만료되었거나, 공유폴더 파일을 보는 데 필요한 Drive 전체 권한이 없습니다. '다시 연결'로 다시 로그인하세요. 다시 연결하기 전까지 업로드는 ACM 저장소에 저장됩니다.",
       "login": "회사 Google 계정으로 로그인",
       "reconnect": "다시 연결 / 계정 변경",
       "disconnect": "연결 해제",
-      "disconnectConfirm": "연결을 해제하면 Google Drive 저장이 중단되고 업로드는 ACM 저장소에 저장됩니다. Google 원본과 프로젝트 기록은 보존됩니다.",
+      "disconnectConfirm": "연결을 해제하면 Google Drive 저장이 중단되고 업로드는 ACM 저장소에 저장됩니다. Google 원본과 프로젝트 기록은 보존됩니다. 공용폴더 지정도 해제되며, 같은 계정으로 다시 연결하면 자동으로 복원됩니다.",
       "workspaceOnly": "회사 도메인의 Google Workspace 계정만 연결할 수 있습니다."
     },
     "readOnly": "연동과 공용폴더 설정은 서비스 운영자가 할 수 있습니다.",
@@ -1733,10 +1748,13 @@
       "drive": "회사 Google Drive",
       "acm": "ACM 저장소",
       "notConnectedHint": "회사 Google Drive가 연결되면 저장 위치를 선택할 수 있습니다.",
-      "reconnectHint": "Google Drive 재연결이 필요해 ACM 저장소에 저장합니다."
+      "reconnectHint": "Google Drive 재연결이 필요해 ACM 저장소에 저장합니다.",
+      "rootMissingHint": "회사 Google Drive 공용폴더가 지정되지 않았습니다.",
+      "rootMissingAdmin": "Drive 연동 설정에서 공용폴더를 지정하세요."
     },
     "notReadyHint": "회사 Google Drive 공용폴더가 아직 지정되지 않아 Google 문서 생성·Drive 업로드를 사용할 수 없습니다. 파일은 ACM 저장소로 업로드할 수 있습니다.",
-    "goSettings": "Drive 연동 설정으로 이동"
+    "goSettings": "Drive 연동 설정으로 이동",
+    "askAdmin": "관리자에게 공용폴더 지정을 요청하세요."
   },
   "docsCreate": {
     "title": "새로 만들기",
@@ -1844,5 +1862,222 @@
     },
     "cancel": "취소",
     "close": "닫기"
+  },
+  "invite": {
+    "title": "사용자 초대",
+    "cardDescription": "이메일로 관리자·직원을 초대합니다.",
+    "description": "초대 메일의 링크에서 비밀번호를 정하면 가입이 완료됩니다. 링크는 72시간 동안 한 번만 쓸 수 있습니다.",
+    "new": "초대하기",
+    "send": "초대 메일 보내기",
+    "sending": "보내는 중…",
+    "loading": "불러오는 중…",
+    "empty": "초대 내역이 없습니다.",
+    "status": {
+      "PENDING": "대기",
+      "ACCEPTED": "수락",
+      "EXPIRED": "만료",
+      "REVOKED": "취소",
+      "ALL": "전체"
+    },
+    "roles": {
+      "ADMIN": "관리자",
+      "STAFF": "직원"
+    },
+    "configAdmin": "서비스 운영자",
+    "invitedBy": "초대 {{by}} · {{at}}",
+    "acceptedAt": "수락 {{at}}",
+    "expiresAt": "{{at}} 까지",
+    "resend": "재발송",
+    "revoke": "취소",
+    "revokeTitle": "초대를 취소할까요?",
+    "revokeDesc": "보낸 링크는 더 이상 쓸 수 없습니다.",
+    "fields": {
+      "email": "이메일",
+      "name": "이름",
+      "role": "역할",
+      "grantConfigAdmin": "서비스 운영자 권한도 부여",
+      "grantConfigAdminHint": "서비스 설정(사용자 초대·메일 등)을 관리할 수 있습니다. 테넌트 마스터 권한은 초대로 줄 수 없습니다."
+    },
+    "resultTitle": "초대를 보냈습니다",
+    "mailSent": "초대 메일을 보냈습니다.",
+    "mailNotSent": "메일이 설정되지 않았거나 발송에 실패했습니다. 아래 초대 링크를 직접 전달하세요.",
+    "copy": "복사",
+    "onceOnly": "이 창을 닫으면 링크를 다시 볼 수 없습니다(재발송하면 새 링크가 만들어집니다).",
+    "validUntil": "유효기간: {{until}}까지",
+    "errors": {
+      "exists": "이미 가입된 이메일입니다.",
+      "email": "이메일 형식을 확인하세요.",
+      "name": "이름을 입력하세요.",
+      "handled": "이미 처리된 초대입니다.",
+      "failed": "처리하지 못했습니다. 다시 시도하세요.",
+      "load": "초대 목록을 불러오지 못했습니다."
+    },
+    "accept": {
+      "title": "ACM 초대",
+      "intro": "{{tenant}} 에서 {{name}} 님을 {{role}}(으)로 초대했습니다. 비밀번호를 정하면 바로 시작할 수 있습니다.",
+      "password": "비밀번호",
+      "confirm": "비밀번호 확인",
+      "policy": "8자 이상, 영문과 숫자를 포함해야 합니다.",
+      "mismatch": "비밀번호가 일치하지 않습니다.",
+      "submit": "가입하고 시작하기",
+      "submitting": "가입 중…",
+      "invalid": "초대 링크가 만료되었거나 이미 사용되었습니다. 관리자에게 다시 요청하세요.",
+      "rateLimited": "요청이 많습니다. 잠시 후 다시 시도하세요.",
+      "failed": "가입하지 못했습니다. 다시 시도하세요."
+    },
+    "tabs": {
+      "users": "등록 사용자",
+      "invites": "초대 내역"
+    },
+    "users": {
+      "types": {
+        "ALL": "전체",
+        "ADMIN": "관리자",
+        "STAFF": "직원",
+        "TEACHER": "강사",
+        "STUDENT": "학생"
+      },
+      "search": "이름·이메일 검색",
+      "empty": "조건에 맞는 사용자가 없습니다.",
+      "loadError": "사용자 목록을 불러오지 못했습니다.",
+      "login": {
+        "local": "로컬",
+        "ama": "AMA",
+        "portal": "포털"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "서비스 운영자",
+        "TENANT_MASTER": "테넌트 마스터"
+      },
+      "locked": "잠김",
+      "inactive": "비활성",
+      "cols": {
+        "name": "이름",
+        "loginId": "이메일 / 로그인 ID",
+        "type": "구분",
+        "login": "로그인",
+        "flags": "권한·상태",
+        "createdAt": "가입일",
+        "lastLogin": "마지막 로그인"
+      }
+    }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM 저장소",
+    "acmHint": "ACM 서버에만 저장 (Google Drive 에 보이지 않음)",
+    "openInDrive": "Google Drive 에서 폴더 열기",
+    "uploadTitle": "파일 업로드",
+    "pick": "파일 선택 또는 끌어 놓기 (최대 {{mb}}MB)",
+    "tooLarge": "{{mb}}MB 이하 파일만 올릴 수 있습니다.",
+    "driveUploadTo": "업로드 위치: {{path}}",
+    "driveProjectHint": "프로젝트 자료는 문서 › 파일에서 프로젝트별 폴더(공용 폴더 › 프로젝트명)에 저장됩니다.",
+    "cols": {
+      "title": "문서명",
+      "project": "프로젝트",
+      "location": "저장 위치",
+      "updated": "최종 수정",
+      "author": "작성자",
+      "size": "크기",
+      "mode": "저장 방식",
+      "actions": "작업"
+    }
+  },
+  "pwa": {
+    "install": "앱 설치",
+    "installTitle": "ACM 앱 설치",
+    "installDesc": "홈 화면에서 바로 열고 알림을 받을 수 있습니다.",
+    "iosGuideBefore": "Safari 아래",
+    "iosGuideAfter": "[공유] → [홈 화면에 추가]를 누르세요.",
+    "share": "공유",
+    "iosPushNote": "iPhone 에서는 설치한 앱에서만 알림을 받을 수 있습니다.",
+    "updateAvailable": "새 버전이 있습니다.",
+    "reload": "새로고침",
+    "startTitle": "ACM 에 오신 것을 환영합니다",
+    "startConsole": "운영 콘솔 로그인 (관리자·직원·강사)",
+    "startPortal": "포털 로그인 (학생·학부모·강사)"
+  },
+  "itemDelete": {
+    "button": "삭제",
+    "title": "'{{name}}'을(를) 삭제할까요?",
+    "localDesc": "목록에서 사라집니다.",
+    "googleDesc": "ACM 목록에서만 삭제되고 Google Drive 원본은 남습니다.",
+    "done": "삭제했습니다.",
+    "failed": "삭제하지 못했습니다. 권한을 확인하세요."
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "접수된 상담을 단계별로 관리합니다."
+    },
+    "std": {
+      "desc": "사이트별 학생과 수업 정보를 관리합니다."
+    },
+    "stdWithdrawn": {
+      "desc": "퇴원 처리된 학생을 조회하고 복귀시킵니다."
+    },
+    "parents": {
+      "desc": "학부모 연락처와 연결된 학생을 관리합니다."
+    },
+    "tch": {
+      "desc": "강사 정보·담당 수업·포털 계정을 관리합니다."
+    },
+    "complaints": {
+      "desc": "접수된 불만을 기록하고 처리 상태를 관리합니다."
+    },
+    "projects": {
+      "desc": "참여·담당 프로젝트와 문서·이슈를 관리합니다.",
+      "create": "프로젝트 생성",
+      "joined": "참여 프로젝트",
+      "owned": "담당 프로젝트",
+      "driveConnect": "Google Drive 연결"
+    },
+    "issues": {
+      "desc": "프로젝트 이슈를 상태별로 관리합니다."
+    },
+    "inbox": {
+      "title": "알림함",
+      "desc": "받은 알림을 확인합니다."
+    },
+    "more": "더보기",
+    "dashboard": {
+      "desc": "기간과 사이트를 골라 상담·수업·학생 현황을 봅니다."
+    },
+    "myWork": {
+      "desc": "오늘 처리할 업무와 담당 이슈를 모아 봅니다."
+    },
+    "calStats": {
+      "desc": "기간별 강사·수업 진행 현황을 봅니다."
+    },
+    "pay": {
+      "desc": "월별 청구·납부 현황을 관리합니다.",
+      "currency": "금액 단위: KRW"
+    },
+    "config": {
+      "desc": "사용자 초대와 메일·광고·Drive 연동을 설정합니다."
+    },
+    "myPage": {
+      "desc": "내 정보·비상연락망·비밀번호를 관리합니다."
+    },
+    "chat": {
+      "desc": "강사·직원과 대화합니다."
+    },
+    "cal": {
+      "desc": "수업과 상담 일정을 달력으로 관리합니다."
+    },
+    "drive": {
+      "desc": "회사 Google Drive 공유 폴더의 파일을 관리합니다."
+    },
+    "projectDetail": {
+      "edit": "프로젝트 수정",
+      "info": "프로젝트 정보",
+      "tabs": {
+        "overview": "개요",
+        "documents": "문서",
+        "issues": "이슈"
+      }
+    }
+  },
+  "session": {
+    "expired": "로그인 시간이 지나 다시 로그인해 주세요."
   }
 }

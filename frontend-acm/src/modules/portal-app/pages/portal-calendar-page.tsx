@@ -102,15 +102,15 @@ export function PortalCalendarPage() {
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1">
-          <button className="rounded p-1 hover:bg-[var(--gray-100)]" onClick={() => step(-1)}>
+          <button className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1" onClick={() => step(-1)}>
             <ChevronLeft size={18} />
           </button>
           <span className="min-w-[9rem] text-center font-semibold text-primary">{heading}</span>
-          <button className="rounded p-1 hover:bg-[var(--gray-100)]" onClick={() => step(1)}>
+          <button className="rounded p-2.5 hover:bg-[var(--gray-100)] sm:p-1" onClick={() => step(1)}>
             <ChevronRight size={18} />
           </button>
           <button
-            className="ml-1 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs"
+            className="ml-1 min-h-9 rounded border border-[var(--border-subtle)] px-2 py-1 text-xs sm:min-h-0"
             onClick={() => setAnchor(startOfDay(new Date()))}
           >
             {t('portalApp.cal.today')}
@@ -121,7 +121,7 @@ export function PortalCalendarPage() {
             <button
               key={m}
               onClick={() => setMode(m)}
-              className={`px-3 py-1 ${mode === m ? 'bg-accent-600 text-white' : 'text-secondary'}`}
+              className={`min-h-9 px-3 py-1 sm:min-h-0 ${mode === m ? 'bg-accent-600 text-white' : 'text-secondary'}`}
             >
               {t(`portalApp.cal.${m}`)}
             </button>
@@ -135,7 +135,7 @@ export function PortalCalendarPage() {
           <select
             value={studentFilter}
             onChange={(e) => setStudentFilter(e.target.value)}
-            className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
+            className="h-9 sm:h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
           >
             <option value="">{t('portalApp.cal.all', '전체')}</option>
             {studentOptions.map((n) => (
@@ -146,7 +146,7 @@ export function PortalCalendarPage() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
+            className="h-9 sm:h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
           >
             <option value="">{t('portalApp.cal.all', '전체')}</option>
             {['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'].map((c) => (
@@ -363,7 +363,7 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
     >
       <span className="w-20 shrink-0 text-sm text-secondary">
         {time.label(e) || '—'}
-        {time.userLabel(e) && <span className="block text-[11px]">({time.userLabel(e)})</span>}
+        {time.userLabel(e) && <span className="block text-xs">({time.userLabel(e)})</span>}
       </span>
       <span className="min-w-0 flex-1 truncate text-sm text-primary">
         {e.title}
@@ -373,7 +373,7 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
         )}
       </span>
       {/* PLN-260729 3 — 피드백/과제 텍스트 표기 (아이콘은 월간뷰만) */}
-      <span className="flex shrink-0 items-center gap-1.5 text-[11px]">
+      <span className="flex shrink-0 items-center gap-1.5 text-xs">
         {e.hasFeedback && (
           <span className="text-accent-700">{t('portalApp.review.textFeedback', '피드백')}</span>
         )}
@@ -384,7 +384,7 @@ function EventRow({ e, onSelect }: { e: PortalCalEvent; onSelect: (e: PortalCalE
           <span className="text-secondary">{t('portalApp.review.noHomework', '과제없음')}</span>
         )}
         {e.classDone && (
-          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+          <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">
             {t('portalApp.review.done', '수업완료')}
           </span>
         )}

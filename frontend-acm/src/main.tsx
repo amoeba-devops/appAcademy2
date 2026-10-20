@@ -8,6 +8,12 @@ import { ToastProvider } from '@/components/ui/toast';
 import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import '@/i18n';
 import '@/styles/globals.css';
+import { setupPwa } from '@/lib/pwa';
+import { PwaUpdateToast } from '@/components/pwa/pwa-update-toast';
+import { SessionExpiryWatcher } from '@/lib/session-expiry';
+
+// REQ-261018D — ACM 앱(PWA): 서비스 워커·설치 제안·새 버전 감지
+setupPwa();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -15,6 +21,8 @@ createRoot(document.getElementById('root')!).render(
       <ToastProvider>
         <ConfirmProvider>
           <RouterProvider router={router} />
+          <PwaUpdateToast />
+          <SessionExpiryWatcher />
         </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>

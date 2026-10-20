@@ -135,7 +135,7 @@ export function DesktopAppCard({
                 defaultValue: t('error.unknown.body'),
               })}
             </p>
-            <p className="text-[10px] text-secondary">({error})</p>
+            <p className="text-xs text-secondary">({error})</p>
           </div>
         )}
 

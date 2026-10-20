@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { FileUpload, phases } from "./project-files";
+import { StorageLocation } from "./storage-location";
+import { DeleteItemButton } from "./delete-item-button";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 export function DocumentsPage() {
   const { t } = useTranslation("common");
+  const { t: tp } = useTranslation("prj");
   const user = useAuthStore((s) => s.user);
   const [role, setRole] = useState("");
   const [phase, setPhase] = useState("");
@@ -82,81 +85,81 @@ export function DocumentsPage() {
     );
   return (
     <section className="grid min-w-0 gap-5">
-      <h1 className="text-2xl font-semibold">문서</h1>
+      <h1 className="text-2xl font-semibold">{tp("documentsPage.title")}</h1>
       <nav className="flex overflow-auto border-b">
         {[
-          ["memo", "메모"],
-          ["spreadsheet", "시트(스프레드시트)"],
-          ["gdoc", "문서(Docs)"],
-          ["files", "파일"],
-        ].map(([key, label]) => (
+          ["memo", "MEMO"],
+          ["spreadsheet", "SHEET"],
+          ["gdoc", "DOC"],
+          ["files", "FILE"],
+        ].map(([key, type]) => (
           <button
             key={key}
             className={`shrink-0 border-b-2 px-5 py-3 ${tab === key ? "border-blue-600 text-blue-600" : "border-transparent"}`}
             onClick={() => setParams({ tab: key })}
           >
-            {label}
+            {tp(`docType.${type}`)}
           </button>
         ))}
       </nav>
       <div className="flex flex-wrap gap-2">
         <select
-          aria-label="Permission"
+          aria-label={tp("documentsPage.permission")}
           className="rounded border p-2"
           value={role}
           onChange={(e) => setRole(e.target.value)}
         >
-          <option value="">전체 권한</option>
-          <option value="EDITOR">편집자</option>
-          <option value="VIEWER">뷰어</option>
+          <option value="">{tp("documentsPage.allPermissions")}</option>
+          <option value="EDITOR">{tp("documentsPage.editor")}</option>
+          <option value="VIEWER">{tp("documentsPage.viewer")}</option>
         </select>
         {kind === "FILE" && (
           <select
-            aria-label="Phase"
+            aria-label={tp("common.phase")}
             className="rounded border p-2"
             value={phase}
             onChange={(e) => setPhase(e.target.value)}
           >
-            <option value="">전체 단계</option>
-            {Object.entries(phases).map(([v, l]) => (
+            <option value="">{tp("common.allPhases")}</option>
+            {phases.map((v) => (
               <option key={v} value={v}>
-                {l}
+                {tp(`phase.${v}`)}
               </option>
             ))}
           </select>
         )}
         <input
           className="min-w-0 rounded border p-2"
-          aria-label="문서 검색"
-          placeholder="제목·프로젝트·작성자 검색"
+          aria-label={tp("documentsPage.search")}
+          placeholder={tp("documentsPage.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          aria-label="정렬"
+          aria-label={tp("common.sort")}
           className="rounded border p-2"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
-          <option value="updated">최근 수정순</option>
-          <option value="oldest">오래된 수정순</option>
-          <option value="created">최근 등록순</option>
-          <option value="name">이름 오름차순</option>
-          <option value="nameDesc">이름 내림차순</option>
+          <option value="updated">{tp("documentsPage.sortUpdated")}</option>
+          <option value="oldest">{tp("documentsPage.sortOldest")}</option>
+          <option value="created">{tp("common.sortRecentCreated")}</option>
+          <option value="name">{tp("documentsPage.sortNameAsc")}</option>
+          <option value="nameDesc">{tp("documentsPage.sortNameDesc")}</option>
           {kind === "FILE" && (
             <>
-              <option value="size">크기순</option>
-              <option value="downloads">다운로드 수순</option>
+              <option value="size">{tp("common.sortSize")}</option>
+              <option value="downloads">{tp("common.sortDownloads")}</option>
             </>
           )}
         </select>
         <select
-          aria-label="프로젝트"
+          aria-label={tp("documentsPage.project")}
           className="rounded border p-2"
           value={project}
           onChange={(e) => setProject(e.target.value)}
         >
-          <option value="">전체 프로젝트</option>
+          <option value="">{tp("documentsPage.allProjects")}</option>
           {projects.data?.map((p) => (
             <option key={p.prj_id} value={p.prj_id}>
               {p.prj_title}
@@ -164,19 +167,19 @@ export function DocumentsPage() {
           ))}
         </select>
         <select
-          aria-label="연동 상태"
+          aria-label={tp("documentsPage.linkStatus")}
           className="rounded border p-2"
           value={share}
           onChange={(e) => setShare(e.target.value)}
         >
-          <option value="">전체 연동 상태</option>
-          <option value="linked">Google 연동</option>
-          <option value="local">ACM 저장</option>
+          <option value="">{tp("documentsPage.allLinkStatuses")}</option>
+          <option value="linked">{tp("documentsPage.googleLinked")}</option>
+          <option value="local">{tp("documentsPage.acmStored")}</option>
         </select>
         {/* REQ-261016E — 문서 화면에서 바로 작성: 프로젝트·종류·방식 선택 */}
         <button
           type="button"
-          className="rounded bg-blue-600 p-2 text-white"
+          className="rounded bg-accent-600 p-2 text-white"
           onClick={() => setCreating(true)}
         >
           + {t("docsCreate.title")}
@@ -196,12 +199,14 @@ export function DocumentsPage() {
           <thead className="border-b bg-gray-50">
             <tr>
               {[
-                "문서명",
-                "프로젝트",
-                "최종 수정",
-                "작성자",
-                kind === "FILE" ? "크기" : "저장 방식",
-                "작업",
+                t("storagePath.cols.title"),
+                t("storagePath.cols.project"),
+                // REQ-261018C — 파일은 실제 저장 위치를 보여준다.
+                ...(kind === "FILE" ? [t("storagePath.cols.location")] : []),
+                t("storagePath.cols.updated"),
+                t("storagePath.cols.author"),
+                kind === "FILE" ? t("storagePath.cols.size") : t("storagePath.cols.mode"),
+                t("storagePath.cols.actions"),
               ].map((h) => (
                 <th className="whitespace-nowrap px-4 py-3" key={h}>
                   {h}
@@ -225,6 +230,16 @@ export function DocumentsPage() {
                   </Link>
                 </td>
                 <td className="px-4 py-3">{i.prj_title}</td>
+                {kind === "FILE" && (
+                  <td className="max-w-[18rem] px-4 py-3 text-xs">
+                    <StorageLocation
+                      storage={i.storage_type === "LOCAL" ? "ACM" : "DRIVE"}
+                      rootName={i.drive_root_name}
+                      folderName={i.prj_drive_folder_name ?? i.prj_title}
+                      folderId={i.prj_drive_folder_id}
+                    />
+                  </td>
+                )}
                 <td className="whitespace-nowrap px-4 py-3">
                   {new Date(i.updated_at).toLocaleString()}
                 </td>
@@ -233,11 +248,15 @@ export function DocumentsPage() {
                   {kind === "FILE"
                     ? `${Math.ceil(Number(i.drive_size ?? 0) / 1024)}KB`
                     : i.external_url || i.drive_file_id
-                      ? "Google 연동"
-                      : "ACM 문서"}
+                      ? tp("documentsPage.googleLinked")
+                      : tp("documentsPage.acmDocument")}
                 </td>
                 <td className="px-4 py-3">
-                  <CopyId id={i.pit_id} />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CopyId id={i.pit_id} />
+                    {/* REQ-261019 — 작성자·프로젝트 담당자·테넌트 마스터 */}
+                    <DeleteItemButton projectId={i.prj_id} item={i} />
+                  </div>
                 </td>
               </tr>
             ))}
@@ -245,7 +264,7 @@ export function DocumentsPage() {
         </table>
         {!rows.length && (
           <p className="p-12 text-center text-secondary">
-            {q.isLoading ? "불러오는 중…" : "등록된 항목이 없습니다."}
+            {q.isLoading ? tp("common.loading") : tp("common.noItems")}
           </p>
         )}
       </div>
@@ -253,17 +272,18 @@ export function DocumentsPage() {
   );
 }
 function CopyId({ id }: { id: string }) {
+  const { t: tp } = useTranslation("prj");
   const [message, setMessage] = useState("");
   return (
     <button
       onClick={() =>
         void navigator.clipboard.writeText(id).then(
-          () => setMessage("복사 완료"),
-          () => setMessage("복사 실패"),
+          () => setMessage(tp("documentsPage.copied")),
+          () => setMessage(tp("documentsPage.copyFailed")),
         )
       }
     >
-      {message || "문서 ID 복사"}
+      {message || tp("documentsPage.copyId")}
     </button>
   );
 }

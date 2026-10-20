@@ -1,3 +1,4 @@
+import { SessionExpiredNotice } from '@/components/common/session-expired-notice';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -189,6 +190,7 @@ export function ParentLoginPage() {
             {t('parent.title')}
           </h1>
           <p className="text-sm text-secondary mb-6">{t('parent.subtitle')}</p>
+          <SessionExpiredNotice />
 
           {step === 'phone' ? (
             <form onSubmit={handleSendOtp} className="flex flex-col gap-4" noValidate>

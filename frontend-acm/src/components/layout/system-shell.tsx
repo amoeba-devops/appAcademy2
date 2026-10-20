@@ -1,3 +1,4 @@
+import { forgetDevicePush } from '@/modules/notifications/push-settings';
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Users, Building2, ArrowLeft, LogOut, Settings, KeyRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,7 @@ export function SystemShell() {
   const navigate = useNavigate();
 
   const onLogout = () => {
+    forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clear();
     navigate('/login', { replace: true });
   };
@@ -42,7 +44,7 @@ export function SystemShell() {
         <div className="flex items-center gap-2">
           <ShieldCheck size={20} className="text-amber-400" />
           <span className="text-lg font-semibold">ACM</span>
-          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-900">
+          <span className="rounded bg-amber-400 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide text-slate-900">
             {t('badge')}
           </span>
         </div>

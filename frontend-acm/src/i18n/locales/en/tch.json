@@ -99,7 +99,8 @@
     "sectionSubjects": "Subjects",
     "sectionAccount": "Account provisioning",
     "sectionResetPassword": "Reset password",
-    "sectionAccountLock": "Account lock"
+    "sectionAccountLock": "Account lock",
+    "sectionAmaPicker": "AMA directory"
   },
   "hint": {
     "passwordPolicy": "Min 8 chars, must include letters and digits.",
@@ -129,14 +130,19 @@
     "hint": "PDF / JPG / PNG · Max 10 MB",
     "empty": "No attachments.",
     "actions": {
-      "upload": "Upload file"
+      "upload": "Upload file",
+      "add": "Add file"
     },
     "confirm": {
       "delete": "Delete this file?"
     },
     "error": {
       "mime": "Unsupported file type (PDF/JPG/PNG only).",
-      "size": "File size must be under 10 MB."
+      "size": "File size must be under 10 MB.",
+      "uploadFailed": "Attachment upload failed: {{name}} ({{msg}})"
+    },
+    "staged": {
+      "empty": "No files added"
     }
   },
   "profile": {

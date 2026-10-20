@@ -98,7 +98,7 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
       >
         {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         <span className="text-sm font-medium">{t('amaDirectory.title')}</span>
-        <span className="text-[11px] text-secondary">
+        <span className="text-xs text-secondary">
           {t('amaDirectory.subtitle')}
         </span>
       </button>
@@ -133,15 +133,15 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
 
           {/* States */}
           {debounced.length < 2 ? (
-            <p className="text-[11px] text-secondary">
+            <p className="text-xs text-secondary">
               {t('amaDirectory.hintTwoChars')}
             </p>
           ) : isFetching ? (
-            <p className="text-[11px] text-secondary">{t('common:status.loading')}</p>
+            <p className="text-xs text-secondary">{t('common:status.loading')}</p>
           ) : isError ? (
-            <p className="text-[11px] text-red-600">{t('amaDirectory.errorUnavailable')}</p>
+            <p className="text-xs text-red-600">{t('amaDirectory.errorUnavailable')}</p>
           ) : results.length === 0 ? (
-            <p className="text-[11px] text-secondary">{t('amaDirectory.empty')}</p>
+            <p className="text-xs text-secondary">{t('amaDirectory.empty')}</p>
           ) : (
             <ul className="grid gap-1.5">
               {results
@@ -162,7 +162,7 @@ export function AmaDirectorySection({ onPickAmaUser, onPickExistingTeacher }: Pr
                         <span className="font-medium">{u.name}</span>
                         <span className="ml-2 text-xs text-secondary">{u.email}</span>
                       </div>
-                      <span className="rounded bg-[var(--surface-strong)] px-2 py-0.5 text-[10px] font-medium">
+                      <span className="rounded bg-[var(--surface-strong)] px-2 py-0.5 text-xs font-medium">
                         {u.level}
                       </span>
                       {existing ? (

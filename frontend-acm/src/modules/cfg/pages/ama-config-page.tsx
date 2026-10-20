@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useIntegrationBackLink } from "../components/require-tenant-settings";
 import { Link } from "react-router-dom";
 import { Settings, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import {
  */
 export function AmaConfigPage() {
   const { t } = useTranslation("common");
+  const backTo = useIntegrationBackLink();
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -115,7 +117,7 @@ export function AmaConfigPage() {
   return (
     <div className="w-full min-w-0">
       <Link
-        to="/admin/config"
+        to={backTo}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
       >
         <ArrowLeft size={16} />

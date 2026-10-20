@@ -1,6 +1,7 @@
 import { FileText, Table2, FolderOpen, Users, Link2 } from "lucide-react";
 import { type Item, type Project } from "./types";
 import { ProjectRelations } from "./project-relations";
+import { useTranslation } from "react-i18next";
 export function documentKind(i: Item) {
   return (
     i.document_type ??
@@ -26,18 +27,19 @@ export function ProjectOverview({
   onManage: () => void;
   onBrowse: (kind: string) => void;
 }) {
+  const { t: tp } = useTranslation("prj");
   const kinds = [
-    { key: "MEMO", name: "메모", icon: FileText },
-    { key: "SHEET", name: "스프레드시트", icon: Table2 },
-    { key: "DOC", name: "구글Docs", icon: FileText },
-    { key: "FILE", name: "파일", icon: FolderOpen },
+    { key: "MEMO", icon: FileText },
+    { key: "SHEET", icon: Table2 },
+    { key: "DOC", icon: FileText },
+    { key: "FILE", icon: FolderOpen },
   ];
   return (
     <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
       <section className="min-w-0 rounded-xl border bg-surface p-4 lg:p-5">
-        <h2 className="mb-4 font-semibold">최근 등록 문서</h2>
+        <h2 className="mb-4 font-semibold">{tp("overview.recentDocs")}</h2>
         <div className="grid min-w-0 gap-3 md:grid-cols-3">
-          {kinds.map(({ key, name, icon: Icon }) => {
+          {kinds.map(({ key, icon: Icon }) => {
             const recent = items
               .filter((i) => i.pit_kind !== "ISSUE" && documentKind(i) === key)
               .sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -50,13 +52,13 @@ export function ProjectOverview({
                 <header className="mb-4 flex items-center justify-between gap-2 text-sm">
                   <h3 className="flex items-center gap-2 font-semibold">
                     <Icon size={16} />
-                    {name}
+                    {tp(`overview.kind.${key}`)}
                   </h3>
                   <button
                     onClick={() => onBrowse(key)}
                     className="shrink-0 text-xs text-blue-600"
                   >
-                    전체 보기
+                    {tp("overview.viewAll")}
                   </button>
                 </header>
                 {recent.length ? (
@@ -78,7 +80,7 @@ export function ProjectOverview({
                               key !== "FILE" && (
                                 <span className="flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 text-xs text-blue-600">
                                   <Link2 size={12} />
-                                  연동
+                                  {tp("overview.linked")}
                                 </span>
                               )}
                           </span>
@@ -95,7 +97,7 @@ export function ProjectOverview({
                   </ul>
                 ) : (
                   <p className="min-h-44 text-sm text-gray-400">
-                    등록된 항목이 없습니다
+                    {tp("overview.empty")}
                   </p>
                 )}
               </section>
@@ -108,14 +110,14 @@ export function ProjectOverview({
           <header className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-semibold">
               <Users size={17} />
-              멤버
+              {tp("overview.members")}
             </h2>
             {manage && (
               <button
                 onClick={onManage}
-                className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white"
+                className="rounded-lg bg-accent-600 px-3 py-2 text-sm text-white"
               >
-                멤버 관리
+                {tp("overview.manageMembers")}
               </button>
             )}
           </header>
@@ -130,8 +132,8 @@ export function ProjectOverview({
                 </div>
                 <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
                   {m.id === project.owner_id || m.member_role === "MANAGER"
-                    ? "프로젝트 매니저"
-                    : "참여자"}
+                    ? tp("overview.roleManager")
+                    : tp("overview.roleMember")}
                 </span>
               </li>
             ))}

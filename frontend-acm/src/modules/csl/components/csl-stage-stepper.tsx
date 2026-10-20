@@ -66,7 +66,7 @@ export function CslStageStepper({
               }
             >
               <span
-                className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+                className={`flex h-5 w-5 items-center justify-center rounded-full text-xs font-semibold ${
                   active
                     ? 'bg-accent-600 text-white'
                     : done

@@ -10,6 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageHeader } from '@/components/ui/page-header';
+import { UnderlineTabs } from '@/components/ui/tabs';
+import { MoreMenu } from '@/components/ui/more-menu';
+import { LayoutDashboard } from 'lucide-react';
 import { ManualInputDialog } from '@/modules/dsh/components/manual-input-dialog';
 import { ComplaintDialog } from '@/modules/dsh/components/complaint-dialog';
 import {
@@ -382,65 +386,68 @@ export function DashboardPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-        <h1 className="text-2xl font-semibold">{t('title')}</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          {(role === 'ADMIN' || role === 'APP_ADMIN') && (
-            <Button
-              variant="outline"
-              onClick={onGa4Sync}
-              disabled={ga4Sync.isPending || !from || !to || from > to}
-              title={
-                gridQ.data?.ga4LastSyncAt
-                  ? new Date(gridQ.data.ga4LastSyncAt).toLocaleString()
-                  : undefined
-              }
-            >
-              {t('visitor.syncNow')}
+      <PageHeader
+        icon={LayoutDashboard}
+        title={t('common:nav.dashboard')}
+        description={t('common:pageHeader.dashboard.desc')}
+        meta={
+          gridQ.data ? (
+            <span className="text-xs">{t("visitor.lastDataDate", {date: gridQ.data.ga4LastDataDate ?? "—"})}</span>
+          ) : undefined
+        }
+        actions={
+          <>
+            <MoreMenu
+              label={t('common:pageHeader.more')}
+              items={[
+                ...(role === 'ADMIN' || role === 'APP_ADMIN'
+                  ? [
+                      {
+                        key: 'ga4Sync',
+                        label: t('visitor.syncNow'),
+                        onClick: onGa4Sync,
+                        disabled: ga4Sync.isPending || !from || !to || from > to,
+                        title: gridQ.data?.ga4LastSyncAt
+                          ? new Date(gridQ.data.ga4LastSyncAt).toLocaleString()
+                          : undefined,
+                      },
+                    ]
+                  : []),
+                {
+                  key: 'complaints',
+                  label: t('complaint.manage.title'),
+                  href: `/admin/complaints?${new URLSearchParams({ from, to, site })}`,
+                },
+                {
+                  key: 'addComplaint',
+                  label: t('actions.addComplaint'),
+                  onClick: () => setComplaintOpen(true),
+                },
+              ]}
+            />
+            <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
+              {t('actions.exportCsv')}
             </Button>
-          )}
-          {gridQ.data && <span className="text-xs text-secondary">{t("visitor.lastDataDate", {date: gridQ.data.ga4LastDataDate ?? "—"})}</span>}
-          <Button variant="outline" onClick={handleExportCsv} disabled={!gridQ.data || !opsQ.data || opsQ.isError}>
-            {t('actions.exportCsv')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setManualDate(isoToday());
-              setManualOpen(true);
-            }}
-          >
-            {t('actions.manualInput')}
-          </Button>
-          <a className="text-sm underline" href={`/admin/complaints?${new URLSearchParams({ from, to, site })}`}>{t('complaint.manage.title')}</a>
-          <Button onClick={() => setComplaintOpen(true)}>{t('actions.addComplaint')}</Button>
-        </div>
-      </div>
-
-      {/* PLN-260914B — site tabs */}
-      <div
-        className="flex flex-wrap gap-1 mb-3 border-b border-[var(--border-subtle)]"
-        role="tablist"
-        aria-label={t('site.label')}
-      >
-        {SITE_TABS.map((s) => (
-          <button
-            key={s}
-            type="button"
-            role="tab"
-            aria-selected={site === s}
-            onClick={() => setSite(s)}
-            className={
-              'px-3 py-1.5 text-sm -mb-px border-b-2 transition-colors ' +
-              (site === s
-                ? 'border-[var(--accent-700,#4f46e5)] text-primary font-medium'
-                : 'border-transparent text-secondary hover:text-primary')
-            }
-          >
-            {t(`site.tabs.${s}`)}
-          </button>
-        ))}
-      </div>
+            <Button
+              onClick={() => {
+                setManualDate(isoToday());
+                setManualOpen(true);
+              }}
+            >
+              {t('actions.manualInput')}
+            </Button>
+          </>
+        }
+        tabs={
+          /* PLN-260914B — site tabs */
+          <UnderlineTabs
+            label={t('site.label')}
+            items={SITE_TABS.map((s) => ({ key: s, label: t(`site.tabs.${s}`) }))}
+            value={site}
+            onChange={setSite}
+          />
+        }
+      />
 
       <div className="rounded-md border border-[var(--border-subtle)] bg-surface p-3 mb-3 flex flex-wrap items-end gap-3">
         <div>
@@ -571,7 +578,7 @@ export function DashboardPage() {
                       <tr className="bg-surface-subtle">
                         <td
                           colSpan={totalCols}
-                          className="px-2 py-1 text-[11px] font-medium text-secondary border-t border-[var(--border-subtle)]"
+                          className="px-2 py-1 text-xs font-medium text-secondary border-t border-[var(--border-subtle)]"
                         >
                           {ym}
                         </td>
@@ -581,7 +588,7 @@ export function DashboardPage() {
                       className="border-t border-[var(--border-subtle)] cursor-pointer hover:bg-surface-subtle"
                       onClick={() => onRowClick(row.date)}
                     >
-                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}{row.date > (gridQ.data?.actualThrough ?? '') && <span className="block text-[10px] text-secondary">{t('quality.future')}</span>}</td>
+                      <td className="px-2 py-1 sticky left-0 bg-surface">{row.date.slice(5)}{row.date > (gridQ.data?.actualThrough ?? '') && <span className="block text-xs text-secondary">{t('quality.future')}</span>}</td>
                       <td className="px-2 py-1">{row.dayOfWeekKr}</td>
                       {flatMetrics.map((md, i) => {
                         const field = METRIC_TO_FIELD[md.code];
@@ -599,10 +606,10 @@ export function DashboardPage() {
                             }
                             title={isVisitor ? row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' ? `GA ${row.marketingGa ?? '—'} + ${row.marketingAdjustment ?? 0}` : visitorCellTitle(row.date) : undefined}
                           >
-                            {lifeCodes.includes(md.code)?<button type="button" className="underline" disabled={lifeRows.get(row.date)?.[md.code]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}>{lifeRows.get(row.date)?.[md.code]?.calculated??'—'}{lifeRows.get(row.date)?.[md.code]?.quality==='PARTIAL'?' *':''}</button>:md.category==='OPERATING' ? ['ops_new_st','ops_returning_st','ops_referral_st'].includes(md.code)?<button type="button" className="underline" disabled={opsRows.get(row.date)?.[md.code as OpsMetric]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}><DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/></button>:<DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
-                            {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-[10px] text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
+                            {lifeCodes.includes(md.code)?<button type="button" className="underline min-h-9 min-w-9 sm:min-h-0 sm:min-w-0" disabled={lifeRows.get(row.date)?.[md.code]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}>{lifeRows.get(row.date)?.[md.code]?.calculated??'—'}{lifeRows.get(row.date)?.[md.code]?.quality==='PARTIAL'?' *':''}</button>:md.category==='OPERATING' ? ['ops_new_st','ops_returning_st','ops_referral_st'].includes(md.code)?<button type="button" className="underline min-h-9 min-w-9 sm:min-h-0 sm:min-w-0" disabled={opsRows.get(row.date)?.[md.code as OpsMetric]?.calculated==null} onClick={e=>{e.stopPropagation();setLifeDetail({date:row.date,code:md.code});}}><DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/></button>:<DualValue cell={opsRows.get(row.date)?.[md.code as OpsMetric]}/> : fmt(v, md.format)}
+                            {isVisitor && row.marketingVisitorPolicy === 'GA_PLUS_ADJUSTMENT' && <span className="block text-xs text-secondary">{row.marketingVisitorPartial ? `${t('marketingEditor.partial')}: ${row.marketingVisitorKnownSubtotal}` : `GA ${row.marketingGa} + ${row.marketingAdjustment}`}</span>}
                             {isManualVisitor && (
-                              <span className="ml-0.5 text-[10px] text-secondary" aria-label={t('visitor.manualMark')}>
+                              <span className="ml-0.5 text-xs text-secondary" aria-label={t('visitor.manualMark')}>
                                 ✎
                               </span>
                             )}
@@ -631,7 +638,7 @@ export function DashboardPage() {
                       }
                     >
                       {lifeCodes.includes(md.code)?lifeQ.isError?'—':lifeQ.data?.summary[md.code]?.calculated??'—':md.category==='OPERATING' ? <DualValue cell={opsQ.isError?undefined:opsQ.data?.summary[md.code as OpsMetric]}/> : fmt(gridQ.data!.sums[md.code], md.format)}
-                      {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}
+                      {gridQ.data!.coverage?.[md.code]?.status === 'PARTIAL' && <span className="block text-xs text-secondary">{t('quality.partial')}</span>}
                     </td>
                   );
                 })}

@@ -75,7 +75,7 @@ jobs:
     needs: preflight
     environment:
       name: production
-      url: https://acm.amoeba.site
+      url: https://acm-tpi.amoeba.site
 
     steps:
       - name: Trigger remote deploy
@@ -95,10 +95,14 @@ jobs:
       - name: Smoke test
         if: ${{ inputs.skip_smoke != true }}
         run: |
-          for i in $(seq 1 6); do
-            code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 https://acm.amoeba.site/ || echo 000)
-            echo "attempt $i → $code"
-            [[ "$code" == "200" ]] && exit 0
-            sleep 5
+          # REQ-261017C — 메인·보조 도메인 모두 200 이어야 통과
+          for host in acm-tpi.amoeba.site acm.amoeba.site; do
+            ok=0
+            for i in $(seq 1 6); do
+              code=$(curl -sIL -o /dev/null -w '%{http_code}' --max-time 15 "https://$host/" || echo 000)
+              echo "$host attempt $i → $code"
+              [[ "$code" == "200" ]] && { ok=1; break; }
+              sleep 5
+            done
+            [[ "$ok" == "1" ]] || { echo "Smoke test failed for $host"; exit 1; }
           done
-          echo "Smoke test failed"; exit 1

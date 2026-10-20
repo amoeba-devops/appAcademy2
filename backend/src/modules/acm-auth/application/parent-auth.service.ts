@@ -1,3 +1,4 @@
+import { sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   BadRequestException,
   Injectable,
@@ -117,7 +118,7 @@ export class ParentAuthService {
     };
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload, sessionSignOptions()),
       parent: this.toAuthUser(parent),
     };
   }

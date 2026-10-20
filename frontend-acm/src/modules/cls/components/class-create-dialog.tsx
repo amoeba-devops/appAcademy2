@@ -549,7 +549,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
                   >
                     {student.name}
                     {primaryStudentId === student.id && (
-                      <span className="rounded bg-accent-50 px-1 py-0.5 text-[10px] text-accent-700">
+                      <span className="rounded bg-accent-50 px-1 py-0.5 text-xs text-accent-700">
                         {t('create.primaryStudent', { defaultValue: '대표 학생' })}
                       </span>
                     )}
@@ -674,7 +674,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                    <div className="md:col-span-5 text-[11px] text-secondary">
+                    <div className="md:col-span-5 text-xs text-secondary">
                       {t('create.scheduleRowLabel', {
                         defaultValue: '{{index}}번째 일정',
                         index: index + 1,
@@ -763,7 +763,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
                     </Button>
                   </div>
 
-                  <div className="md:col-span-5 text-[11px] text-secondary">
+                  <div className="md:col-span-5 text-xs text-secondary">
                     {t('create.scheduleRowLabel', {
                       defaultValue: '{{index}}번째 일정',
                       index: index + 1,

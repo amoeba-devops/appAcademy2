@@ -1,6 +1,7 @@
+import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useScrollHint } from "@/hooks/use-scroll-hint";
 
 /**
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
@@ -46,8 +48,13 @@ export function PortalShell() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.portal.user);
   const clearPortal = useAuthStore((s) => s.clearPortal);
+  // TST-261019 M7 — 휴대폰 가로 메뉴: 오른쪽 흐림 표시 + 현재 메뉴 자동 스크롤.
+  const { pathname } = useLocation();
+  const { ref: navRef, hasMore: navHasMore } =
+    useScrollHint<HTMLElement>(pathname);
 
   const logout = () => {
+    forgetDevicePush("portal"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
     clearPortal();
     navigate("/portal/login", { replace: true });
   };
@@ -87,32 +94,43 @@ export function PortalShell() {
 
       {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
       <div className="flex max-w-5xl flex-col gap-4 px-3 py-4 sm:flex-row">
-        <nav className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1">
-          {NAV.filter((n) => !n.teacherOnly || user?.kind === "TEACHER").map(
-            (n) => {
-              const Icon = n.icon;
-              return (
-                <NavLink
-                  key={n.key}
-                  to={n.to}
-                  end={n.end}
-                  className={({ isActive }) =>
-                    `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
-                      isActive
-                        ? "bg-accent-600 text-white"
-                        : "text-secondary hover:bg-[var(--gray-100)]"
-                    }`
-                  }
-                >
-                  <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}{" "}
-                  {n.key === "chat" && (
-                    <ChatUnreadLink mode="portal" badgeOnly />
-                  )}
-                </NavLink>
-              );
-            },
+        <div className="relative w-full shrink-0 sm:w-40">
+          <nav
+            ref={navRef}
+            className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1"
+          >
+            {NAV.filter((n) => !n.teacherOnly || user?.kind === "TEACHER").map(
+              (n) => {
+                const Icon = n.icon;
+                return (
+                  <NavLink
+                    key={n.key}
+                    to={n.to}
+                    end={n.end}
+                    className={({ isActive }) =>
+                      `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
+                        isActive
+                          ? "bg-accent-600 text-white"
+                          : "text-secondary hover:bg-[var(--gray-100)]"
+                      }`
+                    }
+                  >
+                    <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}{" "}
+                    {n.key === "chat" && (
+                      <ChatUnreadLink mode="portal" badgeOnly />
+                    )}
+                  </NavLink>
+                );
+              },
+            )}
+          </nav>
+          {navHasMore && (
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-canvas to-transparent sm:hidden"
+            />
           )}
-        </nav>
+        </div>
         {/* PLN-260728E — 우측 컨텐츠 영역 흰 배경(채팅 페이지 참조). */}
         <main className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
           <Outlet />

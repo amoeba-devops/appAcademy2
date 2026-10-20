@@ -1,3 +1,4 @@
+import { Controller } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { LevelTestScoreEditor } from './level-test-score-editor';
 import { useForm } from 'react-hook-form';
@@ -105,7 +106,7 @@ export function MapTestPanel({
     },
   });
 
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { control,  register, handleSubmit, reset, watch } = useForm<FormValues>({
     defaultValues: {
       hasPriorScore: false,
       feeStatus: '',
@@ -296,7 +297,7 @@ export function MapTestPanel({
               {isIntake ? t('detail.mapTest.priorScores') : t('detail.mapTest.scores')}
             </Label>
             {isIntake && (
-              <p className="text-[11px] text-secondary -mt-2">
+              <p className="text-xs text-secondary -mt-2">
                 {t('detail.mapTest.priorScoresHint')}
               </p>
             )}
@@ -306,31 +307,31 @@ export function MapTestPanel({
                 across all locales (per requirement: 한국어 모드에서도 영문 표기).
               */}
               <Field label="Reading">
-                <Input
+                <Controller control={control} name={'scoreReading'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreReading')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
               <Field label="Math">
-                <Input
+                <Controller control={control} name={'scoreMath'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreMath')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
               <Field label="Language Usage">
-                <Input
+                <Controller control={control} name={'scoreLanguage'} render={({field}) => (<Input
                   type="number"
                   min={100}
                   max={350}
                   placeholder="100~350"
-                  {...register('scoreLanguage')}
-                />
+                  {...field} value={field.value ?? ''}
+                />)} />
               </Field>
             </div>
           </>
@@ -339,7 +340,7 @@ export function MapTestPanel({
         {isIntake && <TranscriptUploadStub />}
 
         {!isIntake && data?.resultEnteredAt && (
-          <p className="text-[11px] text-secondary">
+          <p className="text-xs text-secondary">
             {t('detail.mapTest.resultEntered', {
               when: new Date(data.resultEnteredAt).toLocaleString(),
             })}
@@ -473,7 +474,7 @@ function ResultPdfDownload({ inqId }: { inqId: string }) {
     <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-3">
       <div>
         <p className="text-sm font-medium">{t('detail.mapTest.resultPdf')}</p>
-        <p className="text-[11px] text-secondary">
+        <p className="text-xs text-secondary">
           {t('detail.mapTest.resultPdfHint')}
         </p>
       </div>
@@ -498,7 +499,7 @@ function TranscriptUploadStub() {
   return (
     <div className="grid gap-1 rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--surface-strong)] px-3 py-3">
       <Label className="text-xs">{t('detail.mapTest.transcripts')}</Label>
-      <p className="text-[11px] text-secondary">
+      <p className="text-xs text-secondary">
         {t('detail.mapTest.transcriptsComingSoon')}
       </p>
       <input

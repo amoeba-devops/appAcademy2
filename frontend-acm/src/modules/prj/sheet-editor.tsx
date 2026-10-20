@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { type Sheet, blankSheet, columnName, displayCell } from "./sheet-model";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 export function SheetEditor({
   value,
   onChange,
@@ -10,6 +11,7 @@ export function SheetEditor({
   onChange: (v: Sheet) => void;
   readOnly: boolean;
 }) {
+  const { t: tp } = useTranslation("prj");
   const shiftPointer = useRef(false);
   const [start, setStart] = useState<[number, number]>([0, 0]),
     [end, setEnd] = useState<[number, number]>([0, 0]),
@@ -52,7 +54,7 @@ export function SheetEditor({
               onChange(prev);
             }}
           >
-            되돌리기
+            {tp("sheetEditor.undo")}
           </Button>
           <Button
             type="button"
@@ -64,7 +66,7 @@ export function SheetEditor({
               setFuture((f) => f.slice(1));
             }}
           >
-            다시 실행
+            {tp("sheetEditor.redo")}
           </Button>
           <Button
             type="button"
@@ -77,7 +79,7 @@ export function SheetEditor({
               })
             }
           >
-            행 추가
+            {tp("sheetEditor.addRow")}
           </Button>
           <Button
             type="button"
@@ -90,7 +92,7 @@ export function SheetEditor({
               })
             }
           >
-            열 추가
+            {tp("sheetEditor.addColumn")}
           </Button>
           <Button
             type="button"
@@ -105,7 +107,7 @@ export function SheetEditor({
               setEnd([0, 0]);
             }}
           >
-            선택 행 삭제
+            {tp("sheetEditor.deleteRow")}
           </Button>
           <Button
             type="button"
@@ -120,7 +122,7 @@ export function SheetEditor({
               setEnd([0, 0]);
             }}
           >
-            선택 열 삭제
+            {tp("sheetEditor.deleteColumn")}
           </Button>
           <Button
             type="button"
@@ -131,10 +133,10 @@ export function SheetEditor({
               })
             }
           >
-            굵게
+            {tp("sheetEditor.bold")}
           </Button>
           <select
-            aria-label="셀 표시 형식"
+            aria-label={tp("sheetEditor.format")}
             className="rounded border p-2"
             value={s.cells[start[0]]?.[start[1]]?.format ?? "auto"}
             onChange={(e) =>
@@ -143,12 +145,12 @@ export function SheetEditor({
               })
             }
           >
-            <option value="auto">자동</option>
-            <option value="number">숫자</option>
-            <option value="text">문자</option>
+            <option value="auto">{tp("sheetEditor.formatAuto")}</option>
+            <option value="number">{tp("sheetEditor.formatNumber")}</option>
+            <option value="text">{tp("sheetEditor.formatText")}</option>
           </select>
           <label>
-            열 너비{" "}
+            {tp("sheetEditor.columnWidth")}{" "}
             <input
               type="number"
               min={60}
@@ -166,7 +168,7 @@ export function SheetEditor({
             />
           </label>
           <label>
-            행 높이{" "}
+            {tp("sheetEditor.rowHeight")}{" "}
             <input
               type="number"
               min={24}
@@ -186,8 +188,7 @@ export function SheetEditor({
         </div>
       )}
       <p className="text-xs text-secondary">
-        Shift+클릭으로 범위 선택 · 복사/붙여넣기 · =SUM(A1:A3), =AVERAGE(A1:A3),
-        사칙연산 지원 · 행/열 삭제 시 수식 참조는 자동 이동하지 않습니다.
+        {tp("sheetEditor.help")}
       </p>
       <div
         className="max-w-full overflow-auto border"

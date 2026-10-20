@@ -1,3 +1,4 @@
+import { sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   Injectable,
   UnauthorizedException,
@@ -147,7 +148,7 @@ export class AcmAuthService {
       name: user.name,
       role: user.role ?? 'ADMIN',
     };
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, sessionSignOptions());
     return {
       accessToken,
       user: {
@@ -677,7 +678,7 @@ export class AcmAuthService {
   }
 
   private signJwt(payload: AcmJwtPayload): string {
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, sessionSignOptions());
   }
 
   private assertNotLocked(email: string): void {

@@ -1,8 +1,10 @@
 import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/auth.store";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DocumentPermissions } from "./document-permissions";
+import { DeleteItemButton } from "./delete-item-button";
 import type { Item, Project } from "./types";
 import { documentKind } from "./project-overview";
 export function DocumentTable({
@@ -16,6 +18,7 @@ export function DocumentTable({
   manage: boolean;
   onEdit: (i: Item) => void;
 }) {
+  const { t: tp } = useTranslation("prj");
   const [params] = useSearchParams();
   const user = useAuthStore((s) => s.user),
     [sort, setSort] = useState("updated"),
@@ -57,36 +60,36 @@ export function DocumentTable({
     <div className="grid min-w-0 gap-3">
       <div className="flex flex-wrap gap-2">
         <select
-          aria-label="문서 정렬"
+          aria-label={tp("documentTable.sortLabel")}
           className="rounded border p-2"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
         >
-          <option value="updated">최근 수정순</option>
-          <option value="oldest">오래된 수정순</option>
-          <option value="created">최근 등록순</option>
-          <option value="name">이름 오름차순</option>
-          <option value="nameDesc">이름 내림차순</option>
+          <option value="updated">{tp("documentsPage.sortUpdated")}</option>
+          <option value="oldest">{tp("documentsPage.sortOldest")}</option>
+          <option value="created">{tp("common.sortRecentCreated")}</option>
+          <option value="name">{tp("documentsPage.sortNameAsc")}</option>
+          <option value="nameDesc">{tp("documentsPage.sortNameDesc")}</option>
         </select>
         <select
-          aria-label="문서 권한"
+          aria-label={tp("documentTable.permissionLabel")}
           className="rounded border p-2"
           value={role}
           onChange={(e) => setRole(e.target.value)}
         >
-          <option value="">전체 권한</option>
-          <option value="EDITOR">편집자</option>
-          <option value="VIEWER">뷰어</option>
+          <option value="">{tp("documentsPage.allPermissions")}</option>
+          <option value="EDITOR">{tp("documentsPage.editor")}</option>
+          <option value="VIEWER">{tp("documentsPage.viewer")}</option>
         </select>
         <select
-          aria-label="Google 연동"
+          aria-label={tp("documentTable.googleLinkLabel")}
           className="rounded border p-2"
           value={linked}
           onChange={(e) => setLinked(e.target.value)}
         >
-          <option value="">전체 연동 상태</option>
-          <option value="yes">Google 연동</option>
-          <option value="no">ACM 저장</option>
+          <option value="">{tp("documentsPage.allLinkStatuses")}</option>
+          <option value="yes">{tp("documentsPage.googleLinked")}</option>
+          <option value="no">{tp("documentsPage.acmStored")}</option>
         </select>
       </div>
       <div className="overflow-x-auto rounded-xl border">
@@ -94,15 +97,15 @@ export function DocumentTable({
           <thead className="bg-gray-50">
             <tr>
               {[
-                "문서명",
-                "최종 수정",
-                "작성자",
-                "권한",
-                "Google 문서",
-                "작업",
-              ].map((t) => (
-                <th key={t} className="whitespace-nowrap p-3">
-                  {t}
+                "name",
+                "updated",
+                "author",
+                "permission",
+                "googleDoc",
+                "actions",
+              ].map((c) => (
+                <th key={c} className="whitespace-nowrap p-3">
+                  {tp(`documentTable.cols.${c}`)}
                 </th>
               ))}
             </tr>
@@ -126,13 +129,13 @@ export function DocumentTable({
                 <td className="p-3">{i.creator_name}</td>
                 <td className="p-3">
                   {manage || !i.viewer_ids?.includes(user?.id ?? "")
-                    ? "편집자"
-                    : "뷰어"}
+                    ? tp("documentsPage.editor")
+                    : tp("documentsPage.viewer")}
                 </td>
                 <td className="p-3">
                   {i.drive_file_id || i.external_url ? (
                     <span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-600">
-                      연동
+                      {tp("documentTable.linked")}
                     </span>
                   ) : (
                     "—"
@@ -149,10 +152,16 @@ export function DocumentTable({
                         )
                       }
                     >
-                      {copied === i.pit_id ? "복사 완료" : "ID 복사"}
+                      {copied === i.pit_id
+                        ? tp("documentsPage.copied")
+                        : tp("documentTable.copyId")}
                     </button>
                     {manage && (
                       <DocumentPermissions project={project} item={i} />
+                    )}
+                    {/* REQ-261019 — 작성자·프로젝트 담당자·테넌트 마스터 */}
+                    {project.prj_status !== "ARCHIVED" && (
+                      <DeleteItemButton projectId={project.prj_id} item={i} />
                     )}
                   </div>
                 </td>
@@ -162,18 +171,18 @@ export function DocumentTable({
         </table>
         {!rows.length && (
           <p className="p-8 text-center text-secondary">
-            검색 결과가 없습니다.
+            {tp("documentTable.noResults")}
           </p>
         )}
       </div>
-      {copied === "error" && <p role="alert">ID를 복사하지 못했습니다.</p>}
+      {copied === "error" && <p role="alert">{tp("documentTable.copyIdFailed")}</p>}
       {preview && (
         <Dialog open onOpenChange={(o) => !o && setPreview(null)}>
           <DialogContent className="max-w-6xl">
             <DialogTitle>{preview.pit_title}</DialogTitle>
             <div className="flex justify-between gap-3">
               <p className="text-sm text-secondary">
-                미리보기가 표시되지 않으면 Google 원본 접근 권한을 확인하세요.
+                {tp("documentTable.previewHint")}
               </p>
               <a
                 href={url}
@@ -181,7 +190,7 @@ export function DocumentTable({
                 target="_blank"
                 rel="noreferrer"
               >
-                새 탭 열기
+                {tp("documentTable.openNewTab")}
               </a>
             </div>
             <iframe

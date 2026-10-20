@@ -99,7 +99,8 @@
     "sectionSubjects": "授课科目",
     "sectionAccount": "账号开通",
     "sectionResetPassword": "重置密码",
-    "sectionAccountLock": "账号锁定"
+    "sectionAccountLock": "账号锁定",
+    "sectionAmaPicker": "AMA 目录"
   },
   "hint": {
     "passwordPolicy": "至少 8 位,需包含字母和数字。",
@@ -129,14 +130,19 @@
     "hint": "PDF / JPG / PNG · 最大 10 MB",
     "empty": "暂无附件。",
     "actions": {
-      "upload": "上传文件"
+      "upload": "上传文件",
+      "add": "添加文件"
     },
     "confirm": {
       "delete": "确认删除该文件?"
     },
     "error": {
       "mime": "不支持的文件类型 (仅限 PDF/JPG/PNG)。",
-      "size": "文件大小须 ≤ 10 MB。"
+      "size": "文件大小须 ≤ 10 MB。",
+      "uploadFailed": "附件上传失败：{{name}}（{{msg}}）"
+    },
+    "staged": {
+      "empty": "尚未添加文件"
     }
   },
   "profile": {

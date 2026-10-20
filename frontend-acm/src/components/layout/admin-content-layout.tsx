@@ -150,6 +150,15 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, [isDashboard]);
   if (isDashboard || isProject || pathname === "/admin/documents") return <>{children}</>;
+  // UI-261019 — "이용 팁" 패널은 없앤다(화면 설명은 PageHeader 한 줄로). 채팅만 방 정보 패널로 쓴다.
+  if (!isChat)
+    return (
+      <div className="admin-content-container">
+        <div className="admin-content-grid">
+          <div className="admin-page-content">{children}</div>
+        </div>
+      </div>
+    );
   return (
     <AdminSupportSlot.Provider
       value={{

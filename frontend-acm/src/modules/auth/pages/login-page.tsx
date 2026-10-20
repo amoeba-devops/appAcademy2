@@ -1,3 +1,4 @@
+import { SessionExpiredNotice } from "@/components/common/session-expired-notice";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -8,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ForgotPasswordDialog } from "../components/forgot-password-dialog";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { InstallAppCard } from "@/components/pwa/install-app";
 import { useAuthStore } from "@/stores/auth.store";
 import { SUPPORTED_LANGS, type SupportedLang } from "@/i18n";
 import { DebugContextPanel } from "@/components/common/debug-context-panel";
@@ -235,6 +237,7 @@ export function LoginPage() {
               {t("login.title")}
             </h1>
             <p className="text-sm text-secondary mb-6">{t("login.subtitle")}</p>
+            <SessionExpiredNotice />
 
             <form
               onSubmit={onSubmit}
@@ -290,6 +293,8 @@ export function LoginPage() {
                 {submitting ? t("login.submitting") : t("login.submit")}
               </Button>
             </form>
+            {/* REQ-261018D — 앱 설치 안내 */}
+            <InstallAppCard />
             {forgot && (
               <ForgotPasswordDialog initialEmail={email.trim()} close={() => setForgot(false)} />
             )}

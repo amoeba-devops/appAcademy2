@@ -1,5 +1,10 @@
-import { ProjectFileService } from '../../../src/modules/acm-prj/application/project-file.service';
+import { Readable } from 'node:stream';
+import {
+  ProjectFileService,
+  openTicketFile,
+} from '../../../src/modules/acm-prj/application/project-file.service';
 import { ObjectStoreClient } from '../../../src/modules/acm-csl/infrastructure/external/object-store.client';
+import { DocAssetService } from '../../../src/modules/acm-prj/application/doc-asset.service';
 import { SharedDriveService } from '../../../src/modules/acm-prj/application/shared-drive.service';
 import {
   googleUrl,
@@ -111,6 +116,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
     for (const f of [
       '1040-prj-issue-ama-parity.sql',
       '1042-prj-issue-types-assignee-log.sql',
+      '1047-prj-drive-folder-name.sql',
     ])
       await ds.query(
         readFileSync(resolve(__dirname, '../../../../sql/acm/' + f), 'utf8'),
@@ -125,6 +131,14 @@ describe('Project / shared Drive isolation and durable operations', () => {
       `INSERT INTO amb_acm_user_permission VALUES($1,$2,'CONFIG_ADMIN')`,
       [ent, owner.id],
     );
+    // PLN-261020C — 문서 본문 이미지·첨부 자산.
+    for (let i = 0; i < 2; i++)
+      await ds.query(
+        readFileSync(
+          resolve(__dirname, '../../../../sql/acm/1048-prj-doc-asset.sql'),
+          'utf8',
+        ),
+      );
     projects = new ProjectService(ds);
     drive = new ProjectDriveService(
       projects,
@@ -202,6 +216,64 @@ describe('Project / shared Drive isolation and durable operations', () => {
       p.prj_id,
     ]);
   });
+  it('stores document assets behind an unguessable link', async () => {
+    const p = await projects.save(owner, {
+      title: 'Assets',
+      ownerId: owner.id,
+      memberIds: [],
+    });
+    const store = {
+      isConfigured: () => true,
+      buildKey: (e: string, id: string, name: string) => `${e}/${id}/${name}`,
+      putObject: jest.fn().mockResolvedValue(undefined),
+      getObjectStream: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          stream: Readable.from([Buffer.from('png')]),
+          contentLength: 3,
+          partial: false,
+        }),
+      ),
+    } as unknown as ObjectStoreClient;
+    const svc = new DocAssetService(projects, store);
+    const image = {
+      size: 3,
+      buffer: Buffer.from('png'),
+      originalname: 'a.png',
+      mimetype: 'image/png',
+    } as Express.Multer.File;
+    await expect(
+      svc.upload(outsider, p.prj_id, 'image', image),
+    ).rejects.toThrow();
+    await expect(
+      svc.upload(owner, p.prj_id, 'image', {
+        ...image,
+        originalname: 'a.svg',
+        mimetype: 'image/svg+xml',
+      }),
+    ).rejects.toThrow();
+    const a = await svc.upload(owner, p.prj_id, 'image', image);
+    expect(a.url).toMatch(
+      /^\/api\/acm\/prj\/doc-assets\/[0-9a-f-]{36}\/[\w-]{43}$/,
+    );
+    const [id, token] = a.url.split('/').slice(-2);
+    const opened = await svc.open(id, token);
+    expect(opened).toMatchObject({
+      inline: true,
+      mime: 'image/png',
+      filename: 'a.png',
+    });
+    await expect(svc.open(id, token.slice(1) + 'A')).rejects.toThrow();
+    const f = await svc.upload(owner, p.prj_id, 'file', {
+      ...image,
+      originalname: 'a.pdf',
+      mimetype: 'application/pdf',
+    });
+    const [fid, ftoken] = f.url.split('/').slice(-2);
+    expect(await svc.open(fid, ftoken)).toMatchObject({
+      inline: false,
+      mime: 'application/octet-stream',
+    });
+  });
   it('uploads local files idempotently and isolates download URLs', async () => {
     const p = await projects.save(owner, {
       title: 'Files',
@@ -213,14 +285,21 @@ describe('Project / shared Drive isolation and durable operations', () => {
       buildKey: (ent: string, id: string, name: string) =>
         `${ent}/${id}/${name}`,
       putObject: jest.fn().mockResolvedValue(undefined),
-      presignGet: jest
-        .fn()
-        .mockResolvedValue('https://storage.example/download'),
+      presignGet: jest.fn(),
+      getObjectStream: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          stream: Readable.from([Buffer.from('test')]),
+          mime: 'application/pdf',
+          contentLength: 4,
+          partial: false,
+        }),
+      ),
     } as unknown as ObjectStoreClient;
     const svc = new ProjectFileService(
       projects,
       {
         status: async () => ({ rootReady: false }),
+        projectReady: async () => false,
       } as unknown as ProjectDriveService,
       store,
     );
@@ -236,9 +315,17 @@ describe('Project / shared Drive isolation and durable operations', () => {
     await svc.upload(owner, p.prj_id, dto, file);
     expect(store.putObject).toHaveBeenCalledTimes(1);
     await expect(svc.download(outsider, p.prj_id, op)).rejects.toThrow();
-    expect((await svc.download(owner, p.prj_id, op)).url).toBe(
-      'https://storage.example/download',
-    );
+    // REQ-261020 — 내부 MinIO 주소 대신 같은 서버의 5분 서명 링크, 내용은 서버가 스트림
+    const { url } = await svc.download(owner, p.prj_id, op);
+    expect(url).toMatch(/^\/api\/acm\/prj\/files\/content\?t=/);
+    expect(store.presignGet).not.toHaveBeenCalled();
+    const ticket = decodeURIComponent(url.split('t=')[1]);
+    const opened = await openTicketFile(ds, store, ticket);
+    expect(opened.filename).toBe('example.pdf');
+    let body = '';
+    for await (const chunk of opened.stream) body += String(chunk);
+    expect(body).toBe('test');
+    await expect(openTicketFile(ds, store, ticket + 'x')).rejects.toThrow();
     await projects.unlink(owner, p.prj_id, op);
     await expect(svc.download(owner, p.prj_id, op)).rejects.toThrow();
     await expect(svc.upload(owner, p.prj_id, dto, file)).rejects.toThrow();
@@ -607,6 +694,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
         projects,
         {
           status: async () => ({ rootReady }),
+          projectReady: async () => rootReady,
           create: driveCreate,
         } as unknown as ProjectDriveService,
         store,
@@ -938,21 +1026,19 @@ describe('Project / shared Drive isolation and durable operations', () => {
     expect(trashed).toMatchObject({ succeeded: ['b.pdf'] });
     expect(update.mock.calls[0][2]).toEqual({ trashed: true });
     // 검색: 연결 폴더 트리 안에서만
-    const list = jest
-      .mocked(google.list)
-      .mockImplementation(async (_t, q) =>
-        q.includes('mimeType=')
-          ? {
-              files: q.includes("'root2' in parents")
-                ? [{ id: 'sub', name: 'sub', mimeType: FOLDER }]
-                : [],
-            }
-          : {
-              files: [
-                { id: 'a.docx', name: '보고서', mimeType: 'application/pdf' },
-              ],
-            },
-      );
+    const list = jest.mocked(google.list).mockImplementation(async (_t, q) =>
+      q.includes('mimeType=')
+        ? {
+            files: q.includes("'root2' in parents")
+              ? [{ id: 'sub', name: 'sub', mimeType: FOLDER }]
+              : [],
+          }
+        : {
+            files: [
+              { id: 'a.docx', name: '보고서', mimeType: 'application/pdf' },
+            ],
+          },
+    );
     const found = await shared.search(member, "보고'서");
     expect(found.files).toEqual([
       expect.objectContaining({ id: 'a.docx', drfId: id }),
@@ -982,7 +1068,18 @@ describe('Project / shared Drive isolation and durable operations', () => {
       drive_file_id: string;
     }[];
     const file = items.find((i) => i.drive_file_id === 'file-1')!;
-    await projects.unlink(member, projectId, file.pit_id);
+    // REQ-261019 — 작성자가 아닌 일반 참여자는 삭제(연결 해제) 불가, 프로젝트 소유자는 가능
+    await expect(
+      projects.unlink(member, projectId, file.pit_id),
+    ).rejects.toMatchObject({ status: 403 });
+    const listed = (await projects.items(member, projectId)) as {
+      pit_id: string;
+      can_delete: boolean;
+    }[];
+    expect(listed.find((i) => i.pit_id === file.pit_id)?.can_delete).toBe(
+      false,
+    );
+    await projects.unlink(owner, projectId, file.pit_id);
     const [stored] = await ds.query(
       'SELECT deleted_at FROM amb_acm_prj_item WHERE pit_id=$1',
       [file.pit_id],
@@ -1002,5 +1099,104 @@ describe('Project / shared Drive isolation and durable operations', () => {
       projects.saveItem(member, projectId, { kind: 'NOTE', title: 'Blocked' }),
     ).rejects.toThrow();
     expect(await projects.access(member, projectId)).toBeDefined();
+  });
+  it('REQ-261018C: stores the project folder name for the storage path and backfills old projects', async () => {
+    const [row] = await ds.query<{ account_id: string }[]>(
+      'SELECT account_id FROM amb_acm_prj_drive WHERE ent_id=$1',
+      [ent],
+    );
+    const account = row?.account_id ?? 'account';
+    if (!row)
+      await ds.query(
+        `INSERT INTO amb_acm_prj_drive(ent_id,account_id,account_email,token_encrypted,token_iv,token_auth_tag,connected_by)
+         VALUES($1,$2,'a@x.com','\\x00','\\x00','\\x00',$3)`,
+        [ent, account, owner.id],
+      );
+    await ds.query(
+      'UPDATE amb_acm_prj_drive SET needs_reconnect=false, root_name=$2 WHERE ent_id=$1',
+      [ent, 'TPI-New'],
+    );
+    await ds.query(
+      "UPDATE amb_acm_prj_project SET drive_folder_id='old-folder',drive_account_id=$2,drive_folder_name=NULL WHERE prj_id=$1",
+      [projectId, account],
+    );
+    const tokenSpy = jest
+      .spyOn(drive, 'token')
+      .mockResolvedValue({ token: 't', c: {} } as never);
+    jest.mocked(google.file).mockResolvedValueOnce({
+      id: 'old-folder',
+      name: '학원운영 (abcd1234)',
+      mimeType: 'application/vnd.google-apps.folder',
+    } as never);
+    await drive.backfillFolderNames(ent);
+    const docs = await projects.allDocuments(owner);
+    const [p] = await ds.query<{ drive_folder_name: string }[]>(
+      'SELECT drive_folder_name FROM amb_acm_prj_project WHERE prj_id=$1',
+      [projectId],
+    );
+    expect(p.drive_folder_name).toBe('학원운영 (abcd1234)');
+    if (docs.length)
+      expect(docs[0]).toMatchObject({ drive_root_name: 'TPI-New' });
+    // 이미 이름이 있으면 다시 조회하지 않는다.
+    jest.mocked(google.file).mockClear();
+    await drive.backfillFolderNames(ent);
+    expect(google.file).not.toHaveBeenCalled();
+    tokenSpy.mockRestore();
+  });
+  it('REQ-261019: authors, project leads and tenant masters delete from lists; issues excluded', async () => {
+    const [{ prj_id: pid }] = await ds.query<{ prj_id: string }[]>(
+      `INSERT INTO amb_acm_prj_project(ent_id,prj_title,owner_id) VALUES($1,'삭제 테스트',$2) RETURNING prj_id`,
+      [ent, owner.id],
+    );
+    await ds.query(
+      `INSERT INTO amb_acm_prj_member(ent_id,prj_id,usr_id,member_role) VALUES($1,$2,$3,'MEMBER')`,
+      [ent, pid, member.id],
+    );
+    const mk = async (by: string, kind = 'NOTE') =>
+      (
+        await ds.query<{ pit_id: string }[]>(
+          `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_title,pit_kind,created_by) VALUES($1,$2,'x',$3,$4) RETURNING pit_id`,
+          [ent, pid, kind, by],
+        )
+      )[0].pit_id;
+    const mine = await mk(member.id);
+    const ownersNote = await mk(owner.id);
+    const issue = await mk(member.id, 'ISSUE');
+    const docs = (await projects.allDocuments(member)) as {
+      pit_id: string;
+      can_delete: boolean;
+    }[];
+    expect(docs.find((d) => d.pit_id === mine)?.can_delete).toBe(true);
+    expect(docs.find((d) => d.pit_id === ownersNote)?.can_delete).toBe(false);
+    await projects.deleteItem(member, pid, mine);
+    await expect(
+      projects.deleteItem(member, pid, ownersNote),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(projects.deleteItem(owner, pid, issue)).rejects.toMatchObject({
+      status: 404,
+    });
+    // 테넌트 마스터는 참여 중인 프로젝트에서 남의 항목도 삭제
+    await ds.query(
+      `INSERT INTO amb_acm_user_permission VALUES($1,$2,'TENANT_MASTER')`,
+      [ent, member.id],
+    );
+    expect(
+      (
+        (await projects.items(member, pid)) as {
+          pit_id: string;
+          can_delete: boolean;
+        }[]
+      ).find((i) => i.pit_id === ownersNote)?.can_delete,
+    ).toBe(true);
+    await projects.deleteItem(member, pid, ownersNote);
+    const left = await ds.query<{ n: number }[]>(
+      `SELECT count(*)::int n FROM amb_acm_prj_item WHERE prj_id=$1 AND deleted_at IS NULL`,
+      [pid],
+    );
+    expect(left[0].n).toBe(1); // 이슈만 남음
+    await ds.query(
+      `DELETE FROM amb_acm_user_permission WHERE usr_id=$1 AND upr_permission='TENANT_MASTER'`,
+      [member.id],
+    );
   });
 });

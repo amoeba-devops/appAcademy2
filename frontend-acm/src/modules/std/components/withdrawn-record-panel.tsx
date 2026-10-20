@@ -9,6 +9,58 @@ interface RecordData {
   externalId: string;
   fields: Record<string, string | number | boolean | null>;
 }
+// 원본 행정정보 필드 키(업로드 엑셀 열 이름, 저장 데이터 키) → 표시용 i18n 키.
+// 키 자체는 데이터이므로 번역하지 않고, 라벨만 `withdrawn.fields.*` 로 표시한다.
+const FIELD_LABEL_KEYS: Record<string, string> = {
+  "이름": "name",
+  "성별": "gender",
+  "출결번호": "attendanceNo",
+  "학교": "school",
+  "학년": "grade",
+  "반": "classGroup",
+  "원생연락처": "studentPhone",
+  "집전화": "homePhone",
+  "닉네임": "nickname",
+  "생일": "birthday",
+  "우편번호": "postalCode",
+  "주소1": "address1",
+  "주소2": "address2",
+  "문과/이과": "track",
+  "형제": "siblings",
+  "졸업연도": "graduationYear",
+  "원생이메일": "studentEmail",
+  "보호자연락처": "guardianPhone",
+  "보호자구분": "guardianRelation",
+  "보호자이름": "guardianName",
+  "보호자출결알림": "guardianAttendanceAlert",
+  "기타보호자연락처": "otherGuardianPhone",
+  "기타보호자이름": "otherGuardianName",
+  "기타보호자출결알림": "otherGuardianAttendanceAlert",
+  "입학일": "admissionDate",
+  "입학동기": "admissionReason",
+  "재원여부": "isEnrolled",
+  "퇴원일": "withdrawnDate",
+  "퇴원사유": "withdrawnReason",
+  "휴원여부": "isOnLeave",
+  "휴원사유": "leaveReason",
+  "메모": "memo",
+  "수업": "classes",
+  "담임강사": "homeroomTeacher",
+  "현금영수증발급번호": "cashReceiptNo",
+  "현금영수증발급구분": "cashReceiptType",
+  "수납기준청구일": "billingDay",
+  "할인액": "discountAmount",
+  "할인구분": "discountType",
+  "원생고유번호": "studentUid",
+  "기타수납": "otherPayment",
+  "원생분류": "studentCategory",
+  "기타항목1": "extra1",
+  "기타항목2": "extra2",
+  "포인트": "points",
+  "적립금": "credits",
+  "자동결제신청여부": "autoPayEnrolled",
+  "등록일": "registeredDate",
+};
 export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
   const { t } = useTranslation("std");
   const qc = useQueryClient();
@@ -145,7 +197,12 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                     .map(([key, value]) => (
                       <div key={key}>
                         <dt className="text-xs text-secondary">
-                          <label htmlFor={`${record.id}-${key}`}>{key} :</label>
+                          <label htmlFor={`${record.id}-${key}`}>
+                            {FIELD_LABEL_KEYS[key]
+                              ? t(`withdrawn.fields.${FIELD_LABEL_KEYS[key]}`)
+                              : key}{" "}
+                            :
+                          </label>
                         </dt>
                         <dd className="text-sm break-words whitespace-pre-wrap">
                           {edit?.id === record.id && key !== "원생고유번호" ? (

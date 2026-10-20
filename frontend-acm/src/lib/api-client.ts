@@ -1,3 +1,4 @@
+import { isStandalone } from "@/lib/pwa";
 import axios, { type AxiosInstance } from "axios";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -49,6 +50,8 @@ apiClient.interceptors.request.use((config) => {
       ? state.parent.token
       : state.token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  // REQ-261019B — 로그인 유지 시간 결정용(설치한 앱 8h, 그 외 4h)
+  config.headers["X-ACM-Client"] = isStandalone() ? "pwa" : "web";
   return config;
 });
 
@@ -91,13 +94,16 @@ apiClient.interceptors.response.use(
         path.startsWith("/portal/login") ||
         path === "/login" ||
         path.startsWith("/login/");
+      // REQ-261019B — 로그인 상태였다면 만료 안내를 띄운다.
+      const hadSession = isPortal ? !!store.portal.token : isParent ? !!store.parent.token : !!store.token;
+      const expired = hadSession ? "expired=1&" : "";
       if (isPortal) {
         store.clearPortal();
         if (!onLoginPage) {
           const returnTo = encodeURIComponent(
             path + window.location.search + window.location.hash,
           );
-          window.location.assign(`/portal/login?returnTo=${returnTo}`);
+          window.location.assign(`/portal/login?${expired}returnTo=${returnTo}`);
         }
       } else if (isParent) {
         store.clearParent();
@@ -105,7 +111,7 @@ apiClient.interceptors.response.use(
           const returnTo = encodeURIComponent(
             path + window.location.search + window.location.hash,
           );
-          window.location.assign(`/parent/login?returnTo=${returnTo}`);
+          window.location.assign(`/parent/login?${expired}returnTo=${returnTo}`);
         }
       } else {
         store.clearAdmin();
@@ -113,7 +119,7 @@ apiClient.interceptors.response.use(
           const returnTo = encodeURIComponent(
             path + window.location.search + window.location.hash,
           );
-          window.location.assign(`/admin/login?returnTo=${returnTo}`);
+          window.location.assign(`/admin/login?${expired}returnTo=${returnTo}`);
         }
       }
     }

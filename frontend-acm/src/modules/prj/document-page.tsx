@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { DocumentEditor, type DocumentType } from "./document-editor";
@@ -20,6 +21,7 @@ export function projectDocumentPath(
   return `/admin/projects/${project}/documents/${doc}${qs ? "?" + qs : ""}`;
 }
 export function ProjectDocumentPage() {
+  const { t: tp } = useTranslation("prj");
   const { id = "", docId = "" } = useParams(),
     [params] = useSearchParams(),
     navigate = useNavigate(),
@@ -50,17 +52,17 @@ export function ProjectDocumentPage() {
     navigate(
       `/admin/projects/${id}?tab=documents&type=${type.toLowerCase()}`,
     );
-  if (p.isLoading || items.isLoading) return <p>불러오는 중…</p>;
+  if (p.isLoading || items.isLoading) return <p>{tp("common.loading")}</p>;
   if (!p.data || p.error || items.error)
     return (
       <p role="alert">
         {p.error || items.error
           ? errorText(p.error ?? items.error)
-          : "프로젝트가 없습니다."}
+          : tp("common.noProject")}
       </p>
     );
   if (!isNew && (!item || item.drive_file_id || item.pit_kind === "FILE"))
-    return <p role="alert">문서를 찾을 수 없습니다.</p>;
+    return <p role="alert">{tp("documentPage.notFound")}</p>;
   const project = p.data,
     manage = project.can_manage ?? project.owner_id === user?.id,
     readOnly =
@@ -71,7 +73,7 @@ export function ProjectDocumentPage() {
   return (
     <div className="grid min-w-0 gap-3">
       <p className="truncate text-sm text-secondary">
-        {project.prj_title} › 문서
+        {tp("documentPage.breadcrumb", { project: project.prj_title })}
       </p>
       <DocumentEditor
         key={docId}

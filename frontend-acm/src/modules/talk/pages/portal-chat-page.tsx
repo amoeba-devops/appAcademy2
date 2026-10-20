@@ -9,14 +9,14 @@ export function PortalChatPage() {
   if (kind !== 'TEACHER') {
     return (
       <p className="py-6 text-sm text-secondary">
-        {t('talk.teacherOnly', '강사만 이용할 수 있습니다.')}
+        {t('talk.teacherOnly')}
       </p>
     );
   }
   return (
     <div>
       <h1 className="mb-3 text-lg font-semibold text-primary">
-        {t('portalApp.nav.chat', '로비채팅')}
+        {t('portalApp.nav.chat')}
       </h1>
       <TalkChat mode="portal" />
     </div>

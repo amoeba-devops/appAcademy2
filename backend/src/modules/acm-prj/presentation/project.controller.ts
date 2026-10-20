@@ -54,7 +54,7 @@ export class ProjectController {
   @Post('projects/:id/files')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 }, // REQ-261018C — 드라이브와 같은 50MB
     }),
   )
   uploadFile(
@@ -82,7 +82,8 @@ export class ProjectController {
   ) {
     return this.projects.permissions(u, id, item, d.viewers);
   }
-  @Get('documents') documents(@CurrentUser() u: AcmCurrentUser) {
+  @Get('documents') async documents(@CurrentUser() u: AcmCurrentUser) {
+    await this.drive.backfillFolderNames(u.entId);
     return this.projects.allDocuments(u);
   }
   @Get('projects/:id/relations') relations(
@@ -108,8 +109,15 @@ export class ProjectController {
   @Get('people') people(@CurrentUser() u: AcmCurrentUser) {
     return this.projects.people(u);
   }
-  @Get('drive') status(@CurrentUser() u: AcmCurrentUser) {
-    return this.drive.status(u);
+  @Get('drive') status(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query('projectId') projectId?: string,
+  ) {
+    // FIX-261020C — projectId 가 있으면 그 프로젝트 업로드 가능 여부(projectReady)도 준다.
+    return this.drive.status(
+      u,
+      projectId && /^[0-9a-f-]{36}$/i.test(projectId) ? projectId : undefined,
+    );
   }
   @Post('drive/connect') async connect(
     @CurrentUser() u: AcmCurrentUser,
@@ -136,7 +144,8 @@ export class ProjectController {
   ) {
     return this.drive.root(u, d.fileId, d.name);
   }
-  @Get('projects') list(@CurrentUser() u: AcmCurrentUser) {
+  @Get('projects') async list(@CurrentUser() u: AcmCurrentUser) {
+    await this.drive.backfillFolderNames(u.entId);
     return this.projects.list(u);
   }
   @Post('projects') create(
@@ -194,6 +203,14 @@ export class ProjectController {
   ) {
     return this.projects.saveDocument(u, id, d, item);
   }
+  // REQ-261019 — 목록 삭제(작성자·프로젝트 담당자·테넌트 마스터)
+  @Delete('projects/:id/items/:item') removeItem(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('item', ParseUUIDPipe) item: string,
+  ) {
+    return this.projects.deleteItem(u, id, item);
+  }
   @Delete('projects/:id/items/:item/link') unlink(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -243,7 +260,7 @@ export class ProjectController {
   @Post('projects/:id/drive/upload')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 20 * 1024 * 1024, files: 1 },
+      limits: { fileSize: 50 * 1024 * 1024, files: 1 }, // REQ-261018C — 드라이브와 같은 50MB
     }),
   )
   upload(

@@ -314,7 +314,7 @@ function ReplyModal({ q, onClose }: { q: Question; onClose: () => void }) {
           <button
             onClick={handleSend}
             disabled={submitting || !body}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded disabled:opacity-50"
+            className="px-3 py-1.5 bg-accent-600 text-white rounded disabled:opacity-50"
           >
             {t('reply.send')}
           </button>

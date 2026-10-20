@@ -1,3 +1,5 @@
+import { Controller } from 'react-hook-form';
+import { NumericInput } from '@/components/ui/numeric-input';
 import {
   CLASS_FIELDS,
   emptyClassInfo,
@@ -408,7 +410,7 @@ export function StdFormModal({
                 <input
                   {...register("stdGrade")}
                   className={inputClass}
-                  placeholder="G5, G8, 중1…"
+                  placeholder={t("form.gradeInputPlaceholder")}
                 />
               </div>
             </div>
@@ -448,19 +450,19 @@ export function StdFormModal({
                         ][i],
                       )}
                     </label>
-                    <input
-                      placeholder={t("detail.enterValue")}
-                      type="number"
-                      {...register(name, {
+                    <Controller control={control} name={name} rules={{
                         validate: (v) =>
                           v === "" ||
                           (Number(v) >= 100 && Number(v) <= 350) ||
                           (t("form.error.mapRange", {
                             defaultValue: "MAP 점수는 100~350 사이여야 합니다.",
                           }) as string),
-                      })}
+                      }} render={({field}) => (<NumericInput
+                      placeholder={t("detail.enterValue")}
+                      type="number"
+                      {...field} value={field.value ?? ''}
                       className={inputClass}
-                    />
+                    />)} />
                     {errors[name] && (
                       <p className="mt-1 text-xs text-red-600">
                         {errors[name]?.message}
@@ -604,7 +606,7 @@ export function StdFormModal({
               {t("common:actions.cancel")}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? t("common:status.saving") : t("common:actions.save")}
+              {isLoading ? t("common:actions.saving") : t("common:actions.save")}
             </Button>
           </DialogFooter>
         </form>

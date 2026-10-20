@@ -163,7 +163,7 @@
       },
       "consent": {
         "title": "Màn hình đồng ý OAuth",
-        "body": "Loại người dùng: External — vì nhiều công ty (tenant) đăng nhập.\nBranding: nhập tên ứng dụng \"ACM\", email hỗ trợ, logo (tùy chọn), sau đó nhập liên kết trang chủ, chính sách quyền riêng tư, điều khoản dịch vụ và miền được ủy quyền bên dưới. Nếu để trống, nút \"Publish app\" sẽ bị vô hiệu.\nData access (Scopes): thêm 3 scope bên dưới. drive.file không nhạy cảm nên không cần đánh giá bảo mật.\nAudience: nhấn \"Publish app\" để chuyển sang production. Nếu để thử nghiệm, tenant phải kết nối lại mỗi 7 ngày.\nACM tự từ chối Gmail cá nhân (chỉ Workspace)."
+        "body": "Loại người dùng: nên chọn Internal. Nếu tài khoản kết nối thuộc cùng Workspace công ty với dự án Google Cloud, có thể dùng ngay mà không cần đánh giá bảo mật. Chỉ chọn External khi cần kết nối cả tài khoản Workspace của công ty khác.\nBranding: nhập tên ứng dụng \"ACM\", email hỗ trợ, logo (tùy chọn), sau đó nhập liên kết trang chủ, chính sách quyền riêng tư, điều khoản dịch vụ và miền được ủy quyền bên dưới.\nData access (Scopes): thêm 3 scope bên dưới. Scope Google Drive đầy đủ (…/auth/drive) cần để hiển thị các tệp đã có trong thư mục dùng chung; Google xếp nó vào nhóm scope bị hạn chế.\nNếu dùng External, nhấn \"Publish app\" để chuyển sang production (trạng thái thử nghiệm phải kết nối lại mỗi 7 ngày). Trước khi đánh giá bảo mật, khi kết nối sẽ hiện cảnh báo 'ứng dụng chưa được xác minh' và giới hạn 100 người dùng.\nACM tự từ chối Gmail cá nhân (chỉ Workspace)."
       },
       "client": {
         "title": "Tạo OAuth client ID",

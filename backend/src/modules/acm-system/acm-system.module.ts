@@ -1,3 +1,10 @@
+import { UserInviteService } from './application/user-invite.service';
+import {
+  UserInviteAdminController,
+  UserInvitePublicController,
+  RegisteredUserController,
+} from './presentation/user-invite.controller';
+import { RegisteredUserService } from './application/registered-user.service';
 import { ConfigAccessController } from './presentation/config-access.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -71,6 +78,9 @@ import { AiConfigController } from './presentation/ai-config.controller';
     // REQ-261017 — 비밀번호 재발급 요청·임시 비밀번호
     PasswordResetPublicController,
     PasswordResetAdminController,
+    UserInviteAdminController,
+    UserInvitePublicController,
+    RegisteredUserController,
     TenantMasterController,
     MailConfigController,
     TenantSettingsController,
@@ -93,6 +103,8 @@ import { AiConfigController } from './presentation/ai-config.controller';
     Ga4ConfigService,
     AiConfigService,
     PasswordResetService,
+    UserInviteService,
+    RegisteredUserService,
   ],
   exports: [
     TenantMailerService,

@@ -1,4 +1,7 @@
 {
+  "numericInput": {
+    "invalid": "请输入有效数字。"
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"
@@ -38,7 +41,7 @@
       "calendar": "课程表",
       "materials": "文档/资料",
       "students": "学生管理",
-      "chat": "大厅聊天",
+      "chat": "聊天",
       "me": "我的页面"
     },
     "login": {
@@ -245,7 +248,7 @@
     "notifications": "通知",
     "enrollments": "报名",
     "systemAdmin": "系统管理",
-    "chat": "大厅聊天",
+    "chat": "聊天",
     "openMenu": "打开菜单",
     "closeMenu": "关闭菜单",
     "expandMenu": "展开菜单",
@@ -440,6 +443,10 @@
       "ga4": {
         "title": "GA4 访客",
         "description": "自动采集 Google Analytics 4 每日访客 — 仪表盘 Marketing · 访客"
+      },
+      "drive": {
+        "title": "Google Drive",
+        "description": "将项目文档和文件连接到公司 Google Drive。"
       }
     },
     "mail": {
@@ -961,7 +968,8 @@
       "ISSUE_MENTION": "在问题中提到了你",
       "ISSUE_MENTION_COMMENT": "在问题评论中提到了你",
       "PASSWORD_RESET_REQUEST": "收到密码重置请求"
-    }
+    },
+    "mentionBadge": "提及"
   },
   "pay": {
     "title": "收费管理",
@@ -1218,7 +1226,8 @@
     "site": "校区",
     "actions": "操作",
     "baseline": "原有状态",
-    "knownWithdrawn": "已确认退学"
+    "knownWithdrawn": "已确认退学",
+    "historyNoticeSummary": "历史记录不完整 — 查看详情"
   },
   "configAccess": {
     "loading": "正在检查权限…",
@@ -1266,7 +1275,10 @@
     "ios": "在 iPhone/iPad 上，将 ACM 添加到主屏幕后在已安装的应用中开启通知。",
     "unconfigured": "服务器推送配置尚未完成。",
     "failed": "连接失败。请检查权限和网络后重试。",
-    "close": "关闭"
+    "close": "关闭",
+    "banner": "在此设备接收通知 — 即时获取聊天和咨询提醒",
+    "turnOn": "开启",
+    "dismiss": "关闭提示"
   },
   "reviewMissing": {
     "feedback": "反馈",
@@ -1278,7 +1290,8 @@
     "required": "需要租户主管权限。",
     "tabs": {
       "menus": "菜单显示",
-      "general": "常规"
+      "general": "常规",
+      "integrations": "集成设置"
     },
     "roles": {
       "ADMIN": "管理员",
@@ -1292,7 +1305,8 @@
       "locked": "按政策不能对此等级开放",
       "reset": "重置（全部显示）",
       "resetConfirm": "将所有等级的菜单恢复为默认（全部显示）？"
-    }
+    },
+    "integrationsDesc": "管理 AI 引擎、AMA、视频课堂、Kakao 通知和 GA4 访客设置。"
   },
   "issues": {
     "title": "问题",
@@ -1695,7 +1709,8 @@
     "result": {
       "failed": "未能完成 Google 连接，请重试。",
       "workspaceRequired": "只能连接公司 Google Workspace 账号，不能使用个人 Gmail（@gmail.com）。",
-      "cancelled": "已取消连接，可以重新连接。"
+      "cancelled": "已取消连接，可以重新连接。",
+      "scopeRequired": "未授予 Google Drive 访问权限。请重新连接，并在授权页面勾选 Google Drive 项。"
     },
     "notConfigured": "服务器尚未配置 Google OAuth 应用，请联系管理员。",
     "account": {
@@ -1704,11 +1719,11 @@
       "ok": "正常",
       "needsReconnect": "需要重新连接",
       "connectedAt": "{{at}} 由 {{by}} 连接",
-      "reconnectHint": "Google 授权已过期或被撤销。重新连接前，上传的文件将保存到 ACM 存储。",
+      "reconnectHint": "Google 授权已过期，或缺少显示共享文件夹文件所需的 Drive 完整权限。请通过“重新连接”重新登录。重新连接之前，上传的文件将保存到 ACM 存储。",
       "login": "使用公司 Google 账号登录",
       "reconnect": "重新连接 / 更换账号",
       "disconnect": "断开连接",
-      "disconnectConfirm": "断开后将停止保存到 Google Drive，上传将保存到 ACM 存储。Google 原件和项目记录会保留。",
+      "disconnectConfirm": "断开后将停止保存到 Google Drive，上传将保存到 ACM 存储。Google 原件和项目记录会保留。共享文件夹设置也会清除，用同一账号重新连接时会自动恢复。",
       "workspaceOnly": "只能连接公司域名下的 Google Workspace 账号。"
     },
     "readOnly": "只有服务运营者可以连接并设置共享文件夹。",
@@ -1733,10 +1748,13 @@
       "drive": "公司 Google Drive",
       "acm": "ACM 存储",
       "notConnectedHint": "连接公司 Google Drive 后即可选择保存位置。",
-      "reconnectHint": "Google Drive 需要重新连接，因此保存到 ACM 存储。"
+      "reconnectHint": "Google Drive 需要重新连接，因此保存到 ACM 存储。",
+      "rootMissingHint": "尚未指定公司 Google Drive 共享文件夹。",
+      "rootMissingAdmin": "请在 Drive 设置中指定共享文件夹。"
     },
     "notReadyHint": "尚未设置公司 Google Drive 共享文件夹，暂不能创建 Google 文件或上传到 Drive。仍可将文件上传到 ACM 存储。",
-    "goSettings": "前往 Drive 设置"
+    "goSettings": "前往 Drive 设置",
+    "askAdmin": "请联系管理员指定共享文件夹。"
   },
   "docsCreate": {
     "title": "新建",
@@ -1844,5 +1862,222 @@
     },
     "cancel": "取消",
     "close": "关闭"
+  },
+  "invite": {
+    "title": "邀请用户",
+    "cardDescription": "通过邮件邀请管理员和员工。",
+    "description": "被邀请人通过邮件中的链接设置密码即可完成注册。链接有效期 72 小时，仅可使用一次。",
+    "new": "邀请",
+    "send": "发送邀请",
+    "sending": "发送中…",
+    "loading": "加载中…",
+    "empty": "暂无邀请。",
+    "status": {
+      "PENDING": "待接受",
+      "ACCEPTED": "已接受",
+      "EXPIRED": "已过期",
+      "REVOKED": "已取消",
+      "ALL": "全部"
+    },
+    "roles": {
+      "ADMIN": "管理员",
+      "STAFF": "员工"
+    },
+    "configAdmin": "服务运营者",
+    "invitedBy": "邀请人 {{by}} · {{at}}",
+    "acceptedAt": "接受于 {{at}}",
+    "expiresAt": "有效至 {{at}}",
+    "resend": "重新发送",
+    "revoke": "取消",
+    "revokeTitle": "取消此邀请？",
+    "revokeDesc": "已发送的链接将无法使用。",
+    "fields": {
+      "email": "邮箱",
+      "name": "姓名",
+      "role": "角色",
+      "grantConfigAdmin": "同时授予服务运营者权限",
+      "grantConfigAdminHint": "可管理服务设置（邀请、邮件等）。无法通过邀请授予租户主管权限。"
+    },
+    "resultTitle": "邀请已发送",
+    "mailSent": "邀请邮件已发送。",
+    "mailNotSent": "邮件未配置或发送失败。请直接分享下方邀请链接。",
+    "copy": "复制",
+    "onceOnly": "关闭此窗口后将无法再次查看链接（重新发送会生成新链接）。",
+    "validUntil": "有效期至 {{until}}",
+    "errors": {
+      "exists": "该邮箱已注册。",
+      "email": "请检查邮箱格式。",
+      "name": "请输入姓名。",
+      "handled": "此邀请已处理。",
+      "failed": "无法完成，请重试。",
+      "load": "无法加载邀请列表。"
+    },
+    "accept": {
+      "title": "ACM 邀请",
+      "intro": "{{tenant}} 邀请 {{name}} 担任{{role}}。设置密码即可开始使用。",
+      "password": "密码",
+      "confirm": "确认密码",
+      "policy": "至少 8 个字符，需包含字母和数字。",
+      "mismatch": "两次输入的密码不一致。",
+      "submit": "注册并开始",
+      "submitting": "注册中…",
+      "invalid": "邀请链接已过期或已被使用。请联系管理员重新发送。",
+      "rateLimited": "请求过多，请稍后再试。",
+      "failed": "注册失败，请重试。"
+    },
+    "tabs": {
+      "users": "已注册用户",
+      "invites": "邀请记录"
+    },
+    "users": {
+      "types": {
+        "ALL": "全部",
+        "ADMIN": "管理员",
+        "STAFF": "员工",
+        "TEACHER": "教师",
+        "STUDENT": "学生"
+      },
+      "search": "搜索姓名或邮箱",
+      "empty": "没有符合条件的用户。",
+      "loadError": "无法加载用户列表。",
+      "login": {
+        "local": "本地",
+        "ama": "AMA",
+        "portal": "门户"
+      },
+      "perm": {
+        "CONFIG_ADMIN": "服务运营者",
+        "TENANT_MASTER": "租户主管"
+      },
+      "locked": "已锁定",
+      "inactive": "已停用",
+      "cols": {
+        "name": "姓名",
+        "loginId": "邮箱 / 登录 ID",
+        "type": "类型",
+        "login": "登录方式",
+        "flags": "权限 · 状态",
+        "createdAt": "加入日期",
+        "lastLogin": "最近登录"
+      }
+    }
+  },
+  "storagePath": {
+    "drive": "Google Drive",
+    "acm": "ACM 存储",
+    "acmHint": "仅保存在 ACM 服务器（Google Drive 中不可见）",
+    "openInDrive": "在 Google Drive 中打开文件夹",
+    "uploadTitle": "上传文件",
+    "pick": "选择或拖放文件（最大 {{mb}}MB）",
+    "tooLarge": "文件不能超过 {{mb}}MB。",
+    "driveUploadTo": "上传位置：{{path}}",
+    "driveProjectHint": "在“文档 › 文件”上传的项目资料会按项目保存在各自文件夹（共享文件夹 › 项目名称）中。",
+    "cols": {
+      "title": "文档名",
+      "project": "项目",
+      "location": "存储位置",
+      "updated": "最后修改",
+      "author": "作者",
+      "size": "大小",
+      "mode": "存储方式",
+      "actions": "操作"
+    }
+  },
+  "pwa": {
+    "install": "安装应用",
+    "installTitle": "安装 ACM 应用",
+    "installDesc": "可从主屏幕直接打开并接收通知。",
+    "iosGuideBefore": "在 Safari 中点击",
+    "iosGuideAfter": "[分享] → [添加到主屏幕]。",
+    "share": "分享",
+    "iosPushNote": "在 iPhone 上，只有已安装的应用才能接收通知。",
+    "updateAvailable": "有新版本可用。",
+    "reload": "刷新",
+    "startTitle": "欢迎使用 ACM",
+    "startConsole": "运营后台登录（管理员 · 员工 · 教师）",
+    "startPortal": "门户登录（学生 · 家长 · 教师）"
+  },
+  "itemDelete": {
+    "button": "删除",
+    "title": "删除“{{name}}”？",
+    "localDesc": "将从列表中移除。",
+    "googleDesc": "仅从 ACM 中删除，Google Drive 原件会保留。",
+    "done": "已删除。",
+    "failed": "无法删除，请检查权限。"
+  },
+  "pageHeader": {
+    "csl": {
+      "desc": "按阶段管理已受理的咨询。"
+    },
+    "std": {
+      "desc": "按校区管理学生及课程信息。"
+    },
+    "stdWithdrawn": {
+      "desc": "查看已退学的学生并办理复学。"
+    },
+    "parents": {
+      "desc": "管理家长联系方式及关联的学生。"
+    },
+    "tch": {
+      "desc": "管理教师信息、负责课程及门户账号。"
+    },
+    "complaints": {
+      "desc": "记录投诉并管理处理状态。"
+    },
+    "projects": {
+      "desc": "管理您参与或负责的项目及其文档和问题。",
+      "create": "创建项目",
+      "joined": "参与的项目",
+      "owned": "负责的项目",
+      "driveConnect": "连接 Google Drive"
+    },
+    "issues": {
+      "desc": "按状态管理项目问题。"
+    },
+    "inbox": {
+      "title": "通知中心",
+      "desc": "查看收到的通知。"
+    },
+    "more": "更多",
+    "dashboard": {
+      "desc": "选择期间和站点，查看咨询、课程和学生情况。"
+    },
+    "myWork": {
+      "desc": "集中查看今天要处理的工作和分配给您的问题。"
+    },
+    "calStats": {
+      "desc": "按期间查看老师和课程的进行情况。"
+    },
+    "pay": {
+      "desc": "管理每月的账单和缴费情况。",
+      "currency": "货币单位：KRW"
+    },
+    "config": {
+      "desc": "设置用户邀请以及邮件、广告、Drive 集成。"
+    },
+    "myPage": {
+      "desc": "管理个人信息、紧急联系人和密码。"
+    },
+    "chat": {
+      "desc": "与教师和员工交流。"
+    },
+    "cal": {
+      "desc": "在日历中管理课程和咨询日程。"
+    },
+    "drive": {
+      "desc": "管理公司 Google Drive 共享文件夹中的文件。"
+    },
+    "projectDetail": {
+      "edit": "编辑项目",
+      "info": "项目信息",
+      "tabs": {
+        "overview": "概览",
+        "documents": "文档",
+        "issues": "问题"
+      }
+    }
+  },
+  "session": {
+    "expired": "登录已过期，请重新登录。"
   }
 }

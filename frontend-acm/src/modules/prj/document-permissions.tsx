@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +12,7 @@ export function DocumentPermissions({
   project: Project;
   item: Item;
 }) {
+  const { t: tp } = useTranslation("prj");
   const [open, setOpen] = useState(false),
     [viewers, setViewers] = useState(item.viewer_ids ?? []),
     [error, setError] = useState(""),
@@ -25,7 +27,7 @@ export function DocumentPermissions({
           setOpen(true);
         }}
       >
-        권한
+        {tp("permissions.button")}
       </button>
       {open && (
         <Dialog
@@ -35,10 +37,9 @@ export function DocumentPermissions({
           }}
         >
           <DialogContent>
-            <DialogTitle>문서 권한</DialogTitle>
+            <DialogTitle>{tp("permissions.title")}</DialogTitle>
             <p className="text-sm">
-              ACM 프로젝트 참여자의 편집 권한입니다. Google 원본 공유 권한은
-              변경하지 않습니다.
+              {tp("permissions.desc")}
             </p>
             {project.members?.map((m) => (
               <label key={m.id} className="flex justify-between gap-2">
@@ -55,14 +56,14 @@ export function DocumentPermissions({
                     )
                   }
                 >
-                  <option value="EDITOR">편집자</option>
-                  <option value="VIEWER">뷰어</option>
+                  <option value="EDITOR">{tp("documentsPage.editor")}</option>
+                  <option value="VIEWER">{tp("documentsPage.viewer")}</option>
                 </select>
               </label>
             ))}
             {error && <p role="alert">{error}</p>}
             <button
-              className="rounded bg-blue-600 p-2 text-white"
+              className="rounded bg-accent-600 p-2 text-white"
               disabled={busy}
               onClick={async () => {
                 setBusy(true);
@@ -80,7 +81,7 @@ export function DocumentPermissions({
                 }
               }}
             >
-              저장
+              {tp("common.save")}
             </button>
           </DialogContent>
         </Dialog>

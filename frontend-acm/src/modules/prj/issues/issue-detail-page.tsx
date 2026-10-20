@@ -2,11 +2,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, FileText, Link as LinkIcon } from "lucide-react";
+import { FileText, Link as LinkIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { Section } from "@/components/ui/section";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import { errorText, useScope } from "../project-page";
 import { IssueFormDialog } from "./issue-form-dialog";
 import { IssueRichEditor, IssueRichView, isBlankHtml, type MentionCandidate } from "./issue-rich-text";
@@ -62,22 +65,29 @@ export function IssueDetailPage() {
   const canDelete = !archived && (i.created_by === user?.id || i.can_manage);
   return (
     <div className="grid min-w-0 gap-4">
-      <Link
-        to="/admin/issues"
-        className="inline-flex items-center gap-1.5 text-sm text-secondary hover:text-primary"
-      >
-        <ArrowLeft size={16} />
-        {t("issues.backToList")}
-      </Link>
-      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="grid min-w-0 content-start gap-4">
-          <header className="flex flex-wrap items-start gap-2">
-            <h1 className="min-w-0 flex-1 break-words text-xl font-semibold text-primary">
-              {i.pit_ref_no && (
-                <span className="mr-2 font-mono text-base font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>
-              )}
-              {i.pit_title}
-            </h1>
+      <PageHeader
+        back={{ to: "/admin/issues", label: t("nav.issues") }}
+        title={
+          <>
+            {i.pit_ref_no && (
+              <span className="mr-2 font-mono text-base font-normal text-gray-400">{refLabel(i.pit_ref_no)}</span>
+            )}
+            {i.pit_title}
+          </>
+        }
+        meta={
+          <>
+            <StatusBadge status={i.pit_status} />
+            <span>
+              {t("issues.fields.assignee")}: {i.assignee_name ?? t("issues.unassigned")}
+            </span>
+            <span>
+              {t("issues.fields.updatedAt")}: {new Date(i.updated_at).toLocaleString()}
+            </span>
+          </>
+        }
+        actions={
+          <>
             {!archived && (
               <Button variant="outline" onClick={() => setEditing(true)}>
                 {t("issues.edit")}
@@ -94,14 +104,18 @@ export function IssueDetailPage() {
                 {t("issues.delete")}
               </Button>
             )}
-          </header>
+          </>
+        }
+      />
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid min-w-0 content-start gap-4">
           <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border bg-surface p-4 text-sm sm:grid-cols-3">
             <Meta label={t("issues.fields.type")}>{t(`issues.type.${i.pit_issue_type}`)}</Meta>
             <Meta label={t("issues.fields.priority")}>
               <span className={PRIORITY_BADGE[i.pit_priority]}>{t(`issues.priority.${i.pit_priority}`)}</span>
             </Meta>
             <Meta label={t("issues.fields.project")}>
-              <Link className="hover:underline" to={`/admin/projects/${i.prj_id}?tab=issues`}>
+              <Link className="inline-flex min-h-9 items-center hover:underline sm:inline sm:min-h-0" to={`/admin/projects/${i.prj_id}?tab=issues`}>
                 {i.prj_title}
               </Link>
             </Meta>
@@ -125,7 +139,7 @@ export function IssueDetailPage() {
             </Meta>
             {i.pit_parent_id && (
               <Meta label={t("issues.fields.parentIssue")}>
-                <Link className="text-indigo-600 hover:underline" to={`/admin/issues/${i.pit_parent_id}`}>
+                <Link className="inline-flex min-h-9 items-center text-indigo-600 hover:underline sm:inline sm:min-h-0" to={`/admin/issues/${i.pit_parent_id}`}>
                   {refLabel(i.parent_ref_no)} {i.parent_title}
                 </Link>
               </Meta>
@@ -141,28 +155,15 @@ export function IssueDetailPage() {
           </dl>
           {i.attachments.length > 0 && <Attachments prj={i.prj_id} items={i.attachments} />}
           {i.pit_resolution && (
-            <section className="rounded-lg border bg-surface p-4 text-sm">
-              <h2 className="mb-1 text-xs text-secondary">{t("issues.fields.resolution")}</h2>
+            <Section title={t("issues.fields.resolution")} bodyClassName="p-4 text-sm">
               <p className="whitespace-pre-wrap break-words">{i.pit_resolution}</p>
-            </section>
+            </Section>
           )}
-          <div className="flex gap-1 border-b" role="tablist">
-            {(["description", "history"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={tab === k}
-                onClick={() => setTab(k)}
-                className={clsx(
-                  "-mb-px border-b-2 px-4 py-2 text-sm",
-                  tab === k ? "border-accent-600 text-accent-700" : "border-transparent text-secondary",
-                )}
-              >
-                {t(`issues.tabs.${k}`)}
-              </button>
-            ))}
-          </div>
+          <UnderlineTabs
+            items={(["description", "history"] as const).map((k) => ({ key: k, label: t(`issues.tabs.${k}`) }))}
+            value={tab}
+            onChange={setTab}
+          />
           {tab === "description" ? (
             <div className="min-h-16 break-words">
               {isBlankHtml(i.pit_body) ? (
@@ -264,10 +265,10 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                     <span
                       className={clsx(
                         "h-3.5 w-3.5 shrink-0 rounded-full border",
-                        on ? "border-indigo-600 bg-indigo-600 ring-2 ring-inset ring-white" : "border-gray-300",
+                        on ? "border-indigo-600 bg-accent-600 ring-2 ring-inset ring-white" : "border-gray-300",
                       )}
                     />
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-semibold text-indigo-700">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
                       {m.name.slice(0, 1)}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -275,7 +276,7 @@ function AssigneePanel({ issue, readOnly }: { issue: IssueDetail; readOnly: bool
                       {m.email && <span className="block truncate text-xs text-secondary">{m.email}</span>}
                     </span>
                     {isCurrent && (
-                      <span className="shrink-0 rounded-full bg-indigo-600 px-1.5 text-[10.5px] font-semibold text-white">
+                      <span className="shrink-0 rounded-full bg-accent-600 px-1.5 text-xs font-semibold text-white">
                         {t("issues.assign.currentTag")}
                       </span>
                     )}
@@ -339,7 +340,7 @@ function Attachments({ prj, items }: { prj: string; items: IssueAttachment[] }) 
               type="button"
               disabled={!a.pia_url && !a.file_available}
               onClick={() => void open(a)}
-              className="inline-flex max-w-full items-center gap-2 text-indigo-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+              className="inline-flex min-h-9 max-w-full items-center gap-2 text-indigo-600 sm:min-h-0 hover:underline disabled:text-gray-400 disabled:no-underline"
             >
               {a.pia_url ? <LinkIcon className="h-4 w-4 shrink-0" /> : <FileText className="h-4 w-4 shrink-0" />}
               <span className="truncate">{a.pia_name}</span>
@@ -459,14 +460,14 @@ function Comments({
             <span>{new Date(c.created_at).toLocaleString()}</span>
             {c.updated_at !== c.created_at && <span>({t("issues.edited")})</span>}
             {!readOnly && c.author_id === user?.id && (
-              <button type="button" className="ml-auto hover:underline" onClick={() => setEdit({ id: c.pic_id, body: c.pic_body })}>
+              <button type="button" className="ml-auto min-h-9 hover:underline sm:min-h-0" onClick={() => setEdit({ id: c.pic_id, body: c.pic_body })}>
                 {t("issues.edit")}
               </button>
             )}
             {!readOnly && (c.author_id === user?.id || canModerate) && (
               <button
                 type="button"
-                className={clsx("hover:underline", c.author_id !== user?.id && "ml-auto")}
+                className={clsx("min-h-9 hover:underline sm:min-h-0", c.author_id !== user?.id && "ml-auto")}
                 onClick={() => {
                   if (window.confirm(t("issues.deleteCommentConfirm")))
                     write.mutate({ method: "delete", id: c.pic_id });

@@ -118,14 +118,14 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, opera
           >
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <span
-                className="text-[11px] uppercase tracking-wider font-semibold"
+                className="text-xs uppercase tracking-wider font-semibold"
                 style={{ color: accent }}
               >
                 {t(`category.${c.category}`)}
               </span>
               {c.category === 'MARKETING' && visitorBreakdown && (
                 <span
-                  className="text-[10px] text-secondary"
+                  className="text-xs text-secondary"
                   title={
                     visitorBreakdown.lastSyncAt
                       ? new Date(visitorBreakdown.lastSyncAt).toLocaleString()
@@ -147,7 +147,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, opera
             </div>
 
             <div>
-            <table className="w-full table-fixed text-[11px] tabular-nums">
+            <table className="w-full table-fixed text-xs tabular-nums">
               <colgroup><col className="w-[24%]" /><col className="w-[28%]" /><col className="w-[28%]" /><col className="w-[20%]" /></colgroup>
               <thead>
                 <tr className="text-secondary">
@@ -161,9 +161,9 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, opera
                 {metrics.map((m) => (
                   <tr key={m.code} className="border-t border-[var(--border-subtle)]">
                     <td className="text-left py-2 pr-1 break-words">{siteView && m.code === 'mkt_cost' ? t('marketingEditor.adSpend') : isKr ? m.labelKr : m.labelEn}
-                      {m.coverage && <span className="block text-[10px] text-secondary">{t('quality.observed', { count: m.coverage.validDays, total: m.coverage.expectedDays })}</span>}
+                      {m.coverage && <span className="block text-xs text-secondary">{t('quality.observed', { count: m.coverage.validDays, total: m.coverage.expectedDays })}</span>}
                     </td>
-                    <td className="text-right py-0.5 font-medium">{m.sum === null ? t('quality.missing') : fmtNum(m.sum)}{m.coverage?.status === 'PARTIAL' && <span className="block text-[10px] text-secondary">{t('quality.partial')}</span>}</td>
+                    <td className="text-right py-0.5 font-medium">{m.sum === null ? t('quality.missing') : fmtNum(m.sum)}{m.coverage?.status === 'PARTIAL' && <span className="block text-xs text-secondary">{t('quality.partial')}</span>}</td>
                     <td className="text-right py-0.5">{m.isSnapshot ? '—' : fmtNum(m.aver)}</td>
                     <td className="text-right py-0.5">
                       <DeltaCell delta={m.momDeltaPct} neutral={m.code === 'mkt_cost'} />
@@ -175,7 +175,7 @@ export function KpiSummaryCards({ categories, isLoading, visitorBreakdown, opera
           </div>
 
             {c.category === 'MARKETING' && visitorBreakdown && sites.length > 0 && (
-              <div className="text-[10px] text-secondary leading-4" data-testid="visitor-breakdown">
+              <div className="text-xs text-secondary leading-4" data-testid="visitor-breakdown">
                 <span className="mr-1">{t('visitor.bySite')}:</span>
                 {sites.map((s, i) => (
                   <span key={s}>

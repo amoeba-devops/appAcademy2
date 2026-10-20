@@ -8,7 +8,8 @@
     "registerFeedback": "登记为反馈",
     "enterLink": "进入",
     "copyLink": "复制链接",
-    "copyLinkDone": "已复制链接。"
+    "copyLinkDone": "已复制链接。",
+    "refresh": "刷新"
   },
   "view": {
     "day": "日",
@@ -16,7 +17,8 @@
     "month": "月",
     "list": "列表",
     "showAll": "查看全部",
-    "countSuffix": "项"
+    "countSuffix": "项",
+    "empty": "暂无日程。"
   },
   "category": {
     "CLASS": "课程",
@@ -179,7 +181,8 @@
     "recordSyncBtn": "同步记录",
     "reconcileDone": "记录已同步。（新增 {{inserted}} 条）",
     "reconcileFailed": "同步记录失败。",
-    "recordEmpty": "尚未收到来自 BODA School 的进出记录。课程结束约 10 分钟后自动同步，也可点击 [同步记录] 立即获取。"
+    "recordEmpty": "尚未收到来自 BODA School 的进出记录。课程结束约 10 分钟后自动同步，也可点击 [同步记录] 立即获取。",
+    "minutes": "{{m}} 分钟"
   },
   "instant": {
     "btnLabel": "立即开课",
@@ -205,7 +208,8 @@
     "searchPlaceholder": "按姓名/邮箱搜索学生",
     "searchNoResult": "没有搜索结果。",
     "searchAdd": "添加",
-    "searchRemove": "移除"
+    "searchRemove": "移除",
+    "optional": "可选"
   },
   "filter": {
     "label": "筛选",
@@ -238,7 +242,11 @@
       "empty": "无法上传空文件。",
       "size": "文件必须小于或等于20MB。",
       "count": "最多可添加 {{max}} 个附件。"
-    }
+    },
+    "materialsEmpty": "暂无资料。",
+    "view": "查看",
+    "previewFailed": "资料预览失败。",
+    "downloadFailed": "资料下载失败。"
   },
   "review": {
     "done": "完成",
@@ -251,7 +259,10 @@
     "homeworkLabel": "作业",
     "noFeedbackYet": "尚无反馈",
     "textFeedback": "反馈",
-    "textHomework": "作业"
+    "textHomework": "作业",
+    "descriptionRequired": "请先输入说明。",
+    "feedbackRegistered": "已登记为教师反馈。",
+    "feedbackRegisterFailed": "反馈登记失败。"
   },
   "stats": {
     "title": "课程统计",
@@ -276,7 +287,8 @@
       "28d": "最近28天",
       "90d": "最近90天",
       "custom": "自定义区间"
-    }
+    },
+    "classDone": "课程已完成"
   },
   "detail": {
     "backToCal": "返回课程日程",
@@ -420,5 +432,20 @@
     "open": "查看 {{date}} 的全部 {{count}} 个日程",
     "title": "{{date}} · {{count}} 个日程",
     "allDay": "全天"
+  },
+  "ics": {
+    "sourceCalendar": "源日历",
+    "timezone": "时区",
+    "timezoneSource": "以源日程为准",
+    "repeat": "重复",
+    "stopped": "已结束",
+    "unbounded": "无结束日期 · 保留源规则",
+    "keepSourceEnd": "保留源结束条件",
+    "single": "单次日程",
+    "editScopeHint": "修改或删除仅对本次日程生效。",
+    "stopTitle": "从本次起结束重复",
+    "stopDescription": "将删除自所选日程开始时间起的后续日程，并停止自动生成。之前的日程将保留。",
+    "stopConfirm": "结束重复",
+    "stopFailed": "结束重复失败，请重试。"
   }
 }
