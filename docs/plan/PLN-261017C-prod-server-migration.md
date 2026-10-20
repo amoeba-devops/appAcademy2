@@ -1,10 +1,13 @@
 ---
-document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.3.0
-version: 1.3.0
-status: Approved
+document_id: ACM-PROD-SERVER-MIGRATION-PLN-1.4.0
+version: 1.4.0
+status: Done
 created: 2026-10-17
 related: REQ-261017C-prod-server-migration, SERVER-261017-staging-production, RUNBOOK-261017-fresh-environment
 change_log:
+  - version: 1.4.0
+    date: 2026-10-20
+    description: Cutover done 2026-10-17 (4 min downtime), results and remaining D+14 cleanup / 전환 완료 기록
   - version: 1.3.0
     date: 2026-10-17
     description: Interim main domain acm-tpi.amoeba.site, cert issued, domain PR #351 (draft), cutover runbook / 임시 메인 도메인·전환 런북
@@ -201,3 +204,24 @@ acm.amoeba.site (보조, GoDaddy DNS) ───┘    인증서 2개: acm.tpi.co
 
 전환 당일 절차: [RUNBOOK-261017C-prod-cutover](../deployment/RUNBOOK-261017C-prod-cutover.md).
 주의: 새 서버 `acm.amoeba.site` 인증서는 DNS 전환 전엔 갱신 불가 — 자동 갱신 시작(만료 30일 전, 약 10-27) 이후 실패 로그가 남으니 **11-20 이전 전환 권장**.
+
+## 9. Cutover Result (전환 결과, 2026-10-17)
+
+| 항목 | 결과 |
+| --- | --- |
+| 쓰기 중단 | 20:19:53 ~ 20:23:53 KST (**4분**) |
+| 운영 | 새 서버 175.126.232.175, 전환 시 main `4121487` — 이후 배포는 새 서버로 정상(`cd-production`, 2026-10-20 `332992f`) |
+| 데이터 대조 | 167 테이블 / 28,569 행, MinIO 객체 47개 일치 |
+| DNS | GoDaddy `acm.amoeba.site`·`acm-tpi.amoeba.site` A → 175.126.232.175 |
+| env | `ACM_PUBLIC_URL=https://acm-tpi.amoeba.site`(메일·알림 링크). `FRONTEND_URL` 은 `acm.amoeba.site` 유지 — 수업 런처·광고 OAuth 리디렉트가 이 값을 써서 보다스쿨·Google 등록 변경 전까지 유지 |
+| 안전장치 정리 | iptables `acm-rehearsal` 삭제, env `SUDO_PASS` 삭제(제한 sudo 사용) |
+| GitHub | `production` 시크릿 HOST=175.126.232.175·새 배포 키로 교체, `cd-production` 재활성·시험 배포 성공 |
+| 구 서버 | backend·frontend 정지, DB·MinIO·백업 cron 유지(D+14 보존). nginx 는 새 서버로 프록시(`acm-forward.conf`), 새 서버는 경유 실IP 복원 설정(`acm-cutover-realip.conf`) |
+
+### 9.1 Remaining (남은 일)
+
+| 시점 | 작업 |
+| --- | --- |
+| DNS 캐시 소진 후 | 구 서버 프록시(`acm-forward.conf`)·새 서버 `acm-cutover-realip.conf` 제거 |
+| D+14 (2026-10-31) | 구 서버 ACM 컨테이너·이미지·cron 정리, 서버 간 직결 키 삭제(8장 절차) |
+| `acm.tpi.co.kr` 준비 시 | DNS(hostcocoa) → 인증서 → nginx 블록 → env, 보다스쿨·Google·AMA 등록 주소 변경 후 `FRONTEND_URL` 교체 |

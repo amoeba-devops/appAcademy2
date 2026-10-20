@@ -1,7 +1,7 @@
 ---
 document_id: APP-ACADEMY-RUNBOOK-261017C-CUTOVER
 version: 1.0.0
-status: Ready
+status: Executed
 created: 2026-10-17
 audience: Ops (Claude + 사용자)
 related: PLN-261017C-prod-server-migration, PR #351 (domain), SERVER-261017-staging-production
@@ -10,6 +10,8 @@ change_log:
 ---
 
 # Production Cutover Runbook (프로덕션 전환 당일 절차)
+
+> **2026-10-17 실행 완료** (20:19:53~20:23:53 KST, 중단 4분). 결과는 [PLN-261017C §9](../plan/PLN-261017C-prod-server-migration.md). 남은 정리는 8장(D+14 = 2026-10-31).
 
 | 항목 | 값 |
 | --- | --- |

@@ -1,7 +1,7 @@
 ---
 document_id: ACM-PROD-SERVER-MIGRATION-REQ-1.1.0
 version: 1.1.0
-status: Approved
+status: Done
 created: 2026-10-17
 change_log:
   - version: 1.1.0
