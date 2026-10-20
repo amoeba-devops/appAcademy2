@@ -4,6 +4,7 @@ import {
   openTicketFile,
 } from '../../../src/modules/acm-prj/application/project-file.service';
 import { ObjectStoreClient } from '../../../src/modules/acm-csl/infrastructure/external/object-store.client';
+import { DocAssetService } from '../../../src/modules/acm-prj/application/doc-asset.service';
 import { SharedDriveService } from '../../../src/modules/acm-prj/application/shared-drive.service';
 import {
   googleUrl,
@@ -130,6 +131,14 @@ describe('Project / shared Drive isolation and durable operations', () => {
       `INSERT INTO amb_acm_user_permission VALUES($1,$2,'CONFIG_ADMIN')`,
       [ent, owner.id],
     );
+    // PLN-261020C — 문서 본문 이미지·첨부 자산.
+    for (let i = 0; i < 2; i++)
+      await ds.query(
+        readFileSync(
+          resolve(__dirname, '../../../../sql/acm/1048-prj-doc-asset.sql'),
+          'utf8',
+        ),
+      );
     projects = new ProjectService(ds);
     drive = new ProjectDriveService(
       projects,
@@ -206,6 +215,64 @@ describe('Project / shared Drive isolation and durable operations', () => {
     await ds.query('DELETE FROM amb_acm_prj_project WHERE prj_id=$1', [
       p.prj_id,
     ]);
+  });
+  it('stores document assets behind an unguessable link', async () => {
+    const p = await projects.save(owner, {
+      title: 'Assets',
+      ownerId: owner.id,
+      memberIds: [],
+    });
+    const store = {
+      isConfigured: () => true,
+      buildKey: (e: string, id: string, name: string) => `${e}/${id}/${name}`,
+      putObject: jest.fn().mockResolvedValue(undefined),
+      getObjectStream: jest.fn().mockImplementation(() =>
+        Promise.resolve({
+          stream: Readable.from([Buffer.from('png')]),
+          contentLength: 3,
+          partial: false,
+        }),
+      ),
+    } as unknown as ObjectStoreClient;
+    const svc = new DocAssetService(projects, store);
+    const image = {
+      size: 3,
+      buffer: Buffer.from('png'),
+      originalname: 'a.png',
+      mimetype: 'image/png',
+    } as Express.Multer.File;
+    await expect(
+      svc.upload(outsider, p.prj_id, 'image', image),
+    ).rejects.toThrow();
+    await expect(
+      svc.upload(owner, p.prj_id, 'image', {
+        ...image,
+        originalname: 'a.svg',
+        mimetype: 'image/svg+xml',
+      }),
+    ).rejects.toThrow();
+    const a = await svc.upload(owner, p.prj_id, 'image', image);
+    expect(a.url).toMatch(
+      /^\/api\/acm\/prj\/doc-assets\/[0-9a-f-]{36}\/[\w-]{43}$/,
+    );
+    const [id, token] = a.url.split('/').slice(-2);
+    const opened = await svc.open(id, token);
+    expect(opened).toMatchObject({
+      inline: true,
+      mime: 'image/png',
+      filename: 'a.png',
+    });
+    await expect(svc.open(id, token.slice(1) + 'A')).rejects.toThrow();
+    const f = await svc.upload(owner, p.prj_id, 'file', {
+      ...image,
+      originalname: 'a.pdf',
+      mimetype: 'application/pdf',
+    });
+    const [fid, ftoken] = f.url.split('/').slice(-2);
+    expect(await svc.open(fid, ftoken)).toMatchObject({
+      inline: false,
+      mime: 'application/octet-stream',
+    });
   });
   it('uploads local files idempotently and isolates download URLs', async () => {
     const p = await projects.save(owner, {

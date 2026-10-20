@@ -149,7 +149,32 @@
     "addColumn": "添加列",
     "deleteRow": "删除行",
     "deleteColumn": "删除列",
-    "deleteTable": "删除表格"
+    "deleteTable": "删除表格",
+    "toolbar": "格式工具",
+    "underline": "下划线",
+    "textColor": "文字颜色",
+    "highlight": "高亮",
+    "clearColor": "清除颜色",
+    "taskList": "清单",
+    "image": "图片",
+    "imageUpload": "上传文件",
+    "imageUrl": "输入 URL",
+    "imageUrlPrompt": "https:// 图片地址",
+    "attach": "附加文件",
+    "drive": "Google Drive 文件",
+    "table": "表格",
+    "source": "HTML 源码",
+    "sourceHint": "修改 HTML 后再次点击“HTML 源码”即可应用。不支持的标签会被移除。",
+    "placeholder": "请输入内容…",
+    "dropHere": "将文件拖放到此处",
+    "uploadFailed": "上传失败。图片（PNG、JPG、GIF、WEBP）需不超过 10MB，文件需不超过 50MB。",
+    "drivePicker": {
+      "title": "插入 Google Drive 文件",
+      "up": "上级文件夹",
+      "loading": "加载中…",
+      "empty": "此文件夹中没有文件。",
+      "failed": "无法加载 Drive 列表。"
+    }
   },
   "documentEditor": {
     "confirmDiscard": "要放弃未保存的更改吗？",

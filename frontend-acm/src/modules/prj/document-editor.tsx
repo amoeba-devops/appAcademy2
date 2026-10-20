@@ -1,7 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { TableKit } from "@tiptap/extension-table";
+import type { JSONContent } from "@tiptap/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useBlocker } from "react-router-dom";
@@ -10,170 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type Item } from "./types";
 import type { WorkbookDocument } from "./workbook-editor";
+import { RichDocument } from "./rich-document";
 const WorkbookEditor = lazy(() =>
   import("./workbook-editor").then((m) => ({ default: m.WorkbookEditor })),
 );
 import { blankSheet, type Sheet } from "./sheet-model";
 export type DocumentType = "MEMO" | "SHEET" | "DOC";
-export function RichDocument({
-  initial,
-  onChange,
-  readOnly,
-  table,
-}: {
-  initial: JSONContent;
-  onChange: (v: JSONContent) => void;
-  readOnly: boolean;
-  table: boolean;
-}) {
-  const { t: tp } = useTranslation("prj");
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        link: { openOnClick: false, protocols: ["https", "http"] },
-      }),
-      ...(table ? [TableKit.configure({ table: { resizable: true } })] : []),
-    ],
-    content: initial,
-    editable: !readOnly,
-    onUpdate: ({ editor }) => onChange(editor.getJSON()),
-    editorProps: {
-      attributes: { class: "doc-prose min-h-64 max-w-none p-4 outline-none" },
-    },
-  });
-  useEffect(() => {
-    editor?.setEditable(!readOnly, false);
-  }, [editor, readOnly]);
-  if (!editor) return null;
-  const actions: [string, () => void][] = [
-    [
-      "bold",
-      () => {
-        editor.chain().focus().toggleBold().run();
-      },
-    ],
-    [
-      "italic",
-      () => {
-        editor.chain().focus().toggleItalic().run();
-      },
-    ],
-    [
-      "strike",
-      () => {
-        editor.chain().focus().toggleStrike().run();
-      },
-    ],
-    [
-      "heading",
-      () => {
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
-      },
-    ],
-    [
-      "bulletList",
-      () => {
-        editor.chain().focus().toggleBulletList().run();
-      },
-    ],
-    [
-      "orderedList",
-      () => {
-        editor.chain().focus().toggleOrderedList().run();
-      },
-    ],
-    [
-      "blockquote",
-      () => {
-        editor.chain().focus().toggleBlockquote().run();
-      },
-    ],
-    [
-      "link",
-      () => {
-        const href = window.prompt(
-          tp("richDoc.linkPrompt"),
-          (editor.getAttributes("link").href as string) ?? "",
-        );
-        if (href === null) return;
-        if (!href) editor.chain().focus().unsetLink().run();
-        else if (/^https?:\/\/\S+$/i.test(href))
-          editor.chain().focus().setLink({ href }).run();
-      },
-    ],
-    [
-      "undo",
-      () => {
-        editor.chain().focus().undo().run();
-      },
-    ],
-    [
-      "redo",
-      () => {
-        editor.chain().focus().redo().run();
-      },
-    ],
-  ];
-  if (table)
-    actions.push(
-      [
-        "insertTable",
-        () => {
-          editor
-            .chain()
-            .focus()
-            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-            .run();
-        },
-      ],
-      [
-        "addRow",
-        () => {
-          editor.chain().focus().addRowAfter().run();
-        },
-      ],
-      [
-        "addColumn",
-        () => {
-          editor.chain().focus().addColumnAfter().run();
-        },
-      ],
-      [
-        "deleteRow",
-        () => {
-          editor.chain().focus().deleteRow().run();
-        },
-      ],
-      [
-        "deleteColumn",
-        () => {
-          editor.chain().focus().deleteColumn().run();
-        },
-      ],
-      [
-        "deleteTable",
-        () => {
-          editor.chain().focus().deleteTable().run();
-        },
-      ],
-    );
-  return (
-    <div className="min-w-0 rounded border">
-      {!readOnly && (
-        <div className="flex flex-wrap gap-1 border-b p-2">
-          {actions.map(([name, fn]) => (
-            <Button key={name} type="button" variant="outline" onClick={fn}>
-              {tp(`richDoc.${name}`)}
-            </Button>
-          ))}
-        </div>
-      )}
-      <div className="max-w-full overflow-auto [&_td]:border [&_th]:border [&_td]:p-2 [&_th]:p-2">
-        <EditorContent editor={editor} />
-      </div>
-    </div>
-  );
-}
 export function DocumentEditor({
   project,
   item,
@@ -276,9 +116,6 @@ export function DocumentEditor({
       </div>
       <form
           className="grid min-w-0 gap-3"
-          onInputCapture={() => {
-            if (!readOnly) setDirty(true);
-          }}
           onSubmit={async (e) => {
             e.preventDefault();
             setBusy(true);
@@ -425,7 +262,8 @@ export function DocumentEditor({
           ) : (
             <RichDocument
               initial={content as JSONContent}
-              table={type === "DOC"}
+              full={type === "DOC"}
+              project={project}
               readOnly={readOnly || busy}
               onChange={(v) => {
                 setContent(v);

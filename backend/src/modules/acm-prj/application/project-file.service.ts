@@ -134,12 +134,20 @@ export async function openTicketFile(
 ) {
   const t = verifyFileTicket(ticket);
   const [item] = await ds.query<
-    { object_key: string | null; pit_title: string; drive_mime: string | null }[]
+    {
+      object_key: string | null;
+      pit_title: string;
+      drive_mime: string | null;
+    }[]
   >(
     "SELECT object_key,pit_title,drive_mime FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND pit_id=$3 AND pit_kind='FILE' AND deleted_at IS NULL",
     [t.ent, t.prj, t.item],
   );
   if (!item?.object_key) throw new NotFoundException();
   const obj = await store.getObjectStream(item.object_key);
-  return { ...obj, filename: item.pit_title, mime: item.drive_mime ?? obj.mime };
+  return {
+    ...obj,
+    filename: item.pit_title,
+    mime: item.drive_mime ?? obj.mime,
+  };
 }

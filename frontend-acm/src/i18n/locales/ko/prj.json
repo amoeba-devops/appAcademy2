@@ -149,7 +149,32 @@
     "addColumn": "열 추가",
     "deleteRow": "행 삭제",
     "deleteColumn": "열 삭제",
-    "deleteTable": "표 삭제"
+    "deleteTable": "표 삭제",
+    "toolbar": "서식 도구",
+    "underline": "밑줄",
+    "textColor": "글자색",
+    "highlight": "형광펜",
+    "clearColor": "색 지우기",
+    "taskList": "체크리스트",
+    "image": "이미지",
+    "imageUpload": "파일 업로드",
+    "imageUrl": "URL 입력",
+    "imageUrlPrompt": "https:// 이미지 주소",
+    "attach": "파일 첨부",
+    "drive": "Google Drive 파일",
+    "table": "표",
+    "source": "HTML 소스",
+    "sourceHint": "HTML을 고친 뒤 HTML 소스 버튼을 다시 누르면 적용됩니다. 지원하지 않는 태그는 빠집니다.",
+    "placeholder": "내용을 입력하세요…",
+    "dropHere": "파일을 여기에 놓으세요",
+    "uploadFailed": "업로드하지 못했습니다. 이미지(PNG·JPG·GIF·WEBP) 10MB, 파일 50MB 이하인지 확인하세요.",
+    "drivePicker": {
+      "title": "Google Drive 파일 넣기",
+      "up": "상위 폴더",
+      "loading": "불러오는 중…",
+      "empty": "이 폴더에 파일이 없습니다.",
+      "failed": "Drive 목록을 불러오지 못했습니다."
+    }
   },
   "documentEditor": {
     "confirmDiscard": "저장하지 않은 변경을 버릴까요?",
