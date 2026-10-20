@@ -222,6 +222,6 @@ acm.amoeba.site (보조, GoDaddy DNS) ───┘    인증서 2개: acm.tpi.co
 
 | 시점 | 작업 |
 | --- | --- |
-| DNS 캐시 소진 후 | 구 서버 프록시(`acm-forward.conf`)·새 서버 `acm-cutover-realip.conf` 제거 |
-| D+14 (2026-10-31) | 구 서버 ACM 컨테이너·이미지·cron 정리, 서버 간 직결 키 삭제(8장 절차) |
+| ~~DNS 캐시 소진 후~~ | 2026-10-20 완료 — 구 서버 프록시·새 서버 `acm-cutover-realip.conf` 제거 |
+| ~~D+14~~ | 2026-10-20 앞당겨 완료 — 최종 백업(새 서버 `/backup/app-academy/old-server-211.110.140.172/`) 후 구 서버 ACM 컨테이너·이미지·vhost·인증서·cron·직결 키 삭제. 구 서버 데이터 파일 삭제는 소유자 몫 |
 | `acm.tpi.co.kr` 준비 시 | DNS(hostcocoa) → 인증서 → nginx 블록 → env, 보다스쿨·Google·AMA 등록 주소 변경 후 `FRONTEND_URL` 교체 |

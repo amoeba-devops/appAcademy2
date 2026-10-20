@@ -1,11 +1,12 @@
 ---
 document_id: APP-ACADEMY-SERVER-INVENTORY-1.0.0
-version: 1.1.0
+version: 1.2.0
 status: Active
 created: 2026-10-17
 audience: Ops / Maintainer
 related: RUNBOOK-CURRENT, RUNBOOK-261017-fresh-environment, DEPLOY-SECRETS-SETUP
 change_log:
+  - 1.2.0 (2026-10-20): 구 서버 ACM 정리 완료(백업 후)
   - 1.1.0 (2026-10-20): 프로덕션 새 서버(175.126.232.175) 전환 반영, 백업 복구, 구 서버 보존 정보
   - 1.0.0 (2026-10-17): 최초 작성 — 스테이징·프로덕션 서버 현황(프로덕션은 호스트 읽기 전용 점검, 스테이징은 저장소·외부 응답 기준)
 ---
@@ -20,7 +21,7 @@ change_log:
 | 항목 | Staging | Production |
 | --- | --- | --- |
 | URL | https://acm-stg.amoeba.site | https://acm-tpi.amoeba.site (메인) · https://acm.amoeba.site |
-| IP | 125.133.49.165 | **175.126.232.175** (cafe24 `qm381-0103`) — 2026-10-17 전환. 구 서버 211.110.140.172 는 D+14(10-31)까지 보존 |
+| IP | 125.133.49.165 | **175.126.232.175** (cafe24 `qm381-0103`) — 2026-10-17 전환. 구 서버 211.110.140.172 의 ACM 은 2026-10-20 정리 완료 |
 | 호스트 | 스테이징 전용(추정) | ACM 전용 |
 | SSH 사용자 | `appacademy` | `appacademy`(키 전용, 제한 sudo) · root(키 전용) |
 | 배포 | `main` push → 자동 (`cd-staging.yml`) | 수동 `gh workflow run cd-production.yml -f sha=<short-sha>` |
@@ -78,7 +79,7 @@ change_log:
 | 환경 | 명령 | 키 |
 | --- | --- | --- |
 | Production | `ssh acm-new` (appacademy) · `ssh acm-new-root` (root) | `~/.ssh/id_ed25519_acm_new` |
-| 구 서버(보존) | `ssh acm-prod` / `acm-old` → 211.110.140.172 | `~/.ssh/id_ed25519_acm_prod` |
+| 구 서버(ACM 정리됨, 다른 서비스 호스트) | `ssh acm-prod` / `acm-old` → 211.110.140.172 | `~/.ssh/id_ed25519_acm_prod` |
 | Staging | `ssh appacademy@acm-stg.amoeba.site` | 개발 PC 에 등록된 키 없음 — GitHub `staging` Environment 의 deploy 키만 등록됨 |
 
 ### 3.2 Production root 작업
@@ -123,7 +124,8 @@ PR 머지 → main push
 | 항목 | 상태 |
 | --- | --- |
 | 자동 백업 | `scripts/backup-acm.sh` 매일 02:30 KST — `pg_dump -Fc db_acm` + MinIO·업로드 tar.gz, 검증 후 확정 |
-| 위치·보관 | 새 서버 `/backup/app-academy/production`, 30일 (구 서버 cron 은 `/var/backups/app-academy/production`, 14일 — D+14 정리 때 제거) |
+| 위치·보관 | 새 서버 `/backup/app-academy/production`, 30일 |
+| 구 서버 최종 백업 | 새 서버 `/backup/app-academy/old-server-211.110.140.172/` (2026-10-20, README·SHA256SUMS 포함, 권한 600 — env 비밀값 포함) |
 | 최근 결과 | 2026-10-20 02:30 DB 7.7 MB · MinIO 674 MB · 업로드 7.2 MB, 약 30초 |
 | 복원 검증 | 2026-10-17 리허설·전환 때 이 백업 형식으로 복원, 167 테이블 행 수 일치 |
 | 오프사이트 사본 | 없음 — 같은 서버의 별도 디스크(`/backup`)에만 있음. 외부 저장소 사본 권장 |
@@ -136,7 +138,7 @@ PR 머지 → main push
 1. ~~DB 자동 백업 중단~~ — 2026-10-17 복구(5장). 남은 것: 외부 저장소 사본.
 2. **프로덕션 배포 승인 게이트 없음**, **`main` 필수 체크 미설정** — 저장소 소유자(`amoeba-devops`) 권한 필요.
 3. 서버 계정 비밀번호가 과거 작업 메모에 평문으로 기록돼 있었다 — 스테이징·구 서버 `appacademy` 비밀번호 **회전 권장**(새 서버는 비밀번호 로그인 차단).
-4. 구 서버(211.110.140.172)는 공유 호스트. ACM 앱은 정지, nginx 는 새 서버로 프록시 중 — DNS 캐시 소진 후 프록시·새 서버 `acm-cutover-realip.conf` 제거, **D+14(2026-10-31)** 에 ACM 컨테이너·cron·서버 간 직결 키 정리([RUNBOOK-261017C](RUNBOOK-261017C-prod-cutover.md) 8장).
+4. 구 서버(211.110.140.172) ACM 정리 완료(2026-10-20): 최종 백업 → 컨테이너 6·이미지 451·network·nginx vhost 3·인증서·cron·서버 간 직결 키 삭제, 새 서버 `acm-cutover-realip.conf` 삭제. 데이터 파일(`~/app-academy` 등 약 4.5 GB)은 백업 후 남겨 둠 — 삭제는 소유자가 직접.
 4a. MinIO 이미지(`minio/minio`)는 Docker Hub 에서 더 이상 받을 수 없다 — 새 환경은 기존 서버에서 `docker save/load` 로 옮긴다(대체 레지스트리 마련 필요).
 5. 스테이징 공개 시드 계정: 운영 모드에서 공개 시드 비밀번호 로그인은 거부된다(REQ-261017B). 스테이징에 남아 있으면 `ACM_INITIAL_ADMIN_PASSWORD` 로 해제([RUNBOOK-261017](RUNBOOK-261017-fresh-environment.md) 4장).
 6. 옛 호스트명 정리: `app-academy-stg.amoeba.site` 는 DNS 없음, `tpi.amoeba.site` 는 다른 IP(18.138.206.18)로 바뀌어 응답 없음 — `staging.md`(Archived)의 호스트 표는 더 이상 유효하지 않다.
