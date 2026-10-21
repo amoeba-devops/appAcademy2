@@ -182,6 +182,7 @@ export class PasswordResetService {
     const { password, expiresAt } = await this.auth.issueTempPassword(
       userId,
       TEMP_PASSWORD_HOURS,
+      u.id,
     );
     let mailSent = false;
     try {

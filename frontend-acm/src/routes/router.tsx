@@ -11,6 +11,11 @@ import { InviteAcceptPage } from '@/modules/invite/invite-accept-page';
 import { AppStartPage } from '@/components/pwa/app-start-page';
 import { RequireTenantSettings } from '@/modules/cfg/components/require-tenant-settings';
 import { PasswordRequestsPage } from '@/modules/auth/pages/password-requests-page';
+import { RequireAuditViewer } from '@/modules/aud/components/require-audit-viewer';
+import { AuditLayout } from '@/modules/aud/pages/audit-layout';
+import { AccessLogPage } from '@/modules/aud/pages/access-log-page';
+import { AccessControlPage } from '@/modules/aud/pages/access-control-page';
+import { ActivityLogPage } from '@/modules/aud/pages/activity-log-page';
 import { StudentDeletionPage } from '@/modules/std/components/student-deletion';
 import { RequireConfigAdmin } from '@/modules/cfg/components/require-config-admin';
 import { RequireTenantMaster } from '@/modules/cfg/components/require-tenant-master';
@@ -273,6 +278,15 @@ export const router = createBrowserRouter([
       // REQ-260621 — Configuration: landing card menu + per-integration pages.
       { element: <RequireTenantMaster />, children: [
         { path: 'tenant', element: <TenantSettingsPage /> },
+      ] },
+      // REQ-261021B — 감사(테넌트 마스터·감사 조회 권한)
+      { element: <RequireAuditViewer />, children: [
+        { path: 'audit', element: <AuditLayout />, children: [
+          { index: true, element: <Navigate to="/admin/audit/access" replace /> },
+          { path: 'activity', element: <ActivityLogPage /> },
+          { path: 'access', element: <AccessLogPage /> },
+          { path: 'control', element: <AccessControlPage /> },
+        ] },
       ] },
       // REQ-261018 — 연동 설정 5종: 테넌트 마스터에게만 링크 노출(서비스 운영자는 링크 없이 접근 가능)
       { element: <RequireTenantSettings />, children: [

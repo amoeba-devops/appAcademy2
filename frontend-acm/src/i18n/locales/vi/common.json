@@ -265,7 +265,8 @@
     "myWork": "Công việc của tôi",
     "issues": "Vấn đề",
     "myPage": "Trang của tôi",
-    "passwordRequests": "Yêu cầu mật khẩu"
+    "passwordRequests": "Yêu cầu mật khẩu",
+    "audit": "Kiểm toán"
   },
   "lang": {
     "label": "Ngôn ngữ",
@@ -1947,7 +1948,8 @@
       },
       "perm": {
         "CONFIG_ADMIN": "Người vận hành dịch vụ",
-        "TENANT_MASTER": "Tenant master"
+        "TENANT_MASTER": "Tenant master",
+        "AUDIT_VIEWER": "Xem kiểm toán"
       },
       "locked": "Đã khóa",
       "inactive": "Ngừng hoạt động",

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import { AccessLogService } from '../../acm-aud/application/access-log.service';
 import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent.typeorm-entity';
 import type {
   ParentAuthUser,
@@ -45,6 +47,8 @@ export class ParentAuthService {
     private readonly parentRepo: Repository<ParentTypeormEntity>,
     private readonly jwtService: JwtService,
     config: ConfigService,
+    // REQ-261021B — 학부모 OTP 로그인도 접속 로그에 남긴다.
+    @Optional() private readonly accessLog?: AccessLogService,
   ) {
     this.otpTtlMs = Number(config.get('PARENT_OTP_TTL_MS', 180_000));
     this.maxAttempts = Number(config.get('PARENT_OTP_MAX_ATTEMPTS', 5));
@@ -97,6 +101,10 @@ export class ParentAuthService {
     }
 
     if (entry.otp !== otp) {
+      await this.accessLog?.record({
+        actor: { entId: entry.entId, kind: 'PORTAL', id: entry.parentId, role: 'PARENT' },
+        event: 'LOGIN', result: 'FAILURE', reason: 'BAD_PASSWORD', method: 'OTP',
+      });
       throw new UnauthorizedException('인증번호가 일치하지 않습니다.');
     }
 
@@ -117,6 +125,10 @@ export class ParentAuthService {
       role: 'PARENT',
     };
 
+    await this.accessLog?.record({
+      actor: { entId: parent.entId, kind: 'PORTAL', id: parent.id, name: parent.name, role: 'PARENT' },
+      event: 'LOGIN', result: 'SUCCESS', method: 'OTP',
+    });
     return {
       accessToken: this.jwtService.sign(payload, sessionSignOptions()),
       parent: this.toAuthUser(parent),

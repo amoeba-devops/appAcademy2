@@ -40,3 +40,26 @@ export class TenantSettingsGuard implements CanActivate {
     throw new ForbiddenException('TENANT_MASTER permission required');
   }
 }
+
+/** REQ-261021B — audit menu: tenant master, or AUDIT_VIEWER (read only). */
+export async function canViewAudit(
+  ds: DataSource,
+  user: AcmCurrentUser | undefined,
+): Promise<boolean> {
+  return (
+    (await hasUserPermission(ds, user, 'TENANT_MASTER')) ||
+    (await hasUserPermission(ds, user, 'AUDIT_VIEWER'))
+  );
+}
+
+@Injectable()
+export class AuditViewerGuard implements CanActivate {
+  constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const { user } = context
+      .switchToHttp()
+      .getRequest<{ user?: AcmCurrentUser }>();
+    if (await canViewAudit(this.ds, user)) return true;
+    throw new ForbiddenException('AUDIT_VIEWER permission required');
+  }
+}

@@ -16,6 +16,7 @@ export function useConfigAccess() {
         await apiClient.get<{
           canManageConfig: boolean;
           canManageTenant?: boolean;
+          canViewAudit?: boolean;
         }>(
           "/acm/me/config-access",
         )
@@ -30,5 +31,7 @@ export function useConfigAccess() {
     allowed: !query.isError && query.data?.canManageConfig === true,
     // REQ-261015C — 테넌트 마스터(테넌트 설정 메뉴).
     tenantAllowed: !query.isError && query.data?.canManageTenant === true,
+    // REQ-261021B — 감사 메뉴(테넌트 마스터 또는 감사 조회 권한).
+    auditAllowed: !query.isError && query.data?.canViewAudit === true,
   };
 }

@@ -265,7 +265,8 @@
     "myWork": "내 업무",
     "issues": "이슈",
     "myPage": "마이페이지",
-    "passwordRequests": "비밀번호 요청"
+    "passwordRequests": "비밀번호 요청",
+    "audit": "감사"
   },
   "lang": {
     "label": "언어",
@@ -1947,7 +1948,8 @@
       },
       "perm": {
         "CONFIG_ADMIN": "서비스 운영자",
-        "TENANT_MASTER": "테넌트 마스터"
+        "TENANT_MASTER": "테넌트 마스터",
+        "AUDIT_VIEWER": "감사 조회"
       },
       "locked": "잠김",
       "inactive": "비활성",

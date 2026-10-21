@@ -42,6 +42,16 @@ export class AcmAuthController {
     return this.service.exchangeAmaToken(dto.amaToken);
   }
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AcmJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Record logout in the access log (REQ-261021B)' })
+  async logout(@CurrentUser() user: AcmCurrentUser) {
+    await this.service.recordLogout(user.id);
+    return { ok: true };
+  }
+
   @Get('me')
   @UseGuards(AcmJwtAuthGuard)
   @ApiBearerAuth()

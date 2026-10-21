@@ -103,7 +103,7 @@ describe('SystemUserService', () => {
 
   it('lock delegates to AcmAuthService.lockUser', async () => {
     repo.findOne.mockResolvedValue(makeUser({ lockedAt: new Date() }));
-    await svc.lock('u1');
-    expect(auth.lockUser).toHaveBeenCalledWith('u1');
+    await svc.lock('u1', 'admin1');
+    expect(auth.lockUser).toHaveBeenCalledWith('u1', 'admin1');
   });
 });

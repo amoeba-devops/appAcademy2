@@ -91,7 +91,9 @@
       "CONFIG_ADMIN": "服务运营者",
       "CONFIG_ADMIN_hint": "服务设置（/admin/config）与 Google Drive 连接",
       "TENANT_MASTER": "租户主管",
-      "TENANT_MASTER_hint": "租户设置（/admin/tenant）、按等级的菜单显示，可见所有已允许菜单"
+      "TENANT_MASTER_hint": "租户设置（/admin/tenant）、按等级的菜单显示，可见所有已允许菜单",
+      "AUDIT_VIEWER": "审计查看",
+      "AUDIT_VIEWER_hint": "仅可查看审计(/admin/audit)的日志与访问控制 — 修改需租户主管理员"
     }
   },
   "tenants": {

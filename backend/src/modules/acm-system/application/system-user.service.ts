@@ -117,15 +117,15 @@ export class SystemUserService {
     await this.authService.updateUserPassword(id, password);
   }
 
-  async lock(id: string): Promise<SystemUserView> {
+  async lock(id: string, byUserId: string | null = null): Promise<SystemUserView> {
     await this.getEntityOrThrow(id);
-    await this.authService.lockUser(id);
+    await this.authService.lockUser(id, byUserId);
     return this.getOrThrow(id);
   }
 
-  async unlock(id: string): Promise<SystemUserView> {
+  async unlock(id: string, byUserId: string | null = null): Promise<SystemUserView> {
     await this.getEntityOrThrow(id);
-    await this.authService.unlockUser(id);
+    await this.authService.unlockUser(id, byUserId);
     return this.getOrThrow(id);
   }
 

@@ -1,0 +1,152 @@
+{
+  "desc": "查看系统使用与登录记录,设置访问策略。",
+  "tabs": {
+    "activity": "操作日志",
+    "access": "访问日志",
+    "control": "访问控制"
+  },
+  "activity": {
+    "pending": "操作日志(创建、修改、删除、查看、下载记录)将在下一阶段提供。目前可使用访问日志和访问控制。"
+  },
+  "access": {
+    "stats": {
+      "todayLogins": "今日登录",
+      "todayFailures": "今日登录失败",
+      "locked": "已锁定账号",
+      "topIp": "失败最多的 IP(24 小时)",
+      "none": "无",
+      "times": "{{count}} 次"
+    },
+    "filters": {
+      "from": "开始日期",
+      "to": "结束日期",
+      "kind": "类型",
+      "q": "账号",
+      "qPlaceholder": "姓名或登录ID",
+      "event": "事件",
+      "result": "结果",
+      "ip": "IP",
+      "all": "全部",
+      "search": "查询",
+      "export": "导出 CSV",
+      "exporting": "导出中…",
+      "exportFailed": "CSV 导出失败。"
+    },
+    "columns": {
+      "time": "时间",
+      "account": "账号",
+      "event": "事件",
+      "result": "结果",
+      "ip": "IP",
+      "client": "访问环境"
+    },
+    "count": "{{count}} 条",
+    "page": "{{page}} / {{pages}}",
+    "prev": "上一页",
+    "next": "下一页",
+    "empty": "没有符合条件的访问记录。",
+    "loadError": "无法加载访问日志。",
+    "loading": "加载中…",
+    "unknownAccount": "(不存在的账号)",
+    "detail": {
+      "title": "访问记录详情",
+      "loginId": "登录ID",
+      "role": "角色",
+      "method": "登录方式",
+      "reason": "原因",
+      "userAgent": "设备信息",
+      "by": "处理管理员",
+      "close": "关闭"
+    }
+  },
+  "kind": {
+    "CONSOLE": "运营控制台",
+    "PORTAL": "门户"
+  },
+  "event": {
+    "LOGIN": "登录",
+    "LOGOUT": "退出登录",
+    "LOCKED": "账号锁定",
+    "UNLOCKED": "解除锁定",
+    "IP_BLOCKED": "IP 暂时阻止",
+    "PASSWORD_CHANGED": "修改密码",
+    "TEMP_PASSWORD_ISSUED": "发放临时密码",
+    "SSO_EXCHANGE": "AMA 登录"
+  },
+  "result": {
+    "SUCCESS": "成功",
+    "FAILURE": "失败"
+  },
+  "reason": {
+    "BAD_PASSWORD": "密码错误",
+    "NO_ACCOUNT": "账号不存在",
+    "LOCKED": "账号已锁定",
+    "TEMP_LOCKED": "暂时锁定",
+    "INACTIVE": "账号未启用",
+    "TEMP_PASSWORD_EXPIRED": "临时密码已过期",
+    "SEED_PASSWORD": "已禁用默认密码",
+    "IP_BLOCKED": "IP 阻止",
+    "SSO_INVALID": "AMA 认证失败",
+    "AUTO": "自动",
+    "ADMIN": "管理员",
+    "SELF": "本人"
+  },
+  "method": {
+    "PASSWORD": "密码",
+    "SSO": "AMA SSO",
+    "OTP": "验证码"
+  },
+  "client": {
+    "web": "电脑/浏览器",
+    "pwa": "已安装的应用"
+  },
+  "role": {
+    "ADMIN": "管理员",
+    "TEACHER": "教师",
+    "STAFF": "职员",
+    "APP_ADMIN": "系统管理员",
+    "STUDENT": "学生",
+    "PARENT": "家长"
+  },
+  "control": {
+    "lockout": {
+      "title": "登录失败锁定",
+      "desc": "同时适用于运营控制台、门户和 AMA 登录。",
+      "failMax": "连续失败",
+      "times": "次",
+      "lockFor": "锁定方式",
+      "timed": "按时间锁定",
+      "minutes": "分钟",
+      "untilAdmin": "直到管理员解除",
+      "ipTitle": "同一 IP 失败",
+      "ipWindow": "分钟内",
+      "ipBlock": "阻止时间",
+      "save": "保存",
+      "saved": "已保存。",
+      "saveFailed": "保存失败,请检查输入值。",
+      "lastChanged": "最后修改:{{date}} {{name}}",
+      "neverChanged": "正在使用默认值",
+      "readOnly": "仅可查看。只有租户主管理员可以修改。"
+    },
+    "locked": {
+      "title": "已锁定账号",
+      "empty": "没有已锁定的账号。",
+      "account": "账号",
+      "kind": "类型",
+      "reason": "锁定原因",
+      "until": "预计解除",
+      "lockedAt": "锁定时间",
+      "unlock": "解除",
+      "unlockConfirm": "要解除 {{name}} 的锁定吗?",
+      "unlocked": "已解除锁定。",
+      "unlockFailed": "无法解除锁定。",
+      "AUTO": "登录失败",
+      "ADMIN": "管理员锁定",
+      "noEnd": "需管理员解除"
+    },
+    "later": {
+      "title": "IP 限制 · 同时登录",
+      "body": "允许 IP 限制、同时登录数限制以及当前在线用户列表将在下一阶段提供。"
+    }
+  }
+}

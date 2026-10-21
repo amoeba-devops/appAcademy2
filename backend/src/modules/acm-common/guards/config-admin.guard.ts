@@ -9,7 +9,7 @@ import { DataSource } from 'typeorm';
 import { ACM_DS } from '../datasource';
 import type { AcmCurrentUser } from '../decorators/current-user.decorator';
 
-export type AcmUserPermission = 'CONFIG_ADMIN' | 'TENANT_MASTER';
+export type AcmUserPermission = 'CONFIG_ADMIN' | 'TENANT_MASTER' | 'AUDIT_VIEWER';
 
 export function hasConfigPermission(
   ds: DataSource,

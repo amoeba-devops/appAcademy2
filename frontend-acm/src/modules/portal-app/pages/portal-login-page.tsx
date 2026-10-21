@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/auth.store';
 import { portalApi } from '../api/portal-api';
+import { loginLockMessage } from '@/modules/auth/lib/login-lock';
 
 // PLN-260718 — "학원코드/아이디 저장" (remember-me). 비밀번호는 저장하지 않는다.
 const REMEMBER_KEY = 'acm-portal-remember';
@@ -19,7 +20,7 @@ function loadRemember(): { tenantCode: string; loginId: string } | null {
 }
 
 export function PortalLoginPage() {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const setPortalAuth = useAuthStore((s) => s.setPortalAuth);
@@ -58,8 +59,9 @@ export function PortalLoginPage() {
       setPortalAuth(res.accessToken, res.user);
       // PLN-260716 — 강제 비번변경 폐지: 항상 원래 목적지로 이동.
       navigate(returnTo ?? '/portal', { replace: true });
-    } catch {
-      setError(t('portalApp.login.invalid'));
+    } catch (err) {
+      // REQ-261021B — 로그인 실패 잠금·IP 차단은 해제 시각과 함께 안내
+      setError(loginLockMessage(err, t, i18n.language) ?? t('portalApp.login.invalid'));
     } finally {
       setBusy(false);
     }

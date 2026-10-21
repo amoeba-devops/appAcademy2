@@ -24,6 +24,7 @@ import {
   hasUserPermission,
 } from '../../acm-common/guards/config-admin.guard';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
+import { canViewAudit } from '../../acm-common/guards/tenant-master.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
 import {
   CurrentUser,
@@ -60,6 +61,8 @@ export class ConfigAccessController {
       canManageConfig: await hasConfigPermission(this.ds, user),
       // REQ-261015C — 테넌트 설정 메뉴 노출 여부.
       canManageTenant: await hasUserPermission(this.ds, user, 'TENANT_MASTER'),
+      // REQ-261021B — 감사 메뉴 노출 여부.
+      canViewAudit: await canViewAudit(this.ds, user),
     };
   }
 

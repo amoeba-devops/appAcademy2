@@ -1,8 +1,12 @@
+import { AccessLogService } from '../../acm-aud/application/access-log.service';
+import { LoginGuardService, portalAccountKey, tooMany } from '../../acm-aud/application/login-guard.service';
+import { AUD_SYSTEM_ENT, maskLoginId, type AccessActor, type AccessReason } from '../../acm-aud/application/aud.types';
 import { sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   HttpException,
   HttpStatus,
   Injectable,
+  Optional,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -73,6 +77,9 @@ export class PortalAccountService {
     @InjectRepository(TeacherTypeormEntity, ACM_DS)
     private readonly teachers: Repository<TeacherTypeormEntity>,
     private readonly jwt: JwtService,
+    // REQ-261021B — 접속 로그 · DB 기반 로그인 실패 잠금 (단위 테스트에서는 생략 가능)
+    @Optional() private readonly accessLog?: AccessLogService,
+    @Optional() private readonly loginGuard?: LoginGuardService,
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -156,6 +163,7 @@ export class PortalAccountService {
     entId: string,
     pacId: string,
     password?: string,
+    byUserId: string | null = null,
   ): Promise<{ id: string; loginId: string; tempPassword: string }> {
     const acc = await this.repo.findOne({ where: { id: pacId, entId } });
     if (!acc) {
@@ -168,6 +176,8 @@ export class PortalAccountService {
     acc.updatedAt = new Date();
     await this.repo.save(acc);
     this.log.log(`portal account password reset loginId=${acc.loginId}`);
+    await this.loginGuard?.reset(portalAccountKey(entId, acc.loginId));
+    await this.accessLog?.record({ actor: portalActor(acc), event: 'TEMP_PASSWORD_ISSUED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
     return { id: acc.id, loginId: acc.loginId, tempPassword };
   }
 
@@ -238,16 +248,40 @@ export class PortalAccountService {
     const acc = entId
       ? await this.repo.findOne({ where: { entId, loginId, status: 'ACTIVE' } })
       : null;
+    // REQ-261021B — 계정이 없으면 마스킹한 ID 로 기록(응답은 기존처럼 같은 401).
+    const actor: AccessActor = acc
+      ? portalActor(acc)
+      : { entId: entId ?? AUD_SYSTEM_ENT, kind: 'PORTAL', loginId: maskLoginId(loginId) };
+    const attempt = {
+      policyEntId: actor.entId,
+      accountKey: portalAccountKey(entId ?? `code:${tenantCode.trim().toLowerCase()}`, loginId),
+      actor,
+      method: 'PASSWORD' as const,
+    };
+    const fail = (reason: AccessReason) =>
+      this.accessLog?.record({ actor, event: 'LOGIN', result: 'FAILURE', reason, method: 'PASSWORD' });
+    await this.loginGuard?.assertAllowed(attempt);
     const ok = !!acc && (await bcrypt.compare(password, acc.passwordHash));
     if (!acc || !ok) {
+      await fail(acc ? 'BAD_PASSWORD' : 'NO_ACCOUNT');
+      const r = await this.loginGuard?.onFailure(attempt);
+      if (r?.permanent)
+        throw new HttpException(
+          { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 학원에 문의하세요.' },
+          HttpStatus.UNAUTHORIZED,
+        );
+      if (r?.lockedUntil) throw tooMany('ACCOUNT_TEMP_LOCKED', r.lockedUntil);
       throw new UnauthorizedException('INVALID_CREDENTIALS');
     }
     if (acc.lockedAt) {
+      await fail('LOCKED');
       throw new HttpException(
         { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 학원에 문의하세요.' },
         HttpStatus.UNAUTHORIZED,
       );
     }
+    await this.loginGuard?.onSuccess(attempt.accountKey);
+    await this.accessLog?.record({ actor, event: 'LOGIN', result: 'SUCCESS', method: 'PASSWORD' });
     acc.lastLoginAt = new Date();
     await this.repo.update(acc.id, { lastLoginAt: acc.lastLoginAt });
     return {
@@ -269,18 +303,27 @@ export class PortalAccountService {
     }
     const ok = await bcrypt.compare(currentPassword, acc.passwordHash);
     if (!ok) {
+      await this.accessLog?.record({ actor: portalActor(acc), event: 'PASSWORD_CHANGED', result: 'FAILURE', reason: 'BAD_PASSWORD' });
       throw new UnauthorizedException('CURRENT_PASSWORD_INVALID');
     }
     assertPasswordPolicy(newPassword);
     acc.passwordHash = await bcrypt.hash(newPassword, 12);
     acc.mustChangePassword = false;
     await this.repo.save(acc);
+    await this.accessLog?.record({ actor: portalActor(acc), event: 'PASSWORD_CHANGED', result: 'SUCCESS', reason: 'SELF' });
   }
 
   /** For the portal JWT strategy — re-check ACTIVE on every request. */
   async findActiveById(id: string, entId: string): Promise<PortalAuthUser | null> {
     const acc = await this.repo.findOne({ where: { id, entId, status: 'ACTIVE' } });
-    return acc ? toAuthUser(acc) : null;
+    // REQ-261021B G5 — 잠긴 계정은 기존 토큰도 거부.
+    return acc && !acc.lockedAt ? toAuthUser(acc) : null;
+  }
+
+  /** REQ-261021B — 포털 로그아웃 기록. */
+  async recordLogout(id: string, entId: string): Promise<void> {
+    const acc = await this.repo.findOne({ where: { id, entId } });
+    if (acc) await this.accessLog?.record({ actor: portalActor(acc), event: 'LOGOUT', result: 'SUCCESS', method: 'PASSWORD' });
   }
 
   // ---------------------------------------------------------------------------
@@ -440,4 +483,8 @@ function assertPasswordPolicy(pw: string): void {
       HttpStatus.BAD_REQUEST,
     );
   }
+}
+
+function portalActor(acc: PortalAccountTypeormEntity): AccessActor {
+  return { entId: acc.entId, kind: 'PORTAL', id: acc.id, role: acc.kind, loginId: acc.loginId };
 }

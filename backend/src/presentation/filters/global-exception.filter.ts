@@ -50,6 +50,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | string[] = 'Internal server error';
     let code = 'INTERNAL_ERROR';
+    let details: unknown;
 
     const pg = pgErrorOf(exception);
     const studentDateErrors = [
@@ -84,9 +85,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = res;
         code = `HTTP_${status}`;
       } else {
-        const obj = res as { code?: string; message?: string | string[] };
+        const obj = res as { code?: string; message?: string | string[]; details?: unknown };
         code = obj.code ?? `HTTP_${status}`;
         message = obj.message ?? `HTTP_${status}`;
+        details = obj.details;
       }
     }
 
@@ -103,7 +105,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     response.status(status).json({
       success: false,
-      error: { code, message },
+      error: { code, message, ...(details === undefined ? {} : { details }) },
     });
   }
 }
