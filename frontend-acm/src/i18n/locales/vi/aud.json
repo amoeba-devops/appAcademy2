@@ -1,0 +1,152 @@
+{
+  "desc": "Xem lịch sử sử dụng và đăng nhập, thiết lập chính sách truy cập.",
+  "tabs": {
+    "activity": "Nhật ký hoạt động",
+    "access": "Nhật ký truy cập",
+    "control": "Kiểm soát truy cập"
+  },
+  "activity": {
+    "pending": "Nhật ký hoạt động (tạo, sửa, xóa, xem, tải xuống) sẽ có ở giai đoạn tiếp theo. Hiện có thể dùng nhật ký truy cập và kiểm soát truy cập."
+  },
+  "access": {
+    "stats": {
+      "todayLogins": "Đăng nhập hôm nay",
+      "todayFailures": "Đăng nhập thất bại hôm nay",
+      "locked": "Tài khoản bị khóa",
+      "topIp": "IP thất bại nhiều (24 giờ)",
+      "none": "Không có",
+      "times": "{{count}} lần"
+    },
+    "filters": {
+      "from": "Từ ngày",
+      "to": "Đến ngày",
+      "kind": "Loại",
+      "q": "Tài khoản",
+      "qPlaceholder": "Tên hoặc ID đăng nhập",
+      "event": "Sự kiện",
+      "result": "Kết quả",
+      "ip": "IP",
+      "all": "Tất cả",
+      "search": "Tìm",
+      "export": "Xuất CSV",
+      "exporting": "Đang xuất…",
+      "exportFailed": "Không xuất được CSV."
+    },
+    "columns": {
+      "time": "Thời gian",
+      "account": "Tài khoản",
+      "event": "Sự kiện",
+      "result": "Kết quả",
+      "ip": "IP",
+      "client": "Môi trường"
+    },
+    "count": "{{count}} bản ghi",
+    "page": "{{page}} / {{pages}}",
+    "prev": "Trước",
+    "next": "Sau",
+    "empty": "Không có bản ghi truy cập phù hợp.",
+    "loadError": "Không tải được nhật ký truy cập.",
+    "loading": "Đang tải…",
+    "unknownAccount": "(tài khoản không tồn tại)",
+    "detail": {
+      "title": "Chi tiết truy cập",
+      "loginId": "ID đăng nhập",
+      "role": "Vai trò",
+      "method": "Cách đăng nhập",
+      "reason": "Lý do",
+      "userAgent": "Thiết bị",
+      "by": "Quản trị viên xử lý",
+      "close": "Đóng"
+    }
+  },
+  "kind": {
+    "CONSOLE": "Bảng điều khiển",
+    "PORTAL": "Cổng thông tin"
+  },
+  "event": {
+    "LOGIN": "Đăng nhập",
+    "LOGOUT": "Đăng xuất",
+    "LOCKED": "Khóa tài khoản",
+    "UNLOCKED": "Mở khóa",
+    "IP_BLOCKED": "Chặn IP tạm thời",
+    "PASSWORD_CHANGED": "Đổi mật khẩu",
+    "TEMP_PASSWORD_ISSUED": "Cấp mật khẩu tạm",
+    "SSO_EXCHANGE": "Đăng nhập AMA"
+  },
+  "result": {
+    "SUCCESS": "Thành công",
+    "FAILURE": "Thất bại"
+  },
+  "reason": {
+    "BAD_PASSWORD": "Sai mật khẩu",
+    "NO_ACCOUNT": "Tài khoản không tồn tại",
+    "LOCKED": "Tài khoản bị khóa",
+    "TEMP_LOCKED": "Tạm khóa",
+    "INACTIVE": "Tài khoản không hoạt động",
+    "TEMP_PASSWORD_EXPIRED": "Mật khẩu tạm hết hạn",
+    "SEED_PASSWORD": "Chặn mật khẩu mặc định",
+    "IP_BLOCKED": "Chặn IP",
+    "SSO_INVALID": "Xác thực AMA thất bại",
+    "AUTO": "Tự động",
+    "ADMIN": "Quản trị viên",
+    "SELF": "Bản thân"
+  },
+  "method": {
+    "PASSWORD": "Mật khẩu",
+    "SSO": "AMA SSO",
+    "OTP": "Mã xác thực"
+  },
+  "client": {
+    "web": "Máy tính / trình duyệt",
+    "pwa": "Ứng dụng đã cài"
+  },
+  "role": {
+    "ADMIN": "Quản trị",
+    "TEACHER": "Giáo viên",
+    "STAFF": "Nhân viên",
+    "APP_ADMIN": "Quản trị hệ thống",
+    "STUDENT": "Học sinh",
+    "PARENT": "Phụ huynh"
+  },
+  "control": {
+    "lockout": {
+      "title": "Khóa khi đăng nhập sai",
+      "desc": "Áp dụng cho bảng điều khiển, cổng thông tin và đăng nhập AMA.",
+      "failMax": "Sai liên tiếp",
+      "times": "lần",
+      "lockFor": "Cách khóa",
+      "timed": "Khóa theo thời gian",
+      "minutes": "phút",
+      "untilAdmin": "Đến khi quản trị viên mở khóa",
+      "ipTitle": "Sai từ cùng một IP",
+      "ipWindow": "phút",
+      "ipBlock": "Thời gian chặn",
+      "save": "Lưu",
+      "saved": "Đã lưu.",
+      "saveFailed": "Không lưu được. Hãy kiểm tra giá trị.",
+      "lastChanged": "Thay đổi lần cuối: {{date}} {{name}}",
+      "neverChanged": "Đang dùng mặc định",
+      "readOnly": "Chỉ xem. Chỉ quản trị viên chính (tenant master) mới thay đổi được."
+    },
+    "locked": {
+      "title": "Tài khoản bị khóa",
+      "empty": "Không có tài khoản bị khóa.",
+      "account": "Tài khoản",
+      "kind": "Loại",
+      "reason": "Lý do",
+      "until": "Mở khóa lúc",
+      "lockedAt": "Khóa lúc",
+      "unlock": "Mở khóa",
+      "unlockConfirm": "Mở khóa tài khoản {{name}}?",
+      "unlocked": "Đã mở khóa.",
+      "unlockFailed": "Không mở khóa được.",
+      "AUTO": "Đăng nhập sai",
+      "ADMIN": "Quản trị viên khóa",
+      "noEnd": "Cần quản trị viên"
+    },
+    "later": {
+      "title": "Giới hạn IP · đăng nhập đồng thời",
+      "body": "Giới hạn IP cho phép, giới hạn số phiên đồng thời và danh sách người đang đăng nhập sẽ có ở giai đoạn tiếp theo."
+    }
+  }
+}

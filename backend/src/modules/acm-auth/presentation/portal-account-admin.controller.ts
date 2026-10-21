@@ -61,7 +61,7 @@ export class PortalAccountAdminController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: ResetPortalPasswordDto,
   ) {
-    return this.accounts.reissuePassword(user.entId, id, dto.password);
+    return this.accounts.reissuePassword(user.entId, id, dto.password, user.id);
   }
 
   @Post(':id/login-id-to-email')

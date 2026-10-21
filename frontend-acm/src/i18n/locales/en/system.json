@@ -91,7 +91,9 @@
       "CONFIG_ADMIN": "Service operator",
       "CONFIG_ADMIN_hint": "Service settings (/admin/config) and Google Drive connection",
       "TENANT_MASTER": "Tenant master",
-      "TENANT_MASTER_hint": "Tenant settings (/admin/tenant), menu visibility by role, sees all allowed menus"
+      "TENANT_MASTER_hint": "Tenant settings (/admin/tenant), menu visibility by role, sees all allowed menus",
+      "AUDIT_VIEWER": "Audit viewer",
+      "AUDIT_VIEWER_hint": "View-only access to Audit (/admin/audit) logs and access control — changes need the tenant master"
     }
   },
   "tenants": {

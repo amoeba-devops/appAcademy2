@@ -265,7 +265,8 @@
     "myWork": "My work",
     "issues": "Issues",
     "myPage": "My page",
-    "passwordRequests": "Password requests"
+    "passwordRequests": "Password requests",
+    "audit": "Audit"
   },
   "lang": {
     "label": "Language",
@@ -1947,7 +1948,8 @@
       },
       "perm": {
         "CONFIG_ADMIN": "Service operator",
-        "TENANT_MASTER": "Tenant master"
+        "TENANT_MASTER": "Tenant master",
+        "AUDIT_VIEWER": "Audit viewer"
       },
       "locked": "Locked",
       "inactive": "Inactive",

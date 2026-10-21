@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ClientIpThrottlerGuard } from './modules/acm-common/http/client-ip-throttler.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HealthController } from './presentation/controllers/health.controller';
@@ -24,7 +25,7 @@ import { MailerModule } from './infrastructure/mailer/mailer.module';
     // Event emitter (used for cross-module domain events → notifications, audit, etc.)
     EventEmitterModule.forRoot({ wildcard: true, maxListeners: 20 }),
 
-    // Rate limiting (60 requests per minute per IP)
+    // Rate limiting (60 requests per minute per real client IP — REQ-261021B)
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 60,
@@ -58,7 +59,7 @@ import { MailerModule } from './infrastructure/mailer/mailer.module';
   ],
   controllers: [HealthController],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: ClientIpThrottlerGuard },
   ],
 })
 export class AppModule {}

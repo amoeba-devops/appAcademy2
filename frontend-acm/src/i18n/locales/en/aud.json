@@ -1,0 +1,154 @@
+{
+  "desc": "Review usage and sign-in history and set access policies.",
+  "tabs": {
+    "activity": "Activity log",
+    "access": "Access log",
+    "control": "Access control"
+  },
+  "activity": {
+    "pending": "The activity log (create, update, delete, view and download records) arrives in the next phase. The access log and access control are available now."
+  },
+  "access": {
+    "stats": {
+      "todayLogins": "Sign-ins today",
+      "todayFailures": "Failed sign-ins today",
+      "locked": "Locked accounts",
+      "topIp": "Top failing IP (24h)",
+      "none": "None",
+      "times_one": "{{count}} time",
+      "times_other": "{{count}} times"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "kind": "Kind",
+      "q": "Account",
+      "qPlaceholder": "Name or login ID",
+      "event": "Event",
+      "result": "Result",
+      "ip": "IP",
+      "all": "All",
+      "search": "Search",
+      "export": "Export CSV",
+      "exporting": "Exporting…",
+      "exportFailed": "Could not export the CSV."
+    },
+    "columns": {
+      "time": "Time",
+      "account": "Account",
+      "event": "Event",
+      "result": "Result",
+      "ip": "IP",
+      "client": "Client"
+    },
+    "count_one": "{{count}} record",
+    "count_other": "{{count}} records",
+    "page": "{{page}} / {{pages}}",
+    "prev": "Previous",
+    "next": "Next",
+    "empty": "No access records match the filters.",
+    "loadError": "Could not load the access log.",
+    "loading": "Loading…",
+    "unknownAccount": "(unknown account)",
+    "detail": {
+      "title": "Access record",
+      "loginId": "Login ID",
+      "role": "Role",
+      "method": "Sign-in method",
+      "reason": "Reason",
+      "userAgent": "Device",
+      "by": "Handled by",
+      "close": "Close"
+    }
+  },
+  "kind": {
+    "CONSOLE": "Console",
+    "PORTAL": "Portal"
+  },
+  "event": {
+    "LOGIN": "Sign-in",
+    "LOGOUT": "Sign-out",
+    "LOCKED": "Account locked",
+    "UNLOCKED": "Unlocked",
+    "IP_BLOCKED": "IP blocked",
+    "PASSWORD_CHANGED": "Password changed",
+    "TEMP_PASSWORD_ISSUED": "Temporary password issued",
+    "SSO_EXCHANGE": "AMA sign-in"
+  },
+  "result": {
+    "SUCCESS": "Success",
+    "FAILURE": "Failure"
+  },
+  "reason": {
+    "BAD_PASSWORD": "Wrong password",
+    "NO_ACCOUNT": "Unknown account",
+    "LOCKED": "Locked account",
+    "TEMP_LOCKED": "Temporarily locked",
+    "INACTIVE": "Inactive account",
+    "TEMP_PASSWORD_EXPIRED": "Temporary password expired",
+    "SEED_PASSWORD": "Default password blocked",
+    "IP_BLOCKED": "IP blocked",
+    "SSO_INVALID": "AMA verification failed",
+    "AUTO": "Automatic",
+    "ADMIN": "Administrator",
+    "SELF": "Self"
+  },
+  "method": {
+    "PASSWORD": "Password",
+    "SSO": "AMA SSO",
+    "OTP": "Verification code"
+  },
+  "client": {
+    "web": "PC / browser",
+    "pwa": "Installed app"
+  },
+  "role": {
+    "ADMIN": "Admin",
+    "TEACHER": "Teacher",
+    "STAFF": "Staff",
+    "APP_ADMIN": "System admin",
+    "STUDENT": "Student",
+    "PARENT": "Parent"
+  },
+  "control": {
+    "lockout": {
+      "title": "Sign-in failure lockout",
+      "desc": "Applies to the console, the portal and AMA sign-in.",
+      "failMax": "Consecutive failures",
+      "times": "times",
+      "lockFor": "Lock",
+      "timed": "For a time",
+      "minutes": "min",
+      "untilAdmin": "Until an administrator unlocks",
+      "ipTitle": "Failures from one IP",
+      "ipWindow": "min window",
+      "ipBlock": "Block for",
+      "save": "Save",
+      "saved": "Saved.",
+      "saveFailed": "Could not save. Check the values.",
+      "lastChanged": "Last changed: {{date}} {{name}}",
+      "neverChanged": "Using defaults",
+      "readOnly": "Read only. Only the tenant master can change this."
+    },
+    "locked": {
+      "title": "Locked accounts",
+      "empty": "No locked accounts.",
+      "account": "Account",
+      "kind": "Kind",
+      "reason": "Reason",
+      "until": "Unlocks at",
+      "lockedAt": "Locked at",
+      "unlock": "Unlock",
+      "unlockConfirm": "Unlock {{name}}?",
+      "unlocked": "Unlocked.",
+      "unlockFailed": "Could not unlock.",
+      "AUTO": "Failed sign-ins",
+      "ADMIN": "Locked by admin",
+      "noEnd": "Needs an administrator"
+    },
+    "later": {
+      "title": "IP restriction · concurrent sessions",
+      "body": "Allowed-IP restriction, concurrent session limits and the list of signed-in users arrive in the next phase."
+    }
+  }
+}

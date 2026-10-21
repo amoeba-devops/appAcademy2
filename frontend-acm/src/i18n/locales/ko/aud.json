@@ -1,0 +1,152 @@
+{
+  "desc": "시스템 사용 기록과 접속 이력을 확인하고 접속 정책을 설정합니다.",
+  "tabs": {
+    "activity": "활동 로그",
+    "access": "접속 로그",
+    "control": "접속 통제"
+  },
+  "activity": {
+    "pending": "활동 로그(생성·수정·삭제·조회·다운로드 기록)는 다음 단계에서 제공됩니다. 지금은 접속 로그와 접속 통제를 사용할 수 있습니다."
+  },
+  "access": {
+    "stats": {
+      "todayLogins": "오늘 로그인",
+      "todayFailures": "오늘 로그인 실패",
+      "locked": "잠긴 계정",
+      "topIp": "실패 많은 IP (24시간)",
+      "none": "없음",
+      "times": "{{count}}회"
+    },
+    "filters": {
+      "from": "시작일",
+      "to": "종료일",
+      "kind": "구분",
+      "q": "계정",
+      "qPlaceholder": "이름 또는 로그인 ID",
+      "event": "이벤트",
+      "result": "결과",
+      "ip": "IP",
+      "all": "전체",
+      "search": "조회",
+      "export": "CSV 내보내기",
+      "exporting": "내보내는 중…",
+      "exportFailed": "CSV 내보내기에 실패했습니다."
+    },
+    "columns": {
+      "time": "일시",
+      "account": "계정",
+      "event": "이벤트",
+      "result": "결과",
+      "ip": "IP",
+      "client": "접속 환경"
+    },
+    "count": "{{count}}건",
+    "page": "{{page}} / {{pages}}",
+    "prev": "이전",
+    "next": "다음",
+    "empty": "조건에 맞는 접속 기록이 없습니다.",
+    "loadError": "접속 로그를 불러오지 못했습니다.",
+    "loading": "불러오는 중…",
+    "unknownAccount": "(없는 계정)",
+    "detail": {
+      "title": "접속 기록 상세",
+      "loginId": "로그인 ID",
+      "role": "역할",
+      "method": "로그인 방식",
+      "reason": "사유",
+      "userAgent": "기기 정보",
+      "by": "처리한 관리자",
+      "close": "닫기"
+    }
+  },
+  "kind": {
+    "CONSOLE": "운영 콘솔",
+    "PORTAL": "포털"
+  },
+  "event": {
+    "LOGIN": "로그인",
+    "LOGOUT": "로그아웃",
+    "LOCKED": "계정 잠금",
+    "UNLOCKED": "잠금 해제",
+    "IP_BLOCKED": "IP 일시 차단",
+    "PASSWORD_CHANGED": "비밀번호 변경",
+    "TEMP_PASSWORD_ISSUED": "임시 비밀번호 발급",
+    "SSO_EXCHANGE": "AMA 로그인"
+  },
+  "result": {
+    "SUCCESS": "성공",
+    "FAILURE": "실패"
+  },
+  "reason": {
+    "BAD_PASSWORD": "비밀번호 오류",
+    "NO_ACCOUNT": "없는 계정",
+    "LOCKED": "잠긴 계정",
+    "TEMP_LOCKED": "일시 잠김",
+    "INACTIVE": "비활성 계정",
+    "TEMP_PASSWORD_EXPIRED": "임시 비밀번호 만료",
+    "SEED_PASSWORD": "기본 비밀번호 차단",
+    "IP_BLOCKED": "IP 차단",
+    "SSO_INVALID": "AMA 인증 실패",
+    "AUTO": "자동",
+    "ADMIN": "관리자",
+    "SELF": "본인"
+  },
+  "method": {
+    "PASSWORD": "비밀번호",
+    "SSO": "AMA SSO",
+    "OTP": "인증번호"
+  },
+  "client": {
+    "web": "PC·브라우저",
+    "pwa": "설치한 앱"
+  },
+  "role": {
+    "ADMIN": "관리자",
+    "TEACHER": "교사",
+    "STAFF": "직원",
+    "APP_ADMIN": "시스템 관리자",
+    "STUDENT": "학생",
+    "PARENT": "학부모"
+  },
+  "control": {
+    "lockout": {
+      "title": "로그인 실패 잠금",
+      "desc": "운영 콘솔·포털·AMA 로그인에 함께 적용됩니다.",
+      "failMax": "연속 실패",
+      "times": "회",
+      "lockFor": "잠금 방식",
+      "timed": "시간 잠금",
+      "minutes": "분",
+      "untilAdmin": "관리자가 해제할 때까지",
+      "ipTitle": "같은 IP 실패",
+      "ipWindow": "분 동안",
+      "ipBlock": "차단 시간",
+      "save": "저장",
+      "saved": "저장했습니다.",
+      "saveFailed": "저장하지 못했습니다. 입력값을 확인하세요.",
+      "lastChanged": "마지막 변경: {{date}} {{name}}",
+      "neverChanged": "기본값 사용 중",
+      "readOnly": "보기 전용입니다. 변경은 테넌트 마스터만 할 수 있습니다."
+    },
+    "locked": {
+      "title": "잠긴 계정",
+      "empty": "잠긴 계정이 없습니다.",
+      "account": "계정",
+      "kind": "구분",
+      "reason": "잠긴 이유",
+      "until": "해제 예정",
+      "lockedAt": "잠긴 시각",
+      "unlock": "해제",
+      "unlockConfirm": "{{name}} 계정의 잠금을 해제할까요?",
+      "unlocked": "잠금을 해제했습니다.",
+      "unlockFailed": "잠금을 해제하지 못했습니다.",
+      "AUTO": "로그인 실패",
+      "ADMIN": "관리자 잠금",
+      "noEnd": "관리자 해제 필요"
+    },
+    "later": {
+      "title": "IP 제한 · 동시접속",
+      "body": "허용 IP 제한, 동시접속 수 제한, 현재 접속 중인 사용자 보기는 다음 단계에서 제공됩니다."
+    }
+  }
+}

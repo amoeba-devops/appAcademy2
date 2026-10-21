@@ -265,7 +265,8 @@
     "myWork": "我的工作",
     "issues": "问题",
     "myPage": "我的页面",
-    "passwordRequests": "密码请求"
+    "passwordRequests": "密码请求",
+    "audit": "审计"
   },
   "lang": {
     "label": "语言",
@@ -1947,7 +1948,8 @@
       },
       "perm": {
         "CONFIG_ADMIN": "服务运营者",
-        "TENANT_MASTER": "租户主管"
+        "TENANT_MASTER": "租户主管",
+        "AUDIT_VIEWER": "审计查看"
       },
       "locked": "已锁定",
       "inactive": "已停用",

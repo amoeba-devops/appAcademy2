@@ -33,6 +33,16 @@ export class PortalAuthController {
     return this.accounts.login(dto.tenantCode, dto.loginId, dto.password);
   }
 
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(PortalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Record portal logout in the access log (REQ-261021B)' })
+  async logout(@PortalUser() user: PortalAuthUser) {
+    await this.accounts.recordLogout(user.id, user.entId);
+    return { ok: true };
+  }
+
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(PortalJwtAuthGuard)

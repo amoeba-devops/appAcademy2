@@ -31,6 +31,18 @@ import { AmaConfigGateService } from './ama-config-gate.service';
 import { mapAcmRole, type AcmRole } from './acm-role.mapper';
 import { generateTempPassword } from './temp-password';
 import { isPublicSeedHash } from './public-seed-password';
+import { AccessLogService } from '../../acm-aud/application/access-log.service';
+import {
+  LoginGuardService,
+  consoleAccountKey,
+  tooMany,
+} from '../../acm-aud/application/login-guard.service';
+import {
+  AUD_SYSTEM_ENT,
+  maskLoginId,
+  type AccessActor,
+  type AccessReason,
+} from '../../acm-aud/application/aud.types';
 
 /** REQ-260609C/D — AMA token verification mode. */
 type AmaVerifyMode = 'local' | 'ama_session' | 'local_config';
@@ -43,20 +55,10 @@ export interface AcmJwtPayload {
   role: 'ADMIN' | 'TEACHER' | 'STAFF' | 'APP_ADMIN';
 }
 
-interface FailureWindow {
-  count: number;
-  firstAt: number;
-  lockedUntil: number;
-}
-
-const MAX_ATTEMPTS = 5;
-const WINDOW_MS = 60_000;
-const LOCKOUT_MS = 60_000;
 
 @Injectable()
 export class AcmAuthService {
   private readonly logger = new Logger(AcmAuthService.name);
-  private readonly failures = new Map<string, FailureWindow>();
   private readonly verifyMode: AmaVerifyMode;
   /** REQ-261017B — 운영 모드에서는 공개 시드 비밀번호 로그인을 막는다. */
   private readonly isProduction: boolean;
@@ -71,6 +73,9 @@ export class AcmAuthService {
     private readonly amaConfigGate: AmaConfigGateService,
     private readonly sessionExchanger: AmaSessionExchanger,
     private readonly customAppVerifier: AmaCustomAppVerifier,
+    // REQ-261021B — 접속 로그 · DB 기반 로그인 실패 잠금
+    private readonly accessLog: AccessLogService,
+    private readonly loginGuard: LoginGuardService,
     config: ConfigService,
   ) {
     const mode = String(
@@ -85,13 +90,20 @@ export class AcmAuthService {
   }
 
   async login(email: string, password: string): Promise<AcmLoginResponse> {
-    this.assertNotLocked(email);
-
     const user = await this.userRepo.findOne({
       where: { email, status: 'ACTIVE' },
     });
+    // REQ-261021B — 계정이 없으면 시스템 테넌트에 마스킹한 ID 로 기록(존재 여부 비공개).
+    const actor: AccessActor = user
+      ? { entId: user.entId, kind: 'CONSOLE', id: user.id, name: user.name, role: user.role ?? 'ADMIN', loginId: user.email }
+      : { entId: AUD_SYSTEM_ENT, kind: 'CONSOLE', loginId: maskLoginId(email) };
+    const attempt = { policyEntId: actor.entId, accountKey: consoleAccountKey(email), actor, method: 'PASSWORD' as const };
+    const fail = (reason: AccessReason) =>
+      this.accessLog.record({ actor, event: 'LOGIN', result: 'FAILURE', reason, method: 'PASSWORD' });
+    await this.loginGuard.assertAllowed(attempt);
 
     if (user && user.lockedAt) {
+      await fail('LOCKED');
       throw new HttpException(
         { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 관리자에게 문의하세요.' },
         HttpStatus.UNAUTHORIZED,
@@ -103,7 +115,14 @@ export class AcmAuthService {
       !!user.passwordHash &&
       (await bcrypt.compare(password, user.passwordHash));
     if (!ok || !user) {
-      this.recordFailure(email);
+      await fail(user ? 'BAD_PASSWORD' : 'NO_ACCOUNT');
+      const r = await this.loginGuard.onFailure(attempt);
+      if (r.permanent)
+        throw new HttpException(
+          { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 관리자에게 문의하세요.' },
+          HttpStatus.UNAUTHORIZED,
+        );
+      if (r.lockedUntil) throw tooMany('ACCOUNT_TEMP_LOCKED', r.lockedUntil);
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -111,6 +130,7 @@ export class AcmAuthService {
     if (isPublicSeedHash(user.passwordHash)) {
       if (this.isProduction) {
         this.logger.warn(`public seed password login refused user=${user.id}`);
+        await fail('SEED_PASSWORD');
         throw new HttpException(
           {
             code: 'SEED_PASSWORD_DISABLED',
@@ -131,13 +151,15 @@ export class AcmAuthService {
       user.tempPasswordExpiresAt &&
       user.tempPasswordExpiresAt.getTime() < Date.now()
     ) {
+      await fail('TEMP_PASSWORD_EXPIRED');
       throw new HttpException(
         { code: 'TEMP_PASSWORD_EXPIRED', message: 'Temporary password expired' },
         HttpStatus.UNAUTHORIZED,
       );
     }
 
-    this.failures.delete(email);
+    await this.loginGuard.onSuccess(attempt.accountKey);
+    await this.accessLog.record({ actor, event: 'LOGIN', result: 'SUCCESS', method: 'PASSWORD' });
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, { lastLoginAt: user.lastLoginAt });
 
@@ -166,7 +188,8 @@ export class AcmAuthService {
 
   async findById(id: string): Promise<AcmAuthUser | null> {
     const u = await this.userRepo.findOne({ where: { id, status: 'ACTIVE' } });
-    if (!u) return null;
+    // REQ-261021B G5 — 관리자가 잠근 계정은 기존 토큰도 다음 요청부터 거부.
+    if (!u || u.lockedAt) return null;
     return {
       id: u.id,
       entId: u.entId,
@@ -243,6 +266,7 @@ export class AcmAuthService {
   async issueTempPassword(
     userId: string,
     validHours = 24,
+    byUserId: string | null = null,
   ): Promise<{ password: string; expiresAt: Date }> {
     const u = await this.userRepo.findOne({ where: { id: userId } });
     if (!u) {
@@ -255,7 +279,8 @@ export class AcmAuthService {
     u.tempPasswordExpiresAt = expiresAt;
     u.lockedAt = null;
     await this.userRepo.save(u);
-    this.failures.delete(u.email);
+    await this.loginGuard.reset(consoleAccountKey(u.email));
+    await this.accessLog.record({ actor: this.actorOf(u), event: 'TEMP_PASSWORD_ISSUED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
     return { password, expiresAt };
   }
 
@@ -274,6 +299,7 @@ export class AcmAuthService {
     }
     const ok = await bcrypt.compare(currentPassword, u.passwordHash);
     if (!ok) {
+      await this.accessLog.record({ actor: this.actorOf(u), event: 'PASSWORD_CHANGED', result: 'FAILURE', reason: 'BAD_PASSWORD' });
       throw new UnauthorizedException('CURRENT_PASSWORD_INVALID');
     }
     this.assertPasswordPolicy(newPassword);
@@ -281,13 +307,14 @@ export class AcmAuthService {
     u.mustChangePassword = false;
     u.tempPasswordExpiresAt = null;
     await this.userRepo.save(u);
+    await this.accessLog.record({ actor: this.actorOf(u), event: 'PASSWORD_CHANGED', result: 'SUCCESS', reason: 'SELF' });
   }
 
   /**
    * Admin-driven account lock. Sets `usr_locked_at = NOW()`. While locked the
    * user cannot login (login() throws ACCOUNT_LOCKED).
    */
-  async lockUser(userId: string): Promise<void> {
+  async lockUser(userId: string, byUserId: string | null = null): Promise<void> {
     const u = await this.userRepo.findOne({ where: { id: userId } });
     if (!u) {
       throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
@@ -295,16 +322,29 @@ export class AcmAuthService {
     if (u.lockedAt) return;
     u.lockedAt = new Date();
     await this.userRepo.update(userId, { lockedAt: u.lockedAt });
+    await this.accessLog.record({ actor: this.actorOf(u), event: 'LOCKED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
   }
 
-  async unlockUser(userId: string): Promise<void> {
+  async unlockUser(userId: string, byUserId: string | null = null): Promise<void> {
     const u = await this.userRepo.findOne({ where: { id: userId } });
     if (!u) {
       throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
     }
+    await this.loginGuard.reset(consoleAccountKey(u.email));
     if (!u.lockedAt) return;
     u.lockedAt = null;
     await this.userRepo.update(userId, { lockedAt: null });
+    await this.accessLog.record({ actor: this.actorOf(u), event: 'UNLOCKED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
+  }
+
+  /** REQ-261021B — 로그아웃 기록(토큰 폐기는 서버 세션 도입 P3 전까지 클라이언트 몫). */
+  async recordLogout(userId: string): Promise<void> {
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (u) await this.accessLog.record({ actor: this.actorOf(u), event: 'LOGOUT', result: 'SUCCESS', method: u.authSource === 'ama' ? 'SSO' : 'PASSWORD' });
+  }
+
+  private actorOf(u: AcmUserTypeormEntity): AccessActor {
+    return { entId: u.entId, kind: 'CONSOLE', id: u.id, name: u.name, role: u.role ?? 'ADMIN', loginId: u.email };
   }
 
   private assertPasswordPolicy(pw: string): void {
@@ -331,6 +371,33 @@ export class AcmAuthService {
    * controller returns a deterministic 4xx/5xx with that code.
    */
   async exchangeAmaToken(amaToken: string): Promise<AcmLoginResponse> {
+    // REQ-261021B — SSO 로그인도 접속 로그에 남긴다(실패 시 아는 범위까지).
+    const ctx: { entId?: string; actor?: AccessActor } = {};
+    try {
+      const res = await this.exchangeAmaTokenInner(amaToken, ctx);
+      await this.accessLog.record({ actor: ctx.actor!, event: 'SSO_EXCHANGE', result: 'SUCCESS', method: 'SSO' });
+      return res;
+    } catch (e) {
+      const code =
+        e instanceof HttpException
+          ? (e.getResponse() as { code?: string } | string)
+          : null;
+      const locked = typeof code === 'object' && code?.code === 'ACCOUNT_LOCKED';
+      await this.accessLog.record({
+        actor: ctx.actor ?? { entId: ctx.entId ?? AUD_SYSTEM_ENT, kind: 'CONSOLE' },
+        event: 'SSO_EXCHANGE',
+        result: 'FAILURE',
+        reason: locked ? 'LOCKED' : 'SSO_INVALID',
+        method: 'SSO',
+      });
+      throw e;
+    }
+  }
+
+  private async exchangeAmaTokenInner(
+    amaToken: string,
+    ctx: { entId?: string; actor?: AccessActor },
+  ): Promise<AcmLoginResponse> {
     // REQ-260609C — verify the AMA token. `local` = legacy HS256 self-verify;
     // `ama_session` = delegate to the AMA OAuth gateway (token exchange +
     // introspect). Mode-specific error→HTTP mapping happens inside.
@@ -347,6 +414,7 @@ export class AcmAuthService {
     // MUST use this resolved acmEntId so AMA-link users land in the same tenant
     // as existing ACM data — never the raw token entityId.
     const acmEntId = await this.amaConfigGate.ensureAllowed(payload.entityId);
+    ctx.entId = acmEntId;
 
     // REQ-260609C (SIMPLE) — in ama_session mode the OAuth exchange+introspect
     // already proved the user is an active member of this entity for our app,
@@ -359,6 +427,14 @@ export class AcmAuthService {
         : this.verifyMode === 'local_config'
           ? await this.upsertLocalConfigUser(payload, acmEntId)
           : await this.loginViaLocalPipeline(payload, acmEntId);
+
+    ctx.actor = this.actorOf(user);
+    // REQ-261021B G5 — 관리자가 잠근 계정은 SSO 로도 들어오지 못한다.
+    if (user.lockedAt)
+      throw new HttpException(
+        { code: 'ACCOUNT_LOCKED', message: '계정이 잠겼습니다. 관리자에게 문의하세요.' },
+        HttpStatus.UNAUTHORIZED,
+      );
 
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, {
@@ -681,30 +757,4 @@ export class AcmAuthService {
     return this.jwtService.sign(payload, sessionSignOptions());
   }
 
-  private assertNotLocked(email: string): void {
-    const w = this.failures.get(email);
-    if (w && w.lockedUntil > Date.now()) {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          message: 'Too many attempts. Try again later.',
-        },
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-  }
-
-  private recordFailure(email: string): void {
-    const now = Date.now();
-    const w = this.failures.get(email);
-    if (!w || now - w.firstAt > WINDOW_MS) {
-      this.failures.set(email, { count: 1, firstAt: now, lockedUntil: 0 });
-      return;
-    }
-    w.count += 1;
-    if (w.count >= MAX_ATTEMPTS) {
-      w.lockedUntil = now + LOCKOUT_MS;
-    }
-    this.failures.set(email, w);
-  }
 }

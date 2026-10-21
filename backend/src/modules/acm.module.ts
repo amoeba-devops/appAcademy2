@@ -3,6 +3,7 @@ import { AcmPayModule } from './acm-pay/acm-pay.module';
 import { Module } from '@nestjs/common';
 import { AcmCommonModule } from './acm-common/acm-common.module';
 import { AcmAuthModule } from './acm-auth/acm-auth.module';
+import { AcmAudModule } from './acm-aud/acm-aud.module';
 import { AcmSchModule } from './acm-sch/acm-sch.module';
 import { AcmRefModule } from './acm-ref/acm-ref.module';
 import { AcmCslModule } from './acm-csl/acm-csl.module';
@@ -32,6 +33,7 @@ import { AcmTalkModule } from './acm-talk/acm-talk.module';
     AcmMaterialModule,
     AcmCommonModule,
     AcmAuthModule,
+    AcmAudModule,
     AcmSchModule,
     AcmRefModule,
     AcmCslModule,

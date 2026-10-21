@@ -1,3 +1,4 @@
+import { ClientIp } from '../../acm-common/http/client-ip';
 import { LevelTestScheduleResetService } from '../application/level-test-schedule-reset.service';
 import { ResetLevelTestScheduleDto } from '../application/dto/reset-level-test-schedule.dto';
 import {
@@ -9,7 +10,6 @@ import {
   Get,
   Headers,
   HttpCode,
-  Ip,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -207,7 +207,7 @@ export class InquiryController {
   revealPhone(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
-    @Ip() ip: string,
+    @ClientIp() ip: string,
     @Headers('user-agent') userAgent?: string,
   ) {
     return this.workflow.revealPhone(user.entId, inqId, user.id, ip, userAgent);
@@ -866,7 +866,7 @@ export class InquiryController {
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('attId', ParseUUIDPipe) attId: string,
-    @Ip() ip: string,
+    @ClientIp() ip: string,
     @Res({ passthrough: true }) res: Response,
     @Headers('user-agent') userAgent?: string,
   ): Promise<StreamableFile> {

@@ -1,9 +1,9 @@
+import { ClientIp } from '../../acm-common/http/client-ip';
 import {
   Body,
   Controller,
   Get,
   HttpCode,
-  Ip,
   Param,
   ParseUUIDPipe,
   Post,
@@ -42,7 +42,7 @@ export class PasswordResetPublicController {
   @ApiOperation({
     summary: 'Request a temporary password from the tenant admin',
   })
-  request(@Body() dto: PasswordResetRequestDto, @Ip() ip: string) {
+  request(@Body() dto: PasswordResetRequestDto, @ClientIp() ip: string) {
     return this.reset.request(dto.email, ip);
   }
 }

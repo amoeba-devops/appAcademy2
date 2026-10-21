@@ -346,23 +346,23 @@ export class TeacherService {
     return { id: e.id };
   }
 
-  async lockAccount(entId: string, id: string) {
+  async lockAccount(entId: string, id: string, byUserId: string | null = null) {
     const e = await this.repo.findOne({
       where: { id, entId, deletedAt: IsNull() },
     });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     if (!e.userId) throw new BadRequestException('TEACHER_NO_ACCOUNT');
-    await this.authService.lockUser(e.userId);
+    await this.authService.lockUser(e.userId, byUserId);
     return { id: e.id, lockedAt: new Date().toISOString() };
   }
 
-  async unlockAccount(entId: string, id: string) {
+  async unlockAccount(entId: string, id: string, byUserId: string | null = null) {
     const e = await this.repo.findOne({
       where: { id, entId, deletedAt: IsNull() },
     });
     if (!e) throw new NotFoundException('TEACHER_NOT_FOUND');
     if (!e.userId) throw new BadRequestException('TEACHER_NO_ACCOUNT');
-    await this.authService.unlockUser(e.userId);
+    await this.authService.unlockUser(e.userId, byUserId);
     return { id: e.id, lockedAt: null };
   }
 

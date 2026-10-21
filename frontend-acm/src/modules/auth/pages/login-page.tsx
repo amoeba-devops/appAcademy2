@@ -14,6 +14,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { SUPPORTED_LANGS, type SupportedLang } from "@/i18n";
 import { DebugContextPanel } from "@/components/common/debug-context-panel";
 import { exchangeAmaToken, login } from "../api/auth-api";
+import { loginLockMessage } from "../lib/login-lock";
 
 // Capture entry-time referrer + query before React render or scrubUrl().
 const _initialReferrer =
@@ -169,7 +170,10 @@ export function LoginPage() {
           | { code?: string; error?: { code?: string } }
           | undefined;
         const code = body?.error?.code ?? body?.code;
-        if (err.response?.status === 429) setError(t("login.rateLimited"));
+        // REQ-261021B — 로그인 실패 잠금·IP 차단은 해제 시각과 함께 안내
+        const lock = loginLockMessage(err, t, i18n.language);
+        if (lock) setError(lock);
+        else if (err.response?.status === 429) setError(t("login.rateLimited"));
         // REQ-261017 — 잠김·임시 비밀번호 만료는 따로 안내
         else if (code === "ACCOUNT_LOCKED") setError(t("login.locked"));
         else if (code === "TEMP_PASSWORD_EXPIRED") setError(t("login.tempExpired"));

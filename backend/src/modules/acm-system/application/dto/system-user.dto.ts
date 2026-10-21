@@ -125,13 +125,15 @@ export interface SystemUserView {
 export const SYSTEM_USER_PERMISSIONS = [
   'CONFIG_ADMIN',
   'TENANT_MASTER',
+  // REQ-261021B — 감사 메뉴 조회 전용
+  'AUDIT_VIEWER',
 ] as const;
 export type SystemUserPermission = (typeof SYSTEM_USER_PERMISSIONS)[number];
 
 export class UpdateSystemUserPermissionsDto {
   @ApiProperty({ enum: SYSTEM_USER_PERMISSIONS, isArray: true })
   @IsArray()
-  @ArrayMaxSize(2)
+  @ArrayMaxSize(3)
   @IsIn(SYSTEM_USER_PERMISSIONS, { each: true })
   permissions!: SystemUserPermission[];
 }

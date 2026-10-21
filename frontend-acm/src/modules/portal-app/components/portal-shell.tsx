@@ -13,6 +13,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import { apiClient } from "@/lib/api-client";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useScrollHint } from "@/hooks/use-scroll-hint";
 
@@ -55,6 +56,12 @@ export function PortalShell() {
 
   const logout = () => {
     forgetDevicePush("portal"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
+    // REQ-261021B — 접속 로그에 로그아웃 기록(토큰을 직접 실어 보낸 뒤 바로 정리, 실패해도 로그아웃)
+    const current = useAuthStore.getState().portal.token;
+    if (current)
+      void apiClient
+        .post("/portal/auth/logout", null, { headers: { Authorization: `Bearer ${current}` } })
+        .catch(() => undefined);
     clearPortal();
     navigate("/portal/login", { replace: true });
   };

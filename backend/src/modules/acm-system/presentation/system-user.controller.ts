@@ -93,13 +93,13 @@ export class SystemUserController {
 
   @Patch(':id/lock')
   @ApiOperation({ summary: 'Lock account (APP_ADMIN)' })
-  lock(@Param('id', ParseUUIDPipe) id: string) {
-    return this.svc.lock(id);
+  lock(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AcmCurrentUser) {
+    return this.svc.lock(id, actor.id);
   }
 
   @Patch(':id/unlock')
   @ApiOperation({ summary: 'Unlock account (APP_ADMIN)' })
-  unlock(@Param('id', ParseUUIDPipe) id: string) {
-    return this.svc.unlock(id);
+  unlock(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AcmCurrentUser) {
+    return this.svc.unlock(id, actor.id);
   }
 }

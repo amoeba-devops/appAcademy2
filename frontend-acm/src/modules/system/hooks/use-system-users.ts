@@ -5,7 +5,7 @@ import { apiClient } from '@/lib/api-client';
 export type SystemUserRole = 'APP_ADMIN' | 'ADMIN' | 'TEACHER' | 'STAFF';
 export type SystemUserStatus = 'ACTIVE' | 'INACTIVE';
 /** REQ-261016D — 서비스 운영자 / 테넌트 마스터 */
-export const SYSTEM_USER_PERMISSIONS = ['CONFIG_ADMIN', 'TENANT_MASTER'] as const;
+export const SYSTEM_USER_PERMISSIONS = ['CONFIG_ADMIN', 'TENANT_MASTER', 'AUDIT_VIEWER'] as const;
 export type SystemUserPermission = (typeof SYSTEM_USER_PERMISSIONS)[number];
 
 export interface SystemUser {

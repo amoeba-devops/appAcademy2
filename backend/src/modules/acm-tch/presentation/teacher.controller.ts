@@ -95,14 +95,14 @@ export class TeacherController {
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Lock teacher login account (REQ-260510)' })
   lockAccount(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.svc.lockAccount(u.entId, id);
+    return this.svc.lockAccount(u.entId, id, u.id);
   }
 
   @Patch(':id/account/unlock')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Unlock teacher login account (REQ-260510)' })
   unlockAccount(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.svc.unlockAccount(u.entId, id);
+    return this.svc.unlockAccount(u.entId, id, u.id);
   }
 
   @Delete(':id')

@@ -1,3 +1,4 @@
+import { AcmAudModule } from '../acm-aud/acm-aud.module';
 import { AcmSeedPasswordService } from './application/acm-seed-password.service';
 import { Module, Provider } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -123,6 +124,7 @@ const amaOAuthProvider: Provider = {
 @Module({
   imports: [
     ConfigModule,
+    AcmAudModule,
     PassportModule.register({ defaultStrategy: 'acm-jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

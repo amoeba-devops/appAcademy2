@@ -1,6 +1,7 @@
 import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
+import { apiClient } from "@/lib/api-client";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
 import { AdminContentLayout } from "./admin-content-layout";
 import { StudentNavigation } from "@/modules/std/components/student-navigation";
@@ -94,6 +95,8 @@ const NAV = [
   { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
   { to: "/admin/documents", icon: FolderKanban, key: "documents", group: "work" },
   { to: "/admin/drive", icon: FolderKanban, key: "drive", group: "work" },
+  // REQ-261021B — 감사(테넌트 마스터·감사 조회 권한). 권한으로만 노출.
+  { to: "/admin/audit", icon: ShieldCheck, key: "audit", group: "settings" },
   // REQ-261015C — 테넌트 설정(테넌트 마스터) / 서비스 설정(서비스 운영자). 권한으로만 노출.
   { to: "/admin/tenant", icon: Building2, key: "tenantConfig", group: "settings" },
   { to: "/admin/config", icon: Settings, key: "config", group: "settings" },
@@ -180,7 +183,9 @@ export function AppShell() {
         ? configAccess.allowed
         : n.key === "tenantConfig"
           ? configAccess.tenantAllowed
-          : n.key === "passwordRequests"
+          : n.key === "audit"
+            ? configAccess.auditAllowed
+            : n.key === "passwordRequests"
             ? ["ADMIN", "APP_ADMIN"].includes(user?.role ?? "")
             : !hiddenSet.has(n.key)) &&
       (n.key !== "pay" ||
@@ -212,6 +217,12 @@ export function AppShell() {
 
   const onLogout = () => {
     forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
+    // REQ-261021B — 접속 로그에 로그아웃 기록(토큰을 직접 실어 보낸 뒤 바로 정리, 실패해도 로그아웃)
+    const current = useAuthStore.getState().token;
+    if (current)
+      void apiClient
+        .post("/acm/auth/logout", null, { headers: { Authorization: `Bearer ${current}` } })
+        .catch(() => undefined);
     clear();
     navigate("/login", { replace: true });
   };
