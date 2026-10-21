@@ -315,5 +315,40 @@
     "INQUIRY": "Prior inquiry",
     "PARENT": "Parent",
     "PAYMENT_ENDED": "Full tuition refund / enrollment cancellation"
+  },
+  "recon": {
+    "title": "Học sinh đang học và số học sinh vận hành",
+    "basis": "Tính đến {{date}} (giờ Hàn Quốc) · không phụ thuộc khoảng thời gian đã chọn",
+    "error": "Không tải được chi tiết chênh lệch. Vui lòng làm mới.",
+    "equal": "Hai số khớp nhau ({{count}} học sinh)",
+    "activeLabel": "Học sinh đang học (hôm nay)",
+    "operatingLabel": "Số học sinh vận hành (bảng: hôm nay · tổng)",
+    "reasonsLabel": "Chi tiết theo lý do",
+    "people": "{{n}}",
+    "more": "và {{count}} học sinh khác",
+    "other": "Có {{count}} học sinh không khớp quy tắc tính. Vui lòng báo quản trị viên.",
+    "manual": "Số vận hành nhập tay ({{value}}) được hiển thị trong ngoặc ở bảng và không tính vào đây.",
+    "definition": "Học sinh đang học là số học sinh có trạng thái Đang học (mọi cơ sở). Số học sinh vận hành cộng theo từng cơ sở (TPI · TRINITY · SANTACROCE) các học sinh có thời gian học (ngày nhập học · ngày bắt đầu đến ngày kết thúc) bao gồm hôm nay, không xét trạng thái.",
+    "reason": {
+      "ACTIVE_NO_SITE": "Đang học · chưa chọn cơ sở",
+      "ACTIVE_NO_ADMISSION": "Đang học · chưa có ngày nhập học",
+      "ACTIVE_FUTURE_ADMISSION": "Đang học · ngày nhập học ở tương lai",
+      "ACTIVE_NO_OPEN_PERIOD": "Đang học · hôm nay không có thời gian học (đã kết thúc, chưa bắt đầu hoặc chưa xác nhận)",
+      "INACTIVE_OPEN_PERIOD": "Tạm nghỉ / đã nghỉ · thời gian học vẫn mở",
+      "MULTI_SITE": "Được tính ở nhiều cơ sở"
+    },
+    "action": {
+      "ACTIVE_NO_SITE": "Chọn cơ sở trong Quản lý học sinh",
+      "ACTIVE_NO_ADMISSION": "Nhập ngày nhập học trong Quản lý học sinh",
+      "ACTIVE_FUTURE_ADMISSION": "Kiểm tra ngày nhập học",
+      "ACTIVE_NO_OPEN_PERIOD": "Kiểm tra ngày bắt đầu/kết thúc hoặc trạng thái",
+      "INACTIVE_OPEN_PERIOD": "Nhập ngày kết thúc học",
+      "MULTI_SITE": "Kiểm tra ngày kết thúc ở cơ sở trước"
+    },
+    "status": {
+      "ACTIVE": "Đang học",
+      "INACTIVE": "Tạm nghỉ",
+      "WITHDRAWN": "Đã nghỉ"
+    }
   }
 }

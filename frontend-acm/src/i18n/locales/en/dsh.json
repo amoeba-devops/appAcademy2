@@ -315,5 +315,43 @@
     "INQUIRY": "Prior inquiry",
     "PARENT": "Parent",
     "PAYMENT_ENDED": "Full tuition refund / enrollment cancellation"
+  },
+  "recon": {
+    "title": "Active students vs operating student count",
+    "basis": "As of {{date}} (KST) · independent of the selected range",
+    "error": "Could not load the breakdown. Please refresh.",
+    "equal_one": "Both numbers match ({{count}} student)",
+    "equal_other": "Both numbers match ({{count}} students)",
+    "activeLabel": "Active students (today live)",
+    "operatingLabel": "Operating student count (table: today · total)",
+    "reasonsLabel": "Breakdown by reason",
+    "people": "{{n}}",
+    "more_one": "and {{count}} more",
+    "more_other": "and {{count}} more",
+    "other_one": "{{count}} student does not match either rule. Please tell an administrator.",
+    "other_other": "{{count}} students do not match either rule. Please tell an administrator.",
+    "manual": "The manually entered operating count ({{value}}) is shown in parentheses in the table and is not part of this calculation.",
+    "definition": "Active students counts students whose status is Active (any site). Operating student count adds up, per site (TPI · TRINITY · SANTACROCE), the students whose class period (admission · class start to end date) covers today, regardless of status.",
+    "reason": {
+      "ACTIVE_NO_SITE": "Active · no site",
+      "ACTIVE_NO_ADMISSION": "Active · no admission date",
+      "ACTIVE_FUTURE_ADMISSION": "Active · admission date in the future",
+      "ACTIVE_NO_OPEN_PERIOD": "Active · no class period today (ended, not started or unconfirmed)",
+      "INACTIVE_OPEN_PERIOD": "On leave / withdrawn · class period still open",
+      "MULTI_SITE": "Counted in more than one site"
+    },
+    "action": {
+      "ACTIVE_NO_SITE": "Set the site in Students",
+      "ACTIVE_NO_ADMISSION": "Enter the admission date in Students",
+      "ACTIVE_FUTURE_ADMISSION": "Check the admission date",
+      "ACTIVE_NO_OPEN_PERIOD": "Check class start/end date or status",
+      "INACTIVE_OPEN_PERIOD": "Enter the class end date",
+      "MULTI_SITE": "Check the end date of the previous site's period"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "On leave",
+      "WITHDRAWN": "Withdrawn"
+    }
   }
 }

@@ -3,6 +3,7 @@ import { LifecycleDetails } from '../components/lifecycle-details';
 import { OperatingPanel, OperatingTable, DualValue } from '../components/operating-panel';
 import { OperatingResult, OpsMetric } from '../types/operating';
 import { SourceCurrentPanel } from '../components/source-current-panel';
+import { StudentReconciliationPanel } from '../components/student-reconciliation-panel';
 import { useEffect, useMemo, useState, Fragment } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -674,6 +675,8 @@ export function DashboardPage() {
       {gridQ.data && displayRows.length === 0 && (
         <p className="text-secondary mt-4">{t('empty.noData')}</p>
       )}
+
+      {!isSiteView && <StudentReconciliationPanel />}
 
       {lifeDetail&&<LifecycleDetails {...lifeDetail} site={site} close={()=>setLifeDetail(null)}/>}
       <ManualInputDialog

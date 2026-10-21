@@ -315,5 +315,40 @@
     "INQUIRY": "과거 상담",
     "PARENT": "학부모",
     "PAYMENT_ENDED": "수강료 전액 환불 / 등록 취소 확인"
+  },
+  "recon": {
+    "title": "재원 학생·운영 학생수 차이",
+    "basis": "기준: {{date}} (한국 시간) · 조회 기간과 무관",
+    "error": "차이 내역을 불러오지 못했습니다. 새로고침해 주세요.",
+    "equal": "두 숫자가 일치합니다 ({{count}}명)",
+    "activeLabel": "재원 학생 (오늘 실시간 현황)",
+    "operatingLabel": "운영 학생수 (아래 표 오늘·합계)",
+    "reasonsLabel": "사유별 내역",
+    "people": "{{n}}명",
+    "more": "외 {{count}}명",
+    "other": "계산 기준이 맞지 않는 {{count}}명이 있습니다. 관리자에게 알려 주세요.",
+    "manual": "운영 학생수 수동 입력값 {{value}}명은 표에 괄호로 따로 표시되며 이 계산에는 넣지 않습니다.",
+    "definition": "재원 학생은 학생 상태가 '재원'인 학생 수(사이트 무관)이고, 운영 학생수는 오늘 수업기간(입학일·수업 시작일~종료일) 안에 있는 학생을 TPI·TRINITY·SANTACROCE 사이트별로 세어 더한 값입니다. 학생 상태는 보지 않습니다.",
+    "reason": {
+      "ACTIVE_NO_SITE": "재원생 · 사이트 미지정",
+      "ACTIVE_NO_ADMISSION": "재원생 · 입학일 없음",
+      "ACTIVE_FUTURE_ADMISSION": "재원생 · 입학일이 오늘 이후",
+      "ACTIVE_NO_OPEN_PERIOD": "재원생 · 오늘 수업기간 없음 (종료·시작 전·미확정)",
+      "INACTIVE_OPEN_PERIOD": "휴원·퇴원생 · 수업기간 진행 중",
+      "MULTI_SITE": "여러 사이트에 중복 집계"
+    },
+    "action": {
+      "ACTIVE_NO_SITE": "학생관리에서 사이트 지정",
+      "ACTIVE_NO_ADMISSION": "학생관리에서 입학일 입력",
+      "ACTIVE_FUTURE_ADMISSION": "입학일 확인",
+      "ACTIVE_NO_OPEN_PERIOD": "수업 시작일·종료일 또는 상태 확인",
+      "INACTIVE_OPEN_PERIOD": "수업 종료일 입력",
+      "MULTI_SITE": "사이트 이동 시 이전 수업기간 종료일 확인"
+    },
+    "status": {
+      "ACTIVE": "재원",
+      "INACTIVE": "휴원",
+      "WITHDRAWN": "퇴원"
+    }
   }
 }
