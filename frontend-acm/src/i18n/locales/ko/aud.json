@@ -6,7 +6,113 @@
     "control": "접속 통제"
   },
   "activity": {
-    "pending": "활동 로그(생성·수정·삭제·조회·다운로드 기록)는 다음 단계에서 제공됩니다. 지금은 접속 로그와 접속 통제를 사용할 수 있습니다."
+    "stats": {
+      "today": "오늘 활동",
+      "deletes": "오늘 삭제",
+      "downloads": "오늘 다운로드",
+      "failures": "오늘 거부·실패"
+    },
+    "filters": {
+      "actor": "행위자",
+      "actorPlaceholder": "이름",
+      "action": "행위",
+      "menu": "메뉴",
+      "target": "대상",
+      "targetPlaceholder": "이름 또는 ID",
+      "targetFilter": "대상 필터: {{label}}",
+      "clearTarget": "대상 필터 해제"
+    },
+    "columns": {
+      "time": "일시",
+      "actor": "행위자",
+      "action": "행위",
+      "menu": "메뉴",
+      "target": "대상",
+      "result": "결과"
+    },
+    "empty": "조건에 맞는 활동 기록이 없습니다.",
+    "loadError": "활동 로그를 불러오지 못했습니다.",
+    "detail": {
+      "title": "활동 기록 상세",
+      "fields": "변경 항목",
+      "fieldsNote": "값은 기록하지 않습니다.",
+      "targetType": "대상 종류",
+      "targetId": "대상 ID",
+      "request": "요청",
+      "status": "응답 코드",
+      "requestId": "요청 ID",
+      "reason": "메모"
+    },
+    "action": {
+      "CREATE": "생성",
+      "READ": "조회",
+      "UPDATE": "수정",
+      "DELETE": "삭제",
+      "DOWNLOAD": "다운로드",
+      "EXPORT": "내보내기",
+      "DECRYPT": "복호화"
+    },
+    "result": {
+      "SUCCESS": "성공",
+      "FAILURE": "실패",
+      "DENIED": "거부"
+    },
+    "deletedTarget": "(이름 없음)",
+    "targetType": {
+      "student": "학생",
+      "parent": "학부모",
+      "teacher": "교사",
+      "staff": "직원",
+      "user": "사용자",
+      "inquiry": "상담",
+      "class": "수업",
+      "event": "일정",
+      "project": "프로젝트",
+      "item": "프로젝트 항목",
+      "material": "자료",
+      "post": "게시글",
+      "mapApply": "맵테스트 신청",
+      "bill": "청구",
+      "question": "문항",
+      "school": "학교",
+      "tenant": "테넌트",
+      "invite": "초대",
+      "portalAccount": "포털 계정",
+      "attachment": "첨부",
+      "session": "수업 회차",
+      "bill-export": "청구 내보내기",
+      "result-pdf": "결과지 PDF",
+      "student-template": "학생 업로드 양식",
+      "map-question-template": "문항 업로드 양식",
+      "inquiry-attachment": "상담 첨부",
+      "recording": "수업 녹화",
+      "dashboard-csv": "대시보드 CSV",
+      "operating-csv": "운영 CSV",
+      "workbook-xlsx": "워크북 엑셀",
+      "activity-log-export": "활동 로그 CSV",
+      "acm.aud.access_log": "접속 로그 CSV",
+      "acm.aud.policy": "접속 통제 정책",
+      "acm.csl.attachment": "상담 첨부",
+      "SYS_GOOGLE_APP": "Google 앱 설정"
+    },
+    "menu": {
+      "dsh": "대시보드",
+      "dashboard": "대시보드",
+      "system": "시스템 관리",
+      "me": "내 정보",
+      "materials": "자료",
+      "audit": "감사",
+      "portal-accounts": "포털 계정",
+      "admin": "운영 콘솔",
+      "my": "학부모 포털",
+      "teacher": "교사 포털",
+      "news": "공지",
+      "programs": "프로그램",
+      "drive": "드라이브",
+      "prj": "프로젝트",
+      "talk": "채팅"
+    },
+    "historyLink": "감사 이력"
   },
   "access": {
     "stats": {

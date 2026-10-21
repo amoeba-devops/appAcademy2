@@ -6,7 +6,113 @@
     "control": "Access control"
   },
   "activity": {
-    "pending": "The activity log (create, update, delete, view and download records) arrives in the next phase. The access log and access control are available now."
+    "stats": {
+      "today": "Activity today",
+      "deletes": "Deletes today",
+      "downloads": "Downloads today",
+      "failures": "Denied / failed today"
+    },
+    "filters": {
+      "actor": "Actor",
+      "actorPlaceholder": "Name",
+      "action": "Action",
+      "menu": "Menu",
+      "target": "Target",
+      "targetPlaceholder": "Name or ID",
+      "targetFilter": "Target filter: {{label}}",
+      "clearTarget": "Clear target filter"
+    },
+    "columns": {
+      "time": "Time",
+      "actor": "Actor",
+      "action": "Action",
+      "menu": "Menu",
+      "target": "Target",
+      "result": "Result"
+    },
+    "empty": "No activity records match the filters.",
+    "loadError": "Could not load the activity log.",
+    "detail": {
+      "title": "Activity record",
+      "fields": "Changed fields",
+      "fieldsNote": "Values are not recorded.",
+      "targetType": "Target type",
+      "targetId": "Target ID",
+      "request": "Request",
+      "status": "Status code",
+      "requestId": "Request ID",
+      "reason": "Note"
+    },
+    "action": {
+      "CREATE": "Create",
+      "READ": "View",
+      "UPDATE": "Update",
+      "DELETE": "Delete",
+      "DOWNLOAD": "Download",
+      "EXPORT": "Export",
+      "DECRYPT": "Decrypt"
+    },
+    "result": {
+      "SUCCESS": "Success",
+      "FAILURE": "Failure",
+      "DENIED": "Denied"
+    },
+    "deletedTarget": "(no name)",
+    "targetType": {
+      "student": "Student",
+      "parent": "Parent",
+      "teacher": "Teacher",
+      "staff": "Staff",
+      "user": "User",
+      "inquiry": "Consultation",
+      "class": "Class",
+      "event": "Event",
+      "project": "Project",
+      "item": "Project item",
+      "material": "Material",
+      "post": "Post",
+      "mapApply": "MAP test application",
+      "bill": "Bill",
+      "question": "Question",
+      "school": "School",
+      "tenant": "Tenant",
+      "invite": "Invite",
+      "portalAccount": "Portal account",
+      "attachment": "Attachment",
+      "session": "Class session",
+      "bill-export": "Bill export",
+      "result-pdf": "Result PDF",
+      "student-template": "Student upload template",
+      "map-question-template": "Question upload template",
+      "inquiry-attachment": "Consultation attachment",
+      "recording": "Class recording",
+      "dashboard-csv": "Dashboard CSV",
+      "operating-csv": "Operating CSV",
+      "workbook-xlsx": "Workbook Excel",
+      "activity-log-export": "Activity log CSV",
+      "acm.aud.access_log": "Access log CSV",
+      "acm.aud.policy": "Access-control policy",
+      "acm.csl.attachment": "Consultation attachment",
+      "SYS_GOOGLE_APP": "Google app settings"
+    },
+    "menu": {
+      "dsh": "Dashboard",
+      "dashboard": "Dashboard",
+      "system": "System admin",
+      "me": "My info",
+      "materials": "Materials",
+      "audit": "Audit",
+      "portal-accounts": "Portal accounts",
+      "admin": "Console",
+      "my": "Parent portal",
+      "teacher": "Teacher portal",
+      "news": "News",
+      "programs": "Programs",
+      "drive": "Drive",
+      "prj": "Projects",
+      "talk": "Chat"
+    },
+    "historyLink": "Audit history"
   },
   "access": {
     "stats": {

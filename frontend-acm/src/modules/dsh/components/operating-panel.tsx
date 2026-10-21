@@ -1,3 +1,4 @@
+import { reportClientDownload } from "@/modules/aud/api/client-download";
 import { NumericInput } from '@/components/ui/numeric-input';
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -239,6 +240,7 @@ export function OperatingPanel({
                   `${k}:quality`,
                 ]),
               ];
+              reportClientDownload("operating-csv", `operating-${data.site}.csv`); // PLN-261022
               downloadCsv(
                 `operating-${data.site}.csv`,
                 toCsv([

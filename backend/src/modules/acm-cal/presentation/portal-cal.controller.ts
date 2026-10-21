@@ -1,3 +1,4 @@
+import { AuditDownload } from '../../acm-common/decorators/audit.decorator';
 import { FeedbackMailerService } from '../application/feedback-mailer.service';
 import { PortalFeedbackEmailDto } from '../application/dto/feedback-email.dto';
 import { RecurrenceService } from '../application/recurrence.service';
@@ -126,6 +127,7 @@ export class PortalCalController {
 
   @UseInterceptors(BodaPolicyInterceptor)
   @Get(':id/recordings/:recordIdx/download')
+  @AuditDownload('recording', 'event', 'id')
   @ApiOperation({
     summary: '녹화 파일 다운로드 (담당 강사 전용, ACM 보관본 우선)',
   })

@@ -1,3 +1,4 @@
+import { AuditAs, AuditDownload, AuditRead } from '../../acm-common/decorators/audit.decorator';
 import { ClientIp } from '../../acm-common/http/client-ip';
 import { LevelTestScheduleResetService } from '../application/level-test-schedule-reset.service';
 import { ResetLevelTestScheduleDto } from '../application/dto/reset-level-test-schedule.dto';
@@ -151,6 +152,7 @@ export class InquiryController {
   }
 
   @Get(':inqId')
+  @AuditRead('inquiry')
   detail(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -204,6 +206,7 @@ export class InquiryController {
   }
 
   @Post(':inqId/reveal-phone')
+  @AuditAs({ action: 'READ', target: 'inquiry' })
   revealPhone(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -364,6 +367,7 @@ export class InquiryController {
    * stubbed inline (the formal audit table comes with T-20).
    */
   @Get(':inqId/map-test/result-pdf')
+  @AuditDownload('result-pdf', 'inquiry')
   @ApiOperation({
     summary: 'Download level test result PDF (FR-CSL-116, legacy 1:1)',
   })
@@ -503,6 +507,7 @@ export class InquiryController {
   }
 
   @Get(':inqId/level-tests/:testType/result-pdf')
+  @AuditDownload('result-pdf', 'inquiry')
   @ApiOperation({ summary: 'Download per-type result PDF (DSN-260629 §6.5)' })
   async downloadResultPdfByType(
     @CurrentUser() user: AcmCurrentUser,
@@ -544,6 +549,7 @@ export class InquiryController {
    * Operator-friendly single-file download instead of N per-type PDFs.
    */
   @Get(':inqId/level-tests/result-pdf')
+  @AuditDownload('result-pdf', 'inquiry')
   @ApiOperation({ summary: 'Download unified PDF (all completed level tests)' })
   async downloadUnifiedResultPdf(
     @CurrentUser() user: AcmCurrentUser,
@@ -859,6 +865,7 @@ export class InquiryController {
   }
 
   @Get(':inqId/attachments/:attId/download')
+  @AuditDownload('inquiry-attachment', 'inquiry')
   @ApiOperation({
     summary: 'Stream attachment bytes (backend-proxied from MinIO)',
   })
@@ -866,9 +873,7 @@ export class InquiryController {
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
     @Param('attId', ParseUUIDPipe) attId: string,
-    @ClientIp() ip: string,
     @Res({ passthrough: true }) res: Response,
-    @Headers('user-agent') userAgent?: string,
   ): Promise<StreamableFile> {
     const rows = await this.attachments.list(user.entId, inqId);
     const row = rows.find((r) => r.id === attId);
@@ -876,8 +881,7 @@ export class InquiryController {
     if (!row || !AttachmentService.canView(row, role)) {
       throw new ForbiddenException({ code: 'ATTACHMENT_FORBIDDEN' });
     }
-    // NFR-CSL-104 / T-20 v2.1 — audit (best-effort, swallowed in service).
-    await this.attachments.recordDownloadAudit(row, user.id, ip, userAgent);
+    // NFR-CSL-104 — 다운로드 기록은 PLN-261022 공통 활동 로그(@AuditDownload)가 남긴다.
 
     const { stream, filename, mime, sizeBytes } =
       await this.attachments.streamDownload(user.entId, inqId, attId);

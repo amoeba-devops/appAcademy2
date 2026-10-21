@@ -30,6 +30,7 @@ import {
 import { TCH_SUBJECTS, type TchSubject, type TeacherDetail } from "../types";
 import { useAuthStore } from "@/stores/auth.store";
 import { TchAttachmentPanel } from "./tch-attachment-panel";
+import { AuditHistoryLink } from "@/modules/aud/components/audit-history-link";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/png"];
@@ -419,6 +420,11 @@ export function TchFormModal({
           <DialogTitle>
             {isEdit ? t("form.titleEdit") : t("form.titleCreate")}
           </DialogTitle>
+          {initial && (
+            <div className="mt-2 pr-10">
+              <AuditHistoryLink targetType="teacher" targetId={initial.id} label={initial.name} />
+            </div>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">

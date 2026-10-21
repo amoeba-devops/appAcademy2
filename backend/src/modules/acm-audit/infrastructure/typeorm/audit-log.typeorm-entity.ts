@@ -14,7 +14,8 @@ export type AuditAction =
   | 'DECRYPT'
   | 'LOGIN'
   | 'LOGOUT'
-  | 'EXPORT';
+  | 'EXPORT'
+  | 'DOWNLOAD';
 
 /**
  * PII 접근 감사 로그 — append-only. BRIN created_at index for time-series

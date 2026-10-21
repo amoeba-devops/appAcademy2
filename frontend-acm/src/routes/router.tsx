@@ -282,7 +282,7 @@ export const router = createBrowserRouter([
       // REQ-261021B — 감사(테넌트 마스터·감사 조회 권한)
       { element: <RequireAuditViewer />, children: [
         { path: 'audit', element: <AuditLayout />, children: [
-          { index: true, element: <Navigate to="/admin/audit/access" replace /> },
+          { index: true, element: <Navigate to="/admin/audit/activity" replace /> },
           { path: 'activity', element: <ActivityLogPage /> },
           { path: 'access', element: <AccessLogPage /> },
           { path: 'control', element: <AccessControlPage /> },

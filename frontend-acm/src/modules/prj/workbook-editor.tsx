@@ -1,3 +1,4 @@
+import { reportClientDownload } from "@/modules/aud/api/client-download";
 import { apiClient } from "@/lib/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type RefObject } from "react";
@@ -261,6 +262,7 @@ export function WorkbookEditor({
               a.href = url;
               a.download = `${title || "spreadsheet"}.xlsx`;
               a.click();
+              reportClientDownload("workbook-xlsx", a.download); // PLN-261022
               setTimeout(() => URL.revokeObjectURL(url), 1000);
             } catch {
               setError(tp("workbook.exportFailed"));

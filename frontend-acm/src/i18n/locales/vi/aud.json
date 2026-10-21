@@ -6,7 +6,113 @@
     "control": "Kiểm soát truy cập"
   },
   "activity": {
-    "pending": "Nhật ký hoạt động (tạo, sửa, xóa, xem, tải xuống) sẽ có ở giai đoạn tiếp theo. Hiện có thể dùng nhật ký truy cập và kiểm soát truy cập."
+    "stats": {
+      "today": "Hoạt động hôm nay",
+      "deletes": "Xóa hôm nay",
+      "downloads": "Tải xuống hôm nay",
+      "failures": "Bị từ chối / lỗi hôm nay"
+    },
+    "filters": {
+      "actor": "Người thực hiện",
+      "actorPlaceholder": "Tên",
+      "action": "Hành động",
+      "menu": "Menu",
+      "target": "Đối tượng",
+      "targetPlaceholder": "Tên hoặc ID",
+      "targetFilter": "Lọc đối tượng: {{label}}",
+      "clearTarget": "Bỏ lọc đối tượng"
+    },
+    "columns": {
+      "time": "Thời gian",
+      "actor": "Người thực hiện",
+      "action": "Hành động",
+      "menu": "Menu",
+      "target": "Đối tượng",
+      "result": "Kết quả"
+    },
+    "empty": "Không có bản ghi hoạt động phù hợp.",
+    "loadError": "Không tải được nhật ký hoạt động.",
+    "detail": {
+      "title": "Chi tiết hoạt động",
+      "fields": "Mục thay đổi",
+      "fieldsNote": "Không ghi lại giá trị.",
+      "targetType": "Loại đối tượng",
+      "targetId": "ID đối tượng",
+      "request": "Yêu cầu",
+      "status": "Mã phản hồi",
+      "requestId": "ID yêu cầu",
+      "reason": "Ghi chú"
+    },
+    "action": {
+      "CREATE": "Tạo",
+      "READ": "Xem",
+      "UPDATE": "Sửa",
+      "DELETE": "Xóa",
+      "DOWNLOAD": "Tải xuống",
+      "EXPORT": "Xuất",
+      "DECRYPT": "Giải mã"
+    },
+    "result": {
+      "SUCCESS": "Thành công",
+      "FAILURE": "Thất bại",
+      "DENIED": "Bị từ chối"
+    },
+    "deletedTarget": "(không có tên)",
+    "targetType": {
+      "student": "Học sinh",
+      "parent": "Phụ huynh",
+      "teacher": "Giáo viên",
+      "staff": "Nhân viên",
+      "user": "Người dùng",
+      "inquiry": "Tư vấn",
+      "class": "Lớp học",
+      "event": "Lịch",
+      "project": "Dự án",
+      "item": "Mục dự án",
+      "material": "Tài liệu",
+      "post": "Bài viết",
+      "mapApply": "Đăng ký MAP test",
+      "bill": "Hóa đơn",
+      "question": "Câu hỏi",
+      "school": "Trường",
+      "tenant": "Tenant",
+      "invite": "Lời mời",
+      "portalAccount": "Tài khoản cổng",
+      "attachment": "Tệp đính kèm",
+      "session": "Buổi học",
+      "bill-export": "Xuất hóa đơn",
+      "result-pdf": "PDF kết quả",
+      "student-template": "Mẫu tải lên học sinh",
+      "map-question-template": "Mẫu tải lên câu hỏi",
+      "inquiry-attachment": "Tệp tư vấn",
+      "recording": "Ghi hình buổi học",
+      "dashboard-csv": "CSV bảng điều khiển",
+      "operating-csv": "CSV vận hành",
+      "workbook-xlsx": "Workbook Excel",
+      "activity-log-export": "CSV nhật ký hoạt động",
+      "acm.aud.access_log": "CSV nhật ký truy cập",
+      "acm.aud.policy": "Chính sách kiểm soát truy cập",
+      "acm.csl.attachment": "Tệp tư vấn",
+      "SYS_GOOGLE_APP": "Cài đặt ứng dụng Google"
+    },
+    "menu": {
+      "dsh": "Bảng điều khiển",
+      "dashboard": "Bảng điều khiển",
+      "system": "Quản trị hệ thống",
+      "me": "Thông tin của tôi",
+      "materials": "Tài liệu",
+      "audit": "Kiểm toán",
+      "portal-accounts": "Tài khoản cổng",
+      "admin": "Bảng điều khiển vận hành",
+      "my": "Cổng phụ huynh",
+      "teacher": "Cổng giáo viên",
+      "news": "Tin tức",
+      "programs": "Chương trình",
+      "drive": "Drive",
+      "prj": "Dự án",
+      "talk": "Trò chuyện"
+    },
+    "historyLink": "Lịch sử kiểm toán"
   },
   "access": {
     "stats": {

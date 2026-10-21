@@ -6,7 +6,113 @@
     "control": "访问控制"
   },
   "activity": {
-    "pending": "操作日志(创建、修改、删除、查看、下载记录)将在下一阶段提供。目前可使用访问日志和访问控制。"
+    "stats": {
+      "today": "今日操作",
+      "deletes": "今日删除",
+      "downloads": "今日下载",
+      "failures": "今日拒绝/失败"
+    },
+    "filters": {
+      "actor": "操作人",
+      "actorPlaceholder": "姓名",
+      "action": "操作",
+      "menu": "菜单",
+      "target": "对象",
+      "targetPlaceholder": "名称或ID",
+      "targetFilter": "对象筛选:{{label}}",
+      "clearTarget": "清除对象筛选"
+    },
+    "columns": {
+      "time": "时间",
+      "actor": "操作人",
+      "action": "操作",
+      "menu": "菜单",
+      "target": "对象",
+      "result": "结果"
+    },
+    "empty": "没有符合条件的操作记录。",
+    "loadError": "无法加载操作日志。",
+    "detail": {
+      "title": "操作记录详情",
+      "fields": "变更项",
+      "fieldsNote": "不记录具体值。",
+      "targetType": "对象类型",
+      "targetId": "对象ID",
+      "request": "请求",
+      "status": "响应码",
+      "requestId": "请求ID",
+      "reason": "备注"
+    },
+    "action": {
+      "CREATE": "创建",
+      "READ": "查看",
+      "UPDATE": "修改",
+      "DELETE": "删除",
+      "DOWNLOAD": "下载",
+      "EXPORT": "导出",
+      "DECRYPT": "解密"
+    },
+    "result": {
+      "SUCCESS": "成功",
+      "FAILURE": "失败",
+      "DENIED": "拒绝"
+    },
+    "deletedTarget": "(无名称)",
+    "targetType": {
+      "student": "学生",
+      "parent": "家长",
+      "teacher": "教师",
+      "staff": "职员",
+      "user": "用户",
+      "inquiry": "咨询",
+      "class": "课程",
+      "event": "日程",
+      "project": "项目",
+      "item": "项目条目",
+      "material": "资料",
+      "post": "帖子",
+      "mapApply": "MAP 测试申请",
+      "bill": "账单",
+      "question": "题目",
+      "school": "学校",
+      "tenant": "租户",
+      "invite": "邀请",
+      "portalAccount": "门户账号",
+      "attachment": "附件",
+      "session": "课次",
+      "bill-export": "账单导出",
+      "result-pdf": "结果 PDF",
+      "student-template": "学生上传模板",
+      "map-question-template": "题目上传模板",
+      "inquiry-attachment": "咨询附件",
+      "recording": "课程录像",
+      "dashboard-csv": "仪表板 CSV",
+      "operating-csv": "运营 CSV",
+      "workbook-xlsx": "工作簿 Excel",
+      "activity-log-export": "操作日志 CSV",
+      "acm.aud.access_log": "访问日志 CSV",
+      "acm.aud.policy": "访问控制策略",
+      "acm.csl.attachment": "咨询附件",
+      "SYS_GOOGLE_APP": "Google 应用设置"
+    },
+    "menu": {
+      "dsh": "仪表板",
+      "dashboard": "仪表板",
+      "system": "系统管理",
+      "me": "我的信息",
+      "materials": "资料",
+      "audit": "审计",
+      "portal-accounts": "门户账号",
+      "admin": "运营控制台",
+      "my": "家长门户",
+      "teacher": "教师门户",
+      "news": "公告",
+      "programs": "项目",
+      "drive": "云盘",
+      "prj": "项目",
+      "talk": "聊天"
+    },
+    "historyLink": "审计记录"
   },
   "access": {
     "stats": {

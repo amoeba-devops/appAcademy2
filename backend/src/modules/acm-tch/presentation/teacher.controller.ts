@@ -1,3 +1,4 @@
+import { AuditRead } from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -40,6 +41,7 @@ export class TeacherController {
   }
 
   @Get(':id')
+  @AuditRead('teacher')
   @ApiOperation({ summary: 'Get teacher detail (FR-TCH-002)' })
   findOne(@CurrentUser() u: AcmCurrentUser, @Param('id', ParseUUIDPipe) id: string) {
     return this.svc.findOne(u.entId, id);

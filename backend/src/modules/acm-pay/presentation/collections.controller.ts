@@ -1,3 +1,4 @@
+import { AuditDownload, AuditRead } from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -53,7 +54,8 @@ export class CollectionsController {
   ) {
     return this.service.monthly(u, q);
   }
-  @Get('monthly-export') async monthlyExport(
+  @Get('monthly-export')
+  @AuditDownload('bill-export') async monthlyExport(
     @CurrentUser() u: AcmCurrentUser,
     @Query() q: MonthlyPayQuery,
     @Res() res: Response,
@@ -127,7 +129,8 @@ export class CollectionsController {
   stateBatch(@CurrentUser() u: AcmCurrentUser, @Body() d: StateBatchDto) {
     return this.service.stateBatch(u, d);
   }
-  @Get('export') async export(
+  @Get('export')
+  @AuditDownload('bill-export') async export(
     @CurrentUser() u: AcmCurrentUser,
     @Query() q: BillQuery,
     @Res() res: Response,
@@ -175,7 +178,8 @@ export class CollectionsController {
     );
     res.send(XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }));
   }
-  @Get(':id') detail(
+  @Get(':id')
+  @AuditRead('bill') detail(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {

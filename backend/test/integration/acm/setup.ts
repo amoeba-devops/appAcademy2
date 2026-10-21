@@ -85,7 +85,10 @@ const TEST_ALLOWED_ENTITY_IDS = [
   '99999999-aaaa-bbbb-cccc-dddddddddddd',
 ];
 
-export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
+/** `extraImports` — modules a spec needs beyond the shared set (e.g. AcmStdModule). */
+export async function bootAcmTestEnv(
+  extraImports: NonNullable<Parameters<typeof Test.createTestingModule>[0]['imports']> = [],
+): Promise<AcmTestEnv> {
   const pg = await new PostgreSqlContainer(PG_IMAGE)
     .withDatabase('db_amb_test')
     .withUsername('amb')
@@ -122,6 +125,7 @@ export async function bootAcmTestEnv(): Promise<AcmTestEnv> {
       AcmCslModule,
       AcmQnaModule,
       AcmDshModule,
+      ...extraImports,
     ],
   })
     // Bypass JWT guard in tests; req.user is injected by middleware below.

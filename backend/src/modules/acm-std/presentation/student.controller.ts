@@ -1,3 +1,4 @@
+import { AuditDownload, AuditRead } from '../../acm-common/decorators/audit.decorator';
 import { StudentDeletionService } from '../application/student-deletion.service';
 import { BadRequestException } from '@nestjs/common';
 import { SiteImportService } from '../application/site-import.service';
@@ -60,6 +61,7 @@ export class StudentController {
   ) {}
 
   @Get('template')
+  @AuditDownload('student-template')
   @ApiOperation({ summary: 'Download TPI-format xlsx template (FR-STD-007)' })
   getTemplate(@Res() res: Response) {
     const buf = this.importer.generateTemplate();
@@ -123,6 +125,7 @@ export class StudentController {
   }
 
   @Get(':id')
+  @AuditRead('student')
   @ApiOperation({ summary: 'Get student detail (FR-STD-002)' })
   findOne(
     @CurrentUser() u: AcmCurrentUser,

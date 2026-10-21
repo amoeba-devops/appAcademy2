@@ -1,3 +1,4 @@
+import { AuditRead } from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -58,6 +59,7 @@ export class MapApplyController {
   }
 
   @Get(':id')
+  @AuditRead('mapApply')
   @ApiOperation({ summary: '맵테스트 신청 상세' })
   detail(
     @CurrentUser() u: AcmCurrentUser,
