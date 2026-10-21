@@ -315,5 +315,40 @@
     "INQUIRY": "Prior inquiry",
     "PARENT": "Parent",
     "PAYMENT_ENDED": "Full tuition refund / enrollment cancellation"
+  },
+  "recon": {
+    "title": "在读学生与运营学生数差异",
+    "basis": "基准:{{date}}(韩国时间)· 与所选期间无关",
+    "error": "无法加载差异明细,请刷新。",
+    "equal": "两个数字一致({{count}} 人)",
+    "activeLabel": "在读学生(今日实时)",
+    "operatingLabel": "运营学生数(下表 今日·合计)",
+    "reasonsLabel": "按原因明细",
+    "people": "{{n}} 人",
+    "more": "等另外 {{count}} 人",
+    "other": "有 {{count}} 人不符合计算规则,请联系管理员。",
+    "manual": "手动录入的运营学生数({{value}} 人)在表中以括号单独显示,不计入本计算。",
+    "definition": "在读学生为状态为“在读”的学生数(不分校区)。运营学生数按校区(TPI · TRINITY · SANTACROCE)分别统计今天处于上课期间(入学日 · 开课日至结课日)内的学生后相加,不看学生状态。",
+    "reason": {
+      "ACTIVE_NO_SITE": "在读 · 未指定校区",
+      "ACTIVE_NO_ADMISSION": "在读 · 无入学日期",
+      "ACTIVE_FUTURE_ADMISSION": "在读 · 入学日期在今天之后",
+      "ACTIVE_NO_OPEN_PERIOD": "在读 · 今天无上课期间(已结束、未开始或未确认)",
+      "INACTIVE_OPEN_PERIOD": "休学/退学 · 上课期间仍未结束",
+      "MULTI_SITE": "在多个校区重复统计"
+    },
+    "action": {
+      "ACTIVE_NO_SITE": "在学生管理中指定校区",
+      "ACTIVE_NO_ADMISSION": "在学生管理中填写入学日期",
+      "ACTIVE_FUTURE_ADMISSION": "确认入学日期",
+      "ACTIVE_NO_OPEN_PERIOD": "确认开课/结课日期或状态",
+      "INACTIVE_OPEN_PERIOD": "填写结课日期",
+      "MULTI_SITE": "确认原校区上课期间的结束日期"
+    },
+    "status": {
+      "ACTIVE": "在读",
+      "INACTIVE": "休学",
+      "WITHDRAWN": "退学"
+    }
   }
 }

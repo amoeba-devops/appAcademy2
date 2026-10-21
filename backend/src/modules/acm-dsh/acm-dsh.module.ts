@@ -1,5 +1,6 @@
 import { LifecycleService } from './application/lifecycle.service';
 import { LifecycleController } from './presentation/lifecycle.controller';
+import { StudentReconciliationService } from './application/student-reconciliation.service';
 import { TodayLiveService } from './application/today-live.service';
 import { AdsOAuthService } from './ads/ads-oauth.service';
 import { AdsService } from './ads/ads.service';
@@ -60,6 +61,7 @@ import { DashboardController } from './presentation/dashboard.controller';
     MarketingInputService,
     OperatingService,
     SourceCurrentService,
+    StudentReconciliationService,
     MetricDefinitionService,
     ManualInputService,
     ComplaintService,

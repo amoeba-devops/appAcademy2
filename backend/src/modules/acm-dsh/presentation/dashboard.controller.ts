@@ -4,6 +4,7 @@ import { MarketingPatchDto } from '../application/dto/marketing-input.dto';
 import { kstDaysAgo as isoDaysAgo } from '../business-date';
 import { OperatingService } from '../application/operating.service';
 import { SourceCurrentService } from '../application/source-current.service';
+import { StudentReconciliationService } from '../application/student-reconciliation.service';
 import {
   BadRequestException,
   Body,
@@ -77,6 +78,7 @@ export class DashboardController {
     private readonly complaint: ComplaintService,
     private readonly monthlySummary: MonthlySummaryService,
     private readonly ga4Sync: Ga4SyncService,
+    private readonly studentRecon: StudentReconciliationService,
   ) {}
 
   @Get('marketing-inputs/:date')
@@ -102,6 +104,15 @@ export class DashboardController {
   })
   getSourceCurrent(@CurrentUser() user: AcmCurrentUser) {
     return this.live.get(user.entId);
+  }
+
+  @Get('student-reconciliation')
+  @ApiOperation({
+    summary:
+      'Today: active students vs operating student count, with reasons (REQ-261021)',
+  })
+  getStudentReconciliation(@CurrentUser() user: AcmCurrentUser) {
+    return this.studentRecon.get(user.entId);
   }
 
   @Get('operating-range')
