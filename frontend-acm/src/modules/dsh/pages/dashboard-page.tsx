@@ -1,3 +1,4 @@
+import { reportClientDownload } from "@/modules/aud/api/client-download";
 import { Sparkline } from '../components/sparkline';
 import { LifecycleDetails } from '../components/lifecycle-details';
 import { OperatingPanel, OperatingTable, DualValue } from '../components/operating-panel';
@@ -323,6 +324,7 @@ export function DashboardPage() {
       return lifeCodes.includes(m.code)?[lifeQ.isError?null:lifeQ.data?.summary[m.code]?.calculated??null,lifeQ.isError?'UNAVAILABLE':lifeQ.data?.summary[m.code]?.quality??'UNAVAILABLE']:[gridQ.data!.sums[m.code]??null];
     })];
     downloadCsv(`dsh-v2-${site}-${from}_${to}.csv`,toCsv([header,...dataRows,summaryRow]));
+    reportClientDownload('dashboard-csv', `dsh-v2-${site}-${from}_${to}.csv`); // PLN-261022
   };
 
   const onRowClick = (date: string) => {

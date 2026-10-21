@@ -1,3 +1,4 @@
+import { AuditDownload } from '../../acm-common/decorators/audit.decorator';
 import { RecurrenceService } from '../application/recurrence.service';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import { UseInterceptors } from '@nestjs/common';
@@ -89,6 +90,7 @@ export class CalEventController {
 
   @UseInterceptors(BodaPolicyInterceptor)
   @Post(':id/recordings/:recordIdx/ticket')
+  @AuditDownload('recording', 'event', 'id')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'STAFF', 'TEACHER')
   @ApiOperation({

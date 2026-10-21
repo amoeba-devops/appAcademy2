@@ -4,6 +4,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 export interface RequestMeta {
   ip: string;
   userAgent: string;
+  /** PLN-261022 — X-Request-Id (client value if sane, else generated); echoed in the response. */
+  requestId?: string;
 }
 
 const store = new AsyncLocalStorage<RequestMeta>();

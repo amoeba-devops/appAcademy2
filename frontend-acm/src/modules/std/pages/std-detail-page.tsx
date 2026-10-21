@@ -1,4 +1,5 @@
 import { StudentDeleteButton } from '../components/student-deletion';
+import { AuditHistoryLink } from '@/modules/aud/components/audit-history-link';
 import { StatusHistoryPanel } from "../components/status-history-panel";
 import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
@@ -149,6 +150,7 @@ export function StdDetailPage() {
         actions={
           <>
             <StudentDeleteButton id={student.id} />
+            <AuditHistoryLink targetType="student" targetId={student.id} label={student.name} />
             <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
               <Pencil size={14} className="mr-1" />
               {t("actions.edit")}

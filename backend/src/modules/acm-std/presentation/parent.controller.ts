@@ -1,3 +1,4 @@
+import { AuditRead } from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -46,6 +47,7 @@ export class ParentController {
   }
 
   @Get(':id')
+  @AuditRead('parent')
   @ApiOperation({ summary: 'Get parent detail' })
   findOne(
     @CurrentUser() u: AcmCurrentUser,

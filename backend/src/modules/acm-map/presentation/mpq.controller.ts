@@ -1,3 +1,4 @@
+import { AuditDownload } from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -42,6 +43,7 @@ export class MpqController {
   ) {}
 
   @Get('template')
+  @AuditDownload('map-question-template')
   @ApiOperation({ summary: 'Download MAP past-question xlsx template' })
   getTemplate(@Res() res: Response) {
     const buf = this.importer.generateTemplate();

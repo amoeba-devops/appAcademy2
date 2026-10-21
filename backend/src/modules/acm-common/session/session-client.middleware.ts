@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
 import { parseSessionClient, runWithSessionClient } from './session-client';
@@ -10,10 +11,14 @@ import { runWithRequestMeta } from '../http/request-meta';
  */
 @Injectable()
 export class SessionClientMiddleware implements NestMiddleware {
-  use(req: Request, _res: Response, next: NextFunction) {
+  use(req: Request, res: Response, next: NextFunction) {
     const ua = req.headers['user-agent'];
+    const given = req.headers['x-request-id'];
+    const requestId =
+      typeof given === 'string' && /^[A-Za-z0-9-]{8,40}$/.test(given) ? given : randomUUID();
+    res.setHeader('X-Request-Id', requestId);
     runWithRequestMeta(
-      { ip: clientIp(req), userAgent: (Array.isArray(ua) ? ua[0] : ua ?? '').slice(0, 500) },
+      { ip: clientIp(req), userAgent: (Array.isArray(ua) ? ua[0] : ua ?? '').slice(0, 500), requestId },
       () => runWithSessionClient(parseSessionClient(req.headers['x-acm-client']), next),
     );
   }
