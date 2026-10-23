@@ -71,7 +71,8 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
     await db.query(
       `ALTER TABLE amb_acm_user ADD COLUMN IF NOT EXISTS usr_locked_at TIMESTAMPTZ,
          ADD COLUMN IF NOT EXISTS usr_ama_job_role VARCHAR(40),
-         ADD COLUMN IF NOT EXISTS usr_temp_password_expires_at TIMESTAMPTZ`,
+         ADD COLUMN IF NOT EXISTS usr_temp_password_expires_at TIMESTAMPTZ,
+         ADD COLUMN IF NOT EXISTS usr_local_pinned BOOLEAN NOT NULL DEFAULT false`,
     );
     const insert = async (ent: string, email: string, role: string) =>
       (

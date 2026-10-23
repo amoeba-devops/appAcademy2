@@ -125,10 +125,10 @@ describe('IT-AUDIT-ACTIVITY activity log', () => {
   });
 
   it('records a denial inside the handler, then keeps the label after deletion', async () => {
-    // Archiving needs an AMA admin account: plain console admin → 403 from the service.
+    // REQ-261024 — archiving needs admin + service operator/tenant master: a plain admin → 403 from the service.
     await http()
       .delete(`/api/acm/std/students/${studentId}`)
-      .set(as(admin.id))
+      .set(as(PLAIN_ADMIN_ID))
       .expect(403);
     const denied = (
       await rows(`adl_action='DELETE' AND adl_entity_id=$2`, [studentId])
@@ -139,10 +139,7 @@ describe('IT-AUDIT-ACTIVITY activity log', () => {
       label: await nameOf(studentId),
     });
 
-    await env.ds.query(
-      `UPDATE amb_acm_user SET auth_source='ama', ama_user_id=gen_random_uuid(), ama_role='MASTER' WHERE usr_id=$1`,
-      [admin.id],
-    );
+    // The seed admin is the tenant master → allowed (no AMA link needed any more).
     const name = await nameOf(studentId);
     await http()
       .delete(`/api/acm/std/students/${studentId}`)
