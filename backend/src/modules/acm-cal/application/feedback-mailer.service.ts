@@ -27,7 +27,7 @@ import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.t
 
 /**
  * REQ-260902 — 수업 피드백 학부모 메일 발송.
- * 수신 대상 = 이벤트 STUDENT 초대자의 연결 학부모(amb_acm_std_student_parent).
+ * 수신 대상 = 이벤트 STUDENT 초대자 + 연결 반(evt_cls_id) 현재 수강생의 연결 학부모(amb_acm_std_student_parent).
  * 발송 이력은 amb_acm_notification_log(channel=EMAIL, recipient_kind=PARENT).
  * 메일 본문은 피드백만 포함(숙제 제외 — 요구사항 Q-B 확정).
  */
@@ -407,7 +407,18 @@ export class FeedbackMailerService {
     const inviteeRows = await this.invitees.find({
       where: { entId, evtId, kind: 'STUDENT' },
     });
-    const stdIds = Array.from(new Set(inviteeRows.map((r) => r.refId)));
+    // REQ-261023 §5 — most class events link students only through the class (evt_cls_id),
+    // so also include its current enrollees (same rule as the student/parent portal scope).
+    const classRows = await this.ds.query<{ stdId: string }[]>(
+      `SELECT cs.cst_student_user_id::text "stdId"
+         FROM amb_acm_cal_event e
+         JOIN amb_acm_cls_class_students cs ON cs.cls_id = e.evt_cls_id AND cs.ent_id = e.ent_id
+        WHERE e.ent_id = $1 AND e.evt_id = $2 AND e.evt_cls_id IS NOT NULL AND cs.cst_left_at IS NULL`,
+      [entId, evtId],
+    );
+    const stdIds = Array.from(
+      new Set([...inviteeRows.map((r) => r.refId), ...classRows.map((r) => r.stdId)]),
+    );
     if (stdIds.length === 0) return [];
 
     const [studentRows, linkRows] = await Promise.all([

@@ -106,3 +106,36 @@ describe('teacher email authorization', () => {
     expect(listRecipients).not.toHaveBeenCalled();
   });
 });
+
+describe('feedback recipients (REQ-261023 §5)', () => {
+  it('includes current class enrollees as well as STUDENT invitees', async () => {
+    const service = Object.create(FeedbackMailerService.prototype) as FeedbackMailerService;
+    const query = jest.fn(async () => [{ stdId: 'cls-std' }]);
+    const studentsFind = jest.fn(async ({ where }: { where: { id: { _value: string[] } } }) =>
+      where.id._value.map((id) => ({ id, name: id })),
+    );
+    Object.assign(service, {
+      ds: { query },
+      invitees: { find: async () => [{ refId: 'inv-std' }] },
+      students: { find: studentsFind },
+      studentParents: {
+        find: async () => [
+          { stdId: 'cls-std', parId: 'p1', isPrimary: true },
+          { stdId: 'inv-std', parId: 'p2', isPrimary: true },
+        ],
+      },
+      parents: {
+        find: async () => [
+          { id: 'p1', name: 'P1', email: 'p1@x.test' },
+          { id: 'p2', name: 'P2', email: 'p2@x.test' },
+        ],
+      },
+    });
+    const out = await (
+      service as unknown as { resolveStudents(e: string, v: string): Promise<{ stdId: string; parents: { parId: string }[] }[]> }
+    ).resolveStudents('e', 'evt');
+    expect(out.map((s) => s.stdId).sort()).toEqual(['cls-std', 'inv-std']);
+    expect(String(query.mock.calls[0][0])).toContain('cst_left_at IS NULL');
+    expect(out.find((s) => s.stdId === 'cls-std')?.parents.map((p) => p.parId)).toEqual(['p1']);
+  });
+});
