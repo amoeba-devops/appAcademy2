@@ -81,6 +81,55 @@ export class InviteeNotifierService {
     return summary;
   }
 
+  /**
+   * REQ-261023 — class link changed by the teacher. Sent only when the teacher ticks the box.
+   * Does not touch the invite status columns (those track the original invitation).
+   */
+  async notifyLinkChanged(
+    entId: string,
+    event: { title: string; startAt: Date; meetingUrl: string | null },
+    rows: CalInviteeTypeormEntity[],
+    exceptRefId: string | null,
+    laterCount: number,
+  ): Promise<NotifySummary> {
+    const summary: NotifySummary = { sent: 0, skippedNoEmail: 0, skippedNoSmtp: 0, failed: 0 };
+    const targets = rows.filter((r) => !(r.kind === 'TEACHER' && r.refId === exceptRefId));
+    if (!targets.length) return summary;
+    const hydrated = await this.inviteeSvc.hydrate(entId, targets);
+    const smtpReady = await this.mailer.isConfigured(entId);
+    const portal = this.config.get<string>('ACM_PORTAL_URL') ?? '';
+    const when = event.startAt.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' });
+    await Promise.allSettled(
+      hydrated.map(async (inv) => {
+        if (!inv.email) return void summary.skippedNoEmail++;
+        if (!smtpReady) return void summary.skippedNoSmtp++;
+        try {
+          await this.mailer.send(entId, {
+            to: inv.email,
+            subject: `[수업 링크 변경] ${event.title}`,
+            text: [
+              `${inv.name}님께`,
+              '',
+              '수업 링크가 변경되었습니다.',
+              '',
+              `수업: ${event.title}`,
+              `일시: ${when}${laterCount > 0 ? ` (이후 ${laterCount}회 수업에도 적용)` : ''}`,
+              event.meetingUrl ? `새 링크: ${event.meetingUrl}` : '링크가 삭제되었습니다. 새 링크는 포털에서 확인해 주세요.',
+              portal ? `\n포털 바로가기: ${portal}` : '',
+            ]
+              .filter(Boolean)
+              .join('\n'),
+          });
+          summary.sent++;
+        } catch (e: unknown) {
+          this.log.error(`link-change notify failed inv=${inv.id} err=${e instanceof Error ? e.message : String(e)}`);
+          summary.failed++;
+        }
+      }),
+    );
+    return summary;
+  }
+
   private renderInvite(
     event: CalEventTypeormEntity,
     inv: InviteeView,

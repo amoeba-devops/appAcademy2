@@ -2,6 +2,7 @@ import { hasReviewContent, reviewMissing } from "@/lib/review-completion";
 import { formatEventWhen } from "@/lib/tz";
 import { useMyZones } from "@/modules/me/use-my-zones";
 import { TeacherFeedbackEmail } from "../components/teacher-feedback-email";
+import { MeetingLinkEditor } from "../components/meeting-link-editor";
 import {
   useVideoConfig,
   canEnterVideo,
@@ -41,6 +42,7 @@ export function PortalCalEventDetailPage() {
     queryFn: () => portalApi.calEvent(evtId!),
   });
 
+  const portalUser = useAuthStore((s) => s.portal.user);
   const video = useVideoConfig(true);
   const isBoda = video.bodaEnabled && event?.meetingProvider === "BODASCHOOL";
   // REQ-261015C — 테넌트 기본 타임존 기준 + 사용자 타임존 병기.
@@ -195,6 +197,8 @@ export function PortalCalEventDetailPage() {
               </div>
             )}
 
+          {/* REQ-261023 — 강사: 수업 링크 보기·등록·수정(담당 강사만 수정) */}
+          {portalUser?.kind === "TEACHER" && <MeetingLinkEditor evtId={event.id} />}
           {event.meetingProvider === "BODASCHOOL" && !video.bodaEnabled && (
             <p>{t("video.unavailable")}</p>
           )}

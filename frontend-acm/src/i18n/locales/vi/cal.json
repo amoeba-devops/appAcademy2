@@ -415,7 +415,7 @@
     },
     "preview": "Các lần tiếp theo",
     "invalid": "Kiểm tra quy tắc lặp và ngày bắt đầu/kết thúc.",
-    "notify": "Người tham gia nhận một thông báo tóm tắt. Gia hạn không gửi lại lời mời.",
+    "notify": "Chỉ gửi email tóm tắt chuỗi lịch một lần khi chọn 'Gửi email cho người tham dự khi lưu'. Tự động gia hạn không gửi lại.",
     "scope": "Áp dụng cho",
     "scopeKind": {
       "ONE": "Lịch này",

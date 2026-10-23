@@ -101,7 +101,30 @@
       "owner": "Created by",
       "filterStudent": "Student",
       "filterCategory": "Class type",
-      "all": "All"
+      "all": "All",
+      "link": {
+        "title": "Class link",
+        "none": "Not set yet.",
+        "boda": "BODA classroom (generated automatically — cannot be changed)",
+        "add": "Add link",
+        "edit": "Edit link",
+        "label": "Google Meet link",
+        "hint": "Format: meet.google.com/xxx-xxxx-xxx. Save it empty to remove the link.",
+        "scope": "Apply to",
+        "scopeOne": "This class only",
+        "scopeFollowing": "This and all later classes in the series ({{count}})",
+        "notify": "E-mail the link change to invitees",
+        "notifyHint": "No e-mail unless selected. The portal updates right away.",
+        "save": "Save",
+        "cancel": "Cancel",
+        "saved": "Class link saved.",
+        "savedMail": "Class link saved and {{sent}} e-mail(s) sent.",
+        "errInvalid": "This is not a Google Meet link.",
+        "errBoda": "BODA class links are managed automatically.",
+        "errProvider": "This academy does not use Google Meet links.",
+        "errForbidden": "Only the assigned teacher can change the link.",
+        "errFailed": "Could not save. Please try again."
+      }
     },
     "notices": {
       "empty": "No notices.",

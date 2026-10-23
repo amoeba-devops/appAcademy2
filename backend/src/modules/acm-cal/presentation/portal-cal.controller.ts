@@ -2,6 +2,8 @@ import { AuditDownload } from '../../acm-common/decorators/audit.decorator';
 import { FeedbackMailerService } from '../application/feedback-mailer.service';
 import { PortalFeedbackEmailDto } from '../application/dto/feedback-email.dto';
 import { RecurrenceService } from '../application/recurrence.service';
+import { TeacherMeetingLinkService } from '../application/teacher-meeting-link.service';
+import { UpdateTeacherMeetingLinkDto } from '../application/dto/teacher-meeting-link.dto';
 import { BodaPolicyInterceptor } from './boda-policy.interceptor';
 import {
   BadRequestException,
@@ -12,6 +14,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -57,6 +60,7 @@ export class PortalCalController {
     private readonly recordSvc: BodaRecordService,
     private readonly reviewSvc: CalEventReviewService,
     private readonly recordingSvc: BodaRecordingService,
+    private readonly meetingLink: TeacherMeetingLinkService,
   ) {}
 
   private async assertReviewAuthor(u: PortalAuthUser, id: string) {
@@ -64,6 +68,30 @@ export class PortalCalController {
     await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
     const event = await this.svc.getEventMeta(u.entId, id);
     this.reviewSvc.assertAssignee(event.assigneeTchId, u.refId);
+  }
+
+  /** REQ-261023 — whether the caller (assigned teacher) may edit the class link, and its scope. */
+  @Get(':id/meeting-link')
+  async meetingLinkInfo(@PortalUser() u: PortalAuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    if (u.kind !== 'TEACHER') throw new ForbiddenException('TEACHER_ONLY');
+    await this.svc.ensurePortalEventAccess(u.entId, u.kind, u.refId, id);
+    return this.meetingLink.info(u.entId, u.refId, id);
+  }
+
+  /** REQ-261023 — the assigned teacher sets or clears the Google Meet link (mail only when asked). */
+  @Patch(':id/meeting-link')
+  @ApiOperation({ summary: 'Teacher: set/clear the class Meet link (this class or this and later)' })
+  async updateMeetingLink(
+    @PortalUser() u: PortalAuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateTeacherMeetingLinkDto,
+  ) {
+    await this.assertReviewAuthor(u, id);
+    return this.meetingLink.update(u.entId, u.refId, id, {
+      meetingUrl: dto.meetingUrl,
+      scope: dto.scope ?? 'ONE',
+      notify: dto.notify === true,
+    });
   }
 
   @Get(':id/review/recipients')

@@ -415,7 +415,7 @@
     },
     "preview": "Next occurrences",
     "invalid": "Check the repeat rule and start/end dates.",
-    "notify": "Invitees receive one series summary. Extending the series does not resend invitations.",
+    "notify": "A series summary is e-mailed once only if 'Email attendees when saving' is selected. Auto-extension never re-sends.",
     "scope": "Apply to",
     "scopeKind": {
       "ONE": "This event",
