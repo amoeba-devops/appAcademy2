@@ -101,7 +101,30 @@
       "owner": "작성자",
       "filterStudent": "학생",
       "filterCategory": "수업종류",
-      "all": "전체"
+      "all": "전체",
+      "link": {
+        "title": "수업 링크",
+        "none": "아직 등록되지 않았습니다.",
+        "boda": "보다스쿨 강의실 (자동 생성 — 변경 불가)",
+        "add": "링크 등록",
+        "edit": "링크 수정",
+        "label": "Google Meet 링크",
+        "hint": "meet.google.com/xxx-xxxx-xxx 형식입니다. 비우고 저장하면 링크가 삭제됩니다.",
+        "scope": "적용 범위",
+        "scopeOne": "이 수업만",
+        "scopeFollowing": "이 수업과 이후 같은 반복 수업 전체 ({{count}}회)",
+        "notify": "참석자에게 링크 변경 메일 보내기",
+        "notifyHint": "선택하지 않으면 메일을 보내지 않습니다. 포털에는 바로 반영됩니다.",
+        "save": "저장",
+        "cancel": "취소",
+        "saved": "수업 링크를 저장했습니다.",
+        "savedMail": "수업 링크를 저장하고 메일 {{sent}}건을 보냈습니다.",
+        "errInvalid": "Google Meet 링크 형식이 아닙니다.",
+        "errBoda": "보다스쿨 수업 링크는 자동으로 관리됩니다.",
+        "errProvider": "이 학원은 Google Meet 링크를 사용하지 않습니다.",
+        "errForbidden": "담당 강사만 링크를 바꿀 수 있습니다.",
+        "errFailed": "저장하지 못했습니다. 다시 시도해 주세요."
+      }
     },
     "notices": {
       "empty": "공지사항이 없습니다.",

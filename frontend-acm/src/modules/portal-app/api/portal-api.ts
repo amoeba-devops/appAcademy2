@@ -97,6 +97,15 @@ export interface PortalNotice {
   coverImageUrl?: string | null;
 }
 
+export interface PortalMeetingLinkInfo {
+  canEdit: boolean;
+  reason: string | null;
+  provider: string;
+  meetingUrl: string | null;
+  recurring: boolean;
+  followingCount: number;
+}
+
 export const portalApi = {
   login: async (tenantCode: string, loginId: string, password: string) =>
     (
@@ -134,6 +143,20 @@ export const portalApi = {
     (await apiClient.get<PortalNotice>(`/portal/news/${slug}`)).data,
 
   // PLN-260715 — single event detail (scoped) for the full-content page.
+  // REQ-261023 — 담당 강사의 수업 링크(Google Meet) 등록·수정
+  meetingLinkInfo: async (id: string) =>
+    (await apiClient.get<PortalMeetingLinkInfo>(`/portal/cal/events/${id}/meeting-link`)).data,
+  updateMeetingLink: async (
+    id: string,
+    body: { meetingUrl: string | null; scope: 'ONE' | 'FOLLOWING'; notify: boolean },
+  ) =>
+    (
+      await apiClient.patch<{ updated: number; notify: { sent: number; skippedNoEmail: number; skippedNoSmtp: number; failed: number } | null }>(
+        `/portal/cal/events/${id}/meeting-link`,
+        body,
+      )
+    ).data,
+
   calEvent: async (id: string) =>
     (await apiClient.get<PortalCalEvent>(`/portal/cal/events/${id}`)).data,
 

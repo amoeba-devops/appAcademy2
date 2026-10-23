@@ -101,7 +101,30 @@
       "owner": "Người tạo",
       "filterStudent": "Học sinh",
       "filterCategory": "Loại lớp",
-      "all": "Tất cả"
+      "all": "Tất cả",
+      "link": {
+        "title": "Liên kết lớp học",
+        "none": "Chưa có liên kết.",
+        "boda": "Phòng học BODA (tạo tự động — không thể thay đổi)",
+        "add": "Thêm liên kết",
+        "edit": "Sửa liên kết",
+        "label": "Liên kết Google Meet",
+        "hint": "Định dạng meet.google.com/xxx-xxxx-xxx. Để trống rồi lưu để xóa liên kết.",
+        "scope": "Áp dụng cho",
+        "scopeOne": "Chỉ buổi học này",
+        "scopeFollowing": "Buổi này và tất cả buổi sau trong chuỗi ({{count}} buổi)",
+        "notify": "Gửi email báo thay đổi liên kết cho người tham gia",
+        "notifyHint": "Không gửi email nếu không chọn. Cổng thông tin cập nhật ngay.",
+        "save": "Lưu",
+        "cancel": "Hủy",
+        "saved": "Đã lưu liên kết lớp học.",
+        "savedMail": "Đã lưu liên kết và gửi {{sent}} email.",
+        "errInvalid": "Đây không phải liên kết Google Meet.",
+        "errBoda": "Liên kết lớp BODA được quản lý tự động.",
+        "errProvider": "Học viện này không dùng liên kết Google Meet.",
+        "errForbidden": "Chỉ giáo viên phụ trách mới đổi được liên kết.",
+        "errFailed": "Không lưu được. Vui lòng thử lại."
+      }
     },
     "notices": {
       "empty": "Không có thông báo.",

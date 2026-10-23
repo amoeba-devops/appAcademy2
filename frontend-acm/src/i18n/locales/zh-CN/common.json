@@ -101,7 +101,30 @@
       "owner": "创建人",
       "filterStudent": "学生",
       "filterCategory": "课程类型",
-      "all": "全部"
+      "all": "全部",
+      "link": {
+        "title": "上课链接",
+        "none": "尚未设置。",
+        "boda": "BODA 教室(自动生成,无法修改)",
+        "add": "添加链接",
+        "edit": "修改链接",
+        "label": "Google Meet 链接",
+        "hint": "格式为 meet.google.com/xxx-xxxx-xxx。清空后保存即删除链接。",
+        "scope": "适用范围",
+        "scopeOne": "仅本次课程",
+        "scopeFollowing": "本次及之后的全部重复课程({{count}} 次)",
+        "notify": "向参与者发送链接变更邮件",
+        "notifyHint": "不勾选则不发送邮件。门户会立即更新。",
+        "save": "保存",
+        "cancel": "取消",
+        "saved": "已保存上课链接。",
+        "savedMail": "已保存上课链接并发送 {{sent}} 封邮件。",
+        "errInvalid": "不是 Google Meet 链接。",
+        "errBoda": "BODA 课程链接由系统自动管理。",
+        "errProvider": "本学院不使用 Google Meet 链接。",
+        "errForbidden": "只有负责教师可以修改链接。",
+        "errFailed": "保存失败,请重试。"
+      }
     },
     "notices": {
       "empty": "暂无公告。",

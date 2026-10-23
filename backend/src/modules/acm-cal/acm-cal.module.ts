@@ -37,6 +37,7 @@ import { CalEventReviewTypeormEntity } from './infrastructure/typeorm/cal-event-
 import { CalInviteeService } from './application/cal-invitee.service';
 import { FeedbackMailerService } from './application/feedback-mailer.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
+import { TeacherMeetingLinkService } from './application/teacher-meeting-link.service';
 import { AcmNotificationModule } from '../acm-notification/acm-notification.module';
 import { AcmSystemModule } from '../acm-system/acm-system.module';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
@@ -157,6 +158,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     CalInviteeService,
     FeedbackMailerService,
     InviteeNotifierService,
+    TeacherMeetingLinkService,
     BodaConfigService,
     BodaRoomService,
     BodaLaunchContextService,
