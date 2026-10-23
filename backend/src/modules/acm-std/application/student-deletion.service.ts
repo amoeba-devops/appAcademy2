@@ -45,12 +45,15 @@ export class StudentDeletionService {
   constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
   async actor(m: EntityManager, u: AcmCurrentUser): Promise<Actor> {
     const rows: Actor[] = await m.query(
-      `SELECT usr_id AS id,usr_name AS name FROM amb_acm_user
-      WHERE usr_id=$1 AND ent_id=$2 AND usr_status='ACTIVE' AND usr_locked_at IS NULL
-      AND auth_source='ama' AND ama_user_id IS NOT NULL AND ama_role IN ('MASTER','OWNER','MANAGER')`,
+      // REQ-261024 Q-A2 — 관리자 + (서비스 운영자 또는 테넌트 마스터). 이전: AMA 관리자 계정만.
+      `SELECT u.usr_id AS id,u.usr_name AS name FROM amb_acm_user u
+      WHERE u.usr_id=$1 AND u.ent_id=$2 AND u.usr_status='ACTIVE' AND u.usr_locked_at IS NULL
+      AND u.usr_role IN ('ADMIN','APP_ADMIN')
+      AND EXISTS (SELECT 1 FROM amb_acm_user_permission p WHERE p.ent_id=u.ent_id AND p.usr_id=u.usr_id
+                  AND p.upr_permission IN ('CONFIG_ADMIN','TENANT_MASTER'))`,
       [u.id, u.entId],
     );
-    if (!rows[0]) throw new ForbiddenException('AMA_ADMIN_REQUIRED');
+    if (!rows[0]) throw new ForbiddenException('DELETE_PERMISSION_REQUIRED');
     return rows[0];
   }
   async access(u: AcmCurrentUser) {

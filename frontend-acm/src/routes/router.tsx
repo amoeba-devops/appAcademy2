@@ -1,3 +1,4 @@
+import { AdminUsersPage } from '@/modules/cfg/pages/admin-users-page';
 import { CalStudentLinkPage } from '@/modules/cal/pages/cal-student-link-page';
 import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
@@ -308,6 +309,8 @@ export const router = createBrowserRouter([
       // REQ-261015C — 기본 타임존은 테넌트 설정으로 이동.
       { path: 'config/general', element: <Navigate to="/admin/tenant?tab=general" replace /> },
       { path: 'config/ad-platforms', element: <AdPlatformsPage /> },
+      // REQ-261024 — 관리자 관리(서비스 운영자)
+      { path: 'config/admins', element: <AdminUsersPage /> },
       ] },
     ],
   },

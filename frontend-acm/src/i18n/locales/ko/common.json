@@ -2104,5 +2104,90 @@
   },
   "session": {
     "expired": "로그인 시간이 지나 다시 로그인해 주세요."
+  },
+  "adminUsers": {
+    "title": "관리자 관리",
+    "cardDescription": "관리자·직원 계정 정보, 비밀번호, 로그인 방식(AMA/로컬)을 관리합니다.",
+    "desc": "관리자·직원 계정의 정보·비밀번호·로그인 방식을 관리합니다.",
+    "search": "이름·이메일 검색",
+    "role": "등급",
+    "auth": "로그인",
+    "all": "전체",
+    "roles": {
+      "ADMIN": "관리자",
+      "STAFF": "직원"
+    },
+    "authSource": {
+      "ama": "AMA",
+      "local": "로컬"
+    },
+    "status": {
+      "ACTIVE": "활성",
+      "INACTIVE": "비활성"
+    },
+    "cols": {
+      "name": "이름",
+      "email": "이메일",
+      "role": "등급",
+      "auth": "로그인",
+      "perms": "권한",
+      "lastLogin": "마지막 로그인"
+    },
+    "perm": {
+      "CONFIG_ADMIN": "서비스 운영자",
+      "TENANT_MASTER": "테넌트 마스터",
+      "AUDIT_VIEWER": "감사 조회"
+    },
+    "noPassword": "비밀번호 없음",
+    "locked": "잠김",
+    "pinned": "로컬 고정",
+    "selected": "선택 {{count}}명",
+    "switchLocal": "로컬 로그인으로 전환",
+    "switchConfirmTitle": "로컬 로그인으로 전환할까요?",
+    "switchConfirmBody": "{{count}}명을 이메일·비밀번호 로그인으로 바꿉니다. 비밀번호가 없는 계정은 임시 비밀번호(24시간)를 발급해 메일로 보냅니다. AMA 로 로그인해도 로컬로 유지됩니다.",
+    "switchDone": "{{count}}명을 로컬 로그인으로 전환했습니다.",
+    "tempShown": "{{email}} 임시 비밀번호(메일 미발송 — 지금 한 번만 표시): {{password}}",
+    "tempMailed": "{{email}} 임시 비밀번호를 메일로 보냈습니다.",
+    "detail": {
+      "basic": "기본 정보",
+      "name": "이름",
+      "email": "이메일",
+      "role": "등급",
+      "status": "상태",
+      "save": "저장",
+      "saved": "저장했습니다.",
+      "login": "로그인",
+      "method": "방식",
+      "amaRole": "AMA 역할",
+      "toLocal": "로컬로 전환",
+      "lock": "잠금",
+      "unlock": "잠금 해제",
+      "notLocked": "잠금 없음",
+      "password": "비밀번호",
+      "newPassword": "새 비밀번호 지정",
+      "newPasswordPlaceholder": "영문+숫자 8자 이상",
+      "mustChange": "다음 로그인 때 변경 요구",
+      "setPassword": "비밀번호 저장",
+      "passwordSaved": "비밀번호를 저장했습니다.",
+      "issueTemp": "임시 비밀번호 발급 (24시간·메일)",
+      "record": "기록",
+      "joined": "가입",
+      "lastLogin": "마지막 로그인",
+      "audit": "감사 이력",
+      "close": "닫기",
+      "masterFixed": "테넌트 마스터는 등급·상태를 바꿀 수 없습니다.",
+      "selfFixed": "본인 계정의 등급·상태는 바꿀 수 없습니다."
+    },
+    "errors": {
+      "CANNOT_CHANGE_OWN_ROLE": "본인 등급은 바꿀 수 없습니다.",
+      "CANNOT_DEACTIVATE_SELF": "본인을 비활성화할 수 없습니다.",
+      "CANNOT_LOCK_SELF": "본인을 잠글 수 없습니다.",
+      "TENANT_MASTER_ROLE_FIXED": "테넌트 마스터는 등급·상태·잠금을 바꿀 수 없습니다.",
+      "EMAIL_TAKEN": "이미 쓰는 이메일입니다.",
+      "weak": "비밀번호는 영문+숫자 포함 8자 이상이어야 합니다.",
+      "failed": "처리하지 못했습니다."
+    },
+    "empty": "계정이 없습니다.",
+    "loadError": "목록을 불러오지 못했습니다."
   }
 }

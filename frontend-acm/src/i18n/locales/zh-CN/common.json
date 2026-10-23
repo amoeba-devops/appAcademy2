@@ -2104,5 +2104,90 @@
   },
   "session": {
     "expired": "登录已过期，请重新登录。"
+  },
+  "adminUsers": {
+    "title": "管理员管理",
+    "cardDescription": "管理管理员/职员账号、密码及登录方式（AMA/本地）。",
+    "desc": "管理管理员和职员账号的信息、密码与登录方式。",
+    "search": "搜索姓名或邮箱",
+    "role": "等级",
+    "auth": "登录",
+    "all": "全部",
+    "roles": {
+      "ADMIN": "管理员",
+      "STAFF": "职员"
+    },
+    "authSource": {
+      "ama": "AMA",
+      "local": "本地"
+    },
+    "status": {
+      "ACTIVE": "启用",
+      "INACTIVE": "停用"
+    },
+    "cols": {
+      "name": "姓名",
+      "email": "邮箱",
+      "role": "等级",
+      "auth": "登录",
+      "perms": "权限",
+      "lastLogin": "最近登录"
+    },
+    "perm": {
+      "CONFIG_ADMIN": "服务运营者",
+      "TENANT_MASTER": "租户主管理员",
+      "AUDIT_VIEWER": "审计查看"
+    },
+    "noPassword": "无密码",
+    "locked": "已锁定",
+    "pinned": "固定本地",
+    "selected": "已选 {{count}} 名",
+    "switchLocal": "切换为本地登录",
+    "switchConfirmTitle": "切换为本地登录？",
+    "switchConfirmBody": "{{count}} 个账号将改用邮箱和密码登录。没有密码的账号会通过邮件收到 24 小时临时密码。通过 AMA 登录也会保持本地方式。",
+    "switchDone": "已将 {{count}} 个账号切换为本地登录。",
+    "tempShown": "{{email}} 的临时密码（未发送邮件——仅此次显示）：{{password}}",
+    "tempMailed": "已通过邮件向 {{email}} 发送临时密码。",
+    "detail": {
+      "basic": "基本信息",
+      "name": "姓名",
+      "email": "邮箱",
+      "role": "等级",
+      "status": "状态",
+      "save": "保存",
+      "saved": "已保存。",
+      "login": "登录",
+      "method": "方式",
+      "amaRole": "AMA 角色",
+      "toLocal": "切换为本地",
+      "lock": "锁定",
+      "unlock": "解除锁定",
+      "notLocked": "未锁定",
+      "password": "密码",
+      "newPassword": "设置新密码",
+      "newPasswordPlaceholder": "8 位以上，含字母和数字",
+      "mustChange": "下次登录时要求修改",
+      "setPassword": "保存密码",
+      "passwordSaved": "已保存密码。",
+      "issueTemp": "发放临时密码（24 小时·邮件）",
+      "record": "记录",
+      "joined": "加入",
+      "lastLogin": "最近登录",
+      "audit": "审计记录",
+      "close": "关闭",
+      "masterFixed": "租户主管理员的等级和状态无法修改。",
+      "selfFixed": "无法修改自己的等级和状态。"
+    },
+    "errors": {
+      "CANNOT_CHANGE_OWN_ROLE": "无法修改自己的等级。",
+      "CANNOT_DEACTIVATE_SELF": "无法停用自己。",
+      "CANNOT_LOCK_SELF": "无法锁定自己。",
+      "TENANT_MASTER_ROLE_FIXED": "租户主管理员的等级、状态和锁定无法修改。",
+      "EMAIL_TAKEN": "该邮箱已被使用。",
+      "weak": "密码需 8 位以上并包含字母和数字。",
+      "failed": "处理失败。"
+    },
+    "empty": "没有账号。",
+    "loadError": "无法加载列表。"
   }
 }

@@ -37,6 +37,8 @@ import {
   PasswordResetPublicController,
 } from './presentation/password-reset.controller';
 import { PasswordResetService } from './application/password-reset.service';
+import { AdminUserService } from './application/admin-user.service';
+import { AdminUserController } from './presentation/admin-user.controller';
 import { TenantMasterController } from './presentation/tenant-master.controller';
 import { TenantRoleMenuService } from './application/tenant-role-menu.service';
 import { MailConfigController } from './presentation/mail-config.controller';
@@ -71,6 +73,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
   ],
   controllers: [
     ConfigAccessController,
+    AdminUserController,
     SystemUserController,
     SystemTenantController,
     MeMenuController,
@@ -103,6 +106,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     Ga4ConfigService,
     AiConfigService,
     PasswordResetService,
+    AdminUserService,
     UserInviteService,
     RegisteredUserService,
   ],

@@ -80,3 +80,9 @@ change_log:
 ## 6. Part 1 Result (이슈 이전 결과)
 - AMA 원본(읽기 전용 추출): **TPI01 ISN-26** "김다우 학생 모친 SJA BHA 입학 관련 상담 전화 오후 6:30" — 업무(TASK)·열림(OPEN)·우선순위 3·MAJOR·마감 2026-10-23, AMA 프로젝트 '업무', 등록 tpimorgan · 담당 tpijung · 참여 tpiyeri, 본문 2문단, 댓글·첨부 없음. AMA 원본 변경 없음.
 - `sql/acm/1051-prj-issue-import-ama-tpi01-isn26.sql` — 1041 규칙(멱등 `TPI01#ISN-26`, 이메일 매칭·대체). ACM 에 '업무' 프로젝트가 없어 같은 이름으로 생성(등록자 관리자).
+
+## 7. Part 2 Implementation (관리자 관리 구현)
+- `sql/acm/1052` `usr_local_pinned` — 로컬 고정 계정은 AMA 로그인 시 로그인 방식·등급·이름·이메일 유지(AMA 사용자 ID·역할 스냅숏만 갱신)
+- `/api/acm/config/admins` (CONFIG_ADMIN): 목록·상세·수정(본인 강등·비활성·잠금 금지, 테넌트 마스터 등급·상태 고정)·잠금/해제·비밀번호 지정(정책·다음 로그인 변경 선택)·임시 비밀번호(24h·메일/1회 표시)·AMA→로컬 일괄 전환(비밀번호 없으면 임시 발급)
+- 상담 삭제·복구, 학생 삭제 = 관리자 + (서비스 운영자 또는 테넌트 마스터) — `RecordDeleteGuard`, `config-access.canDeleteRecords`. 구 `AmaAccountGuard` 제거
+- 화면 `/admin/config/admins` (서비스 설정 카드), 상세 대화상자, 4개 언어

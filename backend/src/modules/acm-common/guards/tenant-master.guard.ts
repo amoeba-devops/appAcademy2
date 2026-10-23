@@ -63,3 +63,25 @@ export class AuditViewerGuard implements CanActivate {
     throw new ForbiddenException('AUDIT_VIEWER permission required');
   }
 }
+
+/**
+ * REQ-261024 Q-A2 — deleting consultations/students: an administrator (ADMIN/APP_ADMIN) who is
+ * also the service operator (CONFIG_ADMIN) or the tenant master. Replaces the AMA-account rule.
+ */
+export async function canDeleteRecords(ds: DataSource, user: AcmCurrentUser | undefined): Promise<boolean> {
+  if (!user || !['ADMIN', 'APP_ADMIN'].includes(user.role ?? '')) return false;
+  return (
+    (await hasUserPermission(ds, user, 'CONFIG_ADMIN')) ||
+    (await hasUserPermission(ds, user, 'TENANT_MASTER'))
+  );
+}
+
+@Injectable()
+export class RecordDeleteGuard implements CanActivate {
+  constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const { user } = context.switchToHttp().getRequest<{ user?: AcmCurrentUser }>();
+    if (await canDeleteRecords(this.ds, user)) return true;
+    throw new ForbiddenException('DELETE_PERMISSION_REQUIRED');
+  }
+}

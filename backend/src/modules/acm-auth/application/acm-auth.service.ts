@@ -260,6 +260,22 @@ export class AcmAuthService {
   }
 
   /**
+   * REQ-261024 — 관리자 관리 화면: 관리자가 새 비밀번호를 직접 지정. 정책 검사, 잠금 실패 기록 초기화,
+   * 접속 로그(PASSWORD_CHANGED · ADMIN). `mustChange` 면 다음 로그인 때 변경 요구.
+   */
+  async setPasswordByAdmin(userId: string, plainPassword: string, mustChange: boolean, byUserId: string): Promise<void> {
+    this.assertPasswordPolicy(plainPassword);
+    const u = await this.userRepo.findOne({ where: { id: userId } });
+    if (!u) throw new HttpException({ code: 'USER_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    u.passwordHash = await bcrypt.hash(plainPassword, 12);
+    u.mustChangePassword = mustChange;
+    u.tempPasswordExpiresAt = null;
+    await this.userRepo.save(u);
+    await this.loginGuard.reset(consoleAccountKey(u.email));
+    await this.accessLog.record({ actor: this.actorOf(u), event: 'PASSWORD_CHANGED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
+  }
+
+  /**
    * REQ-261017 — 관리자 임시 비밀번호 발급: 생성·해시 저장·다음 로그인 시 변경 필수·24시간 만료.
    * 평문은 호출자(메일 발송 또는 1회 표시)에게만 돌려주고 저장·로그하지 않는다.
    */
@@ -468,7 +484,7 @@ export class AcmAuthService {
         email: user.email,
         name: user.name,
         role: user.role ?? 'ADMIN',
-        authSource: 'ama',
+        authSource: user.authSource === 'ama' ? 'ama' : 'local',
       },
     };
   }
@@ -663,7 +679,8 @@ export class AcmAuthService {
     if (!user.amaUserId) dirty.amaUserId = payload.sub;
     if (user.amaEntityId !== payload.entityId)
       dirty.amaEntityId = payload.entityId;
-    if (user.authSource !== 'ama') dirty.authSource = 'ama';
+    // REQ-261024 — 관리자가 로컬로 바꾼 계정은 AMA 로 로그인해도 로컬로 둔다.
+    if (user.authSource !== 'ama' && !user.localPinned) dirty.authSource = 'ama';
     if (amaRole && user.amaRole !== amaRole) dirty.amaRole = amaRole;
     if (Object.keys(dirty).length > 0) {
       Object.assign(user, dirty);
@@ -713,8 +730,11 @@ export class AcmAuthService {
         user.amaEntityId = payload.entityId;
         user.amaRole = payload.role;
         user.amaJobRole = jobRole;
-        user.role = acmRole;
-        user.authSource = 'ama';
+        // REQ-261024 — 로컬 고정 계정은 등급·로그인 방식을 ACM 이 관리한다.
+        if (!user.localPinned) {
+          user.role = acmRole;
+          user.authSource = 'ama';
+        }
         user = await this.userRepo.save(user);
       }
     }
@@ -738,11 +758,14 @@ export class AcmAuthService {
     } else {
       // Sync mutable fields — role/jobRole re-evaluated each login (FR-B4).
       const dirty: Partial<AcmUserTypeormEntity> = {};
-      if (user.email !== payload.email) dirty.email = payload.email;
-      if (displayName && user.name !== displayName) dirty.name = displayName;
+      // REQ-261024 — 로컬 고정 계정은 이메일·이름·등급을 ACM 이 관리(AMA 스냅숏만 갱신).
+      if (!user.localPinned) {
+        if (user.email !== payload.email) dirty.email = payload.email;
+        if (displayName && user.name !== displayName) dirty.name = displayName;
+        if (user.role !== acmRole) dirty.role = acmRole;
+      }
       if (user.amaRole !== payload.role) dirty.amaRole = payload.role;
       if (user.amaJobRole !== jobRole) dirty.amaJobRole = jobRole;
-      if (user.role !== acmRole) dirty.role = acmRole;
       if (user.amaEntityId !== payload.entityId)
         dirty.amaEntityId = payload.entityId;
       if (Object.keys(dirty).length > 0) {

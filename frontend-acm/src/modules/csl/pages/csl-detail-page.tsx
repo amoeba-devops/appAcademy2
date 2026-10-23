@@ -1,3 +1,4 @@
+import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
 import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { STD_SITES } from "@/modules/std/types";
 import { useEffect, useMemo, useState } from "react";
@@ -8,7 +9,6 @@ import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { Trash2 } from "lucide-react";
-import { useAuthStore } from "@/stores/auth.store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { CslStageStepper } from "@/modules/csl/components/csl-stage-stepper";
@@ -125,8 +125,8 @@ export function CslDetailBody({
   const [cancelOpen, setCancelOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<CslStage | null>(null);
 
-  // 요구 260914G — 상담 삭제는 AMA 연동 계정만 (서버도 AmaAccountGuard 로 막는다).
-  const canDelete = useAuthStore((st) => st.user?.authSource) === "ama";
+  // REQ-261024 — 관리자 + 서비스 운영자/테넌트 마스터 (서버도 RecordDeleteGuard 로 막는다).
+  const canDelete = useConfigAccess().deleteAllowed;
   const confirm = useConfirm();
   const toast = useToast();
   const navigateTo = useNavigate();

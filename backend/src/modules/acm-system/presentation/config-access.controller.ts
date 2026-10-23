@@ -24,7 +24,7 @@ import {
   hasUserPermission,
 } from '../../acm-common/guards/config-admin.guard';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { canViewAudit } from '../../acm-common/guards/tenant-master.guard';
+import { canDeleteRecords, canViewAudit } from '../../acm-common/guards/tenant-master.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
 import {
   CurrentUser,
@@ -63,6 +63,8 @@ export class ConfigAccessController {
       canManageTenant: await hasUserPermission(this.ds, user, 'TENANT_MASTER'),
       // REQ-261021B — 감사 메뉴 노출 여부.
       canViewAudit: await canViewAudit(this.ds, user),
+      // REQ-261024 — 상담·학생 삭제(관리자 + 서비스 운영자/테넌트 마스터).
+      canDeleteRecords: await canDeleteRecords(this.ds, user),
     };
   }
 
