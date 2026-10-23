@@ -38,6 +38,8 @@ import { CalInviteeService } from './application/cal-invitee.service';
 import { FeedbackMailerService } from './application/feedback-mailer.service';
 import { InviteeNotifierService } from './application/invitee-notifier.service';
 import { TeacherMeetingLinkService } from './application/teacher-meeting-link.service';
+import { StudentLinkService } from './application/student-link.service';
+import { StudentLinkController } from './presentation/student-link.controller';
 import { AcmNotificationModule } from '../acm-notification/acm-notification.module';
 import { AcmSystemModule } from '../acm-system/acm-system.module';
 import { CalEventTypeormEntity } from './infrastructure/typeorm/cal-event.typeorm-entity';
@@ -122,6 +124,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     ),
   ],
   controllers: [
+    StudentLinkController,
     CalColorController,
     RecurrenceController,
     IcsController,
@@ -159,6 +162,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     FeedbackMailerService,
     InviteeNotifierService,
     TeacherMeetingLinkService,
+    StudentLinkService,
     BodaConfigService,
     BodaRoomService,
     BodaLaunchContextService,

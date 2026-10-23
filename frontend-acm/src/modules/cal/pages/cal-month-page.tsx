@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { CalendarDays, ChevronLeft, ChevronRight, LogIn, Plus, Trash2, Zap } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Link2, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import {
@@ -227,6 +227,12 @@ function CalMonthContent() {
               >
                 <Zap size={14} className="mr-1" />
                 {t('instant.btnLabel')}
+              </Button>
+            )}
+            {isAdmin && (
+              <Button size="sm" variant="outline" onClick={() => navigate('/admin/cal/link-students')}>
+                <Link2 size={14} className="mr-1" />
+                {t('studentLink.nav')}
               </Button>
             )}
             <Button size="sm" onClick={() => onDayClick(toZonedShift(new Date(), tz))}>

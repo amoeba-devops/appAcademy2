@@ -1,3 +1,4 @@
+import { CalStudentLinkPage } from '@/modules/cal/pages/cal-student-link-page';
 import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
 import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
@@ -241,6 +242,8 @@ export const router = createBrowserRouter([
       { path: 'tch', element: <TchListPage /> },
       { path: 'stf', element: <StfListPage /> },
       { path: 'cal', element: <CalMonthPage /> },
+      // REQ-261023B — 제목 기반 학생 참석자 연결(관리자)
+      { path: 'cal/link-students', element: <CalStudentLinkPage /> },
       // PLN-260729-2 — 일정 상세 페이지 + 수업통계 대시보드
       { path: 'documents', element: <DocumentsPage /> },
       // REQ-261015C — 내 업무 / 이슈

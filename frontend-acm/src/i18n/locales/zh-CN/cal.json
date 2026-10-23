@@ -447,5 +447,49 @@
     "stopDescription": "将删除自所选日程开始时间起的后续日程，并停止自动生成。之前的日程将保留。",
     "stopConfirm": "结束重复",
     "stopFailed": "结束重复失败，请重试。"
+  },
+  "studentLink": {
+    "nav": "关联学生",
+    "title": "关联学生",
+    "desc": "根据标题中的学生姓名，将学生添加为课程日程的参与者。不发送邮件。",
+    "from": "开始日期",
+    "to": "结束日期",
+    "category": "类别",
+    "includeWithdrawn": "包含已退学",
+    "refresh": "重新查找",
+    "stats": {
+      "events": "目标日程",
+      "sure": "确定",
+      "multi": "多人",
+      "none": "无"
+    },
+    "cols": {
+      "title": "标题",
+      "count": "日程",
+      "period": "期间",
+      "teacher": "负责教师",
+      "students": "匹配学生",
+      "state": "状态"
+    },
+    "state": {
+      "SURE": "确定",
+      "MULTI": "多人",
+      "NONE": "无"
+    },
+    "recurring": "重复",
+    "suppressed": "已排除“{{name}}”——它是更长姓名“{{by}}”的一部分",
+    "pick": "查找学生",
+    "pickPlaceholder": "输入姓名",
+    "selection": "已选 {{groups}} 组 · 日程 {{events}} 个 · 学生 {{students}} 名",
+    "apply": "关联所选",
+    "confirmTitle": "将学生添加为参与者？",
+    "confirmBody": "将 {{students}} 名学生关联到 {{events}} 个日程。不发送邮件。重复课程之后的课次也会包含。",
+    "done": "已为 {{linked}} 个日程关联 {{added}} 名参与者（已存在 {{skipped}} 个）。",
+    "portalHint": "{{students}} 名学生和 {{parents}} 名家长没有门户账号——需在门户账号页面发放后才能在门户查看日程。",
+    "failed": "关联失败，请重新查找后再试。",
+    "loadError": "无法加载列表。",
+    "empty": "没有需要关联的日程。",
+    "showEvents": "查看日程",
+    "adminOnly": "仅限管理员。"
   }
 }
