@@ -17,6 +17,7 @@ export function useConfigAccess() {
           canManageConfig: boolean;
           canManageTenant?: boolean;
           canViewAudit?: boolean;
+          canDeleteRecords?: boolean;
         }>(
           "/acm/me/config-access",
         )
@@ -33,5 +34,7 @@ export function useConfigAccess() {
     tenantAllowed: !query.isError && query.data?.canManageTenant === true,
     // REQ-261021B — 감사 메뉴(테넌트 마스터 또는 감사 조회 권한).
     auditAllowed: !query.isError && query.data?.canViewAudit === true,
+    // REQ-261024 — 상담·학생 삭제 권한.
+    deleteAllowed: !query.isError && query.data?.canDeleteRecords === true,
   };
 }

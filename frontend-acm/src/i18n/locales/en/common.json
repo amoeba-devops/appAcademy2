@@ -2104,5 +2104,92 @@
   },
   "session": {
     "expired": "Your session has expired. Please sign in again."
+  },
+  "adminUsers": {
+    "title": "Admin management",
+    "cardDescription": "Manage admin/staff accounts, passwords and sign-in method (AMA/local).",
+    "desc": "Manage admin and staff account details, passwords and sign-in method.",
+    "search": "Search name or e-mail",
+    "role": "Grade",
+    "auth": "Sign-in",
+    "all": "All",
+    "roles": {
+      "ADMIN": "Admin",
+      "STAFF": "Staff"
+    },
+    "authSource": {
+      "ama": "AMA",
+      "local": "Local"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "cols": {
+      "name": "Name",
+      "email": "E-mail",
+      "role": "Grade",
+      "auth": "Sign-in",
+      "perms": "Permissions",
+      "lastLogin": "Last sign-in"
+    },
+    "perm": {
+      "CONFIG_ADMIN": "Service operator",
+      "TENANT_MASTER": "Tenant master",
+      "AUDIT_VIEWER": "Audit viewer"
+    },
+    "noPassword": "No password",
+    "locked": "Locked",
+    "pinned": "Local (pinned)",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "switchLocal": "Switch to local sign-in",
+    "switchConfirmTitle": "Switch to local sign-in?",
+    "switchConfirmBody": "{{count}} account(s) will sign in with e-mail and password. Accounts without a password get a 24-hour temporary password by e-mail. Signing in through AMA keeps them local.",
+    "switchDone_one": "Switched {{count}} account to local sign-in.",
+    "switchDone_other": "Switched {{count}} accounts to local sign-in.",
+    "tempShown": "Temporary password for {{email}} (not e-mailed — shown only now): {{password}}",
+    "tempMailed": "Temporary password e-mailed to {{email}}.",
+    "detail": {
+      "basic": "Details",
+      "name": "Name",
+      "email": "E-mail",
+      "role": "Grade",
+      "status": "Status",
+      "save": "Save",
+      "saved": "Saved.",
+      "login": "Sign-in",
+      "method": "Method",
+      "amaRole": "AMA role",
+      "toLocal": "Switch to local",
+      "lock": "Lock",
+      "unlock": "Unlock",
+      "notLocked": "Not locked",
+      "password": "Password",
+      "newPassword": "Set a new password",
+      "newPasswordPlaceholder": "8+ chars, letters and digits",
+      "mustChange": "Require a change at next sign-in",
+      "setPassword": "Save password",
+      "passwordSaved": "Password saved.",
+      "issueTemp": "Issue temporary password (24h, e-mail)",
+      "record": "Record",
+      "joined": "Joined",
+      "lastLogin": "Last sign-in",
+      "audit": "Audit history",
+      "close": "Close",
+      "masterFixed": "The tenant master's grade and status cannot change.",
+      "selfFixed": "You cannot change your own grade or status."
+    },
+    "errors": {
+      "CANNOT_CHANGE_OWN_ROLE": "You cannot change your own grade.",
+      "CANNOT_DEACTIVATE_SELF": "You cannot deactivate yourself.",
+      "CANNOT_LOCK_SELF": "You cannot lock yourself.",
+      "TENANT_MASTER_ROLE_FIXED": "The tenant master's grade, status and lock cannot change.",
+      "EMAIL_TAKEN": "That e-mail is already in use.",
+      "weak": "Use 8+ characters with letters and digits.",
+      "failed": "Could not complete the request."
+    },
+    "empty": "No accounts.",
+    "loadError": "Could not load the list."
   }
 }

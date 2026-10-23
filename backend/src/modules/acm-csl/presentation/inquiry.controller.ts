@@ -36,7 +36,7 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
-import { AmaAccountGuard } from '../../acm-common/guards/ama-account.guard';
+import { RecordDeleteGuard } from '../../acm-common/guards/tenant-master.guard';
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { InquiryService } from '../application/inquiry.service';
 import { InquiryWorkflowService } from '../application/inquiry-workflow.service';
@@ -180,13 +180,13 @@ export class InquiryController {
   }
 
   /**
-   * 요구 260914G — 상담 삭제·복구는 **AMA 연동 계정만**. 소프트 삭제라
-   * '삭제 목록 보기' 에서 확인·복구할 수 있다.
+   * 상담 삭제·복구 — REQ-261024 Q-A2: 관리자 + (서비스 운영자 또는 테넌트 마스터).
+   * (이전: AMA 연동 계정만, 요구 260914G) 소프트 삭제라 '삭제 목록 보기' 에서 확인·복구할 수 있다.
    */
   @Delete(':inqId')
   @HttpCode(204)
-  @UseGuards(AmaAccountGuard)
-  @ApiOperation({ summary: '상담 삭제 (소프트) — AMA 연동 계정 전용' })
+  @UseGuards(RecordDeleteGuard)
+  @ApiOperation({ summary: '상담 삭제 (소프트) — 관리자 + 서비스 운영자/테넌트 마스터' })
   remove(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,
@@ -196,8 +196,8 @@ export class InquiryController {
 
   @Post(':inqId/restore')
   @HttpCode(204)
-  @UseGuards(AmaAccountGuard)
-  @ApiOperation({ summary: '삭제된 상담 복구 — AMA 연동 계정 전용' })
+  @UseGuards(RecordDeleteGuard)
+  @ApiOperation({ summary: '삭제된 상담 복구 — 관리자 + 서비스 운영자/테넌트 마스터' })
   restore(
     @CurrentUser() user: AcmCurrentUser,
     @Param('inqId', ParseUUIDPipe) inqId: string,

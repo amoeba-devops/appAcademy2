@@ -53,6 +53,10 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'auth_source', type: 'varchar', length: 16, default: 'local' })
   authSource!: string;
 
+  /** REQ-261024 — switched to local by an admin: SSO keeps auth_source/role/name/email as ACM set them. */
+  @Column({ name: 'usr_local_pinned', type: 'boolean', default: false })
+  localPinned!: boolean;
+
   @Column({ name: 'ama_user_id', type: 'uuid', nullable: true })
   amaUserId?: string | null;
 

@@ -2104,5 +2104,90 @@
   },
   "session": {
     "expired": "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+  },
+  "adminUsers": {
+    "title": "Quản lý quản trị viên",
+    "cardDescription": "Quản lý tài khoản quản trị/nhân viên, mật khẩu và cách đăng nhập (AMA/nội bộ).",
+    "desc": "Quản lý thông tin, mật khẩu và cách đăng nhập của tài khoản quản trị và nhân viên.",
+    "search": "Tìm tên hoặc email",
+    "role": "Cấp",
+    "auth": "Đăng nhập",
+    "all": "Tất cả",
+    "roles": {
+      "ADMIN": "Quản trị",
+      "STAFF": "Nhân viên"
+    },
+    "authSource": {
+      "ama": "AMA",
+      "local": "Nội bộ"
+    },
+    "status": {
+      "ACTIVE": "Hoạt động",
+      "INACTIVE": "Ngừng hoạt động"
+    },
+    "cols": {
+      "name": "Tên",
+      "email": "Email",
+      "role": "Cấp",
+      "auth": "Đăng nhập",
+      "perms": "Quyền",
+      "lastLogin": "Đăng nhập gần nhất"
+    },
+    "perm": {
+      "CONFIG_ADMIN": "Người vận hành dịch vụ",
+      "TENANT_MASTER": "Tenant master",
+      "AUDIT_VIEWER": "Xem kiểm toán"
+    },
+    "noPassword": "Chưa có mật khẩu",
+    "locked": "Đã khóa",
+    "pinned": "Cố định nội bộ",
+    "selected": "Đã chọn {{count}}",
+    "switchLocal": "Chuyển sang đăng nhập nội bộ",
+    "switchConfirmTitle": "Chuyển sang đăng nhập nội bộ?",
+    "switchConfirmBody": "{{count}} tài khoản sẽ đăng nhập bằng email và mật khẩu. Tài khoản chưa có mật khẩu sẽ nhận mật khẩu tạm (24 giờ) qua email. Đăng nhập qua AMA vẫn giữ nội bộ.",
+    "switchDone": "Đã chuyển {{count}} tài khoản sang đăng nhập nội bộ.",
+    "tempShown": "Mật khẩu tạm của {{email}} (chưa gửi email — chỉ hiện lần này): {{password}}",
+    "tempMailed": "Đã gửi mật khẩu tạm qua email cho {{email}}.",
+    "detail": {
+      "basic": "Thông tin",
+      "name": "Tên",
+      "email": "Email",
+      "role": "Cấp",
+      "status": "Trạng thái",
+      "save": "Lưu",
+      "saved": "Đã lưu.",
+      "login": "Đăng nhập",
+      "method": "Cách",
+      "amaRole": "Vai trò AMA",
+      "toLocal": "Chuyển sang nội bộ",
+      "lock": "Khóa",
+      "unlock": "Mở khóa",
+      "notLocked": "Không khóa",
+      "password": "Mật khẩu",
+      "newPassword": "Đặt mật khẩu mới",
+      "newPasswordPlaceholder": "8+ ký tự, gồm chữ và số",
+      "mustChange": "Yêu cầu đổi khi đăng nhập lần sau",
+      "setPassword": "Lưu mật khẩu",
+      "passwordSaved": "Đã lưu mật khẩu.",
+      "issueTemp": "Cấp mật khẩu tạm (24 giờ, email)",
+      "record": "Lịch sử",
+      "joined": "Tham gia",
+      "lastLogin": "Đăng nhập gần nhất",
+      "audit": "Lịch sử kiểm toán",
+      "close": "Đóng",
+      "masterFixed": "Không thể đổi cấp, trạng thái của tenant master.",
+      "selfFixed": "Không thể đổi cấp, trạng thái của chính bạn."
+    },
+    "errors": {
+      "CANNOT_CHANGE_OWN_ROLE": "Không thể đổi cấp của chính bạn.",
+      "CANNOT_DEACTIVATE_SELF": "Không thể tự ngừng hoạt động.",
+      "CANNOT_LOCK_SELF": "Không thể tự khóa.",
+      "TENANT_MASTER_ROLE_FIXED": "Không thể đổi cấp, trạng thái, khóa của tenant master.",
+      "EMAIL_TAKEN": "Email đã được dùng.",
+      "weak": "Mật khẩu cần 8+ ký tự gồm chữ và số.",
+      "failed": "Không xử lý được."
+    },
+    "empty": "Không có tài khoản.",
+    "loadError": "Không tải được danh sách."
   }
 }

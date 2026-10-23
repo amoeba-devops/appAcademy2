@@ -1,3 +1,4 @@
+import { useConfigAccess } from '@/modules/cfg/hooks/use-config-access';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +23,6 @@ import {
 } from '@/modules/csl/components/csl-kanban-board';
 import { RegisteredAtCell } from '@/modules/csl/components/registered-at-cell';
 import { useTenantTz } from '@/lib/tz';
-import { useAuthStore } from '@/stores/auth.store';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { useToast } from '@/components/ui/toast';
 import { Trash2 } from 'lucide-react';
@@ -128,10 +128,8 @@ export function CslListPage() {
   const tz = useTenantTz(); // REQ-260903 — 시각은 테넌트 타임존 기준
   const dash = t('common:dash');
 
-  // 요구 260914G — 상담 삭제·복구는 AMA 연동 계정만. 서버도 같은 기준으로
-  // 막지만(AmaAccountGuard), 누를 수 없는 버튼을 보여주지 않는다.
-  const authSource = useAuthStore((s) => s.user?.authSource);
-  const canDelete = authSource === 'ama';
+  // REQ-261024 — 관리자 + 서비스 운영자/테넌트 마스터 (서버도 RecordDeleteGuard 로 막는다).
+  const canDelete = useConfigAccess().deleteAllowed;
   const confirm = useConfirm();
   const toast = useToast();
   const qc = useQueryClient();
