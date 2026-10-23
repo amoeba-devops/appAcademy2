@@ -447,5 +447,49 @@
     "stopDescription": "Deletes all occurrences from this event's start time onward and stops auto-generation. Earlier occurrences are kept.",
     "stopConfirm": "End repeat",
     "stopFailed": "Failed to end the repeat. Please try again."
+  },
+  "studentLink": {
+    "nav": "Link students",
+    "title": "Link students",
+    "desc": "Adds students as invitees to class events using the name in the title. No e-mail is sent.",
+    "from": "From",
+    "to": "To",
+    "category": "Category",
+    "includeWithdrawn": "Include withdrawn",
+    "refresh": "Search again",
+    "stats": {
+      "events": "Events",
+      "sure": "Sure",
+      "multi": "Several",
+      "none": "None"
+    },
+    "cols": {
+      "title": "Title",
+      "count": "Events",
+      "period": "Period",
+      "teacher": "Teacher",
+      "students": "Matched students",
+      "state": "Status"
+    },
+    "state": {
+      "SURE": "Sure",
+      "MULTI": "Several",
+      "NONE": "None"
+    },
+    "recurring": "Recurring",
+    "suppressed": "'{{name}}' left out — part of the longer name '{{by}}'",
+    "pick": "Find student",
+    "pickPlaceholder": "Type a name",
+    "selection": "{{groups}} group(s) · {{events}} event(s) · {{students}} student(s)",
+    "apply": "Link selected",
+    "confirmTitle": "Add these students as invitees?",
+    "confirmBody": "Links {{students}} student(s) to {{events}} event(s). No e-mail is sent. Recurring classes also get them for later occurrences.",
+    "done": "Linked {{added}} invitee(s) to {{linked}} event(s) ({{skipped}} already linked).",
+    "portalHint": "{{students}} student(s) and {{parents}} parent(s) have no portal account — issue one in Portal accounts so they can see the schedule.",
+    "failed": "Could not link. Search again and retry.",
+    "loadError": "Could not load the list.",
+    "empty": "No events need linking.",
+    "showEvents": "Show events",
+    "adminOnly": "Administrators only."
   }
 }

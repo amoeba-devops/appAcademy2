@@ -447,5 +447,49 @@
     "stopDescription": "선택한 일정의 시작 시각부터 이후 회차를 삭제하고 자동 생성을 중단합니다. 이전 회차는 유지됩니다.",
     "stopConfirm": "반복 종료",
     "stopFailed": "반복 종료에 실패했습니다. 다시 시도해 주세요."
+  },
+  "studentLink": {
+    "nav": "학생 연결 정리",
+    "title": "학생 연결 정리",
+    "desc": "제목의 학생 이름으로 수업 일정에 학생을 참석자로 연결합니다. 메일은 보내지 않습니다.",
+    "from": "시작일",
+    "to": "종료일",
+    "category": "분류",
+    "includeWithdrawn": "퇴원생 포함",
+    "refresh": "다시 찾기",
+    "stats": {
+      "events": "대상 일정",
+      "sure": "확실",
+      "multi": "여러 명",
+      "none": "없음"
+    },
+    "cols": {
+      "title": "제목",
+      "count": "일정",
+      "period": "기간",
+      "teacher": "담당",
+      "students": "찾은 학생",
+      "state": "상태"
+    },
+    "state": {
+      "SURE": "확실",
+      "MULTI": "여러 명",
+      "NONE": "없음"
+    },
+    "recurring": "반복",
+    "suppressed": "'{{name}}' 은(는) 더 긴 이름 '{{by}}' 의 일부라 제외",
+    "pick": "학생 검색",
+    "pickPlaceholder": "이름 입력",
+    "selection": "선택 {{groups}}묶음 · 일정 {{events}}건 · 학생 {{students}}명",
+    "apply": "선택한 묶음 연결",
+    "confirmTitle": "학생을 참석자로 연결할까요?",
+    "confirmBody": "일정 {{events}}건에 학생 {{students}}명을 연결합니다. 메일은 보내지 않습니다. 반복 수업은 이후 회차에도 적용됩니다.",
+    "done": "일정 {{linked}}건에 참석자 {{added}}명을 연결했습니다(이미 연결 {{skipped}}건).",
+    "portalHint": "포털 계정이 없는 학생 {{students}}명 · 학부모 {{parents}}명 — 포털 계정 화면에서 발급해야 포털에서 일정을 볼 수 있습니다.",
+    "failed": "연결하지 못했습니다. 다시 찾기 후 다시 시도해 주세요.",
+    "loadError": "목록을 불러오지 못했습니다.",
+    "empty": "연결이 필요한 일정이 없습니다.",
+    "showEvents": "일정 보기",
+    "adminOnly": "관리자만 사용할 수 있습니다."
   }
 }

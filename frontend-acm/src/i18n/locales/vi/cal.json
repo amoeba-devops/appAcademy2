@@ -447,5 +447,49 @@
     "stopDescription": "Xóa các buổi từ thời điểm bắt đầu của lịch này trở đi và dừng tự động tạo. Các buổi trước đó được giữ lại.",
     "stopConfirm": "Dừng lặp lại",
     "stopFailed": "Dừng lặp lại thất bại. Vui lòng thử lại."
+  },
+  "studentLink": {
+    "nav": "Liên kết học sinh",
+    "title": "Liên kết học sinh",
+    "desc": "Thêm học sinh làm người tham dự vào lịch học dựa trên tên trong tiêu đề. Không gửi email.",
+    "from": "Từ ngày",
+    "to": "Đến ngày",
+    "category": "Loại",
+    "includeWithdrawn": "Gồm học sinh đã nghỉ",
+    "refresh": "Tìm lại",
+    "stats": {
+      "events": "Lịch học",
+      "sure": "Chắc chắn",
+      "multi": "Nhiều người",
+      "none": "Không có"
+    },
+    "cols": {
+      "title": "Tiêu đề",
+      "count": "Số lịch",
+      "period": "Thời gian",
+      "teacher": "Giáo viên",
+      "students": "Học sinh tìm thấy",
+      "state": "Trạng thái"
+    },
+    "state": {
+      "SURE": "Chắc chắn",
+      "MULTI": "Nhiều người",
+      "NONE": "Không có"
+    },
+    "recurring": "Lặp lại",
+    "suppressed": "Bỏ '{{name}}' — là một phần của tên dài hơn '{{by}}'",
+    "pick": "Tìm học sinh",
+    "pickPlaceholder": "Nhập tên",
+    "selection": "{{groups}} nhóm · {{events}} lịch · {{students}} học sinh",
+    "apply": "Liên kết nhóm đã chọn",
+    "confirmTitle": "Thêm học sinh làm người tham dự?",
+    "confirmBody": "Liên kết {{students}} học sinh vào {{events}} lịch. Không gửi email. Lớp lặp lại cũng áp dụng cho các buổi sau.",
+    "done": "Đã liên kết {{added}} người tham dự vào {{linked}} lịch ({{skipped}} đã có).",
+    "portalHint": "{{students}} học sinh và {{parents}} phụ huynh chưa có tài khoản cổng — hãy cấp ở mục Tài khoản cổng để họ xem được lịch.",
+    "failed": "Không liên kết được. Hãy tìm lại rồi thử lại.",
+    "loadError": "Không tải được danh sách.",
+    "empty": "Không có lịch cần liên kết.",
+    "showEvents": "Xem lịch",
+    "adminOnly": "Chỉ quản trị viên."
   }
 }
