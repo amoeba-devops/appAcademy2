@@ -110,7 +110,7 @@ describe('teacher email authorization', () => {
 describe('feedback recipients (REQ-261023 §5)', () => {
   it('includes current class enrollees as well as STUDENT invitees', async () => {
     const service = Object.create(FeedbackMailerService.prototype) as FeedbackMailerService;
-    const query = jest.fn(async () => [{ stdId: 'cls-std' }]);
+    const query = jest.fn(async (_sql: string, _params: unknown[]) => [{ stdId: 'cls-std' }]);
     const studentsFind = jest.fn(async ({ where }: { where: { id: { _value: string[] } } }) =>
       where.id._value.map((id) => ({ id, name: id })),
     );
