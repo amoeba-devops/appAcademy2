@@ -36,7 +36,8 @@
     "sortIssues": "이슈 많은 순",
     "empty": "등록된 프로젝트가 없습니다.",
     "cardSummary": "참여자 {{members}}명 · 이슈 {{issues}}개",
-    "updatedAt": "최근 수정 {{date}}"
+    "updatedAt": "최근 수정 {{date}}",
+    "notMember": "참여 안 함"
   },
   "projectEditor": {
     "titleEdit": "프로젝트 수정 · 참여자 관리",
@@ -79,7 +80,9 @@
     "googleDoc": "Google 문서",
     "copyLink": "링크 복사",
     "viewContent": "내용 보기",
-    "viewEdit": "보기 / 수정"
+    "viewEdit": "보기 / 수정",
+    "delete": "삭제",
+    "deleteConfirm": "‘{{title}}’ 프로젝트를 삭제할까요?\n이슈 {{issues}}건 · 문서 {{documents}}건 · 파일 {{files}}건이 함께 숨겨집니다. (Google Drive 폴더는 그대로 남습니다.)"
   },
   "docType": {
     "MEMO": "메모",

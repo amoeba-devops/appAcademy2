@@ -77,6 +77,11 @@ export class IssueAssigneeDto {
   @IsOptional() @IsUUID() assigneeId?: string | null;
 }
 
+/** PLN-261027B — 이슈를 옮길 프로젝트. */
+export class IssueMoveDto {
+  @IsUUID() projectId!: string;
+}
+
 /** 태그·공백만 있는 HTML 은 빈 내용으로 본다. */
 export const isBlankHtml = (v: string) =>
   !v

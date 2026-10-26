@@ -117,6 +117,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
       '1040-prj-issue-ama-parity.sql',
       '1042-prj-issue-types-assignee-log.sql',
       '1047-prj-drive-folder-name.sql',
+      '1055-prj-project-soft-delete-move-log.sql',
     ])
       await ds.query(
         readFileSync(resolve(__dirname, '../../../../sql/acm/' + f), 'utf8'),

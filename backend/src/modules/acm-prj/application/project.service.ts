@@ -1,4 +1,5 @@
 import { hasUserPermission } from '../../acm-common/guards/config-admin.guard';
+import { canDeleteRecords } from '../../acm-common/guards/tenant-master.guard';
 import { ProjectRelationDto, DocumentDto } from './document.dto';
 import { googleUrl, validateContent } from './document-content';
 import {
@@ -23,9 +24,13 @@ export interface Project {
   prj_status: string;
   owner_id: string;
   can_manage?: boolean;
+  is_member?: boolean;
   drive_folder_id: string | null;
   drive_account_id: string | null;
 }
+/** p = 프로젝트 alias, $3 = 사용자. */
+const IS_MEMBER = `(p.owner_id=$3 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$3))`;
+const MANAGES = `(p.owner_id=$3 OR EXISTS(SELECT 1 FROM amb_acm_prj_member manager WHERE manager.ent_id=p.ent_id AND manager.prj_id=p.prj_id AND manager.usr_id=$3 AND manager.member_role='MANAGER'))`;
 @Injectable()
 export class ProjectService {
   constructor(@InjectDataSource(ACM_DS) readonly ds: DataSource) {}
@@ -35,9 +40,10 @@ export class ProjectService {
     manage = false,
     write = false,
   ): Promise<Project> {
+    // PLN-261027B — 서비스 관리자는 참여하지 않은 프로젝트도 열고 관리한다.
     const [p] = await this.ds.query<Project[]>(
-      `SELECT p.*,(p.owner_id=$3 OR EXISTS(SELECT 1 FROM amb_acm_prj_member manager WHERE manager.ent_id=p.ent_id AND manager.prj_id=p.prj_id AND manager.usr_id=$3 AND manager.member_role='MANAGER')) AS can_manage FROM amb_acm_prj_project p WHERE ent_id=$1 AND prj_id=$2 AND (owner_id=$3 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$3))`,
-      [u.entId, id, u.id],
+      `SELECT p.*,($4::boolean OR ${MANAGES}) AS can_manage,${IS_MEMBER} AS is_member FROM amb_acm_prj_project p WHERE p.ent_id=$1 AND p.prj_id=$2 AND p.prj_deleted_at IS NULL AND ($4::boolean OR ${IS_MEMBER})`,
+      [u.entId, id, u.id, await this.isOperator(u)],
     );
     if (!p) throw new NotFoundException('프로젝트를 찾을 수 없습니다.');
     if (manage && !p.can_manage)
@@ -82,7 +88,7 @@ export class ProjectService {
   }
   async allDocuments(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT i.*,(p.prj_status<>'ARCHIVED' AND (i.created_by=$2 OR p.owner_id=$2 OR $3::boolean OR EXISTS(SELECT 1 FROM amb_acm_prj_member mg WHERE mg.ent_id=p.ent_id AND mg.prj_id=p.prj_id AND mg.usr_id=$2 AND mg.member_role='MANAGER'))) AS can_delete,p.prj_title,p.drive_folder_id AS prj_drive_folder_id,p.drive_folder_name AS prj_drive_folder_name,(SELECT d.root_name FROM amb_acm_prj_drive d WHERE d.ent_id=p.ent_id) AS drive_root_name,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
+      `SELECT i.*,(p.prj_status<>'ARCHIVED' AND (i.created_by=$2 OR p.owner_id=$2 OR $3::boolean OR EXISTS(SELECT 1 FROM amb_acm_prj_member mg WHERE mg.ent_id=p.ent_id AND mg.prj_id=p.prj_id AND mg.usr_id=$2 AND mg.member_role='MANAGER'))) AS can_delete,p.prj_title,p.drive_folder_id AS prj_drive_folder_id,p.drive_folder_name AS prj_drive_folder_name,(SELECT d.root_name FROM amb_acm_prj_drive d WHERE d.ent_id=p.ent_id) AS drive_root_name,u.usr_name AS creator_name FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id LEFT JOIN amb_acm_user u ON u.ent_id=i.ent_id AND u.usr_id=i.created_by WHERE i.ent_id=$1 AND i.deleted_at IS NULL AND p.prj_deleted_at IS NULL AND i.pit_kind<>'ISSUE' AND (p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY i.updated_at DESC LIMIT 1000`,
       [u.entId, u.id, await this.isTenantMaster(u)],
     );
   }
@@ -127,8 +133,8 @@ export class ProjectService {
   }
   async list(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT p.*,(p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member manager WHERE manager.ent_id=p.ent_id AND manager.prj_id=p.prj_id AND manager.usr_id=$2 AND manager.member_role='MANAGER')) AS can_manage, (SELECT count(*)::int FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id) AS member_count, (SELECT count(*)::int FROM amb_acm_prj_item i WHERE i.ent_id=p.ent_id AND i.prj_id=p.prj_id AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL) AS issue_count, (SELECT jsonb_agg(x) FROM (SELECT pit_title,pit_status FROM amb_acm_prj_item i WHERE i.ent_id=p.ent_id AND i.prj_id=p.prj_id AND pit_kind='ISSUE' AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 3) x) AS recent_issues FROM amb_acm_prj_project p WHERE ent_id=$1 AND (owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)) ORDER BY updated_at DESC LIMIT 500`,
-      [u.entId, u.id],
+      `SELECT p.*,($2::boolean OR ${MANAGES}) AS can_manage,${IS_MEMBER} AS is_member, (SELECT count(*)::int FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id) AS member_count, (SELECT count(*)::int FROM amb_acm_prj_item i WHERE i.ent_id=p.ent_id AND i.prj_id=p.prj_id AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL) AS issue_count, (SELECT jsonb_agg(x) FROM (SELECT pit_title,pit_status FROM amb_acm_prj_item i WHERE i.ent_id=p.ent_id AND i.prj_id=p.prj_id AND pit_kind='ISSUE' AND deleted_at IS NULL ORDER BY updated_at DESC LIMIT 3) x) AS recent_issues FROM amb_acm_prj_project p WHERE p.ent_id=$1 AND p.prj_deleted_at IS NULL AND ($2::boolean OR ${IS_MEMBER}) ORDER BY p.updated_at DESC LIMIT 500`,
+      [u.entId, await this.isOperator(u), u.id],
     );
   }
   async detail(u: AcmCurrentUser, id: string) {
@@ -154,16 +160,19 @@ export class ProjectService {
   async save(u: AcmCurrentUser, d: ProjectDto, id?: string) {
     if (!d.title.trim())
       throw new BadRequestException('프로젝트명을 입력하세요.');
-    if (id) await this.access(u, id, true);
+    const operator = await this.isOperator(u);
+    const before = id ? await this.access(u, id, true) : undefined;
     return this.ds.transaction(async (m) => {
       const managers = d.managerIds ?? [];
+      // PLN-261027B — 참여하지 않은 서비스 관리자가 수정해도 참여자로 넣지 않는다.
+      const self = before && !before.is_member && operator ? [] : [u.id];
       const members = [
-        ...new Set([...d.memberIds, ...managers, d.ownerId, u.id]),
+        ...new Set([...d.memberIds, ...managers, d.ownerId, ...self]),
       ];
       await this.membersValid(m, u, members);
       const [p] = id
         ? await m.query<Project[]>(
-            `WITH changed AS (UPDATE amb_acm_prj_project SET prj_title=$3,prj_description=$4,owner_id=$5,prj_status=$6,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND (owner_id=$7 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=$1 AND m.prj_id=$2 AND m.usr_id=$7 AND m.member_role='MANAGER')) RETURNING *) SELECT * FROM changed`,
+            `WITH changed AS (UPDATE amb_acm_prj_project SET prj_title=$3,prj_description=$4,owner_id=$5,prj_status=$6,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND prj_deleted_at IS NULL AND ($8::boolean OR owner_id=$7 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=$1 AND m.prj_id=$2 AND m.usr_id=$7 AND m.member_role='MANAGER')) RETURNING *) SELECT * FROM changed`,
             [
               u.entId,
               id,
@@ -172,6 +181,7 @@ export class ProjectService {
               d.ownerId,
               d.status ?? 'ACTIVE',
               u.id,
+              operator,
             ],
           )
         : await m.query<Project[]>(
@@ -206,6 +216,36 @@ export class ProjectService {
   }
   private isTenantMaster(u: AcmCurrentUser) {
     return hasUserPermission(this.ds, u, 'TENANT_MASTER');
+  }
+  /** PLN-261027B — 서비스 관리자: 관리자 등급 + (서비스 운영자 또는 테넌트 마스터). */
+  isOperator(u: AcmCurrentUser) {
+    return canDeleteRecords(this.ds, u);
+  }
+  /** PLN-261027B — 서비스 관리자 전용 프로젝트 삭제(숨김). 이슈·문서·파일은 그대로 두고 함께 숨겨진다. */
+  async remove(u: AcmCurrentUser, id: string) {
+    if (!(await this.isOperator(u)))
+      throw new ForbiddenException(
+        '서비스 관리자만 프로젝트를 삭제할 수 있습니다.',
+      );
+    // UPDATE … RETURNING 은 [rows, count] 로 온다.
+    const [rows] = await this.ds.query<[{ prj_id: string }[], number]>(
+      `UPDATE amb_acm_prj_project SET prj_deleted_at=now(),prj_deleted_by=$3,updated_at=now() WHERE ent_id=$1 AND prj_id=$2 AND prj_deleted_at IS NULL RETURNING prj_id`,
+      [u.entId, id, u.id],
+    );
+    if (!rows.length)
+      throw new NotFoundException('프로젝트를 찾을 수 없습니다.');
+    return { ok: true };
+  }
+  /** 삭제 확인 창에 보여줄 이슈·문서·파일 수. */
+  async counts(u: AcmCurrentUser, id: string) {
+    await this.access(u, id);
+    const [c] = await this.ds.query<
+      { issues: number; files: number; documents: number }[]
+    >(
+      `SELECT count(*) FILTER (WHERE pit_kind='ISSUE')::int AS issues,count(*) FILTER (WHERE pit_kind='FILE')::int AS files,count(*) FILTER (WHERE pit_kind NOT IN ('ISSUE','FILE'))::int AS documents FROM amb_acm_prj_item WHERE ent_id=$1 AND prj_id=$2 AND deleted_at IS NULL`,
+      [u.entId, id],
+    );
+    return c;
   }
   async saveItem(u: AcmCurrentUser, id: string, d: ItemDto, itemId?: string) {
     await this.access(u, id, false, true);
@@ -387,6 +427,17 @@ export class ProjectService {
       for (const a of d.attachments) {
         let fileItemId: string | null = null;
         let size: number | null = null;
+        // PLN-261027B — 이미 이 이슈에 붙은 파일은 그대로 유지(다른 이슈와 함께 쓰여 원래 프로젝트에 남은 파일 포함).
+        const [attached] = a.fileItemId
+          ? await m.query<{ pia_id: string }[]>(
+              `SELECT pia_id FROM amb_acm_prj_issue_attachment WHERE ent_id=$1 AND pit_id=$2 AND file_item_id=$3::uuid AND deleted_at IS NULL LIMIT 1`,
+              [u.entId, pitId, a.fileItemId],
+            )
+          : [];
+        if (attached) {
+          keep.push(attached.pia_id);
+          continue;
+        }
         if (a.fileItemId || a.driveFileId) {
           const [f] = await m.query<
             { pit_id: string; drive_size: string | null }[]

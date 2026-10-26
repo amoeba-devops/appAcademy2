@@ -167,6 +167,19 @@ export class ProjectController {
   ) {
     return this.projects.save(u, d, id);
   }
+  /** PLN-261027B — 서비스 관리자 전용 삭제(숨김). */
+  @Delete('projects/:id') remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.projects.remove(u, id);
+  }
+  @Get('projects/:id/counts') counts(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.projects.counts(u, id);
+  }
   @Get('projects/:id/items') items(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,

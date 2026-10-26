@@ -1462,7 +1462,8 @@
       "assigneeInDetail": "담당자는 이슈 상세 화면에서 변경합니다.",
       "participantsHint": "프로젝트 참여자 중 관련자를 체크하세요.",
       "unassignedOption": "미배정",
-      "me": "(나)"
+      "me": "(나)",
+      "moveWarning": "프로젝트를 바꾸면 새 프로젝트 참여자가 아닌 담당자·관련자는 빠지고, 상위·하위 이슈 연결이 해제되며, 첨부 파일은 새 프로젝트로 옮겨집니다."
     },
     "loading": "불러오는 중…",
     "noDescription": "설명이 없습니다.",

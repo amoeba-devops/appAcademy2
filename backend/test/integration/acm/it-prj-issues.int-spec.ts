@@ -41,6 +41,7 @@ describe('ACM project issues (PostgreSQL)', () => {
     }).initialize();
     await ds.query(
       `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_email text,usr_status text,usr_role text);
+       CREATE TABLE amb_acm_user_permission(ent_id uuid,usr_id uuid,upr_permission text);
        CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_user_id uuid,deleted_at timestamptz);
        CREATE TABLE amb_acm_notification_outbox(nob_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,nob_type varchar(32),nob_target_id uuid,nob_actor_id uuid,nob_payload jsonb,nob_recipients jsonb,created_at timestamptz DEFAULT now());
        CREATE FUNCTION set_acm_updated_at() RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -79,6 +80,9 @@ describe('ACM project issues (PostgreSQL)', () => {
     // REQ-261016D — 유형 2종 + 담당 이력. 두 번 적용해도 안전해야 한다.
     await ds.query(sql('1042-prj-issue-types-assignee-log.sql'));
     await ds.query(sql('1042-prj-issue-types-assignee-log.sql'));
+    // PLN-261027B — 프로젝트 숨김 삭제 + 프로젝트 변경 이력.
+    await ds.query(sql('1055-prj-project-soft-delete-move-log.sql'));
+    await ds.query(sql('1055-prj-project-soft-delete-move-log.sql'));
   }, 120_000);
 
   afterAll(async () => {
@@ -397,5 +401,208 @@ describe('ACM project issues (PostgreSQL)', () => {
     await expect(issues.remove(member, legacy.pit_id)).rejects.toThrow();
     await issues.remove(owner, legacy.pit_id);
     expect((await issues.list(owner, {})).total).toBe(4);
+  });
+
+  // PLN-261027B — 서비스 관리자(관리자 등급 + 서비스 운영자/테넌트 마스터)
+  describe('service operator & moving issues', () => {
+    const operator = user('ADMIN');
+    const plainAdmin = user('ADMIN');
+    let target: string;
+    let moved: string;
+    let child: string;
+    let fileId: string;
+
+    beforeAll(async () => {
+      for (const u of [operator, plainAdmin])
+        await ds.query(
+          `INSERT INTO amb_acm_user VALUES($1,$2,'op','op','ACTIVE','ADMIN')`,
+          [u.id, ent],
+        );
+      await ds.query(
+        `INSERT INTO amb_acm_user_permission VALUES($1,$2,'CONFIG_ADMIN')`,
+        [ent, operator.id],
+      );
+      target = (
+        await projects.save(member, {
+          title: 'Spring',
+          ownerId: member.id,
+          memberIds: [],
+        })
+      ).prj_id;
+    });
+
+    it('operator sees and edits projects without joining them', async () => {
+      const list = await projects.list(operator);
+      expect(list.map((p) => [p.prj_title, p.is_member, p.can_manage])).toEqual(
+        expect.arrayContaining([
+          ['Winter', false, true],
+          ['Spring', false, true],
+        ]),
+      );
+      expect(await projects.list(plainAdmin)).toEqual([]);
+      await expect(projects.detail(plainAdmin, target)).rejects.toThrow();
+      await projects.save(
+        operator,
+        {
+          title: 'Spring 2',
+          ownerId: member.id,
+          memberIds: [],
+          status: 'ARCHIVED',
+        },
+        target,
+      );
+      // 보관된 프로젝트도 서비스 관리자가 다시 활성화할 수 있다.
+      const back = await projects.save(
+        operator,
+        {
+          title: 'Spring',
+          ownerId: member.id,
+          memberIds: [],
+          status: 'ACTIVE',
+        },
+        target,
+      );
+      expect(back.prj_status).toBe('ACTIVE');
+      const detail = await projects.detail(operator, target);
+      expect(detail.members.map((m) => m.id)).toEqual([member.id]);
+      expect(detail.is_member).toBe(false);
+    });
+
+    it('moves an issue with cleanup and history', async () => {
+      [{ pit_id: fileId }] = await ds.query<{ pit_id: string }[]>(
+        `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_kind,pit_title,created_by) VALUES($1,$2,'FILE','plan.pdf',$3) RETURNING pit_id`,
+        [ent, projectId, owner.id],
+      );
+      moved = (
+        await projects.saveItem(owner, projectId, {
+          kind: 'ISSUE',
+          title: '옮길 이슈',
+          assigneeId: owner.id,
+          parentId: issueId,
+          participantIds: [member.id],
+          attachments: [{ fileItemId: fileId, name: 'plan.pdf' }],
+        })
+      ).pit_id as string;
+      child = (
+        await projects.saveItem(owner, projectId, {
+          kind: 'ISSUE',
+          title: '하위',
+          parentId: moved,
+        })
+      ).pit_id as string;
+      // 대상 프로젝트에 참여하지 않은 사람은 옮길 수 없다.
+      await expect(issues.move(owner, moved, target)).rejects.toThrow();
+      await expect(issues.move(plainAdmin, moved, target)).rejects.toThrow();
+
+      const after = (await issues.move(operator, moved, target)) as Record<
+        string,
+        unknown
+      > & { attachments: Record<string, unknown>[] };
+      expect(after).toMatchObject({
+        prj_id: target,
+        assignee_id: null, // owner 는 Spring 참여자가 아님
+        pit_parent_id: null,
+        participant_ids: [member.id],
+      });
+      expect(after.attachments).toEqual([
+        expect.objectContaining({ file_item_id: fileId, file_available: true }),
+      ]);
+      const [file] = await ds.query<{ prj_id: string }[]>(
+        'SELECT prj_id FROM amb_acm_prj_item WHERE pit_id=$1',
+        [fileId],
+      );
+      expect(file.prj_id).toBe(target);
+      const [c] = await ds.query<{ pit_parent_id: string | null }[]>(
+        'SELECT pit_parent_id FROM amb_acm_prj_item WHERE pit_id=$1',
+        [child],
+      );
+      expect(c.pit_parent_id).toBeNull();
+      const [log] = await issues.statusLogs(operator, moved);
+      expect(log).toMatchObject({
+        psl_kind: 'PROJECT',
+        psl_note: 'Winter → Spring',
+      });
+      // 새 프로젝트 경로로 계속 수정할 수 있다(첨부 유지).
+      await projects.saveItem(
+        member,
+        target,
+        {
+          kind: 'ISSUE',
+          title: '옮긴 이슈',
+          attachments: [{ fileItemId: fileId, name: 'plan.pdf' }],
+        },
+        moved,
+      );
+      // 참여자는 두 프로젝트 모두 참여하면 옮길 수 있다.
+      await issues.move(member, moved, projectId);
+      expect((await issues.get(member, moved)).prj_id).toBe(projectId);
+    });
+
+    it('keeps a file shared with another issue in the original project', async () => {
+      const [{ pit_id: shared }] = await ds.query<{ pit_id: string }[]>(
+        `INSERT INTO amb_acm_prj_item(ent_id,prj_id,pit_kind,pit_title,created_by) VALUES($1,$2,'FILE','shared.pdf',$3) RETURNING pit_id`,
+        [ent, projectId, owner.id],
+      );
+      const att = [{ fileItemId: shared, name: 'shared.pdf' }];
+      const a = (
+        await projects.saveItem(member, projectId, {
+          kind: 'ISSUE',
+          title: 'A',
+          attachments: att,
+        })
+      ).pit_id as string;
+      await projects.saveItem(member, projectId, {
+        kind: 'ISSUE',
+        title: 'B',
+        attachments: att,
+      });
+      await issues.move(member, a, target);
+      const [file] = await ds.query<{ prj_id: string }[]>(
+        'SELECT prj_id FROM amb_acm_prj_item WHERE pit_id=$1',
+        [shared],
+      );
+      expect(file.prj_id).toBe(projectId);
+      // 옮긴 이슈를 다시 저장해도 기존 첨부는 유지된다.
+      await projects.saveItem(
+        member,
+        target,
+        { kind: 'ISSUE', title: 'A2', attachments: att },
+        a,
+      );
+      const detail = (await issues.get(member, a)) as unknown as {
+        attachments: Record<string, unknown>[];
+      };
+      expect(detail.attachments).toEqual([
+        expect.objectContaining({
+          file_item_id: shared,
+          file_available: false,
+        }),
+      ]);
+      await issues.remove(member, a);
+    });
+
+    it('only the operator deletes projects, which hides their issues', async () => {
+      await issues.move(member, moved, target);
+      expect(await projects.counts(operator, target)).toEqual({
+        issues: 1,
+        files: 1,
+        documents: 0,
+      });
+      await expect(projects.remove(member, target)).rejects.toThrow();
+      await expect(projects.remove(plainAdmin, target)).rejects.toThrow();
+      await projects.remove(operator, target);
+      await expect(projects.remove(operator, target)).rejects.toThrow();
+      expect((await projects.list(member)).map((p) => p.prj_title)).toEqual([
+        'Winter',
+      ]);
+      await expect(issues.get(member, moved)).rejects.toThrow();
+      await expect(issues.get(operator, moved)).rejects.toThrow();
+      expect((await issues.list(operator, { projectId: target })).total).toBe(
+        0,
+      );
+      expect(
+        (await issues.myWork(member)).some((i) => i.pit_id === moved),
+      ).toBe(false);
+    });
   });
 });

@@ -108,7 +108,7 @@ describe('Chat management / PostgreSQL', () => {
     await ds.query(sql('999y-chat-room-management.sql'));
     // 알림 종류 확장(1030: CHAT_MESSAGE·REVIEW_OVERDUE, 1043: ISSUE_MENTION)과
     // ISSUE_MENTION·PASSWORD_RESET_REQUEST(1044) 표시 조건이 참조하는 테이블(최소 컬럼).
-    await ds.query(`CREATE TABLE IF NOT EXISTS amb_acm_prj_project(prj_id uuid,ent_id uuid,owner_id uuid);
+    await ds.query(`CREATE TABLE IF NOT EXISTS amb_acm_prj_project(prj_id uuid,ent_id uuid,owner_id uuid,prj_deleted_at timestamptz);
       CREATE TABLE IF NOT EXISTS amb_acm_prj_member(ent_id uuid,prj_id uuid,usr_id uuid);
       CREATE TABLE IF NOT EXISTS amb_acm_prj_item(pit_id uuid,ent_id uuid,prj_id uuid,pit_kind text,deleted_at timestamptz);
       CREATE TABLE IF NOT EXISTS amb_acm_password_reset_request(prr_id uuid,ent_id uuid,prr_status text);`);

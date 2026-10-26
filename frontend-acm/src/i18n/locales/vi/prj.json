@@ -36,7 +36,8 @@
     "sortIssues": "Nhiều vấn đề nhất",
     "empty": "Chưa có dự án nào.",
     "cardSummary": "{{members}} thành viên · {{issues}} vấn đề",
-    "updatedAt": "Cập nhật {{date}}"
+    "updatedAt": "Cập nhật {{date}}",
+    "notMember": "Không tham gia"
   },
   "projectEditor": {
     "titleEdit": "Sửa dự án · Quản lý thành viên",
@@ -79,7 +80,9 @@
     "googleDoc": "Google Tài liệu",
     "copyLink": "Sao chép liên kết",
     "viewContent": "Xem nội dung",
-    "viewEdit": "Xem / Sửa"
+    "viewEdit": "Xem / Sửa",
+    "delete": "Xóa",
+    "deleteConfirm": "Xóa dự án “{{title}}”?\n{{issues}} vấn đề, {{documents}} tài liệu và {{files}} tệp sẽ bị ẩn cùng. (Thư mục Google Drive được giữ nguyên.)"
   },
   "docType": {
     "MEMO": "Ghi chú",

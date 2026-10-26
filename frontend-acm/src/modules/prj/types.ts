@@ -7,6 +7,8 @@ export interface Person {
 }
 export interface Project {
   can_manage?:boolean;
+  /** PLN-261027B — 서비스 관리자에게 보이는 비참여 프로젝트는 false */
+  is_member?: boolean;
   prj_code?:string;
   prj_id: string;
   prj_title: string;

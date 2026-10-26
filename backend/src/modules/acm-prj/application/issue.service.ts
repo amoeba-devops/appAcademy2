@@ -18,8 +18,12 @@ import {
 import { notifyIssueMentions } from './issue-mentions';
 import { ProjectService } from './project.service';
 
-/** 접근 가능한 프로젝트(담당자 또는 참여자) 조건. p = 프로젝트 alias, $2 = 사용자. */
-const ACCESSIBLE = `(p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2))`;
+/**
+ * 접근 가능한 프로젝트(담당자 또는 참여자) 조건. p = 프로젝트 alias, $2 = 사용자.
+ * PLN-261027B — 서비스 관리자(operator)는 모든 프로젝트, 삭제된 프로젝트는 누구도 안 보임.
+ */
+const accessible = (operator: boolean) =>
+  `(p.prj_deleted_at IS NULL AND (${operator ? 'TRUE' : 'FALSE'} OR p.owner_id=$2 OR EXISTS(SELECT 1 FROM amb_acm_prj_member m WHERE m.ent_id=p.ent_id AND m.prj_id=p.prj_id AND m.usr_id=$2)))`;
 const ISSUE_SELECT = `SELECT i.pit_id,i.prj_id,i.pit_title,i.pit_body,i.pit_status,i.pit_issue_type,i.pit_priority,i.assignee_id,i.created_by,i.start_date,i.due_date,i.pit_done_at,i.created_at,i.updated_at,p.prj_title,p.prj_status,a.usr_name AS assignee_name,c.usr_name AS creator_name,
     i.pit_ref_no,i.pit_parent_id,i.pit_done_ratio,i.pit_resolution,i.assigned_at,i.pit_source,i.pit_source_ref,
     pa.pit_title AS parent_title,pa.pit_ref_no AS parent_ref_no,
@@ -69,7 +73,7 @@ export class IssueService {
       `i.ent_id=$1`,
       `i.pit_kind='ISSUE'`,
       `i.deleted_at IS NULL`,
-      ACCESSIBLE,
+      accessible(await this.projects.isOperator(u)),
     ];
     const params: unknown[] = [u.entId, u.id];
     const add = (sql: string, v: unknown) => {
@@ -117,7 +121,7 @@ export class IssueService {
   /** 접근 가능한 이슈 1건. 없거나 비참여 프로젝트면 404. */
   private async row(u: AcmCurrentUser, id: string) {
     const [row] = await this.ds.query<(IssueRow & Record<string, unknown>)[]>(
-      `${ISSUE_SELECT} WHERE i.ent_id=$1 AND i.pit_id=$3 AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND ${ACCESSIBLE}`,
+      `${ISSUE_SELECT} WHERE i.ent_id=$1 AND i.pit_id=$3 AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND ${accessible(await this.projects.isOperator(u))}`,
       [u.entId, u.id, id],
     );
     if (!row) throw new NotFoundException('이슈를 찾을 수 없습니다.');
@@ -139,8 +143,9 @@ export class IssueService {
   private attachments(entId: string, id: string) {
     return this.ds.query<Record<string, unknown>[]>(
       `SELECT a.pia_id,a.file_item_id,a.pia_url,a.pia_name,COALESCE(a.pia_size,f.drive_size) AS pia_size,a.created_at,
-              (f.pit_id IS NOT NULL AND f.deleted_at IS NULL) AS file_available
+              (f.pit_id IS NOT NULL AND f.deleted_at IS NULL AND f.prj_id=i.prj_id) AS file_available
          FROM amb_acm_prj_issue_attachment a
+         JOIN amb_acm_prj_item i ON i.ent_id=a.ent_id AND i.pit_id=a.pit_id
          LEFT JOIN amb_acm_prj_item f ON f.ent_id=a.ent_id AND f.pit_id=a.file_item_id
         WHERE a.ent_id=$1 AND a.pit_id=$2 AND a.deleted_at IS NULL ORDER BY a.created_at`,
       [entId, id],
@@ -204,7 +209,60 @@ export class IssueService {
     return this.get(u, id);
   }
 
-  /** 삭제: 등록자 또는 프로젝트 관리자. 소프트 삭제. */
+  /**
+   * PLN-261027B — 이슈를 다른 프로젝트로 옮긴다. 두 프로젝트 모두 쓸 수 있는 사람(참여자) 또는 서비스 관리자.
+   * 번호·댓글·이력은 유지. 새 프로젝트 참여자가 아닌 담당자·참여자는 빼고, 상위·하위 이슈 연결은 끊고,
+   * 이 이슈만 쓰는 첨부 파일은 새 프로젝트로 옮긴다. 이력에 "이전 → 새 프로젝트"를 남긴다.
+   */
+  async move(u: AcmCurrentUser, id: string, projectId: string) {
+    const issue = await this.row(u, id);
+    if (issue.prj_id === projectId) return this.get(u, id);
+    const from = await this.projects.access(u, issue.prj_id, false, true);
+    const to = await this.projects.access(u, projectId, false, true);
+    await this.ds.transaction(async (m) => {
+      const members = `(SELECT usr_id FROM amb_acm_prj_member WHERE ent_id=$1 AND prj_id=$3 UNION SELECT owner_id FROM amb_acm_prj_project WHERE ent_id=$1 AND prj_id=$3)`;
+      await m.query(
+        `UPDATE amb_acm_prj_item SET prj_id=$3,pit_parent_id=NULL,
+           assignee_id=CASE WHEN assignee_id IN ${members} THEN assignee_id END,
+           assigned_at=CASE WHEN assignee_id IN ${members} THEN assigned_at END,
+           updated_at=now()
+         WHERE ent_id=$1 AND pit_id=$2`,
+        [u.entId, id, projectId],
+      );
+      await m.query(
+        `UPDATE amb_acm_prj_item SET pit_parent_id=NULL,updated_at=now() WHERE ent_id=$1 AND pit_parent_id=$2`,
+        [u.entId, id],
+      );
+      await m.query(
+        `DELETE FROM amb_acm_prj_issue_participant WHERE ent_id=$1 AND pit_id=$2 AND usr_id NOT IN ${members}`,
+        [u.entId, id, projectId],
+      );
+      // 다른 이슈도 첨부한 파일은 원래 프로젝트에 남긴다(그 이슈의 첨부가 깨지지 않게).
+      await m.query(
+        `UPDATE amb_acm_prj_item f SET prj_id=$3,updated_at=now()
+          WHERE f.ent_id=$1 AND f.prj_id=$4 AND f.pit_kind='FILE' AND f.deleted_at IS NULL
+            AND f.pit_id IN (SELECT a.file_item_id FROM amb_acm_prj_issue_attachment a WHERE a.ent_id=$1 AND a.pit_id=$2 AND a.deleted_at IS NULL)
+            AND NOT EXISTS(SELECT 1 FROM amb_acm_prj_issue_attachment o WHERE o.ent_id=$1 AND o.file_item_id=f.pit_id AND o.pit_id<>$2 AND o.deleted_at IS NULL)`,
+        [u.entId, id, projectId, issue.prj_id],
+      );
+      await m.query(
+        `INSERT INTO amb_acm_prj_issue_status_log(ent_id,pit_id,psl_kind,psl_note,changed_by) VALUES($1,$2,'PROJECT',$3,$4)`,
+        [
+          u.entId,
+          id,
+          `${from.prj_title} → ${to.prj_title}`.slice(0, 500),
+          u.id,
+        ],
+      );
+      await m.query(
+        `UPDATE amb_acm_prj_project SET updated_at=now() WHERE ent_id=$1 AND prj_id=ANY($2::uuid[])`,
+        [u.entId, [issue.prj_id, projectId]],
+      );
+    });
+    return this.get(u, id);
+  }
+
+  /** 삭제: 등록자 또는 프로젝트 관리자(서비스 관리자 포함). 소프트 삭제. */
   async remove(u: AcmCurrentUser, id: string) {
     const issue = await this.row(u, id);
     const project = await this.projects.access(u, issue.prj_id, false, true);
@@ -319,7 +377,7 @@ export class IssueService {
   async myWork(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
       `${ISSUE_SELECT}
-        WHERE i.ent_id=$1 AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND ${ACCESSIBLE}
+        WHERE i.ent_id=$1 AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND ${accessible(false)}
           AND (i.assignee_id=$2 OR i.created_by=$2
                OR EXISTS(SELECT 1 FROM amb_acm_prj_issue_participant x WHERE x.ent_id=i.ent_id AND x.pit_id=i.pit_id AND x.usr_id=$2))
           AND p.prj_status<>'ARCHIVED'

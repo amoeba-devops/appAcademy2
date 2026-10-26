@@ -1462,7 +1462,8 @@
       "assigneeInDetail": "Change the assignee on the issue detail page.",
       "participantsHint": "Check related people among project members.",
       "unassignedOption": "Unassigned",
-      "me": "(me)"
+      "me": "(me)",
+      "moveWarning": "Changing the project removes the assignee and participants who are not members of the new project, unlinks parent and child issues, and moves attached files to the new project."
     },
     "loading": "Loading…",
     "noDescription": "No description.",

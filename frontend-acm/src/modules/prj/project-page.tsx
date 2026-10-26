@@ -29,6 +29,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
+import { useConfigAccess } from "@/modules/cfg/hooks/use-config-access";
 import { AdminSupportSlot } from "@/components/layout/admin-content-layout";
 import {
   Dialog,
@@ -199,7 +200,14 @@ export function ProjectListPage() {
               >
                 <div className="flex justify-between gap-2 text-xs text-secondary">
                   <span>PRJ-{p.prj_id.slice(0, 8)}</span>
-                  <span>{statusName(p.prj_status)}</span>
+                  <span className="flex items-center gap-1.5">
+                    {p.is_member === false && (
+                      <span className="rounded bg-gray-100 px-1.5 py-0.5 text-gray-600">
+                        {tp("projectList.notMember")}
+                      </span>
+                    )}
+                    {statusName(p.prj_status)}
+                  </span>
                 </div>
                 <h2 className="my-3 break-words text-lg font-semibold">
                   {p.prj_title}
@@ -414,6 +422,9 @@ export function ProjectDetailPage() {
     w = useWork(),
     slot = useContext(AdminSupportSlot);
   const user = useAuthStore((s) => s.user);
+  // PLN-261027B — 서비스 관리자(관리자 + 서비스 운영자/테넌트 마스터)만 프로젝트 삭제.
+  const canDeleteProject = useConfigAccess().deleteAllowed;
+  const [deleting, setDeleting] = useState(false);
   const oldTab = params.get("tab");
   const tab =
     oldTab === "notes" || oldTab === "files"
@@ -504,6 +515,29 @@ export function ProjectDetailPage() {
   const refresh = async () => {
     await qc.invalidateQueries({ queryKey: ["prj"] });
   };
+  const removeProject = async () => {
+    setDeleting(true);
+    try {
+      const n = (
+        await apiClient.get<{ issues: number; files: number; documents: number }>(
+          base + "/projects/" + id + "/counts",
+        )
+      ).data;
+      if (
+        !window.confirm(
+          tp("projectDetail.deleteConfirm", { title: p.data?.prj_title ?? "", ...n }),
+        )
+      )
+        return;
+      await apiClient.delete(base + "/projects/" + id);
+      await qc.invalidateQueries({ queryKey: ["prj"] });
+      navigate("/admin/projects");
+    } catch (e) {
+      window.alert(errorText(e));
+    } finally {
+      setDeleting(false);
+    }
+  };
   if (p.isLoading) return <p>{tp("common.loading")}</p>;
   if (!p.data)
     return (
@@ -582,6 +616,16 @@ export function ProjectDetailPage() {
             {manage && (
               <Button variant="outline" onClick={() => setEditing(true)}>
                 {t("pageHeader.projectDetail.edit")}
+              </Button>
+            )}
+            {canDeleteProject && (
+              <Button
+                variant="outline"
+                disabled={deleting}
+                className="text-red-600 hover:bg-red-50"
+                onClick={() => void removeProject()}
+              >
+                {tp("projectDetail.delete")}
               </Button>
             )}
             <Button variant="outline" onClick={() => slot?.show()}>

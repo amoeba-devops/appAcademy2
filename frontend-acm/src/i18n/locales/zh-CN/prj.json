@@ -36,7 +36,8 @@
     "sortIssues": "问题最多",
     "empty": "暂无项目。",
     "cardSummary": "{{members}} 名成员 · {{issues}} 个问题",
-    "updatedAt": "最近修改 {{date}}"
+    "updatedAt": "最近修改 {{date}}",
+    "notMember": "未参与"
   },
   "projectEditor": {
     "titleEdit": "编辑项目 · 管理成员",
@@ -79,7 +80,9 @@
     "googleDoc": "Google 文档",
     "copyLink": "复制链接",
     "viewContent": "查看内容",
-    "viewEdit": "查看 / 编辑"
+    "viewEdit": "查看 / 编辑",
+    "delete": "删除",
+    "deleteConfirm": "要删除项目“{{title}}”吗？\n{{issues}} 个问题、{{documents}} 个文档和 {{files}} 个文件将一并隐藏。（Google Drive 文件夹会保留。）"
   },
   "docType": {
     "MEMO": "备忘录",

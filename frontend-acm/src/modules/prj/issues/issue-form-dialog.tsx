@@ -163,6 +163,9 @@ export function IssueFormDialog({
   useEffect(() => {
     if (!detail.data) return;
     const ids = members.map((m) => m.id);
+    // PLN-261027B — 프로젝트를 바꾸면 새 프로젝트 참여자가 아닌 관련자는 뺀다(서버도 같은 규칙).
+    if (form.participantIds.some((p) => !ids.includes(p)))
+      setForm((f) => ({ ...f, participantIds: f.participantIds.filter((p) => ids.includes(p)) }));
     if (form.assigneeId && !ids.includes(form.assigneeId)) setForm((f) => ({ ...f, assigneeId: "" }));
     else if (!form.assigneeId && me && ids.includes(me) && defaultedFor.current !== form.prj)
       setForm((f) => ({ ...f, assigneeId: me }));
@@ -208,6 +211,9 @@ export function IssueFormDialog({
           name,
         })),
       };
+      // PLN-261027B — 프로젝트 변경: 먼저 옮기고(서버가 담당자·관련자·상위/하위·첨부 정리) 새 프로젝트 경로로 저장.
+      if (issue && form.prj !== issue.prj_id)
+        await apiClient.patch(`${issueBase}/issues/${issue.pit_id}/project`, { projectId: form.prj });
       const url = `${issueBase}/projects/${form.prj}/items`;
       const saved = issue
         ? (await apiClient.put<{ pit_id: string }>(`${url}/${issue.pit_id}`, body)).data
@@ -284,7 +290,7 @@ export function IssueFormDialog({
               <SearchCombo
                 value={form.prj}
                 selectedLabel={projectName(projectOptions.find((p) => p.prj_id === form.prj))}
-                locked={!!issue || !!projectId}
+                locked={!issue && !!projectId}
                 placeholder={t("issues.form.searchProjectPlaceholder")}
                 emptyText={t("issues.form.noMatch")}
                 options={(q) =>
@@ -301,10 +307,24 @@ export function IssueFormDialog({
                     }))
                 }
                 onChange={(id) => {
-                  setForm((f) => ({ ...f, prj: id, parentId: "", parentTitle: "", participantIds: [], attachments: f.attachments.filter((a) => !a.fileItemId && !a.driveFileId) }));
+                  // 수정 중 이동: 저장된 첨부는 이슈와 함께 옮겨지므로 유지, 관련자는 새 참여자 기준으로 거른다.
+                  const saved = new Set((existingAttachments ?? []).map((a) => a.pia_id));
+                  setForm((f) => ({
+                    ...f,
+                    prj: id,
+                    parentId: "",
+                    parentTitle: "",
+                    participantIds: issue ? f.participantIds : [],
+                    attachments: f.attachments.filter((a) => (!a.fileItemId && !a.driveFileId) || (!!issue && saved.has(a.key))),
+                  }));
                   setDirty(true);
                 }}
               />
+              {issue && form.prj && form.prj !== issue.prj_id && (
+                <p role="note" className="mt-1.5 rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-800">
+                  {t("issues.form.moveWarning")}
+                </p>
+              )}
             </div>
             <ParentPicker
               prj={form.prj}
@@ -373,7 +393,9 @@ export function IssueFormDialog({
               <div>
                 <span className={label}>{t("issues.fields.assignee")}</span>
                 <p className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                  {members.find((m) => m.id === form.assigneeId)?.name ?? issue.assignee_name ?? t("issues.unassigned")}
+                  {members.find((m) => m.id === form.assigneeId)?.name ??
+                    (form.prj === issue.prj_id ? issue.assignee_name : null) ??
+                    t("issues.unassigned")}
                 </p>
                 <p className="mt-1 text-xs text-gray-400">{t("issues.form.assigneeInDetail")}</p>
               </div>
