@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 import { useMyMenus } from "@/modules/system/hooks/use-my-menus";
 
 const GOOGLE_DOC =
@@ -62,6 +62,11 @@ export function CustomMenuEmbedPage() {
     setViewIds((old) => ({ ...old, [item.id]: view }));
   };
   const src = item && viewOnly && viewUrl ? viewUrl : item?.url;
+  const hintText = t(
+    viewUrl
+      ? "tenantConfig.customMenus.embedHintGoogle"
+      : "tenantConfig.customMenus.embedHint",
+  );
 
   if (isLoading) return <p role="status">{t("configAccess.loading")}</p>;
   if (!item)
@@ -71,13 +76,24 @@ export function CustomMenuEmbedPage() {
       </p>
     );
   return (
-    // 본문(main) 위아래 여백(p-3/p-4/p-6)과 헤더(56px)를 뺀 높이.
-    <div className="flex h-[calc(100dvh-56px-24px)] min-w-0 flex-col gap-2 sm:h-[calc(100dvh-56px-32px)] lg:h-[calc(100dvh-56px-48px)]">
+    // FIX-261026D — 헤더(56px)와 본문(main) 위 여백(p-3/p-4/p-6)만 뺀 높이. 아래 여백은 음수 margin 으로
+    // 상쇄해 iframe 이 화면 맨 아래까지 닿게 한다(하단 여백 최소화).
+    <div className="-mb-3 flex h-[calc(100dvh-56px-12px)] min-w-0 flex-col gap-2 sm:-mb-4 sm:h-[calc(100dvh-56px-16px)] lg:-mb-6 lg:h-[calc(100dvh-56px-24px)]">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="truncate text-xl font-semibold text-primary">
           {item.name}
         </h1>
         <div className="flex flex-wrap items-center gap-2">
+          {/* 안내 문구는 하단 대신 아이콘 툴팁으로 — 시트 표시 영역을 넓힌다. */}
+          <span
+            role="img"
+            tabIndex={0}
+            aria-label={hintText}
+            title={hintText}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-secondary hover:bg-[var(--gray-100)] focus-visible:outline focus-visible:outline-2"
+          >
+            <Info size={16} />
+          </span>
           {viewUrl && (
             <div
               role="group"
@@ -121,18 +137,11 @@ export function CustomMenuEmbedPage() {
         key={src}
         src={src}
         title={item.name}
-        className="min-h-0 w-full flex-1 rounded-lg border border-[var(--border-subtle)] bg-surface"
+        className="min-h-0 w-full flex-1 rounded-t-lg border border-b-0 border-[var(--border-subtle)] bg-surface"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
         referrerPolicy="no-referrer-when-downgrade"
         allow="clipboard-read; clipboard-write; fullscreen"
       />
-      <p className="text-xs text-secondary">
-        {t(
-          viewUrl
-            ? "tenantConfig.customMenus.embedHintGoogle"
-            : "tenantConfig.customMenus.embedHint",
-        )}
-      </p>
     </div>
   );
 }
