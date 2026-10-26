@@ -31,7 +31,7 @@ const VISIBLE = `u.usr_status='ACTIVE' AND (
      AND member.tlm_kind='USER' AND member.tlm_ref_id=u.usr_id AND member.tlm_left_at IS NULL))
  OR (n.nin_type='ISSUE_MENTION' AND u.usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') AND EXISTS(
    SELECT 1 FROM amb_acm_prj_item i JOIN amb_acm_prj_project p ON p.ent_id=i.ent_id AND p.prj_id=i.prj_id
-   WHERE i.ent_id=n.ent_id AND i.pit_id=n.nin_target_id AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL
+   WHERE i.ent_id=n.ent_id AND i.pit_id=n.nin_target_id AND i.pit_kind='ISSUE' AND i.deleted_at IS NULL AND p.prj_deleted_at IS NULL
      AND (p.owner_id=u.usr_id OR EXISTS(SELECT 1 FROM amb_acm_prj_member pm WHERE pm.ent_id=p.ent_id AND pm.prj_id=p.prj_id AND pm.usr_id=u.usr_id))))
  OR (n.nin_type='PASSWORD_RESET_REQUEST' AND u.usr_role IN ('ADMIN','APP_ADMIN') AND EXISTS(
    SELECT 1 FROM amb_acm_password_reset_request r WHERE r.ent_id=n.ent_id AND r.prr_id=n.nin_target_id))

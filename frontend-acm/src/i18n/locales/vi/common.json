@@ -1462,7 +1462,8 @@
       "assigneeInDetail": "Đổi người phụ trách tại trang chi tiết vấn đề.",
       "participantsHint": "Đánh dấu người liên quan trong thành viên dự án.",
       "unassignedOption": "Chưa giao",
-      "me": "(tôi)"
+      "me": "(tôi)",
+      "moveWarning": "Khi đổi dự án, người phụ trách và người liên quan không thuộc dự án mới sẽ bị gỡ, liên kết vấn đề cha/con bị hủy và tệp đính kèm được chuyển sang dự án mới."
     },
     "loading": "Đang tải…",
     "noDescription": "Không có mô tả.",

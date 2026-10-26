@@ -24,6 +24,7 @@ import {
   IssueAssigneeDto,
   IssueCommentDto,
   IssueListQuery,
+  IssueMoveDto,
   IssueStatusDto,
 } from '../application/issue.dto';
 
@@ -63,6 +64,14 @@ export class IssueController {
     @Body() d: IssueAssigneeDto,
   ) {
     return this.issues.changeAssignee(u, id, d.assigneeId ?? null);
+  }
+  /** PLN-261027B — 프로젝트 변경. */
+  @Patch('issues/:id/project') move(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: IssueMoveDto,
+  ) {
+    return this.issues.move(u, id, d.projectId);
   }
   @Delete('issues/:id') remove(
     @CurrentUser() u: AcmCurrentUser,

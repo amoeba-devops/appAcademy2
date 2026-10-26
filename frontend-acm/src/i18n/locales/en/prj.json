@@ -36,7 +36,8 @@
     "sortIssues": "Most issues",
     "empty": "No projects yet.",
     "cardSummary": "{{members}} members · {{issues}} issues",
-    "updatedAt": "Updated {{date}}"
+    "updatedAt": "Updated {{date}}",
+    "notMember": "Not a member"
   },
   "projectEditor": {
     "titleEdit": "Edit project · Manage members",
@@ -79,7 +80,9 @@
     "googleDoc": "Google Doc",
     "copyLink": "Copy link",
     "viewContent": "View content",
-    "viewEdit": "View / Edit"
+    "viewEdit": "View / Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete the project “{{title}}”?\n{{issues}} issues, {{documents}} documents and {{files}} files will be hidden with it. (The Google Drive folder is kept.)"
   },
   "docType": {
     "MEMO": "Memo",
