@@ -16,10 +16,12 @@ export interface LoginResponse {
   user: AuthUserDTO;
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string, remember = false): Promise<LoginResponse> {
   const { data } = await apiClient.post<LoginResponse>('/acm/auth/login', {
     email,
     password,
+    // PLN-261027 — 로그인 유지(PC: 학원 설정 시간, 모바일은 항상 계속 유지)
+    ...(remember ? { remember: true } : {}),
   });
   return data;
 }

@@ -56,7 +56,9 @@
       "invalid": "Invalid ID or password.",
       "remember": "Remember academy code & ID",
       "showPw": "Show password",
-      "hidePw": "Hide password"
+      "hidePw": "Hide password",
+      "keep": "Keep me signed in",
+      "keepHint": "Don't tick this on a shared PC. Phones and the installed app always stay signed in."
     },
     "changePw": {
       "title": "Change password",
@@ -2192,5 +2194,23 @@
     },
     "empty": "No accounts.",
     "loadError": "Could not load the list."
+  },
+  "sessionConfig": {
+    "title": "Sign-in duration",
+    "cardDescription": "Set how long 'Keep me signed in' lasts on PC/browsers (up to 48 hours).",
+    "desc": "Set how long PC/browser sign-ins last. Phones stay signed in while in use.",
+    "pc": "PC / browser",
+    "hours": "Keep signed in for",
+    "unit": "hours",
+    "range": "1–{{max}} hours",
+    "pcHint": "When 'Keep me signed in' is ticked at sign-in, the session lasts this long. Otherwise it is {{default}} hours.",
+    "mobile": "Mobile",
+    "mobileHint": "The installed app and phone browsers stay signed in while used (sign in again after {{days}} days of no use).",
+    "applies": "Changes apply from the next sign-in.",
+    "lastChanged": "Last changed: {{date}} {{name}}",
+    "default": "Using the default ({{hours}} hours)",
+    "save": "Save",
+    "saved": "Saved.",
+    "failed": "Could not save. Enter a whole number from 1 to {{max}}."
   }
 }

@@ -65,6 +65,7 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
       '1006-acm-tenant-timezone.sql',
       '999k-acm-tenant-menu-order.sql',
       '999x-config-admin-permission.sql',
+      '1053-tenant-session-hours.sql',
     ])
       await db.query(sql(f));
     // 사용자 엔티티 전체 컬럼(830/880 의 사용자 부분만).

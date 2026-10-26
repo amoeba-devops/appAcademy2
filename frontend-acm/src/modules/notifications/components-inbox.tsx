@@ -1,3 +1,4 @@
+import { MobileSessionKeeper } from "@/lib/session-keep";
 import { PushEnableBanner, PushLoginPrompt, PushSettings, PushSessionSync } from "./push-settings";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -147,6 +148,7 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
       </button>
       <PushSessionSync mode={mode} />
       <PushLoginPrompt mode={mode} />
+      <MobileSessionKeeper mode={mode} />
       <Dialog open={settings} onOpenChange={setSettings}>
         <DialogContent>
           <DialogHeader>

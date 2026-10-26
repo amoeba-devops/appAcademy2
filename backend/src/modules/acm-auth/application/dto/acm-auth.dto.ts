@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 
 export class AcmLoginDto {
   @ApiProperty({ example: 'admin@acm.local' })
@@ -12,6 +19,12 @@ export class AcmLoginDto {
   @MinLength(8)
   @MaxLength(120)
   password!: string;
+
+  /** PLN-261027 — 로그인 유지(PC·브라우저: 학원 설정 시간, 모바일은 항상 계속 유지). */
+  @ApiProperty({ required: false, default: false })
+  @IsOptional()
+  @IsBoolean()
+  remember?: boolean;
 }
 
 export interface AcmAuthUser {

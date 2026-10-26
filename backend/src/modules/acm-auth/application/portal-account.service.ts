@@ -1,7 +1,7 @@
 import { AccessLogService } from '../../acm-aud/application/access-log.service';
 import { LoginGuardService, portalAccountKey, tooMany } from '../../acm-aud/application/login-guard.service';
 import { AUD_SYSTEM_ENT, maskLoginId, type AccessActor, type AccessReason } from '../../acm-aud/application/aud.types';
-import { sessionSignOptions } from '../../acm-common/session/session-client';
+import { loginSignOptions, sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   HttpException,
   HttpStatus,
@@ -243,6 +243,7 @@ export class PortalAccountService {
     tenantCode: string,
     loginId: string,
     password: string,
+    remember = false,
   ): Promise<{ accessToken: string; mustChangePassword: boolean; user: PortalAuthUser }> {
     const entId = await this.resolveEntIdByCode(tenantCode);
     const acc = entId
@@ -281,11 +282,20 @@ export class PortalAccountService {
       );
     }
     await this.loginGuard?.onSuccess(attempt.accountKey);
-    await this.accessLog?.record({ actor, event: 'LOGIN', result: 'SUCCESS', method: 'PASSWORD' });
+    // PLN-261027 — 모바일은 계속 유지(30일·자동 연장), PC 는 로그인 유지 체크 시 학원 설정 시간.
+    const tenant = await this.tenants.findOne({ where: { entId: acc.entId } });
+    const signOpts = loginSignOptions({ remember, tenantHours: tenant?.sessionHours ?? null });
+    await this.accessLog?.record({
+      actor,
+      event: 'LOGIN',
+      result: 'SUCCESS',
+      method: 'PASSWORD',
+      reason: signOpts.kind === 'DEFAULT' ? null : signOpts.kind,
+    });
     acc.lastLoginAt = new Date();
     await this.repo.update(acc.id, { lastLoginAt: acc.lastLoginAt });
     return {
-      accessToken: this.sign(acc),
+      accessToken: this.sign(acc, signOpts.expiresIn),
       mustChangePassword: acc.mustChangePassword,
       user: toAuthUser(acc),
     };
@@ -320,6 +330,15 @@ export class PortalAccountService {
     return acc && !acc.lockedAt ? toAuthUser(acc) : null;
   }
 
+  /** PLN-261027 — 포털 모바일 로그인 자동 연장(모바일이 아니면 null). */
+  async refreshMobile(id: string, entId: string): Promise<{ accessToken: string | null }> {
+    const acc = await this.repo.findOne({ where: { id, entId, status: 'ACTIVE' } });
+    if (!acc || acc.lockedAt) throw new UnauthorizedException('INVALID_SESSION');
+    const opts = loginSignOptions({ remember: false, tenantHours: null });
+    if (opts.kind !== 'MOBILE') return { accessToken: null };
+    return { accessToken: this.sign(acc, opts.expiresIn) };
+  }
+
   /** REQ-261021B — 포털 로그아웃 기록. */
   async recordLogout(id: string, entId: string): Promise<void> {
     const acc = await this.repo.findOne({ where: { id, entId } });
@@ -339,7 +358,7 @@ export class PortalAccountService {
     return t?.entId ?? null;
   }
 
-  private sign(acc: PortalAccountTypeormEntity): string {
+  private sign(acc: PortalAccountTypeormEntity, expiresIn?: ReturnType<typeof loginSignOptions>['expiresIn']): string {
     const payload: PortalJwtPayload = {
       sub: acc.id,
       entId: acc.entId,
@@ -348,7 +367,7 @@ export class PortalAccountService {
       loginId: acc.loginId,
       mustChangePassword: acc.mustChangePassword,
     };
-    return this.jwt.sign(payload, sessionSignOptions());
+    return this.jwt.sign(payload, expiresIn ? { expiresIn } : sessionSignOptions());
   }
 
   /** Look up an active student's trimmed email, or null when absent. */

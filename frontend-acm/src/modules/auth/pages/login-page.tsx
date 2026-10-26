@@ -1,3 +1,4 @@
+import { loadKeepSignedIn, saveKeepSignedIn } from "@/lib/session-keep";
 import { SessionExpiredNotice } from "@/components/common/session-expired-notice";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -58,6 +59,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [keep, setKeep] = useState(loadKeepSignedIn);
   const [submitting, setSubmitting] = useState(false);
 
   // AMA SSO auto-exchange — runs once on mount when ?ama_token=... is present.
@@ -143,7 +145,8 @@ export function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { accessToken, user } = await login(email.trim(), password);
+      const { accessToken, user } = await login(email.trim(), password, keep);
+      saveKeepSignedIn(keep);
       setAuth(accessToken, {
         id: user.id,
         entId: user.entId,
@@ -279,6 +282,15 @@ export function LoginPage() {
                   {t("login.forgot")}
                 </button>
               </div>
+
+              {/* PLN-261027 — 로그인 유지 */}
+              <label className="flex min-h-9 items-start gap-2 text-sm">
+                <input type="checkbox" className="mt-1" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
+                <span>
+                  {t("login.keep")}
+                  <span className="block text-xs text-secondary">{t("login.keepHint")}</span>
+                </span>
+              </label>
 
               {error && (
                 <div

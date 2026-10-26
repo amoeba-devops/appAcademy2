@@ -1,3 +1,4 @@
+import { loadKeepSignedIn, saveKeepSignedIn } from '@/lib/session-keep';
 import { SessionExpiredNotice } from '@/components/common/session-expired-notice';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -34,6 +35,7 @@ export function PortalLoginPage() {
   const [remember, setRemember] = useState(!!remembered);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [keep, setKeep] = useState(loadKeepSignedIn);
 
   const returnTo = params.get('returnTo');
 
@@ -42,7 +44,8 @@ export function PortalLoginPage() {
     setError(null);
     setBusy(true);
     try {
-      const res = await portalApi.login(tenantCode.trim(), loginId.trim(), password);
+      const res = await portalApi.login(tenantCode.trim(), loginId.trim(), password, keep);
+      saveKeepSignedIn(keep);
       // 학원코드/아이디 저장 — 체크 시 유지, 해제 시 삭제.
       try {
         if (remember) {
@@ -133,6 +136,15 @@ export function PortalLoginPage() {
             onChange={(e) => setRemember(e.target.checked)}
           />
           {t('portalApp.login.remember', '학원코드·아이디 저장')}
+        </label>
+
+        {/* PLN-261027 — 로그인 유지 */}
+        <label className="mt-2 flex min-h-9 items-start gap-2 text-sm text-secondary">
+          <input type="checkbox" className="mt-1" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
+          <span>
+            {t('portalApp.login.keep')}
+            <span className="block text-xs">{t('portalApp.login.keepHint')}</span>
+          </span>
         </label>
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}

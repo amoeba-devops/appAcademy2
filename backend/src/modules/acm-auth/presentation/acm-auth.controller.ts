@@ -29,7 +29,7 @@ export class AcmAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'ACM login (email + password) — returns JWT' })
   login(@Body() dto: AcmLoginDto) {
-    return this.service.login(dto.email, dto.password);
+    return this.service.login(dto.email, dto.password, dto.remember === true);
   }
 
   @Post('ama-exchange')
@@ -40,6 +40,16 @@ export class AcmAuthController {
   })
   amaExchange(@Body() dto: AmaExchangeDto) {
     return this.service.exchangeAmaToken(dto.amaToken);
+  }
+
+  /** PLN-261027 — 모바일 로그인 자동 연장(모바일이 아니면 accessToken: null). */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AcmJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mobile: renew the 30-day login while the app is used' })
+  refresh(@CurrentUser() user: AcmCurrentUser) {
+    return this.service.refreshMobile(user.id);
   }
 
   @Post('logout')
