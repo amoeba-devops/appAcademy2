@@ -353,12 +353,12 @@ export class DailyKpiService {
     );
     const cs_counseling = Number(counselingQ[0]?.c ?? 0);
 
-    // apply: enrollment rows where enr_applied=true and updated on this day
+    // FIX-261026 — 지원 = 그날 들어온 맵테스트 문의(inq_kind='MAP_TEST', 등록일 기준).
+    // (이전: enr_applied 표시 + 수정일 — 맵테스트 문의가 한 번도 잡히지 않았다)
     const applyQ = await this.ds.query<CountRow[]>(
-      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_enrollment e
-        WHERE e.ent_id = $1 AND e.enr_applied = true
-          AND DATE(e.updated_at AT TIME ZONE 'Asia/Seoul') = $2
-          AND ${NOT_DELETED_INQ}`,
+      `SELECT COUNT(*)::text AS c FROM amb_acm_csl_inquiry
+        WHERE ent_id = $1 AND inq_kind = 'MAP_TEST' AND inq_registered_at = $2
+          AND deleted_at IS NULL`,
       [entId, isoDate],
     );
     const cs_apply = Number(applyQ[0]?.c ?? 0);
@@ -600,11 +600,10 @@ export class DailyKpiService {
             WHERE i.ent_id = $1 AND i.inq_registered_at = $2
               AND i.deleted_at IS NULL
             GROUP BY 1`),
+        // FIX-261026 — 지원 = 그날 들어온 맵테스트 문의(사이트별).
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
-             FROM amb_acm_csl_enrollment e
-             JOIN amb_acm_csl_inquiry i ON i.inq_id = e.inq_id
-            WHERE e.ent_id = $1 AND e.enr_applied = true
-              AND DATE(e.updated_at AT TIME ZONE 'Asia/Seoul') = $2
+             FROM amb_acm_csl_inquiry i
+            WHERE i.ent_id = $1 AND i.inq_kind = 'MAP_TEST' AND i.inq_registered_at = $2
               AND i.deleted_at IS NULL
             GROUP BY 1`),
         q(`SELECT ${INQ_SITE_SQL} AS site, COUNT(*)::text AS c
