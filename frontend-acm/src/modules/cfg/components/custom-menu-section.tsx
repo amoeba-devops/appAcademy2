@@ -314,7 +314,17 @@ function CustomMenuDialog({
           className="mt-4 grid gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            if (valid) onSubmit({ ...form, name, url });
+            // FIX-261026C — 수정 시 form 에 id 가 섞여 있어 서버(forbidNonWhitelisted)가 400 으로
+            // 거부했다. 보낼 필드만 골라 보낸다.
+            if (valid)
+              onSubmit({
+                name,
+                url,
+                newTab: form.newTab,
+                roles: form.roles,
+                group: form.group,
+                openMode: form.openMode,
+              });
           }}
         >
           <label className="grid gap-1 text-sm">

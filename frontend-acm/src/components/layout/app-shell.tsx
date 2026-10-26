@@ -291,7 +291,9 @@ export function AppShell() {
   }
 
   return (
-    <div className="admin-shell min-h-screen bg-canvas text-primary">
+    // flow-root — main 의 mt-header 가 바깥으로 겹쳐(margin collapse) 모든 화면이 56px 더
+    // 스크롤되던 것을 막는다(FIX-261026D).
+    <div className="admin-shell flow-root min-h-screen bg-canvas text-primary">
       <AdminRealtime />
       <header className="fixed inset-x-0 top-0 z-30 h-header bg-surface border-b border-[var(--border-subtle)] flex items-center justify-between px-3 sm:px-6">
         <div className="flex items-center gap-2">
