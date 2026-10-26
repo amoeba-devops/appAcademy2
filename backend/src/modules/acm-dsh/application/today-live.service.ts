@@ -118,7 +118,7 @@ export class TodayLiveService {
  manual AS (SELECT * FROM amb_acm_dsh_manual_inputs WHERE ent_id=$1 AND min_date=$2 AND min_deleted_at IS NULL)
  SELECT
  (SELECT count(*) FROM inquiries WHERE inq_registered_at=$2)::int cs_counseling,
- (SELECT count(*) FROM enrollments WHERE enr_applied AND (updated_at AT TIME ZONE 'Asia/Seoul')::date=$2)::int cs_apply,
+ (SELECT count(*) FROM inquiries WHERE inq_kind='MAP_TEST' AND inq_registered_at=$2)::int cs_apply,
  (SELECT count(*) FROM enrollments WHERE cls_started_at=$2)::int cs_beginning,
  (SELECT count(*) FROM amb_acm_csl_transition e JOIN inquiries i ON e.inq_id=i.inq_id AND e.ent_id=i.ent_id WHERE e.to_status='DROPPED' AND (e.occurred_at AT TIME ZONE 'Asia/Seoul')::date=$2)::int cs_missing,
  (SELECT count(*) FROM amb_acm_csl_trial_class e JOIN inquiries i ON e.inq_id=i.inq_id AND e.ent_id=i.ent_id WHERE e.tcl_held_at=$2)::int cs_trial_class,

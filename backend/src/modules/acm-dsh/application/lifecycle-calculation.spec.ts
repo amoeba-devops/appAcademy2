@@ -34,7 +34,7 @@ describe('Dashboard lifecycle definitions', () => {
     expect(r.members['2026-09-02'].cs_new_class).toEqual(['a']);
     expect(r.rows[2].values.cs_new_class.calculated).toBeNull();
   });
-  it('reconstructs history and retains Scheduled after class starts', () => {
+  it('counts coordination and confirmation on their own dates (class start does not matter)', () => {
     const r = range([
       event('SCHEDULE', '2026-09-01', 'a', { status: 'SCHEDULING' }),
       event('SCHEDULE', '2026-09-02', 'a', { status: 'SCHEDULED' }),
@@ -44,7 +44,19 @@ describe('Dashboard lifecycle definitions', () => {
     expect(r.rows[1].values.cs_scheduling.calculated).toBe(0);
     expect(r.summary.cs_scheduled.calculated).toBe(1);
   });
-  it('deduplicates courses and gives pending coordination precedence', () => {
+  // FIX-261026 — 스케줄 조율/완료는 기록한 날짜 하루만 센다.
+  it('counts a schedule record only on its own date, not on later days', () => {
+    const r = range([
+      event('SCHEDULE', '2026-09-01', 'a', {
+        status: 'SCHEDULED',
+        courseKey: 'math',
+      }),
+    ]);
+    expect(r.rows[0].values.cs_scheduled.calculated).toBe(1);
+    expect(r.rows[1].values.cs_scheduled.calculated).toBe(0);
+    expect(r.summary.cs_scheduled.calculated).toBe(1); // period total = distinct people
+  });
+  it('counts both when coordination and confirmation happen the same day', () => {
     const r = range([
       event('SCHEDULE', '2026-09-01', 'a', {
         status: 'SCHEDULED',
@@ -56,7 +68,7 @@ describe('Dashboard lifecycle definitions', () => {
       }),
     ]);
     expect(r.summary.cs_scheduling.calculated).toBe(1);
-    expect(r.summary.cs_scheduled.calculated).toBe(0);
+    expect(r.summary.cs_scheduled.calculated).toBe(1);
   });
   it('includes pre-period payments and excludes after actual first class or refund', () => {
     const r = range([
@@ -100,12 +112,21 @@ describe('Dashboard lifecycle definitions', () => {
       ).summary.ops_referral_st.calculated,
     ).toBe(0);
   });
-  it('closed schedule never resurrects an old Scheduled state', () => {
-    expect(
-      range([
-        event('SCHEDULE', '2026-09-01', 'a', { status: 'SCHEDULED' }),
-        event('SCHEDULE', '2026-09-02', 'a', { status: 'CLOSED' }),
-      ]).summary.cs_scheduled.calculated,
-    ).toBe(0);
+  it('a later CLOSED does not erase an earlier day, and the same-day last record wins', () => {
+    const later = range([
+      event('SCHEDULE', '2026-09-01', 'a', { status: 'SCHEDULED' }),
+      event('SCHEDULE', '2026-09-02', 'a', { status: 'CLOSED' }),
+    ]);
+    expect(later.rows[0].values.cs_scheduled.calculated).toBe(1);
+    expect(later.rows[1].values.cs_scheduled.calculated).toBe(0);
+    const sameDay = range([
+      event('SCHEDULE', '2026-09-02', 'a', { status: 'SCHEDULED' }),
+      {
+        ...event('SCHEDULE', '2026-09-02', 'a', { status: 'CLOSED' }),
+        id: 'closed',
+        createdAt: '2026-09-02T09:00',
+      },
+    ]);
+    expect(sameDay.rows[1].values.cs_scheduled.calculated).toBe(0);
   });
 });

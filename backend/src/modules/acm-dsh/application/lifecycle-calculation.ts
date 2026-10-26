@@ -55,9 +55,12 @@ export function lifecycleRange(
     const sets = Object.fromEntries(
       LIFE_CODES.map((k) => [k, new Set<string>()]),
     ) as Record<LifeCode, Set<string>>;
+    // FIX-261026 — 스케줄 조율/완료는 기록한 날짜 하루만 센다(그날 조율 중·확정했다는 기록).
+    // 같은 날 같은 과목에 여러 번 기록하면 마지막 상태, 조율·완료가 같은 날 있으면 둘 다 센다.
     const past = events.filter((e) => e.date <= date);
+    const sameDay = past.filter((e) => e.date === date);
     const latest = new Map<string, LifeEvent>();
-    for (const e of [...past].sort(
+    for (const e of [...sameDay].sort(
       (a, b) =>
         a.date.localeCompare(b.date) ||
         a.createdAt.localeCompare(b.createdAt) ||
@@ -69,18 +72,10 @@ export function lifecycleRange(
           e,
         );
     }
-    const schedules = new Map<string, LifeEvent[]>();
-    for (const e of latest.values())
-      if (['SCHEDULING', 'SCHEDULED'].includes(e.payload.status ?? ''))
-        schedules.set(e.person, [...(schedules.get(e.person) ?? []), e]);
-    for (const [person, es] of schedules) {
-      const pending = es.filter((e) => e.payload.status === 'SCHEDULING');
-      if (
-        pending.length
-          ? pending.some((e) => inSite(e.site))
-          : es.some((e) => inSite(e.site))
-      )
-        sets[pending.length ? 'cs_scheduling' : 'cs_scheduled'].add(person);
+    for (const e of latest.values()) {
+      if (!inSite(e.site)) continue;
+      if (e.payload.status === 'SCHEDULING') sets.cs_scheduling.add(e.person);
+      else if (e.payload.status === 'SCHEDULED') sets.cs_scheduled.add(e.person);
     }
     for (const s of students)
       if (s.start === date && inSite(s.site)) sets.cs_new_class.add(s.id);
@@ -134,7 +129,7 @@ export function lifecycleRange(
           manualPresent: false,
           quality: 'UNAVAILABLE',
         }),
-        ...(['cs_new_class', 'ops_returning_st', 'ops_referral_st'].includes(
+        ...(['cs_new_class', 'ops_returning_st', 'ops_referral_st', 'cs_scheduling', 'cs_scheduled'].includes(
           k,
         ) && last
           ? {

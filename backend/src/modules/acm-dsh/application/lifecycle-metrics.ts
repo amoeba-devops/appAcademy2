@@ -3,8 +3,9 @@ export function withLifecycleMetrics(
   rows: MetricDefinitionTypeormEntity[],
 ): MetricDefinitionTypeormEntity[] {
   const extra = [
-    ['cs_scheduling', 'CS', '스케줄 조율 중', 'Scheduling', 'STATUS_SNAPSHOT'],
-    ['cs_scheduled', 'CS', '스케줄 조율 완료', 'Scheduled', 'STATUS_SNAPSHOT'],
+    // FIX-261026 — 기록한 날짜 하루만 센다(기간 합계는 고유 인원).
+    ['cs_scheduling', 'CS', '스케줄 조율', 'Scheduling', 'DAILY_DISTINCT'],
+    ['cs_scheduled', 'CS', '스케줄 조율 완료', 'Scheduled', 'DAILY_DISTINCT'],
     ['cs_new_class', 'CS', '수업시작 학생', 'New Class', 'DAILY_DISTINCT'],
     [
       'ops_returning_st',
