@@ -284,6 +284,7 @@
     "group": {
       "academy": "Academy",
       "work": "Work",
+      "bookmarks": "Bookmarks",
       "settings": "Settings"
     },
     "tenantConfig": "Tenant settings",
@@ -1316,7 +1317,7 @@
     "denied": "No access to tenant settings",
     "required": "Tenant master permission is required.",
     "tabs": {
-      "menus": "Menu visibility",
+      "menus": "Menu management",
       "general": "General",
       "integrations": "Integrations"
     },
@@ -1333,7 +1334,31 @@
       "reset": "Reset (show all)",
       "resetConfirm": "Reset menus for all roles to the default (all visible)?"
     },
-    "integrationsDesc": "Manage AI engine, AMA, video classes, Kakao notifications and GA4 visitor settings."
+    "integrationsDesc": "Manage AI engine, AMA, video classes, Kakao notifications and GA4 visitor settings.",
+    "customMenus": {
+      "title": "Custom menus (bookmarks)",
+      "description": "Add links shown in the 'Bookmarks' group of the left menu. Up to {{count}}.",
+      "add": "Add menu",
+      "addTitle": "Add menu",
+      "editTitle": "Edit menu",
+      "empty": "No custom menus yet.",
+      "order": "Order",
+      "name": "Menu name",
+      "url": "Menu link",
+      "newTab": "New tab",
+      "roles": "Visible to",
+      "allRoles": "All",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Delete the menu “{{name}}”?",
+      "limit": "You can add up to {{count}} menus.",
+      "urlHint": "An internal path (/admin/…) or an address starting with https://",
+      "urlInvalid": "Must start with / or http(s)://.",
+      "newTabLabel": "Open in a new tab",
+      "rolesHint": "Tenant masters always see every menu."
+    }
   },
   "issues": {
     "title": "Issues",

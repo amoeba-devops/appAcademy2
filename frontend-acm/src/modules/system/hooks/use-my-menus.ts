@@ -7,6 +7,8 @@ export interface MyMenus {
   hidden: string[];
   /** PLN-260728E — 테넌트 표시 순서(전체 관리 키의 순서 리스트). */
   order: string[];
+  /** REQ-261026 — 테넌트 사용자 메뉴(북마크), 등급 필터 적용·표시 순서. */
+  custom: { id: string; name: string; url: string; newTab: boolean }[];
 }
 
 /**
@@ -24,6 +26,7 @@ export function useMyMenus() {
       return {
         hidden: res.data.hidden ?? [],
         order: res.data.order ?? [],
+        custom: res.data.custom ?? [],
       } satisfies MyMenus;
     },
     staleTime: 0,

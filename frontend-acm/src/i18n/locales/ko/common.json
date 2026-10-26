@@ -284,6 +284,7 @@
     "group": {
       "academy": "학원관리",
       "work": "업무관리",
+      "bookmarks": "북마크",
       "settings": "설정"
     },
     "tenantConfig": "테넌트 설정",
@@ -1316,7 +1317,7 @@
     "denied": "테넌트 설정 접근 권한 없음",
     "required": "테넌트 마스터 권한이 필요합니다.",
     "tabs": {
-      "menus": "메뉴 노출",
+      "menus": "메뉴 관리",
       "general": "일반",
       "integrations": "연동 설정"
     },
@@ -1333,7 +1334,31 @@
       "reset": "초기화(전체 노출)",
       "resetConfirm": "모든 등급의 메뉴를 기본(전체 노출)으로 되돌릴까요?"
     },
-    "integrationsDesc": "AI 엔진, AMA 연동, 화상강의, 카카오 알림톡, GA4 방문자 설정을 관리합니다."
+    "integrationsDesc": "AI 엔진, AMA 연동, 화상강의, 카카오 알림톡, GA4 방문자 설정을 관리합니다.",
+    "customMenus": {
+      "title": "사용자 메뉴(북마크)",
+      "description": "좌측 메뉴 '북마크' 그룹에 표시할 링크를 추가합니다. 최대 {{count}}개.",
+      "add": "메뉴 추가",
+      "addTitle": "메뉴 추가",
+      "editTitle": "메뉴 수정",
+      "empty": "추가한 메뉴가 없습니다.",
+      "order": "순서",
+      "name": "메뉴명",
+      "url": "메뉴 링크",
+      "newTab": "새 탭",
+      "roles": "노출 등급",
+      "allRoles": "전체",
+      "moveUp": "위로",
+      "moveDown": "아래로",
+      "edit": "수정",
+      "delete": "삭제",
+      "deleteConfirm": "‘{{name}}’ 메뉴를 삭제할까요?",
+      "limit": "메뉴는 최대 {{count}}개까지 추가할 수 있습니다.",
+      "urlHint": "내부 경로(/admin/…) 또는 https:// 로 시작하는 주소",
+      "urlInvalid": "/ 또는 http(s):// 로 시작해야 합니다.",
+      "newTabLabel": "새 탭에서 열기",
+      "rolesHint": "테넌트 마스터에게는 항상 표시됩니다."
+    }
   },
   "issues": {
     "title": "이슈",

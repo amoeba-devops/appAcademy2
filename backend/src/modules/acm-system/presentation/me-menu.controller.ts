@@ -10,6 +10,10 @@ import {
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
 import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
+import {
+  TenantCustomMenuService,
+  type NavCustomMenu,
+} from '../application/tenant-custom-menu.service';
 
 /**
  * REQ-260621 v1.1 — the admin shell asks which sidebar menus are hidden for the
@@ -23,6 +27,7 @@ import { TenantRoleMenuService } from '../application/tenant-role-menu.service';
 export class MeMenuController {
   constructor(
     private readonly svc: TenantRoleMenuService,
+    private readonly custom: TenantCustomMenuService,
     @InjectDataSource(ACM_DS) private readonly ds: DataSource,
   ) {}
 
@@ -32,13 +37,15 @@ export class MeMenuController {
   })
   async menus(
     @CurrentUser() user: AcmCurrentUser,
-  ): Promise<{ hidden: string[]; order: string[] }> {
+  ): Promise<{ hidden: string[]; order: string[]; custom: NavCustomMenu[] }> {
     // REQ-261015C — 테넌트 허가 AND 등급별 노출(테넌트 마스터 설정).
     // 테넌트 마스터 본인은 등급 숨김 없이 허가된 메뉴를 모두 본다.
-    return this.svc.navFor(
-      user.entId,
-      user.role,
-      await hasUserPermission(this.ds, user, 'TENANT_MASTER'),
-    );
+    const master = await hasUserPermission(this.ds, user, 'TENANT_MASTER');
+    const [nav, custom] = await Promise.all([
+      this.svc.navFor(user.entId, user.role, master),
+      // REQ-261026 — 사용자 메뉴(북마크)도 등급 노출을 따른다.
+      this.custom.navFor(user.entId, user.role, master),
+    ]);
+    return { ...nav, custom };
   }
 }
