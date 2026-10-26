@@ -26,7 +26,10 @@ export type AccessReason =
   | 'SSO_INVALID'
   | 'AUTO'
   | 'ADMIN'
-  | 'SELF';
+  | 'SELF'
+  /** PLN-261027 — 성공한 로그인의 유지 방식. */
+  | 'REMEMBER'
+  | 'MOBILE';
 
 export interface AccessActor {
   entId: string;

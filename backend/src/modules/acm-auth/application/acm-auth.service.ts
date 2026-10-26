@@ -1,4 +1,4 @@
-import { sessionSignOptions } from '../../acm-common/session/session-client';
+import { loginSignOptions, sessionSignOptions } from '../../acm-common/session/session-client';
 import {
   Injectable,
   UnauthorizedException,
@@ -89,7 +89,7 @@ export class AcmAuthService {
     this.isProduction = config.get<string>('NODE_ENV') === 'production';
   }
 
-  async login(email: string, password: string): Promise<AcmLoginResponse> {
+  async login(email: string, password: string, remember = false): Promise<AcmLoginResponse> {
     const user = await this.userRepo.findOne({
       where: { email, status: 'ACTIVE' },
     });
@@ -159,7 +159,15 @@ export class AcmAuthService {
     }
 
     await this.loginGuard.onSuccess(attempt.accountKey);
-    await this.accessLog.record({ actor, event: 'LOGIN', result: 'SUCCESS', method: 'PASSWORD' });
+    // PLN-261027 — 모바일은 계속 유지(30일·자동 연장), PC 는 로그인 유지 체크 시 학원 설정 시간.
+    const sign = loginSignOptions({ remember, tenantHours: await this.tenantSessionHours(user.entId) });
+    await this.accessLog.record({
+      actor,
+      event: 'LOGIN',
+      result: 'SUCCESS',
+      method: 'PASSWORD',
+      reason: sign.kind === 'DEFAULT' ? null : sign.kind,
+    });
     user.lastLoginAt = new Date();
     await this.userRepo.update(user.id, { lastLoginAt: user.lastLoginAt });
 
@@ -170,7 +178,7 @@ export class AcmAuthService {
       name: user.name,
       role: user.role ?? 'ADMIN',
     };
-    const accessToken = this.jwtService.sign(payload, sessionSignOptions());
+    const accessToken = this.jwtService.sign(payload, { expiresIn: sign.expiresIn });
     return {
       accessToken,
       user: {
@@ -351,6 +359,28 @@ export class AcmAuthService {
     u.lockedAt = null;
     await this.userRepo.update(userId, { lockedAt: null });
     await this.accessLog.record({ actor: this.actorOf(u), event: 'UNLOCKED', result: 'SUCCESS', reason: 'ADMIN', byUserId });
+  }
+
+  /** PLN-261027 — 학원 설정 로그인 유지 시간(없으면 null → 기본). */
+  async tenantSessionHours(entId: string): Promise<number | null> {
+    const [row] = await this.userRepo.manager.query<{ h: number | null }[]>(
+      `SELECT tnt_session_hours h FROM amb_acm_tenant WHERE tnt_ent_id=$1`,
+      [entId],
+    );
+    return row?.h ?? null;
+  }
+
+  /**
+   * PLN-261027 — 모바일 로그인 자동 연장: 유효한 토큰으로 새 30일 토큰(계정 활성·잠금 아님 확인).
+   * 모바일 요청만 — PC 는 학원 설정 시간이 끝나면 다시 로그인한다.
+   */
+  async refreshMobile(userId: string): Promise<{ accessToken: string | null }> {
+    const u = await this.userRepo.findOne({ where: { id: userId, status: 'ACTIVE' } });
+    if (!u || u.lockedAt) throw new UnauthorizedException('Invalid session');
+    const sign = loginSignOptions({ remember: false, tenantHours: null });
+    if (sign.kind !== 'MOBILE') return { accessToken: null };
+    const payload: AcmJwtPayload = { sub: u.id, entId: u.entId, email: u.email, name: u.name, role: u.role ?? 'ADMIN' };
+    return { accessToken: this.jwtService.sign(payload, { expiresIn: sign.expiresIn }) };
   }
 
   /** REQ-261021B — 로그아웃 기록(토큰 폐기는 서버 세션 도입 P3 전까지 클라이언트 몫). */

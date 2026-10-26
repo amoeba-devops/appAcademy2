@@ -56,7 +56,9 @@
       "invalid": "ID hoặc mật khẩu không đúng.",
       "remember": "Lưu mã học viện & ID",
       "showPw": "Hiện mật khẩu",
-      "hidePw": "Ẩn mật khẩu"
+      "hidePw": "Ẩn mật khẩu",
+      "keep": "Duy trì đăng nhập",
+      "keepHint": "Đừng chọn trên máy tính dùng chung. Điện thoại và ứng dụng đã cài luôn được duy trì đăng nhập."
     },
     "changePw": {
       "title": "Đổi mật khẩu",
@@ -2190,5 +2192,23 @@
     },
     "empty": "Không có tài khoản.",
     "loadError": "Không tải được danh sách."
+  },
+  "sessionConfig": {
+    "title": "Thời gian duy trì đăng nhập",
+    "cardDescription": "Đặt thời gian duy trì khi chọn 'Duy trì đăng nhập' trên máy tính/trình duyệt (tối đa 48 giờ).",
+    "desc": "Đặt thời gian duy trì đăng nhập trên máy tính/trình duyệt. Điện thoại luôn đăng nhập khi đang dùng.",
+    "pc": "Máy tính / trình duyệt",
+    "hours": "Duy trì đăng nhập",
+    "unit": "giờ",
+    "range": "1–{{max}} giờ",
+    "pcHint": "Khi chọn 'Duy trì đăng nhập' lúc đăng nhập, phiên kéo dài trong thời gian này. Nếu không chọn là {{default}} giờ.",
+    "mobile": "Di động",
+    "mobileHint": "Ứng dụng đã cài và trình duyệt điện thoại luôn đăng nhập khi đang dùng (đăng nhập lại nếu {{days}} ngày không dùng).",
+    "applies": "Thay đổi áp dụng từ lần đăng nhập tiếp theo.",
+    "lastChanged": "Thay đổi lần cuối: {{date}} {{name}}",
+    "default": "Đang dùng mặc định ({{hours}} giờ)",
+    "save": "Lưu",
+    "saved": "Đã lưu.",
+    "failed": "Không lưu được. Nhập số nguyên từ 1 đến {{max}}."
   }
 }

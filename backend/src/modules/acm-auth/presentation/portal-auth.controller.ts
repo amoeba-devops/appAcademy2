@@ -30,7 +30,16 @@ export class PortalAuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Portal login by tenantCode + loginId + password' })
   login(@Body() dto: PortalLoginDto) {
-    return this.accounts.login(dto.tenantCode, dto.loginId, dto.password);
+    return this.accounts.login(dto.tenantCode, dto.loginId, dto.password, dto.remember === true);
+  }
+
+  /** PLN-261027 — 포털 모바일 로그인 자동 연장. */
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(PortalJwtAuthGuard)
+  @ApiBearerAuth()
+  refresh(@PortalUser() user: PortalAuthUser) {
+    return this.accounts.refreshMobile(user.id, user.entId);
   }
 
   @Post('logout')

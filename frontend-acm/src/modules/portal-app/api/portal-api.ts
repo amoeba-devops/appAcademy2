@@ -107,12 +107,14 @@ export interface PortalMeetingLinkInfo {
 }
 
 export const portalApi = {
-  login: async (tenantCode: string, loginId: string, password: string) =>
+  login: async (tenantCode: string, loginId: string, password: string, remember = false) =>
     (
       await apiClient.post<PortalLoginResult>('/portal/auth/login', {
         tenantCode,
         loginId,
         password,
+        // PLN-261027 — 로그인 유지
+        ...(remember ? { remember: true } : {}),
       })
     ).data,
 

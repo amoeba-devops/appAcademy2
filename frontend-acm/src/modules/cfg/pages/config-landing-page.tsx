@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { BarChart3, FolderOpen, Mail, Settings, UserCog, UserPlus } from 'lucide-react';
+import { BarChart3, FolderOpen, Mail, Settings, Timer, UserCog, UserPlus } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { ConfigCardGrid, type ConfigCard } from '../components/integration-cards';
 
@@ -14,6 +14,8 @@ const CARDS: ConfigCard[] = [
   { to: '/admin/config/drive', icon: FolderOpen, titleKey: 'config.cards.drive.title', descKey: 'config.cards.drive.description' },
   // REQ-261024 — 관리자·직원 계정 관리
   { to: '/admin/config/admins', icon: UserCog, titleKey: 'adminUsers.title', descKey: 'adminUsers.cardDescription' },
+  // PLN-261027 — 로그인 유지 시간
+  { to: '/admin/config/session', icon: Timer, titleKey: 'sessionConfig.title', descKey: 'sessionConfig.cardDescription' },
 ];
 
 export function ConfigLandingPage() {

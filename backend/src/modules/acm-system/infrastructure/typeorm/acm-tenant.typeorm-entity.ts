@@ -26,6 +26,16 @@ export class AcmTenantTypeormEntity {
   @Column({ name: 'tnt_timezone', type: 'varchar', length: 64, default: 'Asia/Seoul' })
   timezone!: string;
 
+  /** PLN-261027 — PC·브라우저 "로그인 유지" 시간(1~48, NULL=기본 4). */
+  @Column({ name: 'tnt_session_hours', type: 'smallint', nullable: true })
+  sessionHours?: number | null;
+
+  @Column({ name: 'tnt_session_updated_at', type: 'timestamptz', nullable: true })
+  sessionUpdatedAt?: Date | null;
+
+  @Column({ name: 'tnt_session_updated_by', type: 'uuid', nullable: true })
+  sessionUpdatedBy?: string | null;
+
   @Column({ name: 'tnt_is_system', type: 'boolean', default: false })
   isSystem!: boolean;
 
