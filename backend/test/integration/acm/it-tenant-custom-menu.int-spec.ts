@@ -20,6 +20,8 @@ const menu = (name: string, url = '/admin/csl') => ({
   url,
   newTab: false,
   roles: ['ADMIN', 'TEACHER', 'STAFF'] as ('ADMIN' | 'TEACHER' | 'STAFF')[],
+  group: 'BOOKMARKS' as 'BOOKMARKS' | 'WORK',
+  openMode: 'LINK' as 'LINK' | 'EMBED',
 });
 
 describe('tenant custom menus (PostgreSQL)', () => {
@@ -48,8 +50,13 @@ describe('tenant custom menus (PostgreSQL)', () => {
     await db.query(`CREATE FUNCTION set_acm_updated_at() RETURNS TRIGGER LANGUAGE plpgsql AS $$
       BEGIN NEW.updated_at = NOW(); RETURN NEW; END $$;`);
     // 두 번 적용해 멱등성 확인.
-    await db.query(sql('1053-tenant-custom-menu.sql'));
-    await db.query(sql('1053-tenant-custom-menu.sql'));
+    for (const f of [
+      '1053-tenant-custom-menu.sql',
+      '1054-tenant-custom-menu-embed.sql',
+    ]) {
+      await db.query(sql(f));
+      await db.query(sql(f));
+    }
     svc = new TenantCustomMenuService(db);
   }, 120_000);
 
@@ -103,7 +110,42 @@ describe('tenant custom menus (PostgreSQL)', () => {
       name: 'B',
       url: 'https://x.com',
       newTab: true,
+      group: 'BOOKMARKS',
+      openMode: 'LINK',
     });
+  });
+
+  // REQ-261026B — 업무관리 그룹 · 화면 안에 열기.
+  it('stores work-group embedded menus and requires https to embed', async () => {
+    const sheet = 'https://docs.google.com/spreadsheets/d/x/edit#gid=1';
+    let list = await svc.create(TPI, {
+      ...menu('업무목록', sheet),
+      group: 'WORK',
+      openMode: 'EMBED',
+    });
+    const item = list.find((i) => i.name === '업무목록')!;
+    expect(item).toMatchObject({
+      url: sheet,
+      group: 'WORK',
+      openMode: 'EMBED',
+    });
+    await expect(
+      svc.update(TPI, item.id, {
+        ...menu('업무목록', 'http://insecure.example.com'),
+        openMode: 'EMBED',
+      }),
+    ).rejects.toThrow('https');
+    await expect(
+      svc.create(TPI, { ...menu('x', '/admin/csl'), openMode: 'EMBED' }),
+    ).rejects.toThrow('https');
+    await expect(
+      db.query(
+        `UPDATE amb_acm_tenant_custom_menu SET tcm_url = '/admin' WHERE tcm_id = $1`,
+        [item.id],
+      ),
+    ).rejects.toThrow(/chk_acm_tcm_embed_https/);
+    list = await svc.remove(TPI, item.id);
+    expect(list.map((i) => i.name)).toEqual(['C', 'B']);
   });
 
   it('the database refuses unsafe links', async () => {
