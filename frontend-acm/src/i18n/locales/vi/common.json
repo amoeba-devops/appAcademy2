@@ -282,6 +282,7 @@
     "group": {
       "academy": "Quản lý học viện",
       "work": "Quản lý công việc",
+      "bookmarks": "Dấu trang",
       "settings": "Cài đặt"
     },
     "tenantConfig": "Cài đặt tenant",
@@ -1314,7 +1315,7 @@
     "denied": "Không có quyền truy cập cài đặt tenant",
     "required": "Cần quyền tenant master.",
     "tabs": {
-      "menus": "Hiển thị menu",
+      "menus": "Quản lý menu",
       "general": "Chung",
       "integrations": "Tích hợp"
     },
@@ -1331,7 +1332,31 @@
       "reset": "Đặt lại (hiện tất cả)",
       "resetConfirm": "Đặt lại menu của tất cả các cấp về mặc định (hiện tất cả)?"
     },
-    "integrationsDesc": "Quản lý cài đặt AI, AMA, lớp học video, thông báo Kakao và khách truy cập GA4."
+    "integrationsDesc": "Quản lý cài đặt AI, AMA, lớp học video, thông báo Kakao và khách truy cập GA4.",
+    "customMenus": {
+      "title": "Menu tùy chỉnh (dấu trang)",
+      "description": "Thêm liên kết hiển thị trong nhóm 'Dấu trang' của menu bên trái. Tối đa {{count}} mục.",
+      "add": "Thêm menu",
+      "addTitle": "Thêm menu",
+      "editTitle": "Sửa menu",
+      "empty": "Chưa có menu tùy chỉnh.",
+      "order": "Thứ tự",
+      "name": "Tên menu",
+      "url": "Liên kết",
+      "newTab": "Tab mới",
+      "roles": "Hiển thị cho",
+      "allRoles": "Tất cả",
+      "moveUp": "Lên",
+      "moveDown": "Xuống",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "deleteConfirm": "Xóa menu “{{name}}”?",
+      "limit": "Chỉ có thể thêm tối đa {{count}} menu.",
+      "urlHint": "Đường dẫn nội bộ (/admin/…) hoặc địa chỉ bắt đầu bằng https://",
+      "urlInvalid": "Phải bắt đầu bằng / hoặc http(s)://.",
+      "newTabLabel": "Mở trong tab mới",
+      "rolesHint": "Tenant master luôn thấy tất cả menu."
+    }
   },
   "issues": {
     "title": "Vấn đề",

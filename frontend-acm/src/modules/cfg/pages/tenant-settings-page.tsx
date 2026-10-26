@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useConfigScope } from "../hooks/use-config-access";
 import { GeneralConfigPage } from "./general-config-page";
 import { ConfigCardGrid, INTEGRATION_CARDS } from "../components/integration-cards";
+import { CustomMenuSection } from "../components/custom-menu-section";
 
 const ROLES = ["ADMIN", "TEACHER", "STAFF"] as const;
 type Role = (typeof ROLES)[number];
@@ -55,7 +56,11 @@ export function TenantSettingsPage() {
         ))}
       </div>
       {tab === "menus" ? (
-        <RoleMenuMatrix />
+        <>
+          <RoleMenuMatrix />
+          {/* REQ-261026 — 사용자 메뉴(북마크) */}
+          <CustomMenuSection />
+        </>
       ) : tab === "general" ? (
         <GeneralConfigPage embedded />
       ) : (

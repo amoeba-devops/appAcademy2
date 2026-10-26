@@ -48,6 +48,8 @@ import {
   ChevronDown,
   ChevronRight,
   KeyRound,
+  Bookmark,
+  ExternalLink,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { InstallAppNavButton } from "@/components/pwa/install-app";
@@ -63,8 +65,9 @@ import { me as fetchMe } from "@/modules/auth/api/auth-api";
 import { useIsDesktop, useIsMobile } from "@/hooks/use-media-query";
 
 // REQ-261015C — 메뉴 그룹. 그룹 안 순서는 테넌트 저장 순서(기본: 표준 키 순서)를 따른다.
-type NavGroup = "academy" | "work" | "settings";
-const NAV_GROUPS: NavGroup[] = ["academy", "work", "settings"];
+// REQ-261026 — bookmarks 는 테넌트 사용자 메뉴(북마크) 전용 그룹.
+type NavGroup = "academy" | "work" | "bookmarks" | "settings";
+const NAV_GROUPS: NavGroup[] = ["academy", "work", "bookmarks", "settings"];
 const NAV = [
   { to: "/admin/dashboard", icon: LayoutDashboard, key: "dashboard", group: "academy" },
   { to: "/admin/csl", icon: Users, key: "csl", group: "academy" },
@@ -365,7 +368,8 @@ export function AppShell() {
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
           {NAV_GROUPS.map((group) => {
             const items = visibleNav.filter((n) => n.group === group);
-            if (!items.length) return null;
+            const bookmarks = group === "bookmarks" ? (menus?.custom ?? []) : [];
+            if (!items.length && !bookmarks.length) return null;
             const collapsed =
               !iconOnly &&
               group !== "settings" &&
@@ -430,6 +434,15 @@ export function AppShell() {
               </NavLink>
             ),
           )}
+                {!collapsed &&
+                  bookmarks.map((b) => (
+                    <BookmarkLink
+                      key={b.id}
+                      item={b}
+                      iconOnly={iconOnly}
+                      active={location.pathname + location.search === b.url}
+                    />
+                  ))}
               </div>
             );
           })}
@@ -509,5 +522,50 @@ export function AppShell() {
         </AdminContentLayout>
       </main>
     </div>
+  );
+}
+
+/** REQ-261026 — 사용자 메뉴(북마크). 내부 경로는 SPA 이동, 외부·새 탭은 일반 링크. */
+function BookmarkLink({
+  item,
+  iconOnly,
+  active,
+}: {
+  item: { name: string; url: string; newTab: boolean };
+  iconOnly: boolean;
+  active: boolean;
+}) {
+  const external = /^https?:\/\//.test(item.url);
+  const Icon = external ? ExternalLink : Bookmark;
+  const className = clsx(
+    "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
+    iconOnly ? "justify-center px-0" : "px-3",
+    active
+      ? "bg-accent-50 text-accent-700"
+      : "text-secondary hover:bg-[var(--gray-100)]",
+  );
+  const body = (
+    <>
+      <Icon size={18} className="shrink-0" />
+      {!iconOnly && <span className="flex-1 truncate">{item.name}</span>}
+    </>
+  );
+  const label = iconOnly ? item.name : undefined;
+  if (!external && !item.newTab)
+    return (
+      <Link to={item.url} className={className} title={label} aria-label={label}>
+        {body}
+      </Link>
+    );
+  return (
+    <a
+      href={item.url}
+      className={className}
+      title={label}
+      aria-label={label}
+      {...(item.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {body}
+    </a>
   );
 }

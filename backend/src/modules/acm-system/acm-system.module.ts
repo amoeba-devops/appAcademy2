@@ -41,6 +41,7 @@ import { AdminUserService } from './application/admin-user.service';
 import { AdminUserController } from './presentation/admin-user.controller';
 import { TenantMasterController } from './presentation/tenant-master.controller';
 import { TenantRoleMenuService } from './application/tenant-role-menu.service';
+import { TenantCustomMenuService } from './application/tenant-custom-menu.service';
 import { MailConfigController } from './presentation/mail-config.controller';
 import { TenantSettingsController } from './presentation/tenant-settings.controller';
 import { KakaoConfigController } from './presentation/kakao-config.controller';
@@ -95,6 +96,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
     SystemUserService,
     TenantService,
     TenantRoleMenuService,
+    TenantCustomMenuService,
     AesGcmService,
     MailConfigService,
     TenantMailerService,
