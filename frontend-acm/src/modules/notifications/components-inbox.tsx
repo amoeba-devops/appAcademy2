@@ -1,4 +1,4 @@
-import { PushEnableBanner, PushSettings, PushSessionSync } from "./push-settings";
+import { PushEnableBanner, PushLoginPrompt, PushSettings, PushSessionSync } from "./push-settings";
 import { useCallback, useEffect, useState } from "react";
 import {
   useInfiniteQuery,
@@ -146,6 +146,7 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
         )}
       </button>
       <PushSessionSync mode={mode} />
+      <PushLoginPrompt mode={mode} />
       <Dialog open={settings} onOpenChange={setSettings}>
         <DialogContent>
           <DialogHeader>

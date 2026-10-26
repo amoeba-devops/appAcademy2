@@ -51,14 +51,29 @@ self.addEventListener("fetch", (e) => {
 });
 
 // ── 웹 푸시(기존 acm-push-sw.js 와 동일) ─────────────────────────────
+const GENERIC_BODY = { ko: "새 알림이 있습니다", en: "You have a new notification", vi: "Bạn có thông báo mới", zh: "您有新通知" };
 self.addEventListener("push", (e) =>
   e.waitUntil(
     (async () => {
-      const data = e.data?.json();
-      if (!data) return;
+      let data = null;
+      try {
+        data = e.data?.json() ?? null;
+      } catch {
+        data = null;
+      }
       const cache = await caches.open("acm-push-settings");
       const binding = await cache.match("/__acm-push-actor");
-      if (!binding || (await binding.text()) !== data.actor) return;
+      // FIX-261026 — 푸시를 받으면 반드시 알림을 띄운다. iOS 는 아무것도 띄우지 않는 푸시가
+      // 반복되면 구독을 취소한다. 이 기기의 현재 계정 것이 아니면 내용 없이 안내만 한다.
+      if (!data || !binding || (await binding.text()) !== data.actor) {
+        await self.registration.showNotification("ACM", {
+          body: GENERIC_BODY[(self.navigator?.language || "ko").slice(0, 2)] || GENERIC_BODY.ko,
+          tag: "acm-generic",
+          data: { url: "/admin/notifications", actor: null },
+          icon: "/acm-icon-192.png",
+        });
+        return;
+      }
       await self.registration.showNotification(data.title || "ACM", {
         body: data.body,
         tag: data.tag,
@@ -74,9 +89,10 @@ self.addEventListener("notificationclick", (e) => {
     (async () => {
       const cache = await caches.open("acm-push-settings");
       const binding = await cache.match("/__acm-push-actor");
-      if (!binding || (await binding.text()) !== e.notification.data.actor) return;
-      const url = new URL(e.notification.data.url, self.location.origin);
-      if (url.origin !== self.location.origin || !/^\/(admin|portal)\//.test(url.pathname)) return;
+      const generic = e.notification.data?.actor === null;
+      if (!generic && (!binding || (await binding.text()) !== e.notification.data.actor)) return;
+      const url = new URL(generic ? "/app" : e.notification.data.url, self.location.origin);
+      if (url.origin !== self.location.origin || (!generic && !/^\/(admin|portal)\//.test(url.pathname))) return;
       const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const current = windows.find((w) => new URL(w.url).origin === url.origin);
       if (current) {

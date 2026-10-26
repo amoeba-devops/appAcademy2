@@ -1302,7 +1302,8 @@
     "close": "Close",
     "banner": "Get notifications on this device — chat and consultation alerts right away",
     "turnOn": "Turn on",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "later": "Later"
   },
   "reviewMissing": {
     "feedback": "Feedback",
