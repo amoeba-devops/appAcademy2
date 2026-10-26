@@ -3,6 +3,7 @@ import { AdminUsersPage } from '@/modules/cfg/pages/admin-users-page';
 import { CalStudentLinkPage } from '@/modules/cal/pages/cal-student-link-page';
 import { DocumentsPage } from "@/modules/prj/documents-page";
 import { SharedDrivePage } from '@/modules/prj/shared-drive-page';
+import { CustomMenuEmbedPage } from '@/modules/cfg/pages/custom-menu-embed-page';
 import {ProjectListPage,ProjectDetailPage} from '@/modules/prj/project-page';
 import { ProjectDocumentPage } from '@/modules/prj/document-page';
 import { IssuesPage } from '@/modules/prj/issues/issues-page';
@@ -261,6 +262,8 @@ export const router = createBrowserRouter([
       { path: 'projects/:id/documents/:docId', element: <ProjectDocumentPage /> },
       { path: 'config/drive', element: <SharedDrivePage /> },
       { path: 'drive', element: <SharedDrivePage /> },
+      // REQ-261026B — 사용자 메뉴 '화면 안에 열기'
+      { path: 'embed/:id', element: <CustomMenuEmbedPage /> },
       { path: 'complaints', element: <ComplaintsPage /> },
       { path: 'cal-stats', element: <CalStatsPage /> },
       { path: 'cal-stats/:tchId', element: <CalTeacherStatsPage /> },

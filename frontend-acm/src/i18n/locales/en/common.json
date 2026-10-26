@@ -1357,7 +1357,34 @@
       "urlHint": "An internal path (/admin/…) or an address starting with https://",
       "urlInvalid": "Must start with / or http(s)://.",
       "newTabLabel": "Open in a new tab",
-      "rolesHint": "Tenant masters always see every menu."
+      "rolesHint": "Tenant masters always see every menu.",
+      "group": "Placement",
+      "openMode": "Open",
+      "groups": {
+        "WORK": "Work",
+        "BOOKMARKS": "Bookmarks"
+      },
+      "groupLabels": {
+        "WORK": "End of the Work group (below Drive)",
+        "BOOKMARKS": "Bookmarks group"
+      },
+      "openModes": {
+        "EMBED": "In page",
+        "LINK": "Navigate"
+      },
+      "openModeLabels": {
+        "EMBED": "Open inside the page (Google Sheets, etc.)",
+        "LINK": "Navigate to the link"
+      },
+      "embedUrlHint": "An address starting with https:// — shown in the main area.",
+      "embedUrlInvalid": "Only https:// addresses can be opened inside the page.",
+      "openNewTab": "Open in new tab",
+      "embedHint": "If the page is blank or asks you to sign in, use [Open in new tab]. Editing Google Sheets requires being signed in to Google in this browser.",
+      "embedNotFound": "This menu does not exist or you are not allowed to see it.",
+      "viewModeLabel": "Display",
+      "viewModeEdit": "Edit view",
+      "viewModeView": "Read-only view",
+      "embedHintGoogle": "If the edit view asks you to sign in to Google, switch to [Read-only view] or edit via [Open in new tab]. Editing in the page requires this browser to be signed in to Google."
     }
   },
   "issues": {

@@ -1357,7 +1357,34 @@
       "urlHint": "内部路径（/admin/…）或以 https:// 开头的地址",
       "urlInvalid": "必须以 / 或 http(s):// 开头。",
       "newTabLabel": "在新标签页中打开",
-      "rolesHint": "租户主管始终可见全部菜单。"
+      "rolesHint": "租户主管始终可见全部菜单。",
+      "group": "位置",
+      "openMode": "打开方式",
+      "groups": {
+        "WORK": "工作",
+        "BOOKMARKS": "书签"
+      },
+      "groupLabels": {
+        "WORK": "工作分组末尾（云盘下方）",
+        "BOOKMARKS": "书签分组"
+      },
+      "openModes": {
+        "EMBED": "页面内",
+        "LINK": "跳转"
+      },
+      "openModeLabels": {
+        "EMBED": "在页面内打开（Google 表格等）",
+        "LINK": "跳转到链接"
+      },
+      "embedUrlHint": "以 https:// 开头的地址——显示在右侧主区域。",
+      "embedUrlInvalid": "只有 https:// 地址可以在页面内打开。",
+      "openNewTab": "在新标签页中打开",
+      "embedHint": "如果页面为空或要求登录，请使用[在新标签页中打开]。编辑 Google 表格需要浏览器已登录 Google。",
+      "embedNotFound": "菜单不存在或您无权查看。",
+      "viewModeLabel": "显示方式",
+      "viewModeEdit": "编辑视图",
+      "viewModeView": "只读视图",
+      "embedHintGoogle": "如果编辑视图要求登录 Google，请切换到[只读视图]或通过[在新标签页中打开]进行编辑。在页面内编辑需要此浏览器已登录 Google。"
     }
   },
   "issues": {

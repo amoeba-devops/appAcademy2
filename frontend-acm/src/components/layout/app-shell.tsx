@@ -50,6 +50,7 @@ import {
   KeyRound,
   Bookmark,
   ExternalLink,
+  AppWindow,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { InstallAppNavButton } from "@/components/pwa/install-app";
@@ -213,10 +214,18 @@ export function AppShell() {
       }
       return next;
     });
+  // REQ-261026B — 사용자 메뉴는 위치에 따라 업무관리 그룹 끝 또는 북마크 그룹에 붙는다.
+  const customMenus = menus?.custom ?? [];
+  const customHref = (c: (typeof customMenus)[number]) =>
+    c.openMode === "EMBED" ? `/admin/embed/${c.id}` : c.url;
   // 현재 경로가 접힌 그룹 안에 있으면 그 그룹은 펼친 것으로 본다.
-  const activeGroup = visibleNav.find((n) =>
-    location.pathname.startsWith(n.to),
-  )?.group;
+  const activeGroup =
+    visibleNav.find((n) => location.pathname.startsWith(n.to))?.group ??
+    (customMenus.find(
+      (c) => c.openMode === "EMBED" && location.pathname === customHref(c),
+    )?.group === "WORK"
+      ? "work"
+      : undefined);
 
   const onLogout = () => {
     forgetDevicePush("admin"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
@@ -368,7 +377,11 @@ export function AppShell() {
         <nav className="flex flex-col gap-1 px-2 py-4 flex-1 overflow-y-auto">
           {NAV_GROUPS.map((group) => {
             const items = visibleNav.filter((n) => n.group === group);
-            const bookmarks = group === "bookmarks" ? (menus?.custom ?? []) : [];
+            const bookmarks = customMenus.filter((c) =>
+              group === "work"
+                ? c.group === "WORK"
+                : group === "bookmarks" && c.group === "BOOKMARKS",
+            );
             if (!items.length && !bookmarks.length) return null;
             const collapsed =
               !iconOnly &&
@@ -438,9 +451,9 @@ export function AppShell() {
                   bookmarks.map((b) => (
                     <BookmarkLink
                       key={b.id}
-                      item={b}
+                      item={{ ...b, url: customHref(b) }}
                       iconOnly={iconOnly}
-                      active={location.pathname + location.search === b.url}
+                      active={location.pathname + location.search === customHref(b)}
                     />
                   ))}
               </div>
@@ -525,18 +538,22 @@ export function AppShell() {
   );
 }
 
-/** REQ-261026 — 사용자 메뉴(북마크). 내부 경로는 SPA 이동, 외부·새 탭은 일반 링크. */
+/**
+ * REQ-261026 — 사용자 메뉴(북마크). 내부 경로는 SPA 이동, 외부·새 탭은 일반 링크.
+ * REQ-261026B — 화면 안에 열기는 url 이 /admin/embed/:id 로 바뀌어 들어온다.
+ */
 function BookmarkLink({
   item,
   iconOnly,
   active,
 }: {
-  item: { name: string; url: string; newTab: boolean };
+  item: { name: string; url: string; newTab: boolean; openMode: "LINK" | "EMBED" };
   iconOnly: boolean;
   active: boolean;
 }) {
-  const external = /^https?:\/\//.test(item.url);
-  const Icon = external ? ExternalLink : Bookmark;
+  const embed = item.openMode === "EMBED";
+  const external = !embed && /^https?:\/\//.test(item.url);
+  const Icon = embed ? AppWindow : external ? ExternalLink : Bookmark;
   const className = clsx(
     "flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors",
     iconOnly ? "justify-center px-0" : "px-3",
@@ -551,7 +568,7 @@ function BookmarkLink({
     </>
   );
   const label = iconOnly ? item.name : undefined;
-  if (!external && !item.newTab)
+  if (embed || (!external && !item.newTab))
     return (
       <Link to={item.url} className={className} title={label} aria-label={label}>
         {body}

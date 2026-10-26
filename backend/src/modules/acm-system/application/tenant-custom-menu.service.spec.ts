@@ -3,11 +3,21 @@ import { validate } from 'class-validator';
 import { CustomMenuDto } from '../presentation/tenant-master.controller';
 import {
   CUSTOM_MENU_URL_PATTERN,
+  assertCustomMenuInput,
   customMenusFor,
+  type CustomMenuInput,
   type CustomMenu,
 } from './tenant-custom-menu.service';
 
 // REQ-261026 — 사용자 메뉴(북마크) 링크 검증·등급 필터.
+const ok = (): CustomMenuInput => ({
+  name: 'x',
+  url: '/admin',
+  newTab: false,
+  roles: ['ADMIN'],
+  group: 'BOOKMARKS',
+  openMode: 'LINK',
+});
 describe('tenant custom menus', () => {
   it.each([
     '/admin/csl',
@@ -37,6 +47,8 @@ describe('tenant custom menus', () => {
       url: '/admin/csl',
       newTab: false,
       roles: ['ADMIN', 'TEACHER', 'STAFF'],
+      group: 'BOOKMARKS',
+      openMode: 'LINK',
     },
     {
       id: 'b',
@@ -44,12 +56,21 @@ describe('tenant custom menus', () => {
       url: 'https://x.com',
       newTab: true,
       roles: ['ADMIN'],
+      group: 'WORK',
+      openMode: 'EMBED',
     },
   ];
 
   it('filters by role and drops role data', () => {
     expect(customMenusFor(items, 'TEACHER', false)).toEqual([
-      { id: 'a', name: 'All', url: '/admin/csl', newTab: false },
+      {
+        id: 'a',
+        name: 'All',
+        url: '/admin/csl',
+        newTab: false,
+        group: 'BOOKMARKS',
+        openMode: 'LINK',
+      },
     ]);
     expect(customMenusFor(items, 'ADMIN', false).map((i) => i.id)).toEqual([
       'a',
@@ -80,5 +101,24 @@ describe('tenant custom menus', () => {
     expect(await check({ ...ok, url: 'javascript:alert(1)' })).toEqual(['url']);
     expect(await check({ ...ok, roles: [] })).toEqual(['roles']);
     expect(await check({ ...ok, roles: ['APP_ADMIN'] })).toEqual(['roles']);
+    // REQ-261026B — 생략 시 기본값, 알 수 없는 값 거부.
+    const dto = plainToInstance(CustomMenuDto, ok);
+    expect([dto.group, dto.openMode]).toEqual(['BOOKMARKS', 'LINK']);
+    expect(await check({ ...ok, group: 'ACADEMY' })).toEqual(['group']);
+    expect(await check({ ...ok, openMode: 'POPUP' })).toEqual(['openMode']);
+  });
+
+  it('embedding requires https', () => {
+    const base = { ...ok(), openMode: 'EMBED' as const };
+    expect(() =>
+      assertCustomMenuInput({ ...base, url: 'https://x.com' }),
+    ).not.toThrow();
+    expect(() =>
+      assertCustomMenuInput({ ...base, url: 'http://x.com' }),
+    ).toThrow();
+    expect(() => assertCustomMenuInput({ ...base, url: '/admin' })).toThrow();
+    expect(() =>
+      assertCustomMenuInput({ ...ok(), url: 'http://x.com' }),
+    ).not.toThrow();
   });
 });

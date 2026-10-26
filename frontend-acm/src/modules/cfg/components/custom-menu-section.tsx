@@ -25,7 +25,14 @@ interface CustomMenu {
   url: string;
   newTab: boolean;
   roles: Role[];
+  /** REQ-261026B — 위치·열기 방식 */
+  group: Group;
+  openMode: OpenMode;
 }
+const GROUPS = ["WORK", "BOOKMARKS"] as const;
+type Group = (typeof GROUPS)[number];
+const OPEN_MODES = ["EMBED", "LINK"] as const;
+type OpenMode = (typeof OPEN_MODES)[number];
 type CustomMenuInput = Omit<CustomMenu, "id">;
 
 const BASE = "/acm/tenant/custom-menus";
@@ -135,13 +142,14 @@ export function CustomMenuSection() {
       )}
       {items.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-sm">
+          <table className="w-full min-w-[44rem] text-sm">
             <thead>
               <tr className="border-b text-left text-xs text-secondary">
                 <th className="w-20 px-4 py-3">{t("tenantConfig.customMenus.order")}</th>
                 <th className="px-4 py-3">{t("tenantConfig.customMenus.name")}</th>
                 <th className="px-4 py-3">{t("tenantConfig.customMenus.url")}</th>
-                <th className="px-4 py-3 text-center">{t("tenantConfig.customMenus.newTab")}</th>
+                <th className="px-4 py-3">{t("tenantConfig.customMenus.group")}</th>
+                <th className="px-4 py-3">{t("tenantConfig.customMenus.openMode")}</th>
                 <th className="px-4 py-3">{t("tenantConfig.customMenus.roles")}</th>
                 <th className="w-24 px-4 py-3" />
               </tr>
@@ -174,7 +182,16 @@ export function CustomMenuSection() {
                       <span className="truncate">{item.url}</span>
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-center">{item.newTab ? "✓" : "—"}</td>
+                  <td className="px-4 py-2 text-secondary">
+                    {t(`tenantConfig.customMenus.groups.${item.group}`)}
+                  </td>
+                  <td className="px-4 py-2 text-secondary">
+                    {item.openMode === "EMBED"
+                      ? t("tenantConfig.customMenus.openModes.EMBED")
+                      : item.newTab
+                        ? t("tenantConfig.customMenus.newTab")
+                        : t("tenantConfig.customMenus.openModes.LINK")}
+                  </td>
                   <td className="px-4 py-2 text-secondary">{roleText(item.roles)}</td>
                   <td className="px-2 py-1">
                     <div className="flex justify-end">
@@ -267,13 +284,23 @@ function CustomMenuDialog({
 }) {
   const { t } = useTranslation("common");
   const [form, setForm] = useState<CustomMenuInput>(
-    initial ?? { name: "", url: "", newTab: false, roles: [...ROLES] },
+    initial ?? {
+      name: "",
+      url: "",
+      newTab: false,
+      roles: [...ROLES],
+      group: "BOOKMARKS",
+      openMode: "LINK",
+    },
   );
   // 외부 링크는 새 탭이 기본 — 사용자가 직접 바꾸기 전까지만 따라간다.
   const [newTabTouched, setNewTabTouched] = useState(!!initial);
   const name = form.name.trim();
   const url = form.url.trim();
-  const urlInvalid = url.length > 0 && !URL_PATTERN.test(url);
+  const embed = form.openMode === "EMBED";
+  // 화면 안에 열기(iframe)는 https 만.
+  const urlInvalid =
+    url.length > 0 && (embed ? !url.startsWith("https://") : !URL_PATTERN.test(url));
   const valid = name.length > 0 && url.length > 0 && !urlInvalid && form.roles.length > 0;
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -317,21 +344,51 @@ function CustomMenuDialog({
               }}
             />
             <span className={urlInvalid ? "text-xs text-red-600" : "text-xs text-secondary"}>
-              {t(urlInvalid ? "tenantConfig.customMenus.urlInvalid" : "tenantConfig.customMenus.urlHint")}
+              {t(
+                urlInvalid
+                  ? embed
+                    ? "tenantConfig.customMenus.embedUrlInvalid"
+                    : "tenantConfig.customMenus.urlInvalid"
+                  : embed
+                    ? "tenantConfig.customMenus.embedUrlHint"
+                    : "tenantConfig.customMenus.urlHint",
+              )}
             </span>
           </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="h-4 w-4 accent-indigo-600"
-              checked={form.newTab}
-              onChange={(e) => {
-                setNewTabTouched(true);
-                setForm({ ...form, newTab: e.target.checked });
-              }}
-            />
-            {t("tenantConfig.customMenus.newTabLabel")}
-          </label>
+          <RadioGroup
+            legend={t("tenantConfig.customMenus.group")}
+            name="custom-menu-group"
+            options={GROUPS.map((g) => ({
+              value: g,
+              label: t(`tenantConfig.customMenus.groupLabels.${g}`),
+            }))}
+            value={form.group}
+            onChange={(group) => setForm({ ...form, group })}
+          />
+          <RadioGroup
+            legend={t("tenantConfig.customMenus.openMode")}
+            name="custom-menu-open-mode"
+            options={OPEN_MODES.map((m) => ({
+              value: m,
+              label: t(`tenantConfig.customMenus.openModeLabels.${m}`),
+            }))}
+            value={form.openMode}
+            onChange={(openMode) => setForm({ ...form, openMode })}
+          />
+          {!embed && (
+            <label className="-mt-2 flex items-center gap-2 pl-6 text-sm">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-indigo-600"
+                checked={form.newTab}
+                onChange={(e) => {
+                  setNewTabTouched(true);
+                  setForm({ ...form, newTab: e.target.checked });
+                }}
+              />
+              {t("tenantConfig.customMenus.newTabLabel")}
+            </label>
+          )}
           <fieldset className="grid gap-2 text-sm">
             <legend className="mb-1 font-medium">{t("tenantConfig.customMenus.roles")} *</legend>
             <div className="flex flex-wrap gap-4">
@@ -372,5 +429,37 @@ function CustomMenuDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function RadioGroup<T extends string>({
+  legend,
+  name,
+  options,
+  value,
+  onChange,
+}: {
+  legend: string;
+  name: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <fieldset className="grid gap-2 text-sm">
+      <legend className="mb-1 font-medium">{legend}</legend>
+      {options.map((o) => (
+        <label key={o.value} className="flex items-center gap-2">
+          <input
+            type="radio"
+            name={name}
+            className="h-4 w-4 accent-indigo-600"
+            checked={value === o.value}
+            onChange={() => onChange(o.value)}
+          />
+          {o.label}
+        </label>
+      ))}
+    </fieldset>
   );
 }

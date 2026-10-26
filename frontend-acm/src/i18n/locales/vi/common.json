@@ -1357,7 +1357,34 @@
       "urlHint": "Đường dẫn nội bộ (/admin/…) hoặc địa chỉ bắt đầu bằng https://",
       "urlInvalid": "Phải bắt đầu bằng / hoặc http(s)://.",
       "newTabLabel": "Mở trong tab mới",
-      "rolesHint": "Tenant master luôn thấy tất cả menu."
+      "rolesHint": "Tenant master luôn thấy tất cả menu.",
+      "group": "Vị trí",
+      "openMode": "Cách mở",
+      "groups": {
+        "WORK": "Công việc",
+        "BOOKMARKS": "Dấu trang"
+      },
+      "groupLabels": {
+        "WORK": "Cuối nhóm Công việc (dưới Drive)",
+        "BOOKMARKS": "Nhóm Dấu trang"
+      },
+      "openModes": {
+        "EMBED": "Trong trang",
+        "LINK": "Chuyển trang"
+      },
+      "openModeLabels": {
+        "EMBED": "Mở trong trang (Google Sheets, v.v.)",
+        "LINK": "Chuyển đến liên kết"
+      },
+      "embedUrlHint": "Địa chỉ bắt đầu bằng https:// — hiển thị ở khu vực chính.",
+      "embedUrlInvalid": "Chỉ địa chỉ https:// mới mở được trong trang.",
+      "openNewTab": "Mở trong tab mới",
+      "embedHint": "Nếu trang trống hoặc yêu cầu đăng nhập, hãy dùng [Mở trong tab mới]. Để chỉnh sửa Google Sheets, trình duyệt cần đăng nhập Google.",
+      "embedNotFound": "Không tìm thấy menu hoặc bạn không có quyền xem.",
+      "viewModeLabel": "Cách hiển thị",
+      "viewModeEdit": "Chế độ sửa",
+      "viewModeView": "Chế độ xem",
+      "embedHintGoogle": "Nếu chế độ sửa yêu cầu đăng nhập Google, hãy chuyển sang [Chế độ xem] hoặc sửa qua [Mở trong tab mới]. Sửa trong trang cần trình duyệt đã đăng nhập Google."
     }
   },
   "issues": {

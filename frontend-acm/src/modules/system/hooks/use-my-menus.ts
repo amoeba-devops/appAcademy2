@@ -8,7 +8,15 @@ export interface MyMenus {
   /** PLN-260728E — 테넌트 표시 순서(전체 관리 키의 순서 리스트). */
   order: string[];
   /** REQ-261026 — 테넌트 사용자 메뉴(북마크), 등급 필터 적용·표시 순서. */
-  custom: { id: string; name: string; url: string; newTab: boolean }[];
+  custom: {
+    id: string;
+    name: string;
+    url: string;
+    newTab: boolean;
+    /** REQ-261026B — 위치(북마크 그룹 / 업무관리 그룹 끝)·열기 방식(링크 / 화면 안). */
+    group: 'BOOKMARKS' | 'WORK';
+    openMode: 'LINK' | 'EMBED';
+  }[];
 }
 
 /**

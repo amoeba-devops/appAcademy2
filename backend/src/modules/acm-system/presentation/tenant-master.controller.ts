@@ -5,6 +5,7 @@ import {
   IsArray,
   IsBoolean,
   IsIn,
+  IsOptional,
   IsString,
   IsUUID,
   Matches,
@@ -41,9 +42,13 @@ import {
   type MenuRole,
 } from '../application/tenant-role-menu.service';
 import {
+  CUSTOM_MENU_GROUPS,
   CUSTOM_MENU_LIMIT,
+  CUSTOM_MENU_OPEN_MODES,
   CUSTOM_MENU_URL_PATTERN,
   TenantCustomMenuService,
+  type CustomMenuGroup,
+  type CustomMenuOpenMode,
 } from '../application/tenant-custom-menu.service';
 
 export class RoleMenuItemDto {
@@ -85,6 +90,15 @@ export class CustomMenuDto {
   @ArrayUnique()
   @IsIn(MENU_ROLES, { each: true })
   roles!: MenuRole[];
+
+  // REQ-261026B — 생략 시 기존 동작(북마크 그룹 · 링크).
+  @IsOptional()
+  @IsIn(CUSTOM_MENU_GROUPS)
+  group: CustomMenuGroup = 'BOOKMARKS';
+
+  @IsOptional()
+  @IsIn(CUSTOM_MENU_OPEN_MODES)
+  openMode: CustomMenuOpenMode = 'LINK';
 }
 export class CustomMenuOrderDto {
   @IsArray()
