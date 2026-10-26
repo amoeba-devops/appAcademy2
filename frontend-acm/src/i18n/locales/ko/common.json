@@ -1302,7 +1302,8 @@
     "close": "닫기",
     "banner": "이 기기에서 알림 받기 — 채팅·상담 알림을 바로 받아요",
     "turnOn": "켜기",
-    "dismiss": "안내 닫기"
+    "dismiss": "안내 닫기",
+    "later": "나중에"
   },
   "reviewMissing": {
     "feedback": "피드백",

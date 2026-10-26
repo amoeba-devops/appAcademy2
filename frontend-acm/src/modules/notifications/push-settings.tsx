@@ -13,6 +13,28 @@ const KEY = "acm-push-binding";
 const BANNER_KEY = "acm-push-banner-dismissed";
 const BANNER_SNOOZE_MS = 14 * 24 * 3600 * 1000;
 type Binding = { id: string; actor: string; base: string };
+/**
+ * FIX-261026 — 사용자가 이 기기에서 [끄기]를 눌렀다는 표시(모드별). 있으면 자동 복구하지 않는다.
+ * 없으면 "기본 켜짐": 권한이 허용된 기기는 구독이 사라져도 앱을 열 때 다시 만든다.
+ */
+const OPTOUT_KEY = (mode: Mode) => `acm-push-optout:${mode}`;
+const optedOut = (mode: Mode) => {
+  try {
+    return localStorage.getItem(OPTOUT_KEY(mode)) === "1";
+  } catch {
+    return false;
+  }
+};
+const setOptOut = (mode: Mode, on: boolean) => {
+  try {
+    if (on) localStorage.setItem(OPTOUT_KEY(mode), "1");
+    else localStorage.removeItem(OPTOUT_KEY(mode));
+  } catch {
+    // 저장 실패는 무시 — 다음 방문에 기본(켜짐)으로 동작한다.
+  }
+};
+/** 이번 로그인에서 "알림 켜기" 안내를 이미 보였는지(세션 단위). */
+const PROMPT_KEY = "acm-push-login-prompted";
 const baseOf = (mode: Mode) =>
   mode === "admin" ? "/acm/notifications/inbox" : "/portal/notifications/inbox";
 function stored(): Binding | null {
@@ -26,11 +48,17 @@ const pushSupported = () =>
   typeof Notification !== "undefined" &&
   "serviceWorker" in navigator &&
   "PushManager" in window;
-async function clearDevice(binding: Binding, token?: string | null) {
+/**
+ * 서버 연결을 끊는다. `unsubscribe` 가 false 면 브라우저 구독은 남겨 두어
+ * 같은 기기로 다시 로그인하면 자동으로 다시 연결된다(FIX-261026 — 로그아웃).
+ */
+async function clearDevice(binding: Binding, token?: string | null, unsubscribe = true) {
   localStorage.removeItem(KEY);
   await (await caches.open("acm-push-settings")).delete("/__acm-push-actor");
-  const reg = await navigator.serviceWorker.getRegistration("/");
-  await (await reg?.pushManager.getSubscription())?.unsubscribe();
+  if (unsubscribe) {
+    const reg = await navigator.serviceWorker.getRegistration("/");
+    await (await reg?.pushManager.getSubscription())?.unsubscribe();
+  }
   if (token)
     await fetch(`/api${binding.base}/push-subscriptions/${binding.id}`, {
       method: "DELETE",
@@ -59,15 +87,30 @@ function useActor(mode: Mode) {
 }
 
 /**
- * REQ-261020C — 직접 로그아웃할 때만 이 기기 푸시를 끊는다.
- * 로그인 만료로는 끊지 않는다(같은 기기에서 다시 로그인하면 계속 받는다).
+ * 직접 로그아웃: 이 계정과 기기의 서버 연결만 끊는다(로그아웃한 계정 알림이 오지 않게).
+ * FIX-261026 — 브라우저 구독과 "켜짐" 상태는 남겨, 같은 기기로 다시 로그인하면 자동으로 다시 받는다.
  */
 export function forgetDevicePush(mode: Mode) {
   const s = useAuthStore.getState();
   const token = mode === "admin" ? s.token : s.portal.token;
   const b = stored();
   if (!b || b.base !== baseOf(mode) || !("serviceWorker" in navigator)) return;
-  void clearDevice(b, token).catch(() => undefined);
+  void clearDevice(b, token, false).catch(() => undefined);
+}
+
+const toKey = (key: string) =>
+  Uint8Array.from(atob(key.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+
+/** 권한이 허용된 기기에서 구독을 가져오거나(없으면) 새로 만든다. */
+async function ensureSubscription(publicKey: string): Promise<PushSubscription> {
+  const reg =
+    (await navigator.serviceWorker.getRegistration("/")) ??
+    (await navigator.serviceWorker.register("/acm-sw.js", { scope: "/" }));
+  await navigator.serviceWorker.ready;
+  return (
+    (await reg.pushManager.getSubscription()) ||
+    (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(publicKey) }))
+  );
 }
 
 /** 이 기기 푸시 상태와 켜기/끄기(설정 창·안내 배너 공용). */
@@ -122,20 +165,10 @@ export function useDevicePush(mode: Mode) {
       if (!key) throw new Error("not configured");
       if ((await Notification.requestPermission()) !== "granted")
         throw new Error("permission");
-      const reg = await navigator.serviceWorker.register("/acm-sw.js", {
-        scope: "/",
-      });
-      await navigator.serviceWorker.ready;
-      const subscription =
-        (await reg.pushManager.getSubscription()) ||
-        (await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: Uint8Array.from(
-            atob(key.replace(/-/g, "+").replace(/_/g, "/")),
-            (c) => c.charCodeAt(0),
-          ),
-        }));
+      await navigator.serviceWorker.register("/acm-sw.js", { scope: "/" });
+      const subscription = await ensureSubscription(key);
       await register(mode, subscription);
+      setOptOut(mode, false);
       setEnabled(true);
     } catch {
       setError(true);
@@ -149,6 +182,8 @@ export function useDevicePush(mode: Mode) {
     try {
       const b = stored();
       if (b) await clearDevice(b, token);
+      // 사용자가 직접 끈 기기는 자동 복구하지 않는다.
+      setOptOut(mode, true);
       setEnabled(false);
     } catch {
       setError(true);
@@ -165,6 +200,8 @@ export function useDevicePush(mode: Mode) {
     configured: !!config.data?.enabled,
     configLoaded: !!config.data,
     blocked: supported && Notification.permission === "denied",
+    /** 이 기기에서 한 번도 묻지 않음(첫 안내 대상). */
+    askable: supported && Notification.permission === "default" && !optedOut(mode),
     iosBrowser: isIos() && !isStandalone(),
     enable,
     disable,
@@ -277,13 +314,23 @@ export function PushSessionSync({ mode }: { mode: Mode }) {
   useEffect(() => {
     if (!actor || !token || !pushSupported()) return;
     if (Notification.permission !== "granted") return;
+    // 사용자가 이 기기에서 직접 끈 경우만 그대로 둔다(그 밖에는 기본 켜짐).
+    if (optedOut(mode)) return;
     // 한 브라우저 구독은 한 계정 것 — 콘솔·포털을 함께 쓰는 브라우저는 켠 쪽만 갱신한다.
     const b = stored();
     if (b && b.base !== baseOf(mode)) return;
     void (async () => {
+      // FIX-261026 — 구독이 사라졌으면(iOS 만료·서버 410 삭제·로그아웃 후) 다시 만든다.
       const reg = await navigator.serviceWorker.getRegistration("/");
-      const sub = await reg?.pushManager.getSubscription();
-      if (sub) await register(mode, sub);
+      let sub = await reg?.pushManager.getSubscription();
+      if (!sub) {
+        const config = (
+          await apiClient.get<{ enabled: boolean; publicKey: string | null }>(baseOf(mode) + "/push-config")
+        ).data;
+        if (!config.enabled || !config.publicKey) return;
+        sub = await ensureSubscription(config.publicKey);
+      }
+      await register(mode, sub);
     })().catch(() => undefined);
   }, [actor, mode, token]);
   useEffect(() => {
@@ -310,5 +357,52 @@ export function hasDevicePush(actor: string): boolean {
     typeof Notification !== "undefined" &&
     Notification.permission === "granted" &&
     stored()?.actor === actor
+  );
+}
+
+/**
+ * FIX-261026 — 로그인 직후 한 번 "이 기기에서 알림 받기" 안내(권한을 아직 묻지 않은 기기만).
+ * iOS 는 사용자가 눌러야 권한을 물을 수 있어 [켜기] 버튼으로 받는다. 이후로는 자동으로 켜진 상태를 유지한다.
+ */
+export function PushLoginPrompt({ mode }: { mode: Mode }) {
+  const { t } = useTranslation("common");
+  const p = useDevicePush(mode);
+  const [shown, setShown] = useState(() => {
+    try {
+      return sessionStorage.getItem(PROMPT_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  if (shown || !p.checked || !p.configLoaded || !p.configured || p.enabled || !p.askable) return null;
+  const close = () => {
+    try {
+      sessionStorage.setItem(PROMPT_KEY, "1");
+    } catch {
+      // 이번 화면에서만 닫는다.
+    }
+    setShown(true);
+  };
+  return (
+    <div
+      role="dialog"
+      aria-label={t("push.title")}
+      className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-md items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 shadow-lg"
+    >
+      <BellRing size={18} className="shrink-0" aria-hidden />
+      <span className="min-w-0 flex-1">{t("push.banner")}</span>
+      <Button
+        size="sm"
+        disabled={p.busy}
+        onClick={() => {
+          void p.enable().finally(close);
+        }}
+      >
+        {t("push.turnOn")}
+      </Button>
+      <button type="button" className="min-h-9 rounded px-2 text-blue-900/70 hover:bg-blue-100" onClick={close}>
+        {t("push.later")}
+      </button>
+    </div>
   );
 }

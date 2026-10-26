@@ -1302,7 +1302,8 @@
     "close": "Đóng",
     "banner": "Nhận thông báo trên thiết bị này — tin nhắn và tư vấn ngay lập tức",
     "turnOn": "Bật",
-    "dismiss": "Đóng"
+    "dismiss": "Đóng",
+    "later": "Để sau"
   },
   "reviewMissing": {
     "feedback": "Nhận xét",

@@ -1302,7 +1302,8 @@
     "close": "关闭",
     "banner": "在此设备接收通知 — 即时获取聊天和咨询提醒",
     "turnOn": "开启",
-    "dismiss": "关闭提示"
+    "dismiss": "关闭提示",
+    "later": "稍后"
   },
   "reviewMissing": {
     "feedback": "反馈",
