@@ -32,10 +32,15 @@ export class BillBatchDto {
   @IsUUID() requestId!: string;
   @IsArray()
   @ArrayMinSize(1)
-  @ArrayMaxSize(100)
+  @ArrayMaxSize(300)
   @ValidateNested({ each: true })
   @Type(() => BillInput)
   items!: BillInput[];
+}
+export class BillImportQuery {
+  @IsOptional()
+  @IsIn(['ALL', 'TPI', 'TRINITY', 'SANTACROCE', 'UNASSIGNED'])
+  site?: string;
 }
 export class BillEdit {
   @IsUUID() id!: string;

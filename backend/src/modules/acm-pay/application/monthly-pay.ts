@@ -134,8 +134,27 @@ export interface MonthlyBill {
   received: number;
   unpaid: number | null;
   state: string;
+  version: number;
+  discount: number;
+  due: string | null;
+  title: string;
+  memo: string;
 }
+/** The month's only bill, for inline amount entry in the list (REQ-261027B). */
+export type MonthlyRowBill = Pick<
+  MonthlyBill,
+  | 'id'
+  | 'version'
+  | 'amount'
+  | 'discount'
+  | 'due'
+  | 'title'
+  | 'memo'
+  | 'state'
+  | 'received'
+>;
 export interface MonthlyRow extends MonthlyStudent {
+  bill: MonthlyRowBill | null;
   billIds: string[];
   billCount: number;
   drafts: number;
@@ -193,8 +212,20 @@ export function monthlyRows(
           : net === 0
             ? 'FREE'
             : 'PAID';
+    const only = bs.length === 1 ? bs[0] : null;
     return {
       ...s,
+      bill: only && {
+        id: only.id,
+        version: only.version,
+        amount: only.amount,
+        discount: only.discount,
+        due: only.due,
+        title: only.title,
+        memo: only.memo,
+        state: only.state,
+        received: only.received,
+      },
       billIds: bs.map((b) => b.id),
       billCount: bs.length,
       drafts,
