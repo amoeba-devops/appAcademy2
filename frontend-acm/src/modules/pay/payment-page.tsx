@@ -24,6 +24,8 @@ import type {
   Page,
   Preview,
 } from "./types";
+import { payErrorCode } from "./bill-import";
+import { BillImportDialog } from "./bill-import-dialog";
 const base = "/acm/pay/bills";
 const input =
   "rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900";
@@ -211,6 +213,16 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const [drafts, setDrafts] = useState<Record<string, Edit>>({});
   const [selected, setSelected] = useState<string[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
+  // REQ-261027 — row [+ 청구] opens the create dialog for one student.
+  const [createFor, setCreateFor] = useState<{
+    student: Option;
+    month: string;
+  } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const addBill = (student: Option, month: string) => {
+    setCreateFor({ student, month });
+    setCreateOpen(true);
+  };
   const [batchOpen, setBatchOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -346,7 +358,15 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
             >
               {tr("activeBatch")}
             </Button>
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              {t("pay.bulk.button")}
+            </Button>
+            <Button
+              onClick={() => {
+                setCreateFor(null);
+                setCreateOpen(true);
+              }}
+            >
               {tr("create")}
             </Button>
           </>
@@ -403,6 +423,16 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
             setBatchStudent({ id: student.id, name: student.name });
             setBatchOpen(true);
           }}
+          onAddBill={(student) =>
+            addBill(
+              {
+                id: student.id,
+                name: student.name,
+                site: student.site ?? undefined,
+              },
+              monthlyMonth,
+            )
+          }
         />
       )}
       <div hidden={tab !== "detail"} className="space-y-4">
@@ -938,12 +968,28 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
                             />
                           </td>
                         )}
-                        <td>
+                        <td className="whitespace-nowrap">
                           <button
                             className={btn}
                             onClick={() => setDetailId(b.id)}
                           >
                             {tr("detail")}
+                          </button>{" "}
+                          <button
+                            className={btn}
+                            disabled={busy}
+                            onClick={() =>
+                              addBill(
+                                {
+                                  id: b.studentId,
+                                  name: b.studentName,
+                                  site: b.site ?? undefined,
+                                },
+                                b.month,
+                              )
+                            }
+                          >
+                            {tr("addBill")}
                           </button>
                         </td>
                       </tr>
@@ -1003,10 +1049,21 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
               ? ""
               : monthlySite
         }
-        month={tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth}
+        month={
+          createFor?.month ??
+          (tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth)
+        }
+        student={createFor?.student}
         open={createOpen}
         close={() => setCreateOpen(false)}
         identity={identity}
+        onSaved={() => qc.invalidateQueries({ queryKey: key })}
+      />
+      <BillImportDialog
+        open={importOpen}
+        close={() => setImportOpen(false)}
+        month={tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth}
+        site={tab === "detail" ? query.site || "ALL" : monthlySite}
         onSaved={() => qc.invalidateQueries({ queryKey: key })}
       />
       {detailId && (
@@ -1024,6 +1081,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
 function CreateDialog({
   initialSite,
   month,
+  student,
   open,
   close,
   identity,
@@ -1031,6 +1089,8 @@ function CreateDialog({
 }: {
   month?: string;
   initialSite?: string;
+  /** REQ-261027 — fixed student opened from a list row. */
+  student?: Option | null;
   open: boolean;
   close: () => void;
   identity: string;
@@ -1073,6 +1133,7 @@ function CreateDialog({
       studentStatus,
       classFilter,
       site,
+      student?.id,
     ],
     queryFn: async () =>
       (
@@ -1082,6 +1143,7 @@ function CreateDialog({
             studentStatus,
             classId: classFilter || undefined,
             site: site || undefined,
+            studentId: student?.id,
           },
         })
       ).data,
@@ -1097,13 +1159,24 @@ function CreateDialog({
       setSite(initialSite || "");
       setStudentStatus("ACTIVE");
       setSearchTerm("");
-      setSelectedStudents([]);
-      if (month) setForm((old) => ({ ...old, month }));
+      setSelectedStudents(student ? [student] : []);
+      setForm((old) => ({
+        ...old,
+        ...(month ? { month } : {}),
+        // A class picked for another student may not apply to this one.
+        ...(student ? { classId: "" } : {}),
+      }));
       setPreview(null);
       setError("");
       setResult("");
     }
-  }, [open, month, initialSite]);
+  }, [open, month, initialSite, student]);
+  const invalid =
+    !form.month || !form.due || !form.title.trim()
+      ? tr("requiredFields")
+      : form.discount > form.amount
+        ? tr("discountOverAmount")
+        : "";
   const items = () =>
     ids.map((studentId) => ({
       ...form,
@@ -1132,7 +1205,7 @@ function CreateDialog({
           `${tr("created")}: ${r.ids.length} / ${tr("skipped")}: ${r.skipped.length}`,
         );
         setPreview(null);
-        setSelectedStudents([]);
+        if (!student) setSelectedStudents([]);
         await onSaved();
       } else
         setPreview(
@@ -1143,8 +1216,9 @@ function CreateDialog({
             })
           ).data,
         );
-    } catch {
-      setError(tr("failed"));
+    } catch (e) {
+      const code = payErrorCode(e);
+      setError(code ? tr(code) : tr("failed"));
     } finally {
       setBusy(false);
     }
@@ -1158,144 +1232,160 @@ function CreateDialog({
     >
       <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{tr("create")}</DialogTitle>
+          <DialogTitle>
+            {student
+              ? t("pay.createFor", {
+                  name: [student.name, student.site]
+                    .filter(Boolean)
+                    .join(" · "),
+                })
+              : tr("create")}
+          </DialogTitle>
         </DialogHeader>
-        <p className="text-sm">{tr("createHint")}</p>
-        <div className="flex flex-wrap gap-2">
-          <label>
-            {tr("studentStatus")}
-            <select
-              className={input}
-              value={studentStatus}
-              onChange={(e) => setStudentStatus(e.target.value)}
-            >
-              {["ACTIVE", "ALL", "INACTIVE", "WITHDRAWN"].map((v) => (
-                <option key={v} value={v}>
-                  {tr(v === "ALL" ? "all" : v)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            {tr("student")}
-            <input
-              className={input}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
-          <label>
-            {tr("site")}
-            <input
-              className={input}
-              value={site}
-              onChange={(e) => {
-                setSite(e.target.value);
-                setSelectedStudents([]);
-              }}
-            />
-          </label>
-          <label>
-            {tr("enrolledClass")}
-            <select
-              className={input}
-              value={classFilter}
-              onChange={(e) => {
-                setClassFilter(e.target.value);
-                setSelectedStudents([]);
-              }}
-            >
-              <option value="">{tr("all")}</option>
-              {options.data?.classes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <p className="text-xs text-slate-500">{tr("filterResetsSelection")}</p>
-        <div
-          className="max-h-44 overflow-y-auto border rounded p-2"
-          aria-live="polite"
-        >
-          {!search.trim() ? (
-            <p>{tr("searchPrompt")}</p>
-          ) : search.trim() !== searchTerm || options.isFetching ? (
-            <p>{tr("loading")}</p>
-          ) : options.isError ? (
-            <button className={btn} onClick={() => options.refetch()}>
-              {tr("retry")}
-            </button>
-          ) : (
-            <>
-              {options.data?.hasMore && <p>{tr("narrowSearch")}</p>}
-              {!options.data?.students.length && <p>{tr("noStudents")}</p>}
-              {options.data?.students.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between gap-2 py-1"
+        {!student && (
+          <>
+            <p className="text-sm">{tr("createHint")}</p>
+            <div className="flex flex-wrap gap-2">
+              <label>
+                {tr("studentStatus")}
+                <select
+                  className={input}
+                  value={studentStatus}
+                  onChange={(e) => setStudentStatus(e.target.value)}
                 >
-                  <span>
-                    {s.name} · {s.site || tr("none")} ·{" "}
-                    {tr(s.status || "ACTIVE")}{" "}
-                    <span className="text-xs text-slate-500">
-                      #{s.id.slice(0, 8)}
-                    </span>
-                  </span>
-                  <button
-                    className={btn}
-                    disabled={
-                      busy ||
-                      s.status !== "ACTIVE" ||
-                      ids.includes(s.id) ||
-                      ids.length >= 100
-                    }
-                    onClick={() =>
-                      setSelectedStudents((current) =>
-                        current.some((x) => x.id === s.id) ||
-                        current.length >= 100
-                          ? current
-                          : [...current, s],
-                      )
-                    }
-                  >
-                    {tr(ids.includes(s.id) ? "studentSelected" : "addStudent")}
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-        <section
-          aria-label={tr("selectedStudents")}
-          className="rounded border p-2"
-        >
-          <h3 className="font-medium">
-            {tr("selectedStudents")} ({ids.length}/100)
-          </h3>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {selectedStudents.map((s) => (
-              <span
-                key={s.id}
-                className="inline-flex items-center gap-2 rounded bg-slate-100 px-2 py-1"
-              >
-                {s.name} · {s.site || tr("none")} · #{s.id.slice(0, 8)}
-                <button
-                  disabled={busy}
-                  aria-label={`${tr("removeStudent")} ${s.name}`}
-                  onClick={() =>
-                    setSelectedStudents((current) =>
-                      current.filter((x) => x.id !== s.id),
-                    )
-                  }
+                  {["ACTIVE", "ALL", "INACTIVE", "WITHDRAWN"].map((v) => (
+                    <option key={v} value={v}>
+                      {tr(v === "ALL" ? "all" : v)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                {tr("student")}
+                <input
+                  className={input}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </label>
+              <label>
+                {tr("site")}
+                <input
+                  className={input}
+                  value={site}
+                  onChange={(e) => {
+                    setSite(e.target.value);
+                    setSelectedStudents([]);
+                  }}
+                />
+              </label>
+              <label>
+                {tr("enrolledClass")}
+                <select
+                  className={input}
+                  value={classFilter}
+                  onChange={(e) => {
+                    setClassFilter(e.target.value);
+                    setSelectedStudents([]);
+                  }}
                 >
-                  ×
+                  <option value="">{tr("all")}</option>
+                  {options.data?.classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="text-xs text-slate-500">
+              {tr("filterResetsSelection")}
+            </p>
+            <div
+              className="max-h-44 overflow-y-auto border rounded p-2"
+              aria-live="polite"
+            >
+              {!search.trim() ? (
+                <p>{tr("searchPrompt")}</p>
+              ) : search.trim() !== searchTerm || options.isFetching ? (
+                <p>{tr("loading")}</p>
+              ) : options.isError ? (
+                <button className={btn} onClick={() => options.refetch()}>
+                  {tr("retry")}
                 </button>
-              </span>
-            ))}
-          </div>
-        </section>
+              ) : (
+                <>
+                  {options.data?.hasMore && <p>{tr("narrowSearch")}</p>}
+                  {!options.data?.students.length && <p>{tr("noStudents")}</p>}
+                  {options.data?.students.map((s) => (
+                    <div
+                      key={s.id}
+                      className="flex items-center justify-between gap-2 py-1"
+                    >
+                      <span>
+                        {s.name} · {s.site || tr("none")} ·{" "}
+                        {tr(s.status || "ACTIVE")}{" "}
+                        <span className="text-xs text-slate-500">
+                          #{s.id.slice(0, 8)}
+                        </span>
+                      </span>
+                      <button
+                        className={btn}
+                        disabled={
+                          busy ||
+                          s.status !== "ACTIVE" ||
+                          ids.includes(s.id) ||
+                          ids.length >= 100
+                        }
+                        onClick={() =>
+                          setSelectedStudents((current) =>
+                            current.some((x) => x.id === s.id) ||
+                            current.length >= 100
+                              ? current
+                              : [...current, s],
+                          )
+                        }
+                      >
+                        {tr(
+                          ids.includes(s.id) ? "studentSelected" : "addStudent",
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+            <section
+              aria-label={tr("selectedStudents")}
+              className="rounded border p-2"
+            >
+              <h3 className="font-medium">
+                {tr("selectedStudents")} ({ids.length}/100)
+              </h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedStudents.map((s) => (
+                  <span
+                    key={s.id}
+                    className="inline-flex items-center gap-2 rounded bg-slate-100 px-2 py-1"
+                  >
+                    {s.name} · {s.site || tr("none")} · #{s.id.slice(0, 8)}
+                    <button
+                      disabled={busy}
+                      aria-label={`${tr("removeStudent")} ${s.name}`}
+                      onClick={() =>
+                        setSelectedStudents((current) =>
+                          current.filter((x) => x.id !== s.id),
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {["month", "due", "title", "memo"].map((k) => (
             <label key={k}>
@@ -1354,6 +1444,7 @@ function CreateDialog({
             />
           </label>
         </div>
+        {invalid && <p className="text-sm text-amber-700">{invalid}</p>}
         {error && (
           <p role="alert" className="text-red-700">
             {error}
@@ -1400,7 +1491,10 @@ function CreateDialog({
                     />
                   </>
                 )}{" "}
-                · {tr(x.reason || "eligible")}
+                ·{" "}
+                <span className={x.reason ? "text-red-700" : ""}>
+                  {tr(x.reason || "eligible")}
+                </span>
                 {x.existingId && <span> ({tr("existing")})</span>}
               </div>
             ))}
@@ -1409,7 +1503,7 @@ function CreateDialog({
         <div className="flex gap-2">
           <button
             className={btn}
-            disabled={busy || !ids.length || !form.title.trim()}
+            disabled={busy || !ids.length || !!invalid}
             onClick={() => act(false)}
           >
             {tr("preview")}

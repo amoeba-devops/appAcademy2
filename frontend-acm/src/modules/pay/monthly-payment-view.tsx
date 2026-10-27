@@ -20,6 +20,7 @@ export function MonthlyPaymentView({
   onFilter,
   onDetail,
   onCreate,
+  onAddBill,
   onList,
   onEdit,
 }: {
@@ -32,6 +33,8 @@ export function MonthlyPaymentView({
   onEdit: (id: string) => void;
   onDetail: (id: string) => void;
   onCreate: (student: MonthlyStudentRow) => void;
+  /** REQ-261027 — add a bill for this student (also when bills exist). */
+  onAddBill: (student: MonthlyStudentRow) => void;
 }) {
   const { t } = useTranslation("common");
   const tr = (key: string) => t(`payMonthly.${key}`);
@@ -165,6 +168,9 @@ export function MonthlyPaymentView({
                     {tr("create")}
                   </button>
                 )}
+                <button className={field} onClick={() => onAddBill(r)}>
+                  {t("pay.addBill")}
+                </button>
               </td>
             </tr>
           ))}

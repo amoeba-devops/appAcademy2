@@ -1,4 +1,7 @@
-import { AuditDownload, AuditRead } from '../../acm-common/decorators/audit.decorator';
+import {
+  AuditDownload,
+  AuditRead,
+} from '../../acm-common/decorators/audit.decorator';
 import {
   Body,
   Controller,
@@ -29,6 +32,7 @@ import {
   AdjustmentDto,
   BillActionDto,
   BillBatchDto,
+  BillImportQuery,
   BillQuery,
   CollectionDto,
   EditBatchDto,
@@ -55,7 +59,8 @@ export class CollectionsController {
     return this.service.monthly(u, q);
   }
   @Get('monthly-export')
-  @AuditDownload('bill-export') async monthlyExport(
+  @AuditDownload('bill-export')
+  async monthlyExport(
     @CurrentUser() u: AcmCurrentUser,
     @Query() q: MonthlyPayQuery,
     @Res() res: Response,
@@ -94,6 +99,11 @@ export class CollectionsController {
   ) {
     return this.service.options(u, q);
   }
+  @Get('import-data')
+  @AuditDownload('bill-import-template')
+  importData(@CurrentUser() u: AcmCurrentUser, @Query() q: BillImportQuery) {
+    return this.service.importData(u, q);
+  }
   @Post('active-drafts-preview') activeDraftPreview(
     @CurrentUser() u: AcmCurrentUser,
     @Body() d: ActiveDraftBatchDto,
@@ -130,7 +140,8 @@ export class CollectionsController {
     return this.service.stateBatch(u, d);
   }
   @Get('export')
-  @AuditDownload('bill-export') async export(
+  @AuditDownload('bill-export')
+  async export(
     @CurrentUser() u: AcmCurrentUser,
     @Query() q: BillQuery,
     @Res() res: Response,
@@ -179,7 +190,8 @@ export class CollectionsController {
     res.send(XLSX.write(book, { type: 'buffer', bookType: 'xlsx' }));
   }
   @Get(':id')
-  @AuditRead('bill') detail(
+  @AuditRead('bill')
+  detail(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,
   ) {

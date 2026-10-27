@@ -18,6 +18,7 @@ import {
   AdjustmentDto,
   BillActionDto,
   BillBatchDto,
+  BillImportQuery,
   BillInput,
   BillQuery,
   CollectionDto,
@@ -56,6 +57,10 @@ export interface BillRow {
   paidDate: string | null;
   periodReceived: number;
 }
+/** Class ids a student ($2) is enrolled in — same rule as the bill class check. */
+const ENROLLED_CLASSES = `SELECT ce.cls_id FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=$1 AND ce.std_id=$2 AND ce.ce_status='CONFIRMED'
+ UNION SELECT cs.cls_id FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id
+ WHERE cs.ent_id=$1 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=$2 OR i.inq_std_id=$2)`;
 const BILL_SELECT = `SELECT b.pbl_id AS id,b.std_id AS "studentId",s.std_name AS "studentName",s.std_grade AS grade,s.std_school AS school,
  s.std_status AS "studentStatus",b.pbl_site AS site,b.cls_id AS "classId",COALESCE(c.cls_subject_label,c.cls_code) AS "className",c.cls_teacher_tch_id AS "teacherId",
  b.pbl_month AS month,b.pbl_due::text AS due,b.pbl_kind AS kind,b.pbl_title AS title,b.pbl_amount::float8 AS amount,b.pbl_discount::float8 AS discount,
@@ -71,6 +76,18 @@ const BILL_SELECT = `SELECT b.pbl_id AS id,b.std_id AS "studentId",s.std_name AS
  sum(CASE WHEN pcl_type='PAYMENT' THEN pcl_amount ELSE -pcl_amount END) AS received,
  array_agg(DISTINCT pcl_method::text) FILTER(WHERE pcl_type='PAYMENT') AS methods,max(pcl_date) FILTER(WHERE pcl_type='PAYMENT') AS paid_date
  FROM amb_acm_pay_collection WHERE ent_id=b.ent_id AND pbl_id=b.pbl_id) p ON true WHERE b.ent_id=$1`;
+interface CandidateStudent {
+  name: string;
+  site: string | null;
+  status: string;
+}
+/** Row-level preview reasons for errors that create() still rejects. */
+const ROW_REASONS: Record<string, string> = {
+  PAY_INVALID_AMOUNT: 'INVALID_AMOUNT',
+  PAY_STUDENT_NOT_FOUND: 'STUDENT_NOT_FOUND',
+  PAY_CLASS_NOT_FOUND: 'CLASS_NOT_FOUND',
+  PAY_STUDENT_NOT_ENROLLED: 'NOT_ENROLLED',
+};
 @Injectable()
 export class CollectionsService {
   constructor(
@@ -187,25 +204,35 @@ export class CollectionsService {
       [ent, id],
     );
   }
-  private async candidate(m: EntityManager, ent: string, x: BillInput) {
-    if (!x.title.trim() || x.discount > x.amount)
-      this.error('PAY_INVALID_AMOUNT');
-    const [s]: { name: string; site: string; status: string }[] = await m.query(
+  /**
+   * Row check shared by preview and create. `error` holds a row-level problem that
+   * preview reports as a reason (REQ-261027) and create rejects with a 400.
+   */
+  private async check(m: EntityManager, ent: string, x: BillInput) {
+    const fail = (error: string, student: CandidateStudent | null = null) => ({
+      student,
+      existingId: null,
+      reason: null,
+      error,
+    });
+    const [s]: CandidateStudent[] = await m.query(
       'SELECT std_name AS name,std_site AS site,std_status AS status FROM amb_acm_std_student WHERE ent_id=$1 AND std_id=$2 AND deleted_at IS NULL',
       [ent, x.studentId],
     );
-    if (!s) this.error('PAY_STUDENT_NOT_FOUND');
+    if (!x.title.trim() || x.discount > x.amount)
+      return fail('PAY_INVALID_AMOUNT', s ?? null);
+    if (!s) return fail('PAY_STUDENT_NOT_FOUND');
     if (x.classId) {
       const c: unknown[] = await m.query(
         'SELECT cls_id FROM amb_acm_cls_classes WHERE ent_id=$1 AND cls_id=$2 AND cls_deleted_at IS NULL',
         [ent, x.classId],
       );
-      if (!c.length) this.error('PAY_CLASS_NOT_FOUND');
+      if (!c.length) return fail('PAY_CLASS_NOT_FOUND', s);
       const membership: unknown[] = await m.query(
         `SELECT 1 WHERE EXISTS(SELECT 1 FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=$1 AND ce.std_id=$2 AND ce.cls_id=$3 AND ce.ce_status='CONFIRMED') OR EXISTS(SELECT 1 FROM amb_acm_cls_class_students cs LEFT JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=$1 AND cs.cls_id=$3 AND cs.cst_left_at IS NULL AND (cs.cst_student_user_id=$2 OR i.inq_std_id=$2))`,
         [ent, x.studentId, x.classId],
       );
-      if (!membership.length) this.error('PAY_STUDENT_NOT_ENROLLED');
+      if (!membership.length) return fail('PAY_STUDENT_NOT_ENROLLED', s);
     }
     const [duplicate]: { id: string }[] = await m.query(
       'SELECT pbl_id AS id FROM amb_acm_pay_bill WHERE ent_id=$1 AND pbl_source_key=$2',
@@ -219,19 +246,29 @@ export class CollectionsService {
         : s.status !== 'ACTIVE'
           ? 'INACTIVE'
           : null,
+      error: null,
     };
+  }
+  private async candidate(m: EntityManager, ent: string, x: BillInput) {
+    const c = await this.check(m, ent, x);
+    if (c.error || !c.student) this.error(c.error ?? 'PAY_STUDENT_NOT_FOUND');
+    return { ...c, student: c.student };
   }
   async preview(u: AcmCurrentUser, d: BillBatchDto) {
     const seen = new Set<string>();
     const items = [];
     for (const item of d.items) {
-      const c = await this.candidate(this.ds.manager, u.entId, item);
+      const c = await this.check(this.ds.manager, u.entId, item);
       const key = this.key(item);
       items.push({
         ...item,
-        studentName: c.student.name,
+        studentName: c.student?.name ?? '',
         existingId: c.existingId,
-        reason: seen.has(key) ? 'DUPLICATE' : c.reason,
+        reason: c.error
+          ? ROW_REASONS[c.error]
+          : seen.has(key)
+            ? 'DUPLICATE'
+            : c.reason,
       });
       seen.add(key);
     }
@@ -729,6 +766,40 @@ export class CollectionsService {
       return { bill, collections, audit, consultation };
     });
   }
+  /** Excel bulk import template data: active students and their classes (REQ-261027). */
+  async importData(u: AcmCurrentUser, q: BillImportQuery) {
+    const site = !q.site || q.site === 'ALL' ? null : q.site;
+    const students: {
+      id: string;
+      name: string;
+      site: string | null;
+    }[] = await this.ds.query(
+      "SELECT std_id AS id,std_name AS name,std_site AS site FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL AND std_status='ACTIVE' AND ($2::text IS NULL OR COALESCE(std_site,'UNASSIGNED')=$2) ORDER BY std_name,std_id",
+      [u.entId, site],
+    );
+    const links: { studentId: string; id: string; name: string }[] =
+      await this.ds.query(
+        `SELECT DISTINCT x.std AS "studentId",c.cls_id AS id,COALESCE(c.cls_subject_label,c.cls_code) AS name
+ FROM (SELECT ce.std_id AS std,ce.cls_id FROM amb_acm_cls_enrollment ce WHERE ce.ent_id=$1 AND ce.ce_status='CONFIRMED'
+ UNION SELECT cs.cst_student_user_id,cs.cls_id FROM amb_acm_cls_class_students cs WHERE cs.ent_id=$1 AND cs.cst_left_at IS NULL
+ UNION SELECT i.inq_std_id,cs.cls_id FROM amb_acm_cls_class_students cs JOIN amb_acm_csl_inquiry i ON i.ent_id=cs.ent_id AND i.inq_id=cs.cst_inq_id WHERE cs.ent_id=$1 AND cs.cst_left_at IS NULL) x
+ JOIN amb_acm_cls_classes c ON c.ent_id=$1 AND c.cls_id=x.cls_id AND c.cls_deleted_at IS NULL WHERE x.std IS NOT NULL ORDER BY name`,
+        [u.entId],
+      );
+    const classes: { id: string; name: string }[] = await this.ds.query(
+      'SELECT cls_id AS id,COALESCE(cls_subject_label,cls_code) AS name FROM amb_acm_cls_classes WHERE ent_id=$1 AND cls_deleted_at IS NULL ORDER BY name',
+      [u.entId],
+    );
+    return {
+      students: students.map((s) => ({
+        ...s,
+        classes: links
+          .filter((l) => l.studentId === s.id)
+          .map(({ id, name }) => ({ id, name })),
+      })),
+      classes,
+    };
+  }
   async options(u: AcmCurrentUser, q: BillQuery) {
     const students: {
       id: string;
@@ -745,9 +816,10 @@ export class CollectionsService {
         q.studentStatus || 'ACTIVE',
       ],
     );
+    // With studentId, only that student's classes (REQ-261027 per-student bill).
     const classes: { id: string; name: string }[] = await this.ds.query(
-      'SELECT cls_id AS id,COALESCE(cls_subject_label,cls_code) AS name FROM amb_acm_cls_classes WHERE ent_id=$1 AND cls_deleted_at IS NULL ORDER BY name',
-      [u.entId],
+      `SELECT c.cls_id AS id,COALESCE(c.cls_subject_label,c.cls_code) AS name FROM amb_acm_cls_classes c WHERE c.ent_id=$1 AND c.cls_deleted_at IS NULL AND ($2::uuid IS NULL OR c.cls_id IN (${ENROLLED_CLASSES})) ORDER BY name`,
+      [u.entId, q.studentId || null],
     );
     const teachers: { id: string; name: string }[] = await this.ds.query(
       'SELECT tch_id AS id,tch_name AS name FROM amb_acm_tch_teacher WHERE ent_id=$1 AND deleted_at IS NULL ORDER BY tch_name',
