@@ -153,9 +153,11 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
   if (isDashboard || isProject || pathname === "/admin/documents" || pathname.startsWith("/admin/embed/"))
     return <>{children}</>;
   // UI-261019 — "이용 팁" 패널은 없앤다(화면 설명은 PageHeader 한 줄로). 채팅만 방 정보 패널로 쓴다.
+  // REQ-261027C — collections lists use the full width so 12 columns fit on one line.
+  const isWide = pathname.startsWith("/admin/pay");
   if (!isChat)
     return (
-      <div className="admin-content-container">
+      <div className={`admin-content-container ${isWide ? "admin-content-full" : ""}`}>
         <div className="admin-content-grid">
           <div className="admin-page-content">{children}</div>
         </div>

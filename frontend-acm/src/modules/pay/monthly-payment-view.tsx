@@ -5,12 +5,13 @@ import { Link } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import type { MonthlyPaymentResult, MonthlyStudentRow } from "./monthly-types";
 import { payErrorCode, type ImportData } from "./bill-import";
-const field = "rounded border bg-white px-3 py-2 text-sm";
+const field = "rounded border bg-white px-3 py-2 text-sm whitespace-nowrap";
 const base = "/acm/pay/bills";
-/** REQ-261027B — amount typed into a list row, kept with the row it was typed on. */
-interface InlineAmount {
+/** REQ-261027B/C — amount·discount typed into a list row, kept with the row it was typed on. */
+interface InlineBill {
   row: MonthlyStudentRow;
-  amount: number;
+  amount: number | null;
+  discount: number | null;
 }
 function AmountInput({
   value,
@@ -55,52 +56,70 @@ export const monthlySites = [
   "SANTACROCE",
   "UNASSIGNED",
 ];
+export type MonthlyMode = "dashboard" | "view" | "edit";
 export function MonthlyPaymentView({
   identity,
   month,
   site,
-  dashboard,
+  mode,
+  initialStatus,
   onFilter,
   onDetail,
   onAddBill,
   onPickStudent,
   onImport,
+  onExportBills,
   onDirtyChange,
   onList,
-  onEdit,
 }: {
   identity: string;
   month: string;
   site: string;
-  dashboard: boolean;
+  /** REQ-261027C — dashboard: stats only · view: history list · edit: this month's billing. */
+  mode: MonthlyMode;
+  initialStatus: string;
   onFilter: (month: string, site: string) => void;
-  onList: () => void;
-  onEdit: (id: string) => void;
-  onDetail: (id: string) => void;
+  /** Dashboard cards jump to the monthly list filtered by status. */
+  onList: (status: string) => void;
+  onDetail: (billIds: string[], readOnly: boolean) => void;
   /** REQ-261027 — add a bill for this student (also when bills exist). */
   onAddBill: (student: MonthlyStudentRow) => void;
-  /** REQ-261027B — list toolbar: pick students to bill / Excel import. */
   onPickStudent: () => void;
   onImport: () => void;
+  onExportBills: () => void;
   onDirtyChange: (dirty: boolean) => void;
 }) {
   const { t } = useTranslation("common");
   const tr = (key: string, o?: Record<string, unknown>) =>
     t(`payMonthly.${key}`, o);
   const qc = useQueryClient();
+  const dashboard = mode === "dashboard",
+    editing = mode === "edit";
   const [due, setDue] = useState(`${month}-10`),
-    [amounts, setAmounts] = useState<Record<string, InlineAmount>>({}),
+    [edits, setEdits] = useState<Record<string, InlineBill>>({}),
     [rowErrors, setRowErrors] = useState<Record<string, string>>({}),
     [saved, setSaved] = useState(""),
     [saving, setSaving] = useState(false);
-  const dirtyCount = Object.keys(amounts).length;
+  const dirtyCount = Object.keys(edits).length;
   useEffect(() => onDirtyChange(dirtyCount > 0), [dirtyCount, onDirtyChange]);
   const leave = () => !dirtyCount || window.confirm(t("pay.discard"));
-  const setAmount = (r: MonthlyStudentRow, amount: number | null) => {
-    setAmounts((old) => {
+  const setEdit = (
+    r: MonthlyStudentRow,
+    patch: Partial<Pick<InlineBill, "amount" | "discount">>,
+  ) => {
+    setEdits((old) => {
       const next = { ...old };
-      if (amount === null || amount === r.bill?.amount) delete next[r.id];
-      else next[r.id] = { row: r, amount };
+      const cur = {
+        row: r,
+        amount: old[r.id]?.amount ?? r.bill?.amount ?? null,
+        discount: old[r.id]?.discount ?? r.bill?.discount ?? null,
+        ...patch,
+      };
+      const same =
+        (cur.amount ?? null) === (r.bill?.amount ?? null) &&
+        (cur.discount ?? 0) === (r.bill?.discount ?? 0);
+      if (same || (!r.bill && cur.amount === null)) delete next[r.id];
+      else next[r.id] = cur;
       return next;
     });
     setRowErrors((old) => {
@@ -109,15 +128,25 @@ export function MonthlyPaymentView({
       return next;
     });
   };
-  const saveAmounts = async () => {
+  const saveEdits = async () => {
     setSaving(true);
     setSaved("");
     const errors: Record<string, string> = {};
-    const left = { ...amounts };
+    const left = { ...edits };
     let created = 0,
       updated = 0,
       classes: Map<string, { id: string }[]> | null = null;
-    for (const { row: r, amount } of Object.values(amounts)) {
+    for (const {
+      row: r,
+      amount: typed,
+      discount: typedDiscount,
+    } of Object.values(edits)) {
+      const amount = typed ?? 0,
+        discount = typedDiscount ?? 0;
+      if (discount > amount) {
+        errors[r.id] = t("pay.discountOverAmount");
+        continue;
+      }
       try {
         if (r.bill) {
           const b = r.bill;
@@ -129,7 +158,7 @@ export function MonthlyPaymentView({
                 id: b.id,
                 version: b.version,
                 amount,
-                discount: b.discount,
+                discount,
                 due: b.due ?? due,
                 title: b.title,
                 memo: b.memo,
@@ -169,7 +198,7 @@ export function MonthlyPaymentView({
                     ym: month,
                   }),
                   amount,
-                  discount: 0,
+                  discount,
                   memo: "",
                 },
               ],
@@ -186,7 +215,7 @@ export function MonthlyPaymentView({
         errors[r.id] = t(`pay.${payErrorCode(e) ?? "failed"}`);
       }
     }
-    setAmounts(left);
+    setEdits(left);
     setRowErrors(errors);
     setSaved(
       tr("inlineResult", {
@@ -198,8 +227,9 @@ export function MonthlyPaymentView({
     await qc.invalidateQueries({ queryKey: ["pay", identity] });
     setSaving(false);
   };
-  const [scope, setScope] = useState("ENROLLED"),
-    [status, setStatus] = useState(""),
+  // History lookup includes every student with a bill that month.
+  const [scope, setScope] = useState(mode === "view" ? "ALL" : "ENROLLED"),
+    [status, setStatus] = useState(initialStatus),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(1),
     [downloadError, setDownloadError] = useState(false);
@@ -228,11 +258,6 @@ export function MonthlyPaymentView({
     setPage(1);
     onFilter(m, s);
   };
-  const selectStatus = (s: string) => {
-    setStatus(s);
-    setPage(1);
-    onList();
-  };
   const exportRows = async () => {
     setDownloadError(false);
     try {
@@ -250,222 +275,256 @@ export function MonthlyPaymentView({
       setDownloadError(true);
     }
   };
-  const rows = (items: MonthlyStudentRow[]) => (
+  const cell = "p-2 whitespace-nowrap";
+  // REQ-261027C — the same 12 columns on the monthly list and bill details.
+  const rows = (items: MonthlyStudentRow[], offset = 0, edit = false) => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr>
             {[
-              "student",
+              "no",
+              "studentName",
               "site",
-              "period",
-              "status",
+              "school",
+              "grade",
               "amount",
+              "discount",
               "received",
               "unpaid",
-              "actions",
+              "refunded",
+              "status",
+              "billAction",
             ].map((k) => (
-              <th className="p-2 text-left whitespace-nowrap" key={k}>
-                {tr(k)}
+              <th className={`${cell} text-left`} key={k}>
+                {tr(`col.${k}`)}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {items.map((r) => (
-            <tr key={r.id} className="border-t">
-              <td className="p-2">
-                <Link to={`/admin/std/${r.id}`}>{r.name}</Link>
-                {r.review && (
-                  <span className="block text-amber-700">{tr("review")}</span>
-                )}
-              </td>
-              <td className="p-2">
-                {[...new Set(r.periods.map((p) => p.site || "UNASSIGNED"))]
-                  .map((s) => tr(s))
-                  .join(", ") || tr(r.site || "UNASSIGNED")}
-              </td>
-              <td className="p-2 whitespace-nowrap">
-                {r.periods.map((p, i) => (
-                  <div key={i}>
-                    {p.start || "—"} ~ {p.end || "—"}
-                  </div>
-                ))}
-              </td>
-              <td className="p-2">
-                {tr(r.status)}
-                {r.drafts > 0 && r.status !== "DRAFT" && (
-                  <small className="block">
-                    {tr("DRAFT")} {r.drafts}
-                  </small>
-                )}
-              </td>
-              <td className="p-2 text-right">
-                {r.billCount > 1 ? (
-                  <span className="whitespace-nowrap">
-                    {tr("multiBills", { count: r.billCount })} {money(r.net)}
-                  </span>
-                ) : (
-                  <>
+          {items.map((r, i) => {
+            const inline = edit && r.billCount <= 1;
+            const typed = edits[r.id];
+            return (
+              <tr
+                key={r.id}
+                className={`border-t ${typed ? "bg-amber-50" : ""}`}
+              >
+                <td className={cell}>{offset + i + 1}</td>
+                <td className={cell}>
+                  <Link to={`/admin/std/${r.id}`}>{r.name}</Link>
+                  {r.review && (
+                    <span className="ml-1 text-xs text-amber-700">
+                      {tr("review")}
+                    </span>
+                  )}
+                </td>
+                <td className={cell}>
+                  {[...new Set(r.periods.map((p) => p.site || "UNASSIGNED"))]
+                    .map((x) => tr(x))
+                    .join(", ") || tr(r.site || "UNASSIGNED")}
+                </td>
+                <td className={cell}>{r.school || "—"}</td>
+                <td className={cell}>{r.grade || "—"}</td>
+                <td className={`${cell} text-right`}>
+                  {inline ? (
                     <AmountInput
                       label={`${tr("amount")} ${r.name}`}
-                      value={amounts[r.id]?.amount ?? r.bill?.amount ?? null}
-                      dirty={!!amounts[r.id]}
-                      onChange={(v) => setAmount(r, v)}
+                      value={typed ? typed.amount : (r.bill?.amount ?? null)}
+                      dirty={!!typed}
+                      onChange={(v) => setEdit(r, { amount: v })}
                     />
-                    {r.net !== null && r.net !== r.bill?.amount && (
-                      <small className="block text-secondary">
-                        {tr("net")} {money(r.net)}
-                      </small>
-                    )}
-                    {rowErrors[r.id] && (
-                      <small role="alert" className="block text-red-700">
-                        {rowErrors[r.id]}
-                      </small>
-                    )}
-                  </>
-                )}
-              </td>
-              {(["received", "unpaid"] as const).map((k) => (
-                <td className="p-2 text-right" key={k}>
-                  {money(r[k])}
+                  ) : (
+                    <>
+                      {r.billCount > 1 && (
+                        <span className="mr-1 text-xs text-secondary">
+                          {tr("multiBills", { count: r.billCount })}
+                        </span>
+                      )}
+                      {money(r.amount)}
+                    </>
+                  )}
+                  {rowErrors[r.id] && (
+                    <small role="alert" className="block text-red-700">
+                      {rowErrors[r.id]}
+                    </small>
+                  )}
                 </td>
-              ))}
-              <td className="p-2">
-                {r.billIds.map((id, i) => (
-                  <button
-                    className={field}
-                    key={id}
-                    onClick={() => onDetail(id)}
-                  >
-                    {tr("detailAction")} {r.billIds.length > 1 ? i + 1 : ""}
-                  </button>
+                <td className={`${cell} text-right`}>
+                  {inline ? (
+                    <AmountInput
+                      label={`${tr("discount")} ${r.name}`}
+                      value={
+                        typed ? typed.discount : (r.bill?.discount ?? null)
+                      }
+                      dirty={!!typed}
+                      onChange={(v) => setEdit(r, { discount: v })}
+                    />
+                  ) : (
+                    money(r.discount)
+                  )}
+                </td>
+                {(["received", "unpaid", "refunded"] as const).map((k) => (
+                  <td className={`${cell} text-right`} key={k}>
+                    {money(r[k])}
+                  </td>
                 ))}
-                {r.billCount > 0 && (
-                  <button className={field} onClick={() => onEdit(r.id)}>
-                    {tr("editBills")}
-                  </button>
-                )}
-                <button className={field} onClick={() => onAddBill(r)}>
-                  {t("pay.addBill")}
-                </button>
-              </td>
-            </tr>
-          ))}
+                <td className={cell}>
+                  {tr(r.status)}
+                  {r.drafts > 0 && r.status !== "DRAFT" && (
+                    <small className="ml-1">
+                      {tr("DRAFT")} {r.drafts}
+                    </small>
+                  )}
+                </td>
+                <td className={`${cell} space-x-1`}>
+                  {edit ? (
+                    <>
+                      <button className={field} onClick={() => onAddBill(r)}>
+                        {tr("write")}
+                      </button>
+                      {r.billCount > 0 && (
+                        <button
+                          className={field}
+                          onClick={() => onDetail(r.billIds, false)}
+                        >
+                          {tr("modify")}
+                        </button>
+                      )}
+                    </>
+                  ) : r.billCount > 0 ? (
+                    <button
+                      className={field}
+                      onClick={() => onDetail(r.billIds, true)}
+                    >
+                      {tr("view")}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {items.length === 0 && <p className="p-4">{tr("empty")}</p>}
     </div>
   );
+  const statusSelect = (
+    <select
+      className={field}
+      aria-label={tr("status")}
+      value={status}
+      onChange={(e) => {
+        setStatus(e.target.value);
+        setPage(1);
+      }}
+    >
+      <option value="">{tr("allStatuses")}</option>
+      {["NONE", "DRAFT", "UNPAID", "PARTIAL", "PAID", "FREE", "FINALIZED"].map(
+        (x) => (
+          <option key={x} value={x}>
+            {tr(x)}
+          </option>
+        ),
+      )}
+    </select>
+  );
+  const scopeSelect = (
+    <select
+      aria-label={tr("scope")}
+      className={field}
+      value={scope}
+      onChange={(e) => {
+        setScope(e.target.value);
+        setPage(1);
+      }}
+    >
+      {["ENROLLED", "ALL_RECORDS", "REVIEW"].map((x, i) => (
+        <option key={x} value={["ENROLLED", "ALL", "REVIEW"][i]}>
+          {tr(x)}
+        </option>
+      ))}
+    </select>
+  );
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 rounded border bg-white p-3">
-        <select
-          aria-label={tr("scope")}
-          className={field}
-          value={scope}
-          onChange={(e) => {
-            setScope(e.target.value);
-            setPage(1);
-          }}
-        >
-          {["ENROLLED", "ALL_RECORDS", "REVIEW"].map((s, i) => (
-            <option key={s} value={["ENROLLED", "ALL", "REVIEW"][i]}>
-              {tr(s)}
-            </option>
-          ))}
-        </select>
-        {!dashboard && (
-          <>
-            <input
-              className={field}
-              aria-label={tr("student")}
-              placeholder={tr("student")}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-            <select
-              className={field}
-              aria-label={tr("status")}
-              value={status}
-              onChange={(e) => selectStatus(e.target.value)}
-            >
-              <option value="">{tr("allStatuses")}</option>
-              {[
-                "NONE",
-                "DRAFT",
-                "UNPAID",
-                "PARTIAL",
-                "PAID",
-                "FREE",
-                "FINALIZED",
-              ].map((s) => (
-                <option key={s} value={s}>
-                  {tr(s)}
-                </option>
-              ))}
-            </select>
-            <button
-              className={field}
-              disabled={!result || query.isFetching}
-              onClick={exportRows}
-            >
-              {tr("export")}
-            </button>
-          </>
-        )}
-      </div>
       {!dashboard && (
-        // Sticky so [Save changes] stays reachable while editing far down the list.
-        <div className="sticky top-14 z-10 flex flex-wrap items-center gap-2 rounded border bg-white p-3 shadow-sm">
-          <button className={field} onClick={onPickStudent}>
-            {tr("pickStudent")}
+        // Line ② of the list: search · filters · Excel (+ billing tools on bill details).
+        <div
+          className={`flex flex-wrap items-center gap-2 ${editing ? "sticky top-14 z-10 rounded border bg-white p-3 shadow-sm" : ""}`}
+        >
+          <input
+            className={field}
+            aria-label={tr("student")}
+            placeholder={tr("student")}
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+          {scopeSelect}
+          {statusSelect}
+          <button
+            className={field}
+            disabled={!result || query.isFetching}
+            onClick={exportRows}
+          >
+            {tr("export")}
           </button>
-          <button className={field} onClick={onImport}>
-            {t("pay.bulk.button")}
-          </button>
-          <label className="flex items-center gap-2 text-sm">
-            {tr("defaultDue")}
-            <input
-              className={`${field} text-base md:text-sm`}
-              type="date"
-              value={due}
-              onChange={(e) => setDue(e.target.value)}
-            />
-          </label>
-          {dirtyCount > 0 && (
-            <span className="ml-auto flex gap-2">
-              <button
-                className={`${field} border-amber-400 bg-amber-50 font-medium`}
-                disabled={saving || !due}
-                onClick={() => void saveAmounts()}
-              >
-                {tr("saveInline", { count: dirtyCount })}
+          {editing && (
+            <>
+              <button className={field} onClick={onExportBills}>
+                {tr("exportBills")}
               </button>
-              <button
-                className={field}
-                disabled={saving}
-                onClick={() => {
-                  setAmounts({});
-                  setRowErrors({});
-                }}
-              >
-                {tr("cancelInline")}
+              <button className={field} onClick={onImport}>
+                {t("pay.bulk.button")}
               </button>
-            </span>
-          )}
-          <p className="w-full text-xs text-secondary">{tr("inlineHint")}</p>
-          {saved && (
-            <p role="status" className="w-full text-sm">
-              {saved}
-            </p>
+              <label className="flex items-center gap-2 text-sm">
+                {tr("defaultDue")}
+                <input
+                  className={`${field} text-base md:text-sm`}
+                  type="date"
+                  value={due}
+                  onChange={(e) => setDue(e.target.value)}
+                />
+              </label>
+              {dirtyCount > 0 && (
+                <span className="ml-auto flex gap-2">
+                  <button
+                    className={`${field} border-amber-400 bg-amber-50 font-medium`}
+                    disabled={saving || !due}
+                    onClick={() => void saveEdits()}
+                  >
+                    {tr("saveInline", { count: dirtyCount })}
+                  </button>
+                  <button
+                    className={field}
+                    disabled={saving}
+                    onClick={() => {
+                      setEdits({});
+                      setRowErrors({});
+                    }}
+                  >
+                    {tr("cancelInline")}
+                  </button>
+                </span>
+              )}
+              <p className="w-full text-xs text-secondary">
+                {tr("inlineHint")}
+              </p>
+              {saved && (
+                <p role="status" className="w-full text-sm">
+                  {saved}
+                </p>
+              )}
+            </>
           )}
         </div>
       )}
-      <p className="text-sm text-secondary">{tr("basisHint")}</p>
       {query.isPending && <p role="status">{tr("loading")}</p>}
       {(query.isError || downloadError) && (
         <p role="alert">
@@ -477,71 +536,73 @@ export function MonthlyPaymentView({
       )}
       {result && !query.isError && (
         <>
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                "enrolled",
-                "missing",
-                "draftStudents",
-                "billed",
-                "unpaidStudents",
-              ] as const
-            ).map((k) => (
-              <button
-                className="rounded border bg-white p-3 text-left"
-                key={k}
-                onClick={() => {
-                  if (k === "enrolled") setScope("ENROLLED");
-                  selectStatus(
-                    k === "missing"
-                      ? "NONE"
-                      : k === "draftStudents"
-                        ? "DRAFT"
-                        : k === "unpaidStudents"
-                          ? "UNPAID"
-                          : k === "billed"
-                            ? "FINALIZED"
-                            : "",
-                  );
-                }}
-              >
-                <span className="block text-xs">{tr(k)}</span>
-                <strong>{result.summary[k]}</strong>
-              </button>
-            ))}
-            <button
-              className={field}
-              onClick={() => {
-                setScope("REVIEW");
-                setStatus("");
-                setPage(1);
-                onList();
-              }}
-            >
-              {tr("review")} {result.reviewCount}
-            </button>
-          </div>
-          <h2 className="font-semibold">{tr("cohortTotals")}</h2>
-          <div className="flex flex-wrap gap-2">
-            {(["net", "received", "unpaid", "rate"] as const).map((k) => (
-              <div key={k} className="rounded border bg-white p-3">
-                <span className="block text-xs">{tr(k)}</span>
-                <strong>
-                  {k === "rate"
-                    ? result.summary.rate === null
-                      ? "—"
-                      : `${result.summary.rate.toFixed(1)}%`
-                    : money(result.summary[k])}
-                </strong>
+          {dashboard && (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                {scopeSelect}
+                <button className={field} onClick={onPickStudent}>
+                  {tr("pickStudent")}
+                </button>
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-secondary">
-            {tr("asOf")} {new Date(result.asOf).toLocaleString()} · KRW
-          </p>
+              <p className="text-sm text-secondary">{tr("basisHint")}</p>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    "enrolled",
+                    "missing",
+                    "draftStudents",
+                    "billed",
+                    "unpaidStudents",
+                  ] as const
+                ).map((k) => (
+                  <button
+                    className="rounded border bg-white p-3 text-left"
+                    key={k}
+                    onClick={() =>
+                      onList(
+                        k === "missing"
+                          ? "NONE"
+                          : k === "draftStudents"
+                            ? "DRAFT"
+                            : k === "unpaidStudents"
+                              ? "UNPAID"
+                              : k === "billed"
+                                ? "FINALIZED"
+                                : "",
+                      )
+                    }
+                  >
+                    <span className="block text-xs">{tr(k)}</span>
+                    <strong>{result.summary[k]}</strong>
+                  </button>
+                ))}
+                <button className={field} onClick={() => setScope("REVIEW")}>
+                  {tr("review")} {result.reviewCount}
+                </button>
+              </div>
+              <h2 className="font-semibold">{tr("cohortTotals")}</h2>
+              <div className="flex flex-wrap gap-2">
+                {(["net", "received", "unpaid", "rate"] as const).map((k) => (
+                  <div key={k} className="rounded border bg-white p-3">
+                    <span className="block text-xs">{tr(k)}</span>
+                    <strong>
+                      {k === "rate"
+                        ? result.summary.rate === null
+                          ? "—"
+                          : `${result.summary.rate.toFixed(1)}%`
+                        : money(result.summary[k])}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-secondary">
+                {tr("asOf")} {new Date(result.asOf).toLocaleString()} · KRW
+              </p>
+            </>
+          )}
           {!dashboard ? (
             <>
-              {rows(result.items)}
+              {rows(result.items, (page - 1) * 50, editing)}
               <div className="flex items-center gap-3">
                 <span>
                   {tr("total")} {result.total}
