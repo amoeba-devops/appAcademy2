@@ -20,6 +20,18 @@ export interface MonthlyStudentRow {
   enrolled: boolean;
   review: boolean;
   periods: { site: string | null; start: string | null; end: string | null }[];
+  /** The month's only bill (REQ-261027B inline amount); null when 0 or 2+ bills. */
+  bill: {
+    id: string;
+    version: number;
+    amount: number | null;
+    discount: number;
+    due: string | null;
+    title: string;
+    memo: string;
+    state: string;
+    received: number;
+  } | null;
   billIds: string[];
   billCount: number;
   drafts: number;

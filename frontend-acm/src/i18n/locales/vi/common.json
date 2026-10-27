@@ -1273,7 +1273,21 @@
     "topUnpaid": "10 học viên nợ cao nhất trong phạm vi",
     "basisHint": "Bao gồm học viên học ít nhất một ngày trong tháng. Ngày chưa rõ cần kiểm tra. Xem không tạo hóa đơn.",
     "trendHint": "Mọi hóa đơn cơ sở đã chọn. Phí theo tháng hóa đơn và thu theo tháng thanh toán khác cơ sở.",
-    "siteHint": "Số học viên theo cơ sở thời gian học; tiền theo cơ sở hóa đơn. Chuyển cơ sở có thể làm tổng số khác số duy nhất."
+    "siteHint": "Số học viên theo cơ sở thời gian học; tiền theo cơ sở hóa đơn. Chuyển cơ sở có thể làm tổng số khác số duy nhất.",
+    "tab": {
+      "dashboard": "Tổng quan & thống kê",
+      "monthly": "Danh sách theo tháng",
+      "detail": "Chi tiết hóa đơn"
+    },
+    "amount": "Số tiền",
+    "multiBills": "{{count}} hóa đơn",
+    "defaultDue": "Hạn nộp mặc định",
+    "saveInline": "Lưu thay đổi ({{count}})",
+    "cancelInline": "Hủy",
+    "inlineReason": "Nhập trực tiếp trong danh sách",
+    "inlineResult": "Kết quả: tạo {{created}} · sửa {{updated}} · lỗi {{failed}}",
+    "pickStudent": "Chọn học sinh để lập hóa đơn",
+    "inlineHint": "Nhập số tiền vào cột Số tiền rồi bấm Lưu. Học sinh chưa có hóa đơn sẽ được tạo hóa đơn học phí mới (hạn nộp mặc định); nếu có 1 hóa đơn thì số tiền được sửa. Từ 2 hóa đơn trở lên hãy dùng Sửa hóa đơn."
   },
   "payStats": {
     "hideCharts": "Ẩn thống kê",

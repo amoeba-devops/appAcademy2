@@ -1,10 +1,53 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import type { MonthlyPaymentResult, MonthlyStudentRow } from "./monthly-types";
+import { payErrorCode, type ImportData } from "./bill-import";
 const field = "rounded border bg-white px-3 py-2 text-sm";
+const base = "/acm/pay/bills";
+/** REQ-261027B — amount typed into a list row, kept with the row it was typed on. */
+interface InlineAmount {
+  row: MonthlyStudentRow;
+  amount: number;
+}
+function AmountInput({
+  value,
+  onChange,
+  label,
+  dirty,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  label: string;
+  dirty: boolean;
+}) {
+  const format = (n: number | null) => (n === null ? "" : n.toLocaleString());
+  const [text, setText] = useState(format(value));
+  useEffect(() => setText(format(value)), [value]);
+  return (
+    <input
+      className={`w-28 rounded border px-2 py-1 text-right text-base md:text-sm ${dirty ? "border-amber-400 bg-amber-50" : "bg-white"}`}
+      aria-label={label}
+      inputMode="numeric"
+      value={text}
+      onChange={(e) => {
+        const raw = e.target.value.replace(/[^\d]/g, "");
+        if (raw === "") {
+          setText("");
+          onChange(null);
+          return;
+        }
+        const n = Number(raw);
+        if (n <= 50000000) {
+          setText(n.toLocaleString());
+          onChange(n);
+        }
+      }}
+    />
+  );
+}
 export const monthlySites = [
   "ALL",
   "TPI",
@@ -19,8 +62,10 @@ export function MonthlyPaymentView({
   dashboard,
   onFilter,
   onDetail,
-  onCreate,
   onAddBill,
+  onPickStudent,
+  onImport,
+  onDirtyChange,
   onList,
   onEdit,
 }: {
@@ -32,12 +77,127 @@ export function MonthlyPaymentView({
   onList: () => void;
   onEdit: (id: string) => void;
   onDetail: (id: string) => void;
-  onCreate: (student: MonthlyStudentRow) => void;
   /** REQ-261027 — add a bill for this student (also when bills exist). */
   onAddBill: (student: MonthlyStudentRow) => void;
+  /** REQ-261027B — list toolbar: pick students to bill / Excel import. */
+  onPickStudent: () => void;
+  onImport: () => void;
+  onDirtyChange: (dirty: boolean) => void;
 }) {
   const { t } = useTranslation("common");
-  const tr = (key: string) => t(`payMonthly.${key}`);
+  const tr = (key: string, o?: Record<string, unknown>) =>
+    t(`payMonthly.${key}`, o);
+  const qc = useQueryClient();
+  const [due, setDue] = useState(`${month}-10`),
+    [amounts, setAmounts] = useState<Record<string, InlineAmount>>({}),
+    [rowErrors, setRowErrors] = useState<Record<string, string>>({}),
+    [saved, setSaved] = useState(""),
+    [saving, setSaving] = useState(false);
+  const dirtyCount = Object.keys(amounts).length;
+  useEffect(() => onDirtyChange(dirtyCount > 0), [dirtyCount, onDirtyChange]);
+  const leave = () => !dirtyCount || window.confirm(t("pay.discard"));
+  const setAmount = (r: MonthlyStudentRow, amount: number | null) => {
+    setAmounts((old) => {
+      const next = { ...old };
+      if (amount === null || amount === r.bill?.amount) delete next[r.id];
+      else next[r.id] = { row: r, amount };
+      return next;
+    });
+    setRowErrors((old) => {
+      const next = { ...old };
+      delete next[r.id];
+      return next;
+    });
+  };
+  const saveAmounts = async () => {
+    setSaving(true);
+    setSaved("");
+    const errors: Record<string, string> = {};
+    const left = { ...amounts };
+    let created = 0,
+      updated = 0,
+      classes: Map<string, { id: string }[]> | null = null;
+    for (const { row: r, amount } of Object.values(amounts)) {
+      try {
+        if (r.bill) {
+          const b = r.bill;
+          await apiClient.patch(base + "/batch", {
+            requestId: crypto.randomUUID(),
+            reason: tr("inlineReason"),
+            items: [
+              {
+                id: b.id,
+                version: b.version,
+                amount,
+                discount: b.discount,
+                due: b.due ?? due,
+                title: b.title,
+                memo: b.memo,
+              },
+            ],
+          });
+          updated++;
+        } else {
+          if (!classes) {
+            const data = await qc.fetchQuery({
+              queryKey: ["pay", identity, "import-data"],
+              queryFn: async () =>
+                (
+                  await apiClient.get<ImportData>(base + "/import-data", {
+                    params: { site: "ALL" },
+                  })
+                ).data,
+            });
+            classes = new Map(data.students.map((s) => [s.id, s.classes]));
+          }
+          const own = classes.get(r.id) ?? [];
+          const res = (
+            await apiClient.post<{
+              ids: string[];
+              skipped: { reason: string }[];
+            }>(base + "/batch-create", {
+              requestId: crypto.randomUUID(),
+              items: [
+                {
+                  studentId: r.id,
+                  classId: own.length === 1 ? own[0].id : undefined,
+                  month,
+                  due,
+                  kind: "CLASS",
+                  title: t("pay.bulk.defaultTitle", {
+                    m: Number(month.slice(5)),
+                    ym: month,
+                  }),
+                  amount,
+                  discount: 0,
+                  memo: "",
+                },
+              ],
+            })
+          ).data;
+          if (!res.ids.length) {
+            errors[r.id] = t(`pay.${res.skipped[0]?.reason ?? "failed"}`);
+            continue;
+          }
+          created++;
+        }
+        delete left[r.id];
+      } catch (e) {
+        errors[r.id] = t(`pay.${payErrorCode(e) ?? "failed"}`);
+      }
+    }
+    setAmounts(left);
+    setRowErrors(errors);
+    setSaved(
+      tr("inlineResult", {
+        created,
+        updated,
+        failed: Object.keys(errors).length,
+      }),
+    );
+    await qc.invalidateQueries({ queryKey: ["pay", identity] });
+    setSaving(false);
+  };
   const [scope, setScope] = useState("ENROLLED"),
     [status, setStatus] = useState(""),
     [search, setSearch] = useState(""),
@@ -64,6 +224,7 @@ export function MonthlyPaymentView({
   const money = (n: number | null) => (n === null ? "—" : n.toLocaleString());
   const change = (m: string, s: string) => {
     if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(m)) return;
+    if (!leave()) return;
     setPage(1);
     onFilter(m, s);
   };
@@ -99,7 +260,7 @@ export function MonthlyPaymentView({
               "site",
               "period",
               "status",
-              "net",
+              "amount",
               "received",
               "unpaid",
               "actions",
@@ -139,7 +300,33 @@ export function MonthlyPaymentView({
                   </small>
                 )}
               </td>
-              {(["net", "received", "unpaid"] as const).map((k) => (
+              <td className="p-2 text-right">
+                {r.billCount > 1 ? (
+                  <span className="whitespace-nowrap">
+                    {tr("multiBills", { count: r.billCount })} {money(r.net)}
+                  </span>
+                ) : (
+                  <>
+                    <AmountInput
+                      label={`${tr("amount")} ${r.name}`}
+                      value={amounts[r.id]?.amount ?? r.bill?.amount ?? null}
+                      dirty={!!amounts[r.id]}
+                      onChange={(v) => setAmount(r, v)}
+                    />
+                    {r.net !== null && r.net !== r.bill?.amount && (
+                      <small className="block text-secondary">
+                        {tr("net")} {money(r.net)}
+                      </small>
+                    )}
+                    {rowErrors[r.id] && (
+                      <small role="alert" className="block text-red-700">
+                        {rowErrors[r.id]}
+                      </small>
+                    )}
+                  </>
+                )}
+              </td>
+              {(["received", "unpaid"] as const).map((k) => (
                 <td className="p-2 text-right" key={k}>
                   {money(r[k])}
                 </td>
@@ -157,15 +344,6 @@ export function MonthlyPaymentView({
                 {r.billCount > 0 && (
                   <button className={field} onClick={() => onEdit(r.id)}>
                     {tr("editBills")}
-                  </button>
-                )}
-                {!r.billCount && (
-                  <button
-                    className={field}
-                    disabled={!r.enrolled || r.review}
-                    onClick={() => onCreate(r)}
-                  >
-                    {tr("create")}
                   </button>
                 )}
                 <button className={field} onClick={() => onAddBill(r)}>
@@ -240,6 +418,53 @@ export function MonthlyPaymentView({
           </>
         )}
       </div>
+      {!dashboard && (
+        // Sticky so [Save changes] stays reachable while editing far down the list.
+        <div className="sticky top-14 z-10 flex flex-wrap items-center gap-2 rounded border bg-white p-3 shadow-sm">
+          <button className={field} onClick={onPickStudent}>
+            {tr("pickStudent")}
+          </button>
+          <button className={field} onClick={onImport}>
+            {t("pay.bulk.button")}
+          </button>
+          <label className="flex items-center gap-2 text-sm">
+            {tr("defaultDue")}
+            <input
+              className={`${field} text-base md:text-sm`}
+              type="date"
+              value={due}
+              onChange={(e) => setDue(e.target.value)}
+            />
+          </label>
+          {dirtyCount > 0 && (
+            <span className="ml-auto flex gap-2">
+              <button
+                className={`${field} border-amber-400 bg-amber-50 font-medium`}
+                disabled={saving || !due}
+                onClick={() => void saveAmounts()}
+              >
+                {tr("saveInline", { count: dirtyCount })}
+              </button>
+              <button
+                className={field}
+                disabled={saving}
+                onClick={() => {
+                  setAmounts({});
+                  setRowErrors({});
+                }}
+              >
+                {tr("cancelInline")}
+              </button>
+            </span>
+          )}
+          <p className="w-full text-xs text-secondary">{tr("inlineHint")}</p>
+          {saved && (
+            <p role="status" className="w-full text-sm">
+              {saved}
+            </p>
+          )}
+        </div>
+      )}
       <p className="text-sm text-secondary">{tr("basisHint")}</p>
       {query.isPending && <p role="status">{tr("loading")}</p>}
       {(query.isError || downloadError) && (

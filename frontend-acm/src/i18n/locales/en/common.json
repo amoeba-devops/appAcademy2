@@ -1273,7 +1273,21 @@
     "topUnpaid": "Top 10 outstanding students in scope",
     "basisHint": "Includes students enrolled for at least one day in the month. Uncertain dates require review. Viewing creates no bills.",
     "trendHint": "All bills for the selected site. Billing-month charges and payment-month cash use different bases.",
-    "siteHint": "Headcounts use enrollment sites; money uses bill sites. Transfers may make site counts exceed unique totals."
+    "siteHint": "Headcounts use enrollment sites; money uses bill sites. Transfers may make site counts exceed unique totals.",
+    "tab": {
+      "dashboard": "Dashboard & stats",
+      "monthly": "Monthly list",
+      "detail": "Bill details"
+    },
+    "amount": "Amount",
+    "multiBills": "{{count}} bills",
+    "defaultDue": "Default due date",
+    "saveInline": "Save changes ({{count}})",
+    "cancelInline": "Cancel",
+    "inlineReason": "Entered in list",
+    "inlineResult": "Saved: created {{created}} · updated {{updated}} · failed {{failed}}",
+    "pickStudent": "Bill selected students",
+    "inlineHint": "Type amounts in the Amount column and press Save. Students without a bill get a new tuition bill (default due date); a single bill gets its amount changed. Use Edit bills for students with 2+ bills."
   },
   "payStats": {
     "hideCharts": "Hide statistics",

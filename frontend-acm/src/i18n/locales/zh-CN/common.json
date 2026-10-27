@@ -1273,7 +1273,21 @@
     "topUnpaid": "所选范围欠款前10名",
     "basisHint": "包含当月至少在读一天的学生。日期不明需核实。查看不会生成账单。",
     "trendHint": "所选校区全部账单。账单月份应收与实际收款月份实收口径不同。",
-    "siteHint": "人数按在读校区、金额按账单校区。转校学生可能导致校区人数之和与去重人数不同。"
+    "siteHint": "人数按在读校区、金额按账单校区。转校学生可能导致校区人数之和与去重人数不同。",
+    "tab": {
+      "dashboard": "仪表盘·统计",
+      "monthly": "月度缴费列表",
+      "detail": "账单明细"
+    },
+    "amount": "账单金额",
+    "multiBills": "{{count}} 条",
+    "defaultDue": "默认截止日期",
+    "saveInline": "保存更改 ({{count}})",
+    "cancelInline": "取消",
+    "inlineReason": "列表直接输入",
+    "inlineResult": "保存结果：新建 {{created}} · 修改 {{updated}} · 失败 {{failed}}",
+    "pickStudent": "选择学生开账单",
+    "inlineHint": "在账单金额栏输入金额后点击保存。没有账单的学生将新建学费账单（使用默认截止日期），只有 1 条账单的学生将修改其金额。2 条以上请使用修改账单。"
   },
   "payStats": {
     "hideCharts": "收起统计",

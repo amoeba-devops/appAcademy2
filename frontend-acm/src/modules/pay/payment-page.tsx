@@ -7,8 +7,8 @@ import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { UnderlineTabs } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -164,7 +164,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
     ? url.get("site")!
     : "ALL";
   const setMonthly = (month: string, site: string, view = tab) => {
-    if (dirty && !window.confirm(tr("discard"))) return;
+    if ((dirty || monthlyDirty) && !window.confirm(tr("discard"))) return;
     const next = new URLSearchParams(url);
     next.set("month", month);
     next.set("site", site);
@@ -185,10 +185,6 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
     }
     setDrafts({});
   };
-  const [batchStudent, setBatchStudent] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
   const defaults = {
     basis: "MONTH",
     from: new Date().toISOString().slice(0, 7),
@@ -223,7 +219,8 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
     setCreateFor({ student, month });
     setCreateOpen(true);
   };
-  const [batchOpen, setBatchOpen] = useState(false);
+  // REQ-261027B — unsaved inline amounts in the monthly list.
+  const [monthlyDirty, setMonthlyDirty] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -346,53 +343,26 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         title={t("nav.pay")}
         description={t("pageHeader.pay.desc")}
         meta={<span>{t("pageHeader.pay.currency")}</span>}
-        actions={
-          <>
-            <Button
-              variant="outline"
-              disabled={dirty || busy}
-              onClick={() => {
-                setBatchStudent(null);
-                setBatchOpen(true);
-              }}
-            >
-              {tr("activeBatch")}
-            </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)}>
-              {t("pay.bulk.button")}
-            </Button>
-            <Button
-              onClick={() => {
-                setCreateFor(null);
-                setCreateOpen(true);
-              }}
-            >
-              {tr("create")}
-            </Button>
-          </>
-        }
+      />
+      <UnderlineTabs
+        label={t("nav.pay")}
+        value={tab}
+        onChange={(v) => setMonthly(monthlyMonth, monthlySite, v)}
+        items={(["dashboard", "monthly", "detail"] as const).map((key) => ({
+          key,
+          label: t(`payMonthly.tab.${key}`),
+        }))}
       />
       <PaymentTopStatistics
         identity={identity}
         month={monthlyMonth}
         site={monthlySite}
+        charts={tab === "dashboard"}
         onFilter={(m, s) => setMonthly(m, s, tab)}
       />
-      <div className="flex flex-wrap gap-2">
-        {(["monthly", "detail", "dashboard"] as const).map((v) => (
-          <button
-            key={v}
-            className={btn}
-            aria-pressed={tab === v}
-            onClick={() => setMonthly(monthlyMonth, monthlySite, v)}
-          >
-            {t(`payMonthly.${v}`)}
-          </button>
-        ))}
-      </div>
       {tab !== "detail" && (
         <MonthlyPaymentView
-          key={`${monthlyMonth}:${monthlySite}`}
+          key={`${monthlyMonth}:${monthlySite}:${tab}`}
           identity={identity}
           month={monthlyMonth}
           site={monthlySite}
@@ -400,7 +370,8 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           onList={() => setMonthly(monthlyMonth, monthlySite, "monthly")}
           onFilter={setMonthly}
           onEdit={(studentId) => {
-            if (dirty && !window.confirm(tr("discard"))) return;
+            if ((dirty || monthlyDirty) && !window.confirm(tr("discard")))
+              return;
             const next = {
               basis: "MONTH",
               from: monthlyMonth,
@@ -419,10 +390,12 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
             setUrl(params);
           }}
           onDetail={setDetailId}
-          onCreate={(student) => {
-            setBatchStudent({ id: student.id, name: student.name });
-            setBatchOpen(true);
+          onPickStudent={() => {
+            setCreateFor(null);
+            setCreateOpen(true);
           }}
+          onImport={() => setImportOpen(true)}
+          onDirtyChange={setMonthlyDirty}
           onAddBill={(student) =>
             addBill(
               {
@@ -1028,19 +1001,6 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           </>
         )}
       </div>
-      <ActiveBatchDialog
-        student={batchStudent}
-        open={batchOpen}
-        close={() => setBatchOpen(false)}
-        month={
-          tab === "detail"
-            ? query.from?.slice(0, 7) || defaults.from
-            : monthlyMonth
-        }
-        site={tab === "detail" ? query.site || "ALL" : monthlySite}
-        roster={tab === "detail" ? "CURRENT" : "MONTH"}
-        onSaved={() => qc.invalidateQueries({ queryKey: key })}
-      />
       <CreateDialog
         initialSite={
           tab === "detail"
@@ -1796,146 +1756,6 @@ function DetailDialog({
             ))}
           </>
         )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function ActiveBatchDialog({
-  site,
-  roster,
-  student,
-  open,
-  close,
-  month,
-  onSaved,
-}: {
-  student: { id: string; name: string } | null;
-  site: string;
-  roster: string;
-  open: boolean;
-  close: () => void;
-  month: string;
-  onSaved: () => Promise<unknown>;
-}) {
-  const { t } = useTranslation("common");
-  const tr = (k: string) => t(`pay.${k}`);
-  const [form, setForm] = useState({ month, title: tr("monthlyTuition") });
-  const [preview, setPreview] = useState<{
-    total: number;
-    eligible: number;
-    skipped: number;
-    created: number;
-  } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [done, setDone] = useState(false);
-  const [requestId, setRequestId] = useState("");
-  useEffect(() => {
-    if (open) {
-      setForm({ month, title: tr("monthlyTuition") });
-      setPreview(null);
-      setDone(false);
-      setError("");
-      setRequestId(crypto.randomUUID());
-    }
-  }, [open, month, site, roster, student]);
-  const change = (patch: Partial<typeof form>) => {
-    setForm({ ...form, ...patch });
-    setPreview(null);
-    setDone(false);
-    setRequestId(crypto.randomUUID());
-  };
-  const act = async (commit: boolean) => {
-    setBusy(true);
-    setError("");
-    try {
-      const result = (
-        await apiClient.post<{
-          total: number;
-          eligible: number;
-          skipped: number;
-          created: number;
-        }>(base + (commit ? "/active-drafts" : "/active-drafts-preview"), {
-          ...form,
-          site,
-          roster,
-          studentId: student?.id,
-          requestId,
-        })
-      ).data;
-      setPreview(result);
-      if (commit) {
-        setDone(true);
-        await onSaved();
-      }
-    } catch {
-      setError(tr("failed"));
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v && !busy) close();
-      }}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{tr("activeBatch")}</DialogTitle>
-        </DialogHeader>
-        <p>{tr("draftHint")}</p>
-        {student && <p>{student.name}</p>}
-        <p>
-          {t(`payMonthly.${site}`)} ·{" "}
-          {t(
-            `payMonthly.${roster === "MONTH" ? "ENROLLED" : "currentStudents"}`,
-          )}
-        </p>
-        <label>
-          {tr("month")}
-          <input
-            disabled={busy}
-            className={input}
-            type="month"
-            value={form.month}
-            onChange={(e) => change({ month: e.target.value })}
-          />
-        </label>
-        <label>
-          {tr("billTitle")}
-          <input
-            disabled={busy}
-            className={input}
-            maxLength={200}
-            value={form.title}
-            onChange={(e) => change({ title: e.target.value })}
-          />
-        </label>
-        {preview && (
-          <p>
-            {tr("targetCount")}: {preview.total} / {tr("eligible")}:{" "}
-            {preview.eligible} / {tr("skipped")}: {preview.skipped}
-            {done && ` / ${tr("created")}: ${preview.created}`}
-          </p>
-        )}
-        {error && <p role="alert">{error}</p>}
-        <button
-          className={btn}
-          disabled={busy || !form.month || !form.title.trim()}
-          onClick={() => act(false)}
-        >
-          {tr("preview")}
-        </button>
-        <button
-          className={btn}
-          disabled={busy || done || !preview?.eligible}
-          onClick={() => act(true)}
-        >
-          {tr("activeBatch")}
-        </button>
       </DialogContent>
     </Dialog>
   );

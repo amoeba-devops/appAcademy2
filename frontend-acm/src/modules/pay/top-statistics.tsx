@@ -281,18 +281,21 @@ export function PaymentTopStatistics({
   month,
   site,
   onFilter,
+  charts = true,
 }: {
   identity: string;
   month: string;
   site: string;
   onFilter: (month: string, site: string) => void;
+  /** REQ-261027B — false shows only the month/site bar (list tabs). */
+  charts?: boolean;
 }) {
   const { t } = useTranslation("common");
   const tr = (k: string) => t(`payStats.${k}`);
   const [isOpen, setIsOpen] = useState(true);
   const chartsId = useId();
   const query = useQuery({
-    enabled: isOpen,
+    enabled: isOpen && charts,
     queryKey: ["pay", identity, "statistics", month, site],
     queryFn: async () =>
       (
@@ -364,25 +367,30 @@ export function PaymentTopStatistics({
             </option>
           ))}
         </select>
-        <button
-          className={field}
-          disabled={!isOpen || query.isFetching}
-          onClick={() => void query.refetch()}
-        >
-          {tr("refresh")}
-        </button>
-        <button
-          className={`${field} ml-auto inline-flex items-center gap-2`}
-          aria-expanded={isOpen}
-          aria-controls={chartsId}
-          onClick={() => setIsOpen((open) => !open)}
-        >
-          {tr(isOpen ? "hideCharts" : "showCharts")}
-          {isOpen && <span aria-hidden="true">×</span>}
-        </button>
+        {charts && (
+          <>
+            <button
+              className={field}
+              disabled={!isOpen || query.isFetching}
+              onClick={() => void query.refetch()}
+            >
+              {tr("refresh")}
+            </button>
+            <button
+              className={`${field} ml-auto inline-flex items-center gap-2`}
+              aria-expanded={isOpen}
+              aria-controls={chartsId}
+              onClick={() => setIsOpen((open) => !open)}
+            >
+              {tr(isOpen ? "hideCharts" : "showCharts")}
+              {isOpen && <span aria-hidden="true">×</span>}
+            </button>
+          </>
+        )}
       </div>
-      <div id={chartsId} hidden={!isOpen} className="space-y-3">
+      <div id={chartsId} hidden={!isOpen || !charts} className="space-y-3">
         {isOpen &&
+          charts &&
           (query.isPending ? (
             <p role="status">{t("status.loading")}</p>
           ) : query.isError ? (

@@ -20,6 +20,11 @@ const bill: MonthlyBill = {
   received: 100,
   unpaid: 0,
   state: 'ACTIVE',
+  version: 1,
+  discount: 0,
+  due: '2026-10-10',
+  title: 'Tuition',
+  memo: '',
 };
 const event: StatusEvidence = {
   studentId: 'a',

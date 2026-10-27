@@ -167,4 +167,31 @@ describe('pay bills — per-student registration (PostgreSQL)', () => {
       'DUPLICATE',
     ]);
   });
+
+  it('monthly rows expose the only bill for inline amount entry (REQ-261027B)', async () => {
+    const rows = (await svc.monthly(user, { month: '2026-11', scope: 'ALL' }))
+      .items;
+    const kimRow = rows.find((r) => r.id === kim)!;
+    const leeRow = rows.find((r) => r.id === lee)!;
+    expect(kimRow.billCount).toBe(2);
+    expect(kimRow.bill).toBeNull();
+    expect(leeRow.bill).toMatchObject({
+      amount: 450000,
+      discount: 30000,
+      version: 1,
+      due: '2026-11-10',
+    });
+    // Inline save = one-row edit with the row's bill fields and a fixed reason.
+    const b = leeRow.bill!;
+    await svc.edit(user, {
+      requestId: randomUUID(),
+      reason: '목록 직접 입력',
+      items: [{ ...b, due: b.due!, amount: 400000 }],
+    });
+    const after = (
+      await svc.monthly(user, { month: '2026-11', scope: 'ALL' })
+    ).items.find((r) => r.id === lee)!;
+    expect(after.bill).toMatchObject({ amount: 400000, version: 2 });
+    expect(after.net).toBe(370000);
+  });
 });

@@ -91,10 +91,23 @@ describe('monthly payment membership and aggregation', () => {
       received: 0,
       unpaid: null,
       state: 'DRAFT',
+      version: 1,
+      discount: 0,
+      due: null,
+      title: '10월 수업료',
+      memo: '',
     };
-    expect(monthlyRows(people, [], '2026-10', 'ALL')[0].status).toBe('NONE');
+    const none = monthlyRows(people, [], '2026-10', 'ALL');
+    expect(none[0].status).toBe('NONE');
+    expect(none[0].bill).toBeNull();
     const draft = monthlyRows(people, [bill], '2026-10', 'ALL');
     expect(draft[0].net).toBeNull();
+    // REQ-261027B — the only bill is exposed for inline amount entry.
+    expect(draft[0].bill).toMatchObject({ id: 'b', version: 1, amount: null });
+    expect(
+      monthlyRows(people, [bill, { ...bill, id: 'c' }], '2026-10', 'ALL')[0]
+        .bill,
+    ).toBeNull();
     expect(summarize(draft).rate).toBeNull();
     const free = monthlyRows(
       people,
