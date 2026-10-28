@@ -11,6 +11,7 @@ export interface MonthlyStudent {
   name: string;
   site: string | null;
   grade: string | null;
+  school?: string | null;
   enrolled: boolean;
   review: boolean;
   periods: { site: string | null; start: string | null; end: string | null }[];
@@ -27,6 +28,7 @@ export interface StudentEvidence {
   name: string;
   site: string | null;
   grade: string | null;
+  school?: string | null;
   status: string;
   admission: string | null;
 }
@@ -87,6 +89,7 @@ export function resolveMonthlyStudents(
       name: s.name,
       site: s.site,
       grade: s.grade,
+      school: s.school ?? null,
       enrolled: overlap.length > 0,
       review,
       periods: overlap.map((p) => ({
@@ -103,7 +106,7 @@ export async function studentEvidence(m: EntityManager, ent: string) {
     [ent],
   );
   const students: StudentEvidence[] = await m.query(
-    `SELECT std_id id,std_name name,std_site site,std_grade grade,std_status status,std_admission_date::text admission FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL`,
+    `SELECT std_id id,std_name name,std_site site,std_grade grade,std_school school,std_status status,std_admission_date::text admission FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL`,
     [ent],
   );
   return { periods, students };
@@ -132,6 +135,8 @@ export interface MonthlyBill {
   amount: number | null;
   net: number | null;
   received: number;
+  refunded?: number;
+  school?: string | null;
   unpaid: number | null;
   state: string;
   version: number;
@@ -155,6 +160,10 @@ export type MonthlyRowBill = Pick<
 >;
 export interface MonthlyRow extends MonthlyStudent {
   bill: MonthlyRowBill | null;
+  /** REQ-261027C list columns: sums over the month's finalized bills (refunds over all). */
+  amount: number | null;
+  discount: number | null;
+  refunded: number | null;
   billIds: string[];
   billCount: number;
   drafts: number;
@@ -186,6 +195,7 @@ export function monthlyRows(
         id: b.studentId,
         name: b.studentName,
         grade: b.grade,
+        school: b.school ?? null,
         site: b.site,
         enrolled: false,
         review: false,
@@ -195,7 +205,7 @@ export function monthlyRows(
   return [...people.values()].map((s) => {
     const bs = grouped.get(s.id) || [],
       fixed = bs.filter((b) => b.amount !== null);
-    const sum = (key: 'net' | 'received' | 'unpaid') =>
+    const sum = (key: 'net' | 'received' | 'unpaid' | 'amount' | 'discount') =>
       fixed.length ? fixed.reduce((n, b) => n + (b[key] || 0), 0) : null;
     const net = sum('net'),
       received = sum('received'),
@@ -226,6 +236,11 @@ export function monthlyRows(
         state: only.state,
         received: only.received,
       },
+      amount: sum('amount'),
+      discount: sum('discount'),
+      refunded: bs.length
+        ? bs.reduce((n, b) => n + (b.refunded || 0), 0)
+        : null,
       billIds: bs.map((b) => b.id),
       billCount: bs.length,
       drafts,

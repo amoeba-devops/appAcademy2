@@ -46,6 +46,16 @@
   align-items: start;
 }
 .admin-page-content, .admin-support-panel { min-width: 0; width: 100%; }
+/* REQ-261027C — page content sits on a white card over the gray canvas. */
+.admin-page-content {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+@media (min-width: 1024px) { .admin-page-content { padding: 1.5rem; } }
+/* Wide work screens (collections) drop the reading-width cap. */
+.admin-content-full .admin-content-grid { max-width: none; }
 .admin-page-content :where(table) { background: var(--bg-surface); }
 /* UI-261019 — 표 머리글 표준: 배경 gray-50, 12px/600 보조색. */
 .admin-page-content thead th {

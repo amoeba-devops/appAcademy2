@@ -104,6 +104,47 @@ describe('monthly payment membership and aggregation', () => {
     expect(draft[0].net).toBeNull();
     // REQ-261027B — the only bill is exposed for inline amount entry.
     expect(draft[0].bill).toMatchObject({ id: 'b', version: 1, amount: null });
+    // REQ-261027C — row sums for the list columns.
+    const two = monthlyRows(
+      people,
+      [
+        {
+          ...bill,
+          amount: 300,
+          discount: 20,
+          net: 280,
+          received: 100,
+          unpaid: 180,
+          refunded: 10,
+          state: 'ACTIVE',
+        },
+        {
+          ...bill,
+          id: 'c',
+          amount: 50,
+          discount: 0,
+          net: 50,
+          received: 50,
+          unpaid: 0,
+          refunded: 0,
+          state: 'ACTIVE',
+        },
+      ],
+      '2026-10',
+      'ALL',
+    )[0];
+    expect(two).toMatchObject({
+      amount: 350,
+      discount: 20,
+      received: 150,
+      unpaid: 180,
+      refunded: 10,
+    });
+    expect(none[0]).toMatchObject({
+      amount: null,
+      discount: null,
+      refunded: null,
+    });
     expect(
       monthlyRows(people, [bill, { ...bill, id: 'c' }], '2026-10', 'ALL')[0]
         .bill,

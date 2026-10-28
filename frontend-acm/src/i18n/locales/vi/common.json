@@ -1209,7 +1209,10 @@
         "· Hóa đơn trùng học sinh, tháng, loại, lớp và tiêu đề chỉ được tạo một lần.",
         "· Mỗi lần tải tối đa 300 dòng."
       ]
-    }
+    },
+    "editBill": "Sửa hóa đơn",
+    "saveEdit": "Lưu sửa",
+    "cancelConfirm": "Hủy hóa đơn này? Chỉ hủy được hóa đơn chưa có khoản nộp."
   },
   "payMonthly": {
     "editBills": "Sửa hóa đơn",
@@ -1287,7 +1290,25 @@
     "inlineReason": "Nhập trực tiếp trong danh sách",
     "inlineResult": "Kết quả: tạo {{created}} · sửa {{updated}} · lỗi {{failed}}",
     "pickStudent": "Chọn học sinh để lập hóa đơn",
-    "inlineHint": "Nhập số tiền vào cột Số tiền rồi bấm Lưu. Học sinh chưa có hóa đơn sẽ được tạo hóa đơn học phí mới (hạn nộp mặc định); nếu có 1 hóa đơn thì số tiền được sửa. Từ 2 hóa đơn trở lên hãy dùng Sửa hóa đơn."
+    "inlineHint": "Nhập số tiền và giảm giá rồi bấm Lưu. Học sinh chưa có hóa đơn sẽ được tạo hóa đơn học phí mới (hạn nộp mặc định); nếu có 1 hóa đơn thì hóa đơn đó được cập nhật. Từ 2 hóa đơn, tiêu đề, hạn nộp hoặc ghi nhận nộp tiền hãy dùng Sửa; khoản thêm (sách…) dùng Tạo.",
+    "col": {
+      "no": "STT",
+      "studentName": "Học sinh",
+      "site": "Cơ sở",
+      "school": "Trường",
+      "grade": "Lớp",
+      "amount": "Số tiền",
+      "discount": "Giảm giá",
+      "received": "Đã nộp (ròng)",
+      "unpaid": "Còn nợ",
+      "refunded": "Hoàn tiền",
+      "status": "Trạng thái",
+      "billAction": "Tạo / sửa"
+    },
+    "write": "Tạo",
+    "modify": "Sửa",
+    "view": "Xem",
+    "exportBills": "Excel hóa đơn"
   },
   "payStats": {
     "hideCharts": "Ẩn thống kê",

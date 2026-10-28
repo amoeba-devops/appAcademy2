@@ -17,6 +17,7 @@ export interface MonthlyStudentRow {
   name: string;
   grade: string | null;
   site: string | null;
+  school?: string | null;
   enrolled: boolean;
   review: boolean;
   periods: { site: string | null; start: string | null; end: string | null }[];
@@ -32,6 +33,10 @@ export interface MonthlyStudentRow {
     state: string;
     received: number;
   } | null;
+  /** REQ-261027C — sums over the month's finalized bills; refunds over all bills. */
+  amount: number | null;
+  discount: number | null;
+  refunded: number | null;
   billIds: string[];
   billCount: number;
   drafts: number;

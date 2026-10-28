@@ -16,12 +16,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type {
-  Bill,
   Detail,
   Edit,
   Option,
   Options,
-  Page,
   Preview,
 } from "./types";
 import { payErrorCode } from "./bill-import";
@@ -69,31 +67,6 @@ function Money({
             onChange(n);
           }
         }
-      }}
-    />
-  );
-}
-function DraftMoney({
-  value,
-  onChange,
-  label,
-}: {
-  value: number | null;
-  onChange: (v: number | null) => void;
-  label: string;
-}) {
-  return (
-    <input
-      className={`${input} w-28 text-right`}
-      aria-label={label}
-      placeholder="—"
-      inputMode="numeric"
-      value={value === null ? "" : format(value)}
-      onChange={(e) => {
-        const raw = e.target.value.replace(/,/g, "");
-        if (raw === "") onChange(null);
-        else if (/^\d+$/.test(raw) && Number(raw) <= 50000000)
-          onChange(Number(raw));
       }}
     />
   );
@@ -147,195 +120,85 @@ export function PaymentPage() {
     />
   );
 }
+const kstMonth = (offset = 0) => {
+  const [y, m] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+  })
+    .format(new Date())
+    .slice(0, 7)
+    .split("-")
+    .map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + offset, 1));
+  return d.toISOString().slice(0, 7);
+};
+type PayTab = "dashboard" | "monthly" | "detail";
+// REQ-261027C — dashboard (stats) / monthly list (read-only history) / bill details (this month's billing).
 function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const { t } = useTranslation("common");
-  const tr = (s: string) => t(`pay.${s === "title" ? "billTitle" : s}`);
+  const tr = (s: string) => t(`pay.${s}`);
   const qc = useQueryClient();
   const [url, setUrl] = useSearchParams();
-  const tab = ["monthly", "detail", "dashboard"].includes(url.get("view") || "")
-    ? url.get("view")!
-    : "monthly";
-  const monthlyMonth = /^20\d{2}-(0[1-9]|1[0-2])$/.test(url.get("month") || "")
+  const tab: PayTab = (["monthly", "detail", "dashboard"] as const).find(
+    (v) => v === url.get("view"),
+  ) ?? "monthly";
+  const urlMonth = /^20\d{2}-(0[1-9]|1[0-2])$/.test(url.get("month") || "")
     ? url.get("month")!
-    : new Date()
-        .toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" })
-        .slice(0, 7);
-  const monthlySite = monthlySites.includes(url.get("site") || "")
+    : kstMonth();
+  // Bill details only writes this month's (or next month's advance) bills.
+  const billMonths = [kstMonth(), kstMonth(1)];
+  const month =
+    tab === "detail" && !billMonths.includes(urlMonth) ? billMonths[0] : urlMonth;
+  const site = monthlySites.includes(url.get("site") || "")
     ? url.get("site")!
     : "ALL";
-  const setMonthly = (month: string, site: string, view = tab) => {
-    if ((dirty || monthlyDirty) && !window.confirm(tr("discard"))) return;
-    const next = new URLSearchParams(url);
-    next.set("month", month);
-    next.set("site", site);
-    next.set("view", view);
-    setUrl(next);
-    if (view === "detail" && tab !== "detail") {
-      const selected = {
-        basis: "MONTH",
-        from: month,
-        to: month,
-        canceled: "false",
-        ...(site === "ALL" ? {} : { site }),
-      };
-      setFilters(selected);
-      setQuery(selected);
-      setPage(1);
-      setSelected([]);
+  const [dirty, setDirty] = useState(false);
+  const go = (next: { month?: string; site?: string; view?: PayTab; status?: string }) => {
+    if (dirty && !window.confirm(tr("discard"))) return;
+    const params = new URLSearchParams(url);
+    params.set("month", next.month ?? month);
+    params.set("site", next.site ?? site);
+    params.set("view", next.view ?? tab);
+    if (next.status !== undefined) {
+      if (next.status) params.set("status", next.status);
+      else params.delete("status");
     }
-    setDrafts({});
+    setUrl(params);
+    setDirty(false);
   };
-  const defaults = {
-    basis: "MONTH",
-    from: new Date().toISOString().slice(0, 7),
-    to: new Date().toISOString().slice(0, 7),
-    canceled: "false",
-  };
-  const [filters, setFilters] = useState<Record<string, string>>(defaults);
-  const [query, setQuery] = useState<Record<string, string>>(defaults);
-  const [page, setPage] = useState(1);
-  const [advanced, setAdvanced] = useState(false);
-  const [columns, setColumns] = useState<string[]>(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem(`pay-columns:${identity}`) ||
-          '["grade","site","kind","methods","paidDate","memo"]',
-      );
-    } catch {
-      return ["grade", "site", "kind", "methods", "paidDate", "memo"];
-    }
-  });
-  const [showColumns, setShowColumns] = useState(false);
-  const [drafts, setDrafts] = useState<Record<string, Edit>>({});
-  const [selected, setSelected] = useState<string[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
-  // REQ-261027 — row [+ 청구] opens the create dialog for one student.
   const [createFor, setCreateFor] = useState<{
     student: Option;
     month: string;
   } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const addBill = (student: Option, month: string) => {
-    setCreateFor({ student, month });
-    setCreateOpen(true);
-  };
-  // REQ-261027B — unsaved inline amounts in the monthly list.
-  const [monthlyDirty, setMonthlyDirty] = useState(false);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [reason, setReason] = useState("");
-  const [bulk, setBulk] = useState({ field: "discount", value: "" });
-  const key = ["pay", identity];
-  const data = useQuery({
-    queryKey: [...key, query, page],
-    queryFn: async () =>
-      (await apiClient.get<Page>(base, { params: { ...query, page } })).data,
-  });
-  const options = useQuery({
-    queryKey: [...key, "options"],
-    queryFn: async () => (await apiClient.get<Options>(base + "/options")).data,
-  });
-  const dirty = Object.keys(drafts).length > 0;
-  useEffect(() => {
-    if (!dirty) return;
-    const unload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    const click = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement).closest("a");
-      if (a && !window.confirm(tr("discard"))) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    window.addEventListener("beforeunload", unload);
-    document.addEventListener("click", click, true);
-    return () => {
-      window.removeEventListener("beforeunload", unload);
-      document.removeEventListener("click", click, true);
-    };
-  }, [dirty, t]);
-  useEffect(
-    () => () => {
-      qc.removeQueries({ queryKey: key });
-    },
-    [identity, qc],
-  );
-  const failure = (e: unknown) => {
-    const response = (
-      e as {
-        response?: {
-          data?: { error?: { message?: string | string[] }; message?: string };
-        };
-      }
-    ).response?.data;
-    const msg = response?.error?.message || response?.message;
-    setError(
-      typeof msg === "string"
-        ? tr(msg)
-        : Array.isArray(msg)
-          ? msg.join(", ")
-          : tr("failed"),
-    );
-  };
-  const run = async (fn: () => Promise<unknown>) => {
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    setNotice("");
+  const [detail, setDetail] = useState<{ ids: string[]; readOnly: boolean } | null>(null);
+  const [exportError, setExportError] = useState(false);
+  const refresh = () => qc.invalidateQueries({ queryKey: ["pay", identity] });
+  const exportBills = async () => {
+    setExportError(false);
     try {
-      await fn();
-      await qc.invalidateQueries({ queryKey: key });
-      setNotice(tr("saved"));
-    } catch (e) {
-      failure(e);
-      await qc.invalidateQueries({ queryKey: key });
-    } finally {
-      setBusy(false);
+      const r = await apiClient.get(base + "/export", {
+        params: {
+          basis: "MONTH",
+          from: month,
+          to: month,
+          canceled: "false",
+          ...(site === "ALL" ? {} : { site }),
+        },
+        responseType: "blob",
+      });
+      const href = URL.createObjectURL(r.data as Blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = `bills-${month}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(href);
+    } catch {
+      setExportError(true);
     }
   };
-  const edit = (b: Bill, patch: Partial<Edit>) =>
-    setDrafts((d) => ({
-      ...d,
-      [b.id]: {
-        ...(d[b.id] ?? {
-          id: b.id,
-          version: b.version,
-          amount: b.amount,
-          discount: b.discount,
-          due: b.due ?? "",
-          title: b.title,
-          memo: b.memo,
-        }),
-        ...patch,
-      },
-    }));
-  const applySearch = () => {
-    if (dirty && !window.confirm(tr("discard"))) return;
-    setDrafts({});
-    setSelected([]);
-    setQuery(
-      Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== "")),
-    );
-    setPage(1);
-  };
-  const cancelSelected = () =>
-    run(async () => {
-      if (!reason.trim()) throw Error();
-      await apiClient.post(base + "/batch-state", {
-        requestId: crypto.randomUUID(),
-        reason,
-        restore: query.canceled === "true",
-        items: (data.data?.items || [])
-          .filter((b) => selected.includes(b.id))
-          .map((b) => ({ id: b.id, version: b.version })),
-      });
-      setSelected([]);
-    });
-  const visible = (name: string) => columns.includes(name);
   return (
     <section className="space-y-4">
       <PageHeader
@@ -347,692 +210,103 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
       <UnderlineTabs
         label={t("nav.pay")}
         value={tab}
-        onChange={(v) => setMonthly(monthlyMonth, monthlySite, v)}
+        onChange={(v) => go({ view: v })}
         items={(["dashboard", "monthly", "detail"] as const).map((key) => ({
           key,
           label: t(`payMonthly.tab.${key}`),
         }))}
       />
-      <PaymentTopStatistics
-        identity={identity}
-        month={monthlyMonth}
-        site={monthlySite}
-        charts={tab === "dashboard"}
-        onFilter={(m, s) => setMonthly(m, s, tab)}
-      />
-      {tab !== "detail" && (
-        <MonthlyPaymentView
-          key={`${monthlyMonth}:${monthlySite}:${tab}`}
-          identity={identity}
-          month={monthlyMonth}
-          site={monthlySite}
-          dashboard={tab === "dashboard"}
-          onList={() => setMonthly(monthlyMonth, monthlySite, "monthly")}
-          onFilter={setMonthly}
-          onEdit={(studentId) => {
-            if ((dirty || monthlyDirty) && !window.confirm(tr("discard")))
-              return;
-            const next = {
-              basis: "MONTH",
-              from: monthlyMonth,
-              to: monthlyMonth,
-              canceled: "false",
-              studentId,
-              ...(monthlySite === "ALL" ? {} : { site: monthlySite }),
-            };
-            setQuery(next);
-            setFilters(next);
-            setPage(1);
-            setDrafts({});
-            setSelected([]);
-            const params = new URLSearchParams(url);
-            params.set("view", "detail");
-            setUrl(params);
-          }}
-          onDetail={setDetailId}
-          onPickStudent={() => {
-            setCreateFor(null);
-            setCreateOpen(true);
-          }}
-          onImport={() => setImportOpen(true)}
-          onDirtyChange={setMonthlyDirty}
-          onAddBill={(student) =>
-            addBill(
-              {
-                id: student.id,
-                name: student.name,
-                site: student.site ?? undefined,
-              },
-              monthlyMonth,
-            )
-          }
-        />
-      )}
-      <div hidden={tab !== "detail"} className="space-y-4">
-        <p className="text-sm text-secondary">{tr("recordOnly")}</p>
-        <div className="flex flex-wrap gap-3">
-          {[
-            "net",
-            "received",
-            "unpaid",
-            "drafts",
-            "amount",
-            "discount",
-            "adjustment",
-            "refunded",
-            ...(query.basis === "PAYMENT" ? ["periodReceived"] : []),
-          ].map((k) => (
-            <div key={k} className="rounded border bg-white p-3">
-              <div className="text-xs text-secondary">{tr(k)}</div>
-              <strong>{format(data.data?.summary[k] ?? 0)}</strong>
-            </div>
-          ))}
-        </div>
-        <div className="rounded border bg-white p-3 space-y-3">
-          <div className="flex flex-wrap items-end gap-2">
-            <label>
-              {tr("basis")}
-              <select
-                className={input}
-                value={filters.basis}
-                onChange={(e) => {
-                  const basis = e.target.value;
-                  setFilters({
-                    ...filters,
-                    basis,
-                    from:
-                      basis === "MONTH"
-                        ? filters.from.slice(0, 7)
-                        : filters.from.slice(0, 7) + "-01",
-                    to:
-                      basis === "MONTH"
-                        ? filters.to.slice(0, 7)
-                        : filters.to.slice(0, 7) + "-28",
-                  });
-                }}
-              >
-                {["MONTH", "PAYMENT"].map((v) => (
-                  <option key={v} value={v}>
-                    {tr(v)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {["from", "to"].map((k) => (
-              <label key={k}>
-                {tr(k)}
-                <input
-                  className={input}
-                  type={filters.basis === "MONTH" ? "month" : "date"}
-                  value={filters[k]}
-                  onChange={(e) =>
-                    setFilters({ ...filters, [k]: e.target.value })
-                  }
-                />
-              </label>
-            ))}
-            <label>
-              <input
-                type="checkbox"
-                checked={filters.previous === "true"}
-                disabled={filters.basis !== "MONTH"}
-                onChange={(e) =>
-                  setFilters({ ...filters, previous: String(e.target.checked) })
-                }
-              />
-              {tr("previous")}
-            </label>
-            <label>
-              {tr("student")}
-              <input
-                className={input}
-                value={filters.q || ""}
-                onChange={(e) => setFilters({ ...filters, q: e.target.value })}
-              />
-            </label>
-            <label>
-              {tr("status")}
-              <select
-                className={input}
-                value={filters.status || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, status: e.target.value })
-                }
-              >
-                <option value="">{tr("all")}</option>
-                {["DRAFT", "UNPAID", "PARTIAL", "PAID", "OVERDUE", "FREE"].map(
-                  (v) => (
-                    <option key={v} value={v}>
-                      {tr(v)}
-                    </option>
-                  ),
-                )}
-              </select>
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                checked={filters.canceled === "true"}
-                onChange={(e) =>
-                  setFilters({ ...filters, canceled: String(e.target.checked) })
-                }
-              />
-              {tr("canceled")}
-            </label>
-            <button className={btn} onClick={() => setAdvanced(!advanced)}>
-              {tr("advanced")}
-            </button>
-          </div>
-          {advanced && (
-            <div className="flex flex-wrap gap-2">
-              {["school", "grade", "site", "memo"].map((k) => (
-                <label key={k}>
-                  {tr(k)}
-                  <input
-                    className={input}
-                    value={filters[k] || ""}
-                    onChange={(e) =>
-                      setFilters({ ...filters, [k]: e.target.value })
-                    }
-                  />
-                </label>
-              ))}
-              {[
-                ["studentStatus", ["ACTIVE", "INACTIVE", "WITHDRAWN"]],
-                ["kind", kinds],
-                ["method", methods],
-              ].map(([k, values]) => (
-                <label key={k as string}>
-                  {tr(k as string)}
-                  <select
-                    className={input}
-                    value={filters[k as string] || ""}
-                    onChange={(e) =>
-                      setFilters({ ...filters, [k as string]: e.target.value })
-                    }
-                  >
-                    <option value="">{tr("all")}</option>
-                    {(values as string[]).map((v) => (
-                      <option value={v} key={v}>
-                        {tr(v)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-              {(["classId", "teacherId"] as const).map((k) => (
-                <label key={k}>
-                  {tr(k)}
-                  <select
-                    className={input}
-                    value={filters[k] || ""}
-                    onChange={(e) =>
-                      setFilters({ ...filters, [k]: e.target.value })
-                    }
-                  >
-                    <option value="">{tr("all")}</option>
-                    {(k === "classId"
-                      ? options.data?.classes
-                      : options.data?.teachers
-                    )?.map((v) => (
-                      <option value={v.id} key={v.id}>
-                        {v.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-              {["dueFrom", "dueTo"].map((k) => (
-                <label key={k}>
-                  {tr(k)}
-                  <input
-                    type="date"
-                    className={input}
-                    value={filters[k] || ""}
-                    onChange={(e) =>
-                      setFilters({ ...filters, [k]: e.target.value })
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <button className={btn} onClick={applySearch}>
-              {tr("search")}
-            </button>
-            <button className={btn} onClick={() => setFilters(defaults)}>
-              {tr("reset")}
-            </button>
-            <button
-              className={btn}
-              onClick={() => {
-                localStorage.setItem(
-                  `pay-filter:${identity}`,
-                  JSON.stringify(filters),
-                );
-                setNotice(tr("saved"));
-              }}
-            >
-              {tr("saveFilter")}
-            </button>
-            <button
-              className={btn}
-              onClick={() => {
-                try {
-                  const saved = JSON.parse(
-                    localStorage.getItem(`pay-filter:${identity}`) || "null",
-                  );
-                  if (saved) setFilters(saved);
-                } catch {
-                  setError(tr("failed"));
-                }
-              }}
-            >
-              {tr("loadFilter")}
-            </button>
-          </div>
-        </div>
-        {error && (
-          <p role="alert" className="text-red-700">
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p role="status" className="text-emerald-700">
-            {notice}
-          </p>
-        )}
+      {tab === "detail" ? (
         <div className="flex flex-wrap items-center gap-2">
-          <button className={btn} onClick={() => setShowColumns(!showColumns)}>
-            {tr("columns")}
-          </button>
-          <button
-            className={btn}
-            disabled={busy}
-            onClick={() =>
-              run(async () => {
-                const r = await apiClient.get(base + "/export", {
-                  params: query,
-                  responseType: "blob",
-                });
-                const url = URL.createObjectURL(r.data);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "collections.xlsx";
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-              })
-            }
-          >
-            {tr("export")}
-          </button>
           <select
             className={input}
-            value={bulk.field}
-            onChange={(e) => setBulk({ ...bulk, field: e.target.value })}
+            aria-label={t("payMonthly.month")}
+            value={month}
+            onChange={(e) => go({ month: e.target.value })}
           >
-            {["amount", "discount", "due", "memo"].map((v) => (
-              <option key={v} value={v}>
-                {tr(v)}
+            {billMonths.map((m, i) => (
+              <option key={m} value={m}>
+                {m} · {t(i ? "payMonthly.nextMonth" : "payMonthly.thisMonth")}
               </option>
             ))}
           </select>
-          <input
-            aria-label={tr("bulkValue")}
+          <select
             className={input}
-            value={bulk.value}
-            onChange={(e) => setBulk({ ...bulk, value: e.target.value })}
-          />
-          <button
-            className={btn}
-            disabled={!selected.length || query.canceled === "true"}
-            onClick={() => {
-              const numeric = ["amount", "discount"].includes(bulk.field);
-              const n = Number(bulk.value.replace(/,/g, ""));
-              if (
-                numeric &&
-                (!bulk.value.trim() ||
-                  !Number.isSafeInteger(n) ||
-                  n < 0 ||
-                  n > 50000000)
-              ) {
-                setError(tr("PAY_INVALID_AMOUNT"));
-                return;
-              }
-              data.data?.items
-                .filter((b) => selected.includes(b.id))
-                .forEach((b) =>
-                  edit(b, { [bulk.field]: numeric ? n : bulk.value }),
-                );
-            }}
+            aria-label={t("payMonthly.site")}
+            value={site}
+            onChange={(e) => go({ site: e.target.value })}
           >
-            {tr("bulkApply")}
-          </button>
-          <input
-            className={input}
-            placeholder={tr("reason")}
-            aria-label={tr("reason")}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-          <button
-            className={btn}
-            disabled={
-              !dirty ||
-              busy ||
-              !reason.trim() ||
-              Object.values(drafts).some((d) => d.amount === null || !d.due)
-            }
-            onClick={() =>
-              run(async () => {
-                await apiClient.patch(base + "/batch", {
-                  requestId: crypto.randomUUID(),
-                  reason,
-                  items: Object.values(drafts),
-                });
-                setDrafts({});
-              })
-            }
-          >
-            {tr("save")} ({Object.keys(drafts).length})
-          </button>
-          {admin && (
-            <button
-              className={btn}
-              disabled={!selected.length || busy || !reason.trim()}
-              onClick={cancelSelected}
-            >
-              {tr(query.canceled === "true" ? "restore" : "cancelBill")}
-            </button>
-          )}
+            {monthlySites.map((s) => (
+              <option key={s} value={s}>
+                {t(`payMonthly.${s}`)}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-secondary">{tr("recordOnly")}</p>
         </div>
-        {showColumns && (
-          <div>
-            {["grade", "site", "kind", "methods", "paidDate", "memo"].map(
-              (k) => (
-                <label className="mr-3" key={k}>
-                  <input
-                    type="checkbox"
-                    checked={visible(k)}
-                    onChange={(e) => {
-                      const next = e.target.checked
-                        ? [...columns, k]
-                        : columns.filter((x) => x !== k);
-                      setColumns(next);
-                      localStorage.setItem(
-                        `pay-columns:${identity}`,
-                        JSON.stringify(next),
-                      );
-                    }}
-                  />
-                  {tr(k)}
-                </label>
-              ),
-            )}
-          </div>
-        )}
-        {data.isError ? (
-          <button className={btn} onClick={() => data.refetch()}>
-            {tr("retry")}
-          </button>
-        ) : data.isPending ? (
-          <p>{tr("loading")}</p>
-        ) : (
-          <>
-            <div className="overflow-x-auto rounded border">
-              <table className="min-w-max w-full text-sm">
-                <thead className="bg-slate-100">
-                  <tr>
-                    <th>
-                      <input
-                        aria-label={tr("selectAll")}
-                        type="checkbox"
-                        checked={
-                          !!data.data.items.length &&
-                          data.data.items.every((b) => selected.includes(b.id))
-                        }
-                        onChange={(e) =>
-                          setSelected(
-                            e.target.checked
-                              ? data.data.items.map((b) => b.id)
-                              : [],
-                          )
-                        }
-                      />
-                    </th>
-                    {[
-                      "student",
-                      "grade",
-                      "site",
-                      "month",
-                      "due",
-                      "kind",
-                      "title",
-                      "amount",
-                      "discount",
-                      "adjustment",
-                      "received",
-                      "unpaid",
-                      "status",
-                      "methods",
-                      "paidDate",
-                      "memo",
-                      "detail",
-                    ]
-                      .filter(
-                        (k) =>
-                          ![
-                            "grade",
-                            "site",
-                            "kind",
-                            "methods",
-                            "paidDate",
-                            "memo",
-                          ].includes(k) || visible(k),
-                      )
-                      .map((k) => (
-                        <th key={k} className="p-2 text-left">
-                          {tr(k)}
-                        </th>
-                      ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.data.items.map((b) => {
-                    const d = drafts[b.id];
-                    const disabled = b.state === "CANCELED" || busy;
-                    return (
-                      <tr
-                        key={b.id}
-                        className={`border-t ${d ? "bg-amber-50" : "bg-white"}`}
-                      >
-                        <td className="p-2">
-                          <input
-                            aria-label={`${tr("select")} ${b.studentName}`}
-                            type="checkbox"
-                            checked={selected.includes(b.id)}
-                            onChange={(e) =>
-                              setSelected(
-                                e.target.checked
-                                  ? [...selected, b.id]
-                                  : selected.filter((id) => id !== b.id),
-                              )
-                            }
-                          />
-                        </td>
-                        <td className="p-2">
-                          <Link to={`/admin/std/${b.studentId}`}>
-                            {b.studentName}
-                          </Link>
-                        </td>
-                        {visible("grade") && <td>{b.grade}</td>}
-                        {visible("site") && <td>{b.site}</td>}
-                        <td>{b.month}</td>
-                        <td>
-                          <input
-                            aria-label={tr("due")}
-                            className={input}
-                            type="date"
-                            disabled={disabled}
-                            value={d?.due ?? b.due ?? ""}
-                            onChange={(e) => edit(b, { due: e.target.value })}
-                          />
-                        </td>
-                        {visible("kind") && <td>{tr(b.kind)}</td>}
-                        <td>
-                          <input
-                            aria-label={tr("title")}
-                            className={input}
-                            disabled={disabled}
-                            value={d?.title ?? b.title}
-                            onChange={(e) => edit(b, { title: e.target.value })}
-                          />
-                        </td>
-                        <td>
-                          <fieldset disabled={disabled}>
-                            <DraftMoney
-                              label={tr("amount")}
-                              value={d ? d.amount : b.amount}
-                              onChange={(amount) => edit(b, { amount })}
-                            />
-                          </fieldset>
-                        </td>
-                        <td>
-                          <fieldset disabled={disabled}>
-                            <Money
-                              label={tr("discount")}
-                              value={d?.discount ?? b.discount}
-                              onChange={(discount) => edit(b, { discount })}
-                            />
-                          </fieldset>
-                        </td>
-                        <td>
-                          {b.state === "DRAFT" ? "—" : format(b.adjustment)}
-                        </td>
-                        <td>{format(b.received)}</td>
-                        <td className={b.unpaid ? "text-red-700" : ""}>
-                          {format(b.unpaid)}
-                        </td>
-                        <td>
-                          {tr(b.status)}
-                          {(b.unpaid ?? 0) > 0 &&
-                            b.due !== null &&
-                            b.due < data.data.today && (
-                              <span className="block text-red-700">
-                                {tr("OVERDUE")}
-                              </span>
-                            )}
-                        </td>
-                        {visible("methods") && (
-                          <td>{b.methods.map(tr).join(", ")}</td>
-                        )}
-                        {visible("paidDate") && <td>{b.paidDate}</td>}
-                        {visible("memo") && (
-                          <td>
-                            <input
-                              className={input}
-                              aria-label={tr("memo")}
-                              disabled={disabled}
-                              value={d?.memo ?? b.memo}
-                              onChange={(e) =>
-                                edit(b, { memo: e.target.value })
-                              }
-                            />
-                          </td>
-                        )}
-                        <td className="whitespace-nowrap">
-                          <button
-                            className={btn}
-                            onClick={() => setDetailId(b.id)}
-                          >
-                            {tr("detail")}
-                          </button>{" "}
-                          <button
-                            className={btn}
-                            disabled={busy}
-                            onClick={() =>
-                              addBill(
-                                {
-                                  id: b.studentId,
-                                  name: b.studentName,
-                                  site: b.site ?? undefined,
-                                },
-                                b.month,
-                              )
-                            }
-                          >
-                            {tr("addBill")}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            {!data.data.items.length && <p>{tr("empty")}</p>}
-            <div className="flex flex-wrap gap-3 items-center">
-              <span>
-                {tr("count")}: {data.data.summary.count}
-              </span>
-              <button
-                className={btn}
-                disabled={page === 1 || dirty}
-                onClick={() => {
-                  setPage(page - 1);
-                  setSelected([]);
-                }}
-              >
-                {tr("prev")}
-              </button>
-              <span>{page}</span>
-              <button
-                className={btn}
-                disabled={page * 50 >= data.data.summary.count || dirty}
-                onClick={() => {
-                  setPage(page + 1);
-                  setSelected([]);
-                }}
-              >
-                {tr("next")}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      ) : (
+        <PaymentTopStatistics
+          identity={identity}
+          month={month}
+          site={site}
+          charts={tab === "dashboard"}
+          onFilter={(m, s) => go({ month: m, site: s })}
+        />
+      )}
+      {exportError && (
+        <p role="alert" className="text-red-700">
+          {tr("failed")}
+        </p>
+      )}
+      <MonthlyPaymentView
+        key={`${month}:${site}:${tab}`}
+        identity={identity}
+        month={month}
+        site={site}
+        mode={tab === "dashboard" ? "dashboard" : tab === "monthly" ? "view" : "edit"}
+        initialStatus={url.get("status") || ""}
+        onFilter={(m, s) => go({ month: m, site: s })}
+        onList={(status) => go({ view: "monthly", status })}
+        onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
+        onAddBill={(student) => {
+          setCreateFor({
+            student: { id: student.id, name: student.name, site: student.site ?? undefined },
+            month,
+          });
+          setCreateOpen(true);
+        }}
+        onPickStudent={() => {
+          setCreateFor(null);
+          setCreateOpen(true);
+        }}
+        onImport={() => setImportOpen(true)}
+        onExportBills={() => void exportBills()}
+        onDirtyChange={setDirty}
+      />
       <CreateDialog
-        initialSite={
-          tab === "detail"
-            ? query.site
-            : monthlySite === "ALL"
-              ? ""
-              : monthlySite
-        }
-        month={
-          createFor?.month ??
-          (tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth)
-        }
+        initialSite={site === "ALL" ? "" : site}
+        month={createFor?.month ?? month}
         student={createFor?.student}
         open={createOpen}
         close={() => setCreateOpen(false)}
         identity={identity}
-        onSaved={() => qc.invalidateQueries({ queryKey: key })}
+        onSaved={refresh}
       />
       <BillImportDialog
         open={importOpen}
         close={() => setImportOpen(false)}
-        month={tab === "detail" ? query.from?.slice(0, 7) : monthlyMonth}
-        site={tab === "detail" ? query.site || "ALL" : monthlySite}
-        onSaved={() => qc.invalidateQueries({ queryKey: key })}
+        month={month}
+        site={site}
+        onSaved={refresh}
       />
-      {detailId && (
+      {detail && (
         <DetailDialog
-          id={detailId}
-          close={() => setDetailId(null)}
+          ids={detail.ids}
+          readOnly={detail.readOnly}
+          close={() => setDetail(null)}
           identity={identity}
           admin={admin}
-          onSaved={() => qc.invalidateQueries({ queryKey: key })}
+          onSaved={refresh}
         />
       )}
     </section>
@@ -1484,13 +758,17 @@ function CreateDialog({
   );
 }
 function DetailDialog({
-  id,
+  ids,
+  readOnly,
   close,
   identity,
   admin,
   onSaved,
 }: {
-  id: string;
+  /** The student's bills for the month (REQ-261027C); tabs when more than one. */
+  ids: string[];
+  /** Monthly list = history lookup only. */
+  readOnly: boolean;
   close: () => void;
   identity: string;
   admin: boolean;
@@ -1498,6 +776,7 @@ function DetailDialog({
 }) {
   const { t } = useTranslation("common");
   const tr = (s: string) => t(`pay.${s === "title" ? "billTitle" : s}`);
+  const [id, setId] = useState(ids[0]);
   const detail = useQuery({
     queryKey: ["pay", identity, "detail", id],
     queryFn: async () => (await apiClient.get<Detail>(`${base}/${id}`)).data,
@@ -1559,6 +838,50 @@ function DetailDialog({
     }
   };
   const b = detail.data?.bill;
+  // REQ-261027C — bill edit / cancel moved here from the removed bill-unit list.
+  const [edit, setEdit] = useState<Edit | null>(null);
+  const [editReason, setEditReason] = useState("");
+  useEffect(() => {
+    if (b)
+      setEdit({
+        id: b.id,
+        version: b.version,
+        amount: b.amount,
+        discount: b.discount,
+        due: b.due ?? "",
+        title: b.title,
+        memo: b.memo,
+      });
+    setEditReason("");
+  }, [b]);
+  const editBill = async (cancel: boolean) => {
+    if (!edit || !b) return;
+    setBusy(true);
+    setError("");
+    try {
+      if (cancel)
+        await apiClient.post(base + "/batch-state", {
+          requestId: crypto.randomUUID(),
+          reason: editReason,
+          restore: false,
+          items: [{ id: b.id, version: b.version }],
+        });
+      else
+        await apiClient.patch(base + "/batch", {
+          requestId: crypto.randomUUID(),
+          reason: editReason,
+          items: [{ ...edit, amount: edit.amount ?? 0 }],
+        });
+      await onSaved();
+      if (cancel) close();
+      else await detail.refetch();
+    } catch (e) {
+      const code = payErrorCode(e);
+      setError(code ? tr(code) : tr("failed"));
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <Dialog
       open
@@ -1572,6 +895,21 @@ function DetailDialog({
             {tr("detail")} {b?.studentName} · {b?.month}
           </DialogTitle>
         </DialogHeader>
+        {ids.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {ids.map((x, i) => (
+              <button
+                key={x}
+                className={btn}
+                aria-pressed={x === id}
+                disabled={busy}
+                onClick={() => setId(x)}
+              >
+                {tr("detail")} {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
         {detail.isError ? (
           <button className={btn} onClick={() => detail.refetch()}>
             {tr("retry")}
@@ -1618,7 +956,87 @@ function DetailDialog({
                 </tbody>
               </table>
             </div>
-            {b.state === "ACTIVE" && (
+            {!readOnly && edit && b.state !== "CANCELED" && (
+              <fieldset disabled={busy} className="rounded border p-3 space-y-2">
+                <legend>{tr("editBill")}</legend>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className="text-sm">
+                    {tr("billTitle")}
+                    <input
+                      className={`${input} block w-full`}
+                      value={edit.title}
+                      onChange={(e) => setEdit({ ...edit, title: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-sm">
+                    {tr("due")}
+                    <input
+                      className={`${input} block w-full`}
+                      type="date"
+                      value={edit.due}
+                      onChange={(e) => setEdit({ ...edit, due: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-sm">
+                    {tr("amount")}{" "}
+                    <Money
+                      label={tr("amount")}
+                      value={edit.amount ?? 0}
+                      onChange={(amount) => setEdit({ ...edit, amount })}
+                    />
+                  </label>
+                  <label className="text-sm">
+                    {tr("discount")}{" "}
+                    <Money
+                      label={tr("discount")}
+                      value={edit.discount}
+                      onChange={(discount) => setEdit({ ...edit, discount })}
+                    />
+                  </label>
+                  <label className="text-sm sm:col-span-2">
+                    {tr("memo")}
+                    <input
+                      className={`${input} block w-full`}
+                      value={edit.memo}
+                      onChange={(e) => setEdit({ ...edit, memo: e.target.value })}
+                    />
+                  </label>
+                </div>
+                <input
+                  className={`${input} w-full`}
+                  aria-label={tr("reason")}
+                  placeholder={tr("reason")}
+                  value={editReason}
+                  onChange={(e) => setEditReason(e.target.value)}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={btn}
+                    disabled={
+                      !editReason.trim() ||
+                      !edit.title.trim() ||
+                      !edit.due ||
+                      edit.discount > (edit.amount ?? 0)
+                    }
+                    onClick={() => void editBill(false)}
+                  >
+                    {tr("saveEdit")}
+                  </button>
+                  {admin && (
+                    <button
+                      className={`${btn} text-red-700`}
+                      disabled={!editReason.trim() || b.paid > 0}
+                      onClick={() => {
+                        if (window.confirm(tr("cancelConfirm"))) void editBill(true);
+                      }}
+                    >
+                      {tr("cancelBill")}
+                    </button>
+                  )}
+                </div>
+              </fieldset>
+            )}
+            {!readOnly && b.state === "ACTIVE" && (
               <fieldset
                 disabled={busy}
                 className="rounded border p-3 space-y-2"

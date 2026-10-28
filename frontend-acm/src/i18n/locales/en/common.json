@@ -1209,7 +1209,10 @@
         "· A bill with the same student, month, type, class and title is created only once.",
         "· Up to 300 rows can be uploaded at a time."
       ]
-    }
+    },
+    "editBill": "Edit bill",
+    "saveEdit": "Save edit",
+    "cancelConfirm": "Cancel this bill? Only bills without payments can be canceled."
   },
   "payMonthly": {
     "editBills": "Edit bills",
@@ -1287,7 +1290,25 @@
     "inlineReason": "Entered in list",
     "inlineResult": "Saved: created {{created}} · updated {{updated}} · failed {{failed}}",
     "pickStudent": "Bill selected students",
-    "inlineHint": "Type amounts in the Amount column and press Save. Students without a bill get a new tuition bill (default due date); a single bill gets its amount changed. Use Edit bills for students with 2+ bills."
+    "inlineHint": "Type the amount and discount, then press Save. Students without a bill get a new tuition bill (default due date); a single bill is updated. For 2+ bills, titles, due dates or payments use Edit; for extra bills (books etc.) use Create.",
+    "col": {
+      "no": "No.",
+      "studentName": "Student",
+      "site": "Site",
+      "school": "School",
+      "grade": "Grade",
+      "amount": "Billed",
+      "discount": "Discount",
+      "received": "Paid (net)",
+      "unpaid": "Outstanding",
+      "refunded": "Refunded",
+      "status": "Status",
+      "billAction": "Create / edit"
+    },
+    "write": "Create",
+    "modify": "Edit",
+    "view": "View",
+    "exportBills": "Bills Excel"
   },
   "payStats": {
     "hideCharts": "Hide statistics",
