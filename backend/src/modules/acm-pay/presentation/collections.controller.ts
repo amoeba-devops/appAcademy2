@@ -225,6 +225,14 @@ export class CollectionsController {
   ) {
     return this.service.state(u, id, d, false);
   }
+  /** REQ-261030 — staff may delete (cancel) a bill without payments. */
+  @Post(':id/delete') @Roles('ADMIN', 'APP_ADMIN', 'STAFF') remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() d: BillActionDto,
+  ) {
+    return this.service.state(u, id, d, false);
+  }
   @Post(':id/restore') @Roles('ADMIN', 'APP_ADMIN') restore(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,

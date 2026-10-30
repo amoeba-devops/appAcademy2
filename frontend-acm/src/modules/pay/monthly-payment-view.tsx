@@ -65,7 +65,7 @@ export function MonthlyPaymentView({
   initialStatus,
   onFilter,
   onDetail,
-  onAddBill,
+  onEditBills,
   onPickStudent,
   onImport,
   onExportBills,
@@ -82,8 +82,8 @@ export function MonthlyPaymentView({
   /** Dashboard cards jump to the monthly list filtered by status. */
   onList: (status: string) => void;
   onDetail: (billIds: string[], readOnly: boolean) => void;
-  /** REQ-261027 — add a bill for this student (also when bills exist). */
-  onAddBill: (student: MonthlyStudentRow) => void;
+  /** REQ-261030 — quick add / edit / delete of this student's bills (default due passed). */
+  onEditBills: (student: MonthlyStudentRow, due: string) => void;
   onPickStudent: () => void;
   onImport: () => void;
   onExportBills: () => void;
@@ -380,19 +380,18 @@ export function MonthlyPaymentView({
                 </td>
                 <td className={`${cell} space-x-1`}>
                   {edit ? (
-                    <>
-                      <button className={field} onClick={() => onAddBill(r)}>
-                        {tr("write")}
-                      </button>
-                      {r.billCount > 0 && (
-                        <button
-                          className={field}
-                          onClick={() => onDetail(r.billIds, false)}
-                        >
-                          {tr("modify")}
-                        </button>
-                      )}
-                    </>
+                    <button
+                      className={`${field} min-h-9`}
+                      onClick={() => {
+                        if (!leave()) return;
+                        setEdits({});
+                        onEditBills(r, due);
+                      }}
+                    >
+                      {r.billCount > 0
+                        ? tr("modifyCount", { count: r.billCount })
+                        : tr("writeNew")}
+                    </button>
                   ) : r.billCount > 0 ? (
                     <button
                       className={field}

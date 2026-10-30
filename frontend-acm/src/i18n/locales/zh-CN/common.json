@@ -1212,7 +1212,28 @@
     },
     "editBill": "修改账单",
     "saveEdit": "保存修改",
-    "cancelConfirm": "取消此账单？只能取消没有缴费记录的账单。"
+    "cancelConfirm": "取消此账单？只能取消没有缴费记录的账单。",
+    "quick": {
+      "title": "{{name}} · {{month}} 账单 {{count}} 条",
+      "autoTitle": "{{m}}月{{kind}}",
+      "add": "添加账单",
+      "create": "添加",
+      "more": "更多（名称 · 课程 · 备注）",
+      "save": "保存",
+      "undo": "撤销",
+      "delete": "删除",
+      "record": "收款",
+      "saveFirst": "请先保存修改",
+      "deleteConfirm": "删除账单“{{title}}”？",
+      "deleteBlocked": "该账单已有收款记录，无法删除。请先取消收款记录。",
+      "created": "已添加账单。",
+      "saved": "已保存。",
+      "deleted": "已删除。",
+      "reason": "处理原因（选填）",
+      "reasonHint": "留空将自动记录",
+      "editReason": "修改账单",
+      "deleteReason": "删除账单"
+    }
   },
   "payMonthly": {
     "editBills": "编辑账单",
@@ -1290,7 +1311,7 @@
     "inlineReason": "列表直接输入",
     "inlineResult": "保存结果：新建 {{created}} · 修改 {{updated}} · 失败 {{failed}}",
     "pickStudent": "选择学生开账单",
-    "inlineHint": "输入账单金额和折扣后点击保存。没有账单的学生将新建学费账单（使用默认截止日期），只有 1 条账单时更新该账单。2 条以上、标题、截止日期或缴费处理请用修改；教材费等追加账单请用创建。",
+    "inlineHint": "输入账单金额和折扣后点击保存修改，可一次保存多名学生（无账单时新建学费账单，有 1 条时更新该账单）。添加账单、修改类型或截止日期、删除、登记收款请使用 [+ 账单]/[修改]。",
     "col": {
       "no": "序号",
       "studentName": "学生姓名",
@@ -1308,7 +1329,9 @@
     "write": "创建",
     "modify": "修改",
     "view": "查看",
-    "exportBills": "账单 Excel"
+    "exportBills": "账单 Excel",
+    "modifyCount": "修改（{{count}}）",
+    "writeNew": "+ 账单"
   },
   "payStats": {
     "hideCharts": "收起统计",

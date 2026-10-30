@@ -17,13 +17,13 @@ import {
 } from "@/components/ui/dialog";
 import type {
   Detail,
-  Edit,
   Option,
   Options,
   Preview,
 } from "./types";
 import { payErrorCode } from "./bill-import";
 import { BillImportDialog } from "./bill-import-dialog";
+import { BillEditDialog } from "./bill-edit-dialog";
 const base = "/acm/pay/bills";
 const input =
   "rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900";
@@ -168,9 +168,10 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
     setDirty(false);
   };
   const [createOpen, setCreateOpen] = useState(false);
-  const [createFor, setCreateFor] = useState<{
-    student: Option;
+  const [editFor, setEditFor] = useState<{
+    student: { id: string; name: string };
     month: string;
+    due: string;
   } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [detail, setDetail] = useState<{ ids: string[]; readOnly: boolean } | null>(null);
@@ -268,25 +269,17 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         onFilter={(m, s) => go({ month: m, site: s })}
         onList={(status) => go({ view: "monthly", status })}
         onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
-        onAddBill={(student) => {
-          setCreateFor({
-            student: { id: student.id, name: student.name, site: student.site ?? undefined },
-            month,
-          });
-          setCreateOpen(true);
-        }}
-        onPickStudent={() => {
-          setCreateFor(null);
-          setCreateOpen(true);
-        }}
+        onEditBills={(student, due) =>
+          setEditFor({ student: { id: student.id, name: student.name }, month, due })
+        }
+        onPickStudent={() => setCreateOpen(true)}
         onImport={() => setImportOpen(true)}
         onExportBills={() => void exportBills()}
         onDirtyChange={setDirty}
       />
       <CreateDialog
         initialSite={site === "ALL" ? "" : site}
-        month={createFor?.month ?? month}
-        student={createFor?.student}
+        month={month}
         open={createOpen}
         close={() => setCreateOpen(false)}
         identity={identity}
@@ -299,6 +292,17 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         site={site}
         onSaved={refresh}
       />
+      {editFor && !detail && (
+        <BillEditDialog
+          student={editFor.student}
+          month={editFor.month}
+          defaultDue={editFor.due}
+          identity={identity}
+          close={() => setEditFor(null)}
+          onSaved={refresh}
+          onRecord={(id) => setDetail({ ids: [id], readOnly: false })}
+        />
+      )}
       {detail && (
         <DetailDialog
           ids={detail.ids}
@@ -838,50 +842,6 @@ function DetailDialog({
     }
   };
   const b = detail.data?.bill;
-  // REQ-261027C — bill edit / cancel moved here from the removed bill-unit list.
-  const [edit, setEdit] = useState<Edit | null>(null);
-  const [editReason, setEditReason] = useState("");
-  useEffect(() => {
-    if (b)
-      setEdit({
-        id: b.id,
-        version: b.version,
-        amount: b.amount,
-        discount: b.discount,
-        due: b.due ?? "",
-        title: b.title,
-        memo: b.memo,
-      });
-    setEditReason("");
-  }, [b]);
-  const editBill = async (cancel: boolean) => {
-    if (!edit || !b) return;
-    setBusy(true);
-    setError("");
-    try {
-      if (cancel)
-        await apiClient.post(base + "/batch-state", {
-          requestId: crypto.randomUUID(),
-          reason: editReason,
-          restore: false,
-          items: [{ id: b.id, version: b.version }],
-        });
-      else
-        await apiClient.patch(base + "/batch", {
-          requestId: crypto.randomUUID(),
-          reason: editReason,
-          items: [{ ...edit, amount: edit.amount ?? 0 }],
-        });
-      await onSaved();
-      if (cancel) close();
-      else await detail.refetch();
-    } catch (e) {
-      const code = payErrorCode(e);
-      setError(code ? tr(code) : tr("failed"));
-    } finally {
-      setBusy(false);
-    }
-  };
   return (
     <Dialog
       open
@@ -956,86 +916,6 @@ function DetailDialog({
                 </tbody>
               </table>
             </div>
-            {!readOnly && edit && b.state !== "CANCELED" && (
-              <fieldset disabled={busy} className="rounded border p-3 space-y-2">
-                <legend>{tr("editBill")}</legend>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <label className="text-sm">
-                    {tr("billTitle")}
-                    <input
-                      className={`${input} block w-full`}
-                      value={edit.title}
-                      onChange={(e) => setEdit({ ...edit, title: e.target.value })}
-                    />
-                  </label>
-                  <label className="text-sm">
-                    {tr("due")}
-                    <input
-                      className={`${input} block w-full`}
-                      type="date"
-                      value={edit.due}
-                      onChange={(e) => setEdit({ ...edit, due: e.target.value })}
-                    />
-                  </label>
-                  <label className="text-sm">
-                    {tr("amount")}{" "}
-                    <Money
-                      label={tr("amount")}
-                      value={edit.amount ?? 0}
-                      onChange={(amount) => setEdit({ ...edit, amount })}
-                    />
-                  </label>
-                  <label className="text-sm">
-                    {tr("discount")}{" "}
-                    <Money
-                      label={tr("discount")}
-                      value={edit.discount}
-                      onChange={(discount) => setEdit({ ...edit, discount })}
-                    />
-                  </label>
-                  <label className="text-sm sm:col-span-2">
-                    {tr("memo")}
-                    <input
-                      className={`${input} block w-full`}
-                      value={edit.memo}
-                      onChange={(e) => setEdit({ ...edit, memo: e.target.value })}
-                    />
-                  </label>
-                </div>
-                <input
-                  className={`${input} w-full`}
-                  aria-label={tr("reason")}
-                  placeholder={tr("reason")}
-                  value={editReason}
-                  onChange={(e) => setEditReason(e.target.value)}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    className={btn}
-                    disabled={
-                      !editReason.trim() ||
-                      !edit.title.trim() ||
-                      !edit.due ||
-                      edit.discount > (edit.amount ?? 0)
-                    }
-                    onClick={() => void editBill(false)}
-                  >
-                    {tr("saveEdit")}
-                  </button>
-                  {admin && (
-                    <button
-                      className={`${btn} text-red-700`}
-                      disabled={!editReason.trim() || b.paid > 0}
-                      onClick={() => {
-                        if (window.confirm(tr("cancelConfirm"))) void editBill(true);
-                      }}
-                    >
-                      {tr("cancelBill")}
-                    </button>
-                  )}
-                </div>
-              </fieldset>
-            )}
             {!readOnly && b.state === "ACTIVE" && (
               <fieldset
                 disabled={busy}

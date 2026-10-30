@@ -1212,7 +1212,28 @@
     },
     "editBill": "청구 수정",
     "saveEdit": "수정 저장",
-    "cancelConfirm": "이 청구를 취소할까요? 납부 기록이 없는 청구만 취소할 수 있습니다."
+    "cancelConfirm": "이 청구를 취소할까요? 납부 기록이 없는 청구만 취소할 수 있습니다.",
+    "quick": {
+      "title": "{{name}} · {{month}} 청구 {{count}}건",
+      "autoTitle": "{{m}}월 {{kind}}",
+      "add": "청구 추가",
+      "create": "추가",
+      "more": "더 보기 (수납명·수업·메모)",
+      "save": "저장",
+      "undo": "되돌리기",
+      "delete": "삭제",
+      "record": "수납",
+      "saveFirst": "변경을 먼저 저장하세요",
+      "deleteConfirm": "'{{title}}' 청구를 삭제할까요?",
+      "deleteBlocked": "수납 기록이 있어 삭제할 수 없습니다. 수납 기록을 먼저 취소하세요.",
+      "created": "청구를 추가했습니다.",
+      "saved": "저장했습니다.",
+      "deleted": "삭제했습니다.",
+      "reason": "처리 사유 (선택)",
+      "reasonHint": "비워 두면 자동으로 기록됩니다",
+      "editReason": "청구 수정",
+      "deleteReason": "청구 삭제"
+    }
   },
   "payMonthly": {
     "editBills": "청구 수정",
@@ -1290,7 +1311,7 @@
     "inlineReason": "목록 직접 입력",
     "inlineResult": "저장 결과: 생성 {{created}} · 수정 {{updated}} · 실패 {{failed}}",
     "pickStudent": "학생 선택해 청구",
-    "inlineHint": "청구액·할인액 칸에 입력하고 [변경 저장]을 누르세요. 청구가 없는 학생은 수업료 청구가 새로 만들어지고(기본 납기 적용), 청구가 1건이면 그 청구가 바뀝니다. 2건 이상이거나 제목·납기·수납 처리는 [수정]을, 교재비 등 추가 청구는 [작성]을 사용하세요.",
+    "inlineHint": "청구액·할인액 칸에 입력하고 [변경 저장]을 누르면 여러 학생을 한 번에 저장합니다(청구가 없으면 수업료 청구 생성, 1건이면 그 청구 수정). 청구 추가·종류·납기 변경·삭제·수납 입력은 [+ 청구]/[수정]을 누르세요.",
     "col": {
       "no": "번호",
       "studentName": "학생이름",
@@ -1308,7 +1329,9 @@
     "write": "작성",
     "modify": "수정",
     "view": "보기",
-    "exportBills": "청구 건 엑셀"
+    "exportBills": "청구 건 엑셀",
+    "modifyCount": "수정 ({{count}})",
+    "writeNew": "+ 청구"
   },
   "payStats": {
     "hideCharts": "통계 닫기",

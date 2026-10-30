@@ -73,7 +73,9 @@ describe('pay bills — per-student registration (PostgreSQL)', () => {
       synchronize: false,
     }).initialize();
     await applyAcmMigrations(db);
-    svc = new CollectionsService(db, {} as TenantSettingsService);
+    svc = new CollectionsService(db, {
+      getTimezone: async () => 'Asia/Seoul',
+    } as unknown as TenantSettingsService);
     kim = await student('김하늘', 'TPI');
     lee = await student('이준서', 'TPI');
     park = await student('박서윤', 'TRINITY', 'INACTIVE');
@@ -193,5 +195,72 @@ describe('pay bills — per-student registration (PostgreSQL)', () => {
     ).items.find((r) => r.id === lee)!;
     expect(after.bill).toMatchObject({ amount: 400000, version: 2 });
     expect(after.net).toBe(370000);
+  });
+
+  it('quick edit changes kind and delete cancels bills without payments (REQ-261030)', async () => {
+    const q = { basis: 'MONTH', from: '2026-11', to: '2026-11' };
+    const book = (await svc.list(user, { ...q, studentId: kim })).items.find(
+      (b) => b.kind === 'BOOK',
+    )!;
+    await svc.edit(user, {
+      requestId: randomUUID(),
+      reason: '청구 수정',
+      items: [
+        {
+          id: book.id,
+          version: book.version,
+          kind: 'MATERIAL',
+          title: '11월 재료',
+          amount: 30000,
+          discount: 0,
+          due: '2026-11-10',
+          memo: '',
+        },
+      ],
+    });
+    const [edited] = (
+      await svc.list(user, { ...q, studentId: kim })
+    ).items.filter((b) => b.id === book.id);
+    expect(edited).toMatchObject({ kind: 'MATERIAL', amount: 30000 });
+    await svc.state(
+      user,
+      book.id,
+      { requestId: randomUUID(), version: edited.version, reason: '청구 삭제' },
+      false,
+    );
+    expect(
+      (await svc.list(user, { ...q, studentId: kim })).items.map((b) => b.kind),
+    ).toEqual(['CLASS']);
+    const kimRow = (
+      await svc.monthly(user, { month: '2026-11', scope: 'ALL' })
+    ).items.find((r) => r.id === kim)!;
+    expect(kimRow.billCount).toBe(1);
+  });
+
+  it('delete is refused once a payment is recorded (REQ-261030)', async () => {
+    const q = {
+      basis: 'MONTH',
+      from: '2026-11',
+      to: '2026-11',
+      studentId: lee,
+    };
+    const [b] = (await svc.list(user, q)).items;
+    await svc.collect(user, b.id, {
+      requestId: randomUUID(),
+      version: b.version,
+      reason: '수납',
+      amount: 100000,
+      date: '2026-11-05',
+      method: 'TRANSFER',
+    });
+    const [paid] = (await svc.list(user, q)).items;
+    await expect(
+      svc.state(
+        user,
+        b.id,
+        { requestId: randomUUID(), version: paid.version, reason: '청구 삭제' },
+        false,
+      ),
+    ).rejects.toThrow('PAY_HAS_COLLECTIONS');
   });
 });

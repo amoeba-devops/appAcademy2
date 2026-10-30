@@ -1212,7 +1212,28 @@
     },
     "editBill": "Edit bill",
     "saveEdit": "Save edit",
-    "cancelConfirm": "Cancel this bill? Only bills without payments can be canceled."
+    "cancelConfirm": "Cancel this bill? Only bills without payments can be canceled.",
+    "quick": {
+      "title": "{{name}} · {{month}} bills ({{count}})",
+      "autoTitle": "{{kind}} {{ym}}",
+      "add": "Add bill",
+      "create": "Add",
+      "more": "More (title · class · memo)",
+      "save": "Save",
+      "undo": "Undo",
+      "delete": "Delete",
+      "record": "Payments",
+      "saveFirst": "Save your changes first",
+      "deleteConfirm": "Delete the bill '{{title}}'?",
+      "deleteBlocked": "This bill has payment records and cannot be deleted. Cancel the payments first.",
+      "created": "Bill added.",
+      "saved": "Saved.",
+      "deleted": "Deleted.",
+      "reason": "Reason (optional)",
+      "reasonHint": "Recorded automatically if left blank",
+      "editReason": "Bill edited",
+      "deleteReason": "Bill deleted"
+    }
   },
   "payMonthly": {
     "editBills": "Edit bills",
@@ -1290,7 +1311,7 @@
     "inlineReason": "Entered in list",
     "inlineResult": "Saved: created {{created}} · updated {{updated}} · failed {{failed}}",
     "pickStudent": "Bill selected students",
-    "inlineHint": "Type the amount and discount, then press Save. Students without a bill get a new tuition bill (default due date); a single bill is updated. For 2+ bills, titles, due dates or payments use Edit; for extra bills (books etc.) use Create.",
+    "inlineHint": "Type amounts and discounts, then press Save changes to save several students at once (no bill: a tuition bill is created; one bill: it is updated). To add bills, change kind or due date, delete, or record payments, use [+ Bill]/[Edit].",
     "col": {
       "no": "No.",
       "studentName": "Student",
@@ -1308,7 +1329,9 @@
     "write": "Create",
     "modify": "Edit",
     "view": "View",
-    "exportBills": "Bills Excel"
+    "exportBills": "Bills Excel",
+    "modifyCount": "Edit ({{count}})",
+    "writeNew": "+ Bill"
   },
   "payStats": {
     "hideCharts": "Hide statistics",
