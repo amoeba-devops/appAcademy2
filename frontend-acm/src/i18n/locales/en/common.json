@@ -1232,7 +1232,8 @@
       "reason": "Reason (optional)",
       "reasonHint": "Recorded automatically if left blank",
       "editReason": "Bill edited",
-      "deleteReason": "Bill deleted"
+      "deleteReason": "Bill deleted",
+      "cancel": "Cancel"
     }
   },
   "payMonthly": {
@@ -1266,9 +1267,9 @@
     "rate": "Collection rate",
     "detailAction": "Details",
     "create": "Create draft bill",
-    "NONE": "No bill",
-    "DRAFT": "Amount unset",
-    "UNPAID": "Outstanding",
+    "NONE": "Not billed",
+    "DRAFT": "Enter amount",
+    "UNPAID": "Unpaid",
     "PARTIAL": "Partially paid",
     "PAID": "Paid",
     "FREE": "No payment due",
@@ -1311,7 +1312,7 @@
     "inlineReason": "Entered in list",
     "inlineResult": "Saved: created {{created}} · updated {{updated}} · failed {{failed}}",
     "pickStudent": "Bill selected students",
-    "inlineHint": "Type amounts and discounts, then press Save changes to save several students at once (no bill: a tuition bill is created; one bill: it is updated). To add bills, change kind or due date, delete, or record payments, use [+ Bill]/[Edit].",
+    "inlineHint": "Click an amount, discount or [Bill] to open the student's bills. Without bills, saving the new bill closes the window; with bills you can edit, delete, add and record payments. For bills awaiting an amount, type it and press Enter or leave the field to save.",
     "col": {
       "no": "No.",
       "studentName": "Student",
@@ -1331,7 +1332,8 @@
     "view": "View",
     "exportBills": "Bills Excel",
     "modifyCount": "Edit ({{count}})",
-    "writeNew": "+ Bill"
+    "writeNew": "+ Bill",
+    "bill": "Bill"
   },
   "payStats": {
     "hideCharts": "Hide statistics",

@@ -153,9 +153,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const site = monthlySites.includes(url.get("site") || "")
     ? url.get("site")!
     : "ALL";
-  const [dirty, setDirty] = useState(false);
   const go = (next: { month?: string; site?: string; view?: PayTab; status?: string }) => {
-    if (dirty && !window.confirm(tr("discard"))) return;
     const params = new URLSearchParams(url);
     params.set("month", next.month ?? month);
     params.set("site", next.site ?? site);
@@ -165,13 +163,13 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
       else params.delete("status");
     }
     setUrl(params);
-    setDirty(false);
   };
   const [createOpen, setCreateOpen] = useState(false);
   const [editFor, setEditFor] = useState<{
     student: { id: string; name: string };
     month: string;
     due: string;
+    createOnly: boolean;
   } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [detail, setDetail] = useState<{ ids: string[]; readOnly: boolean } | null>(null);
@@ -270,12 +268,16 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         onList={(status) => go({ view: "monthly", status })}
         onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
         onEditBills={(student, due) =>
-          setEditFor({ student: { id: student.id, name: student.name }, month, due })
+          setEditFor({
+            student: { id: student.id, name: student.name },
+            month,
+            due,
+            createOnly: student.billCount === 0,
+          })
         }
         onPickStudent={() => setCreateOpen(true)}
         onImport={() => setImportOpen(true)}
         onExportBills={() => void exportBills()}
-        onDirtyChange={setDirty}
       />
       <CreateDialog
         initialSite={site === "ALL" ? "" : site}
@@ -297,6 +299,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           student={editFor.student}
           month={editFor.month}
           defaultDue={editFor.due}
+          createOnly={editFor.createOnly}
           identity={identity}
           close={() => setEditFor(null)}
           onSaved={refresh}

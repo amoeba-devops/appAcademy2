@@ -1140,8 +1140,8 @@
     "removeStudent": "학생 제외",
     "filterResetsSelection": "사이트 또는 수업 필터를 변경하면 선택한 학생이 초기화됩니다.",
     "activeBatch": "재원생 일괄 등록",
-    "DRAFT": "금액 미입력",
-    "drafts": "금액 미입력",
+    "DRAFT": "금액수정",
+    "drafts": "금액수정",
     "monthlyTuition": "월 수업료",
     "draftHint": "재원생을 금액·납기 미입력 상태로 등록합니다. 같은 달 수업료 청구가 있는 학생은 제외합니다. 금액과 납기를 입력한 뒤 저장하면 청구가 확정됩니다.",
     "targetCount": "대상 학생",
@@ -1232,7 +1232,8 @@
       "reason": "처리 사유 (선택)",
       "reasonHint": "비워 두면 자동으로 기록됩니다",
       "editReason": "청구 수정",
-      "deleteReason": "청구 삭제"
+      "deleteReason": "청구 삭제",
+      "cancel": "취소"
     }
   },
   "payMonthly": {
@@ -1266,9 +1267,9 @@
     "rate": "수납률",
     "detailAction": "상세",
     "create": "미입력 청구 등록",
-    "NONE": "청구 없음",
-    "DRAFT": "금액 미입력",
-    "UNPAID": "미납 있음",
+    "NONE": "미청구",
+    "DRAFT": "금액수정",
+    "UNPAID": "미납",
     "PARTIAL": "부분납",
     "PAID": "완납",
     "FREE": "납부불필요",
@@ -1280,7 +1281,7 @@
     "retry": "다시 시도",
     "enrolled": "월 재원생",
     "missing": "청구 미등록 학생",
-    "draftStudents": "금액 미입력 학생",
+    "draftStudents": "금액수정 학생",
     "billed": "확정 청구 학생",
     "unpaidStudents": "미납 학생",
     "review": "기간 확인 필요",
@@ -1311,7 +1312,7 @@
     "inlineReason": "목록 직접 입력",
     "inlineResult": "저장 결과: 생성 {{created}} · 수정 {{updated}} · 실패 {{failed}}",
     "pickStudent": "학생 선택해 청구",
-    "inlineHint": "청구액·할인액 칸에 입력하고 [변경 저장]을 누르면 여러 학생을 한 번에 저장합니다(청구가 없으면 수업료 청구 생성, 1건이면 그 청구 수정). 청구 추가·종류·납기 변경·삭제·수납 입력은 [+ 청구]/[수정]을 누르세요.",
+    "inlineHint": "청구액·할인액 칸이나 [청구]를 누르면 그 학생의 청구 창이 열립니다. 청구가 없으면 입력 후 저장하면 바로 닫히고, 청구가 있으면 수정·삭제·추가·수납 입력을 할 수 있습니다. 금액수정 청구는 청구액을 넣고 Enter를 누르거나 칸을 벗어나면 바로 저장됩니다.",
     "col": {
       "no": "번호",
       "studentName": "학생이름",
@@ -1331,7 +1332,8 @@
     "view": "보기",
     "exportBills": "청구 건 엑셀",
     "modifyCount": "수정 ({{count}})",
-    "writeNew": "+ 청구"
+    "writeNew": "+ 청구",
+    "bill": "청구"
   },
   "payStats": {
     "hideCharts": "통계 닫기",
@@ -1355,7 +1357,7 @@
     "unpaid": "미납",
     "bills": "건",
     "empty": "집계 대상 없음",
-    "drafts": "금액 미입력",
+    "drafts": "금액수정",
     "canceled": "취소",
     "free": "0원·면제",
     "basis": "청구월 기준 · 현재 납부상태 · 확정된 양수 청구 건수 기준(부분납부는 미납)",
