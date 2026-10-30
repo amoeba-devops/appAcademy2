@@ -1212,7 +1212,28 @@
     },
     "editBill": "Sửa hóa đơn",
     "saveEdit": "Lưu sửa",
-    "cancelConfirm": "Hủy hóa đơn này? Chỉ hủy được hóa đơn chưa có khoản nộp."
+    "cancelConfirm": "Hủy hóa đơn này? Chỉ hủy được hóa đơn chưa có khoản nộp.",
+    "quick": {
+      "title": "{{name}} · {{month}} hóa đơn ({{count}})",
+      "autoTitle": "{{kind}} tháng {{m}}",
+      "add": "Thêm hóa đơn",
+      "create": "Thêm",
+      "more": "Thêm (tên · lớp · ghi chú)",
+      "save": "Lưu",
+      "undo": "Hoàn tác",
+      "delete": "Xóa",
+      "record": "Thu tiền",
+      "saveFirst": "Hãy lưu thay đổi trước",
+      "deleteConfirm": "Xóa hóa đơn '{{title}}'?",
+      "deleteBlocked": "Hóa đơn đã có ghi nhận thu tiền nên không thể xóa. Hãy hủy các khoản thu trước.",
+      "created": "Đã thêm hóa đơn.",
+      "saved": "Đã lưu.",
+      "deleted": "Đã xóa.",
+      "reason": "Lý do (không bắt buộc)",
+      "reasonHint": "Để trống sẽ được ghi tự động",
+      "editReason": "Sửa hóa đơn",
+      "deleteReason": "Xóa hóa đơn"
+    }
   },
   "payMonthly": {
     "editBills": "Sửa hóa đơn",
@@ -1290,7 +1311,7 @@
     "inlineReason": "Nhập trực tiếp trong danh sách",
     "inlineResult": "Kết quả: tạo {{created}} · sửa {{updated}} · lỗi {{failed}}",
     "pickStudent": "Chọn học sinh để lập hóa đơn",
-    "inlineHint": "Nhập số tiền và giảm giá rồi bấm Lưu. Học sinh chưa có hóa đơn sẽ được tạo hóa đơn học phí mới (hạn nộp mặc định); nếu có 1 hóa đơn thì hóa đơn đó được cập nhật. Từ 2 hóa đơn, tiêu đề, hạn nộp hoặc ghi nhận nộp tiền hãy dùng Sửa; khoản thêm (sách…) dùng Tạo.",
+    "inlineHint": "Nhập số tiền và giảm giá rồi bấm Lưu thay đổi để lưu nhiều học sinh cùng lúc (chưa có hóa đơn: tạo hóa đơn học phí; có 1 hóa đơn: cập nhật). Để thêm hóa đơn, đổi loại hoặc hạn, xóa hay ghi thu tiền, dùng [+ Hóa đơn]/[Sửa].",
     "col": {
       "no": "STT",
       "studentName": "Học sinh",
@@ -1308,7 +1329,9 @@
     "write": "Tạo",
     "modify": "Sửa",
     "view": "Xem",
-    "exportBills": "Excel hóa đơn"
+    "exportBills": "Excel hóa đơn",
+    "modifyCount": "Sửa ({{count}})",
+    "writeNew": "+ Hóa đơn"
   },
   "payStats": {
     "hideCharts": "Ẩn thống kê",

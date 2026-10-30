@@ -430,7 +430,7 @@ export class CollectionsService {
           studentId: b.studentId,
           classId: b.classId ?? undefined,
           month: b.month,
-          kind: b.kind,
+          kind: x.kind ?? b.kind,
           title: x.title,
           amount: x.amount,
           discount: x.discount,
@@ -442,7 +442,7 @@ export class CollectionsService {
         );
         if (duplicate.length) throw new ConflictException('PAY_DUPLICATE_BILL');
         await m.query(
-          "UPDATE amb_acm_pay_bill SET pbl_status='ACTIVE',pbl_amount=$3,pbl_discount=$4,pbl_due=$5,pbl_title=$6,pbl_memo=$7,pbl_source_key=$8,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2",
+          "UPDATE amb_acm_pay_bill SET pbl_status='ACTIVE',pbl_amount=$3,pbl_discount=$4,pbl_due=$5,pbl_title=$6,pbl_memo=$7,pbl_source_key=$8,pbl_kind=$9,pbl_version=pbl_version+1,updated_at=now() WHERE ent_id=$1 AND pbl_id=$2",
           [
             u.entId,
             b.id,
@@ -452,6 +452,7 @@ export class CollectionsService {
             x.title.trim(),
             x.memo,
             key,
+            x.kind ?? b.kind,
           ],
         );
         await this.audit(m, u, b.id, 'EDIT', b, x, d.reason);

@@ -50,6 +50,10 @@ export class BillEdit {
   @Matches(/^\d{4}-\d{2}-\d{2}$/) @IsDateString({ strict: true }) due!: string;
   @IsString() @MinLength(1) @MaxLength(200) title!: string;
   @IsString() @MaxLength(2000) memo!: string;
+  /** REQ-261030 — kind can change from the quick edit dialog. */
+  @IsOptional()
+  @IsIn(['CLASS', 'BOOK', 'MATERIAL', 'TRANSPORT', 'OTHER'])
+  kind?: string;
 }
 export class EditBatchDto {
   @IsUUID() requestId!: string;
