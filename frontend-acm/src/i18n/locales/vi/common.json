@@ -1232,7 +1232,8 @@
       "reason": "Lý do (không bắt buộc)",
       "reasonHint": "Để trống sẽ được ghi tự động",
       "editReason": "Sửa hóa đơn",
-      "deleteReason": "Xóa hóa đơn"
+      "deleteReason": "Xóa hóa đơn",
+      "cancel": "Hủy"
     }
   },
   "payMonthly": {
@@ -1266,9 +1267,9 @@
     "rate": "Tỷ lệ thu",
     "detailAction": "Chi tiết",
     "create": "Tạo hóa đơn nháp",
-    "NONE": "Chưa có hóa đơn",
-    "DRAFT": "Chưa nhập số tiền",
-    "UNPAID": "Còn nợ",
+    "NONE": "Chưa lập",
+    "DRAFT": "Nhập số tiền",
+    "UNPAID": "Chưa đóng",
     "PARTIAL": "Đã trả một phần",
     "PAID": "Đã thanh toán",
     "FREE": "Không cần thanh toán",
@@ -1311,7 +1312,7 @@
     "inlineReason": "Nhập trực tiếp trong danh sách",
     "inlineResult": "Kết quả: tạo {{created}} · sửa {{updated}} · lỗi {{failed}}",
     "pickStudent": "Chọn học sinh để lập hóa đơn",
-    "inlineHint": "Nhập số tiền và giảm giá rồi bấm Lưu thay đổi để lưu nhiều học sinh cùng lúc (chưa có hóa đơn: tạo hóa đơn học phí; có 1 hóa đơn: cập nhật). Để thêm hóa đơn, đổi loại hoặc hạn, xóa hay ghi thu tiền, dùng [+ Hóa đơn]/[Sửa].",
+    "inlineHint": "Bấm vào số tiền, giảm giá hoặc [Hóa đơn] để mở hóa đơn của học sinh. Chưa có hóa đơn: lưu xong cửa sổ tự đóng; đã có: có thể sửa, xóa, thêm và ghi thu tiền. Với hóa đơn chờ nhập số tiền, nhập rồi bấm Enter hoặc rời ô để lưu.",
     "col": {
       "no": "STT",
       "studentName": "Học sinh",
@@ -1331,7 +1332,8 @@
     "view": "Xem",
     "exportBills": "Excel hóa đơn",
     "modifyCount": "Sửa ({{count}})",
-    "writeNew": "+ Hóa đơn"
+    "writeNew": "+ Hóa đơn",
+    "bill": "Hóa đơn"
   },
   "payStats": {
     "hideCharts": "Ẩn thống kê",

@@ -1232,7 +1232,8 @@
       "reason": "处理原因（选填）",
       "reasonHint": "留空将自动记录",
       "editReason": "修改账单",
-      "deleteReason": "删除账单"
+      "deleteReason": "删除账单",
+      "cancel": "取消"
     }
   },
   "payMonthly": {
@@ -1266,9 +1267,9 @@
     "rate": "收款率",
     "detailAction": "详情",
     "create": "登记草稿账单",
-    "NONE": "无账单",
-    "DRAFT": "金额未填",
-    "UNPAID": "有欠款",
+    "NONE": "未开账单",
+    "DRAFT": "填写金额",
+    "UNPAID": "未缴",
     "PARTIAL": "部分支付",
     "PAID": "已付清",
     "FREE": "无需缴费",
@@ -1311,7 +1312,7 @@
     "inlineReason": "列表直接输入",
     "inlineResult": "保存结果：新建 {{created}} · 修改 {{updated}} · 失败 {{failed}}",
     "pickStudent": "选择学生开账单",
-    "inlineHint": "输入账单金额和折扣后点击保存修改，可一次保存多名学生（无账单时新建学费账单，有 1 条时更新该账单）。添加账单、修改类型或截止日期、删除、登记收款请使用 [+ 账单]/[修改]。",
+    "inlineHint": "点击账单金额、折扣或 [账单] 打开该学生的账单。无账单时保存后窗口自动关闭；有账单时可修改、删除、添加并登记收款。待填写金额的账单输入金额后按 Enter 或离开输入框即保存。",
     "col": {
       "no": "序号",
       "studentName": "学生姓名",
@@ -1331,7 +1332,8 @@
     "view": "查看",
     "exportBills": "账单 Excel",
     "modifyCount": "修改（{{count}}）",
-    "writeNew": "+ 账单"
+    "writeNew": "+ 账单",
+    "bill": "账单"
   },
   "payStats": {
     "hideCharts": "收起统计",

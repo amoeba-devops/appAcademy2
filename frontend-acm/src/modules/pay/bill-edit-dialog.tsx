@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
@@ -23,10 +23,13 @@ function MoneyInput({
   value,
   onChange,
   label,
+  onCommit,
 }: {
   value: number | null;
   onChange: (v: number | null) => void;
   label: string;
+  /** Enter or leaving the field (REQ-261030B instant save). */
+  onCommit?: () => void;
 }) {
   const [text, setText] = useState(value === null ? "" : format(value));
   useEffect(() => setText(value === null ? "" : format(value)), [value]);
@@ -36,6 +39,13 @@ function MoneyInput({
       aria-label={label}
       inputMode="numeric"
       value={text}
+      onBlur={onCommit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && onCommit) {
+          e.preventDefault();
+          onCommit();
+        }
+      }}
       onChange={(e) => {
         const raw = e.target.value.replace(/[^\d]/g, "");
         if (raw === "") {
@@ -87,6 +97,7 @@ export function BillEditDialog({
   student,
   month,
   defaultDue,
+  createOnly,
   identity,
   close,
   onSaved,
@@ -95,6 +106,8 @@ export function BillEditDialog({
   student: { id: string; name: string };
   month: string;
   defaultDue: string;
+  /** REQ-261030B — a student without bills: save the new bill and close. */
+  createOnly: boolean;
   identity: string;
   close: () => void;
   onSaved: () => Promise<unknown>;
@@ -165,7 +178,10 @@ export function BillEditDialog({
   }, [own]);
   const addTitle = add.titleEdited ? add.title : autoTitle(add.kind);
 
+  const running = useRef(false);
   const run = async (job: () => Promise<void>, done: string) => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
     setError("");
     setNotice("");
@@ -177,6 +193,7 @@ export function BillEditDialog({
       const code = payErrorCode(e);
       setError(code ? tr(code) : tr("failed"));
     } finally {
+      running.current = false;
       setBusy(false);
     }
   };
@@ -207,6 +224,11 @@ export function BillEditDialog({
         throw {
           response: { data: { error: { message: "PAY_DUPLICATE_BILL" } } },
         };
+      if (createOnly) {
+        await onSaved();
+        close();
+        return;
+      }
       setAdd((a) => ({
         ...a,
         amount: null,
@@ -233,7 +255,7 @@ export function BillEditDialog({
             title: d.title.trim(),
             amount: d.amount ?? 0,
             discount: d.discount ?? 0,
-            due: d.due,
+            due: d.due || defaultDue,
             memo: d.memo,
           },
         ],
@@ -261,7 +283,7 @@ export function BillEditDialog({
   const invalid = (d: Draft) =>
     d.amount === null ||
     !d.title.trim() ||
-    !d.due ||
+    !(d.due || defaultDue) ||
     (d.discount ?? 0) > d.amount;
 
   return (
@@ -339,6 +361,14 @@ export function BillEditDialog({
                             label={tr("amount")}
                             value={d.amount}
                             onChange={(amount) => set({ amount })}
+                            onCommit={
+                              b.state === "DRAFT"
+                                ? () => {
+                                    if (drafts[b.id] && !invalid(d))
+                                      void save(b);
+                                  }
+                                : undefined
+                            }
                           />
                         </label>
                         <label className="text-xs">
@@ -427,7 +457,9 @@ export function BillEditDialog({
               aria-label={tr("quick.add")}
               className="space-y-2 rounded border border-dashed p-3"
             >
-              <h3 className="text-sm font-semibold">{tr("quick.add")}</h3>
+              {!createOnly && (
+                <h3 className="text-sm font-semibold">{tr("quick.add")}</h3>
+              )}
               <div className="flex flex-wrap items-end gap-2">
                 <label className="text-xs">
                   <span className="block">{tr("kind")}</span>
@@ -481,7 +513,7 @@ export function BillEditDialog({
                   }
                   onClick={() => void create()}
                 >
-                  {tr("quick.create")}
+                  {tr(createOnly ? "quick.save" : "quick.create")}
                 </button>
               </div>
               <button
@@ -560,7 +592,7 @@ export function BillEditDialog({
         )}
         <div className="flex justify-end">
           <button className={btn} disabled={busy} onClick={tryClose}>
-            {tr("close")}
+            {tr(createOnly ? "quick.cancel" : "close")}
           </button>
         </div>
       </DialogContent>
