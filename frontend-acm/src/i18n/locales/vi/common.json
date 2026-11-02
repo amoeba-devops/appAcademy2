@@ -1333,7 +1333,12 @@
     "exportBills": "Excel hóa đơn",
     "modifyCount": "Sửa ({{count}})",
     "writeNew": "+ Hóa đơn",
-    "bill": "Hóa đơn"
+    "bill": "Hóa đơn",
+    "quickAmountHint": "Số tiền",
+    "enterAmount": "Nhập số tiền",
+    "paidInFull": "Đã đóng đủ",
+    "paidInFullConfirm": "Xác nhận đóng đủ",
+    "paidInFullReason": "Đóng đủ"
   },
   "payStats": {
     "hideCharts": "Ẩn thống kê",

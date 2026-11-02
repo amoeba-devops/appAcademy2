@@ -1333,7 +1333,12 @@
     "exportBills": "账单 Excel",
     "modifyCount": "修改（{{count}}）",
     "writeNew": "+ 账单",
-    "bill": "账单"
+    "bill": "账单",
+    "quickAmountHint": "账单金额",
+    "enterAmount": "输入金额",
+    "paidInFull": "缴清",
+    "paidInFullConfirm": "确认缴清",
+    "paidInFullReason": "缴清处理"
   },
   "payStats": {
     "hideCharts": "收起统计",

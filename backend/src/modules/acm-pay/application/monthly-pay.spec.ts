@@ -69,6 +69,14 @@ describe('monthly payment membership and aggregation', () => {
     expect(r.enrolled).toBe(true);
     expect(r.periods[0].site).toBeNull();
   });
+  it('leaves unassigned enrollment out of all sites (REQ-261102)', () => {
+    const [r] = resolveMonthlyStudents(
+      [{ ...student, site: null }],
+      [{ ...period, site: null }],
+      '2026-10',
+    );
+    expect(r.enrolled).toBe(false);
+  });
   it('flags overlapping evidence', () => {
     const [r] = resolveMonthlyStudents(
       [student],

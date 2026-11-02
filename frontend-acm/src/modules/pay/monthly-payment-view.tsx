@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import type { MonthlyPaymentResult, MonthlyStudentRow } from "./monthly-types";
+import { PayInFull, QuickAmount } from "./monthly-quick";
 const field = "rounded border bg-white px-3 py-2 text-sm whitespace-nowrap";
 export const monthlySites = ["ALL", "TPI", "TRINITY", "SANTACROCE"];
 export type MonthlyMode = "dashboard" | "view" | "edit";
@@ -43,6 +44,8 @@ export function MonthlyPaymentView({
   const dashboard = mode === "dashboard",
     editing = mode === "edit";
   const [due, setDue] = useState(`${month}-10`);
+  // REQ-261102 — the monthly list row whose amount is being typed.
+  const [amountFor, setAmountFor] = useState<string | null>(null);
   // History lookup includes every student with a bill that month.
   const [scope, setScope] = useState(mode === "view" ? "ALL" : "ENROLLED"),
     [status, setStatus] = useState(initialStatus),
@@ -92,7 +95,12 @@ export function MonthlyPaymentView({
   };
   const cell = "p-2 whitespace-nowrap";
   // REQ-261027C — the same 12 columns on the monthly list and bill details.
-  const rows = (items: MonthlyStudentRow[], offset = 0, edit = false) => (
+  // "list" = monthly list (quick amount · 완납), "edit" = bill details, "read" = dashboard.
+  const rows = (
+    items: MonthlyStudentRow[],
+    offset = 0,
+    kind: "read" | "list" | "edit" = "read",
+  ) => (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
@@ -120,6 +128,7 @@ export function MonthlyPaymentView({
         <tbody>
           {items.map((r, i) => {
             // REQ-261030B — amounts are read-only; clicking them opens the bill dialog.
+            const edit = kind === "edit";
             const amountCell = (value: number | null, label: string) =>
               edit ? (
                 <button
@@ -158,7 +167,18 @@ export function MonthlyPaymentView({
                       {tr("multiBills", { count: r.billCount })}
                     </span>
                   )}
-                  {amountCell(r.amount, tr("amount"))}
+                  {kind === "list" ? (
+                    <QuickAmount
+                      row={r}
+                      month={month}
+                      identity={identity}
+                      editing={amountFor === r.id}
+                      setEditing={(on) => setAmountFor(on ? r.id : null)}
+                      onMulti={() => onEditBills(r, `${month}-10`)}
+                    />
+                  ) : (
+                    amountCell(r.amount, tr("amount"))
+                  )}
                 </td>
                 <td className={`${cell} text-right`}>
                   {amountCell(r.discount, tr("discount"))}
@@ -175,12 +195,30 @@ export function MonthlyPaymentView({
                       {tr("DRAFT")} {r.drafts}
                     </small>
                   )}
+                  {kind === "list" &&
+                    (r.status === "NONE" || r.status === "DRAFT") &&
+                    amountFor !== r.id && (
+                      <button
+                        className="ml-2 min-h-9 rounded border px-2 text-xs hover:bg-slate-100"
+                        onClick={() =>
+                          r.billCount > 1
+                            ? onEditBills(r, `${month}-10`)
+                            : setAmountFor(r.id)
+                        }
+                      >
+                        {tr("enterAmount")}
+                      </button>
+                    )}
+                  {kind === "list" &&
+                    (r.status === "UNPAID" || r.status === "PARTIAL") && (
+                      <PayInFull row={r} month={month} identity={identity} />
+                    )}
                 </td>
                 <td className={`${cell} space-x-1`}>
-                  {edit ? (
+                  {kind !== "read" ? (
                     <button
                       className={`${field} min-h-9`}
-                      onClick={() => onEditBills(r, due)}
+                      onClick={() => onEditBills(r, edit ? due : `${month}-10`)}
                     >
                       {tr("bill")}
                     </button>
@@ -367,7 +405,7 @@ export function MonthlyPaymentView({
           )}
           {!dashboard ? (
             <>
-              {rows(result.items, (page - 1) * 50, editing)}
+              {rows(result.items, (page - 1) * 50, editing ? "edit" : "list")}
               <div className="flex items-center gap-3">
                 <span>
                   {tr("total")} {result.total}

@@ -1333,7 +1333,12 @@
     "exportBills": "청구 건 엑셀",
     "modifyCount": "수정 ({{count}})",
     "writeNew": "+ 청구",
-    "bill": "청구"
+    "bill": "청구",
+    "quickAmountHint": "청구액",
+    "enterAmount": "청구액 입력",
+    "paidInFull": "완납",
+    "paidInFullConfirm": "완납 처리",
+    "paidInFullReason": "완납 처리"
   },
   "payStats": {
     "hideCharts": "통계 닫기",
