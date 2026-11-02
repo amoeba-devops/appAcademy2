@@ -1333,7 +1333,12 @@
     "exportBills": "Bills Excel",
     "modifyCount": "Edit ({{count}})",
     "writeNew": "+ Bill",
-    "bill": "Bill"
+    "bill": "Bill",
+    "quickAmountHint": "Amount",
+    "enterAmount": "Enter amount",
+    "paidInFull": "Paid in full",
+    "paidInFullConfirm": "Mark paid",
+    "paidInFullReason": "Paid in full"
   },
   "payStats": {
     "hideCharts": "Hide statistics",

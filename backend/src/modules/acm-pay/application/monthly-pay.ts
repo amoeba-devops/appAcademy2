@@ -16,8 +16,11 @@ export interface MonthlyStudent {
   review: boolean;
   periods: { site: string | null; start: string | null; end: string | null }[];
 }
+/** REQ-261102 — 'ALL' is the three sites; records without a site are left out. */
 export const siteMatches = (actual: string | null, site = 'ALL') =>
-  site === 'ALL' || (actual || 'UNASSIGNED') === site;
+  site === 'ALL'
+    ? !!actual && actual !== 'UNASSIGNED'
+    : (actual || 'UNASSIGNED') === site;
 export function monthBounds(month: string) {
   const [year, number] = month.split('-').map(Number);
   const date = new Date(Date.UTC(year, number, 1));
@@ -365,7 +368,7 @@ export async function monthlyPay(
     });
   }
   const sites = [];
-  for (const s of ['TPI', 'TRINITY', 'SANTACROCE', 'UNASSIGNED']) {
+  for (const s of ['TPI', 'TRINITY', 'SANTACROCE']) {
     const roster = resolveMonthlyStudents(
       evidence.students,
       evidence.periods,
