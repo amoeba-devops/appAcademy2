@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { BellRing, X } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
-import { isIos, isStandalone } from "@/lib/pwa";
+import { deviceKind, isIos, isStandalone } from "@/lib/pwa";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
 
@@ -71,7 +71,7 @@ async function register(mode: Mode, subscription: PushSubscription) {
   const res = (
     await apiClient.post<{ id: string; actor: string }>(
       baseOf(mode) + "/push-subscriptions",
-      { endpoint: json.endpoint, keys: json.keys },
+      { endpoint: json.endpoint, keys: json.keys, device: deviceKind() },
     )
   ).data;
   await (

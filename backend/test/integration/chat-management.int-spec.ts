@@ -112,7 +112,7 @@ describe('Chat management / PostgreSQL', () => {
       CREATE TABLE IF NOT EXISTS amb_acm_prj_member(ent_id uuid,prj_id uuid,usr_id uuid);
       CREATE TABLE IF NOT EXISTS amb_acm_prj_item(pit_id uuid,ent_id uuid,prj_id uuid,pit_kind text,deleted_at timestamptz);
       CREATE TABLE IF NOT EXISTS amb_acm_password_reset_request(prr_id uuid,ent_id uuid,prr_status text);`);
-    for (const f of ['1030-notification-delivery.sql', '1043-issue-mention-notification.sql'])
+    for (const f of ['1030-notification-delivery.sql', '1043-issue-mention-notification.sql', '1056-notification-settings.sql'])
       await ds.query(sql(f));
     const [legacy] = await ds.query(
       'SELECT usr_id,nin_recipient_id,nin_recipient_kind,nin_read_at FROM amb_acm_notification_inbox',

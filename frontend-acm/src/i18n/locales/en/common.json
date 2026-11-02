@@ -2393,5 +2393,118 @@
     "save": "Save",
     "saved": "Saved.",
     "failed": "Could not save. Enter a whole number from 1 to {{max}}."
+  },
+  "notifySettings": {
+    "title": "Notification settings",
+    "desc": "Set channels and recipients per situation, phone/PC push and quiet hours.",
+    "cardDescription": "Per-situation alerts, device push, quiet hours",
+    "tabs": {
+      "situations": "Situations",
+      "devices": "Devices & push",
+      "routes": "Delivery routes"
+    },
+    "loadFailed": "Could not load notification settings.",
+    "saved": "Saved.",
+    "failed": "Could not save. Please check the values.",
+    "unsaved": "You have unsaved changes",
+    "reset": "Undo",
+    "save": "Save",
+    "always": "Always",
+    "situation": "Situation",
+    "recipients": "Recipients",
+    "situationsTitle": "Notifications by situation",
+    "situationsHint": "Push only sends what reaches the inbox, so turning the inbox off also turns off push and AMA. Each person can turn off alerts for themselves in 🔔 › Notification settings.",
+    "channels": {
+      "inbox": "Inbox",
+      "push": "Push",
+      "popup": "Pop-up",
+      "ama": "AMA",
+      "mail": "Email",
+      "alimtalk": "AlimTalk"
+    },
+    "types": {
+      "CSL_CREATED": "New consultation",
+      "CSL_STAGE": "Consultation status change",
+      "CAL_CREATED": "Class scheduled",
+      "CAL_UPDATED": "Class schedule changed",
+      "REVIEW_OVERDUE": "Feedback/homework missing",
+      "CHAT_MESSAGE": "New chat message",
+      "CHAT_MENTION": "Chat mention",
+      "ISSUE_MENTION": "Issue mention",
+      "PASSWORD_RESET_REQUEST": "Password reset request",
+      "MAP_APPLY": "MAP test application"
+    },
+    "roles": {
+      "ADMIN": "Admins",
+      "STAFF": "Staff",
+      "TEACHER": "Assigned teacher"
+    },
+    "fixedRecipients": {
+      "CHAT_MESSAGE": "Chat room members",
+      "CHAT_MENTION": "Mentioned person",
+      "ISSUE_MENTION": "Mentioned person",
+      "PASSWORD_RESET_REQUEST": "Admins",
+      "MAP_APPLY": "Parent (email, AlimTalk), operators (email)"
+    },
+    "amaNotConnected": "AMA is not connected, so the AMA column is unavailable.",
+    "amaOff": "AMA forwarding is off. Checked situations are sent once forwarding is turned on in AMA settings.",
+    "notCovered": "Alerts sent directly by a person — password and invite emails, class feedback and event invite emails — work regardless of these settings.",
+    "reminder": {
+      "title": "Feedback/homework reminder times",
+      "hint": "Alerts when feedback or homework is still missing this long after a class ends.",
+      "first": "1st",
+      "second": "2nd",
+      "unit": "hours after",
+      "invalid": "1–48 hours, and the 2nd must be later than the 1st."
+    },
+    "push": {
+      "title": "Device push",
+      "hint": "Alerts sent to phones, PC browsers and the installed app.",
+      "enabled": "Use device push",
+      "quiet": "Quiet hours",
+      "quietStart": "Start time",
+      "quietEnd": "End time",
+      "quietHint": "Alerts during this time go straight to the inbox; push is sent when quiet hours end (skipped if read meanwhile). Uses the academy time zone.",
+      "chatPreview": "Show chat content on the lock screen"
+    },
+    "status": {
+      "title": "Devices",
+      "hint": "Subscribed devices active in the last 30 days and delivery results for the last 7 days.",
+      "server": "Server push key",
+      "ready": "Configured",
+      "notReady": "Not configured",
+      "mobile": "Phones",
+      "desktop": "PCs",
+      "unknown": "Unknown",
+      "unknownHint": "Updated on next visit",
+      "sent": "Delivered (7 days)",
+      "failedCount": "{{count}} failed"
+    },
+    "test": {
+      "button": "Send a test to my devices",
+      "result": "Sent to {{sent}} of {{devices}} devices. ({{failed}} failed)",
+      "noDevice": "No device has notifications on for this account. Turn them on on this device first.",
+      "failed": "Could not send the test notification.",
+      "notConfigured": "Push keys are not configured on the server, so it cannot be sent. Please contact the operator."
+    },
+    "routes": {
+      "title": "Delivery routes",
+      "hint": "Connection status of email, AlimTalk and AMA. Change connection details on each settings page.",
+      "mail": "Email (SMTP)",
+      "kakao": "Kakao AlimTalk",
+      "ama": "AMA forwarding",
+      "on": "Connected",
+      "warn": "Needs attention",
+      "off": "Off",
+      "open": "Settings",
+      "kakaoNoTemplate": "MAP application template not set"
+    },
+    "my": {
+      "title": "My notification settings",
+      "hint": "Turn off only the alerts you do not want among those the academy enabled.",
+      "academyOff": "Turned off by the academy",
+      "quiet": "My quiet hours",
+      "academyQuiet": "Academy quiet hours {{start}}–{{end}} also apply."
+    }
   }
 }

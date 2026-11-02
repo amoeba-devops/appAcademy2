@@ -1,5 +1,6 @@
 import { MobileSessionKeeper } from "@/lib/session-keep";
 import { PushEnableBanner, PushLoginPrompt, PushSettings, PushSessionSync } from "./push-settings";
+import { MyNotificationPrefs } from "./my-notification-prefs";
 import { useCallback, useEffect, useState } from "react";
 import {
   useInfiniteQuery,
@@ -155,6 +156,7 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
             <DialogTitle>{t("push.title")}</DialogTitle>
           </DialogHeader>
           <PushSettings mode={mode} />
+          <MyNotificationPrefs mode={mode} />
         </DialogContent>
       </Dialog>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -405,6 +407,7 @@ export function NotificationInboxPage() {
             <DialogTitle>{t("push.title")}</DialogTitle>
           </DialogHeader>
           <PushSettings mode="admin" />
+          <MyNotificationPrefs mode="admin" />
         </DialogContent>
       </Dialog>
     </section>

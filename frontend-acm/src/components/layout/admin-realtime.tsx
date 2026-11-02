@@ -1,4 +1,5 @@
 import { hasDevicePush } from "@/modules/notifications/push-settings";
+import { personalOn, useMyNotifySettings } from "@/modules/notifications/notify-settings";
 import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -36,6 +37,9 @@ export function AdminRealtime() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const isTalkRole = user?.role === "ADMIN" || user?.role === "APP_ADMIN";
+  // REQ-261102B — 채팅 팝업은 알림 설정(학원·개인)을 따른다. 신규 상담 팝업은 항상 켜짐.
+  const notify = useMyNotifySettings("admin", !!token);
+  const chatPopup = personalOn(notify.data, "CHAT_MESSAGE", "popup");
 
   const onTalkEvent = useCallback(
     (e: TalkSseEvent) => {
@@ -67,6 +71,7 @@ export function AdminRealtime() {
           // 채팅 화면 밖이면 미리보기 토스트 (내 메시지 제외).
           if (
             !msg.mine &&
+            chatPopup &&
             !hasDevicePush(`${user.entId}:USER:${user.id}`) &&
             !(
               location.pathname.startsWith("/admin/chat") &&
@@ -101,7 +106,7 @@ export function AdminRealtime() {
         });
       }
     },
-    [qc, user, location.pathname, location.search, t, toast, navigate],
+    [qc, user, location.pathname, location.search, t, toast, navigate, chatPopup],
   );
 
   const onAdminEvent = useCallback(

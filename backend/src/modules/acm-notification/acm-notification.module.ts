@@ -24,6 +24,12 @@ import { NotificationLogController } from './presentation/notification-log.contr
 import { AdminEventsController } from './presentation/admin-events.controller';
 import { AmaForwardService } from './application/ama-forward.service';
 import { AmaForwardController } from './presentation/ama-forward.controller';
+import { NotificationSettingsService } from './application/notification-settings.service';
+import {
+  MyNotificationSettingsController,
+  NotificationSettingsController,
+  PortalMyNotificationSettingsController,
+} from './presentation/notification-settings.controller';
 import { AmaOpenNotificationModule } from '../../infrastructure/external/ama/open-notification/ama-open-notification.module';
 
 @Module({
@@ -40,16 +46,24 @@ import { AmaOpenNotificationModule } from '../../infrastructure/external/ama/ope
     NotificationLogController,
     AdminEventsController,
     AmaForwardController, // REQ-261006
+    NotificationSettingsController, // REQ-261102B
+    MyNotificationSettingsController,
+    PortalMyNotificationSettingsController,
   ],
   providers: [
     ReviewReminderService,
     PushService,
     InboxService,
     AmaForwardService, // REQ-261006
+    NotificationSettingsService, // REQ-261102B
     NotificationService,
     AdminEventsSseService,
     CslCreatedListener,
   ],
-  exports: [NotificationService, AdminEventsSseService],
+  exports: [
+    NotificationService,
+    AdminEventsSseService,
+    NotificationSettingsService,
+  ],
 })
 export class AcmNotificationModule {}

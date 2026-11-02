@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { BarChart3, FolderOpen, Mail, Settings, Timer, UserCog, UserPlus } from 'lucide-react';
+import { BarChart3, BellRing, FolderOpen, Mail, Settings, Timer, UserCog, UserPlus } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { ConfigCardGrid, type ConfigCard } from '../components/integration-cards';
 
@@ -16,6 +16,8 @@ const CARDS: ConfigCard[] = [
   { to: '/admin/config/admins', icon: UserCog, titleKey: 'adminUsers.title', descKey: 'adminUsers.cardDescription' },
   // PLN-261027 — 로그인 유지 시간
   { to: '/admin/config/session', icon: Timer, titleKey: 'sessionConfig.title', descKey: 'sessionConfig.cardDescription' },
+  // REQ-261102B — 알림 설정(상황별 알림·기기 푸시·방해 금지 시간)
+  { to: '/admin/config/notifications', icon: BellRing, titleKey: 'notifySettings.title', descKey: 'notifySettings.cardDescription' },
 ];
 
 export function ConfigLandingPage() {
