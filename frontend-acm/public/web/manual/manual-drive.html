@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>드라이브 연결·폴더 연결 매뉴얼 · Drive Connection Guide</title>
+<meta name="description" content="운영 콘솔 드라이브 — 회사 Google Drive 연결 관리, 공용폴더 지정, 폴더 연결·공유 대상 권한 설정 사용자 매뉴얼" />
+<style>
+  :root{--navy:#1c2b4a;--navy-soft:#2b3f63;--gold:#b08a3e;--gold-soft:#c9a85f;--cream:#f7f4ec;--ink:#232730;--muted:#6b7280;--line:#e4e0d6;--bg:#fbfaf6;--card:#fff;--ok:#2f7d4f;--warn:#b4791b;--danger:#b3413a;--radius:12px;--shadow:0 1px 3px rgba(28,43,74,.06),0 8px 24px rgba(28,43,74,.05);}
+  *{box-sizing:border-box;} html{scroll-behavior:smooth;}
+  body{margin:0;font-family:"Pretendard",-apple-system,BlinkMacSystemFont,"Segoe UI","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;}
+  a{color:var(--navy);text-decoration:none;}
+  code{font-family:"SFMono-Regular",Consolas,Menlo,monospace;background:#eef0f4;color:var(--navy-soft);padding:.12em .42em;border-radius:5px;font-size:.88em;}
+  .wrap{display:flex;max-width:1240px;margin:0 auto;}
+  .toc{position:sticky;top:0;align-self:flex-start;width:260px;flex:0 0 260px;height:100vh;overflow-y:auto;padding:28px 20px 40px;border-right:1px solid var(--line);background:var(--card);}
+  .toc h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .toc ol{list-style:none;margin:0;padding:0;} .toc a{display:block;padding:6px 10px;border-radius:8px;color:var(--muted);font-size:14px;font-weight:500;}
+  .toc a:hover{background:var(--cream);color:var(--navy);} .toc .sub a{padding-left:22px;font-size:13px;}
+  main{flex:1;min-width:0;padding:0 0 80px;} .container{max-width:860px;margin:0 auto;padding:0 32px;}
+  header.hero{background:linear-gradient(135deg,var(--navy),var(--navy-soft));color:#fff;padding:46px 0 40px;margin-bottom:34px;border-bottom:3px solid var(--gold);}
+  header.hero .container{max-width:860px;} .hero .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold-soft);font-weight:700;margin-bottom:12px;}
+  .hero h1{font-size:30px;margin:0 0 10px;font-weight:700;letter-spacing:-.01em;} .hero p{margin:0;color:#cdd5e4;font-size:15px;max-width:640px;}
+  .hero .meta{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px;} .hero .meta span{font-size:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:4px 11px;border-radius:20px;color:#e8ecf4;}
+  section{margin-bottom:48px;scroll-margin-top:16px;}
+  h2.sec{font-size:22px;font-weight:700;color:var(--navy);margin:0 0 6px;padding-bottom:10px;border-bottom:2px solid var(--line);display:flex;align-items:baseline;gap:12px;}
+  h2.sec .num{font-size:14px;color:#fff;background:var(--gold);width:28px;height:28px;border-radius:8px;flex:0 0 28px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;align-self:center;}
+  h3{font-size:17px;color:var(--navy);margin:28px 0 10px;font-weight:700;} p{margin:10px 0;}
+  .lead{background:var(--cream);border-left:4px solid var(--gold);padding:14px 18px;border-radius:0 var(--radius) var(--radius) 0;color:var(--navy-soft);font-size:14.5px;margin:14px 0 24px;}
+  .tbl-wrap{overflow-x:auto;margin:16px 0;border-radius:var(--radius);border:1px solid var(--line);}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card);} th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{background:var(--navy);color:#fff;font-weight:600;font-size:13px;white-space:nowrap;} tbody tr:last-child td{border-bottom:none;} tbody tr:nth-child(even){background:#faf9f5;}
+  .note{border-radius:var(--radius);padding:14px 16px 14px 46px;margin:16px 0;font-size:14px;position:relative;border:1px solid;}
+  .note::before{position:absolute;left:15px;top:13px;font-size:16px;line-height:1.4;}
+  .note.tip{background:#eef6f0;border-color:#cfe6d6;color:#245c3c;} .note.tip::before{content:"✔";color:var(--ok);}
+  .note.warn{background:#fdf6e8;border-color:#f0e0bd;color:#7a5410;} .note.warn::before{content:"⚠";color:var(--warn);}
+  .note.danger{background:#fbeeed;border-color:#f0cdca;color:#8c322c;} .note.danger::before{content:"🔒";}
+  .badge{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.02em;background:#efe3c7;color:#7a5410;border:1px solid #e0cd9c;}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:14px 0;} .steps li{position:relative;padding:8px 0 8px 40px;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .steps li:last-child{border-bottom:none;} .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;background:var(--navy);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;}
+  .flow .step{flex:1 1 130px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;}
+  .flow .step .n{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#fff;font-size:12px;font-weight:700;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;}
+  .flow .step .t{font-weight:700;font-size:13.5px;} .flow .step .d{font-size:11.5px;color:var(--muted);margin-top:3px;}
+  .role{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:6px;margin-right:6px;}
+  .role.admin{background:#e7edf7;color:#26467e;} .role.teacher{background:#efe7f7;color:#5b3a86;} .role.student{background:#e7f2ec;color:#245c3c;}
+  footer{border-top:1px solid var(--line);margin-top:50px;padding-top:22px;color:var(--muted);font-size:13px;text-align:center;}
+  @media(max-width:900px){.toc{display:none;}.container{padding:0 20px;}}
+  figure.shot{margin:18px 0;padding:0;}
+  figure.shot img{width:100%;display:block;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);}
+  figure.shot figcaption{font-size:12.5px;color:var(--muted);margin-top:8px;text-align:center;}
+  figure.shot.narrow img{max-width:560px;margin:0 auto;}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="container">
+    <div class="eyebrow">App Academy · Drive Guide</div>
+    <h1>드라이브 연결·폴더 연결 매뉴얼</h1>
+    <p>운영 콘솔 <strong>드라이브</strong>에서 <strong>회사 Google 계정 연결 → 공용폴더 지정 → 폴더 연결 → 공유 대상 지정</strong>까지 진행하는 방법을 화면과 함께 안내합니다.</p>
+    <div class="meta"><span>문서 ID · MANUAL-DRIVE-261102</span><span>v1.0.0</span><span>대상 · 서비스 운영자 · 직원</span><span>2026-11-02</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#glance">0. 한눈에 보기</a></li>
+      <li><a href="#screen">1. 드라이브 화면 구성</a></li>
+      <li><a href="#connect">2. 연결 관리</a></li>
+      <li class="sub"><a href="#connect-account">· 회사 Google 계정 연결</a></li>
+      <li class="sub"><a href="#connect-root">· 공용폴더 지정</a></li>
+      <li><a href="#link">3. 폴더 연결</a></li>
+      <li class="sub"><a href="#link-access">· 권한(열람/편집) 규칙</a></li>
+      <li><a href="#manage">4. 공유 대상 변경·연결 해제</a></li>
+      <li><a href="#use">5. 연결한 폴더 사용</a></li>
+      <li><a href="#trouble">6. 자주 묻는 문제</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <section id="glance">
+        <h2 class="sec"><span class="num">0</span> 한눈에 보기</h2>
+        <p class="lead">드라이브 주소는 <code>https://acm.amoeba.site/admin/drive</code> 입니다. <strong>연결 관리</strong>는 학원의 회사 Google 계정을 한 번 연결하는 설정이고, <strong>폴더 연결</strong>은 그 계정의 Google Drive 폴더를 드라이브 화면에 등록해 직원과 함께 쓰는 기능입니다.</p>
+        <div class="flow">
+          <div class="step"><div class="n">1</div><div class="t">회사 계정 연결</div><div class="d">연결 관리 · 최초 1회</div></div>
+          <div class="step"><div class="n">2</div><div class="t">공용폴더 지정</div><div class="d">프로젝트 자료 저장 위치</div></div>
+          <div class="step"><div class="n">3</div><div class="t">폴더 연결</div><div class="d">Google 폴더 선택</div></div>
+          <div class="step"><div class="n">4</div><div class="t">공유 대상 지정</div><div class="d">운영자·개인별 열람/편집</div></div>
+          <div class="step"><div class="n">5</div><div class="t">사용</div><div class="d">탐색·검색·업로드</div></div>
+        </div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>작업</th><th>할 수 있는 사람</th></tr></thead>
+          <tbody>
+            <tr><td>계정 연결·해제, 공용폴더 지정, 폴더 연결, 공유 대상 변경, 연결 해제</td><td><span class="role admin">서비스 운영자</span> 설정 권한이 있는 관리자</td></tr>
+            <tr><td>연결된 폴더 탐색·검색·다운로드</td><td>공유 대상으로 <strong>열람</strong> 이상 지정된 사용자</td></tr>
+            <tr><td>업로드·새 폴더·이름 변경·이동·휴지통</td><td>공유 대상으로 <strong>편집</strong> 지정된 사용자</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="screen">
+        <h2 class="sec"><span class="num">1</span> 드라이브 화면 구성</h2>
+        <p class="lead">좌측 메뉴 <strong>드라이브</strong>를 누르면 연결된 폴더 목록이 나옵니다. 제목 아래에 학원 공용 계정(연결된 회사 Google 계정)이 표시되고, 오른쪽 위에 버튼 2개가 있습니다.</p>
+        <figure class="shot">
+          <img src="img/d-home.png" alt="드라이브 첫 화면 — ① 연결 관리 ② 폴더 연결 버튼, 아래에 연결된 폴더 카드" loading="lazy" />
+          <figcaption>드라이브 첫 화면 — ① [연결 관리] ② [폴더 연결], 아래는 연결된 폴더 카드</figcaption>
+        </figure>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>구역</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>① 연결 관리</td><td>회사 Google 계정 연결 상태와 공용폴더 설정 패널을 펼치거나 접습니다.</td></tr>
+            <tr><td>② 폴더 연결</td><td>Google Drive 폴더를 새로 등록합니다. 계정이 연결되어 있어야 누를 수 있으며, 서비스 운영자에게만 보입니다.</td></tr>
+            <tr><td>문서 검색</td><td>연결된 모든 폴더에서 파일 이름을 검색합니다(2글자 이상).</td></tr>
+            <tr><td>폴더 카드</td><td>폴더 이름, <span class="badge">공용 폴더</span> 표시, 내 권한(<strong>편집 가능</strong> / <strong>읽기 전용</strong>)이 표시됩니다. 누르면 폴더 안으로 들어갑니다.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note tip">연결된 계정이 없으면 [연결 관리] 패널이 자동으로 펼쳐집니다. 아래 2장부터 순서대로 진행하세요.</div>
+      </section>
+
+      <section id="connect">
+        <h2 class="sec"><span class="num">2</span> 연결 관리 <span class="badge">서비스 운영자 전용</span></h2>
+        <p class="lead"><strong>[연결 관리]</strong>를 누르면 <strong>회사 Google Drive 연동</strong> 패널이 열립니다. 상단의 단계 표시(① <em>회사 Google 계정 로그인 → 공용폴더 지정 → 사용</em>)로 현재 진행 상태를 확인할 수 있습니다. 완료된 단계는 ✓로 표시됩니다.</p>
+        <figure class="shot">
+          <img src="img/d-connection.png" alt="연결 관리 패널 — ① 진행 단계 ② 다시 연결/계정 변경·연결 해제 ③ 공용폴더 Google에서 열기·변경" loading="lazy" />
+          <figcaption>연결 관리 패널 — ① 진행 단계 ② [다시 연결 / 계정 변경]·[연결 해제] ③ 공용폴더 [Google에서 열기]·[변경]</figcaption>
+        </figure>
+
+        <h3 id="connect-account">회사 Google 계정 연결 (1단계)</h3>
+        <ol class="steps">
+          <li>[연결 관리] → <strong>회사 Google 계정</strong> 영역에서 <strong>[회사 Google 계정으로 로그인]</strong> 클릭 (이미 연결된 경우 버튼 이름은 <strong>[다시 연결 / 계정 변경]</strong>)</li>
+          <li>Google 로그인 화면에서 <strong>학원 회사 계정</strong>(Google Workspace)을 선택</li>
+          <li>권한 동의 화면에서 <strong>Google Drive 항목을 반드시 체크</strong>한 뒤 [계속]</li>
+          <li>드라이브 화면으로 돌아오면 계정 이메일 옆에 <span class="badge">정상</span>이 표시되고, 연결 일시·연결자가 기록됩니다</li>
+        </ol>
+        <div class="note warn"><strong>회사 도메인의 Google Workspace 계정만</strong> 연결할 수 있습니다. 개인 Gmail(@gmail.com) 계정은 연결되지 않습니다.</div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>계정 상태 표시</th><th>의미 · 조치</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge" style="background:#e7f2ec;color:#245c3c;border-color:#cfe6d6">정상</span></td><td>바로 사용할 수 있습니다.</td></tr>
+            <tr><td><span class="badge">재연결 필요</span></td><td>Google 인증이 만료되었거나 Drive 권한이 부족합니다. <strong>[다시 연결 / 계정 변경]</strong>으로 다시 로그인하세요. 다시 연결하기 전까지 업로드는 ACM 저장소에 저장됩니다.</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note danger"><strong>[연결 해제]</strong>를 누르면 Google Drive 저장이 중단되고 공용폴더 지정도 해제됩니다. Google에 있는 원본 파일과 ACM 프로젝트 기록은 지워지지 않으며, <strong>같은 계정으로 다시 연결하면 자동으로 복원</strong>됩니다. 계정을 바꾸려는 경우가 아니면 누르지 마세요.</div>
+
+        <h3 id="connect-root">공용폴더 지정 (2단계)</h3>
+        <p>공용폴더는 <strong>프로젝트 자료가 저장되는 최상위 폴더</strong>입니다. 프로젝트를 만들면 <code>공용폴더 / 프로젝트명</code> 하위폴더가 자동으로 생깁니다. 계정을 처음 연결하면 지정 양식이 바로 열리고, 이미 지정되어 있으면 ③ <strong>[변경]</strong>을 눌러 엽니다.</p>
+        <p><strong>방법 A — 새 폴더 만들기</strong></p>
+        <ol class="steps">
+          <li>① <strong>새 폴더 만들기</strong>를 선택하고 폴더 이름 입력 (비워 두면 <code>ACM - 학원명</code>)</li>
+          <li>② <strong>[공용폴더 지정]</strong> 클릭 → 회사 계정의 Google Drive에 폴더가 만들어집니다</li>
+        </ol>
+        <figure class="shot">
+          <img src="img/d-root-new.png" alt="공용폴더 지정 — ① 새 폴더 만들기(이름 입력) ② 공용폴더 지정" loading="lazy" />
+          <figcaption>공용폴더 지정(새 폴더) — ① 폴더 이름 입력 ② [공용폴더 지정]</figcaption>
+        </figure>
+        <p><strong>방법 B — 기존 폴더 선택</strong></p>
+        <ol class="steps">
+          <li>① <strong>기존 폴더 선택 (Google Drive에서 선택)</strong>을 선택</li>
+          <li>② <strong>[공용폴더 지정]</strong> 클릭 → Google 폴더 선택 창에서 폴더를 고르고 [선택]</li>
+        </ol>
+        <figure class="shot">
+          <img src="img/d-root-pick.png" alt="공용폴더 지정 — ① 기존 폴더 선택과 공유 드라이브 안내 ② 공용폴더 지정" loading="lazy" />
+          <figcaption>공용폴더 지정(기존 폴더) — ① 기존 폴더 선택 ② [공용폴더 지정] 후 Google 창에서 선택</figcaption>
+        </figure>
+        <div class="note tip"><strong>공유 드라이브</strong>는 최상위를 직접 선택할 수 없습니다. 공유 드라이브를 더블클릭해 들어간 뒤 그 안의 폴더를 선택하세요. 원하는 폴더가 없으면 Google Drive에서 먼저 만들어 두세요.</div>
+        <div class="note warn">공용폴더를 <strong>변경</strong>하면 이후 새로 만드는 프로젝트 폴더에만 적용됩니다. 기존 파일은 이동하지 않습니다. 직원이 Google에서 직접 파일을 열려면 회사 계정에서 공용폴더를 직원에게 공유해 두어야 합니다.</div>
+      </section>
+
+      <section id="link">
+        <h2 class="sec"><span class="num">3</span> 폴더 연결 <span class="badge">서비스 운영자 전용</span></h2>
+        <p class="lead"><strong>[폴더 연결]</strong>은 회사 Google Drive의 폴더(예: <em>학생별 결과 리포트</em>)를 드라이브 화면에 등록하고, <strong>누가 열람·편집할 수 있는지</strong>를 정하는 기능입니다. Google Drive 자체의 공유 권한은 바꾸지 않습니다.</p>
+        <ol class="steps">
+          <li>드라이브 오른쪽 위 <strong>[폴더 연결]</strong> 클릭 → <strong>공용 폴더 · 공유 대상</strong> 창이 열립니다</li>
+          <li>① <strong>[Google 폴더 선택]</strong> → Google 폴더 선택 창에서 연결할 폴더를 고르고 [선택] → 버튼이 <strong>폴더 선택됨</strong>으로 바뀝니다</li>
+          <li>② <strong>학원 운영자 (관리자·직원)</strong> 전체에게 줄 권한 선택 — 공유 안 함 / 열람 / 편집</li>
+          <li>③ 사용자 목록에서 <strong>개인별 권한</strong> 선택 — 지정 안 함 / 열람 / 편집 (운영자 전체 권한보다 높게 줄 사람만 지정하면 됩니다)</li>
+          <li>④ <strong>[저장]</strong> 클릭 → 폴더 카드가 목록에 추가됩니다 (폴더를 고르기 전에는 [저장]이 비활성)</li>
+        </ol>
+        <figure class="shot narrow">
+          <img src="img/d-link-dialog.png" alt="폴더 연결 창 — ① Google 폴더 선택 ② 학원 운영자 권한 ③ 개인별 권한 ④ 저장" loading="lazy" />
+          <figcaption>폴더 연결 창 — ① [Google 폴더 선택] ② 학원 운영자 권한 ③ 개인별 권한 ④ [저장] (사용자 이름은 가림 처리)</figcaption>
+        </figure>
+        <div class="note warn"><strong>Google 폴더 선택 창</strong>은 이 브라우저에 <strong>회사 Google 계정으로 로그인</strong>되어 있어야 열립니다. 아래처럼 <em>Sign in to your Google Account</em> 화면이 나오면 [Sign in]을 눌러 연결된 회사 계정으로 로그인한 뒤 다시 [Google 폴더 선택]을 누르세요.</div>
+        <figure class="shot">
+          <img src="img/d-google-signin.png" alt="Google 폴더 선택 창 — 브라우저가 Google에 로그인되어 있지 않을 때 표시되는 로그인 요청" loading="lazy" />
+          <figcaption>Google에 로그인되어 있지 않을 때 — [Sign in]으로 회사 계정 로그인 후 다시 시도</figcaption>
+        </figure>
+        <div class="note danger"><strong>프로젝트 폴더와 겹치는 폴더는 연결할 수 없습니다.</strong> 프로젝트 폴더를 포함하는 상위 폴더(예: 공용폴더 자체)나 프로젝트 폴더 안의 폴더를 고르면 <em>"프로젝트 폴더와 겹치지 않는 공용 폴더를 선택하세요."</em> 오류가 납니다. 프로젝트 자료는 각 프로젝트 화면에서 관리합니다.</div>
+
+        <h3 id="link-access">권한(열람/편집) 규칙</h3>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>권한</th><th>할 수 있는 것</th></tr></thead>
+          <tbody>
+            <tr><td><strong>공유 안 함 / 지정 안 함</strong></td><td>폴더가 목록에 보이지 않습니다.</td></tr>
+            <tr><td><strong>열람</strong></td><td>폴더 탐색·검색·미리보기·다운로드 (카드에 <em>읽기 전용</em>)</td></tr>
+            <tr><td><strong>편집</strong></td><td>열람 + 업로드(50MB 이하)·새 폴더·이름 변경·이동·휴지통 (카드에 <em>편집 가능</em>)</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note tip">학원 운영자 권한과 개인 권한이 다르면 <strong>둘 중 높은 권한</strong>이 적용됩니다. 예: 운영자=열람, 김OO=편집 → 김OO는 편집, 나머지 직원은 열람.</div>
+        <div class="note warn"><strong>학원 운영자</strong> 권한은 <strong>관리자·직원</strong> 계정에만 적용됩니다. 강사 계정에 폴더를 보여 주려면 개인별 권한으로 따로 지정하세요. 서비스 운영자는 공유 대상과 관계없이 모든 연결 폴더를 <strong>편집</strong>할 수 있습니다.</div>
+      </section>
+
+      <section id="manage">
+        <h2 class="sec"><span class="num">4</span> 공유 대상 변경·연결 해제</h2>
+        <p class="lead">폴더 카드에 마우스를 올리면 오른쪽에 아이콘 2개가 나타납니다 — 👥 <strong>공유 대상</strong>, ⛓ <strong>폴더 연결 해제</strong>.</p>
+        <figure class="shot">
+          <img src="img/d-folder-hover.png" alt="폴더 카드에 마우스를 올리면 ① 공유 대상·연결 해제 아이콘 표시" loading="lazy" />
+          <figcaption>폴더 카드 위에 마우스 — ① 공유 대상(사람 아이콘) · 폴더 연결 해제(끊어진 링크 아이콘)</figcaption>
+        </figure>
+        <h3>공유 대상 변경</h3>
+        <ol class="steps">
+          <li>👥 <strong>공유 대상</strong> 아이콘 클릭 → 현재 설정이 채워진 창이 열립니다 (폴더는 <strong>폴더 선택됨</strong>으로 고정, 바꿀 수 없음)</li>
+          <li>① 학원 운영자 권한, ② 개인별 권한을 수정</li>
+          <li>③ <strong>[저장]</strong> — 저장한 내용으로 공유 대상 전체가 바뀝니다</li>
+        </ol>
+        <figure class="shot narrow">
+          <img src="img/d-permissions.png" alt="공유 대상 변경 — ① 운영자 권한 ② 개인별 권한 ③ 저장" loading="lazy" />
+          <figcaption>공유 대상 변경 — ① 운영자 권한(예: 편집) ② 개인별 권한 ③ [저장] (사용자 이름은 가림 처리)</figcaption>
+        </figure>
+        <h3>폴더 연결 해제</h3>
+        <ol class="steps">
+          <li>⛓ <strong>폴더 연결 해제</strong> 아이콘 클릭</li>
+          <li>확인 창 <em>"ACM에서 연결을 해제할까요? Google 원본은 보존됩니다."</em> → [확인]</li>
+        </ol>
+        <div class="note tip">연결 해제는 <strong>ACM 드라이브 목록에서만 빠지는 것</strong>이며, Google Drive의 폴더와 파일은 삭제되지 않습니다. 필요하면 [폴더 연결]로 다시 등록할 수 있습니다(공유 대상은 다시 지정).</div>
+      </section>
+
+      <section id="use">
+        <h2 class="sec"><span class="num">5</span> 연결한 폴더 사용</h2>
+        <p class="lead">폴더 카드를 누르면 폴더 안으로 들어갑니다. 하위 폴더를 눌러 계속 들어갈 수 있고, ① 경로(<em>전체 폴더 › 폴더명</em>)를 눌러 위로 돌아갑니다.</p>
+        <figure class="shot">
+          <img src="img/d-folder-view.png" alt="폴더 안 화면 — ① 경로 ② 정렬·보기·선택·새 폴더·업로드 도구" loading="lazy" />
+          <figcaption>폴더 안 — ① 경로 ② 정렬 · 리스트/카드 보기 · 선택 · [새 폴더] · [업로드] (하위 폴더 이름은 가림 처리)</figcaption>
+        </figure>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>도구</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>정렬</td><td>작성일순 · 파일크기순 · 종류별 · 작성자별, 오름/내림차순</td></tr>
+            <tr><td>보기</td><td>리스트 보기 / 카드 보기</td></tr>
+            <tr><td>선택</td><td>여러 항목을 골라 한꺼번에 이동·휴지통 이동 <span class="badge">편집</span></td></tr>
+            <tr><td>새 폴더 · 업로드</td><td>현재 폴더에 만들거나 올립니다(파일당 50MB 이하) <span class="badge">편집</span></td></tr>
+            <tr><td>⋮ 더 보기</td><td>이름 변경 · 이동 · 휴지통으로 이동 <span class="badge">편집</span></td></tr>
+            <tr><td>파일 클릭</td><td>상세(유형·크기·수정일·소유자) · 미리보기 · 다운로드 · Google Drive에서 열기</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note tip">휴지통으로 이동한 항목은 <strong>Google Drive 휴지통</strong>에서 복구할 수 있습니다.</div>
+      </section>
+
+      <section id="trouble">
+        <h2 class="sec"><span class="num">6</span> 자주 묻는 문제</h2>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>증상</th><th>확인·해결</th></tr></thead>
+          <tbody>
+            <tr><td>[폴더 연결] 버튼이 없음</td><td>서비스 운영자(설정 권한)에게만 보입니다. 운영자에게 요청하세요.</td></tr>
+            <tr><td>[폴더 연결] 버튼이 흐리게 눌리지 않음</td><td>회사 Google 계정이 연결되지 않았습니다 — 2장 [연결 관리]부터 진행</td></tr>
+            <tr><td>"회사 Google Workspace 계정만 연결할 수 있습니다"</td><td>개인 Gmail 계정으로 로그인했습니다 — 회사 도메인 계정으로 다시 연결</td></tr>
+            <tr><td>"Google Drive 접근 권한이 허용되지 않았습니다"</td><td>동의 화면에서 Drive 항목 체크를 빠뜨렸습니다 — [다시 연결] 후 Drive 항목 체크</td></tr>
+            <tr><td>"운영 Google OAuth 앱 설정이 필요합니다"</td><td>시스템 설정의 Google OAuth 앱 등록이 필요합니다 — 시스템 관리자에게 문의</td></tr>
+            <tr><td>Google 폴더 선택 창에 <em>Sign in</em>만 보임</td><td>브라우저가 Google에 로그인되어 있지 않습니다 — [Sign in]으로 회사 계정 로그인 후 재시도</td></tr>
+            <tr><td>"프로젝트 폴더와 겹치지 않는 공용 폴더를 선택하세요"</td><td>프로젝트 폴더를 포함하거나 그 안에 있는 폴더입니다 — 다른 폴더 선택</td></tr>
+            <tr><td>직원에게 폴더가 안 보임</td><td>공유 대상에서 학원 운영자 또는 해당 직원 권한이 <strong>공유 안 함/지정 안 함</strong>인지 확인 → 열람 이상으로 변경</td></tr>
+            <tr><td>업로드 버튼이 없음 / 카드에 "읽기 전용"</td><td>열람 권한만 있습니다 — 운영자에게 편집 권한 요청</td></tr>
+            <tr><td>계정 옆에 "재연결 필요"</td><td>[다시 연결 / 계정 변경]으로 같은 회사 계정에 다시 로그인</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <footer>
+        App Academy · 드라이브 연결·폴더 연결 매뉴얼 · MANUAL-DRIVE-261102 · <a href="index.html">매뉴얼 목록</a>
+      </footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
