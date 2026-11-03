@@ -44,6 +44,8 @@ describe('ACM project issues (PostgreSQL)', () => {
        CREATE TABLE amb_acm_user_permission(ent_id uuid,usr_id uuid,upr_permission text);
        CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_user_id uuid,deleted_at timestamptz);
        CREATE TABLE amb_acm_notification_outbox(nob_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,nob_type varchar(32),nob_target_id uuid,nob_actor_id uuid,nob_payload jsonb,nob_recipients jsonb,created_at timestamptz DEFAULT now());
+       -- REQ-261102B — enqueueInbox reads academy/personal notification settings
+       CREATE TABLE amb_acm_notification_setting(ent_id uuid PRIMARY KEY, nst_config jsonb); CREATE TABLE amb_acm_notification_pref(ent_id uuid, npf_kind text, npf_recipient_id uuid, npf_config jsonb);
        CREATE FUNCTION set_acm_updated_at() RETURNS TRIGGER LANGUAGE plpgsql AS $$
          BEGIN NEW.updated_at = NOW(); RETURN NEW; END $$;`,
     );

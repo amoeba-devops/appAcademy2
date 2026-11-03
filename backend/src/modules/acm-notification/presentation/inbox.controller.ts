@@ -41,7 +41,7 @@ export class InboxController {
     @CurrentUser() u: AcmCurrentUser,
     @Body() dto: PushSubscriptionDto,
   ) {
-    return this.push.subscribe(u, dto);
+    return this.push.subscribe(u, dto, dto.device);
   }
   @Delete('push-subscriptions/:id') unsubscribe(
     @CurrentUser() u: AcmCurrentUser,

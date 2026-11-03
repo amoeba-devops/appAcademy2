@@ -1,4 +1,5 @@
 import { SessionConfigPage } from '@/modules/cfg/pages/session-config-page';
+import { NotificationSettingsPage } from '@/modules/cfg/pages/notification-settings-page';
 import { AdminUsersPage } from '@/modules/cfg/pages/admin-users-page';
 import { CalStudentLinkPage } from '@/modules/cal/pages/cal-student-link-page';
 import { DocumentsPage } from "@/modules/prj/documents-page";
@@ -317,6 +318,8 @@ export const router = createBrowserRouter([
       { path: 'config/admins', element: <AdminUsersPage /> },
       // PLN-261027 — 로그인 유지 시간(서비스 운영자)
       { path: 'config/session', element: <SessionConfigPage /> },
+      // REQ-261102B
+      { path: 'config/notifications', element: <NotificationSettingsPage /> },
       ] },
     ],
   },

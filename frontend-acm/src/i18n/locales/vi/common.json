@@ -2391,5 +2391,118 @@
     "save": "Lưu",
     "saved": "Đã lưu.",
     "failed": "Không lưu được. Nhập số nguyên từ 1 đến {{max}}."
+  },
+  "notifySettings": {
+    "title": "Cài đặt thông báo",
+    "desc": "Thiết lập kênh và người nhận theo tình huống, thông báo đẩy trên điện thoại/PC và giờ yên lặng.",
+    "cardDescription": "Thông báo theo tình huống, đẩy thiết bị, giờ yên lặng",
+    "tabs": {
+      "situations": "Theo tình huống",
+      "devices": "Thiết bị & đẩy",
+      "routes": "Kênh gửi"
+    },
+    "loadFailed": "Không tải được cài đặt thông báo.",
+    "saved": "Đã lưu.",
+    "failed": "Không lưu được. Vui lòng kiểm tra giá trị.",
+    "unsaved": "Có thay đổi chưa lưu",
+    "reset": "Hoàn tác",
+    "save": "Lưu",
+    "always": "Luôn bật",
+    "situation": "Tình huống",
+    "recipients": "Người nhận",
+    "situationsTitle": "Thông báo theo tình huống",
+    "situationsHint": "Thông báo đẩy chỉ gửi những gì vào hộp thư, nên tắt hộp thư cũng tắt đẩy và AMA. Mỗi người có thể tự tắt trong 🔔 › Cài đặt thông báo.",
+    "channels": {
+      "inbox": "Hộp thư",
+      "push": "Đẩy",
+      "popup": "Cửa sổ bật",
+      "ama": "AMA",
+      "mail": "Email",
+      "alimtalk": "AlimTalk"
+    },
+    "types": {
+      "CSL_CREATED": "Tư vấn mới",
+      "CSL_STAGE": "Đổi trạng thái tư vấn",
+      "CAL_CREATED": "Thêm lịch học",
+      "CAL_UPDATED": "Đổi lịch học",
+      "REVIEW_OVERDUE": "Thiếu nhận xét/bài tập",
+      "CHAT_MESSAGE": "Tin nhắn mới",
+      "CHAT_MENTION": "Nhắc tên trong chat",
+      "ISSUE_MENTION": "Nhắc tên trong vấn đề",
+      "PASSWORD_RESET_REQUEST": "Yêu cầu cấp lại mật khẩu",
+      "MAP_APPLY": "Đăng ký thi MAP"
+    },
+    "roles": {
+      "ADMIN": "Quản trị",
+      "STAFF": "Nhân viên",
+      "TEACHER": "Giáo viên phụ trách"
+    },
+    "fixedRecipients": {
+      "CHAT_MESSAGE": "Thành viên phòng chat",
+      "CHAT_MENTION": "Người được nhắc",
+      "ISSUE_MENTION": "Người được nhắc",
+      "PASSWORD_RESET_REQUEST": "Quản trị",
+      "MAP_APPLY": "Phụ huynh (email, AlimTalk), vận hành (email)"
+    },
+    "amaNotConnected": "Chưa kết nối AMA nên không dùng được cột AMA.",
+    "amaOff": "Chuyển tiếp AMA đang tắt. Các tình huống đã chọn sẽ được gửi khi bật chuyển tiếp trong cài đặt AMA.",
+    "notCovered": "Các thông báo do người gửi trực tiếp — email mật khẩu, lời mời, nhận xét buổi học, mời sự kiện — không phụ thuộc cài đặt này.",
+    "reminder": {
+      "title": "Thời điểm nhắc nhận xét/bài tập",
+      "hint": "Nhắc khi sau buổi học khoảng thời gian này vẫn chưa có nhận xét hoặc bài tập.",
+      "first": "Lần 1",
+      "second": "Lần 2",
+      "unit": "giờ sau",
+      "invalid": "1–48 giờ, lần 2 phải lớn hơn lần 1."
+    },
+    "push": {
+      "title": "Thông báo đẩy",
+      "hint": "Thông báo gửi đến điện thoại, trình duyệt PC và ứng dụng đã cài.",
+      "enabled": "Dùng thông báo đẩy",
+      "quiet": "Giờ yên lặng",
+      "quietStart": "Giờ bắt đầu",
+      "quietEnd": "Giờ kết thúc",
+      "quietHint": "Thông báo trong khoảng này vào hộp thư ngay; đẩy được gửi khi hết giờ yên lặng (bỏ qua nếu đã đọc). Theo múi giờ của học viện.",
+      "chatPreview": "Hiện nội dung chat trên màn hình khóa"
+    },
+    "status": {
+      "title": "Thiết bị",
+      "hint": "Thiết bị đăng ký hoạt động trong 30 ngày qua và kết quả gửi 7 ngày qua.",
+      "server": "Khóa đẩy máy chủ",
+      "ready": "Đã cấu hình",
+      "notReady": "Chưa cấu hình",
+      "mobile": "Điện thoại",
+      "desktop": "PC",
+      "unknown": "Không rõ",
+      "unknownHint": "Cập nhật khi truy cập lần sau",
+      "sent": "Đã gửi (7 ngày)",
+      "failedCount": "Lỗi {{count}}"
+    },
+    "test": {
+      "button": "Gửi thử đến thiết bị của tôi",
+      "result": "Đã gửi đến {{sent}}/{{devices}} thiết bị. (lỗi {{failed}})",
+      "noDevice": "Chưa có thiết bị nào bật thông báo cho tài khoản này. Hãy bật trên thiết bị này trước.",
+      "failed": "Không gửi được thông báo thử.",
+      "notConfigured": "Máy chủ chưa cấu hình khóa đẩy nên không gửi được. Vui lòng liên hệ người vận hành."
+    },
+    "routes": {
+      "title": "Kênh gửi",
+      "hint": "Trạng thái kết nối email, AlimTalk và AMA. Đổi thông tin kết nối ở từng trang cài đặt.",
+      "mail": "Email (SMTP)",
+      "kakao": "Kakao AlimTalk",
+      "ama": "Chuyển tiếp AMA",
+      "on": "Đã kết nối",
+      "warn": "Cần kiểm tra",
+      "off": "Tắt",
+      "open": "Cài đặt",
+      "kakaoNoTemplate": "Chưa đặt mẫu đăng ký MAP"
+    },
+    "my": {
+      "title": "Cài đặt thông báo của tôi",
+      "hint": "Chỉ tắt những thông báo bạn không muốn trong số học viện đã bật.",
+      "academyOff": "Học viện đã tắt",
+      "quiet": "Giờ yên lặng của tôi",
+      "academyQuiet": "Giờ yên lặng của học viện {{start}}–{{end}} cũng được áp dụng."
+    }
   }
 }

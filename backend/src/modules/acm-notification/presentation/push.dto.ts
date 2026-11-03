@@ -1,5 +1,7 @@
 import {
   IsDefined,
+  IsIn,
+  IsOptional,
   IsString,
   IsUrl,
   Matches,
@@ -19,4 +21,6 @@ export class PushSubscriptionDto {
   @MaxLength(2048)
   endpoint!: string;
   @IsDefined() @ValidateNested() @Type(() => PushKeysDto) keys!: PushKeysDto;
+  /** REQ-261102B — 기기 종류(휴대폰/PC). 없으면 기존 값 유지. */
+  @IsOptional() @IsIn(['MOBILE', 'DESKTOP']) device?: 'MOBILE' | 'DESKTOP';
 }

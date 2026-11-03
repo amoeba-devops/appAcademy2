@@ -19,16 +19,21 @@ import {
 } from '../../acm-dsh/ads/ads.controller';
 import { TenantSettingsController } from '../../acm-system/presentation/tenant-settings.controller';
 import { BodaDemoController } from '../../acm-cal/presentation/boda-demo.controller';
+import {
+  MyNotificationSettingsController,
+  NotificationSettingsController,
+} from '../../acm-notification/presentation/notification-settings.controller';
 
 describe('Configuration endpoint coverage', () => {
-  it.each([MailConfigController, AdsController])(
-    '%p requires service operator permission',
-    (controller) => {
-      expect(Reflect.getMetadata(GUARDS_METADATA, controller)).toContain(
-        ConfigAdminGuard,
-      );
-    },
-  );
+  it.each([
+    MailConfigController,
+    AdsController,
+    NotificationSettingsController,
+  ])('%p requires service operator permission', (controller) => {
+    expect(Reflect.getMetadata(GUARDS_METADATA, controller)).toContain(
+      ConfigAdminGuard,
+    );
+  });
   // REQ-261018 — 테넌트 마스터 전용 노출(서비스 운영자도 API 는 허용)
   it.each([
     AmaConfigController,
@@ -66,6 +71,7 @@ describe('Configuration endpoint coverage', () => {
       VideoCapabilitiesController,
       PortalVideoCapabilitiesController,
       AdsCostController,
+      MyNotificationSettingsController,
     ]) {
       expect(Reflect.getMetadata(GUARDS_METADATA, controller)).not.toContain(
         ConfigAdminGuard,

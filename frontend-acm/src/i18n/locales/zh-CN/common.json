@@ -2391,5 +2391,118 @@
     "save": "保存",
     "saved": "已保存。",
     "failed": "保存失败。请输入 1 到 {{max}} 的整数。"
+  },
+  "notifySettings": {
+    "title": "通知设置",
+    "desc": "按场景设置通知渠道和接收人、手机/电脑推送及免打扰时间。",
+    "cardDescription": "按场景通知、设备推送、免打扰时间",
+    "tabs": {
+      "situations": "按场景",
+      "devices": "设备与推送",
+      "routes": "发送渠道"
+    },
+    "loadFailed": "无法加载通知设置。",
+    "saved": "已保存。",
+    "failed": "保存失败，请检查输入。",
+    "unsaved": "有未保存的更改",
+    "reset": "撤销",
+    "save": "保存",
+    "always": "始终",
+    "situation": "场景",
+    "recipients": "接收人",
+    "situationsTitle": "按场景通知",
+    "situationsHint": "推送只发送进入通知箱的通知，关闭通知箱也会关闭推送和 AMA。每个人可在 🔔 › 通知设置 中自行关闭。",
+    "channels": {
+      "inbox": "通知箱",
+      "push": "推送",
+      "popup": "弹窗",
+      "ama": "AMA",
+      "mail": "邮件",
+      "alimtalk": "AlimTalk"
+    },
+    "types": {
+      "CSL_CREATED": "新咨询",
+      "CSL_STAGE": "咨询状态变更",
+      "CAL_CREATED": "课程日程登记",
+      "CAL_UPDATED": "课程日程变更",
+      "REVIEW_OVERDUE": "反馈/作业未完成",
+      "CHAT_MESSAGE": "新聊天消息",
+      "CHAT_MENTION": "聊天提及",
+      "ISSUE_MENTION": "事项提及",
+      "PASSWORD_RESET_REQUEST": "密码重置申请",
+      "MAP_APPLY": "MAP 测试报名"
+    },
+    "roles": {
+      "ADMIN": "管理员",
+      "STAFF": "职员",
+      "TEACHER": "负责教师"
+    },
+    "fixedRecipients": {
+      "CHAT_MESSAGE": "聊天室成员",
+      "CHAT_MENTION": "被提及的人",
+      "ISSUE_MENTION": "被提及的人",
+      "PASSWORD_RESET_REQUEST": "管理员",
+      "MAP_APPLY": "家长（邮件、AlimTalk）、运营者（邮件）"
+    },
+    "amaNotConnected": "未连接 AMA，无法使用 AMA 列。",
+    "amaOff": "AMA 转发已关闭。在 AMA 设置中开启转发后会发送勾选的场景。",
+    "notCovered": "由人直接发送的通知（密码、邀请邮件、课程反馈、日程邀请邮件）不受此设置影响。",
+    "reminder": {
+      "title": "反馈/作业提醒时间",
+      "hint": "课程结束后经过此时间仍无反馈或作业时提醒。",
+      "first": "第 1 次",
+      "second": "第 2 次",
+      "unit": "小时后",
+      "invalid": "1–48 小时，第 2 次须晚于第 1 次。"
+    },
+    "push": {
+      "title": "设备推送",
+      "hint": "发送到手机、电脑浏览器和已安装应用的通知。",
+      "enabled": "使用设备推送",
+      "quiet": "免打扰时间",
+      "quietStart": "开始时间",
+      "quietEnd": "结束时间",
+      "quietHint": "此时间内的通知立即进入通知箱，推送在结束时发送（期间已读则不发送）。按学院时区计算。",
+      "chatPreview": "锁屏显示聊天内容"
+    },
+    "status": {
+      "title": "设备情况",
+      "hint": "最近 30 天内活跃的订阅设备及最近 7 天的发送结果。",
+      "server": "服务器推送密钥",
+      "ready": "已配置",
+      "notReady": "未配置",
+      "mobile": "手机",
+      "desktop": "电脑",
+      "unknown": "未知",
+      "unknownHint": "下次访问时更新",
+      "sent": "发送成功（7 天）",
+      "failedCount": "失败 {{count}} 条"
+    },
+    "test": {
+      "button": "向我的设备发送测试通知",
+      "result": "已发送到 {{devices}} 台中的 {{sent}} 台。（失败 {{failed}}）",
+      "noDevice": "此账号没有开启通知的设备，请先在本设备开启通知。",
+      "failed": "测试通知发送失败。",
+      "notConfigured": "服务器未配置推送密钥，无法发送。请联系运营负责人。"
+    },
+    "routes": {
+      "title": "发送渠道",
+      "hint": "邮件、AlimTalk、AMA 的连接状态。连接信息请在各设置页面修改。",
+      "mail": "邮件（SMTP）",
+      "kakao": "Kakao AlimTalk",
+      "ama": "AMA 转发",
+      "on": "已连接",
+      "warn": "需确认",
+      "off": "关闭",
+      "open": "设置",
+      "kakaoNoTemplate": "未设置 MAP 报名模板"
+    },
+    "my": {
+      "title": "我的通知设置",
+      "hint": "在学院开启的通知中，只关闭你不想接收的。",
+      "academyOff": "学院已关闭",
+      "quiet": "我的免打扰时间",
+      "academyQuiet": "学院免打扰时间 {{start}}–{{end}} 也同时适用。"
+    }
   }
 }

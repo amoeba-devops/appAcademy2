@@ -41,7 +41,7 @@ export class PortalInboxController {
     @PortalUser() u: PortalAuthUser,
     @Body() dto: PushSubscriptionDto,
   ) {
-    return this.push.subscribe(this.actor(u), dto);
+    return this.push.subscribe(this.actor(u), dto, dto.device);
   }
   @Delete('push-subscriptions/:id') unsubscribe(
     @PortalUser() u: PortalAuthUser,

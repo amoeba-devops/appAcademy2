@@ -5,6 +5,7 @@ import { MailConfigService } from '../../acm-system/application/mail-config.serv
 import { TenantMailerService } from '../../acm-system/application/tenant-mailer.service';
 import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import { NotificationService } from '../../acm-notification/application/notification.service';
+import { NotificationSettingsService } from '../../acm-notification/application/notification-settings.service';
 
 export interface MapApplyNotifyInput {
   inqId: string;
@@ -54,6 +55,7 @@ export class MapApplyNotifierService {
     private readonly mailer: TenantMailerService,
     private readonly tenantSettings: TenantSettingsService,
     private readonly notifications: NotificationService,
+    private readonly settings: NotificationSettingsService,
   ) {}
 
   async notifyNewApplication(
@@ -61,10 +63,32 @@ export class MapApplyNotifierService {
     input: MapApplyNotifyInput,
   ): Promise<void> {
     const academyName = await this.safeAcademyName(entId);
+    // REQ-261102B — 알림 설정에서 끈 경로는 보내지 않고 SKIPPED 로 남긴다.
+    const on = await this.settings
+      .channels(entId, 'MAP_APPLY')
+      .catch(() => ({ mail: true, alimtalk: true }));
+    const off = (templateCode: string, channel: string, to: string | null) =>
+      to
+        ? this.safeLog({
+            entId,
+            templateCode,
+            channel,
+            recipientKind: 'PARENT',
+            toAddress: to,
+            status: 'SKIPPED',
+            error: 'DISABLED_BY_SETTING',
+          })
+        : Promise.resolve();
     await Promise.allSettled([
-      this.sendParentAlimtalk(entId, input, academyName),
-      this.sendParentEmail(entId, input, academyName),
-      this.sendOperatorEmail(entId, input, academyName),
+      on.alimtalk
+        ? this.sendParentAlimtalk(entId, input, academyName)
+        : off(TPL_PARENT_ALIMTALK, 'ALIMTALK', input.parentPhone),
+      on.mail
+        ? this.sendParentEmail(entId, input, academyName)
+        : off(TPL_PARENT_EMAIL, 'EMAIL', input.parentEmail),
+      on.mail
+        ? this.sendOperatorEmail(entId, input, academyName)
+        : Promise.resolve(),
     ]);
   }
 

@@ -35,6 +35,14 @@ export const isIos = () =>
   (/iphone|ipad|ipod/i.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 
+/** REQ-261102B — 알림 구독 기기 종류(휴대폰·태블릿 = MOBILE). */
+export const deviceKind = (): 'MOBILE' | 'DESKTOP' =>
+  isIos() ||
+  /android|mobile/i.test(navigator.userAgent) ||
+  (window.matchMedia?.('(pointer: coarse)').matches && window.innerWidth < 1024)
+    ? 'MOBILE'
+    : 'DESKTOP';
+
 export function usePwa() {
   return useSyncExternalStore(subscribe, () => state);
 }

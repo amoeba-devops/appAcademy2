@@ -128,3 +128,94 @@ describe('push delivery', () => {
     ).toBe(false);
   });
 });
+
+describe('push delivery settings (REQ-261102B)', () => {
+  function setup(config: unknown, item: unknown) {
+    const row = {
+      id: 'delivery',
+      subscriptionId: 'sub',
+      inboxId: 'inbox',
+      entId: 'tenant',
+      kind: 'USER',
+      recipient: 'user',
+      subscription: {
+        endpoint: 'https://fcm.googleapis.com/a',
+        keys: { auth: 'a', p256dh: 'k' },
+      },
+      attempts: 1,
+    };
+    const query = jest.fn(async (...args: unknown[]): Promise<unknown[]> => {
+      const sql = String(args[0]);
+      if (sql.includes('FROM amb_acm_notification_setting'))
+        return [{ config }];
+      if (sql.includes('amb_acm_talk_message'))
+        return [{ type: 'TEXT', content: '비밀 내용', filename: null }];
+      return [];
+    });
+    const ds = {
+      query,
+      transaction: async (fn: (m: unknown) => Promise<unknown>) =>
+        fn({ query: async () => [row] }),
+    };
+    const svc = new PushService(
+      ds as unknown as DataSource,
+      new ConfigService({
+        WEB_PUSH_PUBLIC_KEY: 'public',
+        WEB_PUSH_PRIVATE_KEY: 'private',
+        WEB_PUSH_SUBJECT: 'mailto:test@example.invalid',
+      }),
+      {
+        unreadItem: async () => item,
+        href: () => '/admin/chat?channelId=c&messageId=m',
+      } as unknown as InboxService,
+    );
+    return { svc, query };
+  }
+  const chat = {
+    id: 'inbox',
+    type: 'CHAT_MESSAGE',
+    targetId: 'm',
+    payload: {},
+  };
+  beforeEach(() => jest.clearAllMocks());
+  afterEach(() => jest.useRealTimers());
+
+  it('skips a situation whose push is turned off', async () => {
+    const { svc, query } = setup(
+      { types: { CHAT_MESSAGE: { push: false } } },
+      chat,
+    );
+    await svc.deliver();
+    expect(webpush.sendNotification).not.toHaveBeenCalled();
+    expect(
+      query.mock.calls.some(
+        (c) => c[1] && (c[1] as unknown[])[1] === 'SKIPPED',
+      ),
+    ).toBe(true);
+  });
+
+  it('postpones push during quiet hours', async () => {
+    jest.useFakeTimers({ now: new Date('2026-11-02T14:30:00Z') }); // 23:30 KST
+    const { svc, query } = setup(
+      { push: { quiet: { on: true, start: '22:00', end: '08:00' } } },
+      chat,
+    );
+    await svc.deliver();
+    expect(webpush.sendNotification).not.toHaveBeenCalled();
+    const delay = query.mock.calls.find((c) =>
+      String(c[0]).includes('pdl_next_at=$2'),
+    );
+    expect((delay?.[1] as unknown[])[1]).toEqual(
+      new Date('2026-11-02T23:00:00Z'),
+    );
+  });
+
+  it('hides chat content when the preview is turned off', async () => {
+    const { svc } = setup({ push: { chatPreview: false } }, chat);
+    await svc.deliver();
+    const payload = String(
+      jest.mocked(webpush.sendNotification).mock.calls[0][1],
+    );
+    expect(payload).not.toContain('비밀 내용');
+  });
+});
