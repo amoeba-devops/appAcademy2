@@ -48,6 +48,7 @@ import { ClsListPage } from '@/modules/cls/pages/cls-list-page';
 import { ClsDetailPage } from '@/modules/cls/pages/cls-detail-page';
 import { StdListPage } from '@/modules/std/pages/std-list-page';
 import { StdDetailPage } from '@/modules/std/pages/std-detail-page';
+import { StdEditPage } from '@/modules/std/pages/std-edit-page';
 import { ParentListPage } from '@/modules/std/pages/parent-list-page';
 import { SchoolListPage } from '@/modules/sch/pages/school-list-page';
 import { ReferenceListPage } from '@/modules/ref/pages/reference-list-page';
@@ -242,6 +243,9 @@ export const router = createBrowserRouter([
       { path: 'std/parents', element: <ParentListPage /> },
       { path: 'std/archived', element: <StudentDeletionPage key="archived" /> },
       { path: 'std/deletion-history', element: <StudentDeletionPage key="history" history /> },
+      // REQ-261103B — 학생 등록·수정은 전체 페이지
+      { path: 'std/new', element: <StdEditPage /> },
+      { path: 'std/:id/edit', element: <StdEditPage /> },
       { path: 'std/:id', element: <StdDetailPage /> },
       { path: 'tch', element: <TchListPage /> },
       { path: 'stf', element: <StfListPage /> },

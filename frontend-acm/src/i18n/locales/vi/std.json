@@ -70,7 +70,8 @@
     "parentPhone": "Số điện thoại",
     "parentEmail": "Email",
     "parentPrimary": "Liên hệ chính",
-    "endDate": "Ngày kết thúc học"
+    "endDate": "Ngày kết thúc học",
+    "meetingUrl": "Liên kết lớp học"
   },
   "form": {
     "titleCreate": "Đăng ký học sinh",
@@ -297,7 +298,8 @@
     "assign": "Gán thông tin cũ",
     "assigned": "Đã chọn · lưu để áp dụng",
     "unlinkHint": "Tối đa 5 giáo viên. Thông tin được giữ lại khi bỏ liên kết.",
-    "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu."
+    "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu.",
+    "meetingUrlInvalid": "Liên kết lớp học phải là địa chỉ https://."
   },
   "deletion": {
     "archived": "Học sinh đã vô hiệu hóa",

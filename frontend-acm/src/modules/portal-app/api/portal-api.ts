@@ -106,6 +106,18 @@ export interface PortalMeetingLinkInfo {
   followingCount: number;
 }
 
+export interface PortalClassInfoStudent {
+  stdId: string;
+  stdName: string;
+  teachers: Array<{
+    tchId: string;
+    name: string;
+    subject: string | null;
+    curriculum: string | null;
+    meetingUrl: string | null;
+  }>;
+}
+
 export const portalApi = {
   login: async (tenantCode: string, loginId: string, password: string, remember = false) =>
     (
@@ -125,6 +137,11 @@ export const portalApi = {
         newPassword,
       })
     ).data,
+
+  // REQ-261103B — 학생 본인·학부모 자녀의 강사별 수업정보
+  classInfo: async () =>
+    (await apiClient.get<PortalClassInfoStudent[]>('/portal/std/class-info'))
+      .data,
 
   calEvents: async (from: string, to: string) =>
     (

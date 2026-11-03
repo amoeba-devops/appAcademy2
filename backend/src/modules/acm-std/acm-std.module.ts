@@ -22,6 +22,8 @@ import { TeacherTypeormEntity } from '../acm-tch/infrastructure/typeorm/teacher.
 import { ParentController } from './presentation/parent.controller';
 import { StudentController } from './presentation/student.controller';
 import { StudentParentController } from './presentation/student-parent.controller';
+import { PortalClassInfoController } from './presentation/portal-class-info.controller';
+import { PortalClassInfoService } from './application/portal-class-info.service';
 import { PortalTeacherStudentsController } from './presentation/portal-teacher-students.controller';
 
 @Module({
@@ -45,6 +47,7 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
     ParentController,
     StudentParentController,
     PortalTeacherStudentsController, // PLN-260719 C — 강사 포털 수강생관리
+    PortalClassInfoController, // REQ-261103B — 학생·학부모 포털 수업정보
   ],
   providers: [
     ObjectStoreClient,
@@ -56,6 +59,7 @@ import { PortalTeacherStudentsController } from './presentation/portal-teacher-s
     SiteImportService,
     ParentService,
     PortalTeacherStudentsService,
+    PortalClassInfoService,
     RolesGuard,
   ],
   exports: [StudentService, ParentService],

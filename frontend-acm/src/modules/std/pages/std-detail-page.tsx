@@ -3,11 +3,11 @@ import { AuditHistoryLink } from '@/modules/aud/components/audit-history-link';
 import { StatusHistoryPanel } from "../components/status-history-panel";
 import { LifecycleEditor } from "@/modules/dsh/components/lifecycle-editor";
 import { OperatingPeriodEditor } from "@/modules/dsh/components/operating-period-editor";
-import { CLASS_FIELDS } from "../components/teacher-class-fields";
+import { LEGACY_VISIBLE } from "../components/teacher-class-fields";
 import { WithdrawnRecordPanel } from "../components/withdrawn-record-panel";
 import { useAuthStore } from "@/stores/auth.store";
 import { useState } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Pencil, UserX, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ import {
   useSetPrimaryParent,
 } from "../hooks/use-parents";
 import { StdStatusBadge } from "../components/std-status-badge";
-import { StdFormModal } from "../components/std-form-modal";
 import { ParentPickOrCreateDialog } from "../components/parent-pick-or-create-dialog";
 import { PortalAccountPanel } from "@/modules/portal-admin/components/portal-account-panel";
 
@@ -69,10 +68,13 @@ export function StdDetailPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const returnTo = (location.state as { returnTo?: string } | null)?.returnTo;
+  const navigate = useNavigate();
+  // REQ-261103B — 수정은 전체 페이지. 돌아올 때 목록 복귀 경로 유지.
+  const openEdit = () =>
+    navigate(`/admin/std/${id}/edit`, { state: { returnTo } });
   const { t } = useTranslation("std");
   const confirm = useConfirm();
   const role = useAuthStore((s) => s.user?.role);
-  const [showEdit, setShowEdit] = useState(false);
   const [showParentPicker, setShowParentPicker] = useState(false);
 
   const { data: student, isLoading } = useStudent(id);
@@ -151,7 +153,7 @@ export function StdDetailPage() {
           <>
             <StudentDeleteButton id={student.id} />
             <AuditHistoryLink targetType="student" targetId={student.id} label={student.name} />
-            <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
+            <Button variant="outline" size="sm" onClick={openEdit}>
               <Pencil size={14} className="mr-1" />
               {t("actions.edit")}
             </Button>
@@ -250,19 +252,31 @@ export function StdDetailPage() {
               title={`${teacher.name} · ${t("form.sectionClass")}`}
             >
               <InfoRow label={t("field.teacher")} value={teacher.name} />
-              {CLASS_FIELDS.map((field) => (
-                <InfoRow
-                  key={field}
-                  label={t(`field.${field}`)}
-                  value={info?.[field]}
-                />
-              ))}
+              <InfoRow label={t("field.subject")} value={info?.subject} />
+              <InfoRow label={t("field.curriculum")} value={info?.curriculum} />
+              <div className="py-1.5 flex flex-wrap items-baseline gap-x-1 min-w-0">
+                <dt className="text-xs text-secondary">{t("field.meetingUrl")} :</dt>
+                <dd className="text-sm min-w-0 break-all">
+                  {info?.meetingUrl ? (
+                    <a
+                      href={info.meetingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent-600 underline"
+                    >
+                      {info.meetingUrl}
+                    </a>
+                  ) : (
+                    displayStudentValue(null, t("detail.inputRequired"))
+                  )}
+                </dd>
+              </div>
             </Section>
           );
         })}
         {student.classInfoLegacyPending && (
           <Section title={t("classInfo.legacyTitle")}>
-            {CLASS_FIELDS.map((field) => (
+            {LEGACY_VISIBLE.map((field) => (
               <InfoRow
                 key={field}
                 label={t(`field.${field}`)}
@@ -270,7 +284,7 @@ export function StdDetailPage() {
               />
             ))}
             <div className="col-span-full">
-              <Button variant="outline" onClick={() => setShowEdit(true)}>
+              <Button variant="outline" onClick={openEdit}>
                 {t("classInfo.assign")}
               </Button>
             </div>
@@ -409,11 +423,6 @@ export function StdDetailPage() {
       {id && <StatusHistoryPanel id={id} status={student.status} />}
       {id && <LifecycleEditor subjectKind="STUDENT" subjectId={id} />}
       {id && <OperatingPeriodEditor kind="STUDENT" subjectId={id} />}
-      <StdFormModal
-        open={showEdit}
-        onClose={() => setShowEdit(false)}
-        initial={student}
-      />
       {id && (
         <ParentPickOrCreateDialog
           open={showParentPicker}

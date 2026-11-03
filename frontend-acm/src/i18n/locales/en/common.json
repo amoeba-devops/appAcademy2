@@ -239,6 +239,14 @@
     "recordings": {
       "title": "Class recordings",
       "file": "Recording"
+    },
+    "classInfo": {
+      "title": "Class info",
+      "empty": "Class info appears once a teacher is assigned.",
+      "subject": "Subject",
+      "curriculum": "Textbook",
+      "meetingUrl": "Class link",
+      "join": "Join class"
     }
   },
   "material": {

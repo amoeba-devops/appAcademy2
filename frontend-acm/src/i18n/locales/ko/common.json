@@ -239,6 +239,14 @@
     "recordings": {
       "title": "수업 녹화본",
       "file": "녹화"
+    },
+    "classInfo": {
+      "title": "수업 정보",
+      "empty": "담당 강사가 연결되면 수업 정보가 표시됩니다.",
+      "subject": "과목",
+      "curriculum": "교재",
+      "meetingUrl": "수업링크",
+      "join": "수업 입장"
     }
   },
   "material": {
