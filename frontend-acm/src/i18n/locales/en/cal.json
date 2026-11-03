@@ -51,7 +51,8 @@
     "assignee": "In charge / Teacher",
     "assigneeNone": "Unassigned",
     "materials": "Class materials",
-    "endDate": "End date"
+    "endDate": "End date",
+    "timeManual": "Type time"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 class (teacher + 1 student)",
@@ -104,7 +105,7 @@
     "titleCreate": "Add Event",
     "titleEdit": "Edit Event",
     "sectionMeeting": "Online meeting",
-    "sectionAttendees": "Attendees"
+    "sectionAttendees": "Attendees/Students"
   },
   "invitee": {
     "pickerTitle": "Pick attendees",
@@ -122,7 +123,8 @@
     "notSent": "Not sent",
     "notifyOnSave": "Email attendees when saving",
     "notifyOnSaveEditHint": "Only newly added attendees are emailed.",
-    "notifyOnSaveHint": "No email is sent unless checked."
+    "notifyOnSaveHint": "No email is sent unless checked.",
+    "titleMore": "+{{n}} more"
   },
   "hint": {
     "meetingUrl": "Paste the Google Meet or Bodaschool URL manually.",

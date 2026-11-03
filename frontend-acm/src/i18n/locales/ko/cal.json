@@ -51,7 +51,8 @@
     "assignee": "담당자/강사",
     "assigneeNone": "미지정",
     "materials": "수업 자료",
-    "endDate": "종료일"
+    "endDate": "종료일",
+    "timeManual": "직접 입력"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 수업 (강사+학생 1명)",
@@ -104,7 +105,7 @@
     "titleCreate": "일정 등록",
     "titleEdit": "일정 수정",
     "sectionMeeting": "화상수업",
-    "sectionAttendees": "참석자"
+    "sectionAttendees": "참석자/학생"
   },
   "invitee": {
     "pickerTitle": "참석자 선택",
@@ -122,7 +123,8 @@
     "notSent": "미발송",
     "notifyOnSave": "저장 시 참석자에게 메일 보내기",
     "notifyOnSaveEditHint": "새로 추가된 참석자에게만 보냅니다.",
-    "notifyOnSaveHint": "선택하지 않으면 메일을 보내지 않습니다."
+    "notifyOnSaveHint": "선택하지 않으면 메일을 보내지 않습니다.",
+    "titleMore": "외 {{n}}명"
   },
   "hint": {
     "meetingUrl": "Google Meet 또는 보다스쿨 URL을 직접 붙여넣어 주세요.",

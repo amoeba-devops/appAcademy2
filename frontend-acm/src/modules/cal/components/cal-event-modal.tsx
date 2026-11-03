@@ -122,6 +122,12 @@ const TIME_OPTIONS: string[] = (() => {
 const timeOpts = (cur: string): string[] =>
   cur && !TIME_OPTIONS.includes(cur) ? [cur, ...TIME_OPTIONS] : TIME_OPTIONS;
 
+// REQ-261103 — 학생 참석자 이름으로 만드는 제목. 4명 이상은 "외 n명".
+const studentTitle = (names: string[], more: (n: number) => string): string =>
+  names.length > 3
+    ? `${names.slice(0, 3).join(', ')} ${more(names.length - 3)}`
+    : names.join(', ');
+
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t, i18n } = useTranslation('cal');
   const toast = useToast();
@@ -198,7 +204,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     filename: string;
   } | null>(null);
 
-  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue, getValues } = useForm<FormValues>({
     defaultValues: {
       evtCategory: 'REGULAR_CLASS',
       evtTitle: '',
@@ -291,10 +297,15 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     enabled: open,
   });
 
+  // REQ-261103 — 직전 자동 제목. null = 사용자가 고친 제목(덮어쓰지 않음).
+  const autoTitle = useRef<string | null>('');
+
   useEffect(() => {
     if (!open) return;
     setError(null);
     setNotifySummary(null);
+    // 수정 화면은 기존 제목을 유지하고, 비어 있을 때만 학생 이름으로 채운다.
+    autoTitle.current = initial?.title ? null : '';
     if (initial) {
       reset({
         evtCategory: normalizeEditorCategory(initial.category),
@@ -340,6 +351,20 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
       setInvitees([]);
     }
   }, [open, initial, defaultDate, reset, tz]);
+
+  const studentNames = invitees
+    .filter((invitee) => invitee.kind === 'STUDENT')
+    .map((invitee) => invitee.name);
+  const nextAutoTitle = studentTitle(studentNames, (n) => t('invitee.titleMore', { n }));
+  useEffect(() => {
+    if (!open || autoTitle.current === null) return;
+    if (getValues('evtTitle') !== autoTitle.current) {
+      autoTitle.current = null;
+      return;
+    }
+    setValue('evtTitle', nextAutoTitle);
+    autoTitle.current = nextAutoTitle;
+  }, [open, nextAutoTitle, getValues, setValue]);
 
   const createMut = useCreateCalEvent();
   const updateMut = useUpdateCalEvent(initial?.id ?? '');
@@ -595,6 +620,95 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                 </select>
               </div>
 
+              {/* REQ-261103 — 참석자/학생은 담당자/강사 위 */}
+            {!isLevelTest && (
+                <div className="col-span-2">
+                  <fieldset
+                    className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4"
+                    disabled={isReadOnly}
+                  >
+                    <legend className="px-1 text-xs font-semibold text-secondary">
+                      {t('form.sectionAttendees')} ({invitees.length})
+                    </legend>
+                    {invitees.length === 0 && (
+                      <p className="text-xs text-secondary">
+                        {t('invitee.empty')}
+                      </p>
+                    )}
+                    <ul className="flex flex-wrap gap-1.5">
+                      {invitees.map((invitee) => {
+                        const key = `${invitee.kind}:${invitee.refId}`;
+                        const badgeColor =
+                          invitee.notifyStatus === 'SENT'
+                            ? 'bg-green-100 text-green-700'
+                            : invitee.notifyStatus === 'FAILED'
+                              ? 'bg-red-100 text-red-700'
+                              : invitee.notifyStatus?.startsWith('SKIPPED')
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-gray-100 text-gray-700';
+                        return (
+                          <li
+                            key={key}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-2 py-1 text-xs"
+                          >
+                            <span
+                              className={`rounded px-1 py-0.5 text-xs font-mono uppercase ${
+                                invitee.kind === 'STUDENT'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : invitee.kind === 'TEACHER'
+                                    ? 'bg-purple-100 text-purple-700'
+                                    : 'bg-amber-100 text-amber-700'
+                              }`}
+                            >
+                              {invitee.kind[0]}
+                            </span>
+                            <span className="text-primary">{invitee.name}</span>
+                            {invitee.notifyStatus ? (
+                              <span
+                                className={`rounded px-1 py-0.5 text-xs font-medium ${badgeColor}`}
+                              >
+                                {invitee.notifyStatus}
+                              </span>
+                            ) : (
+                              isEdit && (
+                                <span className="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-500">
+                                  {t('invitee.notSent')}
+                                </span>
+                              )
+                            )}
+                            {!isReadOnly && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setInvitees((current) =>
+                                    current.filter((row) => `${row.kind}:${row.refId}` !== key),
+                                  )
+                                }
+                                className="text-secondary hover:text-danger-600"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {!isReadOnly && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPickerOpen(true)}
+                      >
+                        <Plus className="mr-1 h-3 w-3" />
+                        {t('invitee.addBtn')}
+                      </Button>
+                    )}
+                    {/* FIX-261103 — 저장 시 참석자 메일 발송은 사용 안 함(메일 일정이 실제와 달랐음) */}
+                  </fieldset>
+                </div>
+            )}
+
               <div className="col-span-2">
                 <label className={labelClass}>{t('field.assignee')}</label>
                 <select {...register('evtAssigneeTchId')} className={inputClass}>
@@ -634,17 +748,29 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   />
                   {!allDayVal && (
                     <>
-                      <Clock size={16} className="shrink-0 text-secondary" />
-                      <select
-                        aria-label={t('field.startAt')}
-                        value={timePart(startAtVal)}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className={dtInputClass}
-                      >
-                        {timeOpts(timePart(startAtVal)).map((tm) => (
-                          <option key={tm} value={tm}>{tm}</option>
-                        ))}
-                      </select>
+                      <span className="inline-flex items-center gap-2">
+                        <Clock size={16} className="shrink-0 text-secondary" />
+                        <select
+                          aria-label={t('field.startAt')}
+                          value={timePart(startAtVal)}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className={dtInputClass}
+                        >
+                          {timeOpts(timePart(startAtVal)).map((tm) => (
+                            <option key={tm} value={tm}>{tm}</option>
+                          ))}
+                        </select>
+                        {/* REQ-261103 — 30분 단위 외 시각 직접 입력 */}
+                        <input
+                          type="time"
+                          step={60}
+                          aria-label={`${t('field.startAt')} · ${t('field.timeManual')}`}
+                          title={t('field.timeManual')}
+                          value={timePart(startAtVal)}
+                          onChange={(e) => e.target.value && setStartTime(e.target.value)}
+                          className={dtInputClass}
+                        />
+                      </span>
                     </>
                   )}
                 </div>
@@ -665,17 +791,29 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   />
                   {!allDayVal && (
                     <>
-                      <Clock size={16} className="shrink-0 text-secondary" />
-                      <select
-                        aria-label={t('field.endAt')}
-                        value={timePart(endAtVal)}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className={dtInputClass}
-                      >
-                        {timeOpts(timePart(endAtVal)).map((tm) => (
-                          <option key={tm} value={tm}>{tm}</option>
-                        ))}
-                      </select>
+                      <span className="inline-flex items-center gap-2">
+                        <Clock size={16} className="shrink-0 text-secondary" />
+                        <select
+                          aria-label={t('field.endAt')}
+                          value={timePart(endAtVal)}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className={dtInputClass}
+                        >
+                          {timeOpts(timePart(endAtVal)).map((tm) => (
+                            <option key={tm} value={tm}>{tm}</option>
+                          ))}
+                        </select>
+                        {/* REQ-261103 — 30분 단위 외 시각 직접 입력 */}
+                        <input
+                          type="time"
+                          step={60}
+                          aria-label={`${t('field.endAt')} · ${t('field.timeManual')}`}
+                          title={t('field.timeManual')}
+                          value={timePart(endAtVal)}
+                          onChange={(e) => e.target.value && setEndTime(e.target.value)}
+                          className={dtInputClass}
+                        />
+                      </span>
                       {durationLabel && (
                         <span className="text-xs text-secondary">· {durationLabel}</span>
                       )}
@@ -866,91 +1004,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
             </div>
           )}
 
-          {!isLevelTest && (
-            <fieldset
-              className="space-y-2 rounded-md border border-[var(--border-subtle)] p-4"
-              disabled={isReadOnly}
-            >
-              <legend className="px-1 text-xs font-semibold text-secondary">
-                {t('form.sectionAttendees')} ({invitees.length})
-              </legend>
-              {invitees.length === 0 && (
-                <p className="text-xs text-secondary">
-                  {t('invitee.empty')}
-                </p>
-              )}
-              <ul className="flex flex-wrap gap-1.5">
-                {invitees.map((invitee) => {
-                  const key = `${invitee.kind}:${invitee.refId}`;
-                  const badgeColor =
-                    invitee.notifyStatus === 'SENT'
-                      ? 'bg-green-100 text-green-700'
-                      : invitee.notifyStatus === 'FAILED'
-                        ? 'bg-red-100 text-red-700'
-                        : invitee.notifyStatus?.startsWith('SKIPPED')
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-gray-100 text-gray-700';
-                  return (
-                    <li
-                      key={key}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-subtle)] bg-[var(--canvas-subtle)] px-2 py-1 text-xs"
-                    >
-                      <span
-                        className={`rounded px-1 py-0.5 text-xs font-mono uppercase ${
-                          invitee.kind === 'STUDENT'
-                            ? 'bg-blue-100 text-blue-700'
-                            : invitee.kind === 'TEACHER'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {invitee.kind[0]}
-                      </span>
-                      <span className="text-primary">{invitee.name}</span>
-                      {invitee.notifyStatus ? (
-                        <span
-                          className={`rounded px-1 py-0.5 text-xs font-medium ${badgeColor}`}
-                        >
-                          {invitee.notifyStatus}
-                        </span>
-                      ) : (
-                        isEdit && (
-                          <span className="rounded bg-gray-100 px-1 py-0.5 text-xs font-medium text-gray-500">
-                            {t('invitee.notSent')}
-                          </span>
-                        )
-                      )}
-                      {!isReadOnly && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setInvitees((current) =>
-                              current.filter((row) => `${row.kind}:${row.refId}` !== key),
-                            )
-                          }
-                          className="text-secondary hover:text-danger-600"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-              {!isReadOnly && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPickerOpen(true)}
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  {t('invitee.addBtn')}
-                </Button>
-              )}
-              {/* FIX-261103 — 저장 시 참석자 메일 발송은 사용 안 함(메일 일정이 실제와 달랐음) */}
-            </fieldset>
-          )}
 
           {/* PLN-260728F B — 강사 피드백·과제 (관리자 확인용, 읽기전용) */}
           {isEdit && initial && (
