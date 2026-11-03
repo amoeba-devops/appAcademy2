@@ -181,8 +181,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   // REQ-260728 — 삭제 사유 입력 프롬프트.
   const [deletePrompt, setDeletePrompt] = useState(false);
   const [deleteReason, setDeleteReason] = useState('');
-  // REQ-261016E — 참석자 메일은 선택했을 때만 발송(기본 미발송)
-  const [notifyInvitees, setNotifyInvitees] = useState(false);
   const [invitees, setInvitees] = useState<
     Array<{
       kind: 'STUDENT' | 'TEACHER' | 'PARENT';
@@ -437,7 +435,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         kind: invitee.kind,
         refId: invitee.refId,
       }));
-      dto.evtNotifyInvitees = notifyInvitees;
     } else {
       dto.evtInvitees = [];
     }
@@ -951,24 +948,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   {t('invitee.addBtn')}
                 </Button>
               )}
-              {!isReadOnly && invitees.length > 0 && !(repeatMeta.data && isEdit) && (
-                <label className="flex items-start gap-2 pt-1 text-xs text-primary">
-                  <input
-                    type="checkbox"
-                    className="mt-0.5"
-                    checked={notifyInvitees}
-                    onChange={(e) => setNotifyInvitees(e.target.checked)}
-                  />
-                  <span>
-                    {t('invitee.notifyOnSave')}
-                    <span className="block text-secondary">
-                      {isEdit
-                        ? t('invitee.notifyOnSaveEditHint')
-                        : t('invitee.notifyOnSaveHint')}
-                    </span>
-                  </span>
-                </label>
-              )}
+              {/* FIX-261103 — 저장 시 참석자 메일 발송은 사용 안 함(메일 일정이 실제와 달랐음) */}
             </fieldset>
           )}
 
