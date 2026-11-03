@@ -51,7 +51,8 @@
     "assignee": "Phụ trách / Giáo viên",
     "assigneeNone": "Chưa chỉ định",
     "materials": "Tài liệu lớp học",
-    "endDate": "Ngày kết thúc"
+    "endDate": "Ngày kết thúc",
+    "timeManual": "Nhập giờ"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "Lớp 1:1 (giáo viên + 1 học viên)",
@@ -104,7 +105,7 @@
     "titleCreate": "Thêm sự kiện",
     "titleEdit": "Sửa sự kiện",
     "sectionMeeting": "Họp trực tuyến",
-    "sectionAttendees": "Người tham dự"
+    "sectionAttendees": "Người tham dự/Học sinh"
   },
   "invitee": {
     "pickerTitle": "Chọn người tham dự",
@@ -122,7 +123,8 @@
     "notSent": "Chưa gửi",
     "notifyOnSave": "Gửi email cho người tham dự khi lưu",
     "notifyOnSaveEditHint": "Chỉ gửi cho người tham dự mới thêm.",
-    "notifyOnSaveHint": "Không gửi email nếu không chọn."
+    "notifyOnSaveHint": "Không gửi email nếu không chọn.",
+    "titleMore": "và {{n}} người khác"
   },
   "hint": {
     "meetingUrl": "Dán URL Google Meet hoặc Bodaschool theo cách thủ công.",

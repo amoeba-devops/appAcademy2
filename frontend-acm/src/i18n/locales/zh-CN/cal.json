@@ -51,7 +51,8 @@
     "assignee": "负责人/讲师",
     "assigneeNone": "未指定",
     "materials": "课程资料",
-    "endDate": "结束日期"
+    "endDate": "结束日期",
+    "timeManual": "手动输入"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 课程（教师 + 1 名学生）",
@@ -104,7 +105,7 @@
     "titleCreate": "新增日程",
     "titleEdit": "编辑日程",
     "sectionMeeting": "在线会议",
-    "sectionAttendees": "参会人"
+    "sectionAttendees": "参会人/学生"
   },
   "invitee": {
     "pickerTitle": "选择参会人",
@@ -122,7 +123,8 @@
     "notSent": "未发送",
     "notifyOnSave": "保存时向参与者发送邮件",
     "notifyOnSaveEditHint": "仅向新添加的参与者发送。",
-    "notifyOnSaveHint": "不勾选则不发送邮件。"
+    "notifyOnSaveHint": "不勾选则不发送邮件。",
+    "titleMore": "等{{n}}人"
   },
   "hint": {
     "meetingUrl": "请手动粘贴 Google Meet 或 Bodaschool 链接。",
