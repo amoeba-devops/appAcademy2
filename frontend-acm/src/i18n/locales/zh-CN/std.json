@@ -293,6 +293,13 @@
     "toggle": "展开/收起学生菜单"
   },
   "classInfo": {
+    "calendarTitle": "课程日程教师",
+    "calendarHint": "与该学生同在课程日程中的教师（近90天及之后）",
+    "calendarNone": "没有通过课程日程关联的教师。",
+    "calendarCount": "日程 {{count}} 次",
+    "calendarLast": "最近 {{date}}",
+    "calendarNext": "下次 {{date}}",
+    "calendarNotAssigned": "未在学生管理中分配",
     "noTeacher": "关联教师后可填写课程信息。",
     "legacyTitle": "原课程信息 · 待分配教师",
     "assign": "分配原有信息",

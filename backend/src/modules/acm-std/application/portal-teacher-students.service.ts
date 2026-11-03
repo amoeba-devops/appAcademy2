@@ -12,6 +12,7 @@ import {
   normalizeLinks,
   readLinks,
 } from './teacher-class-info';
+import { CAL_PAIRS_SQL } from './calendar-teachers';
 
 /**
  * PLN-260719 Phase C — 강사 포털 "수강생관리".
@@ -21,7 +22,10 @@ import {
  * 상세 = 기본정보 + 연결 상담(단계·최근 상담기록) + 최근 수업 이벤트.
  * PortalJwtAuthGuard(kind=TEACHER) 뒤에서만 호출 — refId = tch_id.
  * REQ-261103C — 학생관리에서 배정된 학생에게 내 수업링크(여러 개) 등록.
+ * REQ-261103D — 수업일정에서 나와 이어진 학생도 대상(목록·상세·링크 등록).
  */
+
+export type TeacherStudentSource = 'ASSIGNED' | 'CLASS' | 'CALENDAR';
 
 export interface TeacherStudentSummary {
   id: string;
@@ -32,6 +36,8 @@ export interface TeacherStudentSummary {
   subject: string | null;
   status: string;
   email: string | null;
+  /** 어떻게 내 수강생이 되었는지 — 학생관리 배정 / 반 소속 / 수업일정. */
+  sources: TeacherStudentSource[];
 }
 
 export interface TeacherStudentDetail extends TeacherStudentSummary {
@@ -48,7 +54,7 @@ export interface TeacherStudentDetail extends TeacherStudentSummary {
     startAt: string;
     endAt: string;
   }>;
-  /** 내(강사) 수업링크 — 학생관리 배정 학생만 고칠 수 있다. */
+  /** 내(강사) 수업링크 — 학생관리 배정·수업일정 학생만 고칠 수 있다(반 소속만은 불가). */
   links: ClassLink[];
   linksEditable: boolean;
 }
@@ -57,7 +63,7 @@ export interface TeacherStudentDetail extends TeacherStudentSummary {
 export class PortalTeacherStudentsService {
   constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
 
-  /** 내(강사) 수강생 목록 — FK 배정 ∪ 반 소속. */
+  /** 내(강사) 수강생 목록 — FK 배정 ∪ 반 소속 ∪ 수업일정. */
   async listMyStudents(
     entId: string,
     tchId: string,
@@ -71,30 +77,36 @@ export class PortalTeacherStudentsService {
       std_subject: string | null;
       std_status: string;
       std_email: string | null;
+      assigned: boolean;
+      in_class: boolean;
+      in_calendar: boolean;
     }> = await this.ds.query(
-      `SELECT DISTINCT s.std_id, s.std_name, s.std_english_name, s.std_school,
-              s.std_grade, s.std_subject, s.std_status, s.std_email
-         FROM amb_acm_std_student s
-        WHERE s.ent_id = $1 AND s.deleted_at IS NULL
-          AND (
-            s.std_teacher_id = $2
-            OR EXISTS (
-              SELECT 1 FROM amb_acm_std_student_teacher st
-               WHERE st.std_id = s.std_id AND st.tch_id = $2
-            )
-            OR s.std_id IN (
-              SELECT cs.cst_student_user_id
-                FROM amb_acm_cls_class_students cs
-                JOIN amb_acm_cls_classes c
-                  ON c.cls_id = cs.cls_id AND c.ent_id = cs.ent_id
-                JOIN amb_acm_tch_teacher t
-                  ON (c.cls_teacher_tch_id = t.tch_id
-                      OR t.tch_user_id = c.cls_teacher_user_id)
-                 AND t.ent_id = c.ent_id
-               WHERE cs.ent_id = $1 AND t.tch_id = $2 AND cs.cst_left_at IS NULL
-            )
-          )
-        ORDER BY s.std_name`,
+      `SELECT * FROM (
+         SELECT s.std_id, s.std_name, s.std_english_name, s.std_school,
+                s.std_grade, s.std_subject, s.std_status, s.std_email,
+                (s.std_teacher_id = $2 OR EXISTS (
+                   SELECT 1 FROM amb_acm_std_student_teacher st
+                    WHERE st.std_id = s.std_id AND st.tch_id = $2)) AS assigned,
+                s.std_id IN (
+                  SELECT cs.cst_student_user_id
+                    FROM amb_acm_cls_class_students cs
+                    JOIN amb_acm_cls_classes c
+                      ON c.cls_id = cs.cls_id AND c.ent_id = cs.ent_id
+                    JOIN amb_acm_tch_teacher t
+                      ON (c.cls_teacher_tch_id = t.tch_id
+                          OR t.tch_user_id = c.cls_teacher_user_id)
+                     AND t.ent_id = c.ent_id
+                   WHERE cs.ent_id = $1 AND t.tch_id = $2 AND cs.cst_left_at IS NULL
+                ) AS in_class,
+                s.std_id IN (
+                  SELECT cp.std_id FROM (${CAL_PAIRS_SQL}) cp
+                   WHERE cp.ent_id = $1 AND cp.tch_id = $2
+                ) AS in_calendar
+           FROM amb_acm_std_student s
+          WHERE s.ent_id = $1 AND s.deleted_at IS NULL
+       ) x
+       WHERE x.assigned OR x.in_class OR x.in_calendar
+       ORDER BY x.std_name`,
       [entId, tchId],
     );
     return rows.map((r) => ({
@@ -106,6 +118,11 @@ export class PortalTeacherStudentsService {
       subject: r.std_subject,
       status: r.std_status,
       email: r.std_email,
+      sources: [
+        ...(r.assigned ? (['ASSIGNED'] as const) : []),
+        ...(r.in_class ? (['CLASS'] as const) : []),
+        ...(r.in_calendar ? (['CALENDAR'] as const) : []),
+      ],
     }));
   }
 
@@ -213,18 +230,23 @@ export class PortalTeacherStudentsService {
   }
 
   private async linkState(entId: string, tchId: string, stdId: string) {
-    const [r]: Array<{ assigned: boolean; info: Record<string, unknown> | null }> =
-      await this.ds.query(
-        `SELECT EXISTS (SELECT 1 FROM amb_acm_std_student_teacher st
-                         WHERE st.ent_id = $1 AND st.std_id = $3 AND st.tch_id = $2) AS assigned,
+    const [r]: Array<{
+      assigned: boolean;
+      info: Record<string, unknown> | null;
+    }> = await this.ds.query(
+      `SELECT (EXISTS (SELECT 1 FROM amb_acm_std_student_teacher st
+                          WHERE st.ent_id = $1 AND st.std_id = $3 AND st.tch_id = $2)
+                 OR EXISTS (SELECT 1 FROM (${CAL_PAIRS_SQL}) cp
+                             WHERE cp.ent_id = $1 AND cp.std_id = $3 AND cp.tch_id = $2)
+                ) AS assigned,
                 (SELECT ci.info FROM amb_acm_std_teacher_class_info ci
                   WHERE ci.ent_id = $1 AND ci.std_id = $3 AND ci.tch_id = $2) AS info`,
-        [entId, tchId, stdId],
-      );
+      [entId, tchId, stdId],
+    );
     return { links: readLinks(r?.info ?? null), linksEditable: !!r?.assigned };
   }
 
-  /** REQ-261103C — 내 수업링크 저장. 배정 학생이 아니면 403(반 소속만으로는 불가). */
+  /** REQ-261103C — 내 수업링크 저장. 배정·수업일정 학생이 아니면 403(반 소속만으로는 불가). */
   async saveMyLinks(
     entId: string,
     tchId: string,

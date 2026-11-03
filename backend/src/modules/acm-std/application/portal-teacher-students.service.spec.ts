@@ -18,6 +18,9 @@ describe('PortalTeacherStudentsService', () => {
     std_subject: 'MATH',
     std_status: 'ACTIVE',
     std_email: 'a@b.c',
+    assigned: false,
+    in_class: false,
+    in_calendar: true,
   };
 
   it('listMyStudents maps rows to summaries', async () => {
@@ -26,7 +29,12 @@ describe('PortalTeacherStudentsService', () => {
     );
     const r = await svc.listMyStudents('e1', 't1');
     expect(r).toEqual([
-      expect.objectContaining({ id: 's1', name: '홍길동', school: 'ABC중' }),
+      expect.objectContaining({
+        id: 's1',
+        name: '홍길동',
+        school: 'ABC중',
+        sources: ['CALENDAR'],
+      }),
     ]);
   });
 
@@ -39,7 +47,7 @@ describe('PortalTeacherStudentsService', () => {
 
   it('getMyStudent returns detail + inquiry + remarks + events', async () => {
     const { svc } = build((sql) => {
-      if (sql.includes('SELECT DISTINCT s.std_id')) return [stdRow];
+      if (sql.includes('AS in_calendar')) return [stdRow];
       if (sql.includes('std_phone')) {
         return [
           {

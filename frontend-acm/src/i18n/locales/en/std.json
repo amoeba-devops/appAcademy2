@@ -293,6 +293,13 @@
     "toggle": "Expand/collapse student menus"
   },
   "classInfo": {
+    "calendarTitle": "Teachers from class schedule",
+    "calendarHint": "Teachers on class schedule events with this student (last 90 days and upcoming)",
+    "calendarNone": "No teachers linked through the class schedule.",
+    "calendarCount": "{{count}} events",
+    "calendarLast": "Last {{date}}",
+    "calendarNext": "Next {{date}}",
+    "calendarNotAssigned": "Not assigned in Student Management",
     "noTeacher": "Assign a teacher to enter class information.",
     "legacyTitle": "Previous class information · assignment needed",
     "assign": "Assign previous information",

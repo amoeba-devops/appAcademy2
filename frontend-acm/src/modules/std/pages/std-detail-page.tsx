@@ -276,6 +276,48 @@ export function StdDetailPage() {
             </Section>
           );
         })}
+        {/* REQ-261103D — 수업일정에서 이 학생과 함께 등록된 강사 */}
+        <Section title={t("classInfo.calendarTitle")}>
+          <p className="col-span-full text-xs text-secondary">
+            {t("classInfo.calendarHint")}
+          </p>
+          {student.calendarTeachers?.length ? (
+            <ul className="col-span-full divide-y divide-[var(--border-subtle)]">
+              {student.calendarTeachers.map((ct) => (
+                <li
+                  key={ct.tchId}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm"
+                >
+                  <span className="font-medium text-primary">{ct.name}</span>
+                  <span className="text-xs text-secondary">
+                    {[
+                      t("classInfo.calendarCount", { count: ct.eventCount }),
+                      ct.lastAt &&
+                        t("classInfo.calendarLast", {
+                          date: new Date(ct.lastAt).toLocaleDateString(),
+                        }),
+                      ct.nextAt &&
+                        t("classInfo.calendarNext", {
+                          date: new Date(ct.nextAt).toLocaleDateString(),
+                        }),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  {!ct.assigned && (
+                    <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
+                      {t("classInfo.calendarNotAssigned")}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="col-span-full text-sm italic text-secondary">
+              {t("classInfo.calendarNone")}
+            </p>
+          )}
+        </Section>
         {student.classInfoLegacyPending && (
           <Section title={t("classInfo.legacyTitle")}>
             {LEGACY_VISIBLE.map((field) => (
