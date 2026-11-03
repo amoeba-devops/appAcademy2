@@ -19,7 +19,10 @@ import { TenantSettingsService } from '../../acm-system/application/tenant-setti
 import { CalEventService } from './cal-event.service';
 import { VideoConfigService } from './video-config.service';
 import { BodaRoomService } from './boda-room.service';
-import { InviteeNotifierService } from './invitee-notifier.service';
+import {
+  INVITE_MAIL_ON_SAVE,
+  InviteeNotifierService,
+} from './invitee-notifier.service';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
 import { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invitee.typeorm-entity';
 import { CalEventRevisionTypeormEntity } from '../infrastructure/typeorm/cal-event-revision.typeorm-entity';
@@ -155,9 +158,9 @@ export class RecurrenceService {
         return { series, created };
       }),
     );
-    // REQ-261016E — 반복 일정도 선택했을 때만 1회 발송.
+    // REQ-261016E — 반복 일정도 선택했을 때만 1회 발송. FIX-261103 사용 안 함.
     const notifySummary =
-      dto.event.evtNotifyInvitees === true
+      INVITE_MAIL_ON_SAVE && dto.event.evtNotifyInvitees === true
         ? await this.notifyOnce(result.series)
         : null;
     return { id: result.series.crs_id, created: result.created, notifySummary };

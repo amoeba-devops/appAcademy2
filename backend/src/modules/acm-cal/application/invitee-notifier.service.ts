@@ -13,6 +13,12 @@ export interface NotifySummary {
   failed: number;
 }
 
+/**
+ * FIX-261103 — 일정 저장 시 참석자 초대 메일은 사용 안 함(메일 속 일정이 실제와 달랐음).
+ * 요청에 evtNotifyInvitees=true 가 와도 보내지 않는다. 수업 링크 변경 메일(notifyLinkChanged)은 별도.
+ */
+export const INVITE_MAIL_ON_SAVE = false;
+
 @Injectable()
 export class InviteeNotifierService {
   private readonly log = new Logger(InviteeNotifierService.name);

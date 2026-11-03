@@ -276,7 +276,6 @@ export function RecurrenceEditor({
               </ol>
             )}
           </div>
-          <p className="text-xs text-secondary">{t('repeat.notify')}</p>
         </>
       )}
     </fieldset>

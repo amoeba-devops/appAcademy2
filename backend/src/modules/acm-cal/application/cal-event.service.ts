@@ -34,6 +34,7 @@ import type {
   UpdateCalEventDto,
 } from './dto/cal-event.dto';
 import {
+  INVITE_MAIL_ON_SAVE,
   InviteeNotifierService,
   NotifySummary,
 } from './invitee-notifier.service';
@@ -632,9 +633,9 @@ export class CalEventService {
       return saved;
     });
 
-    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송).
+    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송). FIX-261103 사용 안 함.
     const notifySummary: NotifySummary | null =
-      added.length && dto.evtNotifyInvitees === true
+      INVITE_MAIL_ON_SAVE && added.length && dto.evtNotifyInvitees === true
         ? await this.notifier.notifyAdded(entId, saved, added)
         : null;
 
@@ -810,9 +811,9 @@ export class CalEventService {
       return saved;
     });
 
-    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송).
+    // REQ-261016E — 참석자 메일은 선택했을 때만 보낸다(기본 미발송). FIX-261103 사용 안 함.
     const notifySummary: NotifySummary | null =
-      added.length && dto.evtNotifyInvitees === true
+      INVITE_MAIL_ON_SAVE && added.length && dto.evtNotifyInvitees === true
         ? await this.notifier.notifyAdded(entId, saved, added)
         : null;
 
