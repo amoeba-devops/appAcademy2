@@ -43,6 +43,8 @@ export interface TeacherClassInfo {
   mobility?: string | null;
   gpa?: string | null;
   ssatIseeNote?: string | null;
+  /** REQ-261103B — 수업링크(Google Meet 등 https 주소) */
+  meetingUrl?: string | null;
 }
 
 export interface StudentDetail extends StudentSummary {

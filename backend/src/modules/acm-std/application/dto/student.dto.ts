@@ -16,6 +16,7 @@ import {
   MaxLength,
   Min,
   ValidateNested,
+  IsUrl,
   ValidateIf,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
@@ -51,6 +52,13 @@ export class TeacherClassInfoDto {
   @IsString()
   @MaxLength(20000)
   ssatIseeNote?: string | null;
+  /** REQ-261103B — 수업링크(Google Meet 등 https 주소). 빈 값은 삭제. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  @ValidateIf((o: TeacherClassInfoDto) => !!o.meetingUrl?.trim())
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  meetingUrl?: string | null;
 }
 
 // ============================================================================

@@ -11,6 +11,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { portalApi, type PortalCalEvent } from '../api/portal-api';
+import { PortalClassInfo } from '../components/portal-class-info';
+import { useAuthStore } from '@/stores/auth.store';
 import { formatEventWhen, formatInTz, formatDualRange, tzCity } from '@/lib/tz';
 import { useMyZones } from '@/modules/me/use-my-zones';
 
@@ -58,6 +60,7 @@ export function PortalCalendarPage() {
   const [studentFilter, setStudentFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const openDirect = (e: PortalCalEvent) => navigate(`/portal/calendar/${e.id}`);
+  const portalKind = useAuthStore((s) => s.portal.user?.kind);
 
   const { from, to } = useMemo(() => rangeFor(mode, anchor), [mode, anchor]);
   const { data: events = [], isLoading } = useQuery({
@@ -180,6 +183,11 @@ export function PortalCalendarPage() {
           emptyLabel={t('portalApp.cal.empty')}
           onSelect={openDirect}
         />
+      )}
+
+      {/* REQ-261103B — 수업일정 아래 강사별 수업 정보(학생·학부모) */}
+      {(portalKind === 'STUDENT' || portalKind === 'PARENT') && (
+        <PortalClassInfo byChild={portalKind === 'PARENT'} />
       )}
 
       <EventDetailModal event={selected} onClose={() => setSelected(null)} />

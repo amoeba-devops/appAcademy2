@@ -12,6 +12,20 @@ export const CLASS_FIELDS = [
   'ssatIseeNote',
 ] as const;
 type ClassValues = Record<(typeof CLASS_FIELDS)[number], string | null>;
+/** REQ-261103B — 강사별 수업정보 항목. 학생 행(레거시)에 없는 수업링크 포함. */
+export const INFO_FIELDS = [...CLASS_FIELDS, 'meetingUrl'] as const;
+type InfoField = (typeof INFO_FIELDS)[number];
+/** 보낸 항목만 고친다 — 화면에서 숨긴 항목(이동수단·GPA 등)은 기존 값 유지. */
+export function infoPatch(
+  value: Partial<Record<InfoField, string | null>>,
+): Partial<Record<InfoField, string | null>> {
+  return Object.fromEntries(
+    INFO_FIELDS.filter((k) => value[k] !== undefined).map((k) => [
+      k,
+      value[k]?.trim() || null,
+    ]),
+  );
+}
 export function classValues(value: Partial<ClassValues>): ClassValues {
   return Object.fromEntries(
     CLASS_FIELDS.map((k) => [k, value[k]?.trim() || null]),
@@ -63,14 +77,14 @@ export async function saveClassInfos(
   if (infos !== undefined) {
     for (const info of infos)
       await manager.query(
-        `UPDATE amb_acm_std_teacher_class_info SET info=$4::jsonb, updated_at=now(),
+        `UPDATE amb_acm_std_teacher_class_info SET info=info || $4::jsonb, updated_at=now(),
        legacy_source=CASE WHEN tch_id=$5::uuid THEN $6::jsonb ELSE legacy_source END
        WHERE ent_id=$1 AND std_id=$2 AND tch_id=$3`,
         [
           student.entId,
           student.id,
           info.tchId,
-          JSON.stringify(classValues(info)),
+          JSON.stringify(infoPatch(info)),
           legacyTeacherId ?? null,
           JSON.stringify(legacy),
         ],

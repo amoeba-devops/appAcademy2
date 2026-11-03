@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next";
 import type { TeacherClassInfo } from "../types";
-export const CLASS_FIELDS = [
+/**
+ * REQ-261103B — 화면에 보이는 강사별 수업정보: 과목·교재·수업링크.
+ * 추가교재·이동수단·GPA·SSAT/ISEE 는 숨김(저장된 값은 그대로 보존 — 보내지 않으면 서버가 유지).
+ */
+export const CLASS_FIELDS = ["subject", "curriculum", "meetingUrl"] as const;
+/** 학생 행에 남아 있는 예전 공통 값(강사 배정 전). 화면에는 과목·교재만. */
+export const LEGACY_FIELDS = [
   "subject",
   "curriculum",
   "materials",
@@ -8,24 +14,15 @@ export const CLASS_FIELDS = [
   "gpa",
   "ssatIseeNote",
 ] as const;
+export const LEGACY_VISIBLE = ["subject", "curriculum"] as const;
 export const CLASS_LIMITS = {
   subject: 100,
   curriculum: 20000,
-  materials: 20000,
-  mobility: 50,
-  gpa: 20,
-  ssatIseeNote: 20000,
+  meetingUrl: 500,
 };
+export const isHttpsUrl = (v: string) => /^https:\/\/[^\s/]+\.[^\s]+$/i.test(v);
 export function emptyClassInfo(tchId: string): TeacherClassInfo {
-  return {
-    tchId,
-    subject: "",
-    curriculum: "",
-    materials: "",
-    mobility: "",
-    gpa: "",
-    ssatIseeNote: "",
-  };
+  return { tchId, subject: "", curriculum: "", meetingUrl: "" };
 }
 export function TeacherClassFields({
   value,
@@ -35,32 +32,56 @@ export function TeacherClassFields({
   onChange: (value: TeacherClassInfo) => void;
 }) {
   const { t } = useTranslation("std");
+  const url = value.meetingUrl?.trim() ?? "";
+  const badUrl = !!url && !isHttpsUrl(url);
+  const box =
+    "w-full rounded border p-2 bg-surface text-base sm:text-sm text-primary placeholder:italic placeholder:text-secondary";
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {CLASS_FIELDS.map((field) => (
-        <label
-          key={field}
-          className={
-            field === "curriculum" ||
-            field === "materials" ||
-            field === "ssatIseeNote"
-              ? "sm:col-span-2"
-              : ""
-          }
-        >
-          <span className="block text-xs text-secondary mb-1">
-            {t(`field.${field}`)}
+      <label>
+        <span className="block text-xs text-secondary mb-1">
+          {t("field.subject")}
+        </span>
+        <input
+          maxLength={CLASS_LIMITS.subject}
+          value={value.subject ?? ""}
+          placeholder={t("detail.enterValue")}
+          className={box}
+          onChange={(e) => onChange({ ...value, subject: e.target.value })}
+        />
+      </label>
+      <label>
+        <span className="block text-xs text-secondary mb-1">
+          {t("field.curriculum")}
+        </span>
+        <input
+          maxLength={CLASS_LIMITS.curriculum}
+          value={value.curriculum ?? ""}
+          placeholder={t("detail.enterValue")}
+          className={box}
+          onChange={(e) => onChange({ ...value, curriculum: e.target.value })}
+        />
+      </label>
+      <label className="sm:col-span-2">
+        <span className="block text-xs text-secondary mb-1">
+          {t("field.meetingUrl")}
+        </span>
+        <input
+          type="url"
+          inputMode="url"
+          maxLength={CLASS_LIMITS.meetingUrl}
+          value={value.meetingUrl ?? ""}
+          placeholder="https://meet.google.com/xxx-xxxx-xxx"
+          aria-invalid={badUrl}
+          className={`${box} ${badUrl ? "border-red-500" : ""}`}
+          onChange={(e) => onChange({ ...value, meetingUrl: e.target.value })}
+        />
+        {badUrl && (
+          <span role="alert" className="mt-1 block text-xs text-red-600">
+            {t("classInfo.meetingUrlInvalid")}
           </span>
-          <textarea
-            rows={field === "materials" || field === "ssatIseeNote" ? 2 : 1}
-            maxLength={CLASS_LIMITS[field]}
-            value={value[field] ?? ""}
-            placeholder={t("detail.enterValue")}
-            className="w-full rounded border p-2 bg-surface text-sm text-primary placeholder:italic placeholder:text-secondary"
-            onChange={(e) => onChange({ ...value, [field]: e.target.value })}
-          />
-        </label>
-      ))}
+        )}
+      </label>
     </div>
   );
 }

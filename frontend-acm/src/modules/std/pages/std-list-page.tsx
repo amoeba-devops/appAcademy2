@@ -19,7 +19,6 @@ import type { TeacherDetail } from "@/modules/tch/types";
 import { useStudents } from "../hooks/use-students";
 import { StdFilters } from "../components/std-filters";
 import { StdTable, type StdSort } from "../components/std-table";
-import { StdFormModal } from "../components/std-form-modal";
 import { StdImportModal } from "../components/std-import-modal";
 import { STD_SITES, type StudentCreatePrefill } from "../types";
 
@@ -41,8 +40,15 @@ export function StdListPage({
   const navPrefill = (
     location.state as { studentCreatePrefill?: StudentCreatePrefill } | null
   )?.studentCreatePrefill;
-  const [prefill, setPrefill] = useState(navPrefill);
-  const [showCreate, setShowCreate] = useState(!!navPrefill);
+  // REQ-261103B — 등록은 전체 페이지(/admin/std/new)
+  const openCreate = (prefill?: StudentCreatePrefill) =>
+    navigate("/admin/std/new", {
+      state: {
+        studentCreatePrefill: prefill,
+        initialStatus: withdrawn ? "WITHDRAWN" : "ACTIVE",
+        returnTo: location.pathname + location.search,
+      },
+    });
   const [showImport, setShowImport] = useState(false);
 
   const [selected, setSelected] = useState<string[]>([]);
@@ -111,12 +117,8 @@ export function StdListPage({
     setParams(next, { replace: true });
   };
   useEffect(() => {
-    if (navPrefill)
-      navigate(location.pathname + location.search, {
-        replace: true,
-        state: null,
-      });
-  }, []); // consume navigation prefill only on mount
+    if (navPrefill) openCreate(navPrefill);
+  }, []); // forward navigation prefill to the create page only on mount
   const teacherId = params.get("teacherId");
   const teachers = teacherId
     ? [
@@ -198,14 +200,13 @@ export function StdListPage({
               </Button>
             )}
             <Button
-              onClick={() => {
-                setPrefill(
+              onClick={() =>
+                openCreate(
                   STD_SITES.includes(site as (typeof STD_SITES)[number])
                     ? { stdSite: site as (typeof STD_SITES)[number] }
                     : undefined,
-                );
-                setShowCreate(true);
-              }}
+                )
+              }
             >
               {t(withdrawn ? "navigation.createWithdrawn" : "actions.create")}
             </Button>
@@ -361,14 +362,6 @@ export function StdListPage({
           {t("site.next")}
         </Button>
       </div>
-      {showCreate && (
-        <StdFormModal
-          open
-          onClose={() => setShowCreate(false)}
-          prefill={prefill}
-          initialStatus={withdrawn ? "WITHDRAWN" : "ACTIVE"}
-        />
-      )}
       {showImport && (
         <StdImportModal open onClose={() => setShowImport(false)} />
       )}

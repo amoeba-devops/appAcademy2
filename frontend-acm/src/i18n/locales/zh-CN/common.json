@@ -239,6 +239,14 @@
     "recordings": {
       "title": "课程录像",
       "file": "录像"
+    },
+    "classInfo": {
+      "title": "课程信息",
+      "empty": "分配老师后将显示课程信息。",
+      "subject": "科目",
+      "curriculum": "教材",
+      "meetingUrl": "上课链接",
+      "join": "进入课堂"
     }
   },
   "material": {

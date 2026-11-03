@@ -239,6 +239,14 @@
     "recordings": {
       "title": "Bản ghi buổi học",
       "file": "Bản ghi"
+    },
+    "classInfo": {
+      "title": "Thông tin lớp học",
+      "empty": "Thông tin lớp học sẽ hiển thị khi có giáo viên phụ trách.",
+      "subject": "Môn học",
+      "curriculum": "Giáo trình",
+      "meetingUrl": "Liên kết lớp học",
+      "join": "Vào lớp"
     }
   },
   "material": {
