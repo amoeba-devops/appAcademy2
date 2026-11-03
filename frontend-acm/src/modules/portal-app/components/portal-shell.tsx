@@ -7,6 +7,7 @@ import {
   Bell,
   CalendarRange,
   FolderOpen,
+  Link2,
   LogOut,
   MessagesSquare,
   Users,
@@ -20,10 +21,18 @@ import { useScrollHint } from "@/hooks/use-scroll-hint";
 /**
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
  * PLN-260719 C — 강사(TEACHER)에게는 수업일정 아래 "수강생관리" 메뉴 추가.
+ * REQ-261103C — 학생·학부모에게는 수업일정 아래 "수업링크" 메뉴.
  */
 const NAV = [
   { to: "/portal/notices", icon: Bell, key: "notices", end: false },
   { to: "/portal/calendar", icon: CalendarRange, key: "calendar", end: false },
+  {
+    to: "/portal/links",
+    icon: Link2,
+    key: "links",
+    end: false,
+    learnerOnly: true,
+  },
   {
     to: "/portal/students",
     icon: Users,
@@ -106,7 +115,11 @@ export function PortalShell() {
             ref={navRef}
             className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1"
           >
-            {NAV.filter((n) => !n.teacherOnly || user?.kind === "TEACHER").map(
+            {NAV.filter(
+              (n) =>
+                (!n.teacherOnly || user?.kind === "TEACHER") &&
+                (!n.learnerOnly || user?.kind !== "TEACHER"),
+            ).map(
               (n) => {
                 const Icon = n.icon;
                 return (

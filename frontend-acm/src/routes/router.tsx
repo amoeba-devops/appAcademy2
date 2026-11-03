@@ -84,6 +84,7 @@ import { PortalDocPage } from '@/modules/portal-app/pages/portal-doc-page';
 import { AdminChatPage } from '@/modules/talk/pages/admin-chat-page';
 import { PortalChatPage } from '@/modules/talk/pages/portal-chat-page';
 import { PortalTeacherStudentsPage } from '@/modules/portal-app/pages/portal-teacher-students-page';
+import { PortalLinksPage } from '@/modules/portal-app/pages/portal-links-page';
 import {
   PortalNoticesPage,
   PortalNoticeDetailPage,
@@ -203,6 +204,8 @@ export const router = createBrowserRouter([
       { path: 'notices/:slug', element: <PortalNoticeDetailPage /> },
       { path: 'calendar', element: <PortalCalendarPage /> },
       { path: 'calendar/:evtId', element: <PortalCalEventDetailPage /> },
+      // REQ-261103C — 수업링크(학생·학부모)
+      { path: 'links', element: <PortalLinksPage /> },
       { path: 'materials', element: <PortalMaterialsPage /> },
       // PLN-260719 C — 강사 수강생관리
       { path: 'students', element: <PortalTeacherStudentsPage /> },

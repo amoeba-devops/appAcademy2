@@ -16,7 +16,6 @@ import {
   MaxLength,
   Min,
   ValidateNested,
-  IsUrl,
   ValidateIf,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
@@ -24,6 +23,26 @@ import { Transform, Type } from 'class-transformer';
 export const STD_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
 export const STD_STATUSES = ['ACTIVE', 'INACTIVE', 'WITHDRAWN'] as const;
 export const STD_GENDERS = ['M', 'F'] as const;
+
+/** REQ-261103C — 수업링크 1건. 주소는 형식 검사 없음(서버가 https:// 보정·위험 주소 거부). */
+export class ClassLinkDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  label?: string | null;
+  @IsString()
+  @MaxLength(500)
+  url!: string;
+}
+
+export class SaveClassLinksDto {
+  @ApiProperty({ type: [ClassLinkDto] })
+  @IsArray()
+  @ArrayMaxSize(10)
+  @ValidateNested({ each: true })
+  @Type(() => ClassLinkDto)
+  links!: ClassLinkDto[];
+}
 
 export class TeacherClassInfoDto {
   @IsUUID()
@@ -52,13 +71,18 @@ export class TeacherClassInfoDto {
   @IsString()
   @MaxLength(20000)
   ssatIseeNote?: string | null;
-  /** REQ-261103B — 수업링크(Google Meet 등 https 주소). 빈 값은 삭제. */
+  /** REQ-261103B — 첫 수업링크(예전 화면 호환). 새 화면은 links 를 보낸다. */
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  @ValidateIf((o: TeacherClassInfoDto) => !!o.meetingUrl?.trim())
-  @IsUrl({ protocols: ['https'], require_protocol: true })
   meetingUrl?: string | null;
+  /** REQ-261103C — 강사별 수업링크 여러 개. */
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(10)
+  @ValidateNested({ each: true })
+  @Type(() => ClassLinkDto)
+  links?: ClassLinkDto[];
 }
 
 // ============================================================================

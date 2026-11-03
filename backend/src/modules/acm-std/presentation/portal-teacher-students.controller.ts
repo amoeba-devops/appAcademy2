@@ -1,9 +1,11 @@
 import {
+  Body,
   Controller,
   ForbiddenException,
   Get,
   Param,
   ParseUUIDPipe,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -11,6 +13,7 @@ import { PortalJwtAuthGuard } from '../../acm-auth/guards/portal-jwt-auth.guard'
 import { PortalUser } from '../../acm-auth/decorators/portal-user.decorator';
 import type { PortalAuthUser } from '../../acm-auth/application/portal-account.service';
 import { PortalTeacherStudentsService } from '../application/portal-teacher-students.service';
+import { SaveClassLinksDto } from '../application/dto/student.dto';
 
 /**
  * PLN-260719 Phase C — 강사 포털 수강생관리 (TEACHER 전용).
@@ -44,5 +47,16 @@ export class PortalTeacherStudentsController {
   ) {
     this.assertTeacher(u);
     return this.svc.getMyStudent(u.entId, u.refId, stdId);
+  }
+
+  @Put(':stdId/links')
+  @ApiOperation({ summary: 'Save my class links for an assigned student (teacher only)' })
+  saveLinks(
+    @PortalUser() u: PortalAuthUser,
+    @Param('stdId', ParseUUIDPipe) stdId: string,
+    @Body() dto: SaveClassLinksDto,
+  ) {
+    this.assertTeacher(u);
+    return this.svc.saveMyLinks(u.entId, u.refId, stdId, dto.links);
   }
 }

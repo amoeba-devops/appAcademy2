@@ -15,16 +15,59 @@ type ClassValues = Record<(typeof CLASS_FIELDS)[number], string | null>;
 /** REQ-261103B — 강사별 수업정보 항목. 학생 행(레거시)에 없는 수업링크 포함. */
 export const INFO_FIELDS = [...CLASS_FIELDS, 'meetingUrl'] as const;
 type InfoField = (typeof INFO_FIELDS)[number];
+/** REQ-261103C — 강사별 수업링크(여러 개). `meetingUrl` 은 첫 링크 미러(예전 화면 호환). */
+export interface ClassLink {
+  label: string | null;
+  url: string;
+}
+export const MAX_CLASS_LINKS = 10;
+/**
+ * 인터넷 주소는 형식 검사 없이 허용. `zoom.us/j/1` 처럼 앞부분이 없으면 https:// 를 붙이고,
+ * http(s) 가 아닌 주소(javascript:·data: 등)는 화면에서 실행될 수 있어 거부한다.
+ */
+export function normalizeLink(raw: string): string {
+  const v = raw.trim();
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(v))
+    throw new BadRequestException('CLASS_LINK_INVALID');
+  return `https://${v.replace(/^\/+/, '')}`;
+}
+export function normalizeLinks(
+  links: Array<{ label?: string | null; url?: string | null }>,
+): ClassLink[] {
+  return links
+    .filter((l) => l.url?.trim())
+    .map((l) => ({ label: l.label?.trim() || null, url: normalizeLink(l.url!) }));
+}
+/** 저장된 info 의 링크 목록 — 예전 `meetingUrl` 하나만 있는 행도 1건으로 읽는다. */
+export function readLinks(info: Record<string, unknown> | null): ClassLink[] {
+  if (Array.isArray(info?.links)) return info.links as ClassLink[];
+  return typeof info?.meetingUrl === 'string' && info.meetingUrl
+    ? [{ label: null, url: info.meetingUrl }]
+    : [];
+}
 /** 보낸 항목만 고친다 — 화면에서 숨긴 항목(이동수단·GPA 등)은 기존 값 유지. */
 export function infoPatch(
-  value: Partial<Record<InfoField, string | null>>,
-): Partial<Record<InfoField, string | null>> {
-  return Object.fromEntries(
+  value: Partial<Record<InfoField, string | null>> & {
+    links?: Array<{ label?: string | null; url?: string | null }>;
+  },
+): Record<string, unknown> {
+  const patch: Record<string, unknown> = Object.fromEntries(
     INFO_FIELDS.filter((k) => value[k] !== undefined).map((k) => [
       k,
       value[k]?.trim() || null,
     ]),
   );
+  if (value.links !== undefined) {
+    const links = normalizeLinks(value.links);
+    patch.links = links;
+    patch.meetingUrl = links[0]?.url ?? null;
+  } else if (patch.meetingUrl !== undefined) {
+    const url = patch.meetingUrl ? normalizeLink(patch.meetingUrl as string) : null;
+    patch.meetingUrl = url;
+    patch.links = url ? [{ label: null, url }] : [];
+  }
+  return patch;
 }
 export function classValues(value: Partial<ClassValues>): ClassValues {
   return Object.fromEntries(
@@ -43,7 +86,11 @@ export async function readClassInfos(
       [student.entId, student.id, JSON.stringify(legacy)],
     );
   return {
-    teacherClassInfos: rows.map((r) => ({ tchId: r.tchId, ...r.info })),
+    teacherClassInfos: rows.map((r) => ({
+      tchId: r.tchId,
+      ...r.info,
+      links: readLinks(r.info),
+    })),
     classInfoLegacyPending:
       Object.values(legacy).some(Boolean) && !rows.some((r) => r.assigned),
   };

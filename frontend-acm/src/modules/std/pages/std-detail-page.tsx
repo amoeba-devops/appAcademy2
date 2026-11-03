@@ -257,18 +257,20 @@ export function StdDetailPage() {
               <div className="py-1.5 flex flex-wrap items-baseline gap-x-1 min-w-0">
                 <dt className="text-xs text-secondary">{t("field.meetingUrl")} :</dt>
                 <dd className="text-sm min-w-0 break-all">
-                  {info?.meetingUrl ? (
-                    <a
-                      href={info.meetingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-accent-600 underline"
-                    >
-                      {info.meetingUrl}
-                    </a>
-                  ) : (
-                    displayStudentValue(null, t("detail.inputRequired"))
-                  )}
+                  {info?.links?.length
+                    ? info.links.map((l, i) => (
+                        <a
+                          key={i}
+                          href={l.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mr-3 text-accent-600 underline"
+                        >
+                          {l.label ? `${l.label} · ` : ""}
+                          {l.url}
+                        </a>
+                      ))
+                    : displayStudentValue(null, t("detail.inputRequired"))}
                 </dd>
               </div>
             </Section>

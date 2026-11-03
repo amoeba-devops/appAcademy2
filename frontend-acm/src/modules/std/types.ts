@@ -1,3 +1,4 @@
+import type { ClassLink } from "@/components/common/class-links";
 // STD module shared types — mirrors backend DTOs.
 
 export const STD_SITES = ["TPI", "TRINITY", "SANTACROCE"] as const;
@@ -43,8 +44,10 @@ export interface TeacherClassInfo {
   mobility?: string | null;
   gpa?: string | null;
   ssatIseeNote?: string | null;
-  /** REQ-261103B — 수업링크(Google Meet 등 https 주소) */
+  /** REQ-261103B — 첫 수업링크(예전 값 호환). 화면은 links 사용. */
   meetingUrl?: string | null;
+  /** REQ-261103C — 수업링크 여러 개 */
+  links?: ClassLink[];
 }
 
 export interface StudentDetail extends StudentSummary {

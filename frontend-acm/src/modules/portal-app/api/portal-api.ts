@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/api-client';
+import type { ClassLink } from '@/components/common/class-links';
 import type { PortalSession } from '@/stores/auth.store';
 import type { BodaLaunchContext } from '@/lib/boda-launch-api';
 
@@ -114,7 +115,8 @@ export interface PortalClassInfoStudent {
     name: string;
     subject: string | null;
     curriculum: string | null;
-    meetingUrl: string | null;
+    /** REQ-261103C — 강사별 수업링크 여러 개 */
+    links: ClassLink[];
   }>;
 }
 
@@ -340,6 +342,15 @@ export const portalApi = {
       )
     ).data,
 
+  // REQ-261103C — 강사가 배정 학생에게 내 수업링크 등록
+  saveTeacherLinks: async (stdId: string, links: ClassLink[]) =>
+    (
+      await apiClient.put<{ links: ClassLink[]; linksEditable: boolean }>(
+        `/portal/teacher/students/${stdId}/links`,
+        { links },
+      )
+    ).data,
+
   // PLN-260728F B — 수업 피드백·과제.
   calReview: async (evtId: string) =>
     (await apiClient.get<CalReview>(`/portal/cal/events/${evtId}/review`)).data,
@@ -514,6 +525,9 @@ export interface TeacherStudentDetail extends TeacherStudent {
     startAt: string;
     endAt: string;
   }>;
+  /** REQ-261103C — 내 수업링크(학생관리 배정 학생만 수정 가능) */
+  links: ClassLink[];
+  linksEditable: boolean;
 }
 
 export interface MaterialComment {

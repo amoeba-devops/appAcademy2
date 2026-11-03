@@ -3,7 +3,9 @@ import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { TeacherClassInfoDto } from '../../../src/modules/acm-std/application/dto/student.dto';
 import { PortalClassInfoService } from '../../../src/modules/acm-std/application/portal-class-info.service';
+import { PortalTeacherStudentsService } from '../../../src/modules/acm-std/application/portal-teacher-students.service';
 import {
+  normalizeLink,
   readClassInfos,
   saveClassInfos,
 } from '../../../src/modules/acm-std/application/teacher-class-info';
@@ -12,10 +14,12 @@ import { bootAcmTestEnv, teardownAcmTestEnv, AcmTestEnv } from './setup';
 
 /**
  * REQ-261103B — 강사별 수업링크 저장(숨긴 항목 보존)과 포털 수업정보 범위(학생 본인·학부모 자녀).
+ * REQ-261103C — 수업링크 여러 개·형식 검사 폐기(https:// 보정, 위험 주소 거부)·강사 포털 등록.
  */
 describe('IT-STD-CLASS-INFO-PORTAL', () => {
   let env: AcmTestEnv;
   let svc: PortalClassInfoService;
+  let tchSvc: PortalTeacherStudentsService;
   const ENT = '00000000-0000-4000-8000-0000000c1103';
   const [tchA, tchB, std1, std2, other, par] = Array.from({ length: 6 }, () =>
     randomUUID(),
@@ -24,6 +28,7 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
   beforeAll(async () => {
     env = await bootAcmTestEnv();
     svc = new PortalClassInfoService(env.ds);
+    tchSvc = new PortalTeacherStudentsService(env.ds);
     await env.ds.query(
       `INSERT INTO amb_acm_tch_teacher (tch_id, ent_id, tch_name, tch_email)
        VALUES ($1,$3,'이강사','a@ci.test'), ($2,$3,'박강사','b@ci.test')`,
@@ -71,9 +76,13 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
           tchId: tchA,
           subject: '영어 Reading',
           curriculum: 'Wonders 3',
-          meetingUrl: 'https://meet.google.com/abc-defg-hij',
+          links: [
+            { label: '정규', url: 'https://meet.google.com/abc-defg-hij' },
+            { label: '', url: ' zoom.us/j/123 ' },
+            { label: '빈 줄', url: '' },
+          ],
         },
-        { tchId: tchB, subject: '수학', curriculum: '', meetingUrl: '' },
+        { tchId: tchB, subject: '수학', curriculum: '', links: [] },
       ]);
     });
     const { teacherClassInfos } = await readClassInfos(env.ds.manager, s);
@@ -82,6 +91,10 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
       subject: '영어 Reading',
       curriculum: 'Wonders 3',
       meetingUrl: 'https://meet.google.com/abc-defg-hij',
+      links: [
+        { label: '정규', url: 'https://meet.google.com/abc-defg-hij' },
+        { label: null, url: 'https://zoom.us/j/123' },
+      ],
       mobility: '셔틀',
       gpa: '3.9',
     });
@@ -89,6 +102,7 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
       subject: '수학',
       curriculum: null,
       meetingUrl: null,
+      links: [],
     });
   });
 
@@ -100,8 +114,11 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
     expect(res[0].teachers[0]).toMatchObject({
       subject: '영어 Reading',
       curriculum: 'Wonders 3',
-      meetingUrl: 'https://meet.google.com/abc-defg-hij',
     });
+    expect(res[0].teachers[0].links.map((l) => l.url)).toEqual([
+      'https://meet.google.com/abc-defg-hij',
+      'https://zoom.us/j/123',
+    ]);
     expect(Object.keys(res[0].teachers[0])).not.toContain('mobility');
   });
 
@@ -119,15 +136,36 @@ describe('IT-STD-CLASS-INFO-PORTAL', () => {
     expect(await svc.list(randomUUID(), 'STUDENT', std1)).toEqual([]);
   });
 
-  it('accepts only https meeting links', () => {
+  it('accepts any internet link, blocks script links', () => {
+    expect(normalizeLink('http://example.com/a')).toBe('http://example.com/a');
+    expect(normalizeLink('meet.google.com/abc')).toBe('https://meet.google.com/abc');
+    expect(normalizeLink('localhost:8080/x')).toBe('https://localhost:8080/x');
+    expect(() => normalizeLink('javascript:alert(1)')).toThrow();
+    expect(() => normalizeLink('data:text/html,x')).toThrow();
     const errors = (meetingUrl: string) =>
       validateSync(
         plainToInstance(TeacherClassInfoDto, { tchId: tchA, meetingUrl }),
       ).length;
-    expect(errors('https://meet.google.com/abc-defg-hij')).toBe(0);
-    expect(errors('https://zoom.us/j/123')).toBe(0);
-    expect(errors('')).toBe(0);
-    expect(errors('http://meet.google.com/abc')).toBeGreaterThan(0);
-    expect(errors('meet.google.com/abc')).toBeGreaterThan(0);
+    expect(errors('meet.google.com/abc')).toBe(0);
+    expect(errors('http://zoom.us/j/1')).toBe(0);
+  });
+
+  it('teacher saves own links only for assigned students', async () => {
+    // tchB 는 김민 배정 → 저장 가능, 숨긴 값 유지
+    const saved = await tchSvc.saveMyLinks(ENT, tchB, std1, [
+      { label: '수학 보충', url: 'meet.google.com/xyz' },
+    ]);
+    expect(saved.links).toEqual([
+      { label: '수학 보충', url: 'https://meet.google.com/xyz' },
+    ]);
+    const res = await svc.list(ENT, 'STUDENT', std1);
+    expect(res[0].teachers.find((x) => x.tchId === tchB)).toMatchObject({
+      subject: '수학',
+      links: [{ label: '수학 보충', url: 'https://meet.google.com/xyz' }],
+    });
+    // tchB 는 김윤 미배정 → 403
+    await expect(
+      tchSvc.saveMyLinks(ENT, tchB, std2, [{ url: 'https://x.test' }]),
+    ).rejects.toThrow('NOT_ASSIGNED_STUDENT');
   });
 });

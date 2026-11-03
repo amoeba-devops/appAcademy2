@@ -1,14 +1,21 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { CalendarRange, ChevronLeft, Folder, MessageSquare } from 'lucide-react';
+import { CalendarRange, ChevronLeft, Folder, Link2, MessageSquare } from 'lucide-react';
+import {
+  ClassLinkList,
+  ClassLinksEditor,
+  type ClassLink,
+} from '@/components/common/class-links';
 import { useAuthStore } from '@/stores/auth.store';
 import { portalApi, type TeacherStudent } from '../api/portal-api';
 
 /**
  * PLN-260719 Phase C — 강사 포털 "수강생관리".
  *   • /portal/students        → 배정/반 소속 학생 폴더 그리드
- *   • /portal/students/:stdId → 학생 상세 (기본정보 + 상담 + 수업기록)
+ *   • /portal/students/:stdId → 학생 상세 (기본정보 + 수업링크 + 상담 + 수업기록)
+ * REQ-261103C — 수업링크: 학생관리에서 배정된 학생에게 내 링크 여러 개 등록.
  * TEACHER 전용 (타 역할은 안내문).
  */
 export function PortalTeacherStudentsPage() {
@@ -160,6 +167,8 @@ function StudentDetail({ stdId }: { stdId: string }) {
           </div>
         )}
 
+        <MyLinks stdId={stdId} links={s.links} editable={s.linksEditable} />
+
         {/* 상담 기록 */}
         <section className="mt-5">
           <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-primary">
@@ -220,6 +229,86 @@ function StudentDetail({ stdId }: { stdId: string }) {
         </section>
       </article>
     </div>
+  );
+}
+
+function MyLinks({
+  stdId,
+  links,
+  editable,
+}: {
+  stdId: string;
+  links: ClassLink[];
+  editable: boolean;
+}) {
+  const { t } = useTranslation('common');
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState<ClassLink[] | null>(null);
+  const save = useMutation({
+    mutationFn: (next: ClassLink[]) => portalApi.saveTeacherLinks(stdId, next),
+    onSuccess: () => {
+      setDraft(null);
+      void qc.invalidateQueries({ queryKey: ['portal-teacher-student', stdId] });
+    },
+  });
+  // 400 은 code=HTTP_400, message=CLASS_LINK_INVALID 로 온다.
+  const apiErr = (
+    save.error as { response?: { data?: { error?: { code?: string; message?: unknown } } } } | null
+  )?.response?.data?.error;
+  const errCode = apiErr?.message === 'CLASS_LINK_INVALID' ? apiErr.message : apiErr?.code;
+  return (
+    <section className="mt-5">
+      <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-primary">
+        <Link2 size={14} />
+        {t('portalApp.students.links')}
+        {editable && draft === null && (
+          <button
+            type="button"
+            className="ml-auto min-h-9 rounded-md border px-3 text-xs font-normal text-accent-700 hover:bg-[var(--gray-50)]"
+            onClick={() => setDraft(links.map((l) => ({ ...l })))}
+          >
+            {links.length ? t('portalApp.students.linksEdit') : t('classLinks.add')}
+          </button>
+        )}
+      </h2>
+      {draft !== null ? (
+        <div className="space-y-2">
+          <ClassLinksEditor value={draft} onChange={setDraft} />
+          {save.isError && (
+            <p role="alert" className="text-xs text-red-600">
+              {errCode === 'CLASS_LINK_INVALID'
+                ? t('classLinks.invalid')
+                : t('portalApp.students.linksSaveFailed')}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={save.isPending}
+              className="min-h-9 rounded-md bg-accent-600 px-4 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+              onClick={() => save.mutate(draft.filter((l) => l.url.trim()))}
+            >
+              {t('actions.save')}
+            </button>
+            <button
+              type="button"
+              className="min-h-9 rounded-md border px-4 text-sm text-secondary"
+              onClick={() => {
+                setDraft(null);
+                save.reset();
+              }}
+            >
+              {t('actions.cancel')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <ClassLinkList links={links} />
+      )}
+      {!editable && (
+        <p className="mt-1 text-xs text-secondary">{t('portalApp.students.linksNotAssigned')}</p>
+      )}
+    </section>
   );
 }
 
