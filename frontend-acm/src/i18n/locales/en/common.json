@@ -1994,6 +1994,7 @@
     "readOnly": "Read only",
     "canEdit": "Can edit",
     "manageConnection": "Manage connection",
+    "manual": "User guide",
     "linkFolder": "Link folder",
     "searchPlaceholder": "Search documents...",
     "searchResults": "Search results",

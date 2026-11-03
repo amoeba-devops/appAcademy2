@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Eye, FolderKanban, FolderOpen, HardDrive, Link2, Search, Settings, Unlink, Users } from "lucide-react";
+import { BookOpen, Eye, FolderKanban, FolderOpen, HardDrive, Link2, Search, Settings, Unlink, Users } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useLocation } from "react-router-dom";
@@ -99,6 +99,15 @@ export function SharedDrivePage() {
               <Settings className="h-4 w-4" />
               {t("driveUi.manageConnection")}
             </button>
+            <a
+              href="/web/manual/manual-drive.html"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <BookOpen className="h-4 w-4" />
+              {t("driveUi.manual")}
+            </a>
             {status.data?.canManage && (
               <button
                 type="button"

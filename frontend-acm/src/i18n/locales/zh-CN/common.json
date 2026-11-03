@@ -1994,6 +1994,7 @@
     "readOnly": "只读",
     "canEdit": "可编辑",
     "manageConnection": "连接管理",
+    "manual": "使用手册",
     "linkFolder": "关联文件夹",
     "searchPlaceholder": "搜索文档...",
     "searchResults": "搜索结果",
