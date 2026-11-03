@@ -39,6 +39,7 @@
     "nav": {
       "notices": "공지사항",
       "calendar": "수업일정",
+      "links": "수업링크",
       "materials": "문서/자료실",
       "students": "수강생관리",
       "chat": "채팅",
@@ -201,7 +202,11 @@
       "remarks": "상담 기록",
       "noRemarks": "상담 기록이 없습니다.",
       "classes": "수업 기록 (최근 10건)",
-      "noClasses": "수업 기록이 없습니다."
+      "noClasses": "수업 기록이 없습니다.",
+      "links": "내 수업링크",
+      "linksEdit": "수정",
+      "linksSaveFailed": "저장하지 못했습니다. 다시 시도해 주세요.",
+      "linksNotAssigned": "학생관리에서 이 학생의 담당강사로 배정되어야 수업링크를 등록할 수 있습니다."
     },
     "record": {
       "title": "강의실 기록",
@@ -247,6 +252,9 @@
       "curriculum": "교재",
       "meetingUrl": "수업링크",
       "join": "수업 입장"
+    },
+    "links": {
+      "learnerOnly": "학생·학부모 전용 메뉴입니다."
     }
   },
   "material": {
@@ -2513,5 +2521,16 @@
       "quiet": "내 방해 금지 시간",
       "academyQuiet": "학원 방해 금지 시간 {{start}}~{{end}}도 함께 적용됩니다."
     }
+  },
+  "classLinks": {
+    "label": "링크 이름",
+    "labelPlaceholder": "예: 정규 수업",
+    "url": "링크 주소",
+    "add": "링크 추가",
+    "remove": "링크 삭제",
+    "none": "등록된 수업링크가 없습니다.",
+    "numbered": "수업링크 {{n}}",
+    "join": "입장",
+    "invalid": "열 수 없는 주소입니다. 인터넷 주소(예: meet.google.com/…)를 입력해 주세요."
   }
 }

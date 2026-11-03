@@ -39,6 +39,7 @@
     "nav": {
       "notices": "Notices",
       "calendar": "Schedule",
+      "links": "Class Links",
       "materials": "Docs & Files",
       "students": "My Students",
       "chat": "Chat",
@@ -201,7 +202,11 @@
       "remarks": "Consultation records",
       "noRemarks": "No consultation records.",
       "classes": "Class records (last 10)",
-      "noClasses": "No class records."
+      "noClasses": "No class records.",
+      "links": "My class links",
+      "linksEdit": "Edit",
+      "linksSaveFailed": "Could not save. Please try again.",
+      "linksNotAssigned": "You can add class links once you are assigned as this student's teacher in Student Management."
     },
     "record": {
       "title": "Classroom record",
@@ -247,6 +252,9 @@
       "curriculum": "Textbook",
       "meetingUrl": "Class link",
       "join": "Join class"
+    },
+    "links": {
+      "learnerOnly": "This menu is for students and parents."
     }
   },
   "material": {
@@ -2515,5 +2523,16 @@
       "quiet": "My quiet hours",
       "academyQuiet": "Academy quiet hours {{start}}–{{end}} also apply."
     }
+  },
+  "classLinks": {
+    "label": "Link name",
+    "labelPlaceholder": "e.g. Regular class",
+    "url": "Link address",
+    "add": "Add link",
+    "remove": "Remove link",
+    "none": "No class links yet.",
+    "numbered": "Class link {{n}}",
+    "join": "Join",
+    "invalid": "This address cannot be opened. Enter a web address (e.g. meet.google.com/…)."
   }
 }

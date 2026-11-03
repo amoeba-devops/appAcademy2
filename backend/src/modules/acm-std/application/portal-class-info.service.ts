@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import { ClassLink, readLinks } from './teacher-class-info';
 
 export interface PortalClassInfoTeacher {
   tchId: string;
   name: string;
   subject: string | null;
   curriculum: string | null;
-  meetingUrl: string | null;
+  links: ClassLink[];
 }
 export interface PortalClassInfoStudent {
   stdId: string;
@@ -18,6 +19,7 @@ export interface PortalClassInfoStudent {
 
 /**
  * REQ-261103B — 포털 수업정보: 학생 본인 / 학부모의 자녀, 현재 배정된 강사별 과목·교재·수업링크.
+ * REQ-261103C — 수업링크는 강사별 여러 개(`links`).
  * 강사 포털은 대상 아님(빈 목록).
  */
 @Injectable()
@@ -35,7 +37,7 @@ export class PortalClassInfoService {
       stdName: string;
       tchId: string | null;
       name: string | null;
-      info: Record<string, string | null> | null;
+      info: Record<string, unknown> | null;
     }> = await this.ds.query(
       `SELECT s.std_id AS "stdId", s.std_name AS "stdName",
               t.tch_id AS "tchId", t.tch_name AS name, ci.info
@@ -66,9 +68,9 @@ export class PortalClassInfoService {
       std.teachers.push({
         tchId: r.tchId,
         name: r.name,
-        subject: r.info?.subject ?? null,
-        curriculum: r.info?.curriculum ?? null,
-        meetingUrl: r.info?.meetingUrl ?? null,
+        subject: (r.info?.subject as string | null) ?? null,
+        curriculum: (r.info?.curriculum as string | null) ?? null,
+        links: readLinks(r.info),
       });
     }
     return [...out.values()];

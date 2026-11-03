@@ -39,6 +39,7 @@
     "nav": {
       "notices": "公告",
       "calendar": "课程表",
+      "links": "上课链接",
       "materials": "文档/资料",
       "students": "学生管理",
       "chat": "聊天",
@@ -201,7 +202,11 @@
       "remarks": "咨询记录",
       "noRemarks": "暂无咨询记录。",
       "classes": "课程记录（最近10条）",
-      "noClasses": "暂无课程记录。"
+      "noClasses": "暂无课程记录。",
+      "links": "我的上课链接",
+      "linksEdit": "修改",
+      "linksSaveFailed": "保存失败，请重试。",
+      "linksNotAssigned": "需要在学生管理中被分配为该学生的任课教师后，才能添加上课链接。"
     },
     "record": {
       "title": "教室记录",
@@ -247,6 +252,9 @@
       "curriculum": "教材",
       "meetingUrl": "上课链接",
       "join": "进入课堂"
+    },
+    "links": {
+      "learnerOnly": "此菜单仅供学生和家长使用。"
     }
   },
   "material": {
@@ -2513,5 +2521,16 @@
       "quiet": "我的免打扰时间",
       "academyQuiet": "学院免打扰时间 {{start}}–{{end}} 也同时适用。"
     }
+  },
+  "classLinks": {
+    "label": "链接名称",
+    "labelPlaceholder": "例：常规课",
+    "url": "链接地址",
+    "add": "添加链接",
+    "remove": "删除链接",
+    "none": "暂无上课链接。",
+    "numbered": "上课链接 {{n}}",
+    "join": "进入",
+    "invalid": "无法打开此地址。请输入网址（例：meet.google.com/…）。"
   }
 }

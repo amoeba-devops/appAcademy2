@@ -6,6 +6,12 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import {
+  ClassLink,
+  classValues,
+  normalizeLinks,
+  readLinks,
+} from './teacher-class-info';
 
 /**
  * PLN-260719 Phase C — 강사 포털 "수강생관리".
@@ -14,6 +20,7 @@ import { ACM_DS } from '../../acm-common/datasource';
  *           ∪ 내가 담당하는 수업(반)에 소속된 학생.
  * 상세 = 기본정보 + 연결 상담(단계·최근 상담기록) + 최근 수업 이벤트.
  * PortalJwtAuthGuard(kind=TEACHER) 뒤에서만 호출 — refId = tch_id.
+ * REQ-261103C — 학생관리에서 배정된 학생에게 내 수업링크(여러 개) 등록.
  */
 
 export interface TeacherStudentSummary {
@@ -41,6 +48,9 @@ export interface TeacherStudentDetail extends TeacherStudentSummary {
     startAt: string;
     endAt: string;
   }>;
+  /** 내(강사) 수업링크 — 학생관리 배정 학생만 고칠 수 있다. */
+  links: ClassLink[];
+  linksEditable: boolean;
 }
 
 @Injectable()
@@ -181,8 +191,11 @@ export class PortalTeacherStudentsService {
       [entId, stdId],
     );
 
+    const link = await this.linkState(entId, tchId, stdId);
+
     return {
       ...summary,
+      ...link,
       phone: row.std_phone,
       startDate: row.std_start_date,
       specialNote: row.std_special_note,
@@ -197,5 +210,44 @@ export class PortalTeacherStudentsService {
         endAt: new Date(e.evt_end_at).toISOString(),
       })),
     };
+  }
+
+  private async linkState(entId: string, tchId: string, stdId: string) {
+    const [r]: Array<{ assigned: boolean; info: Record<string, unknown> | null }> =
+      await this.ds.query(
+        `SELECT EXISTS (SELECT 1 FROM amb_acm_std_student_teacher st
+                         WHERE st.ent_id = $1 AND st.std_id = $3 AND st.tch_id = $2) AS assigned,
+                (SELECT ci.info FROM amb_acm_std_teacher_class_info ci
+                  WHERE ci.ent_id = $1 AND ci.std_id = $3 AND ci.tch_id = $2) AS info`,
+        [entId, tchId, stdId],
+      );
+    return { links: readLinks(r?.info ?? null), linksEditable: !!r?.assigned };
+  }
+
+  /** REQ-261103C — 내 수업링크 저장. 배정 학생이 아니면 403(반 소속만으로는 불가). */
+  async saveMyLinks(
+    entId: string,
+    tchId: string,
+    stdId: string,
+    input: Array<{ label?: string | null; url?: string | null }>,
+  ): Promise<{ links: ClassLink[]; linksEditable: boolean }> {
+    const { linksEditable } = await this.linkState(entId, tchId, stdId);
+    if (!linksEditable) throw new ForbiddenException('NOT_ASSIGNED_STUDENT');
+    const links = normalizeLinks(input);
+    const patch = { links, meetingUrl: links[0]?.url ?? null };
+    await this.ds.query(
+      `INSERT INTO amb_acm_std_teacher_class_info (ent_id, std_id, tch_id, info)
+       VALUES ($1, $2, $3, $4::jsonb)
+       ON CONFLICT (ent_id, std_id, tch_id) DO UPDATE
+         SET info = amb_acm_std_teacher_class_info.info || $5::jsonb, updated_at = now()`,
+      [
+        entId,
+        stdId,
+        tchId,
+        JSON.stringify({ ...classValues({}), ...patch }),
+        JSON.stringify(patch),
+      ],
+    );
+    return { links, linksEditable };
   }
 }

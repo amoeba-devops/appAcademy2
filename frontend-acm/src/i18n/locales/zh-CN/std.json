@@ -298,8 +298,7 @@
     "assign": "分配原有信息",
     "assigned": "已选择 · 保存后生效",
     "unlinkHint": "最多5位教师。解除关联后保留课程信息，重新关联时恢复。",
-    "assignHint": "选择目标教师，仅填写空字段。请检查后保存。",
-    "meetingUrlInvalid": "上课链接必须是 https:// 地址。"
+    "assignHint": "选择目标教师，仅填写空字段。请检查后保存。"
   },
   "deletion": {
     "archived": "已停用学生",

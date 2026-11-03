@@ -39,6 +39,7 @@
     "nav": {
       "notices": "Thông báo",
       "calendar": "Lịch học",
+      "links": "Liên kết lớp học",
       "materials": "Tài liệu",
       "students": "Học sinh của tôi",
       "chat": "Trò chuyện",
@@ -201,7 +202,11 @@
       "remarks": "Hồ sơ tư vấn",
       "noRemarks": "Không có hồ sơ tư vấn.",
       "classes": "Lịch sử lớp học (10 gần nhất)",
-      "noClasses": "Không có lịch sử lớp học."
+      "noClasses": "Không có lịch sử lớp học.",
+      "links": "Liên kết lớp của tôi",
+      "linksEdit": "Sửa",
+      "linksSaveFailed": "Không lưu được. Vui lòng thử lại.",
+      "linksNotAssigned": "Bạn cần được phân công làm giáo viên của học sinh này trong Quản lý học sinh để thêm liên kết lớp."
     },
     "record": {
       "title": "Nhật ký lớp học",
@@ -247,6 +252,9 @@
       "curriculum": "Giáo trình",
       "meetingUrl": "Liên kết lớp học",
       "join": "Vào lớp"
+    },
+    "links": {
+      "learnerOnly": "Menu dành cho học sinh và phụ huynh."
     }
   },
   "material": {
@@ -2513,5 +2521,16 @@
       "quiet": "Giờ yên lặng của tôi",
       "academyQuiet": "Giờ yên lặng của học viện {{start}}–{{end}} cũng được áp dụng."
     }
+  },
+  "classLinks": {
+    "label": "Tên liên kết",
+    "labelPlaceholder": "VD: Lớp chính",
+    "url": "Địa chỉ liên kết",
+    "add": "Thêm liên kết",
+    "remove": "Xóa liên kết",
+    "none": "Chưa có liên kết lớp học.",
+    "numbered": "Liên kết lớp {{n}}",
+    "join": "Vào lớp",
+    "invalid": "Không thể mở địa chỉ này. Hãy nhập địa chỉ web (VD: meet.google.com/…)."
   }
 }

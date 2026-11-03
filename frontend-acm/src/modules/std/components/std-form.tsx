@@ -2,7 +2,6 @@ import { Controller } from 'react-hook-form';
 import { NumericInput } from '@/components/ui/numeric-input';
 import {
   emptyClassInfo,
-  isHttpsUrl,
   LEGACY_FIELDS,
   LEGACY_VISIBLE,
   TeacherClassFields,
@@ -154,16 +153,6 @@ export function StdForm({
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
-    // REQ-261103B — 수업링크는 https 주소만(서버도 같은 검사).
-    if (
-      selectedTeachers.some((tch) => {
-        const url = classInfos[tch.id]?.meetingUrl?.trim();
-        return !!url && !isHttpsUrl(url);
-      })
-    ) {
-      setServerError(t("classInfo.meetingUrlInvalid"));
-      return;
-    }
     const dto: Record<string, unknown> = {};
     Object.entries(values).forEach(([k, v]) => {
       if (k === "stdParents") return;
@@ -242,7 +231,9 @@ export function StdForm({
               ? t("form.error.emailRequired", {
                   defaultValue: "이메일을 입력해야 저장할 수 있습니다.",
                 })
-              : (rawMsg ??
+              : code === "CLASS_LINK_INVALID"
+                ? t("common:classLinks.invalid")
+                : (rawMsg ??
                 err.response?.data?.message ??
                 err.message ??
                 t("form.error.save", { defaultValue: "저장에 실패했습니다." })),

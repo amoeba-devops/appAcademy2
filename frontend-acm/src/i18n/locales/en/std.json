@@ -298,8 +298,7 @@
     "assign": "Assign previous information",
     "assigned": "Selected · save to apply",
     "unlinkHint": "Up to 5 teachers. Unlinking preserves class information for reconnection.",
-    "assignHint": "Choose a target teacher to fill empty fields only. Review before saving.",
-    "meetingUrlInvalid": "Class link must be an https:// address."
+    "assignHint": "Choose a target teacher to fill empty fields only. Review before saving."
   },
   "deletion": {
     "archived": "Inactive students",

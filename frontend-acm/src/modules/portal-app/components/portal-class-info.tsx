@@ -1,13 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Video } from 'lucide-react';
+import { ClassLinkList } from '@/components/common/class-links';
 import { portalApi, type PortalClassInfoStudent } from '../api/portal-api';
 
 /**
  * REQ-261103B — 포털 수업일정 아래 수업 정보: 강사별 과목·교재·수업링크.
  * 학생은 본인, 학부모는 자녀별 소제목 아래 같은 카드.
+ * REQ-261103C — 수업링크 메뉴(/portal/links)도 같은 카드(title 만 다름), 링크는 여러 개.
  */
-export function PortalClassInfo({ byChild }: { byChild: boolean }) {
+export function PortalClassInfo({
+  byChild,
+  title,
+  className = 'mt-6',
+}: {
+  byChild: boolean;
+  title?: string;
+  className?: string;
+}) {
   const { t } = useTranslation('common');
   const { data = [], isLoading } = useQuery({
     queryKey: ['portal-class-info'],
@@ -17,9 +26,9 @@ export function PortalClassInfo({ byChild }: { byChild: boolean }) {
   if (isLoading) return null;
   const empty = data.every((s) => s.teachers.length === 0);
   return (
-    <section className="mt-6 space-y-3" aria-labelledby="portal-class-info-title">
+    <section className={`${className} space-y-3`} aria-labelledby="portal-class-info-title">
       <h2 id="portal-class-info-title" className="text-base font-semibold text-primary">
-        {t('portalApp.classInfo.title')}
+        {title ?? t('portalApp.classInfo.title')}
       </h2>
       {empty ? (
         <p className="text-sm text-secondary">{t('portalApp.classInfo.empty')}</p>
@@ -52,22 +61,9 @@ function StudentBlock({ s, showName }: { s: PortalClassInfoStudent; showName: bo
               <span className="text-secondary">{t('portalApp.classInfo.curriculum')}</span>{' '}
               {tch.curriculum || none}
             </div>
-            {tch.meetingUrl ? (
-              <a
-                href={tch.meetingUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1 inline-flex min-h-9 items-center gap-2 rounded-md bg-accent-600 px-3 text-sm font-medium text-white hover:bg-accent-700"
-              >
-                <Video size={16} />
-                {t('portalApp.classInfo.join')}
-              </a>
-            ) : (
-              <div>
-                <span className="text-secondary">{t('portalApp.classInfo.meetingUrl')}</span>{' '}
-                {none}
-              </div>
-            )}
+            <div className="border-t border-[var(--border-subtle)] pt-2">
+              <ClassLinkList links={tch.links} />
+            </div>
           </li>
         ))}
       </ul>

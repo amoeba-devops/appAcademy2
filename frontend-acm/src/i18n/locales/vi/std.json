@@ -298,8 +298,7 @@
     "assign": "Gán thông tin cũ",
     "assigned": "Đã chọn · lưu để áp dụng",
     "unlinkHint": "Tối đa 5 giáo viên. Thông tin được giữ lại khi bỏ liên kết.",
-    "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu.",
-    "meetingUrlInvalid": "Liên kết lớp học phải là địa chỉ https://."
+    "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu."
   },
   "deletion": {
     "archived": "Học sinh đã vô hiệu hóa",
