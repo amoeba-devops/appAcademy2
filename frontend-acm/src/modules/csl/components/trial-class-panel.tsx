@@ -48,10 +48,10 @@ interface Teacher {
   name: string;
 }
 
-/** 30-min increment options 09:00 ~ 22:30 — covers full schedule. */
+/** 30-min increment options 06:00 ~ 22:30 — 이른 아침 데모수업 허용. */
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
-  for (let h = 9; h <= 22; h++) {
+  for (let h = 6; h <= 22; h++) {
     out.push(`${String(h).padStart(2, "0")}:00`);
     out.push(`${String(h).padStart(2, "0")}:30`);
   }
