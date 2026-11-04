@@ -308,6 +308,10 @@
     "assignHint": "Chọn giáo viên để điền các ô trống. Kiểm tra trước khi lưu."
   },
   "deletion": {
+    "restore": "Kích hoạt lại",
+    "restoreNotice": "Kích hoạt lại học sinh {{name}}?\nHọc sinh sẽ xuất hiện lại trong danh sách. Trạng thái, giáo viên được phân công và hồ sơ tư vấn, lớp học, thanh toán vẫn giữ nguyên như trước khi vô hiệu hóa.",
+    "restored": "Đã kích hoạt lại học sinh {{name}}.",
+    "viewStudent": "Xem học sinh",
     "archived": "Học sinh đã vô hiệu hóa",
     "history": "Lịch sử xóa",
     "delete": "Xóa học sinh",

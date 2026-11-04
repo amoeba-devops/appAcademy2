@@ -227,6 +227,63 @@ function DeletionDialog({
     </Dialog>
   );
 }
+/** REQ-261104 — 비활성화 학생 다시 활성화(상태·배정·기록은 그대로). */
+function RestoreDialog({
+  row,
+  onClose,
+  onDone,
+}: {
+  row: Row;
+  onClose: () => void;
+  onDone: (row: Row) => void;
+}) {
+  const { t } = useTranslation("std"),
+    qc = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: () => apiClient.post(`${BASE}/${row.id}/restore`),
+    onSuccess: async () => {
+      await qc.invalidateQueries();
+      onDone(row);
+    },
+  });
+  return (
+    <Dialog
+      open
+      onOpenChange={(v) => {
+        if (!v && !mutation.isPending) onClose();
+      }}
+    >
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("deletion.restore")}</DialogTitle>
+        </DialogHeader>
+        <p className="whitespace-pre-line text-sm">
+          {t("deletion.restoreNotice", { name: row.name })}
+        </p>
+        {mutation.isError && (
+          <p role="alert" className="text-sm text-red-700">
+            {t("deletion.actionError")}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            disabled={mutation.isPending}
+            onClick={onClose}
+          >
+            {t("deletion.cancel")}
+          </Button>
+          <Button
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate()}
+          >
+            {t("deletion.restore")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 export function StudentDeletionPage({
   history = false,
 }: {
@@ -235,7 +292,9 @@ export function StudentDeletionPage({
   const access = useStudentDeletionAccess(),
     { t } = useTranslation("std");
   const [page, setPage] = useState(1),
-    [selected, setSelected] = useState<string | null>(null);
+    [selected, setSelected] = useState<string | null>(null),
+    [restoring, setRestoring] = useState<Row | null>(null),
+    [restored, setRestored] = useState<Row | null>(null);
   const user = useAuthStore((s) => s.user);
   const query = useQuery({
     queryKey: ["std-deletion-list", user?.id, history, page],
@@ -263,6 +322,17 @@ export function StudentDeletionPage({
           {t(history ? "deletion.archived" : "deletion.history")}
         </Link>
       </nav>
+      {restored && (
+        <p
+          role="status"
+          className="flex flex-wrap items-center gap-2 rounded border border-green-200 bg-green-50 p-3 text-sm text-green-800"
+        >
+          {t("deletion.restored", { name: restored.name })}
+          <Link className="underline" to={`/admin/std/${restored.id}`}>
+            {t("deletion.viewStudent")}
+          </Link>
+        </p>
+      )}
       {query.isError && <p role="alert">{t("deletion.loadError")}</p>}
       {query.isPending && <p>{t("common:status.loading")}</p>}
       {!query.isPending && !query.isError && query.data?.items.length === 0 && (
@@ -298,7 +368,9 @@ export function StudentDeletionPage({
                         {t(
                           r.action === "PURGE"
                             ? "deletion.purge"
-                            : "deletion.archive",
+                            : r.action === "RESTORE"
+                              ? "deletion.restore"
+                              : "deletion.archive",
                         )}
                       </span>
                       {r.counts &&
@@ -309,13 +381,24 @@ export function StudentDeletionPage({
                         ))}
                     </>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelected(r.id)}
-                    >
-                      {t("deletion.review")}
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setRestored(null);
+                          setRestoring(r);
+                        }}
+                      >
+                        {t("deletion.restore")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelected(r.id)}
+                      >
+                        {t("deletion.review")}
+                      </Button>
+                    </div>
                   )}
                 </td>
               </tr>
@@ -344,6 +427,16 @@ export function StudentDeletionPage({
       </div>
       {selected && (
         <DeletionDialog id={selected} purge onClose={() => setSelected(null)} />
+      )}
+      {restoring && (
+        <RestoreDialog
+          row={restoring}
+          onClose={() => setRestoring(null)}
+          onDone={(row) => {
+            setRestoring(null);
+            setRestored(row);
+          }}
+        />
       )}
     </div>
   );
