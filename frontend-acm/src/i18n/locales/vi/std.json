@@ -293,6 +293,13 @@
     "toggle": "Mở/đóng menu học sinh"
   },
   "classInfo": {
+    "calendarTitle": "Giáo viên theo lịch học",
+    "calendarHint": "Giáo viên có trong lịch học cùng học sinh này (90 ngày gần đây và sắp tới)",
+    "calendarNone": "Chưa có giáo viên nào liên kết qua lịch học.",
+    "calendarCount": "{{count}} buổi",
+    "calendarLast": "Gần nhất {{date}}",
+    "calendarNext": "Tiếp theo {{date}}",
+    "calendarNotAssigned": "Chưa phân công trong Quản lý học sinh",
     "noTeacher": "Chọn giáo viên để nhập thông tin lớp học.",
     "legacyTitle": "Thông tin cũ · cần gán giáo viên",
     "assign": "Gán thông tin cũ",

@@ -74,6 +74,18 @@ function StudentGrid() {
               <div className="mt-0.5 truncate text-xs text-secondary">
                 {[s.school, s.grade, s.subject].filter(Boolean).join(' · ') || '—'}
               </div>
+              {!!s.sources?.length && (
+                <div className="mt-1.5 flex flex-wrap justify-center gap-1">
+                  {s.sources.map((src) => (
+                    <span
+                      key={src}
+                      className="rounded bg-accent-50 px-1.5 py-0.5 text-xs text-accent-700"
+                    >
+                      {t(`portalApp.students.source.${src}`)}
+                    </span>
+                  ))}
+                </div>
+              )}
             </Link>
           ))}
         </div>

@@ -509,6 +509,8 @@ export interface TeacherStudent {
   subject: string | null;
   status: string;
   email: string | null;
+  /** REQ-261103D — 학생관리 배정 / 반 소속 / 수업일정 */
+  sources?: Array<'ASSIGNED' | 'CLASS' | 'CALENDAR'>;
 }
 
 export interface TeacherStudentDetail extends TeacherStudent {

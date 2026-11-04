@@ -25,6 +25,7 @@ import type {
   ChangeStudentSitesDto,
 } from './dto/student.dto';
 import { ParentService } from './parent.service';
+import { CAL_PAIRS_SQL } from './calendar-teachers';
 
 @Injectable()
 export class StudentService {
@@ -201,6 +202,40 @@ export class StudentService {
     return map;
   }
 
+  /** REQ-261103D — 수업일정에서 이 학생과 이어진 강사(최근 90일 ~ 앞으로). */
+  private async calendarTeachers(entId: string, stdId: string) {
+    const rows: Array<{
+      tch_id: string;
+      name: string;
+      event_count: string;
+      last_at: string | null;
+      next_at: string | null;
+      assigned: boolean;
+    }> = await this.ds.query(
+      `SELECT cp.tch_id, t.tch_name AS name, COUNT(*) AS event_count,
+              MAX(cp.evt_start_at) FILTER (WHERE cp.evt_start_at < now()) AS last_at,
+              MIN(cp.evt_start_at) FILTER (WHERE cp.evt_start_at >= now()) AS next_at,
+              EXISTS (SELECT 1 FROM amb_acm_std_student_teacher st
+                       WHERE st.ent_id = $1 AND st.std_id = $2
+                         AND st.tch_id = cp.tch_id) AS assigned
+         FROM (${CAL_PAIRS_SQL}) cp
+         JOIN amb_acm_tch_teacher t
+           ON t.tch_id = cp.tch_id AND t.ent_id = cp.ent_id AND t.deleted_at IS NULL
+        WHERE cp.ent_id = $1 AND cp.std_id = $2
+        GROUP BY cp.tch_id, t.tch_name
+        ORDER BY t.tch_name`,
+      [entId, stdId],
+    );
+    return rows.map((r) => ({
+      tchId: r.tch_id,
+      name: r.name,
+      eventCount: Number(r.event_count),
+      lastAt: r.last_at ? new Date(r.last_at).toISOString() : null,
+      nextAt: r.next_at ? new Date(r.next_at).toISOString() : null,
+      assigned: r.assigned,
+    }));
+  }
+
   /** dto 의 stdTeacherIds(신규) 또는 stdTeacherId(하위호환)를 배열로 정규화. */
   private normalizeTeacherIds(dto: {
     stdTeacherIds?: string[];
@@ -351,6 +386,7 @@ export class StudentService {
     return {
       ...this.toDetail(entity),
       teachers,
+      calendarTeachers: await this.calendarTeachers(entId, id),
       parents,
       sourceInquiry,
       ...(await readClassInfos(this.ds.manager, entity)),
@@ -612,12 +648,10 @@ export class StudentService {
     if (!dto.reason.trim())
       throw new BadRequestException('STATUS_CORRECTION_REASON');
     return this.ds.transaction(async (m) => {
-      const student = await m
-        .getRepository(StudentTypeormEntity)
-        .findOne({
-          where: { entId, id, deletedAt: IsNull() },
-          lock: { mode: 'pessimistic_write' },
-        });
+      const student = await m.getRepository(StudentTypeormEntity).findOne({
+        where: { entId, id, deletedAt: IsNull() },
+        lock: { mode: 'pessimistic_write' },
+      });
       if (!student) throw new NotFoundException('STUDENT_NOT_FOUND');
       const outOfOrder = await m.query(
         `SELECT 1 FROM amb_acm_std_status_history h JOIN amb_acm_std_status_history target ON target.ent_id=h.ent_id AND target.std_id=h.std_id WHERE target.ent_id=$1 AND target.std_id=$2 AND target.ssh_id=$3 AND ((h.ssh_sequence<target.ssh_sequence AND h.ssh_date>$4::date) OR (h.ssh_sequence>target.ssh_sequence AND h.ssh_date<$4::date)) LIMIT 1`,

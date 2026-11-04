@@ -206,7 +206,8 @@
       "links": "내 수업링크",
       "linksEdit": "수정",
       "linksSaveFailed": "저장하지 못했습니다. 다시 시도해 주세요.",
-      "linksNotAssigned": "학생관리에서 이 학생의 담당강사로 배정되어야 수업링크를 등록할 수 있습니다."
+      "linksNotAssigned": "학생관리 배정 또는 수업일정으로 이어진 학생에게만 수업링크를 등록할 수 있습니다.",
+      "source": {"ASSIGNED": "배정", "CLASS": "반", "CALENDAR": "수업일정"}
     },
     "record": {
       "title": "강의실 기록",

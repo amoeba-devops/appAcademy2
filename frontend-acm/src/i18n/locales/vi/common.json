@@ -206,7 +206,8 @@
       "links": "Liên kết lớp của tôi",
       "linksEdit": "Sửa",
       "linksSaveFailed": "Không lưu được. Vui lòng thử lại.",
-      "linksNotAssigned": "Bạn cần được phân công làm giáo viên của học sinh này trong Quản lý học sinh để thêm liên kết lớp."
+      "linksNotAssigned": "Bạn chỉ có thể thêm liên kết lớp cho học sinh được phân công trong Quản lý học sinh hoặc có trong lịch học.",
+      "source": {"ASSIGNED": "Phân công", "CLASS": "Lớp", "CALENDAR": "Lịch học"}
     },
     "record": {
       "title": "Nhật ký lớp học",

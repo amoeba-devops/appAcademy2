@@ -25,6 +25,15 @@ export interface StudentSummary {
   teacher?: string | null;
   /** REQ-260903B — 담당강사 복수 (sort 순, 첫번째 = 대표) */
   teachers?: Array<{ tchId: string; name: string }>;
+  /** REQ-261103D — 수업일정으로 이어진 강사(최근 90일 ~ 앞으로, 상세 전용) */
+  calendarTeachers?: Array<{
+    tchId: string;
+    name: string;
+    eventCount: number;
+    lastAt: string | null;
+    nextAt: string | null;
+    assigned: boolean;
+  }>;
   status: StdStatus;
   admissionDate?: string | null;
   withdrawnDate?: string | null;

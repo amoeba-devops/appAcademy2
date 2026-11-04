@@ -206,7 +206,8 @@
       "links": "My class links",
       "linksEdit": "Edit",
       "linksSaveFailed": "Could not save. Please try again.",
-      "linksNotAssigned": "You can add class links once you are assigned as this student's teacher in Student Management."
+      "linksNotAssigned": "You can add class links for students assigned to you in Student Management or linked through the class schedule.",
+      "source": {"ASSIGNED": "Assigned", "CLASS": "Class", "CALENDAR": "Schedule"}
     },
     "record": {
       "title": "Classroom record",

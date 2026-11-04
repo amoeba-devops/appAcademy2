@@ -206,7 +206,8 @@
       "links": "我的上课链接",
       "linksEdit": "修改",
       "linksSaveFailed": "保存失败，请重试。",
-      "linksNotAssigned": "需要在学生管理中被分配为该学生的任课教师后，才能添加上课链接。"
+      "linksNotAssigned": "仅可为在学生管理中分配给您或通过课程日程关联的学生添加上课链接。",
+      "source": {"ASSIGNED": "已分配", "CLASS": "班级", "CALENDAR": "课程日程"}
     },
     "record": {
       "title": "教室记录",

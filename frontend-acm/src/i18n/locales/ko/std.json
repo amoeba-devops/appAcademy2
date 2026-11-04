@@ -293,6 +293,13 @@
     "toggle": "학생관리 하위 메뉴 펼치기/접기"
   },
   "classInfo": {
+    "calendarTitle": "수업일정 강사",
+    "calendarHint": "최근 90일 ~ 앞으로의 수업일정에 학생과 함께 등록된 강사",
+    "calendarNone": "수업일정에 연결된 강사가 없습니다.",
+    "calendarCount": "일정 {{count}}회",
+    "calendarLast": "최근 {{date}}",
+    "calendarNext": "다음 {{date}}",
+    "calendarNotAssigned": "학생관리 미배정",
     "noTeacher": "담당강사를 연결하면 수업정보를 입력할 수 있습니다.",
     "legacyTitle": "기존 수업정보 · 강사 연결 필요",
     "assign": "기존 정보 배정",
