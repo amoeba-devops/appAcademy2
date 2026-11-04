@@ -42,10 +42,10 @@ const LEVEL_TEST_TYPES = [
 ] as const;
 type LevelTestType = (typeof LEVEL_TEST_TYPES)[number];
 
-/** 30-min slots 09:00 ~ 22:30 — same shape as the demo class picker. */
+/** 30-min slots 06:00 ~ 22:30 — same shape as the demo class picker. */
 const LEVEL_TEST_TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
-  for (let h = 9; h <= 22; h++) {
+  for (let h = 6; h <= 22; h++) {
     out.push(`${String(h).padStart(2, '0')}:00`);
     out.push(`${String(h).padStart(2, '0')}:30`);
   }

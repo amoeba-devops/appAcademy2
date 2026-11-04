@@ -28,7 +28,7 @@ import {
 
 const TIME_SLOTS: string[] = (() => {
   const out: string[] = [];
-  for (let h = 9; h <= 22; h++) {
+  for (let h = 6; h <= 22; h++) {
     out.push(`${String(h).padStart(2, '0')}:00`);
     out.push(`${String(h).padStart(2, '0')}:30`);
   }
