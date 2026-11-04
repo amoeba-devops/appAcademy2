@@ -308,6 +308,10 @@
     "assignHint": "Choose a target teacher to fill empty fields only. Review before saving."
   },
   "deletion": {
+    "restore": "Reactivate",
+    "restoreNotice": "Reactivate {{name}}?\nThe student returns to the student list. Status, assigned teachers, and consultation, class and payment records stay as they were before archiving.",
+    "restored": "{{name}} has been reactivated.",
+    "viewStudent": "View student",
     "archived": "Inactive students",
     "history": "Deletion history",
     "delete": "Delete student",

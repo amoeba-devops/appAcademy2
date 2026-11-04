@@ -134,6 +134,24 @@ export class StudentDeletionService {
       return { id };
     });
   }
+  /** REQ-261104 — 비활성화 해제. 상태·배정·기록은 비활성화 전 그대로, 이력 RESTORE. */
+  async restore(u: AcmCurrentUser, id: string) {
+    return this.ds.transaction(async (m) => {
+      const a = await this.actor(m, u);
+      await m.query(
+        'SELECT std_id FROM amb_acm_std_student WHERE ent_id=$1 AND std_id=$2 FOR UPDATE',
+        [u.entId, id],
+      );
+      const s = await this.student(m, u, id);
+      if (!s.archivedAt) return { id };
+      await m.query(
+        `UPDATE amb_acm_std_student SET std_archived_at=NULL,std_archived_by=NULL,deleted_at=NULL,updated_at=now() WHERE ent_id=$1 AND std_id=$2`,
+        [u.entId, id],
+      );
+      await this.audit(m, u, a, s, 'RESTORE', {});
+      return { id };
+    });
+  }
   private async plan(m: EntityManager, u: AcmCurrentUser, id: string) {
     const s = await this.student(m, u, id),
       ent = u.entId;

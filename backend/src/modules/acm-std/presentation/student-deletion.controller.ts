@@ -53,6 +53,12 @@ export class StudentDeletionController {
   ) {
     return this.service.preview(u, id);
   }
+  @Post(':id/restore') restore(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.service.restore(u, id);
+  }
   @Post(':id/purge') purge(
     @CurrentUser() u: AcmCurrentUser,
     @Param('id', ParseUUIDPipe) id: string,

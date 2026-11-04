@@ -308,6 +308,10 @@
     "assignHint": "选择目标教师，仅填写空字段。请检查后保存。"
   },
   "deletion": {
+    "restore": "重新启用",
+    "restoreNotice": "确定重新启用学生 {{name}}？\n该学生将重新出现在学生列表中，状态、分配的教师以及咨询、课程、收费记录均保持停用前的样子。",
+    "restored": "已重新启用学生 {{name}}。",
+    "viewStudent": "查看学生",
     "archived": "已停用学生",
     "history": "删除记录",
     "delete": "删除学生",
