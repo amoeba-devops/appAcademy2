@@ -105,7 +105,7 @@ const CATEGORY_METRICS: Record<DshCategory, MetricMeta[]> = {
       labelKr: '상담',
       labelEn: 'Counseling',
     },
-    { code: 'cs_apply', field: 'csApply', labelKr: '지원', labelEn: 'Apply' },
+    { code: 'cs_apply', field: 'csApply', labelKr: '맵테스트', labelEn: 'Map Test' },
     {
       code: 'cs_trial_class',
       field: 'csTrialClass',
