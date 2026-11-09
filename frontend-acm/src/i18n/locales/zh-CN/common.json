@@ -1903,7 +1903,10 @@
       "APP_ADMIN": "应用管理员"
     },
     "timezone": "时区",
-    "followTenant": "跟随学院默认时区 — {{tz}}",
+    "tenantTimezone": "学院时区",
+    "userTimezone": "自定义时区",
+    "noUserTimezone": "不使用（与学院相同）",
+    "viewCalendar": "查看日程",
     "timezoneHint": "时间按学院时区显示；若您的时区不同，将在括号中同时显示。",
     "preview": "当前时间预览：{{now}}",
     "save": "保存",

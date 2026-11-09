@@ -5,7 +5,6 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
-  CalendarRange,
   FolderOpen,
   Link2,
   LogOut,
@@ -22,10 +21,11 @@ import { useScrollHint } from "@/hooks/use-scroll-hint";
  * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
  * PLN-260719 C — 강사(TEACHER)에게는 수업일정 아래 "수강생관리" 메뉴 추가.
  * REQ-261103C — 학생·학부모에게는 수업일정 아래 "수업링크" 메뉴.
+ * REQ-261110B — 수업일정 메뉴 숨김(/portal/calendar 는 그대로, 마이페이지 [일정보기]).
  */
 const NAV = [
   { to: "/portal/notices", icon: Bell, key: "notices", end: false },
-  { to: "/portal/calendar", icon: CalendarRange, key: "calendar", end: false },
+  // REQ-261110B — 수업일정은 좌측 메뉴에서 숨김(화면은 유지, 마이페이지 [일정보기]로 진입)
   {
     to: "/portal/links",
     icon: Link2,

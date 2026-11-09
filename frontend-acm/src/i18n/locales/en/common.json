@@ -1903,7 +1903,10 @@
       "APP_ADMIN": "App admin"
     },
     "timezone": "Time zone",
-    "followTenant": "Use academy default — {{tz}}",
+    "tenantTimezone": "Academy time zone",
+    "userTimezone": "Custom time zone",
+    "noUserTimezone": "Not used (same as academy)",
+    "viewCalendar": "View schedule",
     "timezoneHint": "Times are shown in the academy time zone; if yours differs, it is shown in parentheses.",
     "preview": "Preview (now): {{now}}",
     "save": "Save",
