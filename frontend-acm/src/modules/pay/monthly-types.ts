@@ -43,6 +43,8 @@ export interface MonthlyStudentRow {
   discount: number | null;
   refunded: number | null;
   billIds: string[];
+  /** REQ-261112C — 미납이 남은 확정 청구 중 가장 이른 납부기한(YYYY-MM-DD). */
+  oldestUnpaidDue?: string | null;
   billCount: number;
   drafts: number;
   net: number | null;

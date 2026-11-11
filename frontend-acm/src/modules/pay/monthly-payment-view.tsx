@@ -7,20 +7,18 @@ import type { MonthlyPaymentResult, MonthlyStudentRow } from "./monthly-types";
 import { PayInFull, QuickAmount } from "./monthly-quick";
 const field = "rounded border bg-white px-3 py-2 text-sm whitespace-nowrap";
 export const monthlySites = ["ALL", "TPI", "TRINITY", "SANTACROCE"];
-export type MonthlyMode = "dashboard" | "view" | "edit";
+export type MonthlyMode = "view" | "edit";
 export function MonthlyPaymentView({
   identity,
   month,
   site,
   mode,
   initialStatus,
-  onFilter,
+  initialScope = "ENROLLED",
   onDetail,
   onEditBills,
-  onPickStudent,
   onImport,
   onExportBills,
-  onList,
   leading,
 }: {
   /** REQ-261112 — 필터 줄 맨 앞에 놓을 컨트롤(월별 납부 목록의 월·학원 선택). */
@@ -28,30 +26,27 @@ export function MonthlyPaymentView({
   identity: string;
   month: string;
   site: string;
-  /** REQ-261027C — dashboard: stats only · view: history list · edit: this month's billing. */
+  /** REQ-261027C — view: history list · edit: this month's billing. (대시보드는 REQ-261112C PayDashboard) */
   mode: MonthlyMode;
   initialStatus: string;
-  onFilter: (month: string, site: string) => void;
-  /** Dashboard cards jump to the monthly list filtered by status. */
-  onList: (status: string) => void;
+  /** REQ-261112C — 대시보드 퍼널 '기간 확인 필요'에서 들어오면 REVIEW. */
+  initialScope?: string;
   onDetail: (billIds: string[], readOnly: boolean) => void;
   /** REQ-261030 — quick add / edit / delete of this student's bills (default due passed). */
   onEditBills: (student: MonthlyStudentRow, due: string) => void;
-  onPickStudent: () => void;
   onImport: () => void;
   onExportBills: () => void;
 }) {
   const { t } = useTranslation("common");
   const tr = (key: string, o?: Record<string, unknown>) =>
     t(`payMonthly.${key}`, o);
-  const dashboard = mode === "dashboard",
-    editing = mode === "edit";
+  const editing = mode === "edit";
   const [due, setDue] = useState(`${month}-10`);
   // REQ-261102 — the monthly list row whose amount is being typed.
   const [amountFor, setAmountFor] = useState<string | null>(null);
   const view = mode === "view";
   // REQ-261112 — 월별 납부 목록도 해당 월 재원생 기준('전체 청구' 옵션 제거), 목록 100건 기본.
-  const [scope, setScope] = useState("ENROLLED"),
+  const [scope, setScope] = useState(initialScope),
     [size, setSize] = useState(view ? 100 : 50),
     [status, setStatus] = useState(initialStatus),
     [search, setSearch] = useState(""),
@@ -61,8 +56,8 @@ export function MonthlyPaymentView({
     month,
     site,
     scope,
-    status: (!dashboard && status) || undefined,
-    q: (!dashboard && search) || undefined,
+    status: status || undefined,
+    q: search || undefined,
     page,
     size,
   };
@@ -77,11 +72,6 @@ export function MonthlyPaymentView({
   });
   const result = query.data;
   const money = (n: number | null) => (n === null ? "—" : n.toLocaleString());
-  const change = (m: string, s: string) => {
-    if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(m)) return;
-    setPage(1);
-    onFilter(m, s);
-  };
   const exportRows = async () => {
     setDownloadError(false);
     try {
@@ -288,7 +278,7 @@ export function MonthlyPaymentView({
   );
   return (
     <section className="space-y-4">
-      {!dashboard && (
+      {(
         // Line ② of the list: search · filters · Excel (+ billing tools on bill details).
         <div
           className={`flex flex-wrap items-center gap-2 ${editing ? "sticky top-14 z-10 rounded border bg-white p-3 shadow-sm" : ""}`}
@@ -365,71 +355,7 @@ export function MonthlyPaymentView({
       )}
       {result && !query.isError && (
         <>
-          {dashboard && (
-            <>
-              <div className="flex flex-wrap items-center gap-2">
-                {scopeSelect}
-                <button className={field} onClick={onPickStudent}>
-                  {tr("pickStudent")}
-                </button>
-              </div>
-              <p className="text-sm text-secondary">{tr("basisHint")}</p>
-              <div className="flex flex-wrap gap-2">
-                {(
-                  [
-                    "enrolled",
-                    "missing",
-                    "draftStudents",
-                    "billed",
-                    "unpaidStudents",
-                  ] as const
-                ).map((k) => (
-                  <button
-                    className="rounded border bg-white p-3 text-left"
-                    key={k}
-                    onClick={() =>
-                      onList(
-                        k === "missing"
-                          ? "NONE"
-                          : k === "draftStudents"
-                            ? "DRAFT"
-                            : k === "unpaidStudents"
-                              ? "UNPAID"
-                              : k === "billed"
-                                ? "FINALIZED"
-                                : "",
-                      )
-                    }
-                  >
-                    <span className="block text-xs">{tr(k)}</span>
-                    <strong>{result.summary[k]}</strong>
-                  </button>
-                ))}
-                <button className={field} onClick={() => setScope("REVIEW")}>
-                  {tr("review")} {result.reviewCount}
-                </button>
-              </div>
-              <h2 className="font-semibold">{tr("cohortTotals")}</h2>
-              <div className="flex flex-wrap gap-2">
-                {(["net", "received", "unpaid", "rate"] as const).map((k) => (
-                  <div key={k} className="rounded border bg-white p-3">
-                    <span className="block text-xs">{tr(k)}</span>
-                    <strong>
-                      {k === "rate"
-                        ? result.summary.rate === null
-                          ? "—"
-                          : `${result.summary.rate.toFixed(1)}%`
-                        : money(result.summary[k])}
-                    </strong>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-secondary">
-                {tr("asOf")} {new Date(result.asOf).toLocaleString()} · KRW
-              </p>
-            </>
-          )}
-          {!dashboard ? (
+          {(
             <>
               {view && (
                 // REQ-261112 — 필터 결과 전체 합계 한 줄(납부한 학생 수 · 금액 합계).
@@ -488,96 +414,6 @@ export function MonthlyPaymentView({
                   ▶
                 </button>
               </div>
-            </>
-          ) : (
-            <>
-              <h2 className="font-semibold">{tr("ledgerTotals")}</h2>
-              <p>
-                {tr("net")} {money(result.ledger.net)} / {tr("received")}{" "}
-                {money(result.ledger.received)} / {tr("unpaid")}{" "}
-                {money(result.ledger.unpaid)}
-              </p>
-              <h2 className="font-semibold">{tr("cashBasis")}</h2>
-              <p>
-                {tr("paid")} {money(result.cash.paid)} / {tr("refunded")}{" "}
-                {money(result.cash.refunded)} / {tr("cashReceived")}{" "}
-                {money(result.cash.received)}
-              </p>
-              <h2 className="font-semibold">{tr("trend")}</h2>
-              <p className="text-xs">{tr("trendHint")}</p>
-              <div className="rounded border bg-white p-3 space-y-2">
-                {result.trend.map((r) => (
-                  <div
-                    key={r.month}
-                    className="grid grid-cols-[5rem_1fr] gap-2 text-xs"
-                  >
-                    <span>{r.month}</span>
-                    <div>
-                      <div
-                        className="h-2 bg-indigo-500"
-                        style={{
-                          width: `${(Math.max(0, r.net) / Math.max(1, ...result.trend.map((v) => Math.max(v.net, Math.abs(v.cash.received))))) * 100}%`,
-                        }}
-                      />
-                      <div
-                        className={
-                          r.cash.received < 0
-                            ? "h-2 bg-rose-500"
-                            : "h-2 bg-emerald-500"
-                        }
-                        style={{
-                          width: `${(Math.abs(r.cash.received) / Math.max(1, ...result.trend.map((v) => Math.max(v.net, Math.abs(v.cash.received))))) * 100}%`,
-                        }}
-                      />
-                      <span>
-                        {tr("net")} {money(r.net)} · {tr("cashReceived")}{" "}
-                        {money(r.cash.received)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <h2 className="font-semibold">{tr("siteComparison")}</h2>
-              <p className="text-xs">{tr("siteHint")}</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr>
-                      {[
-                        "site",
-                        "enrolled",
-                        "net",
-                        "unpaid",
-                        "cashReceived",
-                      ].map((k) => (
-                        <th className="p-2 text-left" key={k}>
-                          {tr(k)}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.sites.map((r) => (
-                      <tr className="border-t" key={r.site}>
-                        <td>
-                          <button
-                            className={field}
-                            onClick={() => change(month, r.site)}
-                          >
-                            {tr(r.site)}
-                          </button>
-                        </td>
-                        <td>{r.summary.enrolled}</td>
-                        <td>{money(r.ledger.net)}</td>
-                        <td>{money(r.ledger.unpaid)}</td>
-                        <td>{money(r.cash.received)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <h2 className="font-semibold">{tr("topUnpaid")}</h2>
-              {rows(result.topUnpaid)}
             </>
           )}
         </>

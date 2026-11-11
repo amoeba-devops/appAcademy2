@@ -1,4 +1,87 @@
 {
+  "dataQuality": {
+    "details": "상세"
+  },
+  "payDash": {
+    "basis": {
+      "label": "집계 기준",
+      "bill": "청구월 기준",
+      "paid": "실제 수납일 기준"
+    },
+    "meta": "KRW · 갱신 {{time}}",
+    "refresh": "새로고침",
+    "won": "원",
+    "banner": {
+      "review": "재원기간 확인 필요 {{count}}명",
+      "incomplete": "과거 이력이 불완전해 휴원·퇴원 합계는 미집계로 표시됩니다.",
+      "row": "{{month}} · 재원/날짜 확인 필요 {{review}} · 확인된 휴원 {{paused}} · 확인된 퇴원 {{withdrawn}}",
+      "link": "학생 정보에서 확인 →"
+    },
+    "stats": {
+      "title": "원생·수납 통계",
+      "collapse": "통계 접기",
+      "expand": "통계 펼치기"
+    },
+    "kpi": {
+      "title": "핵심 지표",
+      "net": "순청구액",
+      "received": "누적 순수납액",
+      "unpaid": "현재 미납액",
+      "rate": "수납률",
+      "prevNet": "전월 순청구",
+      "paid": "당월 납부",
+      "refunded": "당월 환불·취소",
+      "cashNet": "당월 순수납",
+      "prevCash": "전월 순수납",
+      "prev2Cash": "전전월 순수납",
+      "billMonth": "청구월 {{month}}",
+      "cumulative": "청구월 기준 누적",
+      "unpaidCount": "미납 {{count}}명",
+      "noBills": "청구 없음",
+      "rateHint": "순수납 ÷ 순청구",
+      "paidMonth": "실제 수납일 {{month}}",
+      "refundHint": "실제 처리일 기준",
+      "netOfRefund": "납부 − 환불·취소"
+    },
+    "funnel": {
+      "title": "청구 진행 현황",
+      "tag": "해당 월 재원생 기준",
+      "hint": "월 중 하루 이상 재원한 학생 기준 · 조회만으로 청구는 생성되지 않습니다.",
+      "enrolled": "월 재원생",
+      "missing": "청구 미등록",
+      "draft": "금액수정",
+      "billed": "확정 청구",
+      "unpaid": "미납",
+      "review": "기간 확인 필요",
+      "pick": "+ 학생 선택해 청구 ({{count}}명)"
+    },
+    "trend": {
+      "title": "최근 12개월 추이",
+      "net": "순청구액 (청구월)",
+      "cash": "순수납 (실제 수납월)"
+    },
+    "sites": {
+      "title": "사이트별 비교",
+      "hint": "인원은 재원 사이트, 금액은 청구 사이트 기준 · 이동 학생으로 합계가 고유 인원과 다를 수 있음",
+      "site": "사이트",
+      "enrolled": "재원생",
+      "net": "순청구액",
+      "unpaid": "미납액",
+      "cash": "순수납",
+      "rate": "수납률",
+      "total": "합계"
+    },
+    "top": {
+      "title": "미납 상위 10명",
+      "student": "학생",
+      "unpaid": "미납금",
+      "elapsed": "경과일",
+      "days": "{{count}}일",
+      "notDue": "기한 전",
+      "view": "보기",
+      "empty": "미납 학생이 없습니다"
+    }
+  },
   "numericInput": {
     "invalid": "올바른 숫자를 입력하세요."
   },
@@ -1315,24 +1398,12 @@
     "retry": "다시 시도",
     "enrolled": "월 재원생",
     "missing": "청구 미등록 학생",
-    "draftStudents": "금액수정 학생",
     "billed": "확정 청구 학생",
-    "unpaidStudents": "미납 학생",
     "review": "기간 확인 필요",
-    "cohortTotals": "선택 대상 · 청구월 기준",
-    "ledgerTotals": "선택 사이트 전체 원장 · 청구월 기준",
-    "cashBasis": "선택 사이트 전체 · 실제 수납일 기준",
     "paid": "당월 납부",
     "refunded": "당월 환불·취소",
-    "cashReceived": "당월 순수납",
-    "asOf": "현재 수납상태 조회 시각",
     "total": "전체 학생",
     "trend": "최근 12개월 추이",
-    "siteComparison": "사이트별 비교",
-    "topUnpaid": "선택 대상 미납 상위 10명",
-    "basisHint": "월 중 하루 이상 재원한 학생 기준입니다. 날짜 불명은 확인 필요로 분리합니다. 조회만으로 청구는 생성되지 않습니다.",
-    "trendHint": "선택 사이트 전체 원장입니다. 청구월 순청구와 실제 수납월 순수납은 서로 다른 기준입니다.",
-    "siteHint": "인원은 재원기간의 사이트, 금액은 청구 사이트 기준입니다. 이동 학생 때문에 사이트 인원 합계는 전체 고유 인원과 다를 수 있습니다.",
     "tab": {
       "dashboard": "대시보드·통계",
       "monthly": "월별 납부목록",
@@ -1345,7 +1416,6 @@
     "cancelInline": "취소",
     "inlineReason": "목록 직접 입력",
     "inlineResult": "저장 결과: 생성 {{created}} · 수정 {{updated}} · 실패 {{failed}}",
-    "pickStudent": "학생 선택해 청구",
     "inlineHint": "청구액·할인액 칸이나 [청구]를 누르면 그 학생의 청구 창이 열립니다. 청구가 없으면 입력 후 저장하면 바로 닫히고, 청구가 있으면 수정·삭제·추가·수납 입력을 할 수 있습니다. 금액수정 청구는 청구액을 넣고 Enter를 누르거나 칸을 벗어나면 바로 저장됩니다.",
     "col": {
       "no": "번호",
@@ -1375,8 +1445,6 @@
     "paidInFullReason": "완납 처리"
   },
   "payStats": {
-    "hideCharts": "통계 닫기",
-    "showCharts": "통계 보기",
     "title": "월별 통계",
     "population": "원생현황",
     "enrolled": "재원생",
@@ -1387,10 +1455,7 @@
     "numbers": "수치 보기",
     "month": "기준 월",
     "unknown": "확인 필요",
-    "historyNotice": "과거 이력이 불완전합니다. 확인된 수치는 전체가 아닐 수 있으며 휴원·퇴원 합계는 미집계로 표시합니다.",
     "review": "재원/날짜 확인 필요",
-    "knownPaused": "확인된 휴원",
-    "historyLink": "학생 정보에서 이력 확인",
     "collections": "수납현황",
     "paid": "완납",
     "unpaid": "미납",
@@ -1400,7 +1465,6 @@
     "canceled": "취소",
     "free": "0원·면제",
     "basis": "청구월 기준 · 현재 납부상태 · 확정된 양수 청구 건수 기준(부분납부는 미납)",
-    "updated": "갱신",
     "refresh": "새로고침",
     "error": "통계를 불러오지 못했습니다. 다시 시도해 주세요.",
     "statusHistory": "휴원·복귀·퇴원 이력",
@@ -1414,9 +1478,7 @@
     "statusError": "저장하지 못했습니다. 날짜 순서·미래 날짜·정정 사유를 확인하고 새로고침 후 다시 시도해 주세요.",
     "site": "사이트",
     "actions": "작업",
-    "baseline": "기존 상태",
-    "knownWithdrawn": "확인된 퇴원",
-    "historyNoticeSummary": "과거 이력 불완전 — 자세히 보기"
+    "baseline": "기존 상태"
   },
   "configAccess": {
     "loading": "권한 확인 중…",

@@ -168,6 +168,8 @@ export interface MonthlyRow extends MonthlyStudent {
   discount: number | null;
   refunded: number | null;
   billIds: string[];
+  /** REQ-261112C — earliest due date (YYYY-MM-DD) among finalized bills still unpaid. */
+  oldestUnpaidDue: string | null;
   billCount: number;
   drafts: number;
   net: number | null;
@@ -245,6 +247,12 @@ export function monthlyRows(
         ? bs.reduce((n, b) => n + (b.refunded || 0), 0)
         : null,
       billIds: bs.map((b) => b.id),
+      // REQ-261112C — 미납 상위 '경과일' 계산용: 미납이 남은 확정 청구 중 가장 이른 납부기한.
+      oldestUnpaidDue:
+        fixed
+          .filter((b) => (b.unpaid || 0) > 0 && b.due)
+          .map((b) => String(b.due).slice(0, 10))
+          .sort()[0] ?? null,
       billCount: bs.length,
       drafts,
       net,

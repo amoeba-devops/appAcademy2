@@ -176,5 +176,18 @@ describe('monthly payment membership and aggregation', () => {
     );
     expect(free[0].status).toBe('FREE');
     expect(summarize(free).drafts).toBe(0);
+    // REQ-261112C — 미납 상위 경과일: 미납이 남은 확정 청구의 가장 이른 납부기한.
+    const due = monthlyRows(
+      people,
+      [
+        { ...bill, amount: 100, net: 100, unpaid: 100, due: '2026-10-20', state: 'ACTIVE' },
+        { ...bill, id: 'c', amount: 100, net: 100, unpaid: 50, due: '2026-10-10', state: 'ACTIVE' },
+        { ...bill, id: 'd', amount: 100, net: 100, unpaid: 0, due: '2026-10-01', state: 'ACTIVE' },
+      ],
+      '2026-10',
+      'ALL',
+    );
+    expect(due[0].oldestUnpaidDue).toBe('2026-10-10');
+    expect(free[0].oldestUnpaidDue).toBeNull();
   });
 });

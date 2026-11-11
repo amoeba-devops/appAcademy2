@@ -1,4 +1,87 @@
 {
+  "dataQuality": {
+    "details": "Details"
+  },
+  "payDash": {
+    "basis": {
+      "label": "Basis",
+      "bill": "By billing month",
+      "paid": "By payment date"
+    },
+    "meta": "KRW · Updated {{time}}",
+    "refresh": "Refresh",
+    "won": " KRW",
+    "banner": {
+      "review": "{{count}} students need enrollment-period check",
+      "incomplete": "History is incomplete, so pause/withdrawal totals are shown as not counted.",
+      "row": "{{month}} · needs check {{review}} · confirmed paused {{paused}} · confirmed withdrawn {{withdrawn}}",
+      "link": "Check in student info →"
+    },
+    "stats": {
+      "title": "Enrollment & collection stats",
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
+    "kpi": {
+      "title": "Key metrics",
+      "net": "Net billed",
+      "received": "Collected to date",
+      "unpaid": "Outstanding now",
+      "rate": "Collection rate",
+      "prevNet": "Last month net billed",
+      "paid": "Paid this month",
+      "refunded": "Refunds / cancels this month",
+      "cashNet": "Net collected this month",
+      "prevCash": "Last month net collected",
+      "prev2Cash": "2 months ago net collected",
+      "billMonth": "Billing month {{month}}",
+      "cumulative": "Cumulative, billing-month basis",
+      "unpaidCount": "{{count}} students unpaid",
+      "noBills": "No bills",
+      "rateHint": "Net collected ÷ net billed",
+      "paidMonth": "Payment date {{month}}",
+      "refundHint": "By processed date",
+      "netOfRefund": "Paid − refunds/cancels"
+    },
+    "funnel": {
+      "title": "Billing progress",
+      "tag": "Students enrolled this month",
+      "hint": "Students enrolled at least one day in the month · Viewing never creates bills.",
+      "enrolled": "Enrolled",
+      "missing": "Not billed",
+      "draft": "Amount pending",
+      "billed": "Billed",
+      "unpaid": "Unpaid",
+      "review": "Period to check",
+      "pick": "+ Bill students ({{count}})"
+    },
+    "trend": {
+      "title": "Last 12 months",
+      "net": "Net billed (billing month)",
+      "cash": "Net collected (payment month)"
+    },
+    "sites": {
+      "title": "By site",
+      "hint": "Headcount by enrollment site, amounts by billing site · totals may differ from unique students when students move",
+      "site": "Site",
+      "enrolled": "Enrolled",
+      "net": "Net billed",
+      "unpaid": "Outstanding",
+      "cash": "Net collected",
+      "rate": "Rate",
+      "total": "Total"
+    },
+    "top": {
+      "title": "Top 10 outstanding",
+      "student": "Student",
+      "unpaid": "Outstanding",
+      "elapsed": "Days overdue",
+      "days": "{{count}} d",
+      "notDue": "Not due",
+      "view": "View",
+      "empty": "No students with outstanding balances"
+    }
+  },
   "numericInput": {
     "invalid": "Enter a valid number."
   },
@@ -1315,24 +1398,12 @@
     "retry": "Retry",
     "enrolled": "Monthly enrolled",
     "missing": "Students without bills",
-    "draftStudents": "Students with draft bills",
     "billed": "Students with finalized bills",
-    "unpaidStudents": "Students with balances",
     "review": "Review needed",
-    "cohortTotals": "Selected students · billing month",
-    "ledgerTotals": "All site bills · billing month",
-    "cashBasis": "All site transactions · payment date",
     "paid": "Payments this month",
     "refunded": "Refunds/reversals this month",
-    "cashReceived": "Net cash this month",
-    "asOf": "Balances as of",
     "total": "Total students",
     "trend": "Last 12 months",
-    "siteComparison": "Site comparison",
-    "topUnpaid": "Top 10 outstanding students in scope",
-    "basisHint": "Includes students enrolled for at least one day in the month. Uncertain dates require review. Viewing creates no bills.",
-    "trendHint": "All bills for the selected site. Billing-month charges and payment-month cash use different bases.",
-    "siteHint": "Headcounts use enrollment sites; money uses bill sites. Transfers may make site counts exceed unique totals.",
     "tab": {
       "dashboard": "Dashboard & stats",
       "monthly": "Monthly list",
@@ -1345,7 +1416,6 @@
     "cancelInline": "Cancel",
     "inlineReason": "Entered in list",
     "inlineResult": "Saved: created {{created}} · updated {{updated}} · failed {{failed}}",
-    "pickStudent": "Bill selected students",
     "inlineHint": "Click an amount, discount or [Bill] to open the student's bills. Without bills, saving the new bill closes the window; with bills you can edit, delete, add and record payments. For bills awaiting an amount, type it and press Enter or leave the field to save.",
     "col": {
       "no": "No.",
@@ -1375,8 +1445,6 @@
     "paidInFullReason": "Paid in full"
   },
   "payStats": {
-    "hideCharts": "Hide statistics",
-    "showCharts": "Show statistics",
     "title": "Monthly statistics",
     "population": "Student population",
     "enrolled": "Enrolled",
@@ -1387,10 +1455,7 @@
     "numbers": "View numbers",
     "month": "Month",
     "unknown": "Needs review",
-    "historyNotice": "History is incomplete. Known counts may be partial; pause and withdrawal totals are unavailable.",
     "review": "Enrollment/date review",
-    "knownPaused": "Known pauses",
-    "historyLink": "Review student history",
     "collections": "Collections",
     "paid": "Paid",
     "unpaid": "Unpaid",
@@ -1400,7 +1465,6 @@
     "canceled": "Canceled",
     "free": "Zero/exempt",
     "basis": "Billing month · Current payment status · Positive finalized bill counts (partial payments are unpaid)",
-    "updated": "Updated",
     "refresh": "Refresh",
     "error": "Unable to load statistics. Please retry.",
     "statusHistory": "Pause, return and withdrawal history",
@@ -1414,9 +1478,7 @@
     "statusError": "Unable to save. Check date order, future dates and correction reason, then refresh and retry.",
     "site": "Site",
     "actions": "Actions",
-    "baseline": "Baseline",
-    "knownWithdrawn": "Known withdrawals",
-    "historyNoticeSummary": "History incomplete — view details"
+    "baseline": "Baseline"
   },
   "configAccess": {
     "loading": "Checking access…",

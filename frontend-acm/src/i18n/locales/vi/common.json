@@ -1,4 +1,87 @@
 {
+  "dataQuality": {
+    "details": "Chi tiết"
+  },
+  "payDash": {
+    "basis": {
+      "label": "Cơ sở tính",
+      "bill": "Theo tháng hóa đơn",
+      "paid": "Theo ngày thu thực tế"
+    },
+    "meta": "KRW · Cập nhật {{time}}",
+    "refresh": "Làm mới",
+    "won": " ₩",
+    "banner": {
+      "review": "{{count}} học sinh cần kiểm tra thời gian học",
+      "incomplete": "Lịch sử chưa đầy đủ nên tổng bảo lưu/nghỉ học hiển thị là chưa tính.",
+      "row": "{{month}} · cần kiểm tra {{review}} · bảo lưu đã xác nhận {{paused}} · nghỉ học đã xác nhận {{withdrawn}}",
+      "link": "Kiểm tra trong thông tin học sinh →"
+    },
+    "stats": {
+      "title": "Thống kê học viên & thu phí",
+      "collapse": "Thu gọn",
+      "expand": "Mở rộng"
+    },
+    "kpi": {
+      "title": "Chỉ số chính",
+      "net": "Tổng hóa đơn ròng",
+      "received": "Đã thu lũy kế",
+      "unpaid": "Còn nợ hiện tại",
+      "rate": "Tỷ lệ thu",
+      "prevNet": "Hóa đơn ròng tháng trước",
+      "paid": "Đã nộp tháng này",
+      "refunded": "Hoàn/hủy tháng này",
+      "cashNet": "Thu ròng tháng này",
+      "prevCash": "Thu ròng tháng trước",
+      "prev2Cash": "Thu ròng 2 tháng trước",
+      "billMonth": "Tháng hóa đơn {{month}}",
+      "cumulative": "Lũy kế theo tháng hóa đơn",
+      "unpaidCount": "{{count}} học sinh còn nợ",
+      "noBills": "Chưa có hóa đơn",
+      "rateHint": "Thu ròng ÷ hóa đơn ròng",
+      "paidMonth": "Ngày thu {{month}}",
+      "refundHint": "Theo ngày xử lý",
+      "netOfRefund": "Đã nộp − hoàn/hủy"
+    },
+    "funnel": {
+      "title": "Tiến độ lập hóa đơn",
+      "tag": "Học sinh đang học trong tháng",
+      "hint": "Học sinh học ít nhất một ngày trong tháng · Chỉ xem không tạo hóa đơn.",
+      "enrolled": "Đang học",
+      "missing": "Chưa lập",
+      "draft": "Chờ số tiền",
+      "billed": "Đã lập",
+      "unpaid": "Còn nợ",
+      "review": "Cần kiểm tra",
+      "pick": "+ Lập hóa đơn ({{count}})"
+    },
+    "trend": {
+      "title": "12 tháng gần nhất",
+      "net": "Hóa đơn ròng (tháng hóa đơn)",
+      "cash": "Thu ròng (tháng thu)"
+    },
+    "sites": {
+      "title": "So sánh cơ sở",
+      "hint": "Số người theo cơ sở học, số tiền theo cơ sở lập hóa đơn · tổng có thể khác số học sinh khi chuyển cơ sở",
+      "site": "Cơ sở",
+      "enrolled": "Đang học",
+      "net": "Hóa đơn ròng",
+      "unpaid": "Còn nợ",
+      "cash": "Thu ròng",
+      "rate": "Tỷ lệ",
+      "total": "Tổng"
+    },
+    "top": {
+      "title": "10 học sinh nợ nhiều nhất",
+      "student": "Học sinh",
+      "unpaid": "Còn nợ",
+      "elapsed": "Số ngày quá hạn",
+      "days": "{{count}} ngày",
+      "notDue": "Chưa đến hạn",
+      "view": "Xem",
+      "empty": "Không có học sinh còn nợ"
+    }
+  },
   "numericInput": {
     "invalid": "Vui lòng nhập số hợp lệ."
   },
@@ -1315,24 +1398,12 @@
     "retry": "Thử lại",
     "enrolled": "Học viên trong tháng",
     "missing": "Học viên chưa có hóa đơn",
-    "draftStudents": "Học viên có hóa đơn nháp",
     "billed": "Học viên đã chốt hóa đơn",
-    "unpaidStudents": "Học viên còn nợ",
     "review": "Cần kiểm tra",
-    "cohortTotals": "Học viên đã chọn · tháng hóa đơn",
-    "ledgerTotals": "Mọi hóa đơn cơ sở · tháng hóa đơn",
-    "cashBasis": "Mọi giao dịch cơ sở · ngày thu",
     "paid": "Thu trong tháng",
     "refunded": "Hoàn/hủy trong tháng",
-    "cashReceived": "Thu thuần trong tháng",
-    "asOf": "Số dư cập nhật lúc",
     "total": "Tổng học viên",
     "trend": "Xu hướng 12 tháng",
-    "siteComparison": "So sánh cơ sở",
-    "topUnpaid": "10 học viên nợ cao nhất trong phạm vi",
-    "basisHint": "Bao gồm học viên học ít nhất một ngày trong tháng. Ngày chưa rõ cần kiểm tra. Xem không tạo hóa đơn.",
-    "trendHint": "Mọi hóa đơn cơ sở đã chọn. Phí theo tháng hóa đơn và thu theo tháng thanh toán khác cơ sở.",
-    "siteHint": "Số học viên theo cơ sở thời gian học; tiền theo cơ sở hóa đơn. Chuyển cơ sở có thể làm tổng số khác số duy nhất.",
     "tab": {
       "dashboard": "Tổng quan & thống kê",
       "monthly": "Danh sách theo tháng",
@@ -1345,7 +1416,6 @@
     "cancelInline": "Hủy",
     "inlineReason": "Nhập trực tiếp trong danh sách",
     "inlineResult": "Kết quả: tạo {{created}} · sửa {{updated}} · lỗi {{failed}}",
-    "pickStudent": "Chọn học sinh để lập hóa đơn",
     "inlineHint": "Bấm vào số tiền, giảm giá hoặc [Hóa đơn] để mở hóa đơn của học sinh. Chưa có hóa đơn: lưu xong cửa sổ tự đóng; đã có: có thể sửa, xóa, thêm và ghi thu tiền. Với hóa đơn chờ nhập số tiền, nhập rồi bấm Enter hoặc rời ô để lưu.",
     "col": {
       "no": "STT",
@@ -1375,8 +1445,6 @@
     "paidInFullReason": "Đóng đủ"
   },
   "payStats": {
-    "hideCharts": "Ẩn thống kê",
-    "showCharts": "Hiện thống kê",
     "title": "Thống kê hàng tháng",
     "population": "Tình hình học viên",
     "enrolled": "Đang học",
@@ -1387,10 +1455,7 @@
     "numbers": "Xem số liệu",
     "month": "Tháng",
     "unknown": "Cần kiểm tra",
-    "historyNotice": "Lịch sử chưa đầy đủ. Số đã biết có thể chưa đầy đủ; chưa tính tổng tạm nghỉ và nghỉ học.",
     "review": "Kiểm tra thời gian/ngày",
-    "knownPaused": "Tạm nghỉ đã xác nhận",
-    "historyLink": "Kiểm tra lịch sử học viên",
     "collections": "Thu học phí",
     "paid": "Đã thanh toán",
     "unpaid": "Chưa thanh toán",
@@ -1400,7 +1465,6 @@
     "canceled": "Đã hủy",
     "free": "Miễn/0 đồng",
     "basis": "Theo tháng hóa đơn · Trạng thái hiện tại · Đếm hóa đơn dương đã chốt (trả một phần tính chưa thanh toán)",
-    "updated": "Cập nhật",
     "refresh": "Làm mới",
     "error": "Không tải được thống kê. Vui lòng thử lại.",
     "statusHistory": "Lịch sử tạm nghỉ, quay lại và nghỉ học",
@@ -1414,9 +1478,7 @@
     "statusError": "Không lưu được. Kiểm tra thứ tự ngày, ngày tương lai và lý do sửa; làm mới rồi thử lại.",
     "site": "Cơ sở",
     "actions": "Thao tác",
-    "baseline": "Trạng thái ban đầu",
-    "knownWithdrawn": "Nghỉ học đã xác nhận",
-    "historyNoticeSummary": "Lịch sử chưa đầy đủ — xem chi tiết"
+    "baseline": "Trạng thái ban đầu"
   },
   "configAccess": {
     "loading": "Đang kiểm tra quyền…",
