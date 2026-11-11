@@ -28,7 +28,7 @@
     "createdAt": "생성일"
   },
   "examType": {
-    "MAP_TEST": "MAP 테스트",
+    "MAP_TEST": "맵테스트",
     "SSAT": "SSAT",
     "ISEE": "ISEE",
     "WRITING_COMP": "Writing Comp",

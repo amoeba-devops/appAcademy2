@@ -302,7 +302,7 @@
     "expandMenu": "Mở rộng menu",
     "collapseMenu": "Thu gọn menu",
     "mainMenu": "Menu chính",
-    "mapApply": "Đăng ký MAP test",
+    "mapApply": "Đăng ký Map Test",
     "pay": "Quản lý thu phí",
     "group": {
       "academy": "Quản lý học viện",
@@ -535,7 +535,7 @@
         },
         "operatorEmails": {
           "label": "Email nhận thông báo vận hành",
-          "hint": "Đăng ký MAP test mới sẽ được gửi tới các địa chỉ này. Phân tách bằng dấu phẩy; để trống sẽ không gửi."
+          "hint": "Đăng ký Map Test mới sẽ được gửi tới các địa chỉ này. Phân tách bằng dấu phẩy; để trống sẽ không gửi."
         }
       },
       "test": {
@@ -586,8 +586,8 @@
           "label": "Kích hoạt (cho phép gửi)"
         },
         "templateIdMapApply": {
-          "label": "ID mẫu tiếp nhận MAP test",
-          "hint": "Mẫu xác nhận đăng ký MAP test. Để trống sẽ không gửi AlimTalk. Biến giống như trên."
+          "label": "ID mẫu tiếp nhận Map Test",
+          "hint": "Mẫu xác nhận đăng ký Map Test. Để trống sẽ không gửi AlimTalk. Biến giống như trên."
         }
       },
       "test": {
