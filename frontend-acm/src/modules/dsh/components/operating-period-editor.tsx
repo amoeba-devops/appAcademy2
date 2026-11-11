@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
 import { Button } from "@/components/ui/button";
+import { Section } from "@/components/ui/section";
 interface Period {
   id: string | null;
   start: string | null;
@@ -47,21 +48,27 @@ export function OperatingPeriodEditor({
   });
   if (user?.role !== "ADMIN") return null;
   return (
-    <section className="bg-surface border rounded p-3 my-3">
-      <strong>
-        {t(kind === "STUDENT" ? "ops.periods" : "ops.employment")}
-      </strong>
-      <p className="text-xs text-secondary">{t("ops.periodHint")}</p>
-      {q.isError && <p role="alert">{t("loadFailed")}</p>}
+    // REQ-261112E — 공용 박스·입력칸 기준 (학생 상세·교사 등록 창 공통)
+    <Section
+      className="mt-4"
+      title={t(kind === "STUDENT" ? "ops.periods" : "ops.employment")}
+      description={t("ops.periodHint")}
+      bodyClassName="space-y-2 p-4 sm:p-5"
+    >
+      {q.isError && (
+        <p role="alert" className="text-sm text-red-700">
+          {t("loadFailed")}
+        </p>
+      )}
       {q.data?.map((p, i) => (
-        <div key={p.id ?? i} className="flex gap-2 text-sm py-1">
+        <div key={p.id ?? i} className="flex flex-wrap items-center gap-2 text-sm">
           <span>
             {p.site ?? "—"} · {p.start ?? "—"} ~ {p.end ?? "—"}{" "}
             {p.cancelled ? t("ops.cancelled") : ""}
           </span>
           <button
             type="button"
-            className="underline min-h-9 sm:min-h-0"
+            className="min-h-9 text-accent-600 underline sm:min-h-0"
             onClick={() => {
               save.reset();
               setEdit(p);
@@ -72,8 +79,10 @@ export function OperatingPeriodEditor({
           </button>
         </div>
       ))}
-      <button
+      <Button
         type="button"
+        size="sm"
+        variant="outline"
         onClick={() => {
           save.reset();
           setReplaceMaster(false);
@@ -88,11 +97,12 @@ export function OperatingPeriodEditor({
         }}
       >
         {t("ops.addPeriod")}
-      </button>
+      </Button>
       {edit && (
-        <div className="flex flex-wrap gap-2 mt-2">
+        <div className="flex flex-wrap items-end gap-2 border-t border-[var(--border-subtle)] pt-3">
           {kind === "STUDENT" && (
             <select
+              className="admin-field"
               aria-label={t("ops.site")}
               value={edit.site ?? ""}
               onChange={(e) =>
@@ -106,16 +116,18 @@ export function OperatingPeriodEditor({
             </select>
           )}
           <label>
-            {t("ops.start")}
+            <span className="admin-field-label">{t("ops.start")}</span>
             <input
+              className="admin-field"
               type="date"
               value={edit.start ?? ""}
               onChange={(e) => setEdit({ ...edit, start: e.target.value })}
             />
           </label>
           <label>
-            {t("ops.end")}
+            <span className="admin-field-label">{t("ops.end")}</span>
             <input
+              className="admin-field"
               type="date"
               value={edit.end ?? ""}
               onChange={(e) =>
@@ -124,7 +136,7 @@ export function OperatingPeriodEditor({
             />
           </label>
           {edit.id && (
-            <label>
+            <label className="flex h-9 items-center gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={edit.cancelled}
@@ -135,7 +147,11 @@ export function OperatingPeriodEditor({
               {t("ops.cancelled")}
             </label>
           )}
-          {save.isError && <p role="alert">{t("ops.saveFailed")}</p>}
+          {save.isError && (
+            <p role="alert" className="w-full text-sm text-red-700">
+              {t("ops.saveFailed")}
+            </p>
+          )}
           <Button
             type="button"
             disabled={save.isPending || !edit.start}
@@ -143,11 +159,11 @@ export function OperatingPeriodEditor({
           >
             {t("ops.save")}
           </Button>
-          <button type="button" className="min-h-9 sm:min-h-0" onClick={() => setEdit(null)}>
+          <Button type="button" variant="outline" onClick={() => setEdit(null)}>
             {t("ops.close")}
-          </button>
+          </Button>
         </div>
       )}
-    </section>
+    </Section>
   );
 }

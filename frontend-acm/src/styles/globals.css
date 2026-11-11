@@ -58,6 +58,25 @@
 .admin-content-full .admin-content-grid { max-width: none; }
 /* REQ-261112D — 폼·상세 화면: 카드 폭은 기본과 같게 두고 입력 영역만 768px(왼쪽). */
 .admin-form-width { width: 100%; min-width: 0; max-width: 768px; }
+/* REQ-261112E — 입력·선택 목록 표준(공용 Input 과 동일): 높이 36px, 14px, 모서리 6px, 흰 배경. */
+.admin-field {
+  display: block;
+  height: 2.25rem;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.375rem;
+  background: var(--bg-surface);
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+textarea.admin-field { height: auto; min-height: 4.5rem; padding: 0.5rem 0.75rem; }
+.admin-field:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--acm-accent-200, #c7d2fe); border-color: var(--acm-accent-500, #6366f1); }
+.admin-field:disabled { opacity: 0.6; cursor: not-allowed; }
+/* 박스 안 항목명(12px 보조색)·소제목(13px/600) */
+.admin-field-label { display: block; margin-bottom: 0.25rem; font-size: 0.75rem; color: var(--text-secondary); }
+.admin-subtitle { font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); }
 .admin-page-content :where(table) { background: var(--bg-surface); }
 /* UI-261019 — 표 머리글 표준: 배경 gray-50, 12px/600 보조색. */
 .admin-page-content thead th {

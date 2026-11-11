@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import { Section } from "@/components/ui/section";
 interface RecordData {
   id: string;
   updatedAt: string;
@@ -93,14 +94,13 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
       {query.data.map((record) => {
         const current = edit?.id === record.id ? edit : record;
         return (
-          <section
+          // REQ-261112E — 공용 박스 + 묶음은 소제목·구분선(중첩 박스 제거)
+          <Section
             key={record.id}
-            className="rounded-lg border border-[var(--border-subtle)] bg-surface p-4"
-          >
-            <div className="flex justify-between">
-              <h3 className="text-[13px] font-bold">
-                {t("withdrawn.recordTitle")}
-              </h3>
+            title={t("withdrawn.recordTitle")}
+            description={t("withdrawn.sourceHint")}
+            bodyClassName="divide-y divide-[var(--border-subtle)] px-4 sm:px-5"
+            actions={
               <Button
                 size="sm"
                 variant="outline"
@@ -112,10 +112,8 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
               >
                 {t("common:actions.edit")}
               </Button>
-            </div>
-            <p className="text-xs text-secondary my-2">
-              {t("withdrawn.sourceHint")}
-            </p>
+            }
+          >
             {[
               {
                 title: "form.sectionBasic",
@@ -185,23 +183,25 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                   "등록일",
                 ],
               },
-            ].map((group) => (
-              <div
-                key={group.title}
-                className="border rounded bg-surface p-3 mt-3"
-              >
-                <h4 className="text-[13px] font-bold mb-2">{t(group.title)}</h4>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            ]
+              .filter((group) =>
+                Object.keys(current.fields).some((key) =>
+                  group.keys.includes(key),
+                ),
+              )
+              .map((group) => (
+              <div key={group.title} className="py-4">
+                <h3 className="admin-subtitle mb-3">{t(group.title)}</h3>
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                   {Object.entries(current.fields)
                     .filter(([key]) => group.keys.includes(key))
                     .map(([key, value]) => (
-                      <div key={key}>
-                        <dt className="text-xs text-secondary">
+                      <div key={key} className="min-w-0">
+                        <dt className="admin-field-label">
                           <label htmlFor={`${record.id}-${key}`}>
                             {FIELD_LABEL_KEYS[key]
                               ? t(`withdrawn.fields.${FIELD_LABEL_KEYS[key]}`)
-                              : key}{" "}
-                            :
+                              : key}
                           </label>
                         </dt>
                         <dd className="text-sm break-words whitespace-pre-wrap">
@@ -209,6 +209,7 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                             typeof value === "boolean" ? (
                               <select
                                 id={`${record.id}-${key}`}
+                                className="admin-field w-full"
                                 value={String(value)}
                                 onChange={(e) =>
                                   setEdit({
@@ -223,12 +224,28 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
                                 <option value="true">O</option>
                                 <option value="false">X</option>
                               </select>
-                            ) : (
+                            ) : key === "메모" ? (
                               <textarea
                                 id={`${record.id}-${key}`}
                                 placeholder={t("detail.enterValue")}
-                                className="w-full border rounded p-1 bg-surface placeholder:italic placeholder:text-secondary"
-                                rows={key === "메모" ? 4 : 1}
+                                className="admin-field w-full placeholder:italic placeholder:text-secondary"
+                                rows={4}
+                                value={value == null ? "" : String(value)}
+                                onChange={(e) =>
+                                  setEdit({
+                                    ...edit,
+                                    fields: {
+                                      ...edit.fields,
+                                      [key]: e.target.value || null,
+                                    },
+                                  })
+                                }
+                              />
+                            ) : (
+                              <input
+                                id={`${record.id}-${key}`}
+                                placeholder={t("detail.enterValue")}
+                                className="admin-field w-full placeholder:italic placeholder:text-secondary"
                                 value={value == null ? "" : String(value)}
                                 onChange={(e) =>
                                   setEdit({
@@ -261,7 +278,7 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
               </div>
             ))}
             {edit?.id === record.id && (
-              <div className="flex justify-end gap-2 mt-4">
+              <div className="flex justify-end gap-2 py-4">
                 <Button
                   variant="outline"
                   disabled={save.isPending}
@@ -275,9 +292,11 @@ export function WithdrawnRecordPanel({ studentId }: { studentId: string }) {
               </div>
             )}
             {save.error && edit?.id === record.id && (
-              <p role="alert">{t("withdrawn.failed")}</p>
+              <p role="alert" className="py-3 text-sm text-red-700">
+                {t("withdrawn.failed")}
+              </p>
             )}
-          </section>
+          </Section>
         );
       })}
     </>

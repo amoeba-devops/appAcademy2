@@ -41,9 +41,9 @@ function InfoRow({
 }) {
   const { t } = useTranslation("std");
   return (
-    <div className="py-1.5 flex flex-wrap items-baseline gap-x-1">
-      <dt className="text-xs text-secondary">{label} :</dt>
-      <dd className="text-sm text-primary whitespace-pre-wrap break-words min-w-0">
+    <div className="min-w-0">
+      <dt className="admin-field-label">{label}</dt>
+      <dd className="text-sm text-primary whitespace-pre-wrap break-words">
         {displayStudentValue(value, t("detail.inputRequired"))}
       </dd>
     </div>
@@ -59,7 +59,7 @@ function Section({
 }) {
   return (
     <UiSection title={title}>
-      <dl className="grid grid-cols-1 gap-x-6 sm:grid-cols-3">{children}</dl>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">{children}</dl>
     </UiSection>
   );
 }
@@ -103,7 +103,7 @@ export function StdDetailPage() {
   };
 
   return (
-    <div className="w-full min-w-0 space-y-4 bg-canvas">
+    <div className="w-full min-w-0 space-y-4">
       {/* Header — UI-261019 P4 */}
       <PageHeader
         back={{
@@ -133,6 +133,10 @@ export function StdDetailPage() {
         meta={
           <>
             <StdStatusBadge status={student.status} />
+            <span className="text-xs text-secondary">
+              {t("detail.updatedAt")}{" "}
+              {new Date(student.updatedAt).toLocaleString()}
+            </span>
             {student.sourceInquiry && (
               <Link
                 to={`/admin/csl/${student.sourceInquiry.id}`}
@@ -221,68 +225,72 @@ export function StdDetailPage() {
         <InfoRow label={t("field.mapReading")} value={student.mapReading} />
         <InfoRow label={t("field.mapMath")} value={student.mapMath} />
         <InfoRow label={t("field.mapLanguage")} value={student.mapLanguage} />
-        <div className="col-span-1 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.mapNote")} :</dt>
+        <div className="col-span-2 sm:col-span-3">
+          <dt className="admin-field-label">{t("field.mapNote")}</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
             {displayStudentValue(student.mapNote, t("detail.inputRequired"))}
           </dd>
         </div>
       </Section>
 
-      {/* One independent profile per assigned teacher. */}
-      <div className="space-y-4">
-        <h2 className="text-[13px] font-bold">
-          {t("form.sectionClass")} ({student.teachers?.length ?? 0})
-        </h2>
+      {/* REQ-261112E — 수업 정보: 박스 하나 + 강사별 소제목 */}
+      <UiSection
+        title={`${t("form.sectionClass")} (${student.teachers?.length ?? 0})`}
+        bodyClassName="divide-y divide-[var(--border-subtle)] px-4 sm:px-5"
+      >
         {!student.teachers?.length && (
-          <Section title={t("form.sectionClass")}>
-            <InfoRow label={t("field.teacher")} value={student.teacher} />
-            <p className="col-span-full italic text-secondary">
+          <div className="py-4">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+              <InfoRow label={t("field.teacher")} value={student.teacher} />
+            </dl>
+            <p className="mt-2 text-sm italic text-secondary">
               {t("classInfo.noTeacher")}
             </p>
-          </Section>
+          </div>
         )}
         {student.teachers?.map((teacher) => {
           const info = student.teacherClassInfos?.find(
             (x) => x.tchId === teacher.tchId,
           );
           return (
-            <Section
-              key={teacher.tchId}
-              title={`${teacher.name} · ${t("form.sectionClass")}`}
-            >
-              <InfoRow label={t("field.teacher")} value={teacher.name} />
-              <InfoRow label={t("field.subject")} value={info?.subject} />
-              <InfoRow label={t("field.curriculum")} value={info?.curriculum} />
-              <div className="py-1.5 flex flex-wrap items-baseline gap-x-1 min-w-0">
-                <dt className="text-xs text-secondary">{t("field.meetingUrl")} :</dt>
-                <dd className="text-sm min-w-0 break-all">
-                  {info?.links?.length
-                    ? info.links.map((l, i) => (
-                        <a
-                          key={i}
-                          href={l.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mr-3 text-accent-600 underline"
-                        >
-                          {l.label ? `${l.label} · ` : ""}
-                          {l.url}
-                        </a>
-                      ))
-                    : displayStudentValue(null, t("detail.inputRequired"))}
-                </dd>
-              </div>
-            </Section>
+            <div key={teacher.tchId} className="py-4">
+              <h3 className="admin-subtitle mb-3">
+                {[teacher.name, info?.subject].filter(Boolean).join(" · ")}
+              </h3>
+              <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                <InfoRow label={t("field.subject")} value={info?.subject} />
+                <InfoRow label={t("field.curriculum")} value={info?.curriculum} />
+                <div className="min-w-0">
+                  <dt className="admin-field-label">{t("field.meetingUrl")}</dt>
+                  <dd className="text-sm break-all">
+                    {info?.links?.length
+                      ? info.links.map((l, i) => (
+                          <a
+                            key={i}
+                            href={l.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mr-3 block text-accent-600 underline"
+                          >
+                            {l.label ? `${l.label} · ` : ""}
+                            {l.url}
+                          </a>
+                        ))
+                      : displayStudentValue(null, t("detail.inputRequired"))}
+                  </dd>
+                </div>
+              </dl>
+            </div>
           );
         })}
         {/* REQ-261103D — 수업일정에서 이 학생과 함께 등록된 강사 */}
-        <Section title={t("classInfo.calendarTitle")}>
-          <p className="col-span-full text-xs text-secondary">
+        <div className="py-4">
+          <h3 className="admin-subtitle">{t("classInfo.calendarTitle")}</h3>
+          <p className="mt-0.5 text-xs text-secondary">
             {t("classInfo.calendarHint")}
           </p>
           {student.calendarTeachers?.length ? (
-            <ul className="col-span-full divide-y divide-[var(--border-subtle)]">
+            <ul className="mt-2 divide-y divide-[var(--border-subtle)]">
               {student.calendarTeachers.map((ct) => (
                 <li
                   key={ct.tchId}
@@ -313,39 +321,40 @@ export function StdDetailPage() {
               ))}
             </ul>
           ) : (
-            <p className="col-span-full text-sm italic text-secondary">
+            <p className="mt-2 text-sm italic text-secondary">
               {t("classInfo.calendarNone")}
             </p>
           )}
-        </Section>
+        </div>
         {student.classInfoLegacyPending && (
-          <Section title={t("classInfo.legacyTitle")}>
-            {LEGACY_VISIBLE.map((field) => (
-              <InfoRow
-                key={field}
-                label={t(`field.${field}`)}
-                value={student[field]}
-              />
-            ))}
-            <div className="col-span-full">
-              <Button variant="outline" onClick={openEdit}>
-                {t("classInfo.assign")}
-              </Button>
-            </div>
-          </Section>
+          <div className="py-4">
+            <h3 className="admin-subtitle mb-3">{t("classInfo.legacyTitle")}</h3>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+              {LEGACY_VISIBLE.map((field) => (
+                <InfoRow
+                  key={field}
+                  label={t(`field.${field}`)}
+                  value={student[field]}
+                />
+              ))}
+            </dl>
+            <Button variant="outline" size="sm" className="mt-3" onClick={openEdit}>
+              {t("classInfo.assign")}
+            </Button>
+          </div>
         )}
-      </div>
+      </UiSection>
 
       {/* 메모 */}
       <Section title={t("form.sectionMemo")}>
-        <div className="col-span-1 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.goalsNote")} :</dt>
+        <div className="col-span-2 sm:col-span-3">
+          <dt className="admin-field-label">{t("field.goalsNote")}</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
             {displayStudentValue(student.goalsNote, t("detail.inputRequired"))}
           </dd>
         </div>
-        <div className="col-span-1 sm:col-span-3 py-1.5">
-          <dt className="text-xs text-secondary">{t("field.specialNote")} :</dt>
+        <div className="col-span-2 sm:col-span-3">
+          <dt className="admin-field-label">{t("field.specialNote")}</dt>
           <dd className="text-sm text-primary whitespace-pre-wrap">
             {displayStudentValue(
               student.specialNote,
@@ -459,10 +468,6 @@ export function StdDetailPage() {
           ))}
         </div>
       </UiSection>
-
-      <p className="text-xs text-secondary">
-        {t("detail.updatedAt")}: {new Date(student.updatedAt).toLocaleString()}
-      </p>
 
       {id && <StatusHistoryPanel id={id} status={student.status} />}
       {id && <LifecycleEditor subjectKind="STUDENT" subjectId={id} />}

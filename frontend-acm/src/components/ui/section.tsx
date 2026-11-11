@@ -8,6 +8,8 @@ export function Section({
   children,
   className = "",
   bodyClassName = "p-4 sm:p-5",
+  id,
+  tabIndex,
 }: {
   title?: ReactNode;
   description?: ReactNode;
@@ -15,9 +17,12 @@ export function Section({
   children: ReactNode;
   className?: string;
   bodyClassName?: string;
+  /** 스크롤·포커스 대상(예: 학생 상세 상태 이력) */
+  id?: string;
+  tabIndex?: number;
 }) {
   return (
-    <section className={`min-w-0 rounded-lg border border-[var(--border-subtle)] bg-surface ${className}`}>
+    <section id={id} tabIndex={tabIndex} className={`min-w-0 rounded-lg border border-[var(--border-subtle)] bg-surface ${className}`}>
       {(title || actions) && (
         <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border-subtle)] px-4 py-3 sm:px-5">
           <div className="min-w-0">

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Section } from "@/components/ui/section";
 import { useAuthStore } from "@/stores/auth.store";
 import { TimeSelectInput, halfHourSlots } from "@/components/ui/time-select-input";
 
@@ -117,14 +119,17 @@ export function LifecycleEditor({
   });
   if (!allowed) return null;
   return (
-    <section className="border rounded p-4 my-4 space-y-3">
-      <h3 className="font-semibold">{t("life.editor")}</h3>
-      <p className="text-xs text-secondary">{t("life.evidenceHint")}</p>
-      <div className="grid md:grid-cols-3 gap-3">
+    // REQ-261112E — 공용 박스·입력칸 기준 (학생 상세·신규 상담 상세 공통)
+    <Section
+      title={t("life.editor")}
+      description={t("life.evidenceHint")}
+      bodyClassName="space-y-3 p-4 sm:p-5"
+    >
+      <div className="grid gap-3 md:grid-cols-3">
         <label>
-          {t("life.kind")}
+          <span className="admin-field-label">{t("life.kind")}</span>
           <select
-            className="block w-full border rounded p-2"
+            className="admin-field w-full"
             value={kind}
             onChange={(e) => {
               setKind(e.target.value);
@@ -151,18 +156,18 @@ export function LifecycleEditor({
           </select>
         </label>
         <label>
-          {t("life.date")}
+          <span className="admin-field-label">{t("life.date")}</span>
           <input
-            className="block border rounded p-2"
+            className="admin-field w-full"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
         <label>
-          {t("life.site")}
+          <span className="admin-field-label">{t("life.site")}</span>
           <select
-            className="block border rounded p-2"
+            className="admin-field w-full"
             value={site}
             onChange={(e) => setSite(e.target.value)}
           >
@@ -174,9 +179,9 @@ export function LifecycleEditor({
         {kind === "SCHEDULE" && (
           <>
             <label>
-              {t("life.status")}
+              <span className="admin-field-label">{t("life.status")}</span>
               <select
-                className="block border rounded p-2"
+                className="admin-field w-full"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
@@ -188,9 +193,9 @@ export function LifecycleEditor({
               </select>
             </label>
             <label>
-              {t("life.course")}
+              <span className="admin-field-label">{t("life.course")}</span>
               <input
-                className="block border rounded p-2"
+                className="admin-field w-full"
                 value={courseKey}
                 onChange={(e) => setCourse(e.target.value)}
               />
@@ -198,9 +203,9 @@ export function LifecycleEditor({
             {status === "SCHEDULED" && (
               <>
                 <label>
-                  {t("life.teacher")}
+                  <span className="admin-field-label">{t("life.teacher")}</span>
                   <select
-                    className="block border rounded p-2"
+                    className="admin-field w-full"
                     value={teacherId}
                     onChange={(e) => setTeacher(e.target.value)}
                   >
@@ -213,10 +218,10 @@ export function LifecycleEditor({
                   </select>
                 </label>
                 <label className="md:col-span-2">
-                  {t("life.scheduledAt")}
+                  <span className="admin-field-label">{t("life.scheduledAt")}</span>
                   <span className="flex flex-wrap items-start gap-2">
                     <input
-                      className="block border rounded p-2"
+                      className="admin-field"
                       type="date"
                       aria-label={t("life.scheduledAt")}
                       value={schedDate}
@@ -228,7 +233,7 @@ export function LifecycleEditor({
                       onChange={setSchedTime}
                       slots={SCHEDULE_SLOTS}
                       ariaLabel={t("life.scheduledTime")}
-                      controlClassName="h-[42px]"
+                      controlClassName="bg-surface"
                     />
                   </span>
                   {schedDate && !schedTime && (
@@ -242,9 +247,9 @@ export function LifecycleEditor({
         {related && (
           <>
             <label>
-              {t("life.relatedKind")}
+              <span className="admin-field-label">{t("life.relatedKind")}</span>
               <select
-                className="block border rounded p-2"
+                className="admin-field w-full"
                 value={relatedKind}
                 onChange={(e) => {
                   setRelatedKind(e.target.value);
@@ -261,9 +266,9 @@ export function LifecycleEditor({
               </select>
             </label>
             <label>
-              {t("life.name")}
+              <span className="admin-field-label">{t("life.name")}</span>
               <input
-                className="block border rounded p-2"
+                className="admin-field w-full"
                 value={q}
                 onChange={(e) => {
                   setQ(e.target.value);
@@ -272,7 +277,7 @@ export function LifecycleEditor({
               />
               <select
                 aria-label={t("life.select")}
-                className="block border rounded p-2 w-full"
+                className="admin-field mt-2 w-full"
                 value={relatedId}
                 onChange={(e) => setRelated(e.target.value)}
               >
@@ -288,9 +293,9 @@ export function LifecycleEditor({
         )}
         {kind === "RETURN" && (
           <label>
-            {t("life.stoppedDate")}
+            <span className="admin-field-label">{t("life.stoppedDate")}</span>
             <input
-              className="block border rounded p-2"
+              className="admin-field w-full"
               type="date"
               value={stoppedDate}
               onChange={(e) => setStopped(e.target.value)}
@@ -299,7 +304,7 @@ export function LifecycleEditor({
         )}
       </div>
       {kind !== "SCHEDULE" && (
-        <label className="block">
+        <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={verified}
@@ -308,9 +313,8 @@ export function LifecycleEditor({
           {t("life.verified")}
         </label>
       )}
-      <button
+      <Button
         type="button"
-        className="border rounded px-3 py-2"
         disabled={
           save.isPending ||
           !date ||
@@ -321,16 +325,24 @@ export function LifecycleEditor({
         onClick={() => save.mutate()}
       >
         {t("life.save")}
-      </button>
+      </Button>
       {(save.isError ||
         cancel.isError ||
         records.isError ||
         people.isError ||
-        teachers.isError) && <p role="alert">{t("life.error")}</p>}
-      {save.isSuccess && <p role="status">{t("life.saved")}</p>}
-      <ul className="text-sm space-y-2">
+        teachers.isError) && (
+        <p role="alert" className="text-sm text-red-700">
+          {t("life.error")}
+        </p>
+      )}
+      {save.isSuccess && (
+        <p role="status" className="text-sm text-secondary">
+          {t("life.saved")}
+        </p>
+      )}
+      <ul className="divide-y divide-[var(--border-subtle)] border-t border-[var(--border-subtle)] text-sm">
         {records.data?.map((r) => (
-          <li key={r.id}>
+          <li key={r.id} className="py-2">
             {r.date} · {t(`life.${r.kind}`)}{" "}
             {r.payload.status && t(`life.${r.payload.status}`)}{" "}
             {r.cancelledAt ? (
@@ -338,7 +350,7 @@ export function LifecycleEditor({
             ) : (
               <button
                 type="button"
-                className="underline ml-3 min-h-9 sm:min-h-0"
+                className="ml-3 min-h-9 text-accent-600 underline sm:min-h-0"
                 disabled={cancel.isPending}
                 onClick={() => cancel.mutate(r.id)}
               >
@@ -348,6 +360,6 @@ export function LifecycleEditor({
           </li>
         ))}
       </ul>
-    </section>
+    </Section>
   );
 }
