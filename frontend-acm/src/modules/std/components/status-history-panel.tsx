@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { Section } from "@/components/ui/section";
 interface History {
   id: string;
   previous: string | null;
@@ -12,7 +14,8 @@ interface History {
   revision: number;
   source: string;
 }
-const field = "rounded border bg-white p-2 text-sm";
+// REQ-261112E — 공용 입력칸 기준
+const field = "admin-field";
 export function StatusHistoryPanel({
   id,
   status,
@@ -66,13 +69,13 @@ export function StatusHistoryPanel({
     },
   });
   return (
-    <section
+    <Section
       id="student-status-history"
       tabIndex={-1}
-      className="space-y-3 rounded-lg border bg-white p-4"
+      title={tr("statusHistory")}
+      description={tr("historyHelp")}
+      bodyClassName="space-y-3 p-4 sm:p-5"
     >
-      <h2 className="font-semibold">{tr("statusHistory")}</h2>
-      <p className="text-sm text-secondary">{tr("historyHelp")}</p>
       <form
         className="flex flex-wrap items-end gap-2"
         onSubmit={(e) => {
@@ -80,8 +83,8 @@ export function StatusHistoryPanel({
           mutation.mutate();
         }}
       >
-        <label className="text-sm">
-          {tr("status")}
+        <label>
+          <span className="admin-field-label">{tr("status")}</span>
           <select
             className={field}
             disabled={!!editing}
@@ -95,8 +98,8 @@ export function StatusHistoryPanel({
             ))}
           </select>
         </label>
-        <label className="text-sm">
-          {tr("effectiveDate")}
+        <label>
+          <span className="admin-field-label">{tr("effectiveDate")}</span>
           <input
             required
             className={field}
@@ -107,8 +110,8 @@ export function StatusHistoryPanel({
           />
         </label>
         {editing && (
-          <label className="text-sm">
-            {tr("reason")}
+          <label>
+            <span className="admin-field-label">{tr("reason")}</span>
             <input
               required
               maxLength={500}
@@ -118,38 +121,38 @@ export function StatusHistoryPanel({
             />
           </label>
         )}
-        <button
-          className={field}
+        <Button
+          type="submit"
           disabled={mutation.isPending || (!editing && next === status)}
         >
           {tr(editing ? "correct" : "saveStatus")}
-        </button>
+        </Button>
         {editing && (
-          <button
+          <Button
             type="button"
-            className={field}
+            variant="outline"
             onClick={() => {
               setEditing(null);
               setDate(today);
             }}
           >
             {tr("cancel")}
-          </button>
+          </Button>
         )}
       </form>
       {mutation.isError && (
-        <p role="alert" className="text-red-700">
+        <p role="alert" className="text-sm text-red-700">
           {tr("statusError")}
         </p>
       )}
       {query.isError && <p role="alert">{tr("error")}</p>}
       {query.isPending && <p role="status">{t("status.loading")}</p>}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border border-[var(--border-subtle)]">
         <table className="w-full text-sm">
           <thead>
             <tr>
               {["status", "effectiveDate", "site", "actions"].map((k) => (
-                <th key={k} className="p-2 text-left">
+                <th key={k} className="px-3 py-2 text-left">
                   {tr(k)}
                 </th>
               ))}
@@ -157,16 +160,17 @@ export function StatusHistoryPanel({
           </thead>
           <tbody>
             {query.data?.map((h) => (
-              <tr key={h.id} className="border-t">
-                <td className="p-2">
+              <tr key={h.id} className="border-t border-[var(--border-subtle)]">
+                <td className="px-3 py-2">
                   {t(`std:status.${h.status}`)}
                   {h.source === "BASELINE" && ` (${tr("baseline")})`}
                 </td>
-                <td>{h.date || tr("unknown")}</td>
-                <td>{h.site || "—"}</td>
-                <td>
-                  <button
-                    className={field}
+                <td className="px-3 py-2">{h.date || tr("unknown")}</td>
+                <td className="px-3 py-2">{h.site || "—"}</td>
+                <td className="px-3 py-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
                     onClick={() => {
                       setEditing(h);
                       setDate(h.date || today);
@@ -174,13 +178,13 @@ export function StatusHistoryPanel({
                     }}
                   >
                     {tr("correct")}
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </section>
+    </Section>
   );
 }

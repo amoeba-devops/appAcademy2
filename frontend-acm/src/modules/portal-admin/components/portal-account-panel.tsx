@@ -80,7 +80,7 @@ export function PortalAccountPanel({
       value={pw}
       onChange={(e) => setPw(e.target.value)}
       placeholder={t('portalAccount.passwordPlaceholder', '비밀번호 (비우면 자동생성)')}
-      className="h-8 w-56 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-sm"
+      className="admin-field w-56"
     />
   );
 

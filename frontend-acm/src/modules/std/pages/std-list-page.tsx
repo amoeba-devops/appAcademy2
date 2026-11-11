@@ -22,6 +22,12 @@ import { StdTable, type StdSort } from "../components/std-table";
 import { StdImportModal } from "../components/std-import-modal";
 import { STD_SITES, type StudentCreatePrefill } from "../types";
 
+const SITE_PATHS: Record<string, string> = {
+  TPI: "tpi",
+  TRINITY: "trinity",
+  SANTACROCE: "santa-croce",
+};
+
 export function StdListPage({
   fixedSite,
   withdrawn = false,
@@ -74,11 +80,7 @@ export function StdListPage({
   useEffect(() => {
     if (withdrawn) return;
     const next = new URLSearchParams(params);
-    const paths: Record<string, string> = {
-      TPI: "tpi",
-      TRINITY: "trinity",
-      SANTACROCE: "santa-croce",
-    };
+    const paths = SITE_PATHS;
     if (params.get("status") === "WITHDRAWN") {
       if (fixedSite) next.set("site", fixedSite);
       next.delete("status");
@@ -115,6 +117,19 @@ export function StdListPage({
     if (reset) next.set("page", "1");
     setSelected([]);
     setParams(next, { replace: true });
+  };
+  // REQ-261112E — 사이트 탭: 재원 목록은 사이트 경로로 이동(필터 유지), 퇴원생은 ?site= 로 거름
+  const changeSite = (key: string) => {
+    if (withdrawn) return change({ site: key === "ALL" ? "" : key });
+    const next = new URLSearchParams(params);
+    next.delete("site");
+    next.set("page", "1");
+    const path = SITE_PATHS[key];
+    if (key === "UNASSIGNED") next.set("site", "UNASSIGNED");
+    setSelected([]);
+    navigate(`/admin/std${path ? `/${path}` : ""}?${next}`, {
+      state: location.state,
+    });
   };
   useEffect(() => {
     if (navPrefill) openCreate(navPrefill);
@@ -180,17 +195,11 @@ export function StdListPage({
       <PageHeader
         icon={UserRound}
         title={tc("nav.std")}
+        // REQ-261112E — 통합·사이트별·퇴원생 모두 같은 헤더, 뒤로 링크 없음
         description={
           withdrawn
             ? `${t("navigation.withdrawnTitle")} · ${tc("pageHeader.stdWithdrawn.desc")}`
-            : fixedSite
-              ? `${t(`site.${fixedSite}`)} · ${tc("pageHeader.std.desc")}`
-              : tc("pageHeader.std.desc")
-        }
-        back={
-          fixedSite || withdrawn
-            ? { to: "/admin/std", label: t("navigation.integrated") }
-            : undefined
+            : tc("pageHeader.std.desc")
         }
         actions={
           <>
@@ -213,18 +222,16 @@ export function StdListPage({
           </>
         }
         tabs={
-          !fixedSite ? (
-            <UnderlineTabs
-              label={t("site.label")}
-              items={["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => ({
-                key,
-                label: t(`site.${key}`),
-                count: data?.siteCounts?.[key],
-              }))}
-              value={site}
-              onChange={(key) => change({ site: key })}
-            />
-          ) : undefined
+          <UnderlineTabs
+            label={t("site.label")}
+            items={["ALL", ...STD_SITES, "UNASSIGNED"].map((key) => ({
+              key,
+              label: t(`site.${key}`),
+              count: data?.siteCounts?.[key],
+            }))}
+            value={site}
+            onChange={changeSite}
+          />
         }
       />
       <StdFilters
