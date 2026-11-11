@@ -43,7 +43,7 @@ export class TrialClassTypeormEntity {
 
   // ── REQ-260626 (DSN §3.2 ALTER — demo class) ───────────────────────────
 
-  /** FR-CSL-122 — 30-min granularity time (paired with heldAt). */
+  /** FR-CSL-122 — time (paired with heldAt). REQ-261111: any minute. */
   @Column({ name: 'tcl_held_time', type: 'time', nullable: true })
   heldTime?: string | null;
 

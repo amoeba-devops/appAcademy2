@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TimeSelectInput, halfHourSlots } from '@/components/ui/time-select-input';
 
 interface MapTest {
   id: string;
@@ -42,15 +43,8 @@ const LEVEL_TEST_TYPES = [
 ] as const;
 type LevelTestType = (typeof LEVEL_TEST_TYPES)[number];
 
-/** 30-min slots 06:00 ~ 22:30 — same shape as the demo class picker. */
-const LEVEL_TEST_TIME_SLOTS: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h <= 22; h++) {
-    out.push(`${String(h).padStart(2, '0')}:00`);
-    out.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  return out;
-})();
+/** 30-min slots 06:00 ~ 22:30 + 직접 입력 (REQ-261111). */
+const LEVEL_TEST_TIME_SLOTS = halfHourSlots(6, 22);
 
 type FormValues = {
   hasPriorScore: boolean;
@@ -258,19 +252,23 @@ export function MapTestPanel({
               )}
             </div>
 
-            <div className="grid grid-cols-[1fr_140px] gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_200px]">
               <Field label={t('detail.mapTest.scheduledAt')}>
                 <Input type="date" {...register('scheduledAt')} />
               </Field>
               <Field label={t('detail.mapTest.scheduledTime')}>
-                <Select {...register('scheduledTime')}>
-                  <option value="">—</option>
-                  {LEVEL_TEST_TIME_SLOTS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </Select>
+                <Controller
+                  control={control}
+                  name="scheduledTime"
+                  render={({ field }) => (
+                    <TimeSelectInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      slots={LEVEL_TEST_TIME_SLOTS}
+                      ariaLabel={t('detail.mapTest.scheduledTime')}
+                    />
+                  )}
+                />
               </Field>
             </div>
 

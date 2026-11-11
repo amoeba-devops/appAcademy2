@@ -5,6 +5,7 @@ import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TimeSelectInput, halfHourSlots } from "@/components/ui/time-select-input";
 import { AttachmentPanel } from "./attachment-panel";
 import { useAuthStore } from "@/stores/auth.store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
@@ -48,15 +49,8 @@ interface Teacher {
   name: string;
 }
 
-/** 30-min increment options 06:00 ~ 22:30 — 이른 아침 데모수업 허용. */
-const TIME_SLOTS: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h <= 22; h++) {
-    out.push(`${String(h).padStart(2, "0")}:00`);
-    out.push(`${String(h).padStart(2, "0")}:30`);
-  }
-  return out;
-})();
+/** 30-min increment options 06:00 ~ 22:30 + 직접 입력 (REQ-261111). */
+const TIME_SLOTS = halfHourSlots(6, 22);
 
 export function TrialClassPanel({ inqId }: { inqId: string }) {
   const { t, i18n } = useTranslation(["csl", "common"]);
@@ -216,7 +210,7 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
         <h3 className="text-xs font-semibold text-secondary mb-2">
           {t("detail.trial.addNew")}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_140px_minmax(0,1fr)_auto] gap-2 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-[minmax(0,1fr)_200px_minmax(0,1fr)_auto] gap-2 items-end">
           <div className="grid gap-1">
             <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
             <Input
@@ -227,17 +221,12 @@ export function TrialClassPanel({ inqId }: { inqId: string }) {
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t("detail.trial.heldTime")}</Label>
-            <Select
+            <TimeSelectInput
               value={heldTime}
-              onChange={(e) => setHeldTime(e.target.value)}
-            >
-              <option value="">—</option>
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </Select>
+              onChange={setHeldTime}
+              slots={TIME_SLOTS}
+              ariaLabel={t("detail.trial.heldTime")}
+            />
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t("detail.trial.teacher")}</Label>
@@ -388,7 +377,7 @@ function DemoClassRow({
 
       {/* Edit row — date + time + teacher. REQ-260903F: 날짜 수정 허용 +
           변경 시 연동 캘린더 일정이 자동 동기화된다. */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[150px_120px_minmax(0,1fr)_auto] gap-2 items-end mb-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-[150px_200px_minmax(0,1fr)_auto] gap-2 items-end mb-3">
         <div className="grid gap-1">
           <Label className="text-xs">{t("detail.trial.heldAt")}</Label>
           <Input
@@ -399,17 +388,12 @@ function DemoClassRow({
         </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t("detail.trial.heldTime")}</Label>
-          <Select
+          <TimeSelectInput
             value={editingTime}
-            onChange={(e) => setEditingTime(e.target.value)}
-          >
-            <option value="">—</option>
-            {TIME_SLOTS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </Select>
+            onChange={setEditingTime}
+            slots={TIME_SLOTS}
+            ariaLabel={t("detail.trial.heldTime")}
+          />
         </div>
         <div className="grid gap-1">
           <Label className="text-xs">{t("detail.trial.teacher")}</Label>

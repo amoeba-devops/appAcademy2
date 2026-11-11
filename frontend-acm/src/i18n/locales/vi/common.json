@@ -2,6 +2,12 @@
   "numericInput": {
     "invalid": "Vui lòng nhập số hợp lệ."
   },
+  "timeInput": {
+    "manual": "Nhập giờ",
+    "custom": "{{time}} · tự nhập",
+    "placeholder": "VD: 08:40",
+    "invalid": "Nhập giờ từ 00:00 đến 23:59 (VD: 08:40)"
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Quản lý Học viện"

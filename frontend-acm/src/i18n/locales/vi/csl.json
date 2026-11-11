@@ -188,7 +188,7 @@
       "dialog": {
         "title": "Lịch {{test}}",
         "date": "Ngày",
-        "time": "Giờ (30 phút)",
+        "time": "Giờ",
         "teacher": "Giáo viên",
         "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",
         "calHint": "Sẽ tự động đăng ký vào lịch lớp khi lưu.",
@@ -278,7 +278,7 @@
         "TOEFL_JR": "TOEFL Jr",
         "OTHER": "Khác"
       },
-      "scheduledTime": "Giờ dự thi (30 phút)",
+      "scheduledTime": "Giờ dự thi",
       "scoreDetail": "Chi tiết điểm (JSON)",
       "scoreDetailHint": "Nhập JSON theo lược đồ DSN §5.6 cho loại bài kiểm tra. Ví dụ ISEE: { \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
@@ -328,7 +328,7 @@
       "empty": "Chưa có lớp học thử.",
       "addNew": "Thêm lớp học thử",
       "heldAt": "Ngày dự kiến",
-      "heldTime": "Giờ (30 phút)",
+      "heldTime": "Giờ",
       "teacher": "Giáo viên phụ trách",
       "noTeacher": "Chưa chỉ định",
       "noTeachersHint": "Chưa có giáo viên — hãy thêm tại /admin/tch trước.",

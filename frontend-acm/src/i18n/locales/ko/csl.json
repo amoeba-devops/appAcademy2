@@ -188,7 +188,7 @@
       "dialog": {
         "title": "{{test}} 응시예정일 지정",
         "date": "날짜",
-        "time": "시간 (30분 단위)",
+        "time": "시간",
         "teacher": "담당강사",
         "noTeachersHint": "등록된 강사가 없습니다 — /admin/tch 에서 먼저 추가하세요.",
         "calHint": "저장 시 수업일정(CAL)에 자동 등록됩니다.",
@@ -278,7 +278,7 @@
         "TOEFL_JR": "TOEFL Jr",
         "OTHER": "기타"
       },
-      "scheduledTime": "응시 시간 (30분 단위)",
+      "scheduledTime": "응시 시간",
       "scoreDetail": "점수 상세 (JSON)",
       "scoreDetailHint": "DSN §5.6 의 시험 종류별 스키마를 JSON 으로 입력하세요. 예) ISEE: { \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
@@ -328,7 +328,7 @@
       "empty": "등록된 데모수업이 없습니다.",
       "addNew": "데모수업 추가",
       "heldAt": "예정일",
-      "heldTime": "시간 (30분)",
+      "heldTime": "시간",
       "teacher": "담당강사",
       "noTeacher": "강사 미지정",
       "noTeachersHint": "등록된 강사가 없습니다 — /admin/tch 에서 먼저 추가하세요.",

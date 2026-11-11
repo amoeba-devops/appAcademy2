@@ -51,8 +51,7 @@
     "assignee": "负责人/讲师",
     "assigneeNone": "未指定",
     "materials": "课程资料",
-    "endDate": "结束日期",
-    "timeManual": "手动输入"
+    "endDate": "结束日期"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 课程（教师 + 1 名学生）",

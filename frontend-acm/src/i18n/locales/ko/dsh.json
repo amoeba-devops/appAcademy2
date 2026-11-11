@@ -287,6 +287,8 @@
     "course": "수강건 구분 (변경 시 같은 값 사용)",
     "teacher": "담당 강사",
     "scheduledAt": "수업 예정일시 (한국 시간)",
+    "scheduledTime": "수업 예정 시간",
+    "timeRequired": "시간을 입력하세요",
     "select": "기록 선택",
     "relatedKind": "연결 대상",
     "name": "학생 / 소개자 이름 검색",

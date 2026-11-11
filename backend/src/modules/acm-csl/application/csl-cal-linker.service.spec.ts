@@ -255,4 +255,21 @@ describe('CslCalLinkerService', () => {
       }),
     );
   });
+  it('REQ-261111: 10분 단위·09시 이전 시각(08:40) 도 그대로 일정 시작에 반영', async () => {
+    await svc.linkDemoClass(
+      makeInq(),
+      makeTcl({ heldAt: '2026-07-08', heldTime: '08:40:00' }),
+      'u1',
+      'STAFF',
+    );
+    expect(calCreate).toHaveBeenCalledWith(
+      'e1',
+      'u1',
+      'STAFF',
+      expect.objectContaining({
+        evtStartAt: '2026-07-07T23:40:00.000Z', // 08:40 KST
+        evtEndAt: '2026-07-08T00:40:00.000Z',
+      }),
+    );
+  });
 });

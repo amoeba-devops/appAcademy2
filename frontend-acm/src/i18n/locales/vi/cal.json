@@ -51,8 +51,7 @@
     "assignee": "Phụ trách / Giáo viên",
     "assigneeNone": "Chưa chỉ định",
     "materials": "Tài liệu lớp học",
-    "endDate": "Ngày kết thúc",
-    "timeManual": "Nhập giờ"
+    "endDate": "Ngày kết thúc"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "Lớp 1:1 (giáo viên + 1 học viên)",

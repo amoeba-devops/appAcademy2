@@ -287,6 +287,8 @@
     "course": "Course identifier (same value for updates)",
     "teacher": "Teacher",
     "scheduledAt": "Class schedule (KST)",
+    "scheduledTime": "Giờ học",
+    "timeRequired": "Vui lòng nhập giờ",
     "select": "Select a record",
     "relatedKind": "Linked record type",
     "name": "Student / referrer name search",

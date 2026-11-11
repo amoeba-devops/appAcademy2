@@ -2,6 +2,12 @@
   "numericInput": {
     "invalid": "请输入有效数字。"
   },
+  "timeInput": {
+    "manual": "手动输入",
+    "custom": "{{time}} · 手动",
+    "placeholder": "例：08:40",
+    "invalid": "请输入 00:00~23:59 之间的时间（例：08:40）"
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"

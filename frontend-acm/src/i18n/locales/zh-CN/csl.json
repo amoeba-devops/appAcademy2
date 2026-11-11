@@ -188,7 +188,7 @@
       "dialog": {
         "title": "{{test}} 考试预定",
         "date": "日期",
-        "time": "时间（30 分钟）",
+        "time": "时间",
         "teacher": "负责教师",
         "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
         "calHint": "保存时将自动登记至课程日历。",
@@ -278,7 +278,7 @@
         "TOEFL_JR": "TOEFL Jr",
         "OTHER": "其他"
       },
-      "scheduledTime": "考试时间 (30 分钟)",
+      "scheduledTime": "考试时间",
       "scoreDetail": "分数详情 (JSON)",
       "scoreDetailHint": "按 DSN §5.6 的考试类型架构输入 JSON。例如 ISEE: { \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
@@ -328,7 +328,7 @@
       "empty": "尚未登记示范课。",
       "addNew": "添加示范课",
       "heldAt": "预定日期",
-      "heldTime": "时间 (30 分钟)",
+      "heldTime": "时间",
       "teacher": "指定教师",
       "noTeacher": "未指定",
       "noTeachersHint": "尚未注册任何教师 — 请先在 /admin/tch 添加。",
