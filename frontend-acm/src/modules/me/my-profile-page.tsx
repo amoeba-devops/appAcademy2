@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { UserCircle, UserRound } from "lucide-react";
+import { CalendarRange, UserCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDual } from "@/lib/tz";
@@ -84,24 +84,29 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
           </dl>
           <section className="grid gap-3 rounded-lg border bg-surface p-4 text-sm">
             <h2 className="font-semibold">{t("myPage.timezone")}</h2>
-            <select
-              className="h-9 w-full rounded-md border bg-canvas px-3"
-              aria-label={t("myPage.timezone")}
-              value={tz}
-              onChange={(e) => {
-                save.reset();
-                setTz(e.target.value);
-              }}
-            >
-              <option value="">
-                {t("myPage.followTenant", { tz: tzLabel(tenantTz, i18n.language) })}
-              </option>
-              {options.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            {/* REQ-261110B — 학원 기준(표시) / 사용자 지정(선택) 두 줄로 분리 */}
+            <div className="grid gap-1">
+              <span className="text-xs text-secondary">{t("myPage.tenantTimezone")}</span>
+              <span>{tzLabel(tenantTz, i18n.language)}</span>
+            </div>
+            <label className="grid gap-1">
+              <span className="text-xs text-secondary">{t("myPage.userTimezone")}</span>
+              <select
+                className="h-9 w-full rounded-md border bg-canvas px-3"
+                value={tz}
+                onChange={(e) => {
+                  save.reset();
+                  setTz(e.target.value);
+                }}
+              >
+                <option value="">{t("myPage.noUserTimezone")}</option>
+                {options.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
             <p className="text-xs text-secondary">{t("myPage.timezoneHint")}</p>
             <p className="text-xs">{t("myPage.preview", { now: preview })}</p>
             <div className="flex flex-wrap items-center justify-end gap-2">
@@ -119,6 +124,16 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
               </Button>
             </div>
           </section>
+          {/* REQ-261110B — 포털 좌측 메뉴에서 숨긴 수업일정 진입 버튼 */}
+          {mode === "portal" && (
+            <Link
+              to="/portal/calendar"
+              className="inline-flex h-9 w-fit items-center gap-2 rounded-md border bg-surface px-4 text-sm font-medium hover:bg-canvas"
+            >
+              <CalendarRange size={16} />
+              {t("myPage.viewCalendar")}
+            </Link>
+          )}
           {mode === "console" && (
             <>
               <ExtraProfileSection profile={p} />
