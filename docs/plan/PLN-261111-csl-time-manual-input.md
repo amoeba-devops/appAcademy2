@@ -70,7 +70,7 @@ Related: [REQ-261111](../analysis/REQ-261111-csl-time-manual-input.md)
 | T6 | 버그: 수업 예정일시 날짜+시간 분리 | `modules/dsh/components/lifecycle-editor.tsx` |
 | T7 | 4개 언어 문구 (`common` 네임스페이스 `timeInput.*`, `dsh` `life.timeRequired`) | `i18n/locales/{ko,en,vi,zh-CN}/` |
 | T8 | DTO 검증 완화 4곳 (`/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/`) | `backend/src/modules/acm-csl/application/dto/inquiry.dto.ts` |
-| T9 | DB CHECK 제거 마이그레이션 (멱등) | `sql/acm/1059-csl-time-any-minute.sql` (신규) |
+| T9 | DB CHECK 제거 마이그레이션 (멱등) | `sql/acm/1060-csl-time-any-minute.sql` (신규) |
 | T10 | 테스트: `normalizeTime` 단위 테스트, DTO `08:40` 허용·`25:00` 거부 테스트, 연동 캘린더 일정 `08:40` 시작 확인 | 기존 spec 옆 |
 | T11 | 로컬 확인 후 배포, 운영에서 08:40 데모수업 저장 → 수업일정 반영 확인 (확인용 데이터는 저장 후 원래 값으로 되돌림) | — |
 

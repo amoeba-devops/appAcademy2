@@ -402,7 +402,7 @@ export class UpsertMapTestDto {
 
   /**
    * FR-CSL-113 — Format: 'HH:MM' or 'HH:MM:SS' (TIME). REQ-261111 이후 분 제한 없음
-   * (30분 목록 + 직접 입력). DB CHECK 도 1059 에서 제거.
+   * (30분 목록 + 직접 입력). DB CHECK 도 1060 에서 제거.
    */
   @ApiPropertyOptional({ description: 'Time HH:MM (00:00~23:59)' })
   @IsOptional()
