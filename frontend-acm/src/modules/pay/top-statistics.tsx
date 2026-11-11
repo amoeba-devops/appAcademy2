@@ -304,69 +304,10 @@ export function PaymentTopStatistics({
         })
       ).data,
   });
-  const change = (m: string, s: string) => {
-    if (/^20\d{2}-(0[1-9]|1[0-2])$/.test(m)) onFilter(m, s);
-  };
-  const move = (n: number) => {
-    const d = new Date(`${month}-01T00:00:00Z`);
-    d.setUTCMonth(d.getUTCMonth() + n);
-    change(d.toISOString().slice(0, 7), site);
-  };
   return (
     <section className="min-w-0 space-y-3" aria-label={tr("title")}>
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          className={field}
-          aria-label={t("payMonthly.previousMonth")}
-          onClick={() => move(-1)}
-        >
-          ◀
-        </button>
-        <input
-          className={field}
-          aria-label={tr("month")}
-          type="month"
-          min="2000-01"
-          max="2099-12"
-          value={month}
-          onChange={(e) => change(e.target.value, site)}
-        />
-        <button
-          className={field}
-          aria-label={t("payMonthly.nextMonth")}
-          onClick={() => move(1)}
-        >
-          ▶
-        </button>
-        <button
-          className={field}
-          onClick={() =>
-            change(
-              new Intl.DateTimeFormat("en-CA", {
-                timeZone: "Asia/Seoul",
-                year: "numeric",
-                month: "2-digit",
-              })
-                .format(new Date())
-                .slice(0, 7),
-              site,
-            )
-          }
-        >
-          {t("payMonthly.thisMonth")}
-        </button>
-        <select
-          className={field}
-          aria-label={t("payMonthly.site")}
-          value={site}
-          onChange={(e) => change(month, e.target.value)}
-        >
-          {monthlySites.map((s) => (
-            <option key={s} value={s}>
-              {t(`payMonthly.${s}`)}
-            </option>
-          ))}
-        </select>
+        <MonthSiteFilter month={month} site={site} onFilter={onFilter} />
         {charts && (
           <>
             <button
@@ -400,5 +341,86 @@ export function PaymentTopStatistics({
           ))}
       </div>
     </section>
+  );
+}
+
+/**
+ * 월 이동(◀ 월 ▶ 이번 달) + 학원 선택. REQ-261112 — 월별 납부 목록은 이 컨트롤을
+ * 검색·필터와 같은 한 줄에 두기 위해 분리했다(Fragment 라 부모 flex 줄에 그대로 놓인다).
+ */
+export function MonthSiteFilter({
+  month,
+  site,
+  onFilter,
+}: {
+  month: string;
+  site: string;
+  onFilter: (month: string, site: string) => void;
+}) {
+  const { t } = useTranslation("common");
+  const tr = (k: string) => t(`payStats.${k}`);
+  const change = (m: string, s: string) => {
+    if (/^20\d{2}-(0[1-9]|1[0-2])$/.test(m)) onFilter(m, s);
+  };
+  const move = (n: number) => {
+    const d = new Date(`${month}-01T00:00:00Z`);
+    d.setUTCMonth(d.getUTCMonth() + n);
+    change(d.toISOString().slice(0, 7), site);
+  };
+  return (
+    <>
+      <button
+        className={field}
+        aria-label={t("payMonthly.previousMonth")}
+        onClick={() => move(-1)}
+      >
+        ◀
+      </button>
+      <input
+        className={field}
+        aria-label={tr("month")}
+        type="month"
+        min="2000-01"
+        max="2099-12"
+        value={month}
+        onChange={(e) => change(e.target.value, site)}
+      />
+      <button
+        className={field}
+        aria-label={t("payMonthly.nextMonth")}
+        onClick={() => move(1)}
+      >
+        ▶
+      </button>
+      <button
+        className={field}
+        onClick={() =>
+          change(
+            new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Asia/Seoul",
+              year: "numeric",
+              month: "2-digit",
+            })
+              .format(new Date())
+              .slice(0, 7),
+            site,
+          )
+        }
+      >
+        {t("payMonthly.thisMonth")}
+      </button>
+      <select
+        className={field}
+        aria-label={t("payMonthly.site")}
+        value={site}
+        onChange={(e) => change(month, e.target.value)}
+      >
+        {monthlySites.map((s) => (
+          <option key={s} value={s}>
+            {t(`payMonthly.${s}`)}
+          </option>
+        ))}
+      </select>
+    </>
   );
 }

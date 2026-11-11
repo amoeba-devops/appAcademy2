@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -21,7 +21,10 @@ export function MonthlyPaymentView({
   onImport,
   onExportBills,
   onList,
+  leading,
 }: {
+  /** REQ-261112 — 필터 줄 맨 앞에 놓을 컨트롤(월별 납부 목록의 월·학원 선택). */
+  leading?: ReactNode;
   identity: string;
   month: string;
   site: string;
@@ -46,8 +49,10 @@ export function MonthlyPaymentView({
   const [due, setDue] = useState(`${month}-10`);
   // REQ-261102 — the monthly list row whose amount is being typed.
   const [amountFor, setAmountFor] = useState<string | null>(null);
-  // History lookup includes every student with a bill that month.
-  const [scope, setScope] = useState(mode === "view" ? "ALL" : "ENROLLED"),
+  const view = mode === "view";
+  // REQ-261112 — 월별 납부 목록도 해당 월 재원생 기준('전체 청구' 옵션 제거), 목록 100건 기본.
+  const [scope, setScope] = useState("ENROLLED"),
+    [size, setSize] = useState(view ? 100 : 50),
     [status, setStatus] = useState(initialStatus),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(1),
@@ -59,6 +64,7 @@ export function MonthlyPaymentView({
     status: (!dashboard && status) || undefined,
     q: (!dashboard && search) || undefined,
     page,
+    size,
   };
   const query = useQuery({
     queryKey: ["pay", identity, "monthly", params],
@@ -271,11 +277,13 @@ export function MonthlyPaymentView({
         setPage(1);
       }}
     >
-      {["ENROLLED", "ALL_RECORDS", "REVIEW"].map((x, i) => (
-        <option key={x} value={["ENROLLED", "ALL", "REVIEW"][i]}>
-          {tr(x)}
-        </option>
-      ))}
+      {["ENROLLED", "ALL_RECORDS", "REVIEW"].map((x, i) =>
+        view && x === "ALL_RECORDS" ? null : (
+          <option key={x} value={["ENROLLED", "ALL", "REVIEW"][i]}>
+            {tr(x)}
+          </option>
+        ),
+      )}
     </select>
   );
   return (
@@ -285,8 +293,9 @@ export function MonthlyPaymentView({
         <div
           className={`flex flex-wrap items-center gap-2 ${editing ? "sticky top-14 z-10 rounded border bg-white p-3 shadow-sm" : ""}`}
         >
+          {leading}
           <input
-            className={field}
+            className={`${field} ${view ? "w-36" : ""}`}
             aria-label={tr("student")}
             placeholder={tr("student")}
             value={search}
@@ -297,6 +306,23 @@ export function MonthlyPaymentView({
           />
           {scopeSelect}
           {statusSelect}
+          {view && (
+            <select
+              className={field}
+              aria-label={tr("pageSize")}
+              value={size}
+              onChange={(e) => {
+                setSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              {[50, 100, 200].map((n) => (
+                <option key={n} value={n}>
+                  {tr("perPage", { count: n })}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             className={field}
             disabled={!result || query.isFetching}
@@ -405,7 +431,39 @@ export function MonthlyPaymentView({
           )}
           {!dashboard ? (
             <>
-              {rows(result.items, (page - 1) * 50, editing ? "edit" : "list")}
+              {view && (
+                // REQ-261112 — 필터 결과 전체 합계 한 줄(납부한 학생 수 · 금액 합계).
+                <div className="overflow-x-auto rounded border bg-white">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-xs text-secondary">
+                      <tr>
+                        {["label", "paidCount", "amount", "discount", "received", "unpaid", "refunded"].map((k) => (
+                          <th
+                            key={k}
+                            className={`${cell} font-medium ${k === "label" ? "text-left" : "text-right"}`}
+                          >
+                            {tr(`stats.${k}`)}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t font-semibold tabular-nums">
+                        <td className={cell}>{tr("stats.total")}</td>
+                        <td className={`${cell} text-right`}>
+                          {tr("stats.count", { count: result.summary.paidStudents ?? 0 })}
+                        </td>
+                        {(["amount", "discount", "received", "unpaid", "refunded"] as const).map((k) => (
+                          <td key={k} className={`${cell} text-right`}>
+                            {tr("stats.won", { value: (result.summary[k] ?? 0).toLocaleString() })}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {rows(result.items, (page - 1) * size, editing ? "edit" : "list")}
               <div className="flex items-center gap-3">
                 <span>
                   {tr("total")} {result.total}
@@ -420,7 +478,7 @@ export function MonthlyPaymentView({
                 <span>{page}</span>
                 <button
                   className={field}
-                  disabled={page * 50 >= result.total}
+                  disabled={page * size >= result.total}
                   onClick={() => setPage(page + 1)}
                 >
                   ▶

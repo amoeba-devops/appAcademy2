@@ -1260,6 +1260,20 @@
     }
   },
   "payMonthly": {
+    "pageSize": "Số dòng mỗi trang",
+    "perPage": "{{count}} dòng",
+    "stats": {
+      "label": "",
+      "paidCount": "Số HS đã nộp",
+      "amount": "Số tiền",
+      "discount": "Giảm giá",
+      "received": "Đã nộp (ròng)",
+      "unpaid": "Còn nợ",
+      "refunded": "Hoàn tiền",
+      "total": "Tổng",
+      "count": "{{count}}",
+      "won": "{{value}} ₩"
+    },
     "editBills": "Sửa hóa đơn",
     "FINALIZED": "Hóa đơn đã chốt",
     "monthly": "Xem theo tháng",

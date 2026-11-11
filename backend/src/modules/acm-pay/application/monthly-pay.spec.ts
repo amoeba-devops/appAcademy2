@@ -148,6 +148,16 @@ describe('monthly payment membership and aggregation', () => {
       unpaid: 180,
       refunded: 10,
     });
+    // REQ-261112 — 합계 줄: 납부한 학생 수·청구액·할인액·실납부·미납·환불.
+    expect(summarize([two, none[0]])).toMatchObject({
+      count: 2,
+      paidStudents: 1,
+      amount: 350,
+      discount: 20,
+      received: 150,
+      unpaid: 180,
+      refunded: 10,
+    });
     expect(none[0]).toMatchObject({
       amount: null,
       discount: null,

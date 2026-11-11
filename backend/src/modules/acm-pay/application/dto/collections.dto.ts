@@ -160,4 +160,6 @@ export class MonthlyPayQuery {
   status?: string;
   @IsOptional() @IsString() @MaxLength(100) q?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100000) page?: number;
+  /** REQ-261112 — 목록 크기 (기본 100). */
+  @IsOptional() @Type(() => Number) @IsIn([50, 100, 200]) size?: number;
 }

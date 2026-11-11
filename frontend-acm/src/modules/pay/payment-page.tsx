@@ -1,4 +1,4 @@
-import { PaymentTopStatistics } from "./top-statistics";
+import { MonthSiteFilter, PaymentTopStatistics } from "./top-statistics";
 import { MonthlyPaymentView, monthlySites } from "./monthly-payment-view";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -243,15 +243,14 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           </select>
           <p className="text-sm text-secondary">{tr("recordOnly")}</p>
         </div>
-      ) : (
+      ) : tab === "dashboard" ? (
         <PaymentTopStatistics
           identity={identity}
           month={month}
           site={site}
-          charts={tab === "dashboard"}
           onFilter={(m, s) => go({ month: m, site: s })}
         />
-      )}
+      ) : null}
       {exportError && (
         <p role="alert" className="text-red-700">
           {tr("failed")}
@@ -263,6 +262,16 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
         month={month}
         site={site}
         mode={tab === "dashboard" ? "dashboard" : tab === "monthly" ? "view" : "edit"}
+        // REQ-261112 — 월별 납부 목록은 월·학원 선택을 검색·필터와 한 줄로.
+        leading={
+          tab === "monthly" ? (
+            <MonthSiteFilter
+              month={month}
+              site={site}
+              onFilter={(m, s) => go({ month: m, site: s })}
+            />
+          ) : undefined
+        }
         initialStatus={url.get("status") || ""}
         onFilter={(m, s) => go({ month: m, site: s })}
         onList={(status) => go({ view: "monthly", status })}
