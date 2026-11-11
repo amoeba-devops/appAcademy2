@@ -1264,15 +1264,12 @@
     "perPage": "{{count}} per page",
     "stats": {
       "label": "",
+      "students": "Students",
       "paidCount": "Paid students",
-      "amount": "Billed",
-      "discount": "Discount",
-      "received": "Paid (net)",
-      "unpaid": "Outstanding",
-      "refunded": "Refunded",
       "total": "Total",
       "count": "{{count}}",
-      "won": "₩{{value}}"
+      "won": "₩{{value}}",
+      "people": "{{count}}"
     },
     "editBills": "Edit bills",
     "FINALIZED": "Finalized bills",

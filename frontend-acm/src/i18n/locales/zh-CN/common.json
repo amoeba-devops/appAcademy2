@@ -1264,15 +1264,12 @@
     "perPage": "每页 {{count}} 条",
     "stats": {
       "label": "",
+      "students": "学生数",
       "paidCount": "已缴人数",
-      "amount": "账单金额",
-      "discount": "折扣",
-      "received": "实缴金额",
-      "unpaid": "欠费",
-      "refunded": "退款",
       "total": "合计",
       "count": "{{count}} 人",
-      "won": "{{value}} 韩元"
+      "won": "{{value}} 韩元",
+      "people": "{{count}} 人"
     },
     "editBills": "编辑账单",
     "FINALIZED": "已确认账单",

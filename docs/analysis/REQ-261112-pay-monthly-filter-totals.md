@@ -1,8 +1,9 @@
 ---
 document_id: REQ-261112
-version: 1.0.0
+version: 1.1.0
 status: IMPLEMENTED
 change_log:
+  - 2026-11-12 v1.1.0 — REQ-261112B: 합계 줄에 학생수(해당 월 재원생 수) 추가, 금액 열 이름을 목록 열과 통일(실납부액·미납금·환불금)
   - 2026-11-12 v1.0.0 — 요청·결정(사용자 선택) 기록 및 구현
 ---
 
@@ -25,8 +26,8 @@ change_log:
 ## 3. Screen (화면)
 ```
 [◀][2026-12][▶][이번 달][전체 사이트▾][학생 검색][해당 월 재원생▾][전체 상태▾][100개씩▾][엑셀]
-┌ 구분 ┬ 수납건수 ┬ 청구액 ┬ 할인액 ┬ 실제 낸 금액 ┬ 미납(남은) 금액 ┬ 환불금액 ┐
-│ 합계 │ 86 건   │ 39,000,000 원 │ 130,000 원 │ 25,800,000 원 │ 13,200,000 원 │ 50,000 원 │
+┌ 구분 ┬ 학생수 ┬ 수납건수 ┬ 청구액 ┬ 할인액 ┬ 실납부액 ┬ 미납금 ┬ 환불금 ┐
+│ 합계 │ 130 명 │ 86 건   │ 39,000,000 원 │ 130,000 원 │ 25,800,000 원 │ 13,200,000 원 │ 50,000 원 │
 └──────┴─────────┴────────┴────────┴──────────────┴─────────────────┴──────────┘
 [번호 | 학생이름 | 사이트 | … 기존 12열 목록 …]
 ```
@@ -39,6 +40,7 @@ change_log:
 | FR-2 | 월별 납부 목록 대상 기본 `ENROLLED`, `ALL` 옵션 숨김. 청구 상세·대시보드는 변경 없음. | `monthly-payment-view.tsx` |
 | FR-3 | 목록 크기 50·100·200(기본 100), 번호·페이지 이동이 크기를 따름. 서버 `MonthlyPayQuery.size` (`IsIn [50,100,200]`, 기본 100). 청구 상세는 50 유지. | `backend/src/modules/acm-pay/application/{dto/collections.dto.ts,monthly-pay.ts}` |
 | FR-4 | 합계 줄: 서버 `summarize()` 에 `paidStudents`·`amount`·`discount`·`refunded` 추가(필터 결과 전체). 실제 낸 금액=`received`(납부−환불), 미납=`unpaid`. | `monthly-pay.ts`, `monthly-types.ts` |
+| FR-4B | (v1.1.0) 학생수 = `summary.enrolled`(필터 결과 중 해당 월 재원생 수), 구분과 수납건수 사이. 금액 열 이름은 목록 열 키 `payMonthly.col.*` 를 그대로 사용해 4개 언어 모두 목록과 같은 이름. | `monthly-payment-view.tsx` |
 | FR-5 | i18n `payMonthly.pageSize`·`perPage`·`stats.*` 4개 언어. | `i18n/locales/{ko,en,vi,zh-CN}/common.json` |
 
 ## 5. Verification (확인)
