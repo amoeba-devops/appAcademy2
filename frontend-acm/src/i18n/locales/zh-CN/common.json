@@ -58,7 +58,9 @@
     "trend": {
       "title": "近 12 个月趋势",
       "net": "净账单（账单月）",
-      "cash": "净收款（收款月）"
+      "cash": "净收款（收款月）",
+      "enrolled": "在读学生",
+      "people": "{{count}} 人"
     },
     "sites": {
       "title": "校区对比",

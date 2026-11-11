@@ -274,6 +274,21 @@ export function PayDashboard({
           ))}
       </section>
 
+      {/* ⑤ 12개월 추이 — REQ-261112B: 원생·수납 통계 바로 아래 */}
+      {r && (
+        <section className={card}>
+          <h2 className="font-semibold">{tr("trend.title")}</h2>
+          <div className="mb-2 mt-2 flex flex-wrap gap-4 text-xs text-secondary">
+            <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-indigo-600 align-[-1px]" />{tr("trend.net")}</span>
+            <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500 align-[-1px]" />{tr("trend.cash")}</span>
+            <span><i className="mr-1.5 inline-block h-0.5 w-3 bg-amber-500 align-[3px]" />{tr("trend.enrolled")}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <TrendChart trend={trend} selected={month} lang={lang} title={tr("trend.title")} money={money} won={tr("won")} netLabel={tr("trend.net")} cashLabel={tr("trend.cash")} enrolledLabel={tr("trend.enrolled")} people={(n) => tr("trend.people", { count: n })} />
+          </div>
+        </section>
+      )}
+
       {monthly.isPending && <p role="status">{t("status.loading")}</p>}
       {monthly.isError && (
         <p role="alert">
@@ -362,18 +377,6 @@ export function PayDashboard({
               >
                 {tr("funnel.pick", { count: r.summary.missing })}
               </button>
-            </div>
-          </section>
-
-          {/* ⑤ 12개월 추이 */}
-          <section className={card}>
-            <h2 className="font-semibold">{tr("trend.title")}</h2>
-            <div className="mb-2 mt-2 flex flex-wrap gap-4 text-xs text-secondary">
-              <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-indigo-600 align-[-1px]" />{tr("trend.net")}</span>
-              <span><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500 align-[-1px]" />{tr("trend.cash")}</span>
-            </div>
-            <div className="overflow-x-auto">
-              <TrendChart trend={trend} selected={month} lang={lang} title={tr("trend.title")} money={money} won={tr("won")} netLabel={tr("trend.net")} cashLabel={tr("trend.cash")} />
             </div>
           </section>
 
@@ -488,6 +491,8 @@ function TrendChart({
   won,
   netLabel,
   cashLabel,
+  enrolledLabel,
+  people,
 }: {
   trend: MonthlyPaymentResult["trend"];
   selected: string;
@@ -497,11 +502,13 @@ function TrendChart({
   won: string;
   netLabel: string;
   cashLabel: string;
+  enrolledLabel: string;
+  people: (n: number) => string;
 }) {
   const W = 720,
     H = 220,
     L = 56,
-    R = 8,
+    R = 40,
     T = 18,
     B = 28;
   const iw = W - L - R,
@@ -514,6 +521,19 @@ function TrendChart({
   const compact = new Intl.NumberFormat(lang, { notation: "compact", maximumFractionDigits: 1 });
   const y = (v: number) => T + ih - (ih * v) / max;
   const ticks = Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step);
+  // REQ-261112B — 재원생 수 꺾은선 (오른쪽 축).
+  const heads = trend.map((p) => p.enrolled ?? null);
+  const hasHeads = heads.some((n) => n !== null);
+  const hPeak = Math.max(1, ...heads.map((n) => n ?? 0));
+  const hStep = niceStep(hPeak / 3 || 1);
+  const hMax = hStep * Math.max(1, Math.ceil(hPeak / hStep));
+  const hy = (n: number) => T + ih - (ih * n) / hMax;
+  const hx = (i: number) => L + gw * i + gw / 2;
+  const hTicks = Array.from({ length: Math.round(hMax / hStep) + 1 }, (_, i) => i * hStep);
+  const line = heads
+    .map((n, i) => (n === null ? null : `${hx(i)},${hy(n)}`))
+    .filter(Boolean)
+    .join(" ");
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={title} className="h-auto max-h-[240px] min-w-[640px]">
       {ticks.map((v) => (
@@ -524,6 +544,12 @@ function TrendChart({
           </text>
         </g>
       ))}
+      {hasHeads &&
+        hTicks.map((n) => (
+          <text key={`h${n}`} x={W - R + 6} y={hy(n) + 4} textAnchor="start" fontSize="11" fill="#d97706">
+            {n}
+          </text>
+        ))}
       {trend.map((p, i) => {
         const cx = L + gw * i + gw / 2,
           on = p.month === selected,
@@ -558,6 +584,23 @@ function TrendChart({
           </g>
         );
       })}
+      {hasHeads && (
+        <g>
+          <polyline points={line} fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinejoin="round" />
+          {heads.map((n, i) =>
+            n === null ? null : (
+              <g key={`p${i}`}>
+                <circle cx={hx(i)} cy={hy(n)} r="3.5" fill="#fff" stroke="#f59e0b" strokeWidth="2">
+                  <title>{`${trend[i].month} ${enrolledLabel} ${people(n)}`}</title>
+                </circle>
+                <text x={hx(i)} y={hy(n) - 8} textAnchor="middle" fontSize="10" fill="#b45309" fontWeight="600">
+                  {people(n)}
+                </text>
+              </g>
+            ),
+          )}
+        </g>
+      )}
     </svg>
   );
 }

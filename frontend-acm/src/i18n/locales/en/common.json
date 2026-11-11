@@ -58,7 +58,9 @@
     "trend": {
       "title": "Last 12 months",
       "net": "Net billed (billing month)",
-      "cash": "Net collected (payment month)"
+      "cash": "Net collected (payment month)",
+      "enrolled": "Enrolled students",
+      "people": "{{count}}"
     },
     "sites": {
       "title": "By site",
