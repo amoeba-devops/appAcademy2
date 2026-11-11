@@ -188,7 +188,7 @@
       "dialog": {
         "title": "{{test}} schedule",
         "date": "Date",
-        "time": "Time (30-min slot)",
+        "time": "Time",
         "teacher": "Assigned teacher",
         "noTeachersHint": "No teachers registered — add one in /admin/tch first.",
         "calHint": "Will be registered on the class calendar automatically.",
@@ -278,7 +278,7 @@
         "TOEFL_JR": "TOEFL Jr",
         "OTHER": "Other"
       },
-      "scheduledTime": "Scheduled time (30-min)",
+      "scheduledTime": "Scheduled time",
       "scoreDetail": "Score detail (JSON)",
       "scoreDetailHint": "Provide JSON per DSN §5.6 schema for the test type. e.g. ISEE: { \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
       "scoreDetailPlaceholder": "{ \"verbal\": { \"scaled\": 850, \"percentile\": 75, \"stanine\": 6 } }",
@@ -328,7 +328,7 @@
       "empty": "No demo classes yet.",
       "addNew": "Add demo class",
       "heldAt": "Scheduled date",
-      "heldTime": "Time (30-min)",
+      "heldTime": "Time",
       "teacher": "Assigned teacher",
       "noTeacher": "Unassigned",
       "noTeachersHint": "No teachers registered — add one in /admin/tch first.",

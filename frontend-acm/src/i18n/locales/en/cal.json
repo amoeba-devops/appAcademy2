@@ -51,8 +51,7 @@
     "assignee": "In charge / Teacher",
     "assigneeNone": "Unassigned",
     "materials": "Class materials",
-    "endDate": "End date",
-    "timeManual": "Type time"
+    "endDate": "End date"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 class (teacher + 1 student)",

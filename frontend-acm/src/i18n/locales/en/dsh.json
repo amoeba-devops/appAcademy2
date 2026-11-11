@@ -287,6 +287,8 @@
     "course": "Course identifier (same value for updates)",
     "teacher": "Teacher",
     "scheduledAt": "Class schedule (KST)",
+    "scheduledTime": "Class time",
+    "timeRequired": "Enter a time",
     "select": "Select a record",
     "relatedKind": "Linked record type",
     "name": "Student / referrer name search",

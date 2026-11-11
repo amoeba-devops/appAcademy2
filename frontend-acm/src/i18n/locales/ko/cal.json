@@ -51,8 +51,7 @@
     "assignee": "담당자/강사",
     "assigneeNone": "미지정",
     "materials": "수업 자료",
-    "endDate": "종료일",
-    "timeManual": "직접 입력"
+    "endDate": "종료일"
   },
   "bodaRoomType": {
     "ONE_TO_ONE": "1:1 수업 (강사+학생 1명)",

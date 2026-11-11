@@ -25,7 +25,7 @@ import { TrialClassTypeormEntity } from '../infrastructure/typeorm/trial-class.t
  *     the event's start/end are UPDATED on re-schedule; a deleted linked
  *     event clears the id and a fresh one is created (self-heal).
  *   - Time math: the panel sends `scheduledAt` (date) + `scheduledTime`
- *     (HH:MM, 30-min) as tenant-timezone wall clock; we convert to a real
+ *     (HH:MM) as tenant-timezone wall clock; we convert to a real
  *     UTC instant via TenantSettingsService (REQ-260903F — the old naive
  *     string was parsed in server TZ and drifted +9h on UTC prod).
  *     **60-minute default duration** for both leveltest and demo.

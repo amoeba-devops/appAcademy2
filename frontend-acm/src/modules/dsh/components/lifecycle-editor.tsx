@@ -3,6 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/stores/auth.store";
+import { TimeSelectInput, halfHourSlots } from "@/components/ui/time-select-input";
+
+// REQ-261111 — 수업 예정일시: 날짜 + 시간(30분 목록·직접 입력) 분리. datetime-local 은 브라우저에 따라 시간 입력 불가.
+const SCHEDULE_SLOTS = halfHourSlots(6, 23);
 interface Person {
   id: string;
   name: string;
@@ -33,7 +37,10 @@ export function LifecycleEditor({
   const [site, setSite] = useState("COMMON");
   const [status, setStatus] = useState("SCHEDULING");
   const [teacherId, setTeacher] = useState("");
-  const [scheduledAt, setScheduled] = useState("");
+  const [schedDate, setSchedDate] = useState("");
+  const [schedTime, setSchedTime] = useState("");
+  const scheduledAt = schedDate && schedTime ? `${schedDate}T${schedTime}` : "";
+  const needsSchedule = kind === "SCHEDULE" && status === "SCHEDULED";
   const [courseKey, setCourse] = useState("");
   const [relatedKind, setRelatedKind] = useState("STUDENT");
   const [q, setQ] = useState("");
@@ -205,14 +212,28 @@ export function LifecycleEditor({
                     ))}
                   </select>
                 </label>
-                <label>
+                <label className="md:col-span-2">
                   {t("life.scheduledAt")}
-                  <input
-                    className="block border rounded p-2"
-                    type="datetime-local"
-                    value={scheduledAt}
-                    onChange={(e) => setScheduled(e.target.value)}
-                  />
+                  <span className="flex flex-wrap items-start gap-2">
+                    <input
+                      className="block border rounded p-2"
+                      type="date"
+                      aria-label={t("life.scheduledAt")}
+                      value={schedDate}
+                      onChange={(e) => setSchedDate(e.target.value)}
+                    />
+                    <TimeSelectInput
+                      className="w-[12rem]"
+                      value={schedTime}
+                      onChange={setSchedTime}
+                      slots={SCHEDULE_SLOTS}
+                      ariaLabel={t("life.scheduledTime")}
+                      controlClassName="h-[42px]"
+                    />
+                  </span>
+                  {schedDate && !schedTime && (
+                    <span className="block text-xs text-red-600">{t("life.timeRequired")}</span>
+                  )}
                 </label>
               </>
             )}
@@ -294,6 +315,7 @@ export function LifecycleEditor({
           save.isPending ||
           !date ||
           (related && !relatedId) ||
+          (needsSchedule && (!teacherId || !scheduledAt)) ||
           (kind !== "SCHEDULE" && !verified)
         }
         onClick={() => save.mutate()}

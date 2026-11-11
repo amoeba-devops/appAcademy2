@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { Calendar, Clock, ClipboardCopy, Copy, LogIn, Mail, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { TimeSelectInput, halfHourSlots } from '@/components/ui/time-select-input';
 import {
   Dialog,
   DialogContent,
@@ -108,19 +109,8 @@ const timePart = (s: string): string => (s && s.includes('T') ? s.slice(11, 16) 
 const joinDateTime = (date: string, time: string): string =>
   date ? `${date}T${time || '00:00'}` : '';
 
-// PLN-260718 — 시간은 셀렉트 리스트(06:00~23:30, 30분 간격)로 선택.
-const TIME_OPTIONS: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h <= 23; h++) {
-    for (const m of [0, 30]) {
-      out.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-    }
-  }
-  return out;
-})();
-// 저장된 값이 30분 슬롯이 아니면(기존 이벤트) 그 값도 옵션에 포함.
-const timeOpts = (cur: string): string[] =>
-  cur && !TIME_OPTIONS.includes(cur) ? [cur, ...TIME_OPTIONS] : TIME_OPTIONS;
+// PLN-260718 — 시간은 셀렉트 리스트(06:00~23:30, 30분 간격) + 직접 입력(REQ-261111 공용 컴포넌트).
+const TIME_OPTIONS = halfHourSlots(6, 23);
 
 // REQ-261103 — 학생 참석자 이름으로 만드는 제목. 4명 이상은 "외 n명".
 const studentTitle = (names: string[], more: (n: number) => string): string =>
@@ -750,25 +740,14 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                     <>
                       <span className="inline-flex items-center gap-2">
                         <Clock size={16} className="shrink-0 text-secondary" />
-                        <select
-                          aria-label={t('field.startAt')}
+                        <TimeSelectInput
                           value={timePart(startAtVal)}
-                          onChange={(e) => setStartTime(e.target.value)}
-                          className={dtInputClass}
-                        >
-                          {timeOpts(timePart(startAtVal)).map((tm) => (
-                            <option key={tm} value={tm}>{tm}</option>
-                          ))}
-                        </select>
-                        {/* REQ-261103 — 30분 단위 외 시각 직접 입력 */}
-                        <input
-                          type="time"
-                          step={60}
-                          aria-label={`${t('field.startAt')} · ${t('field.timeManual')}`}
-                          title={t('field.timeManual')}
-                          value={timePart(startAtVal)}
-                          onChange={(e) => e.target.value && setStartTime(e.target.value)}
-                          className={dtInputClass}
+                          onChange={setStartTime}
+                          slots={TIME_OPTIONS}
+                          allowEmpty={false}
+                          ariaLabel={t('field.startAt')}
+                          className="w-[12rem]"
+                          controlClassName="bg-canvas text-primary"
                         />
                       </span>
                     </>
@@ -793,25 +772,14 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                     <>
                       <span className="inline-flex items-center gap-2">
                         <Clock size={16} className="shrink-0 text-secondary" />
-                        <select
-                          aria-label={t('field.endAt')}
+                        <TimeSelectInput
                           value={timePart(endAtVal)}
-                          onChange={(e) => setEndTime(e.target.value)}
-                          className={dtInputClass}
-                        >
-                          {timeOpts(timePart(endAtVal)).map((tm) => (
-                            <option key={tm} value={tm}>{tm}</option>
-                          ))}
-                        </select>
-                        {/* REQ-261103 — 30분 단위 외 시각 직접 입력 */}
-                        <input
-                          type="time"
-                          step={60}
-                          aria-label={`${t('field.endAt')} · ${t('field.timeManual')}`}
-                          title={t('field.timeManual')}
-                          value={timePart(endAtVal)}
-                          onChange={(e) => e.target.value && setEndTime(e.target.value)}
-                          className={dtInputClass}
+                          onChange={setEndTime}
+                          slots={TIME_OPTIONS}
+                          allowEmpty={false}
+                          ariaLabel={t('field.endAt')}
+                          className="w-[12rem]"
+                          controlClassName="bg-canvas text-primary"
                         />
                       </span>
                       {durationLabel && (

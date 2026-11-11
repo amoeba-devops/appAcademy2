@@ -9,6 +9,7 @@ import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TimeSelectInput, halfHourSlots } from '@/components/ui/time-select-input';
 import {
   Dialog,
   DialogContent,
@@ -26,14 +27,8 @@ import {
  * Status 는 별도 inline select 에서 처리 (모달 안에 두면 동선이 길어짐).
  */
 
-const TIME_SLOTS: string[] = (() => {
-  const out: string[] = [];
-  for (let h = 6; h <= 22; h++) {
-    out.push(`${String(h).padStart(2, '0')}:00`);
-    out.push(`${String(h).padStart(2, '0')}:30`);
-  }
-  return out;
-})();
+// REQ-261111 — 30분 목록(06:00~22:30) + 직접 입력.
+const TIME_SLOTS = halfHourSlots(6, 22);
 
 interface LevelTestRow {
   testType: string;
@@ -169,18 +164,12 @@ export function LevelTestScheduleDialog({
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t('detail.levelTest.dialog.time')}</Label>
-            <select
+            <TimeSelectInput
               value={scheduledTime}
-              onChange={(e) => setScheduledTime(e.target.value)}
-              className="h-9 w-full rounded-md border border-[var(--border-subtle)] bg-transparent px-3 text-sm"
-            >
-              <option value="">—</option>
-              {TIME_SLOTS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              onChange={setScheduledTime}
+              slots={TIME_SLOTS}
+              ariaLabel={t('detail.levelTest.dialog.time')}
+            />
           </div>
           <div className="grid gap-1">
             <Label className="text-xs">{t('detail.levelTest.dialog.teacher')}</Label>

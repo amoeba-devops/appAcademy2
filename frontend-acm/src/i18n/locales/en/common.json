@@ -2,6 +2,12 @@
   "numericInput": {
     "invalid": "Enter a valid number."
   },
+  "timeInput": {
+    "manual": "Type time",
+    "custom": "{{time}} · custom",
+    "placeholder": "e.g. 08:40",
+    "invalid": "Enter a time between 00:00 and 23:59 (e.g. 08:40)"
+  },
   "app": {
     "name": "ACM v1.0a",
     "title": "Academy Management"

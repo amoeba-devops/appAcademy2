@@ -96,7 +96,7 @@ export class MapTestTypeormEntity {
   @Column({ name: 'mpt_test_type_other', type: 'varchar', length: 100, nullable: true })
   testTypeOther?: string | null;
 
-  /** FR-CSL-113 — 30-min granularity scheduled time (paired with scheduledAt). */
+  /** FR-CSL-113 — scheduled time (paired with scheduledAt). REQ-261111: any minute. */
   @Column({ name: 'mpt_scheduled_time', type: 'time', nullable: true })
   scheduledTime?: string | null;
 

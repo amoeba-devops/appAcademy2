@@ -47,6 +47,9 @@ import type {
 } from '../../infrastructure/typeorm/enrollment.typeorm-entity';
 import type { CancellationReasonCode } from '../../infrastructure/typeorm/cancellation.typeorm-entity';
 
+/** REQ-261111 — HH:MM[:SS], 00:00~23:59, any minute (was 30-min only). */
+export const CSL_TIME_HHMM = /^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/;
+
 const STAGES: readonly CslStage[] = [
   'INTAKE',
   'MAP_TEST',
@@ -398,14 +401,13 @@ export class UpsertMapTestDto {
   testTypeOther?: string;
 
   /**
-   * FR-CSL-113 — 30-min granularity. Format: 'HH:MM' or 'HH:MM:SS' (TIME).
-   * Server-side validation: minutes ∈ {00, 30}. DB CHECK enforces too.
+   * FR-CSL-113 — Format: 'HH:MM' or 'HH:MM:SS' (TIME). REQ-261111 이후 분 제한 없음
+   * (30분 목록 + 직접 입력). DB CHECK 도 1059 에서 제거.
    */
-  @ApiPropertyOptional({ description: '30-min granularity time (HH:MM)' })
+  @ApiPropertyOptional({ description: 'Time HH:MM (00:00~23:59)' })
   @IsOptional()
-  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
-    message:
-      'scheduledTime must be HH:MM with 30-min granularity (e.g., 14:00 or 14:30)',
+  @Matches(CSL_TIME_HHMM, {
+    message: 'scheduledTime must be HH:MM (00:00~23:59)',
   })
   scheduledTime?: string;
 
@@ -487,11 +489,11 @@ export type LevelTestStatus = (typeof LEVEL_TEST_STATUSES)[number];
  * so the admin gate only wraps result writes.
  */
 export class UpsertLevelTestDto {
-  /** 30-min granularity scheduled time (HH:MM[:SS]). Reuses UpsertMapTestDto regex. */
+  /** Scheduled time (HH:MM[:SS]). Reuses UpsertMapTestDto regex (CSL_TIME_HHMM). */
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
-    message: 'scheduledTime must be HH:MM with 30-min granularity',
+  @Matches(CSL_TIME_HHMM, {
+    message: 'scheduledTime must be HH:MM (00:00~23:59)',
   })
   scheduledTime?: string;
 
@@ -544,11 +546,11 @@ export class CreateTrialClassDto {
 
   // ── REQ-260626 (FR-CSL-122/123) ────────────────────────────────────────
 
-  /** FR-CSL-122 — 30-min granularity time HH:MM[:SS]. */
+  /** FR-CSL-122 — time HH:MM[:SS] (REQ-261111: any minute). */
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
-    message: 'heldTime must be HH:MM with 30-min granularity',
+  @Matches(CSL_TIME_HHMM, {
+    message: 'heldTime must be HH:MM (00:00~23:59)',
   })
   heldTime?: string;
 
@@ -573,8 +575,8 @@ export class UpdateTrialClassDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Matches(/^\d{2}:(00|30)(:\d{2})?$/, {
-    message: 'heldTime must be HH:MM with 30-min granularity',
+  @Matches(CSL_TIME_HHMM, {
+    message: 'heldTime must be HH:MM (00:00~23:59)',
   })
   heldTime?: string;
 
