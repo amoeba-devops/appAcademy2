@@ -28,7 +28,7 @@
     "createdAt": "Created"
   },
   "examType": {
-    "MAP_TEST": "MAP Test",
+    "MAP_TEST": "Map Test",
     "SSAT": "SSAT",
     "ISEE": "ISEE",
     "WRITING_COMP": "Writing Comp",

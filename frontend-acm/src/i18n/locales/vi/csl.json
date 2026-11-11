@@ -77,7 +77,7 @@
     "purposeOtherRequired": "Cần nhập lý do khi chọn 'Khác'",
     "studentNameOrAnonymous": "Vui lòng nhập tên học sinh hoặc chọn ẩn danh",
     "emailInvalid": "Vui lòng kiểm tra địa chỉ email.",
-    "birthdateRequiredForMapTest": "MAP Test cần có ngày sinh"
+    "birthdateRequiredForMapTest": "Map Test cần có ngày sinh"
   },
   "stage": {
     "INTAKE": "1. Tiếp nhận",
@@ -101,7 +101,7 @@
     "BOTH": "Tư vấn + Thi"
   },
   "applyPurpose": {
-    "MAP_TEST_TUTORING": "Dạy kèm MAP Test",
+    "MAP_TEST_TUTORING": "Dạy kèm Map Test",
     "ISEE_TUTORING": "Dạy kèm ISEE",
     "INTL_SCHOOL_PREP": "Chuẩn bị tuyển sinh trường quốc tế/nước ngoài",
     "GPA_MGMT": "Quản lý GPA theo yêu cầu",
@@ -247,7 +247,7 @@
     "drop": "Kết thúc tư vấn",
     "reactivate": "Kích hoạt lại",
     "mapTest": {
-      "title": "MAP Test",
+      "title": "Map Test",
       "hasPriorScore": "Đã có điểm trước",
       "feeStatus": "Trạng thái phí",
       "waiverReason": "Lý do miễn",
@@ -490,12 +490,12 @@
     "restore": "Khôi phục"
   },
   "mapApply": {
-    "title": "Đăng ký MAP test",
-    "detailTitle": "Đăng ký MAP test #{{seqNo}}",
+    "title": "Đăng ký Map Test",
+    "detailTitle": "Đăng ký Map Test #{{seqNo}}",
     "total": "Tổng {{count}}",
-    "empty": "Chưa có đăng ký MAP test.",
+    "empty": "Chưa có đăng ký Map Test.",
     "loadFailed": "Không tải được danh sách.",
-    "backToList": "Danh sách đăng ký MAP test",
+    "backToList": "Danh sách đăng ký Map Test",
     "openInquiry": "Xem hồ sơ tư vấn",
     "submitted": "tiếp nhận",
     "saved": "Đã lưu.",
@@ -569,7 +569,7 @@
   },
   "kind": {
     "TUTORING": "Tư vấn gia sư",
-    "MAP_TEST": "MAP Test"
+    "MAP_TEST": "Map Test"
   },
   "gender": {
     "M": "Nam",

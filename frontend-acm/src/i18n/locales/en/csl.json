@@ -77,7 +77,7 @@
     "purposeOtherRequired": "Reason is required when purpose is OTHER",
     "studentNameOrAnonymous": "Student name is required unless anonymous",
     "emailInvalid": "Please check the email address.",
-    "birthdateRequiredForMapTest": "Date of birth is required for MAP Test"
+    "birthdateRequiredForMapTest": "Date of birth is required for Map Test"
   },
   "stage": {
     "INTAKE": "1. Intake",
@@ -101,7 +101,7 @@
     "BOTH": "Counseling + Exam"
   },
   "applyPurpose": {
-    "MAP_TEST_TUTORING": "MAP Test Tutoring",
+    "MAP_TEST_TUTORING": "Map Test Tutoring",
     "ISEE_TUTORING": "ISEE Tutoring",
     "INTL_SCHOOL_PREP": "Intl./foreign school admission prep",
     "GPA_MGMT": "Customized GPA management",
@@ -490,12 +490,12 @@
     "restore": "Restore"
   },
   "mapApply": {
-    "title": "MAP test applications",
-    "detailTitle": "MAP test application #{{seqNo}}",
+    "title": "Map Test applications",
+    "detailTitle": "Map Test application #{{seqNo}}",
     "total": "{{count}} total",
-    "empty": "No MAP test applications yet.",
+    "empty": "No Map Test applications yet.",
     "loadFailed": "Could not load the list.",
-    "backToList": "MAP test applications",
+    "backToList": "Map Test applications",
     "openInquiry": "Open counseling record",
     "submitted": "received",
     "saved": "Saved.",
@@ -569,7 +569,7 @@
   },
   "kind": {
     "TUTORING": "Tutoring",
-    "MAP_TEST": "MAP Test"
+    "MAP_TEST": "Map Test"
   },
   "gender": {
     "M": "Male",

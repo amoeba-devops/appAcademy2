@@ -2451,7 +2451,7 @@
       "CHAT_MENTION": "채팅 멘션",
       "ISSUE_MENTION": "이슈 멘션",
       "PASSWORD_RESET_REQUEST": "비밀번호 재발급 요청",
-      "MAP_APPLY": "MAP 테스트 신청"
+      "MAP_APPLY": "맵테스트 신청"
     },
     "roles": {
       "ADMIN": "관리자",
