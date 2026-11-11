@@ -362,5 +362,34 @@
     "button": "Quyền",
     "title": "Quyền tài liệu",
     "desc": "Quyền chỉnh sửa của thành viên dự án ACM. Quyền chia sẻ bản gốc Google sẽ không bị thay đổi."
+  },
+  "timeline": {
+    "title": "Dòng thời gian dự án",
+    "kindFilter": "Loại",
+    "kind": {
+      "ALL": "Tất cả",
+      "CREATE": "Tạo vấn đề",
+      "STATUS": "Trạng thái",
+      "ASSIGNEE": "Người phụ trách",
+      "PROJECT": "Chuyển dự án",
+      "COMMENT": "Bình luận",
+      "DOCUMENT": "Tài liệu·Tệp"
+    },
+    "action": {
+      "CREATE": "đã tạo vấn đề",
+      "STATUS": "đã đổi trạng thái",
+      "ASSIGNEE": "đã đổi người phụ trách",
+      "PROJECT": "đã chuyển dự án",
+      "COMMENT": "đã bình luận",
+      "DOCUMENT": "đã thêm tài liệu/tệp"
+    },
+    "none": "Không có",
+    "unknownUser": "Không rõ",
+    "empty": "Chưa có hoạt động.",
+    "error": "Không thể tải dòng thời gian.",
+    "more": "Xem thêm",
+    "justNow": "vừa xong",
+    "minutesAgo": "{{count}} phút trước",
+    "hoursAgo": "{{count}} giờ trước"
   }
 }

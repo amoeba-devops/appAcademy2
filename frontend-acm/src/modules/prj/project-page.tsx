@@ -7,6 +7,8 @@ import { projectDocumentPath } from "./document-page";
 import { DriveConnection } from "./drive-connection";
 import { IssueFormDialog } from "./issues/issue-form-dialog";
 import { IssueKanban } from "./issues/issue-kanban";
+import { ProjectTimeline } from "./issues/project-timeline";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { isBlankHtml, plainText } from "./issues/issue-rich-text";
 import type { Issue } from "./issues/issue-model";
 import {
@@ -449,6 +451,7 @@ export function ProjectDetailPage() {
           doc === "new" ? mode : undefined,
         ),
       );
+  const wideTimeline = useMediaQuery("(min-width: 1280px)");
   const [editing, setEditing] = useState(false),
     [itemEdit, setItemEdit] = useState<Item | "new" | null>(null),
     [search, setSearch] = useState(""),
@@ -710,7 +713,15 @@ export function ProjectDetailPage() {
               readOnly={readOnly}
             />
           ) : (
-            <>
+            // REQ-261112F — 이슈 탭: 넓은 화면(1280px+)에서 오른쪽 프로젝트 타임라인, 좁은 화면은 숨김
+            <div
+              className={
+                kind === "ISSUE" && wideTimeline
+                  ? "grid min-w-0 items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]"
+                  : "contents"
+              }
+            >
+            <div className="grid min-w-0 gap-4">
               <div className="flex flex-wrap gap-2">
                 <Input
                   className="max-w-xs"
@@ -905,7 +916,17 @@ export function ProjectDetailPage() {
                     >
                       <div className="min-w-0">
                         <h2 className="break-words font-semibold">
-                          {i.pit_title}
+                          {i.pit_kind === "ISSUE" ? (
+                            // REQ-261112F — 제목 클릭 = 이슈 상세
+                            <Link
+                              to={`/admin/issues/${i.pit_id}`}
+                              className="hover:text-accent-700 hover:underline"
+                            >
+                              {i.pit_title}
+                            </Link>
+                          ) : (
+                            i.pit_title
+                          )}
                         </h2>
                         <p className="text-xs text-secondary">
                           {i.creator_name} ·{" "}
@@ -1001,7 +1022,9 @@ export function ProjectDetailPage() {
                   ))}
                 </div>
               )}
-            </>
+            </div>
+            {kind === "ISSUE" && wideTimeline && <ProjectTimeline projectId={id} />}
+            </div>
           )}
         </>
       )}

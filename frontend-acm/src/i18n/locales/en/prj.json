@@ -362,5 +362,34 @@
     "button": "Permissions",
     "title": "Document permissions",
     "desc": "Edit permissions for ACM project members. Google original sharing permissions are not changed."
+  },
+  "timeline": {
+    "title": "Project timeline",
+    "kindFilter": "Type",
+    "kind": {
+      "ALL": "All",
+      "CREATE": "Issue created",
+      "STATUS": "Status",
+      "ASSIGNEE": "Assignee",
+      "PROJECT": "Project move",
+      "COMMENT": "Comments",
+      "DOCUMENT": "Docs & files"
+    },
+    "action": {
+      "CREATE": "created an issue",
+      "STATUS": "changed status",
+      "ASSIGNEE": "changed assignee",
+      "PROJECT": "moved project",
+      "COMMENT": "commented",
+      "DOCUMENT": "added a doc/file"
+    },
+    "none": "None",
+    "unknownUser": "Unknown",
+    "empty": "No activity yet.",
+    "error": "Could not load the timeline.",
+    "more": "Load more",
+    "justNow": "just now",
+    "minutesAgo": "{{count}} min ago",
+    "hoursAgo": "{{count}} h ago"
   }
 }

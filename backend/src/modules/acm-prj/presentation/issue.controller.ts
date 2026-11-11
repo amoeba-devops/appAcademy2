@@ -27,6 +27,7 @@ import {
   IssueMoveDto,
   IssueStatusDto,
 } from '../application/issue.dto';
+import { ProjectTimelineQuery } from '../application/project-timeline';
 
 /** REQ-261015C — 이슈(전체 프로젝트) + 내 업무. */
 @Controller('acm/prj')
@@ -43,6 +44,14 @@ export class IssueController {
   }
   @Get('my-work') myWork(@CurrentUser() u: AcmCurrentUser) {
     return this.issues.myWork(u);
+  }
+  /** REQ-261112F — 프로젝트 타임라인 */
+  @Get('projects/:id/timeline') timeline(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() q: ProjectTimelineQuery,
+  ) {
+    return this.issues.projectTimeline(u, id, q);
   }
   @Get('issues/:id') get(
     @CurrentUser() u: AcmCurrentUser,

@@ -362,5 +362,34 @@
     "button": "权限",
     "title": "文档权限",
     "desc": "ACM 项目成员的编辑权限。不会更改 Google 原文件的共享权限。"
+  },
+  "timeline": {
+    "title": "项目时间线",
+    "kindFilter": "类型",
+    "kind": {
+      "ALL": "全部",
+      "CREATE": "创建问题",
+      "STATUS": "状态变更",
+      "ASSIGNEE": "负责人",
+      "PROJECT": "移动项目",
+      "COMMENT": "评论",
+      "DOCUMENT": "文档·文件"
+    },
+    "action": {
+      "CREATE": "创建了问题",
+      "STATUS": "变更了状态",
+      "ASSIGNEE": "变更了负责人",
+      "PROJECT": "移动了项目",
+      "COMMENT": "发表了评论",
+      "DOCUMENT": "添加了文档/文件"
+    },
+    "none": "无",
+    "unknownUser": "未知",
+    "empty": "暂无记录。",
+    "error": "无法加载时间线。",
+    "more": "加载更多",
+    "justNow": "刚刚",
+    "minutesAgo": "{{count}} 分钟前",
+    "hoursAgo": "{{count}} 小时前"
   }
 }
