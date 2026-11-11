@@ -72,6 +72,8 @@ export interface MonthlyPaymentResult {
   cash: MonthlyCash;
   trend: {
     month: string;
+    /** REQ-261112B — 그 달 재원생 수 (구 응답엔 없을 수 있음). */
+    enrolled?: number;
     net: number;
     received: number;
     unpaid: number;

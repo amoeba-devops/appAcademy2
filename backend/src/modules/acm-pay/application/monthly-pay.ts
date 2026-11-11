@@ -372,8 +372,20 @@ export async function monthlyPay(
       (b) =>
         b.month === month && siteMatches(b.site, site) && b.amount !== null,
     );
+    // REQ-261112B — 월별 재원생 수 (사이트별 비교 '재원'과 같은 기준).
+    const enrolled = (
+      month === q.month
+        ? students
+        : resolveMonthlyStudents(
+            evidence.students,
+            evidence.periods,
+            month,
+            site,
+          )
+    ).filter((r) => r.enrolled).length;
     trend.push({
       month,
+      enrolled,
       net: selected.reduce((n, b) => n + (b.net || 0), 0),
       received: selected.reduce((n, b) => n + b.received, 0),
       unpaid: selected.reduce((n, b) => n + (b.unpaid || 0), 0),

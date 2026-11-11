@@ -58,7 +58,9 @@
     "trend": {
       "title": "12 tháng gần nhất",
       "net": "Hóa đơn ròng (tháng hóa đơn)",
-      "cash": "Thu ròng (tháng thu)"
+      "cash": "Thu ròng (tháng thu)",
+      "enrolled": "Học sinh đang học",
+      "people": "{{count}}"
     },
     "sites": {
       "title": "So sánh cơ sở",
