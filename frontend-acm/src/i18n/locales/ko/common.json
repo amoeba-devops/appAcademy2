@@ -1264,15 +1264,12 @@
     "perPage": "{{count}}개씩",
     "stats": {
       "label": "구분",
+      "students": "학생수",
       "paidCount": "수납건수",
-      "amount": "청구액",
-      "discount": "할인액",
-      "received": "실제 낸 금액",
-      "unpaid": "미납(남은) 금액",
-      "refunded": "환불금액",
       "total": "합계",
       "count": "{{count}} 건",
-      "won": "{{value}} 원"
+      "won": "{{value}} 원",
+      "people": "{{count}} 명"
     },
     "editBills": "청구 수정",
     "FINALIZED": "확정 청구",

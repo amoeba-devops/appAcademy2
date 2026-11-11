@@ -1264,15 +1264,12 @@
     "perPage": "{{count}} dòng",
     "stats": {
       "label": "",
+      "students": "Số học sinh",
       "paidCount": "Số HS đã nộp",
-      "amount": "Số tiền",
-      "discount": "Giảm giá",
-      "received": "Đã nộp (ròng)",
-      "unpaid": "Còn nợ",
-      "refunded": "Hoàn tiền",
       "total": "Tổng",
       "count": "{{count}}",
-      "won": "{{value}} ₩"
+      "won": "{{value}} ₩",
+      "people": "{{count}}"
     },
     "editBills": "Sửa hóa đơn",
     "FINALIZED": "Hóa đơn đã chốt",

@@ -437,12 +437,13 @@ export function MonthlyPaymentView({
                   <table className="w-full text-sm">
                     <thead className="bg-slate-50 text-xs text-secondary">
                       <tr>
-                        {["label", "paidCount", "amount", "discount", "received", "unpaid", "refunded"].map((k) => (
+                        {/* REQ-261112B — 금액 열 이름은 아래 목록 열(col.*)과 같은 키를 쓴다. */}
+                        {["stats.label", "stats.students", "stats.paidCount", "col.amount", "col.discount", "col.received", "col.unpaid", "col.refunded"].map((k) => (
                           <th
                             key={k}
-                            className={`${cell} font-medium ${k === "label" ? "text-left" : "text-right"}`}
+                            className={`${cell} font-medium ${k === "stats.label" ? "text-left" : "text-right"}`}
                           >
-                            {tr(`stats.${k}`)}
+                            {tr(k)}
                           </th>
                         ))}
                       </tr>
@@ -450,6 +451,9 @@ export function MonthlyPaymentView({
                     <tbody>
                       <tr className="border-t font-semibold tabular-nums">
                         <td className={cell}>{tr("stats.total")}</td>
+                        <td className={`${cell} text-right`}>
+                          {tr("stats.people", { count: result.summary.enrolled })}
+                        </td>
                         <td className={`${cell} text-right`}>
                           {tr("stats.count", { count: result.summary.paidStudents ?? 0 })}
                         </td>
