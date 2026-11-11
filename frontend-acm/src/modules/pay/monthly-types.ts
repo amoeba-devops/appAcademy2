@@ -11,6 +11,11 @@ export interface MonthlySummary {
   received: number;
   unpaid: number;
   rate: number | null;
+  /** REQ-261112 — 납부한 학생 수(실납부 > 0)·청구액·할인액·환불액 합계. 구 서버 응답엔 없음. */
+  paidStudents?: number;
+  amount?: number;
+  discount?: number;
+  refunded?: number;
 }
 export interface MonthlyStudentRow {
   id: string;

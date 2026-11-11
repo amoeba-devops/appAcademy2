@@ -270,6 +270,11 @@ export function summarize(rows: MonthlyRow[]) {
     received,
     unpaid: rows.reduce((n, r) => n + (r.unpaid || 0), 0),
     rate: net > 0 ? (received / net) * 100 : null,
+    // REQ-261112 — 월별 납부 목록 합계 줄: 납부한 학생 수·청구액·할인액·환불액.
+    paidStudents: rows.filter((r) => (r.received || 0) > 0).length,
+    amount: rows.reduce((n, r) => n + (r.amount || 0), 0),
+    discount: rows.reduce((n, r) => n + (r.discount || 0), 0),
+    refunded: rows.reduce((n, r) => n + (r.refunded || 0), 0),
   };
 }
 export async function monthlyPay(
@@ -384,15 +389,20 @@ export async function monthlyPay(
     });
   }
   const page = q.page || 1;
+  // REQ-261112 — 목록 크기 50·100·200 (기본 100).
+  const size = q.size || 100;
   return {
     month: q.month,
     site,
     scope: q.scope || 'ENROLLED',
     currency: 'KRW',
     asOf: new Date().toISOString(),
-    items: exportAll ? filtered : filtered.slice((page - 1) * 50, page * 50),
+    items: exportAll
+      ? filtered
+      : filtered.slice((page - 1) * size, page * size),
     total: filtered.length,
     page,
+    size,
     summary: summarize(filtered),
     reviewCount: all.filter((r) => r.review).length,
     ledger: summarize(all.filter((r) => r.billCount > 0)),
