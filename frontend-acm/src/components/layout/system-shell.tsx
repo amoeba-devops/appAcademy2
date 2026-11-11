@@ -121,7 +121,10 @@ export function SystemShell() {
       </aside>
 
       <main className="ml-sidebar mt-header p-6">
-        <Outlet />
+        {/* REQ-261112D — 운영 콘솔과 같은 기본 최대 폭(1280, 왼쪽 정렬). */}
+        <div className="min-w-0 max-w-[var(--admin-content-width)]">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

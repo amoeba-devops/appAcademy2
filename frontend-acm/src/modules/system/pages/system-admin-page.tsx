@@ -31,7 +31,7 @@ export function SystemAdminPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
 
   return (
-    <div className="max-w-5xl">
+    <div>
       <header className="mb-6 flex items-center gap-2">
         <ShieldCheck size={20} className="text-accent-700" />
         <h1 className="text-xl font-semibold text-primary">{t('users.title')}</h1>

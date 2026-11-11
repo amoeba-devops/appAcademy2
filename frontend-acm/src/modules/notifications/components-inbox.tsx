@@ -394,7 +394,7 @@ export function NotificationInboxPage() {
   const { t } = useTranslation("common");
   const [settings, setSettings] = useState(false);
   return (
-    <section className="mx-auto max-w-3xl">
+    <section>
       <PageHeader
         icon={Bell}
         title={t("pageHeader.inbox.title")}

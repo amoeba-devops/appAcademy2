@@ -22,7 +22,7 @@ export function TenantListPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   return (
-    <div className="max-w-4xl">
+    <div>
       <header className="mb-6 flex items-center gap-2">
         <Building2 size={20} className="text-accent-700" />
         <h1 className="text-xl font-semibold text-primary">{t('tenants.title')}</h1>

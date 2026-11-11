@@ -26,7 +26,7 @@ export function TenantDetailPage() {
 
   if (isLoading || !tenant) {
     return (
-      <div className="max-w-3xl">
+      <div className="admin-form-width">
         <BackLink />
         <p className="text-sm text-secondary">{t('users.loading')}</p>
       </div>
@@ -34,7 +34,7 @@ export function TenantDetailPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="admin-form-width space-y-8">
       <div>
         <BackLink />
         <h1 className="text-xl font-semibold text-primary">{tenant.name}</h1>
