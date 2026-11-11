@@ -1,4 +1,87 @@
 {
+  "dataQuality": {
+    "details": "详情"
+  },
+  "payDash": {
+    "basis": {
+      "label": "统计口径",
+      "bill": "按账单月",
+      "paid": "按实际收款日"
+    },
+    "meta": "KRW · 更新 {{time}}",
+    "refresh": "刷新",
+    "won": " 韩元",
+    "banner": {
+      "review": "{{count}} 名学生需确认在读期间",
+      "incomplete": "历史记录不完整，休学/退学合计显示为未统计。",
+      "row": "{{month}} · 需确认 {{review}} · 已确认休学 {{paused}} · 已确认退学 {{withdrawn}}",
+      "link": "在学生信息中确认 →"
+    },
+    "stats": {
+      "title": "学员·收款统计",
+      "collapse": "收起",
+      "expand": "展开"
+    },
+    "kpi": {
+      "title": "核心指标",
+      "net": "净账单额",
+      "received": "累计净收款",
+      "unpaid": "当前欠费",
+      "rate": "收款率",
+      "prevNet": "上月净账单",
+      "paid": "本月收款",
+      "refunded": "本月退款·取消",
+      "cashNet": "本月净收款",
+      "prevCash": "上月净收款",
+      "prev2Cash": "前月净收款",
+      "billMonth": "账单月 {{month}}",
+      "cumulative": "按账单月累计",
+      "unpaidCount": "欠费 {{count}} 人",
+      "noBills": "无账单",
+      "rateHint": "净收款 ÷ 净账单",
+      "paidMonth": "实际收款日 {{month}}",
+      "refundHint": "按处理日期",
+      "netOfRefund": "收款 − 退款·取消"
+    },
+    "funnel": {
+      "title": "账单进度",
+      "tag": "本月在读学生",
+      "hint": "本月至少在读一天的学生 · 仅查看不会生成账单。",
+      "enrolled": "本月在读",
+      "missing": "未建账单",
+      "draft": "金额待定",
+      "billed": "已确认账单",
+      "unpaid": "欠费",
+      "review": "需确认期间",
+      "pick": "+ 选择学生建账单（{{count}} 人）"
+    },
+    "trend": {
+      "title": "近 12 个月趋势",
+      "net": "净账单（账单月）",
+      "cash": "净收款（收款月）"
+    },
+    "sites": {
+      "title": "校区对比",
+      "hint": "人数按在读校区，金额按账单校区 · 转校区学生会使合计与实际人数不同",
+      "site": "校区",
+      "enrolled": "在读",
+      "net": "净账单",
+      "unpaid": "欠费",
+      "cash": "净收款",
+      "rate": "收款率",
+      "total": "合计"
+    },
+    "top": {
+      "title": "欠费前 10 名",
+      "student": "学生",
+      "unpaid": "欠费",
+      "elapsed": "逾期天数",
+      "days": "{{count}} 天",
+      "notDue": "未到期",
+      "view": "查看",
+      "empty": "没有欠费学生"
+    }
+  },
   "numericInput": {
     "invalid": "请输入有效数字。"
   },
@@ -1315,24 +1398,12 @@
     "retry": "重试",
     "enrolled": "当月在读人数",
     "missing": "未登记账单学生",
-    "draftStudents": "金额未填学生",
     "billed": "已确认账单学生",
-    "unpaidStudents": "欠费学生",
     "review": "需核实",
-    "cohortTotals": "所选学生 · 账单月份",
-    "ledgerTotals": "所选校区全部账单 · 账单月份",
-    "cashBasis": "所选校区全部交易 · 实际收款日期",
     "paid": "当月缴费",
     "refunded": "当月退款/撤销",
-    "cashReceived": "当月净实收",
-    "asOf": "余额查询时间",
     "total": "学生总数",
     "trend": "最近12个月趋势",
-    "siteComparison": "校区对比",
-    "topUnpaid": "所选范围欠款前10名",
-    "basisHint": "包含当月至少在读一天的学生。日期不明需核实。查看不会生成账单。",
-    "trendHint": "所选校区全部账单。账单月份应收与实际收款月份实收口径不同。",
-    "siteHint": "人数按在读校区、金额按账单校区。转校学生可能导致校区人数之和与去重人数不同。",
     "tab": {
       "dashboard": "仪表盘·统计",
       "monthly": "月度缴费列表",
@@ -1345,7 +1416,6 @@
     "cancelInline": "取消",
     "inlineReason": "列表直接输入",
     "inlineResult": "保存结果：新建 {{created}} · 修改 {{updated}} · 失败 {{failed}}",
-    "pickStudent": "选择学生开账单",
     "inlineHint": "点击账单金额、折扣或 [账单] 打开该学生的账单。无账单时保存后窗口自动关闭；有账单时可修改、删除、添加并登记收款。待填写金额的账单输入金额后按 Enter 或离开输入框即保存。",
     "col": {
       "no": "序号",
@@ -1375,8 +1445,6 @@
     "paidInFullReason": "缴清处理"
   },
   "payStats": {
-    "hideCharts": "收起统计",
-    "showCharts": "显示统计",
     "title": "月度统计",
     "population": "学生情况",
     "enrolled": "在读学生",
@@ -1387,10 +1455,7 @@
     "numbers": "查看数据",
     "month": "月份",
     "unknown": "待确认",
-    "historyNotice": "历史记录不完整。已知人数可能不完整，休学和退学总数暂不统计。",
     "review": "在读期间/日期待确认",
-    "knownPaused": "已确认休学",
-    "historyLink": "查看学生历史",
     "collections": "收款情况",
     "paid": "已缴清",
     "unpaid": "未缴清",
@@ -1400,7 +1465,6 @@
     "canceled": "已取消",
     "free": "零元/减免",
     "basis": "账单月份 · 当前缴费状态 · 已确认的正额账单笔数（部分缴费计入未缴清）",
-    "updated": "更新",
     "refresh": "刷新",
     "error": "无法加载统计，请重试。",
     "statusHistory": "休学、复学及退学记录",
@@ -1414,9 +1478,7 @@
     "statusError": "保存失败。请检查日期顺序、未来日期和更正原因，刷新后重试。",
     "site": "校区",
     "actions": "操作",
-    "baseline": "原有状态",
-    "knownWithdrawn": "已确认退学",
-    "historyNoticeSummary": "历史记录不完整 — 查看详情"
+    "baseline": "原有状态"
   },
   "configAccess": {
     "loading": "正在检查权限…",

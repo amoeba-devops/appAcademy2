@@ -1,9 +1,5 @@
-import { Notice } from "@/components/ui/empty-state";
-import { useId, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { apiClient } from "@/lib/api-client";
 import { monthlySites } from "./monthly-payment-view";
 export interface PopulationPoint {
   month: string;
@@ -68,20 +64,6 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
       month: "short",
       timeZone: "UTC",
     }).format(new Date(`${m}-01T00:00:00Z`));
-  const historyNotice = (
-    <>
-      {tr("historyNotice")}
-      {points.map((p) => (
-        <p key={p.month}>
-          {p.month}: {tr("review")} {p.review} · {tr("knownPaused")}{" "}
-          {p.knownPaused} · {tr("knownWithdrawn")} {p.knownWithdrawn}
-        </p>
-      ))}
-      <Link className="underline" to="/admin/std">
-        {tr("historyLink")}
-      </Link>
-    </>
-  );
   return (
     <>
       <div
@@ -205,23 +187,6 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
                 </tbody>
               </table>
             </details>
-            {points.some((p) => p.historyIncomplete || p.review > 0) && (
-              // UI-261019 — 주의 박스 표준(Notice)
-              // TST-261019 M6 — 휴대폰은 한 줄 요약으로 접고(펼쳐 보기), md 이상은 기존처럼 펼쳐 표시.
-              <>
-                <div className="mt-3 hidden text-xs md:block">
-                  <Notice tone="warning">{historyNotice}</Notice>
-                </div>
-                <details className="mt-3 text-xs md:hidden">
-                  <summary className="cursor-pointer font-medium text-amber-800">
-                    {tr("historyNoticeSummary")}
-                  </summary>
-                  <div className="mt-2">
-                    <Notice tone="warning">{historyNotice}</Notice>
-                  </div>
-                </details>
-              </>
-            )}
           </section>
           {result.collections.map((p) => (
             <section
@@ -269,81 +234,10 @@ export function StatisticsCharts({ result }: { result: TopStatisticsResult }) {
           ))}
         </div>
       </div>
-      <p className="text-xs text-secondary">
-        {tr("basis")} · {tr("updated")}{" "}
-        {new Date(result.asOf).toLocaleString(i18n.language)}
-      </p>
+      <p className="text-xs text-secondary">{tr("basis")}</p>
     </>
   );
 }
-export function PaymentTopStatistics({
-  identity,
-  month,
-  site,
-  onFilter,
-  charts = true,
-}: {
-  identity: string;
-  month: string;
-  site: string;
-  onFilter: (month: string, site: string) => void;
-  /** REQ-261027B — false shows only the month/site bar (list tabs). */
-  charts?: boolean;
-}) {
-  const { t } = useTranslation("common");
-  const tr = (k: string) => t(`payStats.${k}`);
-  const [isOpen, setIsOpen] = useState(true);
-  const chartsId = useId();
-  const query = useQuery({
-    enabled: isOpen && charts,
-    queryKey: ["pay", identity, "statistics", month, site],
-    queryFn: async () =>
-      (
-        await apiClient.get<TopStatisticsResult>("/acm/pay/bills/statistics", {
-          params: { month, site },
-        })
-      ).data,
-  });
-  return (
-    <section className="min-w-0 space-y-3" aria-label={tr("title")}>
-      <div className="flex flex-wrap items-center gap-2">
-        <MonthSiteFilter month={month} site={site} onFilter={onFilter} />
-        {charts && (
-          <>
-            <button
-              className={field}
-              disabled={!isOpen || query.isFetching}
-              onClick={() => void query.refetch()}
-            >
-              {tr("refresh")}
-            </button>
-            <button
-              className={`${field} ml-auto inline-flex items-center gap-2`}
-              aria-expanded={isOpen}
-              aria-controls={chartsId}
-              onClick={() => setIsOpen((open) => !open)}
-            >
-              {tr(isOpen ? "hideCharts" : "showCharts")}
-              {isOpen && <span aria-hidden="true">×</span>}
-            </button>
-          </>
-        )}
-      </div>
-      <div id={chartsId} hidden={!isOpen || !charts} className="space-y-3">
-        {isOpen &&
-          charts &&
-          (query.isPending ? (
-            <p role="status">{t("status.loading")}</p>
-          ) : query.isError ? (
-            <p role="alert">{tr("error")}</p>
-          ) : (
-            query.data && <StatisticsCharts result={query.data} />
-          ))}
-      </div>
-    </section>
-  );
-}
-
 /**
  * 월 이동(◀ 월 ▶ 이번 달) + 학원 선택. REQ-261112 — 월별 납부 목록은 이 컨트롤을
  * 검색·필터와 같은 한 줄에 두기 위해 분리했다(Fragment 라 부모 flex 줄에 그대로 놓인다).
@@ -376,14 +270,10 @@ export function MonthSiteFilter({
       >
         ◀
       </button>
-      <input
-        className={field}
-        aria-label={tr("month")}
-        type="month"
-        min="2000-01"
-        max="2099-12"
-        value={month}
-        onChange={(e) => change(e.target.value, site)}
+      <MonthPicker
+        label={tr("month")}
+        month={month}
+        onPick={(m) => change(m, site)}
       />
       <button
         className={field}
@@ -422,5 +312,94 @@ export function MonthSiteFilter({
         ))}
       </select>
     </>
+  );
+}
+
+/**
+ * REQ-261112C — 월을 언어별 글자(예: 2026년 12월)로 보여 주고, 누르면 연도 이동 + 12개월 선택 창.
+ * Safari 데스크톱은 type="month" 를 지원하지 않아 직접 만든다.
+ */
+function MonthPicker({
+  label,
+  month,
+  onPick,
+}: {
+  label: string;
+  month: string;
+  onPick: (month: string) => void;
+}) {
+  const { i18n } = useTranslation("common");
+  const [open, setOpen] = useState(false);
+  const [year, setYear] = useState(Number(month.slice(0, 4)));
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    setYear(Number(month.slice(0, 4)));
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [open, month]);
+  const fmt = (m: string, opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(i18n.language, { ...opts, timeZone: "UTC" }).format(
+      new Date(`${m}-01T00:00:00Z`),
+    );
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        className={`${field} min-w-[8.5rem] font-semibold tabular-nums`}
+        aria-label={label}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {fmt(month, { year: "numeric", month: "long" })}
+      </button>
+      {open && (
+        <div
+          role="dialog"
+          aria-label={label}
+          className="absolute left-0 top-full z-30 mt-1 w-64 rounded-lg border bg-white p-3 shadow-lg"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <button type="button" className="h-8 w-8 rounded hover:bg-slate-100" aria-label={String(year - 1)} onClick={() => setYear(year - 1)}>
+              ◀
+            </button>
+            <span className="font-semibold tabular-nums">{year}</span>
+            <button type="button" className="h-8 w-8 rounded hover:bg-slate-100" aria-label={String(year + 1)} onClick={() => setYear(year + 1)}>
+              ▶
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            {Array.from({ length: 12 }, (_, i) => {
+              const m = `${year}-${String(i + 1).padStart(2, "0")}`;
+              const on = m === month;
+              return (
+                <button
+                  type="button"
+                  key={m}
+                  aria-pressed={on}
+                  disabled={year < 2000 || year > 2099}
+                  className={`h-9 rounded text-sm ${on ? "bg-indigo-600 font-semibold text-white" : "hover:bg-slate-100"}`}
+                  onClick={() => {
+                    onPick(m);
+                    setOpen(false);
+                  }}
+                >
+                  {fmt(m, { month: "short" })}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

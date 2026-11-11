@@ -1,4 +1,5 @@
-import { MonthSiteFilter, PaymentTopStatistics } from "./top-statistics";
+import { MonthSiteFilter } from "./top-statistics";
+import { PayDashboard, type PayBasis } from "./pay-dashboard";
 import { MonthlyPaymentView, monthlySites } from "./monthly-payment-view";
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -153,7 +154,16 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
   const site = monthlySites.includes(url.get("site") || "")
     ? url.get("site")!
     : "ALL";
-  const go = (next: { month?: string; site?: string; view?: PayTab; status?: string }) => {
+  // REQ-261112C — 대시보드 KPI 기준(청구월/실제 수납일)은 URL 에 유지.
+  const basis: PayBasis = url.get("basis") === "paid" ? "paid" : "bill";
+  const go = (next: {
+    month?: string;
+    site?: string;
+    view?: PayTab;
+    status?: string;
+    scope?: string;
+    basis?: PayBasis;
+  }) => {
     const params = new URLSearchParams(url);
     params.set("month", next.month ?? month);
     params.set("site", next.site ?? site);
@@ -161,6 +171,14 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
     if (next.status !== undefined) {
       if (next.status) params.set("status", next.status);
       else params.delete("status");
+    }
+    if (next.scope !== undefined) {
+      if (next.scope) params.set("scope", next.scope);
+      else params.delete("scope");
+    }
+    if (next.basis) {
+      if (next.basis === "paid") params.set("basis", "paid");
+      else params.delete("basis");
     }
     setUrl(params);
   };
@@ -243,51 +261,56 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
           </select>
           <p className="text-sm text-secondary">{tr("recordOnly")}</p>
         </div>
-      ) : tab === "dashboard" ? (
-        <PaymentTopStatistics
-          identity={identity}
-          month={month}
-          site={site}
-          onFilter={(m, s) => go({ month: m, site: s })}
-        />
       ) : null}
       {exportError && (
         <p role="alert" className="text-red-700">
           {tr("failed")}
         </p>
       )}
-      <MonthlyPaymentView
-        key={`${month}:${site}:${tab}`}
-        identity={identity}
-        month={month}
-        site={site}
-        mode={tab === "dashboard" ? "dashboard" : tab === "monthly" ? "view" : "edit"}
-        // REQ-261112 — 월별 납부 목록은 월·학원 선택을 검색·필터와 한 줄로.
-        leading={
-          tab === "monthly" ? (
-            <MonthSiteFilter
-              month={month}
-              site={site}
-              onFilter={(m, s) => go({ month: m, site: s })}
-            />
-          ) : undefined
-        }
-        initialStatus={url.get("status") || ""}
-        onFilter={(m, s) => go({ month: m, site: s })}
-        onList={(status) => go({ view: "monthly", status })}
-        onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
-        onEditBills={(student, due) =>
-          setEditFor({
-            student: { id: student.id, name: student.name },
-            month,
-            due,
-            createOnly: student.billCount === 0,
-          })
-        }
-        onPickStudent={() => setCreateOpen(true)}
-        onImport={() => setImportOpen(true)}
-        onExportBills={() => void exportBills()}
-      />
+      {tab === "dashboard" ? (
+        <PayDashboard
+          identity={identity}
+          month={month}
+          site={site}
+          basis={basis}
+          onFilter={(m, s) => go({ month: m, site: s })}
+          onBasis={(b) => go({ basis: b })}
+          onList={(status, scope) => go({ view: "monthly", status, scope: scope ?? "" })}
+          onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
+          onPickStudent={() => setCreateOpen(true)}
+        />
+      ) : (
+        <MonthlyPaymentView
+          key={`${month}:${site}:${tab}`}
+          identity={identity}
+          month={month}
+          site={site}
+          mode={tab === "monthly" ? "view" : "edit"}
+          // REQ-261112 — 월별 납부 목록은 월·학원 선택을 검색·필터와 한 줄로.
+          leading={
+            tab === "monthly" ? (
+              <MonthSiteFilter
+                month={month}
+                site={site}
+                onFilter={(m, s) => go({ month: m, site: s })}
+              />
+            ) : undefined
+          }
+          initialStatus={url.get("status") || ""}
+          initialScope={url.get("scope") === "REVIEW" ? "REVIEW" : "ENROLLED"}
+          onDetail={(ids, readOnly) => setDetail({ ids, readOnly })}
+          onEditBills={(student, due) =>
+            setEditFor({
+              student: { id: student.id, name: student.name },
+              month,
+              due,
+              createOnly: student.billCount === 0,
+            })
+          }
+          onImport={() => setImportOpen(true)}
+          onExportBills={() => void exportBills()}
+        />
+      )}
       <CreateDialog
         initialSite={site === "ALL" ? "" : site}
         month={month}
