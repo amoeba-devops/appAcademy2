@@ -24,7 +24,8 @@
   --border-subtle: var(--gray-200);
 
   /* Layout */
-  --admin-content-width: 896px;
+  /* REQ-261112D — 모든 메뉴 기본 콘텐츠 최대 폭(왼쪽 정렬). 896 → 1280. */
+  --admin-content-width: 1280px;
   --admin-support-width: 256px;
   --admin-content-gap: 24px;
   --sidebar-width: 240px;

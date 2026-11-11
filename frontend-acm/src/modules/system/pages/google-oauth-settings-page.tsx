@@ -113,7 +113,7 @@ export function GoogleOauthSettingsPage() {
   ];
 
   return (
-    <div className="grid max-w-4xl gap-6">
+    <div className="admin-form-width grid gap-6">
       <header className="flex flex-wrap items-center gap-2">
         <KeyRound size={20} className="text-accent-700" />
         <h1 className="text-xl font-semibold text-primary">{t('google.title')}</h1>

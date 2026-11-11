@@ -34,7 +34,8 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   );
   const p = profile.data;
   return (
-    <div className="grid w-full max-w-2xl min-w-0 gap-4">
+    // REQ-261112D — 콘솔은 폼 폭 표준(768), 포털은 기존 그대로.
+    <div className={`grid w-full min-w-0 gap-4 ${mode === "console" ? "admin-form-width" : "max-w-2xl"}`}>
       {mode === "console" ? (
         <PageHeader
           icon={UserRound}

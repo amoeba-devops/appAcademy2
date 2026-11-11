@@ -153,8 +153,11 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
   if (isDashboard || isProject || pathname === "/admin/documents" || pathname.startsWith("/admin/embed/"))
     return <>{children}</>;
   // UI-261019 — "이용 팁" 패널은 없앤다(화면 설명은 PageHeader 한 줄로). 채팅만 방 정보 패널로 쓴다.
-  // REQ-261027C — collections lists use the full width so 12 columns fit on one line.
-  const isWide = pathname.startsWith("/admin/pay");
+  // REQ-261027C · REQ-261112D — 전체 폭 예외(보드·달력·넓은 목록): 수납관리, 수업일정 달력, 신규 상담 목록(칸반).
+  // 그 밖의 메뉴는 기본 최대 폭(--admin-content-width 1280px, 왼쪽 정렬)으로 통일한다.
+  const path = pathname.replace(/\/$/, "");
+  const isWide =
+    path.startsWith("/admin/pay") || path === "/admin/cal" || path === "/admin/csl";
   if (!isChat)
     return (
       <div className={`admin-content-container ${isWide ? "admin-content-full" : ""}`}>

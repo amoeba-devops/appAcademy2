@@ -42,7 +42,7 @@ export function StdEditPage() {
     );
 
   return (
-    <div className="w-full min-w-0 max-w-4xl space-y-4">
+    <div className="admin-form-width space-y-4">
       <PageHeader
         back={{
           to: back,

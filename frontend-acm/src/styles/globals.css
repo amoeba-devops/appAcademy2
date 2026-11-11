@@ -56,6 +56,8 @@
 @media (min-width: 1024px) { .admin-page-content { padding: 1.5rem; } }
 /* Wide work screens (collections) drop the reading-width cap. */
 .admin-content-full .admin-content-grid { max-width: none; }
+/* REQ-261112D — 폼·상세 화면: 카드 폭은 기본과 같게 두고 입력 영역만 768px(왼쪽). */
+.admin-form-width { width: 100%; min-width: 0; max-width: 768px; }
 .admin-page-content :where(table) { background: var(--bg-surface); }
 /* UI-261019 — 표 머리글 표준: 배경 gray-50, 12px/600 보조색. */
 .admin-page-content thead th {
