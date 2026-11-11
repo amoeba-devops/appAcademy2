@@ -17,6 +17,13 @@ import {
 } from './issue.dto';
 import { notifyIssueMentions } from './issue-mentions';
 import { ProjectService } from './project.service';
+import {
+  TIMELINE_SQL,
+  timelinePage,
+  timelineParams,
+  type ProjectTimelineQuery,
+  type TimelineRow,
+} from './project-timeline';
 
 /**
  * 접근 가능한 프로젝트(담당자 또는 참여자) 조건. p = 프로젝트 alias, $2 = 사용자.
@@ -275,6 +282,18 @@ export class IssueService {
       [u.entId, id],
     );
     return { ok: true };
+  }
+
+  /** REQ-261112F — 프로젝트 타임라인(이슈 생성·상태·담당자·이동·코멘트·문서 등록). 프로젝트 열람 권한 필요. */
+  async projectTimeline(
+    u: AcmCurrentUser,
+    prjId: string,
+    q: ProjectTimelineQuery,
+  ) {
+    await this.projects.access(u, prjId);
+    const { limit, params } = timelineParams(u.entId, prjId, q);
+    const rows = await this.ds.query<TimelineRow[]>(TIMELINE_SQL, params);
+    return timelinePage(rows, limit);
   }
 
   async statusLogs(u: AcmCurrentUser, id: string) {
