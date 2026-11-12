@@ -14,6 +14,8 @@ export interface MailConfig {
   fromAddress: string | null;
   /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
   operatorEmails: string | null;
+  /** REQ-261112I — 기본 숨은참조(BCC) (쉼표 구분) */
+  defaultBcc: string | null;
   isActive: boolean;
   updatedAt: string | null;
 }
@@ -28,6 +30,7 @@ export interface UpdateMailConfigInput {
   fromName?: string;
   fromAddress?: string;
   operatorEmails?: string;
+  defaultBcc?: string;
   isActive?: boolean;
 }
 

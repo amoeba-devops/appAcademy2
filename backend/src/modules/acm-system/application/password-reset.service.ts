@@ -187,7 +187,10 @@ export class PasswordResetService {
     let mailSent = false;
     try {
       if (await this.mailer.isConfigured(entId)) {
-        await this.mailer.send(entId, this.mail(user, password, expiresAt));
+        // REQ-261112I — 임시 비밀번호는 기본 BCC 사본 제외
+        await this.mailer.send(entId, this.mail(user, password, expiresAt), {
+          skipDefaultBcc: true,
+        });
         mailSent = true;
       }
     } catch (e) {

@@ -4,6 +4,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Matches,
   Max,
   MaxLength,
   Min,
@@ -54,6 +55,18 @@ export class UpdateMailConfigDto {
   @IsString()
   @MaxLength(500)
   operatorEmails?: string;
+
+  /** REQ-261112I — 메일 기본 숨은참조(BCC) (쉼표 구분, 비우면 없음) */
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  @Matches(
+    /^\s*$|^\s*[^\s@,]+@[^\s@,]+\.[^\s@,]+\s*(,\s*[^\s@,]+@[^\s@,]+\.[^\s@,]+\s*)*,?\s*$/,
+    {
+      message: 'defaultBcc must be comma-separated email addresses',
+    },
+  )
+  defaultBcc?: string;
 
   @IsOptional()
   @IsBoolean()
