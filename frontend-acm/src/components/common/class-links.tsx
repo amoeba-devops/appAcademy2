@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Plus, Video, X } from "lucide-react";
+import { meetingHref } from "@/modules/cfg/hooks/use-video-config";
 
 /**
  * REQ-261103C — 강사별 수업링크 여러 개(이름 + 주소). 주소 형식 검사는 하지 않는다 —
@@ -9,6 +10,8 @@ import { Plus, Video, X } from "lucide-react";
 export interface ClassLink {
   label?: string | null;
   url: string;
+  /** REQ-261112D — 수업일정에 등록된 화상 링크(포털 표시 전용). */
+  source?: "CAL";
 }
 export const MAX_CLASS_LINKS = 10;
 
@@ -80,12 +83,15 @@ export function ClassLinkList({ links }: { links: ClassLink[] }) {
         <li key={i} className="flex flex-wrap items-center gap-2 text-sm">
           <div className="min-w-0 flex-1">
             <div className="font-medium text-primary">
-              {l.label || t("classLinks.numbered", { n: i + 1 })}
+              {l.label ||
+                (l.source === "CAL"
+                  ? t("classLinks.fromCalendar")
+                  : t("classLinks.numbered", { n: i + 1 }))}
             </div>
             <div className="break-all text-xs text-secondary">{l.url}</div>
           </div>
           <a
-            href={l.url}
+            href={meetingHref(l.url)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md bg-accent-600 px-3 text-sm font-medium text-white hover:bg-accent-700"

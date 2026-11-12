@@ -2615,6 +2615,7 @@
     "remove": "링크 삭제",
     "none": "등록된 수업링크가 없습니다.",
     "numbered": "수업링크 {{n}}",
+    "fromCalendar": "수업일정 링크",
     "join": "입장",
     "invalid": "열 수 없는 주소입니다. 인터넷 주소(예: meet.google.com/…)를 입력해 주세요."
   }
