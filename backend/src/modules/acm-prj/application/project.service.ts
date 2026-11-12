@@ -125,9 +125,10 @@ export class ProjectService {
     );
     return { ok: true };
   }
+  // REQ-261112J — 선택 목록(담당자·참여자·멘션)에서 잠금·삭제 사용자 제외
   async people(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT usr_id AS id,usr_name AS name,usr_email AS email FROM amb_acm_user WHERE ent_id=$1 AND usr_status='ACTIVE' AND usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') ORDER BY usr_name`,
+      `SELECT usr_id AS id,usr_name AS name,usr_email AS email FROM amb_acm_user WHERE ent_id=$1 AND usr_status='ACTIVE' AND usr_locked_at IS NULL AND usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') ORDER BY usr_name`,
       [u.entId],
     );
   }
@@ -142,7 +143,7 @@ export class ProjectService {
     return {
       ...p,
       members: await this.ds.query<Record<string, unknown>[]>(
-        `SELECT m.usr_id AS id,u.usr_name AS name,u.usr_email AS email,m.member_role FROM amb_acm_prj_member m JOIN amb_acm_user u ON u.ent_id=m.ent_id AND u.usr_id=m.usr_id WHERE m.ent_id=$1 AND m.prj_id=$2`,
+        `SELECT m.usr_id AS id,u.usr_name AS name,u.usr_email AS email,m.member_role FROM amb_acm_prj_member m JOIN amb_acm_user u ON u.ent_id=m.ent_id AND u.usr_id=m.usr_id WHERE m.ent_id=$1 AND m.prj_id=$2 AND u.usr_deleted_at IS NULL`,
         [u.entId, id],
       ),
     };

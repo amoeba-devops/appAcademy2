@@ -5,6 +5,9 @@ import {
   Param,
   ParseUUIDPipe,
   Put,
+  Delete,
+  HttpCode,
+  HttpStatus,
   Patch,
   Post,
   Query,
@@ -101,5 +104,12 @@ export class SystemUserController {
   @ApiOperation({ summary: 'Unlock account (APP_ADMIN)' })
   unlock(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AcmCurrentUser) {
     return this.svc.unlock(id, actor.id);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Permanently delete a console user (REQ-261112J, APP_ADMIN)' })
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() actor: AcmCurrentUser) {
+    return this.svc.remove(id, actor.id);
   }
 }

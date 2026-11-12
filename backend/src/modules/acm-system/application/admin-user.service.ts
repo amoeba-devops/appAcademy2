@@ -31,6 +31,8 @@ export interface AdminUserView {
   isTenantMaster: boolean;
   createdAt: string;
   lastLoginAt: string | null;
+  /** REQ-261112J — 소프트삭제 시각 */
+  deletedAt: string | null;
 }
 
 const SELECT = `
@@ -41,7 +43,8 @@ const SELECT = `
          COALESCE((SELECT array_agg(p.upr_permission ORDER BY p.upr_permission) FROM amb_acm_user_permission p
                     WHERE p.ent_id=u.ent_id AND p.usr_id=u.usr_id), '{}') permissions,
          EXISTS (SELECT 1 FROM amb_acm_user_permission p WHERE p.ent_id=u.ent_id AND p.usr_id=u.usr_id AND p.upr_permission='TENANT_MASTER') "isTenantMaster",
-         u.created_at::text "createdAt", u.usr_last_login_at::text "lastLoginAt"
+         u.created_at::text "createdAt", u.usr_last_login_at::text "lastLoginAt",
+         u.usr_deleted_at::text "deletedAt"
     FROM amb_acm_user u
    WHERE u.ent_id=$1 AND u.usr_role IN ('ADMIN','STAFF')`;
 
@@ -59,10 +62,15 @@ export class AdminUserService {
 
   list(
     entId: string,
-    f: { q?: string; role?: string; auth?: string },
+    f: { q?: string; role?: string; auth?: string; status?: string },
   ): Promise<AdminUserView[]> {
     const params: unknown[] = [entId];
-    const cond: string[] = [];
+    // REQ-261112J — 기본은 삭제 안 된 계정, status=DELETED 면 삭제된 계정만.
+    const cond: string[] = [
+      f.status === 'DELETED'
+        ? 'u.usr_deleted_at IS NOT NULL'
+        : 'u.usr_deleted_at IS NULL',
+    ];
     if (f.q?.trim()) {
       params.push(`%${f.q.trim().replace(/[%_\\]/g, '\\$&')}%`);
       cond.push(
@@ -76,7 +84,7 @@ export class AdminUserService {
     if (f.auth === 'ama') cond.push(`u.auth_source = 'ama'`);
     else if (f.auth === 'local') cond.push(`u.auth_source <> 'ama'`);
     return this.ds.query<AdminUserView[]>(
-      `${SELECT}${cond.length ? ` AND ${cond.join(' AND ')}` : ''} ORDER BY u.usr_status, u.usr_role, u.usr_name`,
+      `${SELECT} AND ${cond.join(' AND ')} ORDER BY u.usr_status, u.usr_role, u.usr_name`,
       params,
     );
   }
@@ -90,6 +98,65 @@ export class AdminUserService {
     return row;
   }
 
+  /** 삭제되지 않은 계정만 — 삭제된 계정은 복구 전까지 수정할 수 없다. */
+  private async getLive(entId: string, id: string): Promise<AdminUserView> {
+    const cur = await this.get(entId, id);
+    if (cur.deletedAt)
+      throw new ConflictException({
+        code: 'USER_DELETED',
+        message: 'USER_DELETED',
+      });
+    return cur;
+  }
+
+  /**
+   * REQ-261112J — 소프트삭제: 로그인·SSO·선택 목록에서 빠진다(이력은 유지).
+   * 자기 자신·테넌트 마스터는 삭제할 수 없다. 푸시 구독·대기 중 비밀번호 요청은 정리한다.
+   */
+  async remove(actor: AcmCurrentUser, id: string): Promise<AdminUserView> {
+    const cur = await this.getLive(actor.entId, id);
+    if (actor.id === id) throw new ForbiddenException('CANNOT_DELETE_SELF');
+    if (cur.isTenantMaster)
+      throw new ForbiddenException('TENANT_MASTER_ROLE_FIXED');
+    await this.ds.transaction(async (m) => {
+      await m.query(
+        `UPDATE amb_acm_user SET usr_status='DELETED', usr_deleted_at=now(), usr_deleted_by=$3, updated_at=now()
+          WHERE ent_id=$1 AND usr_id=$2 AND usr_deleted_at IS NULL`,
+        [actor.entId, id, actor.id],
+      );
+      await m.query(
+        `DELETE FROM amb_acm_push_subscription WHERE ent_id=$1 AND psu_kind='USER' AND psu_recipient_id=$2`,
+        [actor.entId, id],
+      );
+      await m.query(
+        `DELETE FROM amb_acm_password_reset_request WHERE ent_id=$1 AND usr_id=$2 AND prr_status='REQUESTED'`,
+        [actor.entId, id],
+      );
+    });
+    return this.get(actor.entId, id);
+  }
+
+  /** REQ-261112J — 복구: 같은 이메일의 다른 계정이 이미 있으면 409. */
+  async restore(actor: AcmCurrentUser, id: string): Promise<AdminUserView> {
+    const cur = await this.get(actor.entId, id);
+    if (!cur.deletedAt) return cur;
+    const [dup] = await this.ds.query(
+      `SELECT 1 FROM amb_acm_user WHERE lower(usr_email)=lower($1) AND usr_id<>$2 AND usr_deleted_at IS NULL`,
+      [cur.email, id],
+    );
+    if (dup)
+      throw new ConflictException({
+        code: 'EMAIL_TAKEN',
+        message: 'EMAIL_TAKEN',
+      });
+    await this.ds.query(
+      `UPDATE amb_acm_user SET usr_status='ACTIVE', usr_deleted_at=NULL, usr_deleted_by=NULL, updated_at=now()
+        WHERE ent_id=$1 AND usr_id=$2`,
+      [actor.entId, id],
+    );
+    return this.get(actor.entId, id);
+  }
+
   async update(
     actor: AcmCurrentUser,
     id: string,
@@ -100,7 +167,7 @@ export class AdminUserService {
       status?: 'ACTIVE' | 'INACTIVE';
     },
   ): Promise<AdminUserView> {
-    const cur = await this.get(actor.entId, id);
+    const cur = await this.getLive(actor.entId, id);
     const self = actor.id === id;
     // FR-A7 — never lock yourself out; the tenant master's grade is fixed here.
     if (self && dto.role && dto.role !== cur.role)
@@ -126,7 +193,7 @@ export class AdminUserService {
       const email = dto.email.trim().toLowerCase();
       if (email !== cur.email.toLowerCase()) {
         const [dup] = await this.ds.query(
-          `SELECT 1 FROM amb_acm_user WHERE lower(usr_email)=$1 AND usr_id<>$2`,
+          `SELECT 1 FROM amb_acm_user WHERE lower(usr_email)=$1 AND usr_id<>$2 AND usr_deleted_at IS NULL`,
           [email, id],
         );
         if (dup)
@@ -152,7 +219,7 @@ export class AdminUserService {
     id: string,
     locked: boolean,
   ): Promise<AdminUserView> {
-    const cur = await this.get(actor.entId, id);
+    const cur = await this.getLive(actor.entId, id);
     if (locked && actor.id === id)
       throw new ForbiddenException('CANNOT_LOCK_SELF');
     if (locked && cur.isTenantMaster)
@@ -168,13 +235,13 @@ export class AdminUserService {
     password: string,
     mustChange: boolean,
   ): Promise<AdminUserView> {
-    await this.get(actor.entId, id);
+    await this.getLive(actor.entId, id);
     await this.auth.setPasswordByAdmin(id, password, mustChange, actor.id);
     return this.get(actor.entId, id);
   }
 
   async issueTemp(actor: AcmCurrentUser, id: string): Promise<IssueResult> {
-    await this.get(actor.entId, id);
+    await this.getLive(actor.entId, id);
     return this.resets.issueForUser(actor, id);
   }
 
@@ -188,7 +255,7 @@ export class AdminUserService {
       error?: string;
     }> = [];
     for (const id of [...new Set(ids)]) {
-      const cur = await this.get(actor.entId, id).catch(() => null);
+      const cur = await this.getLive(actor.entId, id).catch(() => null);
       if (!cur) {
         out.push({ id, email: '', switched: false, error: 'USER_NOT_FOUND' });
         continue;

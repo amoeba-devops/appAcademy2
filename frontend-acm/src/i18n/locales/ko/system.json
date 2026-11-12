@@ -22,7 +22,8 @@
   },
   "status": {
     "ACTIVE": "활성",
-    "INACTIVE": "비활성"
+    "INACTIVE": "비활성",
+    "DELETED": "삭제됨"
   },
   "users": {
     "title": "사용자 관리",
@@ -94,6 +95,21 @@
       "TENANT_MASTER_hint": "테넌트 설정(/admin/tenant) · 등급별 메뉴 노출 · 허가 메뉴 전체 노출",
       "AUDIT_VIEWER": "감사 조회",
       "AUDIT_VIEWER_hint": "감사(/admin/audit) 접속 로그·접속 통제 보기 전용 — 변경은 테넌트 마스터"
+    },
+    "delete": {
+      "action": "삭제",
+      "title": "사용자 완전삭제",
+      "body": "되돌릴 수 없습니다. 권한·멤버십·알림함·푸시 구독 등 개인 데이터가 지워지고, 이슈·일정·로그 기록은 남지만 작성자 이름은 비어 보입니다.",
+      "typeEmail": "확인하려면 이 사용자의 이메일을 입력하세요",
+      "cancel": "취소",
+      "confirm": "완전삭제",
+      "done": "{{email}} 사용자를 완전삭제했습니다.",
+      "errors": {
+        "USER_OWNS_ICS_SOURCES": "이 사용자가 가져온 수업 일정(ICS)이 있어 완전삭제할 수 없습니다. 관리자 관리에서 삭제(소프트삭제)하세요.",
+        "CANNOT_DELETE_SELF": "본인 계정은 삭제할 수 없습니다.",
+        "CANNOT_DELETE_APP_ADMIN": "시스템 관리자는 삭제할 수 없습니다.",
+        "failed": "삭제하지 못했습니다."
+      }
     }
   },
   "tenants": {

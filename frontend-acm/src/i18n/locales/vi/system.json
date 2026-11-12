@@ -22,7 +22,8 @@
   },
   "status": {
     "ACTIVE": "Hoạt động",
-    "INACTIVE": "Ngừng"
+    "INACTIVE": "Ngừng",
+    "DELETED": "Đã xóa"
   },
   "users": {
     "title": "Quản lý người dùng",
@@ -94,6 +95,21 @@
       "TENANT_MASTER_hint": "Cài đặt tenant (/admin/tenant), hiển thị menu theo cấp, thấy mọi menu được phép",
       "AUDIT_VIEWER": "Xem kiểm toán",
       "AUDIT_VIEWER_hint": "Chỉ xem nhật ký và kiểm soát truy cập trong Kiểm toán (/admin/audit) — thay đổi cần tenant master"
+    },
+    "delete": {
+      "action": "Xóa",
+      "title": "Xóa vĩnh viễn người dùng",
+      "body": "Không thể hoàn tác. Dữ liệu cá nhân như quyền, thành viên, hộp thư thông báo, đăng ký push sẽ bị xóa. Bản ghi vấn đề, lịch, nhật ký vẫn còn nhưng tên người tạo sẽ trống.",
+      "typeEmail": "Nhập email của người dùng này để xác nhận",
+      "cancel": "Hủy",
+      "confirm": "Xóa vĩnh viễn",
+      "done": "Đã xóa vĩnh viễn {{email}}.",
+      "errors": {
+        "USER_OWNS_ICS_SOURCES": "Người dùng này đã nhập lịch học (ICS) nên không thể xóa vĩnh viễn. Hãy xóa (xóa mềm) trong Quản lý quản trị viên.",
+        "CANNOT_DELETE_SELF": "Không thể xóa tài khoản của chính bạn.",
+        "CANNOT_DELETE_APP_ADMIN": "Không thể xóa quản trị viên hệ thống.",
+        "failed": "Không thể xóa."
+      }
     }
   },
   "tenants": {

@@ -22,7 +22,8 @@
   },
   "status": {
     "ACTIVE": "启用",
-    "INACTIVE": "停用"
+    "INACTIVE": "停用",
+    "DELETED": "已删除"
   },
   "users": {
     "title": "用户管理",
@@ -94,6 +95,21 @@
       "TENANT_MASTER_hint": "租户设置（/admin/tenant）、按等级的菜单显示，可见所有已允许菜单",
       "AUDIT_VIEWER": "审计查看",
       "AUDIT_VIEWER_hint": "仅可查看审计(/admin/audit)的日志与访问控制 — 修改需租户主管理员"
+    },
+    "delete": {
+      "action": "删除",
+      "title": "永久删除用户",
+      "body": "此操作无法撤销。权限、成员资格、通知箱、推送订阅等个人数据将被删除。问题、日程、日志记录会保留，但作者姓名显示为空。",
+      "typeEmail": "请输入该用户的邮箱以确认",
+      "cancel": "取消",
+      "confirm": "永久删除",
+      "done": "已永久删除 {{email}}。",
+      "errors": {
+        "USER_OWNS_ICS_SOURCES": "该用户导入过课程日程（ICS），无法永久删除。请在管理员管理中删除（软删除）。",
+        "CANNOT_DELETE_SELF": "不能删除自己的账号。",
+        "CANNOT_DELETE_APP_ADMIN": "不能删除系统管理员。",
+        "failed": "删除失败。"
+      }
     }
   },
   "tenants": {

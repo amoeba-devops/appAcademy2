@@ -2411,7 +2411,8 @@
     },
     "status": {
       "ACTIVE": "Hoạt động",
-      "INACTIVE": "Ngừng hoạt động"
+      "INACTIVE": "Ngừng hoạt động",
+      "DELETED": "Đã xóa"
     },
     "cols": {
       "name": "Tên",
@@ -2472,11 +2473,24 @@
       "CANNOT_LOCK_SELF": "Không thể tự khóa.",
       "TENANT_MASTER_ROLE_FIXED": "Không thể đổi cấp, trạng thái, khóa của tenant master.",
       "EMAIL_TAKEN": "Email đã được dùng.",
+      "CANNOT_DELETE_SELF": "Không thể xóa tài khoản của chính bạn.",
+      "USER_DELETED": "Tài khoản đã bị xóa. Hãy khôi phục trước.",
       "weak": "Mật khẩu cần 8+ ký tự gồm chữ và số.",
       "failed": "Không xử lý được."
     },
     "empty": "Không có tài khoản.",
-    "loadError": "Không tải được danh sách."
+    "loadError": "Không tải được danh sách.",
+    "filterStatus": "Trạng thái",
+    "inUse": "Đang dùng",
+    "restore": "Khôi phục",
+    "restoreDone": "Đã khôi phục tài khoản.",
+    "deleteTitle": "Xóa tài khoản",
+    "deleteHint": "Tài khoản đã xóa không thể đăng nhập và bị loại khỏi các danh sách chọn như người phụ trách, trò chuyện. Có thể khôi phục từ bộ lọc 'Đã xóa'.",
+    "delete": "Xóa",
+    "deleteConfirmTitle": "Xóa tài khoản này?",
+    "deleteConfirmBody": "Xóa {{name}}? Đăng nhập và đăng nhập SSO sẽ bị chặn, tài khoản bị loại khỏi danh sách. Các bản ghi như vấn đề, lịch vẫn được giữ.",
+    "deleteDone": "Đã xóa {{name}}.",
+    "deletedNotice": "Tài khoản đã bị xóa lúc {{date}}. Khôi phục để đăng nhập lại."
   },
   "sessionConfig": {
     "title": "Thời gian duy trì đăng nhập",

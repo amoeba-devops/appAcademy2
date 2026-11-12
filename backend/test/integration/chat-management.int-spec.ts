@@ -76,7 +76,7 @@ describe('Chat management / PostgreSQL', () => {
       entities: [Channel, Member, Message],
       synchronize: true,
     }).initialize();
-    await ds.query(`CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_status text,usr_role text);
+    await ds.query(`CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_status text,usr_role text,usr_locked_at timestamptz,usr_deleted_at timestamptz);
       CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_name text,tch_user_id uuid,tch_status text DEFAULT 'ACTIVE',deleted_at timestamptz);
       CREATE TABLE amb_acm_portal_account(pac_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,pac_kind text,pac_ref_id uuid,pac_status text,pac_locked_at timestamptz);
       CREATE TABLE amb_acm_csl_inquiry(inq_id uuid,ent_id uuid,deleted_at timestamptz);

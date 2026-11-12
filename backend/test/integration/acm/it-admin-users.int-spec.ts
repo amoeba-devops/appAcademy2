@@ -190,4 +190,114 @@ describe('IT-ADMIN-USERS admin user management', () => {
       .expect(200);
     expect(access.body.canDeleteRecords).toBe(true);
   });
+
+  // ── REQ-261112J — 소프트삭제·복구·완전삭제 ──────────────────────────────
+  const listIds = async (status?: string) =>
+    (
+      (
+        await http()
+          .get('/api/acm/config/admins')
+          .query(status ? { status } : {})
+          .set(as(master.id))
+          .expect(200)
+      ).body as { id: string }[]
+    ).map((u) => u.id);
+
+  it('soft-deletes: hidden from the list, not editable, restorable', async () => {
+    await http()
+      .delete(`/api/acm/config/admins/${master.id}`)
+      .set(as(master.id))
+      .expect(403);
+    const del = await http()
+      .delete(`/api/acm/config/admins/${PLAIN_ID}`)
+      .set(as(master.id))
+      .expect(200);
+    expect(del.body.deletedAt).toBeTruthy();
+    expect(del.body.status).toBe('DELETED');
+    expect(await listIds()).not.toContain(PLAIN_ID);
+    expect(await listIds('DELETED')).toContain(PLAIN_ID);
+    await http()
+      .patch(`/api/acm/config/admins/${PLAIN_ID}`)
+      .set(as(master.id))
+      .send({ name: 'x' })
+      .expect(409);
+    const back = await http()
+      .post(`/api/acm/config/admins/${PLAIN_ID}/restore`)
+      .set(as(master.id))
+      .expect(200);
+    expect(back.body).toMatchObject({ status: 'ACTIVE', deletedAt: null });
+    expect(await listIds()).toContain(PLAIN_ID);
+  });
+
+  it('refuses SSO login for a soft-deleted AMA account until restored', async () => {
+    await http()
+      .delete(`/api/acm/config/admins/${staffId}`)
+      .set(as(master.id))
+      .expect(200);
+    const denied = await http()
+      .post('/api/acm/auth/ama-exchange')
+      .send({ amaToken: token() });
+    expect(denied.status).toBe(403);
+    await http()
+      .post(`/api/acm/config/admins/${staffId}/restore`)
+      .set(as(master.id))
+      .expect(200);
+    const ok = await http()
+      .post('/api/acm/auth/ama-exchange')
+      .send({ amaToken: token() })
+      .expect(200);
+    expect(ok.body.user.id).toBe(staffId);
+  });
+
+  it('lets the email be reused; restore then conflicts; APP_ADMIN hard-deletes', async () => {
+    const sys = { ...as(randomUUID(), 'APP_ADMIN') };
+    await http()
+      .delete(`/api/acm/config/admins/${PLAIN_ID}`)
+      .set(as(master.id))
+      .expect(200);
+    const created = await http()
+      .post('/api/acm/system/users')
+      .set(sys)
+      .send({
+        entId: master.entId,
+        email: 'plain-admin2@it.test',
+        password: 'Reuse2026Pass',
+        name: 'Plain 2',
+        role: 'ADMIN',
+      })
+      .expect(201);
+    const newId = created.body.id as string;
+    expect(newId).not.toBe(PLAIN_ID);
+    const conflict = await http()
+      .post(`/api/acm/config/admins/${PLAIN_ID}/restore`)
+      .set(as(master.id));
+    expect(conflict.status).toBe(409);
+
+    // 완전삭제 — 개인 데이터 정리, ICS 소유자는 거부
+    await env.ds.query(
+      `INSERT INTO amb_acm_push_subscription (ent_id, psu_kind, psu_recipient_id, psu_endpoint_hash, psu_subscription)
+       VALUES ($1,'USER',$2,$3,'{}'::jsonb)`,
+      [master.entId, newId, randomUUID().replace(/-/g, '')],
+    );
+    await http().delete(`/api/acm/system/users/${newId}`).set(sys).expect(204);
+    const [gone] = await env.ds.query(
+      `SELECT (SELECT count(*)::int FROM amb_acm_user WHERE usr_id=$1) u,
+              (SELECT count(*)::int FROM amb_acm_push_subscription WHERE psu_recipient_id=$1) p`,
+      [newId],
+    );
+    expect(gone).toEqual({ u: 0, p: 0 });
+
+    await env.ds.query(
+      `INSERT INTO amb_acm_cal_ics_source (ent_id,batch_id,calendar_key,calendar_name,source_uid,source_hash,ical_text,owner_user_id,category,is_unbounded)
+       VALUES ($1,$2,'k','n','uid-1','h','x',$3,'CLASS',false)`,
+      [master.entId, randomUUID(), PLAIN_ID],
+    );
+    const blocked = await http()
+      .delete(`/api/acm/system/users/${PLAIN_ID}`)
+      .set(sys);
+    expect(blocked.status).toBe(409);
+    expect(blocked.body.error?.code ?? blocked.body.code).toBe(
+      'USER_OWNS_ICS_SOURCES',
+    );
+  });
 });

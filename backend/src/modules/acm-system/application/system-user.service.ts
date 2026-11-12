@@ -31,9 +31,7 @@ export class SystemUserService {
     private readonly authService: AcmAuthService,
   ) {}
 
-  async list(
-    q: ListSystemUsersQueryDto,
-  ): Promise<{
+  async list(q: ListSystemUsersQueryDto): Promise<{
     items: SystemUserView[];
     total: number;
     page: number;
@@ -100,6 +98,10 @@ export class SystemUserService {
 
   async update(id: string, dto: UpdateSystemUserDto): Promise<SystemUserView> {
     const u = await this.getEntityOrThrow(id);
+    // REQ-261112J — 소프트삭제된 계정은 관리자 관리에서 복구한 뒤 수정한다.
+    if (u.deletedAt) {
+      throw new HttpException({ code: 'USER_DELETED' }, HttpStatus.CONFLICT);
+    }
     if (dto.name !== undefined) u.name = dto.name;
     if (dto.role !== undefined) u.role = dto.role;
     if (dto.status !== undefined) u.status = dto.status;
@@ -117,16 +119,76 @@ export class SystemUserService {
     await this.authService.updateUserPassword(id, password);
   }
 
-  async lock(id: string, byUserId: string | null = null): Promise<SystemUserView> {
+  async lock(
+    id: string,
+    byUserId: string | null = null,
+  ): Promise<SystemUserView> {
     await this.getEntityOrThrow(id);
     await this.authService.lockUser(id, byUserId);
     return this.getOrThrow(id);
   }
 
-  async unlock(id: string, byUserId: string | null = null): Promise<SystemUserView> {
+  async unlock(
+    id: string,
+    byUserId: string | null = null,
+  ): Promise<SystemUserView> {
     await this.getEntityOrThrow(id);
     await this.authService.unlockUser(id, byUserId);
     return this.getOrThrow(id);
+  }
+
+  /**
+   * REQ-261112J — 완전삭제 (APP_ADMIN, 테넌트 화면).
+   * 개인 데이터(권한·멤버십·알림·푸시·채팅 참여·OAuth·비밀번호 요청)는 지우고,
+   * 이슈·일정·로그 등 이력은 FK 없는 uuid 로 남는다(이름은 빈칸으로 보임).
+   * 자기 자신·APP_ADMIN, ICS 가져오기 소유자(반복 일정 생성에 필요)는 삭제할 수 없다.
+   */
+  async remove(id: string, actorId: string): Promise<void> {
+    const u = await this.getEntityOrThrow(id);
+    if (u.id === actorId) {
+      throw new HttpException(
+        { code: 'CANNOT_DELETE_SELF' },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    if (u.role === 'APP_ADMIN') {
+      throw new HttpException(
+        { code: 'CANNOT_DELETE_APP_ADMIN' },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    await this.userRepo.manager.transaction(async (m) => {
+      const [ics] = await m.query<{ n: number }[]>(
+        `SELECT count(*)::int n FROM amb_acm_cal_ics_source WHERE owner_user_id=$1`,
+        [id],
+      );
+      if (ics.n > 0) {
+        throw new HttpException(
+          { code: 'USER_OWNS_ICS_SOURCES', message: 'USER_OWNS_ICS_SOURCES' },
+          HttpStatus.CONFLICT,
+        );
+      }
+      const p = [u.entId, id];
+      for (const sql of [
+        `DELETE FROM amb_acm_prj_member WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_drv_member WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_prj_issue_participant WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_prj_oauth WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_notification_inbox WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_password_reset_request WHERE ent_id=$1 AND usr_id=$2`,
+        `DELETE FROM amb_acm_push_subscription WHERE ent_id=$1 AND psu_kind='USER' AND psu_recipient_id=$2`,
+        `DELETE FROM amb_acm_notification_pref WHERE ent_id=$1 AND npf_kind='USER' AND npf_recipient_id=$2`,
+        `UPDATE amb_acm_talk_member SET tlm_left_at=COALESCE(tlm_left_at, now()) WHERE ent_id=$1 AND tlm_kind='USER' AND tlm_ref_id=$2`,
+        `UPDATE amb_acm_user_invite SET accepted_usr_id=NULL WHERE ent_id=$1 AND accepted_usr_id=$2`,
+      ]) {
+        await m.query(sql, p);
+      }
+      // 권한은 FK CASCADE, 강사·직원 연결은 FK SET NULL.
+      await m.query(
+        `DELETE FROM amb_acm_user WHERE ent_id=$1 AND usr_id=$2`,
+        p,
+      );
+    });
   }
 
   private async getOrThrow(id: string): Promise<SystemUserView> {

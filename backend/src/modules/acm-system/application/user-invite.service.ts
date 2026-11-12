@@ -85,7 +85,7 @@ export class UserInviteService {
     const email = dto.email.trim().toLowerCase();
     // 로그인은 이메일로 전 테넌트를 찾으므로 어느 테넌트든 이미 있으면 초대하지 않는다.
     const [exists] = await this.ds.query<{ n: number }[]>(
-      `SELECT count(*)::int n FROM amb_acm_user WHERE lower(usr_email) = $1`,
+      `SELECT count(*)::int n FROM amb_acm_user WHERE lower(usr_email) = $1 AND usr_deleted_at IS NULL`,
       [email],
     );
     if (exists.n > 0)
