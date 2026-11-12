@@ -100,7 +100,7 @@ describe('IT-CAL-TEACHER-LINK teacher-managed class link', () => {
     });
   });
 
-  it('rejects other teachers, BODA events and malformed links', async () => {
+  it('rejects other teachers and BODA events', async () => {
     await expect(
       svc.update(ENT, OTHER_TCH, evt(1), {
         meetingUrl: LINK,
@@ -115,13 +115,7 @@ describe('IT-CAL-TEACHER-LINK teacher-managed class link', () => {
         notify: false,
       }),
     ).rejects.toMatchObject({ status: 409 });
-    await expect(
-      svc.update(ENT, TCH, evt(1), {
-        meetingUrl: 'https://zoom.us/j/1',
-        scope: 'ONE',
-        notify: false,
-      }),
-    ).rejects.toMatchObject({ status: 400 });
+    // REQ-261112C — 링크 형식은 검사하지 않는다 (입력한 그대로 저장, 아래 테스트에서 확인).
   });
 
   it('changes only this class and records a revision without mail', async () => {
