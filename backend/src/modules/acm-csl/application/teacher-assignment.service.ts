@@ -6,6 +6,7 @@ import {
   AssignmentRole,
   TeacherAssignmentTypeormEntity,
 } from '../infrastructure/typeorm/teacher-assignment.typeorm-entity';
+import { syncAssignedTeachersToStudent } from './teacher-student-sync';
 
 /**
  * REQ-260626 FR-CSL-136 — multi-teacher assignment for an inquiry.
@@ -49,10 +50,12 @@ export class TeacherAssignmentService {
       existing.role = input.role;
       existing.assignedBy = input.actorId;
       existing.assignedAt = new Date();
-      return this.repo.save(existing);
+      const saved = await this.repo.save(existing);
+      await this.syncToStudent(input.entId, input.inqId);
+      return saved;
     }
     try {
-      return await this.repo.save(
+      const saved = await this.repo.save(
         this.repo.create({
           entId: input.entId,
           inqId: input.inqId,
@@ -62,6 +65,8 @@ export class TeacherAssignmentService {
           assignedAt: new Date(),
         }),
       );
+      await this.syncToStudent(input.entId, input.inqId);
+      return saved;
     } catch (e: unknown) {
       // Defensive: another request may have raced and inserted the pair
       // between our findOne and save. Surface as 409 for the client to retry.
@@ -73,6 +78,14 @@ export class TeacherAssignmentService {
       }
       throw e;
     }
+  }
+
+  /**
+   * REQ-261112C — 이미 학생과 연결된 상담이면 학생 담당강사에도 추가.
+   * 배정 해제는 학생 쪽에 반영하지 않는다(학생 관리에서 따로 편집한 담당강사 보호).
+   */
+  private async syncToStudent(entId: string, inqId: string): Promise<void> {
+    await syncAssignedTeachersToStudent(this.repo.manager, entId, inqId);
   }
 
   async remove(entId: string, inqId: string, asgId: string): Promise<void> {
