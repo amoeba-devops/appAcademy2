@@ -1986,7 +1986,6 @@
     "tenantTimezone": "학원 기준 타임존",
     "userTimezone": "사용자 지정 타임존",
     "noUserTimezone": "사용 안 함 (학원 기준과 동일)",
-    "viewCalendar": "일정보기",
     "timezoneHint": "일시는 학원 기본 타임존으로 표시되며, 내 타임존이 다르면 괄호 안에 함께 표시됩니다.",
     "preview": "현재 시각 미리보기: {{now}}",
     "save": "저장",

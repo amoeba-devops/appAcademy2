@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { CalendarRange, UserCircle, UserRound } from "lucide-react";
+import { UserCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDual } from "@/lib/tz";
@@ -125,16 +125,7 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
               </Button>
             </div>
           </section>
-          {/* REQ-261110B — 포털 좌측 메뉴에서 숨긴 수업일정 진입 버튼 */}
-          {mode === "portal" && (
-            <Link
-              to="/portal/calendar"
-              className="inline-flex h-9 w-fit items-center gap-2 rounded-md border bg-surface px-4 text-sm font-medium hover:bg-canvas"
-            >
-              <CalendarRange size={16} />
-              {t("myPage.viewCalendar")}
-            </Link>
-          )}
+          {/* REQ-261112J — 수업일정은 메뉴·버튼 없이 /portal/calendar 직접 입력으로만 접근 */}
           {mode === "console" && (
             <>
               <ExtraProfileSection profile={p} />
