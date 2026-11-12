@@ -234,7 +234,16 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="sm:col-span-2">
+                <label className={labelClass}>{t('field.parentEmail', '이메일')}</label>
+                <input
+                  type="email"
+                  value={form.parEmail ?? ''}
+                  onChange={(e) => setForm({ ...form, parEmail: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+              <div className="sm:col-span-2">
                 <label className={labelClass}>{t('field.parentPhone', '전화번호')}</label>
                 <div className="flex gap-2">
                   <CountryCodeSelect
@@ -245,18 +254,9 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
                   <input
                     value={form.parPhone ?? ''}
                     onChange={(e) => setForm({ ...form, parPhone: e.target.value })}
-                    className={inputClass}
+                    className={inputClass + ' min-w-0'}
                   />
                 </div>
-              </div>
-              <div>
-                <label className={labelClass}>{t('field.parentEmail', '이메일')}</label>
-                <input
-                  type="email"
-                  value={form.parEmail ?? ''}
-                  onChange={(e) => setForm({ ...form, parEmail: e.target.value })}
-                  className={inputClass}
-                />
               </div>
               <ParentMessengerMemoFields
                 value={{
