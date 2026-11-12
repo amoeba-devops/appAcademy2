@@ -1,3 +1,4 @@
+import request from 'supertest';
 import { RegisteredUserService } from '../../../src/modules/acm-system/application/registered-user.service';
 import { bootAcmTestEnv, teardownAcmTestEnv, AcmTestEnv } from './setup';
 
@@ -91,5 +92,99 @@ describe('IT-REGISTERED-USERS', () => {
     ).toEqual(['stu1@gmail.com']);
     expect((await svc.list(ENT, 'ALL', 'STAFF1@')).users).toHaveLength(1);
     expect((await svc.list(ENT, 'ALL', '%')).users).toHaveLength(0);
+  });
+
+  // ── REQ-261112L — 수정·삭제 ──────────────────────────────────────────
+  const http = () => request(env.app.getHttpServer());
+  const asMaster = async () => {
+    const [m] = await env.ds.query<{ usr_id: string }[]>(
+      `SELECT usr_id FROM amb_acm_user WHERE usr_email='admin@tpi.co.kr'`,
+    );
+    await env.ds.query(
+      `INSERT INTO amb_acm_user_permission (ent_id, usr_id, upr_permission) VALUES ($1,$2,'CONFIG_ADMIN') ON CONFLICT DO NOTHING`,
+      [ENT, m.usr_id],
+    );
+    return {
+      'x-test-user': m.usr_id,
+      'x-test-ent': ENT,
+      'x-test-role': 'ADMIN',
+    };
+  };
+
+  it('edits and soft-deletes a console teacher account (grade fixed)', async () => {
+    const h = await asMaster();
+    const t = (await svc.list(ENT, 'TEACHER')).users.find(
+      (u) => u.source === 'CONSOLE',
+    )!;
+    await http()
+      .patch(`/api/acm/config/admins/${t.id}`)
+      .set(h)
+      .send({ name: '강사 둘' })
+      .expect(200);
+    await http()
+      .patch(`/api/acm/config/admins/${t.id}`)
+      .set(h)
+      .send({ role: 'ADMIN' })
+      .expect(403);
+    const admins = await http()
+      .get('/api/acm/config/admins')
+      .set(h)
+      .expect(200);
+    expect((admins.body as { id: string }[]).map((u) => u.id)).not.toContain(
+      t.id,
+    );
+    await http().delete(`/api/acm/config/admins/${t.id}`).set(h).expect(200);
+    const after = await svc.list(ENT, 'TEACHER');
+    expect(after.users.map((u) => u.id)).not.toContain(t.id);
+    expect(after.counts.TEACHER).toBe(1);
+  });
+
+  it('changes portal status, then soft-deletes; reissue restores the same login id', async () => {
+    const h = await asMaster();
+    const stu = (await svc.list(ENT, 'STUDENT')).users[0];
+    const off = await http()
+      .patch(`/api/acm/admin/registered-users/portal/${stu.id}`)
+      .set(h)
+      .send({ status: 'INACTIVE' })
+      .expect(200);
+    expect(off.body.status).toBe('INACTIVE');
+    const reset = await http()
+      .post(`/api/acm/admin/registered-users/portal/${stu.id}/reset`)
+      .set(h)
+      .send({})
+      .expect(200);
+    expect(reset.body.tempPassword).toBeTruthy();
+    await http()
+      .delete(`/api/acm/admin/registered-users/portal/${stu.id}`)
+      .set(h)
+      .expect(204);
+    const after = await svc.list(ENT, 'STUDENT');
+    expect(after.users).toHaveLength(0);
+    expect(after.counts.STUDENT).toBe(0);
+    await http()
+      .patch(`/api/acm/admin/registered-users/portal/${stu.id}`)
+      .set(h)
+      .send({ status: 'ACTIVE' })
+      .expect(404);
+    const byRef = await http()
+      .get('/api/acm/portal-accounts')
+      .query({ kind: 'STUDENT', refId: stu.ref_id })
+      .set(h)
+      .expect(200);
+    expect((byRef.body as { id?: string } | null)?.id).toBeUndefined();
+    const issued = await http()
+      .post('/api/acm/portal-accounts')
+      .set(h)
+      .send({ kind: 'STUDENT', refId: stu.ref_id })
+      .expect(201);
+    expect(issued.body).toMatchObject({
+      id: stu.id,
+      loginId: 'stu1@gmail.com',
+    });
+    const [row] = await env.ds.query(
+      `SELECT pac_status, pac_deleted_at FROM amb_acm_portal_account WHERE pac_id=$1`,
+      [stu.id],
+    );
+    expect(row).toMatchObject({ pac_status: 'ACTIVE', pac_deleted_at: null });
   });
 });

@@ -71,3 +71,19 @@ export const registeredUserApi = {
       )
     ).data,
 };
+
+/** REQ-261112L — 등록 사용자 수정·삭제 */
+export const registeredUserAdminApi = {
+  /** 콘솔 계정(관리자·직원·강사) 소프트삭제 — 관리자 관리와 같은 API */
+  deleteConsole: async (id: string) => apiClient.delete(`/acm/config/admins/${id}`),
+  setPortalStatus: async (id: string, status: 'ACTIVE' | 'INACTIVE') =>
+    (await apiClient.patch<{ status: string }>(`/acm/admin/registered-users/portal/${id}`, { status })).data,
+  resetPortal: async (id: string, password?: string) =>
+    (
+      await apiClient.post<{ loginId: string; tempPassword: string }>(
+        `/acm/admin/registered-users/portal/${id}/reset`,
+        password ? { password } : {},
+      )
+    ).data,
+  deletePortal: async (id: string) => apiClient.delete(`/acm/admin/registered-users/portal/${id}`),
+};

@@ -49,6 +49,13 @@ export class PortalAccountTypeormEntity {
   @Column({ name: 'pac_locked_at', type: 'timestamptz', nullable: true })
   lockedAt?: Date | null;
 
+  /** REQ-261112L — 소프트삭제 (재발급 시 NULL 로 복구). */
+  @Column({ name: 'pac_deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt?: Date | null;
+
+  @Column({ name: 'pac_deleted_by', type: 'uuid', nullable: true })
+  deletedBy?: string | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;
 

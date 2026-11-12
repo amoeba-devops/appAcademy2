@@ -101,7 +101,8 @@ export class PortalAccountService {
     created: boolean;
   }> {
     const existing = await this.repo.findOne({ where: { entId, kind, refId } });
-    if (existing) return { account: existing, created: false };
+    // REQ-261112L — 관리자가 삭제한 계정은 자동 발급으로 되살리지 않는다.
+    if (existing) return { account: existing.deletedAt ? null : existing, created: false };
     // PLN-260714 — STUDENT 로그인ID는 학생 이메일. 이메일이 없으면 자동발급을
     // 조용히 건너뛴다 (관리자가 이메일 입력 후 발급). 전환 흐름을 막지 않음.
     if (kind === 'STUDENT' && !(await this.studentEmail(entId, refId))) {
@@ -120,6 +121,20 @@ export class PortalAccountService {
     password?: string,
   ): Promise<{ id: string; loginId: string; tempPassword: string }> {
     const existing = await this.repo.findOne({ where: { entId, kind, refId } });
+    // REQ-261112L — 삭제된 계정은 같은 행(같은 로그인ID)을 새 비밀번호로 되살린다.
+    if (existing?.deletedAt) {
+      const tempPassword = password && password.length > 0 ? password : generateTempPassword();
+      existing.passwordHash = await bcrypt.hash(tempPassword, 12);
+      existing.mustChangePassword = false;
+      existing.status = 'ACTIVE';
+      existing.lockedAt = null;
+      existing.deletedAt = null;
+      existing.deletedBy = null;
+      existing.updatedAt = new Date();
+      await this.repo.save(existing);
+      this.log.log(`portal account restored kind=${kind} ref=${refId} loginId=${existing.loginId}`);
+      return { id: existing.id, loginId: existing.loginId, tempPassword };
+    }
     if (existing) {
       throw new HttpException(
         { code: 'PORTAL_ACCOUNT_EXISTS', message: 'Account already issued — use reset' },
@@ -226,7 +241,43 @@ export class PortalAccountService {
     refId: string,
   ): Promise<PortalAccountView | null> {
     const acc = await this.repo.findOne({ where: { entId, kind, refId } });
-    return acc ? toView(acc) : null;
+    return acc && !acc.deletedAt ? toView(acc) : null;
+  }
+
+  /** REQ-261112L — 등록 사용자 화면: 상태(사용/중지) 변경. 삭제된 계정은 404. */
+  async setStatus(
+    entId: string,
+    pacId: string,
+    status: 'ACTIVE' | 'INACTIVE',
+  ): Promise<PortalAccountView> {
+    const acc = await this.liveOrThrow(entId, pacId);
+    acc.status = status;
+    acc.updatedAt = new Date();
+    await this.repo.save(acc);
+    this.log.log(`portal account status=${status} loginId=${acc.loginId}`);
+    return toView(acc);
+  }
+
+  /**
+   * REQ-261112L — 로그인 계정만 소프트삭제(학생·강사 정보 유지). INACTIVE 로 로그인·알림 대상에서
+   * 빠지고, 관리자가 다시 발급하면 되살아난다.
+   */
+  async softDelete(entId: string, pacId: string, byUserId: string): Promise<void> {
+    const acc = await this.liveOrThrow(entId, pacId);
+    acc.status = 'INACTIVE';
+    acc.deletedAt = new Date();
+    acc.deletedBy = byUserId;
+    acc.updatedAt = new Date();
+    await this.repo.save(acc);
+    this.log.log(`portal account deleted loginId=${acc.loginId} by=${byUserId}`);
+  }
+
+  private async liveOrThrow(entId: string, pacId: string): Promise<PortalAccountTypeormEntity> {
+    const acc = await this.repo.findOne({ where: { id: pacId, entId } });
+    if (!acc || acc.deletedAt) {
+      throw new HttpException({ code: 'PORTAL_ACCOUNT_NOT_FOUND' }, HttpStatus.NOT_FOUND);
+    }
+    return acc;
   }
 
   // ---------------------------------------------------------------------------

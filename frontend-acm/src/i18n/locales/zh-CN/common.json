@@ -2245,6 +2245,32 @@
       "invites": "邀请记录"
     },
     "users": {
+      "edit": "编辑",
+      "delete": "删除",
+      "deleteConsoleTitle": "删除此账号？",
+      "deleteConsoleDesc": "将删除 {{name}}。该账号无法登录并从列表中移除。可在管理员管理的“已删除”中恢复。",
+      "deletePortalTitle": "删除门户登录账号？",
+      "deletePortalDesc": "仅删除 {{name}} 的门户登录账号。学生/教师信息保留，在学生/教师页面重新发放即可用相同登录ID恢复。",
+      "errors": {
+        "CANNOT_DELETE_SELF": "不能删除自己的账号。",
+        "TENANT_MASTER_ROLE_FIXED": "不能删除租户主管理员。",
+        "USER_DELETED": "该账号已删除。",
+        "PORTAL_ACCOUNT_NOT_FOUND": "账号已删除或不存在。",
+        "failed": "操作失败。"
+      },
+      "portal": {
+        "title": "门户账号",
+        "status": "状态",
+        "active": "使用中",
+        "inactive": "停用（无法登录）",
+        "save": "保存",
+        "saved": "已保存。",
+        "password": "重新发放密码",
+        "passwordPlaceholder": "留空则自动生成",
+        "reset": "重新发放",
+        "resetDone": "已重新发放密码。登录ID {{loginId}} / 密码 {{password}} — 关闭此窗口后将无法再次查看。",
+        "passwordShort": "密码至少 8 个字符。"
+      },
       "types": {
         "ALL": "全部",
         "ADMIN": "管理员",
@@ -2274,7 +2300,8 @@
         "login": "登录方式",
         "flags": "权限 · 状态",
         "createdAt": "加入日期",
-        "lastLogin": "最近登录"
+        "lastLogin": "最近登录",
+        "actions": "操作"
       }
     }
   },
@@ -2406,7 +2433,8 @@
     "all": "全部",
     "roles": {
       "ADMIN": "管理员",
-      "STAFF": "职员"
+      "STAFF": "职员",
+      "TEACHER": "教师"
     },
     "authSource": {
       "ama": "AMA",
@@ -2478,6 +2506,7 @@
       "EMAIL_TAKEN": "该邮箱已被使用。",
       "CANNOT_DELETE_SELF": "不能删除自己的账号。",
       "USER_DELETED": "该账号已删除，请先恢复。",
+      "TEACHER_ROLE_FIXED": "不能更改教师账号的等级。",
       "weak": "密码需 8 位以上并包含字母和数字。",
       "failed": "处理失败。"
     },
