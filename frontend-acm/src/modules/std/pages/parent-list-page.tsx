@@ -142,7 +142,13 @@ export function ParentListPage() {
               <tr key={p.id} className="hover:bg-[var(--canvas-subtle)]">
                 <td className="px-3 py-2 font-medium text-primary">
                   <span className="inline-flex items-center gap-1">
-                    {p.name}
+                    <button
+                      type="button"
+                      onClick={() => setEditing(p)}
+                      className="text-left hover:text-accent hover:underline"
+                    >
+                      {p.name}
+                    </button>
                     {p.memo && (
                       <StickyNote
                         className="h-3.5 w-3.5 shrink-0 text-warning-fg"
