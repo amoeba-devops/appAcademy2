@@ -15,6 +15,7 @@ import {
   ManualValue,
   OPS_METRICS,
   Period,
+  StatusEvent,
 } from './operating-calculation';
 export const OPERATING_PERIOD_SQL = `
 WITH periods AS (
@@ -63,6 +64,7 @@ export class OperatingService {
       {
         periods: Period[];
         admissions: Admission[];
+        history: StatusEvent[];
         manual: ManualValue[];
         today: string;
         asOf: string;
@@ -70,7 +72,7 @@ export class OperatingService {
       }[]
     >(
       OPERATING_PERIOD_SQL +
-        `SELECT COALESCE((SELECT json_agg(a) FROM (SELECT std_id::text AS "subjectId",std_site AS site,std_admission_date::text AS date FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL) a),'[]') admissions, COALESCE((SELECT json_agg(p) FROM periods p),'[]') periods, COALESCE((SELECT json_agg(m) FROM (SELECT date::text,site,metric,value FROM amb_acm_dsh_operating_manual WHERE ent_id=$1 AND date BETWEEN $2::date AND $3::date) m),'[]') manual, (SELECT count(*)::int FROM amb_acm_dsh_daily_kpi k CROSS JOIN (VALUES('ops_new_st'),('ops_out_st'),('ops_count_st'),('ops_new_tc'),('ops_out_tc'),('ops_count_tc')) v(metric) WHERE k.ent_id=$1 AND k.dkp_date BETWEEN $2::date AND $3::date AND k.dkp_manually_overridden AND NOT EXISTS(SELECT 1 FROM amb_acm_dsh_operating_manual m WHERE m.ent_id=k.ent_id AND m.date=k.dkp_date AND m.site='ALL' AND m.metric=v.metric)) AS "unverifiedManual", (now() AT TIME ZONE 'Asia/Seoul')::date::text today,now()::text AS "asOf"`,
+        `SELECT COALESCE((SELECT json_agg(a) FROM (SELECT std_id::text AS "subjectId",std_site AS site,std_admission_date::text AS date,std_status AS status,std_withdrawn_date::text AS withdrawn FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL) a),'[]') admissions, COALESCE((SELECT json_agg(h ORDER BY h.seq) FROM (SELECT std_id::text AS "subjectId",ssh_status AS status,COALESCE(ssh_date,(created_at AT TIME ZONE 'Asia/Seoul')::date)::text AS date,ssh_sequence AS seq FROM amb_acm_std_status_history WHERE ent_id=$1) h),'[]') history, COALESCE((SELECT json_agg(p) FROM periods p),'[]') periods, COALESCE((SELECT json_agg(m) FROM (SELECT date::text,site,metric,value FROM amb_acm_dsh_operating_manual WHERE ent_id=$1 AND date BETWEEN $2::date AND $3::date) m),'[]') manual, (SELECT count(*)::int FROM amb_acm_dsh_daily_kpi k CROSS JOIN (VALUES('ops_new_st'),('ops_out_st'),('ops_count_st'),('ops_new_tc'),('ops_out_tc'),('ops_count_tc')) v(metric) WHERE k.ent_id=$1 AND k.dkp_date BETWEEN $2::date AND $3::date AND k.dkp_manually_overridden AND NOT EXISTS(SELECT 1 FROM amb_acm_dsh_operating_manual m WHERE m.ent_id=k.ent_id AND m.date=k.dkp_date AND m.site='ALL' AND m.metric=v.metric)) AS "unverifiedManual", (now() AT TIME ZONE 'Asia/Seoul')::date::text today,now()::text AS "asOf"`,
       [entId, from, to],
     );
     const calculated = calculateOperating(
@@ -81,6 +83,7 @@ export class OperatingService {
       site,
       raw.today,
       raw.admissions,
+      raw.history,
     );
     return {
       ...calculated,

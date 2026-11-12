@@ -23,6 +23,14 @@ describe('operating site sum', () => {
       period('SANTACROCE', '2025-02-01', '2026-09-02'),
       period(null, '2024-12-02'),
     ];
+    // 오늘(09-03) 현재 상태: 종료된 SANTACROCE 는 퇴원.
+    const adm = ps.map((p) => ({
+      subjectId: p.subjectId!,
+      site: p.site,
+      date: p.start,
+      status: p.end ? 'WITHDRAWN' : 'ACTIVE',
+      withdrawn: p.end,
+    }));
     const all = calculateOperating(
       ps,
       [],
@@ -30,7 +38,7 @@ describe('operating site sum', () => {
       '2026-09-03',
       'ALL',
       '2026-09-03',
-      ps.map((p) => ({ subjectId: p.subjectId!, site: p.site, date: p.start })),
+      adm,
     );
     expect(all.openingBalance.students).toBe(3);
     expect(all.quality.unclassified).toBe(1);
@@ -47,11 +55,7 @@ describe('operating site sum', () => {
                 '2026-09-03',
                 s,
                 '2026-09-03',
-                ps.map((p) => ({
-                  subjectId: p.subjectId!,
-                  site: p.site,
-                  date: p.start,
-                })),
+                adm,
               ).rows[i].values[k]!.calculated!,
             0,
           ),
@@ -78,7 +82,7 @@ describe('operating site sum', () => {
       '2026-01-04',
       'ALL',
       '2026-01-03',
-      [{ subjectId: 'TPI', site: 'TPI', date: '2026-01-01' }],
+      [{ subjectId: 'TPI', site: 'TPI', date: '2026-01-01', status: 'ACTIVE' }],
     );
     expect(r.summary.ops_new_st?.calculated).toBe(1);
     expect(r.summary.ops_out_st?.calculated).toBe(1);
@@ -169,126 +173,88 @@ describe('admission-based new students', () => {
   });
 });
 
-describe('admission-based student stock', () => {
-  it('counts admission on the 22nd even when classes start on the 23rd; preserves manual zero and teacher dates', () => {
-    const ps = [
-      period('TPI', '2026-09-23'),
-      { ...period(null, '2026-09-23'), kind: 'TEACHER' as const },
-    ];
-    const admissions = [{ subjectId: 'TPI', site: 'TPI', date: '2026-09-22' }];
+describe('active-based student stock (REQ-261112B)', () => {
+  const adm = (
+    subjectId: string,
+    site: string | null,
+    status: string,
+    date: string | null = '2026-01-01',
+    withdrawn: string | null = null,
+  ) => ({ subjectId, site, status, date, withdrawn });
+
+  it('counts only site-assigned students whose current status is ACTIVE today, regardless of class periods', () => {
     const r = calculateOperating(
-      ps,
-      [{ date: '2026-09-22', site: 'ALL', metric: 'ops_count_st', value: 0 }],
-      '2026-09-21',
-      '2026-09-24',
-      'ALL',
-      '2026-09-23',
-      admissions,
-    );
-    expect(r.rows.map((x) => x.values.ops_count_st?.calculated)).toEqual([
-      0,
-      1,
-      1,
-      null,
-    ]);
-    expect(r.rows.map((x) => x.values.ops_count_tc?.calculated)).toEqual([
-      0,
-      0,
-      1,
-      null,
-    ]);
-    expect(r.rows[1].values.ops_count_st).toMatchObject({
-      manual: 0,
-      manualPresent: true,
-    });
-    expect(r.rows[2].values.ops_count_st?.manualPresent).toBe(false);
-    expect(
-      calculateOperating(
-        ps,
-        [],
-        '2026-09-23',
-        '2026-09-23',
-        'TPI',
-        '2026-09-23',
-        admissions,
-      ).openingBalance.students,
-    ).toBe(1);
-  });
-  it('uses admission without a class start and excludes missing admissions without falling back to class dates', () => {
-    const ps = [
-      { ...period('TPI', '2026-01-01'), start: null },
-      period('TRINITY', '2026-01-01'),
-    ];
-    const r = calculateOperating(
-      ps,
+      [period('TPI', '2026-01-01', '2026-03-01')],
       [],
-      '2026-01-01',
-      '2026-01-01',
+      '2026-11-12',
+      '2026-11-12',
       'ALL',
-      '2026-01-01',
+      '2026-11-12',
       [
-        { subjectId: 'TPI', site: 'TPI', date: '2026-01-01' },
-        { subjectId: 'TRINITY', site: 'TRINITY', date: null },
-        { subjectId: 'new', site: 'SANTACROCE', date: '2026-01-01' },
-        { subjectId: 'unknown', site: null, date: '2026-01-01' },
+        adm('TPI', 'TPI', 'ACTIVE'),
+        adm('a', 'SANTACROCE', 'ACTIVE', null),
+        adm('b', 'TRINITY', 'ACTIVE', '2026-12-01'),
+        adm('noSite', null, 'ACTIVE'),
+        adm('paused', 'TPI', 'INACTIVE'),
+        adm('gone', 'TPI', 'WITHDRAWN', '2026-01-01', '2026-06-01'),
       ],
     );
-    expect(r.summary.ops_count_st).toMatchObject({
-      calculated: 2,
-      quality: 'PARTIAL',
-    });
+    expect(r.summary.ops_count_st).toMatchObject({ calculated: 3, quality: 'COMPLETE' });
   });
-  it('deduplicates overlapping periods, excludes withdrawal day and preserves re-entry gaps and site sums', () => {
-    const ps = [
-      period('TPI', '2026-01-02', '2026-01-04'),
-      period('TPI', '2026-01-03', '2026-01-04'),
-      { ...period('TRINITY', '2026-01-06'), subjectId: 'TPI' },
+
+  it('uses status history for past days and admission/withdrawal dates before any history', () => {
+    const admissions = [
+      adm('s1', 'TPI', 'INACTIVE', '2026-01-01'),
+      adm('s2', 'TPI', 'WITHDRAWN', '2026-01-01', '2026-10-03'),
+      adm('s3', 'TRINITY', 'ACTIVE', '2026-10-02'),
     ];
-    const admissions = [{ subjectId: 'TPI', site: 'TPI', date: '2026-01-01' }];
+    const history = [
+      { subjectId: 's1', status: 'ACTIVE', date: '2026-01-01' },
+      { subjectId: 's1', status: 'INACTIVE', date: '2026-10-03' },
+      { subjectId: 's2', status: 'WITHDRAWN', date: '2026-10-03' },
+      { subjectId: 's3', status: 'ACTIVE', date: '2026-10-02' },
+    ];
     const r = calculateOperating(
-      ps,
       [],
-      '2026-01-01',
-      '2026-01-06',
+      [{ date: '2026-10-02', site: 'ALL', metric: 'ops_count_st', value: 0 }],
+      '2026-10-01',
+      '2026-10-05',
       'ALL',
-      '2026-01-06',
+      '2026-10-04',
       admissions,
+      history,
     );
-    expect(r.rows.map((x) => x.values.ops_count_st?.calculated)).toEqual([
-      1, 1, 1, 0, 0, 1,
-    ]);
+    // 10-01: s1(이력)·s2(입학일) / 10-02: +s3 / 10-03: s1 휴원·s2 퇴원 / 10-04(오늘): 현재 상태 / 10-05: 미래
+    expect(r.rows.map((x) => x.values.ops_count_st?.calculated)).toEqual([2, 3, 1, 1, null]);
+    expect(r.rows[1].values.ops_count_st).toMatchObject({ manual: 0, manualPresent: true });
+    expect(r.openingBalance.students).toBe(2);
     const perSite = ['TPI', 'TRINITY', 'SANTACROCE'].map((site) =>
-      calculateOperating(ps, [], r.from, r.to, site, r.to, admissions),
+      calculateOperating([], [], r.from, r.to, site, '2026-10-04', admissions, history),
     );
     r.rows.forEach((row, i) =>
       expect(row.values.ops_count_st?.calculated).toBe(
-        perSite.reduce(
-          (n, s) => n + s.rows[i].values.ops_count_st!.calculated!,
-          0,
-        ),
+        row.values.ops_count_st?.calculated === null
+          ? null
+          : perSite.reduce((n, s) => n + s.rows[i].values.ops_count_st!.calculated!, 0),
       ),
     );
   });
-  it('does not resurrect cancelled or unconfirmed records using admission', () => {
-    const ps = [
-      { ...period('TPI', '2026-01-01'), cancelled: true },
-      { ...period('TRINITY', '2026-01-01'), confirmed: false },
-    ];
-    const admissions = ps.map((p) => ({
-      subjectId: p.subjectId!,
-      site: p.site,
-      date: p.start,
-    }));
-    expect(
-      calculateOperating(
-        ps,
-        [],
-        '2026-01-01',
-        '2026-01-01',
-        'ALL',
-        '2026-01-01',
-        admissions,
-      ).summary.ops_count_st?.calculated,
-    ).toBe(0);
+
+  it('applies same-day history in recorded order and marks past days partial when admissions are missing', () => {
+    const r = calculateOperating(
+      [],
+      [],
+      '2026-10-10',
+      '2026-10-11',
+      'TPI',
+      '2026-10-11',
+      [adm('x', 'TPI', 'ACTIVE'), adm('y', 'TPI', 'ACTIVE', null)],
+      [
+        { subjectId: 'x', status: 'INACTIVE', date: '2026-10-10' },
+        { subjectId: 'x', status: 'ACTIVE', date: '2026-10-10' },
+      ],
+    );
+    expect(r.rows[0].values.ops_count_st).toMatchObject({ calculated: 1, quality: 'PARTIAL' });
+    expect(r.rows[1].values.ops_count_st).toMatchObject({ calculated: 2, quality: 'COMPLETE' });
   });
 });

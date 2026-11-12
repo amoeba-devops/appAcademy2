@@ -220,7 +220,7 @@
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
     "ops_new_st": "New St. (awaiting first class)",
     "ops_out_st": "Học sinh nghỉ",
-    "ops_count_st": "Học sinh (ngày nhập học)",
+    "ops_count_st": "Học sinh (đang học)",
     "ops_new_tc": "Giáo viên mới",
     "ops_out_tc": "Giáo viên nghỉ",
     "ops_count_tc": "Số giáo viên",
@@ -330,7 +330,7 @@
     "more": "và {{count}} học sinh khác",
     "other": "Có {{count}} học sinh không khớp quy tắc tính. Vui lòng báo quản trị viên.",
     "manual": "Số vận hành nhập tay ({{value}}) được hiển thị trong ngoặc ở bảng và không tính vào đây.",
-    "definition": "Học sinh đang học là số học sinh có trạng thái Đang học (mọi cơ sở). Số học sinh vận hành cộng theo từng cơ sở (TPI · TRINITY · SANTACROCE) các học sinh có thời gian học (ngày nhập học · ngày bắt đầu đến ngày kết thúc) bao gồm hôm nay, không xét trạng thái.",
+    "definition": "Học sinh đang học là số học sinh có trạng thái Đang học (mọi cơ sở). Số học sinh vận hành là số học sinh đang học đã được gán cơ sở (TPI · TRINITY · SANTACROCE). Với các ngày trước, đếm học sinh đang học vào ngày đó theo lịch sử thay đổi trạng thái (nếu không có thì theo ngày nhập học/ngày nghỉ học).",
     "reason": {
       "ACTIVE_NO_SITE": "Đang học · chưa chọn cơ sở",
       "ACTIVE_NO_ADMISSION": "Đang học · chưa có ngày nhập học",

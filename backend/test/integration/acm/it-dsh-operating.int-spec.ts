@@ -58,6 +58,9 @@ describe('operating periods PostgreSQL', () => {
     await ds.query(
       'ALTER TABLE amb_acm_std_student ADD std_admission_date date',
     );
+    // REQ-261112B — 운영 학생수(재원 기준)가 읽는 상태·퇴원일·상태 이력 (최소 스키마).
+    await ds.query(`ALTER TABLE amb_acm_std_student ADD std_status text DEFAULT 'ACTIVE', ADD std_withdrawn_date date;
+      CREATE TABLE amb_acm_std_status_history(ssh_sequence bigint GENERATED ALWAYS AS IDENTITY,ent_id uuid,std_id uuid,ssh_status text,ssh_date date,created_at timestamptz DEFAULT now());`);
     await ds.query(`ALTER TABLE amb_acm_dsh_daily_kpi ADD dkp_marketing_visitor int, ADD dkp_last_recompute_reason text, ADD dkp_updated_at timestamptz, ADD dkp_marketing_cost int;
       CREATE TABLE amb_acm_dsh_site_visit(ent_id uuid,svt_date date,svt_site text,svt_visitors int);
       CREATE TABLE amb_acm_dsh_manual_inputs(ent_id uuid,min_date date,min_site text,min_marketing_visitor int,min_deleted_at timestamptz);`);
@@ -69,7 +72,7 @@ describe('operating periods PostgreSQL', () => {
   });
   beforeEach(async () => {
     await ds.query(
-      'TRUNCATE amb_acm_dsh_daily_kpi,amb_acm_dsh_site_visit,amb_acm_dsh_manual_inputs,amb_acm_std_student,amb_acm_tch_teacher,amb_acm_dsh_operating_period,amb_acm_dsh_operating_manual,amb_acm_dsh_operating_audit',
+      'TRUNCATE amb_acm_std_status_history,amb_acm_dsh_daily_kpi,amb_acm_dsh_site_visit,amb_acm_dsh_manual_inputs,amb_acm_std_student,amb_acm_tch_teacher,amb_acm_dsh_operating_period,amb_acm_dsh_operating_manual,amb_acm_dsh_operating_audit',
     );
     await ds.query(
       `INSERT INTO amb_acm_std_student VALUES($1,$2,'TPI','2024-12-02',NULL,NULL,'2024-12-01')`,
@@ -192,6 +195,7 @@ describe('operating periods PostgreSQL', () => {
       (await service.range(b, '2026-09-01', '2026-09-01')).summary.ops_count_st
         ?.calculated,
     ).toBe(0);
+    // 재원 기준: 수업 종료일은 학생수에 영향 없음, 퇴원일·상태 이력이 기준.
     await ds.query(
       'UPDATE amb_acm_std_student SET std_end_date=$1 WHERE std_id=$2',
       ['2026-09-01', id],
@@ -199,7 +203,23 @@ describe('operating periods PostgreSQL', () => {
     expect(
       (await service.range(a, '2026-09-01', '2026-09-01')).summary.ops_count_st
         ?.calculated,
+    ).toBe(1);
+    await ds.query(
+      'UPDATE amb_acm_std_student SET std_withdrawn_date=$1 WHERE std_id=$2',
+      ['2026-09-01', id],
+    );
+    expect(
+      (await service.range(a, '2026-09-01', '2026-09-01')).summary.ops_count_st
+        ?.calculated,
     ).toBe(0);
+    await ds.query(
+      `INSERT INTO amb_acm_std_status_history(ent_id,std_id,ssh_status,ssh_date) VALUES($1,$2,'ACTIVE','2026-08-31')`,
+      [a, id],
+    );
+    expect(
+      (await service.range(a, '2026-09-01', '2026-09-01')).summary.ops_count_st
+        ?.calculated,
+    ).toBe(1);
   });
   it('saves corrections with optimistic concurrency and preserves other tenant', async () => {
     await service.savePeriod(a, a, 'STUDENT', id, {

@@ -8,7 +8,7 @@ export type ReconReason =
 
 export interface StudentReconciliation {
   today: string;
-  definitionVersion: 'student-recon-v1';
+  definitionVersion: string;
   active: number;
   operating: { calculated: number; manual: number | null };
   difference: number;
