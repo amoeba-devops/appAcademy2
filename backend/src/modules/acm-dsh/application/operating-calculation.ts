@@ -17,6 +17,15 @@ export interface Admission {
   subjectId: string;
   site: string | null;
   date: string | null;
+  /** REQ-261112B — 현재 학생 상태 (ACTIVE | INACTIVE | WITHDRAWN). */
+  status?: string | null;
+  withdrawn?: string | null;
+}
+/** REQ-261112B — 학생 상태 변경 이력 (date = 적용일, 없으면 기록일 KST). */
+export interface StatusEvent {
+  subjectId: string;
+  status: string;
+  date: string;
 }
 export interface ManualValue {
   date: string;
@@ -70,6 +79,38 @@ export function studentEnrollmentIntervals(
       });
     });
 }
+/**
+ * REQ-261112B — 운영 학생수(재원 기준): 사이트(TPI·TRINITY·SANTACROCE)가 지정된 학생 중
+ * 그날 재원(ACTIVE)이던 학생 수.
+ *  - 오늘 이후: 현재 학생 상태가 ACTIVE 인 학생 (재원 현황과 일치)
+ *  - 지난 날짜: 그날까지 적용된 마지막 상태 변경 이력. 이력이 그날 이전에 없으면
+ *    입학일 ≤ 그날 < 퇴원일(없으면 무기한)로 판단.
+ */
+export function activeStudentCounter(
+  admissions: Admission[],
+  history: StatusEvent[],
+  today: string,
+) {
+  const students = [...new Map(admissions.map((a) => [a.subjectId, a])).values()].filter(
+    (a) => sites.includes(a.site ?? ''),
+  );
+  const events = new Map<string, StatusEvent[]>();
+  for (const e of history) {
+    const list = events.get(e.subjectId) ?? [];
+    list.push(e);
+    events.set(e.subjectId, list);
+  }
+  // 같은 날 여러 건이면 입력 순서(=기록 순서)상 마지막 것이 그날 상태.
+  for (const list of events.values()) list.sort((x, y) => x.date.localeCompare(y.date));
+  const activeOn = (a: Admission, date: string) => {
+    if (date >= today) return a.status === 'ACTIVE';
+    const past = (events.get(a.subjectId) ?? []).filter((e) => e.date <= date);
+    if (past.length) return past[past.length - 1].status === 'ACTIVE';
+    return !!a.date && a.date <= date && (!a.withdrawn || a.withdrawn > date);
+  };
+  return (site: string, date: string) =>
+    students.filter((a) => (site === 'ALL' || a.site === site) && activeOn(a, date)).length;
+}
 export function calculateOperating(
   periods: Period[],
   manual: ManualValue[],
@@ -78,6 +119,7 @@ export function calculateOperating(
   site: string,
   today: string,
   admissions: Admission[] = [],
+  history: StatusEvent[] = [],
 ) {
   const scopedAdmissions = [
     ...new Map(admissions.map((a) => [a.subjectId, a])).values(),
@@ -85,22 +127,8 @@ export function calculateOperating(
     (a) => sites.includes(a.site ?? '') && (site === 'ALL' || a.site === site),
   );
   const missingAdmissions = scopedAdmissions.filter((a) => !a.date).length;
-  const enrollmentIntervals = studentEnrollmentIntervals(periods, admissions);
-  const studentStock = (selectedSite: string, date: string) =>
-    new Set(
-      enrollmentIntervals
-        .filter(
-          (p) =>
-            p.site === selectedSite &&
-            p.start <= date &&
-            (!p.end || p.end > date),
-        )
-        .map((p) => p.subjectId),
-    ).size;
-  const stock = (date: string) =>
-    site === 'ALL'
-      ? sites.reduce((sum, s) => sum + studentStock(s, date), 0)
-      : studentStock(site, date);
+  const activeCount = activeStudentCounter(admissions, history, today);
+  const stock = (date: string) => activeCount(site, date);
   const actualThrough = to < today ? to : today;
   const metrics: OpsMetric[] = site === 'ALL' ? [...OPS_METRICS] : [...OPS_ST];
   const bySite = Object.fromEntries(
@@ -175,7 +203,7 @@ export function calculateOperating(
                 i === 0
                   ? missingAdmissions > 0
                   : i === 2
-                    ? missingAdmissions > 0 || unresolved > 0
+                    ? date < today && missingAdmissions > 0
                     : i < 3 && unresolved > 0
               )
             ? 'PARTIAL'
@@ -218,7 +246,7 @@ export function calculateOperating(
   });
   const prev = new Date(Date.parse(from) - 86400000).toISOString().slice(0, 10);
   return {
-    definitionVersion: 'operating-admission-stock-v3',
+    definitionVersion: 'operating-active-stock-v4',
     site,
     from,
     to,

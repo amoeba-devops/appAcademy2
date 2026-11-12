@@ -220,7 +220,7 @@
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
     "ops_new_st": "New St. (awaiting first class)",
     "ops_out_st": "Departing students",
-    "ops_count_st": "Students (admission date)",
+    "ops_count_st": "Students (active)",
     "ops_new_tc": "New teachers",
     "ops_out_tc": "Departing teachers",
     "ops_count_tc": "Teachers",
@@ -333,7 +333,7 @@
     "other_one": "{{count}} student does not match either rule. Please tell an administrator.",
     "other_other": "{{count}} students do not match either rule. Please tell an administrator.",
     "manual": "The manually entered operating count ({{value}}) is shown in parentheses in the table and is not part of this calculation.",
-    "definition": "Active students counts students whose status is Active (any site). Operating student count adds up, per site (TPI · TRINITY · SANTACROCE), the students whose class period (admission · class start to end date) covers today, regardless of status.",
+    "definition": "Active students counts students whose status is Active (any site). Operating student count is the active students assigned to a site (TPI · TRINITY · SANTACROCE). For past dates it counts students who were active that day, using status change history (or admission/withdrawal dates when there is no history).",
     "reason": {
       "ACTIVE_NO_SITE": "Active · no site",
       "ACTIVE_NO_ADMISSION": "Active · no admission date",

@@ -220,7 +220,7 @@
     "legend": "Calculated (manual) · solid=calculated, dashed=manual",
     "ops_new_st": "New St. (awaiting first class)",
     "ops_out_st": "退学学生",
-    "ops_count_st": "学生数（入学日期）",
+    "ops_count_st": "学生数（在读）",
     "ops_new_tc": "新入职教师",
     "ops_out_tc": "离职教师",
     "ops_count_tc": "教师数",
@@ -330,7 +330,7 @@
     "more": "等另外 {{count}} 人",
     "other": "有 {{count}} 人不符合计算规则,请联系管理员。",
     "manual": "手动录入的运营学生数({{value}} 人)在表中以括号单独显示,不计入本计算。",
-    "definition": "在读学生为状态为“在读”的学生数(不分校区)。运营学生数按校区(TPI · TRINITY · SANTACROCE)分别统计今天处于上课期间(入学日 · 开课日至结课日)内的学生后相加,不看学生状态。",
+    "definition": "在读学生为状态为“在读”的学生数(不分校区)。运营学生数为其中已指定校区(TPI · TRINITY · SANTACROCE)的在读学生数。过去的日期按当天的状态变更记录(无记录时按入学日期/退学日期)统计当天在读的学生。",
     "reason": {
       "ACTIVE_NO_SITE": "在读 · 未指定校区",
       "ACTIVE_NO_ADMISSION": "在读 · 无入学日期",
