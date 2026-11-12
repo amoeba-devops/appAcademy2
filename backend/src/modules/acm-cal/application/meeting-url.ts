@@ -1,4 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
+/**
+ * REQ-261112C — Google Meet 링크는 형식 검사 없이 입력한 그대로 저장한다
+ * (앞뒤 공백만 제거, 500자 제한은 DTO). 다른 종류는 http(s) URL 필수.
+ */
 export function validateMeetingUrl(
   provider?: string,
   value?: string | null,
@@ -9,27 +13,13 @@ export function validateMeetingUrl(
     if (provider === 'GOOGLE_MEET') return null;
     throw new BadRequestException('MEETING_URL_REQUIRED');
   }
+  if (provider === 'GOOGLE_MEET') return trimmed;
   try {
     const url = new URL(trimmed);
-    if (provider === 'GOOGLE_MEET') {
-      if (
-        url.protocol !== 'https:' ||
-        url.hostname !== 'meet.google.com' ||
-        url.port ||
-        url.username ||
-        url.password ||
-        !/^\/[a-z]{3}-[a-z]{4}-[a-z]{3}\/?$/.test(url.pathname)
-      ) {
-        throw new Error('invalid Meet URL');
-      }
-    } else if (!['http:', 'https:'].includes(url.protocol))
+    if (!['http:', 'https:'].includes(url.protocol))
       throw new Error('invalid URL');
     return trimmed;
   } catch {
-    throw new BadRequestException(
-      provider === 'GOOGLE_MEET'
-        ? 'INVALID_GOOGLE_MEET_URL'
-        : 'MEETING_URL_REQUIRED',
-    );
+    throw new BadRequestException('MEETING_URL_REQUIRED');
   }
 }

@@ -1,5 +1,5 @@
 import { CalendarColorProvider, CalendarColorToolbar, useCalendarColor } from '../components/calendar-colors';
-import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
+import { useVideoConfig, canEnterVideo, meetingHref } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -735,7 +735,7 @@ function CalendarEventCard({
           onClick={(e) => {
             e.stopPropagation();
             window.open(
-              event.meetingProvider === 'BODASCHOOL' ? teacherJoinUrl(event.meetingUrl as string) : event.meetingUrl as string,
+              event.meetingProvider === 'BODASCHOOL' ? teacherJoinUrl(event.meetingUrl as string) : meetingHref(event.meetingUrl as string),
               '_blank',
               'noopener,noreferrer',
             );

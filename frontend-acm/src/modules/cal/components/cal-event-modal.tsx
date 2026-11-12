@@ -1,6 +1,6 @@
 import { RecurrenceEditor, RecurrenceScope, useRepeatMetadata, type RepeatRule, type RepeatScope } from './recurrence-editor';
 import { IcsSourcePanel } from './ics-source-panel';
-import { useVideoConfig, isGoogleMeetUrl, videoErrorCode } from '@/modules/cfg/hooks/use-video-config';
+import { useVideoConfig, videoErrorCode } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -403,10 +403,6 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
         setError(t('error.meetingUrlRequired'));
         return;
       }
-    }
-
-    if (resolvedMeetingProvider === 'GOOGLE_MEET' && values.evtMeetingUrl.trim() && !isGoogleMeetUrl(values.evtMeetingUrl.trim())) {
-      setError(t('common:video.invalidLink')); return;
     }
 
     // REQ-260728 — 입력한 수정 사유는 2자 이상.
@@ -930,7 +926,8 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                       <label htmlFor="cal-meeting-url" className={labelClass}>{t(resolvedMeetingProvider === 'GOOGLE_MEET' ? 'common:video.optionalLink' : 'field.meetingUrl')}{resolvedMeetingProvider !== 'GOOGLE_MEET' && ' *'}</label>
                       <input
                         id="cal-meeting-url"
-                        type="url"
+                        type={resolvedMeetingProvider === 'GOOGLE_MEET' ? 'text' : 'url'}
+                        inputMode="url"
                         placeholder={resolvedMeetingProvider === 'GOOGLE_MEET' ? 'https://meet.google.com/xxx-xxxx-xxx' : 'https://...'}
                         {...register('evtMeetingUrl')}
                         className={inputClass}

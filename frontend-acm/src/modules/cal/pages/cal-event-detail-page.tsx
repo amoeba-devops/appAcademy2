@@ -3,6 +3,7 @@ import { IcsSourcePanel } from "../components/ics-source-panel";
 import {
   useVideoConfig,
   canEnterVideo,
+  meetingHref,
 } from "@/modules/cfg/hooks/use-video-config";
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -183,7 +184,7 @@ export function CalEventDetailPage() {
                   window.open(
                     event.meetingProvider === "BODASCHOOL"
                       ? teacherJoinUrl(event.meetingUrl as string)
-                      : (event.meetingUrl as string),
+                      : meetingHref(event.meetingUrl as string),
                     "_blank",
                     "noopener,noreferrer",
                   )

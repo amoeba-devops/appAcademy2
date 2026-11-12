@@ -11,7 +11,6 @@ import {
   IsOptional,
   IsString,
   IsUUID,
-  IsUrl,
   MaxLength,
   MinLength,
   ValidateIf,
@@ -98,7 +97,6 @@ export class CreateCalEventDto {
   )
   @IsString()
   @MaxLength(500)
-  @IsUrl({ require_protocol: true })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )
@@ -192,7 +190,6 @@ export class UpdateCalEventDto {
   @IsString()
   @MaxLength(500)
   @ValidateIf((o: UpdateCalEventDto) => o.evtMeetingUrl !== '')
-  @IsUrl({ require_protocol: true })
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim() : value,
   )

@@ -32,20 +32,13 @@ export function useVideoConfig(portal = false) {
     bodaEnabled: !query.isError && query.data?.bodaEnabled === true,
   };
 }
-export function isGoogleMeetUrl(value: string): boolean {
-  try {
-    const url = new URL(value.trim());
-    return (
-      url.protocol === "https:" &&
-      url.hostname === "meet.google.com" &&
-      !url.port &&
-      !url.username &&
-      !url.password &&
-      /^\/[a-z]{3}-[a-z]{4}-[a-z]{3}\/?$/.test(url.pathname)
-    );
-  } catch {
-    return false;
-  }
+/**
+ * REQ-261112C — Google Meet 링크는 입력한 그대로 표시한다. 여는 주소는
+ * http(s) 가 아니면 https:// 를 붙여 안전하게 만든다 (javascript: 등 차단).
+ */
+export function meetingHref(value: string): string {
+  const v = value.trim();
+  return /^https?:\/\//i.test(v) ? v : `https://${v.replace(/^\/+/, "")}`;
 }
 export function canEnterVideo(
   event: { meetingProvider?: string | null; meetingUrl?: string | null },
@@ -53,8 +46,7 @@ export function canEnterVideo(
 ) {
   if (!event.meetingUrl) return false;
   if (event.meetingProvider === "BODASCHOOL") return bodaEnabled;
-  if (event.meetingProvider === "GOOGLE_MEET")
-    return isGoogleMeetUrl(event.meetingUrl);
+  if (event.meetingProvider === "GOOGLE_MEET") return !!event.meetingUrl.trim();
   return (
     event.meetingProvider === "OTHER" && /^https?:\/\//i.test(event.meetingUrl)
   );
