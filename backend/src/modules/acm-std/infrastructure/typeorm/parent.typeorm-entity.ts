@@ -21,6 +21,20 @@ export class ParentTypeormEntity {
   @Column({ name: 'par_email', type: 'varchar', length: 200, nullable: true })
   email?: string | null;
 
+  /** REQ-261112 — 전화 국가번호 (예: "+82"). */
+  @Column({ name: 'par_country_code', type: 'varchar', length: 8, nullable: true })
+  countryCode?: string | null;
+
+  /** REQ-261112 — KAKAOTALK | LINE | WECHAT | WHATSAPP | TELEGRAM | ZALO. */
+  @Column({ name: 'par_messenger_type', type: 'varchar', length: 20, nullable: true })
+  messengerType?: string | null;
+
+  @Column({ name: 'par_messenger_id', type: 'varchar', length: 100, nullable: true })
+  messengerId?: string | null;
+
+  @Column({ name: 'par_memo', type: 'text', nullable: true })
+  memo?: string | null;
+
   /** AMA client id once this parent is registered as an AMA client (REQ-260609 FR-C). Idempotency key. */
   @Column({ name: 'par_ama_client_id', type: 'varchar', length: 40, nullable: true })
   amaClientId?: string | null;

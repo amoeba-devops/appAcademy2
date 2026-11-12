@@ -69,6 +69,10 @@
     "parentRelation": "관계",
     "parentPhone": "전화번호",
     "parentEmail": "이메일",
+    "parentCountryCode": "국가번호",
+    "parentMessenger": "메신저",
+    "parentMessengerId": "메신저 아이디",
+    "parentMemo": "메모",
     "parentPrimary": "대표 학부모",
     "endDate": "수업 종료일",
     "meetingUrl": "수업링크"
@@ -354,5 +358,13 @@
     "MOTHER": "어머니",
     "GUARDIAN": "보호자",
     "OTHER": "기타"
+  },
+  "messenger": {
+    "KAKAOTALK": "카카오톡",
+    "LINE": "라인",
+    "WECHAT": "위챗",
+    "WHATSAPP": "왓츠앱",
+    "TELEGRAM": "텔레그램",
+    "ZALO": "잘로"
   }
 }

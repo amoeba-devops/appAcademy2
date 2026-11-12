@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Trash2, Pencil, Users2 } from 'lucide-react';
+import { Search, Trash2, Pencil, Users2, StickyNote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 import { ParentEditModal } from '../components/parent-edit-modal';
+import { formatParentPhone } from '../components/parent-extra-fields';
 import {
   useParents,
   useDeleteParent,
@@ -117,6 +118,7 @@ export function ParentListPage() {
               <th className="px-3 py-2 text-left">{t('field.parentRelation', '관계')}</th>
               <th className="px-3 py-2 text-left">{t('field.parentPhone', '전화번호')}</th>
               <th className="px-3 py-2 text-left">{t('field.parentEmail', '이메일')}</th>
+              <th className="px-3 py-2 text-left">{t('field.parentMessenger', '메신저')}</th>
               <th className="px-3 py-2 text-left">{t('parentList.childCount', '연결 자녀')}</th>
               <th className="px-3 py-2 text-right">{t('common:actions.actions', '작업')}</th>
             </tr>
@@ -124,24 +126,48 @@ export function ParentListPage() {
           <tbody className="divide-y divide-[var(--border-subtle)]">
             {isLoading && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-secondary">
+                <td colSpan={7} className="p-6 text-center text-secondary">
                   {t('common:status.loading')}
                 </td>
               </tr>
             )}
             {!isLoading && items.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-secondary">
+                <td colSpan={7} className="p-6 text-center text-secondary">
                   {t('parentList.empty', '등록된 학부모가 없습니다')}
                 </td>
               </tr>
             )}
             {items.map((p) => (
               <tr key={p.id} className="hover:bg-[var(--canvas-subtle)]">
-                <td className="px-3 py-2 font-medium text-primary">{p.name}</td>
+                <td className="px-3 py-2 font-medium text-primary">
+                  <span className="inline-flex items-center gap-1">
+                    {p.name}
+                    {p.memo && (
+                      <StickyNote
+                        className="h-3.5 w-3.5 shrink-0 text-warning-fg"
+                        aria-label={t('field.parentMemo', '메모')}
+                      >
+                        <title>{p.memo}</title>
+                      </StickyNote>
+                    )}
+                  </span>
+                </td>
                 <td className="px-3 py-2 text-secondary">{p.relation ?? '—'}</td>
-                <td className="px-3 py-2 text-secondary">{p.phone ?? '—'}</td>
+                <td className="px-3 py-2 text-secondary whitespace-nowrap">
+                  {formatParentPhone(p.countryCode, p.phone) ?? '—'}
+                </td>
                 <td className="px-3 py-2 text-secondary">{p.email ?? '—'}</td>
+                <td className="px-3 py-2 text-secondary">
+                  {p.messengerType ? (
+                    <span>
+                      <span className="text-xs text-tertiary">{t(`messenger.${p.messengerType}`)}</span>{' '}
+                      {p.messengerId || '—'}
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
                 <td className="px-3 py-2">{renderChildren(p)}</td>
                 <td className="px-3 py-2 text-right">
                   <Button size="sm" variant="outline" onClick={() => setEditing(p)}>

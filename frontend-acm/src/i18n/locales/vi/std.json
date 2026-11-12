@@ -69,6 +69,10 @@
     "parentRelation": "Quan hệ",
     "parentPhone": "Số điện thoại",
     "parentEmail": "Email",
+    "parentCountryCode": "Mã quốc gia",
+    "parentMessenger": "Ứng dụng nhắn tin",
+    "parentMessengerId": "ID nhắn tin",
+    "parentMemo": "Ghi chú",
     "parentPrimary": "Liên hệ chính",
     "endDate": "Ngày kết thúc học",
     "meetingUrl": "Liên kết lớp học"
@@ -354,5 +358,13 @@
     "MOTHER": "Mẹ",
     "GUARDIAN": "Người giám hộ",
     "OTHER": "Khác"
+  },
+  "messenger": {
+    "KAKAOTALK": "KakaoTalk",
+    "LINE": "LINE",
+    "WECHAT": "WeChat",
+    "WHATSAPP": "WhatsApp",
+    "TELEGRAM": "Telegram",
+    "ZALO": "Zalo"
   }
 }

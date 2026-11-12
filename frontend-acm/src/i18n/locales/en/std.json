@@ -69,6 +69,10 @@
     "parentRelation": "Relation",
     "parentPhone": "Phone",
     "parentEmail": "Email",
+    "parentCountryCode": "Country code",
+    "parentMessenger": "Messenger",
+    "parentMessengerId": "Messenger ID",
+    "parentMemo": "Memo",
     "parentPrimary": "Primary contact",
     "endDate": "Class end date",
     "meetingUrl": "Class link"
@@ -354,5 +358,13 @@
     "MOTHER": "Mother",
     "GUARDIAN": "Guardian",
     "OTHER": "Other"
+  },
+  "messenger": {
+    "KAKAOTALK": "KakaoTalk",
+    "LINE": "LINE",
+    "WECHAT": "WeChat",
+    "WHATSAPP": "WhatsApp",
+    "TELEGRAM": "Telegram",
+    "ZALO": "Zalo"
   }
 }
