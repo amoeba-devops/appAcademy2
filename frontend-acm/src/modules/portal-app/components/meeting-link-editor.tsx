@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { portalApi } from "../api/portal-api";
+import { meetingHref } from "@/modules/cfg/hooks/use-video-config";
 
 /**
  * REQ-261023 — the assigned teacher enters or changes the Google Meet link.
@@ -60,7 +61,7 @@ export function MeetingLinkEditor({ evtId }: { evtId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium">{t("portalApp.cal.link.title")}</span>
         {d.meetingUrl ? (
-          <a href={d.meetingUrl} target="_blank" rel="noopener noreferrer" className="min-w-0 break-all text-sm text-accent-700 hover:underline">
+          <a href={meetingHref(d.meetingUrl)} target="_blank" rel="noopener noreferrer" className="min-w-0 break-all text-sm text-accent-700 hover:underline">
             {d.meetingUrl}
           </a>
         ) : (
@@ -94,7 +95,7 @@ export function MeetingLinkEditor({ evtId }: { evtId: string }) {
           <label className="grid gap-1 text-sm">
             {t("portalApp.cal.link.label")}
             <input
-              type="url"
+              type="text"
               inputMode="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}

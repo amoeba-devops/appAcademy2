@@ -6,6 +6,7 @@ import { MeetingLinkEditor } from "../components/meeting-link-editor";
 import {
   useVideoConfig,
   canEnterVideo,
+  meetingHref,
 } from "@/modules/cfg/hooks/use-video-config";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -210,7 +211,7 @@ export function PortalCalEventDetailPage() {
             canEnterVideo(event, video.bodaEnabled) &&
             event.meetingUrl && (
               <a
-                href={event.meetingUrl}
+                href={meetingHref(event.meetingUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 inline-flex items-center gap-2 text-sm text-accent-700 hover:underline"

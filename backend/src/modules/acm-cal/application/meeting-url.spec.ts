@@ -13,16 +13,15 @@ describe('Google Meet links', () => {
   });
   it.each([
     'http://meet.google.com/abc-defg-hij',
-    'https://meet.google.com.evil.test/abc-defg-hij',
-    'https://evil.test/abc-defg-hij',
-    'https://user@meet.google.com/abc-defg-hij',
-    'https://meet.google.com:8443/abc-defg-hij',
-    'javascript:alert(1)',
-    'https://meet.google.com/',
     'https://meet.google.com/landing',
-    'https://meet.google.com/abc-defg-hij/extra',
-  ])('rejects %s', (url) => {
-    expect(() => validateMeetingUrl('GOOGLE_MEET', url)).toThrow();
+    'meet.google.com/abc-defg-hij',
+    'abc-defg-hij',
+  ])('REQ-261112C: keeps %s as entered (no format check)', (url) => {
+    expect(validateMeetingUrl('GOOGLE_MEET', `  ${url} `)).toBe(url);
+  });
+  it('still requires an http(s) URL for other providers', () => {
+    expect(() => validateMeetingUrl('OTHER', 'javascript:alert(1)')).toThrow();
+    expect(() => validateMeetingUrl('OTHER', 'abc-defg-hij')).toThrow();
   });
   it.each([undefined, null, '', '   '])('allows pending Google link %s', (url) => {
     expect(validateMeetingUrl('GOOGLE_MEET', url)).toBeNull();
@@ -43,8 +42,8 @@ describe('calendar request validation for deferred links', () => {
       expect((await validate(instance)).filter(e => e.property === 'evtMeetingUrl')).toEqual([]);
     }
   });
-  it('still rejects non-URL input in the update DTO', async () => {
-    const errors = await validate(plainToInstance(UpdateCalEventDto, {evtMeetingUrl: 'invalid'}));
-    expect(errors.some(e => e.property === 'evtMeetingUrl')).toBe(true);
+  it('accepts free-form Google Meet text in the DTOs (checked per provider in the service)', async () => {
+    const errors = await validate(plainToInstance(UpdateCalEventDto, {evtMeetingUrl: 'abc-defg-hij'}));
+    expect(errors.some(e => e.property === 'evtMeetingUrl')).toBe(false);
   });
 });
