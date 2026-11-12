@@ -111,7 +111,7 @@ export function ParentMessengerMemoFields({
                 ...(e.target.value ? {} : { parMessengerId: '' }),
               })
             }
-            className={inputClass + ' w-32 shrink-0 px-2'}
+            className={inputClass.replace('w-full', 'w-32') + ' shrink-0 px-2'}
           >
             <option value="">—</option>
             {PARENT_MESSENGER_TYPES.map((m) => (
@@ -127,7 +127,7 @@ export function ParentMessengerMemoFields({
             maxLength={100}
             disabled={!value.parMessengerType}
             onChange={(e) => onChange({ parMessengerId: e.target.value })}
-            className={inputClass + ' min-w-0 disabled:opacity-50'}
+            className={inputClass + ' min-w-0 flex-1 disabled:opacity-50'}
           />
         </div>
       </div>

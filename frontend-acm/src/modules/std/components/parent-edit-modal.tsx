@@ -112,12 +112,12 @@ export function ParentEditModal({
                   <CountryCodeSelect
                     value={form.parCountryCode ?? ''}
                     onChange={(v) => setForm({ ...form, parCountryCode: v })}
-                    className={inputClass + ' w-28 shrink-0 px-2'}
+                    className={inputClass.replace('w-full', 'w-28') + ' shrink-0 px-2'}
                   />
                   <input
                     value={form.parPhone}
                     onChange={(e) => setForm({ ...form, parPhone: e.target.value })}
-                    className={inputClass + ' min-w-0'}
+                    className={inputClass + ' min-w-0 flex-1'}
                   />
                 </div>
               </div>
