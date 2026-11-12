@@ -294,7 +294,22 @@ export function MonthlyPaymentView({
               setPage(1);
             }}
           />
-          {scopeSelect}
+          {/* 월별 납부 목록(view)은 해당 월 재원생 고정 — 대상 선택 없음.
+              대시보드 '기간 확인 필요'에서 들어온 경우만 해제 가능한 칩으로 표시. */}
+          {!view && scopeSelect}
+          {view && scope === "REVIEW" && (
+            <button
+              type="button"
+              className="inline-flex h-9 items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-3 text-sm text-amber-800 hover:bg-amber-100"
+              onClick={() => {
+                setScope("ENROLLED");
+                setPage(1);
+              }}
+            >
+              {tr("REVIEW")}
+              <span aria-hidden="true">×</span>
+            </button>
+          )}
           {statusSelect}
           {view && (
             <select

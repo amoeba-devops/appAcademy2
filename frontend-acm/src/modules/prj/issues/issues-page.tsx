@@ -173,6 +173,8 @@ export function IssuesPage() {
           </form>
         </div>
         <div className="grid gap-2 text-sm">
+          {/* 유형·상태 필터 한 줄 (좁은 화면에서는 줄바꿈) */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <Chips
             label={t("issues.fields.type")}
             values={ISSUE_TYPES}
@@ -187,6 +189,7 @@ export function IssuesPage() {
             text={(v) => t(`issues.status.${v}`)}
             onToggle={(v) => toggle("statuses", v)}
           />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <select
               className={select}

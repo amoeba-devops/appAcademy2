@@ -1763,7 +1763,6 @@
     "title": "我的工作",
     "newWork": "新建工作",
     "searchPlaceholder": "搜索工作...",
-    "subtitle": "我负责 {{total}} 项 · 其中逾期 {{overdue}} 项",
     "view": {
       "today": "今天",
       "project": "我的项目",

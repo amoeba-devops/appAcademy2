@@ -1763,7 +1763,6 @@
     "title": "My Work",
     "newWork": "New work",
     "searchPlaceholder": "Search work...",
-    "subtitle": "{{total}} assigned to me · {{overdue}} overdue",
     "view": {
       "today": "Today",
       "project": "My projects",

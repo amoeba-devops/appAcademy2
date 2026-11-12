@@ -1763,7 +1763,6 @@
     "title": "Công việc của tôi",
     "newWork": "Công việc mới",
     "searchPlaceholder": "Tìm công việc...",
-    "subtitle": "Tôi phụ trách {{total}} · trễ hạn {{overdue}}",
     "view": {
       "today": "Hôm nay",
       "project": "Dự án của tôi",

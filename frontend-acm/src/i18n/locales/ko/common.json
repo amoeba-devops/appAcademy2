@@ -1763,7 +1763,6 @@
     "title": "내 업무",
     "newWork": "새 업무",
     "searchPlaceholder": "업무 검색...",
-    "subtitle": "내 담당 {{total}}건 · 그중 지연 {{overdue}}건",
     "view": {
       "today": "오늘",
       "project": "내 프로젝트",
