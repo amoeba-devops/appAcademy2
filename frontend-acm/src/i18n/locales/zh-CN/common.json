@@ -2411,7 +2411,8 @@
     },
     "status": {
       "ACTIVE": "启用",
-      "INACTIVE": "停用"
+      "INACTIVE": "停用",
+      "DELETED": "已删除"
     },
     "cols": {
       "name": "姓名",
@@ -2472,11 +2473,24 @@
       "CANNOT_LOCK_SELF": "无法锁定自己。",
       "TENANT_MASTER_ROLE_FIXED": "租户主管理员的等级、状态和锁定无法修改。",
       "EMAIL_TAKEN": "该邮箱已被使用。",
+      "CANNOT_DELETE_SELF": "不能删除自己的账号。",
+      "USER_DELETED": "该账号已删除，请先恢复。",
       "weak": "密码需 8 位以上并包含字母和数字。",
       "failed": "处理失败。"
     },
     "empty": "没有账号。",
-    "loadError": "无法加载列表。"
+    "loadError": "无法加载列表。",
+    "filterStatus": "状态",
+    "inUse": "使用中",
+    "restore": "恢复",
+    "restoreDone": "已恢复账号。",
+    "deleteTitle": "删除账号",
+    "deleteHint": "删除后无法登录，并从负责人、聊天等选择列表中移除。可在“已删除”筛选中恢复。",
+    "delete": "删除",
+    "deleteConfirmTitle": "删除此账号？",
+    "deleteConfirmBody": "将删除 {{name}}。登录和 SSO 登录将被阻止，并从列表中移除。问题、日程等记录会保留。",
+    "deleteDone": "已删除 {{name}}。",
+    "deletedNotice": "该账号已于 {{date}} 删除。恢复后可再次登录。"
   },
   "sessionConfig": {
     "title": "登录保持时间",

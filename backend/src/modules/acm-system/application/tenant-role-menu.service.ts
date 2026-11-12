@@ -133,7 +133,7 @@ export class TenantRoleMenuService {
 
   async grantMaster(entId: string, usrId: string, grantedBy?: string) {
     const rows = await this.ds.query<{ usr_id: string }[]>(
-      `SELECT usr_id FROM amb_acm_user WHERE ent_id = $1 AND usr_id = $2`,
+      `SELECT usr_id FROM amb_acm_user WHERE ent_id = $1 AND usr_id = $2 AND usr_deleted_at IS NULL`,
       [entId, usrId],
     );
     if (!rows.length) throw new NotFoundException('User not found in tenant');

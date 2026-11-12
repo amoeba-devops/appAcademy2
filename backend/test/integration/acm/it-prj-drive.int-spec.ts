@@ -68,7 +68,7 @@ describe('Project / shared Drive isolation and durable operations', () => {
       url: container.getConnectionUri(),
     }).initialize();
     await ds.query(
-      `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_status text,usr_role text); CREATE TABLE amb_acm_user_permission(ent_id uuid,usr_id uuid,upr_permission text);`,
+      `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_status text,usr_role text,usr_locked_at timestamptz,usr_deleted_at timestamptz); CREATE TABLE amb_acm_user_permission(ent_id uuid,usr_id uuid,upr_permission text);`,
     );
     await ds.query(
       readFileSync(

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -96,8 +97,31 @@ export class AdminUserController {
     @Query('q') q?: string,
     @Query('role') role?: string,
     @Query('auth') auth?: string,
+    @Query('status') status?: string,
   ) {
-    return this.svc.list(u.entId, { q, role, auth });
+    return this.svc.list(u.entId, { q, role, auth, status });
+  }
+
+  @Delete(':id')
+  @ApiOperation({
+    summary:
+      'Soft-delete (REQ-261112J): no login, hidden from lists, restorable',
+  })
+  remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.remove(u, id);
+  }
+
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Restore a soft-deleted account (REQ-261112J)' })
+  restore(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.svc.restore(u, id);
   }
 
   @Get(':id')

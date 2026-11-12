@@ -141,7 +141,7 @@ export class TalkService {
     const operators: Array<{ ref_id: string; name: string }> =
       await this.ds.query(
         `SELECT usr_id AS ref_id, usr_name AS name FROM amb_acm_user
-          WHERE ent_id = $1 AND usr_status = 'ACTIVE'
+          WHERE ent_id = $1 AND usr_status = 'ACTIVE' AND usr_locked_at IS NULL
             AND usr_role IN ('ADMIN','APP_ADMIN')
           ORDER BY usr_name`,
         [entId],

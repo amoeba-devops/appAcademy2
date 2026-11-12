@@ -22,7 +22,8 @@
   },
   "status": {
     "ACTIVE": "Active",
-    "INACTIVE": "Inactive"
+    "INACTIVE": "Inactive",
+    "DELETED": "Deleted"
   },
   "users": {
     "title": "User Management",
@@ -94,6 +95,21 @@
       "TENANT_MASTER_hint": "Tenant settings (/admin/tenant), menu visibility by role, sees all allowed menus",
       "AUDIT_VIEWER": "Audit viewer",
       "AUDIT_VIEWER_hint": "View-only access to Audit (/admin/audit) logs and access control — changes need the tenant master"
+    },
+    "delete": {
+      "action": "Delete",
+      "title": "Permanently delete user",
+      "body": "This can't be undone. Personal data such as permissions, memberships, inbox and push subscriptions is removed. Issue, schedule and log records stay, but the author name shows blank.",
+      "typeEmail": "Type this user's email to confirm",
+      "cancel": "Cancel",
+      "confirm": "Delete permanently",
+      "done": "Permanently deleted {{email}}.",
+      "errors": {
+        "USER_OWNS_ICS_SOURCES": "This user imported class schedules (ICS), so it can't be permanently deleted. Delete (soft-delete) it from Admin management instead.",
+        "CANNOT_DELETE_SELF": "You can't delete your own account.",
+        "CANNOT_DELETE_APP_ADMIN": "System admins can't be deleted.",
+        "failed": "Couldn't delete."
+      }
     }
   },
   "tenants": {

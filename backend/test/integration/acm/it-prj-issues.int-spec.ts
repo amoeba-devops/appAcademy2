@@ -40,7 +40,7 @@ describe('ACM project issues (PostgreSQL)', () => {
       url: container.getConnectionUri(),
     }).initialize();
     await ds.query(
-      `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_email text,usr_status text,usr_role text);
+      `CREATE TABLE amb_acm_user(usr_id uuid PRIMARY KEY,ent_id uuid,usr_name text,usr_email text,usr_status text,usr_role text,usr_locked_at timestamptz,usr_deleted_at timestamptz);
        CREATE TABLE amb_acm_user_permission(ent_id uuid,usr_id uuid,upr_permission text);
        CREATE TABLE amb_acm_tch_teacher(tch_id uuid PRIMARY KEY,ent_id uuid,tch_user_id uuid,deleted_at timestamptz);
        CREATE TABLE amb_acm_notification_outbox(nob_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),ent_id uuid,nob_type varchar(32),nob_target_id uuid,nob_actor_id uuid,nob_payload jsonb,nob_recipients jsonb,created_at timestamptz DEFAULT now());
@@ -606,5 +606,28 @@ describe('ACM project issues (PostgreSQL)', () => {
         (await issues.myWork(member)).some((i) => i.pit_id === moved),
       ).toBe(false);
     });
+  });
+
+  // REQ-261112J — 선택 목록에서 잠금·삭제 사용자 숨김, 멤버 목록에서 삭제 사용자 숨김
+  it('hides locked and deleted users from people, deleted from members', async () => {
+    const ids = async () =>
+      (await projects.people(owner)).map((p) => p.id as string);
+    expect(await ids()).toContain(member.id);
+    await ds.query(
+      `UPDATE amb_acm_user SET usr_locked_at=now() WHERE usr_id=$1`,
+      [member.id],
+    );
+    expect(await ids()).not.toContain(member.id);
+    await ds.query(
+      `UPDATE amb_acm_user SET usr_locked_at=NULL, usr_status='DELETED', usr_deleted_at=now() WHERE usr_id=$1`,
+      [member.id],
+    );
+    expect(await ids()).not.toContain(member.id);
+    const detail = await projects.detail(owner, projectId);
+    expect(detail.members.map((m) => m.id)).not.toContain(member.id);
+    await ds.query(
+      `UPDATE amb_acm_user SET usr_status='ACTIVE', usr_deleted_at=NULL WHERE usr_id=$1`,
+      [member.id],
+    );
   });
 });

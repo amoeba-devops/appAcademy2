@@ -70,6 +70,13 @@ export class AcmUserTypeormEntity {
   @Column({ name: 'usr_ama_job_role', type: 'varchar', length: 40, nullable: true })
   amaJobRole?: string | null;
 
+  /** REQ-261112J — 소프트삭제 (usr_status='DELETED'). 이메일 유일성 대상에서 제외. */
+  @Column({ name: 'usr_deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt?: Date | null;
+
+  @Column({ name: 'usr_deleted_by', type: 'uuid', nullable: true })
+  deletedBy?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

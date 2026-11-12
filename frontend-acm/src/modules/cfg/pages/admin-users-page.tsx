@@ -21,7 +21,7 @@ interface AdminUser {
   email: string;
   name: string;
   role: 'ADMIN' | 'STAFF';
-  status: 'ACTIVE' | 'INACTIVE';
+  status: 'ACTIVE' | 'INACTIVE' | 'DELETED';
   authSource: 'ama' | 'local';
   localPinned: boolean;
   hasPassword: boolean;
@@ -32,6 +32,8 @@ interface AdminUser {
   isTenantMaster: boolean;
   createdAt: string;
   lastLoginAt: string | null;
+  /** REQ-261112J — 소프트삭제 시각 */
+  deletedAt: string | null;
 }
 interface TempResult {
   mailSent: boolean;
@@ -47,7 +49,7 @@ function errorText(err: unknown, t: (k: string) => string): string {
   const code = err instanceof AxiosError ? (err.response?.data as { error?: { code?: string; message?: string } } | undefined)?.error : undefined;
   const key = code?.code && code.code !== `HTTP_${(err as AxiosError).response?.status}` ? code.code : code?.message;
   if (err instanceof AxiosError && err.response?.status === 400) return t('adminUsers.errors.weak');
-  return key && ['CANNOT_CHANGE_OWN_ROLE', 'CANNOT_DEACTIVATE_SELF', 'CANNOT_LOCK_SELF', 'TENANT_MASTER_ROLE_FIXED', 'EMAIL_TAKEN'].includes(key)
+  return key && ['CANNOT_CHANGE_OWN_ROLE', 'CANNOT_DEACTIVATE_SELF', 'CANNOT_LOCK_SELF', 'TENANT_MASTER_ROLE_FIXED', 'EMAIL_TAKEN', 'CANNOT_DELETE_SELF', 'USER_DELETED'].includes(key)
     ? t(`adminUsers.errors.${key}`)
     : t('adminUsers.errors.failed');
 }
@@ -56,7 +58,7 @@ export function AdminUsersPage() {
   const { t, i18n } = useTranslation('common');
   const qc = useQueryClient();
   const confirm = useConfirm();
-  const [filter, setFilter] = useState({ q: '', role: '', auth: '' });
+  const [filter, setFilter] = useState({ q: '', role: '', auth: '', status: '' });
   const [selected, setSelected] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -77,6 +79,15 @@ export function AdminUsersPage() {
       const done = r.results.filter((x) => x.switched);
       setMsg({ tone: 'success', lines: [t('adminUsers.switchDone', { count: done.length }), ...done.flatMap((x) => tempLines(x.email, x.temp))] });
       setSelected([]);
+      refresh();
+    },
+    onError: (e) => setMsg({ tone: 'error', lines: [errorText(e, t)] }),
+  });
+  // REQ-261112J — 삭제된 계정 복구
+  const restore = useMutation({
+    mutationFn: async (id: string) => apiClient.post(`${BASE}/${id}/restore`),
+    onSuccess: () => {
+      setMsg({ tone: 'success', lines: [t('adminUsers.restoreDone')] });
       refresh();
     },
     onError: (e) => setMsg({ tone: 'error', lines: [errorText(e, t)] }),
@@ -104,6 +115,18 @@ export function AdminUsersPage() {
             <option value="">{`${t('adminUsers.auth')}: ${t('adminUsers.all')}`}</option>
             <option value="ama">AMA</option>
             <option value="local">{t('adminUsers.authSource.local')}</option>
+          </select>
+          <select
+            className={selectCls}
+            value={filter.status}
+            aria-label={t('adminUsers.filterStatus')}
+            onChange={(e) => {
+              setSelected([]);
+              setFilter((f) => ({ ...f, status: e.target.value }));
+            }}
+          >
+            <option value="">{t('adminUsers.inUse')}</option>
+            <option value="DELETED">{t('adminUsers.status.DELETED')}</option>
           </select>
         </FilterBar>
 
@@ -140,8 +163,8 @@ export function AdminUsersPage() {
                         <input
                           type="checkbox"
                           aria-label={t('adminUsers.switchLocal')}
-                          checked={rows.filter((r) => r.authSource === 'ama').length > 0 && rows.filter((r) => r.authSource === 'ama').every((r) => selected.includes(r.id))}
-                          onChange={(e) => setSelected(e.target.checked ? rows.filter((r) => r.authSource === 'ama').map((r) => r.id) : [])}
+                          checked={rows.filter((r) => r.authSource === 'ama' && !r.deletedAt).length > 0 && rows.filter((r) => r.authSource === 'ama' && !r.deletedAt).every((r) => selected.includes(r.id))}
+                          onChange={(e) => setSelected(e.target.checked ? rows.filter((r) => r.authSource === 'ama' && !r.deletedAt).map((r) => r.id) : [])}
                         />
                       </th>
                       {(['name', 'email', 'role', 'auth', 'perms', 'lastLogin'] as const).map((c) => (
@@ -153,13 +176,23 @@ export function AdminUsersPage() {
                     {rows.map((u) => (
                       <tr key={u.id} className={`border-t border-[var(--border-subtle)] ${u.status !== 'ACTIVE' ? 'text-secondary' : ''}`}>
                         <td className="px-3 py-2">
-                          <input type="checkbox" aria-label={u.email} disabled={u.authSource !== 'ama'} checked={selected.includes(u.id)} onChange={() => toggle(u.id)} />
+                          <input type="checkbox" aria-label={u.email} disabled={u.authSource !== 'ama' || !!u.deletedAt} checked={selected.includes(u.id)} onChange={() => toggle(u.id)} />
                         </td>
                         <td className="whitespace-nowrap px-3 py-2">
                           <button type="button" className="min-h-9 text-left font-medium hover:underline" onClick={() => setOpenId(u.id)}>
                             {u.name}
                           </button>
-                          {u.status !== 'ACTIVE' && <span className="ml-1 text-xs">({t(`adminUsers.status.${u.status}`)})</span>}
+                          {u.status !== 'ACTIVE' && (
+                            <span className="ml-1 text-xs">
+                              ({t(`adminUsers.status.${u.status}`)}
+                              {u.deletedAt && ` ${fmt(u.deletedAt)}`})
+                            </span>
+                          )}
+                          {u.deletedAt && (
+                            <Button size="sm" variant="outline" className="ml-2" disabled={restore.isPending} onClick={() => restore.mutate(u.id)}>
+                              {t('adminUsers.restore')}
+                            </Button>
+                          )}
                         </td>
                         <td className="px-3 py-2 break-all">{u.email}</td>
                         <td className="whitespace-nowrap px-3 py-2">{t(`adminUsers.roles.${u.role}`)}</td>
@@ -210,6 +243,7 @@ function AdminUserDialog({
   tempLines: (email: string, r?: TempResult) => string[];
 }) {
   const { t, i18n } = useTranslation('common');
+  const confirm = useConfirm();
   const me = useAuthStore((s) => s.user?.id);
   const q = useQuery({ queryKey: ['config-admins', 'one', id], queryFn: async () => (await apiClient.get<AdminUser>(`${BASE}/${id}`)).data });
   const [form, setForm] = useState<{ name: string; email: string; role: 'ADMIN' | 'STAFF'; status: 'ACTIVE' | 'INACTIVE' } | null>(null);
@@ -217,7 +251,8 @@ function AdminUserDialog({
   const [mustChange, setMustChange] = useState(true);
   const [local, setLocal] = useState<Msg | null>(null);
   const u = q.data;
-  const f = form ?? (u ? { name: u.name, email: u.email, role: u.role, status: u.status } : null);
+  // 삭제된 계정은 편집 폼을 그리지 않으므로 상태는 ACTIVE/INACTIVE 로 좁힌다.
+  const f = form ?? (u ? { name: u.name, email: u.email, role: u.role, status: u.status === 'INACTIVE' ? ('INACTIVE' as const) : ('ACTIVE' as const) } : null);
   const fixed = !!u && (u.isTenantMaster || u.id === me);
   const done = (m: Msg, reload = true) => {
     setLocal(m);
@@ -251,6 +286,25 @@ function AdminUserDialog({
     },
     onError: fail,
   });
+  // REQ-261112J — 소프트삭제 / 복구
+  const remove = useMutation({
+    mutationFn: async () => apiClient.delete(`${BASE}/${id}`),
+    onSuccess: () => {
+      onChanged();
+      onMessage({ tone: 'success', lines: [t('adminUsers.deleteDone', { name: u?.name ?? '' })] });
+      onClose();
+    },
+    onError: fail,
+  });
+  const restore = useMutation({
+    mutationFn: async () => apiClient.post(`${BASE}/${id}/restore`),
+    onSuccess: () => done({ tone: 'success', lines: [t('adminUsers.restoreDone')] }),
+    onError: fail,
+  });
+  const onDelete = async () => {
+    if (await confirm({ title: t('adminUsers.deleteConfirmTitle'), description: t('adminUsers.deleteConfirmBody', { name: u?.name ?? '' }), confirmLabel: t('adminUsers.delete'), variant: 'destructive' }))
+      remove.mutate();
+  };
   const fmt = (v: string | null) => (v ? new Date(v).toLocaleString(i18n.language, { timeZone: 'Asia/Seoul' }) : '—');
 
   return (
@@ -259,7 +313,18 @@ function AdminUserDialog({
         <DialogHeader>
           <DialogTitle>{u?.name ?? '…'}</DialogTitle>
         </DialogHeader>
-        {u && f && (
+        {u?.deletedAt && (
+          <div className="mt-3 grid gap-3 text-sm">
+            {local && <Notice tone={local.tone}>{local.lines.join(' ')}</Notice>}
+            <Notice tone="info">{t('adminUsers.deletedNotice', { date: fmt(u.deletedAt) })}</Notice>
+            <div className="flex justify-end">
+              <Button size="sm" disabled={restore.isPending} onClick={() => restore.mutate()}>
+                {t('adminUsers.restore')}
+              </Button>
+            </div>
+          </div>
+        )}
+        {u && f && !u.deletedAt && (
           <div className="mt-3 grid gap-5 text-sm">
             {local && (
               <Notice tone={local.tone}>
@@ -356,6 +421,17 @@ function AdminUserDialog({
                 <AuditHistoryLink targetType="user" targetId={u.id} label={u.name} />
               </div>
             </Block>
+
+            {!fixed && (
+              <Block title={t('adminUsers.deleteTitle')}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-secondary">{t('adminUsers.deleteHint')}</span>
+                  <Button size="sm" variant="destructive" disabled={remove.isPending} onClick={() => void onDelete()}>
+                    {t('adminUsers.delete')}
+                  </Button>
+                </div>
+              </Block>
+            )}
           </div>
         )}
       </DialogContent>

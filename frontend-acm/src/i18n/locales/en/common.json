@@ -2411,7 +2411,8 @@
     },
     "status": {
       "ACTIVE": "Active",
-      "INACTIVE": "Inactive"
+      "INACTIVE": "Inactive",
+      "DELETED": "Deleted"
     },
     "cols": {
       "name": "Name",
@@ -2474,11 +2475,24 @@
       "CANNOT_LOCK_SELF": "You cannot lock yourself.",
       "TENANT_MASTER_ROLE_FIXED": "The tenant master's grade, status and lock cannot change.",
       "EMAIL_TAKEN": "That e-mail is already in use.",
+      "CANNOT_DELETE_SELF": "You can't delete your own account.",
+      "USER_DELETED": "This account is deleted. Restore it first.",
       "weak": "Use 8+ characters with letters and digits.",
       "failed": "Could not complete the request."
     },
     "empty": "No accounts.",
-    "loadError": "Could not load the list."
+    "loadError": "Could not load the list.",
+    "filterStatus": "Status",
+    "inUse": "In use",
+    "restore": "Restore",
+    "restoreDone": "Account restored.",
+    "deleteTitle": "Delete account",
+    "deleteHint": "A deleted account can't sign in and is removed from pickers such as assignees and chat. You can restore it from the 'Deleted' filter.",
+    "delete": "Delete",
+    "deleteConfirmTitle": "Delete this account?",
+    "deleteConfirmBody": "Delete {{name}}? Sign-in and SSO sign-in will be blocked and the account leaves the lists. Issues, schedules and other records are kept.",
+    "deleteDone": "Deleted {{name}}.",
+    "deletedNotice": "This account was deleted on {{date}}. Restore it to allow sign-in again."
   },
   "sessionConfig": {
     "title": "Sign-in duration",

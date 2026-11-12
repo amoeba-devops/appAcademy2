@@ -15,7 +15,13 @@ import {
   useUpdateTenantMenus,
   type MenuConfigItem,
 } from '@/modules/system/hooks/use-system-tenants';
-import { useSystemUsers } from '@/modules/system/hooks/use-system-users';
+import { AxiosError } from 'axios';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  useDeleteSystemUser,
+  useSystemUsers,
+  type SystemUser,
+} from '@/modules/system/hooks/use-system-users';
 import { UserDetailDrawer } from '@/modules/system/components/user-detail-drawer';
 import { selectCls } from '@/modules/system/components/user-dialogs';
 
@@ -146,6 +152,7 @@ function TenantUsersSection({ entId }: { entId: string }) {
   const { t } = useTranslation('system');
   const { data, isLoading } = useSystemUsers({ entId, limit: 100 });
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<SystemUser | null>(null);
 
   return (
     <section>
@@ -160,12 +167,15 @@ function TenantUsersSection({ entId }: { entId: string }) {
               <th className="px-4 py-3">{t('users.columns.name')}</th>
               <th className="px-4 py-3">{t('users.columns.role')}</th>
               <th className="px-4 py-3">{t('users.columns.status')}</th>
+              <th className="px-4 py-3">
+                <span className="sr-only">{t('users.delete.action')}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-secondary">
+                <td colSpan={5} className="px-4 py-6 text-center text-secondary">
                   {t('users.loading')}
                 </td>
               </tr>
@@ -186,11 +196,26 @@ function TenantUsersSection({ entId }: { entId: string }) {
                     <span className="text-secondary">{t(`status.${u.status}`)}</span>
                   )}
                 </td>
+                <td className="px-4 py-3 text-right">
+                  {u.role !== 'APP_ADMIN' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleting(u);
+                      }}
+                    >
+                      {t('users.delete.action')}
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
             {data && data.items.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-secondary">
+                <td colSpan={5} className="px-4 py-6 text-center text-secondary">
                   {t('users.empty')}
                 </td>
               </tr>
@@ -199,7 +224,74 @@ function TenantUsersSection({ entId }: { entId: string }) {
         </table>
       </div>
       {detailId && <UserDetailDrawer id={detailId} onClose={() => setDetailId(null)} />}
+      {deleting && <DeleteUserDialog user={deleting} onClose={() => setDeleting(null)} />}
     </section>
+  );
+}
+
+/** REQ-261112J — 완전삭제 확인: 이메일을 그대로 입력해야 실행된다. */
+function DeleteUserDialog({ user, onClose }: { user: SystemUser; onClose: () => void }) {
+  const { t } = useTranslation('system');
+  const toast = useToast();
+  const del = useDeleteSystemUser();
+  const [typed, setTyped] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const matches = typed.trim().toLowerCase() === user.email.toLowerCase();
+  const onDelete = async () => {
+    setError(null);
+    try {
+      await del.mutateAsync(user.id);
+      toast.success(t('users.delete.done', { email: user.email }));
+      onClose();
+    } catch (e) {
+      const code =
+        e instanceof AxiosError
+          ? (e.response?.data as { error?: { code?: string } } | undefined)?.error?.code
+          : undefined;
+      setError(
+        code && ['USER_OWNS_ICS_SOURCES', 'CANNOT_DELETE_SELF', 'CANNOT_DELETE_APP_ADMIN'].includes(code)
+          ? t(`users.delete.errors.${code}`)
+          : t('users.delete.errors.failed'),
+      );
+    }
+  };
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t('users.delete.title')}</DialogTitle>
+        </DialogHeader>
+        <div className="mt-3 grid gap-3 text-sm">
+          <p className="text-secondary">{t('users.delete.body')}</p>
+          <p className="break-all font-medium text-primary">
+            {user.name} · {user.email}
+          </p>
+          <div className="grid gap-1.5">
+            <Label htmlFor="del-confirm-email">{t('users.delete.typeEmail')}</Label>
+            <Input
+              id="del-confirm-email"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder={user.email}
+              autoComplete="off"
+            />
+          </div>
+          {error && (
+            <p role="alert" className="text-sm text-red-600">
+              {error}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={onClose}>
+              {t('users.delete.cancel')}
+            </Button>
+            <Button variant="destructive" disabled={!matches || del.isPending} onClick={() => void onDelete()}>
+              {t('users.delete.confirm')}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

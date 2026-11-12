@@ -66,6 +66,7 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
       '999k-acm-tenant-menu-order.sql',
       '999x-config-admin-permission.sql',
       '1053-tenant-session-hours.sql',
+      '1064-acm-user-soft-delete.sql',
     ])
       await db.query(sql(f));
     // 사용자 엔티티 전체 컬럼(830/880 의 사용자 부분만).
@@ -79,7 +80,7 @@ describe('tenant master and per-role menus (PostgreSQL)', () => {
       (
         await db.query<{ usr_id: string }[]>(
           `INSERT INTO amb_acm_user (ent_id, usr_email, usr_password_hash, usr_name, usr_role)
-           VALUES ($1,$2,'x',$2,$3) ON CONFLICT (ent_id, usr_email)
+           VALUES ($1,$2,'x',$2,$3) ON CONFLICT (ent_id, usr_email) WHERE usr_deleted_at IS NULL
            DO UPDATE SET usr_role = EXCLUDED.usr_role RETURNING usr_id`,
           [ent, email, role],
         )

@@ -50,6 +50,7 @@ export class RegisteredUserService {
            LEFT JOIN amb_acm_tch_teacher t
              ON t.ent_id = u.ent_id AND t.tch_user_id = u.usr_id AND t.deleted_at IS NULL
           WHERE u.ent_id = $1 AND u.usr_role IN ('ADMIN','STAFF','TEACHER')
+            AND u.usr_deleted_at IS NULL -- REQ-261112J
          UNION ALL
          SELECT 'PORTAL', a.pac_id, a.pac_ref_id, a.pac_kind,
                 COALESCE(s.std_name, t.tch_name, a.pac_login_id), a.pac_login_id, 'portal',

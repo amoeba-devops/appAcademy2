@@ -9,7 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ACM_DS } from '../../acm-common/datasource';
 import { AcmUserTypeormEntity } from '../infrastructure/typeorm/acm-user.typeorm-entity';
@@ -226,8 +226,9 @@ export class AcmAuthService {
   }): Promise<{ id: string }> {
     this.assertPasswordPolicy(input.plainPassword);
     const email = input.email.trim().toLowerCase();
+    // REQ-261112J — 삭제된 계정의 이메일은 다시 쓸 수 있다.
     const dup = await this.userRepo.findOne({
-      where: { entId: input.entId, email },
+      where: { entId: input.entId, email, deletedAt: IsNull() },
     });
     if (dup) {
       throw new HttpException(
@@ -684,6 +685,7 @@ export class AcmAuthService {
     let user = await this.userRepo.findOne({
       where: { entId: acmEntId, amaUserId: payload.sub },
     });
+    assertNotDeleted(user);
 
     if (!user) {
       const created = this.userRepo.create({
@@ -747,13 +749,15 @@ export class AcmAuthService {
     let user = await this.userRepo.findOne({
       where: { entId: acmEntId, amaUserId: payload.sub },
     });
+    // REQ-261112J — 삭제된 계정은 SSO 로 되살리지 않는다 (관리자 복구 필요).
+    assertNotDeleted(user);
 
     // 2. Fallback — same tenant + email match → adopt as AMA-linked. This is
     //    what lets an AMA Custom App login resolve to the pre-existing ACM
     //    account (e.g. admin@tpi.co.kr) instead of spawning a duplicate.
     if (!user) {
       user = await this.userRepo.findOne({
-        where: { entId: acmEntId, email: payload.email },
+        where: { entId: acmEntId, email: payload.email, deletedAt: IsNull() },
       });
       if (user) {
         user.amaUserId = payload.sub;
@@ -810,4 +814,14 @@ export class AcmAuthService {
     return this.jwtService.sign(payload, sessionSignOptions());
   }
 
+}
+
+/** REQ-261112J — 소프트삭제된 콘솔 계정의 SSO 로그인 거부. */
+function assertNotDeleted(user: AcmUserTypeormEntity | null): void {
+  if (user?.deletedAt) {
+    throw new HttpException(
+      { code: 'ACCOUNT_DELETED', message: 'ACCOUNT_DELETED' },
+      HttpStatus.FORBIDDEN,
+    );
+  }
 }

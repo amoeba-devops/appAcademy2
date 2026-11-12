@@ -128,3 +128,14 @@ export function useSetSystemUserLock() {
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }
+
+/** REQ-261112J — 완전삭제 (APP_ADMIN). */
+export function useDeleteSystemUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiClient.delete(`${BASE}/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+}
