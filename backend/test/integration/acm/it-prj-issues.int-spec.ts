@@ -630,4 +630,20 @@ describe('ACM project issues (PostgreSQL)', () => {
       [member.id],
     );
   });
+
+  // REQ-261112M — 테넌트 마스터는 본인에게만 선택 목록에 보인다.
+  it('hides the tenant master from people except to themselves', async () => {
+    await ds.query(
+      `INSERT INTO amb_acm_user_permission VALUES($1,$2,'TENANT_MASTER')`,
+      [ent, owner.id],
+    );
+    const ids = async (viewer: AcmCurrentUser) =>
+      (await projects.people(viewer)).map((p) => p.id as string);
+    expect(await ids(member)).not.toContain(owner.id);
+    expect(await ids(owner)).toContain(owner.id);
+    await ds.query(
+      `DELETE FROM amb_acm_user_permission WHERE usr_id=$1 AND upr_permission='TENANT_MASTER'`,
+      [owner.id],
+    );
+  });
 });

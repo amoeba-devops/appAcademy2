@@ -71,7 +71,7 @@ export class TalkAdminController {
   @Get('candidates')
   @ApiOperation({ summary: 'Member candidates (operators + teachers)' })
   candidates(@CurrentUser() u: AcmCurrentUser) {
-    return this.svc.listCandidates(u.entId);
+    return this.svc.listCandidates(u.entId, u.id);
   }
 
   @Post('channels')

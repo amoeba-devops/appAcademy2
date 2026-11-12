@@ -137,14 +137,19 @@ export class TalkService {
 
   // ── Candidates (참여자 후보 = 운영자 + 강사) ──────────────────────────
 
-  async listCandidates(entId: string): Promise<TalkCandidateView[]> {
+  /** REQ-261112M — viewerId: 테넌트 마스터는 본인에게만 후보로 보인다. */
+  async listCandidates(
+    entId: string,
+    viewerId: string | null = null,
+  ): Promise<TalkCandidateView[]> {
     const operators: Array<{ ref_id: string; name: string }> =
       await this.ds.query(
-        `SELECT usr_id AS ref_id, usr_name AS name FROM amb_acm_user
-          WHERE ent_id = $1 AND usr_status = 'ACTIVE' AND usr_locked_at IS NULL
-            AND usr_role IN ('ADMIN','APP_ADMIN')
-          ORDER BY usr_name`,
-        [entId],
+        `SELECT cu.usr_id AS ref_id, cu.usr_name AS name FROM amb_acm_user cu
+          WHERE cu.ent_id = $1 AND cu.usr_status = 'ACTIVE' AND cu.usr_locked_at IS NULL
+            AND cu.usr_role IN ('ADMIN','APP_ADMIN')
+            AND (NOT EXISTS (SELECT 1 FROM amb_acm_user_permission tm WHERE tm.ent_id = cu.ent_id AND tm.usr_id = cu.usr_id AND tm.upr_permission = 'TENANT_MASTER') OR cu.usr_id = $2::uuid)
+          ORDER BY cu.usr_name`,
+        [entId, viewerId],
       );
     const teachers: Array<{ ref_id: string; name: string }> =
       await this.ds.query(

@@ -63,8 +63,9 @@ export class AdminUserService {
   list(
     entId: string,
     f: { q?: string; role?: string; auth?: string; status?: string },
+    viewerId: string | null = null,
   ): Promise<AdminUserView[]> {
-    const params: unknown[] = [entId];
+    const params: unknown[] = [entId, viewerId];
     // REQ-261112J — 기본은 삭제 안 된 계정, status=DELETED 면 삭제된 계정만.
     // 관리자 관리 목록은 관리자·직원만. 강사 콘솔 계정은 등록 사용자 화면에서 편집하고,
     // 삭제된 강사 계정도 여기 '삭제됨'에서 복구한다 (REQ-261112L).
@@ -75,6 +76,8 @@ export class AdminUserService {
       f.status === 'DELETED'
         ? 'u.usr_deleted_at IS NOT NULL'
         : 'u.usr_deleted_at IS NULL',
+      // REQ-261112M — 테넌트 마스터는 본인에게만 보인다.
+      `(NOT EXISTS (SELECT 1 FROM amb_acm_user_permission tm WHERE tm.ent_id = u.ent_id AND tm.usr_id = u.usr_id AND tm.upr_permission = 'TENANT_MASTER') OR u.usr_id = $2::uuid)`,
     ];
     if (f.q?.trim()) {
       params.push(`%${f.q.trim().replace(/[%_\\]/g, '\\$&')}%`);

@@ -36,7 +36,13 @@ export interface RegisteredUser {
 export class RegisteredUserService {
   constructor(@InjectDataSource(ACM_DS) private readonly ds: DataSource) {}
 
-  async list(entId: string, type: RegisteredUserType = 'ALL', q?: string) {
+  /** REQ-261112M — viewerId: 테넌트 마스터는 본인에게만 보인다. */
+  async list(
+    entId: string,
+    type: RegisteredUserType = 'ALL',
+    q?: string,
+    viewerId: string | null = null,
+  ) {
     const rows = await this.ds.query<RegisteredUser[]>(
       `WITH all_users AS (
          SELECT 'CONSOLE' AS source, u.usr_id AS id, t.tch_id AS ref_id, u.usr_role AS type,
@@ -51,6 +57,7 @@ export class RegisteredUserService {
              ON t.ent_id = u.ent_id AND t.tch_user_id = u.usr_id AND t.deleted_at IS NULL
           WHERE u.ent_id = $1 AND u.usr_role IN ('ADMIN','STAFF','TEACHER')
             AND u.usr_deleted_at IS NULL -- REQ-261112J
+            AND (NOT EXISTS (SELECT 1 FROM amb_acm_user_permission tm WHERE tm.ent_id = u.ent_id AND tm.usr_id = u.usr_id AND tm.upr_permission = 'TENANT_MASTER') OR u.usr_id = $4::uuid) -- REQ-261112M
          UNION ALL
          SELECT 'PORTAL', a.pac_id, a.pac_ref_id, a.pac_kind,
                 COALESCE(s.std_name, t.tch_name, a.pac_login_id), a.pac_login_id, 'portal',
@@ -69,15 +76,16 @@ export class RegisteredUserService {
           AND ($3::text IS NULL OR name ILIKE '%' || $3 || '%' OR login_id ILIKE '%' || $3 || '%')
         ORDER BY array_position(ARRAY['ADMIN','STAFF','TEACHER','STUDENT'], type), name, source
         LIMIT 1000`,
-      [entId, type, q?.trim() ? q.trim().replace(/[\\%_]/g, '\\$&') : null],
+      [entId, type, q?.trim() ? q.trim().replace(/[\\%_]/g, '\\$&') : null, viewerId],
     );
     const counts = await this.ds.query<{ type: string; n: number }[]>(
-      `SELECT usr_role AS type, count(*)::int n FROM amb_acm_user
-        WHERE ent_id = $1 AND usr_role IN ('ADMIN','STAFF','TEACHER') AND usr_deleted_at IS NULL GROUP BY 1
+      `SELECT cu.usr_role AS type, count(*)::int n FROM amb_acm_user cu
+        WHERE cu.ent_id = $1 AND cu.usr_role IN ('ADMIN','STAFF','TEACHER') AND cu.usr_deleted_at IS NULL
+          AND (NOT EXISTS (SELECT 1 FROM amb_acm_user_permission tm WHERE tm.ent_id = cu.ent_id AND tm.usr_id = cu.usr_id AND tm.upr_permission = 'TENANT_MASTER') OR cu.usr_id = $2::uuid) GROUP BY 1
        UNION ALL
        SELECT pac_kind, count(*)::int FROM amb_acm_portal_account
         WHERE ent_id = $1 AND pac_kind IN ('STUDENT','TEACHER') AND pac_deleted_at IS NULL GROUP BY 1`,
-      [entId],
+      [entId, viewerId],
     );
     const total: Record<string, number> = {
       ALL: 0,
