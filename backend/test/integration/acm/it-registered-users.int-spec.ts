@@ -56,7 +56,16 @@ describe('IT-REGISTERED-USERS', () => {
   });
 
   it('lists console and portal users of the tenant with counts', async () => {
-    const r = await svc.list(ENT);
+    // REQ-261112M — 테넌트 마스터는 본인에게만 보인다.
+    const [{ usr_id: masterId }] = await env.ds.query<{ usr_id: string }[]>(
+      `SELECT usr_id FROM amb_acm_user WHERE usr_email='admin@tpi.co.kr'`,
+    );
+    const hidden = await svc.list(ENT);
+    expect(hidden.users.map((u) => u.login_id)).not.toContain(
+      'admin@tpi.co.kr',
+    );
+    expect(hidden.counts.ALL).toBe(hidden.users.length);
+    const r = await svc.list(ENT, 'ALL', undefined, masterId);
     const ids = r.users.map((u) => `${u.type}:${u.source}:${u.login_id}`);
     expect(ids).toEqual(
       expect.arrayContaining([

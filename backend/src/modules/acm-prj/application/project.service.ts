@@ -128,8 +128,8 @@ export class ProjectService {
   // REQ-261112J — 선택 목록(담당자·참여자·멘션)에서 잠금·삭제 사용자 제외
   async people(u: AcmCurrentUser) {
     return this.ds.query<Record<string, unknown>[]>(
-      `SELECT usr_id AS id,usr_name AS name,usr_email AS email FROM amb_acm_user WHERE ent_id=$1 AND usr_status='ACTIVE' AND usr_locked_at IS NULL AND usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') ORDER BY usr_name`,
-      [u.entId],
+      `SELECT usr_id AS id,usr_name AS name,usr_email AS email FROM amb_acm_user pu WHERE pu.ent_id=$1 AND pu.usr_status='ACTIVE' AND pu.usr_locked_at IS NULL AND pu.usr_role IN ('ADMIN','STAFF','TEACHER','APP_ADMIN') AND (NOT EXISTS (SELECT 1 FROM amb_acm_user_permission tm WHERE tm.ent_id = pu.ent_id AND tm.usr_id = pu.usr_id AND tm.upr_permission = 'TENANT_MASTER') OR pu.usr_id = $2::uuid) ORDER BY pu.usr_name`,
+      [u.entId, u.id],
     );
   }
   async list(u: AcmCurrentUser) {

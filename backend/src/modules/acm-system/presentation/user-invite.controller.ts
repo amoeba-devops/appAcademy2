@@ -137,7 +137,7 @@ export class RegisteredUserController {
 
   @Get()
   list(@CurrentUser() u: AcmCurrentUser, @Query() q: RegisteredUserQuery) {
-    return this.users.list(u.entId, q.type, q.q);
+    return this.users.list(u.entId, q.type, q.q, u.id);
   }
 
   @Patch('portal/:id')

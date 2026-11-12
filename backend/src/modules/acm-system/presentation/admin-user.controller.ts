@@ -99,7 +99,7 @@ export class AdminUserController {
     @Query('auth') auth?: string,
     @Query('status') status?: string,
   ) {
-    return this.svc.list(u.entId, { q, role, auth, status });
+    return this.svc.list(u.entId, { q, role, auth, status }, u.id);
   }
 
   @Delete(':id')
