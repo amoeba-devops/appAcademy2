@@ -45,6 +45,13 @@ export class IssueController {
   @Get('my-work') myWork(@CurrentUser() u: AcmCurrentUser) {
     return this.issues.myWork(u);
   }
+  /** REQ-261112G — 이슈 화면 타임라인(접근 가능한 전체 프로젝트) */
+  @Get('timeline') issuesTimeline(
+    @CurrentUser() u: AcmCurrentUser,
+    @Query() q: ProjectTimelineQuery,
+  ) {
+    return this.issues.issuesTimeline(u, q);
+  }
   /** REQ-261112F — 프로젝트 타임라인 */
   @Get('projects/:id/timeline') timeline(
     @CurrentUser() u: AcmCurrentUser,

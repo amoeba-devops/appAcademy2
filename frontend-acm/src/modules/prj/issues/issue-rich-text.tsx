@@ -133,7 +133,7 @@ export function IssueRichEditor({
     onUpdate: ({ editor: e }) => onChange(e.isEmpty ? "" : e.getHTML()),
     editorProps: {
       attributes: {
-        class: `${prose} ${compact ? "min-h-[72px] max-h-[240px]" : "min-h-[120px] max-h-[300px]"} overflow-y-auto px-3 py-2 focus:outline-none`,
+        class: `${prose} ${compact ? "min-h-[72px] max-h-[240px]" : "min-h-[200px] max-h-[420px]"} overflow-y-auto px-3 py-2 focus:outline-none`,
         "aria-label": placeholder ?? "",
         "data-placeholder": placeholder ?? "",
       },

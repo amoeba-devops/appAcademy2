@@ -390,6 +390,7 @@
     "more": "더 보기",
     "justNow": "방금",
     "minutesAgo": "{{count}}분 전",
-    "hoursAgo": "{{count}}시간 전"
+    "hoursAgo": "{{count}}시간 전",
+    "issuesTitle": "이슈 타임라인"
   }
 }

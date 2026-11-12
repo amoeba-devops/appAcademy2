@@ -235,7 +235,7 @@ export function IssueFormDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onMouseDown={(e) => e.target === e.currentTarget && dismiss()}>
-      <div role="dialog" aria-modal="true" aria-labelledby="issue-form-title" className="mx-4 w-full max-w-2xl rounded-xl bg-white shadow-xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="issue-form-title" className="mx-4 w-full max-w-[960px] rounded-xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <h2 id="issue-form-title" className="text-lg font-semibold text-gray-900">
             {issue ? t("issues.form.editTitle") : t("issues.form.createTitle")}
@@ -277,14 +277,14 @@ export function IssueFormDialog({
         )}
 
         <form
-          className="max-h-[75vh] space-y-4 overflow-y-auto px-6 py-4"
+          className="max-h-[85vh] space-y-4 overflow-y-auto px-6 py-4"
           onSubmit={(e) => {
             e.preventDefault();
             void submit();
           }}
         >
-          {/* Row 1: 프로젝트 / 상위 이슈 */}
-          <div className="grid gap-4 sm:grid-cols-2">
+          {/* Row 1: 프로젝트 / 상위 이슈 / 유형 — REQ-261112G 넓은 창(960px)에서 3열 */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="relative">
               <span className={label}>{t("issues.fields.project")}</span>
               <SearchCombo
@@ -336,10 +336,6 @@ export function IssueFormDialog({
                 setDirty(true);
               }}
             />
-          </div>
-
-          {/* Row 2: 유형 */}
-          <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className={label}>{t("issues.fields.type")}</span>
               <select className={input} value={form.issueType} onChange={(e) => set("issueType", e.target.value as IssueType)}>

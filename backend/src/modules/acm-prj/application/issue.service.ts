@@ -291,7 +291,29 @@ export class IssueService {
     q: ProjectTimelineQuery,
   ) {
     await this.projects.access(u, prjId);
-    const { limit, params } = timelineParams(u.entId, prjId, q);
+    return this.timeline(u, prjId, q);
+  }
+
+  /** REQ-261112G — 이슈 화면 타임라인: 접근 가능한 전체 프로젝트(projectId 로 좁히기 가능). */
+  async issuesTimeline(u: AcmCurrentUser, q: ProjectTimelineQuery) {
+    if (q.projectId) await this.projects.access(u, q.projectId);
+    return this.timeline(u, q.projectId ?? null, q);
+  }
+
+  private async timeline(
+    u: AcmCurrentUser,
+    prjId: string | null,
+    q: ProjectTimelineQuery,
+  ) {
+    const { limit, params } = timelineParams(
+      {
+        entId: u.entId,
+        prjId,
+        userId: u.id,
+        operator: await this.projects.isOperator(u),
+      },
+      q,
+    );
     const rows = await this.ds.query<TimelineRow[]>(TIMELINE_SQL, params);
     return timelinePage(rows, limit);
   }

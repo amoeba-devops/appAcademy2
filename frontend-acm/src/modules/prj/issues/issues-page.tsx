@@ -12,6 +12,8 @@ import { errorText, useScope } from "../project-page";
 import type { Person, Project } from "../types";
 import { IssueFormDialog } from "./issue-form-dialog";
 import { IssueKanban } from "./issue-kanban";
+import { ProjectTimeline } from "./project-timeline";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   day,
   ISSUE_SORTS,
@@ -52,6 +54,8 @@ export function IssuesPage() {
   };
   const [search, setSearch] = useState(get("q"));
   const [creating, setCreating] = useState(false);
+  // REQ-261112G — 1280px 이상에서만 오른쪽 이슈 타임라인
+  const wideTimeline = useMediaQuery("(min-width: 1280px)");
   const limit = Number(get("limit")) || 20;
   const page = Number(get("page")) || 1;
   const query = {
@@ -107,6 +111,13 @@ export function IssuesPage() {
           </Button>
         }
       />
+      <div
+        className={
+          wideTimeline
+            ? "grid min-w-0 items-start gap-4 grid-cols-[minmax(0,1fr)_340px]"
+            : "min-w-0"
+        }
+      >
       <div className="grid min-w-0 gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded border p-0.5" role="tablist">
@@ -323,6 +334,10 @@ export function IssuesPage() {
             onSaved={(id) => navigate(`/admin/issues/${id}`)}
           />
         )}
+      </div>
+      {wideTimeline && (
+        <ProjectTimeline all projectId={get("project") || undefined} />
+      )}
       </div>
     </div>
   );
