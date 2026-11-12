@@ -33,6 +33,8 @@ export interface TimelineEvent {
   eid: string;
   at: string;
   pit_id: string;
+  prj_id?: string;
+  prj_title?: string;
   pit_title: string;
   pit_ref_no: number | null;
   pit_kind: string;
@@ -76,17 +78,35 @@ export function timelineTime(at: string, now = new Date()) {
 const docKind = (e: TimelineEvent) =>
   e.document_type ?? (e.pit_kind === "FILE" ? "FILE" : "MEMO");
 
-export function ProjectTimeline({ projectId }: { projectId: string }) {
+/**
+ * projectId 만 주면 프로젝트 타임라인(REQ-261112F),
+ * all 이면 접근 가능한 전체 프로젝트 이슈 타임라인 — projectId 는 화면 프로젝트 필터(REQ-261112G).
+ */
+export function ProjectTimeline({
+  projectId,
+  all = false,
+}: {
+  projectId?: string;
+  all?: boolean;
+}) {
   const { t } = useTranslation("prj");
   const [kind, setKind] = useState<Kind | "">("");
+  const title = t(all ? "timeline.issuesTitle" : "timeline.title");
   const q = useInfiniteQuery({
-    queryKey: ["prj", "timeline", projectId, kind],
+    queryKey: ["prj", "timeline", all ? "all" : "project", projectId ?? "", kind],
     initialPageParam: null as Page["next"],
     queryFn: async ({ pageParam }) =>
       (
-        await apiClient.get<Page>(`/acm/prj/projects/${projectId}/timeline`, {
-          params: { kind: kind || undefined, ...(pageParam ?? {}) },
-        })
+        await apiClient.get<Page>(
+          all ? "/acm/prj/timeline" : `/acm/prj/projects/${projectId}/timeline`,
+          {
+            params: {
+              kind: kind || undefined,
+              projectId: all ? projectId || undefined : undefined,
+              ...(pageParam ?? {}),
+            },
+          },
+        )
       ).data,
     getNextPageParam: (last) => last.next,
   });
@@ -112,12 +132,12 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
   };
   return (
     <aside
-      aria-label={t("timeline.title")}
+      aria-label={title}
       className="flex max-h-[calc(100vh-7rem)] min-w-0 flex-col rounded-lg border border-[var(--border-subtle)] bg-surface xl:sticky xl:top-4"
     >
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-4 py-3">
         <h2 className="text-[15px] font-semibold text-primary">
-          {t("timeline.title")}
+          {title}
         </h2>
         <select
           aria-label={t("timeline.kindFilter")}
@@ -150,7 +170,7 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
               const target =
                 e.pit_kind === "ISSUE"
                   ? `/admin/issues/${e.pit_id}`
-                  : `/admin/projects/${projectId}?tab=documents&type=${docKind(e).toLowerCase()}`;
+                  : `/admin/projects/${e.prj_id ?? projectId}?tab=documents&type=${docKind(e).toLowerCase()}`;
               const text = detail(e);
               return (
                 <li key={e.eid} className="group relative flex gap-3 pb-4 last:pb-1">
@@ -190,6 +210,11 @@ export function ProjectTimeline({ projectId }: { projectId: string }) {
                       )}
                       {e.pit_title}
                     </Link>
+                    {all && e.prj_title && (
+                      <p className="mt-0.5 truncate text-xs text-accent-700">
+                        {e.prj_title}
+                      </p>
+                    )}
                     {text && (
                       <p className="mt-0.5 break-words text-xs text-secondary">
                         {text}

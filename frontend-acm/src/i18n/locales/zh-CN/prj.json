@@ -390,6 +390,7 @@
     "more": "加载更多",
     "justNow": "刚刚",
     "minutesAgo": "{{count}} 分钟前",
-    "hoursAgo": "{{count}} 小时前"
+    "hoursAgo": "{{count}} 小时前",
+    "issuesTitle": "问题时间线"
   }
 }

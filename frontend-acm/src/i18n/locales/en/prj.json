@@ -390,6 +390,7 @@
     "more": "Load more",
     "justNow": "just now",
     "minutesAgo": "{{count}} min ago",
-    "hoursAgo": "{{count}} h ago"
+    "hoursAgo": "{{count}} h ago",
+    "issuesTitle": "Issue timeline"
   }
 }

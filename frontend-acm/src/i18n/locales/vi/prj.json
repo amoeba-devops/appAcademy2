@@ -390,6 +390,7 @@
     "more": "Xem thêm",
     "justNow": "vừa xong",
     "minutesAgo": "{{count}} phút trước",
-    "hoursAgo": "{{count}} giờ trước"
+    "hoursAgo": "{{count}} giờ trước",
+    "issuesTitle": "Dòng thời gian vấn đề"
   }
 }

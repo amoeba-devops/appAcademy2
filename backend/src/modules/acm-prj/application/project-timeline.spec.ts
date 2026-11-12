@@ -13,6 +13,8 @@ const row = (n: number): TimelineRow => ({
   at: new Date(2026, 10, 12, 10, n),
   cursor_at: `2026-11-12T01:${String(n).padStart(2, '0')}:00.123456Z`,
   pit_id: 'p',
+  prj_id: 'j',
+  prj_title: 'P',
   pit_title: 't',
   pit_ref_no: n,
   pit_kind: 'ISSUE',
@@ -26,14 +28,26 @@ const row = (n: number): TimelineRow => ({
   body: null,
 });
 
+const one = { entId: 'e', prjId: 'p', userId: 'u', operator: false };
+
 describe('project timeline', () => {
+  it('uses null project for the all-projects timeline (REQ-261112G)', () => {
+    const { params } = timelineParams(
+      { entId: 'e', prjId: null, userId: 'u', operator: true },
+      {},
+    );
+    expect(params[1]).toBeNull();
+    expect(params.slice(6)).toEqual(['u', true]);
+    expect(TIMELINE_SQL).toContain('p.prj_deleted_at IS NULL');
+    expect(TIMELINE_SQL).toContain('amb_acm_prj_member');
+  });
   it('defaults to 30 and fetches one extra row', () => {
-    const { limit, params } = timelineParams('e', 'p', {});
+    const { limit, params } = timelineParams(one, {});
     expect(limit).toBe(30);
-    expect(params).toEqual(['e', 'p', null, null, '', 31]);
+    expect(params).toEqual(['e', 'p', null, null, '', 31, 'u', false]);
   });
   it('passes kind filter and cursor', () => {
-    const { params } = timelineParams('e', 'p', {
+    const { params } = timelineParams(one, {
       kind: 'COMMENT',
       before: '2026-11-12T01:00:00.123456Z',
       beforeId: 'm:1',
@@ -46,13 +60,15 @@ describe('project timeline', () => {
       '2026-11-12T01:00:00.123456Z',
       'm:1',
       11,
+      'u',
+      false,
     ]);
   });
   it('rejects half cursors', () => {
-    expect(() => timelineParams('e', 'p', { before: '2026-11-12' })).toThrow(
+    expect(() => timelineParams(one, { before: '2026-11-12' })).toThrow(
       BadRequestException,
     );
-    expect(() => timelineParams('e', 'p', { beforeId: 'x' })).toThrow(
+    expect(() => timelineParams(one, { beforeId: 'x' })).toThrow(
       BadRequestException,
     );
   });
