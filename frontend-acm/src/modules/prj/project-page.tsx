@@ -431,7 +431,7 @@ export function ProjectDetailPage() {
   const tab =
     oldTab === "notes" || oldTab === "files"
       ? "documents"
-      : (oldTab ?? "overview");
+      : (oldTab ?? "issues"); // REQ-261112H — 첫 화면은 이슈 목록
   const requestedType =
     oldTab === "notes"
       ? "MEMO"
