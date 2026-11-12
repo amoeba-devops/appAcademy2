@@ -621,6 +621,10 @@
         "operatorEmails": {
           "label": "Operator notification emails",
           "hint": "New MAP-test applications are emailed to these addresses. Comma-separated; leave empty to disable."
+        },
+        "defaultBcc": {
+          "label": "Default BCC",
+          "hint": "A copy of every mail the system sends goes to these addresses. Recipients don't see them. Comma-separated; leave empty to disable. User invitations and temporary passwords are excluded."
         }
       },
       "test": {

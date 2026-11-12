@@ -23,6 +23,8 @@ export interface MailConfigView {
   fromAddress: string | null;
   /** CSL-PLN-260916 — 운영자 알림 수신 이메일 (쉼표 구분) */
   operatorEmails: string | null;
+  /** REQ-261112I — 기본 숨은참조(BCC) (쉼표 구분) */
+  defaultBcc: string | null;
   isActive: boolean;
   updatedAt: string | null;
 }
@@ -62,6 +64,7 @@ export class MailConfigService {
       fromName?: string;
       fromAddress?: string;
       operatorEmails?: string;
+      defaultBcc?: string;
       isActive?: boolean;
     },
   ): Promise<MailConfigView> {
@@ -84,6 +87,9 @@ export class MailConfigService {
           .map((x) => x.trim())
           .filter(Boolean)
           .join(',') || null;
+    }
+    if (dto.defaultBcc !== undefined) {
+      row.defaultBcc = splitEmails(dto.defaultBcc).join(',') || null;
     }
     if (dto.isActive !== undefined) row.isActive = dto.isActive;
     // password: undefined = 유지, '' = 삭제, 값 = 암호화 교체
@@ -129,6 +135,12 @@ export class MailConfigService {
       .filter(Boolean);
   }
 
+  /** REQ-261112I — 기본 숨은참조(BCC) 목록. 설정 활성 여부와 무관, 미설정이면 빈 배열. */
+  async getDefaultBcc(entId: string): Promise<string[]> {
+    const row = await this.repo.findOne({ where: { entId } });
+    return splitEmails(row?.defaultBcc);
+  }
+
   private toView(row: MailConfigTypeormEntity | null): MailConfigView {
     return {
       host: row?.host ?? 'smtp.gmail.com',
@@ -139,8 +151,16 @@ export class MailConfigService {
       fromName: row?.fromName ?? null,
       fromAddress: row?.fromAddress ?? null,
       operatorEmails: row?.operatorEmails ?? null,
+      defaultBcc: row?.defaultBcc ?? null,
       isActive: row?.isActive ?? true,
       updatedAt: row?.updatedAt ? row.updatedAt.toISOString() : null,
     };
   }
+}
+
+function splitEmails(v: string | null | undefined): string[] {
+  return (v ?? '')
+    .split(',')
+    .map((x) => x.trim())
+    .filter(Boolean);
 }

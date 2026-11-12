@@ -621,6 +621,10 @@
         "operatorEmails": {
           "label": "Email nhận thông báo vận hành",
           "hint": "Đăng ký Map Test mới sẽ được gửi tới các địa chỉ này. Phân tách bằng dấu phẩy; để trống sẽ không gửi."
+        },
+        "defaultBcc": {
+          "label": "BCC mặc định",
+          "hint": "Bản sao của mọi email hệ thống gửi đi sẽ được gửi tới các địa chỉ này. Người nhận không nhìn thấy. Phân tách bằng dấu phẩy; để trống sẽ không gửi. Không áp dụng cho email mời người dùng và mật khẩu tạm thời."
         }
       },
       "test": {

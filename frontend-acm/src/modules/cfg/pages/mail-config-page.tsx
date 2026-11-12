@@ -32,6 +32,7 @@ export function MailConfigPage() {
   const [fromName, setFromName] = useState('');
   const [fromAddress, setFromAddress] = useState('');
   const [operatorEmails, setOperatorEmails] = useState('');
+  const [defaultBcc, setDefaultBcc] = useState(''); // REQ-261112I
   const [isActive, setIsActive] = useState(true);
   const [testTo, setTestTo] = useState('');
   const [testResult, setTestResult] = useState<
@@ -48,6 +49,7 @@ export function MailConfigPage() {
       setFromName(data.fromName ?? '');
       setFromAddress(data.fromAddress ?? '');
       setOperatorEmails(data.operatorEmails ?? '');
+      setDefaultBcc(data.defaultBcc ?? '');
       setIsActive(data.isActive);
     }
   }, [data]);
@@ -61,6 +63,7 @@ export function MailConfigPage() {
     setFromName(data?.fromName ?? '');
     setFromAddress(data?.fromAddress ?? '');
     setOperatorEmails(data?.operatorEmails ?? '');
+    setDefaultBcc(data?.defaultBcc ?? '');
     setIsActive(data?.isActive ?? true);
   };
 
@@ -79,6 +82,7 @@ export function MailConfigPage() {
         fromName: fromName.trim(),
         fromAddress: fromAddress.trim(),
         operatorEmails: operatorEmails.trim(),
+        defaultBcc: defaultBcc.trim(),
         isActive,
         // 입력했을 때만 교체 (미입력 = 기존값 유지)
         ...(password.trim() ? { password: password.trim() } : {}),
@@ -237,6 +241,23 @@ export function MailConfigPage() {
               />
               <p className="text-xs text-secondary">
                 {t('config.mail.fields.operatorEmails.hint')}
+              </p>
+            </div>
+
+            {/* REQ-261112I — 기본 숨은참조(BCC) */}
+            <div className="space-y-1.5">
+              <Label htmlFor="mailDefaultBcc">
+                {t('config.mail.fields.defaultBcc.label')}
+              </Label>
+              <Input
+                id="mailDefaultBcc"
+                value={defaultBcc}
+                onChange={(e) => setDefaultBcc(e.target.value)}
+                placeholder="copy@example.com"
+                autoComplete="off"
+              />
+              <p className="text-xs text-secondary">
+                {t('config.mail.fields.defaultBcc.hint')}
               </p>
             </div>
 

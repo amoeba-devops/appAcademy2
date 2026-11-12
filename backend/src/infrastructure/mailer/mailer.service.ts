@@ -8,6 +8,8 @@ export interface SendMailInput {
   subject: string;
   html?: string;
   text?: string;
+  /** REQ-261112I — 숨은참조(BCC) */
+  bcc?: string[];
 }
 
 @Injectable()
@@ -53,6 +55,7 @@ export class MailerService {
       subject: input.subject,
       html: input.html,
       text: input.text,
+      bcc: input.bcc?.length ? input.bcc : undefined,
     });
   }
 }

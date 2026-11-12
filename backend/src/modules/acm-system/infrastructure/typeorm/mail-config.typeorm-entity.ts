@@ -44,6 +44,15 @@ export class MailConfigTypeormEntity {
   })
   operatorEmails?: string | null;
 
+  /** REQ-261112I — 메일 기본 숨은참조(BCC) (쉼표 구분) */
+  @Column({
+    name: 'mlc_default_bcc',
+    type: 'varchar',
+    length: 500,
+    nullable: true,
+  })
+  defaultBcc?: string | null;
+
   @Column({ name: 'mlc_is_active', type: 'boolean', default: true })
   isActive!: boolean;
 

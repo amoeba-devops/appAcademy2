@@ -254,6 +254,7 @@ export class UserInviteService {
         await this.mailer.send(
           u.entId,
           this.mail(email, name, role, url, expiresAt),
+          { skipDefaultBcc: true }, // REQ-261112I — 초대 링크는 사본 제외
         );
         mailSent = true;
       }
