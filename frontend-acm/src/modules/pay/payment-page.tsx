@@ -221,8 +221,7 @@ function Payments({ identity, admin }: { identity: string; admin: boolean }) {
       <PageHeader
         icon={Wallet}
         title={t("nav.pay")}
-        description={t("pageHeader.pay.desc")}
-        meta={<span>{t("pageHeader.pay.currency")}</span>}
+        description={`${t("pageHeader.pay.desc")} (${t("pageHeader.pay.currency")})`}
       />
       <UnderlineTabs
         label={t("nav.pay")}

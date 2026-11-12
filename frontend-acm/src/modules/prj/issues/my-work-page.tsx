@@ -417,7 +417,6 @@ export function MyWorkPage() {
         icon={ListTodo}
         title={t("nav.myWork")}
         description={t("pageHeader.myWork.desc")}
-        meta={<span>{t("myWork.subtitle", { total: mineOpen.length, overdue: mineOpen.filter((i) => i.reasons.includes("OVERDUE")).length })}</span>}
         actions={
           <Button onClick={() => setCreating(true)}>
             <Plus size={14} className="mr-1" />

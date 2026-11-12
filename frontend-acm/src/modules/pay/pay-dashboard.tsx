@@ -252,9 +252,6 @@ export function PayDashboard({
         </button>
       </div>
 
-      {/* ② 데이터 품질 배너 */}
-      {banner}
-
       {/* A 상단 통계 3종 — 기존 유지 */}
       <section className="space-y-2">
         <div className="flex items-center gap-2">
@@ -477,6 +474,8 @@ export function PayDashboard({
           </div>
         </>
       )}
+      {/* ② 데이터 품질 배너 (재원기간 확인 필요) — 맨 아래 */}
+      {banner}
     </section>
   );
 }
