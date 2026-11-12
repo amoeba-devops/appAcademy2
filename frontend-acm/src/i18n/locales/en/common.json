@@ -2203,6 +2203,9 @@
     "revoke": "Revoke",
     "revokeTitle": "Revoke this invitation?",
     "revokeDesc": "The link that was sent will stop working.",
+    "delete": "Delete",
+    "deleteTitle": "Delete this invitation?",
+    "deleteDesc": "It disappears from the list, and a pending invitation's link stops working. Accounts already created are not affected.",
     "fields": {
       "email": "Email",
       "name": "Name",

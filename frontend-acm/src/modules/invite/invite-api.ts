@@ -38,6 +38,8 @@ export const inviteApi = {
     (await apiClient.post<InviteSendResult>('/acm/admin/invites', body)).data,
   resend: async (id: string) => (await apiClient.post<InviteSendResult>(`/acm/admin/invites/${id}/resend`)).data,
   revoke: async (id: string) => apiClient.post(`/acm/admin/invites/${id}/revoke`),
+  /** REQ-261112K — 소프트삭제 */
+  remove: async (id: string) => apiClient.delete(`/acm/admin/invites/${id}`),
   describe: async (token: string) =>
     (await apiClient.get<InviteInfo>(`/acm/auth/invites/${encodeURIComponent(token)}`)).data,
   accept: async (token: string, password: string) =>

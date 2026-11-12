@@ -93,6 +93,7 @@ function InviteHistory() {
     onError: fail,
   });
   const revoke = useMutation({ mutationFn: inviteApi.revoke, onSuccess: () => void refresh(), onError: fail });
+  const remove = useMutation({ mutationFn: inviteApi.remove, onSuccess: () => void refresh(), onError: fail });
   const fmt = (v: string) => new Date(v).toLocaleString(i18n.language);
   return (
     <div className="grid min-w-0 gap-4">
@@ -144,8 +145,9 @@ function InviteHistory() {
                     : t('invite.expiresAt', { at: fmt(r.inv_expires_at) })}
                 </p>
               </div>
-              {(r.inv_status === 'PENDING' || r.inv_status === 'EXPIRED') && (
-                <div className="flex gap-2">
+              <div className="flex gap-2">
+                {(r.inv_status === 'PENDING' || r.inv_status === 'EXPIRED') && (
+                  <>
                   <Button size="sm" variant="outline" disabled={resend.isPending} onClick={() => { setError(''); resend.mutate(r.inv_id); }}>
                     {t('invite.resend')}
                   </Button>
@@ -161,8 +163,23 @@ function InviteHistory() {
                   >
                     {t('invite.revoke')}
                   </Button>
-                </div>
-              )}
+                  </>
+                )}
+                {/* REQ-261112K — 소프트삭제 (모든 상태) */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="text-red-600"
+                  disabled={remove.isPending}
+                  onClick={async () => {
+                    setError('');
+                    if (await confirm({ title: t('invite.deleteTitle'), description: t('invite.deleteDesc'), confirmLabel: t('invite.delete'), variant: 'destructive' }))
+                      remove.mutate(r.inv_id);
+                  }}
+                >
+                  {t('invite.delete')}
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
