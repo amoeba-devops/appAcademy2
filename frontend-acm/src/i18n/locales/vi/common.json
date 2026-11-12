@@ -2615,6 +2615,7 @@
     "remove": "Xóa liên kết",
     "none": "Chưa có liên kết lớp học.",
     "numbered": "Liên kết lớp {{n}}",
+    "fromCalendar": "Liên kết lịch học",
     "join": "Vào lớp",
     "invalid": "Không thể mở địa chỉ này. Hãy nhập địa chỉ web (VD: meet.google.com/…)."
   }

@@ -2617,6 +2617,7 @@
     "remove": "Remove link",
     "none": "No class links yet.",
     "numbered": "Class link {{n}}",
+    "fromCalendar": "Class schedule link",
     "join": "Join",
     "invalid": "This address cannot be opened. Enter a web address (e.g. meet.google.com/…)."
   }

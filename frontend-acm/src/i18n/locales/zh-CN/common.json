@@ -2615,6 +2615,7 @@
     "remove": "删除链接",
     "none": "暂无上课链接。",
     "numbered": "上课链接 {{n}}",
+    "fromCalendar": "课程日程链接",
     "join": "进入",
     "invalid": "无法打开此地址。请输入网址（例：meet.google.com/…）。"
   }
