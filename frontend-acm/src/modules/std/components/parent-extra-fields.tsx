@@ -84,7 +84,7 @@ export function CountryCodeSelect({
   );
 }
 
-/** 메신저(종류+아이디) + 메모 입력란. 2열 grid 안에 넣어 쓴다. */
+/** 메신저(종류+아이디 한 줄) + 메모 입력란. 2열 grid 안에서 각각 한 줄을 차지한다. */
 export function ParentMessengerMemoFields({
   value,
   onChange,
@@ -99,35 +99,37 @@ export function ParentMessengerMemoFields({
   const { t } = useTranslation('std');
   return (
     <>
-      <div>
+      <div className="sm:col-span-2">
         <label className={labelClass}>{t('field.parentMessenger', '메신저')}</label>
-        <select
-          value={value.parMessengerType}
-          onChange={(e) =>
-            onChange({
-              parMessengerType: e.target.value,
-              ...(e.target.value ? {} : { parMessengerId: '' }),
-            })
-          }
-          className={inputClass}
-        >
-          <option value="">—</option>
-          {PARENT_MESSENGER_TYPES.map((m) => (
-            <option key={m} value={m}>
-              {t(`messenger.${m}`)}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label className={labelClass}>{t('field.parentMessengerId', '메신저 아이디')}</label>
-        <input
-          value={value.parMessengerId}
-          maxLength={100}
-          disabled={!value.parMessengerType}
-          onChange={(e) => onChange({ parMessengerId: e.target.value })}
-          className={inputClass + ' disabled:opacity-50'}
-        />
+        <div className="flex gap-2">
+          <select
+            aria-label={t('field.parentMessenger', '메신저')}
+            value={value.parMessengerType}
+            onChange={(e) =>
+              onChange({
+                parMessengerType: e.target.value,
+                ...(e.target.value ? {} : { parMessengerId: '' }),
+              })
+            }
+            className={inputClass + ' w-32 shrink-0 px-2'}
+          >
+            <option value="">—</option>
+            {PARENT_MESSENGER_TYPES.map((m) => (
+              <option key={m} value={m}>
+                {t(`messenger.${m}`)}
+              </option>
+            ))}
+          </select>
+          <input
+            aria-label={t('field.parentMessengerId', '메신저 아이디')}
+            placeholder={t('field.parentMessengerId', '메신저 아이디')}
+            value={value.parMessengerId}
+            maxLength={100}
+            disabled={!value.parMessengerType}
+            onChange={(e) => onChange({ parMessengerId: e.target.value })}
+            className={inputClass + ' min-w-0 disabled:opacity-50'}
+          />
+        </div>
       </div>
       <div className="sm:col-span-2">
         <label className={labelClass}>{t('field.parentMemo', '메모')}</label>
