@@ -14,6 +14,11 @@ import {
   useLinkParentToStudent,
   type LinkParentInput,
 } from '../hooks/use-parents';
+import {
+  CountryCodeSelect,
+  EMPTY_PARENT_EXTRA,
+  ParentMessengerMemoFields,
+} from './parent-extra-fields';
 
 const inputClass =
   'w-full h-9 rounded-md border border-[var(--border-subtle)] bg-canvas px-3 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-500/40';
@@ -60,6 +65,7 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
     parRelation: '',
     parPhone: '',
     parEmail: '',
+    ...EMPTY_PARENT_EXTRA,
     spIsPrimary: false,
   });
 
@@ -74,7 +80,14 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
       setRawQ('');
       setDebouncedQ('');
       setSetPrimaryOnLink(false);
-      setForm({ parName: '', parRelation: '', parPhone: '', parEmail: '', spIsPrimary: false });
+      setForm({
+        parName: '',
+        parRelation: '',
+        parPhone: '',
+        parEmail: '',
+        ...EMPTY_PARENT_EXTRA,
+        spIsPrimary: false,
+      });
     }
   }, [open]);
 
@@ -92,6 +105,10 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
       parRelation: form.parRelation || undefined,
       parPhone: form.parPhone || undefined,
       parEmail: form.parEmail || undefined,
+      parCountryCode: form.parCountryCode || undefined,
+      parMessengerType: form.parMessengerType || undefined,
+      parMessengerId: form.parMessengerType ? form.parMessengerId || undefined : undefined,
+      parMemo: form.parMemo?.trim() || undefined,
       spIsPrimary: !!form.spIsPrimary,
     });
     onClose();
@@ -99,7 +116,7 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-h-[90dvh] max-w-xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('parentPicker.title', '학부모 추가')}</DialogTitle>
         </DialogHeader>
@@ -219,11 +236,18 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
               </div>
               <div>
                 <label className={labelClass}>{t('field.parentPhone', '전화번호')}</label>
-                <input
-                  value={form.parPhone ?? ''}
-                  onChange={(e) => setForm({ ...form, parPhone: e.target.value })}
-                  className={inputClass}
-                />
+                <div className="flex gap-2">
+                  <CountryCodeSelect
+                    value={form.parCountryCode ?? ''}
+                    onChange={(v) => setForm({ ...form, parCountryCode: v })}
+                    className={inputClass + ' w-28 shrink-0 px-2'}
+                  />
+                  <input
+                    value={form.parPhone ?? ''}
+                    onChange={(e) => setForm({ ...form, parPhone: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
               </div>
               <div>
                 <label className={labelClass}>{t('field.parentEmail', '이메일')}</label>
@@ -234,6 +258,17 @@ export function ParentPickOrCreateDialog({ open, onClose, stdId }: Props) {
                   className={inputClass}
                 />
               </div>
+              <ParentMessengerMemoFields
+                value={{
+                  parCountryCode: form.parCountryCode ?? '',
+                  parMessengerType: form.parMessengerType ?? '',
+                  parMessengerId: form.parMessengerId ?? '',
+                  parMemo: form.parMemo ?? '',
+                }}
+                onChange={(patch) => setForm((f) => ({ ...f, ...patch }))}
+                inputClass={inputClass}
+                labelClass={labelClass}
+              />
               <label className="sm:col-span-2 flex items-center gap-2 text-xs text-secondary">
                 <input
                   type="checkbox"

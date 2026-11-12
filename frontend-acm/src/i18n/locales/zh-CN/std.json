@@ -69,6 +69,10 @@
     "parentRelation": "关系",
     "parentPhone": "电话",
     "parentEmail": "邮箱",
+    "parentCountryCode": "国家代码",
+    "parentMessenger": "聊天软件",
+    "parentMessengerId": "聊天软件账号",
+    "parentMemo": "备注",
     "parentPrimary": "主联系人",
     "endDate": "课程结束日期",
     "meetingUrl": "上课链接"
@@ -354,5 +358,13 @@
     "MOTHER": "母亲",
     "GUARDIAN": "监护人",
     "OTHER": "其他"
+  },
+  "messenger": {
+    "KAKAOTALK": "KakaoTalk",
+    "LINE": "LINE",
+    "WECHAT": "微信",
+    "WHATSAPP": "WhatsApp",
+    "TELEGRAM": "Telegram",
+    "ZALO": "Zalo"
   }
 }

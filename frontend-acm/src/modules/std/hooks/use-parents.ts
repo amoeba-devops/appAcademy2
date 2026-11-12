@@ -11,6 +11,11 @@ export interface ParentSummary {
   relation?: string | null;
   phone?: string | null;
   email?: string | null;
+  /** REQ-261112 */
+  countryCode?: string | null;
+  messengerType?: string | null;
+  messengerId?: string | null;
+  memo?: string | null;
   childCount?: number;
   /** Linked student names (REQ-260619) — surfaced in the parent list/edit view. */
   children?: Array<{ id: string; name: string; status: string }>;
@@ -58,6 +63,10 @@ export interface LinkParentInput {
   parRelation?: string;
   parPhone?: string;
   parEmail?: string;
+  parCountryCode?: string;
+  parMessengerType?: string;
+  parMessengerId?: string;
+  parMemo?: string;
   spIsPrimary?: boolean;
 }
 

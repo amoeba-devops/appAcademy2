@@ -32,7 +32,29 @@ export interface ParentWithLink {
   relation: string | null;
   phone: string | null;
   email: string | null;
+  countryCode?: string | null;
+  messengerType?: string | null;
+  messengerId?: string | null;
+  memo?: string | null;
   isPrimary?: boolean;
+}
+
+/** REQ-261112 — 국가번호·메신저·메모 입력값 → 엔티티 필드 (undefined 는 건드리지 않음, 빈 값은 null). */
+type ParentExtraInput = {
+  parCountryCode?: string;
+  parMessengerType?: string;
+  parMessengerId?: string;
+  parMemo?: string;
+};
+export function parentExtraFields(dto: ParentExtraInput): Partial<ParentTypeormEntity> {
+  const out: Partial<ParentTypeormEntity> = {};
+  const norm = (v: string) => v.trim() || null;
+  if (dto.parCountryCode !== undefined) out.countryCode = norm(dto.parCountryCode);
+  if (dto.parMessengerType !== undefined) out.messengerType = norm(dto.parMessengerType);
+  if (dto.parMessengerId !== undefined) out.messengerId = norm(dto.parMessengerId);
+  if (dto.parMemo !== undefined) out.memo = norm(dto.parMemo);
+  if (out.messengerType === null) out.messengerId = null;
+  return out;
 }
 
 @Injectable()
@@ -64,7 +86,7 @@ export class ParentService {
       .andWhere('p.deletedAt IS NULL');
 
     if (q.q) {
-      qb.andWhere('(p.name ILIKE :q OR p.phone ILIKE :q OR p.email ILIKE :q)', {
+      qb.andWhere('(p.name ILIKE :q OR p.phone ILIKE :q OR p.email ILIKE :q OR p.messengerId ILIKE :q)', {
         q: `%${q.q}%`,
       });
     }
@@ -199,6 +221,7 @@ export class ParentService {
       relation: dto.parRelation ?? null,
       phone: dto.parPhone ?? null,
       email: dto.parEmail ?? null,
+      ...parentExtraFields(dto),
     });
     const saved = await this.parents.save(entity);
     return this.toDetail(saved);
@@ -214,6 +237,7 @@ export class ParentService {
     if (dto.parRelation !== undefined) e.relation = dto.parRelation ?? null;
     if (dto.parPhone !== undefined) e.phone = dto.parPhone ?? null;
     if (dto.parEmail !== undefined) e.email = dto.parEmail ?? null;
+    Object.assign(e, parentExtraFields(dto));
     e.updatedAt = new Date();
     const saved = await this.parents.save(e);
     return this.toDetail(saved);
@@ -359,6 +383,10 @@ export class ParentService {
         relation: p?.relation ?? null,
         phone: p?.phone ?? null,
         email: p?.email ?? null,
+        countryCode: p?.countryCode ?? null,
+        messengerType: p?.messengerType ?? null,
+        messengerId: p?.messengerId ?? null,
+        memo: p?.memo ?? null,
         isPrimary: l.isPrimary,
       };
     });
@@ -407,6 +435,7 @@ export class ParentService {
         if (dto.parRelation !== undefined) par.relation = dto.parRelation ?? null;
         if (dto.parPhone !== undefined) par.phone = dto.parPhone ?? null;
         if (dto.parEmail !== undefined) par.email = dto.parEmail ?? null;
+        Object.assign(par, parentExtraFields(dto));
         par.updatedAt = new Date();
         await parents.save(par);
       } else {
@@ -418,6 +447,7 @@ export class ParentService {
             relation: dto.parRelation ?? null,
             phone: dto.parPhone ?? null,
             email: dto.parEmail ?? null,
+            ...parentExtraFields(dto),
           }),
         );
         parId = created.id;
@@ -480,6 +510,10 @@ export class ParentService {
       relation: e.relation,
       phone: e.phone,
       email: e.email,
+      countryCode: e.countryCode ?? null,
+      messengerType: e.messengerType ?? null,
+      messengerId: e.messengerId ?? null,
+      memo: e.memo ?? null,
       amaClientId: e.amaClientId ?? null,
       amaRegisteredAt: e.amaRegisteredAt ?? null,
       createdAt: e.createdAt,
