@@ -17,6 +17,7 @@ describe('TeacherAssignmentService', () => {
   let create: jest.Mock;
   let save: jest.Mock;
   let del: jest.Mock;
+  let query: jest.Mock;
 
   beforeEach(async () => {
     findOne = jest.fn();
@@ -24,13 +25,14 @@ describe('TeacherAssignmentService', () => {
     create = jest.fn((row) => row);
     save = jest.fn((row) => Promise.resolve({ id: 'asg-1', ...row }));
     del = jest.fn().mockResolvedValue({ affected: 1 });
+    query = jest.fn().mockResolvedValue([]);
 
     const mod = await Test.createTestingModule({
       providers: [
         TeacherAssignmentService,
         {
           provide: getRepositoryToken(TeacherAssignmentTypeormEntity, ACM_DS),
-          useValue: { findOne, find, create, save, delete: del },
+          useValue: { findOne, find, create, save, delete: del, manager: { query } },
         },
       ],
     }).compile();
@@ -82,5 +84,20 @@ describe('TeacherAssignmentService', () => {
       where: { entId: 'e1', inqId: 'i1' },
       order: { role: 'ASC', assignedAt: 'ASC' },
     });
+  });
+
+  it('REQ-261112C — assign syncs the inquiry teachers to the linked student (new and re-assign)', async () => {
+    findOne.mockResolvedValueOnce(null);
+    await svc.assign({ entId: 'e1', inqId: 'i1', teacherId: 't1', role: 'PRIMARY', actorId: 'u1' });
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('amb_acm_std_student_teacher'), ['e1', 'i1']);
+    findOne.mockResolvedValueOnce({ id: 'asg-1', entId: 'e1', inqId: 'i1', teacherId: 't1', role: 'PRIMARY' });
+    await svc.assign({ entId: 'e1', inqId: 'i1', teacherId: 't1', role: 'SECONDARY', actorId: 'u1' });
+    expect(query).toHaveBeenCalledTimes(2);
+  });
+
+  it('REQ-261112C — remove does not touch student teachers', async () => {
+    findOne.mockResolvedValueOnce({ id: 'asg-1', entId: 'e1', inqId: 'i1' });
+    await svc.remove('e1', 'i1', 'asg-1');
+    expect(query).not.toHaveBeenCalled();
   });
 });

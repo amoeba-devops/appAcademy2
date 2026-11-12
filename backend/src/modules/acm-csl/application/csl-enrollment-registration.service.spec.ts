@@ -40,9 +40,11 @@ describe('CslEnrollmentRegistrationService', () => {
     students?: any[];
     parents?: any[];
   }) {
+    const query = jest.fn().mockResolvedValue([]);
     const inqRepo = {
       findOne: jest.fn().mockResolvedValue(opts.inquiry),
       save: jest.fn(async (x: any) => x),
+      manager: { query },
     };
     const savedStudents: any[] = [];
     const stdRepo = {
@@ -77,7 +79,7 @@ describe('CslEnrollmentRegistrationService', () => {
       makeCrypto() as any,
       portal as any,
     );
-    return { svc, inqRepo, stdRepo, parRepo, linkRepo, portal };
+    return { svc, inqRepo, stdRepo, parRepo, linkRepo, portal, query };
   }
 
   it('creates student + parent + link and issues both portal accounts', async () => {
@@ -151,5 +153,26 @@ describe('CslEnrollmentRegistrationService', () => {
     const res = await h.svc.register(ENT, 'inq-1');
     expect(res?.created).toBe(true);
     expect(h.stdRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('REQ-261112C — copies assigned teachers to the student and refreshes the teacher mirror', async () => {
+    const h = build({ inquiry: baseInquiry() });
+    h.query.mockResolvedValueOnce([{ stdId: 'std-1' }]);
+    await h.svc.register(ENT, 'inq-1');
+    expect(h.query).toHaveBeenCalledTimes(2);
+    expect(h.query.mock.calls[0][0]).toContain('INSERT INTO amb_acm_std_student_teacher');
+    expect(h.query.mock.calls[0][1]).toEqual([ENT, 'inq-1']);
+    expect(h.query.mock.calls[1][0]).toContain('UPDATE amb_acm_std_student');
+    expect(h.query.mock.calls[1][1]).toEqual([ENT, ['std-1']]);
+  });
+
+  it('REQ-261112C — also syncs teachers for an already-linked inquiry; sync failure does not abort', async () => {
+    const h = build({ inquiry: baseInquiry({ stdId: 'std-existing' }) });
+    h.query.mockRejectedValueOnce(new Error('db down'));
+    await expect(h.svc.register(ENT, 'inq-1')).resolves.toEqual({
+      stdId: 'std-existing',
+      created: false,
+    });
+    expect(h.query).toHaveBeenCalledTimes(1);
   });
 });

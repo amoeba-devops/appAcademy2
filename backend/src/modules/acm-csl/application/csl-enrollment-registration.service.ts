@@ -8,6 +8,7 @@ import { ParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/parent
 import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm/student-parent.typeorm-entity';
 import { PortalAccountService } from '../../acm-auth/application/portal-account.service';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
+import { syncAssignedTeachersToStudent } from './teacher-student-sync';
 
 /**
  * PLN-260706 §4.3 — when a consultation reaches CLASS_STARTED, register its
@@ -53,6 +54,7 @@ export class CslEnrollmentRegistrationService {
     }
     if (inq.stdId) {
       this.log.debug(`inq ${inqId}: already registered → std ${inq.stdId}`);
+      await this.syncTeachers(entId, inqId);
       return { stdId: inq.stdId, created: false };
     }
 
@@ -104,6 +106,9 @@ export class CslEnrollmentRegistrationService {
     inq.stdId = student.id;
     await this.inq.save(inq);
 
+    // ---- REQ-261112C: 상담 담당 강사 배정 → 학생 담당강사 ----------------------
+    await this.syncTeachers(entId, inqId);
+
     this.log.log(
       `inq ${inqId} auto-registered → std ${student.id}` +
         (parentId ? ` + par ${parentId}` : '') +
@@ -113,6 +118,16 @@ export class CslEnrollmentRegistrationService {
   }
 
   // ---------------------------------------------------------------------------
+
+  /** 실패해도 학생 등록 자체는 유지 (로그만). */
+  private async syncTeachers(entId: string, inqId: string): Promise<void> {
+    try {
+      const n = await syncAssignedTeachersToStudent(this.inq.manager, entId, inqId);
+      if (n > 0) this.log.log(`inq ${inqId}: ${n} assigned teacher(s) copied to student`);
+    } catch (e) {
+      this.log.warn(`inq ${inqId}: teacher sync failed — ${(e as Error).message}`);
+    }
+  }
 
   private async findOrCreateStudent(
     entId: string,
