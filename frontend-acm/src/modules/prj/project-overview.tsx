@@ -28,83 +28,9 @@ export function ProjectOverview({
   onBrowse: (kind: string) => void;
 }) {
   const { t: tp } = useTranslation("prj");
-  const kinds = [
-    { key: "MEMO", icon: FileText },
-    { key: "SHEET", icon: Table2 },
-    { key: "DOC", icon: FileText },
-    { key: "FILE", icon: FolderOpen },
-  ];
   return (
     <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-      <section className="min-w-0 rounded-xl border bg-surface p-4 lg:p-5">
-        <h2 className="mb-4 font-semibold">{tp("overview.recentDocs")}</h2>
-        <div className="grid min-w-0 gap-3 md:grid-cols-3">
-          {kinds.map(({ key, icon: Icon }) => {
-            const recent = items
-              .filter((i) => i.pit_kind !== "ISSUE" && documentKind(i) === key)
-              .sort((a, b) => b.created_at.localeCompare(a.created_at))
-              .slice(0, 5);
-            return (
-              <section
-                key={key}
-                className="min-w-0 rounded-xl border border-gray-100 bg-gray-50/40 p-4"
-              >
-                <header className="mb-4 flex items-center justify-between gap-2 text-sm">
-                  <h3 className="flex items-center gap-2 font-semibold">
-                    <Icon size={16} />
-                    {tp(`overview.kind.${key}`)}
-                  </h3>
-                  <button
-                    onClick={() => onBrowse(key)}
-                    className="shrink-0 text-xs text-blue-600"
-                  >
-                    {tp("overview.viewAll")}
-                  </button>
-                </header>
-                {recent.length ? (
-                  <ul className="divide-y divide-gray-100">
-                    {recent.map((i) => (
-                      <li key={i.pit_id} className="py-2">
-                        <button
-                          className="w-full min-w-0 text-left"
-                          onClick={() => onBrowse(key)}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span
-                              className="min-w-0 flex-1 truncate"
-                              title={i.pit_title}
-                            >
-                              {i.pit_title}
-                            </span>
-                            {(i.external_url || i.drive_file_id) &&
-                              key !== "FILE" && (
-                                <span className="flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 text-xs text-blue-600">
-                                  <Link2 size={12} />
-                                  {tp("overview.linked")}
-                                </span>
-                              )}
-                          </span>
-                          <span className="mt-1 block text-xs text-gray-500">
-                            {i.creator_name} ·{" "}
-                            {key === "FILE" && i.drive_size
-                              ? `${Math.ceil(Number(i.drive_size) / 1024)}KB · `
-                              : ""}
-                            {new Date(i.created_at).toLocaleString()}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="min-h-44 text-sm text-gray-400">
-                    {tp("overview.empty")}
-                  </p>
-                )}
-              </section>
-            );
-          })}
-        </div>
-      </section>
+      <RecentDocuments items={items} onBrowse={onBrowse} />
       <aside className="grid min-w-0 gap-4">
         <section className="rounded-xl border bg-surface p-5">
           <header className="mb-4 flex items-center justify-between">
@@ -142,5 +68,103 @@ export function ProjectOverview({
         <ProjectRelations project={project.prj_id} manage={manage} />
       </aside>
     </div>
+  );
+}
+
+const KINDS = [
+  { key: "MEMO", icon: FileText },
+  { key: "SHEET", icon: Table2 },
+  { key: "DOC", icon: FileText },
+  { key: "FILE", icon: FolderOpen },
+];
+/**
+ * 유형(메모·시트·문서·파일)별 최근 등록 5건. 개요 탭과 문서 탭(REQ-261112I '최근 문서')이 함께 쓴다.
+ * onOpen 이 있으면 파일 외 항목은 바로 열고, 없으면 해당 유형 목록으로 이동한다.
+ */
+export function RecentDocuments({
+  items,
+  onBrowse,
+  onOpen,
+  gridClass = "md:grid-cols-3",
+}: {
+  items: Item[];
+  onBrowse: (kind: string) => void;
+  onOpen?: (item: Item, kind: string) => void;
+  gridClass?: string;
+}) {
+  const { t: tp } = useTranslation("prj");
+  const kinds = KINDS;
+  return (
+    <section className="min-w-0 rounded-xl border bg-surface p-4 lg:p-5">
+      <h2 className="mb-4 font-semibold">{tp("overview.recentDocs")}</h2>
+      <div className={`grid min-w-0 gap-3 ${gridClass}`}>
+        {kinds.map(({ key, icon: Icon }) => {
+          const recent = items
+            .filter((i) => i.pit_kind !== "ISSUE" && documentKind(i) === key)
+            .sort((a, b) => b.created_at.localeCompare(a.created_at))
+            .slice(0, 5);
+          return (
+            <section
+              key={key}
+              className="min-w-0 rounded-xl border border-gray-100 bg-gray-50/40 p-4"
+            >
+              <header className="mb-4 flex items-center justify-between gap-2 text-sm">
+                <h3 className="flex items-center gap-2 font-semibold">
+                  <Icon size={16} />
+                  {tp(`overview.kind.${key}`)}
+                </h3>
+                <button
+                  onClick={() => onBrowse(key)}
+                  className="shrink-0 text-xs text-blue-600"
+                >
+                  {tp("overview.viewAll")}
+                </button>
+              </header>
+              {recent.length ? (
+                <ul className="divide-y divide-gray-100">
+                  {recent.map((i) => (
+                    <li key={i.pit_id} className="py-2">
+                      <button
+                        className="w-full min-w-0 text-left"
+                        onClick={() =>
+                          onOpen && key !== "FILE" ? onOpen(i, key) : onBrowse(key)
+                        }
+                      >
+                        <span className="flex items-center gap-2">
+                          <span
+                            className="min-w-0 flex-1 truncate"
+                            title={i.pit_title}
+                          >
+                            {i.pit_title}
+                          </span>
+                          {(i.external_url || i.drive_file_id) &&
+                            key !== "FILE" && (
+                              <span className="flex shrink-0 items-center gap-1 rounded-full bg-blue-50 px-2 text-xs text-blue-600">
+                                <Link2 size={12} />
+                                {tp("overview.linked")}
+                              </span>
+                            )}
+                        </span>
+                        <span className="mt-1 block text-xs text-gray-500">
+                          {i.creator_name} ·{" "}
+                          {key === "FILE" && i.drive_size
+                            ? `${Math.ceil(Number(i.drive_size) / 1024)}KB · `
+                            : ""}
+                          {new Date(i.created_at).toLocaleString()}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="min-h-44 text-sm text-gray-400">
+                  {tp("overview.empty")}
+                </p>
+              )}
+            </section>
+          );
+        })}
+      </div>
+    </section>
   );
 }

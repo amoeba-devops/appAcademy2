@@ -150,7 +150,7 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, [isDashboard]);
   // REQ-261026B — 사용자 메뉴 iframe 은 본문 전체 폭을 쓴다.
-  if (isDashboard || isProject || pathname === "/admin/documents" || pathname.startsWith("/admin/embed/"))
+  if (isDashboard || pathname === "/admin/documents" || pathname.startsWith("/admin/embed/"))
     return <>{children}</>;
   // UI-261019 — "이용 팁" 패널은 없앤다(화면 설명은 PageHeader 한 줄로). 채팅만 방 정보 패널로 쓴다.
   // REQ-261027C · REQ-261112D — 전체 폭 예외(보드·달력·넓은 목록): 수납관리, 수업일정 달력, 신규 상담 목록(칸반), 이슈(+타임라인, REQ-261112G).
@@ -160,7 +160,8 @@ export function AdminContentLayout({ children }: { children: ReactNode }) {
     path.startsWith("/admin/pay") ||
     path === "/admin/cal" ||
     path === "/admin/csl" ||
-    path === "/admin/issues"; // REQ-261112G — 이슈 목록 + 오른쪽 타임라인
+    path === "/admin/issues" || // REQ-261112G — 이슈 목록 + 오른쪽 타임라인
+    isProject; // REQ-261112I — 프로젝트 상세(개요·문서·이슈)도 흰 카드 틀, 이슈 타임라인 때문에 전체 폭
   if (!isChat)
     return (
       <div className={`admin-content-container ${isWide ? "admin-content-full" : ""}`}>

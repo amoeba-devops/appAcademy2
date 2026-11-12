@@ -85,6 +85,7 @@
     "deleteConfirm": "Delete the project “{{title}}”?\n{{issues}} issues, {{documents}} documents and {{files}} files will be hidden with it. (The Google Drive folder is kept.)"
   },
   "docType": {
+    "RECENT": "Recent",
     "MEMO": "Memo",
     "SHEET": "Sheets (spreadsheet)",
     "DOC": "Documents (Docs)",

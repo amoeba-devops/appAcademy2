@@ -85,6 +85,7 @@
     "deleteConfirm": "‘{{title}}’ 프로젝트를 삭제할까요?\n이슈 {{issues}}건 · 문서 {{documents}}건 · 파일 {{files}}건이 함께 숨겨집니다. (Google Drive 폴더는 그대로 남습니다.)"
   },
   "docType": {
+    "RECENT": "최근 문서",
     "MEMO": "메모",
     "SHEET": "시트(스프레드시트)",
     "DOC": "문서(Docs)",
