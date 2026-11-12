@@ -2245,6 +2245,32 @@
       "invites": "Lời mời"
     },
     "users": {
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "deleteConsoleTitle": "Xóa tài khoản này?",
+      "deleteConsoleDesc": "Xóa {{name}}? Tài khoản sẽ không đăng nhập được và bị loại khỏi danh sách. Có thể khôi phục ở mục 'Đã xóa' trong Quản lý quản trị viên.",
+      "deletePortalTitle": "Xóa tài khoản đăng nhập cổng?",
+      "deletePortalDesc": "Chỉ xóa tài khoản đăng nhập cổng của {{name}}. Thông tin học sinh/giáo viên vẫn giữ nguyên; cấp lại từ màn hình học sinh/giáo viên sẽ khôi phục cùng ID đăng nhập.",
+      "errors": {
+        "CANNOT_DELETE_SELF": "Không thể xóa tài khoản của chính bạn.",
+        "TENANT_MASTER_ROLE_FIXED": "Không thể xóa tenant master.",
+        "USER_DELETED": "Tài khoản này đã bị xóa.",
+        "PORTAL_ACCOUNT_NOT_FOUND": "Tài khoản đã bị xóa hoặc không tồn tại.",
+        "failed": "Không thể thực hiện."
+      },
+      "portal": {
+        "title": "Tài khoản cổng",
+        "status": "Trạng thái",
+        "active": "Đang dùng",
+        "inactive": "Tạm dừng (không đăng nhập)",
+        "save": "Lưu",
+        "saved": "Đã lưu.",
+        "password": "Cấp lại mật khẩu",
+        "passwordPlaceholder": "Để trống để tự tạo",
+        "reset": "Cấp lại",
+        "resetDone": "Đã cấp lại mật khẩu. ID đăng nhập {{loginId}} / mật khẩu {{password}} — đóng cửa sổ này sẽ không xem lại được.",
+        "passwordShort": "Mật khẩu phải có ít nhất 8 ký tự."
+      },
       "types": {
         "ALL": "Tất cả",
         "ADMIN": "Quản trị viên",
@@ -2274,7 +2300,8 @@
         "login": "Đăng nhập",
         "flags": "Quyền · trạng thái",
         "createdAt": "Ngày tham gia",
-        "lastLogin": "Đăng nhập gần nhất"
+        "lastLogin": "Đăng nhập gần nhất",
+        "actions": "Thao tác"
       }
     }
   },
@@ -2406,7 +2433,8 @@
     "all": "Tất cả",
     "roles": {
       "ADMIN": "Quản trị",
-      "STAFF": "Nhân viên"
+      "STAFF": "Nhân viên",
+      "TEACHER": "Giáo viên"
     },
     "authSource": {
       "ama": "AMA",
@@ -2478,6 +2506,7 @@
       "EMAIL_TAKEN": "Email đã được dùng.",
       "CANNOT_DELETE_SELF": "Không thể xóa tài khoản của chính bạn.",
       "USER_DELETED": "Tài khoản đã bị xóa. Hãy khôi phục trước.",
+      "TEACHER_ROLE_FIXED": "Không thể đổi cấp của tài khoản giáo viên.",
       "weak": "Mật khẩu cần 8+ ký tự gồm chữ và số.",
       "failed": "Không xử lý được."
     },

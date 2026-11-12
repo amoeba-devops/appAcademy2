@@ -3,8 +3,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -23,6 +26,7 @@ import {
 import { AcmJwtAuthGuard } from '../../acm-auth/guards/acm-jwt-auth.guard';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import { ConfigAdminGuard } from '../../acm-common/guards/config-admin.guard';
+import { PortalAccountService } from '../../acm-auth/application/portal-account.service';
 import {
   CurrentUser,
   type AcmCurrentUser,
@@ -105,17 +109,66 @@ export class UserInviteAdminController {
   }
 }
 
-/** REQ-261018B — 등록 사용자 목록(서비스 운영자, 읽기 전용). */
+/** REQ-261112L — 포털 계정 상태 변경 */
+class PortalStatusDto {
+  @IsIn(['ACTIVE', 'INACTIVE'])
+  status!: 'ACTIVE' | 'INACTIVE';
+}
+
+/** REQ-261112L — 포털 계정 비밀번호 재발급(비우면 자동 생성) */
+class PortalResetDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  @MaxLength(120)
+  password?: string;
+}
+
+/** REQ-261018B — 등록 사용자 목록(서비스 운영자). REQ-261112L 포털 계정 수정·삭제. */
 @ApiTags('acm-system')
 @ApiBearerAuth()
 @UseGuards(AcmJwtAuthGuard, OwnEntityGuard, ConfigAdminGuard)
 @Controller('acm/admin/registered-users')
 export class RegisteredUserController {
-  constructor(private readonly users: RegisteredUserService) {}
+  constructor(
+    private readonly users: RegisteredUserService,
+    private readonly portal: PortalAccountService,
+  ) {}
 
   @Get()
   list(@CurrentUser() u: AcmCurrentUser, @Query() q: RegisteredUserQuery) {
     return this.users.list(u.entId, q.type, q.q);
+  }
+
+  @Patch('portal/:id')
+  @ApiOperation({ summary: 'Set portal account status (REQ-261112L)' })
+  setPortalStatus(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: PortalStatusDto,
+  ) {
+    return this.portal.setStatus(u.entId, id, dto.status);
+  }
+
+  @Post('portal/:id/reset')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reissue a portal password (REQ-261112L)' })
+  resetPortal(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: PortalResetDto,
+  ) {
+    return this.portal.reissuePassword(u.entId, id, dto.password, u.id);
+  }
+
+  @Delete('portal/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Soft-delete a portal login account (REQ-261112L)' })
+  deletePortal(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.portal.softDelete(u.entId, id, u.id);
   }
 }
 

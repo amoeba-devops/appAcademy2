@@ -2245,6 +2245,32 @@
       "invites": "Invitations"
     },
     "users": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConsoleTitle": "Delete this account?",
+      "deleteConsoleDesc": "Delete {{name}}? The account can't sign in and leaves the lists. Restore it from 'Deleted' in Admin management.",
+      "deletePortalTitle": "Delete the portal login?",
+      "deletePortalDesc": "Only {{name}}'s portal login is deleted. Student/teacher data stays, and issuing the account again from the student/teacher screen restores the same login ID.",
+      "errors": {
+        "CANNOT_DELETE_SELF": "You can't delete your own account.",
+        "TENANT_MASTER_ROLE_FIXED": "The tenant master can't be deleted.",
+        "USER_DELETED": "This account is already deleted.",
+        "PORTAL_ACCOUNT_NOT_FOUND": "This account was already deleted or doesn't exist.",
+        "failed": "Couldn't complete the action."
+      },
+      "portal": {
+        "title": "Portal account",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Suspended (no sign-in)",
+        "save": "Save",
+        "saved": "Saved.",
+        "password": "Reissue password",
+        "passwordPlaceholder": "Leave empty to generate",
+        "reset": "Reissue",
+        "resetDone": "Password reissued. Login ID {{loginId}} / password {{password}} — it won't be shown again after you close this window.",
+        "passwordShort": "Password must be at least 8 characters."
+      },
       "types": {
         "ALL": "All",
         "ADMIN": "Administrators",
@@ -2274,7 +2300,8 @@
         "login": "Sign-in",
         "flags": "Permissions · status",
         "createdAt": "Joined",
-        "lastLogin": "Last sign-in"
+        "lastLogin": "Last sign-in",
+        "actions": "Actions"
       }
     }
   },
@@ -2406,7 +2433,8 @@
     "all": "All",
     "roles": {
       "ADMIN": "Admin",
-      "STAFF": "Staff"
+      "STAFF": "Staff",
+      "TEACHER": "Teacher"
     },
     "authSource": {
       "ama": "AMA",
@@ -2480,6 +2508,7 @@
       "EMAIL_TAKEN": "That e-mail is already in use.",
       "CANNOT_DELETE_SELF": "You can't delete your own account.",
       "USER_DELETED": "This account is deleted. Restore it first.",
+      "TEACHER_ROLE_FIXED": "A teacher account's grade can't be changed.",
       "weak": "Use 8+ characters with letters and digits.",
       "failed": "Could not complete the request."
     },

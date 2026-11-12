@@ -19,7 +19,7 @@ export interface AdminUserView {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'STAFF';
+  role: 'ADMIN' | 'STAFF' | 'TEACHER';
   status: string;
   authSource: 'ama' | 'local';
   localPinned: boolean;
@@ -46,7 +46,7 @@ const SELECT = `
          u.created_at::text "createdAt", u.usr_last_login_at::text "lastLoginAt",
          u.usr_deleted_at::text "deletedAt"
     FROM amb_acm_user u
-   WHERE u.ent_id=$1 AND u.usr_role IN ('ADMIN','STAFF')`;
+   WHERE u.ent_id=$1 AND u.usr_role IN ('ADMIN','STAFF','TEACHER')`;
 
 /**
  * REQ-261024 — 서비스 설정 > 관리자 관리: this tenant's ADMIN/STAFF console accounts.
@@ -66,7 +66,12 @@ export class AdminUserService {
   ): Promise<AdminUserView[]> {
     const params: unknown[] = [entId];
     // REQ-261112J — 기본은 삭제 안 된 계정, status=DELETED 면 삭제된 계정만.
+    // 관리자 관리 목록은 관리자·직원만. 강사 콘솔 계정은 등록 사용자 화면에서 편집하고,
+    // 삭제된 강사 계정도 여기 '삭제됨'에서 복구한다 (REQ-261112L).
     const cond: string[] = [
+      f.status === 'DELETED'
+        ? `u.usr_role IN ('ADMIN','STAFF','TEACHER')`
+        : `u.usr_role IN ('ADMIN','STAFF')`,
       f.status === 'DELETED'
         ? 'u.usr_deleted_at IS NOT NULL'
         : 'u.usr_deleted_at IS NULL',
@@ -176,6 +181,9 @@ export class AdminUserService {
       throw new ForbiddenException('CANNOT_DEACTIVATE_SELF');
     if (cur.isTenantMaster && dto.role && dto.role !== cur.role)
       throw new ForbiddenException('TENANT_MASTER_ROLE_FIXED');
+    // REQ-261112L — 강사 콘솔 계정의 등급은 여기서 바꾸지 않는다.
+    if (cur.role === 'TEACHER' && dto.role)
+      throw new ForbiddenException('TEACHER_ROLE_FIXED');
     if (cur.isTenantMaster && dto.status && dto.status !== 'ACTIVE')
       throw new ForbiddenException('TENANT_MASTER_ROLE_FIXED');
     const sets: string[] = [];

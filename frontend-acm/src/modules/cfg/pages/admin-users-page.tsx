@@ -20,7 +20,7 @@ interface AdminUser {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'STAFF';
+  role: 'ADMIN' | 'STAFF' | 'TEACHER';
   status: 'ACTIVE' | 'INACTIVE' | 'DELETED';
   authSource: 'ama' | 'local';
   localPinned: boolean;
@@ -49,7 +49,7 @@ function errorText(err: unknown, t: (k: string) => string): string {
   const code = err instanceof AxiosError ? (err.response?.data as { error?: { code?: string; message?: string } } | undefined)?.error : undefined;
   const key = code?.code && code.code !== `HTTP_${(err as AxiosError).response?.status}` ? code.code : code?.message;
   if (err instanceof AxiosError && err.response?.status === 400) return t('adminUsers.errors.weak');
-  return key && ['CANNOT_CHANGE_OWN_ROLE', 'CANNOT_DEACTIVATE_SELF', 'CANNOT_LOCK_SELF', 'TENANT_MASTER_ROLE_FIXED', 'EMAIL_TAKEN', 'CANNOT_DELETE_SELF', 'USER_DELETED'].includes(key)
+  return key && ['CANNOT_CHANGE_OWN_ROLE', 'CANNOT_DEACTIVATE_SELF', 'CANNOT_LOCK_SELF', 'TENANT_MASTER_ROLE_FIXED', 'EMAIL_TAKEN', 'CANNOT_DELETE_SELF', 'USER_DELETED', 'TEACHER_ROLE_FIXED'].includes(key)
     ? t(`adminUsers.errors.${key}`)
     : t('adminUsers.errors.failed');
 }
@@ -227,6 +227,31 @@ export function AdminUsersPage() {
   );
 }
 
+/**
+ * REQ-261112L — 등록 사용자 화면에서 콘솔 계정(관리자·직원·강사) 상세 창을 연다.
+ * 관리자 관리 상세 창과 같고, 로컬 전환·임시 비밀번호 결과는 창 안에 표시한다.
+ */
+export function ConsoleUserDialog({ id, onClose, onChanged }: { id: string; onClose: () => void; onChanged: () => void }) {
+  const { t } = useTranslation('common');
+  const confirm = useConfirm();
+  const [, setMsg] = useState<Msg | null>(null);
+  const tempLines = (email: string, r?: TempResult) =>
+    !r ? [] : r.tempPassword ? [t('adminUsers.tempShown', { email, password: r.tempPassword })] : r.mailSent ? [t('adminUsers.tempMailed', { email })] : [];
+  const onSwitch = async (uid: string) => {
+    if (!(await confirm({ title: t('adminUsers.switchConfirmTitle'), description: t('adminUsers.switchConfirmBody', { count: 1 }), confirmLabel: t('adminUsers.switchLocal') }))) return;
+    try {
+      const r = (await apiClient.post<{ results: { email: string; switched: boolean; temp?: TempResult }[] }>(`${BASE}/switch-local`, { ids: [uid] })).data;
+      const done = r.results.filter((x) => x.switched);
+      onChanged();
+      // 임시 비밀번호는 한 번만 보이므로 닫을 때까지 남는 창으로 보여 준다.
+      await confirm({ title: t('adminUsers.switchLocal'), description: [t('adminUsers.switchDone', { count: done.length }), ...done.flatMap((x) => tempLines(x.email, x.temp))].join(' '), confirmLabel: t('adminUsers.detail.close') });
+    } catch (e) {
+      await confirm({ title: t('adminUsers.switchLocal'), description: errorText(e, t), confirmLabel: t('adminUsers.detail.close') });
+    }
+  };
+  return <AdminUserDialog id={id} onClose={onClose} onChanged={onChanged} onSwitch={(uid) => void onSwitch(uid)} onMessage={setMsg} tempLines={tempLines} />;
+}
+
 function AdminUserDialog({
   id,
   onClose,
@@ -246,7 +271,7 @@ function AdminUserDialog({
   const confirm = useConfirm();
   const me = useAuthStore((s) => s.user?.id);
   const q = useQuery({ queryKey: ['config-admins', 'one', id], queryFn: async () => (await apiClient.get<AdminUser>(`${BASE}/${id}`)).data });
-  const [form, setForm] = useState<{ name: string; email: string; role: 'ADMIN' | 'STAFF'; status: 'ACTIVE' | 'INACTIVE' } | null>(null);
+  const [form, setForm] = useState<{ name: string; email: string; role: 'ADMIN' | 'STAFF' | 'TEACHER'; status: 'ACTIVE' | 'INACTIVE' } | null>(null);
   const [pw, setPw] = useState('');
   const [mustChange, setMustChange] = useState(true);
   const [local, setLocal] = useState<Msg | null>(null);
@@ -263,7 +288,8 @@ function AdminUserDialog({
   };
   const fail = (e: unknown) => setLocal({ tone: 'error', lines: [errorText(e, t)] });
 
-  const save = useMutation({ mutationFn: async () => apiClient.patch(`${BASE}/${id}`, f), onSuccess: () => done({ tone: 'success', lines: [t('adminUsers.detail.saved')] }), onError: fail });
+  // 강사 콘솔 계정은 등급을 보내지 않는다(서버도 고정, REQ-261112L).
+  const save = useMutation({ mutationFn: async () => apiClient.patch(`${BASE}/${id}`, u?.role === 'TEACHER' && f ? { name: f.name, email: f.email, status: f.status } : f), onSuccess: () => done({ tone: 'success', lines: [t('adminUsers.detail.saved')] }), onError: fail });
   const lock = useMutation({
     mutationFn: async (on: boolean) => apiClient.post(`${BASE}/${id}/${on ? 'lock' : 'unlock'}`),
     onSuccess: () => done({ tone: 'success', lines: [t('adminUsers.detail.saved')] }),
@@ -344,9 +370,10 @@ function AdminUserDialog({
                   <Input type="email" value={f.email} onChange={(e) => setForm({ ...f, email: e.target.value })} />
                 </Field>
                 <Field label={t('adminUsers.detail.role')}>
-                  <select className={selectCls} disabled={fixed} value={f.role} onChange={(e) => setForm({ ...f, role: e.target.value as 'ADMIN' | 'STAFF' })}>
+                  <select className={selectCls} disabled={fixed || u.role === 'TEACHER'} value={f.role} onChange={(e) => setForm({ ...f, role: e.target.value as 'ADMIN' | 'STAFF' })}>
                     <option value="ADMIN">{t('adminUsers.roles.ADMIN')}</option>
                     <option value="STAFF">{t('adminUsers.roles.STAFF')}</option>
+                    {u.role === 'TEACHER' && <option value="TEACHER">{t('adminUsers.roles.TEACHER')}</option>}
                   </select>
                 </Field>
                 <Field label={t('adminUsers.detail.status')}>

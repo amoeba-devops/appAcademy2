@@ -62,6 +62,7 @@ export class RegisteredUserService {
            LEFT JOIN amb_acm_tch_teacher t
              ON a.pac_kind = 'TEACHER' AND t.ent_id = a.ent_id AND t.tch_id = a.pac_ref_id
           WHERE a.ent_id = $1 AND a.pac_kind IN ('STUDENT','TEACHER')
+            AND a.pac_deleted_at IS NULL -- REQ-261112L
        )
        SELECT * FROM all_users
         WHERE ($2 = 'ALL' OR type = $2)
@@ -72,10 +73,10 @@ export class RegisteredUserService {
     );
     const counts = await this.ds.query<{ type: string; n: number }[]>(
       `SELECT usr_role AS type, count(*)::int n FROM amb_acm_user
-        WHERE ent_id = $1 AND usr_role IN ('ADMIN','STAFF','TEACHER') GROUP BY 1
+        WHERE ent_id = $1 AND usr_role IN ('ADMIN','STAFF','TEACHER') AND usr_deleted_at IS NULL GROUP BY 1
        UNION ALL
        SELECT pac_kind, count(*)::int FROM amb_acm_portal_account
-        WHERE ent_id = $1 AND pac_kind IN ('STUDENT','TEACHER') GROUP BY 1`,
+        WHERE ent_id = $1 AND pac_kind IN ('STUDENT','TEACHER') AND pac_deleted_at IS NULL GROUP BY 1`,
       [entId],
     );
     const total: Record<string, number> = {
