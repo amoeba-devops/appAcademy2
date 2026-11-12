@@ -85,6 +85,7 @@
     "deleteConfirm": "Xóa dự án “{{title}}”?\n{{issues}} vấn đề, {{documents}} tài liệu và {{files}} tệp sẽ bị ẩn cùng. (Thư mục Google Drive được giữ nguyên.)"
   },
   "docType": {
+    "RECENT": "Gần đây",
     "MEMO": "Ghi chú",
     "SHEET": "Trang tính (bảng tính)",
     "DOC": "Tài liệu (Docs)",

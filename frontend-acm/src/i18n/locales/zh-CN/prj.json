@@ -85,6 +85,7 @@
     "deleteConfirm": "要删除项目“{{title}}”吗？\n{{issues}} 个问题、{{documents}} 个文档和 {{files}} 个文件将一并隐藏。（Google Drive 文件夹会保留。）"
   },
   "docType": {
+    "RECENT": "最近文档",
     "MEMO": "备忘录",
     "SHEET": "表格（电子表格）",
     "DOC": "文档（Docs）",

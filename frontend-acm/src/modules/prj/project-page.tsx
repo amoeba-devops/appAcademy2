@@ -2,7 +2,7 @@ import { DeleteItemButton } from "./delete-item-button";
 import { DocumentTable } from "./document-table";
 import { DocumentPermissions } from "./document-permissions";
 import { ProjectFiles } from "./project-files";
-import { ProjectOverview } from "./project-overview";
+import { ProjectOverview, RecentDocuments } from "./project-overview";
 import { projectDocumentPath } from "./document-page";
 import { DriveConnection } from "./drive-connection";
 import { IssueFormDialog } from "./issues/issue-form-dialog";
@@ -437,10 +437,14 @@ export function ProjectDetailPage() {
       ? "MEMO"
       : oldTab === "files"
         ? "FILE"
-        : (params.get("type") ?? "memo").toUpperCase();
-  const docType = ["MEMO", "SHEET", "DOC", "FILE"].includes(requestedType)
+        : // REQ-261112I — 문서 탭 첫 화면은 유형별 최근 5건(RECENT). 문서 열기·새로 만들기 링크는 기존대로 메모 기준.
+          (
+            params.get("type") ??
+            (params.has("doc") || params.has("create") ? "memo" : "recent")
+          ).toUpperCase();
+  const docType = ["RECENT", "MEMO", "SHEET", "DOC", "FILE"].includes(requestedType)
     ? requestedType
-    : "MEMO";
+    : "RECENT";
   const navigate = useNavigate(),
     openDoc = (doc: Item | "new", mode?: "LOCAL" | "GOOGLE_LINK") =>
       navigate(
@@ -689,7 +693,7 @@ export function ProjectDetailPage() {
               aria-label={tp("projectDetail.docCategory")}
               className="flex min-w-0 gap-2 overflow-x-auto"
             >
-              {["MEMO", "SHEET", "DOC", "FILE"].map((value) => (
+              {["RECENT", "MEMO", "SHEET", "DOC", "FILE"].map((value) => (
                 <Button
                   key={value}
                   className="shrink-0"
@@ -706,7 +710,23 @@ export function ProjectDetailPage() {
               ))}
             </nav>
           )}
-          {kind === "FILE" ? (
+          {tab === "documents" && docType === "RECENT" ? (
+            <RecentDocuments
+              items={items.data ?? []}
+              gridClass="md:grid-cols-2 xl:grid-cols-4"
+              onBrowse={(type) =>
+                setParams({ tab: "documents", type: type.toLowerCase() })
+              }
+              onOpen={(doc, type) => {
+                if (doc.drive_file_id) {
+                  // Drive 연동 문서는 해당 유형 목록에서 엽니다(개요 탭과 동일).
+                  setParams({ tab: "documents", type: type.toLowerCase() });
+                  return;
+                }
+                navigate(projectDocumentPath(id, doc.pit_id, type));
+              }}
+            />
+          ) : kind === "FILE" ? (
             <ProjectFiles
               project={id}
               items={items.data ?? []}
