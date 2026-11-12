@@ -2203,6 +2203,9 @@
     "revoke": "取消",
     "revokeTitle": "取消此邀请？",
     "revokeDesc": "已发送的链接将无法使用。",
+    "delete": "删除",
+    "deleteTitle": "删除此邀请？",
+    "deleteDesc": "邀请将从列表中消失，待处理邀请的链接也将失效。已创建的账号不受影响。",
     "fields": {
       "email": "邮箱",
       "name": "姓名",

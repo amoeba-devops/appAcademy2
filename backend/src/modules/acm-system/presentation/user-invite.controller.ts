@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -92,6 +93,15 @@ export class UserInviteAdminController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.invites.revoke(u, id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Soft-delete an invite (REQ-261112K); pending links stop working' })
+  remove(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.invites.remove(u, id);
   }
 }
 

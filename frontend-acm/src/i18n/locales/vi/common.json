@@ -2203,6 +2203,9 @@
     "revoke": "Hủy",
     "revokeTitle": "Hủy lời mời này?",
     "revokeDesc": "Liên kết đã gửi sẽ không dùng được nữa.",
+    "delete": "Xóa",
+    "deleteTitle": "Xóa lời mời này?",
+    "deleteDesc": "Lời mời sẽ biến mất khỏi danh sách và liên kết của lời mời đang chờ sẽ không dùng được nữa. Tài khoản đã tạo không bị ảnh hưởng.",
     "fields": {
       "email": "Email",
       "name": "Họ tên",

@@ -134,4 +134,29 @@ describe('IT-USER-INVITE', () => {
     await expect(svc.describe(bToken)).rejects.toThrow();
     await expect(svc.revoke(op(), b.id)).rejects.toThrow();
   });
+
+  // REQ-261112K — 소프트삭제
+  it('soft-deletes: hidden from every list, pending link dies, cannot resend', async () => {
+    const c = await svc.create(op(), {
+      email: 'gone@tpi.co.kr',
+      name: 'c',
+      role: 'STAFF',
+    });
+    const cToken = tokenFrom(sent.at(-1)?.text);
+    await svc.remove(op(), c.id);
+    const all = await svc.list(op());
+    expect(all.map((x) => x.inv_id)).not.toContain(c.id);
+    await expect(svc.describe(cToken)).rejects.toThrow();
+    await expect(svc.resend(op(), c.id)).rejects.toThrow();
+    await expect(svc.remove(op(), c.id)).rejects.toThrow();
+    const [row] = await env.ds.query<{ inv_status: string }[]>(
+      `SELECT inv_status FROM amb_acm_user_invite WHERE inv_id=$1`,
+      [c.id],
+    );
+    expect(row.inv_status).toBe('REVOKED');
+    // 같은 이메일로 다시 초대할 수 있다.
+    await expect(
+      svc.create(op(), { email: 'gone@tpi.co.kr', name: 'c2', role: 'STAFF' }),
+    ).resolves.toBeTruthy();
+  });
 });

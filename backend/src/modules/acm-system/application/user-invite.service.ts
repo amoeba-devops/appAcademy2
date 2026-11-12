@@ -63,6 +63,7 @@ export class UserInviteService {
          FROM amb_acm_user_invite i
          LEFT JOIN amb_acm_user b ON b.ent_id = i.ent_id AND b.usr_id = i.invited_by
         WHERE i.ent_id = $1
+          AND i.inv_deleted_at IS NULL -- REQ-261112K
           AND ($2::text IS NULL
                OR ($2 = 'EXPIRED' AND i.inv_status = 'PENDING' AND i.inv_expires_at < now())
                OR ($2 = 'PENDING' AND i.inv_status = 'PENDING' AND i.inv_expires_at >= now())
@@ -160,6 +161,24 @@ export class UserInviteService {
     return { ok: true };
   }
 
+  /**
+   * REQ-261112K — 소프트삭제: 목록에서 숨긴다. 대기 중이면 REVOKED 로 바꿔 링크도 무효화.
+   * 수락된 초대는 기록만 숨기며 만들어진 계정에는 영향이 없다.
+   */
+  async remove(u: AcmCurrentUser, id: string) {
+    const [[row]] = await this.ds.query<[{ inv_id: string }[], number]>(
+      `UPDATE amb_acm_user_invite
+          SET inv_status = CASE WHEN inv_status = 'PENDING' THEN 'REVOKED' ELSE inv_status END,
+              inv_deleted_at = now(), inv_deleted_by = $3
+        WHERE ent_id = $1 AND inv_id = $2 AND inv_deleted_at IS NULL
+        RETURNING inv_id`,
+      [u.entId, id, u.id],
+    );
+    if (!row) throw new NotFoundException();
+    this.logger.log(`invite deleted inv=${id} by=${u.id}`);
+    return { ok: true };
+  }
+
   /** 공개: 초대 정보(수락 화면 표시용). */
   async describe(token: string) {
     const inv = await this.byToken(token);
@@ -204,7 +223,7 @@ export class UserInviteService {
 
   private async pending(entId: string, id: string) {
     const [inv] = await this.ds.query<InviteRow[]>(
-      `SELECT * FROM amb_acm_user_invite WHERE ent_id = $1 AND inv_id = $2`,
+      `SELECT * FROM amb_acm_user_invite WHERE ent_id = $1 AND inv_id = $2 AND inv_deleted_at IS NULL`,
       [entId, id],
     );
     if (!inv) throw new NotFoundException();
@@ -218,7 +237,7 @@ export class UserInviteService {
 
   private async byToken(token: string) {
     const [inv] = await this.ds.query<InviteRow[]>(
-      `SELECT * FROM amb_acm_user_invite WHERE inv_token_hash = $1`,
+      `SELECT * FROM amb_acm_user_invite WHERE inv_token_hash = $1 AND inv_deleted_at IS NULL`,
       [hashToken(token)],
     );
     if (
