@@ -9,6 +9,7 @@ import {
   syncInquiryProfile,
 } from './inquiry-profile-sync';
 import {
+  Logger,
   BadRequestException,
   ConflictException,
   ForbiddenException,
@@ -49,6 +50,7 @@ import { StdInheritanceService } from './std-inheritance.service';
 import { CslEnrollmentRegistrationService } from './csl-enrollment-registration.service';
 import { TenantSettingsService } from '../../acm-system/application/tenant-settings.service';
 import { ymdInTz } from '../../acm-common/time/zoned-time.util';
+import { syncConsultationStartDate } from './start-date-sync';
 
 /**
  * 6-stage CSL pipeline transition matrix (acm-req-csl-001 v2.1 §4.1, §4.4).
@@ -74,6 +76,7 @@ const FORWARD_TRANSITIONS: Record<CslStage, CslStage[]> = {
 
 @Injectable()
 export class InquiryService {
+  private readonly logger = new Logger(InquiryService.name);
   constructor(
     @InjectRepository(InquiryTypeormEntity, ACM_DS)
     private readonly inq: Repository<InquiryTypeormEntity>,
@@ -915,7 +918,8 @@ export class InquiryService {
     actor: { id?: string; isSeniorManager?: boolean } = {},
   ) {
     await this.getOrThrow(entId, inqId);
-    return this.ds.transaction(async (manager) => {
+    let startDateChanged = false;
+    const result = await this.ds.transaction(async (manager) => {
       await manager.query(
         'SELECT pg_advisory_xact_lock(hashtextextended($1,0))',
         [`${entId}:enrollment:${inqId}`],
@@ -967,7 +971,10 @@ export class InquiryService {
         er.courseFreetext = dto.courseFreetext ?? null;
       if (dto.sessionCount !== undefined)
         er.sessionCount = dto.sessionCount ?? null;
-      if (dto.startDate !== undefined) er.startDate = dto.startDate ?? null;
+      if (dto.startDate !== undefined) {
+        startDateChanged = (er.startDate ?? null) !== (dto.startDate ?? null);
+        er.startDate = dto.startDate ?? null;
+      }
       if (dto.endDate !== undefined) {
         er.endDate = dto.endDate ?? null;
         if (er.endDate && er.startDate && er.endDate < er.startDate)
@@ -994,6 +1001,19 @@ export class InquiryService {
       );
       return { ...saved, courseIds: links.map((l) => l.id) };
     });
+    // REQ-261114B — 학생으로 등록된 뒤 상담 수업 시작일을 바꾸면 학생 쪽도 따라간다.
+    // 트랜잭션 밖에서 best-effort — 운영 기간이 여러 개인 학생 등 트리거가 거절해도
+    // 상담 저장은 유지한다.
+    if (startDateChanged) {
+      try {
+        await syncConsultationStartDate(this.ds, entId, inqId);
+      } catch (e) {
+        this.logger.warn(
+          `inq ${inqId}: student start date sync failed — ${(e as Error).message}`,
+        );
+      }
+    }
+    return result;
   }
 
   /**

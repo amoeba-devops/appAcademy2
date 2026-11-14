@@ -155,24 +155,54 @@ describe('CslEnrollmentRegistrationService', () => {
     expect(h.stdRepo.save).toHaveBeenCalledTimes(1);
   });
 
+  const calls = (q: jest.Mock, needle: string) =>
+    q.mock.calls.filter((c) => String(c[0]).includes(needle));
+
   it('REQ-261112C — copies assigned teachers to the student and refreshes the teacher mirror', async () => {
     const h = build({ inquiry: baseInquiry() });
-    h.query.mockResolvedValueOnce([{ stdId: 'std-1' }]);
+    h.query.mockImplementation(async (sql: string) =>
+      sql.includes('INSERT INTO amb_acm_std_student_teacher')
+        ? [{ stdId: 'std-1' }]
+        : [],
+    );
     await h.svc.register(ENT, 'inq-1');
-    expect(h.query).toHaveBeenCalledTimes(2);
-    expect(h.query.mock.calls[0][0]).toContain('INSERT INTO amb_acm_std_student_teacher');
-    expect(h.query.mock.calls[0][1]).toEqual([ENT, 'inq-1']);
-    expect(h.query.mock.calls[1][0]).toContain('UPDATE amb_acm_std_student');
-    expect(h.query.mock.calls[1][1]).toEqual([ENT, ['std-1']]);
+    const insert = calls(h.query, 'INSERT INTO amb_acm_std_student_teacher');
+    expect(insert).toHaveLength(1);
+    expect(insert[0][1]).toEqual([ENT, 'inq-1']);
+    const mirror = calls(h.query, 'std_teacher_id');
+    expect(mirror).toHaveLength(1);
+    expect(mirror[0][1]).toEqual([ENT, ['std-1']]);
+  });
+
+  it('REQ-261114B — new student start date = consultation start date (admission left empty)', async () => {
+    const h = build({ inquiry: baseInquiry() });
+    h.query.mockImplementation(async (sql: string) =>
+      sql.includes('SELECT enr_start_date') ? [{ startDate: '2026-11-16' }] : [],
+    );
+    await h.svc.register(ENT, 'inq-1');
+    const saved = h.stdRepo.save.mock.calls[0][0];
+    expect(saved.startDate).toBe('2026-11-16');
+    expect(saved.admissionDate).toBeUndefined();
+    expect(calls(h.query, 'SET std_start_date=e.enr_start_date')).toHaveLength(1);
+  });
+
+  it('REQ-261114B — falls back to today (KST) without a consultation start date', async () => {
+    const h = build({ inquiry: baseInquiry() });
+    await h.svc.register(ENT, 'inq-1');
+    expect(h.stdRepo.save.mock.calls[0][0].startDate).toMatch(
+      /^\d{4}-\d{2}-\d{2}$/,
+    );
   });
 
   it('REQ-261112C — also syncs teachers for an already-linked inquiry; sync failure does not abort', async () => {
     const h = build({ inquiry: baseInquiry({ stdId: 'std-existing' }) });
-    h.query.mockRejectedValueOnce(new Error('db down'));
+    h.query.mockRejectedValue(new Error('db down'));
     await expect(h.svc.register(ENT, 'inq-1')).resolves.toEqual({
       stdId: 'std-existing',
       created: false,
     });
-    expect(h.query).toHaveBeenCalledTimes(1);
+    // teacher sync (fails) + start date sync (fails) — both best-effort.
+    expect(calls(h.query, 'INSERT INTO amb_acm_std_student_teacher')).toHaveLength(1);
+    expect(calls(h.query, 'SET std_start_date=e.enr_start_date')).toHaveLength(1);
   });
 });

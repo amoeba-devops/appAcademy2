@@ -9,6 +9,11 @@ import { StudentParentTypeormEntity } from '../../acm-std/infrastructure/typeorm
 import { PortalAccountService } from '../../acm-auth/application/portal-account.service';
 import { InquiryTypeormEntity } from '../infrastructure/typeorm/inquiry.typeorm-entity';
 import { syncAssignedTeachersToStudent } from './teacher-student-sync';
+import {
+  consultationStartDate,
+  kstToday,
+  syncConsultationStartDate,
+} from './start-date-sync';
 
 /**
  * PLN-260706 §4.3 — when a consultation reaches CLASS_STARTED, register its
@@ -55,6 +60,7 @@ export class CslEnrollmentRegistrationService {
     if (inq.stdId) {
       this.log.debug(`inq ${inqId}: already registered → std ${inq.stdId}`);
       await this.syncTeachers(entId, inqId);
+      await this.syncStartDate(entId, inqId);
       return { stdId: inq.stdId, created: false };
     }
 
@@ -108,6 +114,8 @@ export class CslEnrollmentRegistrationService {
 
     // ---- REQ-261112C: 상담 담당 강사 배정 → 학생 담당강사 ----------------------
     await this.syncTeachers(entId, inqId);
+    // ---- REQ-261114B: 상담 수업 시작일 → 학생 수업 시작일 ------------------------
+    await this.syncStartDate(entId, inqId);
 
     this.log.log(
       `inq ${inqId} auto-registered → std ${student.id}` +
@@ -126,6 +134,16 @@ export class CslEnrollmentRegistrationService {
       if (n > 0) this.log.log(`inq ${inqId}: ${n} assigned teacher(s) copied to student`);
     } catch (e) {
       this.log.warn(`inq ${inqId}: teacher sync failed — ${(e as Error).message}`);
+    }
+  }
+
+  /** REQ-261114B — 실패해도 학생 등록 자체는 유지 (로그만). */
+  private async syncStartDate(entId: string, inqId: string): Promise<void> {
+    try {
+      const n = await syncConsultationStartDate(this.inq.manager, entId, inqId);
+      if (n > 0) this.log.log(`inq ${inqId}: start date copied to student`);
+    } catch (e) {
+      this.log.warn(`inq ${inqId}: start date sync failed — ${(e as Error).message}`);
     }
   }
 
@@ -168,6 +186,13 @@ export class CslEnrollmentRegistrationService {
     }
 
     const school = inq.schoolFreetext ?? null;
+    // REQ-261114B — 수업 시작일 = 상담의 수업 시작일(없으면 등록일, 한국 시간).
+    // 입학일은 관리자가 직접 입력하므로 비워 둔다.
+    const consultationStart = await consultationStartDate(
+      this.inq.manager,
+      entId,
+      inq.id,
+    ).catch(() => null);
     const student = await this.students.save(
       this.students.create({
         entId,
@@ -180,7 +205,7 @@ export class CslEnrollmentRegistrationService {
         birthDate: inq.birthdate ?? null,
         gender: inq.gender ?? null,
         status: 'ACTIVE',
-        startDate: new Date().toISOString().slice(0, 10),
+        startDate: consultationStart ?? kstToday(),
       }),
     );
     return { student, created: true };
