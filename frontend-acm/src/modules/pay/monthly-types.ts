@@ -51,6 +51,10 @@ export interface MonthlyStudentRow {
   received: number | null;
   unpaid: number | null;
   status: string;
+  /** REQ-261114 — 학생별·월별 메모(청구서 메모와 별개). 구 서버 응답엔 없음. */
+  note?: string | null;
+  /** REQ-261114 — 그 달 목록에서 제외됨. */
+  excluded?: boolean;
 }
 export interface MonthlyCash {
   paid: number;
@@ -67,6 +71,8 @@ export interface MonthlyPaymentResult {
   total: number;
   page: number;
   reviewCount: number;
+  /** REQ-261114 — 그 달 목록에서 제외된 학생 수. */
+  excludedCount?: number;
   summary: MonthlySummary;
   ledger: MonthlySummary;
   cash: MonthlyCash;

@@ -1346,7 +1346,8 @@
       "editReason": "Sửa hóa đơn",
       "deleteReason": "Xóa hóa đơn",
       "cancel": "Hủy"
-    }
+    },
+    "PAY_MONTH_HAS_BILLS": "Học sinh đã có phiếu thu trong tháng này. Hãy hủy phiếu thu trước."
   },
   "payMonthly": {
     "pageSize": "Số dòng mỗi trang",
@@ -1435,7 +1436,9 @@
       "unpaid": "Còn nợ",
       "refunded": "Hoàn tiền",
       "status": "Trạng thái",
-      "billAction": "Tạo / sửa"
+      "billAction": "Tạo / sửa",
+      "note": "Ghi chú",
+      "exclude": "Xóa"
     },
     "write": "Tạo",
     "modify": "Sửa",
@@ -1448,7 +1451,13 @@
     "enterAmount": "Nhập số tiền",
     "paidInFull": "Đã đóng đủ",
     "paidInFullConfirm": "Xác nhận đóng đủ",
-    "paidInFullReason": "Đóng đủ"
+    "paidInFullReason": "Đóng đủ",
+    "notePlaceholder": "Nhập ghi chú",
+    "exclude": "Xóa khỏi danh sách tháng {{m}}",
+    "restore": "Khôi phục",
+    "excludeConfirm": "Xóa {{name}} khỏi danh sách thu phí tháng {{m}}?\nHọc sinh sẽ xuất hiện lại từ tháng sau và có thể khôi phục trong 'Xem học sinh đã xóa'.",
+    "showExcluded": "Xem học sinh đã xóa ({{count}})",
+    "backToList": "Quay lại danh sách"
   },
   "payStats": {
     "title": "Thống kê hàng tháng",

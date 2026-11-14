@@ -1346,7 +1346,8 @@
       "editReason": "Bill edited",
       "deleteReason": "Bill deleted",
       "cancel": "Cancel"
-    }
+    },
+    "PAY_MONTH_HAS_BILLS": "This student has a bill this month. Cancel the bill first."
   },
   "payMonthly": {
     "pageSize": "Rows per page",
@@ -1435,7 +1436,9 @@
       "unpaid": "Outstanding",
       "refunded": "Refunded",
       "status": "Status",
-      "billAction": "Create / edit"
+      "billAction": "Create / edit",
+      "note": "Memo",
+      "exclude": "Delete"
     },
     "write": "Create",
     "modify": "Edit",
@@ -1448,7 +1451,13 @@
     "enterAmount": "Enter amount",
     "paidInFull": "Paid in full",
     "paidInFullConfirm": "Mark paid",
-    "paidInFullReason": "Paid in full"
+    "paidInFullReason": "Paid in full",
+    "notePlaceholder": "Add a memo",
+    "exclude": "Remove from month {{m}} list",
+    "restore": "Restore",
+    "excludeConfirm": "Remove {{name}} from the month {{m}} payment list?\nThe student returns to the list next month and can be restored from 'Show deleted students'.",
+    "showExcluded": "Show deleted students ({{count}})",
+    "backToList": "Back to list"
   },
   "payStats": {
     "title": "Monthly statistics",

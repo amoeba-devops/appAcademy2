@@ -27,6 +27,8 @@ import { CollectionsService } from '../application/collections.service';
 import {
   ActiveDraftBatchDto,
   MonthlyPayQuery,
+  MonthNoteDto,
+  MonthExcludeDto,
   TopStatisticsQuery,
   StateBatchDto,
   AdjustmentDto,
@@ -58,6 +60,22 @@ export class CollectionsController {
   ) {
     return this.service.monthly(u, q);
   }
+  /** REQ-261114 — 월별 납부 목록 학생별·월별 메모. */
+  @Patch('monthly/:studentId/note') monthNote(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+    @Body() d: MonthNoteDto,
+  ) {
+    return this.service.setMonthNote(u, studentId, d);
+  }
+  /** REQ-261114 — 그 달 목록 제외(삭제)·복구. */
+  @Patch('monthly/:studentId/excluded') monthExcluded(
+    @CurrentUser() u: AcmCurrentUser,
+    @Param('studentId', ParseUUIDPipe) studentId: string,
+    @Body() d: MonthExcludeDto,
+  ) {
+    return this.service.setMonthExcluded(u, studentId, d);
+  }
   @Get('monthly-export')
   @AuditDownload('bill-export')
   async monthlyExport(
@@ -79,6 +97,7 @@ export class CollectionsController {
         Net: r.net,
         Received: r.received,
         Unpaid: r.unpaid,
+        Memo: r.note ?? '',
       })),
     );
     const book = XLSX.utils.book_new();
