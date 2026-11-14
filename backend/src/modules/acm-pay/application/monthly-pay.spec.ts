@@ -249,4 +249,19 @@ describe('monthly payment membership and aggregation', () => {
     );
     expect(billed[0].excluded).toBe(false);
   });
+  it('lists a student without admission from the class start date, flagged for review (REQ-261114B)', () => {
+    const fresh = { ...student, admission: null, start: '2026-11-16' };
+    const fallback: Period = { ...period, id: null as unknown as string, start: '2026-11-16' };
+    const [nov] = resolveMonthlyStudents([fresh], [fallback], '2026-11');
+    expect(nov.enrolled).toBe(true);
+    expect(nov.review).toBe(true);
+    const [oct] = resolveMonthlyStudents([fresh], [fallback], '2026-10');
+    expect(oct.enrolled).toBe(false);
+    const [none] = resolveMonthlyStudents(
+      [{ ...fresh, start: null }],
+      [{ ...fallback, start: null }],
+      '2026-11',
+    );
+    expect(none.enrolled).toBe(false);
+  });
 });

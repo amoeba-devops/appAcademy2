@@ -34,6 +34,8 @@ export interface StudentEvidence {
   school?: string | null;
   status: string;
   admission: string | null;
+  /** REQ-261114B — 수업 시작일. 입학일이 아직 없으면 이 날짜부터 재원으로 본다. */
+  start?: string | null;
 }
 export function resolveMonthlyStudents(
   students: StudentEvidence[],
@@ -59,7 +61,9 @@ export function resolveMonthlyStudents(
     );
     const intervals = studentEnrollmentIntervals(
       valid,
-      [{ subjectId: s.id, site: s.site, date: s.admission }],
+      // REQ-261114B — 입학일은 관리자가 입력한다. 입력 전(상담에서 막 등록된 학생)엔
+      // 수업 시작일로 목록에 올리고 '기간 확인' 표시로 입학일 입력을 알린다.
+      [{ subjectId: s.id, site: s.site, date: s.admission ?? s.start ?? null }],
       ['TPI', 'TRINITY', 'SANTACROCE', null],
     );
     const overlap = intervals.filter(
@@ -109,7 +113,7 @@ export async function studentEvidence(m: EntityManager, ent: string) {
     [ent],
   );
   const students: StudentEvidence[] = await m.query(
-    `SELECT std_id id,std_name name,std_site site,std_grade grade,std_school school,std_status status,std_admission_date::text admission FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL`,
+    `SELECT std_id id,std_name name,std_site site,std_grade grade,std_school school,std_status status,std_admission_date::text admission,std_start_date::text start FROM amb_acm_std_student WHERE ent_id=$1 AND deleted_at IS NULL`,
     [ent],
   );
   return { periods, students };
