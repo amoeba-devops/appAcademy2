@@ -162,4 +162,16 @@ export class MonthlyPayQuery {
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(100000) page?: number;
   /** REQ-261112 — 목록 크기 (기본 100). */
   @IsOptional() @Type(() => Number) @IsIn([50, 100, 200]) size?: number;
+  /** REQ-261114 — 'true' 면 그 달 목록에서 제외된 학생만. */
+  @IsOptional() @IsIn(['true', 'false']) excluded?: string;
+}
+/** REQ-261114 — 월별 납부 목록 학생별·월별 메모. */
+export class MonthNoteDto {
+  @Matches(/^(20[0-9]{2})-(0[1-9]|1[0-2])$/) month!: string;
+  @IsOptional() @IsString() @MaxLength(500) memo?: string | null;
+}
+/** REQ-261114 — 그 달 목록 제외/복구. */
+export class MonthExcludeDto {
+  @Matches(/^(20[0-9]{2})-(0[1-9]|1[0-2])$/) month!: string;
+  @IsBoolean() excluded!: boolean;
 }

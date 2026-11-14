@@ -176,7 +176,30 @@ export interface MonthlyRow extends MonthlyStudent {
   received: number | null;
   unpaid: number | null;
   status: string;
+  /** REQ-261114 — 학생별·월별 메모(청구서 메모와 별개). */
+  note: string | null;
+  /** REQ-261114 — 그 달 목록에서 제외(삭제)됨. */
+  excluded: boolean;
 }
+export interface MonthNote {
+  studentId: string;
+  excluded: boolean;
+  memo: string | null;
+}
+/** REQ-261114 — (학생, 월) 메모·제외 표시를 목록 행에 붙인다. */
+export function applyMonthNotes(rows: MonthlyRow[], notes: MonthNote[]) {
+  const byStudent = new Map(notes.map((n) => [n.studentId, n]));
+  return rows.map((r) => {
+    const n = byStudent.get(r.id);
+    // 청구가 생긴 학생은 제외 표시가 있어도 목록에 다시 나온다(청구가 숨지 않게).
+    return {
+      ...r,
+      note: n?.memo ?? null,
+      excluded: !!n?.excluded && r.billCount === 0,
+    };
+  });
+}
+export const MONTH_NOTE_SQL = `SELECT std_id::text AS "studentId",pmn_is_excluded AS excluded,pmn_memo AS memo FROM amb_acm_pay_month_note WHERE ent_id=$1 AND pmn_month=$2`;
 export function monthlyRows(
   students: MonthlyStudent[],
   bills: MonthlyBill[],
@@ -259,6 +282,8 @@ export function monthlyRows(
       received,
       unpaid,
       status,
+      note: null,
+      excluded: false,
     };
   });
 }
@@ -308,14 +333,23 @@ export async function monthlyPay(
     q.month,
     site,
   );
-  const all = monthlyRows(students, bills, q.month, site);
+  const notes: MonthNote[] = await m.query(MONTH_NOTE_SQL, [ent, q.month]);
+  const all = applyMonthNotes(
+    monthlyRows(students, bills, q.month, site),
+    notes,
+  );
+  const showExcluded = q.excluded === 'true';
+  // REQ-261114 — 제외된 학생은 그 달 목록에서 빠지고 '제외된 학생 보기'에서만 나온다.
   const scope = (rows: MonthlyRow[]) =>
     rows.filter((r) =>
-      q.scope === 'REVIEW'
-        ? r.review
-        : q.scope === 'ALL'
-          ? r.enrolled || r.review || r.billCount > 0
-          : r.enrolled,
+      showExcluded
+        ? r.excluded
+        : !r.excluded &&
+          (q.scope === 'REVIEW'
+            ? r.review
+            : q.scope === 'ALL'
+              ? r.enrolled || r.review || r.billCount > 0
+              : r.enrolled),
     );
   const search = (rows: MonthlyRow[]) =>
     rows.filter(
@@ -425,6 +459,7 @@ export async function monthlyPay(
     size,
     summary: summarize(filtered),
     reviewCount: all.filter((r) => r.review).length,
+    excludedCount: all.filter((r) => r.excluded).length,
     ledger: summarize(all.filter((r) => r.billCount > 0)),
     cash: cashSum(q.month, site),
     trend,

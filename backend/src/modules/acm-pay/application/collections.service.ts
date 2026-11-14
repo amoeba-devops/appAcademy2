@@ -14,6 +14,8 @@ import { TenantSettingsService } from '../../acm-system/application/tenant-setti
 import {
   ActiveDraftBatchDto,
   MonthlyPayQuery,
+  MonthNoteDto,
+  MonthExcludeDto,
   StateBatchDto,
   AdjustmentDto,
   BillActionDto,
@@ -832,5 +834,45 @@ export class CollectionsService {
       classes,
       teachers,
     };
+  }
+  /** REQ-261114 — 월별 납부 목록 학생별·월별 메모 저장(빈 값이면 지움). */
+  async setMonthNote(u: AcmCurrentUser, stdId: string, d: MonthNoteDto) {
+    await this.monthStudent(u, stdId);
+    const memo = d.memo?.trim() || null;
+    await this.ds.query(
+      `INSERT INTO amb_acm_pay_month_note (ent_id,std_id,pmn_month,pmn_memo,pmn_updated_by) VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT ON CONSTRAINT uq_acm_pmn_ent_std_month DO UPDATE SET pmn_memo=EXCLUDED.pmn_memo,pmn_updated_by=EXCLUDED.pmn_updated_by`,
+      [u.entId, stdId, d.month, memo, u.id],
+    );
+    return { studentId: stdId, month: d.month, note: memo };
+  }
+  /**
+   * REQ-261114 — 그 달 목록에서 제외(삭제)·복구. 그 달 청구(취소 제외)가 있으면
+   * 제외할 수 없다 — 청구를 먼저 취소해야 한다.
+   */
+  async setMonthExcluded(u: AcmCurrentUser, stdId: string, d: MonthExcludeDto) {
+    await this.monthStudent(u, stdId);
+    if (d.excluded) {
+      const [{ n }] = await this.ds.query(
+        `SELECT count(*)::int n FROM amb_acm_pay_bill WHERE ent_id=$1 AND std_id=$2 AND pbl_month=$3 AND pbl_status<>'CANCELED'`,
+        [u.entId, stdId, d.month],
+      );
+      if (n > 0) throw new ConflictException('PAY_MONTH_HAS_BILLS');
+    }
+    await this.ds.query(
+      `INSERT INTO amb_acm_pay_month_note (ent_id,std_id,pmn_month,pmn_is_excluded,pmn_excluded_by,pmn_excluded_at,pmn_updated_by)
+       VALUES ($1,$2,$3,$4,CASE WHEN $4 THEN $5::uuid END,CASE WHEN $4 THEN now() END,$5)
+       ON CONFLICT ON CONSTRAINT uq_acm_pmn_ent_std_month DO UPDATE SET pmn_is_excluded=EXCLUDED.pmn_is_excluded,
+       pmn_excluded_by=EXCLUDED.pmn_excluded_by,pmn_excluded_at=EXCLUDED.pmn_excluded_at,pmn_updated_by=EXCLUDED.pmn_updated_by`,
+      [u.entId, stdId, d.month, d.excluded, u.id],
+    );
+    return { studentId: stdId, month: d.month, excluded: d.excluded };
+  }
+  private async monthStudent(u: AcmCurrentUser, stdId: string) {
+    const rows = await this.ds.query(
+      'SELECT 1 FROM amb_acm_std_student WHERE ent_id=$1 AND std_id=$2 AND deleted_at IS NULL',
+      [u.entId, stdId],
+    );
+    if (!rows.length) throw new NotFoundException('PAY_STUDENT_NOT_FOUND');
   }
 }

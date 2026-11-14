@@ -2,6 +2,7 @@ import {
   monthBounds,
   resolveMonthlyStudents,
   monthlyRows,
+  applyMonthNotes,
   summarize,
   type MonthlyBill,
 } from './monthly-pay';
@@ -180,14 +181,72 @@ describe('monthly payment membership and aggregation', () => {
     const due = monthlyRows(
       people,
       [
-        { ...bill, amount: 100, net: 100, unpaid: 100, due: '2026-10-20', state: 'ACTIVE' },
-        { ...bill, id: 'c', amount: 100, net: 100, unpaid: 50, due: '2026-10-10', state: 'ACTIVE' },
-        { ...bill, id: 'd', amount: 100, net: 100, unpaid: 0, due: '2026-10-01', state: 'ACTIVE' },
+        {
+          ...bill,
+          amount: 100,
+          net: 100,
+          unpaid: 100,
+          due: '2026-10-20',
+          state: 'ACTIVE',
+        },
+        {
+          ...bill,
+          id: 'c',
+          amount: 100,
+          net: 100,
+          unpaid: 50,
+          due: '2026-10-10',
+          state: 'ACTIVE',
+        },
+        {
+          ...bill,
+          id: 'd',
+          amount: 100,
+          net: 100,
+          unpaid: 0,
+          due: '2026-10-01',
+          state: 'ACTIVE',
+        },
       ],
       '2026-10',
       'ALL',
     );
     expect(due[0].oldestUnpaidDue).toBe('2026-10-10');
     expect(free[0].oldestUnpaidDue).toBeNull();
+  });
+  it('attaches month memo and exclusion, never hiding a student with bills (REQ-261114)', () => {
+    const people = resolveMonthlyStudents([student], [period], '2026-10');
+    const plain = applyMonthNotes(
+      monthlyRows(people, [], '2026-10', 'ALL'),
+      [],
+    );
+    expect(plain[0]).toMatchObject({ note: null, excluded: false });
+    const noted = applyMonthNotes(monthlyRows(people, [], '2026-10', 'ALL'), [
+      { studentId: 'a', excluded: true, memo: '휴원' },
+    ]);
+    expect(noted[0]).toMatchObject({ note: '휴원', excluded: true });
+    const bill: MonthlyBill = {
+      id: 'b',
+      studentId: 'a',
+      studentName: 'Student',
+      site: 'TPI',
+      grade: null,
+      month: '2026-10',
+      amount: 100,
+      net: 100,
+      received: 0,
+      unpaid: 100,
+      state: 'ACTIVE',
+      version: 1,
+      discount: 0,
+      due: null,
+      title: '10월 수업료',
+      memo: '',
+    };
+    const billed = applyMonthNotes(
+      monthlyRows(people, [bill], '2026-10', 'ALL'),
+      [{ studentId: 'a', excluded: true, memo: null }],
+    );
+    expect(billed[0].excluded).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { apiClient } from "@/lib/api-client";
 import type { MonthlyPaymentResult, MonthlyStudentRow } from "./monthly-types";
 import { PayInFull, QuickAmount } from "./monthly-quick";
+import { MonthExcludeButton, MonthNoteCell } from "./monthly-note";
 const field = "rounded border bg-white px-3 py-2 text-sm whitespace-nowrap";
 export const monthlySites = ["ALL", "TPI", "TRINITY", "SANTACROCE"];
 export type MonthlyMode = "view" | "edit";
@@ -51,7 +52,9 @@ export function MonthlyPaymentView({
     [status, setStatus] = useState(initialStatus),
     [search, setSearch] = useState(""),
     [page, setPage] = useState(1),
-    [downloadError, setDownloadError] = useState(false);
+    [downloadError, setDownloadError] = useState(false),
+    // REQ-261114 — 그 달 목록에서 삭제(제외)한 학생만 보기.
+    [showExcluded, setShowExcluded] = useState(false);
   const params = {
     month,
     site,
@@ -60,6 +63,7 @@ export function MonthlyPaymentView({
     q: search || undefined,
     page,
     size,
+    excluded: view && showExcluded ? "true" : undefined,
   };
   const query = useQuery({
     queryKey: ["pay", identity, "monthly", params],
@@ -114,6 +118,8 @@ export function MonthlyPaymentView({
               "refunded",
               "status",
               "billAction",
+              // REQ-261114 — 월별 납부 목록만: 맨 오른쪽 메모 + 그 달 삭제(제외).
+              ...(kind === "list" ? ["note", "exclude"] : []),
             ].map((k) => (
               <th className={`${cell} text-left`} key={k}>
                 {tr(`col.${k}`)}
@@ -229,6 +235,21 @@ export function MonthlyPaymentView({
                     "—"
                   )}
                 </td>
+                {kind === "list" && (
+                  <>
+                    <td className={cell}>
+                      <MonthNoteCell row={r} month={month} identity={identity} />
+                    </td>
+                    <td className={cell}>
+                      <MonthExcludeButton
+                        row={r}
+                        month={month}
+                        identity={identity}
+                        restore={showExcluded}
+                      />
+                    </td>
+                  </>
+                )}
               </tr>
             );
           })}
@@ -311,6 +332,21 @@ export function MonthlyPaymentView({
             </button>
           )}
           {statusSelect}
+          {view && (
+            <button
+              type="button"
+              className={`${field} ${showExcluded ? "border-slate-500 bg-slate-100" : ""}`}
+              aria-pressed={showExcluded}
+              onClick={() => {
+                setShowExcluded(!showExcluded);
+                setPage(1);
+              }}
+            >
+              {showExcluded
+                ? tr("backToList")
+                : tr("showExcluded", { count: result?.excludedCount ?? 0 })}
+            </button>
+          )}
           {view && (
             <select
               className={field}

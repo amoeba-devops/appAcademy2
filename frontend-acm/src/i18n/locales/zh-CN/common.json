@@ -1346,7 +1346,8 @@
       "editReason": "修改账单",
       "deleteReason": "删除账单",
       "cancel": "取消"
-    }
+    },
+    "PAY_MONTH_HAS_BILLS": "该学生本月已有账单，无法删除。请先取消账单。"
   },
   "payMonthly": {
     "pageSize": "每页条数",
@@ -1435,7 +1436,9 @@
       "unpaid": "欠费",
       "refunded": "退款",
       "status": "状态",
-      "billAction": "创建/修改"
+      "billAction": "创建/修改",
+      "note": "备注",
+      "exclude": "删除"
     },
     "write": "创建",
     "modify": "修改",
@@ -1448,7 +1451,13 @@
     "enterAmount": "输入金额",
     "paidInFull": "缴清",
     "paidInFullConfirm": "确认缴清",
-    "paidInFullReason": "缴清处理"
+    "paidInFullReason": "缴清处理",
+    "notePlaceholder": "输入备注",
+    "exclude": "从{{m}}月列表删除",
+    "restore": "恢复",
+    "excludeConfirm": "要从{{m}}月缴费列表删除{{name}}吗？\n下个月起会重新出现在列表中，并可在“查看已删除学生”中恢复。",
+    "showExcluded": "查看已删除学生 ({{count}})",
+    "backToList": "返回列表"
   },
   "payStats": {
     "title": "月度统计",

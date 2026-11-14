@@ -263,4 +263,47 @@ describe('pay bills — per-student registration (PostgreSQL)', () => {
       ),
     ).rejects.toThrow('PAY_HAS_COLLECTIONS');
   });
+
+  it('excludes a student from one month only and keeps a month memo (REQ-261114)', async () => {
+    const choi = await student('최다온', 'TPI');
+    const ids = async (month: string, excluded?: string) =>
+      (await svc.monthly(user, { month, scope: 'ALL', excluded })).items.map(
+        (r) => r.id,
+      );
+    expect(await ids('2026-11')).toContain(choi);
+    await svc.setMonthNote(user, choi, {
+      month: '2026-11',
+      memo: ' 이번 달 휴원 ',
+    });
+    await svc.setMonthExcluded(user, choi, {
+      month: '2026-11',
+      excluded: true,
+    });
+    expect(await ids('2026-11')).not.toContain(choi);
+    const hidden = await svc.monthly(user, {
+      month: '2026-11',
+      scope: 'ALL',
+      excluded: 'true',
+    });
+    expect(hidden.items.map((r) => r.id)).toEqual([choi]);
+    expect(hidden.items[0].note).toBe('이번 달 휴원');
+    expect(hidden.excludedCount).toBe(1);
+    // 다음 달은 그대로 나온다.
+    expect(await ids('2026-12')).toContain(choi);
+    await svc.setMonthExcluded(user, choi, {
+      month: '2026-11',
+      excluded: false,
+    });
+    expect(await ids('2026-11')).toContain(choi);
+    // 그 달 청구가 있으면 제외할 수 없다.
+    await expect(
+      svc.setMonthExcluded(user, kim, { month: '2026-11', excluded: true }),
+    ).rejects.toThrow('PAY_MONTH_HAS_BILLS');
+    await expect(
+      svc.setMonthNote({ ...user, entId: OTHER }, choi, {
+        month: '2026-11',
+        memo: 'x',
+      }),
+    ).rejects.toThrow('PAY_STUDENT_NOT_FOUND');
+  });
 });

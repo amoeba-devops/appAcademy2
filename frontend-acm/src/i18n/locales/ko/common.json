@@ -1346,7 +1346,8 @@
       "editReason": "청구 수정",
       "deleteReason": "청구 삭제",
       "cancel": "취소"
-    }
+    },
+    "PAY_MONTH_HAS_BILLS": "이 달 청구가 있어 삭제할 수 없습니다. 청구를 먼저 취소하세요."
   },
   "payMonthly": {
     "pageSize": "목록 크기",
@@ -1435,7 +1436,9 @@
       "unpaid": "미납금",
       "refunded": "환불금",
       "status": "상태",
-      "billAction": "청구작성/수정"
+      "billAction": "청구작성/수정",
+      "note": "메모",
+      "exclude": "삭제"
     },
     "write": "작성",
     "modify": "수정",
@@ -1448,7 +1451,13 @@
     "enterAmount": "청구액 입력",
     "paidInFull": "완납",
     "paidInFullConfirm": "완납 처리",
-    "paidInFullReason": "완납 처리"
+    "paidInFullReason": "완납 처리",
+    "notePlaceholder": "메모 입력",
+    "exclude": "{{m}}월 목록에서 삭제",
+    "restore": "복구",
+    "excludeConfirm": "{{name}} 학생을 {{m}}월 납부 목록에서 삭제할까요?\n다음 달부터는 다시 목록에 나오며, '삭제된 학생 보기'에서 복구할 수 있습니다.",
+    "showExcluded": "삭제된 학생 보기 ({{count}})",
+    "backToList": "목록으로 돌아가기"
   },
   "payStats": {
     "title": "월별 통계",
