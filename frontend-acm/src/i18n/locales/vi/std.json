@@ -230,6 +230,7 @@
     "sourceHint": "Thông tin lịch sử từ nguồn. Chỉnh sửa không thay đổi trạng thái hiện tại, thanh toán hoặc thông báo.",
     "admissionDate": "Ngày nhập học",
     "admissionStartDate": "Ngày nhập học (bắt đầu học)",
+    "reenrolledHint": "Học sinh đăng ký lại có ngày nhập học và ngày bắt đầu học riêng.",
     "withdrawnDate": "Ngày thôi học",
     "withdrawnDateFrom": "Ngày thôi học: từ",
     "withdrawnDateTo": "Ngày thôi học: đến",

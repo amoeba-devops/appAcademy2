@@ -15,7 +15,7 @@ import { StudentTeacherTypeormEntity } from '../infrastructure/typeorm/student-t
 import { TeacherTypeormEntity } from '../../acm-tch/infrastructure/typeorm/teacher.typeorm-entity';
 import { parseSiteWorkbook, ParsedStudent } from './site-import.parser';
 import { CommitSiteImportDto } from './dto/site-import.dto';
-import { unifyAdmissionStart } from './student-dates';
+import { isReenrolled, unifyAdmissionStart } from './student-dates';
 export interface Candidate {
   id: string;
   name: string;
@@ -240,7 +240,9 @@ export class SiteImportService {
           if (row.values[key]) student[key] = row.values[key];
         }
         // REQ-261119B — 입학일 = 수업 시작일. 시트의 시작일이 오면 둘 다 그 값.
-        unifyAdmissionStart(student, { start: !!row.values.startDate });
+        // 재등록 학생은 입학일·시작일을 따로 둔다.
+        if (!student.id || !(await isReenrolled(m, entId, student.id)))
+          unifyAdmissionStart(student, { start: !!row.values.startDate });
         if (row.values.scheduleText) {
           const schedule =
             student.scheduleJson &&

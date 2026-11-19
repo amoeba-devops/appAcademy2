@@ -230,6 +230,7 @@
     "sourceHint": "历史来源信息。编辑不会更改当前在读状态、付款或通知。",
     "admissionDate": "入学日期",
     "admissionStartDate": "入学日期（开课日期）",
+    "reenrolledHint": "重新报名的学生分别保留入学日期和开课日期。",
     "withdrawnDate": "退学日期",
     "withdrawnDateFrom": "退学日期：起",
     "withdrawnDateTo": "退学日期：止",

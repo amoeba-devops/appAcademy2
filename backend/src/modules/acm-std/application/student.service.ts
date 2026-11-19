@@ -9,7 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { unifyAdmissionStart } from './student-dates';
+import { isReenrolled, unifyAdmissionStart } from './student-dates';
 import { applyWithdrawnDateDefaults } from './withdrawn-dates';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
@@ -390,6 +390,8 @@ export class StudentService {
       calendarTeachers: await this.calendarTeachers(entId, id),
       parents,
       sourceInquiry,
+      // REQ-261119B — 재등록 학생은 화면에서 입학일·수업 시작일을 따로 입력한다.
+      reenrolled: await isReenrolled(this.ds, entId, id),
       ...(await readClassInfos(this.ds.manager, entity)),
     };
   }
@@ -516,6 +518,7 @@ export class StudentService {
             where: { id, entId, deletedAt: IsNull() },
           });
         if (!entity) throw new NotFoundException('STUDENT_NOT_FOUND');
+        const prevStatus = entity.status;
 
         if (dto.stdSite !== undefined) entity.site = dto.stdSite;
         if (dto.stdName !== undefined && dto.stdName !== entity.name) {
@@ -579,10 +582,15 @@ export class StudentService {
           entity.withdrawnReason = dto.stdWithdrawnReason;
         if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
         // REQ-261119B — 입학일 = 수업 시작일. 한쪽만 바꾸면 다른 쪽도 따라간다.
-        unifyAdmissionStart(entity, {
-          admission: dto.stdAdmissionDate !== undefined,
-          start: dto.stdStartDate !== undefined,
-        });
+        // 재등록 학생(퇴원 뒤 재원·운영 기간 2개 이상, 이번에 퇴원→재원 포함)은 따로 둔다.
+        const reenrolled =
+          (prevStatus === 'WITHDRAWN' && entity.status === 'ACTIVE') ||
+          (await isReenrolled(manager, entId, id));
+        if (!reenrolled)
+          unifyAdmissionStart(entity, {
+            admission: dto.stdAdmissionDate !== undefined,
+            start: dto.stdStartDate !== undefined,
+          });
         // RPT-260922D B — 퇴원 전환·퇴원일 입력 시 수업 종료일(시작일)을 자동 보완.
         applyWithdrawnDateDefaults(entity);
 
