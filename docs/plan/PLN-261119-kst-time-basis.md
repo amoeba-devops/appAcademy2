@@ -47,7 +47,7 @@ Related: [REQ-261119](../analysis/REQ-261119-kst-time-basis.md), [REQ-261119B](.
 | 2 | `student.service.ts` 등록·수정, 가져오기 2종 | 저장 직전 적용 |
 | 3 | `acm-csl/start-date-sync.ts`, 등록 서비스 | 두 컬럼 함께 갱신 |
 | 4 | `std-form.tsx`, 상세, i18n 4개 | 날짜 칸 하나 `field.admissionStartDate` |
-| 5 | `sql/acm/1070-std-admission-start-unify.sql` | 32명 행 단위 DO 블록, 예외 시 NOTICE 후 건너뜀 |
+| 5 | `sql/acm/1070-std-admission-start-unify.sql` | 24명 행 단위 DO 블록, 예외 시 NOTICE 후 건너뜀 + 운영 기간→학생 트리거가 입학일도 갱신 |
 
 ## 3. Verification (검증)
 - 단위: tz 날짜 경계(UTC 15:00~24:00 = 한국 다음날), 회차 생성 시각, `unifyAdmissionStart` 조합
