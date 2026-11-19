@@ -49,7 +49,6 @@ type FormValues = {
   stdGoalsNote: string;
   stdSpecialNote: string;
   stdStatus: string;
-  stdStartDate: string;
   stdAdmissionDate: string;
   stdWithdrawnDate: string;
   stdWithdrawnReason: string;
@@ -127,10 +126,13 @@ export function StdForm({
       stdGoalsNote: initial?.goalsNote ?? "",
       stdSpecialNote: initial?.specialNote ?? "",
       stdStatus: initial?.status ?? initialStatus,
-      stdAdmissionDate: initial?.admissionDate ?? "",
+      // REQ-261119B — 입학일 = 수업 시작일 (다르면 빠른 날)
+      stdAdmissionDate:
+        [initial?.admissionDate, initial?.startDate ?? prefill?.stdStartDate]
+          .filter((d): d is string => !!d)
+          .sort()[0] ?? "",
       stdWithdrawnDate: initial?.withdrawnDate ?? "",
       stdWithdrawnReason: initial?.withdrawnReason ?? "",
-      stdStartDate: initial?.startDate ?? prefill?.stdStartDate ?? "",
       stdParents:
         initial?.parents?.map((p) => ({
           parId: p.id,
@@ -159,6 +161,8 @@ export function StdForm({
       if (v !== "") dto[k] = v;
     });
     dto.stdEmail = values.stdEmail.trim() || null;
+    // REQ-261119B — 날짜 하나로 입학일·수업 시작일을 함께 저장
+    if (values.stdAdmissionDate) dto.stdStartDate = values.stdAdmissionDate;
     if (isEdit) dto.stdSite = values.stdSite || null;
     // REQ-260903B — 담당강사 복수: 전체 목록 동기화(빈 배열 = 전부 해제).
     dto.stdTeacherIds = selectedTeachers.map((tch) => tch.id);
@@ -249,7 +253,7 @@ export function StdForm({
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className={labelClass}>
-            {t("withdrawn.admissionDate")}
+            {t("withdrawn.admissionStartDate")}
             <input
               type="date"
               {...register("stdAdmissionDate")}
@@ -560,14 +564,6 @@ export function StdForm({
               <option value="INACTIVE">{t("status.INACTIVE")}</option>
               <option value="WITHDRAWN">{t("status.WITHDRAWN")}</option>
             </select>
-          </div>
-          <div>
-            <label className={labelClass}>{t("field.startDate")}</label>
-            <input
-              type="date"
-              {...register("stdStartDate")}
-              className={inputClass}
-            />
           </div>
         </div>
       </fieldset>

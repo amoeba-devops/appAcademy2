@@ -229,6 +229,7 @@
     "recordTitle": "Nhập học và thôi học / Thông tin nguồn",
     "sourceHint": "Thông tin lịch sử từ nguồn. Chỉnh sửa không thay đổi trạng thái hiện tại, thanh toán hoặc thông báo.",
     "admissionDate": "Ngày nhập học",
+    "admissionStartDate": "Ngày nhập học (bắt đầu học)",
     "withdrawnDate": "Ngày thôi học",
     "withdrawnDateFrom": "Ngày thôi học: từ",
     "withdrawnDateTo": "Ngày thôi học: đến",

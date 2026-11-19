@@ -229,6 +229,7 @@
     "recordTitle": "입학·퇴원 이력 / 원본 행정정보",
     "sourceHint": "과거 원본 정보입니다. 편집해도 현재 재원 상태·수납·알림 설정은 변경되지 않습니다.",
     "admissionDate": "입학일",
+    "admissionStartDate": "입학일 (수업 시작일)",
     "withdrawnDate": "퇴원일",
     "withdrawnDateFrom": "퇴원일: 시작",
     "withdrawnDateTo": "퇴원일: 종료",

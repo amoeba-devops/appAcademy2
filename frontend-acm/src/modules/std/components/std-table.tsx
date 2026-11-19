@@ -102,8 +102,6 @@ export function StdTable({
             </th>
             <SortableTh field="site" label={t("site.label")} />
             <SortableTh field="name" label={t("table.name")} />
-            <th className="px-4 py-3 text-left">{t("withdrawn.admissionDate")}</th>
-
             <th className="px-4 py-3 text-left">{t("table.school")}</th>
             <th className="px-4 py-3 text-left">{t("table.grade")}</th>
             <th className="px-4 py-3 text-left">{t("table.teacher")}</th>
@@ -116,7 +114,7 @@ export function StdTable({
                 </>
               )}
             </>
-            <SortableTh field="startDate" label={t("field.startDate")} />
+            <SortableTh field="startDate" label={t("withdrawn.admissionStartDate")} />
             <SortableTh field="createdAt" label={t("table.createdAt")} />
           </tr>
         </thead>
@@ -175,7 +173,6 @@ export function StdTable({
                   </span>
                 )}
               </td>
-              <td className="px-4 py-3 whitespace-nowrap">{s.admissionDate ?? ""}</td>
               <td className="px-4 py-3">{s.school ?? "—"}</td>
               <td className="px-4 py-3">{s.grade ?? "—"}</td>
               <td className="px-4 py-3 whitespace-normal break-words">

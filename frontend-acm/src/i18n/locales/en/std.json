@@ -229,6 +229,7 @@
     "recordTitle": "Admission and withdrawal / Source information",
     "sourceHint": "Historical source information. Editing does not change current enrollment, payments or notifications.",
     "admissionDate": "Admission date",
+    "admissionStartDate": "Admission (class start) date",
     "withdrawnDate": "Withdrawal date",
     "withdrawnDateFrom": "Withdrawal date: from",
     "withdrawnDateTo": "Withdrawal date: to",
