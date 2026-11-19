@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { MarketingInputPanel } from './marketing-input-panel';
+import { todayKst } from '@/lib/tz';
 
 /** PLN-260914B — manual input scope: tenant-level (COMMON) or one site. */
 export type ManualInputSite = 'COMMON' | 'TPI' | 'TRINITY' | 'SANTACROCE';
@@ -108,7 +109,7 @@ const SITE_SECTIONS: typeof SECTIONS = [
 ];
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayKst();
 }
 
 function toNum(v: unknown): number | undefined {

@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { todayKst } from '@/lib/tz';
 
 const EXAM_TYPES = [
   'MAP_TEST',
@@ -67,7 +68,7 @@ export function GuidelineCreateDialog() {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKst();
   const {
     register,
     handleSubmit,

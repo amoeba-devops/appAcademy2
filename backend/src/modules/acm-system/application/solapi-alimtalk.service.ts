@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHmac, randomBytes } from 'crypto';
 import { KakaoConfigService, KakaoSendConfig } from './kakao-config.service';
+import { todayInTz } from '../../acm-common/time/zoned-time.util';
 
 /**
  * REQ-260903E — Solapi 카카오 알림톡 발송 클라이언트 (ACM 직접 구현).
@@ -63,7 +64,7 @@ export class SolapiAlimtalkService {
       '#{학원명}': 'ACM 테스트',
       '#{학생명}': '홍길동',
       '#{수업명}': '테스트 수업',
-      '#{일시}': new Date().toISOString().slice(0, 10),
+      '#{일시}': todayInTz(),
     });
     this.log.log(`alimtalk test sent ent=${entId} to=${to}`);
   }

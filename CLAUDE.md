@@ -344,6 +344,13 @@ MySQL naming, `tac_*` 테이블 규칙, `db_tac` 관련 설명은 현재 코드 
 | API route file | `route.ts` | `app/api/payments/route.ts` |
 | CSS variable | kebab-case | `--color-heraldic-gold` |
 
+### 7.5 Time Zone (시간대, REQ-261119)
+- 서버·DB·컨테이너는 **UTC 유지** (컨테이너 `TZ` 변경 금지 — DATE 컬럼이 로컬 0시 Date 로 읽혀 날짜가 하루 당겨진다).
+- 저장은 `TIMESTAMPTZ`(UTC). **통계·'오늘'·'이번 달'·기간 경계·표시 시각은 한국시간(테넌트 시간대, 기본 `Asia/Seoul`)** 으로 계산한다.
+- Backend: `todayInTz()`·`monthInTz()`·`ymdInTz()`·`zonedDateTimeToUtc()` (`acm-common/time/zoned-time.util`). SQL 은 `x_at AT TIME ZONE 'Asia/Seoul'`, 날짜 경계는 `($n::date::timestamp AT TIME ZONE 'Asia/Seoul')`.
+- Frontend: `todayKst()`·`monthKst()`·`todayYmd(tz)` (`@/lib/tz`).
+- 금지: `new Date().toISOString().slice(0, 10)`, SQL `CURRENT_DATE`, 서버 로컬 `setHours/getDate` — CI `scripts/check-kst-today.sh` 가 막는다.
+
 ---
 
 ## 8. Module Map (모듈 맵)

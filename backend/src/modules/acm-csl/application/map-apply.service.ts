@@ -192,12 +192,17 @@ export class MapApplyService {
       qb.andWhere('mpa.mpa_source_site = :site', { site: query.site });
     }
     if (query.from) {
-      qb.andWhere('mpa.mpa_submitted_at >= :from::date', { from: query.from });
+      // REQ-261119 — 날짜 경계는 한국시간 0시
+      qb.andWhere(
+        "mpa.mpa_submitted_at >= (:from::date::timestamp AT TIME ZONE 'Asia/Seoul')",
+        { from: query.from },
+      );
     }
     if (query.to) {
-      qb.andWhere("mpa.mpa_submitted_at < (:to::date + interval '1 day')", {
-        to: query.to,
-      });
+      qb.andWhere(
+        "mpa.mpa_submitted_at < ((:to::date + 1)::timestamp AT TIME ZONE 'Asia/Seoul')",
+        { to: query.to },
+      );
     }
     const applies = await qb.orderBy('mpa.mpa_submitted_at', 'DESC').getMany();
     if (!applies.length) return { items: [], total: 0, page, limit };

@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { ACM_DS } from '../../../acm-common/datasource';
 import { PayRefundPolicyTypeormEntity } from '../../infrastructure/typeorm/pay-refund-policy.typeorm-entity';
 import { PayRefundPolicyTierTypeormEntity } from '../../infrastructure/typeorm/pay-refund-policy-tier.typeorm-entity';
+import { todayInTz } from '../../../acm-common/time/zoned-time.util';
 
 /**
  * 환불 정책 + 단계 관리.
@@ -27,8 +28,9 @@ export class PayRefundPolicyService {
     return this.policyRepo
       .createQueryBuilder('p')
       .where('p.entId = :entId', { entId })
-      .andWhere('p.effectiveFrom <= CURRENT_DATE')
-      .andWhere('(p.effectiveTo IS NULL OR p.effectiveTo >= CURRENT_DATE)')
+      // REQ-261119 — 적용일 비교는 한국시간 오늘 (DB 는 UTC)
+      .andWhere('p.effectiveFrom <= :today', { today: todayInTz() })
+      .andWhere('(p.effectiveTo IS NULL OR p.effectiveTo >= :today)', { today: todayInTz() })
       .orderBy('p.version', 'DESC')
       .getOne();
   }

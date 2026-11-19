@@ -203,3 +203,16 @@ export function formatEventWhen(
   const full = { ...DATE_OPTS, ...HM_OPTS };
   return formatDualRange(startAt, endAt, zones, locale, full, ymd(startAt) === ymd(endAt) ? HM_OPTS : full);
 }
+
+// ── REQ-261119 — 통계·기준 날짜는 한국시간 ───────────────────────────────────
+// `new Date().toISOString().slice(0, 10)` 은 UTC 날짜라 한국 00:00~09:00 에 어제가 된다.
+
+/** 한국시간(기본 테넌트 시간대) 오늘 yyyy-mm-dd. */
+export function todayKst(base: Date = new Date()): string {
+  return todayYmd(DEFAULT_TZ, base);
+}
+
+/** 한국시간 이번 달 yyyy-mm. */
+export function monthKst(base: Date = new Date()): string {
+  return todayKst(base).slice(0, 7);
+}

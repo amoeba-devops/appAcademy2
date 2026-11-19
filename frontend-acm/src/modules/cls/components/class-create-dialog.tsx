@@ -25,6 +25,7 @@ import {
   type ClsSubjectType,
   type SesMode,
 } from '../types';
+import { todayKst } from '@/lib/tz';
 
 interface Props {
   open: boolean;
@@ -78,7 +79,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
   const [courseId, setCourseId] = useState('');
   // PLN-260719 D — 강사는 /admin/tch 마스터(tch_id) 기준 (포털 강사 포함).
   const [teacherTchId, setTeacherTchId] = useState('');
-  const [startedAt, setStartedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [startedAt, setStartedAt] = useState(() => todayKst());
   const [endedAt, setEndedAt] = useState('');
   // PLN-260719 D — 일정: 날짜 지정(기본) / 반복(옵션).
   const [scheduleMode, setScheduleMode] = useState<'DATES' | 'RECURRING'>('DATES');
@@ -166,7 +167,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
     setSubjectType('OTHER');
     setCourseId('');
     setTeacherTchId('');
-    setStartedAt(new Date().toISOString().slice(0, 10));
+    setStartedAt(todayKst());
     setEndedAt('');
     setScheduleMode('DATES');
     setDateRows([createDateDraft()]);
@@ -193,7 +194,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
     pendingCourseSubjectRef.current = prefetchedCourseId || null;
     // prefill 은 legacy userId — 강사 목록 로드 후 tch_id 로 매핑 (아래 effect).
     pendingTeacherUserRef.current = prefill.teacherUserId ?? null;
-    setStartedAt(prefill.startedAt ?? new Date().toISOString().slice(0, 10));
+    setStartedAt(prefill.startedAt ?? todayKst());
     setEndedAt(prefill.endedAt ?? '');
     setRemark(prefill.remark ?? '');
     setSelectedStudentIds(nextStudentIds);
@@ -794,7 +795,7 @@ export function ClassCreateDialog({ open, onOpenChange, onCreated, prefill }: Pr
 function createDateDraft(): DateSessionDraft {
   return {
     id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-    date: new Date().toISOString().slice(0, 10),
+    date: todayKst(),
     startTime: '15:00',
     durationMin: '60',
     mode: 'ONLINE',

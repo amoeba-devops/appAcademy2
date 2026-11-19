@@ -19,6 +19,11 @@ import type {
   UpdateScoreBenchmarkDto,
 } from './dto/score-benchmark.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
+import {
+  DEFAULT_TZ,
+  todayInTz,
+  ymdInTz,
+} from '../../acm-common/time/zoned-time.util';
 
 export interface BenchmarkView {
   benchmark: ScoreBenchmarkTypeormEntity;
@@ -105,7 +110,7 @@ export class ScoreBenchmarkService {
     const current = await this.sbmRepo.findOne({ where: { id: currentId, entId } });
     if (!current) throw new NotFoundException('Benchmark not found');
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayInTz();
 
     return await this.ds.transaction(async (manager) => {
       const sbmRepo = manager.withRepository(this.sbmRepo);
@@ -220,7 +225,7 @@ export class ScoreBenchmarkService {
     grade: number,
     asOfDate: Date,
   ): Promise<ScoreBenchmarkTypeormEntity | null> {
-    const dateStr = asOfDate.toISOString().slice(0, 10);
+    const dateStr = ymdInTz(asOfDate, DEFAULT_TZ);
     const row = await this.sbmRepo
       .createQueryBuilder('sbm')
       .innerJoin(
@@ -246,7 +251,7 @@ export class ScoreBenchmarkService {
     sbmId?: string | null,
     modifierType?: 'FOREIGN_SCHOOL' | 'INTERNATIONAL_BOARDING' | 'OTHER',
   ): Promise<ScoreBenchmarkModifierTypeormEntity[]> {
-    const dateStr = asOfDate.toISOString().slice(0, 10);
+    const dateStr = ymdInTz(asOfDate, DEFAULT_TZ);
     const qb = this.sbfRepo
       .createQueryBuilder('sbf')
       .where('sbf.entId = :entId', { entId })
@@ -289,7 +294,7 @@ export class ScoreBenchmarkService {
     if (!benchmark) {
       warning = 'NO_BENCHMARK';
       return {
-        asOfDate: asOfDate.toISOString().slice(0, 10),
+        asOfDate: ymdInTz(asOfDate, DEFAULT_TZ),
         examType: dto.examType,
         grade: dto.grade,
         benchmark: null,
@@ -328,7 +333,7 @@ export class ScoreBenchmarkService {
     }
 
     return {
-      asOfDate: asOfDate.toISOString().slice(0, 10),
+      asOfDate: ymdInTz(asOfDate, DEFAULT_TZ),
       examType: dto.examType,
       grade: dto.grade,
       benchmark,

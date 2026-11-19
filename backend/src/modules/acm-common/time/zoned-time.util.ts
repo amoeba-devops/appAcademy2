@@ -74,3 +74,36 @@ export function zonedDateTimeToUtc(
   if (!dm || !tm) return null;
   return zonedToUtc(+dm[1], +dm[2], +dm[3], +tm[1], +tm[2], tz);
 }
+
+/**
+ * REQ-261119 — 통계·기준 시간의 기본 시간대. 서버·DB 는 UTC 로 두고,
+ * '오늘·이번 달·기간 경계' 는 이 시간대(테넌트 설정이 있으면 그 값)로 계산한다.
+ */
+export const DEFAULT_TZ = 'Asia/Seoul';
+
+/** 테넌트 시간대 기준 오늘 'YYYY-MM-DD' (기본 한국시간). */
+export function todayInTz(tz: string = DEFAULT_TZ, now: Date = new Date()): string {
+  return ymdInTz(now, tz);
+}
+
+/** 테넌트 시간대 기준 이번 달 'YYYY-MM' (기본 한국시간). */
+export function monthInTz(tz: string = DEFAULT_TZ, now: Date = new Date()): string {
+  return ymdInTz(now, tz).slice(0, 7);
+}
+
+/** 'YYYY-MM-DD' 에 n 일을 더한 날짜 (달력 계산, 시간대 무관). */
+export function addDaysYmd(ymd: string, n: number): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+
+/** 'YYYY-MM-DD' 의 요일 (0=일요일). */
+export function dowOfYmd(ymd: string): number {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** 'YYYY-MM-DD' 또는 DATE 컬럼 값(Date) → 'YYYY-MM-DD'. */
+export function ymdOf(value: string | Date): string {
+  return typeof value === 'string' ? value.slice(0, 10) : value.toISOString().slice(0, 10);
+}

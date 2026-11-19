@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { todayKst } from '@/lib/tz';
 
 const LVL_EXAM_TYPES = ['ISEE_LEVEL_TEST', 'SSAT_LEVEL_TEST', 'OTHER'] as const;
 const GRADE_BASES = ['TARGET_GRADE', 'CURRENT_GRADE'] as const;
@@ -48,7 +49,7 @@ export function LevelTestCreateDialog() {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKst();
   const {
     register,
     handleSubmit,

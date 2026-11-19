@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { todayKst } from '@/lib/tz';
 
 const SBM_EXAM_TYPES = ['MAP', 'ISEE', 'SSAT'] as const;
 const CURRICULA = ['UK_YEAR', 'US_GRADE', 'KOREAN', 'MIXED'] as const;
@@ -74,7 +75,7 @@ export function BenchmarkCreateDialog() {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayKst();
   const {
     register,
     handleSubmit,

@@ -10,6 +10,14 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
 import { Between, DataSource, In, IsNull, Not, Repository } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
+import {
+  DEFAULT_TZ,
+  addDaysYmd,
+  dowOfYmd,
+  todayInTz,
+  ymdOf,
+  zonedDateTimeToUtc,
+} from '../../acm-common/time/zoned-time.util';
 import { ClassStudentTypeormEntity } from '../infrastructure/typeorm/class-student.typeorm-entity';
 import { ClassTypeormEntity } from '../infrastructure/typeorm/class.typeorm-entity';
 import {
@@ -171,13 +179,12 @@ export class SessionService {
     const recs = await this.recRepo.find({ where: { entId, clsId } });
     if (!recs.length) return { generated: 0, skipped: 0 };
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const horizon = new Date(today);
-    horizon.setDate(horizon.getDate() + horizonDays);
+    // REQ-261119 — 날짜·시각은 한국시간 벽시계로 해석한다 (서버는 UTC).
+    const today = todayInTz(DEFAULT_TZ);
+    const horizon = addDaysYmd(today, horizonDays);
 
-    const startBound = new Date(cls.startedAt);
-    const endBound = cls.endedAt ? new Date(cls.endedAt) : null;
+    const startBound = ymdOf(cls.startedAt);
+    const endBound = cls.endedAt ? ymdOf(cls.endedAt) : null;
 
     const existing = await this.sesRepo.find({
       where: { entId, clsId, deletedAt: IsNull() },
@@ -195,24 +202,22 @@ export class SessionService {
     for (const rec of recs) {
       const dow = DOW_INDEX[rec.dayOfWeek];
       const exceptions = new Set(rec.exceptions ?? []);
-      const effFrom = new Date(rec.effectiveFrom);
-      const effTo = rec.effectiveTo ? new Date(rec.effectiveTo) : null;
-      const [hh, mm] = rec.startTime.split(':').map((x) => parseInt(x, 10));
+      const effFrom = ymdOf(rec.effectiveFrom);
+      const effTo = rec.effectiveTo ? ymdOf(rec.effectiveTo) : null;
 
       for (
-        const cursor = new Date(today);
-        cursor < horizon;
-        cursor.setDate(cursor.getDate() + 1)
+        let isoDate = today;
+        isoDate < horizon;
+        isoDate = addDaysYmd(isoDate, 1)
       ) {
-        if (cursor.getDay() !== dow) continue;
-        if (cursor < startBound || cursor < effFrom) continue;
-        if (endBound && cursor > endBound) continue;
-        if (effTo && cursor > effTo) continue;
-        const isoDate = cursor.toISOString().slice(0, 10);
+        if (dowOfYmd(isoDate) !== dow) continue;
+        if (isoDate < startBound || isoDate < effFrom) continue;
+        if (endBound && isoDate > endBound) continue;
+        if (effTo && isoDate > effTo) continue;
         if (exceptions.has(isoDate)) continue;
 
-        const scheduled = new Date(cursor);
-        scheduled.setHours(hh, mm ?? 0, 0, 0);
+        const scheduled = zonedDateTimeToUtc(isoDate, rec.startTime, DEFAULT_TZ);
+        if (!scheduled) continue;
         const key = scheduled.toISOString().slice(0, 16);
         if (existingKeys.has(key)) {
           skipped += 1;

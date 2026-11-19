@@ -18,6 +18,7 @@ import {
   type TemplateLabels,
 } from "./bill-import";
 import type { BillInput, Preview } from "./types";
+import { monthKst } from "@/lib/tz";
 
 // REQ-261027 — Excel bulk bill registration: template download → upload → preview → create.
 const base = "/acm/pay/bills";
@@ -58,7 +59,7 @@ export function BillImportDialog({
   const [fileKey, setFileKey] = useState(0);
   useEffect(() => {
     if (!open) return;
-    const m = initialMonth || new Date().toISOString().slice(0, 7);
+    const m = initialMonth || monthKst();
     setMonth(m);
     setDue(`${m}-10`);
     setSite(initialSite || "ALL");

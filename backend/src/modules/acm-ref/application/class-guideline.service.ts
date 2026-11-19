@@ -9,6 +9,11 @@ import type {
   CreateClassGuidelineDto,
   UpdateClassGuidelineDto,
 } from './dto/class-guideline.dto';
+import {
+  DEFAULT_TZ,
+  todayInTz,
+  ymdInTz,
+} from '../../acm-common/time/zoned-time.util';
 
 /**
  * REF Class Guideline service — per-update versioning (BR-REF-002).
@@ -58,7 +63,7 @@ export class ClassGuidelineService {
     const current = await this.repo.findOne({ where: { id: currentId, entId } });
     if (!current) throw new NotFoundException('Class guideline not found');
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayInTz();
     current.effectiveTo = today;
     await this.repo.save(current);
 
@@ -107,7 +112,7 @@ export class ClassGuidelineService {
 
   /** Effective version at a point in time (BR-REF-001). */
   async findActiveByExamType(entId: string, examType: string, asOfDate: Date) {
-    const dateStr = asOfDate.toISOString().slice(0, 10);
+    const dateStr = ymdInTz(asOfDate, DEFAULT_TZ);
     return this.repo
       .createQueryBuilder('cg')
       .where('cg.entId = :entId', { entId })

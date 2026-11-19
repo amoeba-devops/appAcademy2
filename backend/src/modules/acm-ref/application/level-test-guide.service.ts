@@ -9,6 +9,11 @@ import type {
   CreateLevelTestGuideDto,
   UpdateLevelTestGuideDto,
 } from './dto/level-test-guide.dto';
+import {
+  DEFAULT_TZ,
+  todayInTz,
+  ymdInTz,
+} from '../../acm-common/time/zoned-time.util';
 
 @Injectable()
 export class LevelTestGuideService {
@@ -54,7 +59,7 @@ export class LevelTestGuideService {
     const current = await this.repo.findOne({ where: { id: currentId, entId } });
     if (!current) throw new NotFoundException('Level test guide not found');
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayInTz();
     current.effectiveTo = today;
     await this.repo.save(current);
 
@@ -102,7 +107,7 @@ export class LevelTestGuideService {
     examType: 'ISEE_LEVEL_TEST' | 'SSAT_LEVEL_TEST',
     asOfDate: Date,
   ) {
-    const dateStr = asOfDate.toISOString().slice(0, 10);
+    const dateStr = ymdInTz(asOfDate, DEFAULT_TZ);
     return this.repo
       .createQueryBuilder('lv')
       .where('lv.entId = :entId', { entId })

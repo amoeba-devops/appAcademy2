@@ -14,6 +14,7 @@ import {
   CreateInstantEventResponseDto,
 } from './dto/instant-event.dto';
 import { CalEventTypeormEntity } from '../infrastructure/typeorm/cal-event.typeorm-entity';
+import { DEFAULT_TZ } from '../../acm-common/time/zoned-time.util';
 
 /**
  * REQ-260610 — 즉시 화상 강의 개설.
@@ -122,9 +123,14 @@ export class InstantEventService {
   // -----------------------------------------------------------------
 
   private buildDefaultTitle(ownerName: string, at: Date): string {
-    const hh = String(at.getHours()).padStart(2, '0');
-    const mm = String(at.getMinutes()).padStart(2, '0');
-    return `즉시 강의 - ${ownerName} ${hh}:${mm}`;
+    // REQ-261119 — 제목 시각은 한국시간
+    const hhmm = new Intl.DateTimeFormat('en-GB', {
+      timeZone: DEFAULT_TZ,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(at);
+    return `즉시 강의 - ${ownerName} ${hhmm}`;
   }
 
   private async lookupOwnerName(
