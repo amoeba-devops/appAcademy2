@@ -18,7 +18,7 @@ import {
 } from './withdrawn-import.parser';
 import { CommitSiteImportDto } from './dto/site-import.dto';
 import { applyWithdrawnDateDefaults } from './withdrawn-dates';
-import { unifyAdmissionStart } from './student-dates';
+import { isReenrolled, unifyAdmissionStart } from './student-dates';
 interface Envelope {
   ciphertext: string;
   iv: string;
@@ -304,7 +304,9 @@ export class WithdrawnImportService {
           fill('withdrawnReason', row.fields['퇴원사유']);
         }
         // REQ-261119B — 입학일 = 수업 시작일 (다르면 빠른 날).
-        unifyAdmissionStart(student);
+        // 재등록 학생은 입학일·시작일을 따로 둔다.
+        if (isNew || !(await isReenrolled(m, entId, student.id)))
+          unifyAdmissionStart(student);
         // RPT-260922D B — 수업 시작/종료일이 비면 입학/퇴원일로 채운다(대시보드 집계).
         applyWithdrawnDateDefaults(student);
         if (

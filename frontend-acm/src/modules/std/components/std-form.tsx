@@ -50,6 +50,7 @@ type FormValues = {
   stdSpecialNote: string;
   stdStatus: string;
   stdAdmissionDate: string;
+  stdStartDate: string;
   stdWithdrawnDate: string;
   stdWithdrawnReason: string;
   stdParents: ParentInput[];
@@ -126,11 +127,13 @@ export function StdForm({
       stdGoalsNote: initial?.goalsNote ?? "",
       stdSpecialNote: initial?.specialNote ?? "",
       stdStatus: initial?.status ?? initialStatus,
-      // REQ-261119B — 입학일 = 수업 시작일 (다르면 빠른 날)
-      stdAdmissionDate:
-        [initial?.admissionDate, initial?.startDate ?? prefill?.stdStartDate]
-          .filter((d): d is string => !!d)
-          .sort()[0] ?? "",
+      // REQ-261119B — 입학일 = 수업 시작일 (다르면 빠른 날). 재등록 학생은 따로.
+      stdAdmissionDate: initial?.reenrolled
+        ? (initial.admissionDate ?? "")
+        : ([initial?.admissionDate, initial?.startDate ?? prefill?.stdStartDate]
+            .filter((d): d is string => !!d)
+            .sort()[0] ?? ""),
+      stdStartDate: initial?.startDate ?? prefill?.stdStartDate ?? "",
       stdWithdrawnDate: initial?.withdrawnDate ?? "",
       stdWithdrawnReason: initial?.withdrawnReason ?? "",
       stdParents:
@@ -152,6 +155,10 @@ export function StdForm({
   const isLoading = createMut.isPending || updateMut.isPending;
 
   const isWithdrawn = watch("stdStatus") === "WITHDRAWN";
+  // REQ-261119B — 재등록 학생(이번에 퇴원→재원 포함)만 입학일·수업 시작일을 따로 입력.
+  const separateDates =
+    !!initial?.reenrolled ||
+    (initial?.status === "WITHDRAWN" && watch("stdStatus") === "ACTIVE");
 
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
@@ -161,8 +168,11 @@ export function StdForm({
       if (v !== "") dto[k] = v;
     });
     dto.stdEmail = values.stdEmail.trim() || null;
-    // REQ-261119B — 날짜 하나로 입학일·수업 시작일을 함께 저장
-    if (values.stdAdmissionDate) dto.stdStartDate = values.stdAdmissionDate;
+    // REQ-261119B — 날짜 하나로 입학일·수업 시작일을 함께 저장 (재등록 학생은 따로)
+    if (!separateDates) {
+      delete dto.stdStartDate;
+      if (values.stdAdmissionDate) dto.stdStartDate = values.stdAdmissionDate;
+    }
     if (isEdit) dto.stdSite = values.stdSite || null;
     // REQ-260903B — 담당강사 복수: 전체 목록 동기화(빈 배열 = 전부 해제).
     dto.stdTeacherIds = selectedTeachers.map((tch) => tch.id);
@@ -253,7 +263,9 @@ export function StdForm({
         </legend>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className={labelClass}>
-            {t("withdrawn.admissionStartDate")}
+            {separateDates
+              ? t("withdrawn.admissionDate")
+              : t("withdrawn.admissionStartDate")}
             <input
               type="date"
               {...register("stdAdmissionDate")}
@@ -565,6 +577,19 @@ export function StdForm({
               <option value="WITHDRAWN">{t("status.WITHDRAWN")}</option>
             </select>
           </div>
+          {separateDates && (
+            <div>
+              <label className={labelClass}>{t("field.startDate")}</label>
+              <input
+                type="date"
+                {...register("stdStartDate")}
+                className={inputClass}
+              />
+              <p className="mt-1 text-xs text-secondary">
+                {t("withdrawn.reenrolledHint")}
+              </p>
+            </div>
+          )}
         </div>
       </fieldset>
 

@@ -230,6 +230,7 @@
     "sourceHint": "Historical source information. Editing does not change current enrollment, payments or notifications.",
     "admissionDate": "Admission date",
     "admissionStartDate": "Admission (class start) date",
+    "reenrolledHint": "Re-enrolled students keep separate admission and class start dates.",
     "withdrawnDate": "Withdrawal date",
     "withdrawnDateFrom": "Withdrawal date: from",
     "withdrawnDateTo": "Withdrawal date: to",

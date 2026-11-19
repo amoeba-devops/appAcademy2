@@ -5,18 +5,23 @@
  * - 학생 자동 등록 때: 새 학생의 수업 시작일 = 상담 수업 시작일(없으면 등록일, 한국 시간).
  * - 등록 뒤 상담에서 수업 시작일을 바꾸면 학생 쪽도 따라 바뀐다.
  * - REQ-261119B: 입학일(std_admission_date)도 같은 값으로 함께 바꾼다 (입학일 = 수업 시작일).
+ *   단 재등록 학생(퇴원 뒤 재원·운영 기간 2개 이상)은 입학일을 그대로 둔다.
  * - 상담 시작일을 비우면 학생 쪽은 그대로 둔다. 재원(ACTIVE) 학생만 대상.
  * - 한 학생에 상담이 여럿이면 가장 최근 상담만 반영한다.
  */
+import { reenrolledSql } from '../../acm-std/application/student-dates';
+
+const REENROLLED = reenrolledSql('s.ent_id', 's.std_id');
+
 type Querier = { query: (sql: string, params?: unknown[]) => Promise<unknown> };
 
 export const CONSULTATION_START_DATE_SQL = `SELECT enr_start_date::text AS "startDate" FROM amb_acm_csl_enrollment WHERE ent_id=$1 AND inq_id=$2`;
 
-export const SYNC_CONSULTATION_START_DATE_SQL = `UPDATE amb_acm_std_student s SET std_start_date=e.enr_start_date, std_admission_date=e.enr_start_date
+export const SYNC_CONSULTATION_START_DATE_SQL = `UPDATE amb_acm_std_student s SET std_start_date=e.enr_start_date, std_admission_date=CASE WHEN ${REENROLLED} THEN s.std_admission_date ELSE e.enr_start_date END
  FROM amb_acm_csl_inquiry i JOIN amb_acm_csl_enrollment e ON e.ent_id=i.ent_id AND e.inq_id=i.inq_id
  WHERE i.ent_id=$1 AND i.inq_id=$2 AND s.ent_id=i.ent_id AND s.std_id=i.inq_std_id
  AND s.deleted_at IS NULL AND s.std_status='ACTIVE'
- AND e.enr_start_date IS NOT NULL AND (s.std_start_date IS DISTINCT FROM e.enr_start_date OR s.std_admission_date IS DISTINCT FROM e.enr_start_date)
+ AND e.enr_start_date IS NOT NULL AND (s.std_start_date IS DISTINCT FROM e.enr_start_date OR (s.std_admission_date IS DISTINCT FROM e.enr_start_date AND NOT ${REENROLLED}))
  AND NOT EXISTS (SELECT 1 FROM amb_acm_csl_inquiry n WHERE n.ent_id=i.ent_id AND n.inq_std_id=i.inq_std_id AND n.created_at>i.created_at)
  RETURNING s.std_id::text AS "stdId"`;
 

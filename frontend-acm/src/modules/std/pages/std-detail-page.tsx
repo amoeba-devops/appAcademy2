@@ -194,10 +194,20 @@ export function StdDetailPage() {
         />
         <InfoRow label={t("field.school")} value={student.school} />
         <InfoRow label={t("field.grade")} value={student.grade} />
-        <InfoRow
-          label={t("withdrawn.admissionStartDate")}
-          value={student.admissionDate ?? student.startDate}
-        />
+        {student.reenrolled ? (
+          <>
+            <InfoRow
+              label={t("withdrawn.admissionDate")}
+              value={student.admissionDate}
+            />
+            <InfoRow label={t("field.startDate")} value={student.startDate} />
+          </>
+        ) : (
+          <InfoRow
+            label={t("withdrawn.admissionStartDate")}
+            value={student.admissionDate ?? student.startDate}
+          />
+        )}
         {student.status === "WITHDRAWN" && (
           <InfoRow label={t("field.endDate")} value={student.endDate} />
         )}

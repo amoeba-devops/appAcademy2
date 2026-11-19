@@ -36,6 +36,8 @@ export interface StudentSummary {
   }>;
   status: StdStatus;
   admissionDate?: string | null;
+  /** REQ-261119B — 재등록 학생(입학일·수업 시작일 따로). 상세 응답에만 온다. */
+  reenrolled?: boolean;
   withdrawnDate?: string | null;
   withdrawnReason?: string | null;
   startDate?: string | null;

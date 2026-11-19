@@ -1,5 +1,6 @@
 -- 1070 — REQ-261119B: 입학일 = 수업 시작일. 두 값이 다르면 빠른 날로, 한쪽만 있으면 그 값으로 통일.
--- 운영 2026-11-19 기준 32명(재원 26·퇴원 5·비활성 1), 이 중 수업 시작일이 앞당겨지는 학생 10명.
+-- 운영 2026-11-19 기준 23명(재원 18·퇴원 4·비활성 1, 재등록 1명 제외), 이 중 수업 시작일이 앞당겨지는 학생 10명.
+-- 재등록 학생은 제외(2026-11-19 사용자 결정 — 신규 첫 등록만 통일).
 -- 학생 날짜 트리거(acm_ops_master_dates)가 운영 기간 행을 함께 고치며, 거절되는 행은
 -- 건너뛴다(NOTICE). 멱등: 맞춰진 행은 다시 대상이 되지 않는다. 소프트 삭제 학생은 제외.
 DO $$
@@ -8,9 +9,15 @@ BEGIN
   IF to_regclass('amb_acm_std_student') IS NULL THEN RETURN; END IF;
   FOR r IN
     SELECT ent_id, std_id, std_admission_date, std_start_date
-      FROM amb_acm_std_student
+      FROM amb_acm_std_student s
      WHERE deleted_at IS NULL
        AND std_admission_date IS DISTINCT FROM std_start_date
+       -- 재등록 학생(퇴원 뒤 재원·운영 기간 2개 이상)은 입학일·시작일을 따로 둔다.
+       AND NOT (EXISTS (SELECT 1 FROM amb_acm_std_status_history w JOIN amb_acm_std_status_history a
+              ON a.ent_id=w.ent_id AND a.std_id=w.std_id AND a.ssh_status='ACTIVE' AND a.created_at>w.created_at
+             WHERE w.ent_id=s.ent_id AND w.std_id=s.std_id AND w.ssh_status='WITHDRAWN')
+          OR (SELECT count(*) FROM amb_acm_dsh_operating_period p
+             WHERE p.ent_id=s.ent_id AND p.kind='STUDENT' AND p.subject_id=s.std_id AND NOT p.cancelled) > 1)
   LOOP
     v := COALESCE(LEAST(r.std_admission_date, r.std_start_date), r.std_admission_date, r.std_start_date);
     BEGIN
@@ -36,7 +43,12 @@ BEGIN
  SELECT count(*) FILTER (WHERE start_date IS NOT DISTINCT FROM master_start),count(*) INTO matches,active_count
   FROM amb_acm_dsh_operating_period WHERE ent_id=NEW.ent_id AND kind='STUDENT' AND subject_id=NEW.subject_id AND NOT cancelled;
  IF (matches=1 AND OLD.start_date IS NOT DISTINCT FROM master_start) OR (matches=0 AND active_count=1) THEN
-  UPDATE amb_acm_std_student SET std_start_date=NEW.start_date,std_admission_date=NEW.start_date,std_end_date=NEW.end_date
+  UPDATE amb_acm_std_student s SET std_start_date=NEW.start_date,std_end_date=NEW.end_date,
+    std_admission_date=CASE WHEN (EXISTS (SELECT 1 FROM amb_acm_std_status_history w JOIN amb_acm_std_status_history a
+              ON a.ent_id=w.ent_id AND a.std_id=w.std_id AND a.ssh_status='ACTIVE' AND a.created_at>w.created_at
+             WHERE w.ent_id=s.ent_id AND w.std_id=s.std_id AND w.ssh_status='WITHDRAWN')
+          OR (SELECT count(*) FROM amb_acm_dsh_operating_period p
+             WHERE p.ent_id=s.ent_id AND p.kind='STUDENT' AND p.subject_id=s.std_id AND NOT p.cancelled) > 1) THEN s.std_admission_date ELSE NEW.start_date END
    WHERE ent_id=NEW.ent_id AND std_id=NEW.subject_id;
  END IF;
  RETURN NEW;
