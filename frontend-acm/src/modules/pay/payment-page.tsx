@@ -25,6 +25,7 @@ import type {
 import { payErrorCode } from "./bill-import";
 import { BillImportDialog } from "./bill-import-dialog";
 import { BillEditDialog } from "./bill-edit-dialog";
+import { monthKst, todayKst } from "@/lib/tz";
 const base = "/acm/pay/bills";
 const input =
   "rounded border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-900";
@@ -382,8 +383,8 @@ function CreateDialog({
     return () => clearTimeout(timer);
   }, [search]);
   const [form, setForm] = useState({
-    month: new Date().toISOString().slice(0, 7),
-    due: new Date().toISOString().slice(0, 10),
+    month: monthKst(),
+    due: todayKst(),
     classId: "",
     kind: "CLASS",
     title: "",
@@ -822,7 +823,7 @@ function DetailDialog({
   const [mode, setMode] = useState("PAYMENT");
   const [amount, setAmount] = useState(0);
   const [method, setMethod] = useState("TRANSFER");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(todayKst());
   const [reason, setReason] = useState("");
   const [originalId, setOriginal] = useState("");
   const [reduceBill, setReduce] = useState(true);

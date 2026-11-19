@@ -12,6 +12,7 @@ import { ACM_DS } from '../../acm-common/datasource';
 import { SettlementLineTypeormEntity } from '../infrastructure/typeorm/settlement-line.typeorm-entity';
 import { SettlementTypeormEntity } from '../infrastructure/typeorm/settlement.typeorm-entity';
 import type { ConfirmSettlementDto } from './dto/session.dto';
+import { monthInTz } from '../../acm-common/time/zoned-time.util';
 
 interface SourceRow {
   cls_id: string;
@@ -231,8 +232,10 @@ export class SettlementService {
    */
   async autoConfirmPrevMonth(): Promise<{ confirmed: number }> {
     const now = new Date();
-    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const yearMonth = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+    // REQ-261119 — '전월' 은 한국시간 이번 달 기준
+    const [cy, cm] = monthInTz().split('-').map(Number);
+    const prev = new Date(Date.UTC(cy, cm - 2, 1));
+    const yearMonth = prev.toISOString().slice(0, 7);
     const drafts = await this.stlRepo.find({
       where: { yearMonth, status: 'DRAFT' },
     });

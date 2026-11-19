@@ -32,6 +32,10 @@ jobs:
 
       - run: npm ci --legacy-peer-deps
 
+      - name: KST today check (REQ-261119)
+        working-directory: .
+        run: scripts/check-kst-today.sh
+
       - name: Lint
         run: npx eslint 'src/**/*.ts'
 

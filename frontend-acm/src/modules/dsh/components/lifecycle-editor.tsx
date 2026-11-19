@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
 import { useAuthStore } from "@/stores/auth.store";
 import { TimeSelectInput, halfHourSlots } from "@/components/ui/time-select-input";
+import { todayKst } from "@/lib/tz";
 
 // REQ-261111 — 수업 예정일시: 날짜 + 시간(30분 목록·직접 입력) 분리. datetime-local 은 브라우저에 따라 시간 입력 불가.
 const SCHEDULE_SLOTS = halfHourSlots(6, 23);
@@ -34,7 +35,7 @@ export function LifecycleEditor({
   const qc = useQueryClient();
   const [kind, setKind] = useState("SCHEDULE");
   const [date, setDate] = useState(
-    new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10),
+    todayKst(),
   );
   const [site, setSite] = useState("COMMON");
   const [status, setStatus] = useState("SCHEDULING");

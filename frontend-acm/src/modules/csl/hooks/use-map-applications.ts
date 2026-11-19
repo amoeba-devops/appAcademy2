@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
+import { todayKst } from '@/lib/tz';
 
 /** CSL-PLN-260916 — 맵테스트 신청 (`/admin/test`). */
 export const MAP_APPLY_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
@@ -149,7 +150,7 @@ export async function downloadMapApplyCsv(
   const url = URL.createObjectURL(res.data);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `map-applications-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `map-applications-${todayKst()}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();

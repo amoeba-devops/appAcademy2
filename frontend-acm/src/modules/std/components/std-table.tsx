@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import type { StudentSummary } from "../types";
 import { StdStatusBadge } from "./std-status-badge";
+import { todayKst } from "@/lib/tz";
 
 export interface StdSort {
   field: "name" | "createdAt" | "site" | "startDate";
@@ -24,7 +25,7 @@ const fmtDate = (s?: string | null) => {
   if (!s) return "—";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
-  return d.toISOString().slice(0, 10);
+  return todayKst(d);
 };
 
 export function StdTable({

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { clsx } from 'clsx';
 import type { TeacherDetail } from '../types';
+import { todayKst } from '@/lib/tz';
 
 interface TchTableProps {
   items: TeacherDetail[];
@@ -13,7 +14,7 @@ const fmtDate = (s?: string | null) => {
   // Accept both ISO date and full ISO timestamp
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return s;
-  return d.toISOString().slice(0, 10);
+  return todayKst(d);
 };
 
 const fmtDateTime = (s?: string | null) => {

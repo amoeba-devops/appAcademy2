@@ -21,6 +21,7 @@ import type {
   ListClassesQueryDto,
   UpdateClassDto,
 } from './dto/class.dto';
+import { todayInTz } from '../../acm-common/time/zoned-time.util';
 
 @Injectable()
 export class ClassService {
@@ -45,7 +46,7 @@ export class ClassService {
 
   /** Generate next CLS-YYYY-NNN code per ent. */
   private async nextCode(entId: string): Promise<string> {
-    const year = new Date().getFullYear();
+    const year = todayInTz().slice(0, 4);
     const prefix = `CLS-${year}-`;
     const last = await this.clsRepo
       .createQueryBuilder('c')
@@ -284,7 +285,7 @@ export class ClassService {
     if (!c) throw new NotFoundException('Class not found');
     c.status = dto.status;
     if (dto.status === 'COMPLETED' && !c.completedAt) {
-      c.completedAt = new Date().toISOString().slice(0, 10);
+      c.completedAt = todayInTz();
     }
     c.updatedAt = new Date();
     const saved = await this.clsRepo.save(c);

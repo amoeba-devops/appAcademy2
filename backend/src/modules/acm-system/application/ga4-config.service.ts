@@ -22,6 +22,7 @@ import {
   type Ga4SiteLevel,
   type Ga4SiteStatus,
 } from '../infrastructure/typeorm/ga4-config.typeorm-entity';
+import { addDaysYmd, todayInTz } from '../../acm-common/time/zoned-time.util';
 
 /**
  * PLN-260912 — GA4 방문자 동기화 테넌트 설정 (kakao-config 패턴).
@@ -177,12 +178,12 @@ export class Ga4ConfigService {
   ): Promise<{ ok: true; rows: number; streams: string[] }> {
     const cfg = await this.getSyncConfigForTest(entId);
     if (!cfg) throw new Error('GA4_CONFIG_NOT_SET');
-    const end = new Date();
-    const start = new Date(end.getTime() - 7 * 86400000);
+    // REQ-261119 — 최근 7일은 한국시간 날짜 기준
+    const endYmd = todayInTz();
     const rows = await this.ga4.runReport(cfg.key, {
       propertyId: cfg.propertyId,
-      startDate: start.toISOString().slice(0, 10),
-      endDate: end.toISOString().slice(0, 10),
+      startDate: addDaysYmd(endYmd, -7),
+      endDate: endYmd,
       metrics: [cfg.metric],
     });
     const streams = [...new Set(rows.map((r) => r.streamId))];
@@ -201,9 +202,8 @@ export class Ga4ConfigService {
     if (!row) throw new Error('GA4_CONFIG_NOT_SET');
     const sites = this.sitesOf(row);
     const cfg = this.toSyncConfig(row);
-    const end = new Date();
-    const start = new Date(end.getTime() - 7 * 86400000);
-    const startIso = start.toISOString().slice(0, 10);
+    const endIso = todayInTz();
+    const startIso = addDaysYmd(endIso, -7);
 
     // ② GA4 report — one call for all streams
     const ga4ByStream: Record<
@@ -216,7 +216,7 @@ export class Ga4ConfigService {
         const rows = await this.ga4.runReport(cfg.key, {
           propertyId: cfg.propertyId,
           startDate: startIso,
-          endDate: end.toISOString().slice(0, 10),
+          endDate: endIso,
           metrics: [cfg.metric],
         });
         for (const r of rows) {
