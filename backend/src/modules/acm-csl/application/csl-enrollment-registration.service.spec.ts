@@ -174,7 +174,7 @@ describe('CslEnrollmentRegistrationService', () => {
     expect(mirror[0][1]).toEqual([ENT, ['std-1']]);
   });
 
-  it('REQ-261114B — new student start date = consultation start date (admission left empty)', async () => {
+  it('REQ-261119B — new student start date = admission date = consultation start date', async () => {
     const h = build({ inquiry: baseInquiry() });
     h.query.mockImplementation(async (sql: string) =>
       sql.includes('SELECT enr_start_date') ? [{ startDate: '2026-11-16' }] : [],
@@ -182,7 +182,7 @@ describe('CslEnrollmentRegistrationService', () => {
     await h.svc.register(ENT, 'inq-1');
     const saved = h.stdRepo.save.mock.calls[0][0];
     expect(saved.startDate).toBe('2026-11-16');
-    expect(saved.admissionDate).toBeUndefined();
+    expect(saved.admissionDate).toBe(saved.startDate);
     expect(calls(h.query, 'SET std_start_date=e.enr_start_date')).toHaveLength(1);
   });
 

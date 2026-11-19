@@ -205,7 +205,9 @@ export class CslEnrollmentRegistrationService {
         birthDate: inq.birthdate ?? null,
         gender: inq.gender ?? null,
         status: 'ACTIVE',
+        // REQ-261119B — 입학일 = 수업 시작일
         startDate: consultationStart ?? kstToday(),
+        admissionDate: consultationStart ?? kstToday(),
       }),
     );
     return { student, created: true };

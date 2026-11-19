@@ -9,6 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { unifyAdmissionStart } from './student-dates';
 import { applyWithdrawnDateDefaults } from './withdrawn-dates';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, IsNull, Repository } from 'typeorm';
@@ -462,6 +463,8 @@ export class StudentService {
       withdrawnReason: dto.stdWithdrawnReason,
       status: dto.stdStatus ?? 'ACTIVE',
     });
+    // REQ-261119B — 입학일 = 수업 시작일 (다르면 빠른 날).
+    unifyAdmissionStart(entity);
     // RPT-260922D B — 퇴원생은 수업 시작/종료일을 입학/퇴원일로 채워 대시보드 집계에 반영.
     applyWithdrawnDateDefaults(entity);
     const saved = await this.ds.transaction(async (manager) => {
@@ -575,6 +578,11 @@ export class StudentService {
         if (dto.stdWithdrawnReason !== undefined)
           entity.withdrawnReason = dto.stdWithdrawnReason;
         if (dto.stdStatus !== undefined) entity.status = dto.stdStatus;
+        // REQ-261119B — 입학일 = 수업 시작일. 한쪽만 바꾸면 다른 쪽도 따라간다.
+        unifyAdmissionStart(entity, {
+          admission: dto.stdAdmissionDate !== undefined,
+          start: dto.stdStartDate !== undefined,
+        });
         // RPT-260922D B — 퇴원 전환·퇴원일 입력 시 수업 종료일(시작일)을 자동 보완.
         applyWithdrawnDateDefaults(entity);
 
