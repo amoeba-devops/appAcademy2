@@ -54,6 +54,9 @@ def run(browser, role, mobile=False, hidden=None, fail_calendar=False,
                     'role': 'ADMIN', 'tenantTimezone': 'Asia/Seoul', 'timezone': 'America/New_York'}
             if path == '/acm/me/profile':
                 data.pop('kind')
+        elif path == '/portal/me/menus':
+            visible = ['notices', 'calendar', 'students', 'materials', 'chat', 'me'] if role == 'TEACHER' else ['notices', 'links', 'materials', 'me']
+            data = {'visible': visible, 'home': '/portal/notices'}
         elif path == '/portal/cal/events':
             if failure['enabled']:
                 status, data = 500, {'error': {'message': 'fixture failure'}}
@@ -82,7 +85,7 @@ def run(browser, role, mobile=False, hidden=None, fail_calendar=False,
             data = {'spec': {}, 'types': [], 'prefs': {'types': {}}, 'tenant': {'types': {}}}
         elif 'unread' in path:
             data = {'unreadCount': 0}
-        elif path.endswith('/channels') or path == '/portal/news':
+        elif path.endswith('/channels') or path in ['/portal/news', '/portal/posts/notices']:
             data = []
         route.fulfill(status=status, content_type='application/json', body=json.dumps({'success': status == 200, 'data': data}))
 

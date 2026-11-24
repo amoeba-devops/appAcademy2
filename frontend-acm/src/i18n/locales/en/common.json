@@ -224,7 +224,8 @@
     },
     "notices": {
       "empty": "No notices.",
-      "back": "Back to list"
+      "back": "Back to list",
+      "loadError": "Could not load notices."
     },
     "materials": {
       "empty": "No materials yet.",
@@ -2684,5 +2685,15 @@
     "fromCalendar": "Class schedule link",
     "join": "Join",
     "invalid": "This address cannot be opened. Enter a web address (e.g. meet.google.com/…)."
+  },
+  "portalMenus": {
+    "title": "Academy portal menus",
+    "consoleTitle": "Console menu visibility",
+    "description": "Configure teacher and student portals separately. Notices start hidden. Select the audiences to enable them. A dash marks an unavailable or unlicensed menu.",
+    "loadError": "Could not load portal menu settings.",
+    "roles": {
+      "TEACHER": "Teacher portal",
+      "STUDENT": "Student portal"
+    }
   }
 }

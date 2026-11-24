@@ -155,13 +155,13 @@ export const portalApi = {
   // 공지 = published NOTICE posts (public endpoint, no token needed).
   notices: async () =>
     (
-      await apiClient.get<PortalNotice[]>('/portal/news', {
+      await apiClient.get<PortalNotice[]>('/portal/posts/notices', {
         params: { category: 'NOTICE' },
       })
     ).data,
 
   notice: async (slug: string) =>
-    (await apiClient.get<PortalNotice>(`/portal/news/${slug}`)).data,
+    (await apiClient.get<PortalNotice>(`/portal/posts/notices/${slug}`)).data,
 
   // PLN-260715 — single event detail (scoped) for the full-content page.
   // REQ-261023 — 담당 강사의 수업 링크(Google Meet) 등록·수정
@@ -518,7 +518,6 @@ export interface TeacherStudent {
 export interface TeacherStudentDetail extends TeacherStudent {
   phone: string | null;
   startDate: string | null;
-  specialNote: string | null;
   goalsNote: string | null;
   sourceInquiry: { id: string; seqNo: number; currentStage: string } | null;
   remarks: Array<{ body: string; createdAt: string }>;

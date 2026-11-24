@@ -1,3 +1,4 @@
+import { PortalMenuModule } from './portal-menu.module';
 import { UserInviteService } from './application/user-invite.service';
 import {
   UserInviteAdminController,
@@ -60,6 +61,7 @@ import { AiConfigController } from './presentation/ai-config.controller';
 @Module({
   imports: [
     AcmAuthModule,
+    PortalMenuModule,
     TypeOrmModule.forFeature(
       [
         AcmUserTypeormEntity,

@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/stores/auth.store';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -6,15 +7,16 @@ import { portalApi } from '../api/portal-api';
 
 export function PortalNoticesPage() {
   const { t, i18n } = useTranslation('common');
-  const { data: notices = [], isLoading } = useQuery({
-    queryKey: ['portal-notices'],
+  const user = useAuthStore((s) => s.portal.user);
+  const { data: notices = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['portal-notices', user?.entId, user?.id, user?.kind],
     queryFn: portalApi.notices,
   });
 
   return (
     <div>
       <h1 className="mb-3 text-lg font-semibold text-primary">{t('portalApp.nav.notices')}</h1>
-      {isLoading ? (
+      {isError ? (<div role="alert" className="space-y-2 text-sm"><p>{t('portalApp.notices.loadError')}</p><button type="button" className="rounded border px-3 py-2" onClick={() => void refetch()}>{t('configAccess.retry')}</button></div>) : isLoading ? (
         <p className="py-6 text-center text-sm text-secondary">…</p>
       ) : notices.length === 0 ? (
         <p className="rounded-md border border-[var(--border-subtle)] p-6 text-center text-sm text-secondary">
@@ -45,10 +47,11 @@ export function PortalNoticesPage() {
 
 export function PortalNoticeDetailPage() {
   const { t, i18n } = useTranslation('common');
+  const user = useAuthStore((s) => s.portal.user);
   const { slug } = useParams<{ slug: string }>();
-  const { data: notice, isLoading } = useQuery({
+  const { data: notice, isLoading, isError, refetch } = useQuery({
     enabled: !!slug,
-    queryKey: ['portal-notice', slug],
+    queryKey: ['portal-notice', user?.entId, user?.id, user?.kind, slug],
     queryFn: () => portalApi.notice(slug!),
   });
 
@@ -60,7 +63,7 @@ export function PortalNoticeDetailPage() {
       >
         <ChevronLeft size={12} /> {t('portalApp.notices.back')}
       </Link>
-      {isLoading || !notice ? (
+      {isError ? (<div role="alert" className="space-y-2 text-sm"><p>{t('portalApp.notices.loadError')}</p><button type="button" className="rounded border px-3 py-2" onClick={() => void refetch()}>{t('configAccess.retry')}</button></div>) : isLoading || !notice ? (
         <p className="py-6 text-center text-sm text-secondary">…</p>
       ) : (
         <article className="rounded-md border border-[var(--border-subtle)] p-5">

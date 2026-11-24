@@ -224,7 +224,8 @@
     },
     "notices": {
       "empty": "暂无公告。",
-      "back": "返回列表"
+      "back": "返回列表",
+      "loadError": "无法加载通知。"
     },
     "materials": {
       "empty": "暂无资料。",
@@ -2682,5 +2683,15 @@
     "fromCalendar": "课程日程链接",
     "join": "进入",
     "invalid": "无法打开此地址。请输入网址（例：meet.google.com/…）。"
+  },
+  "portalMenus": {
+    "title": "学院门户菜单",
+    "consoleTitle": "管理控制台菜单",
+    "description": "分别设置教师和学生门户。通知默认隐藏。选择需要显示的角色后保存。横线表示该角色不可用或学院未获许可的菜单。",
+    "loadError": "无法加载门户菜单设置。",
+    "roles": {
+      "TEACHER": "教师门户",
+      "STUDENT": "学生门户"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { PortalLanding, RequirePortalMenu, PortalEventDetailGate } from '@/modules/portal-app/components/require-portal-menu';
 import { SessionConfigPage } from '@/modules/cfg/pages/session-config-page';
 import { NotificationSettingsPage } from '@/modules/cfg/pages/notification-settings-page';
 import { AdminUsersPage } from '@/modules/cfg/pages/admin-users-page';
@@ -199,22 +200,22 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { index: true, element: <Navigate to="/portal/notices" replace /> },
-      { path: 'notices', element: <PortalNoticesPage /> },
-      { path: 'notices/:slug', element: <PortalNoticeDetailPage /> },
-      { path: 'calendar', element: <PortalCalendarPage /> },
-      { path: 'calendar/:evtId', element: <PortalCalEventDetailPage /> },
+      { index: true, element: <PortalLanding /> },
+      { path: 'notices', element: <RequirePortalMenu menu="notices"><PortalNoticesPage /></RequirePortalMenu> },
+      { path: 'notices/:slug', element: <RequirePortalMenu menu="notices"><PortalNoticeDetailPage /></RequirePortalMenu> },
+      { path: 'calendar', element: <RequirePortalMenu menu="calendar"><PortalCalendarPage /></RequirePortalMenu> },
+      { path: 'calendar/:evtId', element: <PortalEventDetailGate><PortalCalEventDetailPage /></PortalEventDetailGate> },
       // REQ-261103C — 수업링크(학생·학부모)
-      { path: 'links', element: <PortalLinksPage /> },
-      { path: 'materials', element: <PortalMaterialsPage /> },
+      { path: 'links', element: <RequirePortalMenu menu="links"><PortalLinksPage /></RequirePortalMenu> },
+      { path: 'materials', element: <RequirePortalMenu menu="materials"><PortalMaterialsPage /></RequirePortalMenu> },
       // PLN-260719 C — 강사 수강생관리
-      { path: 'students', element: <PortalTeacherStudentsPage /> },
-      { path: 'students/:stdId', element: <PortalTeacherStudentsPage /> },
+      { path: 'students', element: <RequirePortalMenu menu="students"><PortalTeacherStudentsPage /></RequirePortalMenu> },
+      { path: 'students/:stdId', element: <RequirePortalMenu menu="students"><PortalTeacherStudentsPage /></RequirePortalMenu> },
       // PLN-260719 B — 문서 게시판 (작성/뷰/편집)
-      { path: 'materials/docs/new', element: <PortalDocPage /> },
-      { path: 'materials/docs/:docId', element: <PortalDocPage /> },
+      { path: 'materials/docs/new', element: <RequirePortalMenu menu="materials"><PortalDocPage /></RequirePortalMenu> },
+      { path: 'materials/docs/:docId', element: <RequirePortalMenu menu="materials"><PortalDocPage /></RequirePortalMenu> },
       // REQ-260728C — 로비채팅 (강사 전용)
-      { path: 'chat', element: <PortalChatPage /> },
+      { path: 'chat', element: <RequirePortalMenu menu="chat"><PortalChatPage /></RequirePortalMenu> },
       // REQ-261015C — 포털 마이페이지(사용자 타임존)
       { path: 'me', element: <MyProfilePage mode="portal" /> },
     ],

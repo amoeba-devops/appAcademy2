@@ -43,7 +43,6 @@ export interface TeacherStudentSummary {
 export interface TeacherStudentDetail extends TeacherStudentSummary {
   phone: string | null;
   startDate: string | null;
-  specialNote: string | null;
   goalsNote: string | null;
   sourceInquiry: { id: string; seqNo: number; currentStage: string } | null;
   remarks: Array<{ body: string; createdAt: string }>;
@@ -142,10 +141,9 @@ export class PortalTeacherStudentsService {
     const [row]: Array<{
       std_phone: string | null;
       std_start_date: string | null;
-      std_special_note: string | null;
       std_goals_note: string | null;
     }> = await this.ds.query(
-      `SELECT std_phone, std_start_date, std_special_note, std_goals_note
+      `SELECT std_phone, std_start_date, std_goals_note
          FROM amb_acm_std_student
         WHERE ent_id = $1 AND std_id = $2 AND deleted_at IS NULL`,
       [entId, stdId],
@@ -218,7 +216,6 @@ export class PortalTeacherStudentsService {
       ...link,
       phone: row.std_phone,
       startDate: row.std_start_date,
-      specialNote: row.std_special_note,
       goalsNote: row.std_goals_note,
       sourceInquiry,
       remarks,
