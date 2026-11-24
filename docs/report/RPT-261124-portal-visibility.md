@@ -22,7 +22,7 @@ Implemented the approved [plan](../plan/PLN-261124-teacher-portal-calendar.md) o
 | Withdrawn students | 기본 목록/API 조회에서 WITHDRAWN 제외. 전체보기에서만 포함. INACTIVE는 유지. 전체보기에서도 본인 관련 학생 범위 유지 |
 | Work navigation | 업무목록 → 이슈 → 내 업무 → 프로젝트 → 드라이브 → 채팅. 저장된 이전 순서에도 적용. 다른 그룹 순서·사용자 메뉴·개별 숨김 조건 유지 |
 
-**Menu interpretation (메뉴 대응):** The current source has a `documents` menu but no separate built-in work-list menu. 기존 `/admin/documents` 메뉴를 업무목록으로 표시해 맨 위로 이동했다. 문서 기능·URL은 유지한다. 이 해석은 작업 중 사용자에게 알렸으며 별도 확인 질문의 답변은 아직 없다.
+**Menu interpretation (메뉴 대응):** The current source has a `documents` menu but no separate built-in work-list menu. 기존 `/admin/documents` 메뉴를 업무목록으로 표시해 맨 위로 이동했다. 문서 기능·URL은 유지한다. 사용자가 “기존 ‘문서’ 메뉴”라고 답변하여 해당 메뉴 대응을 확인했다.
 
 ## 2. Implementation (구현 내용)
 

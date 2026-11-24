@@ -92,7 +92,7 @@ Implementation and local verification are complete in the isolated worktree; pro
 ## 6. Implementation Decisions (구현 결정)
 
 - Latest main contains `/portal/me` and the six-item work section. 최초 작업 폴더의 이전 브랜치와 달리 최신 소스에서 적용 위치를 확인했다.
-- Existing `documents` menu is displayed as 업무목록 and placed first; its `/admin/documents` route and document behavior remain intact. 별도 업무목록 메뉴를 찾지 못해 이 대응으로 진행한다고 사용자에게 알렸으며 확인 질문의 답변은 아직 없다.
+- Existing `documents` menu is displayed as 업무목록 and placed first; its `/admin/documents` route and document behavior remain intact. 사용자가 “기존 ‘문서’ 메뉴”라고 답변하여 이 대응을 확인했다.
 - Existing saved tenant order is normalized only for the six built-in work entries. 메뉴별 숨김 조건, 다른 그룹 순서와 사용자 메뉴는 유지한다.
 - Custom timezone UI is hidden only for teacher/student portal sessions. 학원 기준 시간대는 계속 표시하고 학부모·콘솔 설정 및 저장된 시간값은 유지한다.
 
