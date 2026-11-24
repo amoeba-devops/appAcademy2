@@ -1,3 +1,5 @@
+import { PortalNoticeController } from './presentation/portal-notice.controller';
+import { PortalMenuModule } from '../acm-system/portal-menu.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ACM_DS } from '../acm-common/datasource';
@@ -29,6 +31,7 @@ import { PortalNewsController } from './presentation/portal-news.controller';
 
 @Module({
   imports: [
+    PortalMenuModule,
     TypeOrmModule.forFeature(
       [
         PostTypeormEntity,
@@ -39,7 +42,7 @@ import { PortalNewsController } from './presentation/portal-news.controller';
       ACM_DS,
     ),
   ],
-  controllers: [AdminPostController, PortalProgramController, PortalNewsController],
+  controllers: [PortalNoticeController, AdminPostController, PortalProgramController, PortalNewsController],
   providers: [PostService, ProgramService, ClassroomService],
   exports: [PostService, ProgramService, ClassroomService],
 })

@@ -1,3 +1,4 @@
+import { PortalMenuSection } from '../components/portal-menu-section';
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -58,6 +59,7 @@ export function TenantSettingsPage() {
       {tab === "menus" ? (
         <>
           <RoleMenuMatrix />
+          <PortalMenuSection />
           {/* REQ-261026 — 사용자 메뉴(북마크) */}
           <CustomMenuSection />
         </>
@@ -120,6 +122,7 @@ function RoleMenuMatrix() {
   };
   return (
     <section aria-label={t("tenantConfig.tabs.menus")}>
+      <h2 className="mb-2 text-lg font-semibold">{t("portalMenus.consoleTitle")}</h2>
       <p className="mb-4 text-sm text-secondary">
         {t("tenantConfig.menus.description")}
       </p>

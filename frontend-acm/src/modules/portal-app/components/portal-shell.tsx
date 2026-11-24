@@ -1,3 +1,4 @@
+import { usePortalMenus, usePortalMenuSync } from '../hooks/use-portal-menus';
 import { forgetDevicePush } from "@/modules/notifications/push-settings";
 import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
 import { NotificationBell } from "@/modules/notifications/components-inbox";
@@ -58,6 +59,10 @@ export function PortalShell() {
   const { t } = useTranslation("common");
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.portal.user);
+  usePortalMenuSync();
+  const menus = usePortalMenus();
+  const visibleMenus = new Set<string>(menus.isError ? [] : menus.data?.visible ?? []);
+  visibleMenus.add('me');
   const clearPortal = useAuthStore((s) => s.clearPortal);
   // TST-261019 M7 — 휴대폰 가로 메뉴: 오른쪽 흐림 표시 + 현재 메뉴 자동 스크롤.
   const { pathname } = useLocation();
@@ -95,7 +100,7 @@ export function PortalShell() {
           {/* REQ-260728B FR-6 — 포털 앱에서도 언어 선택 (ko/en/vi/zh-CN) */}
           {user?.kind === "TEACHER" && (
             <>
-              <ChatUnreadLink mode="portal" />
+              {visibleMenus.has("chat") && <ChatUnreadLink mode="portal" />}
               <NotificationBell mode="portal" />
             </>
           )}
@@ -119,7 +124,7 @@ export function PortalShell() {
             {NAV.filter(
               (n) =>
                 (!n.teacherOnly || user?.kind === "TEACHER") &&
-                (!n.learnerOnly || user?.kind !== "TEACHER"),
+                (!n.learnerOnly || user?.kind !== "TEACHER") && visibleMenus.has(n.key),
             ).map(
               (n) => {
                 const Icon = n.icon;

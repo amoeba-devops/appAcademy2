@@ -82,7 +82,7 @@ describe('PortalTeacherStudentsService', () => {
           {
             std_phone: '010',
             std_start_date: '2026-01-01',
-            std_special_note: null,
+            std_special_note: 'private note must not leave the portal API',
             std_goals_note: null,
           },
         ];
@@ -113,6 +113,7 @@ describe('PortalTeacherStudentsService', () => {
       seqNo: 12,
       currentStage: 'ATTENDING',
     });
+    expect(r).not.toHaveProperty('specialNote');
     expect(r.remarks[0].body).toBe('상담메모');
     expect(r.recentEvents[0]).toMatchObject({ title: '정규수업' });
   });

@@ -166,16 +166,8 @@ function StudentDetail({ stdId }: { stdId: string }) {
           )}
         </dl>
 
-        {(s.specialNote || s.goalsNote) && (
+        {s.goalsNote && (
           <div className="mt-3 space-y-1 rounded-md bg-[var(--gray-50)] px-3 py-2 text-sm">
-            {s.specialNote && (
-              <div>
-                <span className="text-xs text-secondary">
-                  {t('portalApp.students.specialNote', '특이사항')}:
-                </span>{' '}
-                {s.specialNote}
-              </div>
-            )}
             {s.goalsNote && (
               <div>
                 <span className="text-xs text-secondary">

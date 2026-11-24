@@ -224,7 +224,8 @@
     },
     "notices": {
       "empty": "Không có thông báo.",
-      "back": "Về danh sách"
+      "back": "Về danh sách",
+      "loadError": "Không thể tải thông báo."
     },
     "materials": {
       "empty": "Chưa có tài liệu.",
@@ -2682,5 +2683,15 @@
     "fromCalendar": "Liên kết lịch học",
     "join": "Vào lớp",
     "invalid": "Không thể mở địa chỉ này. Hãy nhập địa chỉ web (VD: meet.google.com/…)."
+  },
+  "portalMenus": {
+    "title": "Menu cổng học viện",
+    "consoleTitle": "Hiển thị menu quản trị",
+    "description": "Cấu hình riêng cho giảng viên và học sinh. Thông báo được ẩn mặc định. Dấu gạch ngang chỉ menu không khả dụng hoặc chưa được cấp phép.",
+    "loadError": "Không thể tải cài đặt menu cổng.",
+    "roles": {
+      "TEACHER": "Cổng giảng viên",
+      "STUDENT": "Cổng học sinh"
+    }
   }
 }

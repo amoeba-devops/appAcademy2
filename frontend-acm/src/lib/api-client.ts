@@ -39,7 +39,7 @@ function isPortalEndpoint(url: string): boolean {
     url.startsWith("/portal/notifications") ||
     url === "/portal/auth/change-password" ||
     // REQ-261015C — 포털 마이페이지(사용자 타임존).
-    url === "/portal/me"
+    (url === "/portal/me" || url.startsWith("/portal/me/"))
   );
 }
 
