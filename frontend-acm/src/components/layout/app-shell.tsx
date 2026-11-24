@@ -91,8 +91,7 @@ const NAV = [
   { to: "/admin/enrollments", icon: ClipboardList, key: "enrollments", group: "academy" },
   { to: "/admin/map", icon: BookOpenCheck, key: "map", group: "academy" },
   { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna", group: "academy" },
-  // REQ-261124 — 업무관리 고정 순서. 기존 documents 화면은 업무목록으로 표시.
-  { to: "/admin/documents", icon: ClipboardList, key: "documents", group: "work" },
+  // REQ-261124 — 업무목록은 기존 사용자 링크를 맨 위에 표시. 문서 메뉴는 사용하지 않음.
   { to: "/admin/issues", icon: CircleDot, key: "issues", group: "work" },
   { to: "/admin/my-work", icon: ListTodo, key: "myWork", group: "work" },
   { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
@@ -216,7 +215,7 @@ export function AppShell() {
       }
       return next;
     });
-  // REQ-261026B — 사용자 메뉴는 위치에 따라 업무관리 그룹 끝 또는 북마크 그룹에 붙는다.
+  // 업무목록 링크는 업무관리 맨 위, 나머지 사용자 메뉴는 기존 그룹·순서 유지.
   const customMenus = menus?.custom ?? [];
   const customHref = (c: (typeof customMenus)[number]) =>
     c.openMode === "EMBED" ? `/admin/embed/${c.id}` : c.url;
@@ -387,6 +386,10 @@ export function AppShell() {
                 : group === "bookmarks" && c.group === "BOOKMARKS",
             );
             if (!items.length && !bookmarks.length) return null;
+            const workLists = group === "work"
+              ? bookmarks.filter((c) => c.name.replace(/\s/g, "") === "업무목록")
+              : [];
+            const trailingBookmarks = bookmarks.filter((c) => !workLists.includes(c));
             const collapsed =
               !iconOnly &&
               group !== "settings" &&
@@ -407,6 +410,14 @@ export function AppShell() {
                     {collapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                   </button>
                 )}
+                {!collapsed && workLists.map((b) => (
+                  <BookmarkLink
+                    key={b.id}
+                    item={{ ...b, url: customHref(b) }}
+                    iconOnly={iconOnly}
+                    active={location.pathname + location.search === customHref(b)}
+                  />
+                ))}
                 {!collapsed &&
           items.map(({ to, icon: Icon, key }) =>
             key === "std" ? (
@@ -452,7 +463,7 @@ export function AppShell() {
             ),
           )}
                 {!collapsed &&
-                  bookmarks.map((b) => (
+                  trailingBookmarks.map((b) => (
                     <BookmarkLink
                       key={b.id}
                       item={{ ...b, url: customHref(b) }}

@@ -29,12 +29,12 @@ export const TOGGLEABLE_MENU_KEYS = [
   'map',
   'qna',
   // REQ-261124 — 업무목록 → 이슈 → 내 업무 → 프로젝트 → 드라이브 → 채팅
-  'documents',
   'issues',
   'myWork',
   'projects',
   'drive',
   'chat',
+  'documents', // Legacy settings compatibility; not displayed in the sidebar.
   'config',
 ] as const;
 

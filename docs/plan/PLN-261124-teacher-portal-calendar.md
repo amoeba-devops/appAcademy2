@@ -1,8 +1,11 @@
 ---
-document_id: ACM-TEACHER-CALENDAR-PLN-1.1.0
-version: 1.1.0
+document_id: ACM-TEACHER-CALENDAR-PLN-1.2.0
+version: 1.2.0
 status: implemented_locally
 change_log:
+  - version: 1.2.0
+    date: 2026-11-24
+    description: Correct work list to the existing custom link and remove the document sidebar entry.
   - version: 1.1.0
     date: 2026-11-24
     description: Expand UI layout and verification to all four portal and navigation requirements.
@@ -92,8 +95,8 @@ Implementation and local verification are complete in the isolated worktree; pro
 ## 6. Implementation Decisions (구현 결정)
 
 - Latest main contains `/portal/me` and the six-item work section. 최초 작업 폴더의 이전 브랜치와 달리 최신 소스에서 적용 위치를 확인했다.
-- Existing `documents` menu is displayed as 업무목록 and placed first; its `/admin/documents` route and document behavior remain intact. 사용자가 “기존 ‘문서’ 메뉴”라고 답변하여 이 대응을 확인했다.
-- Existing saved tenant order is normalized only for the six built-in work entries. 메뉴별 숨김 조건, 다른 그룹 순서와 사용자 메뉴는 유지한다.
+- The latest user correction supersedes the earlier document-menu mapping. 업무목록은 REQ-261026B의 기존 사용자 링크이며 저장된 URL·열기 방식을 유지해 업무관리 맨 위에 표시한다. 기존 문서 메뉴는 사이드바에서 제외한다.
+- Existing saved tenant order is normalized for the five built-in work entries, with the authorized work-list custom link pinned first. 메뉴별 숨김·역할 조건과 다른 그룹 순서는 유지한다. 업무목록 외 사용자 메뉴는 기존 위치를 유지한다.
 - Custom timezone UI is hidden only for teacher/student portal sessions. 학원 기준 시간대는 계속 표시하고 학부모·콘솔 설정 및 저장된 시간값은 유지한다.
 
 Implementation and verification (구현·검증): [RPT-261124](../report/RPT-261124-portal-visibility.md).

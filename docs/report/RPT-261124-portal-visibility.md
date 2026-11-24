@@ -1,8 +1,11 @@
 ---
-document_id: ACM-PORTAL-VISIBILITY-RPT-1.0.0
-version: 1.0.0
+document_id: ACM-PORTAL-VISIBILITY-RPT-1.1.0
+version: 1.1.0
 status: implemented_locally_not_deployed
 change_log:
+  - version: 1.1.0
+    date: 2026-11-24
+    description: Correct work list to the existing custom link, preserving configured URL and open mode.
   - version: 1.0.0
     date: 2026-11-24
     description: Record portal visibility, withdrawn student filtering, work navigation, and local verification.
@@ -22,7 +25,7 @@ Implemented the approved [plan](../plan/PLN-261124-teacher-portal-calendar.md) o
 | Withdrawn students | 기본 목록/API 조회에서 WITHDRAWN 제외. 전체보기에서만 포함. INACTIVE는 유지. 전체보기에서도 본인 관련 학생 범위 유지 |
 | Work navigation | 업무목록 → 이슈 → 내 업무 → 프로젝트 → 드라이브 → 채팅. 저장된 이전 순서에도 적용. 다른 그룹 순서·사용자 메뉴·개별 숨김 조건 유지 |
 
-**Menu interpretation (메뉴 대응):** The current source has a `documents` menu but no separate built-in work-list menu. 기존 `/admin/documents` 메뉴를 업무목록으로 표시해 맨 위로 이동했다. 문서 기능·URL은 유지한다. 사용자가 “기존 ‘문서’ 메뉴”라고 답변하여 해당 메뉴 대응을 확인했다.
+**Work-list link (업무목록 링크):** The latest user correction replaces the earlier document-menu mapping. 업무목록은 [기존 설계](../analysis/REQ-261026B-custom-menu-embed.md)의 사용자 링크다. 저장된 URL·EMBED/LINK·새 탭 설정을 그대로 사용해 업무 관리 맨 위에 배치하고 기존 문서 메뉴는 사이드바에서 제외했다. 사용자·테넌트에 허용된 링크만 표시하며 URL을 공용 코드에 하드코딩하지 않는다.
 
 ## 2. Implementation (구현 내용)
 
@@ -31,7 +34,7 @@ Implemented the approved [plan](../plan/PLN-261124-teacher-portal-calendar.md) o
 - `MyProfilePage` hides custom timezone editing for teacher/student portal sessions. 학부모·운영 콘솔의 타임존 설정은 기존대로 동작한다.
 - `GET /api/portal/teacher/students?includeWithdrawn=true` includes related withdrawn students; default/false excludes them. NestJS validates the boolean flag. 필터는 파라미터 SQL로 적용하고 로그인 사용자의 tenant/teacher 범위를 그대로 사용한다.
 - Detail authorization explicitly includes withdrawn students within the existing relationship scope, independent of the default display filter. 목록 캐시 키에는 테넌트·강사·전체보기 조건을 포함한다.
-- Frontend/backend canonical menu defaults are aligned. `AppShell` normalizes only the six built-in work entries, preventing old saved order from overriding the request.
+- Frontend/backend canonical menu defaults are aligned. `AppShell` normalizes only the five built-in work entries after the authorized work-list custom link, preventing old saved order from overriding the request.
 - Korean, English, Vietnamese, and Simplified Chinese labels are included.
 
 ## 3. Verification (검증)
@@ -41,12 +44,12 @@ Implemented the approved [plan](../plan/PLN-261124-teacher-portal-calendar.md) o
 | Frontend `npm run build` | PASS — TypeScript + Vite production build |
 | Backend `npm run build` | PASS — NestJS build |
 | Backend `npm test -- --runInBand portal-teacher-students` | PASS — 2 suites, 14 tests |
-| Python Playwright smoke | PASS — 7 scenario groups, synthetic API fixtures |
+| Python Playwright smoke | PASS — 9 scenario groups, synthetic API fixtures |
 | Locale keys / `git diff --check` | PASS |
 
 Backend tests cover boolean default/true/false, invalid query values, student/parent rejection, authenticated tenant/teacher arguments, default SQL status filtering, and related withdrawn-student detail access. DB 연결 없이 실행한 단위·HTTP 계약 테스트이며 실제 데이터베이스에서 SQL 실행은 검증하지 않았다.
 
-Browser checks cover teacher calendar menu/direct URL/trailing slash/refresh and month/week/day/list, student/parent redirect without calendar requests, teacher/student timezone hiding, unchanged parent/console timezone editing, error/retry, ACTIVE/INACTIVE default visibility, WITHDRAWN all-view/detail, default reset after returning, and desktop/mobile order with old saved order and hidden drive.
+Browser checks cover teacher calendar menu/direct URL/trailing slash/refresh and month/week/day/list, student/parent redirect without calendar requests, teacher/student timezone hiding, unchanged parent/console timezone editing, error/retry, ACTIVE/INACTIVE default visibility, WITHDRAWN all-view/detail, default reset after returning, and desktop/mobile order with old saved order and hidden drive. Additional checks cover document-menu absence, configured embedded iframe URL, external new-tab link behavior, no synthesized link when the server omits it, and other custom links retaining their trailing position.
 
 All API responses in browser tests are synthetic; no production credentials or student information were used. ブラウザ検証は合成データで実施した。Viteには既存の大きいチャンク警告があるがビルドは成功した。運用サイトは接続不可のためログイン検証していない。
 

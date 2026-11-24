@@ -1,8 +1,11 @@
 ---
-document_id: ACM-TEACHER-CALENDAR-REQ-1.1.0
-version: 1.1.0
+document_id: ACM-TEACHER-CALENDAR-REQ-1.2.0
+version: 1.2.0
 status: implemented_locally
 change_log:
+  - version: 1.2.0
+    date: 2026-11-24
+    description: Correct work list to the existing custom link and remove the document sidebar entry.
   - version: 1.1.0
     date: 2026-11-24
     description: Add teacher-only calendar, hidden custom timezone, withdrawn student filter, and work navigation order.
@@ -68,3 +71,7 @@ Teachers must be able to see the calendar at `https://acm.amoeba.site/portal/cal
 2026-11-24 fetched `origin/main` at `bc2803c`; implementation branch: `feat/portal-visibility-261124`. 최신 main에는 내 정보 타임존 UI와 업무 관리 여섯 메뉴가 있다. 캘린더 메뉴는 이전 요구로 모든 역할에서 숨겨진 상태여서 강사에게만 복원한다. 위 초기 확인 결과는 원래 작업 폴더의 이전 브랜치 기준이다. 운영 URL은 네트워크/브라우저 연결 문제로 직접 검증하지 못했다.
 
 Implementation and verification (구현·검증): [RPT-261124](../report/RPT-261124-portal-visibility.md).
+
+## 8. Work List Correction (업무목록 정정)
+
+The user clarified “업무목록은 링크임 기존 문서 사용안함. 수정”. 이 지시가 이전 문서 메뉴 대응 확인을 대체한다. [기존 업무목록 설계](REQ-261026B-custom-menu-embed.md)에 따라 `/acm/me/menus`가 반환하는 WORK 그룹의 업무목록 사용자 링크를 맨 위에 표시한다. URL·EMBED/LINK·새 탭 설정을 유지하며, 권한으로 반환되지 않은 항목을 새로 만들거나 하드코딩하지 않는다. 기존 문서 메뉴는 사이드바에서 제외한다.
