@@ -218,7 +218,9 @@
         "errProvider": "This academy does not use Google Meet links.",
         "errForbidden": "Only the assigned teacher can change the link.",
         "errFailed": "Could not save. Please try again."
-      }
+      },
+      "loadError": "Could not load the calendar.",
+      "retry": "Retry"
     },
     "notices": {
       "empty": "No notices.",
@@ -298,7 +300,12 @@
       "linksEdit": "Edit",
       "linksSaveFailed": "Could not save. Please try again.",
       "linksNotAssigned": "You can add class links for students assigned to you in Student Management or linked through the class schedule.",
-      "source": {"ASSIGNED": "Assigned", "CLASS": "Class", "CALENDAR": "Schedule"}
+      "source": {
+        "ASSIGNED": "Assigned",
+        "CLASS": "Class",
+        "CALENDAR": "Schedule"
+      },
+      "showAll": "Show all"
     },
     "record": {
       "title": "Classroom record",
@@ -371,7 +378,7 @@
     "stf": "Staff",
     "cal": "Schedule",
     "calStats": "Class Stats",
-    "documents": "Documents",
+    "documents": "Work list",
     "projects": "Projects",
     "drive": "Drive",
     "complaints": "Customer complaints",

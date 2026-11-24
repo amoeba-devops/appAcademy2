@@ -5,6 +5,7 @@ import { UserCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDual } from "@/lib/tz";
+import { useAuthStore } from "@/stores/auth.store";
 import { TZ_OPTIONS, tzLabel } from "@/modules/cfg/pages/general-config-page";
 import { useMyProfile, useSaveMyProfile, type ProfileMode } from "./use-my-zones";
 import { ExtraProfileSection, PasswordSection } from "./console-profile-sections";
@@ -17,6 +18,8 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   const { t, i18n } = useTranslation("common");
   const profile = useMyProfile(mode);
   const save = useSaveMyProfile(mode);
+  const portalKind = useAuthStore((s) => s.portal.user?.kind);
+  const canSetTimezone = mode === "console" || portalKind === "PARENT";
   const [tz, setTz] = useState("");
   useEffect(() => {
     if (profile.data) setTz(profile.data.timezone ?? "");
@@ -90,42 +93,45 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
               <span className="text-xs text-secondary">{t("myPage.tenantTimezone")}</span>
               <span>{tzLabel(tenantTz, i18n.language)}</span>
             </div>
-            <label className="grid gap-1">
-              <span className="text-xs text-secondary">{t("myPage.userTimezone")}</span>
-              <select
-                className="h-9 w-full rounded-md border bg-canvas px-3"
-                value={tz}
-                onChange={(e) => {
-                  save.reset();
-                  setTz(e.target.value);
-                }}
-              >
-                <option value="">{t("myPage.noUserTimezone")}</option>
-                {options.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="text-xs text-secondary">{t("myPage.timezoneHint")}</p>
-            <p className="text-xs">{t("myPage.preview", { now: preview })}</p>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {save.isSuccess && <span role="status">{t("myPage.saved")}</span>}
-              {save.isError && (
-                <span role="alert" className="text-red-600">
-                  {t("myPage.saveError")}
-                </span>
-              )}
-              <Button
-                disabled={save.isPending || tz === (p.timezone ?? "")}
-                onClick={() => save.mutate({ timezone: tz || null })}
-              >
-                {save.isPending ? t("myPage.saving") : t("myPage.save")}
-              </Button>
-            </div>
+            {canSetTimezone && (
+              <>
+                <label className="grid gap-1">
+                  <span className="text-xs text-secondary">{t("myPage.userTimezone")}</span>
+                  <select
+                    className="h-9 w-full rounded-md border bg-canvas px-3"
+                    value={tz}
+                    onChange={(e) => {
+                      save.reset();
+                      setTz(e.target.value);
+                    }}
+                  >
+                    <option value="">{t("myPage.noUserTimezone")}</option>
+                    {options.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p className="text-xs text-secondary">{t("myPage.timezoneHint")}</p>
+                <p className="text-xs">{t("myPage.preview", { now: preview })}</p>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  {save.isSuccess && <span role="status">{t("myPage.saved")}</span>}
+                  {save.isError && (
+                    <span role="alert" className="text-red-600">
+                      {t("myPage.saveError")}
+                    </span>
+                  )}
+                  <Button
+                    disabled={save.isPending || tz === (p.timezone ?? "")}
+                    onClick={() => save.mutate({ timezone: tz || null })}
+                  >
+                    {save.isPending ? t("myPage.saving") : t("myPage.save")}
+                  </Button>
+                </div>
+              </>
+            )}
           </section>
-          {/* REQ-261112J — 수업일정은 메뉴·버튼 없이 /portal/calendar 직접 입력으로만 접근 */}
           {mode === "console" && (
             <>
               <ExtraProfileSection profile={p} />

@@ -60,10 +60,10 @@ export function PortalCalEventDetailPage() {
   return (
     <div>
       <Link
-        to="/portal/calendar"
+        to={portalUser?.kind === "TEACHER" ? "/portal/calendar" : "/portal/links"}
         className="mb-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
       >
-        <ChevronLeft size={12} /> {t("portalApp.cal.back", "일정으로")}
+        <ChevronLeft size={12} /> {portalUser?.kind === "TEACHER" ? t("portalApp.cal.back", "일정으로") : t("portalApp.nav.links")}
       </Link>
 
       {isLoading || !event ? (

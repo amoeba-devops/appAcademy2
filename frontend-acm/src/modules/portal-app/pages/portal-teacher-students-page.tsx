@@ -35,16 +35,24 @@ export function PortalTeacherStudentsPage() {
 
 function StudentGrid() {
   const { t } = useTranslation('common');
+  const [includeWithdrawn, setIncludeWithdrawn] = useState(false);
+  const user = useAuthStore((s) => s.portal.user);
   const { data: students = [], isLoading } = useQuery({
-    queryKey: ['portal-teacher-students'],
-    queryFn: portalApi.teacherStudents,
+    queryKey: ['portal-teacher-students', user?.entId, user?.refId, includeWithdrawn],
+    queryFn: () => portalApi.teacherStudents(includeWithdrawn),
   });
 
   return (
     <div>
-      <h1 className="mb-3 text-lg font-semibold text-primary">
-        {t('portalApp.nav.students', '수강생관리')}
-      </h1>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-lg font-semibold text-primary">
+          {t('portalApp.nav.students', '수강생관리')}
+        </h1>
+        <label className="inline-flex min-h-9 items-center gap-2 text-sm">
+          <input type="checkbox" checked={includeWithdrawn} onChange={(e) => setIncludeWithdrawn(e.target.checked)} />
+          {t('portalApp.students.showAll')}
+        </label>
+      </div>
       {isLoading ? (
         <p className="py-6 text-center text-sm text-secondary">…</p>
       ) : students.length === 0 ? (

@@ -218,7 +218,9 @@
         "errProvider": "Học viện này không dùng liên kết Google Meet.",
         "errForbidden": "Chỉ giáo viên phụ trách mới đổi được liên kết.",
         "errFailed": "Không lưu được. Vui lòng thử lại."
-      }
+      },
+      "loadError": "Không thể tải lịch.",
+      "retry": "Thử lại"
     },
     "notices": {
       "empty": "Không có thông báo.",
@@ -298,7 +300,12 @@
       "linksEdit": "Sửa",
       "linksSaveFailed": "Không lưu được. Vui lòng thử lại.",
       "linksNotAssigned": "Bạn chỉ có thể thêm liên kết lớp cho học sinh được phân công trong Quản lý học sinh hoặc có trong lịch học.",
-      "source": {"ASSIGNED": "Phân công", "CLASS": "Lớp", "CALENDAR": "Lịch học"}
+      "source": {
+        "ASSIGNED": "Phân công",
+        "CLASS": "Lớp",
+        "CALENDAR": "Lịch học"
+      },
+      "showAll": "Xem tất cả"
     },
     "record": {
       "title": "Nhật ký lớp học",
@@ -371,7 +378,7 @@
     "stf": "Nhân viên",
     "cal": "Lịch học",
     "calStats": "Thống kê lớp học",
-    "documents": "Tài liệu",
+    "documents": "Danh sách công việc",
     "projects": "Dự án",
     "drive": "Drive",
     "complaints": "Khiếu nại khách hàng",

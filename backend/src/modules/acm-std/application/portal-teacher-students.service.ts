@@ -67,6 +67,7 @@ export class PortalTeacherStudentsService {
   async listMyStudents(
     entId: string,
     tchId: string,
+    includeWithdrawn = false,
   ): Promise<TeacherStudentSummary[]> {
     const rows: Array<{
       std_id: string;
@@ -104,10 +105,11 @@ export class PortalTeacherStudentsService {
                 ) AS in_calendar
            FROM amb_acm_std_student s
           WHERE s.ent_id = $1 AND s.deleted_at IS NULL
+            AND ($3::boolean OR s.std_status <> 'WITHDRAWN')
        ) x
        WHERE x.assigned OR x.in_class OR x.in_calendar
        ORDER BY x.std_name`,
-      [entId, tchId],
+      [entId, tchId, includeWithdrawn],
     );
     return rows.map((r) => ({
       id: r.std_id,
@@ -132,7 +134,8 @@ export class PortalTeacherStudentsService {
     tchId: string,
     stdId: string,
   ): Promise<TeacherStudentDetail> {
-    const mine = await this.listMyStudents(entId, tchId);
+    // Display filtering must not revoke access to a related withdrawn student.
+    const mine = await this.listMyStudents(entId, tchId, true);
     const summary = mine.find((s) => s.id === stdId);
     if (!summary) throw new ForbiddenException('NOT_MY_STUDENT');
 

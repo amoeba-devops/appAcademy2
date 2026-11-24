@@ -65,7 +65,7 @@ import { useUiStore } from "@/stores/ui.store";
 import { me as fetchMe } from "@/modules/auth/api/auth-api";
 import { useIsDesktop, useIsMobile } from "@/hooks/use-media-query";
 
-// REQ-261015C — 메뉴 그룹. 그룹 안 순서는 테넌트 저장 순서(기본: 표준 키 순서)를 따른다.
+// 메뉴 그룹. 업무관리 기본 항목은 REQ-261124 순서, 나머지는 테넌트 저장 순서를 따른다.
 // REQ-261026 — bookmarks 는 테넌트 사용자 메뉴(북마크) 전용 그룹.
 type NavGroup = "academy" | "work" | "bookmarks" | "settings";
 const NAV_GROUPS: NavGroup[] = ["academy", "work", "bookmarks", "settings"];
@@ -91,14 +91,13 @@ const NAV = [
   { to: "/admin/enrollments", icon: ClipboardList, key: "enrollments", group: "academy" },
   { to: "/admin/map", icon: BookOpenCheck, key: "map", group: "academy" },
   { to: "/admin/qna", icon: MessageCircleQuestion, key: "qna", group: "academy" },
-  // REQ-260728C — 로비채팅 (운영자↔강사)
-  { to: "/admin/chat", icon: MessagesSquare, key: "chat", group: "work" },
-  // REQ-261015C — 내 업무 / 이슈 (ACM 프로젝트 이슈)
-  { to: "/admin/my-work", icon: ListTodo, key: "myWork", group: "work" },
+  // REQ-261124 — 업무관리 고정 순서. 기존 documents 화면은 업무목록으로 표시.
+  { to: "/admin/documents", icon: ClipboardList, key: "documents", group: "work" },
   { to: "/admin/issues", icon: CircleDot, key: "issues", group: "work" },
+  { to: "/admin/my-work", icon: ListTodo, key: "myWork", group: "work" },
   { to: "/admin/projects", icon: FolderKanban, key: "projects", group: "work" },
-  { to: "/admin/documents", icon: FolderKanban, key: "documents", group: "work" },
   { to: "/admin/drive", icon: FolderKanban, key: "drive", group: "work" },
+  { to: "/admin/chat", icon: MessagesSquare, key: "chat", group: "work" },
   // REQ-261021B — 감사(테넌트 마스터·감사 조회 권한). 권한으로만 노출.
   { to: "/admin/audit", icon: ShieldCheck, key: "audit", group: "settings" },
   // REQ-261015C — 테넌트 설정(테넌트 마스터) / 서비스 설정(서비스 운영자). 권한으로만 노출.
@@ -178,7 +177,10 @@ export function AppShell() {
       if (at >= 0) keys.splice(at + 1, 0, n.key);
       else keys.push(n.key);
     });
-    return keys;
+    // Existing tenant preferences must not restore the previous work-menu order.
+    const workKeys: string[] = NAV.filter((n) => n.group === "work").map((n) => n.key);
+    let workIndex = 0;
+    return keys.map((key) => workKeys.includes(key) ? workKeys[workIndex++] : key);
   })();
   const rank = new Map(orderedKeys.map((k, i) => [k, i]));
   const visibleNav = NAV.filter(

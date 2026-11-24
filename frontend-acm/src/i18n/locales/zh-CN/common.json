@@ -218,7 +218,9 @@
         "errProvider": "本学院不使用 Google Meet 链接。",
         "errForbidden": "只有负责教师可以修改链接。",
         "errFailed": "保存失败,请重试。"
-      }
+      },
+      "loadError": "无法加载日历。",
+      "retry": "重试"
     },
     "notices": {
       "empty": "暂无公告。",
@@ -298,7 +300,12 @@
       "linksEdit": "修改",
       "linksSaveFailed": "保存失败，请重试。",
       "linksNotAssigned": "仅可为在学生管理中分配给您或通过课程日程关联的学生添加上课链接。",
-      "source": {"ASSIGNED": "已分配", "CLASS": "班级", "CALENDAR": "课程日程"}
+      "source": {
+        "ASSIGNED": "已分配",
+        "CLASS": "班级",
+        "CALENDAR": "课程日程"
+      },
+      "showAll": "显示全部"
     },
     "record": {
       "title": "教室记录",
@@ -371,7 +378,7 @@
     "stf": "员工管理",
     "cal": "课程表",
     "calStats": "课程统计",
-    "documents": "文档",
+    "documents": "工作列表",
     "projects": "项目",
     "drive": "云端硬盘",
     "complaints": "客户投诉",

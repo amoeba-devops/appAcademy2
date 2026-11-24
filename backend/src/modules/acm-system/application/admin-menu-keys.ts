@@ -28,13 +28,13 @@ export const TOGGLEABLE_MENU_KEYS = [
   'enrollments',
   'map',
   'qna',
-  // REQ-261015C — 업무관리 그룹
-  'chat',
-  'myWork',
-  'issues',
-  'projects',
+  // REQ-261124 — 업무목록 → 이슈 → 내 업무 → 프로젝트 → 드라이브 → 채팅
   'documents',
+  'issues',
+  'myWork',
+  'projects',
   'drive',
+  'chat',
   'config',
 ] as const;
 

@@ -218,7 +218,9 @@
         "errProvider": "이 학원은 Google Meet 링크를 사용하지 않습니다.",
         "errForbidden": "담당 강사만 링크를 바꿀 수 있습니다.",
         "errFailed": "저장하지 못했습니다. 다시 시도해 주세요."
-      }
+      },
+      "loadError": "일정을 불러오지 못했습니다.",
+      "retry": "다시 시도"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",
@@ -298,7 +300,12 @@
       "linksEdit": "수정",
       "linksSaveFailed": "저장하지 못했습니다. 다시 시도해 주세요.",
       "linksNotAssigned": "학생관리 배정 또는 수업일정으로 이어진 학생에게만 수업링크를 등록할 수 있습니다.",
-      "source": {"ASSIGNED": "배정", "CLASS": "반", "CALENDAR": "수업일정"}
+      "source": {
+        "ASSIGNED": "배정",
+        "CLASS": "반",
+        "CALENDAR": "수업일정"
+      },
+      "showAll": "전체보기"
     },
     "record": {
       "title": "강의실 기록",
@@ -371,7 +378,7 @@
     "stf": "직원 관리",
     "cal": "수업일정",
     "calStats": "수업통계",
-    "documents": "문서",
+    "documents": "업무목록",
     "projects": "프로젝트",
     "drive": "드라이브",
     "complaints": "고객불만",
