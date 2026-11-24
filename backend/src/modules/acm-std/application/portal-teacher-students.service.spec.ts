@@ -1,11 +1,12 @@
 import { ForbiddenException } from '@nestjs/common';
+import type { DataSource } from 'typeorm';
 import { PortalTeacherStudentsService } from './portal-teacher-students.service';
 
 /** PLN-260719 C — 강사 수강생 목록/상세 스코프. */
 describe('PortalTeacherStudentsService', () => {
-  function build(router: (sql: string) => any[]) {
-    const ds = { query: jest.fn(async (sql: string) => router(sql)) };
-    const svc = new PortalTeacherStudentsService(ds as any);
+  function build(router: (sql: string) => unknown[]) {
+    const ds = { query: jest.fn(async (sql: string, _params?: unknown[]) => router(sql)) };
+    const svc = new PortalTeacherStudentsService(ds as unknown as DataSource);
     return { svc, ds };
   }
 
@@ -43,6 +44,34 @@ describe('PortalTeacherStudentsService', () => {
     await expect(svc.getMyStudent('e1', 't1', 'sX')).rejects.toBeInstanceOf(
       ForbiddenException,
     );
+  });
+
+  it('excludes withdrawn students by default without changing the tenant/teacher scope', async () => {
+    const { svc, ds } = build(() => []);
+    await svc.listMyStudents('tenant-a', 'teacher-a');
+    const [sql, params] = ds.query.mock.calls[0];
+    expect(params).toEqual(['tenant-a', 'teacher-a', false]);
+    expect(sql).toContain("AND ($3::boolean OR s.std_status <> 'WITHDRAWN')");
+    expect(sql).toContain('WHERE s.ent_id = $1 AND s.deleted_at IS NULL');
+    expect(sql).toContain('WHERE x.assigned OR x.in_class OR x.in_calendar');
+  });
+
+  it('includes withdrawn students only when requested explicitly', async () => {
+    const { svc, ds } = build(() => [{ ...stdRow, std_status: 'WITHDRAWN' }]);
+    const students = await svc.listMyStudents('tenant-a', 'teacher-a', true);
+    expect(ds.query).toHaveBeenCalledWith(expect.any(String), ['tenant-a', 'teacher-a', true]);
+    expect(students[0].status).toBe('WITHDRAWN');
+  });
+
+  it('allows related withdrawn student details independently of the default list filter', async () => {
+    const { svc, ds } = build((sql) => {
+      if (sql.includes('AS in_calendar')) return [{ ...stdRow, std_status: 'WITHDRAWN' }];
+      if (sql.includes('std_phone')) return [{ std_phone: null, std_start_date: null }];
+      return [];
+    });
+    const student = await svc.getMyStudent('tenant-a', 'teacher-a', 's1');
+    expect(student.status).toBe('WITHDRAWN');
+    expect(ds.query).toHaveBeenNthCalledWith(1, expect.any(String), ['tenant-a', 'teacher-a', true]);
   });
 
   it('getMyStudent returns detail + inquiry + remarks + events', async () => {

@@ -332,8 +332,10 @@ export const portalApi = {
   },
 
   // PLN-260719 C — 강사 수강생관리.
-  teacherStudents: async () =>
-    (await apiClient.get<TeacherStudent[]>('/portal/teacher/students')).data,
+  teacherStudents: async (includeWithdrawn = false) =>
+    (await apiClient.get<TeacherStudent[]>('/portal/teacher/students', {
+      params: { includeWithdrawn },
+    })).data,
 
   teacherStudent: async (stdId: string) =>
     (

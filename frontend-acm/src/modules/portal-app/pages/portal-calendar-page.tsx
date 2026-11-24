@@ -1,6 +1,6 @@
 import { useVideoConfig, canEnterVideo } from '@/modules/cfg/hooks/use-video-config';
 import { useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Video } from 'lucide-react';
@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { portalApi, type PortalCalEvent } from '../api/portal-api';
-import { PortalClassInfo } from '../components/portal-class-info';
 import { useAuthStore } from '@/stores/auth.store';
 import { formatEventWhen, formatInTz, formatDualRange, tzCity } from '@/lib/tz';
 import { useMyZones } from '@/modules/me/use-my-zones';
@@ -51,6 +50,11 @@ function rangeFor(mode: ViewMode, anchor: Date): { from: Date; to: Date } {
 }
 
 export function PortalCalendarPage() {
+  const kind = useAuthStore((s) => s.portal.user?.kind);
+  return kind === 'TEACHER' ? <TeacherCalendar /> : <Navigate to="/portal/notices" replace />;
+}
+
+function TeacherCalendar() {
   const { t, i18n } = useTranslation(['common', 'cal']);
   const [mode, setMode] = useState<ViewMode>('month');
   const [anchor, setAnchor] = useState<Date>(() => startOfDay(new Date()));
@@ -60,11 +64,11 @@ export function PortalCalendarPage() {
   const [studentFilter, setStudentFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const openDirect = (e: PortalCalEvent) => navigate(`/portal/calendar/${e.id}`);
-  const portalKind = useAuthStore((s) => s.portal.user?.kind);
+  const user = useAuthStore((s) => s.portal.user);
 
   const { from, to } = useMemo(() => rangeFor(mode, anchor), [mode, anchor]);
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['portal-cal', mode, from.toISOString(), to.toISOString()],
+  const { data: events = [], isLoading, isError, refetch } = useQuery({
+    queryKey: ['portal-cal', user?.entId, user?.refId, mode, from.toISOString(), to.toISOString()],
     queryFn: () => portalApi.calEvents(iso(from), iso(to)),
   });
 
@@ -159,7 +163,14 @@ export function PortalCalendarPage() {
         </div>
       )}
 
-      {isLoading ? (
+      {isError ? (
+        <div role="alert" className="py-10 text-center text-sm">
+          <p>{t('portalApp.cal.loadError')}</p>
+          <button type="button" className="mt-2 rounded border px-3 py-2" onClick={() => void refetch()}>
+            {t('portalApp.cal.retry')}
+          </button>
+        </div>
+      ) : isLoading ? (
         <p className="py-10 text-center text-sm text-secondary">…</p>
       ) : mode === 'month' ? (
         <MonthGrid
@@ -185,11 +196,9 @@ export function PortalCalendarPage() {
         />
       )}
 
-      {/* REQ-261103B — 수업일정 아래 강사별 수업 정보(학생·학부모) */}
-      {(portalKind === 'STUDENT' || portalKind === 'PARENT') && (
-        <PortalClassInfo byChild={portalKind === 'PARENT'} />
+      {!isLoading && !isError && mode === 'month' && events.length === 0 && (
+        <p role="status" className="mt-3 text-center text-sm text-secondary">{t('portalApp.cal.empty')}</p>
       )}
-
       <EventDetailModal event={selected} onClose={() => setSelected(null)} />
     </div>
   );

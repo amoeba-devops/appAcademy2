@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   ForbiddenException,
   Get,
   Param,
+  ParseBoolPipe,
   ParseUUIDPipe,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -32,9 +35,13 @@ export class PortalTeacherStudentsController {
 
   @Get()
   @ApiOperation({ summary: 'My assigned/class students (teacher only)' })
-  list(@PortalUser() u: PortalAuthUser) {
+  list(
+    @PortalUser() u: PortalAuthUser,
+    @Query('includeWithdrawn', new DefaultValuePipe(false), ParseBoolPipe)
+    includeWithdrawn: boolean,
+  ) {
     this.assertTeacher(u);
-    return this.svc.listMyStudents(u.entId, u.refId);
+    return this.svc.listMyStudents(u.entId, u.refId, includeWithdrawn);
   }
 
   @Get(':stdId')
