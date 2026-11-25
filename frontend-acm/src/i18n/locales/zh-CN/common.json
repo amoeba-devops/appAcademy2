@@ -2727,7 +2727,7 @@
     "apiRule": "All calls require an API key. Use If-None-Match: * for creation and the latest ETag in If-Match for updates and deletion.",
     "saved": "Saved.",
     "saveError": "Save failed. Check input and permissions.",
-    "masterOnly": "仅租户主管可以管理 API 设置和密钥。",
+    "masterOnly": "仅 MASTER 或租户主管可以管理 API 设置和密钥。",
     "enabled": "启用外部 API",
     "offNotice": "OFF by default. Disabling blocks existing keys without deleting keys or lessons.",
     "save": "保存设置",

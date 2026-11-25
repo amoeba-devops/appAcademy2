@@ -769,6 +769,121 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
       .set(headers())
       .expect(404);
   });
+  it('allows an AMA MASTER to manage APIs on this page without widening tenant settings access', async () => {
+    const [{ usr_id: id }] = await env.ds.query(
+      `INSERT INTO amb_acm_user(ent_id,usr_email,usr_password_hash,usr_name,usr_role,ama_role)
+      VALUES($1,$2,'fixture','AMA master','ADMIN','MASTER') RETURNING usr_id`,
+      [ENT, `${randomUUID()}@fixture.test`],
+    );
+    const auth = { ...headers(), 'x-test-user': id };
+    const config = await request(env.app.getHttpServer())
+      .get('/api/acm/me/config-access')
+      .set(auth)
+      .expect(200);
+    expect(config.body.data).toMatchObject({
+      canManageApi: true,
+      canManageTenant: false,
+      canManageConfig: false,
+    });
+    await request(env.app.getHttpServer())
+      .get('/api/acm/integrations/catalog')
+      .set(auth)
+      .expect(200);
+    await request(env.app.getHttpServer())
+      .get('/api/acm/integrations/settings')
+      .set(auth)
+      .expect(200);
+    await request(env.app.getHttpServer())
+      .put('/api/acm/integrations/settings')
+      .set(auth)
+      .send({ enabled: true, scopes: SCOPES })
+      .expect(200);
+    const c = await request(env.app.getHttpServer())
+      .post('/api/acm/integrations/clients')
+      .set(auth)
+      .send({ name: 'AMA master app' })
+      .expect(201);
+    const k = await request(env.app.getHttpServer())
+      .post(`/api/acm/integrations/clients/${c.body.data.id}/keys`)
+      .set(auth)
+      .send({
+        name: 'Master key',
+        scopes: SCOPES,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      })
+      .expect(201);
+    await request(env.app.getHttpServer())
+      .delete(`/api/acm/integrations/keys/${k.body.data.id}`)
+      .set(auth)
+      .expect(200);
+    await request(env.app.getHttpServer())
+      .get('/api/acm/tenant/portal-menus')
+      .set(auth)
+      .expect(403);
+    await request(env.app.getHttpServer())
+      .get('/api/acm/me/config-menus')
+      .set(auth)
+      .expect(403);
+    await env.ds.query(
+      "UPDATE amb_acm_user SET ama_role='MANAGER' WHERE usr_id=$1",
+      [id],
+    );
+    await request(env.app.getHttpServer())
+      .put('/api/acm/integrations/settings')
+      .set(auth)
+      .send({ enabled: false, scopes: SCOPES })
+      .expect(403);
+  });
+  it.each([
+    ['ADMIN', 'MANAGER', 'ACTIVE'],
+    ['ADMIN', 'OWNER', 'ACTIVE'],
+    ['ADMIN', null, 'ACTIVE'],
+    ['STAFF', 'MASTER', 'ACTIVE'],
+    ['ADMIN', 'MASTER', 'INACTIVE'],
+  ])(
+    'denies API management for app role %s / AMA role %s / status %s',
+    async (role, ama, status) => {
+      const [{ usr_id: id }] = await env.ds.query(
+        `INSERT INTO amb_acm_user(ent_id,usr_email,usr_password_hash,usr_name,usr_role,ama_role,usr_status)
+      VALUES($1,$2,'fixture','Non-master',$3,$4,$5) RETURNING usr_id`,
+        [ENT, `${randomUUID()}@fixture.test`, role, ama, status],
+      );
+      const auth = { ...headers(), 'x-test-user': id };
+      await request(env.app.getHttpServer())
+        .get('/api/acm/integrations/settings')
+        .set(auth)
+        .expect(403);
+      const config = await request(env.app.getHttpServer())
+        .get('/api/acm/me/config-access')
+        .set(auth)
+        .expect(200);
+      expect(config.body.data.canManageApi).toBe(false);
+    },
+  );
+  it('keeps service operators read-only and checks API master access within the current tenant', async () => {
+    const [{ usr_id: id }] = await env.ds.query(
+      `INSERT INTO amb_acm_user(ent_id,usr_email,usr_password_hash,usr_name,usr_role)
+      VALUES($1,$2,'fixture','Service operator','ADMIN') RETURNING usr_id`,
+      [ENT, `${randomUUID()}@fixture.test`],
+    );
+    await env.ds.query(
+      "INSERT INTO amb_acm_user_permission(ent_id,usr_id,upr_permission) VALUES($1,$2,'CONFIG_ADMIN')",
+      [ENT, id],
+    );
+    const auth = { ...headers(), 'x-test-user': id };
+    await request(env.app.getHttpServer())
+      .get('/api/acm/integrations/catalog')
+      .set(auth)
+      .expect(200);
+    await request(env.app.getHttpServer())
+      .get('/api/acm/integrations/settings')
+      .set(auth)
+      .expect(403);
+    await request(env.app.getHttpServer())
+      .get('/api/acm/integrations/settings')
+      .set({ ...headers(), 'x-test-ent': OTHER })
+      .expect(403);
+  });
   it('prevents teachers from adding a video link to an onsite lesson', async () => {
     await env.ds.query(
       "INSERT INTO amb_acm_cal_video_config(ent_id,vdc_provider) VALUES($1,'GOOGLE_MEET')",

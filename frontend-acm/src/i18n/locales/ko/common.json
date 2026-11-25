@@ -2727,7 +2727,7 @@
     "apiRule": "모든 호출에 API 키가 필요합니다. 신규 등록은 If-None-Match: *, 수정·삭제는 최신 ETag의 If-Match가 필수입니다.",
     "saved": "저장했습니다.",
     "saveError": "저장하지 못했습니다. 입력값과 권한을 확인해 주세요.",
-    "masterOnly": "API 사용 설정과 키 관리는 테넌트 마스터만 사용할 수 있습니다.",
+    "masterOnly": "API 사용 설정과 키 관리는 마스터(MASTER) 또는 테넌트 마스터만 사용할 수 있습니다.",
     "enabled": "외부 API 사용",
     "offNotice": "기본은 OFF입니다. OFF로 저장하면 기존 키의 호출도 차단됩니다. 키와 기존 수업은 삭제되지 않습니다.",
     "save": "설정 저장",

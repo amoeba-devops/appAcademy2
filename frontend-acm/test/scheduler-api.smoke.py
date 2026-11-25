@@ -14,8 +14,10 @@ SCOPES = ['teachers:read', 'lessons:read', 'lessons:write']
 
 
 class Fixture:
-    def __init__(self, master=True):
+    def __init__(self, master=True, tenant_master=False, config_admin=True):
         self.master = master
+        self.tenant_master = tenant_master
+        self.config_admin = config_admin
         self.settings = {'enabled': False, 'scopes': SCOPES[:]}
         self.clients = []
         self.error = False
@@ -41,7 +43,7 @@ class Fixture:
             self.calls.append((path, method))
             data, status = {}, 200
             if path == '/acm/me/config-access':
-                data = {'canManageConfig': True, 'canManageTenant': self.master}
+                data = {'canManageConfig': self.config_admin, 'canManageTenant': self.tenant_master, 'canManageApi': self.master}
             elif path == '/acm/me/menus':
                 data = {'hidden': [], 'order': [], 'custom': []}
             elif path == '/acm/integrations/catalog':
@@ -142,7 +144,7 @@ with sync_playwright() as pw:
         context, errors = readonly.context(browser)
         page = context.new_page()
         page.goto(BASE + '/admin/config/api?tab=settings')
-        expect(page.get_by_text('API 사용 설정과 키 관리는 테넌트 마스터만 사용할 수 있습니다.')).to_be_visible()
+        expect(page.get_by_text('API 사용 설정과 키 관리는 마스터(MASTER) 또는 테넌트 마스터만 사용할 수 있습니다.')).to_be_visible()
         assert not any(path.endswith('/settings') or path.endswith('/clients') for path, _ in readonly.calls)
         context.close()
         print('PASS permission-restricted settings')
@@ -164,5 +166,14 @@ with sync_playwright() as pw:
         expect(page.get_by_role('alert')).to_contain_text('API 정보를 불러오지 못했습니다.')
         context.close()
         print('PASS API load error')
+        master_only = Fixture(master=True, tenant_master=False, config_admin=False)
+        context, errors = master_only.context(browser)
+        page = context.new_page()
+        page.goto(BASE + '/admin/config/api?tab=settings')
+        expect(page.get_by_role('checkbox', name='외부 API 사용', exact=True)).to_be_visible()
+        assert any(path.endswith('/settings') for path, _ in master_only.calls)
+        assert not errors, errors
+        context.close()
+        print('PASS MASTER direct settings route without tenant/config grants')
     finally:
         browser.close()

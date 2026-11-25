@@ -118,7 +118,7 @@ export function ApiGuidePage() {
           <pre className="overflow-x-auto rounded bg-gray-950 p-4 text-sm text-gray-100">{`Authorization: Bearer <API_KEY>\nContent-Type: application/json\nIdempotency-Key: <unique-operation-id>\nIf-None-Match: *  # create\nIf-Match: "<ETag>" # update/delete`}</pre>
         </section>
       ) : tab === "settings" ? (
-        <ApiUsageSettings canManage={access.tenantAllowed} />
+        <ApiUsageSettings canManage={access.apiAllowed} />
       ) : (
         <section className="space-y-4">
           <div className="flex flex-wrap items-center gap-3">

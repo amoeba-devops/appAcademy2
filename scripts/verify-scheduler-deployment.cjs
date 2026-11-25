@@ -1,5 +1,6 @@
 /* Run via docker exec -i <backend> node, with ACM_VERIFY_SCHEDULER=1.
- * Creates an isolated random tenant, tests real HTTP, and removes its rows.
+ * Creates an isolated random tenant and removes its business rows after testing.
+ * Existing append-only audit traces are deliberately preserved.
  * Never prints keys, JWTs, environment credentials or customer data.
  */
 const assert = require("node:assert/strict");
@@ -19,7 +20,7 @@ const ds = new DataSource({
   logging: false,
   synchronize: false,
 });
-const ent = randomUUID(),
+const ent = process.env.ACM_VERIFY_CLEANUP_ENT || randomUUID(),
   user = randomUUID(),
   teacher = randomUUID();
 const scopes = ["teachers:read", "lessons:read", "lessons:write"];
@@ -55,7 +56,9 @@ async function admin(path, method = "GET", body) {
 async function cleanup() {
   const tables =
     await ds.query(`SELECT t.table_name,c.column_name FROM information_schema.tables t JOIN information_schema.columns c USING(table_schema,table_name)
-    WHERE t.table_schema='public' AND t.table_type='BASE TABLE' AND t.table_name LIKE 'amb_acm_%' AND c.column_name IN ('ent_id','tnt_ent_id','tnm_ent_id')`);
+    WHERE t.table_schema='public' AND t.table_type='BASE TABLE' AND t.table_name LIKE 'amb_acm_%' AND c.column_name IN ('ent_id','tnt_ent_id','tnm_ent_id')
+      AND NOT EXISTS (SELECT 1 FROM pg_trigger tr JOIN pg_proc p ON p.oid=tr.tgfoid
+        WHERE tr.tgrelid=('public.'||t.table_name)::regclass AND p.proname='acm_aud_append_only')`);
   for (let pass = 0; pass < 8; pass++) {
     let left = 0;
     for (const { table_name: table, column_name: column } of tables) {
@@ -68,7 +71,7 @@ async function cleanup() {
         left++;
       }
     }
-    if (!left) break;
+    if (!left && pass >= 1) break;
   }
   for (const { table_name: table, column_name: column } of tables) {
     const [row] = await ds.query(
@@ -80,6 +83,23 @@ async function cleanup() {
 }
 (async () => {
   await ds.initialize();
+  if (process.env.ACM_VERIFY_CLEANUP_ENT) {
+    try {
+      const [owned] = await ds.query(
+        `SELECT t.tnt_ent_id FROM amb_acm_tenant t JOIN amb_acm_user u ON u.ent_id=t.tnt_ent_id
+        WHERE t.tnt_ent_id=$1 AND t.tnt_name='Ephemeral API deployment verification' AND u.usr_name='Deployment fixture' AND u.usr_password_hash='disabled-fixture-login'`,
+        [ent],
+      );
+      assert(owned, "Cleanup is restricted to this verifier's own fixture");
+      await cleanup();
+      console.log(
+        "PASS recovered fixture business rows removed; append-only audit retained",
+      );
+    } finally {
+      await ds.destroy();
+    }
+    return;
+  }
   try {
     await ds.transaction(async (m) => {
       await m.query(
@@ -87,12 +107,8 @@ async function cleanup() {
         [ent, "Ephemeral API deployment verification"],
       );
       await m.query(
-        `INSERT INTO amb_acm_user(usr_id,ent_id,usr_email,usr_password_hash,usr_name,usr_role,usr_must_change_password) VALUES($1,$2,$3,'disabled-fixture-login','Deployment fixture','ADMIN',false)`,
+        `INSERT INTO amb_acm_user(usr_id,ent_id,usr_email,usr_password_hash,usr_name,usr_role,usr_must_change_password,ama_role) VALUES($1,$2,$3,'disabled-fixture-login','Deployment fixture','ADMIN',false,'MASTER')`,
         [user, ent, `${user}@example.invalid`],
-      );
-      await m.query(
-        "INSERT INTO amb_acm_user_permission(ent_id,usr_id,upr_permission) VALUES($1,$2,'TENANT_MASTER')",
-        [ent, user],
       );
       await m.query(
         `INSERT INTO amb_acm_tch_teacher(tch_id,ent_id,tch_name,tch_email) VALUES($1,$2,'Fixture teacher',$3)`,
@@ -102,6 +118,22 @@ async function cleanup() {
     jwt = new JwtService({
       secret: process.env.ACM_JWT_SECRET || process.env.JWT_SECRET,
     }).sign({ sub: user, entId: ent, role: "ADMIN" }, { expiresIn: "5m" });
+    const access = await call(
+      "/acm/me/config-access",
+      "GET",
+      undefined,
+      {},
+      jwt,
+    );
+    assert.equal(access.status, 200);
+    assert.equal(access.data.canManageApi, true);
+    assert.equal(access.data.canManageTenant, false);
+    assert.equal(access.data.canManageConfig, false);
+    assert.equal(
+      (await call("/acm/tenant/portal-menus", "GET", undefined, {}, jwt))
+        .status,
+      403,
+    );
     const defaults = await admin("/settings");
     assert.equal(defaults.status, 200);
     assert.equal(defaults.data.enabled, false);
@@ -209,7 +241,9 @@ async function cleanup() {
     key = undefined;
     jwt = undefined;
     await cleanup();
-    console.log("PASS isolated verification tenant completely removed");
+    console.log(
+      "PASS isolated verification business rows removed; append-only audit retained",
+    );
     await ds.destroy();
   }
 })().catch((e) => {
