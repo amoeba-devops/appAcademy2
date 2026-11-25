@@ -769,6 +769,7 @@ function EventDetailModal({
   const video = useVideoConfig(true);
   const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
+  const location = useLocation();
   const isBoda = !!event && canEnterVideo(event, video.bodaEnabled);
 
   const zones = useMyZones("portal");
@@ -831,7 +832,11 @@ function EventDetailModal({
               <div className="mt-2 flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => navigate(`/portal/calendar/${event.id}`)}
+                  onClick={() =>
+                    navigate("/portal/calendar/" + event.id, {
+                      state: { from: location.pathname + location.search },
+                    })
+                  }
                   className="inline-flex items-center gap-2 rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
                 >
                   {isBoda && <Video size={16} />}

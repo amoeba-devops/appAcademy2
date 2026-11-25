@@ -64,6 +64,13 @@ class Fixture:
                           category='REGULAR_CLASS' if i!=1 else 'DEMO_CLASS',startAt=day+'T01:00:00Z',endAt=day+'T01:50:00Z',
                           allDay=False,meetingProvider='NONE',invitees=[],attachments=[],classDone=False))
                 data={'items':events}
+            elif path.startswith('/portal/cal/events/'):
+                if path.endswith('/review'):
+                    data={'feedbackHtml':None,'homeworkStatus':None,'homeworkHtml':None}
+                else:
+                    data=dict(id=path.split('/')[-1],title='가학생 영어 수업',category='REGULAR_CLASS',
+                      startAt='2026-11-25T01:00:00Z',endAt='2026-11-25T01:50:00Z',
+                      allDay=False,meetingProvider='NONE',primaryStudentName='가학생',invitees=[],attachments=[])
             elif path=='/portal/materials':
                 posts=[dict(id='mat-'+str(i),kind='FILE' if i%2 else 'DOC',title=('Reading ' if i<12 else 'Math ')+str(i),
                     filename='lesson.pdf' if i%2 else None,sizeBytes=1024,createdAt='2026-11-25T00:00:00Z',
@@ -125,6 +132,17 @@ with sync_playwright() as p:
                 expect(page.locator('main h1')).to_have_text('마이페이지')
             assert not f.errors,f.errors
             ctx.close();print('PASS teacher layout, filters, withdrawn scope, detail and restore',width)
+        f=Fixture();ctx=f.context(browser,1280);page=ctx.new_page()
+        page.goto(BASE+'/portal/calendar?date=2026-11-25&view=month&student=가학생&category=REGULAR_CLASS')
+        page.locator('main .grid.grid-cols-7 button').filter(has_text='가학생').first.click()
+        page.get_by_role('button',name='전체내용보기',exact=True).click()
+        back=page.locator('main > div > a').first
+        expect(back).to_have_attribute('href',__import__('re').compile('student=.*category=REGULAR_CLASS'))
+        back.click()
+        expect(page.locator('main').get_by_label('학생',exact=True)).to_have_value('가학생')
+        expect(page.get_by_role('button',name='월',exact=True)).to_have_attribute('aria-pressed','true')
+        assert not f.errors,f.errors
+        ctx.close();print('PASS month modal full detail preserves date/view/filters')
         for role in ['TEACHER','STUDENT','PARENT']:
             for on in [False,True]:
                 f=Fixture(role,on);ctx=f.context(browser,390);page=ctx.new_page();page.goto(BASE+'/portal/me')
