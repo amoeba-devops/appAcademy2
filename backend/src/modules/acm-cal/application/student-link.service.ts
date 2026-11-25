@@ -132,6 +132,7 @@ export class StudentLinkService {
         `At most ${MAX_APPLY_EVENTS} events per request`,
       );
     return this.ds.transaction(async (m) => {
+      await m.query('SELECT pg_advisory_xact_lock(1072,1)');
       const evts = await m.query<{ id: string; title: string }[]>(
         `SELECT evt_id::text id, evt_title title FROM amb_acm_cal_event
           WHERE ent_id=$1 AND evt_id = ANY($2::uuid[]) AND deleted_at IS NULL FOR UPDATE`,

@@ -10,11 +10,8 @@ export type CalCategory =
   | 'REGULAR_CLASS'
   | 'OTHER';
 export type CalMeetingProvider =
-  | 'NONE'
-  | 'GOOGLE_MEET'
-  | 'BODASCHOOL'
-  | 'OTHER';
-export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT';
+  'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
+export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT' | 'EXTERNAL';
 /** BODA 룸 유형 — 1:1 수업(699) vs 1:N 그룹 수업(881). @see FIX-260724 */
 export type CalBodaRoomType = 'ONE_TO_ONE' | 'ONE_TO_MANY';
 
@@ -112,6 +109,28 @@ export class CalEventTypeormEntity {
     default: 'MANUAL',
   })
   source!: CalSource;
+
+  @Column({
+    name: 'evt_delivery_mode',
+    type: 'varchar',
+    length: 10,
+    nullable: true,
+  })
+  deliveryMode?: 'ONSITE' | 'ONLINE' | null;
+
+  @Column({ name: 'evt_external_students', type: 'jsonb', nullable: true })
+  externalStudents?: { studentId: string | null; name: string }[] | null;
+
+  @Column({
+    name: 'evt_external_client_name',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
+  externalClientName?: string | null;
+
+  @Column({ name: 'evt_version', type: 'integer', default: 1 })
+  version!: number;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'NOW()' })
   createdAt!: Date;

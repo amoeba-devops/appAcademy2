@@ -49,7 +49,13 @@ export function PortalCalEventDetailPage() {
   // REQ-261015C — 테넌트 기본 타임존 기준 + 사용자 타임존 병기.
   const zones = useMyZones("portal");
   const when = event
-    ? formatEventWhen(event.startAt, event.endAt, event.allDay, zones, i18n.language)
+    ? formatEventWhen(
+        event.startAt,
+        event.endAt,
+        event.allDay,
+        zones,
+        i18n.language,
+      )
     : "";
   const KIND_BADGE: Record<string, string> = {
     STUDENT: "bg-blue-100 text-blue-700",
@@ -60,10 +66,15 @@ export function PortalCalEventDetailPage() {
   return (
     <div>
       <Link
-        to={portalUser?.kind === "TEACHER" ? "/portal/calendar" : "/portal/links"}
+        to={
+          portalUser?.kind === "TEACHER" ? "/portal/calendar" : "/portal/links"
+        }
         className="mb-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
       >
-        <ChevronLeft size={12} /> {portalUser?.kind === "TEACHER" ? t("portalApp.cal.back", "일정으로") : t("portalApp.nav.links")}
+        <ChevronLeft size={12} />{" "}
+        {portalUser?.kind === "TEACHER"
+          ? t("portalApp.cal.back", "일정으로")
+          : t("portalApp.nav.links")}
       </Link>
 
       {isLoading || !event ? (
@@ -199,7 +210,19 @@ export function PortalCalEventDetailPage() {
             )}
 
           {/* REQ-261023 — 강사: 수업 링크 보기·등록·수정(담당 강사만 수정) */}
-          {portalUser?.kind === "TEACHER" && <MeetingLinkEditor evtId={event.id} />}
+          {portalUser?.kind === "TEACHER" &&
+            event.deliveryMode !== "ONSITE" && (
+              <MeetingLinkEditor evtId={event.id} />
+            )}
+          {event?.externalClientName && (
+            <p className="text-sm text-secondary">
+              {event.externalClientName} ·{" "}
+              {event.deliveryMode === "ONSITE"
+                ? t("common:scheduler.onsite")
+                : t("common:scheduler.online")}{" "}
+              · {event.externalStudents?.map((s) => s.name).join(", ")}
+            </p>
+          )}
           {event.meetingProvider === "BODASCHOOL" && !video.bodaEnabled && (
             <p>{t("video.unavailable")}</p>
           )}

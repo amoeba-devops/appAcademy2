@@ -1,3 +1,5 @@
+import { TransformInterceptor } from '../../../src/presentation/interceptors/transform.interceptor';
+import { GlobalExceptionFilter } from '../../../src/presentation/filters/global-exception.filter';
 import {
   PostgreSqlContainer,
   StartedPostgreSqlContainer,
@@ -87,7 +89,10 @@ const TEST_ALLOWED_ENTITY_IDS = [
 
 /** `extraImports` — modules a spec needs beyond the shared set (e.g. AcmStdModule). */
 export async function bootAcmTestEnv(
-  extraImports: NonNullable<Parameters<typeof Test.createTestingModule>[0]['imports']> = [],
+  extraImports: NonNullable<
+    Parameters<typeof Test.createTestingModule>[0]['imports']
+  > = [],
+  options: { runtimeContract?: boolean } = {},
 ): Promise<AcmTestEnv> {
   const pg = await new PostgreSqlContainer(PG_IMAGE)
     .withDatabase('db_amb_test')
@@ -153,10 +158,14 @@ export async function bootAcmTestEnv(
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: options.runtimeContract === true,
       transform: true,
     }),
   );
+  if (options.runtimeContract) {
+    app.useGlobalInterceptors(new TransformInterceptor());
+    app.useGlobalFilters(new GlobalExceptionFilter());
+  }
   app.setGlobalPrefix('api');
   // Test auth: inject req.user from x-test-user/x-test-ent/x-test-roles headers
   app.use((req: any, _res: any, next: any) => {
@@ -190,6 +199,9 @@ export async function bootAcmTestEnv(
     );
   }
 
+  // Stable listener: per-request listen/close can reuse an ephemeral port while
+  // another suite is tearing down. Match the production server lifecycle.
+  await app.listen(0, '127.0.0.1');
   return { app, pg, ds };
 }
 

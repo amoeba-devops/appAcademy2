@@ -48,6 +48,10 @@ export class CalInviteeInputDto {
 }
 
 export class CreateCalEventDto {
+  @IsOptional()
+  @IsIn(['ONSITE', 'ONLINE'])
+  evtDeliveryMode?: 'ONSITE' | 'ONLINE';
+
   @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'REGULAR_CLASS' })
   @IsOptional()
   @IsEnum(CAL_CATEGORIES)
@@ -143,6 +147,10 @@ export class CreateCalEventDto {
 }
 
 export class UpdateCalEventDto {
+  @IsOptional()
+  @IsIn(['ONSITE', 'ONLINE'])
+  evtDeliveryMode?: 'ONSITE' | 'ONLINE';
+
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
   @IsOptional()
   @IsEnum(CAL_CATEGORIES)
@@ -309,6 +317,10 @@ export class ListCalEventsQueryDto {
   @ArrayMaxSize(10)
   @IsUUID('all', { each: true })
   assigneeTchIds?: string[];
+
+  @IsOptional()
+  @IsIn(['ONSITE', 'ONLINE'])
+  evtDeliveryMode?: 'ONSITE' | 'ONLINE';
 
   @ApiPropertyOptional({ enum: CAL_CATEGORIES })
   @IsOptional()

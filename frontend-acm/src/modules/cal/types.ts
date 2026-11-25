@@ -20,7 +20,7 @@ export type CalMeetingProvider = (typeof CAL_PROVIDERS)[number];
 export const CAL_BODA_ROOM_TYPES = ["ONE_TO_ONE", "ONE_TO_MANY"] as const;
 export type CalBodaRoomType = (typeof CAL_BODA_ROOM_TYPES)[number];
 
-export type CalSource = "MANUAL" | "CLS_SESSION" | "INSTANT";
+export type CalSource = "MANUAL" | "CLS_SESSION" | "INSTANT" | "EXTERNAL";
 
 export const CAL_INVITEE_KINDS = ["STUDENT", "TEACHER", "PARENT"] as const;
 export type CalInviteeKind = (typeof CAL_INVITEE_KINDS)[number];
@@ -108,6 +108,9 @@ export interface CalEvent {
   /** REQ-260630 — 담당자 강사 (FK to amb_acm_tch_teacher). Separate from owner/invitee. */
   assigneeTchId?: string | null;
   source: CalSource;
+  deliveryMode?: 'ONSITE' | 'ONLINE' | null;
+  externalStudents?: { studentId: string | null; name: string }[] | null;
+  externalClientName?: string | null;
   createdAt: string;
   updatedAt: string;
   /** REQ-260728 — soft-delete 메타('삭제 보기' 목록에서 사용). */

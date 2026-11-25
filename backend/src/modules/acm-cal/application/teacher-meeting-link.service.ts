@@ -24,6 +24,7 @@ interface EventRow {
   provider: string;
   url: string | null;
   assigneeTchId: string | null;
+  deliveryMode: string | null;
 }
 
 /**
@@ -47,7 +48,7 @@ export class TeacherMeetingLinkService {
   ): Promise<EventRow> {
     const [e] = await m.query<EventRow[]>(
       `SELECT evt_id id, evt_title title, evt_start_at "startAt", evt_meeting_provider provider,
-              evt_meeting_url url, evt_assignee_tch_id "assigneeTchId"
+              evt_meeting_url url, evt_assignee_tch_id "assigneeTchId", evt_delivery_mode "deliveryMode"
          FROM amb_acm_cal_event WHERE ent_id=$1 AND evt_id=$2 AND deleted_at IS NULL${lock ? ' FOR UPDATE' : ''}`,
       [entId, evtId],
     );
@@ -79,6 +80,7 @@ export class TeacherMeetingLinkService {
          JOIN amb_acm_cal_event e ON e.evt_id=o.evt_id AND e.ent_id=o.ent_id
         WHERE o.ent_id=$1 AND o.crs_id=$2 AND o.cro_key >= $3 AND e.deleted_at IS NULL
           AND COALESCE(e.evt_meeting_provider,'NONE') <> 'BODASCHOOL'
+          AND COALESCE(e.evt_delivery_mode,'ONLINE') <> 'ONSITE'
         ORDER BY o.cro_key`,
       [entId, crsId, key],
     );
@@ -86,6 +88,7 @@ export class TeacherMeetingLinkService {
   }
 
   private editBlock(e: EventRow, tenantProvider: string): string | null {
+    if (e.deliveryMode === 'ONSITE') return 'ONSITE_VIDEO_NOT_ALLOWED';
     if (e.provider === 'BODASCHOOL') return 'BODA_LINK_MANAGED';
     if (tenantProvider !== 'GOOGLE_MEET') return 'VIDEO_PROVIDER_MISMATCH';
     return null;
@@ -122,6 +125,7 @@ export class TeacherMeetingLinkService {
     const { provider: tenantProvider } = await this.video.get(entId);
     const url = validateMeetingUrl('GOOGLE_MEET', input.meetingUrl ?? null);
     const result = await this.ds.transaction(async (m) => {
+      await m.query('SELECT pg_advisory_xact_lock(1072,1)');
       const e = await this.event(m, entId, evtId, true);
       if (e.assigneeTchId !== tchId)
         throw new ForbiddenException('NOT_ASSIGNEE_TEACHER');

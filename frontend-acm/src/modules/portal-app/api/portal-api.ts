@@ -12,6 +12,9 @@ export interface PortalLoginResult {
 }
 
 export interface PortalCalEvent {
+  deliveryMode?: 'ONSITE' | 'ONLINE' | null;
+  externalClientName?: string | null;
+  externalStudents?: { studentId: string | null; name: string }[] | null;
   id: string;
   title: string;
   category: string;
