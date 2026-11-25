@@ -3,7 +3,6 @@ import { useVideoConfig, canEnterVideo, meetingHref } from '@/modules/cfg/hooks/
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { CalendarDays, ChevronLeft, ChevronRight, Link2, LogIn, Plus, Trash2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
@@ -38,6 +37,7 @@ import type { CalEvent, CalInviteeKind, InviteeCandidate, ListCalEventsQuery } f
 import { CalEventModal, teacherJoinUrl } from '../components/cal-event-modal';
 import { AttendeeFilter } from '../components/attendee-filter';
 import { TeacherMultiCombo } from '../components/teacher-multi-combo';
+import { eventLine } from '../lib/event-line';
 
 type CalendarView = 'day' | 'week' | 'month' | 'list';
 
@@ -564,16 +564,8 @@ function ListRow({
       onClick={onClick}
       className="flex w-full flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-2 text-left hover:bg-[var(--gray-50)]"
     >
-      <span className="w-14 shrink-0 text-sm tabular-nums text-secondary">
-        {formatTime(event.startAt, locale, tz)}
-      </span>
-      <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary">
-        {event.title}
-        {event.primaryStudentName && (
-          <span className="ml-1.5 font-normal text-secondary">
-            · {event.primaryStudentName}
-          </span>
-        )}
+      <span className="min-w-0 flex-1 truncate text-sm font-medium text-primary tabular-nums">
+        {buildEventDisplayLine(event, locale, tz)}
       </span>
       <span className="flex shrink-0 items-center gap-1.5 text-xs">
         {event.hasFeedback && (
@@ -679,7 +671,7 @@ function CalendarEventCard({
   const { t } = useTranslation('cal');
   const color = useCalendarColor(event);
   const tz = useTenantTz();
-  const display = buildEventDisplayLine(event, locale, t, tz);
+  const display = buildEventDisplayLine(event, locale, tz);
   // PLN-260714 — 등록된 화상수업(BODA)이면 카드에서 바로 강사 입장.
   const video = useVideoConfig();
   const canEnter = canEnterVideo(event, video.bodaEnabled);
@@ -749,38 +741,9 @@ function CalendarEventCard({
   );
 }
 
-function buildEventDisplayLine(event: CalEvent, locale: string, t: TFunction, tz?: string): string {
-  const parsed = splitEventTitle(event, t);
-  const student = event.primaryStudentName ?? parsed.studentName ?? '';
-  const className = parsed.className ?? event.title;
-  return `${formatTime(event.startAt, locale, tz)} | ${student} | ${className}`;
-}
-
-function splitEventTitle(event: CalEvent, t: TFunction): {
-  className: string | null;
-  studentName: string | null;
-} {
-  const demoMatch = /^Demo Class\s+[-—]\s+(.+)$/i.exec(event.title);
-  if (demoMatch?.[1]) {
-    return {
-      className: t('category.DEMO_CLASS'),
-      studentName: demoMatch[1].trim(),
-    };
-  }
-  const levelMatch = /^Level Test(?:\s+\((.+)\))?\s+[-—]\s+(.+)$/i.exec(event.title);
-  if (levelMatch?.[2]) {
-    return {
-      className: levelMatch[1]
-        ? `${t('category.LEVEL_TEST')} (${levelMatch[1]})`
-        : t('category.LEVEL_TEST'),
-      studentName: levelMatch[2].trim(),
-    };
-  }
-
-  if (event.category === 'DEMO_CLASS') return { className: t('category.DEMO_CLASS'), studentName: null };
-  if (event.category === 'LEVEL_TEST') return { className: t('category.LEVEL_TEST'), studentName: null };
-  if (event.category === 'REGULAR_CLASS') return { className: event.title, studentName: null };
-  return { className: event.title, studentName: null };
+// REQ-261125-CAL — 관리자 달력·강사 포털 공통 문구 "시간 | 학생 | 제목".
+function buildEventDisplayLine(event: CalEvent, locale: string, tz?: string): string {
+  return eventLine(event.allDay ? '' : formatTime(event.startAt, locale, tz), event);
 }
 
 /**

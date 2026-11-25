@@ -23,6 +23,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { formatEventWhen, formatInTz, formatDualRange, tzCity } from "@/lib/tz";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useMyZones } from "@/modules/me/use-my-zones";
+import { eventLine, eventStudentNames } from "@/modules/cal/lib/event-line";
 
 type ViewMode = "month" | "week" | "day" | "list";
 const STUDENT_COLORS = [
@@ -32,18 +33,9 @@ const STUDENT_COLORS = [
   "border-emerald-600 bg-emerald-50 text-emerald-950",
   "border-orange-600 bg-orange-50 text-orange-950",
 ];
+// REQ-261125-CAL — 학생 이름은 일정 참석자로 등록된 시스템 학생만 (관리자 달력과 동일).
 function studentNames(event: PortalCalEvent): string[] {
-  return Array.from(
-    new Set(
-      [
-        event.primaryStudentName,
-        ...(event.externalStudents ?? []).map((student) => student.name),
-        ...(event.invitees ?? [])
-          .filter((person) => person.kind === "STUDENT")
-          .map((person) => person.name),
-      ].filter((name): name is string => !!name),
-    ),
-  );
+  return eventStudentNames(event);
 }
 function studentColor(event: PortalCalEvent) {
   const name = studentNames(event)[0] || event.title;
@@ -376,7 +368,8 @@ function eventsOn(events: PortalCalEvent[], day: Date) {
     .sort((a, b) => +new Date(a.startAt) - +new Date(b.startAt));
 }
 
-const HM = { hour: "2-digit", minute: "2-digit", hourCycle: "h23" } as const;
+// REQ-261125-CAL — 관리자 달력과 같은 24시간 "17:00" (hourCycle 은 ko 에서 "오후" 가 붙는 경우가 있어 hour12:false)
+const HM = { hour: "2-digit", minute: "2-digit", hour12: false } as const;
 /** REQ-261015C — 테넌트 기본 타임존 기준 시각 + 사용자 타임존 병기. */
 function usePortalTime() {
   const { i18n } = useTranslation();
@@ -480,13 +473,7 @@ function MonthGrid({
                   key={e.id}
                   type="button"
                   onClick={() => onSelect(e)}
-                  title={
-                    time.range(e) +
-                    " " +
-                    studentNames(e).join(", ") +
-                    " " +
-                    e.title
-                  }
+                  title={eventLine(time.range(e), e)}
                   className={
                     "mt-1 flex w-full items-center gap-1 truncate rounded border-l-[3px] px-1.5 py-1 text-left hover:brightness-95 " +
                     studentColor(e)
@@ -495,12 +482,7 @@ function MonthGrid({
                   {canEnterVideo(e, video.bodaEnabled) && (
                     <Video size={10} className="shrink-0" />
                   )}
-                  <span className="truncate">
-                    {time.label(e)}{" "}
-                    {studentNames(e).length
-                      ? studentNames(e).join(", ")
-                      : e.title}
-                  </span>
+                  <span className="truncate">{eventLine(time.label(e), e)}</span>
                   {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
                   {e.classDone && (
                     <span className="shrink-0 rounded bg-emerald-100 px-0.5 text-[8px] font-semibold text-emerald-800">
@@ -566,13 +548,8 @@ function MonthGrid({
                       {event.allDay ? t("overflow.allDay") : time.range(event)}
                     </span>
                     <span className="block break-words font-medium">
-                      {event.title}
+                      {eventLine("", event)}
                     </span>
-                    {event.primaryStudentName && (
-                      <span className="block text-sm text-secondary">
-                        {event.primaryStudentName}
-                      </span>
-                    )}
                   </button>
                 </li>
               ))}
@@ -655,13 +632,8 @@ function EventRow({
         )}
       </span>
       <span className="min-w-0 flex-1 truncate text-sm text-primary">
-        {e.title}
-        {/* PLN-260729 3 — 제목 옆 학생명 */}
-        {e.primaryStudentName && (
-          <span className="ml-1.5 text-secondary">
-            · {e.primaryStudentName}
-          </span>
-        )}
+        {/* REQ-261125-CAL — 관리자 달력과 같은 "학생 | 제목" (시간은 왼쪽 칸) */}
+        {eventLine("", e)}
       </span>
       {/* PLN-260729 3 — 피드백/과제 텍스트 표기 (아이콘은 월간뷰만) */}
       <span className="flex shrink-0 items-center gap-1.5 text-xs">

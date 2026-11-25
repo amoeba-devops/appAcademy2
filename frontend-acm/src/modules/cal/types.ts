@@ -125,6 +125,8 @@ export interface CalEvent {
   assigneeEmail?: string | null;
   inviteeCount?: number;
   primaryStudentName?: string | null;
+  /** REQ-261125-CAL — 참석 학생(시스템 등록)만. */
+  studentNames?: string[];
   invitees?: CalInviteeView[];
   cslLink?: CalCslLink | null;
   /** PLN-260718 P2 — 이벤트 자체 첨부자료 (findOne 상세에서만 채워짐). */

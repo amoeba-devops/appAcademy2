@@ -445,7 +445,7 @@ export class CalEventService {
       entId,
       items.map((i) => i.id),
     );
-    const primaryStudents = await this.inviteeSvc.primaryStudentNamesByEvent(
+    const studentNames = await this.inviteeSvc.studentNamesByEvent(
       entId,
       items.map((i) => i.id),
     );
@@ -464,11 +464,9 @@ export class CalEventService {
       hasFeedback: reviewFlags.get(e.id)?.hasFeedback ?? false,
       homeworkStatus: reviewFlags.get(e.id)?.homeworkStatus ?? null,
       classDone: reviewFlags.get(e.id)?.classDone ?? false,
-      primaryStudentName:
-        primaryStudents.get(e.id) ??
-        e.externalStudents?.[0]?.name ??
-        this.extractStudentNameFromTitle(e.title) ??
-        null,
+      // REQ-261125-CAL — 시스템에 등록된 참석 학생만 (제목·외부 이름 추정 폐지).
+      studentNames: studentNames.get(e.id) ?? [],
+      primaryStudentName: studentNames.get(e.id)?.[0] ?? null,
       deletedByName: e.deletedBy
         ? (ownerMap.get(e.deletedBy)?.name ?? null)
         : null,
@@ -504,10 +502,9 @@ export class CalEventService {
         ? (assigneeMap.get(e.assigneeTchId)?.email ?? null)
         : null,
       invitees,
-      primaryStudentName:
-        invitees.find((invitee) => invitee.kind === 'STUDENT')?.name ??
-        this.extractStudentNameFromTitle(e.title) ??
-        null,
+      // REQ-261125-CAL — 시스템에 등록된 참석 학생만.
+      studentNames: registeredStudentNames(invitees),
+      primaryStudentName: registeredStudentNames(invitees)[0] ?? null,
       cslLink,
       attachments,
     };
@@ -1150,14 +1147,6 @@ export class CalEventService {
     };
   }
 
-  private extractStudentNameFromTitle(title: string): string | null {
-    const demo = /^Demo Class\s+[-—]\s+(.+)$/i.exec(title);
-    if (demo?.[1]) return demo[1].trim();
-    const level = /^Level Test(?:\s+\(.+\))?\s+[-—]\s+(.+)$/i.exec(title);
-    if (level?.[1]) return level[1].trim();
-    return null;
-  }
-
   private assertCanView(
     e: CalEventTypeormEntity,
     actorUserId: string,
@@ -1206,4 +1195,20 @@ export class CalEventService {
     createdAt: e.createdAt,
     updatedAt: e.updatedAt,
   });
+}
+
+/** REQ-261125-CAL — 참석자 중 시스템 학생 이름 (중복 제거, 순서 유지). */
+function registeredStudentNames(
+  invitees: { kind: string; name?: string | null }[],
+): string[] {
+  const names: string[] = [];
+  for (const i of invitees)
+    if (
+      i.kind === 'STUDENT' &&
+      i.name &&
+      i.name !== '(deleted)' &&
+      !names.includes(i.name)
+    )
+      names.push(i.name);
+  return names;
 }

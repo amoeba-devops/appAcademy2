@@ -34,6 +34,8 @@ export interface PortalCalEvent {
   // PLN-260728F B — 담당강사 tch_id(작성 권한 판단) + 수업완료 플래그.
   assigneeTchId?: string | null;
   primaryStudentName?: string | null;
+  /** REQ-261125-CAL — 참석 학생(시스템 등록)만. */
+  studentNames?: string[];
   hasFeedback?: boolean;
   homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
   classDone?: boolean;

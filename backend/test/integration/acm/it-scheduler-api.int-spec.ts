@@ -315,7 +315,9 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
       source: 'EXTERNAL',
       deliveryMode: 'ONSITE',
       meetingProvider: 'NONE',
-      primaryStudentName: 'Guest demo',
+      // REQ-261125-CAL — 학생 이름은 시스템 등록 학생만 (외부 게스트 이름은 달력 문구에 안 씀)
+      primaryStudentName: null,
+      studentNames: [],
       externalClientName: 'Internal scheduler',
     });
     const portal = await request(env.app.getHttpServer())
@@ -325,7 +327,7 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
       .expect(200);
     expect(portal.body.data.items[0]).toMatchObject({
       id: r.body.data.id,
-      primaryStudentName: 'Guest demo',
+      primaryStudentName: null,
       deliveryMode: 'ONSITE',
     });
     expect(

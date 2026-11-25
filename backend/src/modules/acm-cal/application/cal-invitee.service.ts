@@ -278,11 +278,15 @@ export class CalInviteeService {
     return map;
   }
 
-  async primaryStudentNamesByEvent(
+  /**
+   * REQ-261125-CAL — 일정별 참석 학생 이름 (시스템에 등록된 학생만, 등록 순).
+   * 달력 문구 '시간 | 학생 | 제목' 의 학생 부분. 제목·외부 이름에서 추정하지 않는다.
+   */
+  async studentNamesByEvent(
     entId: string,
     evtIds: string[],
-  ): Promise<Map<string, string>> {
-    const map = new Map<string, string>();
+  ): Promise<Map<string, string[]>> {
+    const map = new Map<string, string[]>();
     const unique = Array.from(new Set(evtIds.filter(Boolean)));
     if (unique.length === 0) return map;
     const rows = await this.invitees
@@ -302,9 +306,9 @@ export class CalInviteeService {
       .getRawMany<{ evtId: string; name: string }>();
 
     for (const row of rows) {
-      if (!map.has(row.evtId)) {
-        map.set(row.evtId, row.name);
-      }
+      const names = map.get(row.evtId) ?? [];
+      if (!names.includes(row.name)) names.push(row.name);
+      map.set(row.evtId, names);
     }
     return map;
   }
