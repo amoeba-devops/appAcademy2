@@ -55,9 +55,12 @@ export class PortalMaterialController {
     @Query('kind') kind?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('q') q?: string,
   ) {
     // REQ-260728B FR-4 — 종류필터 + 페이징 (파라미터 미지정 시 1페이지/10건).
     const opts = {
+      search:
+        typeof q === 'string' ? q.trim().slice(0, 100) || undefined : undefined,
       matKind:
         kind === 'DOC' || kind === 'FILE'
           ? (kind as 'DOC' | 'FILE')

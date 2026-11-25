@@ -100,7 +100,7 @@ with sync_playwright() as pw:
             context, page, errors, requests, _ = run(browser, role)
             page.goto(BASE + '/portal/calendar/')
             page.wait_for_load_state('networkidle')
-            calendar = page.locator('nav a[href="/portal/calendar"]')
+            calendar = page.locator('.portal-sidebar nav a[href="/portal/calendar"]')
             if role == 'TEACHER':
                 expect(calendar).to_be_visible()
                 for label in ['주', '일', '리스트', '월']:
@@ -137,14 +137,14 @@ with sync_playwright() as pw:
         expect(page.get_by_text('재원 테스트', exact=True)).to_be_visible()
         expect(page.get_by_text('휴원 테스트', exact=True)).to_be_visible()
         expect(page.get_by_text('퇴원 테스트', exact=True)).to_have_count(0)
-        page.get_by_role('checkbox', name='전체보기').check()
+        page.get_by_role('button', name='전체보기(퇴원 포함)', exact=True).click()
         expect(page.get_by_text('퇴원 테스트', exact=True)).to_be_visible()
         page.screenshot(path=str(ARTIFACTS / 'students-all.png'), full_page=True)
         page.get_by_text('퇴원 테스트', exact=True).click()
         expect(page.get_by_role('heading', name='퇴원 테스트', exact=True)).to_be_visible()
         page.get_by_role('link', name='수강생 목록으로').click()
-        expect(page.get_by_role('checkbox', name='전체보기')).not_to_be_checked()
-        expect(page.get_by_text('퇴원 테스트', exact=True)).to_have_count(0)
+        expect(page.get_by_role('button', name='전체보기(퇴원 포함)', exact=True)).to_have_attribute('aria-pressed', 'true')
+        expect(page.get_by_text('퇴원 테스트', exact=True)).to_be_visible()
         assert any(q.get('includeWithdrawn') == ['true'] for path, q in requests if path == '/portal/teacher/students')
         assert any(q.get('includeWithdrawn') == ['false'] for path, q in requests if path == '/portal/teacher/students')
         assert not errors, errors

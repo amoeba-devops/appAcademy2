@@ -9,7 +9,7 @@ import {
   meetingHref,
 } from "@/modules/cfg/hooks/use-video-config";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
@@ -35,6 +35,13 @@ import { portalApi, type PortalCalAttachment } from "../api/portal-api";
 export function PortalCalEventDetailPage() {
   // PLN-260719 R2 — 강사/학생 모두 일정의 모든 정보 노출 (cal 네임스페이스 병용).
   const { t, i18n } = useTranslation(["common", "cal"]);
+  const location = useLocation();
+  const from = (location.state as { from?: unknown } | null)?.from;
+  const back =
+    typeof from === "string" &&
+    /^\/portal\/(calendar|students)(\/|\?|$)/.test(from)
+      ? from
+      : null;
   const { evtId } = useParams<{ evtId: string }>();
 
   const { data: event, isLoading } = useQuery({
@@ -67,7 +74,10 @@ export function PortalCalEventDetailPage() {
     <div>
       <Link
         to={
-          portalUser?.kind === "TEACHER" ? "/portal/calendar" : "/portal/links"
+          back ??
+          (portalUser?.kind === "TEACHER"
+            ? "/portal/calendar"
+            : "/portal/links")
         }
         className="mb-3 inline-flex items-center gap-1 text-xs text-accent-700 hover:underline"
       >

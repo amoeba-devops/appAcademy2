@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 type Mode = "admin" | "portal";
 const KEY = "acm-push-binding";
+const PUSH_CHANGED = "acm-push-state-changed";
 /** REQ-261020C — "이 기기에서 알림 받기" 안내를 닫은 시각(14일 동안 다시 보이지 않음). */
 const BANNER_KEY = "acm-push-banner-dismissed";
 const BANNER_SNOOZE_MS = 14 * 24 * 3600 * 1000;
@@ -52,7 +53,11 @@ const pushSupported = () =>
  * 서버 연결을 끊는다. `unsubscribe` 가 false 면 브라우저 구독은 남겨 두어
  * 같은 기기로 다시 로그인하면 자동으로 다시 연결된다(FIX-261026 — 로그아웃).
  */
-async function clearDevice(binding: Binding, token?: string | null, unsubscribe = true) {
+async function clearDevice(
+  binding: Binding,
+  token?: string | null,
+  unsubscribe = true,
+) {
   localStorage.removeItem(KEY);
   await (await caches.open("acm-push-settings")).delete("/__acm-push-actor");
   if (unsubscribe) {
@@ -64,6 +69,7 @@ async function clearDevice(binding: Binding, token?: string | null, unsubscribe 
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     }).catch(() => undefined);
+  window.dispatchEvent(new Event(PUSH_CHANGED));
 }
 /** 서버에 이 기기 구독을 (다시) 등록하고, 서비스워커가 아는 계정을 맞춘다. */
 async function register(mode: Mode, subscription: PushSubscription) {
@@ -78,6 +84,7 @@ async function register(mode: Mode, subscription: PushSubscription) {
     await caches.open("acm-push-settings")
   ).put("/__acm-push-actor", new Response(res.actor));
   localStorage.setItem(KEY, JSON.stringify({ ...res, base: baseOf(mode) }));
+  window.dispatchEvent(new Event(PUSH_CHANGED));
 }
 function useActor(mode: Mode) {
   const user = useAuthStore((s) => (mode === "admin" ? s.user : s.portal.user));
@@ -99,17 +106,24 @@ export function forgetDevicePush(mode: Mode) {
 }
 
 const toKey = (key: string) =>
-  Uint8Array.from(atob(key.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+  Uint8Array.from(atob(key.replace(/-/g, "+").replace(/_/g, "/")), (c) =>
+    c.charCodeAt(0),
+  );
 
 /** 권한이 허용된 기기에서 구독을 가져오거나(없으면) 새로 만든다. */
-async function ensureSubscription(publicKey: string): Promise<PushSubscription> {
+async function ensureSubscription(
+  publicKey: string,
+): Promise<PushSubscription> {
   const reg =
     (await navigator.serviceWorker.getRegistration("/")) ??
     (await navigator.serviceWorker.register("/acm-sw.js", { scope: "/" }));
   await navigator.serviceWorker.ready;
   return (
     (await reg.pushManager.getSubscription()) ||
-    (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: toKey(publicKey) }))
+    (await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: toKey(publicKey),
+    }))
   );
 }
 
@@ -144,7 +158,9 @@ export function useDevicePush(mode: Mode) {
       const reg = await navigator.serviceWorker.getRegistration("/");
       const sub = await reg?.pushManager.getSubscription();
       setEnabled(
-        !!sub && Notification.permission === "granted" && stored()?.actor === actor,
+        !!sub &&
+          Notification.permission === "granted" &&
+          stored()?.actor === actor,
       );
     } catch {
       setEnabled(false);
@@ -155,7 +171,11 @@ export function useDevicePush(mode: Mode) {
   useEffect(() => {
     void check();
     window.addEventListener("focus", check);
-    return () => window.removeEventListener("focus", check);
+    window.addEventListener(PUSH_CHANGED, check);
+    return () => {
+      window.removeEventListener("focus", check);
+      window.removeEventListener(PUSH_CHANGED, check);
+    };
   }, [check]);
   const enable = async () => {
     setBusy(true);
@@ -201,7 +221,8 @@ export function useDevicePush(mode: Mode) {
     configLoaded: !!config.data,
     blocked: supported && Notification.permission === "denied",
     /** 이 기기에서 한 번도 묻지 않음(첫 안내 대상). */
-    askable: supported && Notification.permission === "default" && !optedOut(mode),
+    askable:
+      supported && Notification.permission === "default" && !optedOut(mode),
     iosBrowser: isIos() && !isStandalone(),
     enable,
     disable,
@@ -253,6 +274,11 @@ export function PushEnableBanner({ mode }: { mode: Mode }) {
       return false;
     }
   });
+  useEffect(() => {
+    const dismissed = () => setHidden(true);
+    window.addEventListener(BANNER_KEY, dismissed);
+    return () => window.removeEventListener(BANNER_KEY, dismissed);
+  }, []);
   if (hidden || !p.checked || !p.configLoaded || !p.configured || p.enabled)
     return null;
   // iOS Safari 탭은 홈 화면 앱에서만 푸시 가능. 그 밖의 미지원 브라우저는 안내하지 않는다.
@@ -291,6 +317,7 @@ export function PushEnableBanner({ mode }: { mode: Mode }) {
           } catch {
             // 저장 실패 시 이번 화면에서만 숨긴다.
           }
+          window.dispatchEvent(new Event(BANNER_KEY));
           setHidden(true);
         }}
       >
@@ -325,7 +352,9 @@ export function PushSessionSync({ mode }: { mode: Mode }) {
       let sub = await reg?.pushManager.getSubscription();
       if (!sub) {
         const config = (
-          await apiClient.get<{ enabled: boolean; publicKey: string | null }>(baseOf(mode) + "/push-config")
+          await apiClient.get<{ enabled: boolean; publicKey: string | null }>(
+            baseOf(mode) + "/push-config",
+          )
         ).data;
         if (!config.enabled || !config.publicKey) return;
         sub = await ensureSubscription(config.publicKey);
@@ -374,7 +403,15 @@ export function PushLoginPrompt({ mode }: { mode: Mode }) {
       return false;
     }
   });
-  if (shown || !p.checked || !p.configLoaded || !p.configured || p.enabled || !p.askable) return null;
+  if (
+    shown ||
+    !p.checked ||
+    !p.configLoaded ||
+    !p.configured ||
+    p.enabled ||
+    !p.askable
+  )
+    return null;
   const close = () => {
     try {
       sessionStorage.setItem(PROMPT_KEY, "1");
@@ -400,7 +437,11 @@ export function PushLoginPrompt({ mode }: { mode: Mode }) {
       >
         {t("push.turnOn")}
       </Button>
-      <button type="button" className="min-h-9 rounded px-2 text-blue-900/70 hover:bg-blue-100" onClick={close}>
+      <button
+        type="button"
+        className="min-h-9 rounded px-2 text-blue-900/70 hover:bg-blue-100"
+        onClick={close}
+      >
         {t("push.later")}
       </button>
     </div>

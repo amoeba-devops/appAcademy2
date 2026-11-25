@@ -1,0 +1,11 @@
+{
+  "source": "/Users/gray/Downloads/acm-portal-mockup.html",
+  "sha256": "bb3768e31f68db19332f096e4d3aa9d571d42865aafa14e3448ab56bc5fb5c92",
+  "captured": "2026-11-25",
+  "data": "reference mockup with fictional identifiers; not production screenshots",
+  "proposal_pages": 10,
+  "reference_screenshots": 8,
+  "prototype_screenshots": 1,
+  "implementation_status": "proposal_only",
+  "validation": "role menus, independent notices, withdrawn toggle, mobile width, PDF visual review passed"
+}

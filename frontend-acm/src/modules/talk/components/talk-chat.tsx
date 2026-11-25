@@ -65,9 +65,7 @@ function KindBadge({ kind }: { kind: "USER" | "TEACHER" }) {
   const { t } = useTranslation("common");
   return (
     <span className={kindBadgeCls(kind)}>
-      {kind === "USER"
-        ? t("talk.kindOperator")
-        : t("talk.kindTeacher")}
+      {kind === "USER" ? t("talk.kindOperator") : t("talk.kindTeacher")}
     </span>
   );
 }
@@ -84,6 +82,8 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
       ? { kind: "TEACHER" as const, refId: session.refId }
       : { kind: "USER" as const, refId: session.id }
     : null;
+  const [roomSearch, setRoomSearch] = useState("");
+  const [unreadOnly, setUnreadOnly] = useState(false);
   const [scope, setScope] = useState<"active" | "archived">("active");
   const { t } = useTranslation("common");
   const qc = useQueryClient();
@@ -93,7 +93,12 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [modal, setModal] = useState<"channel" | "dm" | null>(null);
 
-  const { data: channels = [] } = useQuery({
+  const {
+    data: channels = [],
+    isError: channelsError,
+    isLoading: channelsLoading,
+    refetch: reloadChannels,
+  } = useQuery({
     queryKey: ["talk-channels", mode, identity, scope],
     queryFn: () => talkApi.channels(mode, scope),
     refetchInterval: 30_000, // SSE 백스톱
@@ -124,8 +129,8 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
   );
 
   useEffect(() => {
-    if (linkedChannel) setActiveId(linkedChannel);
-  }, [linkedChannel]);
+    if (mode === "portal" || linkedChannel) setActiveId(linkedChannel);
+  }, [linkedChannel, mode]);
   const detail = useQuery({
     queryKey: ["talk-channel", mode, identity, activeId],
     queryFn: () => talkApi.channel(mode, activeId!),
@@ -145,18 +150,27 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
     if (previousIdentity.current !== identity) {
       setActiveId(null);
       setParams({});
+      setRoomSearch("");
+      setUnreadOnly(false);
       previousIdentity.current = identity;
     }
   }, [identity, setParams]);
 
   const onOpenDm = (channel: TalkChannel) => {
     setScope("active");
-    setParams({});
+    setParams(mode === "portal" ? { channelId: channel.id } : {});
     setActiveId(channel.id);
     setParticipantsOpen(false);
     qc.setQueryData(["talk-channel", mode, identity, channel.id], channel);
     void qc.invalidateQueries({ queryKey: ["talk-channels", mode] });
   };
+  const visibleChannels = channels.filter(
+    (channel) =>
+      (!unreadOnly || channel.unreadCount > 0) &&
+      channel.name
+        .toLocaleLowerCase()
+        .includes(roomSearch.trim().toLocaleLowerCase()),
+  );
   const isMobile = useIsMobile();
   const chatViewportRef = useChatViewport(isMobile);
   const participants =
@@ -232,19 +246,55 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
               </button>
             ))}
           </div>
+          {mode === "portal" && (
+            <div className="space-y-2 border-b p-3">
+              <label className="flex items-center gap-2">
+                <Search size={16} aria-hidden />
+                <input
+                  className="h-11 w-full min-w-0 rounded-md border bg-surface px-3 text-sm"
+                  type="search"
+                  aria-label={t("portalUi.roomSearch")}
+                  placeholder={t("portalUi.roomSearch")}
+                  value={roomSearch}
+                  onChange={(e) => setRoomSearch(e.target.value)}
+                />
+              </label>
+              <button
+                type="button"
+                className="min-h-11 rounded-md border px-3 text-xs"
+                aria-pressed={unreadOnly}
+                onClick={() => setUnreadOnly((v) => !v)}
+              >
+                {t("portalUi.unreadOnly")}
+              </button>
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto p-1.5">
-            {channels.length === 0 ? (
+            {channelsError ? (
+              <div role="alert" className="p-3 text-sm">
+                {t("portalUi.loadError")}{" "}
+                <button onClick={() => void reloadChannels()}>
+                  {t("portalApp.cal.retry")}
+                </button>
+              </div>
+            ) : channelsLoading ? (
+              <p role="status" className="p-3 text-sm">
+                {t("myPage.loading")}
+              </p>
+            ) : visibleChannels.length === 0 ? (
               <p className="px-2 py-6 text-center text-xs text-secondary">
-                {t("talk.noChannels")}
+                {roomSearch || unreadOnly
+                  ? t("portalUi.noMatches")
+                  : t("talk.noChannels")}
               </p>
             ) : (
-              channels.map((c) => (
+              visibleChannels.map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => {
                     setActiveId(c.id);
-                    setParams({});
+                    setParams(mode === "portal" ? { channelId: c.id } : {});
                   }}
                   className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm ${
                     c.id === activeId
@@ -258,7 +308,20 @@ export function TalkChat({ mode }: { mode: TalkMode }) {
                     <User size={14} className="shrink-0 opacity-70" />
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate">{c.name}</span>
+                    <span className="flex items-baseline gap-2">
+                      <span className="min-w-0 flex-1 truncate">{c.name}</span>
+                      {c.lastMessageAt && (
+                        <time
+                          className="shrink-0 text-[11px]"
+                          dateTime={c.lastMessageAt}
+                        >
+                          {new Date(c.lastMessageAt).toLocaleDateString(
+                            i18next.language,
+                            { month: "numeric", day: "numeric" },
+                          )}
+                        </time>
+                      )}
+                    </span>
                     {c.type === "GROUP" &&
                       c.members.find((m) => m.role === "OWNER") && (
                         <span
@@ -562,8 +625,7 @@ function ChatPane({
             {channel.name}
           </div>
           <div className="truncate text-xs text-secondary">
-            {t("talk.members")} {channel.members.length} ·{" "}
-            {memberNames}
+            {t("talk.members")} {channel.members.length} · {memberNames}
           </div>
         </div>
         <button
@@ -925,9 +987,7 @@ function DmModal({
         onToggle={(c) => setTarget({ kind: c.kind, refId: c.refId })}
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
-      <p className="text-xs text-secondary">
-        {t("talk.dmReuseHint")}
-      </p>
+      <p className="text-xs text-secondary">{t("talk.dmReuseHint")}</p>
       <div className="flex justify-end gap-2">
         <button
           type="button"
