@@ -1,7 +1,7 @@
 ---
 document_id: SCHEDULER-PLN-1.1.0
 version: 1.1.0
-status: implemented_pending_deployment
+status: deployed
 date: 2026-11-25
 change_log:
   - 2026-11-25 v1.1.0 서비스 설정 API 사용안내 3개 탭·파라미터 사전·테넌트 API 사용 설정으로 화면 및 작업 범위 보강
@@ -130,3 +130,5 @@ SQL 마이그레이션은 `1072-external-scheduler-api.sql`이다. 신규 테이
 스키마는 기존 데이터에 대한 additive migration으로 준비한다. 운영 DB 백업, CI, staging에서 실제 배포 번들·키 권한·일정 반영 검증 후 운영 배포한다. 실제 검증용 일정은 별도 테스트 테넌트에서 생성하고 정리한다. 사용자 승인 없이 실학생 수업을 변경하지 않는다. 장애 시 클라이언트/키를 중지해 외부 쓰기를 차단하고 이전 이미지로 복귀한다. EXTERNAL source/새 컬럼을 구버전이 처리하는지 사전 확인하며 스키마·생성 일정은 즉시 삭제하지 않는다.
 
 Implementation and staging/production deployment were explicitly authorized by the user on 2026-11-25.
+
+Deployment verified: 2026-11-25 12:45:52 KST, application SHA `bfd59c8`. See [deployment report](../report/RPT-261125-external-scheduler-production-deploy.md).

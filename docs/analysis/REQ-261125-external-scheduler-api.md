@@ -1,7 +1,7 @@
 ---
 document_id: SCHEDULER-REQ-1.1.0
 version: 1.1.0
-status: implemented_pending_deployment
+status: deployed
 date: 2026-11-25
 change_log:
   - 2026-11-25 v1.1.0 서비스 설정의 API 사용안내 메뉴·API 카탈로그·연동 안내·API 사용 설정 요구사항 추가
@@ -12,7 +12,7 @@ change_log:
 
 ## 1. Overview (개요)
 
-별도 내부 스케줄 앱에서 강사 가능 시간과 수업 배정을 관리하고, 배정 결과를 ACM의 기존 수업일정에 반영한다. 연동 대상은 이 저장소의 학원 관리 시스템이며 AMA 플랫폼 전체 일정 API를 신설하는 작업은 아니다. 이 문서는 설계안이며 API 또는 실제 키가 발급된 상태가 아니다.
+별도 내부 스케줄 앱에서 강사 가능 시간과 수업 배정을 관리하고, 배정 결과를 ACM의 기존 수업일정에 반영한다. 연동 대상은 이 저장소의 학원 관리 시스템이며 AMA 플랫폼 전체 일정 API를 신설하는 작업은 아니다. 이 요구사항에 따른 구현과 배포를 완료했다. 실제 사용 키는 테넌트 마스터가 발급하며 배포 결과는 하단 보고서를 참조한다.
 
 ## 2. Current Implementation (현재 구현)
 
@@ -83,3 +83,5 @@ FR-08은 사용자가 “있음 — 미등록 학생도 이름으로 일정 등�
 운영 수동 수정과 외부 앱 수정이 경합하면 버전 불일치로 중지하고 재조회한다. 삭제한 externalId의 재사용은 409이며 복구는 이번 범위에서 제외한다. 외부 앱에서 다른 식별자로 재등록할 수 있다.
 
 Implementation and staging/production deployment were explicitly authorized by the user on 2026-11-25.
+
+Deployment verified: 2026-11-25 12:45:52 KST, application SHA `bfd59c8`. See [deployment report](../report/RPT-261125-external-scheduler-production-deploy.md).

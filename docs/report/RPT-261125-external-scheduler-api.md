@@ -1,7 +1,7 @@
 ---
 document_id: SCHEDULER-RPT-1.0.0
 version: 1.0.0
-status: verified_pending_deployment
+status: deployed
 date: 2026-11-25
 change_log:
   - 2026-11-25 v1.0.0 외부 API·사용안내·설정 구현 및 로컬 검증
@@ -39,10 +39,12 @@ change_log:
 
 ## 4. Deployment Verification (배포 검증)
 
-사용자가 스테이징 및 프로덕션 배포까지 승인했다. CI 완료 → 스테이징 → 배포 번들 UI 및 실제 HTTP 검증 → 프로덕션 순으로 진행한다. 실제 HTTP 검증은 `scripts/verify-scheduler-deployment.cjs`로 임의의 별도 테스트 테넌트를 만들고 키 발급·수업 CRUD·충돌·폐기를 확인한 뒤 해당 테넌트의 모든 행을 제거한다. 고객 테넌트의 API 사용 설정·키·수업은 변경하지 않는다.
+사용자가 스테이징 및 프로덕션 배포까지 승인했다. CI 완료 → 스테이징 → 배포 번들 UI 및 실제 HTTP 검증 → 프로덕션 순으로 진행한다. 실제 HTTP 검증은 `scripts/verify-scheduler-deployment.cjs`로 임의의 별도 테스트 테넌트를 만들고 키 발급·수업 CRUD·충돌·폐기를 확인한 뒤 해당 테넌트의 업무 데이터를 제거하고 기존 append-only 감사 기록은 보존한다. 고객 테넌트의 API 사용 설정·키·수업은 변경하지 않는다.
 
 운영 배포 전 DB 백업과 이전 배포 SHA를 확보한다. 기존 로그인·캘린더 또는 API 핵심 흐름 실패, 지속적 5xx, DB 잠금 장애가 확인되면 외부 API를 차단하고 이전 이미지로 복귀한다. additive schema는 유지하고 EXTERNAL 데이터의 구버전 호환성을 확인한다. 파이프라인 URL·SHA·시각·실제 배포 검증 결과는 배포 보고서에 기록한다.
 
 ## 5. Usage (사용 방법)
 
 서비스 설정 → API 사용안내 → API 사용 설정에서 필요한 API를 켜고 저장한다. 앱을 추가하고 필요한 권한·만료일을 지정해 키를 발급한다. 앱 서버에서 Bearer 키로 호출한다. 파라미터·값·타입·예제는 같은 화면의 외부 오픈 API 탭 및 OpenAPI 다운로드, [사용 문서](../integration/external-scheduler-api.md)를 따른다.
+
+Deployment verified: 2026-11-25 12:45:52 KST, application SHA `bfd59c8`. See [deployment report](../report/RPT-261125-external-scheduler-production-deploy.md).

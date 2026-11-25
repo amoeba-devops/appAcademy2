@@ -1,7 +1,7 @@
 ---
 document_id: SCHEDULER-API-1.1.0
 version: 1.1.0
-status: implemented_pending_deployment
+status: deployed
 date: 2026-11-25
 change_log:
   - 2026-11-25 v1.1.0 서비스 설정 API 사용안내 경로·3개 탭·사용 설정·파라미터 타입 및 값 사전 추가
@@ -12,7 +12,7 @@ change_log:
 
 ## 1. Status and Authentication (상태·인증)
 
-**구현·로컬 검증 완료, 배포 검증 대기 문서다. 예제 키·UUID는 실제 값이 아니다.** 서비스 설정의 API 사용안내와 OpenAPI 다운로드에서 같은 계약을 확인할 수 있다.
+**스테이징·프로덕션 배포 및 검증 완료 문서다. 예제 키·UUID는 실제 값이 아니다.** 서비스 설정의 API 사용안내와 OpenAPI 다운로드에서 같은 계약을 확인할 수 있다.
 
 Base URL: `https://acm.amoeba.site/api/integrations/v1`
 
@@ -203,3 +203,5 @@ API 카탈로그는 배포된 API만 제공 중으로 표시한다. 예정된 AP
 | DELETE / body | reason | 예 | string | 2~500자 | `스케줄 앱에서 수업 배정 취소` |
 
 성공 응답의 id/studentId/teacherId는 UUID 문자열, startsAt/endsAt은 UTC date-time 문자열, version은 양의 정수(외부 관리 대상 외에는 null), managedByClient는 boolean, meta.nextCursor는 string 또는 null이다. deliveryMode/학생 연결 ID는 기존 일정 또는 미등록 데모 상황에서 null일 수 있다. 실제 OpenAPI에는 각 필드의 nullable·enum·길이 제한·응답 필수 여부를 명시하고 예제를 제공한다.
+
+Deployment verified: 2026-11-25 12:45:52 KST, application SHA `bfd59c8`. See [deployment report](../report/RPT-261125-external-scheduler-production-deploy.md).
