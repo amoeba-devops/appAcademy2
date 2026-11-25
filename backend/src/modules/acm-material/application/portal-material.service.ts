@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { DataSource, ILike, In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
 import type { Readable } from 'stream';
 import { ACM_DS } from '../../acm-common/datasource';
@@ -112,6 +112,7 @@ export interface MaterialAttachmentView {
 
 /** REQ-260728B FR-4 — 목록 페이징/종류필터 옵션 + 표준 응답(§6.2). */
 export interface MaterialListOpts {
+  search?: string;
   matKind?: 'DOC' | 'FILE';
   page: number;
   limit: number;
@@ -741,6 +742,7 @@ export class PortalMaterialService {
   ): Promise<PagedMaterials> {
     const meta = { page: opts.page, limit: opts.limit, total: 0 };
     if (kind !== 'TEACHER' && kind !== 'STUDENT') return { data: [], meta };
+    const escapedSearch = opts.search?.replace(/[\\%_]/g, '\\$&');
     const [rows, total] = await this.repo.findAndCount({
       where: {
         entId,
@@ -748,8 +750,9 @@ export class PortalMaterialService {
         uploadedBy: refId,
         deletedAt: IsNull(),
         ...(opts.matKind ? { kind: opts.matKind } : {}),
+        ...(escapedSearch ? { title: ILike('%' + escapedSearch + '%') } : {}),
       },
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC', id: 'DESC' },
       take: opts.limit,
       skip: (opts.page - 1) * opts.limit,
     });
@@ -811,7 +814,16 @@ export class PortalMaterialService {
     // 병합·정렬 후 메모리 페이징 (개인 단위 공유 목록 규모라 허용).
     const rows = Array.from(byId.values())
       .filter((m) => !opts.matKind || (m.kind ?? 'FILE') === opts.matKind)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .filter(
+        (m) =>
+          !opts.search ||
+          m.title.toLocaleLowerCase().includes(opts.search.toLocaleLowerCase()),
+      )
+      .sort(
+        (a, b) =>
+          b.createdAt.getTime() - a.createdAt.getTime() ||
+          b.id.localeCompare(a.id),
+      );
     const pageRows = rows.slice(
       (opts.page - 1) * opts.limit,
       opts.page * opts.limit,

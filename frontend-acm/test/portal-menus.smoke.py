@@ -154,7 +154,7 @@ with sync_playwright() as pw:
             page = context.new_page()
             page.goto(BASE + '/portal/notices/fixture')
             expect(page).to_have_url(BASE + '/portal/me')
-            expect(page.locator('nav a')).to_have_count(1)
+            expect(page.locator('.portal-sidebar nav a')).to_have_count(1)
             expect(page.locator('header a[href="/portal/chat"]')).to_have_count(0)
             assert not any(path.startswith('/portal/posts/') for path, _ in fixture.requests)
             assert not errors, errors

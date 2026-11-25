@@ -1,3 +1,4 @@
+import { ILike } from 'typeorm';
 import {
   BadRequestException,
   ForbiddenException,
@@ -20,9 +21,7 @@ describe('PortalMaterialService', () => {
       find: jest.fn().mockResolvedValue(opts.material ? [opts.material] : []),
       findAndCount: jest
         .fn()
-        .mockResolvedValue(
-          opts.material ? [[opts.material], 1] : [[], 0],
-        ),
+        .mockResolvedValue(opts.material ? [[opts.material], 1] : [[], 0]),
       findOne: jest.fn().mockResolvedValue(opts.material ?? null),
       create: jest.fn((x: any) => x),
       save: jest.fn(async (x: any) => {
@@ -665,5 +664,66 @@ describe('PortalMaterialService', () => {
     });
     expect(out.meta.total).toBe(1);
     expect(out.data.map((m) => m.id)).toEqual(['d1']);
+  });
+  it('searches all own posts before paging with tenant and actor restrictions', async () => {
+    const { svc, repo } = build();
+    await svc.listOwn('e1', 'TEACHER', 't1', {
+      search: '100%_sample',
+      page: 2,
+      limit: 10,
+    });
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          entId: 'e1',
+          authorKind: 'TEACHER',
+          uploadedBy: 't1',
+          title: ILike('%100\\%\\_sample%'),
+        }),
+        take: 10,
+        skip: 10,
+      }),
+    );
+  });
+
+  it('filters the merged shared posts before computing total and pagination', async () => {
+    const { svc, repo, shareRepo } = build();
+    const mats = [
+      {
+        id: 'match-1',
+        kind: 'FILE',
+        authorKind: 'TEACHER',
+        uploadedBy: 't1',
+        title: 'Reading A',
+        createdAt: new Date(3000),
+      },
+      {
+        id: 'other',
+        kind: 'FILE',
+        authorKind: 'TEACHER',
+        uploadedBy: 't1',
+        title: 'Math',
+        createdAt: new Date(2000),
+      },
+      {
+        id: 'match-2',
+        kind: 'FILE',
+        authorKind: 'TEACHER',
+        uploadedBy: 't1',
+        title: 'reading B',
+        createdAt: new Date(1000),
+      },
+    ];
+    shareRepo.find.mockResolvedValue(
+      mats.map((m) => ({ matId: m.id, tgtKind: 'STUDENT', tgtRefId: 's1' })),
+    );
+    repo.find.mockResolvedValue(mats);
+    const out = await svc.listShared('e1', 'STUDENT', 's1', {
+      search: 'READING',
+      page: 2,
+      limit: 1,
+    });
+    expect(out.meta.total).toBe(2);
+    expect(out.data.map((m) => m.id)).toEqual(['match-2']);
   });
 });

@@ -1,167 +1,204 @@
-import { usePortalMenus, usePortalMenuSync } from '../hooks/use-portal-menus';
-import { forgetDevicePush } from "@/modules/notifications/push-settings";
-import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
-import { NotificationBell } from "@/modules/notifications/components-inbox";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useState, useLayoutEffect, useRef } from "react";
+import { NavLink, Link, Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
   CalendarRange,
   FolderOpen,
   Link2,
-  LogOut,
   MessagesSquare,
   Users,
   UserCircle,
+  MoreHorizontal,
 } from "lucide-react";
-import { useAuthStore } from "@/stores/auth.store";
-import { apiClient } from "@/lib/api-client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
-import { useScrollHint } from "@/hooks/use-scroll-hint";
+import { NotificationBell } from "@/modules/notifications/components-inbox";
+import { PushEnableBanner } from "@/modules/notifications/push-settings";
+import { ChatUnreadLink } from "@/modules/talk/components/chat-unread-link";
+import { useAuthStore } from "@/stores/auth.store";
+import { usePortalMenus, usePortalMenuSync } from "../hooks/use-portal-menus";
+import { usePortalLogout } from "../hooks/use-portal-logout";
+import "./portal-ui.css";
 
-/**
- * PLN-260706 Phase 2 — unified portal shell for student/parent/teacher.
- * PLN-260719 C — 강사(TEACHER)에게는 수업일정 아래 "수강생관리" 메뉴 추가.
- * REQ-261103C — 학생·학부모에게는 수업일정 아래 "수업링크" 메뉴.
- * REQ-261124 — 수업일정은 강사에게만 노출.
- */
 const NAV = [
-  { to: "/portal/notices", icon: Bell, key: "notices", end: false },
-  { to: "/portal/calendar", icon: CalendarRange, key: "calendar", end: false, teacherOnly: true },
   {
-    to: "/portal/links",
-    icon: Link2,
-    key: "links",
-    end: false,
-    learnerOnly: true,
-  },
-  {
-    to: "/portal/students",
-    icon: Users,
-    key: "students",
-    end: false,
+    to: "/portal/calendar",
+    icon: CalendarRange,
+    key: "calendar",
     teacherOnly: true,
   },
-  { to: "/portal/materials", icon: FolderOpen, key: "materials", end: false },
-  // REQ-260728C — 로비채팅 (강사 전용)
-  {
-    to: "/portal/chat",
-    icon: MessagesSquare,
-    key: "chat",
-    end: false,
-    teacherOnly: true,
-  },
-  // REQ-261015C — 마이페이지(사용자 타임존)
-  { to: "/portal/me", icon: UserCircle, key: "me", end: false },
+  { to: "/portal/links", icon: Link2, key: "links", learnerOnly: true },
+  { to: "/portal/students", icon: Users, key: "students", teacherOnly: true },
+  { to: "/portal/materials", icon: FolderOpen, key: "materials" },
+  { to: "/portal/chat", icon: MessagesSquare, key: "chat", teacherOnly: true },
+  { to: "/portal/notices", icon: Bell, key: "notices" },
+  { to: "/portal/me", icon: UserCircle, key: "me" },
 ];
 
 export function PortalShell() {
   const { t } = useTranslation("common");
-  const navigate = useNavigate();
   const user = useAuthStore((s) => s.portal.user);
+  const location = useLocation();
+  const logout = usePortalLogout();
+  const scrollPositions = useRef(new Map<string, number>());
+  const previousPath = useRef(location.pathname);
+  useLayoutEffect(() => {
+    const key = [
+      user?.entId,
+      user?.id,
+      location.pathname,
+      location.search,
+    ].join(":");
+    if (previousPath.current !== location.pathname) {
+      window.scrollTo(0, scrollPositions.current.get(key) ?? 0);
+    }
+    previousPath.current = location.pathname;
+    return () => {
+      scrollPositions.current.set(key, window.scrollY);
+    };
+  }, [location.pathname, location.search, user?.entId, user?.id]);
+
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreTrigger = useRef<HTMLButtonElement>(null);
   usePortalMenuSync();
   const menus = usePortalMenus();
-  const visibleMenus = new Set<string>(menus.isError ? [] : menus.data?.visible ?? []);
-  visibleMenus.add('me');
-  const clearPortal = useAuthStore((s) => s.clearPortal);
-  // TST-261019 M7 — 휴대폰 가로 메뉴: 오른쪽 흐림 표시 + 현재 메뉴 자동 스크롤.
-  const { pathname } = useLocation();
-  const { ref: navRef, hasMore: navHasMore } =
-    useScrollHint<HTMLElement>(pathname);
-
-  const logout = () => {
-    forgetDevicePush("portal"); // REQ-261020C — 직접 로그아웃만 이 기기 푸시 해제
-    // REQ-261021B — 접속 로그에 로그아웃 기록(토큰을 직접 실어 보낸 뒤 바로 정리, 실패해도 로그아웃)
-    const current = useAuthStore.getState().portal.token;
-    if (current)
-      void apiClient
-        .post("/portal/auth/logout", null, { headers: { Authorization: `Bearer ${current}` } })
-        .catch(() => undefined);
-    clearPortal();
-    navigate("/portal/login", { replace: true });
+  // Account access stays available; failed settings must never reveal other menus.
+  const visible = new Set<string>(
+    menus.isError ? [] : (menus.data?.visible ?? []),
+  );
+  visible.add("me");
+  const nav = NAV.filter(
+    (n) =>
+      visible.has(n.key) &&
+      (!n.teacherOnly || user?.kind === "TEACHER") &&
+      (!n.learnerOnly || user?.kind !== "TEACHER"),
+  );
+  const teacher = user?.kind === "TEACHER";
+  const primary = teacher
+    ? nav.filter((n) => !["me", "notices"].includes(n.key))
+    : nav;
+  const extra = teacher
+    ? nav.filter((n) => ["me", "notices"].includes(n.key))
+    : [];
+  const chatOpen =
+    location.pathname === "/portal/chat" &&
+    new URLSearchParams(location.search).has("channelId");
+  const moreActive = extra.some((n) => location.pathname.startsWith(n.to));
+  const item = (n: (typeof NAV)[number], close = false) => {
+    const Icon = n.icon;
+    return (
+      <NavLink
+        key={n.key}
+        to={n.to}
+        title={t("portalApp.nav." + n.key)}
+        onClick={() => {
+          if (close) setMoreOpen(false);
+        }}
+        className={({ isActive }) =>
+          "portal-nav-item " + (isActive ? "is-active" : "")
+        }
+      >
+        <Icon size={20} aria-hidden />
+        <span>{t("portalApp.nav." + n.key)}</span>
+        {n.key === "chat" && <ChatUnreadLink mode="portal" badgeOnly />}
+      </NavLink>
+    );
   };
-
-  const roleLabel = user ? t(`portalApp.role.${user.kind}`) : "";
-
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-subtle)] bg-surface px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-primary">
-            {t("portalApp.title")}
+    <div className={"portal-workspace " + (chatOpen ? "portal-chat-open" : "")}>
+      <a className="portal-skip" href="#portal-content">
+        {t("portalUi.skip")}
+      </a>
+      <header className="portal-header">
+        <strong className="text-primary">{t("portalApp.title")}</strong>
+        {user && (
+          <span className="portal-role">
+            {t("portalApp.role." + user.kind)}
           </span>
-          {user && (
-            <span className="rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
-              {roleLabel} · {user.loginId}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          {/* REQ-260728B FR-6 — 포털 앱에서도 언어 선택 (ko/en/vi/zh-CN) */}
-          {user?.kind === "TEACHER" && (
-            <>
-              {visibleMenus.has("chat") && <ChatUnreadLink mode="portal" />}
-              <NotificationBell mode="portal" />
-            </>
-          )}
+        )}
+        <div className="portal-header-tools">
+          {teacher && <NotificationBell mode="portal" showPushPrompt={false} />}
           <LanguageSwitcher />
-          <button
-            onClick={logout}
-            className="inline-flex items-center gap-1 text-sm text-secondary hover:text-primary"
+          <Link
+            to="/portal/me"
+            className="portal-account"
+            aria-label={t("portalApp.nav.me")}
           >
-            <LogOut size={14} /> {t("portalApp.logout")}
-          </button>
+            <UserCircle size={24} aria-hidden />
+            <span>{t("portalApp.nav.me")}</span>
+          </Link>
         </div>
       </header>
-
-      {/* PLN-260719 R1 — 중앙정렬(mx-auto) 제거, 화면 좌측 붙임. */}
-      <div className="flex max-w-5xl flex-col gap-4 px-3 py-4 sm:flex-row">
-        <div className="relative w-full shrink-0 sm:w-40">
-          <nav
-            ref={navRef}
-            className="flex w-full shrink-0 gap-1 overflow-x-auto sm:block sm:w-40 sm:space-y-1"
-          >
-            {NAV.filter(
-              (n) =>
-                (!n.teacherOnly || user?.kind === "TEACHER") &&
-                (!n.learnerOnly || user?.kind !== "TEACHER") && visibleMenus.has(n.key),
-            ).map(
-              (n) => {
-                const Icon = n.icon;
-                return (
-                  <NavLink
-                    key={n.key}
-                    to={n.to}
-                    end={n.end}
-                    className={({ isActive }) =>
-                      `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm ${
-                        isActive
-                          ? "bg-accent-600 text-white"
-                          : "text-secondary hover:bg-[var(--gray-100)]"
-                      }`
-                    }
-                  >
-                    <Icon size={16} /> {t(`portalApp.nav.${n.key}`)}{" "}
-                    {n.key === "chat" && (
-                      <ChatUnreadLink mode="portal" badgeOnly />
-                    )}
-                  </NavLink>
-                );
-              },
-            )}
+      <div className="portal-body">
+        <aside className="portal-sidebar">
+          <nav aria-label={t("portalUi.navigation")}>
+            {nav.map((n) => item(n))}
           </nav>
-          {navHasMore && (
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-canvas to-transparent sm:hidden"
-            />
+          <button className="portal-logout" type="button" onClick={logout}>
+            {t("portalApp.logout")}
+          </button>
+        </aside>
+        <main id="portal-content" tabIndex={-1} className="portal-content">
+          {teacher && !chatOpen && (
+            <div className="portal-push">
+              <PushEnableBanner mode="portal" />
+            </div>
           )}
-        </div>
-        {/* PLN-260728E — 우측 컨텐츠 영역 흰 배경(채팅 페이지 참조). */}
-        <main className="min-w-0 flex-1 rounded-lg border border-[var(--border-subtle)] bg-surface p-4">
+          {menus.isError && location.pathname === "/portal/me" && (
+            <div role="alert" className="portal-settings-error">
+              {t("portalUi.menuError")}
+              <button type="button" onClick={() => void menus.refetch()}>
+                {t("portalApp.cal.retry")}
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
+      <nav
+        className="portal-bottom"
+        aria-label={t("portalUi.mobileNavigation")}
+      >
+        {primary.map((n) => item(n))}
+        {extra.length > 0 && (
+          <button
+            ref={moreTrigger}
+            type="button"
+            className={"portal-nav-item " + (moreActive ? "is-active" : "")}
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen(true)}
+          >
+            <MoreHorizontal size={20} aria-hidden />
+            <span>{t("portalUi.more")}</span>
+          </button>
+        )}
+      </nav>
+      <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
+        <DialogContent
+          className="portal-more"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            moreTrigger.current?.focus();
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{t("portalUi.more")}</DialogTitle>
+          </DialogHeader>
+          <nav aria-label={t("portalUi.more")}>
+            {extra.map((n) => item(n, true))}
+          </nav>
+          <button type="button" className="portal-logout" onClick={logout}>
+            {t("portalApp.logout")}
+          </button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2776,5 +2776,39 @@
     "online": "External · Online",
     "targetApp": "App for new key",
     "available": "Available"
+  },
+  "portalUi": {
+    "skip": "Skip to content",
+    "navigation": "Portal navigation",
+    "mobileNavigation": "Mobile navigation",
+    "more": "More",
+    "menuError": "Unable to load menu settings.",
+    "previous": "Previous period",
+    "next": "Next period",
+    "noMatches": "No results match your filters.",
+    "loadError": "Unable to load this information. Please try again.",
+    "studentScope": "Assigned student scope",
+    "assigned": "Assigned students",
+    "includeWithdrawn": "All assigned (including withdrawn)",
+    "assignedScope": "Both lists are limited to your assigned students.",
+    "studentSearch": "Search name, English name or school",
+    "resultCount": "{{count}} results",
+    "notEntered": "Not provided",
+    "materialSearch": "Search titles across all posts",
+    "search": "Search",
+    "clear": "Clear",
+    "title": "Title",
+    "type": "Type",
+    "created": "Created",
+    "actions": "Actions",
+    "open": "Open",
+    "roomSearch": "Search conversations",
+    "unreadOnly": "Unread only",
+    "security": "Security",
+    "status": {
+      "ACTIVE": "Enrolled",
+      "INACTIVE": "Inactive",
+      "WITHDRAWN": "Withdrawn"
+    }
   }
 }

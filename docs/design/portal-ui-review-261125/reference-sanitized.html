@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ACM 학원포털 · Contents 영역 개선 목업</title>
+<style>
+:root{
+  --p:#4f46e5;--p-50:#eef2ff;--p-100:#e0e7ff;--p-700:#4338ca;
+  --bg:#f6f7f9;--surface:#fff;--line:#e5e7eb;--line-2:#f0f1f4;
+  --t1:#18181b;--t2:#52525b;--t3:#a1a1aa;
+  --red:#dc2626;--blue:#2563eb;--amber-bg:#fef3c7;--amber:#92400e;--green-bg:#dcfce7;--green:#166534;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#2b2d33;color:var(--t1);font-size:14px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ===== 목업 컨트롤 바 ===== */
+.ctrl{position:sticky;top:0;z-index:50;background:#1d1f24;color:#e4e4e7;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 18px;border-bottom:1px solid #000}
+.ctrl b{font-size:13px;margin-right:4px}
+.seg{display:inline-flex;background:#2f3239;border-radius:8px;padding:3px}
+.seg button{padding:5px 11px;border-radius:6px;font-size:12px;color:#c4c4cc}
+.seg button.on{background:#fff;color:#18181b;font-weight:600}
+.ctrl label{font-size:12px;display:flex;gap:6px;align-items:center;cursor:pointer}
+.ctrl .hint{font-size:11px;color:#8b8b95;margin-left:auto}
+
+.stage{padding:24px 12px 60px;display:flex;justify-content:center}
+.device{width:100%;max-width:1280px;height:820px;background:var(--bg);border-radius:14px;overflow:hidden;container-type:inline-size;box-shadow:0 20px 60px rgba(0,0,0,.45);transition:max-width .25s;display:flex;flex-direction:column;position:relative}
+.device[data-w="768"]{max-width:768px;height:960px}
+.device[data-w="375"]{max-width:375px;height:780px;border-radius:30px;border:8px solid #111}
+
+/* ===== App shell ===== */
+.hdr{height:56px;flex:none;display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:16px;white-space:nowrap}
+.role{font-size:12px;color:var(--t2);background:var(--line-2);padding:3px 8px;border-radius:99px;white-space:nowrap}
+.hdr .sp{flex:1}
+.ib{position:relative;width:40px;height:40px;border-radius:8px;display:grid;place-items:center;color:var(--t2)}
+.ib:hover{background:var(--line-2)}
+.dot{position:absolute;top:3px;right:1px;background:var(--red);color:#fff;font-size:10px;font-weight:700;border-radius:99px;padding:1px 5px;line-height:14px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--p-100);color:var(--p-700);display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.me-btn{display:flex;align-items:center;gap:8px;padding:4px 8px 4px 4px;border-radius:99px;border:1px solid var(--line)}
+.me-btn span{font-size:13px}
+
+.body{flex:1;display:flex;min-height:0}
+.side{width:220px;flex:none;padding:16px 12px;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.nav{display:flex;align-items:center;gap:10px;height:42px;padding:0 12px;border-radius:8px;color:var(--t2);font-weight:500;text-align:left;width:100%}
+.nav:hover{background:var(--line-2)}
+.nav.on{background:var(--p-50);color:var(--p-700);font-weight:700}
+.nav.on svg{stroke:var(--p)}
+.nav .cnt{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:0 6px}
+.main{flex:1;min-width:0;overflow:auto;display:flex;flex-direction:column}
+.banner{margin:16px 24px 0;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r);background:var(--p-50);border:1px solid var(--p-100);color:#312e81;font-size:13px}
+.banner .sp{flex:1}
+.page{padding:20px 24px 32px;display:none;flex-direction:column;gap:16px}
+.page.on{display:flex}
+.tabbar{display:none}
+
+/* Page header */
+.ph{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ph h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+.ph .sub{color:var(--t2);font-size:13px}
+.ph .sp{flex:1}
+.btn{height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap}
+.btn.pri{background:var(--p);border-color:var(--p);color:#fff}
+.btn.sm{height:32px;padding:0 10px;font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+
+/* Toolbar: tabs + filters in 1 row */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{padding:10px 12px;color:var(--t2);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--p-700);border-color:var(--p);font-weight:700}
+.tabs .n{font-size:11px;background:var(--line-2);border-radius:99px;padding:1px 6px;margin-left:4px;color:var(--t2)}
+.tb{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tb .sp{flex:1}
+.chip{height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:13px;color:var(--t2)}
+.chip.on{background:var(--t1);border-color:var(--t1);color:#fff}
+.search{height:36px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;min-width:220px;color:var(--t3)}
+.search input{border:0;outline:0;flex:1;min-width:0;background:none;color:var(--t1)}
+.sel{height:36px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 10px;font-size:13px}
+.badge{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-doc{background:var(--p-50);color:var(--p-700)}
+.b-file{background:#f1f5f9;color:#475569}
+.b-sub{background:var(--amber-bg);color:var(--amber)}
+.b-ok{background:var(--green-bg);color:var(--green)}
+.b-gray{background:var(--line-2);color:var(--t2)}
+.muted{color:var(--t2)}
+.faint{color:var(--t3)}
+
+/* ===== Calendar ===== */
+.cal-tb .title{font-size:18px;font-weight:700;min-width:120px;text-align:center}
+.segv{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.segv button{height:34px;padding:0 14px;font-size:13px;color:var(--t2)}
+.segv button.on{background:var(--p);color:#fff;font-weight:600}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--t2)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid var(--line)}
+.grid .wd{padding:8px;font-size:12px;font-weight:600;color:var(--t2);text-align:center;border-bottom:1px solid var(--line)}
+.grid .wd.sun,.day.sun .dn{color:var(--red)}
+.grid .wd.sat,.day.sat .dn{color:var(--blue)}
+.day{min-height:104px;padding:6px;border-right:1px solid var(--line-2);border-bottom:1px solid var(--line-2);display:flex;flex-direction:column;gap:3px;min-width:0}
+.day:nth-child(7n){border-right:0}
+.day.out{background:#fafafa}.day.out .dn{color:var(--t3)!important}
+.dn{font-size:12px;font-weight:600;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;margin-bottom:2px}
+.day.today{background:#fbfbff}
+.day.today .dn{background:var(--p);color:#fff!important}
+.ev{display:flex;gap:5px;align-items:center;font-size:12px;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;min-width:0;border-left:3px solid}
+.ev b{font-weight:600;font-variant-numeric:tabular-nums}
+.ev span{overflow:hidden;text-overflow:ellipsis}
+.c1{background:#eef2ff;border-color:#6366f1}.c2{background:#ecfeff;border-color:#06b6d4}.c3{background:#fdf4ff;border-color:#c026d3}.c4{background:#f0fdf4;border-color:#22c55e}.c5{background:#fff7ed;border-color:#f97316}
+.more{font-size:11px;color:var(--p-700);font-weight:600;padding-left:6px}
+.agenda{display:none}
+.wstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px}
+.wstrip button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border-radius:10px;font-size:11px;color:var(--t2)}
+.wstrip button b{font-size:15px;color:var(--t1);width:30px;height:30px;display:grid;place-items:center;border-radius:50%}
+.wstrip button.on b{background:var(--p);color:#fff}
+.wstrip button i{width:5px;height:5px;border-radius:50%;background:var(--p);opacity:.7}
+.wstrip button i.no{opacity:0}
+.ag-day{padding:10px 14px 4px;font-size:13px;font-weight:700;color:var(--t2);background:#fafafa;border-top:1px solid var(--line-2)}
+.ag-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--line-2)}
+.ag-item .tm{font-weight:700;font-variant-numeric:tabular-nums;width:46px}
+.ag-item .bar{width:3px;align-self:stretch;border-radius:2px}
+.ag-item .tx{flex:1;min-width:0}
+.ag-item .tx div:last-child{font-size:12px;color:var(--t2)}
+
+/* ===== Students ===== */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.scard{padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:.15s}
+.scard:hover{border-color:var(--p-100);box-shadow:0 4px 16px rgba(79,70,229,.08)}
+.scard .top{display:flex;gap:12px;align-items:center}
+.scard .avatar{width:44px;height:44px;font-size:16px}
+.scard .nm{font-weight:700;font-size:15px}
+.scard .meta{font-size:12px;color:var(--t2)}
+.scard .next{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--t2);background:#fafafa;border-radius:8px;padding:8px 10px}
+.scard .next b{color:var(--t1)}
+.scard .act{display:flex;gap:6px}
+.detail-hd{display:flex;gap:14px;align-items:center;padding:20px}
+.detail-hd .avatar{width:56px;height:56px;font-size:20px}
+.dl{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 20px;padding:0 20px 20px}
+.dl dt{font-size:12px;color:var(--t2);margin-bottom:4px}
+.dl dd{font-weight:500}
+.dl dd.empty{color:var(--t3);font-weight:400}
+.sec{padding:16px 20px;border-top:1px solid var(--line-2)}
+.sec h3{font-size:14px;display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.sec h3 .sp{flex:1}
+.empty-box{border:1px dashed var(--line);border-radius:8px;padding:14px;text-align:center;color:var(--t2);font-size:13px}
+.rows{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.rows .r{display:flex;align-items:center;gap:12px;padding:10px 12px;border-top:1px solid var(--line-2);font-size:13px}
+.rows .r:first-child{border-top:0}
+.rows .r .sp{flex:1}
+.lnk{color:var(--p-700);font-weight:600;font-size:13px}
+.det{display:none}
+.det.on{display:flex;flex-direction:column;gap:16px}
+
+/* ===== Materials ===== */
+.mtable{width:100%;border-collapse:collapse}
+.mtable th{font-size:12px;color:var(--t2);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#fafafa}
+.mtable td{padding:12px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+.mtable tr:last-child td{border-bottom:0}
+.mtable tr:hover td{background:#fcfcfd}
+.ftitle{display:flex;align-items:center;gap:10px;min-width:0}
+.ficon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;flex:none}
+.ficon.doc{background:var(--p-50);color:var(--p)}
+.ficon.pdf{background:#fef2f2;color:#dc2626}
+.ficon.img{background:#ecfeff;color:#0891b2}
+.ftitle .t{font-weight:600}
+.ftitle .s{font-size:12px;color:var(--t2)}
+.acts{display:flex;gap:2px;justify-content:flex-end}
+.acts .ib{width:34px;height:34px}
+.mlist{display:none}
+
+/* ===== Chat ===== */
+.chat{display:grid;grid-template-columns:320px 1fr;height:600px;overflow:hidden}
+.clist{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.clist .hd{padding:12px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line-2)}
+.clist .search{min-width:0}
+.citem{display:flex;gap:10px;padding:12px;align-items:center;cursor:pointer;border-left:3px solid transparent}
+.citem:hover{background:#fafafa}
+.citem.on{background:var(--p-50);border-left-color:var(--p)}
+.citem .avatar{width:40px;height:40px}
+.citem .avatar.grp{border-radius:10px;background:#fdf4ff;color:#a21caf}
+.citem .tx{flex:1;min-width:0}
+.citem .l1{display:flex;gap:6px;align-items:baseline}
+.citem .l1 b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citem .l1 small{font-size:11px;color:var(--t3);white-space:nowrap}
+.citem .l2{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--t2)}
+.citem .l2 span:first-child{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.unread{background:var(--red);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:0 6px;line-height:18px}
+.croom{display:flex;flex-direction:column;min-width:0}
+.croom .hd{height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--line-2)}
+.croom .hd .back{display:none}
+.msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#fafafa}
+.msg{max-width:70%;padding:9px 12px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:13px;line-height:1.45}
+.msg.me{align-self:flex-end;background:var(--p);color:#fff;border-color:var(--p)}
+.msg small{display:block;font-size:11px;opacity:.65;margin-top:3px}
+.composer{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line-2)}
+.composer input{flex:1;height:40px;border:1px solid var(--line);border-radius:8px;padding:0 12px;outline:0}
+
+/* ===== My page ===== */
+.mewrap{max-width:680px;width:100%;display:flex;flex-direction:column;gap:16px}
+.prof{display:flex;gap:16px;align-items:center;padding:20px}
+.prof .avatar{width:64px;height:64px;font-size:24px}
+.kv{display:flex;align-items:center;padding:14px 20px;border-top:1px solid var(--line-2);gap:12px}
+.kv:first-of-type{border-top:0}
+.kv .k{width:140px;color:var(--t2);font-size:13px;flex:none}
+.kv .v{flex:1;font-weight:500;min-width:0;overflow-wrap:anywhere}
+.ctitle{padding:16px 20px 6px;font-weight:700;font-size:15px}
+.switch{width:40px;height:22px;border-radius:99px;background:var(--p);position:relative;flex:none}
+.switch::after{content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff}
+.switch.off{background:#d4d4d8}.switch.off::after{right:auto;left:2px}
+
+/* ===== 개선 포인트 주석 ===== */
+.ann{display:none;position:relative;z-index:5;background:#fde047;color:#422006;font-size:11px;font-weight:700;border-radius:6px;padding:3px 7px;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.15);white-space:normal;max-width:320px}
+.show-ann .ann{display:inline-block}
+.ann::before{content:"✎ "}
+
+/* =====================================================
+   반응형 — 컨테이너 쿼리 (실서비스에서는 @media 로 동일 적용)
+   ===================================================== */
+/* Tablet : 640–1023 → 아이콘 레일 */
+@container (max-width:1023px){
+  .side{width:76px;padding:12px 8px;align-items:center}
+  .nav{flex-direction:column;justify-content:center;height:60px;gap:3px;padding:0;font-size:11px}
+  .nav .cnt{position:absolute;margin:0;transform:translate(14px,-18px)}
+  .nav{position:relative}
+  .dl{grid-template-columns:repeat(2,1fr)}
+  .chat{grid-template-columns:280px 1fr}
+  .mtable .c-author,.mtable .c-type{display:none}
+  .side .ann{display:none!important}
+  .ftitle .s{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+}
+/* Mobile : < 640 */
+@container (max-width:639px){
+  .hdr{padding:0 8px 0 16px;gap:2px}
+  .role,.me-btn span,.hdr .lang{display:none}
+  .me-btn{border:0;padding:4px}
+  .side{display:none}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);flex:none;height:64px;background:var(--surface);border-top:1px solid var(--line);padding-bottom:4px}
+  .tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--t3);position:relative}
+  .tabbar button.on{color:var(--p-700);font-weight:700}
+  .tabbar .cnt{position:absolute;top:6px;left:50%;margin-left:6px;background:var(--red);color:#fff;font-size:10px;border-radius:99px;padding:0 5px;line-height:15px}
+  .banner{margin:12px 12px 0;font-size:12px;flex-wrap:wrap}
+  .banner>span:not(.ann){flex:1 1 180px}
+  .hdr .ann{display:none!important}
+  .page{padding:14px 12px 24px;gap:12px}
+  .ph h1{font-size:20px}
+  .ph .btn .lbl{display:none}
+  .search{min-width:0;flex:1}
+  .tb{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tb.wrap{flex-wrap:wrap}
+  /* calendar: month grid → week strip + agenda */
+  .cal-month{display:none}
+  .agenda{display:block}
+  .legend{display:none}
+  .cal-tb .title{font-size:16px;min-width:0}
+  .cal-tb .segv button{padding:0 10px}
+  /* students */
+  .sgrid{grid-template-columns:1fr;gap:8px}
+  .scard{padding:12px;gap:10px}
+  .dl{grid-template-columns:1fr 1fr;padding:0 16px 16px;gap:12px}
+  .detail-hd,.sec{padding-left:16px;padding-right:16px}
+  /* materials: table → list */
+  .mtable{display:none}
+  .mlist{display:block}
+  .mrow{display:flex;gap:12px;padding:14px;border-top:1px solid var(--line-2);align-items:flex-start}
+  .mrow:first-child{border-top:0}
+  .mrow .tx{flex:1;min-width:0}
+  .mrow .t{font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .mrow .s{font-size:12px;color:var(--t2);margin-top:4px}
+  /* chat: master-detail */
+  .chat{grid-template-columns:1fr;height:calc(780px - 56px - 64px - 16px - 120px)}
+  .chat .croom{display:none}
+  .chat.open .clist{display:none}
+  .chat.open .croom{display:flex}
+  .croom .hd .back{display:grid}
+  .msg{max-width:85%}
+  /* my page */
+  .prof{padding:16px}
+  .kv{flex-direction:column;align-items:flex-start;gap:4px;padding:12px 16px}
+  .kv .k{width:auto;font-size:12px}
+  .kv.row{flex-direction:row;align-items:center}
+  .ann{max-width:240px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ 목업 컨트롤 ============ -->
+<div class="ctrl">
+  <b>ACM 학원포털 개선 목업</b>
+  <div class="seg" id="devSeg">
+    <button data-w="1280" class="on">Desktop 1280</button>
+    <button data-w="768">Tablet 768</button>
+    <button data-w="375">Mobile 375</button>
+  </div>
+  <label><input type="checkbox" id="annT" checked> 개선 포인트 표시</label>
+  <span class="hint">좌측 메뉴 / 하단 탭으로 화면 전환 · 학생 카드·대화방 클릭 가능</span>
+</div>
+
+<div class="stage">
+<div class="device show-ann" id="dev" data-w="1280">
+
+  <!-- Header : 1줄 고정 56px -->
+  <header class="hdr">
+    <div class="logo">학원 포털</div>
+    <span class="role">강사</span>
+    <span class="ann">헤더 1줄 고정 · 이메일은 프로필 메뉴로 이동</span>
+    <div class="sp"></div>
+    <button class="ib" title="알림"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><span class="dot">32</span></button>
+    <select class="sel lang" aria-label="언어"><option>한국어</option><option>English</option></select>
+    <button class="me-btn"><span class="avatar">정</span><span>예시강사</span></button>
+  </header>
+
+  <div class="body">
+    <!-- Sidebar (Desktop) / Rail (Tablet) -->
+    <nav class="side" id="side"></nav>
+
+    <main class="main" id="main">
+      <div class="banner" id="banner">
+        <svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg>
+        <span>이 기기에서 채팅·상담 알림을 받아보세요.</span>
+        <span class="ann">하단 플로팅 → 인라인 배너 (콘텐츠 가림 해소)</span>
+        <div class="sp"></div>
+        <button class="btn sm pri">알림 켜기</button>
+        <button class="btn sm" onclick="this.closest('.banner').remove()">닫기</button>
+      </div>
+
+      <!-- ================= 수업일정 ================= -->
+      <section class="page on" data-page="calendar">
+        <div class="ph">
+          <h1>수업일정</h1>
+          <span class="ann">누락된 페이지 타이틀 추가</span>
+          <div class="sp"></div>
+          <button class="btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">일정 추가</span></button>
+        </div>
+        <div class="tb cal-tb wrap">
+          <button class="ib"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+          <span class="title">2026년 11월</span>
+          <button class="ib"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+          <button class="btn sm">오늘</button>
+          <div class="sp"></div>
+          <div class="segv"><button class="on">월</button><button>주</button><button>일</button><button>목록</button></div>
+        </div>
+        <div class="tb">
+          <select class="sel"><option>학생 전체</option><option>가학생</option><option>다학생</option><option>라학생</option><option>마학생</option></select>
+          <select class="sel"><option>수업종류 전체</option><option>정규수업</option><option>보강</option><option>상담</option></select>
+          <span class="ann">필터를 모든 뷰에 공통 노출</span>
+          <div class="sp"></div>
+          <div class="legend"><span><i style="background:#6366f1"></i>가학생</span><span><i style="background:#06b6d4"></i>다학생</span><span><i style="background:#c026d3"></i>라학생</span><span><i style="background:#22c55e"></i>마학생</span></div>
+        </div>
+
+        <div class="card cal-month">
+          <div class="grid" id="calGrid"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" class="cal-month-ann">
+          <span class="ann">칩 = "17:00 학생명" 24h 축약 · 학생별 컬러 · 3개 초과 +N</span>
+          <span class="ann">요일 한글화 · 일/토 색 구분 · 오늘 원형 강조</span>
+        </div>
+
+        <!-- Mobile agenda -->
+        <div class="card agenda">
+          <div class="wstrip" id="wstrip"></div>
+          <div id="agList"></div>
+        </div>
+        <span class="ann agenda-ann">모바일: 월 그리드(칩 "오…" 판독불가) → 주간 스트립 + 일정 목록</span>
+      </section>
+
+      <!-- ================= 수강생관리 ================= -->
+      <section class="page" data-page="students">
+        <div class="lst on" id="stuList" style="display:flex;flex-direction:column;gap:16px">
+          <div class="ph">
+            <h1>수강생관리</h1><span class="sub">담당 4명</span>
+            <div class="sp"></div>
+          </div>
+          <div class="tabs"><button class="on">내 담당<span class="n">4</span></button><button>전체 학생<span class="n">12</span></button></div>
+          <span class="ann">모호한 "전체보기" 체크박스 → 탭 + 인원수</span>
+          <div class="tb wrap">
+            <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="이름, 학교 검색"></div>
+            <select class="sel"><option>정렬: 다음 수업순</option><option>이름순</option></select>
+          </div>
+          <div class="sgrid" id="sgrid"></div>
+          <span class="ann">폴더 아이콘 → 이니셜 아바타 · 비활성 태그 → 다음 수업 정보 + 실제 동작 버튼</span>
+        </div>
+
+        <div class="det" id="stuDet">
+          <button class="lnk" style="align-self:flex-start;display:flex;gap:4px;align-items:center" onclick="showList()"><svg viewBox="0 0 24 24" style="width:16px"><path d="m15 18-6-6 6-6"/></svg>수강생 목록</button>
+          <div class="card">
+            <div class="detail-hd">
+              <span class="avatar">김</span>
+              <div style="flex:1"><div style="font-size:20px;font-weight:700">가학생</div><div class="muted" style="font-size:13px">예시학교 · 5학년 · 영어</div></div>
+              <button class="btn sm"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="lbl">메시지</span></button>
+            </div>
+            <dl class="dl">
+              <div><dt>학교 / 학년</dt><dd>예시학교 · 5학년</dd></div>
+              <div><dt>과목</dt><dd class="empty">미입력</dd></div>
+              <div><dt>이메일</dt><dd style="overflow-wrap:anywhere">student@example.com</dd></div>
+              <div><dt>연락처</dt><dd class="empty">미입력</dd></div>
+              <div><dt>수강 시작</dt><dd>2025.04.22 (화)</dd></div>
+              <div style="grid-column:span 2"><dt>학습 목표</dt><dd>일반 리딩 수업 변경</dd></div>
+            </dl>
+            <div style="padding:0 20px 14px"><span class="ann">ISO 원문(2025-04-22T00:00:00.000Z) → 날짜 포맷 · "—" → "미입력"</span></div>
+            <div class="sec"><h3>🔗 내 수업링크<span class="sp"></span><button class="btn sm">+ 링크 추가</button></h3><div class="empty-box">등록된 수업링크가 없습니다. Zoom·Meet 링크를 추가하면 수업 시작 시 바로 열 수 있어요.</div></div>
+            <div class="sec"><h3>💬 상담 기록<span class="sp"></span><button class="btn sm">+ 상담 기록</button></h3><div class="empty-box">상담 기록이 없습니다.</div></div>
+            <div class="sec"><h3>📅 수업 기록 <span class="faint" style="font-weight:400">최근 10건</span><span class="sp"></span><a class="lnk">전체 보기</a></h3>
+              <div class="rows">
+                <div class="r"><b>11.30 (월) 17:00</b><span class="muted">영어</span><span class="sp"></span><span class="badge b-gray">예정</span></div>
+                <div class="r"><b>11.23 (월) 17:00</b><span class="muted">영어</span><span class="sp"></span><span class="badge b-ok">피드백 완료</span></div>
+                <div class="r"><b>11.16 (월) 17:00</b><span class="muted">영어</span><span class="sp"></span><a class="lnk">피드백 작성</a></div>
+                <div class="r"><b>11.09 (월) 17:00</b><span class="muted">영어</span><span class="sp"></span><span class="badge b-ok">피드백 완료</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 문서/자료실 ================= -->
+      <section class="page" data-page="materials">
+        <div class="ph">
+          <h1>문서/자료실</h1>
+          <div class="sp"></div>
+          <button class="btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">새 문서</span></button>
+          <button class="btn pri"><svg viewBox="0 0 24 24"><path d="M12 15V3m-5 5 5-5 5 5M5 21h14"/></svg><span class="lbl">파일 업로드</span></button>
+        </div>
+        <span class="ann">주요 액션을 헤더 우측으로 통일 (모바일은 아이콘)</span>
+        <div class="tabs"><button class="on">공유받은 게시물<span class="n">2</span></button><button>내 게시물<span class="n">5</span></button></div>
+        <div class="tb">
+          <button class="chip on">전체</button><button class="chip">문서</button><button class="chip">자료</button><button class="chip">제출 대기</button>
+          <div class="sp"></div>
+          <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="제목·작성자 검색"></div>
+        </div>
+        <span class="ann">2단 탭 → 1차 탭 + 필터 칩/검색 1줄 · 카드 → 테이블(정보 밀도↑)</span>
+        <div class="card" style="overflow:hidden">
+          <table class="mtable">
+            <thead><tr><th>제목</th><th class="c-type" style="width:90px">유형</th><th style="width:90px">상태</th><th class="c-author" style="width:120px">작성자</th><th style="width:110px">등록일</th><th style="width:70px">댓글</th><th style="width:110px"></th></tr></thead>
+            <tbody id="mBody"></tbody>
+          </table>
+          <div class="mlist" id="mList"></div>
+        </div>
+        <span class="ann">삭제는 ⋯ 메뉴로 분리 + 확인 모달 · 아이콘 버튼엔 툴팁/aria-label</span>
+      </section>
+
+      <!-- ================= 채팅 ================= -->
+      <section class="page" data-page="chat">
+        <div class="ph"><h1>채팅</h1><div class="sp"></div><button class="btn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">새 대화</span></button></div>
+        <div class="card chat" id="chat">
+          <div class="clist">
+            <div class="hd">
+              <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="대화방 검색"></div>
+              <div style="display:flex;gap:6px"><button class="chip on">전체</button><button class="chip">안읽음 3</button><button class="chip">보관함</button></div>
+            </div>
+            <div style="overflow:auto;flex:1" id="clist"></div>
+            <div style="padding:10px 12px"><span class="ann">시간 · 안읽음 배지 · 1:1/그룹 아바타 구분 · 검색</span></div>
+          </div>
+          <div class="croom">
+            <div class="hd">
+              <button class="ib back" onclick="document.getElementById('chat').classList.remove('open')"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+              <span class="avatar">t</span>
+              <div style="flex:1"><b>parent01</b><div class="faint" style="font-size:12px">학부모 · 가학생</div></div>
+              <button class="ib"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+            </div>
+            <div class="msgs">
+              <div class="msg">선생님, 앱 알림이 잘 안 와요. 창 닫아도 알림 오나요?<small>오후 3:12</small></div>
+              <div class="msg me">알림 수신 여부는 기기와 브라우저 설정에서 확인할 수 있습니다.<small>오후 3:15 · 읽음</small></div>
+              <span class="ann" style="align-self:center">모바일: 목록 ↔ 대화 화면 전환(마스터-디테일)</span>
+            </div>
+            <div class="composer"><button class="ib"><svg viewBox="0 0 24 24"><path d="m21 12-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg></button><input placeholder="메시지 입력"><button class="btn pri">전송</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 마이페이지 ================= -->
+      <section class="page" data-page="me">
+        <div class="mewrap">
+          <div class="ph"><h1>마이페이지</h1></div>
+          <div class="card prof">
+            <span class="avatar">정</span>
+            <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:700">예시강사</div><div class="muted" style="font-size:13px;overflow-wrap:anywhere">teacher@example.com</div></div>
+            <span class="badge b-doc">강사</span>
+          </div>
+          <span class="ann">최대 폭 680px · 프로필 헤더형</span>
+          <div class="card">
+            <div class="ctitle">계정 정보</div>
+            <div class="kv"><span class="k">이름</span><span class="v">예시강사</span></div>
+            <div class="kv"><span class="k">로그인 ID</span><span class="v">teacher@example.com</span></div>
+            <div class="kv"><span class="k">구분</span><span class="v">강사</span></div>
+            <div class="kv"><span class="k">학원 기준 타임존</span><span class="v">Asia/Seoul (GMT+09:00)</span></div>
+          </div>
+          <div class="card">
+            <div class="ctitle">알림 설정</div>
+            <div class="kv row"><span class="v">채팅·상담 푸시 알림 (이 기기)</span><span class="switch off"></span></div>
+            <div class="kv row"><span class="v">수업 시작 10분 전 알림</span><span class="switch"></span></div>
+          </div>
+          <span class="ann">일회성 배너에만 있던 알림 설정을 상시 메뉴로</span>
+          <div class="card">
+            <div class="ctitle">보안</div>
+            <div class="kv row"><span class="v">비밀번호</span><button class="btn sm">비밀번호 변경</button></div>
+            <div class="kv row"><span class="v">로그아웃</span><button class="btn sm" style="color:var(--red)">로그아웃</button></div>
+          </div>
+          <span class="ann">텍스트 링크 → 보안 섹션 버튼 · 모바일 로그아웃 위치 확보</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Mobile bottom tab bar -->
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+</div>
+
+<script>
+const IC={
+ calendar:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+ students:'<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+ materials:'<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>',
+ chat:'<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+ me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'
+};
+const MENU=[['calendar','수업일정'],['students','수강생'],['materials','자료실'],['chat','채팅',3],['me','마이']];
+const MENU_FULL={calendar:'수업일정',students:'수강생관리',materials:'문서/자료실',chat:'채팅',me:'마이페이지'};
+function renderNav(cur){
+  document.getElementById('side').innerHTML=MENU.map(([k,l,c])=>`<button class="nav ${k==cur?'on':''}" data-go="${k}">${IC[k]}<span>${innerWidthIsRail()?l:MENU_FULL[k]}</span>${c?`<span class="cnt">${c}</span>`:''}</button>`).join('')+
+   `<div style="margin-top:12px"><span class="ann">태블릿: 아이콘 레일 76px · 모바일: 하단 탭바(가로스크롤 탭 메뉴 잘림 해소)</span></div>`;
+  document.getElementById('tabbar').innerHTML=MENU.map(([k,l,c])=>`<button class="${k==cur?'on':''}" data-go="${k}">${IC[k]}${l}${c?`<span class="cnt">${c}</span>`:''}</button>`).join('');
+}
+function innerWidthIsRail(){return dev.dataset.w!=='1280'}
+let cur='calendar';
+function go(p){cur=p;document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.dataset.page==p));renderNav(p);document.getElementById('main').scrollTop=0;if(p==='students')showList()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)go(b.dataset.go)});
+
+/* device + annotation toggles */
+const dev=document.getElementById('dev');
+document.querySelectorAll('#devSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#devSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');dev.dataset.w=b.dataset.w;renderNav(cur);document.getElementById('chat').classList.remove('open');syncAnn()});
+const annT=document.getElementById('annT');annT.onchange=()=>dev.classList.toggle('show-ann',annT.checked);
+function syncAnn(){const m=dev.dataset.w==='375';document.querySelector('.agenda-ann').style.display=m?'':'none';document.querySelector('.cal-month-ann').style.display=m?'none':'flex'}
+
+/* ---------- Calendar data ---------- */
+const C={가학생:'c1',다학생:'c2',라학생:'c3',마학생:'c4',나학생:'c5'};
+const EV={2:[['17:00','가학생','영어'],['19:00','다학생','영어']],3:[['16:10','라학생','리딩']],4:[['16:30','마학생','영어']],6:[['16:00','마학생','영어']],
+ 9:[['17:00','가학생','영어'],['19:00','다학생','영어']],10:[['02:00','나학생','화상'],['18:00','라학생','리딩'],['20:30','다학생','데모'],['21:00','마학생','보강']],11:[['18:00','마학생','영어']],13:[['16:00','마학생','영어']],
+ 16:[['17:00','가학생','영어'],['19:00','다학생','영어']],17:[['18:00','라학생','리딩']],18:[['18:00','마학생','영어']],21:[['18:00','마학생','영어']],
+ 23:[['17:00','가학생','영어'],['19:00','다학생','영어']],24:[['18:00','라학생','리딩']],30:[['17:00','가학생','영어'],['19:00','다학생','영어']]};
+(function(){
+  const wd=['일','월','화','수','목','금','토'];
+  let h=wd.map((d,i)=>`<div class="wd ${i==0?'sun':i==6?'sat':''}">${d}</div>`).join('');
+  for(let i=0;i<35;i++){
+    const d=i+1, out=d>30, dn=out?d-30:d, dow=i%7;
+    const ev=(!out&&EV[d])||[];
+    const shown=ev.slice(0,3), more=ev.length-3;
+    h+=`<div class="day ${out?'out':''} ${dow==0?'sun':dow==6?'sat':''} ${d==25?'today':''}"><span class="dn">${dn}</span>`+
+      shown.map(([t,n,s])=>`<div class="ev ${C[n]}" title="${t} ${n} · ${s}"><b>${t}</b><span>${n}</span></div>`).join('')+
+      (more>0?`<span class="more">+${more}건 더보기</span>`:'')+`</div>`;
+  }
+  // 3번째 이벤트 테스트용: 10일에 4건 → +1
+  document.getElementById('calGrid').innerHTML=h;
+
+  // mobile week strip (23~29)
+  const ws=[22,23,24,25,26,27,28];
+  document.getElementById('wstrip').innerHTML=ws.map((d,i)=>`<button class="${d==25?'on':''}">${wd[i]}<b style="${i==0?'color:var(--red)':i==6?'color:var(--blue)':''}">${d}</b><i class="${EV[d]?'':'no'}"></i></button>`).join('');
+  const agDays=[[25,'11월 25일 (수) · 오늘'],[30,'11월 30일 (월)'],[2,'12월 2일 (수)']];
+  const agEv={25:[],30:EV[30],2:[['16:30','마학생','영어']]};
+  document.getElementById('agList').innerHTML=agDays.map(([d,l])=>`<div class="ag-day">${l}</div>`+
+   ((agEv[d]||[]).length?agEv[d].map(([t,n,s])=>`<div class="ag-item"><span class="tm">${t}</span><span class="bar" style="background:${getComputedStyle(document.documentElement).getPropertyValue('--p')}"></span><div class="tx"><div><b>${n}</b> · ${s}</div><div>정규수업 · 60분</div></div><a class="lnk">피드백</a></div>`).join('')
+    :`<div class="ag-item faint" style="font-size:13px">예정된 수업이 없습니다</div>`)).join('');
+})();
+
+/* ---------- Students ---------- */
+const STU=[['가학생','예시학교 · 5학년','11/30 (월) 17:00',''],['나학생','학교 미입력','예정된 수업 없음','none'],['다학생','예시중학교 · 8학년','11/30 (월) 19:00',''],['라학생','예시초등학교 · 4학년','12/1 (화) 18:00','']];
+document.getElementById('sgrid').innerHTML=STU.map(([n,m,nx,st],i)=>`
+ <div class="card scard" onclick="showDet()">
+  <div class="top"><span class="avatar" style="background:${['#e0e7ff','#ffedd5','#cffafe','#fae8ff'][i]};color:${['#4338ca','#c2410c','#0e7490','#a21caf'][i]}">${n[0]}</span>
+   <div style="min-width:0;flex:1"><div class="nm">${n}</div><div class="meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m}</div></div>
+   <span class="badge ${st?'b-gray':'b-ok'}">${st?'미배정':'배정됨'}</span></div>
+  <div class="next">📅 다음 수업 <b>${nx}</b></div>
+  <div class="act"><button class="btn sm" style="flex:1" onclick="event.stopPropagation()">수업일정</button><button class="btn sm" style="flex:1" onclick="event.stopPropagation()">메시지</button></div>
+ </div>`).join('');
+function showDet(){document.getElementById('stuList').style.display='none';document.getElementById('stuDet').classList.add('on');document.getElementById('main').scrollTop=0}
+function showList(){document.getElementById('stuList').style.display='flex';document.getElementById('stuDet').classList.remove('on')}
+
+/* ---------- Materials ---------- */
+const M=[['doc','test','문서','제출 대기','나학생','2026.07.28',1],['doc','Test','문서','제출 대기','나학생','2026.07.18',0],['img','9/3(목) 추가과제','자료','공유됨','예시강사','2026.09.03',0],['pdf','9/3(목) 과제','자료','공유됨','예시강사','2026.09.03',0]];
+const FI={doc:IC.materials,pdf:IC.materials,img:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>'};
+const sub=f=>f[0]=='doc'?'공유 대상: 예시대상':f[0]=='pdf'?'MAP Reading 51-60.pdf · 107 KB':'스크린샷.png · 145 KB';
+const more='<button class="ib" title="더보기" aria-label="더보기"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>';
+document.getElementById('mBody').innerHTML=M.map(f=>`<tr>
+ <td><div class="ftitle"><span class="ficon ${f[0]}">${FI[f[0]]}</span><div style="min-width:0"><div class="t">${f[1]}</div><div class="s">${sub(f)}</div></div></div></td>
+ <td class="c-type"><span class="badge ${f[2]=='문서'?'b-doc':'b-file'}">${f[2]}</span></td>
+ <td><span class="badge ${f[3]=='제출 대기'?'b-sub':'b-ok'}">${f[3]}</span></td>
+ <td class="c-author muted">${f[4]}</td><td class="muted">${f[5]}</td><td class="muted" style="white-space:nowrap">💬 ${f[6]}</td>
+ <td><div class="acts"><button class="ib" title="다운로드" aria-label="다운로드"><svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/></svg></button><button class="ib" title="공유" aria-label="공유"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>${more}</div></td></tr>`).join('');
+document.getElementById('mList').innerHTML=M.map(f=>`<div class="mrow"><span class="ficon ${f[0]}">${FI[f[0]]}</span><div class="tx"><div class="t">${f[1]} <span class="badge ${f[3]=='제출 대기'?'b-sub':'b-ok'}">${f[3]}</span></div><div class="s">${f[2]} · ${f[4]} · ${f[5]} · 💬 ${f[6]}</div></div>${more}</div>`).join('');
+
+/* ---------- Chat ---------- */
+const CH=[['t','parent01','알림 수신 여부는 기기와 브라우저 설정에서 확인할 수 있습니다.','오후 3:15',0,0],['#','강사커뮤니티','teacher02: @teacher02 테스트 2','어제',2,1],['f','teacher02','개인별대화','11/20',1,0]];
+document.getElementById('clist').innerHTML=CH.map((c,i)=>`<div class="citem ${i==0?'on':''}" onclick="document.getElementById('chat').classList.add('open')">
+ <span class="avatar ${c[5]?'grp':''}">${c[0]}</span><div class="tx"><div class="l1"><b>${c[1]}</b><small>${c[3]}</small></div><div class="l2"><span>${c[2]}</span>${c[4]?`<span class="unread">${c[4]}</span>`:''}</div></div></div>`).join('');
+
+renderNav(cur);syncAnn();
+</script>
+</body>
+</html>

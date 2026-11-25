@@ -2774,5 +2774,39 @@
     "online": "API · Trực tuyến",
     "targetApp": "Ứng dụng nhận khóa",
     "available": "Sẵn sàng"
+  },
+  "portalUi": {
+    "skip": "Chuyển đến nội dung",
+    "navigation": "Menu cổng học viện",
+    "mobileNavigation": "Menu di động",
+    "more": "Thêm",
+    "menuError": "Không thể tải cài đặt menu.",
+    "previous": "Khoảng trước",
+    "next": "Khoảng tiếp theo",
+    "noMatches": "Không có kết quả phù hợp.",
+    "loadError": "Không thể tải thông tin. Vui lòng thử lại.",
+    "studentScope": "Phạm vi học viên phụ trách",
+    "assigned": "Học viên phụ trách",
+    "includeWithdrawn": "Tất cả được giao (kể cả đã nghỉ)",
+    "assignedScope": "Cả hai danh sách chỉ gồm học viên bạn phụ trách.",
+    "studentSearch": "Tìm theo tên, tên tiếng Anh hoặc trường",
+    "resultCount": "{{count}} kết quả",
+    "notEntered": "Chưa cung cấp",
+    "materialSearch": "Tìm tiêu đề trong tất cả bài đăng",
+    "search": "Tìm kiếm",
+    "clear": "Đặt lại",
+    "title": "Tiêu đề",
+    "type": "Loại",
+    "created": "Ngày đăng",
+    "actions": "Thao tác",
+    "open": "Mở",
+    "roomSearch": "Tìm cuộc trò chuyện",
+    "unreadOnly": "Chỉ chưa đọc",
+    "security": "Bảo mật",
+    "status": {
+      "ACTIVE": "Đang học",
+      "INACTIVE": "Không hoạt động",
+      "WITHDRAWN": "Đã nghỉ"
+    }
   }
 }

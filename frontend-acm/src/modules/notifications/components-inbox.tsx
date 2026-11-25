@@ -1,5 +1,10 @@
 import { MobileSessionKeeper } from "@/lib/session-keep";
-import { PushEnableBanner, PushLoginPrompt, PushSettings, PushSessionSync } from "./push-settings";
+import {
+  PushEnableBanner,
+  PushLoginPrompt,
+  PushSettings,
+  PushSessionSync,
+} from "./push-settings";
 import { MyNotificationPrefs } from "./my-notification-prefs";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -42,7 +47,13 @@ function useInboxSession(mode: InboxMode) {
     key: ["notification-inbox", mode, user?.entId, user?.id] as const,
   };
 }
-export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
+export function NotificationBell({
+  mode = "admin",
+  showPushPrompt = true,
+}: {
+  mode?: InboxMode;
+  showPushPrompt?: boolean;
+}) {
   const { t } = useTranslation("common");
   const [open, setOpen] = useState(false);
   const [settings, setSettings] = useState(false);
@@ -148,7 +159,7 @@ export function NotificationBell({ mode = "admin" }: { mode?: InboxMode }) {
         )}
       </button>
       <PushSessionSync mode={mode} />
-      <PushLoginPrompt mode={mode} />
+      {showPushPrompt && <PushLoginPrompt mode={mode} />}
       <MobileSessionKeeper mode={mode} />
       <Dialog open={settings} onOpenChange={setSettings}>
         <DialogContent>
@@ -187,7 +198,9 @@ function Summary({ item }: { item: InboxItem }) {
       <span className="flex items-center gap-1.5 font-medium">
         {t(
           "inbox.events." +
-            (item.type === "ISSUE_MENTION" && p.commentId ? "ISSUE_MENTION_COMMENT" : item.type),
+            (item.type === "ISSUE_MENTION" && p.commentId
+              ? "ISSUE_MENTION_COMMENT"
+              : item.type),
         )}
         {/* REQ-261020C — 멘션은 일반 알림과 구분 */}
         {(item.type === "CHAT_MENTION" || item.type === "ISSUE_MENTION") && (

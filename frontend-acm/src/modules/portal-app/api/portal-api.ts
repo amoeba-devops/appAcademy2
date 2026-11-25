@@ -197,11 +197,11 @@ export const portalApi = {
   // REQ-260728B FR-4 — 종류필터(kind) + 서버 페이징 ({ data, meta }).
   materials: async (
     scope: 'own' | 'shared',
-    opts: { kind?: 'DOC' | 'FILE'; page: number; limit: number },
+    opts: { kind?: 'DOC' | 'FILE'; page: number; limit: number; q?: string },
   ) =>
     (
       await apiClient.get<PagedMaterials>('/portal/materials', {
-        params: { scope, kind: opts.kind, page: opts.page, limit: opts.limit },
+        params: { scope, kind: opts.kind, page: opts.page, limit: opts.limit, q: opts.q },
       })
     ).data,
 

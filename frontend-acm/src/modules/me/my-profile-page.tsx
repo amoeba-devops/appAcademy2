@@ -1,14 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { PushSettings } from "@/modules/notifications/push-settings";
+import { usePortalLogout } from "@/modules/portal-app/hooks/use-portal-logout";
 import { UserCircle, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDual } from "@/lib/tz";
 import { useAuthStore } from "@/stores/auth.store";
 import { TZ_OPTIONS, tzLabel } from "@/modules/cfg/pages/general-config-page";
-import { useMyProfile, useSaveMyProfile, type ProfileMode } from "./use-my-zones";
-import { ExtraProfileSection, PasswordSection } from "./console-profile-sections";
+import {
+  useMyProfile,
+  useSaveMyProfile,
+  type ProfileMode,
+} from "./use-my-zones";
+import {
+  ExtraProfileSection,
+  PasswordSection,
+} from "./console-profile-sections";
 
 /**
  * REQ-261015C — 마이페이지. 포털(/portal/me: 학생·강사·학부모) / 콘솔(/admin/me).
@@ -17,6 +26,7 @@ import { ExtraProfileSection, PasswordSection } from "./console-profile-sections
 export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   const { t, i18n } = useTranslation("common");
   const profile = useMyProfile(mode);
+  const logout = usePortalLogout();
   const save = useSaveMyProfile(mode);
   const portalKind = useAuthStore((s) => s.portal.user?.kind);
   const canSetTimezone = mode === "console" || portalKind === "PARENT";
@@ -26,7 +36,8 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   }, [profile.data]);
   const tenantTz = profile.data?.tenantTimezone ?? "Asia/Seoul";
   const options = useMemo(() => {
-    const list = tz && !TZ_OPTIONS.includes(tz) ? [tz, ...TZ_OPTIONS] : TZ_OPTIONS;
+    const list =
+      tz && !TZ_OPTIONS.includes(tz) ? [tz, ...TZ_OPTIONS] : TZ_OPTIONS;
     return list.map((z) => ({ value: z, label: tzLabel(z, i18n.language) }));
   }, [tz, i18n.language]);
   const preview = formatDual(
@@ -38,7 +49,9 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
   const p = profile.data;
   return (
     // REQ-261112D — 콘솔은 폼 폭 표준(768), 포털은 기존 그대로.
-    <div className={`grid w-full min-w-0 gap-4 ${mode === "console" ? "admin-form-width" : "max-w-2xl"}`}>
+    <div
+      className={`grid w-full min-w-0 gap-4 ${mode === "console" ? "admin-form-width" : "max-w-2xl"}`}
+    >
       {mode === "console" ? (
         <PageHeader
           icon={UserRound}
@@ -48,7 +61,9 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
       ) : (
         <header className="flex items-center gap-2">
           <UserCircle size={20} className="text-accent-700" />
-          <h1 className="text-xl font-semibold text-primary">{t("myPage.title")}</h1>
+          <h1 className="portal-title text-xl font-semibold text-primary">
+            {t("myPage.title")}
+          </h1>
         </header>
       )}
       {profile.isLoading && <p>{t("myPage.loading")}</p>}
@@ -64,17 +79,23 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
             )}
             <div className="min-w-0">
               <dt className="text-xs text-secondary">{t("myPage.loginId")}</dt>
-              <dd className="truncate">{p.loginId ?? p.email}</dd>
+              <dd className="break-words">{p.loginId ?? p.email}</dd>
             </div>
             {(p.kind || p.role) && (
               <div>
                 <dt className="text-xs text-secondary">{t("myPage.role")}</dt>
-                <dd>{p.kind ? t(`portalApp.role.${p.kind}`) : t(`myPage.roles.${p.role}`, p.role ?? "")}</dd>
+                <dd>
+                  {p.kind
+                    ? t(`portalApp.role.${p.kind}`)
+                    : t(`myPage.roles.${p.role}`, p.role ?? "")}
+                </dd>
               </div>
             )}
             {p.createdAt && (
               <div>
-                <dt className="text-xs text-secondary">{t("myPage.joinedAt")}</dt>
+                <dt className="text-xs text-secondary">
+                  {t("myPage.joinedAt")}
+                </dt>
                 <dd>
                   {new Intl.DateTimeFormat(i18n.language, {
                     timeZone: tenantTz,
@@ -90,13 +111,17 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
             <h2 className="font-semibold">{t("myPage.timezone")}</h2>
             {/* REQ-261110B — 학원 기준(표시) / 사용자 지정(선택) 두 줄로 분리 */}
             <div className="grid gap-1">
-              <span className="text-xs text-secondary">{t("myPage.tenantTimezone")}</span>
+              <span className="text-xs text-secondary">
+                {t("myPage.tenantTimezone")}
+              </span>
               <span>{tzLabel(tenantTz, i18n.language)}</span>
             </div>
             {canSetTimezone && (
               <>
                 <label className="grid gap-1">
-                  <span className="text-xs text-secondary">{t("myPage.userTimezone")}</span>
+                  <span className="text-xs text-secondary">
+                    {t("myPage.userTimezone")}
+                  </span>
                   <select
                     className="h-9 w-full rounded-md border bg-canvas px-3"
                     value={tz}
@@ -113,10 +138,16 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
                     ))}
                   </select>
                 </label>
-                <p className="text-xs text-secondary">{t("myPage.timezoneHint")}</p>
-                <p className="text-xs">{t("myPage.preview", { now: preview })}</p>
+                <p className="text-xs text-secondary">
+                  {t("myPage.timezoneHint")}
+                </p>
+                <p className="text-xs">
+                  {t("myPage.preview", { now: preview })}
+                </p>
                 <div className="flex flex-wrap items-center justify-end gap-2">
-                  {save.isSuccess && <span role="status">{t("myPage.saved")}</span>}
+                  {save.isSuccess && (
+                    <span role="status">{t("myPage.saved")}</span>
+                  )}
                   {save.isError && (
                     <span role="alert" className="text-red-600">
                       {t("myPage.saveError")}
@@ -139,9 +170,25 @@ export function MyProfilePage({ mode }: { mode: ProfileMode }) {
             </>
           )}
           {mode === "portal" && (
-            <Link className="text-sm text-accent-700 hover:underline" to="/portal/change-password">
-              {t("myPage.changePassword")} →
-            </Link>
+            <>
+              {portalKind === "TEACHER" && <PushSettings mode="portal" />}
+              <section className="grid gap-3 rounded-lg border bg-surface p-4">
+                <h2 className="font-semibold">{t("portalUi.security")}</h2>
+                <Link
+                  className="inline-flex min-h-11 items-center text-sm text-accent-700 hover:underline"
+                  to="/portal/change-password"
+                >
+                  {t("myPage.changePassword")} →
+                </Link>
+                <button
+                  type="button"
+                  className="min-h-11 w-fit rounded-md border px-4 text-sm"
+                  onClick={logout}
+                >
+                  {t("portalApp.logout")}
+                </button>
+              </section>
+            </>
           )}
         </>
       )}
