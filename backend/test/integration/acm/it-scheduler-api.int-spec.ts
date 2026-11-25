@@ -341,6 +341,13 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
       }),
     ).expect(201);
     expect(r.body.data.students[0].studentId).toBe(student);
+    const portal = await request(env.app.getHttpServer())
+      .get(`/api/portal/cal/events/${r.body.data.id}`)
+      .set('Authorization', `Bearer ${portalToken}`)
+      .expect(200);
+    expect(portal.body.data.externalStudents).toEqual([
+      { studentId: null, name: 'Registered student' },
+    ]);
     await write(
       'missing',
       lesson({

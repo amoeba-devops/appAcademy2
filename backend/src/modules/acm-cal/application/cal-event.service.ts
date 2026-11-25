@@ -225,7 +225,16 @@ export class CalEventService {
 
     qb.orderBy('e.startAt', 'ASC');
     const items = await qb.getMany();
-    return { items: await this.enrichItems(entId, items) };
+    return {
+      items: (await this.enrichItems(entId, items)).map((item) => ({
+        ...item,
+        externalStudents:
+          item.externalStudents?.map(({ name }) => ({
+            name,
+            studentId: null,
+          })) ?? null,
+      })),
+    };
   }
 
   /**
@@ -254,6 +263,11 @@ export class CalEventService {
     const attachments = await this.eventAttachmentSvc.list(entId, event.id);
     return {
       ...enriched,
+      externalStudents:
+        enriched.externalStudents?.map(({ name }) => ({
+          name,
+          studentId: null,
+        })) ?? null,
       invitees: invitees.map((i) => ({ kind: i.kind, name: i.name })),
       attachments,
     };
