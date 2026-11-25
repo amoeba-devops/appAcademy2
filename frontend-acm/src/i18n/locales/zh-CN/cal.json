@@ -492,5 +492,13 @@
     "empty": "没有需要关联的日程。",
     "showEvents": "查看日程",
     "adminOnly": "仅限管理员。"
+  },
+  "titleAuto": {
+    "chipTitle": "自动显示 — 参加学生会自动显示在日历上",
+    "attendee": "参加者",
+    "placeholder": "科目（例：英语）",
+    "hint": "参加学生会自动显示在日历上。标题只需输入科目。",
+    "preview": "日历显示：",
+    "duplicate": "标题与学生姓名相同 — 日历中只显示一次。请输入科目。"
   }
 }

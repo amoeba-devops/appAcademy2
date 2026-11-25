@@ -492,5 +492,13 @@
     "empty": "No events need linking.",
     "showEvents": "Show events",
     "adminOnly": "Administrators only."
+  },
+  "titleAuto": {
+    "chipTitle": "Auto-filled — attending students are shown on the calendar automatically",
+    "attendee": "Attendees",
+    "placeholder": "Subject (e.g. English)",
+    "hint": "Attending students are shown on the calendar automatically. Enter only the subject as the title.",
+    "preview": "Calendar shows:",
+    "duplicate": "The title is the same as the student name — it is shown only once. Enter the subject."
   }
 }

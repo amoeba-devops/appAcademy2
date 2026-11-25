@@ -492,5 +492,13 @@
     "empty": "Không có lịch cần liên kết.",
     "showEvents": "Xem lịch",
     "adminOnly": "Chỉ quản trị viên."
+  },
+  "titleAuto": {
+    "chipTitle": "Tự động hiển thị — học sinh tham dự được hiển thị trên lịch",
+    "attendee": "Người tham dự",
+    "placeholder": "Môn học (vd: Tiếng Anh)",
+    "hint": "Học sinh tham dự được tự động hiển thị trên lịch. Chỉ nhập môn học vào tiêu đề.",
+    "preview": "Hiển thị trên lịch:",
+    "duplicate": "Tiêu đề trùng tên học sinh — chỉ hiển thị một lần. Hãy nhập môn học."
   }
 }

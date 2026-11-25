@@ -475,20 +475,26 @@ function MonthGrid({
                   onClick={() => onSelect(e)}
                   title={eventLine(time.range(e), e)}
                   className={
-                    "mt-1 flex w-full items-center gap-1 truncate rounded border-l-[3px] px-1.5 py-1 text-left hover:brightness-95 " +
+                    "mt-1 block w-full rounded border-l-[3px] px-1.5 py-1 text-left hover:brightness-95 " +
                     studentColor(e)
                   }
                 >
-                  {canEnterVideo(e, video.bodaEnabled) && (
-                    <Video size={10} className="shrink-0" />
-                  )}
-                  <span className="truncate">{eventLine(time.label(e), e)}</span>
-                  {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
-                  {e.classDone && (
-                    <span className="shrink-0 rounded bg-emerald-100 px-0.5 text-[8px] font-semibold text-emerald-800">
-                      ✓
-                    </span>
-                  )}
+                  {/* REQ-261125-CAL2 — 관리자 카드처럼 1줄 문구, 2줄 과목(일정 구분). 강사 줄 없음 */}
+                  <span className="flex items-center gap-1">
+                    {canEnterVideo(e, video.bodaEnabled) && (
+                      <Video size={10} className="shrink-0" />
+                    )}
+                    <span className="truncate font-medium">{eventLine(time.label(e), e)}</span>
+                    {/* PLN-260728F B — 캘린더 칸엔 수업완료만 */}
+                    {e.classDone && (
+                      <span className="shrink-0 rounded bg-emerald-100 px-0.5 text-[8px] font-semibold text-emerald-800">
+                        ✓
+                      </span>
+                    )}
+                  </span>
+                  <span className="block truncate opacity-80">
+                    {t(`category.${e.category}`, e.category)}
+                  </span>
                 </button>
               ))}
               {dayEvents.length > 3 && (
@@ -549,6 +555,9 @@ function MonthGrid({
                     </span>
                     <span className="block break-words font-medium">
                       {eventLine("", event)}
+                    </span>
+                    <span className="block text-sm text-secondary">
+                      {t(`category.${event.category}`, event.category)}
                     </span>
                   </button>
                 </li>
@@ -634,6 +643,9 @@ function EventRow({
       <span className="min-w-0 flex-1 truncate text-sm text-primary">
         {/* REQ-261125-CAL — 관리자 달력과 같은 "학생 | 제목" (시간은 왼쪽 칸) */}
         {eventLine("", e)}
+        <span className="ml-1.5 text-secondary">
+          · {t(`cal:category.${e.category}`, e.category)}
+        </span>
       </span>
       {/* PLN-260729 3 — 피드백/과제 텍스트 표기 (아이콘은 월간뷰만) */}
       <span className="flex shrink-0 items-center gap-1.5 text-xs">
@@ -743,6 +755,13 @@ function EventDetailModal({
   const navigate = useNavigate();
   const location = useLocation();
   const isBoda = !!event && canEnterVideo(event, video.bodaEnabled);
+  // REQ-261125-CAL2 — 강의링크(참석 학생의 학생관리 수업 링크)는 상세 응답에만 있다.
+  const detail = useQuery({
+    enabled: !!event,
+    queryKey: ["portal-cal-event", event?.id],
+    queryFn: () => portalApi.calEvent(event!.id),
+  });
+  const classLinks = (detail.data?.classLinks ?? []).filter((c) => c.links.length);
 
   const zones = useMyZones("portal");
   const when = event
@@ -778,6 +797,44 @@ function EventDetailModal({
                   {t("portalApp.cal.when", "일시")}
                 </span>{" "}
                 {when}
+              </div>
+              {/* REQ-261125-CAL2 — 과목(일정 구분) */}
+              <div>
+                <span className="text-secondary">
+                  {t("portalApp.cal.subject", "과목")}
+                </span>{" "}
+                {t(`cal:category.${event.category}`, event.category)}
+              </div>
+              {/* REQ-261125-CAL2 — 강의링크 */}
+              <div className="flex flex-wrap items-baseline gap-x-1">
+                <span className="text-secondary">
+                  {t("portalApp.cal.classLinks", "강의링크")}
+                </span>
+                {detail.isLoading ? (
+                  <span className="text-secondary">…</span>
+                ) : classLinks.length ? (
+                  <ul className="grid gap-0.5">
+                    {classLinks.flatMap((c) =>
+                      c.links.map((l, i) => (
+                        <li key={`${c.stdName}:${i}`}>
+                          {c.stdName} ·{" "}
+                          <a
+                            href={l.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent-700 underline break-all"
+                          >
+                            {l.label || l.url}
+                          </a>
+                        </li>
+                      )),
+                    )}
+                  </ul>
+                ) : (
+                  <span className="text-secondary">
+                    {t("portalApp.cal.noClassLinks", "등록된 수업 링크 없음")}
+                  </span>
+                )}
               </div>
               {event.assigneeName && (
                 <div>

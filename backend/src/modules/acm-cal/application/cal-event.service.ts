@@ -39,6 +39,10 @@ import {
   NotifySummary,
 } from './invitee-notifier.service';
 import { BodaRoomService } from './boda-room.service';
+import {
+  type ClassLink,
+  readLinks,
+} from '../../acm-std/application/teacher-class-info';
 
 export interface CslAttachmentSummary {
   id: string;
@@ -270,7 +274,35 @@ export class CalEventService {
         })) ?? null,
       invitees: invitees.map((i) => ({ kind: i.kind, name: i.name })),
       attachments,
+      // REQ-261125-CAL2 — 강사 포털 모달 '강의링크': 참석 학생의 학생관리 수업 링크(이 강사 기준).
+      classLinks:
+        kind === 'TEACHER'
+          ? await this.teacherClassLinks(entId, event.id, refId)
+          : [],
     };
+  }
+
+  /** 참석 학생 × 강사의 수업정보 링크 (학생 이름 순, 링크 없는 학생 제외). */
+  private async teacherClassLinks(
+    entId: string,
+    evtId: string,
+    tchId: string,
+  ): Promise<{ stdName: string; links: ClassLink[] }[]> {
+    const rows: { stdName: string; info: Record<string, unknown> | null }[] =
+      await this.repo.manager.query(
+        `SELECT s.std_name AS "stdName", ci.info
+           FROM amb_acm_cal_invitee i
+           JOIN amb_acm_std_student s
+             ON s.ent_id = i.ent_id AND s.std_id = i.inv_ref_id AND s.deleted_at IS NULL
+           JOIN amb_acm_std_teacher_class_info ci
+             ON ci.ent_id = s.ent_id AND ci.std_id = s.std_id AND ci.tch_id = $3::uuid
+          WHERE i.ent_id = $1 AND i.evt_id = $2 AND i.inv_kind = 'STUDENT'
+          ORDER BY s.std_name`,
+        [entId, evtId, tchId],
+      );
+    return rows
+      .map((r) => ({ stdName: r.stdName, links: readLinks(r.info) }))
+      .filter((r) => r.links.length);
   }
 
   /** PLN-260729 P3 — 기간 수업통계 (전체 + 강사별). */

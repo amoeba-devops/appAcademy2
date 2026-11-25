@@ -59,13 +59,12 @@ export function PortalMaterialsPage() {
     <div>
       <h1 className="portal-title">{t("portalApp.nav.materials")}</h1>
 
-      {/* Tabs */}
+      {/* REQ-261125-CAL2 — 수강생관리와 같은 밑줄 탭(.portal-tabs) */}
       <div className="portal-tabs">
         <button
           type="button"
           aria-pressed={tab === "shared"}
           onClick={() => setTab("shared")}
-          className={`min-h-9 rounded px-3 py-1 sm:min-h-0 ${tab === "shared" ? "bg-accent-600 text-white" : "text-secondary"}`}
         >
           {t("portalApp.materials.tabShared", "공유받은 게시물")}
         </button>
@@ -74,7 +73,6 @@ export function PortalMaterialsPage() {
             type="button"
             aria-pressed={tab === "own"}
             onClick={() => setTab("own")}
-            className={`min-h-9 rounded px-3 py-1 sm:min-h-0 ${tab === "own" ? "bg-accent-600 text-white" : "text-secondary"}`}
           >
             {t("portalApp.materials.tabOwn", "내 게시물")}
           </button>
@@ -293,18 +291,14 @@ function MaterialList({ scope }: { scope: Tab }) {
 
   return (
     <div>
-      <div className="portal-toolbar">
+      {/* REQ-261125-CAL2 — 종류 탭도 밑줄 형태 */}
+      <div className="portal-tabs">
         {filters.map((f) => (
           <button
             key={f.key}
             type="button"
             aria-pressed={kindFilter === f.key}
             onClick={() => setKindFilter(f.key)}
-            className={`min-h-9 rounded px-2.5 py-1 sm:min-h-0 ${
-              kindFilter === f.key
-                ? "bg-accent-600 text-white"
-                : "text-secondary"
-            }`}
           >
             {f.label}
           </button>
