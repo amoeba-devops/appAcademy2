@@ -76,6 +76,7 @@ class Fixture:
             elif path.endswith('/channels'):data=[self.channel]
             elif path.endswith('/messages'):data={'messages':[],'nextCursor':None}
             elif path.endswith('/channels/room-a'):data=self.channel
+            elif path=='/portal/notifications/inbox':data={'items':[],'nextCursor':None,'asOf':'2026-11-25T00:00:00Z'}
             elif path.endswith('/count') or 'unread' in path:data={'unreadCount':0}
             elif path.endswith('/push-config'):data={'enabled':self.enable_push,'publicKey':'fixture-public-key' if self.enable_push else None}
             elif path.endswith('/my-settings'):data={'spec':{},'prefs':{'types':{}},'tenant':{'types':{}},'types':[]}
@@ -173,6 +174,11 @@ with sync_playwright() as p:
         page.goto(BASE+'/portal/calendar')
         expect(page.locator('.portal-push')).to_contain_text('알림')
         assert page.locator('div.fixed[role="dialog"]').count()==0
+        page.locator('.portal-header button[aria-label]').first.click()
+        # Dismissing the second banner in the inbox must also hide the page banner.
+        dismiss=page.locator('.portal-push button[aria-label]').first.get_attribute('aria-label')
+        page.get_by_role('button',name=dismiss,exact=True).last.click()
+        expect(page.locator('.portal-push > div')).to_have_count(0)
         assert not f.errors,f.errors
         ctx.close();print('PASS settings failure keeps account access and push prompt stays inline')
         f=Fixture();ctx=f.context(browser,390,timezone='America/Los_Angeles');page=ctx.new_page()
