@@ -1,9 +1,10 @@
 ---
-document_id: SCHEDULER-API-1.1.0
-version: 1.1.0
-status: implemented_pending_deployment
+document_id: SCHEDULER-API-1.1.1
+version: 1.1.1
+status: deployed
 date: 2026-11-25
 change_log:
+  - 2026-11-25 v1.1.1 MASTER 계정의 API 사용 설정·키 관리 권한 수정 및 운영 반영
   - 2026-11-25 v1.1.0 서비스 설정 API 사용안내 경로·3개 탭·사용 설정·파라미터 타입 및 값 사전 추가
   - 2026-11-25 v1.0.0 외부 스케줄 앱용 요청·응답 계약 초안
 ---
@@ -12,7 +13,7 @@ change_log:
 
 ## 1. Status and Authentication (상태·인증)
 
-**구현·로컬 검증 완료, 배포 검증 대기 문서다. 예제 키·UUID는 실제 값이 아니다.** 서비스 설정의 API 사용안내와 OpenAPI 다운로드에서 같은 계약을 확인할 수 있다.
+**스테이징·프로덕션 배포 및 검증 완료 문서다. 예제 키·UUID는 실제 값이 아니다.** 서비스 설정의 API 사용안내와 OpenAPI 다운로드에서 같은 계약을 확인할 수 있다.
 
 Base URL: `https://acm.amoeba.site/api/integrations/v1`
 
