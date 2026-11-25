@@ -37,7 +37,11 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
     deliveryMode: 'ONSITE',
     ...overrides,
   });
-  const write = (id: string, body = lesson(), key = randomUUID()) =>
+  const write = (
+    id: string,
+    body: Record<string, unknown> = lesson(),
+    key: string = randomUUID(),
+  ) =>
     request(env.app.getHttpServer())
       .put(`/api/integrations/v1/lessons/external/${id}`)
       .set(token())
