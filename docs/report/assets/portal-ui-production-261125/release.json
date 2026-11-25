@@ -1,0 +1,23 @@
+{
+  "releaseSha": "def369aa10e904caa4df7cbb050fcbb3c64dd6ed",
+  "previousSha": "7c17137bab217c56702a75eebe86b8c6f304976b",
+  "pr": 452,
+  "prCi": 45566019656,
+  "mainCi": 45581998784,
+  "stagingCd": 45581998844,
+  "productionCd": 45583735438,
+  "stagingDeployedAt": "2026-11-25T18:06:47+09:00",
+  "productionDeployedAt": "2026-11-25T18:16:23+09:00",
+  "screenshots": "Actual deployed bundle rendered with synthetic API fixtures; no customer data",
+  "readonlyVerifierSha256": "ec2d8fb2e9354b3b2a91fd047a5edfd4ff5b3af0ce7bf39d3d603f8537838969",
+  "observation": {
+    "startedAt": "2026-11-25T09:17:07.672619+00:00",
+    "completedAt": "2026-11-25T09:32:07.812502+00:00",
+    "durationSeconds": 900,
+    "requests": 62,
+    "failures": 0,
+    "p50Seconds": 0.0701,
+    "p95Seconds": 0.2895,
+    "maxSeconds": 0.7174
+  }
+}

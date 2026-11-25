@@ -1,0 +1,18 @@
+{
+  "completedAtKst": "2026-11-25 18:32:07 KST",
+  "containers": [
+    {
+      "name": "/tac-prod-backend",
+      "image": "ghcr.io/amoeba-devops/appacademy2/tac-backend:def369a",
+      "state": "running",
+      "restarts": 0
+    },
+    {
+      "name": "/acm-prod-frontend",
+      "image": "ghcr.io/amoeba-devops/appacademy2/acm-frontend:def369a",
+      "state": "running",
+      "restarts": 0
+    }
+  ],
+  "backendErrorMarkers": 0
+}

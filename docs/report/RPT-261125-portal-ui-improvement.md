@@ -1,11 +1,12 @@
 ---
-document_id: ACM-PORTAL-UI-RPT-1.0.0
-version: 1.0.0
-status: implemented_locally
+document_id: ACM-PORTAL-UI-RPT-1.1.0
+version: 1.1.0
+status: deployed
 date: 2026-11-25
 source_baseline: 7c17137
 branch: feat/portal-ui-261125
 change_log:
+  - 2026-11-25 v1.1.0 스테이징·운영 배포 및 15분 관찰 완료
   - 2026-11-25 v1.0.0 승인된 핵심 포털 UI 구현·로컬 검증 결과
 ---
 
@@ -13,7 +14,7 @@ change_log:
 
 ## 1. Outcome (결과)
 
-사용자의 “진행” 승인에 따라 첨부 목업의 핵심 UI 개선을 구현했다. 기존 역할·테넌트 권한과 정보 비노출 요구를 유지한다. 이 보고서의 화면은 로컬 구현 화면을 가상 데이터로 검증한 자료이며 운영 화면 변경이나 배포 완료를 의미하지 않는다.
+사용자의 “진행” 승인에 따라 첨부 목업의 핵심 UI 개선을 구현했다. 기존 역할·테넌트 권한과 정보 비노출 요구를 유지한다. 이 보고서의 화면은 로컬 구현 화면을 가상 데이터로 검증한 자료다. 실제 운영 반영과 배포 후 검증은 [배포 보고서](RPT-261125-portal-ui-production-deploy.md)에 기록했다.
 
 | 영역 | 구현 내용 |
 | --- | --- |
@@ -95,7 +96,7 @@ python3 frontend-acm/test/portal-menus.smoke.py
 
 ## 5. Review and Release (검토·배포 상태)
 
-별도 작업 폴더에서 구현하여 기존 작업 폴더의 미완료 변경과 분리했다. 검토용 변경은 [PR #452](https://github.com/amoeba-devops/appAcademy2/pull/452)에 정리했다. 최신 자동 검증 결과는 [PR Checks](https://github.com/amoeba-devops/appAcademy2/pull/452/checks)에서 확인할 수 있다. 운영 반영은 별도 배포 단계이며 현재 운영 배포 완료로 표시하지 않는다.
+별도 작업 폴더에서 구현하여 기존 작업 폴더의 미완료 변경과 분리했다. 검토용 변경은 [PR #452](https://github.com/amoeba-devops/appAcademy2/pull/452)에 정리했다. 최신 자동 검증 결과는 [PR Checks](https://github.com/amoeba-devops/appAcademy2/pull/452/checks)에서 확인할 수 있다. 2026-11-25 18:16:23 KST에 def369a로 운영 반영했고 15분 관찰을 완료했다. 상세 결과는 [운영 배포 보고서](RPT-261125-portal-ui-production-deploy.md)를 참조한다.
 
 - [승인된 요구사항](../analysis/REQ-261125-portal-ui-improvement.md)
 - [작업 계획](../plan/PLN-261125-portal-ui-improvement.md)

@@ -1,0 +1,16 @@
+{
+  "readonly": true,
+  "roles": [
+    {
+      "role": "TEACHER",
+      "skipped": "no_active_account"
+    },
+    {
+      "role": "STUDENT",
+      "profile": true,
+      "menus": true,
+      "materials": "search_and_pagination_passed"
+    }
+  ],
+  "authenticatedRoles": 1
+}

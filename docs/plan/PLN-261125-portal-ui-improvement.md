@@ -1,9 +1,10 @@
 ---
-document_id: ACM-PORTAL-UI-PLN-1.0.0
-version: 1.0.0
-status: implemented_locally
+document_id: ACM-PORTAL-UI-PLN-1.0.1
+version: 1.0.1
+status: deployed
 date: 2026-11-25
 change_log:
+  - 2026-11-25 v1.0.1 스테이징·운영 반영 및 배포 후 검증 완료
   - 2026-11-25 v1.0.0 목업 기반 개선 범위·구성안·단계별 작업 계획
 ---
 
@@ -108,4 +109,4 @@ change_log:
 ## 6. Approval Boundary (검토 범위)
 
 이번 요청은 개선안 작성이므로 구현 승인 질문 없이 검토 가능한 문서와 시안을 제공한다. 실제 애플리케이션 구현으로 진행하는 경우 AGENTS.md §9.2의 “요구사항 분석서 + 작업 계획서 작성 후 반드시 사용자 확인” 절차에 따라 확정 범위를 확인한다. 별도 기능 검토 항목은 기본 UI 범위에 자동 포함하지 않는다.
-\n\nImplementation status (구현 상태): 2026-11-25 사용자의 “진행” 승인으로 핵심 UI를 구현했다. 구현·검증 범위와 선택 확장 제외 항목은 [구현 보고서](../report/RPT-261125-portal-ui-improvement.md)를 참조한다. 운영 배포 상태와는 구분한다.\n
+\n\nImplementation status (구현 상태): 2026-11-25 사용자의 “진행” 승인으로 핵심 UI를 구현했다. 구현·검증 범위와 선택 확장 제외 항목은 [구현 보고서](../report/RPT-261125-portal-ui-improvement.md)를 참조한다. 스테이징·운영 반영과 15분 관찰을 완료했으며 [배포 보고서](../report/RPT-261125-portal-ui-production-deploy.md)를 참조한다.\n

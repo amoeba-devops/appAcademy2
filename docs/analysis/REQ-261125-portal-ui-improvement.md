@@ -1,11 +1,12 @@
 ---
-document_id: ACM-PORTAL-UI-REQ-1.0.0
-version: 1.0.0
-status: implemented_locally
+document_id: ACM-PORTAL-UI-REQ-1.0.1
+version: 1.0.1
+status: deployed
 date: 2026-11-25
 source: /Users/gray/Downloads/acm-portal-mockup.html
 application_baseline: 7c17137
 change_log:
+  - 2026-11-25 v1.0.1 스테이징·운영 반영 및 배포 후 검증 완료
   - 2026-11-25 v1.0.0 첨부 목업과 현재 포털 소스를 비교한 UI 개선안 작성
 ---
 
@@ -253,4 +254,4 @@ Mobile < 640   : 상단 헤더 + 본문 + 허용 메뉴 기반 하단 탐색
 - [기존 포털 메뉴·공지·특이사항 요구](REQ-261125-portal-menu-visibility.md)
 - [현재 스타일 가이드](../standard/STYLE_GUIDE.md)
 - 소스: portal-shell.tsx, portal-calendar-page.tsx, portal-teacher-students-page.tsx, portal-materials-page.tsx, my-profile-page.tsx, use-portal-menus.ts, push-settings.tsx.
-\n\nImplementation status (구현 상태): 2026-11-25 사용자의 “진행” 승인으로 핵심 UI를 구현했다. 구현·검증 범위와 선택 확장 제외 항목은 [구현 보고서](../report/RPT-261125-portal-ui-improvement.md)를 참조한다. 운영 배포 상태와는 구분한다.\n
+\n\nImplementation status (구현 상태): 2026-11-25 사용자의 “진행” 승인으로 핵심 UI를 구현했다. 구현·검증 범위와 선택 확장 제외 항목은 [구현 보고서](../report/RPT-261125-portal-ui-improvement.md)를 참조한다. 스테이징·운영 반영과 15분 관찰을 완료했으며 [배포 보고서](../report/RPT-261125-portal-ui-production-deploy.md)를 참조한다.\n
