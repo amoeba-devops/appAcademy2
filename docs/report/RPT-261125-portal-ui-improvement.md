@@ -95,7 +95,7 @@ python3 frontend-acm/test/portal-menus.smoke.py
 
 ## 5. Review and Release (검토·배포 상태)
 
-별도 작업 폴더에서 구현하여 기존 작업 폴더의 미완료 변경과 분리했다. 검토용 PR과 CI 결과는 아래에 추기한다. 운영 반영은 별도 배포 단계이며 현재 운영 배포 완료로 표시하지 않는다.
+별도 작업 폴더에서 구현하여 기존 작업 폴더의 미완료 변경과 분리했다. 검토용 변경은 [PR #452](https://github.com/amoeba-devops/appAcademy2/pull/452)에 정리했다. 최신 자동 검증 결과는 [PR Checks](https://github.com/amoeba-devops/appAcademy2/pull/452/checks)에서 확인할 수 있다. 운영 반영은 별도 배포 단계이며 현재 운영 배포 완료로 표시하지 않는다.
 
 - [승인된 요구사항](../analysis/REQ-261125-portal-ui-improvement.md)
 - [작업 계획](../plan/PLN-261125-portal-ui-improvement.md)
