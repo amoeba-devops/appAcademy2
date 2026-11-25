@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { BarChart3, BellRing, FolderOpen, Mail, Settings, Timer, UserCog, UserPlus } from 'lucide-react';
+import { BookOpen, BarChart3, BellRing, FolderOpen, Mail, Settings, Timer, UserCog, UserPlus } from 'lucide-react';
 import { PageHeader } from '@/components/ui/page-header';
 import { ConfigCardGrid, type ConfigCard } from '../components/integration-cards';
 
@@ -8,6 +8,7 @@ import { ConfigCardGrid, type ConfigCard } from '../components/integration-cards
  * REQ-261018 — AI·AMA·화상강의·카카오·GA4 는 테넌트 설정 › 연동 설정으로 옮겼다(링크만 숨김).
  */
 const CARDS: ConfigCard[] = [
+  { to: '/admin/config/api', icon: BookOpen, titleKey: 'scheduler.title', descKey: 'scheduler.description' },
   { to: '/admin/config/invites', icon: UserPlus, titleKey: 'invite.title', descKey: 'invite.cardDescription' },
   { to: '/admin/config/ad-platforms', icon: BarChart3, titleKey: 'ads.title', descKey: 'ads.schedule' },
   { to: '/admin/config/mail', icon: Mail, titleKey: 'config.cards.mail.title', descKey: 'config.cards.mail.description' },

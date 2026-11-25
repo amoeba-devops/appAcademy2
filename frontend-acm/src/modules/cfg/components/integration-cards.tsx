@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { BarChart3, Bot, ChevronRight, MessageCircle, Settings, Video } from "lucide-react";
+import { BookOpen, BarChart3, Bot, ChevronRight, MessageCircle, Settings, Video } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface ConfigCard {
@@ -12,6 +12,7 @@ export interface ConfigCard {
 
 /** REQ-261018 — 테넌트 마스터 전용 노출 연동 설정. */
 export const INTEGRATION_CARDS: ConfigCard[] = [
+  { to: "/admin/config/api", icon: BookOpen, titleKey: "scheduler.title", descKey: "scheduler.description" },
   { to: "/admin/config/ai", icon: Bot, titleKey: "aiConfig.title", descKey: "aiConfig.description" },
   { to: "/admin/config/ama", icon: Settings, titleKey: "config.cards.ama.title", descKey: "config.cards.ama.description" },
   { to: "/admin/config/video", icon: Video, titleKey: "video.title", descKey: "video.description" },

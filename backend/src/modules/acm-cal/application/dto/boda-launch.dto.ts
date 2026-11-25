@@ -83,10 +83,10 @@ export class BodaLaunchContextResponseDto {
   ownerName!: string;
 
   @ApiProperty({
-    enum: ['MANUAL', 'INSTANT', 'CLS_SESSION'],
+    enum: ['MANUAL', 'INSTANT', 'CLS_SESSION', 'EXTERNAL'],
     description: 'evt_source — INSTANT 면 헤더에 ⚡ 칩',
   })
-  evtSource!: 'MANUAL' | 'INSTANT' | 'CLS_SESSION';
+  evtSource!: 'MANUAL' | 'INSTANT' | 'CLS_SESSION' | 'EXTERNAL';
 
   @ApiProperty({
     description:

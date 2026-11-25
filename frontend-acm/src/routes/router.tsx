@@ -1,3 +1,4 @@
+import { ApiGuidePage } from '@/modules/cfg/pages/api-guide-page';
 import { PortalLanding, RequirePortalMenu, PortalEventDetailGate } from '@/modules/portal-app/components/require-portal-menu';
 import { SessionConfigPage } from '@/modules/cfg/pages/session-config-page';
 import { NotificationSettingsPage } from '@/modules/cfg/pages/notification-settings-page';
@@ -307,6 +308,7 @@ export const router = createBrowserRouter([
       ] },
       // REQ-261018 — 연동 설정 5종: 테넌트 마스터에게만 링크 노출(서비스 운영자는 링크 없이 접근 가능)
       { element: <RequireTenantSettings />, children: [
+        { path: 'config/api', element: <ApiGuidePage /> },
         { path: 'config/ama', element: <AmaConfigPage /> },
         { path: 'config/boda', element: <Navigate to="/admin/config/video" replace /> },
         { path: 'config/video', element: <BodaConfigPage /> },

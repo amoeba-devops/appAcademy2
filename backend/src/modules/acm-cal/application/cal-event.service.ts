@@ -452,6 +452,7 @@ export class CalEventService {
       classDone: reviewFlags.get(e.id)?.classDone ?? false,
       primaryStudentName:
         primaryStudents.get(e.id) ??
+        e.externalStudents?.[0]?.name ??
         this.extractStudentNameFromTitle(e.title) ??
         null,
       deletedByName: e.deletedBy
@@ -546,10 +547,16 @@ export class CalEventService {
       dto.evtCategory === 'REGULAR_CLASS' ||
       dto.evtCategory === 'DEMO_CLASS'
     ) {
-      dto.evtMeetingProvider ??= config.provider;
-      if (dto.evtMeetingProvider !== config.provider)
+      dto.evtMeetingProvider ??=
+        dto.evtDeliveryMode === 'ONSITE' ? 'NONE' : config.provider;
+      if (
+        dto.evtDeliveryMode !== 'ONSITE' &&
+        dto.evtMeetingProvider !== config.provider
+      )
         throw new BadRequestException('VIDEO_PROVIDER_MISMATCH');
     }
+    if (dto.evtDeliveryMode === 'ONSITE' && dto.evtMeetingProvider !== 'NONE')
+      throw new BadRequestException('ONSITE_VIDEO_NOT_ALLOWED');
     if (dto.evtMeetingProvider === 'BODASCHOOL')
       await this.video.assertBoda(entId);
     // REQ-260526 v2 FR-ROOM-4 — BODASCHOOL 의 URL 은 이벤트 저장 후 자동
@@ -596,6 +603,7 @@ export class CalEventService {
       clsId: dto.evtClsId ?? null,
       assigneeTchId: dto.evtAssigneeTchId ?? null,
       source: 'MANUAL',
+      deliveryMode: dto.evtDeliveryMode ?? null,
     });
   }
 
@@ -659,6 +667,79 @@ export class CalEventService {
     };
   }
 
+  /** External caller holds video + shared CAL lock; all writes use its transaction. */
+  async persistExternal(
+    manager: EntityManager,
+    entId: string,
+    actorId: string,
+    dto: CreateCalEventDto,
+    students: { studentId: string | null; name: string }[],
+    clientName: string,
+    eventId?: string,
+    reason?: string,
+  ): Promise<string> {
+    const prepared = await this.prepareCreate(entId, actorId, 'ADMIN', dto);
+    const previous = eventId
+      ? await manager.findOneByOrFail(CalEventTypeormEntity, {
+          id: eventId,
+          entId,
+        })
+      : null;
+    if (
+      previous?.meetingProvider === 'BODASCHOOL' &&
+      prepared.meetingProvider !== 'BODASCHOOL'
+    )
+      await this.video.assertNoActiveRooms(entId, previous.id);
+    const before = previous ? this.snapshotForRevision(previous) : null;
+    const event = manager.create(CalEventTypeormEntity, {
+      ...prepared,
+      ...(previous
+        ? {
+            id: previous.id,
+            ownerUserId: previous.ownerUserId,
+            createdAt: previous.createdAt,
+            // Fields outside the external API contract remain managed by CAL.
+            clsId: previous.clsId,
+            description: previous.description,
+          }
+        : {}),
+      source: 'EXTERNAL',
+      externalStudents: students,
+      externalClientName: clientName,
+    });
+    const saved = await manager.save(event);
+    if (saved.meetingProvider === 'BODASCHOOL')
+      await this.ensureBodaLauncher(entId, saved, manager);
+    await this.inviteeSvc.applyDiff(
+      await this.inviteeSvc.diff(
+        entId,
+        saved.id,
+        dto.evtInvitees ?? [],
+        manager,
+      ),
+      manager,
+    );
+    if (before)
+      await manager.save(
+        this.revisionRepo.create({
+          entId,
+          evtId: saved.id,
+          editorUserId: actorId,
+          reason: reason ?? null,
+          changes: this.diffRevision(before, this.snapshotForRevision(saved)),
+        }),
+      );
+    await enqueueInbox(manager, {
+      entId,
+      actorId,
+      type: previous ? 'CAL_UPDATED' : 'CAL_CREATED',
+      targetId: saved.id,
+      assigneeIds: [saved.assigneeTchId, previous?.assigneeTchId],
+      payload: { title: saved.title },
+    });
+    return saved.id;
+  }
+
   async update(
     entId: string,
     actorUserId: string,
@@ -687,6 +768,7 @@ export class CalEventService {
     // REQ-260728 — 변경 diff 계산용 이전 스냅샷.
     const beforeSnapshot = this.snapshotForRevision(e);
 
+    if (dto.evtDeliveryMode !== undefined) e.deliveryMode = dto.evtDeliveryMode;
     if (dto.evtCategory !== undefined) e.category = dto.evtCategory;
     if (dto.evtTitle !== undefined) e.title = dto.evtTitle;
     if (dto.evtDescription !== undefined) e.description = dto.evtDescription;
@@ -698,10 +780,13 @@ export class CalEventService {
     if (dto.evtMeetingProvider !== undefined)
       e.meetingProvider = dto.evtMeetingProvider;
     if (dto.evtMeetingUrl !== undefined) e.meetingUrl = dto.evtMeetingUrl;
+    if (e.deliveryMode === 'ONSITE' && e.meetingProvider !== 'NONE')
+      throw new BadRequestException('ONSITE_VIDEO_NOT_ALLOWED');
     const config = await this.video.get(entId);
     if (prevMeetingProvider !== e.meetingProvider) {
       if (
         (e.category === 'REGULAR_CLASS' || e.category === 'DEMO_CLASS') &&
+        e.deliveryMode !== 'ONSITE' &&
         e.meetingProvider !== config.provider
       ) {
         throw new BadRequestException('VIDEO_PROVIDER_MISMATCH');
@@ -909,6 +994,7 @@ export class CalEventService {
       endAt: e.endAt ? e.endAt.toISOString() : null,
       allDay: e.allDay ? 'true' : 'false',
       locationText: e.locationText ?? null,
+      deliveryMode: e.deliveryMode ?? null,
       meetingProvider: e.meetingProvider ?? null,
       meetingUrl: e.meetingUrl ?? null,
       bodaRoomType: e.bodaRoomType ?? null,
@@ -1096,6 +1182,9 @@ export class CalEventService {
     clsId: e.clsId,
     assigneeTchId: e.assigneeTchId ?? null,
     source: e.source,
+    deliveryMode: e.deliveryMode ?? null,
+    externalStudents: e.externalStudents ?? null,
+    externalClientName: e.externalClientName ?? null,
     // REQ-260728 — 삭제 메타(삭제 보기 목록에서 사용).
     deletedAt: e.deletedAt ? e.deletedAt.toISOString() : null,
     deleteReason: e.deleteReason ?? null,

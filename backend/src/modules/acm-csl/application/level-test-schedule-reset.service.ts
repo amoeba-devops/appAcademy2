@@ -70,6 +70,7 @@ export class LevelTestScheduleResetService {
     )
       throw new BadRequestException('INVALID_TEST_TYPE');
     return this.withLock(entId, inqId, async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock(1072,1)');
       const inquiry = await manager.findOne(InquiryTypeormEntity, {
         where: { id: inqId, entId, deletedAt: IsNull() },
       });

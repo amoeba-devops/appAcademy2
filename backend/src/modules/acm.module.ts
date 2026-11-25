@@ -1,3 +1,4 @@
+import { AcmIntegrationModule } from './acm-integration/acm-integration.module';
 import { AcmPrjModule } from './acm-prj/acm-prj.module';
 import { AcmPayModule } from './acm-pay/acm-pay.module';
 import { Module } from '@nestjs/common';
@@ -29,7 +30,10 @@ import { AcmTalkModule } from './acm-talk/acm-talk.module';
  * Required deps: @nestjs/event-emitter, pg
  */
 @Module({
-  imports: [AcmPrjModule, AcmPayModule,
+  imports: [
+    AcmIntegrationModule,
+    AcmPrjModule,
+    AcmPayModule,
     AcmMaterialModule,
     AcmCommonModule,
     AcmAuthModule,

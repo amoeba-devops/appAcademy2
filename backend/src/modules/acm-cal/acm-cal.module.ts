@@ -172,6 +172,13 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
     InviteeSuggestionsService,
     redisProvider,
   ],
-  exports: [CalEventService, BodaConfigService, BodaRoomService],
+  exports: [
+    CalEventService,
+    BodaConfigService,
+    BodaRoomService,
+    VideoConfigService,
+    RecurrenceService,
+    IcsImportService,
+  ],
 })
 export class AcmCalModule {}

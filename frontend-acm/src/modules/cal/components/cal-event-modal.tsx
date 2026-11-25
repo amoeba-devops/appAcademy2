@@ -953,7 +953,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
                   </span>
                 )}
               </div>
-              {(detail?.assigneeName ?? initial?.assigneeName) && (
+              {(detail ?? initial)?.externalClientName && <p className="text-sm text-secondary">{(detail ?? initial).externalClientName} · {(detail ?? initial).deliveryMode === 'ONSITE' ? t('common:scheduler.onsite') : t('common:scheduler.online')} · {(detail ?? initial).externalStudents?.map(s => s.name).join(', ')}</p>}{(detail?.assigneeName ?? initial?.assigneeName) && (
                 <div>
                   <span className="font-semibold text-primary">
                     {t('field.assignee')}:

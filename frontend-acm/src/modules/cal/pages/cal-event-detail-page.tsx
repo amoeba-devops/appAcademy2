@@ -207,30 +207,35 @@ export function CalEventDetailPage() {
 
         <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-secondary">
-              {t("field.startAt")}
-            </dt>
+            <dt className="text-xs text-secondary">{t("field.startAt")}</dt>
             <dd>{fmtFull(event.startAt)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-secondary">
-              {t("field.endAt")}
-            </dt>
+            <dt className="text-xs text-secondary">{t("field.endAt")}</dt>
             <dd>{fmtFull(event.endAt)}</dd>
           </div>
           {event.ownerName && (
             <div>
-              <dt className="text-xs text-secondary">
-                {t("field.creator")}
-              </dt>
+              <dt className="text-xs text-secondary">{t("field.creator")}</dt>
               <dd>{event.ownerName}</dd>
+            </div>
+          )}
+          {event.externalClientName && (
+            <div className="col-span-2">
+              <dt className="text-xs text-secondary">
+                {event.externalClientName}
+              </dt>
+              <dd>
+                {event.deliveryMode === "ONSITE"
+                  ? t("common:scheduler.onsite")
+                  : t("common:scheduler.online")}{" "}
+                · {event.externalStudents?.map((s) => s.name).join(", ")}
+              </dd>
             </div>
           )}
           {event.assigneeName && (
             <div>
-              <dt className="text-xs text-secondary">
-                {t("field.assignee")}
-              </dt>
+              <dt className="text-xs text-secondary">{t("field.assignee")}</dt>
               <dd>{event.assigneeName}</dd>
             </div>
           )}
@@ -346,10 +351,7 @@ export function CalEventDetailPage() {
                           }),
                         );
                       },
-                      onError: () =>
-                        toast.error(
-                          t("boda.reconcileFailed"),
-                        ),
+                      onError: () => toast.error(t("boda.reconcileFailed")),
                     })
                   }
                 >
@@ -359,9 +361,7 @@ export function CalEventDetailPage() {
               )}
             </div>
             {!record && (
-              <p className="text-xs text-secondary">
-                {t("boda.recordEmpty")}
-              </p>
+              <p className="text-xs text-secondary">{t("boda.recordEmpty")}</p>
             )}
             {record && (
               <>
@@ -475,13 +475,9 @@ export function CalEventDetailPage() {
                     onClick={async () => {
                       try {
                         await copyHtmlToClipboard(sanitizedFeedback);
-                        toast.success(
-                          t("feedbackEmail.copied"),
-                        );
+                        toast.success(t("feedbackEmail.copied"));
                       } catch {
-                        toast.error(
-                          t("feedbackEmail.copyFailed"),
-                        );
+                        toast.error(t("feedbackEmail.copyFailed"));
                       }
                     }}
                   >

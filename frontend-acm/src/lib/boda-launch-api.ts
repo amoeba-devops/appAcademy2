@@ -44,7 +44,7 @@ export interface BodaLaunchContext {
   evtDescription?: string | null;
   // REQ-260619 FR-LX-4 — 헤더 컨텍스트 + 임베디드 강의실 URL
   ownerName: string;
-  evtSource: 'MANUAL' | 'INSTANT' | 'CLS_SESSION';
+  evtSource: 'MANUAL' | 'INSTANT' | 'CLS_SESSION' | 'EXTERNAL';
   invitees: BodaInviteeView[];
   embedUrl?: string | null;
   webBrowserUrl?: string | null;
