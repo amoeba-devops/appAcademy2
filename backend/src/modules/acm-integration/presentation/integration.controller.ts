@@ -30,9 +30,9 @@ import {
 } from '../../acm-common/decorators/current-user.decorator';
 import { OwnEntityGuard } from '../../acm-common/guards/own-entity.guard';
 import {
-  TenantMasterGuard,
-  TenantSettingsGuard,
-} from '../../acm-common/guards/tenant-master.guard';
+  ApiManagementGuard,
+  ApiGuideGuard,
+} from '../../acm-common/guards/api-management.guard';
 import { RequirePasswordRotationGuard } from '../../acm-common/guards/require-password-rotation.guard';
 import { IntegrationAccessService } from '../application/integration-access.service';
 import { SchedulerService } from '../application/scheduler.service';
@@ -109,7 +109,7 @@ export class SchedulerErrorFilter implements ExceptionFilter {
 @UseGuards(
   AcmJwtAuthGuard,
   OwnEntityGuard,
-  TenantSettingsGuard,
+  ApiGuideGuard,
   RequirePasswordRotationGuard,
 )
 export class IntegrationGuideController {
@@ -135,7 +135,7 @@ export class IntegrationGuideController {
 @UseGuards(
   AcmJwtAuthGuard,
   OwnEntityGuard,
-  TenantMasterGuard,
+  ApiManagementGuard,
   RequirePasswordRotationGuard,
 )
 export class IntegrationAdminController {
