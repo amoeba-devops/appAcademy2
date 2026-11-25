@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { BookOpen, Copy, Download } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
+import { todayKst } from "@/lib/tz";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { useConfigAccess, useConfigScope } from "../hooks/use-config-access";
@@ -301,7 +302,7 @@ function ApiUsageSettings({ canManage }: { canManage: boolean }) {
     [keyName, setKeyName] = useState("");
   const [keyScopes, setKeyScopes] = useState<ApiScope[]>([...API_SCOPES]);
   const [expires, setExpires] = useState(() =>
-    new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+    todayKst(new Date(Date.now() + 90 * 86400000)),
   );
   const [secret, setSecret] = useState(""),
     [notice, setNotice] = useState("");
@@ -348,7 +349,7 @@ function ApiUsageSettings({ canManage }: { canManage: boolean }) {
           {
             name: keyName,
             scopes: keyScopes,
-            expiresAt: `${expires}T23:59:59Z`,
+            expiresAt: `${expires}T23:59:59+09:00`,
           },
         );
         setSecret(response.data.secret);
@@ -564,10 +565,8 @@ function ApiUsageSettings({ canManage }: { canManage: boolean }) {
             <input
               required
               type="date"
-              min={new Date().toISOString().slice(0, 10)}
-              max={new Date(Date.now() + 365 * 86400000)
-                .toISOString()
-                .slice(0, 10)}
+              min={todayKst()}
+              max={todayKst(new Date(Date.now() + 365 * 86400000))}
               className={inputClass}
               value={expires}
               onChange={(e) => setExpires(e.target.value)}
