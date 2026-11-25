@@ -220,7 +220,10 @@
         "errFailed": "Could not save. Please try again."
       },
       "loadError": "Could not load the calendar.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "subject": "Subject",
+      "classLinks": "Class links",
+      "noClassLinks": "No class links registered"
     },
     "notices": {
       "empty": "No notices.",
@@ -1536,7 +1539,10 @@
     "NO_PHONE": "No phone",
     "history": "Send history",
     "retryFailed": "Retry failed recipients",
-    "uncertain": "In progress or unconfirmed"
+    "uncertain": "In progress or unconfirmed",
+    "doneAll": "Sent successfully.",
+    "sending": "Sending…",
+    "parent": "Parent"
   },
   "push": {
     "title": "Notification settings",

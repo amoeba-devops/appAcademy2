@@ -36,6 +36,8 @@ export interface PortalCalEvent {
   primaryStudentName?: string | null;
   /** REQ-261125-CAL — 참석 학생(시스템 등록)만. */
   studentNames?: string[];
+  /** REQ-261125-CAL2 — 강사 포털 상세: 참석 학생의 학생관리 수업 링크(이 강사 기준). */
+  classLinks?: { stdName: string; links: { label: string | null; url: string }[] }[];
   hasFeedback?: boolean;
   homeworkStatus?: 'ASSIGNED' | 'NONE' | null;
   classDone?: boolean;

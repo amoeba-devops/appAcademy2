@@ -220,7 +220,10 @@
         "errFailed": "Không lưu được. Vui lòng thử lại."
       },
       "loadError": "Không thể tải lịch.",
-      "retry": "Thử lại"
+      "retry": "Thử lại",
+      "subject": "Môn học",
+      "classLinks": "Link lớp học",
+      "noClassLinks": "Chưa có link lớp học"
     },
     "notices": {
       "empty": "Không có thông báo.",
@@ -1536,7 +1539,10 @@
     "NO_PHONE": "Thiếu số điện thoại",
     "history": "Lịch sử gửi",
     "retryFailed": "Gửi lại cho người nhận thất bại",
-    "uncertain": "Đang gửi hoặc chưa xác nhận"
+    "uncertain": "Đang gửi hoặc chưa xác nhận",
+    "doneAll": "Đã gửi xong.",
+    "sending": "Đang gửi…",
+    "parent": "Phụ huynh"
   },
   "push": {
     "title": "Cài đặt thông báo",

@@ -220,7 +220,10 @@
         "errFailed": "저장하지 못했습니다. 다시 시도해 주세요."
       },
       "loadError": "일정을 불러오지 못했습니다.",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "subject": "과목",
+      "classLinks": "강의링크",
+      "noClassLinks": "등록된 수업 링크 없음"
     },
     "notices": {
       "empty": "공지사항이 없습니다.",
@@ -1536,7 +1539,10 @@
     "NO_PHONE": "전화번호 없음",
     "history": "발송 이력",
     "retryFailed": "실패 대상 재발송",
-    "uncertain": "진행 중 또는 결과 미확인"
+    "uncertain": "진행 중 또는 결과 미확인",
+    "doneAll": "발송완료되었습니다",
+    "sending": "발송 중…",
+    "parent": "학부모"
   },
   "push": {
     "title": "알림 설정",

@@ -49,6 +49,7 @@ import { copyHtmlToClipboard } from '../lib/copy-html';
 import { useBodaRoomStatus } from '@/lib/boda-launch-api';
 import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
 import { CalRecordingsSection } from './cal-recordings-section';
+import { eventLine } from '../lib/event-line';
 
 interface Props {
   open: boolean;
@@ -111,12 +112,6 @@ const joinDateTime = (date: string, time: string): string =>
 
 // PLN-260718 — 시간은 셀렉트 리스트(06:00~23:30, 30분 간격) + 직접 입력(REQ-261111 공용 컴포넌트).
 const TIME_OPTIONS = halfHourSlots(6, 23);
-
-// REQ-261103 — 학생 참석자 이름으로 만드는 제목. 4명 이상은 "외 n명".
-const studentTitle = (names: string[], more: (n: number) => string): string =>
-  names.length > 3
-    ? `${names.slice(0, 3).join(', ')} ${more(names.length - 3)}`
-    : names.join(', ');
 
 export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const { t, i18n } = useTranslation('cal');
@@ -194,7 +189,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     filename: string;
   } | null>(null);
 
-  const { register, handleSubmit, reset, watch, setValue, getValues } = useForm<FormValues>({
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
     defaultValues: {
       evtCategory: 'REGULAR_CLASS',
       evtTitle: '',
@@ -287,15 +282,10 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
     enabled: open,
   });
 
-  // REQ-261103 — 직전 자동 제목. null = 사용자가 고친 제목(덮어쓰지 않음).
-  const autoTitle = useRef<string | null>('');
-
   useEffect(() => {
     if (!open) return;
     setError(null);
     setNotifySummary(null);
-    // 수정 화면은 기존 제목을 유지하고, 비어 있을 때만 학생 이름으로 채운다.
-    autoTitle.current = initial?.title ? null : '';
     if (initial) {
       reset({
         evtCategory: normalizeEditorCategory(initial.category),
@@ -345,16 +335,12 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   const studentNames = invitees
     .filter((invitee) => invitee.kind === 'STUDENT')
     .map((invitee) => invitee.name);
-  const nextAutoTitle = studentTitle(studentNames, (n) => t('invitee.titleMore', { n }));
-  useEffect(() => {
-    if (!open || autoTitle.current === null) return;
-    if (getValues('evtTitle') !== autoTitle.current) {
-      autoTitle.current = null;
-      return;
-    }
-    setValue('evtTitle', nextAutoTitle);
-    autoTitle.current = nextAutoTitle;
-  }, [open, nextAutoTitle, getValues, setValue]);
+  // REQ-261125-CAL2 — 참석 학생은 달력에 자동 표시(시간 | 학생 | 제목). 제목에 학생 이름을
+  // 자동으로 채우던 방식(REQ-261103)은 중복 표기를 만들어 폐지하고, 제목 칸 앞에 칩으로 보여 준다.
+  const titleVal = watch('evtTitle') ?? '';
+  const titleDuplicatesStudent =
+    studentNames.length > 0 &&
+    (studentNames.includes(titleVal.trim()) || studentNames.join(', ') === titleVal.trim());
 
   const createMut = useCreateCalEvent();
   const updateMut = useUpdateCalEvent(initial?.id ?? '');
@@ -591,7 +577,35 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
           >
             <div>
               <label className={labelClass}>{t('field.title')} *</label>
-              <input {...register('evtTitle', { required: true })} className={inputClass} />
+              {/* REQ-261125-CAL2 — 자동 표시 항목(참석 학생) + 제목(과목) */}
+              <div className="flex h-9 items-stretch overflow-hidden rounded-md border border-[var(--border-subtle)] bg-canvas focus-within:ring-2 focus-within:ring-accent-500/40">
+                <span
+                  className="flex max-w-[45%] shrink-0 items-center truncate border-r border-[var(--border-subtle)] bg-[var(--gray-100)] px-2 text-sm text-secondary"
+                  title={t('titleAuto.chipTitle')}
+                >
+                  [{studentNames.length ? studentNames.join(', ') : t('titleAuto.attendee')}]
+                </span>
+                <input
+                  {...register('evtTitle', { required: true })}
+                  placeholder={t('titleAuto.placeholder')}
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm text-primary outline-none"
+                />
+              </div>
+              <p className="mt-1 text-xs text-secondary">{t('titleAuto.hint')}</p>
+              <p className="mt-0.5 text-xs text-secondary">
+                {t('titleAuto.preview')}{' '}
+                <span className="font-medium text-primary">
+                  {eventLine(
+                    allDayVal ? '' : (startAtVal || '').slice(11, 16),
+                    { title: titleVal, studentNames },
+                  ) || '—'}
+                </span>
+              </p>
+              {titleDuplicatesStudent && (
+                <p className="mt-0.5 text-xs text-amber-700" role="status">
+                  {t('titleAuto.duplicate')}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -220,7 +220,10 @@
         "errFailed": "保存失败,请重试。"
       },
       "loadError": "无法加载日历。",
-      "retry": "重试"
+      "retry": "重试",
+      "subject": "科目",
+      "classLinks": "课程链接",
+      "noClassLinks": "没有登记的课程链接"
     },
     "notices": {
       "empty": "暂无公告。",
@@ -1536,7 +1539,10 @@
     "NO_PHONE": "无电话号码",
     "history": "发送记录",
     "retryFailed": "重发失败的收件人",
-    "uncertain": "处理中或结果未确认"
+    "uncertain": "处理中或结果未确认",
+    "doneAll": "发送完成。",
+    "sending": "发送中…",
+    "parent": "家长"
   },
   "push": {
     "title": "通知设置",

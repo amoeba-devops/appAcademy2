@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/stores/auth.store";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { apiClient } from "@/lib/api-client";
@@ -29,9 +29,16 @@ export function TeacherFeedbackEmail({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Record<string, Recipient>>({});
   const [requestId, setRequestId] = useState("");
+  // REQ-261125-CAL2 — 발송 완료 안내 (모달을 닫은 뒤 버튼 옆에 잠시 표시)
+  const [doneNotice, setDoneNotice] = useState(false);
+  useEffect(() => {
+    if (!doneNotice) return;
+    const id = window.setTimeout(() => setDoneNotice(false), 5000);
+    return () => window.clearTimeout(id);
+  }, [doneNotice]);
+  // 이력에 학부모 이름을 보이려고 수신자 목록은 항상 조회한다.
   const q = useQuery({
     queryKey: ["portal-feedback-recipients", identity, evtId],
-    enabled: open,
     queryFn: async () =>
       (
         await apiClient.get<{
@@ -47,7 +54,6 @@ export function TeacherFeedbackEmail({
   });
   const history = useQuery({
     queryKey: ["portal-feedback-history", identity, evtId],
-    enabled: open,
     queryFn: async () =>
       (
         await apiClient.get<
@@ -70,7 +76,25 @@ export function TeacherFeedbackEmail({
     onSettled: () => {
       void history.refetch();
     },
+    // REQ-261125-CAL2 — 전원 성공이면 "발송완료되었습니다" 후 모달 닫기. 실패가 있으면 결과·재발송을 위해 유지.
+    onSuccess: (data) => {
+      if (data.results.some((x) => x.status === "FAILED")) return;
+      setDoneNotice(true);
+      window.setTimeout(() => setOpen(false), 1200);
+    },
   });
+  const parentName = (x: Recipient) =>
+    q.data?.students
+      .find((s) => s.stdId === x.stdId)
+      ?.parents.find((p) => p.parId === x.parId)?.name ?? "";
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleString(undefined, {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
   return (
     <>
       <Button
@@ -86,6 +110,34 @@ export function TeacherFeedbackEmail({
       </Button>
       {disabled && (
         <p className="text-xs text-secondary">{t("reviewMail.saveFirst")}</p>
+      )}
+      {doneNotice && (
+        <p role="status" className="mt-1 text-sm font-medium text-emerald-700">
+          {t("reviewMail.doneAll")}
+        </p>
+      )}
+      {/* REQ-261125-CAL2 — 발송 버튼 아래 발송 이력 (발송 시각 = 서버 저장) */}
+      {!!history.data?.length && (
+        <div className="mt-2 text-xs">
+          <p className="mb-1 font-semibold text-secondary">{t("reviewMail.history")}</p>
+          <ul className="grid gap-0.5">
+            {history.data.map((h, i) => (
+              <li key={i} className="flex flex-wrap gap-x-2">
+                <span className="tabular-nums text-secondary">{fmt(h.createdAt)}</span>
+                <span>
+                  {h.result
+                    ? h.result.results
+                        .map(
+                          (x) =>
+                            `${parentName(x) || t("reviewMail.parent")} · ${t(`reviewMail.${x.status}`)}`,
+                        )
+                        .join(", ")
+                    : t("reviewMail.uncertain")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -163,19 +215,22 @@ export function TeacherFeedbackEmail({
               {t("reviewMail.retryFailed")}
             </Button>
           )}
-          <details>
-            <summary>{t("reviewMail.history")}</summary>
-            {history.data?.map((h, i) => (
-              <p key={i}>
-                {new Date(h.createdAt).toLocaleString()}:{" "}
-                {h.result
-                  ? h.result.results
-                      .map((x) => t(`reviewMail.${x.status}`))
-                      .join(", ")
-                  : t("reviewMail.uncertain")}
+          {send.isPending && (
+            <div role="progressbar" aria-label={t("reviewMail.sending")} className="grid gap-1">
+              <div className="h-1.5 w-full overflow-hidden rounded bg-[var(--gray-100)]">
+                <div className="h-full w-1/3 animate-[acm-progress_1.1s_ease-in-out_infinite] rounded bg-accent-600" />
+              </div>
+              <p className="text-xs text-secondary">
+                {t("reviewMail.sending")} ({Object.keys(selected).length})
               </p>
-            ))}
-          </details>
+            </div>
+          )}
+          {send.isSuccess &&
+            !send.data?.results.some((x) => x.status === "FAILED") && (
+              <p role="status" className="text-sm font-medium text-emerald-700">
+                {t("reviewMail.doneAll")}
+              </p>
+            )}
           <Button
             disabled={
               !Object.keys(selected).length ||
