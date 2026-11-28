@@ -44,6 +44,7 @@ import {
   IssueKeyDto,
   LessonDto,
   LessonQueryDto,
+  StudentQueryDto,
   TeacherQueryDto,
   type Scope,
 } from '../application/dto/scheduler.dto';
@@ -191,6 +192,11 @@ export class SchedulerApiController {
   @SetMetadata('integrationScope', 'teachers:read')
   teachers(@Req() req: IntegrationRequest, @Query() q: TeacherQueryDto) {
     return this.scheduler.teachers(req.integration, q);
+  }
+  @Get('students')
+  @SetMetadata('integrationScope', 'students:read')
+  students(@Req() req: IntegrationRequest, @Query() q: StudentQueryDto) {
+    return this.scheduler.students(req.integration, q);
   }
   @Get('lessons')
   @SetMetadata('integrationScope', 'lessons:read')

@@ -2722,6 +2722,7 @@
     "all": "All",
     "teachers": "Teachers",
     "lessons": "Lessons",
+    "students": "Students",
     "errors": "Errors and recovery",
     "field": "Location / parameter",
     "required": "Required",
@@ -2738,6 +2739,7 @@
     "masterOnly": "Only a MASTER or tenant master can manage API settings and keys.",
     "enabled": "Enable external APIs",
     "offNotice": "OFF by default. Disabling blocks existing keys without deleting keys or lessons.",
+    "studentPrivacy": "Turning on Read students sends enrolled students' name, English name, site, grade, admission date and assigned teachers to the external app. Contact details, birth date and school are not sent.",
     "save": "Save settings",
     "clientName": "Integration app name",
     "addClient": "Add app",
@@ -2763,7 +2765,8 @@
     "scopes": {
       "teachers:read": "Read teachers",
       "lessons:read": "Read lessons",
-      "lessons:write": "Create / update / delete lessons"
+      "lessons:write": "Create / update / delete lessons",
+      "students:read": "Read students"
     },
     "studentRule": "Registered students are linked to their accounts. Unregistered demo students are stored by name without account creation or invitations. Resolve duplicate names using a student ID.",
     "timeRule": "Include UTC offsets. Fetch every page; ranges are limited to 31 days. Writes check for teacher conflicts again.",

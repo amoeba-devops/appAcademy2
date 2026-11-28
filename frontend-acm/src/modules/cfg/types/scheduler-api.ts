@@ -1,8 +1,10 @@
-export type ApiScope = "teachers:read" | "lessons:read" | "lessons:write";
+export type ApiScope =
+  "teachers:read" | "lessons:read" | "lessons:write" | "students:read";
 export const API_SCOPES: ApiScope[] = [
   "teachers:read",
   "lessons:read",
   "lessons:write",
+  "students:read",
 ];
 export interface ApiSettings {
   enabled: boolean;

@@ -1,9 +1,10 @@
 ---
-document_id: SCHEDULER-API-1.2.0
-version: 1.2.0
+document_id: SCHEDULER-API-1.3.0
+version: 1.3.0
 status: implemented_pending_deployment
 date: 2026-11-25
 change_log:
+  - 2026-11-28 v1.3.0 재원 학생 목록 `GET /students`·권한 `students:read` 추가 (REQ-261128D, OpenAPI 1.2.0)
   - 2026-11-28 v1.2.0 응답 `calendarCategory`·`blocksBooking` 추가, 수업 가능 시간·휴강 일정은 겹침 검사에서 제외 (REQ-261128C, OpenAPI 1.1.0)
   - 2026-11-25 v1.1.0 서비스 설정 API 사용안내 경로·3개 탭·사용 설정·파라미터 타입 및 값 사전 추가
   - 2026-11-25 v1.0.0 외부 스케줄 앱용 요청·응답 계약 초안
@@ -31,6 +32,7 @@ Content-Type: application/json
 | Method | Path | 권한 | 기능 |
 | --- | --- | --- | --- |
 | GET | `/teachers` | teachers:read | 이름·이메일·재직 상태·ID 조회 |
+| GET | `/students` | students:read | 재원(ACTIVE) 학생·배정 강사 조회 |
 | GET | `/lessons` | lessons:read | 해당 테넌트의 기존 수업일정/점유 일정 조회 |
 | GET | `/lessons/external/{externalId}` | lessons:read | 이 연동 앱의 단일 수업·현재 버전 조회 |
 | PUT | `/lessons/external/{externalId}` | lessons:write | 등록 또는 기존 외부 수업 전체 수정 |
@@ -51,6 +53,28 @@ email은 trim 후 대소문자 무시 정확 일치. status 선택 값은 `ACTIV
 ```
 
 후속 요청은 응답 `nextCursor`를 URL 인코딩하여 `cursor`로 전달한다. limit 기본 100, 최대 200. 마지막 페이지는 nextCursor:null. 전화번호·생년월일·메모는 제공하지 않는다.
+
+### 3.1 Students (재원 학생 목록)
+
+```http
+GET /students?teacherId=11111111-1111-4111-8111-111111111111&site=TPI&limit=100
+```
+
+재원(`ACTIVE`)이고 삭제되지 않은 학생만 반환한다. 휴원·퇴원 학생은 나오지 않는다. 필터는 모두 선택이다.
+- `teacherId`: 이 강사가 배정된 학생만 반환한다.
+- `site`: `TPI`, `TRINITY`, `SANTACROCE` 중 하나. 사이트가 지정되지 않은 학생은 site 필터로 조회되지 않는다.
+
+cursor/limit 규칙은 강사 조회와 같다.
+
+```json
+{"success":true,"data":[{"id":"33333333-3333-4333-8333-333333333333","name":"홍학생","englishName":"Gildong Hong","site":"TPI","grade":"G7","status":"ACTIVE","admissionDate":"2026-03-02","teachers":[{"teacherId":"11111111-1111-4111-8111-111111111111","name":"김강사","primary":true}]}],"meta":{"nextCursor":null,"limit":100}}
+```
+
+- `teachers`는 학생관리의 배정 강사이며 등록 순서를 따른다. 첫 번째가 대표 강사(`primary:true`)다. 삭제된 강사는 빠진다. 배정이 없으면 `[]`다.
+- `englishName`, `site`, `grade`, `admissionDate`는 값이 없으면 null이다. `admissionDate`는 `YYYY-MM-DD` 형식이다.
+- 연락처, 이메일, 생년월일, 주소, 학교, 성적, 상담 메모는 제공하지 않는다.
+- 수업 등록(PUT)의 `students[].studentId`에 여기서 받은 `id`를 쓰면 동명이인 없이 정확히 연결된다.
+- 이 권한은 기본 OFF다. 테넌트 마스터가 API 사용 설정에서 [학생 조회]를 켜고, `students:read`가 포함된 키를 발급해야 한다. 학생 메뉴를 쓰지 않는 테넌트는 403 `INTEGRATION_DISABLED`를 받는다.
 
 ## 4. Range Query (기간별·강사별 조회)
 

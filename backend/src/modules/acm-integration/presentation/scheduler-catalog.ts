@@ -340,6 +340,54 @@ export const API_CATALOG = [
     },
   },
   {
+    id: 'students',
+    group: 'students',
+    name: '재원 학생 목록 / Enrolled students',
+    method: 'GET',
+    path: '/students',
+    scope: 'students:read',
+    fields: [
+      auth,
+      ...pages,
+      f(
+        'teacherId',
+        'query',
+        false,
+        'string(uuid)',
+        '이 강사가 배정된 학생만 / Students assigned to this teacher',
+        '11111111-1111-4111-8111-111111111111',
+      ),
+      f('site', 'query', false, 'string', '사이트 / Site', 'TPI', [
+        'TPI',
+        'TRINITY',
+        'SANTACROCE',
+      ]),
+    ],
+    request: null,
+    response: {
+      success: true,
+      data: [
+        {
+          id: '33333333-3333-4333-8333-333333333333',
+          name: '홍학생',
+          englishName: 'Gildong Hong',
+          site: 'TPI',
+          grade: 'G7',
+          status: 'ACTIVE',
+          admissionDate: '2026-03-02',
+          teachers: [
+            {
+              teacherId: '11111111-1111-4111-8111-111111111111',
+              name: '김강사',
+              primary: true,
+            },
+          ],
+        },
+      ],
+      meta: { limit: 100, nextCursor: null },
+    },
+  },
+  {
     id: 'list',
     group: 'lessons',
     name: '기간별·강사별 일정 / Lessons in range',
@@ -573,7 +621,7 @@ export function schedulerOpenApi(baseUrl: string) {
   }
   return {
     openapi: '3.0.3',
-    info: { title: 'ACM External Scheduler API', version: '1.1.0' },
+    info: { title: 'ACM External Scheduler API', version: '1.2.0' },
     servers: [{ url: baseUrl }],
     components: {
       securitySchemes: {
@@ -586,6 +634,45 @@ export function schedulerOpenApi(baseUrl: string) {
 }
 const uuid = { type: 'string', format: 'uuid' };
 const RESPONSE_SCHEMAS = {
+  Student: {
+    type: 'object',
+    required: [
+      'id',
+      'name',
+      'englishName',
+      'site',
+      'grade',
+      'status',
+      'admissionDate',
+      'teachers',
+    ],
+    properties: {
+      id: uuid,
+      name: { type: 'string' },
+      englishName: { type: 'string', nullable: true },
+      site: {
+        type: 'string',
+        enum: ['TPI', 'TRINITY', 'SANTACROCE'],
+        nullable: true,
+      },
+      grade: { type: 'string', nullable: true },
+      status: { type: 'string', enum: ['ACTIVE'] },
+      admissionDate: { type: 'string', format: 'date', nullable: true },
+      teachers: {
+        type: 'array',
+        description: 'Assigned teachers in order; the first is primary',
+        items: {
+          type: 'object',
+          required: ['teacherId', 'name', 'primary'],
+          properties: {
+            teacherId: uuid,
+            name: { type: 'string' },
+            primary: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  },
   Teacher: {
     type: 'object',
     required: ['id', 'name', 'email', 'status'],
@@ -672,7 +759,7 @@ const RESPONSE_SCHEMAS = {
   },
 };
 function responseSchema(id: string) {
-  const list = id === 'teachers' || id === 'list';
+  const list = id === 'teachers' || id === 'students' || id === 'list';
   const data =
     id === 'delete'
       ? {
@@ -687,7 +774,7 @@ function responseSchema(id: string) {
         ? {
             type: 'array',
             items: {
-              $ref: `#/components/schemas/${id === 'teachers' ? 'Teacher' : 'Lesson'}`,
+              $ref: `#/components/schemas/${id === 'teachers' ? 'Teacher' : id === 'students' ? 'Student' : 'Lesson'}`,
             },
           }
         : { $ref: '#/components/schemas/Lesson' };

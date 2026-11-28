@@ -152,6 +152,7 @@ export function ApiGuidePage() {
               <option value="all">{t("scheduler.all")}</option>
               <option value="teachers">{t("scheduler.teachers")}</option>
               <option value="lessons">{t("scheduler.lessons")}</option>
+              <option value="students">{t("scheduler.students")}</option>
             </select>
           </div>
           {catalog.data.apis
@@ -300,7 +301,10 @@ function ApiUsageSettings({ canManage }: { canManage: boolean }) {
     [name, setName] = useState(""),
     [clientId, setClientId] = useState(""),
     [keyName, setKeyName] = useState("");
-  const [keyScopes, setKeyScopes] = useState<ApiScope[]>([...API_SCOPES]);
+  // Student data is opt-in per key (REQ-261128D).
+  const [keyScopes, setKeyScopes] = useState<ApiScope[]>(
+    API_SCOPES.filter((s) => s !== "students:read"),
+  );
   const [expires, setExpires] = useState(() =>
     todayKst(new Date(Date.now() + 90 * 86400000)),
   );
@@ -423,6 +427,7 @@ function ApiUsageSettings({ canManage }: { canManage: boolean }) {
           ))}
         </div>
         <p className="text-sm text-secondary">{t("scheduler.offNotice")}</p>
+        <p className="text-sm text-secondary">{t("scheduler.studentPrivacy")}</p>
         <Button disabled={mutation.isPending || !draft} type="submit">
           {t("scheduler.save")}
         </Button>

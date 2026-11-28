@@ -760,7 +760,7 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
       .get('/api/acm/integrations/catalog')
       .set(headers())
       .expect(200);
-    expect(c.body.data.apis).toHaveLength(5);
+    expect(c.body.data.apis).toHaveLength(6);
     expect(
       c.body.data.apis
         .find((e: { id: string }) => e.id === 'put')
@@ -776,6 +776,91 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
         'application/json'
       ].schema.required,
     ).toContain('students');
+  });
+  it('lists enrolled students with ordered teachers, filters and tenant isolation (REQ-261128D)', async () => {
+    const [{ id: second }] = await env.ds.query(
+      `INSERT INTO amb_acm_tch_teacher(ent_id,tch_name,tch_email) VALUES($1,'Second teacher','second@fixture.test') RETURNING tch_id AS id`,
+      [ENT],
+    );
+    const rows: { id: string }[] = await env.ds.query(
+      `INSERT INTO amb_acm_std_student(ent_id,std_name,std_english_name,std_site,std_grade,std_status,std_admission_date,std_phone)
+       VALUES($1,'Std A','Alpha','TPI','G7','ACTIVE','2026-03-02','010-0000-0000'),
+             ($1,'Std B',NULL,'TRINITY',NULL,'ACTIVE',NULL,NULL),
+             ($1,'Std C',NULL,'TPI',NULL,'WITHDRAWN',NULL,NULL),
+             ($2,'Std D',NULL,'TPI',NULL,'ACTIVE',NULL,NULL)
+       RETURNING std_id AS id`,
+      [ENT, OTHER],
+    );
+    const [a, b, c, d] = rows.map((r) => r.id);
+    await env.ds.query(
+      `INSERT INTO amb_acm_std_student_teacher(ent_id,std_id,tch_id,st_sort_order)
+       VALUES($1,$2,$3,1),($1,$2,$4,0),($1,$5,$3,0),($1,$6,$3,0)`,
+      [ENT, a, teacher, second, b, c],
+    );
+    const get = (query: Record<string, unknown> = {}) =>
+      request(env.app.getHttpServer())
+        .get('/api/integrations/v1/students')
+        .set(token())
+        .query(query);
+    try {
+      const all = await get().expect(200);
+      const ids = all.body.data.map((s: { id: string }) => s.id);
+      expect(ids).toEqual(expect.arrayContaining([a, b]));
+      expect(ids).not.toContain(c);
+      expect(ids).not.toContain(d);
+      const sa = all.body.data.find((s: { id: string }) => s.id === a);
+      expect(sa).toEqual({
+        id: a,
+        name: 'Std A',
+        englishName: 'Alpha',
+        site: 'TPI',
+        grade: 'G7',
+        status: 'ACTIVE',
+        admissionDate: '2026-03-02',
+        teachers: [
+          { teacherId: second, name: 'Second teacher', primary: true },
+          { teacherId: teacher, name: 'Fixture teacher', primary: false },
+        ],
+      });
+      const bySecond = await get({ teacherId: second }).expect(200);
+      expect(bySecond.body.data.map((s: { id: string }) => s.id)).toEqual([a]);
+      const bySite = await get({ site: 'TRINITY' }).expect(200);
+      expect(bySite.body.data.map((s: { id: string }) => s.id)).toEqual([b]);
+      const page = await get({ teacherId: teacher, limit: 1 }).expect(200);
+      expect(page.body.data).toHaveLength(1);
+      expect(page.body.meta.nextCursor).toBe(page.body.data[0].id);
+      const next = await get({
+        teacherId: teacher,
+        limit: 1,
+        cursor: page.body.meta.nextCursor,
+      }).expect(200);
+      expect(next.body.data[0].id).not.toBe(page.body.data[0].id);
+      await env.ds.query(
+        `INSERT INTO amb_acm_tenant_menu(tnm_ent_id,tnm_menu_key,tnm_visible) VALUES($1,'std',false)`,
+        [ENT],
+      );
+      expect((await get().expect(403)).body.error.code).toBe(
+        'INTEGRATION_DISABLED',
+      );
+      await env.ds.query(
+        `DELETE FROM amb_acm_tenant_menu WHERE tnm_ent_id=$1 AND tnm_menu_key='std'`,
+        [ENT],
+      );
+      await settings(true, ['teachers:read', 'lessons:read']).expect(200);
+      await get().expect(403);
+    } finally {
+      await env.ds.query(
+        'DELETE FROM amb_acm_std_student_teacher WHERE std_id = ANY($1)',
+        [rows.map((r) => r.id)],
+      );
+      await env.ds.query(
+        'DELETE FROM amb_acm_std_student WHERE std_id = ANY($1)',
+        [rows.map((r) => r.id)],
+      );
+      await env.ds.query('DELETE FROM amb_acm_tch_teacher WHERE tch_id=$1', [
+        second,
+      ]);
+    }
   });
   it('returns Retry-After and does not write when rate limited', async () => {
     await env.ds.query(
