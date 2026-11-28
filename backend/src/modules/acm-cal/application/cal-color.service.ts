@@ -1,9 +1,12 @@
-import { normalizeCalCategory } from './cal-category';
+import {
+  CAL_CATEGORY_CODE_RE,
+  isSystemCalCategory,
+  normalizeCalCategory,
+} from './cal-category';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
-import { CAL_CATEGORIES } from './dto/cal-event.dto';
 export const PALETTES = [
   'blue',
   'purple',
@@ -14,6 +17,22 @@ export const PALETTES = [
   'orange',
   'gray',
 ] as const;
+/** Legacy palette name → the same color as `#RRGGBB` (sql/acm/1073). */
+export const PALETTE_HEX: Record<(typeof PALETTES)[number], string> = {
+  blue: '#3b82f6',
+  purple: '#a855f7',
+  amber: '#f59e0b',
+  green: '#10b981',
+  rose: '#f43f5e',
+  cyan: '#06b6d4',
+  orange: '#f97316',
+  gray: '#6b7280',
+};
+export const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+/** REQ-261128-CAL — colors are `#RRGGBB`; palette names stay readable. */
+export function isCalColor(v: string): boolean {
+  return HEX_COLOR_RE.test(v) || (PALETTES as readonly string[]).includes(v);
+}
 export interface CalendarColor {
   kind: 'CATEGORY' | 'ASSIGNEE';
   target: string;
@@ -46,15 +65,18 @@ export class CalColorService {
         `cal-colors:${entId}`,
       ]);
       for (const item of items) {
-        if (!PALETTES.includes(item.palette as (typeof PALETTES)[number]))
+        if (!isCalColor(item.palette))
           throw new BadRequestException('INVALID_PALETTE');
         if (item.kind === 'CATEGORY') {
-          if (
-            !CAL_CATEGORIES.includes(
-              item.target as (typeof CAL_CATEGORIES)[number],
-            )
-          )
+          if (!CAL_CATEGORY_CODE_RE.test(item.target))
             throw new BadRequestException('INVALID_CATEGORY');
+          if (!isSystemCalCategory(item.target)) {
+            const rows = await m.query<unknown[]>(
+              'SELECT 1 FROM amb_acm_cal_category WHERE ent_id=$1 AND cct_code=$2',
+              [entId, item.target],
+            );
+            if (!rows.length) throw new BadRequestException('INVALID_CATEGORY');
+          }
         } else {
           if (!/^[0-9a-f-]{36}$/i.test(item.target))
             throw new BadRequestException('INVALID_TEACHER');
@@ -71,7 +93,7 @@ export class CalColorService {
       for (const i of items)
         await m.query(
           'INSERT INTO amb_acm_cal_color_setting(ent_id,ccs_kind,ccs_target,ccs_palette) VALUES($1,$2,$3,$4) ON CONFLICT(ent_id,ccs_kind,ccs_target) DO UPDATE SET ccs_palette=EXCLUDED.ccs_palette,updated_at=now()',
-          [entId, i.kind, i.target, i.palette],
+          [entId, i.kind, i.target, i.palette.toLowerCase()],
         );
     });
     return this.list(entId);

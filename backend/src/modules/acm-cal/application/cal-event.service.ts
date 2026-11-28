@@ -4,6 +4,7 @@ import type { CalInviteeTypeormEntity } from '../infrastructure/typeorm/cal-invi
 import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import { IcsImportService } from './ics/ics-import.service';
 import { VideoConfigService } from './video-config.service';
+import { CalCategoryService } from './cal-category.service';
 import { validateMeetingUrl } from './meeting-url';
 import {
   BadRequestException,
@@ -93,6 +94,7 @@ export class CalEventService {
     private readonly reviewSvc: CalEventReviewService,
     private readonly video: VideoConfigService,
     private readonly ics: IcsImportService,
+    private readonly categories: CalCategoryService,
   ) {}
 
   async list(
@@ -307,13 +309,17 @@ export class CalEventService {
 
   /** PLN-260729 P3 — 기간 수업통계 (전체 + 강사별). */
   async stats(entId: string, from: string, to: string) {
-    const events = await this.repo
-      .createQueryBuilder('e')
-      .where('e.entId = :entId', { entId })
-      .andWhere('e.deletedAt IS NULL')
-      .andWhere('e.startAt < :to', { to: new Date(to) })
-      .andWhere('e.endAt > :from', { from: new Date(from) })
-      .getMany();
+    // REQ-261128-CAL — categories marked "not in stats" (e.g. availability blocks) are left out.
+    const excluded = await this.categories.statsExcluded(entId);
+    const events = (
+      await this.repo
+        .createQueryBuilder('e')
+        .where('e.entId = :entId', { entId })
+        .andWhere('e.deletedAt IS NULL')
+        .andWhere('e.startAt < :to', { to: new Date(to) })
+        .andWhere('e.endAt > :from', { from: new Date(from) })
+        .getMany()
+    ).filter((e) => !excluded.has(normalizeCalCategory(e.category)));
     const flags = await this.reviewSvc.flagsForEvents(
       entId,
       events.map((e) => e.id),
@@ -585,6 +591,11 @@ export class CalEventService {
     allowPendingLink = false,
   ) {
     this.validateTimes(dto.evtStartAt, dto.evtEndAt);
+    // Existence only: recurrence copies may carry a since-deleted category.
+    // New events from users are checked strictly in createLocked/recurrence.
+    await this.categories.assertUsable(entId, dto.evtCategory, {
+      allowDeleted: true,
+    });
     const config = await this.video.get(entId);
     if (
       dto.evtCategory === 'REGULAR_CLASS' ||
@@ -657,6 +668,7 @@ export class CalEventService {
     dto: CreateCalEventDto,
     allowPendingLink = false,
   ) {
+    await this.categories.assertUsable(entId, dto.evtCategory);
     const entity = await this.prepareCreate(
       entId,
       actorUserId,
@@ -812,7 +824,12 @@ export class CalEventService {
     const beforeSnapshot = this.snapshotForRevision(e);
 
     if (dto.evtDeliveryMode !== undefined) e.deliveryMode = dto.evtDeliveryMode;
-    if (dto.evtCategory !== undefined) e.category = dto.evtCategory;
+    if (dto.evtCategory !== undefined) {
+      await this.categories.assertUsable(entId, dto.evtCategory, {
+        previous: e.category,
+      });
+      e.category = dto.evtCategory;
+    }
     if (dto.evtTitle !== undefined) e.title = dto.evtTitle;
     if (dto.evtDescription !== undefined) e.description = dto.evtDescription;
     if (dto.evtStartAt !== undefined) e.startAt = new Date(dto.evtStartAt);

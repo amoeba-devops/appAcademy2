@@ -60,6 +60,7 @@ async function main() {
       repo: ds.getRepository(CalEventTypeormEntity),
       video,
       inviteeSvc: invites,
+      categories: { assertUsable: async () => {}, statsExcluded: async () => new Set<string>() },
     },
   );
   const rooms = new BodaRoomService(
@@ -85,6 +86,7 @@ async function main() {
         return { sent: 0, failed: 0, skippedNoEmail: 0, skippedNoSmtp: 0 };
       },
     } as unknown as InviteeNotifierService,
+    { assertUsable: async () => {}, statsExcluded: async () => new Set<string>() } as never,
   );
   const colors = new CalColorService(ds);
   const dto: CreateRecurrenceDto = {

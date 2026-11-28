@@ -28,7 +28,11 @@
     "LEVEL_TEST": "레벨테스트",
     "DEMO_CLASS": "데모수업",
     "REGULAR_CLASS": "정규수업",
-    "OTHER": "기타"
+    "OTHER": "기타",
+    "AVAILABLE": "수업 가능 시간",
+    "UNAVAILABLE": "수업 불가능 시간",
+    "CANCELED": "휴강",
+    "ABSENT": "결강"
   },
   "provider": {
     "NONE": "없음",
@@ -383,7 +387,15 @@
       "orange": "주황",
       "gray": "회색"
     },
-    "unassigned": "미지정"
+    "unassigned": "미지정",
+    "picker": {
+      "open": "{{name}} 색상 선택",
+      "pick": "{{name}} 색상 고르기",
+      "invalid": "#RRGGBB 형식으로 입력하세요. (예: #3B82F6)",
+      "presets": "추천 색",
+      "preview": "미리보기"
+    },
+    "sharedAssignee": "담당 강사별 색상입니다. 학원 구성원에게 공통으로 적용됩니다. 분류 색상은 [분류 관리]에서 바꿉니다."
   },
   "repeat": {
     "endRequired": "반복 종료일 (필수)",
@@ -500,5 +512,38 @@
     "hint": "참석 학생은 달력에 자동으로 표시됩니다. 제목에는 과목만 입력하세요.",
     "preview": "달력 표시:",
     "duplicate": "제목이 참석 학생 이름과 같습니다 — 달력에는 한 번만 표시됩니다. 과목을 입력하세요."
+  },
+  "categoryManage": {
+    "open": "분류 관리",
+    "title": "일정 분류 관리",
+    "systemHint": "기본 분류는 화상수업·상담 일정과 연결되어 이름을 바꾸거나 삭제할 수 없습니다. 색상과 순서는 바꿀 수 있습니다.",
+    "order": "순서",
+    "name": "이름",
+    "color": "색상",
+    "inStats": "통계 포함",
+    "manage": "관리",
+    "system": "기본",
+    "namePlaceholder": "분류 이름",
+    "newName": "새 분류",
+    "eventCount": "일정 {{count}}건",
+    "delete": "삭제",
+    "deleteConfirm": "“{{name}}” 분류를 삭제할까요? 이 분류의 일정 {{count}}건은 그대로 남고, 새 일정에서는 고를 수 없습니다.",
+    "deleteNewConfirm": "“{{name}}” 분류를 목록에서 뺄까요?",
+    "deleteOk": "삭제",
+    "add": "분류 추가",
+    "moveUp": "{{name}} 위로",
+    "moveDown": "{{name}} 아래로",
+    "deletedTag": "삭제된 분류",
+    "deletedOption": "{{name}} (삭제된 분류)",
+    "errors": {
+      "CATEGORY_NAME_REQUIRED": "분류 이름을 입력하세요.",
+      "CATEGORY_NAME_DUPLICATE": "같은 이름의 분류가 있습니다.",
+      "CATEGORY_NAME_TOO_LONG": "분류 이름은 40자까지 입력할 수 있습니다.",
+      "INVALID_COLOR": "색상 형식이 올바르지 않습니다.",
+      "CATEGORY_NOT_FOUND": "분류를 찾을 수 없습니다. 새로고침 후 다시 시도하세요.",
+      "SYSTEM_CATEGORY_UNDELETABLE": "기본 분류는 삭제할 수 없습니다.",
+      "SYSTEM_CATEGORY_NAME_FIXED": "기본 분류의 이름은 바꿀 수 없습니다.",
+      "INVALID_CATEGORY": "사용할 수 없는 분류입니다."
+    }
   }
 }

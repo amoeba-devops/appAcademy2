@@ -18,7 +18,7 @@ import {
   TeacherQueryDto,
 } from './dto/scheduler.dto';
 import type { IntegrationPrincipal, WriteResult } from './scheduler.types';
-import { normalizeCalCategory } from '../../acm-cal/application/cal-category';
+import { systemCalCategory } from '../../acm-cal/application/cal-category';
 
 interface EventRow {
   evt_id: string;
@@ -127,7 +127,8 @@ export class SchedulerService {
       students: row.students,
       startsAt: new Date(row.evt_start_at).toISOString(),
       endsAt: new Date(row.evt_end_at).toISOString(),
-      category: normalizeCalCategory(row.evt_category),
+      // External contract: tenant-defined categories are reported as OTHER.
+      category: systemCalCategory(row.evt_category),
       deliveryMode: row.evt_delivery_mode,
       location: row.evt_location_text,
       meetingUrl: row.evt_meeting_url,

@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useCalCategories } from "@/modules/cal/hooks/use-cal-categories";
 import { ChevronLeft, ChevronRight, Video } from "lucide-react";
 import {
   Dialog,
@@ -88,6 +89,7 @@ export function PortalCalendarPage() {
 
 function TeacherCalendar() {
   const { t, i18n } = useTranslation(["common", "cal"]);
+  const categories = useCalCategories("portal");
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const [initialMode] = useState<ViewMode>(() =>
@@ -263,15 +265,9 @@ function TeacherCalendar() {
             className="h-9 sm:h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2"
           >
             <option value="">{t("portalApp.cal.all", "전체")}</option>
-            {[
-              "REGULAR_CLASS",
-              "DEMO_CLASS",
-              "LEVEL_TEST",
-              "MEETING",
-              "OTHER",
-            ].map((c) => (
-              <option key={c} value={c}>
-                {t(`cal:category.${c}`, c)}
+            {categories.active.map((c) => (
+              <option key={c.code} value={c.code}>
+                {categories.label(c.code)}
               </option>
             ))}
           </select>
@@ -408,6 +404,7 @@ function MonthGrid({
 }) {
   const video = useVideoConfig(true);
   const { t } = useTranslation("cal");
+  const categories = useCalCategories("portal");
   const time = usePortalTime();
   const overflowTrigger = useRef<HTMLButtonElement | null>(null);
   const eventTrigger = useRef<HTMLButtonElement | null>(null);
@@ -493,7 +490,7 @@ function MonthGrid({
                     )}
                   </span>
                   <span className="block truncate opacity-80">
-                    {t(`category.${e.category}`, e.category)}
+                    {categories.label(e.category)}
                   </span>
                 </button>
               ))}
@@ -557,7 +554,7 @@ function MonthGrid({
                       {eventLine("", event)}
                     </span>
                     <span className="block text-sm text-secondary">
-                      {t(`category.${event.category}`, event.category)}
+                      {categories.label(event.category)}
                     </span>
                   </button>
                 </li>
@@ -627,6 +624,7 @@ function EventRow({
 }) {
   const video = useVideoConfig(true);
   const { t } = useTranslation("common");
+  const categories = useCalCategories("portal");
   const time = usePortalTime();
   return (
     <button
@@ -644,7 +642,7 @@ function EventRow({
         {/* REQ-261125-CAL — 관리자 달력과 같은 "학생 | 제목" (시간은 왼쪽 칸) */}
         {eventLine("", e)}
         <span className="ml-1.5 text-secondary">
-          · {t(`cal:category.${e.category}`, e.category)}
+          · {categories.label(e.category)}
         </span>
       </span>
       {/* PLN-260729 3 — 피드백/과제 텍스트 표기 (아이콘은 월간뷰만) */}
@@ -752,6 +750,7 @@ function EventDetailModal({
 }) {
   const video = useVideoConfig(true);
   const { t, i18n } = useTranslation("common");
+  const categories = useCalCategories("portal");
   const navigate = useNavigate();
   const location = useLocation();
   const isBoda = !!event && canEnterVideo(event, video.bodaEnabled);
@@ -803,7 +802,7 @@ function EventDetailModal({
                 <span className="text-secondary">
                   {t("portalApp.cal.subject", "과목")}
                 </span>{" "}
-                {t(`cal:category.${event.category}`, event.category)}
+                {categories.label(event.category)}
               </div>
               {/* REQ-261125-CAL2 — 강의링크 */}
               <div className="flex flex-wrap items-baseline gap-x-1">

@@ -28,7 +28,11 @@
     "LEVEL_TEST": "Bài kiểm tra trình độ",
     "DEMO_CLASS": "Lớp học thử",
     "REGULAR_CLASS": "Lớp học chính thức",
-    "OTHER": "Khác"
+    "OTHER": "Khác",
+    "AVAILABLE": "Giờ có thể dạy",
+    "UNAVAILABLE": "Giờ không thể dạy",
+    "CANCELED": "Nghỉ lớp",
+    "ABSENT": "Vắng học"
   },
   "provider": {
     "NONE": "Không",
@@ -383,7 +387,15 @@
       "orange": "Cam",
       "gray": "Xám"
     },
-    "unassigned": "Chưa phân công"
+    "unassigned": "Chưa phân công",
+    "picker": {
+      "open": "Chọn màu cho {{name}}",
+      "pick": "Chọn màu {{name}}",
+      "invalid": "Nhập màu theo dạng #RRGGBB (ví dụ: #3B82F6).",
+      "presets": "Màu gợi ý",
+      "preview": "Xem trước"
+    },
+    "sharedAssignee": "Màu theo giáo viên phụ trách, áp dụng chung cho mọi thành viên. Màu phân loại được đổi trong [Quản lý phân loại]."
   },
   "repeat": {
     "endRequired": "Ngày kết thúc lặp lại (bắt buộc)",
@@ -500,5 +512,38 @@
     "hint": "Học sinh tham dự được tự động hiển thị trên lịch. Chỉ nhập môn học vào tiêu đề.",
     "preview": "Hiển thị trên lịch:",
     "duplicate": "Tiêu đề trùng tên học sinh — chỉ hiển thị một lần. Hãy nhập môn học."
+  },
+  "categoryManage": {
+    "open": "Quản lý phân loại",
+    "title": "Quản lý phân loại lịch",
+    "systemHint": "Phân loại mặc định gắn với lớp học trực tuyến và lịch tư vấn nên không thể đổi tên hoặc xóa. Có thể đổi màu và thứ tự.",
+    "order": "Thứ tự",
+    "name": "Tên",
+    "color": "Màu",
+    "inStats": "Tính thống kê",
+    "manage": "Thao tác",
+    "system": "Mặc định",
+    "namePlaceholder": "Tên phân loại",
+    "newName": "Phân loại mới",
+    "eventCount": "{{count}} lịch",
+    "delete": "Xóa",
+    "deleteConfirm": "Xóa phân loại “{{name}}”? {{count}} lịch hiện có vẫn giữ nguyên nhưng không thể chọn cho lịch mới.",
+    "deleteNewConfirm": "Bỏ “{{name}}” khỏi danh sách?",
+    "deleteOk": "Xóa",
+    "add": "Thêm phân loại",
+    "moveUp": "Đưa {{name}} lên",
+    "moveDown": "Đưa {{name}} xuống",
+    "deletedTag": "đã xóa",
+    "deletedOption": "{{name}} (phân loại đã xóa)",
+    "errors": {
+      "CATEGORY_NAME_REQUIRED": "Hãy nhập tên phân loại.",
+      "CATEGORY_NAME_DUPLICATE": "Đã có phân loại cùng tên.",
+      "CATEGORY_NAME_TOO_LONG": "Tên phân loại tối đa 40 ký tự.",
+      "INVALID_COLOR": "Định dạng màu không hợp lệ.",
+      "CATEGORY_NOT_FOUND": "Không tìm thấy phân loại. Hãy tải lại và thử lại.",
+      "SYSTEM_CATEGORY_UNDELETABLE": "Không thể xóa phân loại mặc định.",
+      "SYSTEM_CATEGORY_NAME_FIXED": "Không thể đổi tên phân loại mặc định.",
+      "INVALID_CATEGORY": "Không thể dùng phân loại này."
+    }
   }
 }

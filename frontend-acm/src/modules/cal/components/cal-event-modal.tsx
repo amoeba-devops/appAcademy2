@@ -50,6 +50,7 @@ import { useBodaRoomStatus } from '@/lib/boda-launch-api';
 import { useBodaForceClose, useBodaReconcile } from '@/lib/boda-admin-api';
 import { CalRecordingsSection } from './cal-recordings-section';
 import { eventLine } from '../lib/event-line';
+import { useCalCategories } from '../hooks/use-cal-categories';
 
 interface Props {
   open: boolean;
@@ -58,15 +59,8 @@ interface Props {
   defaultDate?: Date;
 }
 
-const CAL_EDITOR_CATEGORIES = [
-  'LEVEL_TEST',
-  'DEMO_CLASS',
-  'REGULAR_CLASS',
-  'MEETING',
-  'OTHER',
-] as const;
-
-type EditorCategory = (typeof CAL_EDITOR_CATEGORIES)[number];
+/** System code or a tenant category code (REQ-261128-CAL). */
+type EditorCategory = string;
 
 type FormValues = {
   evtCategory: EditorCategory;
@@ -207,6 +201,7 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
   });
 
   const editorCategory = watch('evtCategory');
+  const categories = useCalCategories('admin');
   const meetingProvider = watch('evtMeetingProvider');
   const descriptionValue = watch('evtDescription');
   const startAtVal = watch('evtStartAt');
@@ -612,11 +607,20 @@ export function CalEventModal({ open, onClose, initial, defaultDate }: Props) {
               <div>
                 <label className={labelClass}>{t('field.category')}</label>
                 <select {...register('evtCategory')} className={inputClass}>
-                  {CAL_EDITOR_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {t(`category.${category}`, category)}
+                  {categories.active.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {categories.label(c.code)}
                     </option>
                   ))}
+                  {/* A deleted category stays on events that already use it. */}
+                  {editorCategory &&
+                    !categories.active.some((c) => c.code === editorCategory) && (
+                      <option value={editorCategory}>
+                        {t('categoryManage.deletedOption', {
+                          name: categories.label(editorCategory),
+                        })}
+                      </option>
+                    )}
                 </select>
               </div>
 
@@ -1543,25 +1547,10 @@ function BodaRoomPanel({ evtId }: { evtId: string }) {
 }
 
 function normalizeEditorCategory(category: string): EditorCategory {
-  switch (category) {
-    case 'LEVEL_TEST':
-      return 'LEVEL_TEST';
-    case 'DEMO_CLASS':
-      return 'DEMO_CLASS';
-    case 'REGULAR_CLASS':
-      return 'REGULAR_CLASS';
-    case 'OTHER':
-      return 'OTHER';
-    case 'MEETING':
-      return 'MEETING';
-    case 'EVENT':
-      return 'OTHER';
-    case 'PERSONAL':
-      return 'OTHER';
-    case 'CLASS':
-    default:
-      return 'REGULAR_CLASS';
-  }
+  // Retired codes map to their successors; tenant categories (REQ-261128-CAL) pass through.
+  if (category === 'CLASS') return 'REGULAR_CLASS';
+  if (category === 'EVENT' || category === 'PERSONAL') return 'OTHER';
+  return /^[A-Z][A-Z0-9_]{1,19}$/.test(category) ? category : 'REGULAR_CLASS';
 }
 
 async function fetchCslAttachmentBlob(

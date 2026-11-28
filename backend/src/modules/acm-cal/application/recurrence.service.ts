@@ -1,4 +1,5 @@
 import { normalizeCalCategory } from './cal-category';
+import { CalCategoryService } from './cal-category.service';
 import { enqueueInbox } from '../../acm-notification/application/inbox-outbox';
 import {
   BadRequestException,
@@ -76,6 +77,7 @@ export class RecurrenceService {
     private readonly tz: TenantSettingsService,
     private readonly rooms: BodaRoomService,
     private readonly notifier: InviteeNotifierService,
+    private readonly categories: CalCategoryService,
   ) {}
   async preview(entId: string, dto: RecurrencePreviewDto) {
     const timezone = await this.tz.getTimezone(entId);
@@ -117,6 +119,7 @@ export class RecurrenceService {
           return { series: existing[0], created: 0 };
         }
         const event = { ...dto.event };
+        await this.categories.assertUsable(u.entId, event.evtCategory);
         await this.events.prepareCreate(
           u.entId,
           u.id,

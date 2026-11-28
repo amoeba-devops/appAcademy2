@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ACM_DS } from '../../acm-common/datasource';
 import { CalEventService } from './cal-event.service';
+import { CalCategoryService } from './cal-category.service';
 import { VideoConfigService } from './video-config.service';
 import { CalInviteeService } from './cal-invitee.service';
 import { InviteeNotifierService } from './invitee-notifier.service';
@@ -116,6 +117,10 @@ describe('calendar video transitions', () => {
         { provide: BodaRoomService, useValue: { createPending: provision } },
         { provide: CalEventAttachmentService, useValue: {} },
         { provide: CalEventReviewService, useValue: {} },
+        {
+          provide: CalCategoryService,
+          useValue: { assertUsable: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
     svc = mod.get(CalEventService);

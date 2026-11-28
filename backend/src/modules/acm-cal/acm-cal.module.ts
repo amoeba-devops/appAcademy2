@@ -1,5 +1,10 @@
 import { CalColorService } from './application/cal-color.service';
 import { CalColorController } from './presentation/cal-color.controller';
+import { CalCategoryService } from './application/cal-category.service';
+import {
+  CalCategoryController,
+  PortalCalCategoryController,
+} from './presentation/cal-category.controller';
 import { RecurrenceService } from './application/recurrence.service';
 import { RecurrenceController } from './presentation/recurrence.controller';
 import { IcsImportService } from './application/ics/ics-import.service';
@@ -126,6 +131,8 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   controllers: [
     StudentLinkController,
     CalColorController,
+    CalCategoryController, // REQ-261128-CAL
+    PortalCalCategoryController,
     RecurrenceController,
     IcsController,
     VideoConfigController,
@@ -147,6 +154,7 @@ import { BodaDemoController } from './presentation/boda-demo.controller';
   ],
   providers: [
     CalColorService,
+    CalCategoryService,
     RecurrenceService,
     IcsImportService,
     VideoConfigService,

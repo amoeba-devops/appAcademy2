@@ -7,7 +7,11 @@ export const CAL_CATEGORIES = [
   "REGULAR_CLASS",
   "OTHER",
 ] as const;
-export type CalCategory = (typeof CAL_CATEGORIES)[number];
+/**
+ * System codes above + tenant categories (REQ-261128-CAL, see useCalCategories).
+ * Kept as a string so tenant codes type-check.
+ */
+export type CalCategory = (typeof CAL_CATEGORIES)[number] | (string & {});
 
 export const CAL_PROVIDERS = [
   "NONE",

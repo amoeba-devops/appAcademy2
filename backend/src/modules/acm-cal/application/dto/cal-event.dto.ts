@@ -1,4 +1,8 @@
-import { ACTIVE_CAL_CATEGORIES } from '../cal-category';
+import {
+  ACTIVE_CAL_CATEGORIES,
+  CAL_CATEGORY_CODE_RE,
+  LEGACY_CAL_CATEGORIES,
+} from '../cal-category';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -8,7 +12,9 @@ import {
   IsDateString,
   IsEnum,
   IsIn,
+  IsNotIn,
   IsOptional,
+  Matches,
   IsString,
   IsUUID,
   MaxLength,
@@ -52,10 +58,12 @@ export class CreateCalEventDto {
   @IsIn(['ONSITE', 'ONLINE'])
   evtDeliveryMode?: 'ONSITE' | 'ONLINE';
 
-  @ApiPropertyOptional({ enum: CAL_CATEGORIES, default: 'REGULAR_CLASS' })
+  /** System code or a tenant category code (REQ-261128-CAL) — checked in the service. */
+  @ApiPropertyOptional({ example: 'REGULAR_CLASS', default: 'REGULAR_CLASS' })
   @IsOptional()
-  @IsEnum(CAL_CATEGORIES)
-  evtCategory?: (typeof CAL_CATEGORIES)[number];
+  @Matches(CAL_CATEGORY_CODE_RE)
+  @IsNotIn(LEGACY_CAL_CATEGORIES)
+  evtCategory?: string;
 
   @ApiProperty()
   @IsString()
@@ -151,10 +159,11 @@ export class UpdateCalEventDto {
   @IsIn(['ONSITE', 'ONLINE'])
   evtDeliveryMode?: 'ONSITE' | 'ONLINE';
 
-  @ApiPropertyOptional({ enum: CAL_CATEGORIES })
+  @ApiPropertyOptional({ example: 'REGULAR_CLASS' })
   @IsOptional()
-  @IsEnum(CAL_CATEGORIES)
-  evtCategory?: (typeof CAL_CATEGORIES)[number];
+  @Matches(CAL_CATEGORY_CODE_RE)
+  @IsNotIn(LEGACY_CAL_CATEGORIES)
+  evtCategory?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -322,10 +331,10 @@ export class ListCalEventsQueryDto {
   @IsIn(['ONSITE', 'ONLINE'])
   evtDeliveryMode?: 'ONSITE' | 'ONLINE';
 
-  @ApiPropertyOptional({ enum: CAL_CATEGORIES })
+  @ApiPropertyOptional({ example: 'REGULAR_CLASS' })
   @IsOptional()
-  @IsEnum(CAL_CATEGORIES)
-  category?: (typeof CAL_CATEGORIES)[number];
+  @Matches(CAL_CATEGORY_CODE_RE)
+  category?: string;
 
   /** REQ-260728 — true 면 삭제된 일정만 조회('삭제한 수업일정 보기'). */
   @ApiPropertyOptional({ description: '삭제된 일정만 조회', default: false })

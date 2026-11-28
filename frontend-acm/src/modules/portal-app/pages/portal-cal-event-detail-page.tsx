@@ -12,6 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useCalCategories } from "@/modules/cal/hooks/use-cal-categories";
 import DOMPurify from "dompurify";
 import {
   BookOpen,
@@ -35,6 +36,7 @@ import { portalApi, type PortalCalAttachment } from "../api/portal-api";
 export function PortalCalEventDetailPage() {
   // PLN-260719 R2 — 강사/학생 모두 일정의 모든 정보 노출 (cal 네임스페이스 병용).
   const { t, i18n } = useTranslation(["common", "cal"]);
+  const categories = useCalCategories("portal");
   const location = useLocation();
   const from = (location.state as { from?: unknown } | null)?.from;
   const back =
@@ -96,7 +98,7 @@ export function PortalCalEventDetailPage() {
               {event.title}
             </h1>
             <span className="shrink-0 rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
-              {t(`cal:category.${event.category}`, event.category)}
+              {categories.label(event.category)}
             </span>
           </div>
           <div className="mt-2 grid gap-1 text-sm">

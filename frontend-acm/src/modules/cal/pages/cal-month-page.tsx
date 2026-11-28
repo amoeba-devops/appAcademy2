@@ -1,4 +1,5 @@
 import { CalendarColorProvider, CalendarColorToolbar, useCalendarColor } from '../components/calendar-colors';
+import { useCalCategories } from '../hooks/use-cal-categories';
 import { useVideoConfig, canEnterVideo, meetingHref } from '@/modules/cfg/hooks/use-video-config';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +49,7 @@ const VIEW_OPTIONS: CalendarView[] = ['day', 'week', 'month', 'list'];
 export function CalMonthPage() { return <CalendarColorProvider><CalMonthContent /></CalendarColorProvider>; }
 function CalMonthContent() {
   const { t, i18n } = useTranslation('cal');
+  const categories = useCalCategories('admin');
   // REQ-260903 — 모든 날짜 산술은 테넌트 TZ 벽시계(시프트 공간) 기준.
   const tz = useTenantTz();
   const [anchor, setAnchor] = useState(() => toZonedShift(new Date(), DEFAULT_TZ));
@@ -306,13 +308,11 @@ function CalMonthContent() {
               className="h-9 sm:h-7 rounded-md border border-[var(--border-subtle)] bg-canvas px-2 text-xs"
             >
               <option value="">{t('filter.allView')}</option>
-              {(['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const).map(
-                (c) => (
-                  <option key={c} value={c}>
-                    {t(`category.${c}`, c)}
-                  </option>
-                ),
-              )}
+              {categories.active.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {categories.label(c.code)}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -555,6 +555,7 @@ function ListRow({
   onClick: (e: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation('cal');
+  const categories = useCalCategories('admin');
   const tz = useTenantTz();
   const color = useCalendarColor(event);
   return (
@@ -584,7 +585,7 @@ function ListRow({
         )}
       </span>
       <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
-        {t(`category.${event.category}`, event.category)}
+        {categories.label(event.category)}
       </span>
       {(
         <span className="shrink-0 text-xs text-secondary">
@@ -669,6 +670,7 @@ function CalendarEventCard({
   onClick: (event: React.MouseEvent) => void;
 }) {
   const { t } = useTranslation('cal');
+  const categories = useCalCategories('admin');
   const color = useCalendarColor(event);
   const tz = useTenantTz();
   const display = buildEventDisplayLine(event, locale, tz);
@@ -682,7 +684,7 @@ function CalendarEventCard({
       className={`group relative cursor-pointer rounded border px-2 py-1.5 text-left  ${
         compact ? 'text-[10px]' : 'text-xs'
       }`}
-      title={`${display} · ${t(`category.${event.category}`, event.category)}`}
+      title={`${display} · ${categories.label(event.category)}`}
     >
       <div className="truncate font-medium">
         {display}
@@ -693,7 +695,7 @@ function CalendarEventCard({
           </span>
         )}
       </div>
-      <div className="truncate opacity-80">{t(`category.${event.category}`, event.category)}</div>
+      <div className="truncate opacity-80">{categories.label(event.category)}</div>
       {!compact && (event.hasFeedback || event.homeworkStatus != null) && (
         <div className="mt-0.5 flex items-center gap-1 text-xs">
           {event.hasFeedback && (

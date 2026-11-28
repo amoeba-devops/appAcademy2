@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { categoryCounts, useCalCategories } from '../hooks/use-cal-categories';
 import { BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { PageHeader } from '@/components/ui/page-header';
@@ -37,7 +38,6 @@ interface StatsResponse {
   teachers: Array<StatsBucket & { tchId: string | null; name: string }>;
 }
 
-const CATS = ['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const;
 
 export type StatsUnit = 'week' | 'month' | '7d' | '28d' | '90d' | 'custom';
 const RECENT_DAYS: Record<'7d' | '28d' | '90d', number> = {
@@ -220,9 +220,9 @@ export const statsDonePct = (b: StatsBucket) =>
   b.count > 0 ? Math.round((b.done / b.count) * 100) : 0;
 
 export function CatLine({ b }: { b: StatsBucket }) {
-  const { t } = useTranslation('cal');
-  const line = CATS.filter((c) => b.byCategory[c])
-    .map((c) => `${t(`category.${c}`, c)} ${b.byCategory[c]}`)
+  const categories = useCalCategories('admin');
+  const line = categoryCounts(b.byCategory, categories)
+    .map(([c, n]) => `${categories.label(c)} ${n}`)
     .join(' · ');
   return line ? <span>{line}</span> : null;
 }

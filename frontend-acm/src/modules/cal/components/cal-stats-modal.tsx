@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { categoryCounts, useCalCategories } from '../hooks/use-cal-categories';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { DEFAULT_TZ, fromZonedShift, toZonedShift, useTenantTz } from '@/lib/tz';
@@ -37,7 +38,6 @@ interface StatsResponse {
   teachers: Array<StatsBucket & { tchId: string | null; name: string }>;
 }
 
-const CATS = ['REGULAR_CLASS', 'DEMO_CLASS', 'LEVEL_TEST', 'OTHER'] as const;
 
 export function CalStatsModal({
   open,
@@ -47,6 +47,7 @@ export function CalStatsModal({
   onClose: () => void;
 }) {
   const { t, i18n } = useTranslation('cal');
+  const categories = useCalCategories('admin');
   const tz = useTenantTz(); // REQ-260903 — 테넌트 TZ 벽시계 기준
   const [unit, setUnit] = useState<'week' | 'month'>('month');
   const [anchor, setAnchor] = useState(() => toZonedShift(new Date(), DEFAULT_TZ));
@@ -90,8 +91,8 @@ export function CalStatsModal({
     b.count > 0 ? Math.round((b.done / b.count) * 100) : 0;
 
   const catLine = (b: StatsBucket) =>
-    CATS.filter((c) => b.byCategory[c])
-      .map((c) => `${t(`category.${c}`, c)} ${b.byCategory[c]}`)
+    categoryCounts(b.byCategory, categories)
+      .map(([c, n]) => `${categories.label(c)} ${n}`)
       .join(' · ');
 
   return (

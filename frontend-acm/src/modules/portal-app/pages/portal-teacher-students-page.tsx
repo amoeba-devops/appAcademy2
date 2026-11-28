@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useCalCategories } from "@/modules/cal/hooks/use-cal-categories";
 import {
   CalendarRange,
   ChevronLeft,
@@ -208,6 +209,7 @@ function formatDateOnly(value: string | null, locale: string, empty: string) {
 
 function StudentDetail({ stdId }: { stdId: string }) {
   const { t, i18n } = useTranslation(["common", "csl", "cal"]);
+  const categories = useCalCategories("portal");
   const user = useAuthStore((state) => state.portal.user);
   const location = useLocation();
   const zones = useMyZones("portal");
@@ -373,7 +375,7 @@ function StudentDetail({ stdId }: { stdId: string }) {
                     {e.title}
                   </Link>
                   <span className="shrink-0 rounded bg-[var(--gray-100)] px-1.5 py-0.5 text-xs text-secondary">
-                    {t(`cal:category.${e.category}`, e.category)}
+                    {categories.label(e.category)}
                   </span>
                 </li>
               ))}
