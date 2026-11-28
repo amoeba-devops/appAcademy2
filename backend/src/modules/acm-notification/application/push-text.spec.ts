@@ -1,4 +1,4 @@
-import { chatPreview, PREVIEW_MAX, pushText } from './push-text';
+import { chatPreview, PREVIEW_MAX, pushText, reviewLine } from './push-text';
 
 describe('pushText (REQ-261020C)', () => {
   it('names the sender and channel for a chat mention', () => {
@@ -70,5 +70,19 @@ describe('pushText (REQ-261020C)', () => {
     expect(long).toHaveLength(PREVIEW_MAX);
     expect(long.endsWith('…')).toBe(true);
     expect(chatPreview(undefined)).toBe('');
+  });
+  it('shows registered students before the subject in feedback alerts (REQ-261128B)', () => {
+    expect(
+      pushText({
+        type: 'REVIEW_OVERDUE',
+        payload: { title: '영어', students: '홍길동', hours: 5 },
+      }).body,
+    ).toBe('수업 피드백·숙제 미완료 · 홍길동 | 영어');
+    // Title that only repeats the student name is shown once.
+    expect(reviewLine('홍길동', '홍길동')).toBe('홍길동');
+    expect(reviewLine('홍길동, 김학생', '홍길동, 김학생')).toBe('홍길동, 김학생');
+    // Older alerts without students keep showing the title.
+    expect(reviewLine(null, '영어')).toBe('영어');
+    expect(reviewLine('홍길동', '')).toBe('홍길동');
   });
 });

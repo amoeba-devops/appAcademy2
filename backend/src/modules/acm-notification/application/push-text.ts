@@ -33,6 +33,19 @@ export function chatPreview(msg?: {
 }
 
 type Payload = Record<string, string | number | null | undefined>;
+
+/**
+ * REQ-261128B — `학생 | 제목` for class-feedback alerts, the same rule as the
+ * calendar line: registered students first, title left out when it only
+ * repeats the student names. Old payloads without `students` show the title.
+ */
+export function reviewLine(students: unknown, title: unknown): string {
+  const t = typeof title === 'string' ? title.trim() : '';
+  const s = typeof students === 'string' ? students.trim() : '';
+  if (!s) return t;
+  const names = s.split(', ');
+  return t && t !== s && !names.includes(t) ? `${s} | ${t}` : s;
+}
 const text = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
 const join = (...parts: string[]) => parts.filter(Boolean).join(' · ');
 
@@ -63,6 +76,11 @@ export function pushText(
           `${who ? who + '이 ' : ''}${p.commentId ? '이슈 댓글에서' : '이슈에서'} 나를 멘션했습니다`,
           text(p.title),
         ),
+      };
+    case 'REVIEW_OVERDUE':
+      return {
+        title: 'ACM',
+        body: join(LABELS[item.type], reviewLine(p.students, p.title)),
       };
     case 'CSL_CREATED':
     case 'CSL_STAGE':
