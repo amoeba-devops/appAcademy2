@@ -224,6 +224,8 @@ const lessonResponse = {
   startsAt: '2026-12-01T01:00:00Z',
   endsAt: '2026-12-01T01:50:00Z',
   category: 'DEMO_CLASS',
+  calendarCategory: 'DEMO_CLASS',
+  blocksBooking: true,
   deliveryMode: 'ONSITE',
   location: '2강의실',
   meetingUrl: null,
@@ -253,7 +255,8 @@ export const API_ERRORS = [
   {
     status: 409,
     code: 'SCHEDULE_CONFLICT',
-    description: '다른 시간으로 배정 / Reschedule',
+    description:
+      '배정을 막는 일정(blocksBooking=true)과 겹침 — 다른 시간으로 배정. 수업 가능 시간·휴강과는 겹쳐도 됨 / Overlaps a blocking event (blocksBooking=true); reschedule. AVAILABLE/CANCELED never block',
   },
   {
     status: 409,
@@ -570,7 +573,7 @@ export function schedulerOpenApi(baseUrl: string) {
   }
   return {
     openapi: '3.0.3',
-    info: { title: 'ACM External Scheduler API', version: '1.0.0' },
+    info: { title: 'ACM External Scheduler API', version: '1.1.0' },
     servers: [{ url: baseUrl }],
     components: {
       securitySchemes: {
@@ -619,6 +622,19 @@ const RESPONSE_SCHEMAS = {
       category: {
         type: 'string',
         enum: ['DEMO_CLASS', 'REGULAR_CLASS', 'MEETING', 'LEVEL_TEST', 'OTHER'],
+        description:
+          'Fixed contract; tenant-defined categories are reported as OTHER — see calendarCategory',
+      },
+      calendarCategory: {
+        type: 'string',
+        pattern: '^[A-Z][A-Z0-9_]{1,19}$',
+        description:
+          'Actual calendar category code, e.g. AVAILABLE (수업 가능 시간), UNAVAILABLE, CANCELED (휴강), ABSENT (결강), C_xxxxxxxx',
+      },
+      blocksBooking: {
+        type: 'boolean',
+        description:
+          'false = this event does not occupy the slot (AVAILABLE, CANCELED); a lesson may be booked over it',
       },
       deliveryMode: {
         type: 'string',

@@ -223,6 +223,56 @@ describe('External scheduler API (real PostgreSQL + runtime HTTP contract)', () 
     );
     await write('owner-conflict').expect(409);
   });
+  it('books over availability/canceled events but not unavailable/absent ones (REQ-261128C)', async () => {
+    const block = async (category: string) =>
+      (
+        await env.ds.query(
+          `INSERT INTO amb_acm_cal_event(ent_id,evt_owner_user_id,evt_assignee_tch_id,evt_category,evt_title,evt_start_at,evt_end_at)
+           VALUES($1,$2,$3,$4,'Block',$5,$6) RETURNING evt_id`,
+          [
+            ENT,
+            master,
+            teacher,
+            category,
+            '2026-12-01T09:00:00+09:00',
+            '2026-12-01T12:00:00+09:00',
+          ],
+        )
+      )[0].evt_id as string;
+    const available = await block('AVAILABLE');
+    await block('CANCELED');
+    const booked = await write('in-available').expect(201);
+    expect(booked.body.data).toMatchObject({
+      calendarCategory: 'DEMO_CLASS',
+      blocksBooking: true,
+    });
+    const q = await request(env.app.getHttpServer())
+      .get('/api/integrations/v1/lessons')
+      .set(token())
+      .query({
+        from: '2026-12-01T00:00:00+09:00',
+        to: '2026-12-02T00:00:00+09:00',
+        teacherId: teacher,
+      })
+      .expect(200);
+    expect(
+      q.body.data.find((l: { id: string }) => l.id === available),
+    ).toMatchObject({
+      category: 'OTHER',
+      calendarCategory: 'AVAILABLE',
+      blocksBooking: false,
+    });
+    await env.ds.query('DELETE FROM amb_acm_int_lesson_link');
+    await env.ds.query(
+      "DELETE FROM amb_acm_cal_event WHERE evt_category NOT IN ('AVAILABLE','CANCELED')",
+    );
+    for (const category of ['UNAVAILABLE', 'ABSENT']) {
+      const id = await block(category);
+      const r = await write(`in-${category}`).expect(409);
+      expect(r.body.error.details.eventIds).toEqual([id]);
+      await env.ds.query('DELETE FROM amb_acm_cal_event WHERE evt_id=$1', [id]);
+    }
+  });
   it('serializes identical concurrent retries and canonicalizes JSON property order', async () => {
     const body = lesson(),
       key = randomUUID();
