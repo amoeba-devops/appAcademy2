@@ -16,6 +16,8 @@ export interface InboxItem {
     fromStage?: string;
     toStage?: string;
     title?: string;
+    /** REQ-261128B — 수업 피드백 알림: 시스템에 등록된 참석 학생 (", " 구분) */
+    students?: string | null;
     count?: number;
     senderName?: string;
     channelId?: string;

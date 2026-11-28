@@ -190,6 +190,16 @@ export function NotificationBell({
     </>
   );
 }
+/**
+ * REQ-261128B — 수업 피드백 알림은 달력과 같은 규칙으로 `학생 | 제목`.
+ * 제목이 학생 이름과 같으면 한 번만, 학생 정보가 없는 예전 알림은 제목만.
+ */
+export function reviewLine(students?: string | null, title?: string): string {
+  const t = title?.trim() ?? "";
+  const s = students?.trim() ?? "";
+  if (!s) return t;
+  return t && t !== s && !s.split(", ").includes(t) ? `${s} | ${t}` : s;
+}
 function Summary({ item }: { item: InboxItem }) {
   const { t } = useTranslation("common");
   const p = item.payload;
@@ -212,7 +222,9 @@ function Summary({ item }: { item: InboxItem }) {
       <span className="block truncate text-sm text-secondary">
         {item.type === "ISSUE_MENTION" || item.type.startsWith("CHAT_")
           ? [p.senderName, p.title].filter(Boolean).join(" · ")
-          : p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
+          : item.type === "REVIEW_OVERDUE"
+            ? reviewLine(p.students, p.title)
+            : p.title || p.senderName || (p.seqNo ? `#${p.seqNo}` : "")}
         {p.fromStage && p.toStage
           ? ` · ${t("csl:stage." + p.fromStage, { defaultValue: p.fromStage })} → ${t("csl:stage." + p.toStage, { defaultValue: p.toStage })}`
           : ""}
