@@ -18,7 +18,12 @@ import {
   TeacherQueryDto,
 } from './dto/scheduler.dto';
 import type { IntegrationPrincipal, WriteResult } from './scheduler.types';
-import { systemCalCategory } from '../../acm-cal/application/cal-category';
+import {
+  calCategoryBlocksBooking,
+  NON_BLOCKING_CAL_CATEGORIES,
+  normalizeCalCategory,
+  systemCalCategory,
+} from '../../acm-cal/application/cal-category';
 
 interface EventRow {
   evt_id: string;
@@ -129,6 +134,9 @@ export class SchedulerService {
       endsAt: new Date(row.evt_end_at).toISOString(),
       // External contract: tenant-defined categories are reported as OTHER.
       category: systemCalCategory(row.evt_category),
+      // REQ-261128C — actual tenant category + whether it occupies the slot.
+      calendarCategory: normalizeCalCategory(row.evt_category),
+      blocksBooking: calCategoryBlocksBooking(row.evt_category),
       deliveryMode: row.evt_delivery_mode,
       location: row.evt_location_text,
       meetingUrl: row.evt_meeting_url,
@@ -296,13 +304,15 @@ export class SchedulerService {
             apiError(400, 'DUPLICATE_STUDENT');
           const clashes = await m.query<{ evt_id: string }[]>(
             `SELECT evt_id FROM (${PROJECTION} WHERE e.ent_id=$1 AND e.deleted_at IS NULL
-          AND e.evt_start_at<$3 AND e.evt_end_at>$2 AND ($4::uuid IS NULL OR e.evt_id<>$4)) x WHERE $5=ANY(teacher_ids)`,
+          AND e.evt_start_at<$3 AND e.evt_end_at>$2 AND ($4::uuid IS NULL OR e.evt_id<>$4)
+          AND e.evt_category <> ALL($6::text[])) x WHERE $5=ANY(teacher_ids)`,
             [
               p.entId,
               lesson.startsAt,
               lesson.endsAt,
               old?.evt_id ?? null,
               teacherId,
+              [...NON_BLOCKING_CAL_CATEGORIES],
             ],
           );
           if (clashes.length)

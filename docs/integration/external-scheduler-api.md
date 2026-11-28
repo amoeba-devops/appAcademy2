@@ -1,9 +1,10 @@
 ---
-document_id: SCHEDULER-API-1.1.0
-version: 1.1.0
+document_id: SCHEDULER-API-1.2.0
+version: 1.2.0
 status: implemented_pending_deployment
 date: 2026-11-25
 change_log:
+  - 2026-11-28 v1.2.0 응답 `calendarCategory`·`blocksBooking` 추가, 수업 가능 시간·휴강 일정은 겹침 검사에서 제외 (REQ-261128C, OpenAPI 1.1.0)
   - 2026-11-25 v1.1.0 서비스 설정 API 사용안내 경로·3개 탭·사용 설정·파라미터 타입 및 값 사전 추가
   - 2026-11-25 v1.0.0 외부 스케줄 앱용 요청·응답 계약 초안
 ---
@@ -60,10 +61,25 @@ GET /lessons?from=2026-12-01T00%3A00%3A00%2B09%3A00&to=2026-12-08T00%3A00%3A00%2
 from/to 필수, UTC offset 필수, 최대 31일, from < to. 반복 일정 생성 범위를 제한하기 위해 to는 현재로부터 최대 2년 후까지 허용한다. `teacherId` 선택; 생략하면 해당 테넌트 전체. 강사 담당·참석자·연결 콘솔 소유자 일정을 포함한다. 기간과 조금이라도 겹치는 일정을 반환하며 종료=from 또는 시작=to인 일정은 제외한다. 삭제 일정 제외. 반환 시각은 UTC `Z` 표준화. cursor/limit 규칙은 강사 조회와 동일하며 후속 페이지에 동일한 필터를 유지한다.
 
 ```json
-{"success":true,"data":[{"id":"22222222-2222-4222-8222-222222222222","externalId":"slot-20261201-001","managedByClient":true,"teacherId":"11111111-1111-4111-8111-111111111111","teacherName":"김강사","students":[{"studentId":null,"name":"홍학생"}],"startsAt":"2026-12-01T01:00:00Z","endsAt":"2026-12-01T01:50:00Z","category":"DEMO_CLASS","deliveryMode":"ONSITE","version":1}],"meta":{"nextCursor":null,"limit":100}}
+{"success":true,"data":[{"id":"22222222-2222-4222-8222-222222222222","externalId":"slot-20261201-001","managedByClient":true,"teacherId":"11111111-1111-4111-8111-111111111111","teacherName":"김강사","students":[{"studentId":null,"name":"홍학생"}],"startsAt":"2026-12-01T01:00:00Z","endsAt":"2026-12-01T01:50:00Z","category":"DEMO_CLASS","calendarCategory":"DEMO_CLASS","blocksBooking":true,"deliveryMode":"ONSITE","version":1}],"meta":{"nextCursor":null,"limit":100}}
 ```
 
 타 연동·수동 일정은 managedByClient:false, externalId:null, version:null. 강사 연관성이 여러 개면 필터로 매칭된 강사와 담당 강사를 혼동하지 않도록 응답에 teacherIds 배열을 함께 제공한다. 기존 일정의 deliveryMode를 판단할 수 없으면 null. 조회는 점유 확인을 위해 모든 카테고리를 포함하므로 MEETING/LEVEL_TEST/OTHER 및 정규수업으로 정규화한 과거 CLASS도 올 수 있다. 학생 이름은 허용된 일정 조회의 최소 표시 정보만 제공한다.
+
+### 4.1 Calendar categories and booking (일정 분류·배정 가능 여부)
+
+학원이 추가한 일정 분류(수업 가능 시간·휴강 등)는 기존 계약을 유지하기 위해 `category`에서 `OTHER`로 내려간다. 실제 분류 코드는 `calendarCategory`, 그 시간에 배정할 수 없는지는 `blocksBooking`으로 판단한다.
+
+| 분류 | category | calendarCategory | blocksBooking |
+| --- | --- | --- | --- |
+| 정규·데모·레벨테스트·미팅·기타 | 같은 값 | 같은 값 | true |
+| 수업 가능 시간 | OTHER | AVAILABLE | **false** — 겹쳐도 배정 가능 |
+| 휴강 | OTHER | CANCELED | **false** — 겹쳐도 배정 가능 |
+| 수업 불가능 시간 | OTHER | UNAVAILABLE | true |
+| 결강 | OTHER | ABSENT | true |
+| 학원이 추가한 분류 | OTHER | `C_` + 8자리 | true |
+
+`blocksBooking=false` 일정은 등록·수정 겹침 검사(409 `SCHEDULE_CONFLICT`)에서 빠진다. 수업 가능 시간 **밖**의 배정은 막지 않는다. 가능 시간을 등록하지 않은 강사도 있기 때문이다.
 
 페이지 조회 도중 일정이 바뀔 수 있다. 저장 요청이 최종 충돌을 검사하므로 조회 결과만으로 배정을 확정하지 않는다.
 
@@ -99,7 +115,7 @@ If-None-Match: *
 신규 201 / 수정 200. 단일 조회·쓰기 성공은 `ETag: "1"` 같은 불투명 버전 문자열과 아래 형태의 data를 반환한다(필드는 기간 조회와 동일; 단일 data는 객체).
 
 ```json
-{"success":true,"data":{"id":"22222222-2222-4222-8222-222222222222","externalId":"slot-20261201-001","version":1,"startsAt":"2026-12-01T01:00:00Z","endsAt":"2026-12-01T01:50:00Z","category":"DEMO_CLASS","deliveryMode":"ONSITE"}}
+{"success":true,"data":{"id":"22222222-2222-4222-8222-222222222222","externalId":"slot-20261201-001","version":1,"startsAt":"2026-12-01T01:00:00Z","endsAt":"2026-12-01T01:50:00Z","category":"DEMO_CLASS","calendarCategory":"DEMO_CLASS","blocksBooking":true,"deliveryMode":"ONSITE"}}
 ```
 
 기존 수동 수정도 버전을 변경해야 한다. If-Match에는 마지막 성공 또는 GET의 ETag를 그대로 사용하고 값을 직접 계산하지 않는다.
@@ -127,7 +143,7 @@ Content-Type: application/json
 | 401 | INVALID_API_KEY | 키·만료·폐기 상태 확인 |
 | 403 | INSUFFICIENT_SCOPE / INTEGRATION_DISABLED | 권한·연동 상태 확인 |
 | 404 | LESSON_NOT_FOUND | 해당 앱의 externalId 확인; 다른 테넌트 존재는 공개하지 않음 |
-| 409 | SCHEDULE_CONFLICT | eventIds로 충돌 확인 후 다른 시간 배정 |
+| 409 | SCHEDULE_CONFLICT | eventIds로 충돌 확인 후 다른 시간 배정. eventIds에는 배정을 막은 일정(`blocksBooking=true`)만 담긴다 |
 | 409 | IDEMPOTENCY_KEY_REUSED / EXTERNAL_ID_RETIRED | 새 요청은 새 멱등 키, 새 수업은 새 외부 ID 사용 |
 | 412 | VERSION_MISMATCH | 재조회 후 사람/앱 정책으로 변경 재검토 |
 | 422 | TEACHER_NOT_FOUND / TEACHER_AMBIGUOUS / TEACHER_NOT_ACTIVE / STUDENT_AMBIGUOUS / STUDENT_NOT_FOUND / VIDEO_CONFIG_INVALID | 매칭·등록·화상 설정 해결; 후보 학생 개인정보를 오류에 포함하지 않음 |
@@ -202,4 +218,4 @@ API 카탈로그는 배포된 API만 제공 중으로 표시한다. 예정된 AP
 | 수정 PUT / body | reason | 아니오 | string | 입력 시 2~500자 | `강사 배정 시간 변경` |
 | DELETE / body | reason | 예 | string | 2~500자 | `스케줄 앱에서 수업 배정 취소` |
 
-성공 응답의 id/studentId/teacherId는 UUID 문자열, startsAt/endsAt은 UTC date-time 문자열, version은 양의 정수(외부 관리 대상 외에는 null), managedByClient는 boolean, meta.nextCursor는 string 또는 null이다. deliveryMode/학생 연결 ID는 기존 일정 또는 미등록 데모 상황에서 null일 수 있다. 실제 OpenAPI에는 각 필드의 nullable·enum·길이 제한·응답 필수 여부를 명시하고 예제를 제공한다.
+성공 응답의 id/studentId/teacherId는 UUID 문자열, startsAt/endsAt은 UTC date-time 문자열, version은 양의 정수(외부 관리 대상 외에는 null), managedByClient·blocksBooking은 boolean, calendarCategory는 분류 코드 문자열(`^[A-Z][A-Z0-9_]{1,19}$`), meta.nextCursor는 string 또는 null이다. deliveryMode/학생 연결 ID는 기존 일정 또는 미등록 데모 상황에서 null일 수 있다. 실제 OpenAPI에는 각 필드의 nullable·enum·길이 제한·응답 필수 여부를 명시하고 예제를 제공한다.

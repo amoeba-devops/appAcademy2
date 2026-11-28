@@ -27,6 +27,19 @@ export const SEEDED_CAL_CATEGORIES = [
   'ABSENT',
 ] as const;
 
+/**
+ * REQ-261128C — events in these categories never block booking a lesson in
+ * the same slot (teacher availability, canceled classes). Everything else,
+ * including admin-added categories, keeps the slot occupied.
+ */
+export const NON_BLOCKING_CAL_CATEGORIES = ['AVAILABLE', 'CANCELED'] as const;
+
+export function calCategoryBlocksBooking(category: string): boolean {
+  return !(NON_BLOCKING_CAL_CATEGORIES as readonly string[]).includes(
+    normalizeCalCategory(category),
+  );
+}
+
 export function isSystemCalCategory(code: string): code is ActiveCalCategory {
   return (ACTIVE_CAL_CATEGORIES as readonly string[]).includes(code);
 }
