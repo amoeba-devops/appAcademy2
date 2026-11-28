@@ -84,7 +84,9 @@ export class IntegrationAccessService {
     );
     return {
       enabled: rows[0]?.int_is_enabled ?? false,
-      scopes: rows[0]?.int_scopes ?? [...SCOPES],
+      // Student data stays opt-in even for tenants without a saved config.
+      scopes:
+        rows[0]?.int_scopes ?? SCOPES.filter((s) => s !== 'students:read'),
     };
   }
   async saveSettings(ent: string, actor: string, dto: ApiSettingsDto) {
@@ -263,7 +265,12 @@ export class IntegrationAccessService {
     await this.entitlement(m, p.entId, scope);
   }
   private async entitlement(m: EntityManager, ent: string, scope: Scope) {
-    const feature = scope === 'teachers:read' ? 'tch' : 'cal';
+    const feature =
+      scope === 'teachers:read'
+        ? 'tch'
+        : scope === 'students:read'
+          ? 'std'
+          : 'cal';
     const denied = await m.query<unknown[]>(
       `SELECT 1 FROM amb_acm_tenant_menu WHERE tnm_ent_id=$1 AND tnm_menu_key=$2 AND tnm_visible=false`,
       [ent, feature],

@@ -2720,6 +2720,7 @@
     "all": "All",
     "teachers": "Teachers",
     "lessons": "Lessons",
+    "students": "Học sinh",
     "errors": "Errors and recovery",
     "field": "Location / parameter",
     "required": "Required",
@@ -2736,6 +2737,7 @@
     "masterOnly": "Chỉ MASTER hoặc quản trị viên chính của đơn vị được quản lý API và khóa.",
     "enabled": "Bật API bên ngoài",
     "offNotice": "OFF by default. Disabling blocks existing keys without deleting keys or lessons.",
+    "studentPrivacy": "Khi bật Xem học sinh, tên, tên tiếng Anh, cơ sở, khối lớp, ngày nhập học và giáo viên phụ trách của học sinh đang theo học sẽ được gửi đến ứng dụng bên ngoài. Thông tin liên lạc, ngày sinh và trường học không được gửi.",
     "save": "Lưu cấu hình",
     "clientName": "Tên ứng dụng",
     "addClient": "Thêm ứng dụng",
@@ -2761,7 +2763,8 @@
     "scopes": {
       "teachers:read": "Xem giáo viên",
       "lessons:read": "Xem lịch học",
-      "lessons:write": "Tạo / sửa / xóa lịch học"
+      "lessons:write": "Tạo / sửa / xóa lịch học",
+      "students:read": "Xem học sinh"
     },
     "studentRule": "Registered students are linked to their accounts. Unregistered demo students are stored by name without account creation or invitations. Resolve duplicate names using a student ID.",
     "timeRule": "Include UTC offsets. Fetch every page; ranges are limited to 31 days. Writes check for teacher conflicts again.",

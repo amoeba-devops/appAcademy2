@@ -24,13 +24,14 @@ export const SCOPES = [
   'teachers:read',
   'lessons:read',
   'lessons:write',
+  'students:read',
 ] as const;
 export type Scope = (typeof SCOPES)[number];
 export class ApiSettingsDto {
   @IsBoolean() enabled!: boolean;
   @IsArray()
   @ArrayUnique()
-  @ArrayMaxSize(3)
+  @ArrayMaxSize(SCOPES.length)
   @IsIn(SCOPES, { each: true })
   scopes!: Scope[];
 }
@@ -50,7 +51,7 @@ export class IssueKeyDto extends ClientDto {
   @IsArray()
   @ArrayUnique()
   @ArrayMinSize(1)
-  @ArrayMaxSize(3)
+  @ArrayMaxSize(SCOPES.length)
   @IsIn(SCOPES, { each: true })
   scopes!: Scope[];
   @IsDateString({ strict: true }) expiresAt!: string;
@@ -68,6 +69,12 @@ export class TeacherQueryDto extends PageDto {
   @MaxLength(200)
   email?: string;
   @IsOptional() @IsIn(['ACTIVE', 'LEAVE', 'RESIGNED']) status?: string;
+}
+/** REQ-261128D — enrolled (ACTIVE) students with assigned teachers. */
+export const STUDENT_SITES = ['TPI', 'TRINITY', 'SANTACROCE'] as const;
+export class StudentQueryDto extends PageDto {
+  @IsOptional() @IsUUID() teacherId?: string;
+  @IsOptional() @IsIn(STUDENT_SITES) site?: string;
 }
 export class LessonQueryDto extends PageDto {
   @IsDateString({ strict: true })
@@ -110,7 +117,8 @@ export class LessonDto {
   @Matches(/(?:Z|[+-]\d{2}:\d{2})$/)
   endsAt!: string;
   @IsIn(['DEMO_CLASS', 'REGULAR_CLASS']) category!:
-    'DEMO_CLASS' | 'REGULAR_CLASS';
+    | 'DEMO_CLASS'
+    | 'REGULAR_CLASS';
   @IsIn(['ONSITE', 'ONLINE']) deliveryMode!: 'ONSITE' | 'ONLINE';
   @IsOptional() @IsString() @MaxLength(200) location?: string;
   @IsOptional() @IsString() @MaxLength(500) meetingUrl?: string;

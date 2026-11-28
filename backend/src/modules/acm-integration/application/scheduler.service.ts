@@ -15,6 +15,7 @@ import {
 import {
   LessonDto,
   LessonQueryDto,
+  StudentQueryDto,
   TeacherQueryDto,
 } from './dto/scheduler.dto';
 import type { IntegrationPrincipal, WriteResult } from './scheduler.types';
@@ -86,6 +87,52 @@ export class SchedulerService {
         p.entId,
         q.email ?? null,
         q.status ?? null,
+        q.cursor ?? null,
+        q.limit + 1,
+      ],
+    );
+    return {
+      items: rows.slice(0, q.limit),
+      meta: {
+        limit: q.limit,
+        nextCursor: rows.length > q.limit ? rows[q.limit - 1].id : null,
+      },
+    };
+  }
+  /** REQ-261128D — enrolled students; no contact/birth/school data. */
+  async students(p: IntegrationPrincipal, q: StudentQueryDto) {
+    const rows = await this.ds.query<
+      {
+        id: string;
+        name: string;
+        englishName: string | null;
+        site: string | null;
+        grade: string | null;
+        status: string;
+        admissionDate: string | null;
+        teachers: { teacherId: string; name: string; primary: boolean }[];
+      }[]
+    >(
+      `SELECT s.std_id AS id, s.std_name AS name, s.std_english_name AS "englishName",
+              s.std_site AS site, s.std_grade AS grade, s.std_status AS status,
+              to_char(s.std_admission_date,'YYYY-MM-DD') AS "admissionDate",
+              COALESCE((SELECT jsonb_agg(jsonb_build_object('teacherId',t.tch_id,'name',t.tch_name,'primary',x.rn=1) ORDER BY x.rn)
+                FROM (SELECT st.tch_id, row_number() OVER (ORDER BY st.st_sort_order, st.created_at, st.tch_id) AS rn
+                        FROM amb_acm_std_student_teacher st
+                        JOIN amb_acm_tch_teacher tt ON tt.tch_id=st.tch_id AND tt.ent_id=st.ent_id AND tt.deleted_at IS NULL
+                       WHERE st.ent_id=s.ent_id AND st.std_id=s.std_id) x
+                JOIN amb_acm_tch_teacher t ON t.tch_id=x.tch_id AND t.ent_id=s.ent_id),'[]'::jsonb) AS teachers
+         FROM amb_acm_std_student s
+        WHERE s.ent_id=$1 AND s.deleted_at IS NULL AND s.std_status='ACTIVE'
+          AND ($2::uuid IS NULL OR EXISTS (SELECT 1 FROM amb_acm_std_student_teacher f
+                 WHERE f.ent_id=s.ent_id AND f.std_id=s.std_id AND f.tch_id=$2))
+          AND ($3::text IS NULL OR s.std_site=$3)
+          AND ($4::uuid IS NULL OR s.std_id>$4)
+        ORDER BY s.std_id LIMIT $5`,
+      [
+        p.entId,
+        q.teacherId ?? null,
+        q.site ?? null,
         q.cursor ?? null,
         q.limit + 1,
       ],

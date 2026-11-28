@@ -2720,6 +2720,7 @@
     "all": "All",
     "teachers": "Teachers",
     "lessons": "Lessons",
+    "students": "学生",
     "errors": "Errors and recovery",
     "field": "Location / parameter",
     "required": "Required",
@@ -2736,6 +2737,7 @@
     "masterOnly": "仅 MASTER 或租户主管可以管理 API 设置和密钥。",
     "enabled": "启用外部 API",
     "offNotice": "OFF by default. Disabling blocks existing keys without deleting keys or lessons.",
+    "studentPrivacy": "开启查询学生后，在读学生的姓名、英文名、校区、年级、入学日期和负责教师将发送给外部应用。不发送联系方式、出生日期和学校。",
     "save": "保存设置",
     "clientName": "对接应用名称",
     "addClient": "添加应用",
@@ -2761,7 +2763,8 @@
     "scopes": {
       "teachers:read": "查询教师",
       "lessons:read": "查询课程",
-      "lessons:write": "新增 / 修改 / 删除课程"
+      "lessons:write": "新增 / 修改 / 删除课程",
+      "students:read": "查询学生"
     },
     "studentRule": "Registered students are linked to their accounts. Unregistered demo students are stored by name without account creation or invitations. Resolve duplicate names using a student ID.",
     "timeRule": "Include UTC offsets. Fetch every page; ranges are limited to 31 days. Writes check for teacher conflicts again.",
