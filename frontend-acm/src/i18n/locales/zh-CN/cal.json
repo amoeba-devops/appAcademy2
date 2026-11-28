@@ -28,7 +28,11 @@
     "LEVEL_TEST": "分级测试",
     "DEMO_CLASS": "试听课",
     "REGULAR_CLASS": "正式课",
-    "OTHER": "其他"
+    "OTHER": "其他",
+    "AVAILABLE": "可上课时间",
+    "UNAVAILABLE": "不可上课时间",
+    "CANCELED": "停课",
+    "ABSENT": "缺课"
   },
   "provider": {
     "NONE": "无",
@@ -383,7 +387,15 @@
       "orange": "橙色",
       "gray": "灰色"
     },
-    "unassigned": "未分配"
+    "unassigned": "未分配",
+    "picker": {
+      "open": "为{{name}}选择颜色",
+      "pick": "选择{{name}}的颜色",
+      "invalid": "请按 #RRGGBB 格式输入（例如 #3B82F6）。",
+      "presets": "推荐颜色",
+      "preview": "预览"
+    },
+    "sharedAssignee": "按负责教师设置的颜色，对学院所有成员生效。分类颜色请在［分类管理］中修改。"
   },
   "repeat": {
     "endRequired": "重复结束日期（必填）",
@@ -500,5 +512,38 @@
     "hint": "参加学生会自动显示在日历上。标题只需输入科目。",
     "preview": "日历显示：",
     "duplicate": "标题与学生姓名相同 — 日历中只显示一次。请输入科目。"
+  },
+  "categoryManage": {
+    "open": "分类管理",
+    "title": "日程分类管理",
+    "systemHint": "默认分类与在线课程、咨询日程关联，不能改名或删除，但可以修改颜色和顺序。",
+    "order": "顺序",
+    "name": "名称",
+    "color": "颜色",
+    "inStats": "计入统计",
+    "manage": "操作",
+    "system": "默认",
+    "namePlaceholder": "分类名称",
+    "newName": "新分类",
+    "eventCount": "日程 {{count}} 条",
+    "delete": "删除",
+    "deleteConfirm": "要删除“{{name}}”分类吗？该分类的 {{count}} 条日程将保留，但新日程不能再选择它。",
+    "deleteNewConfirm": "要从列表中移除“{{name}}”吗？",
+    "deleteOk": "删除",
+    "add": "添加分类",
+    "moveUp": "上移{{name}}",
+    "moveDown": "下移{{name}}",
+    "deletedTag": "已删除",
+    "deletedOption": "{{name}}（已删除的分类）",
+    "errors": {
+      "CATEGORY_NAME_REQUIRED": "请输入分类名称。",
+      "CATEGORY_NAME_DUPLICATE": "已存在同名分类。",
+      "CATEGORY_NAME_TOO_LONG": "分类名称最多 40 个字符。",
+      "INVALID_COLOR": "颜色格式不正确。",
+      "CATEGORY_NOT_FOUND": "找不到该分类，请刷新后重试。",
+      "SYSTEM_CATEGORY_UNDELETABLE": "默认分类不能删除。",
+      "SYSTEM_CATEGORY_NAME_FIXED": "默认分类不能改名。",
+      "INVALID_CATEGORY": "无法使用该分类。"
+    }
   }
 }

@@ -27,6 +27,7 @@ const service = () =>
     } as unknown as TenantSettingsService,
     null!,
     null!,
+    null!,
   );
 
 describe('manual repeat registration end date', () => {

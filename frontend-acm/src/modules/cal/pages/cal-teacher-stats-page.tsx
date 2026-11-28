@@ -2,6 +2,7 @@ import { fromZonedShift, todayYmd, useTenantTz } from '@/lib/tz';
 import { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useCalCategories } from '../hooks/use-cal-categories';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useCalEvents } from '../hooks/use-cal-events';
 import type { CalEvent } from '../types';
@@ -21,6 +22,7 @@ import {
  */
 export function CalTeacherStatsPage() {
   const { t, i18n } = useTranslation('cal');
+  const categories = useCalCategories('admin');
   const { tchId } = useParams<{ tchId: string }>();
   const navigate = useNavigate();
   const tz = useTenantTz(); // REQ-260903
@@ -121,7 +123,7 @@ export function CalTeacherStatsPage() {
                     </span>
                     {ev.category && (
                       <span className="shrink-0 text-xs text-secondary">
-                        {t(`category.${ev.category}`, ev.category)}
+                        {categories.label(ev.category)}
                       </span>
                     )}
                     {ev.classDone && (

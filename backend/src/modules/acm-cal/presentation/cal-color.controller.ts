@@ -5,6 +5,7 @@ import {
   IsArray,
   IsIn,
   IsString,
+  Matches,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -16,11 +17,18 @@ import {
   CurrentUser,
   type AcmCurrentUser,
 } from '../../acm-common/decorators/current-user.decorator';
-import { CalColorService, PALETTES } from '../application/cal-color.service';
+import {
+  CalColorService,
+  HEX_COLOR_RE,
+  PALETTES,
+} from '../application/cal-color.service';
 class ColorDto {
   @IsIn(['CATEGORY', 'ASSIGNEE']) kind!: 'CATEGORY' | 'ASSIGNEE';
   @IsString() @MaxLength(50) target!: string;
-  @IsIn(PALETTES) palette!: string;
+  /** `#RRGGBB` (REQ-261128-CAL) or a legacy palette name. */
+  @IsString()
+  @Matches(new RegExp(`${HEX_COLOR_RE.source}|^(${PALETTES.join('|')})$`))
+  palette!: string;
 }
 class ColorsDto {
   @IsArray()

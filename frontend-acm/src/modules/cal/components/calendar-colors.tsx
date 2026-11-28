@@ -17,40 +17,27 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { CalEvent } from '../types';
-export const CAL_PALETTE = {
-  blue: ['#dbeafe', '#1e40af', '#93c5fd'],
-  purple: ['#f3e8ff', '#6b21a8', '#d8b4fe'],
-  amber: ['#fef3c7', '#92400e', '#fcd34d'],
-  green: ['#d1fae5', '#065f46', '#6ee7b7'],
-  rose: ['#ffe4e6', '#9f1239', '#fda4af'],
-  cyan: ['#cffafe', '#155e75', '#67e8f9'],
-  orange: ['#ffedd5', '#9a3412', '#fdba74'],
-  gray: ['#f3f4f6', '#374151', '#d1d5db'],
-} as const;
-type Palette = keyof typeof CAL_PALETTE;
+import { FALLBACK_COLOR, toHex, toneOf } from '../lib/cal-colors';
+import { useCalCategories } from '../hooks/use-cal-categories';
+import { ColorPicker } from './color-picker';
+import { CalCategoryManager } from './cal-category-manager';
 type Mode = 'CATEGORY' | 'ASSIGNEE';
 interface ColorSetting {
   kind: Mode;
   target: string;
-  palette: Palette;
+  /** `#rrggbb` (REQ-261128-CAL) or a legacy palette name. */
+  palette: string;
 }
-const defaults: Record<CalEvent['category'], Palette> = {
-  REGULAR_CLASS: 'blue',
-  DEMO_CLASS: 'purple',
-  MEETING: 'purple',
-  LEVEL_TEST: 'amber',
-  OTHER: 'green',
-};
-export function colorFor(
-  event: Pick<CalEvent, 'category' | 'assigneeTchId'>,
-  mode: Mode,
+/** Assignee color as `#rrggbb`; unassigned / unset → gray. */
+function assigneeColor(
+  tchId: string | null | undefined,
   items: ColorSetting[],
-): Palette {
-  const target = mode === 'CATEGORY' ? event.category : event.assigneeTchId;
-  if (!target) return 'gray';
+): string {
+  if (!tchId) return FALLBACK_COLOR;
   return (
-    items.find((i) => i.kind === mode && i.target === target)?.palette ??
-    (mode === 'CATEGORY' ? defaults[event.category] : 'gray')
+    toHex(
+      items.find((i) => i.kind === 'ASSIGNEE' && i.target === tchId)?.palette,
+    ) ?? FALLBACK_COLOR
   );
 }
 const Context = createContext<{
@@ -94,18 +81,23 @@ export function useCalendarColor(
   event: Pick<CalEvent, 'category' | 'assigneeTchId'>,
 ) {
   const c = useContext(Context);
-  const [backgroundColor, color, borderColor] =
-    CAL_PALETTE[colorFor(event, c.mode, c.items)];
+  const cats = useCalCategories('admin');
+  const [backgroundColor, color, borderColor] = toneOf(
+    c.mode === 'CATEGORY'
+      ? cats.colorOf(event.category)
+      : assigneeColor(event.assigneeTchId, c.items),
+  );
   return { backgroundColor, color, borderColor };
 }
 export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
   const { t } = useTranslation('cal');
   const user = useAuthStore((s) => s.user);
   const c = useContext(Context);
+  const cats = useCalCategories('admin');
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [draft, setDraft] = useState<ColorSetting[]>([]);
-  const [tab, setTab] = useState<Mode>('CATEGORY');
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -134,19 +126,18 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
         )
       ).data,
   });
-  const rows =
-    tab === 'CATEGORY'
-      ? Object.keys(defaults).map((id) => ({
-          id,
-          name: t(`category.${id}`, id),
-        }))
-      : teachers.filter((x) =>
-          x.name.toLowerCase().includes(search.toLowerCase()),
-        );
-  const choose = (target: string, palette: Palette) =>
+  // Legend: active categories + deleted ones still used by visible events.
+  const used = new Set(events.map((e) => e.category));
+  const legend = cats.all
+    .filter((k) => k.active || used.has(k.code))
+    .sort((a, b) => Number(!a.active) - Number(!b.active) || a.sortOrder - b.sortOrder);
+  const rows = teachers.filter((x) =>
+    x.name.toLowerCase().includes(search.toLowerCase()),
+  );
+  const choose = (target: string, palette: string) =>
     setDraft((a) => [
-      ...a.filter((i) => i.kind !== tab || i.target !== target),
-      { kind: tab, target, palette },
+      ...a.filter((i) => i.kind !== 'ASSIGNEE' || i.target !== target),
+      { kind: 'ASSIGNEE', target, palette },
     ]);
   return (
     <div className="mb-3 space-y-2 rounded border p-3 text-sm">
@@ -172,42 +163,39 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
           <option value="ASSIGNEE">{t('colors.assignee')}</option>
         </select>
         {user?.role === 'ADMIN' && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setDraft(c.items);
-              setError('');
-              setOpen(true);
-            }}
-          >
-            {t('colors.settings')}
-          </Button>
+          <>
+            <Button size="sm" variant="outline" onClick={() => setManageOpen(true)}>
+              {t('categoryManage.open')}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setDraft(c.items);
+                setError('');
+                setOpen(true);
+              }}
+            >
+              {t('colors.settings')}
+            </Button>
+          </>
         )}
       </div>
       <div className="flex flex-wrap gap-3 text-xs">
         {c.mode === 'CATEGORY' ? (
-          Object.keys(defaults).map((k) => {
-            const palette =
-              c.items.find((i) => i.kind === 'CATEGORY' && i.target === k)
-                ?.palette ?? defaults[k as CalEvent['category']];
-            return (
-              <span key={k}>
-                <span style={{ color: CAL_PALETTE[palette][1] }}>● </span>
-                {t(`category.${k}`, k)}
-              </span>
-            );
-          })
+          legend.map((k) => (
+            <span key={k.code}>
+              <span style={{ color: cats.colorOf(k.code) }}>● </span>
+              {cats.label(k.code)}
+              {!k.active && ` (${t('categoryManage.deletedTag')})`}
+            </span>
+          ))
         ) : (
           <>
             <span>{t('colors.teacherHint')}</span>
             {teacherLegend.map((e) => (
               <span key={e.assigneeTchId ?? 'none'}>
-                <span
-                  style={{
-                    color: CAL_PALETTE[colorFor(e, 'ASSIGNEE', c.items)][1],
-                  }}
-                >
+                <span style={{ color: assigneeColor(e.assigneeTchId, c.items) }}>
                   ●{' '}
                 </span>
                 {e.assigneeName ?? t('colors.unassigned')}
@@ -216,65 +204,35 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
           </>
         )}
       </div>
+      <CalCategoryManager open={manageOpen} onOpenChange={setManageOpen} />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('colors.settings')}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-secondary">{t('colors.shared')}</p>
-          <div className="flex gap-2">
-            {(['CATEGORY', 'ASSIGNEE'] as const).map((m) => (
-              <Button
-                key={m}
-                variant={tab === m ? 'default' : 'outline'}
-                onClick={() => setTab(m)}
+          <p className="text-sm text-secondary">{t('colors.sharedAssignee')}</p>
+          <input
+            className="rounded border p-2 text-base sm:text-sm"
+            aria-label={t('colors.search')}
+            placeholder={t('colors.search')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="max-h-96 space-y-3 overflow-y-auto">
+            {rows.map((row) => (
+              <div
+                key={row.id}
+                className="flex flex-wrap items-start justify-between gap-2 border-b pb-2"
               >
-                {t(m === 'CATEGORY' ? 'colors.category' : 'colors.assignee')}
-              </Button>
+                <span className="min-h-9 py-1">{row.name}</span>
+                <ColorPicker
+                  value={assigneeColor(row.id, draft)}
+                  label={row.name}
+                  preview={`17:00 | ${row.name}`}
+                  onChange={(hex) => choose(row.id, hex)}
+                />
+              </div>
             ))}
-          </div>
-          {tab === 'ASSIGNEE' && (
-            <input
-              className="rounded border p-2"
-              aria-label={t('colors.search')}
-              placeholder={t('colors.search')}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          )}
-          <div className="max-h-80 space-y-3 overflow-y-auto">
-            {rows.map((row) => {
-              const selected =
-                draft.find((i) => i.kind === tab && i.target === row.id)
-                  ?.palette ??
-                (tab === 'CATEGORY'
-                  ? defaults[row.id as CalEvent['category']]
-                  : 'gray');
-              return (
-                <div key={row.id} className="space-y-1">
-                  <span>{row.name}</span>
-                  <div className="flex flex-wrap gap-2">
-                    {(Object.keys(CAL_PALETTE) as Palette[]).map((p) => (
-                      <button
-                        type="button"
-                        key={p}
-                        aria-label={`${row.name}: ${t(`colors.palette.${p}`)}`}
-                        aria-pressed={selected === p}
-                        onClick={() => choose(row.id, p)}
-                        className={`h-9 w-9 sm:h-7 sm:w-7 rounded-full border-2 ${selected === p ? 'ring-2 ring-accent-500 ring-offset-2' : ''}`}
-                        style={{
-                          backgroundColor: CAL_PALETTE[p][0],
-                          borderColor: CAL_PALETTE[p][1],
-                          color: CAL_PALETTE[p][1],
-                        }}
-                      >
-                        {selected === p ? '✓' : ''}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
           </div>
           {error && (
             <p role="alert" className="text-red-700">
@@ -285,7 +243,9 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
             <Button
               variant="outline"
               disabled={busy}
-              onClick={() => setDraft([])}
+              onClick={() =>
+                setDraft((d) => d.filter((i) => i.kind !== 'ASSIGNEE'))
+              }
             >
               {t('colors.reset')}
             </Button>
@@ -294,10 +254,17 @@ export function CalendarColorToolbar({ events = [] }: { events?: CalEvent[] }) {
               onClick={async () => {
                 setBusy(true);
                 try {
+                  // Category colors are edited in the category manager; keep them as they are.
                   await apiClient.put('/acm/cal/color-settings', {
-                    items: draft,
+                    items: [
+                      ...c.items.filter((i) => i.kind === 'CATEGORY'),
+                      ...draft.filter((i) => i.kind === 'ASSIGNEE'),
+                    ],
                   });
-                  await qc.invalidateQueries({ queryKey: ['cal', 'colors'] });
+                  await Promise.all([
+                    qc.invalidateQueries({ queryKey: ['cal', 'colors'] }),
+                    qc.invalidateQueries({ queryKey: ['cal', 'categories'] }),
+                  ]);
                   setOpen(false);
                 } catch {
                   setError(t('common:status.error'));

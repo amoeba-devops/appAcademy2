@@ -8,7 +8,8 @@ export type CalCategory =
   | 'LEVEL_TEST'
   | 'DEMO_CLASS'
   | 'REGULAR_CLASS'
-  | 'OTHER';
+  | 'OTHER'
+  | (string & {});
 export type CalMeetingProvider =
   'NONE' | 'GOOGLE_MEET' | 'BODASCHOOL' | 'OTHER';
 export type CalSource = 'MANUAL' | 'CLS_SESSION' | 'INSTANT' | 'EXTERNAL';

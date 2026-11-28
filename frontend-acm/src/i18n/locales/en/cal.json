@@ -28,7 +28,11 @@
     "LEVEL_TEST": "Level Test",
     "DEMO_CLASS": "Demo Class",
     "REGULAR_CLASS": "Regular Class",
-    "OTHER": "Other"
+    "OTHER": "Other",
+    "AVAILABLE": "Available hours",
+    "UNAVAILABLE": "Unavailable hours",
+    "CANCELED": "Class canceled",
+    "ABSENT": "Absence"
   },
   "provider": {
     "NONE": "None",
@@ -383,7 +387,15 @@
       "orange": "Orange",
       "gray": "Gray"
     },
-    "unassigned": "Unassigned"
+    "unassigned": "Unassigned",
+    "picker": {
+      "open": "Choose color for {{name}}",
+      "pick": "Pick color for {{name}}",
+      "invalid": "Enter a color as #RRGGBB (e.g. #3B82F6).",
+      "presets": "Suggested colors",
+      "preview": "Preview"
+    },
+    "sharedAssignee": "Colors per assigned teacher, shared with everyone at the academy. Category colors are set in [Manage categories]."
   },
   "repeat": {
     "endRequired": "Repeat end date (required)",
@@ -500,5 +512,39 @@
     "hint": "Attending students are shown on the calendar automatically. Enter only the subject as the title.",
     "preview": "Calendar shows:",
     "duplicate": "The title is the same as the student name — it is shown only once. Enter the subject."
+  },
+  "categoryManage": {
+    "open": "Manage categories",
+    "title": "Manage schedule categories",
+    "systemHint": "Default categories are linked to online classes and consultation schedules, so they cannot be renamed or deleted. You can change their color and order.",
+    "order": "Order",
+    "name": "Name",
+    "color": "Color",
+    "inStats": "In stats",
+    "manage": "Actions",
+    "system": "Default",
+    "namePlaceholder": "Category name",
+    "newName": "New category",
+    "eventCount_one": "{{count}} event",
+    "eventCount_other": "{{count}} events",
+    "delete": "Delete",
+    "deleteConfirm": "Delete the “{{name}}” category? Its {{count}} existing events stay as they are, but it can no longer be chosen for new events.",
+    "deleteNewConfirm": "Remove “{{name}}” from the list?",
+    "deleteOk": "Delete",
+    "add": "Add category",
+    "moveUp": "Move {{name}} up",
+    "moveDown": "Move {{name}} down",
+    "deletedTag": "deleted",
+    "deletedOption": "{{name}} (deleted category)",
+    "errors": {
+      "CATEGORY_NAME_REQUIRED": "Enter a category name.",
+      "CATEGORY_NAME_DUPLICATE": "A category with this name already exists.",
+      "CATEGORY_NAME_TOO_LONG": "Category names can be up to 40 characters.",
+      "INVALID_COLOR": "The color format is invalid.",
+      "CATEGORY_NOT_FOUND": "Category not found. Refresh and try again.",
+      "SYSTEM_CATEGORY_UNDELETABLE": "Default categories cannot be deleted.",
+      "SYSTEM_CATEGORY_NAME_FIXED": "Default categories cannot be renamed.",
+      "INVALID_CATEGORY": "This category cannot be used."
+    }
   }
 }

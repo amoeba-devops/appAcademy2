@@ -31,6 +31,7 @@ import { copyHtmlToClipboard } from "../lib/copy-html";
 import { formatTime } from "../lib/date-utils";
 import { formatDual, useTenantTz } from "@/lib/tz";
 import { useMyZones } from "@/modules/me/use-my-zones";
+import { useCalCategories } from "../hooks/use-cal-categories";
 
 /**
  * PLN-260729-2 — 관리자 수업일정 상세 "페이지" (/admin/cal/:evtId).
@@ -48,6 +49,7 @@ interface ClassRecordRow {
 export function CalEventDetailPage() {
   const { evtId } = useParams<{ evtId: string }>();
   const { t, i18n } = useTranslation(["cal", "common"]);
+  const categories = useCalCategories("admin");
   const navigate = useNavigate();
   const toast = useToast();
   const tz = useTenantTz(); // REQ-260903 — 테넌트 TZ 기준 표시
@@ -167,7 +169,7 @@ export function CalEventDetailPage() {
             )}
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <span className="rounded-full bg-[var(--gray-100)] px-2 py-0.5 text-xs text-secondary">
-                {t(`category.${event.category}`, event.category)}
+                {categories.label(event.category)}
               </span>
               {classDone && (
                 <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold text-emerald-800">

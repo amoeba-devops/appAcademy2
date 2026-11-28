@@ -244,6 +244,7 @@ async function main() {
           throw Error('simulated room failure');
         },
       },
+      categories: { assertUsable: async () => {}, statsExcluded: async () => new Set<string>() },
     });
     const outboxCount = async () =>
       Number(
